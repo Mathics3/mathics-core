@@ -606,8 +606,8 @@ class BeginPackage(Builtin):
              Protect[System`Private`$ContextPathStack, System`$Packages];
              context
         """,
-        # "BeginPackage[context_String, needs__]": """
-        #      BeginPackage[context]; Needs[Map[Needs, needs]];
+        # "BeginPackage[context_String, needs__List]": """
+        #      BeginPackage[context]; Map[Needs, needs];
         # """
     }
     summary_text = "temporarily set the context and clean the context path"
