@@ -24,6 +24,8 @@ from mathics_scanner import TranslateError
 from mathics.core.parser import MathicsFileLineFeeder, MathicsMultiLineFeeder, parse
 from mathics.core.read import (
     read_get_separators,
+    read_list_from_types,
+    READ_TYPES,
     reader,
 )
 
@@ -193,6 +195,27 @@ class MathicsOpen(Stream):
         global INPUTFILE_VAR
         INPUTFILE_VAR = self.old_inputfile_var or ""
         super().__exit__(type, value, traceback)
+
+
+def channel_to_stream(channel, mode="r"):
+    if isinstance(channel, String):
+        name = channel.get_string_value()
+        opener = MathicsOpen(name, mode)
+        opener.__enter__()
+        n = opener.n
+        if mode in ["r", "rb"]:
+            head = "InputStream"
+        elif mode in ["w", "a", "wb", "ab"]:
+            head = "OutputStream"
+        else:
+            raise ValueError(f"Unknown format {mode}")
+        return Expression(head, channel, Integer(n))
+    elif channel.has_form("InputStream", 2):
+        return channel
+    elif channel.has_form("OutputStream", 2):
+        return channel
+    else:
+        return None
 
 
 def read_name_and_stream_from_channel(channel, evaluation):
@@ -514,150 +537,22 @@ class Read(Builtin):
         if name is None:
             return
 
-        # Wrap types in a list (if it isn't already one)
-        if types.has_form("List", None):
-            types = types._leaves
-        else:
-            types = (types,)
+        types_list = read_list_from_types(types)
 
-        # TODO: look for a better implementation handling "Hold[Expression]".
-        #
-        types = (
-            Symbol("HoldExpression")
-            if (
-                typ.get_head_name() == "System`Hold"
-                and typ.leaves[0].get_name() == "System`Expression"
-            )
-            else typ
-            for typ in types
-        )
-        types = Expression("List", *types)
-
-        READ_TYPES = [
-            Symbol(k)
-            for k in [
-                "Byte",
-                "Character",
-                "Expression",
-                "HoldExpression",
-                "Number",
-                "Real",
-                "Record",
-                "String",
-                "Word",
-            ]
-        ]
-
-        for typ in types.leaves:
+        for typ in types_list.leaves:
             if typ not in READ_TYPES:
                 evaluation.message("Read", "readf", typ)
                 return SymbolFailed
 
-        record_separators, word_separators, py_name = read_get_separators(options, name)
+        record_separators, word_separators = read_get_separators(options)
+        py_name = name.to_python()
 
-        result = []
-
-        read_word = reader(stream, word_separators, evaluation)
-        read_record = reader(stream, record_separators, evaluation)
-        read_number = reader(
-            stream,
-            word_separators + record_separators,
-            evaluation,
-            ["+", "-", "."] + [str(i) for i in range(10)],
+        result = read_from_stream(
+            stream, types_list, record_separators, word_separators, evaluation
         )
-        read_real = reader(
-            stream,
-            word_separators + record_separators,
-            evaluation,
-            ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
-        )
-        for typ in types.leaves:
-            try:
-                if typ == Symbol("Byte"):
-                    tmp = stream.io.read(1)
-                    if tmp == "":
-                        raise EOFError
-                    result.append(ord(tmp))
-                elif typ == Symbol("Character"):
-                    tmp = stream.io.read(1)
-                    if tmp == "":
-                        raise EOFError
-                    result.append(tmp)
-                elif typ == Symbol("Expression") or typ == Symbol("HoldExpression"):
-                    tmp = next(read_record)
-                    while True:
-                        try:
-                            feeder = MathicsMultiLineFeeder(tmp)
-                            expr = parse(evaluation.definitions, feeder)
-                            break
-                        except (IncompleteSyntaxError, InvalidSyntaxError):
-                            try:
-                                nextline = next(read_record)
-                                tmp = tmp + "\n" + nextline
-                            except EOFError:
-                                expr = SymbolEndOfFile
-                                break
-                        except Exception as e:
-                            print(e)
 
-                    if expr == SymbolEndOfFile:
-                        evaluation.message(
-                            "Read",
-                            "readt",
-                            tmp,
-                            Expression("InputSteam", py_name, stream),
-                        )
-                        return SymbolFailed
-                    elif isinstance(expr, BaseExpression):
-                        if typ == Symbol("HoldExpression"):
-                            expr = Expression("Hold", expr)
-                        result.append(expr)
-                    # else:
-                    #  TODO: Supposedly we can't get here
-                    # what code should we put here?
-
-                elif typ == Symbol("Number"):
-                    tmp = next(read_number)
-                    try:
-                        tmp = int(tmp)
-                    except ValueError:
-                        try:
-                            tmp = float(tmp)
-                        except ValueError:
-                            evaluation.message(
-                                "Read",
-                                "readn",
-                                Expression("InputSteam", py_name, stream),
-                            )
-                            return SymbolFailed
-                    result.append(tmp)
-
-                elif typ == Symbol("Real"):
-                    tmp = next(read_real)
-                    tmp = tmp.replace("*^", "E")
-                    try:
-                        tmp = float(tmp)
-                    except ValueError:
-                        evaluation.message(
-                            "Read", "readn", Expression("InputSteam", py_name, stream)
-                        )
-                        return SymbolFailed
-                    result.append(tmp)
-                elif typ == Symbol("Record"):
-                    result.append(next(read_record))
-                elif typ == Symbol("String"):
-                    tmp = stream.io.readline()
-                    if len(tmp) == 0:
-                        raise EOFError
-                    result.append(tmp.rstrip("\n"))
-                elif typ == Symbol("Word"):
-                    result.append(next(read_word))
-
-            except EOFError:
-                return SymbolEndOfFile
-            except UnicodeDecodeError:
-                evaluation.message("General", "ucdec")
-
+        if isinstance(result, Symbol):
+            return result
         if len(result) == 1:
             return from_python(*result)
 
@@ -2281,6 +2176,7 @@ class ReadList(Read):
      = {123, abc}
     """
 
+    # """
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -2307,10 +2203,28 @@ class ReadList(Read):
         # token_words = py_options['TokenWords']
         # word_separators = py_options['WordSeparators']
 
+        name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
+        if name is None:
+            return
+
+        types_list = read_list_from_types(types)
+
+        # FIXME: reinstate this code
+        # for typ in types_list.leaves:
+        #     if typ not in READ_TYPES:
+        #         evaluation.message("Read", "readf", typ)
+        #         return SymbolFailed
+
+        record_separators, word_separators = read_get_separators(options)
+        py_name = name.to_python()
+
         result = []
         while True:
+            # FIXME: use this code instead of "super()"
+            # tmp = read_from_stream(stream, types_list, record_separators, word_separators, evaluation)
             tmp = super(ReadList, self).apply(channel, types, evaluation, options)
 
+            # FIXME: Figure out what to do here...
             if tmp is None:
                 return
 
