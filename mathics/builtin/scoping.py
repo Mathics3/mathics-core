@@ -609,10 +609,9 @@ class BeginPackage(Builtin):
         "BeginPackage[context_String, needs__List]": """
              Print["Mathics does not support the second argument: ",needs,". Please add Needs[] explicitly inside the package."];
              BeginPackage[context]
-        """
+        """,
     }
     summary_text = "temporarily set the context and clean the context path"
-
 
 
 class EndPackage(Builtin):
