@@ -19,6 +19,8 @@ from mathics.builtin.box.graphics3d import (
     Sphere3DBox,
 )
 
+from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
+
 # FIXME
 # Add 2D elements like DensityPlot
 
@@ -208,3 +210,23 @@ def sphere_3d_box(self) -> list:
 
 
 add_conversion_fn(Sphere3DBox, sphere_3d_box)
+
+
+def uniform_polyhedron_3d_box(self) -> list:
+    face_color = self.face_color
+    if face_color is not None:
+        face_color = face_color.to_js()
+    data = [
+        {
+            "type": "uniformPolyhedron",
+            "color": face_color[:3],
+            "faceColor": face_color,
+            "coords": [[[0, 0, 0]]],
+            "subType": self.sub_type,
+        }
+    ]
+    # print("### json UniformPolyhedron3DBox", data)
+    return data
+
+
+add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)

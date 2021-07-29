@@ -29,6 +29,13 @@ Gamma functions:
 * ``PolyGamma``
 * ``Stieltjes``
 
+Uniform Polyhedron
+* ``Dodecahedron``
+* ``Isohedron``
+* ``Octahedron``
+* ``TetraHedron``
+* ``UniformPolyedron``
+
 
 Bugs
 ++++
