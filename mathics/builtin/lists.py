@@ -2492,8 +2492,15 @@ class _PrecomputedDistances(PrecomputedDistances):
     # computes all n^2 distances for n points with one big evaluation in the beginning.
 
     def __init__(self, df, p, evaluation):
-        distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
+        distances_form = [
+            apply_N(df(p[i], p[j]), evaluation) for i in range(len(p)) for j in range(i)
+        ]
+        distances_form = [
+            d if isinstance(d, Number) else d.evaluate(evaluation)
+            for d in distances_form
+        ]
+        distances = Expression(SymbolList, *distances_form)
+
         mpmath_distances = [_to_real_distance(d) for d in distances.leaves]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -2510,6 +2517,8 @@ class _LazyDistances(LazyDistances):
     def _compute_distance(self, i, j):
         p = self._p
         d = apply_N(self._df(p[i], p[j]), self._evaluation)
+        if not isinstance(d, Number):
+            d = d.evaluate(self._evaluation)
         return _to_real_distance(d)
 
 

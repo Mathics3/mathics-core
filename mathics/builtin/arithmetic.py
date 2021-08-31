@@ -632,6 +632,8 @@ class PossibleZeroQ(SympyFunction):
         if result is None:
             # Can't get exact answer, so try approximate equal
             numeric_val = apply_N(expr, evaluation)
+            if not isinstance(numeric_val, Number):
+                numeric_val = numeric_val.evaluate(evaluation)
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif (

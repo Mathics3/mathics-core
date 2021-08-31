@@ -555,6 +555,7 @@ class Power(BinaryOperator, _MPMathFunction):
                 y_err = y
             else:
                 y_err = apply_N(y, evaluation)
+                y_err = y_err if y_err.is_atom() else y_err.evaluate(evaluation)
             if isinstance(y_err, Number):
                 py_y = y_err.round_to_float(permit_complex=True).real
                 if py_y > 0:
