@@ -294,6 +294,8 @@ class Cylinder(Builtin):
         if not isinstance(radius, (Integer, Rational, Real)):
             nradius = apply_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
+                nradius = nradius.evaluate(evaluation)
+            if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 
         return

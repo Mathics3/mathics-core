@@ -12,6 +12,7 @@ from mathics.core.expression import (
     Expression,
     Integer,
     Integer0,
+    Number,
     Rational,
     Symbol,
     from_python,
@@ -413,12 +414,16 @@ class MantissaExponent(Builtin):
 
         if n_sympy.is_constant():
             temp_n = apply_N(n, evaluation)
+            if not isinstance(temp_n, Number):
+                temp_n = temp_n.evaluate(evaluation)
             py_n = temp_n.to_python()
         else:
             return expr
 
         if b_sympy.is_constant():
             temp_b = apply_N(b, evaluation)
+            if not isinstance(temp_b, Number):
+                temp_b = temp_b.evaluate(evaluation)
             py_b = temp_b.to_python()
         else:
             return expr

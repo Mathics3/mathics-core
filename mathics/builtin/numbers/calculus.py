@@ -1281,6 +1281,8 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if x1 == x0:
             break
         x0 = apply_N(x1, evaluation)
+        if not isinstance(x0, Number):
+            x0 = x0.evaluate(evaluation)
         # N required due to bug in sympy arithmetic
         count += 1
     else:
@@ -1377,6 +1379,8 @@ class FindRoot(Builtin):
         "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
         # First, determine x0 and x
         x0 = apply_N(x0, evaluation)
+        if not isinstance(x0, Number):
+            x0 = x0.evaluate(evaluation)
         if not isinstance(x0, Number):
             evaluation.message("FindRoot", "snum", x0)
             return

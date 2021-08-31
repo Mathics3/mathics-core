@@ -210,7 +210,7 @@ class CompiledCode(Atom):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash(("CompiledCode", ctypes.addressof(self.cfunc)))  # XXX hack
+        return hash(("CompiledCode", self.cfunc))  # XXX hack
 
     def atom_to_boxes(self, f, evaluation):
         return CompiledCodeBox(String(self.__str__()), evaluation=evaluation)
