@@ -20,7 +20,7 @@ from mathics.core.expression import (
 from mathics.core.convert import from_sympy, SympyPrime
 import mpmath
 
-from mathics.builtin.numeric import _numeric_evaluation_with_prec
+from mathics.builtin.numeric import apply_N
 
 
 class ContinuedFraction(SympyFunction):
@@ -413,13 +413,13 @@ class MantissaExponent(Builtin):
             return expr
 
         if n_sympy.is_constant():
-            temp_n = _numeric_evaluation_with_prec(n, evaluation)
+            temp_n = apply_N(n, evaluation)
             py_n = temp_n.to_python()
         else:
             return expr
 
         if b_sympy.is_constant():
-            temp_b = _numeric_evaluation_with_prec(b, evaluation)
+            temp_b = apply_N(b, evaluation)
             py_b = temp_b.to_python()
         else:
             return expr
@@ -444,7 +444,7 @@ class MantissaExponent(Builtin):
             return expr
         # Handle Input with special cases such as PI and E
         if n_sympy.is_constant():
-            temp_n = _numeric_evaluation_with_prec(n, evaluation)
+            temp_n = apply_N(n, evaluation)
             py_n = temp_n.to_python()
         else:
             return expr
@@ -488,7 +488,7 @@ class NextPrime(Builtin):
     }
 
     def apply(self, n, k, evaluation):
-        "NextPrime[n_?NumericQ, k_Integer]"
+        "NextPrime[n_?NumberQ, k_Integer]"
         py_k = k.to_python(n_evaluation=evaluation)
         py_n = n.to_python(n_evaluation=evaluation)
 
