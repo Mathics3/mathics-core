@@ -191,7 +191,7 @@ setup(
     description="A general-purpose computer algebra system.",
     license="GPL",
     url="https://mathics.org/",
-    download_url="https://github.com/mathics/Mathics/releases",
+    download_url="https://github.com/Mathics/mathics-core/releases",
     keywords=["Mathematica", "Wolfram", "Interpreter", "Shell", "Math", "CAS"],
     classifiers=[
         "Intended Audience :: Developers",

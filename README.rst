@@ -1,7 +1,7 @@
 Welcome to Mathics!
 ===================
 
-|Pypi Installs| |Latest Version| |Supported Python Versions| |Travis|_ |SlackStatus|_
+|Pypi Installs| |Latest Version| |Supported Python Versions| |SlackStatus|_
 
 |Packaging status|
 
@@ -43,8 +43,8 @@ Mathics is released under the GNU General Public License Version 3 (GPL3).
 
 .. |SlackStatus| image:: https://mathics-slackin.herokuapp.com/badge.svg
 .. _SlackStatus: https://mathics-slackin.herokuapp.com/
-.. |Travis| image:: https://secure.travis-ci.org/mathics/Mathics.svg?branch=master
-.. _Travis: https://travis-ci.org/mathics/Mathics
+.. |Travis| image:: https://secure.travis-ci.org/Mathics3/mathics-core.svg?branch=master
+.. _Travis: https://travis-ci.org/Mathics3/mathics-core
 .. _PyPI: https://pypi.org/project/Mathics/
 .. |mathicsscript| image:: https://github.com/Mathics3/mathicsscript/blob/master/screenshots/mathicsscript1.gif
 .. |mathicssserver| image:: https://mathics.org/images/mathicsserver.png
