@@ -1773,7 +1773,7 @@ class OpenRead(_OpenAction):
      = InputStream[...]
     #> Close[%];
 
-    S> OpenRead["https://raw.githubusercontent.com/mathics/Mathics/master/README.rst"]
+    S> OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]
      = InputStream[...]
     S> Close[%];
 
