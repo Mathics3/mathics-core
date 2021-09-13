@@ -26,6 +26,7 @@ from mathics.builtin.box.graphics3d import (
     Point3DBox,
     Polygon3DBox,
     Sphere3DBox,
+    Tube3DBox,
 )
 
 from mathics.builtin.graphics import (
@@ -606,3 +607,20 @@ def sphere3dbox(self, **options) -> str:
 
 
 add_conversion_fn(Sphere3DBox)
+
+
+def tube3dbox(self, **options) -> str:
+    if self.face_color is None:
+        face_color = (1, 1, 1)
+    else:
+        face_color = self.face_color.to_js()
+
+    asy = "// Tube3DBox\n draw(tube({0}, {1}), rgb({2},{3},{4}));".format(
+        "--".join("({0},{1},{2})".format(*coords.pos()[0]) for coords in self.points),
+        self.radius,
+        *face_color[:3],
+    )
+    return asy
+
+
+add_conversion_fn(Tube3DBox)

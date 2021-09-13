@@ -1355,6 +1355,7 @@ element_heads = frozenset(
         "Sphere",
         "Style",
         "Text",
+        "Tube",
         "UniformPolyhedron",
     )
 )

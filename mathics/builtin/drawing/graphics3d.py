@@ -341,3 +341,26 @@ class Cylinder(Builtin):
                 evaluation.error("Cylinder", "nrr", radius)
 
         return
+
+
+class Tube(Builtin):
+    """
+    <dl>
+      <dt>'Tube[{$p1$, $p2$, ...}]'
+      <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
+
+      <dt>'Tube[{$p1$, $p2$, ...}, $r$]'
+      <dd>represents a tube with radius $r$.
+    </dl>
+
+    >> Graphics3D[Tube[{{0,0,0}, {1,1,1}}]]
+    = -Graphics3D-
+
+    >> Graphics3D[Tube[{{0,0,0}, {1,1,1}, {0, 0, 1}}, 0.1]]
+    = -Graphics3D-
+    """
+
+    rules = {
+        "Tube[]": "Tube[{{0, 0, 0}, {1, 1, 1}}, 1]",
+        "Tube[positions_]": "Tube[positions, 1]",
+    }

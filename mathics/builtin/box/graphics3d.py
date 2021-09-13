@@ -915,6 +915,41 @@ class Sphere3DBox(InstanceableBuiltin):
         pass
 
 
+class Tube3DBox(InstanceableBuiltin):
+    def init(self, graphics, style, item):
+        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+
+        points = item.leaves[0].to_python()
+        if not all(
+            len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
+            for point in points
+        ):
+            raise BoxConstructError
+
+        self.points = [Coords3D(graphics, pos=point) for point in points]
+        self.radius = item.leaves[1].to_python()
+
+    def extent(self):
+        result = []
+        result.extend(
+            [
+                coords.add(self.radius, self.radius, self.radius).pos()[0]
+                for coords in self.points
+            ]
+        )
+        result.extend(
+            [
+                coords.add(-self.radius, -self.radius, -self.radius).pos()[0]
+                for coords in self.points
+            ]
+        )
+        return result
+
+    def _apply_boxscaling(self, boxscale):
+        # TODO
+        pass
+
+
 # FIXME: GLOBALS3D is a horrible name.
 GLOBALS3D.update(
     {
@@ -926,5 +961,6 @@ GLOBALS3D.update(
         "System`Point3DBox": Point3DBox,
         "System`Polygon3DBox": Polygon3DBox,
         "System`Sphere3DBox": Sphere3DBox,
+        "System`Tube3DBox": Tube3DBox,
     }
 )
