@@ -707,14 +707,12 @@ class Arrow3DBox(ArrowBox):
                 coords.scale(boxscale)
 
 
-class Cone3DBox(_Graphics3DElement):
+class Cone3DBox(InstanceableBuiltin):
     """
     Internal Python class used when Boxing a 'Cone' object.
     """
 
     def init(self, graphics, style, item):
-        super(Cone3DBox, self).init(graphics, item, style)
-
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
         if len(item.leaves) != 2:
@@ -727,7 +725,7 @@ class Cone3DBox(_Graphics3DElement):
         ):
             raise BoxConstructError
 
-        self.points = [Coords3D(graphics, pos=point) for point in points]
+        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
         self.radius = item.leaves[1].to_python()
 
     def extent(self):

@@ -218,10 +218,7 @@ add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
 def cone3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     # FIXME: currently always drawing around the axis X+Y
     axes_point = (1, 1, 0)
