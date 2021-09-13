@@ -258,7 +258,7 @@ class Cuboid(Builtin):
             # The number of points is odd, so abort.
             evaluation.error("Cuboid", "oddn", positions)
 
-        return Expression("Cuboid", positions)
+        return
 
 
 class Cylinder(Builtin):
