@@ -23,7 +23,7 @@ class UniformPolyhedron3DBox(InstanceableBuiltin):
         ):
             raise BoxConstructError
 
-        self.points = [Coords3D(graphics, pos=point) for point in points]
+        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
         self.edge_length = item.leaves[2].to_python()
         self.sub_type = item.leaves[0].to_python(string_quotes=False)
 
