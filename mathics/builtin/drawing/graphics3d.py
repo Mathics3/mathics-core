@@ -62,6 +62,7 @@ class Style3D(Style):
     def get_default_face_color(self):
         return RGBColor(components=(1, 1, 1, 1))
 
+
 class Graphics3D(Graphics):
     r"""
     <dl>
