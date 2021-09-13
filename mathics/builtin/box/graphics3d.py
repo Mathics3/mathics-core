@@ -379,7 +379,7 @@ class Graphics3DBox(GraphicsBox):
                 },
                 "lighting": self.lighting,
                 "viewpoint": self.viewpoint,
-                "protocol": "1.0",
+                "protocol": "1.1",
             }
         )
 
