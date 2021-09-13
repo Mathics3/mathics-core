@@ -7,7 +7,7 @@ import html
 import json
 import numbers
 
-from mathics.builtin.base import BoxConstructError
+from mathics.builtin.base import BoxConstructError, InstanceableBuiltin
 from mathics.builtin.box.graphics import (
     GraphicsBox,
     ArrowBox,
@@ -19,7 +19,6 @@ from mathics.builtin.box.graphics import (
 from mathics.builtin.colors.color_directives import _Color, RGBColor
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.builtin.drawing.graphics3d import (
-    _Graphics3DElement,
     Coords3D,
     Graphics3DElements,
 )
@@ -710,14 +709,12 @@ class Arrow3DBox(ArrowBox):
                 coords.scale(boxscale)
 
 
-class Cuboid3DBox(_Graphics3DElement):
+class Cuboid3DBox(InstanceableBuiltin):
     """
     Internal Python class used when Boxing a 'Cuboid' object.
     """
 
     def init(self, graphics, style, item):
-        super(Cuboid3DBox, self).init(graphics, item, style)
-
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
         if len(item.leaves) != 1:
@@ -740,14 +737,12 @@ class Cuboid3DBox(_Graphics3DElement):
         pass
 
 
-class Cylinder3DBox(_Graphics3DElement):
+class Cylinder3DBox(InstanceableBuiltin):
     """
     Internal Python class used when Boxing a 'Cylinder' object.
     """
 
     def init(self, graphics, style, item):
-        super(Cylinder3DBox, self).init(graphics, item, style)
-
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
         if len(item.leaves) != 2:
@@ -842,9 +837,8 @@ class Polygon3DBox(PolygonBox):
                 coords.scale(boxscale)
 
 
-class Sphere3DBox(_Graphics3DElement):
+class Sphere3DBox(InstanceableBuiltin):
     def init(self, graphics, style, item):
-        super(Sphere3DBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
         if len(item.leaves) != 2:
             raise BoxConstructError
