@@ -33,26 +33,21 @@ def coords3D(value):
 
 
 class Coords3D(object):
-    def __init__(self, graphics, expr=None, pos=None, d=None):
-        self.graphics = graphics
+    def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
-        self.d = d
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                self.d = coords3D(expr.leaves[0])
                 if len(expr.leaves) > 1:
                     self.p = coords3D(expr.leaves[1])
-                else:
-                    self.p = None
             else:
                 self.p = coords3D(expr)
 
     def pos(self):
-        return self.p, self.d
+        return self.p, None
 
     def add(self, x, y, z):
         p = (self.p[0] + x, self.p[1] + y, self.p[2] + z)
-        return Coords3D(self.graphics, pos=p, d=self.d)
+        return Coords3D(pos=p)
 
     def scale(self, a):
         self.p = (self.p[0] * a[0], self.p[1] * a[1], self.p[2] * a[2])

@@ -725,7 +725,7 @@ class Cuboid3DBox(InstanceableBuiltin):
         ):
             raise BoxConstructError
 
-        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
+        self.points = tuple(Coords3D(pos=point) for point in points)
 
     def extent(self):
         return [coords.pos()[0] for coords in self.points]
@@ -753,7 +753,7 @@ class Cylinder3DBox(InstanceableBuiltin):
         ):
             raise BoxConstructError
 
-        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
+        self.points = tuple(Coords3D(pos=point) for point in points)
         self.radius = item.leaves[1].to_python()
 
     def extent(self):
@@ -850,7 +850,7 @@ class Sphere3DBox(InstanceableBuiltin):
         ):
             raise BoxConstructError
 
-        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
+        self.points = tuple(Coords3D(pos=point) for point in points)
         self.radius = item.leaves[1].to_python()
 
     def extent(self):
