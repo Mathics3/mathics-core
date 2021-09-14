@@ -19,7 +19,6 @@ from mathics.builtin.box.graphics import (
 from mathics.builtin.box.graphics3d import (
     Graphics3DElements,
     Arrow3DBox,
-    Coords3D,
     Cuboid3DBox,
     Cylinder3DBox,
     Line3DBox,
@@ -230,16 +229,8 @@ def cuboid3dbox(self, **options) -> str:
     i = 0
     while i < len(self.points) / 2:
         try:
-            point1_obj = self.points[i * 2]
-            if isinstance(point1_obj, Coords3D):
-                point1 = point1_obj.pos()[0]
-            else:
-                point1 = point1_obj[0]
-            point2_obj = self.points[i * 2 + 1]
-            if isinstance(point2_obj, Coords3D):
-                point2 = point2_obj.pos()[0]
-            else:
-                point2 = point2_obj[0]
+            point1 = self.points[i * 2].pos()[0]
+            point2 = self.points[i * 2 + 1].pos()[0]
 
             asy += f"""
                 draw(shift({point1[0]}, {point1[1]}, {point1[2]}) * scale(
@@ -275,16 +266,8 @@ def cylinder3dbox(self, **options) -> str:
     i = 0
     while i < len(self.points) / 2:
         try:
-            point1_obj = self.points[i * 2]
-            if isinstance(point1_obj, Coords3D):
-                point1 = point1_obj.pos()[0]
-            else:
-                point1 = point1_obj[0]
-            point2_obj = self.points[i * 2 + 1]
-            if isinstance(point2_obj, Coords3D):
-                point2 = point2_obj.pos()[0]
-            else:
-                point2 = point2_obj[0]
+            point1 = self.points[i * 2].pos()[0]
+            point2 = self.points[i * 2 + 1].pos()[0]
 
             # Compute distance between start point and end point.
             distance = (
