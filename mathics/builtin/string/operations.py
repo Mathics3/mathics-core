@@ -849,6 +849,9 @@ class StringSplit(Builtin):
      = {a, aBa}
     #> StringSplit["abaBa", "b", IgnoreCase -> True]
      = {a, a, a}
+
+    #> StringSplit["13  a22    bbb", WhitespaceCharacter]
+     = {13, , a22, , , , bbb}
     """
 
     rules = {
@@ -899,7 +902,15 @@ class StringSplit(Builtin):
             result = [t for s in result for t in mathics_split(re_patt, s, flags=flags)]
 
         return string_list(
-            SymbolList, [String(x) for x in result if x != ""], evaluation
+            SymbolList,
+            [
+                String(x)
+                for x in result
+                # Remove the empty matches only if we aren't splitting by
+                # whitespace because Python's RegEx matches " " as ""
+                if x != "" or patts[0].to_python() in ("", "System`WhitespaceCharacter")
+            ],
+            evaluation,
         )
 
 
