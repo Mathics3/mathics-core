@@ -452,7 +452,7 @@ class WhitespaceCharacter(Builtin):
      = True
 
     >> StringSplit["a\nb\r\nc\rd", WhitespaceCharacter]
-     = {a, b, c, d}
+     = {a, b, , c, d}
 
     For sequences of whitespace characters use 'Whitespace':
     >> StringMatchQ[" \n", WhitespaceCharacter]
