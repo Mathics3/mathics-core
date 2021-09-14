@@ -9,6 +9,11 @@ Internals
 * To numerify expressions, the function `apply_N` was introduced in the module `mathics.builtin.numeric` to avoid the idiom
   `Expression("N", expr, prec).evaluate(evaluation)`. The idea is to avoid when it is possible to call the Pattern matching routines to obtain the numeric value of an expression.
 * A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
+* `any`/`all` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
+* `BaseExpression.get_head`  now avoids building a symbol and then look for its name. It saves two function calls.
+* Now, `SameQ` first checks type, then `id`s, and then names in symbols.
+* In `mathics.builtin.patterns.PatternTest`, if the condition is one of the most used tests (`NumberQ`, `NumericQ`, `StringQ`, etc) the `match` method is overwritten to specialized versions that avoid function calls.
+* in the same aim, `mathics.core.patterns.AtomPattern` now specializes the comparison depending of the `Atom` type.
 
 
 4.0.1
