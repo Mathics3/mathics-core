@@ -217,10 +217,7 @@ add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
 def cuboid3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
@@ -253,10 +250,7 @@ add_conversion_fn(Cuboid3DBox)
 
 
 def cylinder3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     # FIXME: currently always drawing around the axis X+Y
     axes_point = (1, 1, 0)
@@ -563,10 +557,7 @@ add_conversion_fn(_RoundBox)
 def sphere3dbox(self, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     return "// Sphere3DBox\n" + "\n".join(
         "draw(surface(sphere({0}, {1})), rgb({2},{3},{4}));".format(
