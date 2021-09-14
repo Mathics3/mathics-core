@@ -86,7 +86,7 @@ def arcbox(self, **options) -> str:
     if self.arc is None:
         # We have a doughnut graph and this is the inner blank hole of that.
         # It is an empty circle
-        return _roundbox(self, **options)
+        return _roundbox(self)
 
     x, y, rx, ry, sx, sy, ex, ey, large_arc = self._arc_params()
 
@@ -454,7 +454,7 @@ def rectanglebox(self, **options):
 add_conversion_fn(RectangleBox)
 
 
-def _roundbox(self, **options):
+def _roundbox(self):
     x, y = self.c.pos()
     rx, ry = self.r.pos()
     rx -= x

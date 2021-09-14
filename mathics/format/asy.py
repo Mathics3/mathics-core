@@ -19,7 +19,6 @@ from mathics.builtin.box.graphics import (
 from mathics.builtin.box.graphics3d import (
     Graphics3DElements,
     Arrow3DBox,
-    Coords3D,
     Cuboid3DBox,
     Cylinder3DBox,
     Line3DBox,
@@ -93,7 +92,7 @@ def arcbox(self, **options) -> str:
     if self.arc is None:
         # We have a doughnut graph and this is the inner blank hole of that.
         # It is an empty circle
-        return _roundbox(self, **options)
+        return _roundbox(self)
 
     x, y, rx, ry, sx, sy, ex, ey, large_arc = self._arc_params()
 
@@ -218,10 +217,7 @@ add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
 def cuboid3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
@@ -230,16 +226,8 @@ def cuboid3dbox(self, **options) -> str:
     i = 0
     while i < len(self.points) / 2:
         try:
-            point1_obj = self.points[i * 2]
-            if isinstance(point1_obj, Coords3D):
-                point1 = point1_obj.pos()[0]
-            else:
-                point1 = point1_obj[0]
-            point2_obj = self.points[i * 2 + 1]
-            if isinstance(point2_obj, Coords3D):
-                point2 = point2_obj.pos()[0]
-            else:
-                point2 = point2_obj[0]
+            point1 = self.points[i * 2].pos()[0]
+            point2 = self.points[i * 2 + 1].pos()[0]
 
             asy += f"""
                 draw(shift({point1[0]}, {point1[1]}, {point1[2]}) * scale(
@@ -262,10 +250,7 @@ add_conversion_fn(Cuboid3DBox)
 
 
 def cylinder3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     # FIXME: currently always drawing around the axis X+Y
     axes_point = (1, 1, 0)
@@ -275,16 +260,8 @@ def cylinder3dbox(self, **options) -> str:
     i = 0
     while i < len(self.points) / 2:
         try:
-            point1_obj = self.points[i * 2]
-            if isinstance(point1_obj, Coords3D):
-                point1 = point1_obj.pos()[0]
-            else:
-                point1 = point1_obj[0]
-            point2_obj = self.points[i * 2 + 1]
-            if isinstance(point2_obj, Coords3D):
-                point2 = point2_obj.pos()[0]
-            else:
-                point2 = point2_obj[0]
+            point1 = self.points[i * 2].pos()[0]
+            point2 = self.points[i * 2 + 1].pos()[0]
 
             # Compute distance between start point and end point.
             distance = (
@@ -551,7 +528,7 @@ def rectanglebox(self, **options) -> str:
 add_conversion_fn(RectangleBox)
 
 
-def _roundbox(self, **options):
+def _roundbox(self):
     x, y = self.c.pos()
     rx, ry = self.r.pos()
     rx -= x
@@ -580,10 +557,7 @@ add_conversion_fn(_RoundBox)
 def sphere3dbox(self, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js()
 
     return "// Sphere3DBox\n" + "\n".join(
         "draw(surface(sphere({0}, {1})), rgb({2},{3},{4}));".format(
