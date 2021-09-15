@@ -86,9 +86,7 @@ def cuboid_3d_box(self):
     """
     Compact (lower-level) JSON formatting of a Cuboid3DBox.
     """
-    face_color = self.face_color
-    if face_color is not None:
-        face_color = face_color.to_js()
+    face_color = self.face_color.to_js()
     data = convert_coord_collection(
         [self.points],
         "cuboid",
@@ -105,9 +103,7 @@ def cylinder_3d_box(self):
     """
     Compact (lower-level) JSON formatting of a Cylinder3DBox.
     """
-    face_color = self.face_color
-    if face_color is not None:
-        face_color = face_color.to_js()
+    face_color = self.face_color.to_js()
     data = convert_coord_collection(
         [self.points],
         "cylinder",
@@ -169,12 +165,9 @@ def polygon_3d_box(self) -> list:
     """
     # TODO: account for line widths and style
     if self.vertex_colors is None:
-        face_color = self.face_color
+        face_color = self.face_color.to_js()
     else:
         face_color = None
-
-    if face_color is not None:
-        face_color = face_color.to_js()
 
     data = convert_coord_collection(
         self.lines,
@@ -206,9 +199,7 @@ add_conversion_fn(Sphere3DBox, sphere_3d_box)
 
 
 def uniform_polyhedron_3d_box(self) -> list:
-    face_color = self.face_color
-    if face_color is not None:
-        face_color = face_color.to_js()
+    face_color = self.face_color.to_js()
     data = convert_coord_collection(
         [self.points],
         "uniformPolyhedron",
