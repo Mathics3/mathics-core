@@ -483,6 +483,15 @@ class PatternTest(BinaryOperator, PatternObject):
 
     def init(self, expr):
         super(PatternTest, self).init(expr)
+        # This class has an important effect in the general performance,
+        # since all the rules that requires specify the type of patterns
+        # call it. Then, for simple checks like `NumberQ` or `NumericQ`
+        # it is important to have the fastest possible implementation.
+        # To to this, we overwrite the match method taking it from the
+        # following dictionary. Here also would get some advantage by
+        # singletonizing the Symbol class and accessing this dictionary
+        # using an id() instead a string...
+
         match_functions = {
             "System`AtomQ": self.match_atom,
             "System`StringQ": self.match_string,
@@ -507,6 +516,9 @@ class PatternTest(BinaryOperator, PatternObject):
     def match_atom(self, yield_func, expression, vars, evaluation, **kwargs):
         def yield_match(vars_2, rest):
             items = expression.get_sequence()
+            # Here we use a `for` loop instead an all over iterator
+            # because in Cython this is faster, since it avoids a function
+            # call. For pure Python, it is the opposite.
             for item in items:
                 if not isinstance(item, Atom):
                     break

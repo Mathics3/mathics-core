@@ -2088,6 +2088,8 @@ class Symbol(Atom):
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics SameQ"""
+        # If Symbols where singlentons, it should be
+        # enough to compare ids...
         return isinstance(rhs, Symbol) and (
             id(rhs) == id(self) or self.name == rhs.name
         )

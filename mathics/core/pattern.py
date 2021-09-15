@@ -163,6 +163,8 @@ class AtomPattern(Pattern):
         fully=True,
         wrap_oneid=True,
     ):
+        # Here also would get some advantage singletonizing symbols.
+        # if id(expression) == id(atom)
         if isinstance(expression, Symbol) and expression.name == self.atom.name:
             # yield vars, None
             yield_func(vars, None)
