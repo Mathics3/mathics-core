@@ -801,26 +801,30 @@ class StringRiffle(Builtin):
 class StringSplit(Builtin):
     """
     <dl>
-    <dt>'StringSplit["$s$"]'
-        <dd>splits the string $s$ at whitespace, discarding the
-        whitespace and returning a list of strings.
-    <dt>'StringSplit["$s$", "$d$"]'
-        <dd>splits $s$ at the delimiter $d$.
-    <dt>'StringSplit[$s$, {"$d1$", "$d2$", ...}]'
-        <dd>splits $s$ using multiple delimiters.
-    <dt>'StringSplit[{$s_1$, $s_2, ...}, {"$d1$", "$d2$", ...}]'
-        <dd>returns a list with the result of applying the function to
-            each element.
+      <dt>'StringSplit[$s$]'
+      <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
+
+      <dt>'StringSplit[$s$, "$pattern$"]'
+      <dd>splits $s$ into substrings separated by delimiters matching the string expression $pattern$.
+
+      <dt>'StringSplit[$s$, {$p_1$, $p_2$, ...}]'
+      <dd>splits $s$ at any of the $p_i$ patterns.
+
+      <dt>'StringSplit[{$s_1$, $s_2$, ...}, {$d_1$, $d_2$, ...}]'
+      <dd>returns a list with the result of applying the function to each element.
     </dl>
+
 
     >> StringSplit["abc,123", ","]
      = {abc, 123}
 
-    >> StringSplit["abc 123"]
+    By default any number of whitespace characters are used to at a delimiter:
+    >> StringSplit["  abc    123  "]
      = {abc, 123}
 
-    #> StringSplit["  abc    123  "]
-     = {abc, 123}
+    However if you want instead to use only a <i>single</i> character for each delimiter, use 'WhiteSpaceCharacter':
+    >> StringSplit["  abc    123  ", WhitespaceCharacter]
+     = {, , abc, , , , 123, , }
 
     >> StringSplit["abc,123.456", {",", "."}]
      = {abc, 123, 456}
@@ -831,7 +835,7 @@ class StringSplit(Builtin):
     >> StringSplit[{"a  b", "c  d"}, RegularExpression[" +"]]
      = {{a, b}, {c, d}}
 
-    #> StringSplit["x", "x"]
+    >> StringSplit["x", "x"]
      = {}
 
     #> StringSplit[x]
@@ -842,16 +846,10 @@ class StringSplit(Builtin):
      : Element x is not a valid string or pattern element in x.
      = StringSplit[x, x]
 
-    #> StringSplit["12312123", "12"..]
+    Split using a delmiter that has nonzero list of 12's
+    >> StringSplit["12312123", "12"..]
      = {3, 3}
 
-    #> StringSplit["abaBa", "b"]
-     = {a, aBa}
-    #> StringSplit["abaBa", "b", IgnoreCase -> True]
-     = {a, a, a}
-
-    #> StringSplit["13  a22    bbb", WhitespaceCharacter]
-     = {13, , a22, , , , bbb}
     """
 
     rules = {
