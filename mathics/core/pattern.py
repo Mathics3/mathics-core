@@ -685,6 +685,3 @@ class ExpressionPattern(Pattern):
             if self.does_match(leaf, evaluation, vars):
                 count += 1
         return count
-
-    def sort(self):
-        self.leaves.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
