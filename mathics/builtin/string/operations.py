@@ -37,14 +37,17 @@ from mathics.builtin.strings import (
 class StringDrop(Builtin):
     """
     <dl>
-    <dt>'StringDrop["$string$", $n$]'
-        <dd>gives $string$ with the first $n$ characters dropped.
-    <dt>'StringDrop["$string$", -$n$]'
-        <dd>gives $string$ with the last $n$ characters dropped.
-    <dt>'StringDrop["$string$", {$n$}]'
-        <dd>gives $string$ with the $n$th character dropped.
-    <dt>'StringDrop["$string$", {$m$, $n$}]'
-        <dd>gives $string$ with the characters $m$ through $n$ dropped.
+      <dt>'StringDrop["$string$", $n$]'
+      <dd>gives $string$ with the first $n$ characters dropped.
+
+      <dt>'StringDrop["$string$", -$n$]'
+      <dd>gives $string$ with the last $n$ characters dropped.
+
+      <dt>'StringDrop["$string$", {$n$}]'
+      <dd>gives $string$ with the $n$th character dropped.
+
+      <dt>'StringDrop["$string$", {$m$, $n$}]'
+      <dd>gives $string$ with the characters $m$ through $n$ dropped.
     </dl>
 
     >> StringDrop["abcde", 2]
@@ -331,9 +334,11 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
+    attributes = ("Flat", "OneIdentity")
     operator = "<>"
     precedence = 600
-    attributes = ("Flat", "OneIdentity")
+
+    summary_text = "join strings together"
 
     def apply(self, items, evaluation):
         "StringJoin[items___]"
@@ -355,8 +360,8 @@ class StringJoin(BinaryOperator):
 class StringLength(Builtin):
     """
     <dl>
-    <dt>'StringLength["$string$"]'
-        <dd>gives the length of $string$.
+      <dt>'StringLength["$string$"]'
+      <dd>gives the length of $string$.
     </dl>
 
     >> StringLength["abc"]
@@ -371,6 +376,8 @@ class StringLength(Builtin):
     """
 
     attributes = ("Listable",)
+
+    summary_text = "length of a string (in Unicode characters)"
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
@@ -742,6 +749,8 @@ class StringRiffle(Builtin):
         "mulsep": "Multiple separators form is not implemented yet.",
     }
 
+    summary_text = "assemble a string from a list, inserting delimiters"
+
     def apply(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
@@ -865,6 +874,8 @@ class StringSplit(Builtin):
         "strse": "String or list of strings expected at position `1` in `2`.",
         "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
     }
+
+    summary_text = "split strings at whitespace, or at a pattern"
 
     def apply(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
@@ -1023,8 +1034,8 @@ class StringTake(Builtin):
 class StringTrim(Builtin):
     """
     <dl>
-    <dt>'StringTrim[$s$]'
-        <dd>returns a version of $s$ with whitespace removed from start and end.
+      <dt>'StringTrim[$s$]'
+      <dd>returns a version of $s$ with whitespace removed from start and end.
     </dl>
 
     >> StringJoin["a", StringTrim["  \\tb\\n "], "c"]
@@ -1033,6 +1044,8 @@ class StringTrim(Builtin):
     >> StringTrim["ababaxababyaabab", RegularExpression["(ab)+"]]
      = axababya
     """
+
+    summary_text = "trim whitespace etc. from strings"
 
     def apply(self, s, evaluation):
         "StringTrim[s_String]"
