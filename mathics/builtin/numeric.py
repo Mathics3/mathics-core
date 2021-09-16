@@ -229,14 +229,14 @@ def chop(expr, delta=10.0 ** (-10.0)):
             return expr
         if -delta < expr.get_float_value() < delta:
             return Integer0
-    elif isinstance(expr, Complex) and expr.is_inexact():
+    elif (type(expr) is Complex) and expr.is_inexact():
         real, imag = expr.real, expr.imag
         if -delta < real.get_float_value() < delta:
             real = Integer0
         if -delta < imag.get_float_value() < delta:
             imag = Integer0
         return Complex(real, imag)
-    elif isinstance(expr, Expression):
+    elif type(expr) is Expression:
         return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.leaves])
     return expr
 
@@ -530,7 +530,7 @@ class IntegerDigits(Builtin):
     def apply_len(self, n, base, length, evaluation):
         "IntegerDigits[n_, base_, length_]"
 
-        if not (isinstance(length, Integer) and length.get_int_value() >= 0):
+        if not ((type(length) is Integer) and length.get_int_value() >= 0):
             return evaluation.message("IntegerDigits", "intnn")
 
         return self.apply(n, base, evaluation, nr_elements=length.get_int_value())
@@ -538,12 +538,12 @@ class IntegerDigits(Builtin):
     def apply(self, n, base, evaluation, nr_elements=None):
         "IntegerDigits[n_, base_]"
 
-        if not (isinstance(n, Integer)):
+        if type(n) is not Integer:
             return evaluation.message(
                 "IntegerDigits", "int", Expression("IntegerDigits", n, base)
             )
 
-        if not (isinstance(base, Integer) and base.get_int_value() > 1):
+        if not (type(base) is Integer and base.get_int_value() > 1):
             return evaluation.message("IntegerDigits", "ibase", base)
 
         if nr_elements == 0:
@@ -1035,7 +1035,7 @@ class NIntegrate(Builtin):
         if interval.has_form("System`List", 3, None):
             intervals = []
             intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
+            if type(intvar) is not Symbol:
                 evaluation.message("ilim", interval)
                 return None
             boundaries = [a for a in interval.leaves[1:]]
@@ -1058,9 +1058,9 @@ class NIntegrate(Builtin):
         if method.has_form("System`List", 2):
             method = method.leaves[0]
             method_options.update(method.leaves[1].get_option_values())
-        if isinstance(method, String):
+        if type(method) is String:
             method = method.value
-        elif isinstance(method, Symbol):
+        elif type(method) is Symbol:
             method = method.get_name()
         else:
             evaluation.message("NIntegrate", "bdmtd", method)
@@ -1640,7 +1640,7 @@ class RealDigits(Builtin):
         "%(name)s[n_]"
 
         # Handling the testcases that throw the error message and return the ouput that doesn't include `base` argument
-        if isinstance(n, Symbol) and n.name.startswith("System`"):
+        if type(n) is Symbol and n.name.startswith("System`"):
             return evaluation.message("RealDigits", "ndig", n)
 
         if n.is_numeric(evaluation):
@@ -1651,7 +1651,7 @@ class RealDigits(Builtin):
 
         expr = Expression("RealDigits", n)
         rational_no = (
-            True if isinstance(n, Rational) else False
+            True if (type(n) is Rational) else False
         )  # it is used for checking whether the input n is a rational or not
         py_b = b.get_int_value()
         if isinstance(n, (Expression, Symbol, Rational)):
@@ -1673,7 +1673,7 @@ class RealDigits(Builtin):
         if isinstance(py_n, complex):
             return evaluation.message("RealDigits", "realx", expr)
 
-        if isinstance(n, Integer):
+        if type(n) is Integer:
             display_len = (
                 int(mpmath.floor(mpmath.log(py_n, py_b)))
                 if py_n != 0 and py_n != 1
@@ -1710,7 +1710,7 @@ class RealDigits(Builtin):
                 i += 1
             digits = digits[i:]
 
-            if not isinstance(n, Integer):
+            if type(n) is not Integer:
                 if len(digits) > display_len:
                     digits = digits[: display_len - 1]
         else:
@@ -1746,7 +1746,7 @@ class RealDigits(Builtin):
                 # Truncate, preserving the digits on the right
                 leaves = leaves[:nr_elements]
             else:
-                if isinstance(n, Integer):
+                if type(n) is Integer:
                     while len(leaves) < nr_elements:
                         leaves.append(from_python(0))
                 else:
@@ -1762,7 +1762,7 @@ class RealDigits(Builtin):
         if pos is not None:
             leaves.append(from_python(pos))
         expr = Expression("RealDigits", n, b, length, *leaves)
-        if not (isinstance(length, Integer) and length.get_int_value() >= 0):
+        if not ((type(length) is Integer) and length.get_int_value() >= 0):
             return evaluation.message("RealDigits", "intnm", expr)
 
         return self.apply_with_base(
@@ -1771,7 +1771,7 @@ class RealDigits(Builtin):
 
     def apply_with_base_length_and_precision(self, n, b, length, p, evaluation):
         "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
-        if not isinstance(p, Integer):
+        if type(p) is not Integer:
             return evaluation.message(
                 "RealDigits", "intm", Expression("RealDigits", n, b, length, p)
             )

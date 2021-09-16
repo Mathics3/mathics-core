@@ -51,8 +51,6 @@ from mathics.core.expression import (
     Integer,
     Rational,
     Real,
-    MachineReal,
-    PrecisionReal,
     SymbolFalse,
     SymbolList,
     SymbolN,
@@ -487,28 +485,28 @@ class PatternTest(BinaryOperator, PatternObject):
                 return True
             # Otherwise, follow the standard evaluation
         elif test == "System`RealNumberQ":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
+            if isinstance(candidate, (Integer, Rational, Real)):
                 return True
             candidate = Expression(SymbolN, candidate).evaluate(evaluation)
             return isinstance(candidate, Real)
             # pass
         elif test == "System`Positive":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
+            if isinstance(candidate, (Integer, Rational, Real)):
                 return candidate.value > 0
             return False
             # pass
         elif test == "System`NonPositive":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
+            if isinstance(candidate, (Integer, Rational, Real)):
                 return candidate.value <= 0
             return False
             # pass
         elif test == "System`Negative":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
+            if isinstance(candidate, (Integer, Rational, Real)):
                 return candidate.value < 0
             return False
             # pass
         elif test == "System`NonNegative":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
+            if isinstance(candidate, (Integer, Rational, Real)):
                 return candidate.value >= 0
             return False
             # pass

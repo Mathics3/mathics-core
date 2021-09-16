@@ -12,9 +12,9 @@ from mathics.core.numbers import machine_precision, reconstruct_digits
 
 class GenericConverter(object):
     def do_convert(self, node):
-        if isinstance(node, Symbol):
+        if type(node) is Symbol:
             return self.convert_Symbol(node)
-        elif isinstance(node, String):
+        elif type(node) is String:
             return self.convert_String(node)
         elif isinstance(node, Number):
             return self.convert_Number(node)

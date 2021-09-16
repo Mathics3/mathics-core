@@ -2436,7 +2436,7 @@ class Real(Number):
         return isinstance(self.value, sympy.core.numbers.NaN)
 
     def __eq__(self, other) -> bool:
-        if type(other) in (MachineReal, PrecisionReal, Real):
+        if isinstance(other, Real):
             # MMA Docs: "Approximate numbers that differ in their last seven
             # binary digits are considered equal"
             _prec = min_prec(self, other)
