@@ -55,7 +55,8 @@ check: pytest gstest doctest
 
 #: Remove Cython-derived files
 clean-cython:
-	find mathics -name "*.so" -type f -delete
+	find mathics -name "*.so" -type f -delete; \
+	find mathics -name "*.c" -type f -delete
 
 #: Remove derived files
 clean: clean-cython
