@@ -37,14 +37,17 @@ from mathics.builtin.strings import (
 class StringDrop(Builtin):
     """
     <dl>
-    <dt>'StringDrop["$string$", $n$]'
-        <dd>gives $string$ with the first $n$ characters dropped.
-    <dt>'StringDrop["$string$", -$n$]'
-        <dd>gives $string$ with the last $n$ characters dropped.
-    <dt>'StringDrop["$string$", {$n$}]'
-        <dd>gives $string$ with the $n$th character dropped.
-    <dt>'StringDrop["$string$", {$m$, $n$}]'
-        <dd>gives $string$ with the characters $m$ through $n$ dropped.
+      <dt>'StringDrop["$string$", $n$]'
+      <dd>gives $string$ with the first $n$ characters dropped.
+
+      <dt>'StringDrop["$string$", -$n$]'
+      <dd>gives $string$ with the last $n$ characters dropped.
+
+      <dt>'StringDrop["$string$", {$n$}]'
+      <dd>gives $string$ with the $n$th character dropped.
+
+      <dt>'StringDrop["$string$", {$m$, $n$}]'
+      <dd>gives $string$ with the characters $m$ through $n$ dropped.
     </dl>
 
     >> StringDrop["abcde", 2]
@@ -331,9 +334,11 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
+    attributes = ("Flat", "OneIdentity")
     operator = "<>"
     precedence = 600
-    attributes = ("Flat", "OneIdentity")
+
+    summary_text = "join strings together"
 
     def apply(self, items, evaluation):
         "StringJoin[items___]"
@@ -355,8 +360,8 @@ class StringJoin(BinaryOperator):
 class StringLength(Builtin):
     """
     <dl>
-    <dt>'StringLength["$string$"]'
-        <dd>gives the length of $string$.
+      <dt>'StringLength["$string$"]'
+      <dd>gives the length of $string$.
     </dl>
 
     >> StringLength["abc"]
@@ -371,6 +376,8 @@ class StringLength(Builtin):
     """
 
     attributes = ("Listable",)
+
+    summary_text = "length of a string (in Unicode characters)"
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
@@ -742,6 +749,8 @@ class StringRiffle(Builtin):
         "mulsep": "Multiple separators form is not implemented yet.",
     }
 
+    summary_text = "assemble a string from a list, inserting delimiters"
+
     def apply(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
@@ -801,26 +810,30 @@ class StringRiffle(Builtin):
 class StringSplit(Builtin):
     """
     <dl>
-    <dt>'StringSplit["$s$"]'
-        <dd>splits the string $s$ at whitespace, discarding the
-        whitespace and returning a list of strings.
-    <dt>'StringSplit["$s$", "$d$"]'
-        <dd>splits $s$ at the delimiter $d$.
-    <dt>'StringSplit[$s$, {"$d1$", "$d2$", ...}]'
-        <dd>splits $s$ using multiple delimiters.
-    <dt>'StringSplit[{$s_1$, $s_2, ...}, {"$d1$", "$d2$", ...}]'
-        <dd>returns a list with the result of applying the function to
-            each element.
+      <dt>'StringSplit[$s$]'
+      <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
+
+      <dt>'StringSplit[$s$, $pattern$]'
+      <dd>splits $s$ into substrings separated by delimiters matching the string expression $pattern$.
+
+      <dt>'StringSplit[$s$, {$p_1$, $p_2$, ...}]'
+      <dd>splits $s$ at any of the $p_i$ patterns.
+
+      <dt>'StringSplit[{$s_1$, $s_2$, ...}, {$d_1$, $d_2$, ...}]'
+      <dd>returns a list with the result of applying the function to each element.
     </dl>
+
 
     >> StringSplit["abc,123", ","]
      = {abc, 123}
 
-    >> StringSplit["abc 123"]
+    By default any number of whitespace characters are used to at a delimiter:
+    >> StringSplit["  abc    123  "]
      = {abc, 123}
 
-    #> StringSplit["  abc    123  "]
-     = {abc, 123}
+    However if you want instead to use only a <i>single</i> character for each delimiter, use 'WhiteSpaceCharacter':
+    >> StringSplit["  abc    123  ", WhitespaceCharacter]
+     = {, , abc, , , , 123, , }
 
     >> StringSplit["abc,123.456", {",", "."}]
      = {abc, 123, 456}
@@ -831,7 +844,7 @@ class StringSplit(Builtin):
     >> StringSplit[{"a  b", "c  d"}, RegularExpression[" +"]]
      = {{a, b}, {c, d}}
 
-    #> StringSplit["x", "x"]
+    >> StringSplit["x", "x"]
      = {}
 
     #> StringSplit[x]
@@ -842,13 +855,10 @@ class StringSplit(Builtin):
      : Element x is not a valid string or pattern element in x.
      = StringSplit[x, x]
 
-    #> StringSplit["12312123", "12"..]
+    Split using a delmiter that has nonzero list of 12's
+    >> StringSplit["12312123", "12"..]
      = {3, 3}
 
-    #> StringSplit["abaBa", "b"]
-     = {a, aBa}
-    #> StringSplit["abaBa", "b", IgnoreCase -> True]
-     = {a, a, a}
     """
 
     rules = {
@@ -864,6 +874,8 @@ class StringSplit(Builtin):
         "strse": "String or list of strings expected at position `1` in `2`.",
         "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
     }
+
+    summary_text = "split strings at whitespace, or at a pattern"
 
     def apply(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
@@ -899,7 +911,15 @@ class StringSplit(Builtin):
             result = [t for s in result for t in mathics_split(re_patt, s, flags=flags)]
 
         return string_list(
-            SymbolList, [String(x) for x in result if x != ""], evaluation
+            SymbolList,
+            [
+                String(x)
+                for x in result
+                # Remove the empty matches only if we aren't splitting by
+                # whitespace because Python's RegEx matches " " as ""
+                if x != "" or patts[0].to_python() in ("", "System`WhitespaceCharacter")
+            ],
+            evaluation,
         )
 
 
@@ -1014,8 +1034,8 @@ class StringTake(Builtin):
 class StringTrim(Builtin):
     """
     <dl>
-    <dt>'StringTrim[$s$]'
-        <dd>returns a version of $s$ with whitespace removed from start and end.
+      <dt>'StringTrim[$s$]'
+      <dd>returns a version of $s$ with whitespace removed from start and end.
     </dl>
 
     >> StringJoin["a", StringTrim["  \\tb\\n "], "c"]
@@ -1024,6 +1044,8 @@ class StringTrim(Builtin):
     >> StringTrim["ababaxababyaabab", RegularExpression["(ab)+"]]
      = axababya
     """
+
+    summary_text = "trim whitespace etc. from strings"
 
     def apply(self, s, evaluation):
         "StringTrim[s_String]"
