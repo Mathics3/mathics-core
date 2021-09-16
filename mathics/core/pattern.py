@@ -176,7 +176,7 @@ class ExpressionPattern(Pattern):
     def match(
         self,
         yield_func,
-        expression,
+        expression: Expression,
         vars,
         evaluation,
         head=None,
@@ -334,7 +334,6 @@ class ExpressionPattern(Pattern):
 
     def get_pre_choices(self, yield_func, expression, attributes, vars):
         if "System`Orderless" in attributes:
-            self.sort()
             patterns = self.filter_leaves("Pattern")
             groups = {}
             prev_pattern = prev_name = None
