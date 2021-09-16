@@ -110,7 +110,7 @@ class RuleDelayed(BinaryOperator):
 
 
 def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
-    if isinstance(rules_expr, Dispatch):
+    if type(rules_expr) is Dispatch:
         return rules_expr.rules, False
     elif rules_expr.has_form("Dispatch", None):
         return Dispatch(rules_expr._leaves, evaluation)
@@ -485,28 +485,28 @@ class PatternTest(BinaryOperator, PatternObject):
                 return True
             # Otherwise, follow the standard evaluation
         elif test == "System`RealNumberQ":
-            if isinstance(candidate, (Integer, Rational, Real)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal)):
                 return True
             candidate = Expression(SymbolN, candidate).evaluate(evaluation)
             return isinstance(candidate, Real)
             # pass
         elif test == "System`Positive":
-            if isinstance(candidate, (Integer, Rational, Real)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
                 return candidate.value > 0
             return False
             # pass
         elif test == "System`NonPositive":
-            if isinstance(candidate, (Integer, Rational, Real)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
                 return candidate.value <= 0
             return False
             # pass
         elif test == "System`Negative":
-            if isinstance(candidate, (Integer, Rational, Real)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
                 return candidate.value < 0
             return False
             # pass
         elif test == "System`NonNegative":
-            if isinstance(candidate, (Integer, Rational, Real)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
                 return candidate.value >= 0
             return False
             # pass
@@ -1561,7 +1561,7 @@ class DispatchAtom(AtomBuiltin):
         # compiled patters, and modify Replace and ReplaceAll to handle this
         # kind of objects.
         #
-        if isinstance(rules, Dispatch):
+        if type(rules) is Dispatch:
             return rules
         if rules.is_symbol():
             rules = rules.evaluate(evaluation)
@@ -1583,7 +1583,7 @@ class DispatchAtom(AtomBuiltin):
                 flatten_list.extend(rule._leaves)
             elif rule.has_form(("Rule", "RuleDelayed"), 2):
                 flatten_list.append(rule)
-            elif isinstance(rule, Dispatch):
+            elif type(rule) is Dispatch:
                 flatten_list.extend(rule.src._leaves)
             else:
                 # WMA does not raise this message: just leave it unevaluated,
@@ -1597,7 +1597,7 @@ class DispatchAtom(AtomBuiltin):
 
     def apply_normal(self, dispatch, evaluation):
         """Normal[dispatch_Dispatch]"""
-        if isinstance(dispatch, Dispatch):
+        if type(dispatch) is Dispatch:
             return dispatch.src
         else:
             return dispatch._leaves[0]

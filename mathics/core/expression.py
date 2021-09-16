@@ -554,7 +554,7 @@ class BaseExpression(KeyComparable):
                     else:
                         continue
                 name = option.leaves[0].get_name()
-                if not name and isinstance(option.leaves[0], String):
+                if not name and type(option.leaves[0]) is String:
                     name = ensure_context(option.leaves[0].get_string_value())
                 if not name:
                     if stop_on_error:
@@ -1915,7 +1915,7 @@ class Atom(BaseExpression):
         """
         if self.sameQ(rhs):
             return True
-        if isinstance(rhs, Symbol) or not isinstance(rhs, Atom):
+        if type(rhs) in (Expression, Symbol):
             return None
         return self == rhs
 
@@ -2069,7 +2069,7 @@ class Symbol(Atom):
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics SameQ"""
-        return id(self) == id(rhs) or isinstance(rhs, Symbol) and self.name == rhs.name
+        return id(self) == id(rhs) or (type(rhs) is Symbol) and self.name == rhs.name
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
@@ -2251,7 +2251,7 @@ class Integer(Number):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, Integer) and self.value == other.value
+        return type(other) is Integer and self.value == other.value
 
     def evaluate(self, evaluation):
         evaluation.check_stopped()
@@ -2314,7 +2314,7 @@ class Rational(Number):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, Rational) and self.value == other.value
+        return type(other) is Rational and self.value == other.value
 
     def numerator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[0])
@@ -2434,7 +2434,7 @@ class Real(Number):
         return isinstance(self.value, sympy.core.numbers.NaN)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, Real):
+        if type(other) in (MachineReal, PrecisionReal, Real):
             # MMA Docs: "Approximate numbers that differ in their last seven
             # binary digits are considered equal"
             _prec = min_prec(self, other)
@@ -2494,9 +2494,9 @@ class MachineReal(Real):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        if isinstance(other, MachineReal):
+        if type(other) is MachineReal:
             return self.value == other.value
-        elif isinstance(other, PrecisionReal):
+        elif type(other) is PrecisionReal:
             return self.to_sympy() == other.value
         return False
 
@@ -2574,9 +2574,9 @@ class PrecisionReal(Real):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        if isinstance(other, PrecisionReal):
+        if type(other) is PrecisionReal:
             return self.value == other.value
-        elif isinstance(other, MachineReal):
+        elif type(other) is MachineReal:
             return self.value == other.to_sympy()
         return False
 
@@ -2615,17 +2615,17 @@ class Complex(Number):
 
     def __new__(cls, real, imag):
         self = super().__new__(cls)
-        if isinstance(real, Complex) or not isinstance(real, Number):
+        if type(real) is Complex or not isinstance(real, Number):
             raise ValueError("Argument 'real' must be a real number.")
-        if isinstance(imag, Complex) or not isinstance(imag, Number):
+        if type(imag) is Complex or not isinstance(imag, Number):
             raise ValueError("Argument 'imag' must be a real number.")
 
         if imag.sameQ(Integer0):
             return real
 
-        if isinstance(real, MachineReal) and not isinstance(imag, MachineReal):
+        if type(real) is MachineReal and not type(imag) is MachineReal:
             imag = imag.round()
-        if isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
+        if type(imag) is MachineReal and not type(real) is MachineReal:
             real = real.round()
 
         self.real = real
@@ -2685,7 +2685,7 @@ class Complex(Number):
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         return (
-            isinstance(other, Complex)
+            type(other) is Complex
             and self.real == other.real
             and self.imag == other.imag
         )
@@ -2732,7 +2732,7 @@ class Complex(Number):
         update(self.imag)
 
     def __eq__(self, other) -> bool:
-        if isinstance(other, Complex):
+        if type(other) is Complex:
             return self.real == other.real and self.imag == other.imag
         else:
             return self.get_sort_key() == other.get_sort_key()
@@ -2982,7 +2982,7 @@ class String(Atom):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, String) and self.value == other.value
+        return type(other) is String and self.value == other.value
 
     def get_string_value(self) -> str:
         return self.value
@@ -3055,7 +3055,7 @@ class ByteArrayAtom(Atom):
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         # FIX: check
-        if isinstance(other, ByteArrayAtom):
+        if type(other) is ByteArrayAtom:
             return self.value == other.value
         return False
 
@@ -3154,7 +3154,7 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
 
 
 def _is_neutral_head(head, cache, evaluation):
-    if not isinstance(head, Symbol):
+    if not type(head) is Symbol:
         return False
 
     return _is_neutral_symbol(head.get_name(), cache, evaluation)
@@ -3255,7 +3255,7 @@ def structure(head, origins, evaluation, structure_cache=None):
     if isinstance(head, (str,)):
         head = Symbol(head)
 
-    if isinstance(origins, (Expression, Structure)):
+    if type(origins) is (Expression) or isinstance(origins, Structure):
         cache = origins._cache
         if cache is not None and not _is_neutral_head(
             head, structure_cache, evaluation
