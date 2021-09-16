@@ -813,7 +813,7 @@ class StringSplit(Builtin):
       <dt>'StringSplit[$s$]'
       <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
 
-      <dt>'StringSplit[$s$, "$pattern$"]'
+      <dt>'StringSplit[$s$, $pattern$]'
       <dd>splits $s$ into substrings separated by delimiters matching the string expression $pattern$.
 
       <dt>'StringSplit[$s$, {$p_1$, $p_2$, ...}]'
