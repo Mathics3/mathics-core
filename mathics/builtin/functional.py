@@ -12,7 +12,7 @@ from itertools import chain
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, PostfixOperator
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, Symbol
 
 
 class Function(PostfixOperator):
@@ -85,7 +85,6 @@ class Function(PostfixOperator):
         else:
             vars = [vars]
 
-        # print([v.get_head_name()=="System`Pattern" or v.is_symbol() for v in vars])
         args = args.get_sequence()
         if len(vars) > len(args):
             evaluation.message("Function", "fpct")
@@ -94,7 +93,7 @@ class Function(PostfixOperator):
             # this is not included in WL, and here does not have any impact, but it is needed for
             # translating the function to a compiled version.
             var_names = (
-                var.get_name() if var.is_symbol() else var.leaves[0].get_name()
+                var.get_name() if type(var) is Symbol else var.leaves[0].get_name()
                 for var in vars
             )
             vars = dict(list(zip(var_names, args[: len(vars)])))

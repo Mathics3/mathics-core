@@ -1779,7 +1779,7 @@ def _test_pair(test, a, b, evaluation, name):
     test_expr = Expression(test, a, b)
     result = test_expr.evaluate(evaluation)
     if not (
-        result.is_symbol() and (result.has_symbol("True") or result.has_symbol("False"))
+        type(result) is Symbol and (result.has_symbol("True") or result.has_symbol("False"))
     ):
         evaluation.message(name, "smtst", test_expr, result)
     return result.is_true()

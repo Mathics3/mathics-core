@@ -867,7 +867,7 @@ class Solve(Builtin):
             vars = [vars]
         for var in vars:
             if (
-                (var.is_atom() and not var.is_symbol())
+                (var.is_atom() and type(var) is not Symbol)
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or "System`Constant" in var.get_attributes(evaluation.definitions)
             ):

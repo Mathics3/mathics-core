@@ -6,7 +6,7 @@ Differential Equations
 
 import sympy
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, Symbol
 from mathics.core.convert import from_sympy
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
@@ -119,7 +119,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "deqn", eqn)
             return
 
-        if x.is_symbol():
+        if type(x) is Symbol:
             syms = [x]
         elif x.has_form("List", 1, None):
             syms = sorted(x.get_leaves())

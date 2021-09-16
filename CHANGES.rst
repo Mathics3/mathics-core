@@ -9,7 +9,8 @@ Internals
 * To numerify expressions, the function `apply_N` was introduced in the module `mathics.builtin.numeric` to avoid the idiom
   `Expression("N", expr, prec).evaluate(evaluation)`. The idea is to avoid when it is possible to call the Pattern matching routines to obtain the numeric value of an expression.
 * A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
-
+* `BaseExpression.is_symbol()` was removed in favor of `type(s) is Symbol` reducing the overhead of the function call.
+  
 
 4.0.1
 -----

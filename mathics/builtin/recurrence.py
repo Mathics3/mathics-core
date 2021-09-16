@@ -8,7 +8,7 @@ Solving Recurrence Equations
 import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, Symbol
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
 
 
@@ -67,7 +67,7 @@ class RSolve(Builtin):
                 return
 
         if (
-            (n.is_atom() and not n.is_symbol())
+            (n.is_atom() and type(n) is not Symbol)
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
             or "System`Constant" in n.get_attributes(evaluation.definitions)
         ):

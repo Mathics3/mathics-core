@@ -51,6 +51,8 @@ from mathics.core.expression import (
     Integer,
     Rational,
     Real,
+    MachineReal,
+    PrecisionReal,
     SymbolFalse,
     SymbolList,
     SymbolN,
@@ -485,7 +487,7 @@ class PatternTest(BinaryOperator, PatternObject):
                 return True
             # Otherwise, follow the standard evaluation
         elif test == "System`RealNumberQ":
-            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal)):
+            if type(candidate) in (Integer, Rational, MachineReal, PrecisionReal):
                 return True
             candidate = Expression(SymbolN, candidate).evaluate(evaluation)
             return isinstance(candidate, Real)
@@ -1563,7 +1565,7 @@ class DispatchAtom(AtomBuiltin):
         #
         if type(rules) is Dispatch:
             return rules
-        if rules.is_symbol():
+        if type(rules) is Symbol:
             rules = rules.evaluate(evaluation)
 
         if rules.has_form("List", None):
@@ -1577,7 +1579,7 @@ class DispatchAtom(AtomBuiltin):
             return Expression(SymbolList, *leaves)
         flatten_list = []
         for rule in rules:
-            if rule.is_symbol():
+            if type(rule) is Symbol:
                 rule = rule.evaluate(evaluation)
             if rule.has_form("List", None):
                 flatten_list.extend(rule._leaves)

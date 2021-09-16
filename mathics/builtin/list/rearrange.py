@@ -23,6 +23,7 @@ from mathics.builtin.lists import _FastEquivalence, _SlowEquivalence, _test_pair
 from mathics.core.expression import (
     Expression,
     Integer,
+    Symbol,
     SymbolList,
     structure,
 )
@@ -31,7 +32,7 @@ from mathics.core.expression import (
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
-    return same_test.is_symbol() and same_test.get_name() == "System`SameQ"
+    return type(same_test) is Symbol and same_test.get_name() == "System`SameQ"
 
 
 class _DeleteDuplicatesBin:

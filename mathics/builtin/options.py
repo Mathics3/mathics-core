@@ -192,7 +192,7 @@ class OptionValue(Builtin):
             val = None
         # then, if not found, look at $f$. It could be a symbol, or a list of symbols, rules, and list of rules...
         if val is None:
-            if f.is_symbol():
+            if type(f) is Symbol:
                 val = get_option(
                     evaluation.definitions.get_options(f.get_name()), name, evaluation
                 )
@@ -201,7 +201,7 @@ class OptionValue(Builtin):
                     f = Expression("List", f)
                 if f.get_head_name() == "System`List":
                     for leave in f.get_leaves():
-                        if leave.is_symbol():
+                        if type(leave) is Symbol:
                             val = get_option(
                                 evaluation.definitions.get_options(leave.get_name()),
                                 name,

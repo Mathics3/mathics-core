@@ -313,8 +313,9 @@ class BaseExpression(KeyComparable):
 
         return ""
 
-    def is_symbol(self) -> bool:
-        return False
+# Better use type(s) is Symbol
+#    def is_symbol(self) -> bool:
+#        return False
 
     def is_machine_precision(self) -> bool:
         return False
@@ -976,7 +977,7 @@ class Expression(BaseExpression):
     def get_attributes(self, definitions):
         if self.get_head_name() == "System`Function" and len(self._leaves) > 2:
             res = self._leaves[2]
-            if res.is_symbol():
+            if type(res) is Symbol:
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._leaves)
@@ -2038,8 +2039,9 @@ class Symbol(Atom):
     def get_name(self) -> str:
         return self.name
 
-    def is_symbol(self) -> bool:
-        return True
+# Better use type(s) is Symbol
+#    def is_symbol(self) -> bool:
+#        return True
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
@@ -2623,9 +2625,9 @@ class Complex(Number):
         if imag.sameQ(Integer0):
             return real
 
-        if type(real) is MachineReal and not type(imag) is MachineReal:
+        if type(real) is MachineReal and type(imag) is not MachineReal:
             imag = imag.round()
-        if type(imag) is MachineReal and not type(real) is MachineReal:
+        if type(imag) is MachineReal and type(real) is not MachineReal:
             real = real.round()
 
         self.real = real
@@ -3154,7 +3156,7 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
 
 
 def _is_neutral_head(head, cache, evaluation):
-    if not type(head) is Symbol:
+    if type(head) is not Symbol:
         return False
 
     return _is_neutral_symbol(head.get_name(), cache, evaluation)

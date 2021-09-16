@@ -148,7 +148,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
     new_assumptions_list = []
     changed = False
     for assumption in assumptions_list:
-        if assumption.is_symbol():
+        if type(assumption) is Symbol:
             if assumption.is_true():
                 changed = True
                 continue

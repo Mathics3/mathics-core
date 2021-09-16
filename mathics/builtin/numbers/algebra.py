@@ -283,7 +283,7 @@ def find_all_vars(expr):
         assert e_sympy is not None
         if e_sympy.is_constant():
             return
-        elif e.is_symbol():
+        elif type(e) is Symbol:
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
             for l in e.leaves:
@@ -1484,7 +1484,7 @@ class _CoefficientHandler(Builtin):
             powers = [Integer0 for i, p in enumerate(var_pats)]
             if pf is None:
                 return powers
-            if pf.is_symbol():
+            if type(pf) is Symbol:
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
                         powers[i] = Integer(1)
@@ -1522,7 +1522,7 @@ class _CoefficientHandler(Builtin):
             if term.is_free(target_pat, evaluation):
                 coeffs.append(term)
             elif (
-                term.is_symbol()
+                type(term) is Symbol
                 or term.has_form("Power", 2)
                 or term.has_form("Sqrt", 1)
             ):
@@ -1575,7 +1575,7 @@ class _CoefficientHandler(Builtin):
             else:
                 return [(powers_list(None), expr)]
         elif (
-            expr.is_symbol()
+            type(expr) is Symbol
             or match(expr, target_pat, evaluation)
             or expr.has_form("Power", 2)
             or expr.has_form("Sqrt", 1)
@@ -1710,7 +1710,7 @@ class CoefficientArrays(_CoefficientHandler):
         else:
             list_polys = [polys]
 
-        if varlist.is_symbol():
+        if type(varlist) is Symbol:
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
             var_exprs = varlist.get_leaves()
@@ -1802,7 +1802,7 @@ class Collect(_CoefficientHandler):
         """Collect[expr_, varlst_, filt_]"""
         if filt == Symbol("Identity"):
             filt = None
-        if varlst.is_symbol():
+        if type(varlst) is Symbol:
             var_exprs = [varlst]
         elif varlst.has_form("List", None):
             var_exprs = varlst.get_leaves()
