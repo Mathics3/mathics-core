@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 from .helper import check_evaluation
-import pytest
 
 from mathics_scanner.errors import IncompleteSyntaxError
 
