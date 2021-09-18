@@ -102,5 +102,6 @@ ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
 
 #: Profile
-profiledocpipeline:
+profiledocpipeline: clean-cython
+	mkdir -p profiles
 	python -m cProfile -o profiles/`git branch --show-current`.pstats mathics/docpipeline.py
