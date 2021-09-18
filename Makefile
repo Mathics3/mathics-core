@@ -14,6 +14,7 @@ RM  ?= rm
    develop dist doctest doc-data djangotest \
    gstest pytest \
    rmChangeLog \
+   profiledocpipeline \
    test
 
 SANDBOX	?=
@@ -99,3 +100,7 @@ rmChangeLog:
 #: Create a ChangeLog from git via git log and git2cl
 ChangeLog: rmChangeLog
 	git log --pretty --numstat --summary | $(GIT2CL) >$@
+
+#: Profile
+profiledocpipeline:
+	python -m cProfile -o profiles/`git branch --show-current`.pstats mathics/docpipeline.py
