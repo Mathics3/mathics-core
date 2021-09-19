@@ -41,6 +41,7 @@ from mathics.builtin.base import (
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
+from mathics.builtin.numeric import apply_N
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
@@ -57,7 +58,6 @@ from mathics.core.expression import (
     SymbolFailed,
     SymbolList,
     SymbolMakeBoxes,
-    SymbolN,
     SymbolRule,
     SymbolSequence,
     from_python,
@@ -2493,9 +2493,7 @@ class _PrecomputedDistances(PrecomputedDistances):
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = Expression(
-            SymbolN, Expression(SymbolList, *distances_form)
-        ).evaluate(evaluation)
+        distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
         mpmath_distances = [_to_real_distance(d) for d in distances.leaves]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -2511,7 +2509,7 @@ class _LazyDistances(LazyDistances):
 
     def _compute_distance(self, i, j):
         p = self._p
-        d = Expression(SymbolN, self._df(p[i], p[j])).evaluate(self._evaluation)
+        d = apply_N(self._df(p[i], p[j]), self._evaluation)
         return _to_real_distance(d)
 
 

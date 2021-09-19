@@ -18,6 +18,7 @@ from mathics.builtin.graphics import (
     Style,
 )
 from mathics.builtin.lists import List
+from mathics.builtin.numeric import apply_N
 
 
 def coords3D(value):
@@ -294,7 +295,7 @@ class Cylinder(Builtin):
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
-            nradius = Expression(SymbolN, radius).evaluate(evaluation)
+            nradius = apply_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 
