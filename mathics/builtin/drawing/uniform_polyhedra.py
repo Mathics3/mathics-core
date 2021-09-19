@@ -47,7 +47,7 @@ class UniformPolyhedron(Builtin):
         if name.to_python(string_quotes=False) not in uniform_polyhedra_set:
             evaluation.error("UniformPolyhedron", "argtype", name)
 
-        return Expression("UniformPolyhedron", name, positions, edgelength)
+        return
 
 
 class Dodecahedron(Builtin):

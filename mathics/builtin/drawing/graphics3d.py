@@ -33,26 +33,21 @@ def coords3D(value):
 
 
 class Coords3D(object):
-    def __init__(self, graphics, expr=None, pos=None, d=None):
-        self.graphics = graphics
+    def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
-        self.d = d
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                self.d = coords3D(expr.leaves[0])
                 if len(expr.leaves) > 1:
                     self.p = coords3D(expr.leaves[1])
-                else:
-                    self.p = None
             else:
                 self.p = coords3D(expr)
 
     def pos(self):
-        return self.p, self.d
+        return self.p, None
 
     def add(self, x, y, z):
         p = (self.p[0] + x, self.p[1] + y, self.p[2] + z)
-        return Coords3D(self.graphics, pos=p, d=self.d)
+        return Coords3D(pos=p)
 
     def scale(self, a):
         self.p = (self.p[0] * a[0], self.p[1] * a[1], self.p[2] * a[2])
@@ -61,19 +56,6 @@ class Coords3D(object):
 class Style3D(Style):
     def get_default_face_color(self):
         return RGBColor(components=(1, 1, 1, 1))
-
-
-class _Graphics3DElement(InstanceableBuiltin):
-    def init(self, graphics, item=None, style=None):
-        if (
-            item is not None
-            and hasattr(item, "has_form")
-            and not item.has_form(self.get_name(), None)
-        ):
-            raise BoxConstructError
-        self.graphics = graphics
-        self.style = style
-        self.is_completely_visible = False  # True for axis elements
 
 
 class Graphics3D(Graphics):
@@ -272,7 +254,7 @@ class Cuboid(Builtin):
             # The number of points is odd, so abort.
             evaluation.error("Cuboid", "oddn", positions)
 
-        return Expression("Cuboid", positions)
+        return
 
 
 class Cylinder(Builtin):

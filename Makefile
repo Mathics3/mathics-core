@@ -10,7 +10,7 @@ PIP ?= pip3
 RM  ?= rm
 
 .PHONY: all build \
-   check clean \
+   check clean clean-cython \
    develop dist doctest doc-data djangotest \
    gstest pytest \
    rmChangeLog \
@@ -53,9 +53,13 @@ install:
 check: pytest gstest doctest
 
 
+#: Remove Cython-derived files
+clean-cython:
+	find mathics -name "*.so" -type f -delete; \
+	find mathics -name "*.c" -type f -delete
+
 #: Remove derived files
-clean:
-	rm mathics/*/*.so; \
+clean: clean-cython
 	for dir in mathics/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
