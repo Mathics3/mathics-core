@@ -137,8 +137,8 @@ def point_3d_box(self) -> list:
 
     # Tempoary bug fix: default Point color should be black not white
     face_color = self.face_color.to_rgba()
-    if list(face_color[:3]) == [1, 1, 1]:
-        face_color = RGBColor(components=(0, 0, 0, face_color[3])).to_rgba()
+    if face_color[:3] == (1, 1, 1):
+        face_color = (0, 0, 0, face_color[3])
 
     point_size, _ = self.style.get_style(PointSize, face_element=False)
     relative_point_size = 0.01 if point_size is None else point_size.value
@@ -180,9 +180,7 @@ add_conversion_fn(Polygon3DBox, polygon_3d_box)
 
 
 def sphere_3d_box(self) -> list:
-    face_color = self.face_color
-    if face_color is not None:
-        face_color = face_color.to_js()
+    face_color = self.face_color.to_js()
     data = convert_coord_collection(
         [self.points],
         "sphere",

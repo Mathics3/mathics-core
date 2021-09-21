@@ -119,31 +119,6 @@ def cut(value):
     return value
 
 
-def create_css(
-    edge_color=None, face_color=None, stroke_width=None, font_color=None, opacity=1.0
-):
-    css = []
-    if edge_color is not None:
-        color, stroke_opacity = edge_color.to_css()
-        css.append("stroke: %s" % color)
-        css.append("stroke-opacity: %s" % stroke_opacity)
-    else:
-        css.append("stroke: none")
-    if stroke_width is not None:
-        css.append("stroke-width: %fpx" % stroke_width)
-    if face_color is not None:
-        color, fill_opacity = face_color.to_css()
-        css.append("fill: %s" % color)
-        css.append("fill-opacity: %s" % fill_opacity)
-    else:
-        css.append("fill: none")
-    if font_color is not None:
-        color, _ = font_color.to_css()
-        css.append("color: %s" % color)
-    css.append("opacity: %s" % opacity)
-    return "; ".join(css)
-
-
 def _to_float(x):
     x = x.round_to_float()
     if x is None:
@@ -1084,11 +1059,8 @@ class Style(object):
     def set_option(self, name, value):
         self.options[name] = value
 
-    def extend(self, style, pre=True):
-        if pre:
-            self.styles = style.styles + self.styles
-        else:
-            self.styles.extend(style.styles)
+    def extend(self, style):
+        self.styles.extend(style.styles)
 
     def clone(self):
         result = self.klass(self.graphics, edge=self.edge, face=self.face)
