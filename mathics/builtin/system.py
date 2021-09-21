@@ -238,7 +238,7 @@ class Names(Builtin):
         if pattern is None:
             return
 
-        names = set([])
+        names = set()
         for full_name in evaluation.definitions.get_matching_names(pattern):
             short_name = strip_context(full_name)
             names.add(short_name if short_name not in names else full_name)

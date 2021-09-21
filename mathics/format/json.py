@@ -38,12 +38,10 @@ def convert_coord_collection(
     data = [
         {
             **default_values,
-            **{
-                "type": object_type,
-                "coords": [coords.pos() for coords in items],
-                "opacity": opacity,
-                "color": color[:3],
-            },
+            "type": object_type,
+            "coords": [coords.pos() for coords in items],
+            "opacity": opacity,
+            "color": color[:3],
         }
         for items in collection
     ]
