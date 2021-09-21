@@ -7,9 +7,9 @@ Functions for working with 3D graphics.
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import Expression, Real, Integer, Rational
+from mathics.core.expression import Real, Integer, Rational
 
-from mathics.builtin.base import BoxConstructError, Builtin, InstanceableBuiltin
+from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
     _GraphicsElements,
@@ -17,7 +17,6 @@ from mathics.builtin.graphics import (
     Graphics,
     Style,
 )
-from mathics.builtin.lists import List
 from mathics.builtin.numeric import apply_N
 
 

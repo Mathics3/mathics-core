@@ -4,7 +4,7 @@ import itertools
 from llvmlite import ir
 import ctypes
 
-from mathics.core.expression import Expression, Integer, Symbol, Real, String
+from mathics.core.expression import Expression, Integer, Symbol, Real
 from mathics.builtin.compile.types import int_type, real_type, bool_type, void_type
 from mathics.builtin.compile.utils import pairwise, llvm_to_ctype
 from mathics.builtin.compile.base import CompileError

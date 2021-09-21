@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-import unittest
 from mathics.core.expression import Expression, Integer, Rational, Symbol
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation

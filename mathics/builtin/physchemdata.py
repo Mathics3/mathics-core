@@ -19,7 +19,6 @@ from mathics.core.expression import (
     String,
     strip_context,
 )
-from mathics.settings import ROOT_DIR
 
 
 class NoElementDataFile(Exception):

@@ -4,7 +4,6 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.core.expression import (
     Expression,
-    Symbol,
     SymbolTrue,
     SymbolFalse,
 )
@@ -298,10 +297,8 @@ def get_assumption_rules_dispatch(evaluation):
 
         if value:
             symbol_value = SymbolTrue
-            symbol_negate_value = SymbolFalse
         else:
             symbol_value = SymbolFalse
-            symbol_negate_value = SymbolTrue
 
         if pat.has_form("Equal", 2):
             if value:

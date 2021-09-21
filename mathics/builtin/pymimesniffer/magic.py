@@ -4,7 +4,6 @@
 import sys
 import os.path
 import logging
-import io
 
 
 class MagicRule(object):
@@ -97,8 +96,6 @@ class MagicLoader(object):
         self.mimetypes = {}
 
     def getText(self, node, name=None):
-        from xml.dom.minidom import Node
-
         text = b""
 
         if name:
