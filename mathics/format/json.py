@@ -180,9 +180,7 @@ add_conversion_fn(Polygon3DBox, polygon_3d_box)
 
 
 def sphere_3d_box(self) -> list:
-    face_color = self.face_color
-    if face_color is not None:
-        face_color = face_color.to_js()
+    face_color = self.face_color.to_js()
     data = convert_coord_collection(
         [self.points],
         "sphere",
