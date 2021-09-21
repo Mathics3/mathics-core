@@ -272,9 +272,6 @@ def get_assumption_rules_dispatch(evaluation):
     if val_consistent_assumptions == SymbolFalse:
         evaluation.message("Inconsistent assumptions")
 
-    if assumptions_list is None:
-        return remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)
-
     # Expands Logically
     assumptions_list, cont = logical_expand_assumptions(assumptions_list, evaluation)
     while cont:
