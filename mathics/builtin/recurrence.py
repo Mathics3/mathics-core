@@ -122,7 +122,7 @@ class RSolve(Builtin):
             evaluation
         )
 
-        sym_eq = relation.to_sympy(converted_functions=set([func.get_head_name()]))
+        sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
         if sym_eq is None:
             return
         sym_n = sympy.core.symbols(str(sympy_symbol_prefix + n.name))

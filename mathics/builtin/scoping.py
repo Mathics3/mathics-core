@@ -492,7 +492,7 @@ class Contexts(Builtin):
     def apply(self, evaluation):
         "Contexts[]"
 
-        contexts = set([])
+        contexts = set()
         for name in evaluation.definitions.get_names():
             contexts.add(String(name[: name.rindex("`") + 1]))
 

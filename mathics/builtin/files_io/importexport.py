@@ -2117,10 +2117,10 @@ class FileFormat(Builtin):
         mime = set(FileFormat.detector.match(path))
 
         # If match fails match on extension only
-        if mime == set([]):
+        if mime == set():
             mime, encoding = mimetypes.guess_type(path)
             if mime is None:
-                mime = set([])
+                mime = set()
             else:
                 mime = set([mime])
         result = []

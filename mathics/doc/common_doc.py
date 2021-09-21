@@ -794,7 +794,7 @@ class MathicsMainDocumentation(Documentation):
             #  optional.optional_builtins_by_module, False)]:
 
             builtin_part = DocPart(self, title, is_reference=start)
-            modules_seen = set([])
+            modules_seen = set()
             for module in modules:
                 # FIXME add an additional mechanism in the module
                 # to allow a docstring and indicate it is not to go in the

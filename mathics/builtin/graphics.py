@@ -1412,7 +1412,7 @@ style_options = system_symbols_dict(
 style_heads = frozenset(styles.keys())
 
 style_and_form_heads = frozenset(
-    style_heads.union(set(["System`EdgeForm", "System`FaceForm"]))
+    style_heads.union({"System`EdgeForm", "System`FaceForm"})
 )
 
 GLOBALS.update(
@@ -1429,9 +1429,11 @@ GLOBALS.update(
 
 GLOBALS.update(styles)
 
-GRAPHICS_SYMBOLS = set(
-    ["System`List", "System`Rule", "System`VertexColors"]
-    + list(element_heads)
-    + [element + "Box" for element in element_heads]
-    + list(style_heads)
-)
+GRAPHICS_SYMBOLS = {
+    "System`List",
+    "System`Rule",
+    "System`VertexColors",
+    *element_heads,
+    *[element + "Box" for element in element_heads],
+    *style_heads,
+}
