@@ -1188,14 +1188,6 @@ def _squared_euclidean_distance(a, b):
     return s
 
 
-def _clusters(x, a, k):
-    clusters = [[] for _ in range(k)]
-    add = [c.append for c in clusters]
-    for i, j in enumerate(a):
-        add[j](x[i])
-    return clusters
-
-
 def kmeans(x, x_repr, k, mode, seed, epsilon):
     assert len(x) == len(x_repr)
 
