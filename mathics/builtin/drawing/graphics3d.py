@@ -159,6 +159,7 @@ def total_extent_3d(extents):
 
 class Graphics3DElements(_GraphicsElements):
     coords = Coords3D
+    style_class = Style3D
 
     def __init__(self, content, evaluation, neg_y=False):
         super(Graphics3DElements, self).__init__(content, evaluation)
@@ -177,9 +178,6 @@ class Graphics3DElements(_GraphicsElements):
     def _apply_boxscaling(self, boxscale):
         for element in self.elements:
             element._apply_boxscaling(boxscale)
-
-    def get_style_class(self):
-        return Style3D
 
 
 class Sphere(Builtin):

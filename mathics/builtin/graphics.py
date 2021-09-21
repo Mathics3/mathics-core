@@ -1028,7 +1028,7 @@ def _style(graphics, item):
         klass = get_class(head)
         style = klass.create_as_style(klass, graphics, item)
     elif head in ("System`EdgeForm", "System`FaceForm"):
-        style = graphics.get_style_class()(
+        style = graphics.style_class(
             graphics, edge=head == "System`EdgeForm", face=head == "System`FaceForm"
         )
         if len(item.leaves) > 1:
@@ -1051,7 +1051,7 @@ class Style(object):
         self.graphics = graphics
         self.edge = edge
         self.face = face
-        self.klass = graphics.get_style_class()
+        self.klass = graphics.style_class
 
     def append(self, item, allow_forms=True):
         self.styles.append(_style(self.graphics, item))
@@ -1135,6 +1135,8 @@ def _flatten(leaves):
 
 
 class _GraphicsElements(object):
+    style_class = Style
+
     def __init__(self, content, evaluation):
         self.evaluation = evaluation
         self.elements = []
@@ -1206,10 +1208,10 @@ class _GraphicsElements(object):
                 else:
                     raise BoxConstructError
 
-        self.elements = list(convert(content, self.get_style_class()(self)))
+        self.elements = list(convert(content, self.style_class(self)))
 
     def create_style(self, expr):
-        style = self.get_style_class()(self)
+        style = self.style_class(self)
 
         def convert(expr):
             if expr.has_form(("List", "Directive"), None):
@@ -1220,9 +1222,6 @@ class _GraphicsElements(object):
 
         convert(expr)
         return style
-
-    def get_style_class(self):
-        return Style
 
 
 class GraphicsElements(_GraphicsElements):
