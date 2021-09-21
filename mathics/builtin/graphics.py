@@ -586,7 +586,7 @@ class _Polyline(_GraphicsElement):
             [graphics.coords(graphics, point) for point in line] for line in lines
         ]
 
-    def extent(self):
+    def extent(self) -> list:
         l = self.style.get_line_width(face_element=False)
         result = []
         for line in self.lines:
