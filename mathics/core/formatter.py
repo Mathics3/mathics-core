@@ -2,7 +2,7 @@ import inspect
 from typing import Callable
 
 # key is str: (to_xxx name, value) is formatter function to call
-format2fn = {}
+format2fn: dict = {}
 
 
 def lookup_method(self, format: str, module_fn_name=None) -> Callable:
