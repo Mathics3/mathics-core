@@ -1059,11 +1059,8 @@ class Style(object):
     def set_option(self, name, value):
         self.options[name] = value
 
-    def extend(self, style, pre=True):
-        if pre:
-            self.styles = style.styles + self.styles
-        else:
-            self.styles.extend(style.styles)
+    def extend(self, style):
+        self.styles.extend(style.styles)
 
     def clone(self):
         result = self.klass(self.graphics, edge=self.edge, face=self.face)
