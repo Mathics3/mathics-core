@@ -11,7 +11,9 @@ from mpmath import mp
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
-from mathics.core.expression import Expression, Integer, Symbol, Real, from_mpmath
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer, Real, from_mpmath
+from mathics.core.symbols import Symbol
 
 
 def matrix_data(m):

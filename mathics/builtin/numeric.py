@@ -28,9 +28,10 @@ from functools import lru_cache
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     Integer0,
     MachineReal,
@@ -38,13 +39,14 @@ from mathics.core.expression import (
     Rational,
     Real,
     String,
-    Symbol,
+    from_python,
+)
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolTrue,
     SymbolList,
     SymbolMachinePrecision,
     SymbolN,
-    from_python,
 )
 
 from mathics.core.numbers import (

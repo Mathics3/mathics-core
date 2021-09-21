@@ -7,9 +7,9 @@ Functions for working with 3D graphics.
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import Expression, Real, Integer, Rational
+from mathics.core.atoms import Real, Integer, Rational
 
-from mathics.builtin.base import BoxConstructError, Builtin, InstanceableBuiltin
+from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
     _GraphicsElements,
@@ -17,7 +17,6 @@ from mathics.builtin.graphics import (
     Graphics,
     Style,
 )
-from mathics.builtin.lists import List
 from mathics.builtin.numeric import apply_N
 
 
@@ -159,6 +158,7 @@ def total_extent_3d(extents):
 
 class Graphics3DElements(_GraphicsElements):
     coords = Coords3D
+    style_class = Style3D
 
     def __init__(self, content, evaluation, neg_y=False):
         super(Graphics3DElements, self).__init__(content, evaluation)
@@ -177,9 +177,6 @@ class Graphics3DElements(_GraphicsElements):
     def _apply_boxscaling(self, boxscale):
         for element in self.elements:
             element._apply_boxscaling(boxscale)
-
-    def get_style_class(self):
-        return Style3D
 
 
 class Sphere(Builtin):

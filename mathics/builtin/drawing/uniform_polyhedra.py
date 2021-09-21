@@ -9,7 +9,6 @@ Uniform polyhedra is the grouping of platonic solids, Archimedean solids, and re
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
 
 uniform_polyhedra_names = "tetrahedron, octahedron, dodecahedron, icosahedron"
 uniform_polyhedra_set = frozenset(uniform_polyhedra_names.split(", "))

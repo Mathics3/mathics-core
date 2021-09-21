@@ -43,15 +43,19 @@ from mathics.builtin.base import PatternObject, PatternError
 from mathics.builtin.lists import python_levelspec, InvalidLevelspecError
 from mathics.builtin.numeric import apply_N
 
-from mathics.core.expression import (
+from mathics.core.symbols import (
     Atom,
-    String,
     Symbol,
-    Expression,
+)
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
+    String,
     Number,
     Integer,
     Rational,
     Real,
+)
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,

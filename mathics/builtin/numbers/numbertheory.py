@@ -5,16 +5,15 @@ Number theoretic functions
 """
 
 import sympy
-from itertools import combinations
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
-from mathics.builtin.base import Builtin, Test, SympyFunction
-from mathics.core.expression import (
-    Expression,
+from mathics.builtin.base import Builtin, SympyFunction
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     Integer,
     Integer0,
     Rational,
-    Symbol,
     from_python,
 )
 from mathics.core.convert import from_sympy, SympyPrime

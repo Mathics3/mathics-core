@@ -16,7 +16,9 @@ from functools import reduce
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
-from mathics.core.expression import Integer, String, Symbol, Real, Expression, Complex
+from mathics.core.atoms import Integer, String, Real, Complex
+from mathics.core.symbols import Symbol
+from mathics.core.expression import Expression
 
 try:
     import numpy

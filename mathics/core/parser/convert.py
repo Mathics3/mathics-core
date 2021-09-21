@@ -5,7 +5,9 @@
 from math import log10
 import sympy
 
-import mathics.core.expression as ma
+import mathics.core.atoms as maa
+import mathics.core.symbols as mas
+import mathics.core.expression as mae
 from mathics.core.parser.ast import Symbol, String, Number, Filename
 from mathics.core.numbers import machine_precision, reconstruct_digits
 
@@ -169,23 +171,23 @@ class Converter(GenericConverter):
         return getattr(self, "_make_" + result[0])(*result[1:])
 
     def _make_Symbol(self, s):
-        return ma.Symbol(s)
+        return mas.Symbol(s)
 
     def _make_Lookup(self, s):
         value = self.definitions.lookup_name(s)
-        return ma.Symbol(value)
+        return mas.Symbol(value)
 
     def _make_String(self, s):
-        return ma.String(s)
+        return maa.String(s)
 
     def _make_Integer(self, x):
-        return ma.Integer(x)
+        return maa.Integer(x)
 
     def _make_Rational(self, x, y):
-        return ma.Rational(x, y)
+        return maa.Rational(x, y)
 
     def _make_MachineReal(self, x):
-        return ma.MachineReal(x)
+        return maa.MachineReal(x)
 
     def _make_PrecisionReal(self, value, prec):
         if value[0] == "Rational":
@@ -196,10 +198,10 @@ class Converter(GenericConverter):
             x = value[1]
         else:
             assert False
-        return ma.PrecisionReal(sympy.Float(x, prec))
+        return maa.PrecisionReal(sympy.Float(x, prec))
 
     def _make_Expression(self, head, children):
-        return ma.Expression(head, *children)
+        return mae.Expression(head, *children)
 
 
 converter = Converter()

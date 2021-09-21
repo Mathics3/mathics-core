@@ -35,16 +35,20 @@ from mathics.builtin.colors.color_directives import (
 )
 
 from mathics.builtin.options import options_to_rules
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
+    Symbol,
+    system_symbols,
+    system_symbols_dict,
+)
+from mathics.core.atoms import (
     Integer,
     Rational,
     Real,
-    Symbol,
+)
+from mathics.core.systemsymbols import (
     SymbolList,
     SymbolMakeBoxes,
-    system_symbols,
-    system_symbols_dict,
 )
 
 from mathics.core.formatter import lookup_method
@@ -1028,7 +1032,7 @@ def _style(graphics, item):
         klass = get_class(head)
         style = klass.create_as_style(klass, graphics, item)
     elif head in ("System`EdgeForm", "System`FaceForm"):
-        style = graphics.get_style_class()(
+        style = graphics.style_class(
             graphics, edge=head == "System`EdgeForm", face=head == "System`FaceForm"
         )
         if len(item.leaves) > 1:
@@ -1051,7 +1055,7 @@ class Style(object):
         self.graphics = graphics
         self.edge = edge
         self.face = face
-        self.klass = graphics.get_style_class()
+        self.klass = graphics.style_class
 
     def append(self, item, allow_forms=True):
         self.styles.append(_style(self.graphics, item))
@@ -1135,6 +1139,8 @@ def _flatten(leaves):
 
 
 class _GraphicsElements(object):
+    style_class = Style
+
     def __init__(self, content, evaluation):
         self.evaluation = evaluation
         self.elements = []
@@ -1189,27 +1195,24 @@ class _GraphicsElements(object):
                         yield element
                 elif head[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
-                    if element_class is not None:
-                        options = get_options(head[:-3])
-                        if options:
-                            data, options = _data_and_options(item.leaves, options)
-                            new_item = Expression(head, *data)
-                            element = get_class(head)(self, style, new_item, options)
-                        else:
-                            element = get_class(head)(self, style, item)
-                        yield element
+                    options = get_options(head[:-3])
+                    if options:
+                        data, options = _data_and_options(item.leaves, options)
+                        new_item = Expression(head, *data)
+                        element = element_class(self, style, new_item, options)
                     else:
-                        raise BoxConstructError
+                        element = element_class(self, style, item)
+                    yield element
                 elif head == "System`List":
                     for element in convert(item, style):
                         yield element
                 else:
                     raise BoxConstructError
 
-        self.elements = list(convert(content, self.get_style_class()(self)))
+        self.elements = list(convert(content, self.style_class(self)))
 
     def create_style(self, expr):
-        style = self.get_style_class()(self)
+        style = self.style_class(self)
 
         def convert(expr):
             if expr.has_form(("List", "Directive"), None):
@@ -1220,9 +1223,6 @@ class _GraphicsElements(object):
 
         convert(expr)
         return style
-
-    def get_style_class(self):
-        return Style
 
 
 class GraphicsElements(_GraphicsElements):

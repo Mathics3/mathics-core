@@ -3,7 +3,7 @@
 Format a Mathics object as JSON data
 """
 
-from mathics.builtin.graphics import PointSize, RGBColor
+from mathics.builtin.graphics import PointSize
 
 from mathics.builtin.drawing.graphics3d import (
     Graphics3DElements,

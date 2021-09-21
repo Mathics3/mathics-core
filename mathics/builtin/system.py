@@ -13,16 +13,18 @@ import re
 import subprocess
 
 from mathics.version import __version__
-from mathics.core.expression import (
-    Expression,
+from mathics.core.symbols import strip_context
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Integer,
     Integer0,
     Real,
     String,
+)
+from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolList,
     SymbolRule,
-    strip_context,
 )
 from mathics.builtin.base import Builtin, Predefined
 from mathics import version_string

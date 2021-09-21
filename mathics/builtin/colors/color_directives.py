@@ -15,15 +15,16 @@ from mathics.builtin.base import (
     BoxConstructError,
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsElement, get_class
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Integer,
     Real,
     String,
-    Symbol,
-    SymbolList,
     from_python,
 )
+
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
 
 from mathics.core.numbers import machine_epsilon
 
