@@ -1191,17 +1191,14 @@ class _GraphicsElements(object):
                         yield element
                 elif head[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
-                    if element_class is not None:
-                        options = get_options(head[:-3])
-                        if options:
-                            data, options = _data_and_options(item.leaves, options)
-                            new_item = Expression(head, *data)
-                            element = get_class(head)(self, style, new_item, options)
-                        else:
-                            element = get_class(head)(self, style, item)
-                        yield element
+                    options = get_options(head[:-3])
+                    if options:
+                        data, options = _data_and_options(item.leaves, options)
+                        new_item = Expression(head, *data)
+                        element = element_class(self, style, new_item, options)
                     else:
-                        raise BoxConstructError
+                        element = element_class(self, style, item)
+                    yield element
                 elif head == "System`List":
                     for element in convert(item, style):
                         yield element
