@@ -178,7 +178,6 @@ class Definitions(object):
                     newsymbols[symbol_name] = instance
 
         for name in newsymbols:
-            luname = self.lookup_name(name)
             self.user.pop(name, None)
 
         for name, item in newsymbols.items():
@@ -192,7 +191,7 @@ class Definitions(object):
         return loaded_module
 
     def clear_pymathics_modules(self):
-        from mathics.builtin import builtins, builtins_by_module
+        from mathics.builtin import builtins_by_module
 
         for key in list(builtins_by_module.keys()):
             if not key.startswith("mathics."):
@@ -459,10 +458,6 @@ class Definitions(object):
                     else (builtin.attributes if builtin else set())
                 )
             )
-            upvalues = ([],)
-            messages = ([],)
-            nvalues = ([],)
-            defaultvalues = ([],)
             options = {}
             formatvalues = {
                 "": [],

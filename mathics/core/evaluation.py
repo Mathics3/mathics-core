@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import pickle
 from queue import Queue
 
 import os
@@ -237,7 +236,6 @@ class Evaluation(object):
         self, definitions=None, output=None, format="text", catch_interrupt=True
     ) -> None:
         from mathics.core.definitions import Definitions
-        from mathics.core.expression import Symbol
 
         if definitions is None:
             definitions = Definitions()
@@ -301,7 +299,7 @@ class Evaluation(object):
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
-        from mathics.core.expression import Symbol, Expression
+        from mathics.core.expression import Expression
         from mathics.core.rules import Rule
 
         self.recursion_depth = 0

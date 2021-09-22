@@ -119,31 +119,6 @@ def cut(value):
     return value
 
 
-def create_css(
-    edge_color=None, face_color=None, stroke_width=None, font_color=None, opacity=1.0
-):
-    css = []
-    if edge_color is not None:
-        color, stroke_opacity = edge_color.to_css()
-        css.append("stroke: %s" % color)
-        css.append("stroke-opacity: %s" % stroke_opacity)
-    else:
-        css.append("stroke: none")
-    if stroke_width is not None:
-        css.append("stroke-width: %fpx" % stroke_width)
-    if face_color is not None:
-        color, fill_opacity = face_color.to_css()
-        css.append("fill: %s" % color)
-        css.append("fill-opacity: %s" % fill_opacity)
-    else:
-        css.append("fill: none")
-    if font_color is not None:
-        color, _ = font_color.to_css()
-        css.append("color: %s" % color)
-    css.append("opacity: %s" % opacity)
-    return "; ".join(css)
-
-
 def _to_float(x):
     x = x.round_to_float()
     if x is None:
@@ -586,7 +561,7 @@ class _Polyline(_GraphicsElement):
             [graphics.coords(graphics, point) for point in line] for line in lines
         ]
 
-    def extent(self):
+    def extent(self) -> list:
         l = self.style.get_line_width(face_element=False)
         result = []
         for line in self.lines:
@@ -1053,7 +1028,7 @@ def _style(graphics, item):
         klass = get_class(head)
         style = klass.create_as_style(klass, graphics, item)
     elif head in ("System`EdgeForm", "System`FaceForm"):
-        style = graphics.get_style_class()(
+        style = graphics.style_class(
             graphics, edge=head == "System`EdgeForm", face=head == "System`FaceForm"
         )
         if len(item.leaves) > 1:
@@ -1076,7 +1051,7 @@ class Style(object):
         self.graphics = graphics
         self.edge = edge
         self.face = face
-        self.klass = graphics.get_style_class()
+        self.klass = graphics.style_class
 
     def append(self, item, allow_forms=True):
         self.styles.append(_style(self.graphics, item))
@@ -1084,11 +1059,8 @@ class Style(object):
     def set_option(self, name, value):
         self.options[name] = value
 
-    def extend(self, style, pre=True):
-        if pre:
-            self.styles = style.styles + self.styles
-        else:
-            self.styles.extend(style.styles)
+    def extend(self, style):
+        self.styles.extend(style.styles)
 
     def clone(self):
         result = self.klass(self.graphics, edge=self.edge, face=self.face)
@@ -1163,6 +1135,8 @@ def _flatten(leaves):
 
 
 class _GraphicsElements(object):
+    style_class = Style
+
     def __init__(self, content, evaluation):
         self.evaluation = evaluation
         self.elements = []
@@ -1217,27 +1191,24 @@ class _GraphicsElements(object):
                         yield element
                 elif head[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
-                    if element_class is not None:
-                        options = get_options(head[:-3])
-                        if options:
-                            data, options = _data_and_options(item.leaves, options)
-                            new_item = Expression(head, *data)
-                            element = get_class(head)(self, style, new_item, options)
-                        else:
-                            element = get_class(head)(self, style, item)
-                        yield element
+                    options = get_options(head[:-3])
+                    if options:
+                        data, options = _data_and_options(item.leaves, options)
+                        new_item = Expression(head, *data)
+                        element = element_class(self, style, new_item, options)
                     else:
-                        raise BoxConstructError
+                        element = element_class(self, style, item)
+                    yield element
                 elif head == "System`List":
                     for element in convert(item, style):
                         yield element
                 else:
                     raise BoxConstructError
 
-        self.elements = list(convert(content, self.get_style_class()(self)))
+        self.elements = list(convert(content, self.style_class(self)))
 
     def create_style(self, expr):
-        style = self.get_style_class()(self)
+        style = self.style_class(self)
 
         def convert(expr):
             if expr.has_form(("List", "Directive"), None):
@@ -1248,9 +1219,6 @@ class _GraphicsElements(object):
 
         convert(expr)
         return style
-
-    def get_style_class(self):
-        return Style
 
 
 class GraphicsElements(_GraphicsElements):
@@ -1412,7 +1380,7 @@ style_options = system_symbols_dict(
 style_heads = frozenset(styles.keys())
 
 style_and_form_heads = frozenset(
-    style_heads.union(set(["System`EdgeForm", "System`FaceForm"]))
+    style_heads.union({"System`EdgeForm", "System`FaceForm"})
 )
 
 GLOBALS.update(
@@ -1429,9 +1397,11 @@ GLOBALS.update(
 
 GLOBALS.update(styles)
 
-GRAPHICS_SYMBOLS = set(
-    ["System`List", "System`Rule", "System`VertexColors"]
-    + list(element_heads)
-    + [element + "Box" for element in element_heads]
-    + list(style_heads)
-)
+GRAPHICS_SYMBOLS = {
+    "System`List",
+    "System`Rule",
+    "System`VertexColors",
+    *element_heads,
+    *[element + "Box" for element in element_heads],
+    *style_heads,
+}

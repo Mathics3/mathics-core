@@ -1,5 +1,4 @@
 import llvmlite.binding as llvm
-from llvmlite.llvmpy.core import Type
 from ctypes import CFUNCTYPE
 
 from mathics.builtin.compile.utils import llvm_to_ctype
