@@ -594,11 +594,8 @@ class BaseExpression(KeyComparable):
         if evaluation is None:
             value = self
         elif isinstance(evaluation, sympy.core.numbers.NaN):
-            print(
-                "why an evaluation parameter would be set to sympy.NaN and this should happend? "
-            )
-            assert False
-            return None
+            RuntimeError("evaluation should not be sympy.Nan")
+            # return None
         else:
             value = Expression(SymbolN, self).evaluate(evaluation)
         if isinstance(value, Number):
