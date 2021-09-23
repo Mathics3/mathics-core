@@ -954,6 +954,8 @@ class N(Builtin):
 
     def apply_with_prec(self, expr, prec, evaluation):
         "N[expr_, prec_]"
+        if not prec.is_numeric(evaluation):
+            return
         val = apply_N(expr, evaluation, prec)
         if not isinstance(val, Number):
             val = val.evaluate(evaluation)
