@@ -321,8 +321,7 @@ class BaseExpression(KeyComparable):
 
     def get_lookup_name(self):
         "Returns symbol name of leftmost head"
-
-        return self.get_name()
+        return ""
 
     def get_head(self):
         return None
@@ -983,7 +982,13 @@ class Expression(BaseExpression):
         return set()
 
     def get_lookup_name(self) -> bool:
-        return self._head.get_lookup_name()
+        head = self._head
+        while type(head) is Expression:
+            head = head._head
+        if type(head) is Symbol:
+            return head.name
+        else:
+            return ""
 
     def has_form(self, heads, *leaf_counts):
         """
@@ -2036,6 +2041,9 @@ class Symbol(Atom):
         return definitions.get_attributes(self.name)
 
     def get_name(self) -> str:
+        return self.name
+
+    def get_lookup_name(self):
         return self.name
 
     def is_symbol(self) -> bool:
