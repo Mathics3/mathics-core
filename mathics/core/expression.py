@@ -13,8 +13,18 @@ from bisect import bisect_left
 from functools import lru_cache
 
 
-from mathics.core.numbers import get_type, dps, prec, min_prec, machine_precision
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.numbers import (
+    get_type,
+    dps,
+    get_precision,
+    prec,
+    min_prec,
+    machine_precision,
+    PrecisionValueError,
+)
+
+
+from mathics.core.convert import from_sympy, sympy_symbol_prefix, SympyExpression
 import base64
 
 # Imperical number that seems to work.
@@ -1795,7 +1805,7 @@ class Expression(BaseExpression):
             *[
                 leaf.replace_vars(vars, options=options, in_scoping=in_scoping)
                 for leaf in leaves
-            ]
+            ],
         )
 
     def replace_slots(self, slots, evaluation):
@@ -1823,7 +1833,7 @@ class Expression(BaseExpression):
             return self
         return Expression(
             self._head.replace_slots(slots, evaluation),
-            *[leaf.replace_slots(slots, evaluation) for leaf in self._leaves]
+            *[leaf.replace_slots(slots, evaluation) for leaf in self._leaves],
         )
 
     def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
@@ -1887,18 +1897,22 @@ class Expression(BaseExpression):
                 if _prec is None or leaf_prec < _prec:
                     _prec = leaf_prec
         if _prec is not None:
+            _prec = Integer(dps(_prec))
             new_leaves = self.get_mutable_leaves()
+            changed = False
             for index in range(len(new_leaves)):
                 leaf = new_leaves[index]
                 # Don't "numerify" numbers: they should be numerified
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
                 if not isinstance(leaf, Number):
-                    n_expr = Expression(SymbolN, leaf, Integer(dps(_prec)))
-                    n_result = n_expr.evaluate(evaluation)
+                    n_result = apply_N(leaf, evaluation, _prec)
+                    if not isinstance(n_result, Number):
+                        n_result = n_result.evaluate(evaluation)
                     if isinstance(n_result, Number):
+                        changed = True
                         new_leaves[index] = n_result
-            return Expression(self._head, *new_leaves)
+            return Expression(self._head, *new_leaves) if changed else self
         else:
             return self
 
@@ -3339,3 +3353,106 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 def string_list(head, leaves, evaluation):
     return atom_list_constructor(evaluation, head, "String")(leaves)
+
+
+def apply_N(expr, evaluation, prec=SymbolMachinePrecision):
+    """
+    This function applies recursively `N-value` rules for convert symbols, expressions and exact numbers
+    into Real numbers with certain precision.
+    Notice that `apply_N(expr, evaluation, prec)` is not equivalent in general to call
+    `Expression(SymbolN, expr, prec).evaluate(evaluation)`. To get the same behaviour, in general
+    is necesary to call
+    `apply_N(expr.evaluate(evaluation), evaluation, prec.evaluate(evaluation)).evaluate(evaluation)`
+    However, in many cases where this function is called from Python code, both `prec` and `expr`
+    are given in an already evaluated form, while the last evaluation is only required when
+    `apply_N` failed to return a real number.
+    """
+    try:
+        d = get_precision(prec, evaluation)
+    except PrecisionValueError:
+        return
+
+    if isinstance(expr, Number):
+        return expr.round(d)
+    if isinstance(expr, String):
+        return expr
+
+    if expr.get_head_name() in ("System`List", "System`Rule"):
+        newleaves = [apply_N(leaf, evaluation, prec) for leaf in expr.leaves]
+        return Expression(
+            expr.head,
+            *[
+                leaf if newleaf is None else newleaf
+                for newleaf, leaf in zip(newleaves, expr.leaves)
+            ],
+        )
+    # Special case for the Root builtin
+    if expr.has_form("Root", 2):
+        return from_sympy(sympy.N(expr.to_sympy(), d))
+
+    name = expr.get_lookup_name()
+    if name != "":
+        nexpr = Expression(SymbolN, expr, prec)
+        result = evaluation.definitions.get_value(
+            name, "System`NValues", nexpr, evaluation
+        )
+        if result is not None:
+            if isinstance(result, Number):
+                return result.round(d)
+            if not (result.sameQ(nexpr) or result.sameQ(expr)):
+                if result.is_atom():
+                    return result
+                if result._head.sameQ(SymbolN):
+                    if len(result.leaves) == 2 and result.leaves[1].is_numeric(
+                        evaluation
+                    ):
+                        return apply_N(result.leaves[0], evaluation, result.leaves[1])
+                    elif len(result.leaves) == 1:
+                        return apply_N(result.leaves[0], evaluation, prec)
+                    else:
+                        return result.evaluate(evaluation)
+            return result
+
+    if expr.is_atom():
+        return expr
+
+    # TODO: This special cases should be removed after figuring out
+    # why when we do it, ExpressionMantissa and FindRoot stop working...
+    head = expr.head
+    # Now, the general case for `Expression`
+    if head.sameQ(SymbolN):
+        # maybe we should handle the precision...
+        return expr
+
+    # Flag to check if N[expr] is different from expr.
+    # If it is, build a new expression. Otherwise, return it without changes.
+    changed = False
+    new_head = apply_N(head, evaluation, prec)
+    if new_head is not head:
+        head = new_head
+        changed = True
+
+    # the attributes to have into account are those associated to N[expr.head]
+    attributes = head.get_attributes(evaluation.definitions)
+    # Apply N to those arguments that are not hold. Keep them unevaluated.
+    if "System`NHoldAll" in attributes:
+        eval_range = ()
+    elif "System`NHoldFirst" in attributes:
+        eval_range = range(1, len(expr.leaves))
+    elif "System`NHoldRest" in attributes:
+        if len(expr.leaves) > 0:
+            eval_range = (0,)
+        else:
+            eval_range = ()
+    else:
+        eval_range = range(len(expr.leaves))
+
+    leaves = expr.get_mutable_leaves()
+    for index in eval_range:
+        leaf = leaves[index]
+        new_leaf = apply_N(leaf, evaluation, prec)
+        if new_leaf is not leaf:
+            changed = True
+            leaves[index] = new_leaf
+
+    return Expression(head, *leaves) if changed else expr

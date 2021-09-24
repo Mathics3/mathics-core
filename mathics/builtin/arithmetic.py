@@ -23,6 +23,7 @@ from mathics.builtin.base import (
 )
 
 from mathics.core.expression import (
+    apply_N,
     Complex,
     Expression,
     Integer,
@@ -46,7 +47,6 @@ from mathics.builtin.lists import _IterationFunction
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
-from mathics.builtin.numeric import apply_N
 
 
 @lru_cache(maxsize=1024)

@@ -41,9 +41,9 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
 from mathics.builtin.base import PatternObject, PatternError
 from mathics.builtin.lists import python_levelspec, InvalidLevelspecError
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.expression import (
+    apply_N,
     Atom,
     String,
     Symbol,

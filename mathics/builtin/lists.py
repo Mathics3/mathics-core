@@ -41,11 +41,12 @@ from mathics.builtin.base import (
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.numeric import apply_N
+
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.expression import (
+    apply_N,
     ByteArrayAtom,
     Expression,
     Integer,

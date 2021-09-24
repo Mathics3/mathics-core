@@ -20,6 +20,7 @@ from mathics.builtin.base import (
 )
 
 from mathics.core.expression import (
+    apply_N,
     Complex,
     Expression,
     Integer,
@@ -40,8 +41,6 @@ from mathics.core.expression import (
 from mathics.core.numbers import min_prec, dps
 
 from mathics.core.convert import from_sympy
-
-from mathics.builtin.numeric import apply_N
 
 
 class CubeRoot(Builtin):
