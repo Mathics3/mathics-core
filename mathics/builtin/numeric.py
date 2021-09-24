@@ -956,17 +956,19 @@ class N(Builtin):
         "N[expr_, prec_]"
         if not prec.is_numeric(evaluation):
             return
-        val = apply_N(expr, evaluation, prec)
-        if not isinstance(val, Number):
-            val = val.evaluate(evaluation)
-        return val
+        return apply_N(expr, evaluation, prec)
+        # val = apply_N(expr, evaluation, prec)
+        # if not isinstance(val, Number):
+        #    val = val.evaluate(evaluation)
+        # return val
 
     def apply(self, expr, evaluation):
         "N[expr_]"
-        val = apply_N(expr, evaluation)
-        if not isinstance(val, Number):
-            val = val.evaluate(evaluation)
-        return val
+        return apply_N(expr, evaluation)
+        # val = apply_N(expr, evaluation)
+        # if not isinstance(val, Number):
+        #    val = val.evaluate(evaluation)
+        # return val
 
 
 class NIntegrate(Builtin):
