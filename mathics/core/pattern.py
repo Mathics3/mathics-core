@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.expression import Expression, system_symbols, ensure_context
+from mathics.core.expression import Expression, Symbol, system_symbols, ensure_context
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
@@ -109,7 +109,13 @@ class Pattern(object):
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
     def get_lookup_name(self):
-        return self.expr.get_lookup_name()
+        head = self.expr
+        while type(head) is Expression:
+            head = head._head
+        if type(head) is Symbol:
+            return head.name
+        else:
+            return ""
 
     def get_attributes(self, definitions):
         return self.expr.get_attributes(definitions)
