@@ -358,7 +358,7 @@ class BaseExpression(KeyComparable):
         from mathics.core.expression import Expression
 
         expr = self.do_format(evaluation, form)
-        result = Expression("MakeBoxes", expr, Symbol(form)).evaluate(evaluation)
+        result = Expression(SymbolMakeBoxes, expr, Symbol(form)).evaluate(evaluation)
         return result
 
     def is_free(self, form, evaluation) -> bool:
@@ -783,3 +783,6 @@ class Symbol(Atom):
 
     def __getnewargs__(self):
         return (self.name, self.sympy_dummy)
+
+
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
