@@ -445,7 +445,7 @@ class BaseExpression(KeyComparable):
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
 
-    def __abs__(self) -> "Expression":
+    def __abs__(self) -> "BaseExpression":
         return self.create_expression("Abs", self)
 
     def __pos__(self):
@@ -454,26 +454,26 @@ class BaseExpression(KeyComparable):
     def __neg__(self):
         return self.create_expression("Times", self, -1)
 
-    def __add__(self, other) -> "Expression":
+    def __add__(self, other) -> "BaseExpression":
         return self.create_expression("Plus", self, other)
 
-    def __sub__(self, other) -> "Expression":
+    def __sub__(self, other) -> "BaseExpression":
         return self.create_expression(
             "Plus", self, self.create_expression("Times", other, -1)
         )
 
-    def __mul__(self, other) -> "Expression":
+    def __mul__(self, other) -> "BaseExpression":
         return self.create_expression("Times", self, other)
 
-    def __truediv__(self, other) -> "Expression":
+    def __truediv__(self, other) -> "BaseExpression":
         return self.create_expression("Divide", self, other)
 
-    def __floordiv__(self, other) -> "Expression":
+    def __floordiv__(self, other) -> "BaseExpression":
         return self.create_expression(
             "Floor", self.create_expression("Divide", self, other)
         )
 
-    def __pow__(self, other) -> "Expression":
+    def __pow__(self, other) -> "BaseExpression":
         return self.create_expression("Power", self, other)
 
 
