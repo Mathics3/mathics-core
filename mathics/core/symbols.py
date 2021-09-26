@@ -373,7 +373,6 @@ class BaseExpression(KeyComparable):
         return None
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
-        from mathics.core.systemsymbols import SymbolList
         from mathics.core.atoms import String
 
         options = self
@@ -407,7 +406,6 @@ class BaseExpression(KeyComparable):
 
     def get_rules_list(self):
         from mathics.core.rules import Rule
-        from mathics.core.systemsymbols import SymbolList
 
         list_expr = self.flatten(SymbolList)
         list = []
@@ -434,7 +432,6 @@ class BaseExpression(KeyComparable):
         Try to round to python float. Return None if not possible.
         """
         from mathics.core.expression import Expression
-        from mathics.core.systemsymbols import SymbolN
         from mathics.core.atoms import String, Number
 
         if evaluation is None:
@@ -680,12 +677,6 @@ class Symbol(Atom):
         return builtin.to_sympy(self, **kwargs)
 
     def to_python(self, *args, **kwargs):
-        from mathics.core.systemsymbols import (
-            SymbolTrue,
-            SymbolFalse,
-            SymbolNull,
-            SymbolN,
-        )
         from mathics.core.expression import Expression
 
         if self == SymbolTrue:
@@ -731,7 +722,6 @@ class Symbol(Atom):
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)"""
-        from mathics.core.systemsymbols import SymbolTrue, SymbolFalse
 
         if self.sameQ(rhs):
             return True
@@ -785,4 +775,9 @@ class Symbol(Atom):
         return (self.name, self.sympy_dummy)
 
 
+SymbolFalse = Symbol("System`False")
+SymbolList = Symbol("System`List")
 SymbolMakeBoxes = Symbol("System`MakeBoxes")
+SymbolN = Symbol("System`N")
+SymbolNull = Symbol("System`Null")
+SymbolTrue = Symbol("System`True")
