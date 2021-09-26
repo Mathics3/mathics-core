@@ -106,7 +106,7 @@ class SympyPrime(sympy.Function):
         if n.is_Integer and n > 0:
             try:
                 return sympy.prime(n)
-            except:
+            except Exception:
                 # n is too big, SymPy doesn't know the n-th prime
                 pass
 
@@ -272,7 +272,7 @@ def from_sympy(expr):
 
         try:
             e = sympy.PurePoly(e)
-        except:
+        except Exception:
             pass
 
         return Expression("Root", from_sympy(e), i + 1)

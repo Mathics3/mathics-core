@@ -352,9 +352,7 @@ class BaseExpression(KeyComparable):
         finally:
             evaluation.dec_recursion_depth()
 
-    def format(
-        self, evaluation, form, **kwargs
-    ) -> typing.Union["Expression", "Symbol"]:
+    def format(self, evaluation, form, **kwargs) -> "BaseExpression":
         """
         Applies formats associated to the expression, and then calls Makeboxes
         """
@@ -435,7 +433,7 @@ class BaseExpression(KeyComparable):
         """
         Try to round to python float. Return None if not possible.
         """
-        from mathics.core.atoms import String, Number
+        from mathics.core.atoms import Number
 
         if evaluation is None:
             value = self
