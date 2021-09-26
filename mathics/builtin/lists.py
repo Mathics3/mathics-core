@@ -59,12 +59,11 @@ from mathics.core.atoms import (
     min_prec,
 )
 
-from mathics.core.symbols import Symbol, strip_context
+from mathics.core.symbols import Symbol, SymbolList, strip_context
 
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
-    SymbolList,
     SymbolMakeBoxes,
     SymbolRule,
     SymbolSequence,
@@ -1804,7 +1803,7 @@ class _FastEquivalence:
     # String, Rational (*), Expression, Image; new atoms need proper hash functions
     #
     # (*) Rational values are sympy Rationals which are always held in reduced form
-    # and thus are hashed correctly (see sympy/core/numbers.py:Rational.__eq__()).
+    # and thus are hashed correctly (see sympy/core/number.py:Rational.__eq__()).
 
     def __init__(self):
         self._hashes = defaultdict(list)

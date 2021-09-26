@@ -15,14 +15,13 @@ from mathics.builtin.base import (
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
-    strip_context,
-)
-from mathics.core.systemsymbols import (
     SymbolNull,
     SymbolFalse,
     SymbolTrue,
     SymbolList,
+    strip_context,
 )
+
 from mathics.core.atoms import (
     String,
     Integer,

@@ -42,7 +42,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import SymbolList
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):

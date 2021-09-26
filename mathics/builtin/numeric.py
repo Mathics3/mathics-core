@@ -29,7 +29,7 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolN, SymbolTrue
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -42,14 +42,10 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.systemsymbols import (
-    SymbolFalse,
-    SymbolTrue,
-    SymbolList,
     SymbolMachinePrecision,
-    SymbolN,
 )
 
-from mathics.core.numbers import (
+from mathics.core.number import (
     dps,
     convert_int_to_digit_list,
     machine_precision,
@@ -432,7 +428,7 @@ class Fold(object):
                 continue
 
             if mode == self.MPMATH:
-                from mathics.core.numbers import min_prec
+                from mathics.core.number import min_prec
 
                 precision = min_prec(*[t for t in chain(*s_operands) if t is not None])
                 working_precision = mpmath.workprec

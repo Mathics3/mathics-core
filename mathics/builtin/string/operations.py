@@ -13,8 +13,8 @@ from mathics.builtin.base import (
     Builtin,
 )
 from mathics.core.expression import Expression, string_list
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolList,
     SymbolTrue,

@@ -14,7 +14,7 @@ from mathics.core.atoms import (
     Integer1,
     String,
 )
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import SymbolList
 
 from mathics.builtin.strings import to_python_encoding
 

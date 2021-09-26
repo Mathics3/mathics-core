@@ -31,15 +31,14 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolInfinity,
-    SymbolNull,
     SymbolSequence,
 )
-from mathics.core.numbers import min_prec, dps
+from mathics.core.number import min_prec, dps
 
 from mathics.core.convert import from_sympy
 
