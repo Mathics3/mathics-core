@@ -1379,6 +1379,13 @@ class Expression(BaseExpression):
         return (self._head, self._leaves)
 
 
+def _create_expression(self, head, *leaves):
+    return Expression(head, *leaves)
+
+
+BaseExpression.create_expression = _create_expression
+
+
 def get_default_value(name, evaluation, k=None, n=None):
     pos = []
     if k is not None:
