@@ -20,10 +20,6 @@ from mathics.core.systemsymbols import (
 from mathics.core.numbers import dps
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 
-# Imperical number that seems to work.
-# We have to be able to match mpmath values with sympy values
-COMPARE_PREC = 50
-
 
 def fully_qualified_symbol_name(name) -> bool:
     return (

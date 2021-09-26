@@ -9,11 +9,6 @@ from typing import Any, Optional
 from mathics.core.convert import sympy_symbol_prefix
 
 
-# Imperical number that seems to work.
-# We have to be able to match mpmath values with sympy values
-COMPARE_PREC = 50
-
-
 # system_symbols('A', 'B', ...) -> ['System`A', 'System`B', ...]
 def system_symbols(*symbols) -> typing.List[str]:
     return [ensure_context(s) for s in symbols]
