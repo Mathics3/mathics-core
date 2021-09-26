@@ -7,7 +7,7 @@ import math
 import re
 
 import typing
-from typing import Any, Optional
+from typing import Any
 from functools import lru_cache
 
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators

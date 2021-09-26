@@ -90,6 +90,8 @@ class BaseExpression(KeyComparable):
     pattern_sequence: bool
     unformatted: Any
     last_evaluated: Any
+    # this variable holds a function defined in mathics.core.expression that creates an expression
+    create_expression: Any
 
     def __new__(cls, *args, **kwargs):
         self = object.__new__(cls)
@@ -240,7 +242,6 @@ class BaseExpression(KeyComparable):
         Applies formats associated to the expression and removes
         superfluous enclosing formats.
         """
-        from mathics.core.expression import Expression
 
         formats = system_symbols(
             "InputForm",
@@ -270,7 +271,7 @@ class BaseExpression(KeyComparable):
             # If form is Fullform, return it without changes
             if form == "System`FullForm":
                 if include_form:
-                    expr = Expression(form, expr)
+                    expr = self.create_expression(form, expr)
                     expr.unformatted = unformatted
                 return expr
 
@@ -278,30 +279,30 @@ class BaseExpression(KeyComparable):
             # so we need to hardlink their format rules:
             if head == "System`Repeated":
                 if len(leaves) == 1:
-                    return Expression(
+                    return self.create_expression(
                         "System`HoldForm",
-                        Expression(
+                        self.create_expression(
                             "System`Postfix",
-                            Expression("System`List", leaves[0]),
+                            self.create_expression("System`List", leaves[0]),
                             "..",
                             170,
                         ),
                     )
                 else:
-                    return Expression("System`HoldForm", expr)
+                    return self.create_expression("System`HoldForm", expr)
             elif head == "System`RepeatedNull":
                 if len(leaves) == 1:
-                    return Expression(
+                    return self.create_expression(
                         "System`HoldForm",
-                        Expression(
+                        self.create_expression(
                             "System`Postfix",
-                            Expression("System`List", leaves[0]),
+                            self.create_expression("System`List", leaves[0]),
                             "...",
                             170,
                         ),
                     )
                 else:
-                    return Expression("System`HoldForm", expr)
+                    return self.create_expression("System`HoldForm", expr)
 
             # If expr is not an atom, looks for formats in its definition
             # and apply them.
@@ -321,7 +322,7 @@ class BaseExpression(KeyComparable):
             if formatted is not None:
                 result = formatted.do_format(evaluation, form)
                 if include_form:
-                    result = Expression(form, result)
+                    result = self.create_expression(form, result)
                 result.unformatted = unformatted
                 return result
 
@@ -340,25 +341,26 @@ class BaseExpression(KeyComparable):
             ):
                 # print("Not inside graphics or numberform, and not is atom")
                 new_leaves = [leaf.do_format(evaluation, form) for leaf in expr.leaves]
-                expr = Expression(expr.head.do_format(evaluation, form), *new_leaves)
+                expr = self.create_expression(
+                    expr.head.do_format(evaluation, form), *new_leaves
+                )
 
             if include_form:
-                expr = Expression(form, expr)
+                expr = self.create_expression(form, expr)
             expr.unformatted = unformatted
             return expr
         finally:
             evaluation.dec_recursion_depth()
 
-    def format(
-        self, evaluation, form, **kwargs
-    ) -> typing.Union["Expression", "Symbol"]:
+    def format(self, evaluation, form, **kwargs) -> "BaseExpression":
         """
         Applies formats associated to the expression, and then calls Makeboxes
         """
-        from mathics.core.expression import Expression
 
         expr = self.do_format(evaluation, form)
-        result = Expression("MakeBoxes", expr, Symbol(form)).evaluate(evaluation)
+        result = self.create_expression(SymbolMakeBoxes, expr, Symbol(form)).evaluate(
+            evaluation
+        )
         return result
 
     def is_free(self, form, evaluation) -> bool:
@@ -373,7 +375,6 @@ class BaseExpression(KeyComparable):
         return None
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
-        from mathics.core.systemsymbols import SymbolList
         from mathics.core.atoms import String
 
         options = self
@@ -407,7 +408,6 @@ class BaseExpression(KeyComparable):
 
     def get_rules_list(self):
         from mathics.core.rules import Rule
-        from mathics.core.systemsymbols import SymbolList
 
         list_expr = self.flatten(SymbolList)
         list = []
@@ -433,62 +433,48 @@ class BaseExpression(KeyComparable):
         """
         Try to round to python float. Return None if not possible.
         """
-        from mathics.core.expression import Expression
-        from mathics.core.systemsymbols import SymbolN
-        from mathics.core.atoms import String, Number
+        from mathics.core.atoms import Number
 
         if evaluation is None:
             value = self
         elif isinstance(evaluation, sympy.core.numbers.NaN):
             return None
         else:
-            value = Expression(SymbolN, self).evaluate(evaluation)
+            value = self.create_expression(SymbolN, self).evaluate(evaluation)
         if isinstance(value, Number):
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
 
-    def __abs__(self) -> "Expression":
-        from mathics.core.expression import Expression
-
-        return Expression("Abs", self)
+    def __abs__(self) -> "BaseExpression":
+        return self.create_expression("Abs", self)
 
     def __pos__(self):
         return self
 
     def __neg__(self):
-        from mathics.core.expression import Expression
+        return self.create_expression("Times", self, -1)
 
-        return Expression("Times", self, -1)
+    def __add__(self, other) -> "BaseExpression":
+        return self.create_expression("Plus", self, other)
 
-    def __add__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
+    def __sub__(self, other) -> "BaseExpression":
+        return self.create_expression(
+            "Plus", self, self.create_expression("Times", other, -1)
+        )
 
-        return Expression("Plus", self, other)
+    def __mul__(self, other) -> "BaseExpression":
+        return self.create_expression("Times", self, other)
 
-    def __sub__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
+    def __truediv__(self, other) -> "BaseExpression":
+        return self.create_expression("Divide", self, other)
 
-        return Expression("Plus", self, Expression("Times", other, -1))
+    def __floordiv__(self, other) -> "BaseExpression":
+        return self.create_expression(
+            "Floor", self.create_expression("Divide", self, other)
+        )
 
-    def __mul__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
-
-        return Expression("Times", self, other)
-
-    def __truediv__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
-
-        return Expression("Divide", self, other)
-
-    def __floordiv__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
-
-        return Expression("Floor", Expression("Divide", self, other))
-
-    def __pow__(self, other) -> "Expression":
-        from mathics.core.expression import Expression
-
-        return Expression("Power", self, other)
+    def __pow__(self, other) -> "BaseExpression":
+        return self.create_expression("Power", self, other)
 
 
 class Monomial(object):
@@ -680,14 +666,6 @@ class Symbol(Atom):
         return builtin.to_sympy(self, **kwargs)
 
     def to_python(self, *args, **kwargs):
-        from mathics.core.systemsymbols import (
-            SymbolTrue,
-            SymbolFalse,
-            SymbolNull,
-            SymbolN,
-        )
-        from mathics.core.expression import Expression
-
         if self == SymbolTrue:
             return True
         if self == SymbolFalse:
@@ -696,7 +674,7 @@ class Symbol(Atom):
             return None
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
             return value.to_python()
 
         if kwargs.get("python_form", False):
@@ -731,7 +709,6 @@ class Symbol(Atom):
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)"""
-        from mathics.core.systemsymbols import SymbolTrue, SymbolFalse
 
         if self.sameQ(rhs):
             return True
@@ -783,3 +760,11 @@ class Symbol(Atom):
 
     def __getnewargs__(self):
         return (self.name, self.sympy_dummy)
+
+
+SymbolFalse = Symbol("System`False")
+SymbolList = Symbol("System`List")
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
+SymbolN = Symbol("System`N")
+SymbolNull = Symbol("System`Null")
+SymbolTrue = Symbol("System`True")

@@ -30,8 +30,8 @@ READ_TYPES = [
 ]
 
 
-### FIXME: All of this is related to Read[]
-### it can be moved somewhere else.
+# ### FIXME: All of this is related to Read[]
+# ### it can be moved somewhere else.
 
 
 class MathicsOpen(Stream):
