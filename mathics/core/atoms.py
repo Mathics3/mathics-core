@@ -13,12 +13,19 @@ from functools import lru_cache
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
+    BaseExpression,
     Symbol,
     system_symbols,
     fully_qualified_symbol_name,
 )
-from mathics.core.systemsymbols import SymbolNull, SymbolList
-from mathics.core.numbers import dps, prec, min_prec, machine_precision
+from mathics.core.systemsymbols import (
+    SymbolTrue,
+    SymbolFalse,
+    SymbolNull,
+    SymbolList,
+    SymbolByteArray,
+)
+from mathics.core.numbers import dps, get_type, prec, min_prec, machine_precision
 import base64
 
 # Imperical number that seems to work.
@@ -928,3 +935,62 @@ class StringFromPython(String):
         if math.inf == value:
             self.value = "math.inf"
         return self
+
+
+def from_python(arg):
+    """Converts a Python expression into a Mathics expression.
+
+    TODO: I think there are number of subtleties to be explained here.
+    In particular, the expression might beeen the result of evaluation
+    a sympy expression which contains sympy symbols.
+
+    If the end result is to go back into Mathics for further
+    evaluation, then probably no problem.  However if the end result
+    is produce say a Python string, then at a minimum we may want to
+    convert backtick (context) symbols into some Python identifier
+    symbol like underscore.
+    """
+    from mathics.builtin.base import BoxConstruct
+    from mathics.core.expression import Expression
+
+    number_type = get_type(arg)
+    if arg is None:
+        return SymbolNull
+    if isinstance(arg, bool):
+        return SymbolTrue if arg else SymbolFalse
+    if isinstance(arg, int) or number_type == "z":
+        return Integer(arg)
+    elif isinstance(arg, float) or number_type == "f":
+        return Real(arg)
+    elif number_type == "q":
+        return Rational(arg)
+    elif isinstance(arg, complex):
+        return Complex(Real(arg.real), Real(arg.imag))
+    elif number_type == "c":
+        return Complex(arg.real, arg.imag)
+    elif isinstance(arg, str):
+        return String(arg)
+        # if arg[0] == arg[-1] == '"':
+        #     return String(arg[1:-1])
+        # else:
+        #     return Symbol(arg)
+    elif isinstance(arg, dict):
+        entries = [
+            Expression(
+                "Rule",
+                from_python(key),
+                from_python(arg[key]),
+            )
+            for key in arg
+        ]
+        return Expression(SymbolList, *entries)
+    elif isinstance(arg, BaseExpression):
+        return arg
+    elif isinstance(arg, BoxConstruct):
+        return arg
+    elif isinstance(arg, list) or isinstance(arg, tuple):
+        return Expression(SymbolList, *[from_python(leaf) for leaf in arg])
+    elif isinstance(arg, bytearray) or isinstance(arg, bytes):
+        return Expression(SymbolByteArray, ByteArrayAtom(arg))
+    else:
+        raise NotImplementedError

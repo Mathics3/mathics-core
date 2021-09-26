@@ -11,12 +11,12 @@ from mathics_scanner import (
 
 from mathics.core.definitions import Definitions
 from mathics.core.parser import parse
-from mathics.core.expression import (
-    Symbol,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
-    Expression,
     Real,
     Rational,
     String,

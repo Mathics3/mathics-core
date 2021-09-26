@@ -6,14 +6,15 @@ Importing and Exporting
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
+from mathics.core.atoms import (
     ByteArrayAtom,
+    from_python,
+)
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol, strip_context
+from mathics.core.systemsymbols import (
     SymbolList,
     SymbolRule,
-    Expression,
-    from_python,
-    strip_context,
-    Symbol,
     SymbolFailed,
     SymbolNull,
 )

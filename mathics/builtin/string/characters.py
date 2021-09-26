@@ -7,11 +7,9 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin, Test
 
-from mathics.core.expression import (
-    Expression,
-    String,
-    SymbolList,
-)
+from mathics.core.expression import Expression
+from mathics.core.atoms import String
+from mathics.core.systemsymbols import SymbolList
 
 
 class Characters(Builtin):

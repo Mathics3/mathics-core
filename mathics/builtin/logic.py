@@ -3,9 +3,9 @@
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import BinaryOperator, Predefined, PrefixOperator, Builtin
 from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_levels
-from mathics.core.expression import (
-    Expression,
-    Symbol,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolTrue,
     SymbolFalse,
 )

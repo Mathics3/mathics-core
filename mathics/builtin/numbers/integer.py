@@ -12,7 +12,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.convert import from_sympy
-from mathics.core.expression import Integer, Integer0, String, Expression
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer, Integer0, String
 
 
 class Floor(SympyFunction):

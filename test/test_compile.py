@@ -6,7 +6,9 @@ import random
 import io
 import math
 
-from mathics.core.expression import Expression, Symbol, Integer, MachineReal, String
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import Integer, MachineReal, String
 
 from mathics.builtin.compile import has_llvmlite
 

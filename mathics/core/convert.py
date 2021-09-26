@@ -113,8 +113,9 @@ class SympyPrime(sympy.Function):
 
 def from_sympy(expr):
     from mathics.builtin import sympy_to_mathics
-    from mathics.core.expression import (
-        Symbol,
+    from mathics.core.expression import Expression
+    from mathics.core.symbols import Symbol
+    from mathics.core.atoms import (
         Integer,
         Integer0,
         Integer1,
@@ -122,8 +123,9 @@ def from_sympy(expr):
         Real,
         Complex,
         String,
-        Expression,
         MachineReal,
+    )
+    from mathics.core.systemsymbols import (
         SymbolNull,
         SymbolList,
     )

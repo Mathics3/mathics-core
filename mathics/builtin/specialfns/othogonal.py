@@ -5,7 +5,7 @@ Orthogonal Polynomials
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.core.expression import Integer0
+from mathics.core.atoms import Integer0
 
 
 class ChebyshevT(_MPMathFunction):

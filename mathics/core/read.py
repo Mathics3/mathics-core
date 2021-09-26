@@ -7,7 +7,9 @@ import os.path as osp
 
 from mathics.builtin.base import MessageException
 from mathics.builtin.strings import to_python_encoding
-from mathics.core.expression import Expression, Integer, String, Symbol
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer, String
+from mathics.core.symbols import Symbol
 from mathics.core.streams import Stream, path_search, stream_manager
 
 SymbolEndOfFile = Symbol("EndOfFile")

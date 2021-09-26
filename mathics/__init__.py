@@ -8,9 +8,8 @@ import mpmath
 import numpy
 
 from mathics.version import __version__
-from mathics.core.expression import (
-    Expression,
-    Symbol,
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     String,
     Number,
     Integer,
@@ -21,6 +20,9 @@ from mathics.core.expression import (
     MachineReal,
     PrecisionReal,
 )
+
+from mathics.core.expression import Expression
+
 from mathics.core.convert import from_sympy
 
 

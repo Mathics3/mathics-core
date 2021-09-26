@@ -8,7 +8,6 @@ from typing import Any, Optional
 
 from mathics.core.convert import sympy_symbol_prefix
 
-from mathics.core.atoms import Number, String
 
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
@@ -380,6 +379,7 @@ class BaseExpression(KeyComparable):
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         from mathics.core.systemsymbols import SymbolList
+        from mathics.core.atoms import String
 
         options = self
         if options.has_form("List", None):
@@ -440,6 +440,7 @@ class BaseExpression(KeyComparable):
         """
         from mathics.core.expression import Expression
         from mathics.core.systemsymbols import SymbolN
+        from mathics.core.atoms import String, Number
 
         if evaluation is None:
             value = self
@@ -664,6 +665,8 @@ class Symbol(Atom):
         return str(self.name)
 
     def atom_to_boxes(self, f, evaluation) -> "String":
+        from mathics.core.atoms import String
+
         return String(evaluation.definitions.shorten_name(self.name))
 
     def to_sympy(self, **kwargs):

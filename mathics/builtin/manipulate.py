@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
-from mathics.core.expression import String, strip_context
+
 from mathics import settings
 from mathics.core.evaluation import Output
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression, Symbol, Integer, from_python
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol, strip_context
+from mathics.core.atoms import Integer, from_python, String
 
 try:
     from ipykernel.kernelbase import Kernel

@@ -11,7 +11,10 @@ It is closely related to many other areas of mathematics and has many applicatio
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression, Integer, Symbol, SymbolTrue, SymbolFalse
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolTrue, SymbolFalse
 from mathics.builtin.arithmetic import _MPMathFunction
 from itertools import combinations
 
