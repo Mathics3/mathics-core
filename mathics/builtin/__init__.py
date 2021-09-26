@@ -108,6 +108,9 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
             print(e)
             print(f"    Not able to load {module_name}. Check your installation.")
             print(f"    mathics.builtin loads from {__file__[:-11]}")
+            from trepan.api import debug
+
+            debug()
             return None
 
         if __version__ != module.__version__:

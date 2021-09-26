@@ -125,11 +125,11 @@ def from_sympy(expr):
         String,
         MachineReal,
     )
-    from mathics.core.systemsymbols import (
+    from mathics.core.symbols import (
         SymbolNull,
         SymbolList,
     )
-    from mathics.core.numbers import machine_precision
+    from mathics.core.number import machine_precision
 
     if isinstance(expr, (tuple, list)):
         return Expression(SymbolList, *[from_sympy(item) for item in expr])

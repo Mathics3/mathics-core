@@ -28,11 +28,11 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.expression import Expression
-from mathics.core.systemsymbols import (
+from mathics.core.number import get_precision, PrecisionValueError
+from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
-from mathics.core.numbers import get_precision, PrecisionValueError
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):

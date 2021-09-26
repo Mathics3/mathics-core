@@ -10,8 +10,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import from_mpmath
-from mathics.core.numbers import machine_precision, get_precision, PrecisionValueError
-from mathics.core.numbers import prec as _prec
+from mathics.core.number import machine_precision, get_precision, PrecisionValueError
+from mathics.core.number import prec as _prec
 
 
 class _Bessel(_MPMathFunction):

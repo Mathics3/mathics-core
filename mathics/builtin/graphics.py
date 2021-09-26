@@ -40,6 +40,7 @@ from mathics.core.symbols import (
     Symbol,
     system_symbols,
     system_symbols_dict,
+    SymbolList,
 )
 from mathics.core.atoms import (
     Integer,
@@ -47,7 +48,6 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.systemsymbols import (
-    SymbolList,
     SymbolMakeBoxes,
 )
 

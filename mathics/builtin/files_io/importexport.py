@@ -11,12 +11,10 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, strip_context
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull, strip_context
 from mathics.core.systemsymbols import (
-    SymbolList,
     SymbolRule,
     SymbolFailed,
-    SymbolNull,
 )
 from mathics.core.streams import stream_manager
 

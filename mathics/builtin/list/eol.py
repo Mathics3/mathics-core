@@ -32,13 +32,11 @@ from mathics.builtin.lists import (
 from mathics.builtin.base import MessageException
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolList,
     SymbolMakeBoxes,
-    SymbolNull,
     SymbolSequence,
 )
 
