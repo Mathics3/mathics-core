@@ -12,17 +12,18 @@ from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
 )
-from mathics.core.expression import (
-    Expression,
-    Integer,
-    Integer1,
-    String,
-    Symbol,
+from mathics.core.expression import Expression, string_list
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,
+)
+from mathics.core.atoms import (
+    Integer,
+    Integer1,
+    String,
     from_python,
-    string_list,
 )
 from mathics.builtin.lists import python_seq, convert_seq
 from mathics.builtin.strings import (

@@ -16,15 +16,17 @@ from mathics.builtin.base import (
 from mathics.builtin.numeric import apply_N
 from mathics.builtin.numbers.constants import mp_convert_constant
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
     Number,
-    Symbol,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolTrue,
     SymbolDirectedInfinity,

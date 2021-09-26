@@ -16,15 +16,17 @@ import time
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
-    Expression,
-    Real,
-    Symbol,
-    SymbolAborted,
-    SymbolInfinity,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     String,
     Integer,
     from_python,
+    Real,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolInfinity,
 )
 
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack

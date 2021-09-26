@@ -2,8 +2,8 @@
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.systemsymbols import (
     SymbolTrue,
     SymbolFalse,
 )

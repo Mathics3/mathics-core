@@ -9,10 +9,12 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import BinaryOperator, Builtin
 
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Integer1,
     String,
+)
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,

@@ -3,7 +3,8 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.expression import Expression, strip_context, KeyComparable
+from mathics.core.expression import Expression
+from mathics.core.symbols import strip_context, KeyComparable
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.util import function_arguments
 
