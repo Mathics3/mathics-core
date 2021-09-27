@@ -43,15 +43,14 @@ def from_mpmath(value, prec=None):
             real = from_mpmath(value.real, prec)
             imag = from_mpmath(value.imag, prec)
             return Complex(real, imag)
-
-    if isinstance(value, mpmath.mpf):
-        if prec is None:
-            return MachineReal(float(value))
-        else:
-            # HACK: use str here to prevent loss of precision
-            return PrecisionReal(sympy.Float(str(value), prec))
-    else:
+    elif not isinstance(value, mpmath.mpf):
         raise TypeError(type(value))
+
+    if prec is None:
+        return MachineReal(float(value))
+    else:
+        # HACK: use str here to prevent loss of precision
+        return PrecisionReal(sympy.Float(str(value), prec))
 
 
 class Number(Atom):
