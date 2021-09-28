@@ -14,17 +14,15 @@ import os.path as osp
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
-    Expression,
-    String,
-    Symbol,
+from mathics.core.expression import Expression
+from mathics.core.atoms import String, from_python
+from mathics.core.symbols import Symbol, valid_context_name
+from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
     SymbolList,
-    from_python,
-    valid_context_name,
 )
 
 import mathics.core.streams

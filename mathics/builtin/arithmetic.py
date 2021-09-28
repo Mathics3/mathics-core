@@ -22,9 +22,9 @@ from mathics.builtin.base import (
     Test,
 )
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
@@ -32,14 +32,15 @@ from mathics.core.expression import (
     Rational,
     Real,
     String,
-    Symbol,
-    SymbolN,
+    from_mpmath,
+    from_python,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolTrue,
     SymbolFalse,
     SymbolUndefined,
     SymbolList,
-    from_mpmath,
-    from_python,
 )
 from mathics.core.numbers import min_prec, dps, SpecialValueError
 
@@ -632,7 +633,7 @@ class PossibleZeroQ(SympyFunction):
             result = _iszero(exprexp)
         if result is None:
             # Can't get exact answer, so try approximate equal
-            numeric_val = Expression(SymbolN, expr).evaluate(evaluation)
+            numeric_val = apply_N(expr, evaluation)
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif (

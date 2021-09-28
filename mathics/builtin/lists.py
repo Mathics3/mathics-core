@@ -41,30 +41,33 @@ from mathics.builtin.base import (
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
+from mathics.builtin.numeric import apply_N
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-from mathics.core.expression import (
+
+from mathics.core.expression import Expression, structure
+from mathics.core.atoms import (
     ByteArrayAtom,
-    Expression,
     Integer,
     Integer0,
     Number,
     Real,
     String,
-    Symbol,
+    from_python,
+    machine_precision,
+    min_prec,
+)
+
+from mathics.core.symbols import Symbol, strip_context
+
+from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolList,
     SymbolMakeBoxes,
-    SymbolN,
     SymbolRule,
     SymbolSequence,
-    from_python,
-    machine_precision,
-    min_prec,
-    strip_context,
-    structure,
 )
 
 
@@ -1375,7 +1378,7 @@ class LeafCount(Builtin):
     def apply(self, expr, evaluation):
         "LeafCount[expr___]"
 
-        from mathics.core.expression import Rational, Complex
+        from mathics.core.atoms import Rational, Complex
 
         leaves = []
 
@@ -1779,7 +1782,8 @@ def _test_pair(test, a, b, evaluation, name):
     test_expr = Expression(test, a, b)
     result = test_expr.evaluate(evaluation)
     if not (
-        type(result) is Symbol and (result.has_symbol("True") or result.has_symbol("False"))
+        type(result) is Symbol
+        and (result.has_symbol("True") or result.has_symbol("False"))
     ):
         evaluation.message(name, "smtst", test_expr, result)
     return result.is_true()
@@ -2493,9 +2497,7 @@ class _PrecomputedDistances(PrecomputedDistances):
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = Expression(
-            SymbolN, Expression(SymbolList, *distances_form)
-        ).evaluate(evaluation)
+        distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
         mpmath_distances = [_to_real_distance(d) for d in distances.leaves]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -2511,7 +2513,7 @@ class _LazyDistances(LazyDistances):
 
     def _compute_distance(self, i, j):
         p = self._p
-        d = Expression(SymbolN, self._df(p[i], p[j])).evaluate(self._evaluation)
+        d = apply_N(self._df(p[i], p[j]), self._evaluation)
         return _to_real_distance(d)
 
 

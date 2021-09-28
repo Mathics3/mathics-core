@@ -3,17 +3,18 @@
 
 
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     MachineReal,
     Rational,
     Real,
     String,
-    Symbol,
-    SymbolFalse,
 )
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolFalse
+
 from mathics.core.definitions import Definitions
 import sys
 import unittest

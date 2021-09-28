@@ -9,10 +9,12 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import BinaryOperator, Builtin
 
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Integer1,
     String,
+)
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,
@@ -452,7 +454,7 @@ class WhitespaceCharacter(Builtin):
      = True
 
     >> StringSplit["a\nb\r\nc\rd", WhitespaceCharacter]
-     = {a, b, c, d}
+     = {a, b, , c, d}
 
     For sequences of whitespace characters use 'Whitespace':
     >> StringMatchQ[" \n", WhitespaceCharacter]

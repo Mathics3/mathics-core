@@ -12,19 +12,23 @@ from mathics.builtin.base import (
     MessageException,
     PartRangeError,
 )
-from mathics.core.expression import (
-    Expression,
-    String,
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
     Symbol,
+    strip_context,
+)
+from mathics.core.systemsymbols import (
     SymbolNull,
     SymbolFalse,
     SymbolTrue,
     SymbolList,
+)
+from mathics.core.atoms import (
+    String,
     Integer,
     Integer0,
     Integer1,
     Rational,
-    strip_context,
 )
 from mathics.core.rules import Pattern
 

@@ -16,11 +16,11 @@ from mathics.builtin.base import (
 
 from mathics.builtin.lists import list_boxes
 
-from mathics.core.expression import (
-    Expression,
-    Integer,
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolAssociation,
-    Symbol,
     SymbolMakeBoxes,
     SymbolList,
 )

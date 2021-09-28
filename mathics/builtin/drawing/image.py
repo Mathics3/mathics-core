@@ -8,21 +8,24 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
-from mathics.core.expression import (
+from mathics.core.atoms import (
     Atom,
-    Expression,
     Integer,
     Integer0,
     Integer1,
     Rational,
     Real,
     MachineReal,
-    Symbol,
+    from_python,
+)
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolNull,
     SymbolList,
     SymbolRule,
-    from_python,
 )
+
 from mathics.builtin.colors.color_internals import (
     convert_color,
     colorspaces as known_colorspaces,

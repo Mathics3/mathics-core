@@ -13,7 +13,7 @@ from mathics.builtin.base import (
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
 
-from mathics.core.expression import system_symbols_dict
+from mathics.core.symbols import system_symbols_dict
 
 
 class _GraphicsElement(InstanceableBuiltin):

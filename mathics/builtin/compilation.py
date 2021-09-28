@@ -13,15 +13,17 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
+from mathics.builtin.numeric import apply_N
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import (
-    Atom,
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Atom, Symbol
+
+from mathics.core.atoms import (
     Integer,
     String,
-    Symbol,
     from_python,
 )
+
 from types import FunctionType
 
 
@@ -148,7 +150,7 @@ class Compile(Builtin):
                     inner_evaluation = Evaluation(definitions=evaluation.definitions)
                     vars = dict(list(zip(names, x[: len(names)])))
                     pyexpr = expr.replace_vars(vars)
-                    pyexpr = Expression("N", pyexpr).evaluate(inner_evaluation)
+                    pyexpr = apply_N(pyexpr, inner_evaluation)
                     res = pyexpr.to_python(n_evaluation=inner_evaluation)
                     return res
 

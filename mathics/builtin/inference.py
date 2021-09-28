@@ -2,9 +2,8 @@
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
-    Expression,
-    Symbol,
+from mathics.core.expression import Expression
+from mathics.core.systemsymbols import (
     SymbolTrue,
     SymbolFalse,
 )
@@ -273,9 +272,6 @@ def get_assumption_rules_dispatch(evaluation):
     if val_consistent_assumptions == SymbolFalse:
         evaluation.message("Inconsistent assumptions")
 
-    if assumptions_list is None:
-        return remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)
-
     # Expands Logically
     assumptions_list, cont = logical_expand_assumptions(assumptions_list, evaluation)
     while cont:
@@ -298,10 +294,8 @@ def get_assumption_rules_dispatch(evaluation):
 
         if value:
             symbol_value = SymbolTrue
-            symbol_negate_value = SymbolFalse
         else:
             symbol_value = SymbolFalse
-            symbol_negate_value = SymbolTrue
 
         if pat.has_form("Equal", 2):
             if value:

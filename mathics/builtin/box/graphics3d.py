@@ -652,13 +652,10 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         # Add zero if required, since axis_ticks does not
         if xmin <= 0 <= xmax:
             ticks[0][0].append(0.0)
-            ticks[0][0].sort()
         if ymin <= 0 <= ymax:
             ticks[1][0].append(0.0)
-            ticks[1][0].sort()
         if zmin <= 0 <= zmax:
             ticks[2][0].append(0.0)
-            ticks[2][0].sort()
 
         # Convert ticks to nice strings e.g 0.100000000000002 -> '0.1' and
         # scale ticks appropriately

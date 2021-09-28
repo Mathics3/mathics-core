@@ -22,11 +22,11 @@ from mathics.builtin.lists import _FastEquivalence, _SlowEquivalence, _test_pair
 
 from mathics.core.expression import (
     Expression,
-    Integer,
-    Symbol,
-    SymbolList,
     structure,
 )
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import Integer
+from mathics.core.systemsymbols import SymbolList
 
 
 def _is_sameq(same_test):

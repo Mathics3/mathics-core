@@ -21,10 +21,10 @@ from mathics.core.convert import from_sympy
 
 from mathics.core.expression import (
     Expression,
-    Integer,
-    SymbolList,
     structure,
 )
+from mathics.core.atoms import Integer
+from mathics.core.systemsymbols import SymbolList
 
 
 class Array(Builtin):

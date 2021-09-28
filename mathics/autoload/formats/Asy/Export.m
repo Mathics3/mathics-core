@@ -3,7 +3,7 @@
 Begin["System`Convert`Asy`"]
 
 Options[AsyExport] = {
-		      "CharacterEncoding" :> $CharacterEncoding, (*Not used by now...*)
+		      "CharacterEncoding" :> $CharacterEncoding (*Not used by now...*)
 };
 
 AsyExport[strm_OutputStream, expr_, OptionsPattern[]]:=

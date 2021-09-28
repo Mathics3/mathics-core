@@ -7,14 +7,17 @@ Options and Default Arguments
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin, Test, get_option
-from mathics.core.expression import (
+from mathics.core.symbols import (
     Symbol,
-    String,
-    Expression,
-    get_default_value,
     ensure_context,
     strip_context,
 )
+from mathics.core.expression import (
+    Expression,
+    get_default_value,
+)
+from mathics.core.atoms import String
+
 from mathics.builtin.drawing.image import Image
 
 

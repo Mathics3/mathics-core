@@ -54,7 +54,8 @@ def get_precision(value, evaluation) -> typing.Optional[int]:
     if value.get_name() == "System`MachinePrecision":
         return None
     else:
-        from mathics.core.expression import Symbol, MachineReal
+        from mathics.core.symbols import Symbol
+        from mathics.core.atoms import MachineReal
 
         dmin = _get_float_inf(Symbol("$MinPrecision"), evaluation)
         dmax = _get_float_inf(Symbol("$MaxPrecision"), evaluation)

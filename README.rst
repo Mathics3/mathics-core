@@ -1,28 +1,18 @@
-Welcome to Mathics!
-===================
+Welcome to Mathics Core!
+========================
 
 |Pypi Installs| |Latest Version| |Supported Python Versions| |SlackStatus|_
 
 |Packaging status|
 
 
-Mathics is a general-purpose computer algebra system (CAS). It is an open-source alternative to Mathematica. It is free both as in "free beer" and as in "freedom".
+Mathics is a general-purpose computer algebra system (CAS).
 
-The home page of Mathics is https://mathics.org.
+However this repository contains just the Python modules for WL Built-in functions, variables, core primitives, e.g. Symbol, a parser to create Expressions, and an evaluator to execute them.
 
+The home page for Mathics is https://mathics.org where you will find a list of screenshots and components making up the system.
 
-ScreenShots
------------
-
-mathicsscript: a text interface
-+++++++++++++++++++++++++++++++
-
-|mathicsscript|
-
-mathicsserver: a Django-based Web interface
-+++++++++++++++++++++++++++++++++++++++++++
-
-|mathicssserver|
+If you want to install everything locally, see the `Mathics omnibus repository <https://github.com/Mathics3/mathics-omnibus>`_.
 
 
 Installing and Running

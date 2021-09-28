@@ -9,15 +9,19 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 from mathics.core.rules import Rule
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
     Symbol,
-    SymbolFailed,
-    SymbolNull,
     valid_context_name,
     system_symbols,
-    String,
 )
+
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolNull,
+)
+from mathics.core.atoms import String
+
 from mathics.core.definitions import PyMathicsLoadException
 from mathics.builtin.lists import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
@@ -975,7 +979,7 @@ class Definition(Builtin):
         return self.format_definition(symbol, evaluation, grid=False)
 
 
-def _get_usage_string(symbol, evaluation, htmlout=False):
+def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     """
     Returns a python string with the documentation associated to a given symbol.
     """
@@ -1000,6 +1004,8 @@ def _get_usage_string(symbol, evaluation, htmlout=False):
         bio = builtins.get(definition.name)
 
     if bio is not None:
+        if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):
+            return bio.builtin.__class__.summary_text
         from mathics.doc.common_doc import XMLDoc
 
         docstr = bio.builtin.__class__.__doc__
@@ -1063,11 +1069,12 @@ class Information(PrefixOperator):
             evaluation.message("Information", "notfound", symbol)
             return ret
         # Print the "usage" message if available.
-        usagetext = _get_usage_string(symbol, evaluation)
+        is_long_form = self.get_option(options, "LongForm", evaluation).to_python()
+        usagetext = _get_usage_string(symbol, evaluation, is_long_form)
         if usagetext is not None:
             lines.append(usagetext)
 
-        if self.get_option(options, "LongForm", evaluation).to_python():
+        if is_long_form:
             self.show_definitions(symbol, evaluation, lines)
 
         if grid:

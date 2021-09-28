@@ -106,15 +106,16 @@ class SympyPrime(sympy.Function):
         if n.is_Integer and n > 0:
             try:
                 return sympy.prime(n)
-            except:
+            except Exception:
                 # n is too big, SymPy doesn't know the n-th prime
                 pass
 
 
 def from_sympy(expr):
     from mathics.builtin import sympy_to_mathics
-    from mathics.core.expression import (
-        Symbol,
+    from mathics.core.expression import Expression
+    from mathics.core.symbols import Symbol
+    from mathics.core.atoms import (
         Integer,
         Integer0,
         Integer1,
@@ -122,8 +123,9 @@ def from_sympy(expr):
         Real,
         Complex,
         String,
-        Expression,
         MachineReal,
+    )
+    from mathics.core.systemsymbols import (
         SymbolNull,
         SymbolList,
     )
@@ -270,7 +272,7 @@ def from_sympy(expr):
 
         try:
             e = sympy.PurePoly(e)
-        except:
+        except Exception:
             pass
 
         return Expression("Root", from_sympy(e), i + 1)

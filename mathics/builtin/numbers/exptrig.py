@@ -13,13 +13,13 @@ import mpmath
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Real,
     Integer,
     Integer0,
-    Symbol,
 )
+from mathics.core.symbols import Symbol
 
 from mathics.builtin.numeric import Fold
 from mathics.builtin.arithmetic import _MPMathFunction
