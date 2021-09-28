@@ -8,16 +8,11 @@ SparseArray Functions
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.lists import walk_parts
 
-from mathics.builtin.base import (
-    Builtin,
-)
+from mathics.builtin.base import Builtin
 
-from mathics.core.expression import (
-    Expression,
-    Integer,
-    Integer0,
-    Symbol,
-)
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer, Integer0
+from mathics.core.symbols import Symbol
 
 
 class SparseArray(Builtin):

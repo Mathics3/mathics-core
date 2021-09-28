@@ -25,17 +25,19 @@ from mathics.builtin.tensors import get_dimensions
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
-from mathics.core.expression import (
-    Expression,
+
+from mathics.core.expression import Expression, BoxError
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     String,
     StringFromPython,
-    Symbol,
     Integer,
     Real,
-    BoxError,
     from_python,
     MachineReal,
     PrecisionReal,
+)
+from mathics.core.systemsymbols import (
     SymbolList,
     SymbolMakeBoxes,
     SymbolRule,

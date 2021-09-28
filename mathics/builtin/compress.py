@@ -6,9 +6,7 @@ import base64
 import zlib
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import (
-    String,
-)
+from mathics.core.atoms import String
 
 
 class Compress(Builtin):

@@ -12,15 +12,17 @@ import itertools
 import palettable
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Real,
     MachineReal,
-    Symbol,
     String,
     Integer,
     Integer0,
     from_python,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolList,
     SymbolN,
     SymbolRule,
@@ -29,7 +31,7 @@ from mathics.core.expression import (
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.drawing.graphics3d import Graphics3D
-from mathics.builtin.numeric import chop
+from mathics.builtin.numeric import chop, apply_N
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -907,7 +909,7 @@ class PieChart(_Chart):
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
         if not sector_origin.has_form("List", 2):
             return
-        sector_origin = Expression(SymbolN, sector_origin).evaluate(evaluation)
+        sector_origin = apply_N(sector_origin, evaluation)
 
         orientation = sector_origin.leaves[0]
         if (
@@ -1727,7 +1729,7 @@ class _Plot3D(Builtin):
 
             triangles = []
 
-            split_edges = set([])  # subdivided edges
+            split_edges = set()  # subdivided edges
 
             def triangle(x1, y1, x2, y2, x3, y3, depth=0):
                 v1, v2, v3 = eval_f(x1, y1), eval_f(x2, y2), eval_f(x3, y3)
@@ -1831,7 +1833,7 @@ class _Plot3D(Builtin):
             # Cos of the maximum angle between successive line segments
             ang_thresh = cos(20 * pi / 180)
             for depth in range(1, max_depth):
-                needs_removal = set([])
+                needs_removal = set()
                 lent = len(triangles)  # number of initial triangles
                 for i1 in range(lent):
                     for i2 in range(lent):
@@ -2031,7 +2033,7 @@ class _Plot3D(Builtin):
                     if not any(x[2] is None for x in mesh_line)
                 ]
             elif mesh == "System`All":
-                mesh_points = set([])
+                mesh_points = set()
                 for t in triangles:
                     mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
                     mesh_points.add((t[1], t[2]) if t[2] > t[1] else (t[2], t[1]))

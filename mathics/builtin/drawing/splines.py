@@ -5,9 +5,7 @@ Splines
 A Spline is a mathematical function used for interpolation or smoothing. Splines are used both in graphics and computations
 """
 
-from mathics.builtin.base import (
-    Builtin,
-)
+from mathics.builtin.base import Builtin
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 

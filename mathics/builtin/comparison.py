@@ -13,17 +13,20 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
+from mathics.builtin.numeric import apply_N
 from mathics.builtin.numbers.constants import mp_convert_constant
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
     Number,
-    Symbol,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolTrue,
     SymbolDirectedInfinity,
@@ -210,8 +213,7 @@ class _InequalityOperator(BinaryOperator):
             for item in items:
                 if not isinstance(item, Number):
                     # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    n_expr = Expression("N", item, Integer(50))
-                    item = n_expr.evaluate(evaluation)
+                    item = apply_N(item, evaluation, Integer(50))
                 n_items.append(item)
             items = n_items
         else:

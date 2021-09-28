@@ -4,8 +4,6 @@ from mathics.builtin.base import BoxConstructError, InstanceableBuiltin
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.builtin.colors.color_directives import _Color
 
-from mathics.builtin.drawing.uniform_polyhedra import uniform_polyhedra_set
-
 import numbers
 
 

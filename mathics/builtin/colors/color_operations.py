@@ -8,9 +8,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 import itertools
 from math import floor
-from mathics.builtin.base import (
-    Builtin,
-)
+from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
     _Color,
     ColorError,
@@ -18,14 +16,15 @@ from mathics.builtin.colors.color_directives import (
 )
 from mathics.builtin.colors.color_internals import convert_color
 
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Integer,
     Rational,
     Real,
-    Symbol,
-    SymbolList,
 )
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolList
+
 from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
 _image_requires = ("numpy", "PIL")

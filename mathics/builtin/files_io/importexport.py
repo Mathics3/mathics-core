@@ -6,14 +6,15 @@ Importing and Exporting
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.core.expression import (
+from mathics.core.atoms import (
     ByteArrayAtom,
+    from_python,
+)
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol, strip_context
+from mathics.core.systemsymbols import (
     SymbolList,
     SymbolRule,
-    Expression,
-    from_python,
-    strip_context,
-    Symbol,
     SymbolFailed,
     SymbolNull,
 )
@@ -2117,10 +2118,10 @@ class FileFormat(Builtin):
         mime = set(FileFormat.detector.match(path))
 
         # If match fails match on extension only
-        if mime == set([]):
+        if mime == set():
             mime, encoding = mimetypes.guess_type(path)
             if mime is None:
-                mime = set([])
+                mime = set()
             else:
                 mime = set([mime])
         result = []

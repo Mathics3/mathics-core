@@ -35,14 +35,14 @@ from mathics.core.formatter import lookup_method
 
 from mathics.format.asy_fns import asy_color, asy_number
 
-from mathics.core.expression import (
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
     Integer,
     Real,
     String,
-    Symbol,
-    SymbolList,
 )
+from mathics.core.systemsymbols import SymbolList
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):

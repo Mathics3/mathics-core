@@ -8,7 +8,6 @@ import mathics.builtin.datentime as datentime
 import mathics.builtin.files_io.filesystem as filesystem
 import mathics.builtin.numeric as numeric
 
-from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 
 

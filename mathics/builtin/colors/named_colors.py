@@ -6,7 +6,7 @@ Mathics has definitions for the most common color names which can be used in a g
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.expression import strip_context
+from mathics.core.symbols import strip_context
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
