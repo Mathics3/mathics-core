@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from .helper import check_evaluation, evaluate
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Integer0
+from mathics.core.atoms import Integer0
 
 
 class Builtin1(Builtin):

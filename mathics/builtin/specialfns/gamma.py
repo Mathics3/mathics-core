@@ -6,7 +6,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.arithmetic import _MPMathMultiFunction
 from mathics.builtin.base import SympyFunction
-from mathics.core.expression import Expression, Integer0
+from mathics.core.expression import Expression
+from mathics.core.atoms import Integer0
 
 
 class Gamma(_MPMathMultiFunction):

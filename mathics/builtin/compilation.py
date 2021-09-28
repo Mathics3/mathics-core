@@ -15,14 +15,15 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.builtin.numeric import apply_N
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import (
-    Atom,
-    Expression,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Atom, Symbol
+
+from mathics.core.atoms import (
     Integer,
     String,
-    Symbol,
     from_python,
 )
+
 from types import FunctionType
 
 

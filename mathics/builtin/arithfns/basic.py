@@ -19,9 +19,9 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
@@ -29,13 +29,15 @@ from mathics.core.expression import (
     Rational,
     Real,
     String,
-    Symbol,
+    from_mpmath,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolNull,
     SymbolSequence,
-    from_mpmath,
 )
 from mathics.core.numbers import min_prec, dps
 

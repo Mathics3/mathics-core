@@ -1,5 +1,7 @@
 import re
-from mathics.core.expression import Symbol, Integer0, Integer1, Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import Integer0, Integer1
+from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
 from mathics.session import MathicsSession
 from mathics.builtin.inout import MakeBoxes

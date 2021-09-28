@@ -1,8 +1,77 @@
 import inspect
 from typing import Callable
+import re
 
 # key is str: (to_xxx name, value) is formatter function to call
 format2fn: dict = {}
+
+
+def encode_mathml(text: str) -> str:
+    text = text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    text = text.replace('"', "&quot;").replace(" ", "&nbsp;")
+    text = text.replace("\n", '<mspace linebreak="newline" />')
+    return text
+
+
+TEX_REPLACE = {
+    "{": r"\{",
+    "}": r"\}",
+    "_": r"\_",
+    "$": r"\$",
+    "%": r"\%",
+    "#": r"\#",
+    "&": r"\&",
+    "\\": r"\backslash{}",
+    "^": r"{}^{\wedge}",
+    "~": r"\sim{}",
+    "|": r"\vert{}",
+}
+TEX_TEXT_REPLACE = TEX_REPLACE.copy()
+TEX_TEXT_REPLACE.update(
+    {
+        "<": r"$<$",
+        ">": r"$>$",
+        "~": r"$\sim$",
+        "|": r"$\vert$",
+        "\\": r"$\backslash$",
+        "^": r"${}^{\wedge}$",
+    }
+)
+TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
+
+
+def encode_tex(text: str, in_text=False) -> str:
+    def replace(match):
+        c = match.group(1)
+        repl = TEX_TEXT_REPLACE if in_text else TEX_REPLACE
+        # return TEX_REPLACE[c]
+        return repl.get(c, c)
+
+    text = TEX_REPLACE_RE.sub(replace, text)
+    text = text.replace("\n", "\\newline\n")
+    return text
+
+
+extra_operators = set(
+    (
+        ",",
+        "(",
+        ")",
+        "[",
+        "]",
+        "{",
+        "}",
+        "\u301a",
+        "\u301b",
+        "\u00d7",
+        "\u2032",
+        "\u2032\u2032",
+        " ",
+        "\u2062",
+        "\u222b",
+        "\u2146",
+    )
+)
 
 
 def lookup_method(self, format: str, module_fn_name=None) -> Callable:

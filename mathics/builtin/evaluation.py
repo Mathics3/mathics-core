@@ -3,7 +3,7 @@
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Predefined, Builtin
-from mathics.core.expression import Integer
+from mathics.core.atoms import Integer
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 

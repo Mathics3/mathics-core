@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.expression import Expression, Integer, Rational, Symbol
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsSingleLineFeeder, parse

@@ -22,9 +22,9 @@ from mathics.builtin.base import (
     Test,
 )
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
@@ -32,13 +32,15 @@ from mathics.core.expression import (
     Rational,
     Real,
     String,
-    Symbol,
+    from_mpmath,
+    from_python,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolTrue,
     SymbolFalse,
     SymbolUndefined,
     SymbolList,
-    from_mpmath,
-    from_python,
 )
 from mathics.core.numbers import min_prec, dps, SpecialValueError
 

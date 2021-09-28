@@ -2,13 +2,16 @@
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.expression import (
-    Expression,
-    String,
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
     Symbol,
-    Integer,
     fully_qualified_symbol_name,
 )
+from mathics.core.atoms import (
+    String,
+    Integer,
+)
+
 from mathics.core.rules import Rule
 from mathics.core.evaluation import Evaluation
 

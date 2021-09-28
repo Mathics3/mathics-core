@@ -45,26 +45,29 @@ from mathics.builtin.numeric import apply_N
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-from mathics.core.expression import (
+
+from mathics.core.expression import Expression, structure
+from mathics.core.atoms import (
     ByteArrayAtom,
-    Expression,
     Integer,
     Integer0,
     Number,
     Real,
     String,
-    Symbol,
+    from_python,
+    machine_precision,
+    min_prec,
+)
+
+from mathics.core.symbols import Symbol, strip_context
+
+from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolList,
     SymbolMakeBoxes,
     SymbolRule,
     SymbolSequence,
-    from_python,
-    machine_precision,
-    min_prec,
-    strip_context,
-    structure,
 )
 
 
@@ -1375,7 +1378,7 @@ class LeafCount(Builtin):
     def apply(self, expr, evaluation):
         "LeafCount[expr___]"
 
-        from mathics.core.expression import Rational, Complex
+        from mathics.core.atoms import Rational, Complex
 
         leaves = []
 

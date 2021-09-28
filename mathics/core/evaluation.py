@@ -12,9 +12,11 @@ from typing import Tuple
 from mathics_scanner import TranslateError
 
 from mathics import settings
-from mathics.core.expression import (
+from mathics.core.symbols import (
     ensure_context,
     KeyComparable,
+)
+from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolList,
     SymbolNull,
@@ -482,7 +484,9 @@ class Evaluation(object):
         return value.leaves
 
     def message(self, symbol, tag, *args) -> None:
-        from mathics.core.expression import String, Symbol, Expression, from_python
+        from mathics.core.expression import Expression
+        from mathics.core.atoms import String, from_python
+        from mathics.core.symbols import Symbol
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
         # System`MyBuiltin)
@@ -521,7 +525,7 @@ class Evaluation(object):
         self.output.out(self.out[-1])
 
     def print_out(self, text) -> None:
-        from mathics.core.expression import from_python
+        from mathics.core.atoms import from_python
 
         text = self.format_output(from_python(text), "text")
 
@@ -545,7 +549,7 @@ class Evaluation(object):
         raise AbortInterrupt
 
     def message_args(self, symbol, given, *needed) -> None:
-        from mathics.core.expression import Symbol
+        from mathics.core.symbols import Symbol
 
         if len(needed) == 1:
             needed = needed[0]
