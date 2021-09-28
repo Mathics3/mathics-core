@@ -459,6 +459,9 @@ class Expression(BaseExpression):
     def get_lookup_name(self) -> bool:
         return self._head.get_lookup_name()
 
+    def get_lookup_symbol(self) -> bool:
+        return self._head.get_lookup_symbol()
+
     def has_form(self, heads, *leaf_counts):
         """
         leaf_counts:
