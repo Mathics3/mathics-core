@@ -18,18 +18,21 @@ from mathics.builtin.base import (
     Predefined,
     PrefixOperator,
 )
-from mathics.core.expression import (
-    Expression,
-    Symbol,
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolFalse,
     SymbolTrue,
     SymbolList,
+)
+from mathics.core.atoms import (
     String,
     Integer,
     Integer0,
     Integer1,
 )
+
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError

@@ -10,7 +10,7 @@ from sympy.functions.combinatorial.numbers import stirling
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Integer
+from mathics.core.atoms import Integer
 from mathics.builtin.arithmetic import _MPMathFunction
 
 

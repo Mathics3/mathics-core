@@ -32,21 +32,23 @@ from mathics.core.read import (
 )
 
 
-from mathics.core.expression import (
-    BoxError,
+from mathics.core.expression import BoxError, Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     MachineReal,
     Real,
     String,
-    Symbol,
-    SymbolFailed,
-    SymbolNull,
-    SymbolTrue,
     from_mpmath,
     from_python,
 )
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolNull,
+    SymbolTrue,
+)
+
 from mathics.core.numbers import dps
 from mathics.core.streams import (
     path_search,

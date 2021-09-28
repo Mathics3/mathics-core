@@ -15,18 +15,22 @@ from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
 from mathics.core.rules import Rule, BuiltinRule, Pattern
-from mathics.core.expression import (
+from mathics.core.symbols import (
     BaseExpression,
-    Expression,
+    Symbol,
+    ensure_context,
+    strip_context,
+)
+from mathics.core.atoms import (
     Integer,
     MachineReal,
     PrecisionReal,
     String,
-    Symbol,
+)
+from mathics.core.expression import Expression
+from mathics.core.systemsymbols import (
     SymbolFalse,
     SymbolTrue,
-    ensure_context,
-    strip_context,
 )
 from mathics.core.numbers import get_precision, PrecisionValueError
 

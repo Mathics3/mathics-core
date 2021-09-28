@@ -19,9 +19,9 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
-from mathics.core.expression import (
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
     Complex,
-    Expression,
     Integer,
     Integer0,
     Integer1,
@@ -29,18 +29,21 @@ from mathics.core.expression import (
     Rational,
     Real,
     String,
-    Symbol,
+    from_mpmath,
+)
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolInfinity,
-    SymbolN,
     SymbolNull,
     SymbolSequence,
-    from_mpmath,
 )
 from mathics.core.numbers import min_prec, dps
 
 from mathics.core.convert import from_sympy
+
+from mathics.builtin.numeric import apply_N
 
 
 class CubeRoot(Builtin):
@@ -553,7 +556,7 @@ class Power(BinaryOperator, _MPMathFunction):
             if isinstance(y, Number):
                 y_err = y
             else:
-                y_err = Expression(SymbolN, y).evaluate(evaluation)
+                y_err = apply_N(y, evaluation)
             if isinstance(y_err, Number):
                 py_y = y_err.round_to_float(permit_complex=True).real
                 if py_y > 0:

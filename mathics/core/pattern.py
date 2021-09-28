@@ -3,13 +3,8 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.expression import (
-    Atom,
-    Expression,
-    Symbol,
-    system_symbols,
-    ensure_context,
-)
+from mathics.core.expression import Expression
+from mathics.core.symbols import system_symbols, ensure_context, Atom, Symbol
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 

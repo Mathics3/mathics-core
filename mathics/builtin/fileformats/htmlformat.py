@@ -13,7 +13,9 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
-from mathics.core.expression import Expression, String, Symbol, from_python
+from mathics.core.expression import Expression
+from mathics.core.atoms import String, from_python
+from mathics.core.symbols import Symbol
 from mathics.builtin.base import MessageException
 
 from io import BytesIO
