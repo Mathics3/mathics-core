@@ -79,7 +79,7 @@ except ImportError:
     CMDCLASS = {}
 else:
     EXTENSIONS_DICT = {
-        "core": ("expression", "numbers", "rules", "pattern"),
+        "core": ("expression", "symbols", "numbers", "rules", "pattern"),
         "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
     }
     EXTENSIONS = [
