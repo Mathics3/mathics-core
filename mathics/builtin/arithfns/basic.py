@@ -289,17 +289,16 @@ class Plus(BinaryOperator, SympyFunction):
         "Plus[items__]"
 
         def negate(item):
-            if isinstance(item.leaves[0], Number):
-                neg = -item.leaves[0]
+            if isinstance(item, Number):
+                return -item
+            else:
+                # item has the form Times[...]
+
+                neg: Number = -item.leaves[0]
                 if neg.sameQ(Integer1):
-                    if len(item.leaves) == 1:
-                        return neg
-                    else:
-                        return Expression("Times", *item.leaves[1:])
+                    return Expression("Times", *item.leaves[1:])  # 1 x -> x
                 else:
                     return Expression("Times", neg, *item.leaves[1:])
-            else:
-                return Expression("Times", -1, *item.leaves)
 
         def is_negative(value):
             if isinstance(value, Complex):
