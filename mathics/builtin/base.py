@@ -7,7 +7,7 @@ from functools import total_ordering
 import importlib
 from itertools import chain
 import typing
-from typing import Any, cast
+from typing import Any
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -821,29 +821,27 @@ class CountableInteger:
 
     def get_int_value(self) -> int:
         assert self._finite
-        return cast(int, self._integer)
+        return int(self._integer)
 
     def __eq__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) == other._integer
+                return other._finite and int(self._integer) == other._integer
             else:
                 return not other._finite
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) == other
+            return self._finite and int(self._integer) == other
         else:
             return False
 
     def __lt__(self, other) -> bool:
         if isinstance(other, CountableInteger):
             if self._finite:
-                return other._finite and cast(int, self._integer) < cast(
-                    int, other._integer
-                )
+                return other._finite and int(self._integer) < int(other._integer)
             else:
                 return False
         elif isinstance(other, int):
-            return self._finite and cast(int, self._integer) < other
+            return self._finite and int(self._integer) < other
         else:
             return False
 

@@ -1176,7 +1176,7 @@ class BlankNullSequence(_Blank):
     """
 
     rules = {
-        "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
+        "MakeBoxes[Verbatim[BlankNullSequence][], StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
         "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
     }
 
