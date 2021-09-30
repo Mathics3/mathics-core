@@ -768,8 +768,7 @@ class Times(BinaryOperator, SympyFunction):
                 item.has_form("Power", 2)
                 and isinstance(item.leaves[1], (Integer, Rational, Real))
                 and item.leaves[1].to_sympy() < 0
-            ):  # nopep8
-
+            ):
                 negative.append(inverse(item))
             elif isinstance(item, Rational):
                 numerator = item.numerator()
@@ -824,9 +823,6 @@ class Times(BinaryOperator, SympyFunction):
         numbers = []
         infinity_factor = False
 
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
-
         # find numbers and simplify Times -> Power
         for item in items:
             if isinstance(item, Number):
@@ -874,8 +870,10 @@ class Times(BinaryOperator, SympyFunction):
                 leaves.append(item)
 
         if numbers:
+            prec = min_prec(*items)
+
             if prec is not None:
-                if is_machine_precision:
+                if any(item.is_machine_precision() for item in items):
                     numbers = [item.to_mpmath() for item in numbers]
                     number = mpmath.fprod(numbers)
                     number = from_mpmath(number)
