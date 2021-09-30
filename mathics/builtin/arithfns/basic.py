@@ -186,10 +186,6 @@ class Minus(PrefixOperator):
     precedence = 480
     attributes = ("Listable", "NumericFunction")
 
-    rules = {
-        "Minus[x_]": "Times[-1, x]",
-    }
-
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
         # don't put e.g. -2/3 in parentheses
@@ -202,9 +198,9 @@ class Minus(PrefixOperator):
     summary_text = "arithmetic negation"
 
     def apply_int(self, x, evaluation):
-        "Minus[x_Integer]"
+        "Minus[x_]"
 
-        return Integer(-x.to_sympy())
+        return from_sympy(-x.to_sympy())
 
 
 class Plus(BinaryOperator, SympyFunction):
