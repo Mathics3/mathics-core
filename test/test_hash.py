@@ -12,8 +12,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolFalse
+from mathics.core.symbols import Symbol, SymbolFalse
 
 from mathics.core.definitions import Definitions
 import sys

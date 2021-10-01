@@ -42,14 +42,12 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolNull,
-    SymbolTrue,
 )
 
-from mathics.core.numbers import dps
+from mathics.core.number import dps
 from mathics.core.streams import (
     path_search,
     stream_manager,
