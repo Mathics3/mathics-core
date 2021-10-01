@@ -18,6 +18,8 @@ New builtins
 ++++++++++++
 
 * ``Guidermannian``
+* ``Cone``
+* ``Tube``
 
 Tensor functions:
 

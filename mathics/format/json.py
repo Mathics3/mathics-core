@@ -18,6 +18,7 @@ from mathics.builtin.box.graphics3d import (
     Point3DBox,
     Polygon3DBox,
     Sphere3DBox,
+    Tube3DBox,
 )
 
 from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
@@ -228,3 +229,20 @@ def uniform_polyhedron_3d_box(self) -> list:
 
 
 add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)
+
+
+def tube_3d_box(self) -> list:
+    face_color = self.face_color
+    if face_color is not None:
+        face_color = face_color.to_js()
+    data = convert_coord_collection(
+        [self.points],
+        "tube",
+        face_color,
+        {"radius": self.radius},
+    )
+    # print("### json Tube3DBox", data)
+    return data
+
+
+add_conversion_fn(Tube3DBox, tube_3d_box)
