@@ -19,6 +19,7 @@ from mathics.builtin.box.graphics import (
 from mathics.builtin.box.graphics3d import (
     Graphics3DElements,
     Arrow3DBox,
+    Cone3DBox,
     Cuboid3DBox,
     Cylinder3DBox,
     Line3DBox,
@@ -214,6 +215,43 @@ def bezier_curve_box(self, **options) -> str:
 
 
 add_conversion_fn(BezierCurveBox, bezier_curve_box)
+
+
+def cone3dbox(self, **options) -> str:
+    face_color = self.face_color.to_js()
+
+    # FIXME: currently always drawing around the axis X+Y
+    axes_point = (1, 1, 0)
+    rgb = "rgb({0},{1},{1})".format(*face_color[:3])
+
+    asy = "// Cone3DBox\n"
+    i = 0
+    while i < len(self.points) / 2:
+        try:
+            point1 = self.points[i * 2].pos()[0]
+            point2 = self.points[i * 2 + 1].pos()[0]
+
+            # Compute distance between start point and end point.
+            distance = (
+                (point1[0] - point2[0]) ** 2
+                + (point1[1] - point2[1]) ** 2
+                + (point1[2] - point2[2]) ** 2
+            ) ** 0.5
+
+            asy += (
+                f"draw(surface(cone({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {rgb});"
+                + "\n"
+            )
+        except:  # noqa
+            pass
+
+        i += 1
+
+    # print(asy)
+    return asy
+
+
+add_conversion_fn(Cone3DBox)
 
 
 def cuboid3dbox(self, **options) -> str:

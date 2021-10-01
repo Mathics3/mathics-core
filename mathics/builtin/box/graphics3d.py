@@ -704,6 +704,50 @@ class Arrow3DBox(ArrowBox):
                 coords.scale(boxscale)
 
 
+class Cone3DBox(InstanceableBuiltin):
+    """
+    Internal Python class used when Boxing a 'Cone' object.
+    """
+
+    def init(self, graphics, style, item):
+        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+
+        if len(item.leaves) != 2:
+            raise BoxConstructError
+
+        points = item.leaves[0].to_python()
+        if not all(
+            len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
+            for point in points
+        ):
+            raise BoxConstructError
+
+        self.points = tuple(Coords3D(graphics, pos=point) for point in points)
+        self.radius = item.leaves[1].to_python()
+
+    def extent(self):
+        result = []
+        # FIXME: the extent is roughly wrong. It is using the extent of a shpere at each coordinate.
+        # Anyway, it is very difficult to calculate the extent of a cone.
+        result.extend(
+            [
+                coords.add(self.radius, self.radius, self.radius).pos()[0]
+                for coords in self.points
+            ]
+        )
+        result.extend(
+            [
+                coords.add(-self.radius, -self.radius, -self.radius).pos()[0]
+                for coords in self.points
+            ]
+        )
+        return result
+
+    def _apply_boxscaling(self, boxscale):
+        # TODO
+        pass
+
+
 class Cuboid3DBox(InstanceableBuiltin):
     """
     Internal Python class used when Boxing a 'Cuboid' object.
@@ -875,6 +919,7 @@ class Sphere3DBox(InstanceableBuiltin):
 GLOBALS3D.update(
     {
         "System`Arrow3DBox": Arrow3DBox,
+        "System`Cone3DBox": Cone3DBox,
         "System`Cuboid3DBox": Cuboid3DBox,
         "System`Cylinder3DBox": Cylinder3DBox,
         "System`Line3DBox": Line3DBox,
