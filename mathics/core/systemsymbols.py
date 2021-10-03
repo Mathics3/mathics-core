@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.core.symbols import Symbol, SymbolN, SymbolNull
+from mathics.core.symbols import Symbol
 
 # Some other common Symbols. This list is sorted in alphabetic order.
 SymbolAborted = Symbol("$Aborted")

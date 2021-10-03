@@ -13,6 +13,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
     SymbolNull,
+    SymbolN,
     valid_context_name,
     system_symbols,
 )
@@ -20,8 +21,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMachinePrecision,
-    SymbolN,
-    SymbolNull,
 )
 
 from mathics.core.atoms import String
