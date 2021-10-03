@@ -22,10 +22,12 @@ To get a full list of avaiable commands, read the output of:
 
 """
 
-import re
-import sys
+import os
 import os.path as osp
 import platform
+import re
+import sys
+
 from setuptools import setup, Extension
 
 # Ensure user has the correct Python version
@@ -70,25 +72,30 @@ DEPENDENCY_LINKS = []
 #     "http://github.com/Mathics3/mathics-scanner/tarball/master#egg=Mathics_Scanner-1.0.0.dev"
 # ]
 
+# What should be run through Cython?
+EXTENSIONS = []
+CMDCLASS = {}
+
 try:
     if is_PyPy:
         raise ImportError
     from Cython.Distutils import build_ext
 except ImportError:
-    EXTENSIONS = []
-    CMDCLASS = {}
+    pass
 else:
-    EXTENSIONS_DICT = {
-        "core": ("expression", "number", "rules", "pattern"),
-        "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
-    }
-    EXTENSIONS = [
-        Extension(
-            "mathics.%s.%s" % (parent, module), ["mathics/%s/%s.py" % (parent, module)]
-        )
-        for parent, modules in EXTENSIONS_DICT.items()
-        for module in modules
-    ]
+    if not os.environ.get("NO_CYTHON", False):
+        print("Running Cython over code base")
+        EXTENSIONS_DICT = {
+            "core": ("expression", "number", "rules", "pattern"),
+            "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
+        }
+        EXTENSIONS = [
+            Extension(
+                "mathics.%s.%s" % (parent, module), ["mathics/%s/%s.py" % (parent, module)]
+            )
+            for parent, modules in EXTENSIONS_DICT.items()
+            for module in modules
+        ]
     # EXTENSIONS_SUBDIR_DICT = {
     #     "builtin": [("numbers", "arithmetic"), ("numbers", "numeric"), ("drawing", "graphics")],
     # }
