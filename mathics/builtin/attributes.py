@@ -13,8 +13,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Predefined, Builtin
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.atoms import String
 
 from mathics.builtin.assignment import get_symbol_list

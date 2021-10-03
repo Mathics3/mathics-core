@@ -14,7 +14,7 @@ from mathics.core.atoms import (
     Integer1,
     String,
 )
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,

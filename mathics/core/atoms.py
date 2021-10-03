@@ -7,7 +7,7 @@ import math
 import re
 
 import typing
-from typing import Any
+from typing import Any, Optional
 from functools import lru_cache
 
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
@@ -15,17 +15,17 @@ from mathics.core.symbols import (
     Atom,
     BaseExpression,
     Symbol,
-    system_symbols,
-    fully_qualified_symbol_name,
-)
-from mathics.core.systemsymbols import (
-    SymbolTrue,
     SymbolFalse,
-    SymbolNull,
     SymbolList,
-    SymbolByteArray,
+    SymbolNull,
+    SymbolTrue,
+    fully_qualified_symbol_name,
+    system_symbols,
 )
-from mathics.core.numbers import dps, get_type, prec, min_prec, machine_precision
+
+from mathics.core.systemsymbols import SymbolByteArray
+
+from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
 import base64
 
 # Imperical number that seems to work.
@@ -613,7 +613,7 @@ class Complex(Number):
             return True
         return False
 
-    def get_float_value(self, permit_complex=False) -> typing.Optional[complex]:
+    def get_float_value(self, permit_complex=False) -> Optional[complex]:
         if permit_complex:
             real = self.real.get_float_value()
             imag = self.imag.get_float_value()
@@ -622,7 +622,7 @@ class Complex(Number):
         else:
             return None
 
-    def get_precision(self) -> typing.Optional[int]:
+    def get_precision(self) -> Optional[int]:
         real_prec = self.real.get_precision()
         imag_prec = self.imag.get_precision()
         if imag_prec is None or real_prec is None:

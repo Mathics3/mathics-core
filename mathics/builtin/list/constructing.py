@@ -24,7 +24,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import SymbolList
 
 
 class Array(Builtin):

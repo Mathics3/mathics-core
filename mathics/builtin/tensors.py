@@ -19,7 +19,7 @@ from mathics.core.atoms import (
     Integer0,
     String,
 )
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
 )

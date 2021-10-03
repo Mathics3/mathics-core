@@ -55,7 +55,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,

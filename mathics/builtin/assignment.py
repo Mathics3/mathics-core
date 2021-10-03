@@ -12,6 +12,7 @@ from mathics.core.rules import Rule
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
+    SymbolNull,
     valid_context_name,
     system_symbols,
 )
@@ -22,6 +23,7 @@ from mathics.core.systemsymbols import (
     SymbolN,
     SymbolNull,
 )
+
 from mathics.core.atoms import String
 
 from mathics.core.definitions import PyMathicsLoadException

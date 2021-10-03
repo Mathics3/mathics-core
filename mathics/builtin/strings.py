@@ -19,12 +19,14 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolFailed,
+from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolTrue,
     SymbolList,
+)
+from mathics.core.systemsymbols import (
+    SymbolFailed,
 )
 from mathics.core.atoms import (
     String,

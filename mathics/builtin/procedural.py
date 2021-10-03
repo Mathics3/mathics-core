@@ -17,7 +17,7 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import from_python
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
 )

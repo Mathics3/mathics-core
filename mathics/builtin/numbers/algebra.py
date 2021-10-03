@@ -12,6 +12,10 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolNull,
+    SymbolTrue,
 )
 
 from mathics.core.atoms import (
@@ -22,12 +26,6 @@ from mathics.core.atoms import (
     Number,
 )
 
-from mathics.core.systemsymbols import (
-    SymbolFalse,
-    SymbolList,
-    SymbolNull,
-    SymbolTrue,
-)
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
 from mathics.core.rules import Pattern
 from mathics.builtin.scoping import dynamic_scoping

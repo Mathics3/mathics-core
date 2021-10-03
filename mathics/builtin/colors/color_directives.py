@@ -23,10 +23,9 @@ from mathics.core.atoms import (
     from_python,
 )
 
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import Symbol, SymbolList
 
-from mathics.core.numbers import machine_epsilon
+from mathics.core.number import machine_epsilon
 
 
 def _cie2000_distance(lab1, lab2):

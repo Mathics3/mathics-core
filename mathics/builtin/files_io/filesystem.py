@@ -16,16 +16,18 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import String, from_python
-from mathics.core.symbols import Symbol, valid_context_name
-from mathics.core.systemsymbols import (
-    SymbolFailed,
+from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
+    SymbolList,
     SymbolNull,
     SymbolTrue,
-    SymbolList,
+    valid_context_name,
+)
+from mathics.core.systemsymbols import (
+    SymbolFailed,
 )
 
-import mathics.core.streams
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,
