@@ -1710,7 +1710,7 @@ class CoefficientArrays(_CoefficientHandler):
 
     def apply_list(self, polys, varlist, evaluation, options):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
-        from mathics.builtin.lists import walk_parts
+        from mathics.algorithm.parts import walk_parts
 
         if polys.has_form("List", None):
             list_polys = polys.leaves

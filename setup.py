@@ -81,6 +81,7 @@ else:
     EXTENSIONS_DICT = {
         "core": ("expression", "numbers", "rules", "pattern"),
         "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
+        "algorithm": ["parts"],
     }
     EXTENSIONS = [
         Extension(

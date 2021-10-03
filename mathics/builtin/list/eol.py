@@ -17,12 +17,12 @@ from mathics.builtin.base import (
     PartError,
 )
 
-from mathics.builtin.lists import (
+from mathics.builtin.lists import list_boxes
+from mathics.algorithm.parts import (
     _drop_span_selector,
     _parts,
     _take_span_selector,
     deletecases_with_levelspec,
-    list_boxes,
     python_levelspec,
     set_part,
     walk_levels,

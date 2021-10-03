@@ -25,7 +25,7 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
-from mathics.builtin.lists import python_seq, convert_seq
+from mathics.algorithm.parts import python_seq, convert_seq
 from mathics.builtin.strings import (
     _StringFind,
     _evaluate_match,
