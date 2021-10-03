@@ -2,6 +2,7 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
+import time
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context, KeyComparable
@@ -10,6 +11,8 @@ from mathics.core.util import function_arguments
 
 from itertools import chain
 
+from collections import defaultdict
+function_stats = defaultdict(lambda: {"count": 0, "elapsed_microseconds": 0.0})
 
 class StopGenerator_BaseRule(StopGenerator):
     pass
@@ -126,10 +129,19 @@ class BuiltinRule(BaseRule):
         vars_noctx = dict(((strip_context(s), vars[s]) for s in vars))
         if self.pass_expression:
             vars_noctx["expression"] = expression
+        builtin_name = self.function.__qualname__.split(".")[0]
+        stat = function_stats[builtin_name]
+        ts = time.time()
+
+        stat["count"] += 1
         if options:
-            return self.function(evaluation=evaluation, options=options, **vars_noctx)
+            result = self.function(evaluation=evaluation, options=options, **vars_noctx)
         else:
-            return self.function(evaluation=evaluation, **vars_noctx)
+            result = self.function(evaluation=evaluation, **vars_noctx)
+        te = time.time()
+        elapsed = int((te - ts) * 1000)
+        stat["elapsed_microseconds"] += elapsed
+        return result
 
     def __repr__(self) -> str:
         return "<BuiltinRule: %s -> %s>" % (self.pattern, self.function)
@@ -147,3 +159,13 @@ class BuiltinRule(BaseRule):
         cls, name = dict["function_"]
 
         self.function = getattr(builtins[cls], name)
+
+def dump_tracing_stats():
+    for key_field in ("count", "elapsed_microseconds"):
+        print("count msecs  Builtin Name")
+        for name, statistic in sorted(function_stats.items(), key=lambda tup: tup[1][key_field], reverse=True):
+            print("%5d %6g %s" % (statistic["count"], statistic["elapsed_microseconds"], name))
+        print("")
+
+import atexit
+atexit.register(dump_tracing_stats)
