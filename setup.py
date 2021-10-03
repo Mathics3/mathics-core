@@ -91,7 +91,8 @@ else:
         }
         EXTENSIONS = [
             Extension(
-                "mathics.%s.%s" % (parent, module), ["mathics/%s/%s.py" % (parent, module)]
+                "mathics.%s.%s" % (parent, module),
+                ["mathics/%s/%s.py" % (parent, module)],
             )
             for parent, modules in EXTENSIONS_DICT.items()
             for module in modules
