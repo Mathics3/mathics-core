@@ -12,7 +12,9 @@ from mathics.core.util import function_arguments
 from itertools import chain
 
 from collections import defaultdict
+
 function_stats = defaultdict(lambda: {"count": 0, "elapsed_microseconds": 0.0})
+
 
 class StopGenerator_BaseRule(StopGenerator):
     pass
@@ -160,12 +162,20 @@ class BuiltinRule(BaseRule):
 
         self.function = getattr(builtins[cls], name)
 
+
 def dump_tracing_stats():
     for key_field in ("count", "elapsed_microseconds"):
         print("count msecs  Builtin Name")
-        for name, statistic in sorted(function_stats.items(), key=lambda tup: tup[1][key_field], reverse=True):
-            print("%5d %6g %s" % (statistic["count"], statistic["elapsed_microseconds"], name))
+        for name, statistic in sorted(
+            function_stats.items(), key=lambda tup: tup[1][key_field], reverse=True
+        ):
+            print(
+                "%5d %6g %s"
+                % (statistic["count"], statistic["elapsed_microseconds"], name)
+            )
         print("")
 
+
 import atexit
+
 atexit.register(dump_tracing_stats)
