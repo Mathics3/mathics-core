@@ -6,7 +6,7 @@ SparseArray Functions
 
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
-from mathics.builtin.lists import walk_parts
+from mathics.algorithm.parts import walk_parts
 
 from mathics.builtin.base import Builtin
 

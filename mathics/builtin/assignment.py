@@ -21,7 +21,7 @@ from mathics.core.systemsymbols import SymbolFailed
 from mathics.core.atoms import String
 
 from mathics.core.definitions import PyMathicsLoadException
-from mathics.builtin.lists import walk_parts
+from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 

@@ -1,0 +1,609 @@
+# -*- coding: utf-8 -*-
+
+"""
+Algorithms to access and manipulate elements in nested lists / expressions
+"""
+
+
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.atoms import Integer, from_python
+from mathics.core.systemsymbols import SymbolInfinity
+
+from mathics.builtin.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartRangeError,
+)
+
+
+def join_lists(lists):
+    new_list = []
+    for list in lists:
+        new_list.extend(list)
+    return new_list
+
+
+def get_part(varlist, indices):
+    "Simple part extraction. indices must be a list of python integers."
+
+    def rec(cur, rest):
+        if rest:
+            if cur.is_atom():
+                raise PartDepthError(rest[0])
+            pos = rest[0]
+            leaves = cur.get_leaves()
+            try:
+                if pos > 0:
+                    part = leaves[pos - 1]
+                elif pos == 0:
+                    part = cur.get_head()
+                else:
+                    part = leaves[pos]
+            except IndexError:
+                raise PartRangeError
+            return rec(part, rest[1:])
+        else:
+            return cur
+
+    return rec(varlist, indices).copy()
+
+
+def set_part(varlist, indices, newval):
+    "Simple part replacement. indices must be a list of python integers."
+
+    def rec(cur, rest):
+        if len(rest) > 1:
+            pos = rest[0]
+            if cur.is_atom():
+                raise PartDepthError
+            try:
+                if pos > 0:
+                    part = cur._leaves[pos - 1]
+                elif pos == 0:
+                    part = cur.get_head()
+                else:
+                    part = cur._leaves[pos]
+            except IndexError:
+                raise PartRangeError
+            return rec(part, rest[1:])
+        elif len(rest) == 1:
+            pos = rest[0]
+            if cur.is_atom():
+                raise PartDepthError
+            try:
+                if pos > 0:
+                    cur.set_leaf(pos - 1, newval)
+                elif pos == 0:
+                    cur.set_head(newval)
+                else:
+                    cur.set_leaf(pos, newval)
+            except IndexError:
+                raise PartRangeError
+
+    rec(varlist, indices)
+
+
+def _parts_all_selector():
+    start = 1
+    stop = None
+    step = 1
+
+    def select(inner):
+        if inner.is_atom():
+            raise MessageException("Part", "partd")
+        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        if py_slice is None:
+            raise MessageException("Part", "take", start, stop, inner)
+        return inner.leaves[py_slice]
+
+    return select
+
+
+def _parts_span_selector(pspec):
+    if len(pspec.leaves) > 3:
+        raise MessageException("Part", "span", pspec)
+    start = 1
+    stop = None
+    step = 1
+    if len(pspec.leaves) > 0:
+        start = pspec.leaves[0].get_int_value()
+    if len(pspec.leaves) > 1:
+        stop = pspec.leaves[1].get_int_value()
+        if stop is None:
+            if pspec.leaves[1].get_name() == "System`All":
+                stop = None
+            else:
+                raise MessageException("Part", "span", pspec)
+    if len(pspec.leaves) > 2:
+        step = pspec.leaves[2].get_int_value()
+
+    if start == 0 or stop == 0:
+        # index 0 is undefined
+        raise MessageException("Part", "span", 0)
+
+    if start is None or step is None:
+        raise MessageException("Part", "span", pspec)
+
+    def select(inner):
+        if inner.is_atom():
+            raise MessageException("Part", "partd")
+        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        if py_slice is None:
+            raise MessageException("Part", "take", start, stop, inner)
+        return inner.leaves[py_slice]
+
+    return select
+
+
+def _parts_sequence_selector(pspec):
+    if not isinstance(pspec, (tuple, list)):
+        indices = [pspec]
+    else:
+        indices = pspec
+
+    for index in indices:
+        if not isinstance(index, Integer):
+            raise MessageException("Part", "pspec", pspec)
+
+    def select(inner):
+        if inner.is_atom():
+            raise MessageException("Part", "partd")
+
+        leaves = inner.leaves
+        n = len(leaves)
+
+        for index in indices:
+            int_index = index.value
+
+            if int_index == 0:
+                yield inner.head
+            elif 1 <= int_index <= n:
+                yield leaves[int_index - 1]
+            elif -n <= int_index <= -1:
+                yield leaves[int_index]
+            else:
+                raise MessageException("Part", "partw", index, inner)
+
+    return select
+
+
+def _part_selectors(indices):
+    for index in indices:
+        if index.has_form("Span", None):
+            yield _parts_span_selector(index)
+        elif index.get_name() == "System`All":
+            yield _parts_all_selector()
+        elif index.has_form("List", None):
+            yield _parts_sequence_selector(index.leaves)
+        elif isinstance(index, Integer):
+            yield _parts_sequence_selector(index), lambda x: x[0]
+        else:
+            raise MessageException("Part", "pspec", index)
+
+
+def _list_parts(items, selectors, heads, evaluation, assignment):
+    if not selectors:
+        for item in items:
+            yield item
+    else:
+        selector = selectors[0]
+        if isinstance(selector, tuple):
+            select, unwrap = selector
+        else:
+            select = selector
+            unwrap = None
+
+        for item in items:
+            selected = list(select(item))
+
+            picked = list(
+                _list_parts(selected, selectors[1:], heads, evaluation, assignment)
+            )
+
+            if unwrap is None:
+                if assignment:
+                    expr = Expression(item.head, *picked)
+                    expr.original = None
+                    expr.set_positions()
+                else:
+                    expr = item.restructure(item.head, picked, evaluation)
+
+                yield expr
+            else:
+                yield unwrap(picked)
+
+
+def _parts(items, selectors, evaluation, assignment=False):
+    heads = {}
+    return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+
+
+def walk_parts(list_of_list, indices, evaluation, assign_list=None):
+    walk_list = list_of_list[0]
+
+    if assign_list is not None:
+        # this double copying is needed to make the current logic in
+        # the assign_list and its access to original work.
+
+        walk_list = walk_list.copy()
+        walk_list.set_positions()
+        list_of_list = [walk_list]
+
+        walk_list = walk_list.copy()
+        walk_list.set_positions()
+
+    indices = [index.evaluate(evaluation) for index in indices]
+
+    try:
+        result = _parts(
+            walk_list, _part_selectors(indices), evaluation, assign_list is not None
+        )
+    except MessageException as e:
+        e.message(evaluation)
+        return False
+
+    if assign_list is not None:
+
+        def replace_item(all, item, new):
+            if item.position is None:
+                all[0] = new
+            else:
+                item.position.replace(new)
+
+        def process_level(item, assignment):
+            if item.is_atom():
+                replace_item(list_of_list, item.original, assignment)
+            elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
+                assignment.leaves
+            ):
+                if item.original:
+                    replace_item(list_of_list, item.original, assignment)
+                else:
+                    for leaf in item.leaves:
+                        process_level(leaf, assignment)
+            else:
+                for sub_item, sub_assignment in zip(item.leaves, assignment.leaves):
+                    process_level(sub_item, sub_assignment)
+
+        process_level(result, assign_list)
+
+        result = list_of_list[0]
+        result.clear_cache()
+
+    return result
+
+
+def is_in_level(current, depth, start=1, stop=None):
+    if stop is None:
+        stop = current
+    if start < 0:
+        start += current + depth + 1
+    if stop < 0:
+        stop += current + depth + 1
+    return start <= current <= stop
+
+
+def walk_levels(
+    expr,
+    start=1,
+    stop=None,
+    current=0,
+    heads=False,
+    callback=lambda p: p,
+    include_pos=False,
+    cur_pos=[],
+):
+    if expr.is_atom():
+        depth = 0
+        new_expr = expr
+    else:
+        depth = 0
+        if heads:
+            head, head_depth = walk_levels(
+                expr.head,
+                start,
+                stop,
+                current + 1,
+                heads,
+                callback,
+                include_pos,
+                cur_pos + [0],
+            )
+        else:
+            head = expr.head
+        leaves = []
+        for index, leaf in enumerate(expr.leaves):
+            leaf, leaf_depth = walk_levels(
+                leaf,
+                start,
+                stop,
+                current + 1,
+                heads,
+                callback,
+                include_pos,
+                cur_pos + [index + 1],
+            )
+            if leaf_depth + 1 > depth:
+                depth = leaf_depth + 1
+            leaves.append(leaf)
+        new_expr = Expression(head, *leaves)
+    if is_in_level(current, depth, start, stop):
+        if include_pos:
+            new_expr = callback(new_expr, cur_pos)
+        else:
+            new_expr = callback(new_expr)
+    return new_expr, depth
+
+
+def python_levelspec(levelspec):
+    def value_to_level(expr):
+        value = expr.get_int_value()
+        if value is None:
+            if expr == Expression("DirectedInfinity", 1):
+                return None
+            else:
+                raise InvalidLevelspecError
+        else:
+            return value
+
+    if levelspec.has_form("List", None):
+        values = [value_to_level(leaf) for leaf in levelspec.leaves]
+        if len(values) == 1:
+            return values[0], values[0]
+        elif len(values) == 2:
+            return values[0], values[1]
+        else:
+            raise InvalidLevelspecError
+    elif isinstance(levelspec, Symbol) and levelspec.get_name() == "System`All":
+        return 0, None
+    else:
+        return 1, value_to_level(levelspec)
+
+
+def python_seq(start, stop, step, length):
+    """
+    Converts mathematica sequence tuple to python slice object.
+
+    Based on David Mashburn's generic slice:
+    https://gist.github.com/davidmashburn/9764309
+    """
+    if step == 0:
+        return None
+
+    # special empty case
+    if stop is None and length is not None:
+        empty_stop = length
+    else:
+        empty_stop = stop
+    if start is not None and empty_stop + 1 == start and step > 0:
+        return slice(0, 0, 1)
+
+    if start == 0 or stop == 0:
+        return None
+
+    # wrap negative values to postive and convert from 1-based to 0-based
+    if start < 0:
+        start += length
+    else:
+        start -= 1
+
+    if stop is None:
+        if step < 0:
+            stop = 0
+        else:
+            stop = length - 1
+    elif stop < 0:
+        stop += length
+    else:
+        assert stop > 0
+        stop -= 1
+
+    # check bounds
+    if (
+        not 0 <= start < length
+        or not 0 <= stop < length
+        or step > 0
+        and start - stop > 1
+        or step < 0
+        and stop - start > 1
+    ):  # nopep8
+        return None
+
+    # include the stop value
+    if step > 0:
+        stop += 1
+    else:
+        stop -= 1
+        if stop == -1:
+            stop = None
+        if start == 0:
+            start = None
+
+    return slice(start, stop, step)
+
+
+def convert_seq(seq):
+    """
+    converts a sequence specification into a (start, stop, step) tuple.
+    returns None on failure
+    """
+    start, stop, step = 1, None, 1
+    name = seq.get_name()
+    value = seq.get_int_value()
+    if name == "System`All":
+        pass
+    elif name == "System`None":
+        stop = 0
+    elif value is not None:
+        if value > 0:
+            stop = value
+        else:
+            start = value
+    elif seq.has_form("List", 1, 2, 3):
+        if len(seq.leaves) == 1:
+            start = stop = seq.leaves[0].get_int_value()
+            if stop is None:
+                return None
+        else:
+            start = seq.leaves[0].get_int_value()
+            stop = seq.leaves[1].get_int_value()
+            if start is None or stop is None:
+                return None
+        if len(seq.leaves) == 3:
+            step = seq.leaves[2].get_int_value()
+            if step is None:
+                return None
+    else:
+        return None
+    return (start, stop, step)
+
+
+def _drop_take_selector(name, seq, sliced):
+    seq_tuple = convert_seq(seq)
+    if seq_tuple is None:
+        raise MessageException(name, "seqs", seq)
+
+    def select(inner):
+        start, stop, step = seq_tuple
+        if inner.is_atom():
+            py_slice = None
+        else:
+            py_slice = python_seq(start, stop, step, len(inner.leaves))
+        if py_slice is None:
+            if stop is None:
+                stop = SymbolInfinity
+            raise MessageException(name, name.lower(), start, stop, inner)
+        return sliced(inner.leaves, py_slice)
+
+    return select
+
+
+def _take_span_selector(seq):
+    return _drop_take_selector("Take", seq, lambda x, s: x[s])
+
+
+def _drop_span_selector(seq):
+    def sliced(x, s):
+        y = list(x[:])
+        del y[s]
+        return y
+
+    return _drop_take_selector("Drop", seq, sliced)
+
+
+def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
+    """
+    This function walks the expression `expr` and deleting occurrencies of `pattern`
+
+    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+
+    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    """
+    nothing = Symbol("System`Nothing")
+    from mathics.builtin.patterns import Matcher
+
+    match = Matcher(pattern)
+    match = match.match
+    if type(levelspec) is int:
+        lsmin = 1
+        lsmax = levelspec + 1
+    else:
+        lsmin = levelspec[0]
+        if levelspec[1]:
+            lsmax = levelspec[1] + 1
+        else:
+            lsmax = -1
+    tree = [[expr]]
+    changed_marks = [
+        [False],
+    ]
+    curr_index = [0]
+
+    while curr_index[0] != 1:
+        # If the end of the branch is reached, or no more elements to delete out
+        if curr_index[-1] == len(tree[-1]) or n == 0:
+            leaves = tree[-1]
+            tree.pop()
+            # check if some of the leaves was changed
+            changed = any(changed_marks[-1])
+            changed_marks.pop()
+            if changed:
+                leaves = [leaf for leaf in leaves if leaf is not nothing]
+            curr_index.pop()
+            if len(curr_index) == 0:
+                break
+            idx = curr_index[-1]
+            changed = changed or changed_marks[-1][idx]
+            changed_marks[-1][idx] = changed
+            if changed:
+                head = tree[-1][curr_index[-1]].get_head()
+                tree[-1][idx] = Expression(head, *leaves)
+            if len(curr_index) == 0:
+                break
+            curr_index[-1] = curr_index[-1] + 1
+            continue
+        curr_leave = tree[-1][curr_index[-1]]
+        if match(curr_leave, evaluation) and (len(curr_index) > lsmin):
+            tree[-1][curr_index[-1]] = nothing
+            changed_marks[-1][curr_index[-1]] = True
+            curr_index[-1] = curr_index[-1] + 1
+            n = n - 1
+            continue
+        if curr_leave.is_atom() or lsmax == len(curr_index):
+            curr_index[-1] = curr_index[-1] + 1
+            continue
+        else:
+            tree.append(list(curr_leave.get_leaves()))
+            changed_marks.append([False for s in tree[-1]])
+            curr_index.append(0)
+    return tree[0][0]
+
+
+def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
+    """
+    This function walks the expression `expr` looking for a pattern `pattern`
+    and returns the positions of each occurence.
+
+    If levelspec specifies a number, only those positions with  `levelspec` "coordinates" are return. By default, it just return occurences in the first level.
+
+    If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
+    n indicates the number of occurrences to return. By default, it returns all the occurences.
+    """
+    from mathics.builtin.patterns import Matcher
+
+    match = Matcher(pattern)
+    match = match.match
+    if type(levelspec) is int:
+        lsmin = 0
+        lsmax = levelspec
+    else:
+        lsmin = levelspec[0]
+        lsmax = levelspec[1]
+    tree = [expr.get_leaves()]
+    curr_index = [0]
+    found = []
+    while len(tree) > 0:
+        if n == 0:
+            break
+        if curr_index[-1] == len(tree[-1]):
+            curr_index.pop()
+            tree.pop()
+            if len(curr_index) != 0:
+                curr_index[-1] = curr_index[-1] + 1
+            continue
+        curr_leave = tree[-1][curr_index[-1]]
+        if match(curr_leave, evaluation) and (len(curr_index) >= lsmin):
+            found.append([from_python(i) for i in curr_index])
+            curr_index[-1] = curr_index[-1] + 1
+            n = n - 1
+            continue
+        if curr_leave.is_atom() or lsmax == len(curr_index):
+            curr_index[-1] = curr_index[-1] + 1
+            continue
+        else:
+            tree.append(curr_leave.get_leaves())
+            curr_index.append(0)
+    return found
