@@ -13,6 +13,7 @@ from mathics.core.atoms import from_python, Number, Integer
 from mathics.core.number import dps
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.symbols import (
+    arithmetic_head_symbols,
     Atom,
     BaseExpression,
     Monomial,
@@ -1615,13 +1616,3 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 def string_list(head, leaves, evaluation):
     return atom_list_constructor(evaluation, head, "String")(leaves)
-
-
-predefined_numeric_constants = system_symbols(
-    "MachinePrecision",
-    "Pi",
-    "E",
-    "Catalan",
-    "EulerGamma",
-    "GoldenRatio",
-)

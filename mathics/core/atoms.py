@@ -554,7 +554,7 @@ class Complex(Number):
         self.imag = imag
         return self
 
-    def get_head_name():
+    def get_head_name(self):
         return "System`Complex"
 
     def atom_to_boxes(self, f, evaluation):
