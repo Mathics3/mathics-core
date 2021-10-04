@@ -40,7 +40,8 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
 from mathics.builtin.base import PatternObject, PatternError
-from mathics.builtin.lists import python_levelspec, InvalidLevelspecError
+from mathics.algorithm.parts import python_levelspec
+from mathics.builtin.lists import InvalidLevelspecError
 from mathics.builtin.numeric import apply_N
 
 from mathics.core.symbols import (
@@ -55,7 +56,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolFalse,
     SymbolList,
     SymbolTrue,

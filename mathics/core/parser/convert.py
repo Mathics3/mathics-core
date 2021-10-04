@@ -9,7 +9,7 @@ import mathics.core.atoms as maa
 import mathics.core.symbols as mas
 import mathics.core.expression as mae
 from mathics.core.parser.ast import Symbol, String, Number, Filename
-from mathics.core.numbers import machine_precision, reconstruct_digits
+from mathics.core.number import machine_precision, reconstruct_digits
 
 
 class GenericConverter(object):

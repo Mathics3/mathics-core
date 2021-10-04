@@ -22,7 +22,7 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
 )
-from mathics.core.numbers import get_precision, PrecisionValueError, machine_precision
+from mathics.core.number import get_precision, PrecisionValueError, machine_precision
 
 
 def mp_constant(fn: str, d=None) -> mpmath.mpf:

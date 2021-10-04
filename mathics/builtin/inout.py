@@ -27,7 +27,8 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+
 from mathics.core.atoms import (
     String,
     StringFromPython,
@@ -38,11 +39,10 @@ from mathics.core.atoms import (
     PrecisionReal,
 )
 from mathics.core.systemsymbols import (
-    SymbolList,
     SymbolMakeBoxes,
     SymbolRule,
 )
-from mathics.core.numbers import (
+from mathics.core.number import (
     dps,
     convert_base,
     machine_precision,

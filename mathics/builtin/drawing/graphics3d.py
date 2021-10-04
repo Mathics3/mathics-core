@@ -203,6 +203,50 @@ class Sphere(Builtin):
     }
 
 
+class Cone(Builtin):
+    """
+    <dl>
+      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
+      <dd>represents a cone of radius 1.
+
+      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
+      <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
+
+      <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+      <dd>is a collection cones of radius $r$.
+    </dl>
+
+    >> Graphics3D[Cone[{{0, 0, 0}, {1, 1, 1}}, 1]]
+     = -Graphics3D-
+
+    >> Graphics3D[{Yellow, Cone[{{-1, 0, 0}, {1, 0, 0}, {0, 0, Sqrt[3]}, {1, 1, Sqrt[3]}}, 1]}]
+     = -Graphics3D-
+    """
+
+    messages = {
+        "oddn": "The number of points must be even.",
+        "nrr": "The radius must be a real number",
+    }
+
+    rules = {
+        "Cone[]": "Cone[{{0, 0, 0}, {1, 1, 1}}, 1]",
+        "Cone[positions_List]": "Cone[positions, 1]",
+    }
+
+    def apply_check(self, positions, radius, evaluation):
+        "Cone[positions_List, radius_]"
+
+        if len(positions.get_leaves()) % 2 == 1:
+            # The number of points is odd, so abort.
+            evaluation.error("Cone", "oddn", positions)
+        if not isinstance(radius, (Integer, Rational, Real)):
+            nradius = Expression(SymbolN, radius).evaluate(evaluation)
+            if not isinstance(nradius, (Integer, Rational, Real)):
+                evaluation.error("Cone", "nrr", radius)
+
+        return
+
+
 class Cuboid(Builtin):
     """
     Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, tesseract, orthotope, and box.
@@ -297,3 +341,26 @@ class Cylinder(Builtin):
                 evaluation.error("Cylinder", "nrr", radius)
 
         return
+
+
+class Tube(Builtin):
+    """
+    <dl>
+      <dt>'Tube[{$p1$, $p2$, ...}]'
+      <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
+
+      <dt>'Tube[{$p1$, $p2$, ...}, $r$]'
+      <dd>represents a tube with radius $r$.
+    </dl>
+
+    >> Graphics3D[Tube[{{0,0,0}, {1,1,1}}]]
+    = -Graphics3D-
+
+    >> Graphics3D[Tube[{{0,0,0}, {1,1,1}, {0, 0, 1}}, 0.1]]
+    = -Graphics3D-
+    """
+
+    rules = {
+        "Tube[]": "Tube[{{0, 0, 0}, {1, 1, 1}}, 1]",
+        "Tube[positions_]": "Tube[positions, 1]",
+    }

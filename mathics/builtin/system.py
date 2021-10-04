@@ -21,9 +21,11 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.symbols import (
+    SymbolList,
+)
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolList,
     SymbolRule,
 )
 from mathics.builtin.base import Builtin, Predefined

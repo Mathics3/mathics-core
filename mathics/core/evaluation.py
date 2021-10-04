@@ -16,11 +16,13 @@ from mathics.core.symbols import (
     ensure_context,
     KeyComparable,
 )
-from mathics.core.systemsymbols import (
-    SymbolAborted,
+
+from mathics.core.symbols import (
     SymbolList,
     SymbolNull,
 )
+
+from mathics.core.systemsymbols import SymbolAborted
 
 FORMATS = [
     "StandardForm",

@@ -9,16 +9,19 @@ from typing import Any, Optional
 from itertools import chain
 from bisect import bisect_left
 
-# from mathics.core.formatter import *
 from mathics.core.atoms import from_python, Number, Integer
-from mathics.core.symbols import Atom, BaseExpression, Monomial, Symbol, system_symbols
-from mathics.core.systemsymbols import (
+from mathics.core.number import dps
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.symbols import (
+    Atom,
+    BaseExpression,
+    Monomial,
+    Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
+    system_symbols,
 )
-from mathics.core.numbers import dps
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.systemsymbols import SymbolSequence
 
 
 def fully_qualified_symbol_name(name) -> bool:

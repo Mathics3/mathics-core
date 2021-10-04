@@ -12,18 +12,16 @@ from mathics.core.rules import Rule
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
+    SymbolNull,
     valid_context_name,
     system_symbols,
 )
 
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolNull,
-)
+from mathics.core.systemsymbols import SymbolFailed
 from mathics.core.atoms import String
 
 from mathics.core.definitions import PyMathicsLoadException
-from mathics.builtin.lists import walk_parts
+from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 
