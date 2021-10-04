@@ -249,7 +249,7 @@ class FractionalPart(Builtin):
         return Expression("Complex", real_fractional_part, image_fractional_part)
 
 
-class FromContinuedFraction(SympyFunction):
+class FromContinuedFraction(Builtin):
     """
     <dl>
       <dt>'FromContinuedFraction[$list$]'

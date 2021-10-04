@@ -577,7 +577,7 @@ class NumberQ(Test):
         return isinstance(expr, Number)
 
 
-class PossibleZeroQ(SympyFunction):
+class PossibleZeroQ(Builtin):
     """
     <dl>
       <dt>'PossibleZeroQ[$expr$]'
@@ -1332,8 +1332,7 @@ class Piecewise(SympyFunction):
         if result is None:
             return
         if not isinstance(result, sympy.Piecewise):
-            result = from_sympy(result)
-            return result
+            return from_sympy(result)
 
     def to_sympy(self, expr, **kwargs):
         leaves = expr.leaves

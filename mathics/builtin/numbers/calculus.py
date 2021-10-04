@@ -671,7 +671,7 @@ class Integrate(SympyFunction):
         return result
 
 
-class Root(SympyFunction):
+class Root(Builtin):
     """
     <dl>
     <dt>'Root[$f$, $i$]'
