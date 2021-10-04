@@ -110,13 +110,13 @@ class _MPMathFunction(SympyFunction):
         if any(arg.is_machine_precision() for arg in args):
             # if any argument has machine precision then the entire calculation
             # is done with machine precision.
-            float_args = [
+            float_args = tuple(
                 arg.round().get_float_value(permit_complex=True) for arg in args
-            ]
+            )
             if None in float_args:
                 return
 
-            result = call_mpmath(mpmath_function, tuple(float_args))
+            result = call_mpmath(mpmath_function, float_args)
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
                     result = Symbol("ComplexInfinity")
@@ -133,10 +133,10 @@ class _MPMathFunction(SympyFunction):
             d = dps(prec)
             args = [apply_N(arg, evaluation, Integer(d)) for arg in args]
             with mpmath.workprec(prec):
-                mpmath_args = [x.to_mpmath() for x in args]
+                mpmath_args = tuple(x.to_mpmath() for x in args)
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
+                result = call_mpmath(mpmath_function, mpmath_args)
                 if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                     result = from_mpmath(result, d)
         return result
