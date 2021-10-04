@@ -8,6 +8,8 @@ on:
 
 jobs:
   build:
+    env:
+      NO_CYTHON: 1
     runs-on: ubuntu-20.04
     strategy:
       matrix:
@@ -27,5 +29,4 @@ jobs:
         make develop-full
     - name: Test Mathics
       run: |
-        pip install -r requirements-dev.txt
         make -j3 check

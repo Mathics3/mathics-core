@@ -1,4 +1,4 @@
-name: Mathics (OSX)
+name: Mathics (ubuntu full with Cython)
 
 on:
   push:
@@ -8,13 +8,10 @@ on:
 
 jobs:
   build:
-    env:
-      NO_CYTHON: 1
-    runs-on: macos-latest
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        os: [macOS]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.9]
     steps:
     - uses: actions/checkout@v2
     - name: Set up Python ${{ matrix.python-version }}
@@ -23,12 +20,11 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
-        brew install llvm@11
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
         python -m pip install --upgrade pip
-        LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
     - name: Install Mathics with full dependencies
       run: |
-        make develop-full
+        make develop-full-cython
     - name: Test Mathics
       run: |
         make -j3 check

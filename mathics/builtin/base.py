@@ -11,6 +11,14 @@ from typing import Any, cast
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
+from mathics.builtin.exceptions import (
+    BoxConstructError,
+    InvalidLevelspecError,
+    MessageException,
+    PartError,
+    PartDepthError,
+    PartRangeError,
+)
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
@@ -593,27 +601,6 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class InvalidLevelspecError(Exception):
-    pass
-
-
-class PartError(Exception):
-    pass
-
-
-class PartDepthError(PartError):
-    def __init__(self, index=0):
-        self.index = index
-
-
-class PartRangeError(PartError):
-    pass
-
-
-class BoxConstructError(Exception):
-    pass
-
-
 class BoxConstruct(InstanceableBuiltin):
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)
@@ -776,14 +763,6 @@ class PatternObject(InstanceableBuiltin, Pattern):
 
     def get_attributes(self, definitions):
         return self.head.get_attributes(definitions)
-
-
-class MessageException(Exception):
-    def __init__(self, *message):
-        self._message = message
-
-    def message(self, evaluation):
-        evaluation.message(*self._message)
 
 
 class NegativeIntegerException(Exception):

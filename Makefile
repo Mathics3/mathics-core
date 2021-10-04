@@ -35,11 +35,15 @@ build:
 
 #: Set up to run from the source tree
 develop:
-	$(PIP) install -e .
+	$(PIP) install -e .[dev]
 
 #: Set up to run from the source tree with full dependencies
 develop-full:
-	$(PIP) install -e .[full]
+	$(PIP) install -e .[dev,full]
+
+#: Set up to run from the source tree with full dependencies and Cython
+develop-full-cython:
+	$(PIP) install -e .[dev,full,cython]
 
 
 #: Make distirbution: wheels, eggs, tarball
