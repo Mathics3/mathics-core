@@ -31,5 +31,4 @@ jobs:
         make develop-full
     - name: Test Mathics
       run: |
-        pip install -r requirements-dev.txt
         make -j3 check

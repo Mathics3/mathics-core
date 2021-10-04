@@ -7,6 +7,11 @@ For the easiest installation:
 
     pip install -e .
 
+For full installation:
+
+    pip install -e .[full]
+
+
 This will install the library in the default location. For instructions on
 how to customize the install procedure read the output of:
 
@@ -59,7 +64,7 @@ INSTALL_REQUIRES = ["Mathics-Scanner >= 1.2.1,<1.3.0"]
 exec(compile(open("mathics/version.py").read(), "mathics/version.py", "exec"))
 
 EXTRAS_REQUIRE = {}
-for kind in ("dev", "full"):
+for kind in ("dev", "full", "cython"):
     extras_require = []
     requirements_file = f"requirements-{kind}.txt"
     for line in open(requirements_file).read().split("\n"):

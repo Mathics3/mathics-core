@@ -26,8 +26,7 @@ jobs:
         python -m pip install --upgrade pip
     - name: Install Mathics with full dependencies
       run: |
-        make develop
+        make develop-full
     - name: Test Mathics
       run: |
-        pip install -r requirements-dev.txt
         make -j3 check
