@@ -2883,7 +2883,7 @@ class Nearest(Builtin):
 
     rules = {
         "Nearest[list_, pattern_]": "Nearest[list, pattern, 1]",
-        "Nearest[pattern_][list_]": "Nearest[list, pattern]",
+        "Nearest[pattern_][list_]": "Nearest[list, pattern, 1]",
     }
 
     def apply(self, items, pivot, limit, expression, evaluation, options):

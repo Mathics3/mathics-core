@@ -251,7 +251,7 @@ class Count(Builtin):
     """
 
     rules = {
-        "Count[pattern_][list_]": "Count[list, pattern]",
+        "Count[pattern_][list_]": "Length[Cases[list, pattern]]",
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
     }
 
@@ -721,8 +721,8 @@ class MemberQ(Builtin):
     """
 
     rules = {
-        "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
-        "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
+        "MemberQ[list_, pattern_]": "Length[Select[list, MatchQ[#, pattern]&]] > 0",
+        "MemberQ[pattern_][expr_]": "Length[Select[expr, MatchQ[#, pattern]&]] > 0",
     }
 
 

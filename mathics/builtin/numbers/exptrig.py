@@ -592,7 +592,7 @@ class Cosh(_MPMathFunction):
     mpmath_name = "cosh"
 
     rules = {
-        "Derivative[1][Cosh]": "Sinh[#]&",
+        "Derivative[1][Cosh]": "Sinh",
     }
 
 
@@ -1004,7 +1004,7 @@ class Sin(_MPMathFunction):
         "Sin[n_Integer*Pi]": "0",
         "Sin[(1/2) * Pi]": "1",
         "Sin[0]": "0",
-        "Derivative[1][Sin]": "Cos[#]&",
+        "Derivative[1][Sin]": "Cos",
     }
 
 
@@ -1022,7 +1022,7 @@ class Sinh(_MPMathFunction):
     mpmath_name = "sinh"
 
     rules = {
-        "Derivative[1][Sinh]": "Cosh[#]&",
+        "Derivative[1][Sinh]": "Cosh",
     }
 
 

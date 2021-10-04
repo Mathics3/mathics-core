@@ -299,7 +299,7 @@ class Derivative(PostfixOperator, SympyFunction):
     </dl>
 
     >> Derivative[1][Sin]
-     = Cos[#1]&
+     = Cos
     >> Derivative[3][Sin]
      = -Cos[#1]&
     >> Derivative[2][# ^ 3&]

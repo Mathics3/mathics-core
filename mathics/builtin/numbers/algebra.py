@@ -399,8 +399,8 @@ class Simplify(Builtin):
         "Simplify[rule_Rule]": "Simplify /@ rule",
         "Simplify[list_List, assum_]": "Simplify[#1, assum]& /@ list",
         "Simplify[rule_Rule, assum_]": "Simplify[#1, assum]& /@ rule",
-        "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0]]",
-        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Simplify[{Or[a>0, b!=0]}]]",
+        "Simplify[0^a_, assum_]": "ConditionalExpression[0,a>0]",
+        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Or[a>0, b!=0]]",
     }
 
     def apply_assuming(self, expr, assumptions, evaluation):
@@ -669,7 +669,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    attributes = ["Listable"]
+    attributes = ("Listable",)
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"
