@@ -37,7 +37,7 @@ class UniformPolyhedron(Builtin):
     }
 
     rules = {
-        "UniformPolyhedron[name_String]": "UniformPolyhedron[name, {{0, 0, 0}}, 1]",
+        "UniformPolyhedron[name_]": "UniformPolyhedron[name, {{0, 0, 0}}, 1]",
     }
 
     def apply(self, name, positions, edgelength, evaluation):
@@ -45,8 +45,6 @@ class UniformPolyhedron(Builtin):
 
         if name.to_python(string_quotes=False) not in uniform_polyhedra_set:
             evaluation.error("UniformPolyhedron", "argtype", name)
-
-        return
 
 
 class Dodecahedron(Builtin):
@@ -61,9 +59,9 @@ class Dodecahedron(Builtin):
     """
 
     rules = {
-        "Dodecahedron[]": """UniformPolyhedron["dodecahedron"]""",
-        "Dodecahedron[l_?NumberQ]": """UniformPolyhedron["dodecahedron", {{0, 0, 0}}, l]""",
-        "Dodecahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["dodecahedron", positions, l]""",
+        "Dodecahedron[]": """UniformPolyhedron["dodecahedron", {{0, 0, 0}}, 1]""",
+        "Dodecahedron[l_]": """UniformPolyhedron["dodecahedron", {{0, 0, 0}}, l]""",
+        "Dodecahedron[positions_, l_]": """UniformPolyhedron["dodecahedron", positions, l]""",
     }
 
 
@@ -79,9 +77,9 @@ class Icosahedron(Builtin):
     """
 
     rules = {
-        "Icosahedron[]": """UniformPolyhedron["icosahedron"]""",
-        "Icosahedron[l_?NumberQ]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, l]""",
-        "Icosahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["icosahedron", positions, l]""",
+        "Icosahedron[]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, 1]""",
+        "Icosahedron[l_]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, l]""",
+        "Icosahedron[positions_, l_]": """UniformPolyhedron["icosahedron", positions, l]""",
     }
 
 
@@ -97,9 +95,9 @@ class Octahedron(Builtin):
     """
 
     rules = {
-        "Octahedron[]": """UniformPolyhedron["octahedron"]""",
-        "Octahedron[l_?NumberQ]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",
-        "Octahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["octahedron", positions, l]""",
+        "Octahedron[]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, 1]""",
+        "Octahedron[l_]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",
+        "Octahedron[positions_, l_]": """UniformPolyhedron["octahedron", positions, l]""",
     }
 
 
@@ -115,10 +113,7 @@ class Tetrahedron(Builtin):
     """
 
     rules = {
-        "Tetrahedron[]": """UniformPolyhedron["tetrahedron"]""",
-        "Tetrahedron[l_?NumberQ]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, l]""",
-        "Tetrahedron[positions_List, l_?NumberQ]": """UniformPolyhedron["tetrahedron", positions, l]""",
+        "Tetrahedron[]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, 1]""",
+        "Tetrahedron[l_]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, l]""",
+        "Tetrahedron[positions_, l_]": """UniformPolyhedron["tetrahedron", positions, l]""",
     }
-
-    def apply_with_length(self, length, evaluation):
-        "Tetrahedron[l_?Numeric]"

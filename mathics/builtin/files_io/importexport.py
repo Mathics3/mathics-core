@@ -1086,7 +1086,7 @@ class RegisterImport(Builtin):
     }
 
     rules = {
-        "ImportExport`RegisterImport[formatname_String, function_]": "ImportExport`RegisterImport[formatname, function, {}]",
+        "ImportExport`RegisterImport[formatname_, function_]": "ImportExport`RegisterImport[formatname, function, {}]",
     }
 
     def apply(self, formatname, function, posts, evaluation, options):
@@ -1901,7 +1901,7 @@ class ExportString(Builtin):
     }
 
     rules = {
-        "ExportString[expr_, elems_?NotListQ]": ("ExportString[expr, {elems}]"),
+        "ExportString[expr_, elems_?NotListQ]": "ExportString[expr, {elems}]",
     }
 
     def apply_element(self, expr, element, evaluation, **options):

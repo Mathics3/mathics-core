@@ -286,7 +286,7 @@ def find_all_vars(expr):
 
     def find_vars(e, e_sympy):
         assert e_sympy is not None
-        if e_sympy.is_constant():
+        if e_sympy.is_constant:
             return
         elif e.is_symbol():
             variables.add(e)
@@ -300,7 +300,7 @@ def find_all_vars(expr):
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return
-            if not (a_sympy.is_constant()) and b_sympy.is_rational:
+            if not a_sympy.is_constant and b_sympy.is_rational:
                 find_vars(a, a_sympy)
         elif not (e.is_atom()):
             variables.add(e)
@@ -399,8 +399,8 @@ class Simplify(Builtin):
         "Simplify[rule_Rule]": "Simplify /@ rule",
         "Simplify[list_List, assum_]": "Simplify[#1, assum]& /@ list",
         "Simplify[rule_Rule, assum_]": "Simplify[#1, assum]& /@ rule",
-        "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0]]",
-        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Simplify[{Or[a>0, b!=0]}]]",
+        "Simplify[0^a_, assum_]": "ConditionalExpression[0,a>0]",
+        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Or[a>0, b!=0]]",
     }
 
     def apply_assuming(self, expr, assumptions, evaluation):
@@ -669,7 +669,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    attributes = ["Listable"]
+    attributes = ("Listable",)
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"

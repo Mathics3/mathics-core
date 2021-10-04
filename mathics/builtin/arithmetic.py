@@ -110,13 +110,13 @@ class _MPMathFunction(SympyFunction):
         if any(arg.is_machine_precision() for arg in args):
             # if any argument has machine precision then the entire calculation
             # is done with machine precision.
-            float_args = [
+            float_args = tuple(
                 arg.round().get_float_value(permit_complex=True) for arg in args
-            ]
+            )
             if None in float_args:
                 return
 
-            result = call_mpmath(mpmath_function, tuple(float_args))
+            result = call_mpmath(mpmath_function, float_args)
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
                     result = Symbol("ComplexInfinity")
@@ -133,27 +133,13 @@ class _MPMathFunction(SympyFunction):
             d = dps(prec)
             args = [apply_N(arg, evaluation, Integer(d)) for arg in args]
             with mpmath.workprec(prec):
-                mpmath_args = [x.to_mpmath() for x in args]
+                mpmath_args = tuple(x.to_mpmath() for x in args)
                 if None in mpmath_args:
                     return
-                result = call_mpmath(mpmath_function, tuple(mpmath_args))
+                result = call_mpmath(mpmath_function, mpmath_args)
                 if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                     result = from_mpmath(result, d)
         return result
-
-    def call_mpmath(self, mpmath_function, mpmath_args):
-        try:
-            return mpmath_function(*mpmath_args)
-        except ValueError as exc:
-            text = str(exc)
-            if text == "gamma function pole":
-                return Symbol("ComplexInfinity")
-            else:
-                raise
-        except ZeroDivisionError:
-            return
-        except SpecialValueError as exc:
-            return Symbol(exc.name)
 
 
 class _MPMathMultiFunction(_MPMathFunction):
@@ -577,7 +563,7 @@ class NumberQ(Test):
         return isinstance(expr, Number)
 
 
-class PossibleZeroQ(SympyFunction):
+class PossibleZeroQ(Builtin):
     """
     <dl>
       <dt>'PossibleZeroQ[$expr$]'
@@ -1332,8 +1318,7 @@ class Piecewise(SympyFunction):
         if result is None:
             return
         if not isinstance(result, sympy.Piecewise):
-            result = from_sympy(result)
-            return result
+            return from_sympy(result)
 
     def to_sympy(self, expr, **kwargs):
         leaves = expr.leaves
@@ -1489,9 +1474,9 @@ class ConditionalExpression(Builtin):
     rules = {
         "ConditionalExpression[expr_, True]": "expr",
         "ConditionalExpression[expr_, False]": "Undefined",
-        "ConditionalExpression[ConditionalExpression[expr_, cond1_], cond2_]": "ConditionalExpression[expr, And@@Flatten[{cond1, cond2}]]",
+        "ConditionalExpression[ConditionalExpression[expr_, cond1_], cond2_]": "ConditionalExpression[expr, And[cond1, cond2]]",
         "ConditionalExpression[expr1_, cond_] + expr2_": "ConditionalExpression[expr1+expr2, cond]",
-        "ConditionalExpression[expr1_, cond_]  expr2_": "ConditionalExpression[expr1 expr2, cond]",
+        "ConditionalExpression[expr1_, cond_] expr2_": "ConditionalExpression[expr1 expr2, cond]",
         "ConditionalExpression[expr1_, cond_]^expr2_": "ConditionalExpression[expr1^expr2, cond]",
         "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
     }

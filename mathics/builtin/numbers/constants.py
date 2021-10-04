@@ -71,6 +71,7 @@ class _Constant_Common(Predefined):
     attributes = ("Constant", "Protected", "ReadProtected")
     nargs = 0
     options = {"Method": "Automatic"}
+    is_constant: bool = True
 
     def apply_N(self, precision, evaluation, options={}):
         "N[%(name)s, precision_?NumericQ, OptionsPattern[%(name)s]]"
@@ -84,9 +85,6 @@ class _Constant_Common(Predefined):
     def apply_N2(self, evaluation, options={}):
         "N[%(name)s, OptionsPattern[%(name)s]]"
         return self.apply_N(None, evaluation, options)
-
-    def is_constant(self) -> bool:
-        return True
 
     def get_constant(self, precision, evaluation, preference=None):
         # first, determine the precision

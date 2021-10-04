@@ -1429,7 +1429,7 @@ class Quiet(Builtin):
     }
 
     rules = {
-        "Quiet[expr_]": "Quiet[expr, All]",
+        "Quiet[expr_]": "Quiet[expr, All, None]",
         "Quiet[expr_, moff_]": "Quiet[expr, moff, None]",
     }
 

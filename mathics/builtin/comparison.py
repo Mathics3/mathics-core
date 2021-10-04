@@ -389,7 +389,6 @@ class _ComparisonOperator(_InequalityOperator):
                 return
             elif c not in wanted:
                 return SymbolFalse
-            assert c in wanted
         return SymbolTrue
 
 
