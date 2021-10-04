@@ -183,6 +183,13 @@ def _part_selectors(indices):
             raise MessageException("Part", "pspec", index)
 
 
+class _ExpressionPointer(object):
+    def __init__(self, expr, origin=None, pos=None):
+        self.origin = None
+        self.head = None
+        self.leaves = []
+
+
 def _list_parts(items, selectors, heads, evaluation, assignment):
     if not selectors:
         for item in items:
