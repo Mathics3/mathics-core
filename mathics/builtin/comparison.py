@@ -25,15 +25,13 @@ from mathics.core.atoms import (
     Integer1,
     Number,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolFalse,
-    SymbolTrue,
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,
 )
-from mathics.core.numbers import dps
+from mathics.core.number import dps
 
 
 def cmp(a, b) -> int:

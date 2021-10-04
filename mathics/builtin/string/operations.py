@@ -13,8 +13,8 @@ from mathics.builtin.base import (
     Builtin,
 )
 from mathics.core.expression import Expression, string_list
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolList,
     SymbolTrue,
@@ -25,7 +25,7 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
-from mathics.builtin.lists import python_seq, convert_seq
+from mathics.algorithm.parts import python_seq, convert_seq
 from mathics.builtin.strings import (
     _StringFind,
     _evaluate_match,

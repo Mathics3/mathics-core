@@ -22,8 +22,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import Symbol, SymbolList
 
 from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
