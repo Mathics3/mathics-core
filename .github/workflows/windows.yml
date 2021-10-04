@@ -8,6 +8,8 @@ on:
 
 jobs:
   build:
+    env:
+      NO_CYTHON: 1
     runs-on: windows-latest
     strategy:
       matrix:
@@ -31,7 +33,6 @@ jobs:
         python setup.py install
     - name: Test Mathics
       run: |
-        pip install -e .[full]
-        pip install -r requirements-dev.txt
+        pip install -e .[dev,full]
         set PYTEST_WORKERS="-n3"
         make check
