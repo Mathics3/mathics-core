@@ -141,20 +141,6 @@ class _MPMathFunction(SympyFunction):
                     result = from_mpmath(result, d)
         return result
 
-    def call_mpmath(self, mpmath_function, mpmath_args):
-        try:
-            return mpmath_function(*mpmath_args)
-        except ValueError as exc:
-            text = str(exc)
-            if text == "gamma function pole":
-                return Symbol("ComplexInfinity")
-            else:
-                raise
-        except ZeroDivisionError:
-            return
-        except SpecialValueError as exc:
-            return Symbol(exc.name)
-
 
 class _MPMathMultiFunction(_MPMathFunction):
 
