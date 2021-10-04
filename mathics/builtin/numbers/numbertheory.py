@@ -181,7 +181,7 @@ class FactorInteger(Builtin):
 
 def _fractional_part(self, n, expr, evaluation):
     n_sympy = n.to_sympy()
-    if n_sympy.is_constant():
+    if n_sympy.is_constant:
         if n_sympy >= 0:
             positive_integer_part = (
                 Expression("Floor", n).evaluate(evaluation).to_python()
@@ -411,13 +411,13 @@ class MantissaExponent(Builtin):
             evaluation.message("MantissaExponent", "realx", n)
             return expr
 
-        if n_sympy.is_constant():
+        if n_sympy.is_constant:
             temp_n = apply_N(n, evaluation)
             py_n = temp_n.to_python()
         else:
             return expr
 
-        if b_sympy.is_constant():
+        if b_sympy.is_constant:
             temp_b = apply_N(b, evaluation)
             py_b = temp_b.to_python()
         else:
@@ -442,7 +442,7 @@ class MantissaExponent(Builtin):
             evaluation.message("MantissaExponent", "realx", n)
             return expr
         # Handle Input with special cases such as PI and E
-        if n_sympy.is_constant():
+        if n_sympy.is_constant:
             temp_n = apply_N(n, evaluation)
             py_n = temp_n.to_python()
         else:

@@ -286,7 +286,7 @@ def find_all_vars(expr):
 
     def find_vars(e, e_sympy):
         assert e_sympy is not None
-        if e_sympy.is_constant():
+        if e_sympy.is_constant:
             return
         elif e.is_symbol():
             variables.add(e)
@@ -300,7 +300,7 @@ def find_all_vars(expr):
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return
-            if not (a_sympy.is_constant()) and b_sympy.is_rational:
+            if not a_sympy.is_constant and b_sympy.is_rational:
                 find_vars(a, a_sympy)
         elif not (e.is_atom()):
             variables.add(e)

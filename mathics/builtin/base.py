@@ -434,14 +434,12 @@ class Predefined(Builtin):
 
 class SympyObject(Builtin):
     sympy_name: typing.Optional[str] = None
+    is_constant: bool = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.sympy_name is None:
             self.sympy_name = strip_context(self.get_name()).lower()
-
-    def is_constant(self) -> bool:
-        return False
 
     def get_sympy_names(self) -> typing.List[str]:
         if self.sympy_name:

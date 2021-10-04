@@ -660,7 +660,7 @@ class Symbol(Atom):
         if (
             builtin is None
             or not builtin.sympy_name
-            or not builtin.is_constant()  # nopep8
+            or not builtin.is_constant  # nopep8
         ):
             return sympy.Symbol(sympy_symbol_prefix + self.name)
         return builtin.to_sympy(self, **kwargs)
