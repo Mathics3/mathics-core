@@ -102,18 +102,18 @@ else:
             for parent, modules in EXTENSIONS_DICT.items()
             for module in modules
         ]
-    # EXTENSIONS_SUBDIR_DICT = {
-    #     "builtin": [("numbers", "arithmetic"), ("numbers", "numeric"), ("drawing", "graphics")],
-    # }
-    # EXTENSIONS.append(
-    #     Extension(
-    #         "mathics.%s.%s.%s" % (parent, module[0], module[1]), ["mathics/%s/%s/%s.py" % (parent, module[0], module[1])]
-    #     )
-    #     for parent, modules in EXTENSIONS_SUBDIR_DICT.items()
-    #     for module in modules
-    # )
-    CMDCLASS = {"build_ext": build_ext}
-    INSTALL_REQUIRES += ["cython>=0.15.1"]
+        # EXTENSIONS_SUBDIR_DICT = {
+        #     "builtin": [("numbers", "arithmetic"), ("numbers", "numeric"), ("drawing", "graphics")],
+        # }
+        # EXTENSIONS.append(
+        #     Extension(
+        #         "mathics.%s.%s.%s" % (parent, module[0], module[1]), ["mathics/%s/%s/%s.py" % (parent, module[0], module[1])]
+        #     )
+        #     for parent, modules in EXTENSIONS_SUBDIR_DICT.items()
+        #     for module in modules
+        # )
+        CMDCLASS = {"build_ext": build_ext}
+        INSTALL_REQUIRES += ["cython>=0.15.1"]
 
 # General Requirements
 INSTALL_REQUIRES += [
