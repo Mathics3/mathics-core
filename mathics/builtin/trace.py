@@ -197,6 +197,42 @@ class TraceBuiltinsVariable(Builtin):
         return SymbolFalse
 
 
+class ClearTrace(Builtin):
+    """
+    <dl>
+    <dt>'ClearTrace[]'
+        <dd>Clear the builtin trace.
+    </dl>
+
+    >> $TraceBuiltins = True
+     = True
+
+    >> PrintTrace[]
+     : count     ms Builtin name
+     : ...
+     = Null
+
+    >> ClearTrace[]
+     = Null
+
+    >> PrintTrace[]
+     : count     ms Builtin name
+     :     1    ... PrintTrace
+     = Null
+
+    #> $TraceBuiltins = False
+    """
+
+    def apply(self, evaluation):
+        "%(name)s[]"
+
+        TraceBuiltins.function_stats: "defauldict" = defaultdict(
+            lambda: {"count": 0, "elapsed_milliseconds": 0.0}
+        )
+
+        return SymbolNull
+
+
 class PrintTrace(Builtin):
     """
     <dl>
