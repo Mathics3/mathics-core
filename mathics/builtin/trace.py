@@ -197,3 +197,34 @@ class TraceBuiltinsVariable(Builtin):
         return SymbolFalse
 
 
+class PrintTrace(Builtin):
+    """
+    <dl>
+    <dt>'PrintTrace[]'
+        <dd>Print the builtin trace.
+    </dl>
+
+    If '$TraceBuiltins' was never set to 'True', this will print an empty list.
+    >> PrintTrace[]
+     : count     ms Builtin name
+     = Null
+
+    >> $TraceBuiltins = True
+
+    >> PrintTrace[]
+     : count     ms Builtin name
+     : ...
+     = Null
+
+    #> $TraceBuiltins = False
+    """
+
+    def apply(self, evaluation):
+        "%(name)s[]"
+
+        TraceBuiltins.dump_tracing_stats(
+            sort_by="count",
+            evaluation=evaluation,
+        )
+
+        return SymbolNull
