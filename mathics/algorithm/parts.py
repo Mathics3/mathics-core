@@ -184,10 +184,22 @@ def _part_selectors(indices):
 
 
 class _ExpressionPointer(object):
-    def __init__(self, expr, origin=None, pos=None):
-        self.origin = None
-        self.head = None
-        self.leaves = []
+    def __init__(self, expr, pos=None):
+        self.parent = expr
+        self.position = pos
+        self._head = _ExpressionPointer(self, 0)
+        self._leaves = [
+            ExpressionPointer(leaf, i) for i, leaf in enumerate(expr._leaves)
+        ]
+
+    def __str__(self) -> str:
+        return "%s[[%s]]" % (self.parent, self.position)
+
+    def replace(new):
+        if self.position == 0:
+            self.parent.set_head(new)
+        else:
+            self.parent.set_leaf(self.position - 1, new)
 
 
 def _list_parts(items, selectors, heads, evaluation, assignment):
@@ -213,11 +225,10 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
                 if assignment:
                     expr = Expression(item.head, *picked)
                     expr.original = None
-                    expr.set_positions()
+                    yield _ExpressionPointer(expr)
                 else:
                     expr = item.restructure(item.head, picked, evaluation)
-
-                yield expr
+                    yield expr
             else:
                 yield unwrap(picked)
 
@@ -234,12 +245,9 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
         # this double copying is needed to make the current logic in
         # the assign_list and its access to original work.
 
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
+        walk_list = _ExpressionPointer(walk_list.copy())
         list_of_list = [walk_list]
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
+        walk_list = _ExpressionPointer(walk_list.copy())
 
     indices = [index.evaluate(evaluation) for index in indices]
 
@@ -254,10 +262,10 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
     if assign_list is not None:
 
         def replace_item(all, item, new):
-            if item.position is None:
-                all[0] = new
+            if isinstance(item, _ExpressionPointer) and item.position is not None:
+                item.replace(new)
             else:
-                item.position.replace(new)
+                all[0] = new
 
         def process_level(item, assignment):
             if item.is_atom():
