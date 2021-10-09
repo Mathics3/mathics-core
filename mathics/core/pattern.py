@@ -18,7 +18,6 @@ def Pattern_create(expr):
     from mathics.builtin import pattern_objects
 
     # from mathics.core.pattern import AtomPattern, ExpressionPattern
-
     name = expr.get_head_name()
     pattern_object = pattern_objects.get(name)
     if pattern_object is not None:

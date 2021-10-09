@@ -150,7 +150,6 @@ def _parts_sequence_selector(pspec):
     def select(inner):
         if inner.is_atom():
             raise MessageException("Part", "partd")
-
         leaves = inner.leaves
         n = len(leaves)
 
@@ -184,22 +183,89 @@ def _part_selectors(indices):
 
 
 class _ExpressionPointer(object):
-    def __init__(self, expr, pos=None):
-        self.parent = expr
+    def __init__(self, expr, pos=None, parent=None):
+        print("_ExpressionPointer", (expr.__str__(), (type(expr)), pos))
+        if parent:
+            self.parent = parent
+        elif type(expr) is _ExpressionPointer and pos is None:
+            self.parent = expr.parent
+        else:
+            self.parent = expr
         self.position = pos
-        self._head = _ExpressionPointer(self, 0)
+        self.value = expr
+
+        if expr.is_atom():
+            return
+        print("set head")
+        self._head = _ExpressionPointer(expr._head, 0, self)
+        print("set leaves")
         self._leaves = [
-            ExpressionPointer(leaf, i) for i, leaf in enumerate(expr._leaves)
+            _ExpressionPointer(leaf, i + 1, self) for i, leaf in enumerate(expr._leaves)
         ]
+
+    @property
+    def original(self):
+        return self.value.original
+
+    @original.setter
+    def original(self, value):
+        raise ValueError("Expression.original is write protected.")
+
+    @property
+    def head(self):
+        return self._head
+
+    @head.setter
+    def head(self, value):
+        raise ValueError("Expression.head is write protected.")
+
+    @property
+    def leaves(self):
+        return self._leaves
+
+    @leaves.setter
+    def leaves(self, value):
+        raise ValueError("Expression.leaves is write protected.")
+
+    def is_atom(self):
+        return self.value.is_atom()
+
+    def copy(self):
+        print("making a [shallow] copy")
+        return _ExpressionPointer(self.parent, self.position)
 
     def __str__(self) -> str:
         return "%s[[%s]]" % (self.parent, self.position)
 
-    def replace(new):
-        if self.position == 0:
-            self.parent.set_head(new)
+    def __repr__(self) -> str:
+        return self.__str__()
+
+    def replace(self, new):
+        parent = self.parent
+        pos = []
+        while type(parent) is _ExpressionPointer:
+            pos.append(parent.position)
+            parent = parent.parent
+
+        pos.pop()  # Drop the null
+        print((parent, pos))
+        i = pos.pop()
+        if i == 0:
+            expr = parent._head
         else:
-            self.parent.set_leaf(self.position - 1, new)
+            expr = parent._leaves[i - 1]
+        while pos:
+            parent = expr
+            i = pos.pop()
+            if i == 0:
+                expr = parent._head
+            else:
+                expr = parent._leaves[i - 1]
+
+        if i == 0:
+            parent.set_head(new)
+        else:
+            parent.set_leaf(i - 1, new)
 
 
 def _list_parts(items, selectors, heads, evaluation, assignment):
@@ -244,10 +310,11 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
     if assign_list is not None:
         # this double copying is needed to make the current logic in
         # the assign_list and its access to original work.
-
         walk_list = _ExpressionPointer(walk_list.copy())
         list_of_list = [walk_list]
-        walk_list = _ExpressionPointer(walk_list.copy())
+        # print("round 2 \n"+40*"-", "\n",type(walk_list))
+        # walk_list = _ExpressionPointer(walk_list.copy())
+        # print("Ready? \n"+40*"-")
 
     indices = [index.evaluate(evaluation) for index in indices]
 
@@ -256,20 +323,24 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
             walk_list, _part_selectors(indices), evaluation, assign_list is not None
         )
     except MessageException as e:
+        raise
         e.message(evaluation)
         return False
 
     if assign_list is not None:
+        print(" assign to ", result.__str__())
 
         def replace_item(all, item, new):
+            print("replace_item:  ", (all, item, new))
             if isinstance(item, _ExpressionPointer) and item.position is not None:
                 item.replace(new)
             else:
                 all[0] = new
 
         def process_level(item, assignment):
+            print("process_level:", (assignment, item.__str__()))
             if item.is_atom():
-                replace_item(list_of_list, item.original, assignment)
+                replace_item(list_of_list, item, assignment)
             elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
                 assignment.leaves
             ):
@@ -284,9 +355,10 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
 
         process_level(result, assign_list)
 
-        result = list_of_list[0]
+        result = list_of_list[0].parent
         result.clear_cache()
 
+    print("result=", result)
     return result
 
 
