@@ -48,6 +48,18 @@ Uniform Polyhedron
 * ``TetraHedron``
 * ``UniformPolyedron``
 
+Mathics-specific
+
+* ``TraceBuiltin[]``, ``$TraceBuiltins``, ``ClearTrace[]``, ``PrintTrace[]``
+
+These collect builtin-function call counts and elapsed time in the routines.
+``TraceBuiltin[expr]`` collects information for just *expr*. Whereas
+setting ``$TraceBuiltins`` to True will accumulate results of evaluations
+``PrintTrace[]`` dumps the statistics and ``ClearTrace[]`` clears the statistics data.
+
+``mathics -T/--trace-builtin`` is about the same as setting
+``$TraceBuiltins = True`` on entry and runs ``PrintTrace[]`` on exit.
+
 
 Bugs
 ++++
