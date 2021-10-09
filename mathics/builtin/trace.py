@@ -33,46 +33,57 @@ def traced_do_replace(self, expression, vars, options, evaluation):
     return result
 
 
-class TraceBuiltins(Builtin):
-    """
-    <dl>
-    <dt>'TraceBuiltins[$expr$]'
-        <dd>Print the list of the called builtin names, count and time spend in their apply method. Returns the result of $expr$.
-    </dl>
-
-    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
-     : count     ms Builtin name
-     : ...
-     = -Graphics3D-
-
-    The default is sorting the builtin names by calls count.
-    >> TraceBuiltins[Times[x, x], SortBy->"count"]
-     : count     ms Builtin name
-     : ...
-     = x^2
-
-    But you can also sort by name, or time.
-
-    The default is sorting the builtin names by type.
-    >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"name"]
-     : count     ms Builtin name
-     : ...
-     = 1 + x + x^2
-    """
-
+class _TraceBase(Builtin):
     options = {
-        "SortBy": "count",
+        "SortBy": '"count"',
     }
 
     messages = {
         "wsort": '`1` must be one of the following: "count", "name", "time"',
     }
 
+
+class TraceBuiltins(_TraceBase):
+    """
+    <dl>
+      <dt>'TraceBuiltins[$expr$]'
+      <dd>Print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
+    </dl>
+
+    Sort Options:
+
+    <ul>
+      <li>count
+      <li>name
+      <li>time
+    </ul>
+
+
+    >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+     : count     ms Builtin name
+     : ...
+     = -Graphics3D-
+
+    By default, the output is sorted by the number of calls of the builtin from highest to lowest:
+    >> TraceBuiltins[Times[x, x], SortBy->"count"]
+     : count     ms Builtin name
+     : ...
+     = x^2
+
+    You can have results ordered by name, or time.
+
+    Trace an expression and list the result by time from highest to lowest.
+    >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
+     : count     ms Builtin name
+     : ...
+     = 1 + x + x^2
+    """
+
     traced_definitions: Evaluation = None
     definitions_copy: Definitions
     do_replace_copy: Callable
 
-    function_stats: "defauldict" = defaultdict(
+    function_stats: "defaultdict" = defaultdict(
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
     )
 

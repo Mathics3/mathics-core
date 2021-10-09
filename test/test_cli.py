@@ -17,13 +17,21 @@ def test_cli():
     script_file = osp.join(get_testdir(), "data", "script.m")
 
     # asserts output contains 'Hello' and '2'
-    assert re.match(
-        r"Hello\s+2",
-        subprocess.run(
+    result = subprocess.run(
             ["mathics", "-e", "Print[1+1];", "-script", script_file],
             capture_output=True,
-        ).stdout.decode("utf-8"),
+        )
+
+    assert re.match(
+        r"Hello\s+2", result.stdout.decode("utf-8")
     )
+    assert result.returncode == 0
+
+    result = subprocess.run(
+        ["mathics", "--execute", "2+3", "---trace-builtins"],
+        capture_output=False,
+        )
+    assert result.returncode == 0
 
 
 if __name__ == "__main__":

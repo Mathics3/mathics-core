@@ -9,13 +9,15 @@ import subprocess
 import sys
 
 import os.path as osp
-from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 
-from mathics.core.definitions import autoload_files, Definitions, Symbol
-from mathics.core.expression import strip_context
-from mathics.core.evaluation import Evaluation, Output
-from mathics import version_string, license_string, __version__
 from mathics import settings
+from mathics import version_string, license_string, __version__
+from mathics.builtin.trace import TraceBuiltins, traced_do_replace
+from mathics.core.definitions import autoload_files, Definitions, Symbol
+from mathics.core.evaluation import Evaluation, Output
+from mathics.core.expression import strip_context
+from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
+from mathics.core.rules import BuiltinRule
 
 
 def get_srcdir():
@@ -300,6 +302,13 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
+    argparser.add_argument(
+        "--trace-builtins",
+        "-T",
+        help="Trace Built-in call counts and elapsed time",
+        action="store_true",
+    )
+
     args, script_args = argparser.parse_known_args()
 
     quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
@@ -312,6 +321,15 @@ Please contribute to Mathics!""",
         from mathics.settings import default_pymathics_modules
 
         extension_modules = default_pymathics_modules
+
+    if args.trace_builtins:
+        BuiltinRule.do_replace = traced_do_replace
+        import atexit
+
+        def dump_tracing_stats():
+            TraceBuiltins.dump_tracing_stats(sort_by="count", evaluation=None)
+
+        atexit.register(dump_tracing_stats)
 
     definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
     definitions.set_line_no(0)
