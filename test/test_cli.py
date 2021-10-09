@@ -18,19 +18,17 @@ def test_cli():
 
     # asserts output contains 'Hello' and '2'
     result = subprocess.run(
-            ["mathics", "-e", "Print[1+1];", "-script", script_file],
-            capture_output=True,
-        )
-
-    assert re.match(
-        r"Hello\s+2", result.stdout.decode("utf-8")
+        ["mathics", "-e", "Print[1+1];", "-script", script_file],
+        capture_output=True,
     )
+
+    assert re.match(r"Hello\s+2", result.stdout.decode("utf-8"))
     assert result.returncode == 0
 
     result = subprocess.run(
         ["mathics", "--execute", "2+3", "---trace-builtins"],
         capture_output=False,
-        )
+    )
     assert result.returncode == 0
 
 
