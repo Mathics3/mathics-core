@@ -21,6 +21,7 @@ from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.builtin.drawing.graphics3d import (
     Coords3D,
     Graphics3DElements,
+    Style3D,
 )
 
 from mathics.builtin.drawing.graphics_internals import get_class
@@ -840,8 +841,17 @@ class Line3DBox(LineBox):
 
 
 class Point3DBox(PointBox):
+    def get_default_face_color(self):
+        return RGBColor(components=(0, 0, 0, 1))
+
     def init(self, *args, **kwargs):
+        # The default color isn't white as it's for the other 3d primitives
+        # here it's black.
+        get_default_face_color_copy = Style3D.get_default_face_color
+
+        Style3D.get_default_face_color = self.get_default_face_color
         super(Point3DBox, self).init(*args, **kwargs)
+        Style3D.get_default_face_color = get_default_face_color_copy
 
     def process_option(self, name, value):
         super(Point3DBox, self).process_option(name, value)
