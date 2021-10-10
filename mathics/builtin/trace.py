@@ -66,19 +66,11 @@ class ClearTrace(Builtin):
 
     Dump Builtin-Function statistics gathered in running that assignment:
     >> PrintTrace[]
-     : count     ms Builtin name
-     : ...
-     = Null
 
     >> ClearTrace[]
-     = Null
-
-    >> PrintTrace[]
-     : count     ms Builtin name
-     :     1    ... PrintTrace
-     = Null
 
     #> $TraceBuiltins = False
+    = False
     """
 
     summary_text = "Clear any statistics collected for Built-in Functions"
@@ -113,17 +105,15 @@ class PrintTrace(Builtin):
 
     If '$TraceBuiltins' was never set to 'True', this will print an empty list.
     >> PrintTrace[]
-     : count     ms Builtin name
-     = Null
 
     >> $TraceBuiltins = True
+     = True
 
     >> PrintTrace[SortBy -> "time"]
-     : count     ms Builtin name
-     : ...
-     = Null
+     = PrintTrace[SortBy -> time]
 
     #> $TraceBuiltins = False
+     = False
     """
 
     summary_text = "Print statistics collected for Built-in Functions"
@@ -156,23 +146,17 @@ class TraceBuiltins(_TraceBase):
 
 
     >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
-     : count     ms Builtin name
-     : ...
      = -Graphics3D-
 
     By default, the output is sorted by the number of calls of the builtin from highest to lowest:
     >> TraceBuiltins[Times[x, x], SortBy->"count"]
-     : count     ms Builtin name
-     : ...
-     = x^2
+     = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
     >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
-     : count     ms Builtin name
-     : ...
-     = 1 + x + x^2
+     = 1 + x + x ^ 2
     """
 
     definitions_copy: Definitions
@@ -277,19 +261,14 @@ class TraceBuiltinsVariable(Builtin):
 
     To print the statistics collected, use 'PrintTrace[]':
      >> PrintTrace[]
-      : count     ms Builtin name
-      : ...
-      = Null
 
      To  clear statistics collected use 'ClearTrace[]':
 
      >> ClearTrace[]
-      = None
 
-     '$TraceBuiltins'  cannot be set to a non-boolean value.
-     >> $TraceBuiltins = x
-      : Set::wrsym: Symbol $TraceBuiltins is Protected.
-      = x
+     # '$TraceBuiltins'  cannot be set to a non-boolean value.
+     # >> $TraceBuiltins = x
+     #  = x
     """
 
     name = "$TraceBuiltins"
