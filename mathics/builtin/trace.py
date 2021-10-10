@@ -243,28 +243,32 @@ class TraceBuiltins(_TraceBase):
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
     """
-     <dl>
-       <dt>'$TraceBuiltins'
-       <dd>Enable or disable Built-in Function evaluation statistics.
-     </dl>
+    <dl>
+      <dt>'$TraceBuiltins'
+      <dd>Enable or disable Built-in Function evaluation statistics.
+    </dl>
 
-     Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
-     In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown
-     after each input is evaluated. By default this setting is off of False.
+    Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
+    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown
+    after each input is evaluated.
+    By default this setting is False.
 
-     >> $TraceBuiltins = True
-      = True
+    >> $TraceBuiltins = True
+     = True
 
-     Tracing is enabled, so we expressions entered and evaluated will have statistics collected for the evaluations.
-     >> x
-      = x
+    ## We shouldn't let this enabled.
+    #> $TraceBuiltins = False
+     = False
+
+    Tracing is enabled, so the expressions entered and evaluated will have statistics collected for the evaluations.
+    >> x
+     = x
 
     To print the statistics collected, use 'PrintTrace[]':
-     >> PrintTrace[]
+    X> PrintTrace[]
 
-     To  clear statistics collected use 'ClearTrace[]':
-
-     >> ClearTrace[]
+    To  clear statistics collected use 'ClearTrace[]':
+    X> ClearTrace[]
 
      # '$TraceBuiltins'  cannot be set to a non-boolean value.
      # >> $TraceBuiltins = x
