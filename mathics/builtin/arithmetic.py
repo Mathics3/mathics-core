@@ -91,22 +91,23 @@ class _MPMathFunction(SympyFunction):
         "%(name)s[z__]"
 
         args = z.numerify(evaluation).get_sequence()
-        mpmath_function = self.get_mpmath_function(tuple(args))
-        result = None
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
-            result = Expression(self.get_name(), *args).to_sympy()
-            result = self.prepare_mathics(result)
-            result = from_sympy(result)
+            sympy_expr = Expression(self.get_name(), *args).to_sympy()
+            sympy_result = self.prepare_mathics(sympy_expr)
+            result = from_sympy(sympy_result)
             # evaluate leaves to convert e.g. Plus[2, I] -> Complex[2, 1]
             return result.evaluate_leaves(evaluation)
-        elif mpmath_function is None:
+
+        mpmath_function = self.get_mpmath_function(tuple(args))
+        if mpmath_function is None:
             return
 
         if not all(isinstance(arg, Number) for arg in args):
             return
 
+        result = None
         if any(arg.is_machine_precision() for arg in args):
             # if any argument has machine precision then the entire calculation
             # is done with machine precision.
@@ -419,71 +420,86 @@ class Abs(_MPMathFunction):
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
 
 
-class Arg(_MPMathFunction):
+class AbsFast(_MPMathFunction):
     """
-     <dl>
-       <dt>'Arg'[$z$, $method_option$]</dt>
-       <dd>returns the argument of a complex value $z$.</dd>
+    <dl>
+    <dt>'Abs[$x$]'
+        <dd>returns the absolute value of $x$.
+    </dl>
+    >> Abs[-3]
+     = 3
 
-       <ul>
-         <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
-         <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
-         <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
-         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
-         <li>'Arg'[0] is 0.
-      </ul>
-     </dl>
+    'Abs' returns the magnitude of complex numbers:
+    >> Abs[3 + I]
+     = Sqrt[10]
+    >> Abs[3.0 + I]
+     = 3.16228
+    >> Plot[Abs[x], {x, -4, 4}]
+     = -Graphics-
 
-     >> Arg[-3]
-      = Pi
-
-     Same as above using sympy's method:
-     >> Arg[-3, Method->"sympy"]
-      = Pi
-
-    >> Arg[1-I]
-     = -Pi / 4
-
-    Arg evaluate the direction of DirectedInfinity quantities by
-    the Arg of they arguments:
-    >> Arg[DirectedInfinity[1+I]]
-     = Pi / 4
-    >> Arg[DirectedInfinity[]]
+    #> Abs[I]
      = 1
-    Arg for 0 is assumed to be 0:
-    >> Arg[0]
-     = 0
+    #> Abs[a - b]
+     = Abs[a - b]
+
+    #> Abs[Sqrt[3]]
+     = Sqrt[3]
     """
 
-    rules = {
-        "Arg[0]": "0",
-        "Arg[DirectedInfinity[]]": "1",
-        "Arg[DirectedInfinity[a_]]": "Arg[a]",
-    }
+    sympy_name = "Abs"
+    mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
 
-    attributes = ("Listable", "NumericFunction")
-    options = {"Method": "Automatic"}
+    # Specialized from _MPMathFunction#apply():
+    def apply_one_argument(self, z, evaluation):
+        "%(name)s[z__]"
 
-    numpy_name = "angle"  # for later
-    mpmath_name = "arg"
-    sympy_name = "arg"
+        args = z.numerify(evaluation).get_sequence()
+        # Abs only has one argument
+        if len(args) != 1:
+            return
 
-    def apply(self, z, evaluation, options={}):
-        "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression("PossibleZeroQ", z).evaluate(evaluation) == SymbolTrue:
-            return Integer0
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference is None or preference == "Automatic":
-            return super(Arg, self).apply(z, evaluation)
-        elif preference == "mpmath":
-            return _MPMathFunction.apply(self, z, evaluation)
-        elif preference == "sympy":
-            return SympyFunction.apply(self, z, evaluation)
-        # TODO: add NumpyFunction
-        evaluation.message(
-            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
-        )
-        return
+        arg = args[0]
+        # If no arguments are inexact, attempt to use sympy.
+        if not arg.is_inexact():
+            # sympy_expr = Expression(self.get_name(), *args)
+            # sympy_result = smpy_expr.to_sympy()
+            expr = sympy.Abs(arg.to_sympy())
+            return from_sympy(expr)
+
+        if not isinstance(arg, Number):
+            return
+
+        result = None
+
+        if arg.is_machine_precision():
+            # if the argument has machine precision then the entire calculation
+            # is done with machine precision.
+            float_arg = arg.round().get_float_value(permit_complex=True)
+            if float_arg is None:
+                return
+
+            result = mpmath.fabs(float_arg)
+            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
+                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
+                    result = Symbol("ComplexInfinity")
+                elif mpmath.isinf(result) and result > 0:
+                    result = Expression("DirectedInfinity", Integer1)
+                elif mpmath.isinf(result) and result < 0:
+                    result = Expression("DirectedInfinity", Integer(-1))
+                elif mpmath.isnan(result):
+                    result = Symbol("Indeterminate")
+                else:
+                    result = from_mpmath(result)
+        else:
+            prec = min_prec(arg)
+            d = dps(prec)
+            args = [apply_N(arg, evaluation, Integer(d))]
+            with mpmath.workprec(prec):
+                mpmath_args = arg.to_mpmath()
+                result = mpmath.fabs(mpmath_arg)
+                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
+                    result = from_mpmath(result, d)
+        return result
 
 
 class Sign(SympyFunction):
