@@ -73,7 +73,7 @@ class ClearTrace(Builtin):
     = False
     """
 
-    summary_text = "Clear any statistics collected for Built-in Functions"
+    summary_text = "clear any statistics collected for Built-in functions"
 
     def apply(self, evaluation):
         "%(name)s[]"
@@ -119,7 +119,7 @@ class PrintTrace(Builtin):
      = False
     """
 
-    summary_text = "Print statistics collected for Built-in Functions"
+    summary_text = "print statistics collected for Built-in functions"
 
     def apply(self, evaluation):
         "%(name)s[]"
@@ -176,7 +176,7 @@ class TraceBuiltins(_TraceBase):
     )
 
     summary_text = (
-        "Evaluate an expression and print statistics on Built-in Functions called"
+        "evaluate an expression and print statistics on Built-in functions called"
     )
 
     traced_definitions: Evaluation = None
@@ -184,8 +184,8 @@ class TraceBuiltins(_TraceBase):
     @staticmethod
     def dump_tracing_stats(sort_by: str, evaluation) -> None:
         if sort_by not in ("count", "name", "time"):
-            sort_by = "count"
             evaluation.message("TraceBuiltins", "wsort", sort_by)
+            sort_by = "count"
             print()
 
         print("count     ms Builtin name")
@@ -291,7 +291,7 @@ class TraceBuiltinsVariable(Builtin):
 
     value = SymbolFalse
 
-    summary_text = "enable or disable built-in function evaluation statistics"
+    summary_text = "enable or disable Built-in function evaluation statistics"
 
     def apply_get(self, evaluation):
         "%(name)s"
