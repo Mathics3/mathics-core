@@ -184,7 +184,6 @@ def _part_selectors(indices):
 
 class _ExpressionPointer(object):
     def __init__(self, expr, pos=None, parent=None):
-        print("_ExpressionPointer", (expr.__str__(), (type(expr)), pos))
         if parent:
             self.parent = parent
         elif type(expr) is _ExpressionPointer and pos is None:
@@ -196,9 +195,7 @@ class _ExpressionPointer(object):
 
         if expr.is_atom():
             return
-        print("set head")
         self._head = _ExpressionPointer(expr._head, 0, self)
-        print("set leaves")
         self._leaves = [
             _ExpressionPointer(leaf, i + 1, self) for i, leaf in enumerate(expr._leaves)
         ]
@@ -231,7 +228,6 @@ class _ExpressionPointer(object):
         return self.value.is_atom()
 
     def copy(self):
-        print("making a [shallow] copy")
         return _ExpressionPointer(self.parent, self.position)
 
     def __str__(self) -> str:
@@ -240,27 +236,26 @@ class _ExpressionPointer(object):
     def __repr__(self) -> str:
         return self.__str__()
 
+    def restructure(self, picked):
+        self._leaves = tuple(p for p in picked)
+        return self
+
     def replace(self, new):
         parent = self.parent
-        pos = []
-        while type(parent) is _ExpressionPointer:
+        pos = [self.position]
+
+        while parent.position is not None:
             pos.append(parent.position)
             parent = parent.parent
 
-        pos.pop()  # Drop the null
-        print((parent, pos))
+        parent = parent.parent
         i = pos.pop()
-        if i == 0:
-            expr = parent._head
-        else:
-            expr = parent._leaves[i - 1]
         while pos:
-            parent = expr
-            i = pos.pop()
             if i == 0:
-                expr = parent._head
+                parent = parent._head
             else:
-                expr = parent._leaves[i - 1]
+                parent = parent._leaves[i - 1]
+            i = pos.pop()
 
         if i == 0:
             parent.set_head(new)
@@ -291,7 +286,7 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
                 if assignment:
                     expr = Expression(item.head, *picked)
                     expr.original = None
-                    yield _ExpressionPointer(expr)
+                    yield expr
                 else:
                     expr = item.restructure(item.head, picked, evaluation)
                     yield expr
@@ -299,53 +294,84 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
                 yield unwrap(picked)
 
 
+def _list_parts_pointer(items, selectors, heads, evaluation, assignment):
+    if not selectors:
+        for item in items:
+            yield item
+    else:
+        selector = selectors[0]
+        if isinstance(selector, tuple):
+            select, unwrap = selector
+        else:
+            select = selector
+            unwrap = None
+
+        for item in items:
+            selected = list(select(item))
+            picked = list(
+                _list_parts_pointer(
+                    selected, selectors[1:], heads, evaluation, assignment
+                )
+            )
+            if unwrap is None:
+                item.restructure(picked)
+                yield item
+            else:
+                yield unwrap(picked)
+
+
 def _parts(items, selectors, evaluation, assignment=False):
     heads = {}
-    return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+    if type(items) is _ExpressionPointer:
+        return list(
+            _list_parts_pointer([items], list(selectors), heads, evaluation, assignment)
+        )[0]
+    else:
+        return list(
+            _list_parts([items], list(selectors), heads, evaluation, assignment)
+        )[0]
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
-    walk_list = list_of_list[0]
-
+    print("walk_parts", (list_of_list, indices, assign_list))
     if assign_list is not None:
-        # this double copying is needed to make the current logic in
-        # the assign_list and its access to original work.
-        walk_list = _ExpressionPointer(walk_list.copy())
+        walk_list = list_of_list[0].copy()
         list_of_list = [walk_list]
-        # print("round 2 \n"+40*"-", "\n",type(walk_list))
-        # walk_list = _ExpressionPointer(walk_list.copy())
-        # print("Ready? \n"+40*"-")
+        walk_list = _ExpressionPointer(walk_list)
+    else:
+        walk_list = list_of_list[0]
 
     indices = [index.evaluate(evaluation) for index in indices]
-
+    print("  ->", walk_list, "\n   ", indices)
     try:
         result = _parts(
             walk_list, _part_selectors(indices), evaluation, assign_list is not None
         )
     except MessageException as e:
-        raise
         e.message(evaluation)
         return False
 
+    print("   result->", result)
     if assign_list is not None:
-        print(" assign to ", result.__str__())
+        list_of_list_target = [walk_list]
 
         def replace_item(all, item, new):
-            print("replace_item:  ", (all, item, new))
+            print("replace_item", (all, item, new))
             if isinstance(item, _ExpressionPointer) and item.position is not None:
                 item.replace(new)
             else:
                 all[0] = new
 
         def process_level(item, assignment):
-            print("process_level:", (assignment, item.__str__()))
+            print("process level ", item, "<-", assignment)
             if item.is_atom():
-                replace_item(list_of_list, item, assignment)
+                replace_item(list_of_list_target, item, assignment)
             elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
                 assignment.leaves
             ):
+                print("item.original=", (item, item.original))
                 if item.original:
-                    replace_item(list_of_list, item.original, assignment)
+                    replace_item(list_of_list_target, item.original, assignment)
                 else:
                     for leaf in item.leaves:
                         process_level(leaf, assignment)
@@ -354,11 +380,9 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
                     process_level(sub_item, sub_assignment)
 
         process_level(result, assign_list)
-
-        result = list_of_list[0].parent
+        result = list_of_list[0]
         result.clear_cache()
 
-    print("result=", result)
     return result
 
 
