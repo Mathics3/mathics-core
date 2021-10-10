@@ -279,32 +279,35 @@ class TraceBuiltinsVariable(Builtin):
     To  clear statistics collected use 'ClearTrace[]':
     X> ClearTrace[]
 
-     # '$TraceBuiltins'  cannot be set to a non-boolean value.
-     # >> $TraceBuiltins = x
-     #  = x
+    '$TraceBuiltins'  cannot be set to a non-boolean value.
+    >> $TraceBuiltins = x
+     : $TraceBuiltins::bool: x should be True or False.
+     = x
     """
 
     name = "$TraceBuiltins"
-    summary_text = "Enable or disable Built-in Function evaluation statistics"
+
+    messages = {"bool": "`1` should be True or False."}
+
     value = SymbolFalse
+
+    summary_text = "enable or disable built-in function evaluation statistics"
 
     def apply_get(self, evaluation):
         "%(name)s"
 
         return self.value
 
-    def apply_set_true(self, evaluation):
-        "%(name)s = True"
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
 
-        self.value = SymbolTrue
-        TraceBuiltins.enable_trace(evaluation)
+        if value == SymbolTrue:
+            self.value = SymbolTrue
+            TraceBuiltins.enable_trace(evaluation)
+        elif value == SymbolFalse:
+            self.value = SymbolFalse
+            TraceBuiltins.disable_trace(evaluation)
+        else:
+            evaluation.message("$TraceBuiltins", "bool", value)
 
-        return SymbolTrue
-
-    def apply_set_false(self, evaluation):
-        "%(name)s = False"
-
-        self.value = SymbolFalse
-        TraceBuiltins.disable_trace(evaluation)
-
-        return SymbolFalse
+        return value
