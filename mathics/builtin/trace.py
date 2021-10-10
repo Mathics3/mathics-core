@@ -105,6 +105,9 @@ class PrintTrace(Builtin):
 
     If '$TraceBuiltins' was never set to 'True', this will print an empty list.
     >> PrintTrace[]
+     : count     ms Builtin name
+     : ...
+     = Null
 
     >> $TraceBuiltins = True
      = True
@@ -146,16 +149,22 @@ class TraceBuiltins(_TraceBase):
 
 
     >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
+     : count     ms Builtin name
+     : ...
      = -Graphics3D-
 
     By default, the output is sorted by the number of calls of the builtin from highest to lowest:
     >> TraceBuiltins[Times[x, x], SortBy->"count"]
+     : count     ms Builtin name
+     : ...
      = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
     >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
+     : count     ms Builtin name
+     : ...
      = 1 + x + x ^ 2
     """
 
