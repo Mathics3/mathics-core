@@ -105,15 +105,11 @@ class PrintTrace(_TraceBase):
 
     If '$TraceBuiltins' was never set to 'True', this will print an empty list.
     >> PrintTrace[]
-     \| count     ms Builtin name
-     = None
 
     >> $TraceBuiltins = True
      = True
 
     >> PrintTrace[SortBy -> "time"]
-     \| count     ms Builtin name
-     = None
 
     #> $TraceBuiltins = False
      = False
@@ -252,8 +248,7 @@ class TraceBuiltinsVariable(Builtin):
     </dl>
 
     Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
-    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown
-    after each input is evaluated.
+    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown after each input is evaluated.
     By default this setting is False.
 
     >> $TraceBuiltins = True
