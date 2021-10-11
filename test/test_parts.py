@@ -151,10 +151,6 @@ def test_write_access():
             "{{{1, 2, k}, {2, t, k}, {3, t, 9}}, {{2, 4, k}, {4, t, k}, {6, t, 18}}, {{3, 6, k}, {6, t, k}, {9, t, 27}}}",
         ],
         ["a = {2,3,4}; i = 1; a[[i]] = 0; a", "{0, 3, 4}"],
-        #                    [
-        #            "A[[1]] + B[[2]] + C[[3]] // Hold // FullForm",
-        #            "Hold[Plus[Part[A, 1], Part[B, 2], Part[C, 3]]]",
-        #        ],
     ):
         check_evaluation(str_expr, str_expected)
 
