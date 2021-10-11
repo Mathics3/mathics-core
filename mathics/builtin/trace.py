@@ -1,3 +1,13 @@
+# -*- coding: utf-8 -*-
+
+"""
+Built-in Function Tracing
+
+Built-in Function Tracing provides one high-level way understand where the time is spent is evaluating expressions.
+
+With this it may be possible for both users and implementers to figure out how to speed up running expressions.
+"""
+
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
@@ -43,11 +53,90 @@ class _TraceBase(Builtin):
     }
 
 
+class ClearTrace(Builtin):
+    """
+    <dl>
+      <dt>'ClearTrace[]'
+      <dd>Clear the statistics collected for Built-in Functions
+    </dl>
+
+    First, set up Builtin-function tracing:
+    >> $TraceBuiltins = True
+     = True
+
+    Dump Builtin-Function statistics gathered in running that assignment:
+    >> PrintTrace[]
+
+    >> ClearTrace[]
+
+    #> $TraceBuiltins = False
+    = False
+    """
+
+    summary_text = "clear any statistics collected for Built-in functions"
+
+    def apply(self, evaluation):
+        "%(name)s[]"
+
+        TraceBuiltins.function_stats: "defaultdict" = defaultdict(
+            lambda: {"count": 0, "elapsed_milliseconds": 0.0}
+        )
+
+        return SymbolNull
+
+
+class PrintTrace(_TraceBase):
+    """
+    <dl>
+      <dt>'PrintTrace[]'
+      <dd>Print statistics collected for Built-in Functions
+    </dl>
+
+    Sort Options:
+
+    <ul>
+      <li>count
+      <li>name
+      <li>time
+    </ul>
+
+    Note that in a browser the information only appears in a console.
+
+
+    If '$TraceBuiltins' was never set to 'True', this will print an empty list.
+    >> PrintTrace[]
+     \| count     ms Builtin name
+     = None
+
+    >> $TraceBuiltins = True
+     = True
+
+    >> PrintTrace[SortBy -> "time"]
+     \| count     ms Builtin name
+     = None
+
+    #> $TraceBuiltins = False
+     = False
+    """
+
+    summary_text = "print statistics collected for Built-in functions"
+
+    def apply(self, evaluation, options={}):
+        "%(name)s[OptionsPattern[%(name)s]]"
+
+        TraceBuiltins.dump_tracing_stats(
+            sort_by=self.get_option(options, "SortBy", evaluation).get_string_value(),
+            evaluation=evaluation,
+        )
+
+        return SymbolNull
+
+
 class TraceBuiltins(_TraceBase):
     """
     <dl>
       <dt>'TraceBuiltins[$expr$]'
-      <dd>Print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
+      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
     </dl>
 
     Sort Options:
@@ -60,26 +149,19 @@ class TraceBuiltins(_TraceBase):
 
 
     >> TraceBuiltins[Graphics3D[Tetrahedron[]]]
-     : count     ms Builtin name
-     : ...
      = -Graphics3D-
 
     By default, the output is sorted by the number of calls of the builtin from highest to lowest:
     >> TraceBuiltins[Times[x, x], SortBy->"count"]
-     : count     ms Builtin name
-     : ...
-     = x^2
+     = x ^ 2
 
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
     >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
-     : count     ms Builtin name
-     : ...
-     = 1 + x + x^2
+     = 1 + x + x ^ 2
     """
 
-    traced_definitions: Evaluation = None
     definitions_copy: Definitions
     do_replace_copy: Callable
 
@@ -87,11 +169,17 @@ class TraceBuiltins(_TraceBase):
         lambda: {"count": 0, "elapsed_milliseconds": 0.0}
     )
 
+    summary_text = (
+        "evaluate an expression and print statistics on Built-in functions called"
+    )
+
+    traced_definitions: Evaluation = None
+
     @staticmethod
     def dump_tracing_stats(sort_by: str, evaluation) -> None:
         if sort_by not in ("count", "name", "time"):
-            sort_by = "count"
             evaluation.message("TraceBuiltins", "wsort", sort_by)
+            sort_by = "count"
             print()
 
         print("count     ms Builtin name")
@@ -159,119 +247,61 @@ class TraceBuiltins(_TraceBase):
 class TraceBuiltinsVariable(Builtin):
     """
     <dl>
-    <dt>'$TraceBuiltins'
-        <dd>Setting this enable/disable tracing. It defaults to False.
+      <dt>'$TraceBuiltins'
+      <dd>Enable or disable Built-in Function evaluation statistics.
     </dl>
+
+    Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
+    In contrast to 'TraceBuiltins[]' statistics are accumulated and over several inputs, and are not shown
+    after each input is evaluated.
+    By default this setting is False.
 
     >> $TraceBuiltins = True
      = True
-    Now tracing is enabled.
-    >> x
-     = x
-    You can print it with 'PrintTrace[]' and clear it with 'ClearTrace[]'.
-    >> PrintTrace[]
-     : count     ms Builtin name
-     : ...
-     = Null
 
-    >> $TraceBuiltins = False
+    ## We shouldn't let this enabled.
+    #> $TraceBuiltins = False
      = False
 
-    It can't be set to a non-boolean.
+    Tracing is enabled, so the expressions entered and evaluated will have statistics collected for the evaluations.
+    >> x
+     = x
+
+    To print the statistics collected, use 'PrintTrace[]':
+    X> PrintTrace[]
+
+    To  clear statistics collected use 'ClearTrace[]':
+    X> ClearTrace[]
+
+    '$TraceBuiltins'  cannot be set to a non-boolean value.
     >> $TraceBuiltins = x
-     : Set::wrsym: Symbol $TraceBuiltins is Protected.
+     : x should be True or False.
      = x
     """
 
     name = "$TraceBuiltins"
+
+    messages = {"bool": "`1` should be True or False."}
+
     value = SymbolFalse
+
+    summary_text = "enable or disable Built-in function evaluation statistics"
 
     def apply_get(self, evaluation):
         "%(name)s"
 
         return self.value
 
-    def apply_set_true(self, evaluation):
-        "%(name)s = True"
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
 
-        self.value = SymbolTrue
-        TraceBuiltins.enable_trace(evaluation)
+        if value == SymbolTrue:
+            self.value = SymbolTrue
+            TraceBuiltins.enable_trace(evaluation)
+        elif value == SymbolFalse:
+            self.value = SymbolFalse
+            TraceBuiltins.disable_trace(evaluation)
+        else:
+            evaluation.message("$TraceBuiltins", "bool", value)
 
-        return SymbolTrue
-
-    def apply_set_false(self, evaluation):
-        "%(name)s = False"
-
-        self.value = SymbolFalse
-        TraceBuiltins.disable_trace(evaluation)
-
-        return SymbolFalse
-
-
-class ClearTrace(Builtin):
-    """
-    <dl>
-    <dt>'ClearTrace[]'
-        <dd>Clear the builtin trace.
-    </dl>
-
-    >> $TraceBuiltins = True
-     = True
-
-    >> PrintTrace[]
-     : count     ms Builtin name
-     : ...
-     = Null
-
-    >> ClearTrace[]
-     = Null
-
-    >> PrintTrace[]
-     : count     ms Builtin name
-     :     1    ... PrintTrace
-     = Null
-
-    #> $TraceBuiltins = False
-    """
-
-    def apply(self, evaluation):
-        "%(name)s[]"
-
-        TraceBuiltins.function_stats: "defauldict" = defaultdict(
-            lambda: {"count": 0, "elapsed_milliseconds": 0.0}
-        )
-
-        return SymbolNull
-
-
-class PrintTrace(Builtin):
-    """
-    <dl>
-    <dt>'PrintTrace[]'
-        <dd>Print the builtin trace.
-    </dl>
-
-    If '$TraceBuiltins' was never set to 'True', this will print an empty list.
-    >> PrintTrace[]
-     : count     ms Builtin name
-     = Null
-
-    >> $TraceBuiltins = True
-
-    >> PrintTrace[]
-     : count     ms Builtin name
-     : ...
-     = Null
-
-    #> $TraceBuiltins = False
-    """
-
-    def apply(self, evaluation):
-        "%(name)s[]"
-
-        TraceBuiltins.dump_tracing_stats(
-            sort_by="count",
-            evaluation=evaluation,
-        )
-
-        return SymbolNull
+        return value
