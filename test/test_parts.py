@@ -123,36 +123,87 @@ def test_read_access():
             "",
         ],
     ):
+        print("\n\n", str_expr, "\n", str_expected, "\n", msg)
         check_evaluation(
             str_expr, str_expected, msg, to_string_expr=False, to_string_expected=False
         )
 
 
+def test_weird():
+    for str_expr, str_expected, msg in (
+        # When an element is assigned, the element is what change, not the variable.
+        ["B={a,b,c}; B[[1]]=3;{B,a}", "{{3, b, c}, a}", ""],
+        ["B={a,b,c}; B={1,2,3};{B,a}", "{{1, 2, 3}, a}", ""],
+        ["{a,b,c}[[1]]=3;a", "a", ""],
+        ["{a,b,c}={1,2,3};a", "1", ""],
+    ):
+        print("\n\n", str_expr, "\n", str_expected, "\n")
+        check_evaluation(str_expr, str_expected)
+
+
 def test_write_access():
-    for str_expr, str_expected in (
+    for str_expr, str_expected, msg in (
         # The test that motivates all of this: this fails if Symbols are singletonized...
-        ["B={a,b,c}; {B[[2]],B[[3]],B[[1]]}=B;B", "{c, a, b}"],
+        ["B={a,b,c}; {B[[2]],B[[3]],B[[1]]}=B;B", "{c, a, b}", ""],
         # The test included in Parts
         [
             "B = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}; B[[;;, 2]] = {10, 11, 12}",
             "{10, 11, 12}",
+            "",
         ],
-        ["B", "{{1, 10, 3}, {4, 11, 6}, {7, 12, 9}}"],
-        ["B[[;;, 3]] = 13", "13"],
-        ["B", "{{1, 10, 13}, {4, 11, 13}, {7, 12, 13}}"],
-        ["B[[1;;-2]] = t", "t"],
-        ["B", "{t, t, {7, 12, 13}}"],
+        [
+            "B",
+            "{{1, 10, 3}, {4, 11, 6}, {7, 12, 9}}",
+            "",
+        ],
+        [
+            "B[[;;, 3]] = 13",
+            "13",
+            "",
+        ],
+        [
+            "B",
+            "{{1, 10, 13}, {4, 11, 13}, {7, 12, 13}}",
+            "",
+        ],
+        [
+            "B[[1;;-2]] = t",
+            "t",
+            "",
+        ],
+        [
+            "B",
+            "{t, t, {7, 12, 13}}",
+            "",
+        ],
         [
             "F = Table[i*j*k, {i, 1, 3}, {j, 1, 3}, {k, 1, 3}]; F[[;; All, 2 ;; 3, 2]] = t; F",
             "{{{1, 2, 3}, {2, t, 6}, {3, t, 9}}, {{2, 4, 6}, {4, t, 12}, {6, t, 18}}, {{3, 6, 9}, {6, t, 18}, {9, t, 27}}}",
+            "",
         ],
         [
             "F[[;; All, 1 ;; 2, 3 ;; 3]] = k; F",
             "{{{1, 2, k}, {2, t, k}, {3, t, 9}}, {{2, 4, k}, {4, t, k}, {6, t, 18}}, {{3, 6, k}, {6, t, k}, {9, t, 27}}}",
+            "",
         ],
-        ["a = {2,3,4}; i = 1; a[[i]] = 0; a", "{0, 3, 4}"],
+        [
+            "a = {2,3,4}; i = 1; a[[i]] = 0; a",
+            "{0, 3, 4}",
+            "",
+        ],
+        [
+            "F=Table[Q[i,j,k],{i,3},{j,3},{k,3}]; F[[2;;,2;;,3]]=t; F",
+            "{{{Q[1, 1, 1], Q[1, 1, 2], Q[1, 1, 3]}, {Q[1, 2, 1], Q[1, 2, 2], Q[1, 2, 3]}, {Q[1, 3, 1], Q[1, 3, 2], Q[1, 3, 3]}}, {{Q[2, 1, 1], Q[2, 1, 2], Q[2, 1, 3]}, {Q[2, 2, 1], Q[2, 2, 2], t}, {Q[2, 3, 1], Q[2, 3, 2], t}}, {{Q[3, 1, 1], Q[3, 1, 2], Q[3, 1, 3]}, {Q[3, 2, 1], Q[3, 2, 2], t}, {Q[3, 3, 1], Q[3, 3, 2], t}}}",
+            "",
+        ],
+        [
+            "F=Table[Q[i,j,k],{i,3},{j,3},{k,3}]; F[[2;;,2;;]]=t; F",
+            "{{{Q[1, 1, 1], Q[1, 1, 2], Q[1, 1, 3]}, {Q[1, 2, 1], Q[1, 2, 2], Q[1, 2, 3]}, {Q[1, 3, 1], Q[1, 3, 2], Q[1, 3, 3]}}, {{Q[2, 1, 1], Q[2, 1, 2], Q[2, 1, 3]}, t, t}, {{Q[3, 1, 1], Q[3, 1, 2], Q[3, 1, 3]}, t, t}}",
+            "",
+        ],
     ):
-        check_evaluation(str_expr, str_expected)
+        print("\n\n", str_expr, "\n", str_expected, "\n")
+        check_evaluation(str_expr, str_expected, msg)
 
 
 def test_sparse():
