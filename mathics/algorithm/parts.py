@@ -18,6 +18,11 @@ from mathics.builtin.exceptions import (
 )
 
 
+def myprint(*parms):
+    # return
+    print(*parms)
+
+
 def join_lists(lists):
     new_list = []
     for list in lists:
@@ -333,7 +338,7 @@ def _parts(items, selectors, evaluation, assignment=False):
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
-    print("walk_parts", (list_of_list, indices, assign_list))
+    # myprint("walk_parts", (list_of_list, indices, assign_list))
     if assign_list is not None:
         walk_list = list_of_list[0].copy()
         list_of_list = [walk_list]
@@ -342,7 +347,7 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
         walk_list = list_of_list[0]
 
     indices = [index.evaluate(evaluation) for index in indices]
-    print("  ->", walk_list, "\n   ", indices)
+    # myprint("  ->", walk_list, "\n   ", indices)
     try:
         result = _parts(
             walk_list, _part_selectors(indices), evaluation, assign_list is not None
@@ -351,26 +356,40 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
         e.message(evaluation)
         return False
 
-    print("   result->", result)
+    myprint("   result->", result)
     if assign_list is not None:
         list_of_list_target = [walk_list]
+        #
+        #  At this state, the assignment is implemented.
+        #  The evaluation is performed by levels, iteratively.
+        #  If the LHS is an atom, rempace it by the RHS.
+        #  If the LHS and the LHS are lists of the same size, the assignment is
+        #  element by element
+        #  If the LHS is not a list, or if it is a list of different size,
+        #
 
         def replace_item(all, item, new):
-            print("replace_item", (all, item, new))
+            myprint("replace_item", (all, item, new))
             if isinstance(item, _ExpressionPointer) and item.position is not None:
                 item.replace(new)
             else:
                 all[0] = new
 
         def process_level(item, assignment):
-            print("process level ", item, "<-", assignment)
+            """
+            This goes into levels and implement the assignment
+            """
+            myprint("process level ", item, "<-", assignment)
+
             if item.is_atom():
                 replace_item(list_of_list_target, item, assignment)
             elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
                 assignment.leaves
             ):
-                print("item.original=", (item, item.original))
-                if item.original:
+                myprint("item.original=", (item, item.position))
+                if type(item) is Expression or (
+                    item.parent is not Expression and item.parent.position is not None
+                ):
                     replace_item(list_of_list_target, item.original, assignment)
                 else:
                     for leaf in item.leaves:

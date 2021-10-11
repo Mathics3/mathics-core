@@ -420,7 +420,7 @@ class Expression(BaseExpression):
         # expr.last_evaluated = self.last_evaluated
         return expr
 
-    def set_positions(self, position=None) -> None:
+    def __set_positions(self, position=None) -> None:
         self.position = position
         self._head.set_positions(ExpressionPointer(self, 0))
         for index, leaf in enumerate(self._leaves):
