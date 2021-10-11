@@ -105,15 +105,11 @@ class PrintTrace(_TraceBase):
 
     If '$TraceBuiltins' was never set to 'True', this will print an empty list.
     >> PrintTrace[]
-     \| count     ms Builtin name
-     = None
 
     >> $TraceBuiltins = True
      = True
 
     >> PrintTrace[SortBy -> "time"]
-     \| count     ms Builtin name
-     = None
 
     #> $TraceBuiltins = False
      = False
