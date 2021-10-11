@@ -85,7 +85,7 @@ class ClearTrace(Builtin):
         return SymbolNull
 
 
-class PrintTrace(Builtin):
+class PrintTrace(_TraceBase):
     """
     <dl>
       <dt>'PrintTrace[]'
@@ -121,11 +121,11 @@ class PrintTrace(Builtin):
 
     summary_text = "print statistics collected for Built-in functions"
 
-    def apply(self, evaluation):
-        "%(name)s[]"
+    def apply(self, evaluation, options={}):
+        "%(name)s[OptionsPattern[%(name)s]]"
 
         TraceBuiltins.dump_tracing_stats(
-            sort_by="count",
+            sort_by=self.get_option(options, "SortBy", evaluation).get_string_value(),
             evaluation=evaluation,
         )
 
