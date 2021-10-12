@@ -48,7 +48,7 @@ from mathics.core.symbols import (
     Atom,
     Symbol,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, get_default_value
 from mathics.core.atoms import (
     String,
     Number,
@@ -1004,27 +1004,6 @@ class Optional(BinaryOperator, PatternObject):
 
     def get_match_count(self, vars={}):
         return (0, 1)
-
-
-def get_default_value(name, evaluation, k=None, n=None):
-    pos = []
-    if k is not None:
-        pos.append(k)
-    if n is not None:
-        pos.append(n)
-    for pos_len in reversed(range(len(pos) + 1)):
-        # Try patterns from specific to general
-        defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
-        )
-        result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
-        )
-        if result is not None:
-            if result.sameQ(defaultexpr):
-                result = result.evaluate(evaluation)
-            return result
-    return None
 
 
 class _Blank(PatternObject):

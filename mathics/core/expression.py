@@ -1382,14 +1382,26 @@ class Expression(BaseExpression):
         return (self._head, self._leaves)
 
 
+# This function allows to avoid a circular reference when we want
+# to create `Expression` objects in the `mathics.core.symbols` and `mathics.core.atoms` modules.
+
+
 def _create_expression(self, head, *leaves):
     return Expression(head, *leaves)
 
 
 BaseExpression.create_expression = _create_expression
 
+#    This function is called from `mathics.builtin.patterns` and `mathics.builtin.options`
+#    to get the default values associated to a symbol.
+#    Again, this is defined here to avoid circular dependencies.
+
 
 def get_default_value(name, evaluation, k=None, n=None):
+    """
+    `k` represents the position of the symbol as a leaf of a parent expression.
+    if `n` is provided, the position is something between `k` and `n`.
+    """
     pos = []
     if k is not None:
         pos.append(k)
@@ -1410,13 +1422,22 @@ def get_default_value(name, evaluation, k=None, n=None):
     return None
 
 
+#  This is another auxiliar function, but I do not know where this is used.
+
+
 def print_parenthesizes(
     precedence, outer_precedence=None, parenthesize_when_equal=False
 ) -> bool:
+    """
+    This function decides if parenthesis should be printed.
+    """
     return outer_precedence is not None and (
         outer_precedence > precedence
         or (outer_precedence == precedence and parenthesize_when_equal)
     )
+
+
+# The following functions and structures helps to work with cache and avoid unnecesary evaluations.
 
 
 def _is_neutral_symbol(symbol_name, cache, evaluation):
@@ -1537,7 +1558,7 @@ class LinkedStructure(Structure):
 
 def structure(head, origins, evaluation, structure_cache=None):
     # creates a Structure for building Expressions with head "head" and leaves
-    # originating (exlusively) from "origins" (leaves are passed into the functions
+    # originating (exclusively) from "origins" (leaves are passed into the functions
     # of Structure further down).
 
     # "origins" may either be an Expression (i.e. all leaves must originate from that

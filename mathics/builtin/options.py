@@ -12,10 +12,7 @@ from mathics.core.symbols import (
     ensure_context,
     strip_context,
 )
-from mathics.core.expression import (
-    Expression,
-    get_default_value,
-)
+from mathics.core.expression import Expression, get_default_value
 from mathics.core.atoms import String
 
 from mathics.builtin.drawing.image import Image
