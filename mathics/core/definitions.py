@@ -123,6 +123,29 @@ class Definitions(object):
             self.builtin.update(self.user)
             self.user = {}
             self.clear_cache()
+        else:
+            from mathics.core.rules import Rule
+            from mathics.core.atoms import String
+            from mathics.core.symbols import Symbol
+            from mathics.core.expression import Expression
+
+            self.builtin["System`$Context"] = Definition(
+                name="System`$Context",
+                ownvalues=[
+                    Rule(Symbol("System`$Context"), String("Global`")),
+                ],
+                attributes={"System`Protected"},
+            )
+            self.builtin["System`$ContextPath"] = Definition(
+                name="System`$ContextPath",
+                ownvalues=[
+                    Rule(
+                        Symbol("System`$ContextPath"),
+                        Expression("List", String("Global`")),
+                    ),
+                ],
+                attributes={"System`Protected"},
+            )
 
         # FIXME load dynamically as we do other things
         import mathics.format.asy  # noqa
