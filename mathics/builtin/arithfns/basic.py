@@ -185,10 +185,6 @@ class Minus(PrefixOperator):
     precedence = 480
     attributes = ("Listable", "NumericFunction")
 
-    rules = {
-        "Minus[x_]": "Times[-1, x]",
-    }
-
     formats = {
         "Minus[x_]": 'Prefix[{HoldForm[x]}, "-", 480]',
         # don't put e.g. -2/3 in parentheses
@@ -201,9 +197,9 @@ class Minus(PrefixOperator):
     summary_text = "arithmetic negation"
 
     def apply_int(self, x, evaluation):
-        "Minus[x_Integer]"
+        "Minus[x_]"
 
-        return Integer(-x.to_sympy())
+        return from_sympy(-x.to_sympy())
 
 
 class Plus(BinaryOperator, SympyFunction):
@@ -288,22 +284,16 @@ class Plus(BinaryOperator, SympyFunction):
         "Plus[items__]"
 
         def negate(item):
-            if item.has_form("Times", 1, None):
-                if isinstance(item.leaves[0], Number):
-                    neg = -item.leaves[0]
-                    if neg.sameQ(Integer1):
-                        if len(item.leaves) == 1:
-                            return neg
-                        else:
-                            return Expression("Times", *item.leaves[1:])
-                    else:
-                        return Expression("Times", neg, *item.leaves[1:])
-                else:
-                    return Expression("Times", -1, *item.leaves)
-            elif isinstance(item, Number):
-                return -item.to_sympy()
+            if isinstance(item, Number):
+                return -item
             else:
-                return Expression("Times", -1, item)
+                # item has the form Times[...]
+
+                neg: Number = -item.leaves[0]
+                if neg.sameQ(Integer1):
+                    return Expression("Times", *item.leaves[1:])  # 1 x -> x
+                else:
+                    return Expression("Times", neg, *item.leaves[1:])
 
         def is_negative(value):
             if isinstance(value, Complex):
@@ -315,7 +305,7 @@ class Plus(BinaryOperator, SympyFunction):
             return False
 
         items = items.get_sequence()
-        values = [Expression("HoldForm", item) for item in items[:1]]
+        values = [Expression("HoldForm", items[0])]
         ops = []
         for item in items[1:]:
             if (
@@ -339,11 +329,12 @@ class Plus(BinaryOperator, SympyFunction):
         "Plus[items___]"
 
         items = items.numerify(evaluation).get_sequence()
+
+        if not items:
+            return Integer0
+
         leaves = []
         last_item = last_count = None
-
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
         numbers = []
 
         def append_last():
@@ -376,14 +367,13 @@ class Plus(BinaryOperator, SympyFunction):
                             if len(rest) == 1:
                                 rest = rest[0]
                             else:
-                                rest.sort()
                                 rest = Expression("Times", *rest)
                             break
                 if count is None:
-                    count = sympy.Integer(1)
+                    count = 1
                     rest = item
                 if last_item is not None and last_item == rest:
-                    last_count = last_count + count
+                    last_count += count
                 else:
                     append_last()
                     last_item = rest
@@ -391,8 +381,10 @@ class Plus(BinaryOperator, SympyFunction):
         append_last()
 
         if numbers:
+            prec = min_prec(*items)
+
             if prec is not None:
-                if is_machine_precision:
+                if any(item.is_machine_precision() for item in items):
                     numbers = [item.to_mpmath() for item in numbers]
                     number = mpmath.fsum(numbers)
                     number = from_mpmath(number)
@@ -407,11 +399,9 @@ class Plus(BinaryOperator, SympyFunction):
             number = Integer0
 
         if not number.sameQ(Integer0):
-            leaves.insert(0, number)
+            leaves.append(number)
 
-        if not leaves:
-            return Integer0
-        elif len(leaves) == 1:
+        if len(leaves) == 1:
             return leaves[0]
         else:
             leaves.sort()
@@ -758,16 +748,12 @@ class Times(BinaryOperator, SympyFunction):
         "Times[items__]"
 
         def inverse(item):
-            if item.has_form("Power", 2) and isinstance(  # noqa
-                item.leaves[1], (Integer, Rational, Real)
-            ):
-                neg = -item.leaves[1]
-                if neg.sameQ(Integer1):
-                    return item.leaves[0]
-                else:
-                    return Expression("Power", item.leaves[0], neg)
+            neg: Number = -item.leaves[1]
+
+            if neg.sameQ(Integer1):
+                return item.leaves[0]
             else:
-                return item
+                return Expression("Power", item.leaves[0], neg)
 
         items = items.get_sequence()
         positive = []
@@ -777,8 +763,7 @@ class Times(BinaryOperator, SympyFunction):
                 item.has_form("Power", 2)
                 and isinstance(item.leaves[1], (Integer, Rational, Real))
                 and item.leaves[1].to_sympy() < 0
-            ):  # nopep8
-
+            ):
                 negative.append(inverse(item))
             elif isinstance(item, Rational):
                 numerator = item.numerator()
@@ -833,9 +818,6 @@ class Times(BinaryOperator, SympyFunction):
         numbers = []
         infinity_factor = False
 
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
-
         # find numbers and simplify Times -> Power
         for item in items:
             if isinstance(item, Number):
@@ -883,8 +865,10 @@ class Times(BinaryOperator, SympyFunction):
                 leaves.append(item)
 
         if numbers:
+            prec = min_prec(*items)
+
             if prec is not None:
-                if is_machine_precision:
+                if any(item.is_machine_precision() for item in items):
                     numbers = [item.to_mpmath() for item in numbers]
                     number = mpmath.fprod(numbers)
                     number = from_mpmath(number)
