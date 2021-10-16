@@ -551,7 +551,6 @@ class Expression(BaseExpression):
         numbers    -> Python number
         If kwarg n_evaluation is given, apply N first to the expression.
         """
-        from mathics.builtin.base import mathics_to_python
 
         n_evaluation = kwargs.get("n_evaluation")
         head_name = self._head.get_name()
@@ -571,19 +570,8 @@ class Expression(BaseExpression):
             if direction == -1:
                 return -math.inf
         elif head_name == "System`List":
-            return [leaf.to_python(*args, **kwargs) for leaf in self._leaves]
+            return [leaf.to_python(**kwargs) for leaf in self._leaves]
 
-        if head_name in mathics_to_python:
-            py_obj = mathics_to_python[head_name]
-            # Start here
-            # if inspect.isfunction(py_obj) or inspect.isbuiltin(py_obj):
-            #     args = [leaf.to_python(*args, **kwargs) for leaf in self._leaves]
-            #     return ast.Call(
-            #         func=py_obj.__name__,
-            #         args=args,
-            #         keywords=[],
-            #         )
-            return py_obj
         return self
 
     def get_sort_key(self, pattern_sort=False):

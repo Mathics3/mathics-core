@@ -433,12 +433,14 @@ class Infinity(_SympyConstant):
     sympy_name = "oo"
     numpy_name = "Inf"
     mpmath_name = "inf"
-    python_equivalent = math.inf
 
     rules = {
         "Infinity": "DirectedInfinity[1]",
         "MakeBoxes[Infinity, f:StandardForm|TraditionalForm]": ('"\\[Infinity]"'),
     }
+
+    def to_python(self, **kwargs):
+        return math.inf
 
 
 class Khinchin(_MPMathConstant):

@@ -33,9 +33,6 @@ from mathics.builtin.base import (
 def add_builtins(new_builtins):
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
-        if hasattr(builtin, "python_equivalent"):
-            # print("XXX0", builtin.python_equivalent)
-            mathics_to_python[name] = builtin.python_equivalent
 
         if isinstance(builtin, SympyObject):
             mathics_to_sympy[name] = builtin

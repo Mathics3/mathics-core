@@ -67,9 +67,6 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
-mathics_to_python = {}
-
-
 class Builtin(object):
     name: typing.Optional[str] = None
     context = ""
@@ -93,9 +90,7 @@ class Builtin(object):
             return instance
 
     def __init__(self, *args, **kwargs):
-        super().__init__()
-        if hasattr(self, "python_equivalent"):
-            mathics_to_python[self.get_name()] = self.python_equivalent
+        pass
 
     def contribute(self, definitions, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
