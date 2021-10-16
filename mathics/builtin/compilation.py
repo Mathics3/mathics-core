@@ -204,7 +204,7 @@ class CompiledCode(Atom):
         """Mathics SameQ"""
         return self is rhs
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         return None
 
     def to_sympy(self, *args, **kwargs):

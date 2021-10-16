@@ -142,7 +142,7 @@ class Integer(Number):
     def to_mpmath(self):
         return mpmath.mpf(self.value)
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         return self.value
 
     def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
@@ -208,7 +208,7 @@ class Rational(Number):
     def to_mpmath(self):
         return mpmath.mpf(self.value)
 
-    def to_python(self, *args, **kwargs) -> float:
+    def to_python(self, **kwargs) -> float:
         return float(self.value)
 
     def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
@@ -387,7 +387,7 @@ class MachineReal(Real):
             raise OverflowError
         return self
 
-    def to_python(self, *args, **kwargs) -> float:
+    def to_python(self, **kwargs) -> float:
         return self.value
 
     def to_sympy(self, *args, **kwargs):
@@ -463,7 +463,7 @@ class PrecisionReal(Real):
         self.value = sympy.Float(value)
         return self
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         return float(self.value)
 
     def to_sympy(self, *args, **kwargs):
@@ -548,9 +548,9 @@ class Complex(Number):
     def to_sympy(self, **kwargs):
         return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         return complex(
-            self.real.to_python(*args, **kwargs), self.imag.to_python(*args, **kwargs)
+            self.real.to_python(**kwargs), self.imag.to_python(**kwargs)
         )
 
     def to_mpmath(self):
@@ -831,7 +831,7 @@ class String(Atom):
     def to_sympy(self, **kwargs):
         return None
 
-    def to_python(self, *args, **kwargs) -> str:
+    def to_python(self, **kwargs) -> str:
         if kwargs.get("string_quotes", True):
             return '"%s"' % self.value  # add quotes to distinguish from Symbols
         else:
@@ -909,7 +909,7 @@ class ByteArrayAtom(Atom):
     def to_sympy(self, **kwargs):
         return None
 
-    def to_python(self, *args, **kwargs) -> str:
+    def to_python(self, **kwargs) -> str:
         return self.value
 
     def __hash__(self):

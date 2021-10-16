@@ -537,7 +537,7 @@ class Expression(BaseExpression):
 
         return SympyExpression(self)
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         """
         Convert the Expression to a Python object:
         List[...]  -> Python list

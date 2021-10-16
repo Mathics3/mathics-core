@@ -665,7 +665,7 @@ class Symbol(Atom):
             return sympy.Symbol(sympy_symbol_prefix + self.name)
         return builtin.to_sympy(self, **kwargs)
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         if self == SymbolTrue:
             return True
         if self == SymbolFalse:

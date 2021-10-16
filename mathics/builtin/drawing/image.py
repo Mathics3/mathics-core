@@ -1940,7 +1940,7 @@ class Image(Atom):
             return False
         return numpy.array_equal(self.pixels, other.pixels)
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, **kwargs):
         return self.pixels
 
     def __hash__(self):
