@@ -2,7 +2,7 @@
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.builtin.base import AssignmentException
+from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
@@ -13,6 +13,13 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import SymbolMachinePrecision
+
+
+class AssignmentException(Exception):
+    def __init__(self, lhs, rhs) -> None:
+        super().__init__(" %s cannot be assigned to %s" % (rhs, lhs))
+        self.lhs = lhs
+        self.rhs = rhs
 
 
 def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
@@ -603,3 +610,82 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
                 raise AssignmentException(lhs, None)
 
     return tags, focus
+
+
+class _SetOperator(object):
+    special_cases = {
+        "System`OwnValues": process_assign_definition_values,
+        "System`DownValues": process_assign_definition_values,
+        "System`SubValues": process_assign_definition_values,
+        "System`UpValues": process_assign_definition_values,
+        "System`NValues": process_assign_definition_values,
+        "System`DefaultValues": process_assign_definition_values,
+        "System`Messages": process_assign_definition_values,
+        "System`Attributes": process_assign_attributes,
+        "System`Options": process_assign_options,
+        "System`$RandomState": process_assign_random_state,
+        "System`$Context": process_assign_context,
+        "System`$ContextPath": process_assign_context_path,
+        "System`N": process_assign_n,
+        "System`MessageName": process_assign_messagename,
+        "System`Default": process_assign_default,
+        "System`Format": process_assign_format,
+    }
+
+    def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
+        if type(lhs) is Symbol:
+            name = lhs.name
+        else:
+            name = lhs.get_head_name()
+        lhs._format_cache = None
+        try:
+            # Deal with direct assignation to properties of
+            # the definition object
+            func = self.special_cases.get(name, None)
+            if func:
+                return func(self, lhs, rhs, evaluation, tags, upset)
+
+            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        except AssignmentException:
+            return False
+
+    def assign(self, lhs, rhs, evaluation):
+        lhs._format_cache = None
+        defs = evaluation.definitions
+        if lhs.get_head_name() == "System`List":
+            if not (rhs.get_head_name() == "System`List") or len(lhs.leaves) != len(
+                rhs.leaves
+            ):  # nopep8
+
+                evaluation.message(self.get_name(), "shape", lhs, rhs)
+                return False
+            else:
+                result = True
+                for left, right in zip(lhs.leaves, rhs.leaves):
+                    if not self.assign(left, right, evaluation):
+                        result = False
+                return result
+        elif lhs.get_head_name() == "System`Part":
+            if len(lhs.leaves) < 1:
+                evaluation.message(self.get_name(), "setp", lhs)
+                return False
+            symbol = lhs.leaves[0]
+            name = symbol.get_name()
+            if not name:
+                evaluation.message(self.get_name(), "setps", symbol)
+                return False
+            if is_protected(name, defs):
+                evaluation.message(self.get_name(), "wrsym", symbol)
+                return False
+            rule = defs.get_ownvalue(name)
+            if rule is None:
+                evaluation.message(self.get_name(), "noval", symbol)
+                return False
+            indices = lhs.leaves[1:]
+            result = walk_parts([rule.replace], indices, evaluation, rhs)
+            if result:
+                evaluation.definitions.set_ownvalue(name, result)
+            else:
+                return False
+        else:
+            return self.assign_elementary(lhs, rhs, evaluation)
