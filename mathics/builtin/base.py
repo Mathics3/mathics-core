@@ -70,13 +70,6 @@ def has_option(options, name, evaluation):
 mathics_to_python = {}
 
 
-class AssignmentException(Exception):
-    def __init__(self, lhs, rhs) -> None:
-        super().__init__(" %s cannot be assigned to %s" % (rhs, lhs))
-        self.lhs = lhs
-        self.rhs = rhs
-
-
 class Builtin(object):
     name: typing.Optional[str] = None
     context = ""
