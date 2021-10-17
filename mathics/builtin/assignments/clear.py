@@ -54,21 +54,19 @@ class Clear(Builtin):
     >> Sin[Pi]
      = 0
 
-    'Clear' does not remove attributes, messages, options, and default values associated
-    with the symbols. Use 'ClearAll' to do so.
+    'Clear' does not remove attributes, messages, options, and default values associated with the symbols. Use 'ClearAll' to do so.
     >> Attributes[r] = {Flat, Orderless};
     >> Clear["r"]
     >> Attributes[r]
      = {Flat, Orderless}
     """
 
+    allow_locked = True
     attributes = ("HoldAll",)
-
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
-
-    allow_locked = True
+    summary_text = "clear all values associated with the LHS or symbol"
 
     def do_clear(self, definition):
         definition.ownvalues = []
@@ -124,9 +122,9 @@ class Clear(Builtin):
 class ClearAll(Clear):
     """
     <dl>
-    <dt>'ClearAll[$symb1$, $symb2$, ...]'
-        <dd>clears all values, attributes, messages and options associated with the given symbols.
-        The arguments can also be given as strings containing symbol names.
+      <dt>'ClearAll[$symb1$, $symb2$, ...]'
+      <dd>clears all values, attributes, messages and options associated with the given symbols.
+      The arguments can also be given as strings containing symbol names.
     </dl>
 
     >> x = 2;
@@ -145,6 +143,7 @@ class ClearAll(Clear):
     """
 
     allow_locked = False
+    summary_text = "clear all values, definitions, messages and defaults for symbols"
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
@@ -173,13 +172,11 @@ class Unset(PostfixOperator):
     >> a
      = a
 
-    Unsetting an already unset or never defined variable will not
-    change anything:
+    Unsetting an already unset or never defined variable will not change anything:
     >> a =.
     >> b =.
 
-    'Unset' can unset particular function values. It will print a message
-    if no corresponding rule is found.
+    'Unset' can unset particular function values. It will print a message if no corresponding rule is found.
     >> f[x_] =.
      : Assignment on f for f[x_] not found.
      = $Failed
@@ -190,8 +187,7 @@ class Unset(PostfixOperator):
     >> f[3]
      = f[3]
 
-    You can also unset 'OwnValues', 'DownValues', 'SubValues', and 'UpValues' directly.
-    This is equivalent to setting them to '{}'.
+    You can also unset 'OwnValues', 'DownValues', 'SubValues', and 'UpValues' directly. This is equivalent to setting them to '{}'.
     >> f[x_] = x; f[0] = 1;
     >> DownValues[f] =.
     >> f[2]
@@ -232,14 +228,15 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    operator = "=."
-    precedence = 670
     attributes = ("HoldFirst", "Listable", "ReadProtected")
+    operator = "=."
 
     messages = {
         "norep": "Assignment on `2` for `1` not found.",
         "usraw": "Cannot unset raw object `1`.",
     }
+    precedence = 670
+    summary_text = "unset a value of the LHS"
 
     def apply(self, expr, evaluation):
         "Unset[expr_]"
