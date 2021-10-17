@@ -12,7 +12,7 @@ from mathics.core.atoms import (
     Integer,
 )
 
-from mathics.core.rules import Rule
+from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
 
 
@@ -383,7 +383,6 @@ class Unique(Predefined):
         "Unique[vars_, attributes___]"
 
         from mathics.core.parser import is_symbol_name
-        from mathics.builtin.attributes import get_symbol_list
 
         attributes = attributes.get_sequence()
         if len(attributes) > 1:
