@@ -58,6 +58,228 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     return None
 
 
+# This could go under Symbol Handling when we get a module for that.
+# It is not strictly in Assignment Information, but on the other hand, this
+# is a reasonable place for it.
+class Definition(Builtin):
+    """
+    <dl>
+      <dt>'Definition[$symbol$]'
+      <dd>prints as the definitions given for $symbol$.
+      This is in a form that can e stored in a package.
+    </dl>
+
+    'Definition' does not print information for 'ReadProtected' symbols.
+    'Definition' uses 'InputForm' to format values.
+
+    >> a = 2;
+    >> Definition[a]
+     = a = 2
+
+    >> f[x_] := x ^ 2
+    >> g[f] ^:= 2
+    >> Definition[f]
+     = f[x_] = x ^ 2
+     .
+     . g[f] ^= 2
+
+    Definition of a rather evolved (though meaningless) symbol:
+    >> Attributes[r] := {Orderless}
+    >> Format[r[args___]] := Infix[{args}, "~"]
+    >> N[r] := 3.5
+    >> Default[r, 1] := 2
+    >> r::msg := "My message"
+    >> Options[r] := {Opt -> 3}
+    >> r[arg_., OptionsPattern[r]] := {arg, OptionValue[Opt]}
+
+    Some usage:
+    >> r[z, x, y]
+     = x ~ y ~ z
+    >> N[r]
+     = 3.5
+    >> r[]
+     = {2, 3}
+    >> r[5, Opt->7]
+     = {5, 7}
+
+    Its definition:
+    >> Definition[r]
+     = Attributes[r] = {Orderless}
+     .
+     . arg_. ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
+     .
+     . N[r, MachinePrecision] = 3.5
+     .
+     . Format[args___, MathMLForm] = Infix[{args}, "~"]
+     .
+     . Format[args___, OutputForm] = Infix[{args}, "~"]
+     .
+     . Format[args___, StandardForm] = Infix[{args}, "~"]
+     .
+     . Format[args___, TeXForm] = Infix[{args}, "~"]
+     .
+     . Format[args___, TraditionalForm] = Infix[{args}, "~"]
+     .
+     . Default[r, 1] = 2
+     .
+     . Options[r] = {Opt -> 3}
+
+    For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
+    >> SetAttributes[r, ReadProtected]
+    >> Definition[r]
+     = Attributes[r] = {Orderless, ReadProtected}
+     .
+     . Default[r, 1] = 2
+     .
+     . Options[r] = {Opt -> 3}
+    This is the same for built-in symbols:
+    >> Definition[Plus]
+     = Attributes[Plus] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
+     .
+     . Default[Plus] = 0
+    >> Definition[Level]
+     = Attributes[Level] = {Protected}
+     .
+     . Options[Level] = {Heads -> False}
+
+    'ReadProtected' can be removed, unless the symbol is locked:
+    >> ClearAttributes[r, ReadProtected]
+    'Clear' clears values:
+    >> Clear[r]
+    >> Definition[r]
+     = Attributes[r] = {Orderless}
+     .
+     . Default[r, 1] = 2
+     .
+     . Options[r] = {Opt -> 3}
+    'ClearAll' clears everything:
+    >> ClearAll[r]
+    >> Definition[r]
+     = Null
+
+    If a symbol is not defined at all, 'Null' is printed:
+    >> Definition[x]
+     = Null
+    """
+
+    attributes = ("HoldAll",)
+    precedence = 670
+    summary_text = "gives values of a symbol in a form that can be stored in a package"
+
+    def format_definition(self, symbol, evaluation, grid=True):
+        "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
+
+        lines = []
+
+        def print_rule(rule, up=False, lhs=lambda k: k, rhs=lambda r: r):
+            evaluation.check_stopped()
+            if isinstance(rule, Rule):
+                r = rhs(
+                    rule.replace.replace_vars(
+                        {
+                            "System`Definition": Expression(
+                                "HoldForm", Symbol("Definition")
+                            )
+                        },
+                        evaluation,
+                    )
+                )
+                lines.append(
+                    Expression(
+                        "HoldForm",
+                        Expression(up and "UpSet" or "Set", lhs(rule.pattern.expr), r),
+                    )
+                )
+
+        name = symbol.get_name()
+        if not name:
+            evaluation.message("Definition", "sym", symbol, 1)
+            return
+        attributes = evaluation.definitions.get_attributes(name)
+        definition = evaluation.definitions.get_user_definition(name, create=False)
+        all = evaluation.definitions.get_definition(name)
+        if attributes:
+            attributes = list(attributes)
+            attributes.sort()
+            lines.append(
+                Expression(
+                    "HoldForm",
+                    Expression(
+                        "Set",
+                        Expression("Attributes", symbol),
+                        Expression(
+                            "List", *(Symbol(attribute) for attribute in attributes)
+                        ),
+                    ),
+                )
+            )
+
+        if definition is not None and "System`ReadProtected" not in attributes:
+            for rule in definition.ownvalues:
+                print_rule(rule)
+            for rule in definition.downvalues:
+                print_rule(rule)
+            for rule in definition.subvalues:
+                print_rule(rule)
+            for rule in definition.upvalues:
+                print_rule(rule, up=True)
+            for rule in definition.nvalues:
+                print_rule(rule)
+            formats = sorted(definition.formatvalues.items())
+            for format, rules in formats:
+                for rule in rules:
+
+                    def lhs(expr):
+                        return Expression("Format", expr, Symbol(format))
+
+                    def rhs(expr):
+                        if expr.has_form("Infix", None):
+                            expr = Expression(
+                                Expression("HoldForm", expr.head), *expr.leaves
+                            )
+                        return Expression("InputForm", expr)
+
+                    print_rule(rule, lhs=lhs, rhs=rhs)
+        for rule in all.defaultvalues:
+            print_rule(rule)
+        if all.options:
+            options = sorted(all.options.items())
+            lines.append(
+                Expression(
+                    "HoldForm",
+                    Expression(
+                        "Set",
+                        Expression("Options", symbol),
+                        Expression(
+                            "List",
+                            *(
+                                Expression("Rule", Symbol(name), value)
+                                for name, value in options
+                            )
+                        ),
+                    ),
+                )
+            )
+        if grid:
+            if lines:
+                return Expression(
+                    "Grid",
+                    Expression("List", *(Expression("List", line) for line in lines)),
+                    Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
+                )
+            else:
+                return Symbol("Null")
+        else:
+            for line in lines:
+                evaluation.print_out(Expression("InputForm", line))
+            return Symbol("Null")
+
+    def format_definition_input(self, symbol, evaluation):
+        "InputForm: Definition[symbol_]"
+        return self.format_definition(symbol, evaluation, grid=False)
+
+
+# In Mathematica 5, this appears under "Types of Values".
 class DownValues(Builtin):
     """
     <dl>
@@ -284,49 +506,7 @@ class Information(PrefixOperator):
         return ret
 
 
-class NValues(Builtin):
-    """
-    <dl>
-       <dt>'NValues[$symbol$]'
-       <dd>gives the list of numerical values associated with $symbol$.
-
-       <i>Note: this function is in Mathematica 5 but has been removed from current Mathematica.</i>
-    </dl>
-
-    >> NValues[a]
-     = {}
-    >> N[a] = 3;
-    >> NValues[a]
-     = {HoldPattern[N[a, MachinePrecision]] :> 3}
-
-    You can assign values to 'NValues':
-    >> NValues[b] := {N[b, MachinePrecision] :> 2}
-    >> N[b]
-     = 2.
-    Be sure to use 'SetDelayed', otherwise the left-hand side of the transformation rule will be evaluated immediately,
-    causing the head of 'N' to get lost. Furthermore, you have to include the precision in the rules; 'MachinePrecision'
-    will not be inserted automatically:
-    >> NValues[c] := {N[c] :> 3}
-    >> N[c]
-     = c
-
-    Mathics will gracefully assign any list of rules to 'NValues'; however, inappropriate rules will never be used:
-    >> NValues[d] = {foo -> bar};
-    >> NValues[d]
-     = {HoldPattern[foo] :> bar}
-    >> N[d]
-     = d
-    """
-
-    attributes = ("HoldAll",)
-    summary_text = "gives the list of numerical values associated with a symbol"
-
-    def apply(self, symbol, evaluation):
-        "NValues[symbol_]"
-
-        return get_symbol_values(symbol, "NValues", "n", evaluation)
-
-
+# In Mathematica 5, this appears under "Types of Values".
 class OwnValues(Builtin):
     """
     <dl>
@@ -359,6 +539,7 @@ class OwnValues(Builtin):
         return get_symbol_values(symbol, "OwnValues", "own", evaluation)
 
 
+# In Mathematica 5, this appears under "Types of Values".
 class UpValues(Builtin):
     """
     <dl>

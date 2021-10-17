@@ -23,6 +23,7 @@ class Set(BinaryOperator, _SetOperator):
     """
     <dl>
       <dt>'Set[$expr$, $value$]'
+
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
 
@@ -167,10 +168,10 @@ class SetDelayed(Set):
 class TagSet(Builtin, _SetOperator):
     """
     <dl>
-    <dt>'TagSet[$f$, $expr$, $value$]'
-    <dt>'$f$ /: $expr$ = $value$'
-        <dd>assigns $value$ to $expr$, associating the corresponding
-        rule with the symbol $f$.
+      <dt>'TagSet[$f$, $expr$, $value$]'
+
+      <dt>'$f$ /: $expr$ = $value$'
+      <dd>assigns $value$ to $expr$, associating the corresponding assignment with the symbol $f$.
     </dl>
 
     Create an upvalue without using 'UpSet':
@@ -196,6 +197,7 @@ class TagSet(Builtin, _SetOperator):
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
+    summary_text = "assigns a value to an expression, associating the corresponding assignment with the a symbol."
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
@@ -213,13 +215,15 @@ class TagSet(Builtin, _SetOperator):
 class TagSetDelayed(TagSet):
     """
     <dl>
-    <dt>'TagSetDelayed[$f$, $expr$, $value$]'
-    <dt>'$f$ /: $expr$ := $value$'
-        <dd>is the delayed version of 'TagSet'.
+      <dt>'TagSetDelayed[$f$, $expr$, $value$]'
+
+      <dt>'$f$ /: $expr$ := $value$'
+      <dd>is the delayed version of 'TagSet'.
     </dl>
     """
 
     attributes = ("HoldAll", "SequenceHold")
+    summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with the a symbol."
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"
@@ -235,309 +239,12 @@ class TagSetDelayed(TagSet):
             return SymbolFailed
 
 
-class Definition(Builtin):
-    """
-    <dl>
-    <dt>'Definition[$symbol$]'
-        <dd>prints as the user-defined values and rules associated with $symbol$.
-    </dl>
-
-    'Definition' does not print information for 'ReadProtected' symbols.
-    'Definition' uses 'InputForm' to format values.
-
-    >> a = 2;
-    >> Definition[a]
-     = a = 2
-
-    >> f[x_] := x ^ 2
-    >> g[f] ^:= 2
-    >> Definition[f]
-     = f[x_] = x ^ 2
-     .
-     . g[f] ^= 2
-
-    Definition of a rather evolved (though meaningless) symbol:
-    >> Attributes[r] := {Orderless}
-    >> Format[r[args___]] := Infix[{args}, "~"]
-    >> N[r] := 3.5
-    >> Default[r, 1] := 2
-    >> r::msg := "My message"
-    >> Options[r] := {Opt -> 3}
-    >> r[arg_., OptionsPattern[r]] := {arg, OptionValue[Opt]}
-
-    Some usage:
-    >> r[z, x, y]
-     = x ~ y ~ z
-    >> N[r]
-     = 3.5
-    >> r[]
-     = {2, 3}
-    >> r[5, Opt->7]
-     = {5, 7}
-
-    Its definition:
-    >> Definition[r]
-     = Attributes[r] = {Orderless}
-     .
-     . arg_. ~ OptionsPattern[r] = {arg, OptionValue[Opt]}
-     .
-     . N[r, MachinePrecision] = 3.5
-     .
-     . Format[args___, MathMLForm] = Infix[{args}, "~"]
-     .
-     . Format[args___, OutputForm] = Infix[{args}, "~"]
-     .
-     . Format[args___, StandardForm] = Infix[{args}, "~"]
-     .
-     . Format[args___, TeXForm] = Infix[{args}, "~"]
-     .
-     . Format[args___, TraditionalForm] = Infix[{args}, "~"]
-     .
-     . Default[r, 1] = 2
-     .
-     . Options[r] = {Opt -> 3}
-
-    For 'ReadProtected' symbols, 'Definition' just prints attributes, default values and options:
-    >> SetAttributes[r, ReadProtected]
-    >> Definition[r]
-     = Attributes[r] = {Orderless, ReadProtected}
-     .
-     . Default[r, 1] = 2
-     .
-     . Options[r] = {Opt -> 3}
-    This is the same for built-in symbols:
-    >> Definition[Plus]
-     = Attributes[Plus] = {Flat, Listable, NumericFunction, OneIdentity, Orderless, Protected}
-     .
-     . Default[Plus] = 0
-    >> Definition[Level]
-     = Attributes[Level] = {Protected}
-     .
-     . Options[Level] = {Heads -> False}
-
-    'ReadProtected' can be removed, unless the symbol is locked:
-    >> ClearAttributes[r, ReadProtected]
-    'Clear' clears values:
-    >> Clear[r]
-    >> Definition[r]
-     = Attributes[r] = {Orderless}
-     .
-     . Default[r, 1] = 2
-     .
-     . Options[r] = {Opt -> 3}
-    'ClearAll' clears everything:
-    >> ClearAll[r]
-    >> Definition[r]
-     = Null
-
-    If a symbol is not defined at all, 'Null' is printed:
-    >> Definition[x]
-     = Null
-    """
-
-    attributes = ("HoldAll",)
-    precedence = 670
-
-    def format_definition(self, symbol, evaluation, grid=True):
-        "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
-
-        lines = []
-
-        def print_rule(rule, up=False, lhs=lambda k: k, rhs=lambda r: r):
-            evaluation.check_stopped()
-            if isinstance(rule, Rule):
-                r = rhs(
-                    rule.replace.replace_vars(
-                        {
-                            "System`Definition": Expression(
-                                "HoldForm", Symbol("Definition")
-                            )
-                        },
-                        evaluation,
-                    )
-                )
-                lines.append(
-                    Expression(
-                        "HoldForm",
-                        Expression(up and "UpSet" or "Set", lhs(rule.pattern.expr), r),
-                    )
-                )
-
-        name = symbol.get_name()
-        if not name:
-            evaluation.message("Definition", "sym", symbol, 1)
-            return
-        attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
-        all = evaluation.definitions.get_definition(name)
-        if attributes:
-            attributes = list(attributes)
-            attributes.sort()
-            lines.append(
-                Expression(
-                    "HoldForm",
-                    Expression(
-                        "Set",
-                        Expression("Attributes", symbol),
-                        Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
-                        ),
-                    ),
-                )
-            )
-
-        if definition is not None and "System`ReadProtected" not in attributes:
-            for rule in definition.ownvalues:
-                print_rule(rule)
-            for rule in definition.downvalues:
-                print_rule(rule)
-            for rule in definition.subvalues:
-                print_rule(rule)
-            for rule in definition.upvalues:
-                print_rule(rule, up=True)
-            for rule in definition.nvalues:
-                print_rule(rule)
-            formats = sorted(definition.formatvalues.items())
-            for format, rules in formats:
-                for rule in rules:
-
-                    def lhs(expr):
-                        return Expression("Format", expr, Symbol(format))
-
-                    def rhs(expr):
-                        if expr.has_form("Infix", None):
-                            expr = Expression(
-                                Expression("HoldForm", expr.head), *expr.leaves
-                            )
-                        return Expression("InputForm", expr)
-
-                    print_rule(rule, lhs=lhs, rhs=rhs)
-        for rule in all.defaultvalues:
-            print_rule(rule)
-        if all.options:
-            options = sorted(all.options.items())
-            lines.append(
-                Expression(
-                    "HoldForm",
-                    Expression(
-                        "Set",
-                        Expression("Options", symbol),
-                        Expression(
-                            "List",
-                            *(
-                                Expression("Rule", Symbol(name), value)
-                                for name, value in options
-                            )
-                        ),
-                    ),
-                )
-            )
-        if grid:
-            if lines:
-                return Expression(
-                    "Grid",
-                    Expression("List", *(Expression("List", line) for line in lines)),
-                    Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
-                )
-            else:
-                return Symbol("Null")
-        else:
-            for line in lines:
-                evaluation.print_out(Expression("InputForm", line))
-            return Symbol("Null")
-
-    def format_definition_input(self, symbol, evaluation):
-        "InputForm: Definition[symbol_]"
-        return self.format_definition(symbol, evaluation, grid=False)
-
-
-class SubValues(Builtin):
-    """
-    <dl>
-    <dt>'SubValues[$symbol$]'
-        <dd>gives the list of subvalues associated with $symbol$.
-    </dl>
-
-    >> f[1][x_] := x
-    >> f[2][x_] := x ^ 2
-    >> SubValues[f]
-     = {HoldPattern[f[2][x_]] :> x ^ 2, HoldPattern[f[1][x_]] :> x}
-    >> Definition[f]
-     = f[2][x_] = x ^ 2
-     .
-     . f[1][x_] = x
-    """
-
-    attributes = ("HoldAll",)
-
-    def apply(self, symbol, evaluation):
-        "SubValues[symbol_]"
-
-        return get_symbol_values(symbol, "SubValues", "sub", evaluation)
-
-
-class Messages(Builtin):
-    """
-    <dl>
-    <dt>'Messages[$symbol$]'
-        <dd>gives the list of messages associated with $symbol$.
-    </dl>
-
-    >> a::b = "foo"
-     = foo
-    >> Messages[a]
-     = {HoldPattern[a::b] :> foo}
-    >> Messages[a] = {a::c :> "bar"};
-    >> a::c // InputForm
-     = "bar"
-    >> Message[a::c]
-     : bar
-    """
-
-    attributes = ("HoldAll",)
-
-    def apply(self, symbol, evaluation):
-        "Messages[symbol_]"
-
-        return get_symbol_values(symbol, "Messages", "messages", evaluation)
-
-
-class DefaultValues(Builtin):
-    """
-    <dl>
-    <dt>'DefaultValues[$symbol$]'
-        <dd>gives the list of default values associated with $symbol$.
-    </dl>
-
-    >> Default[f, 1] = 4
-     = 4
-    >> DefaultValues[f]
-     = {HoldPattern[Default[f, 1]] :> 4}
-
-    You can assign values to 'DefaultValues':
-    >> DefaultValues[g] = {Default[g] -> 3};
-    >> Default[g, 1]
-     = 3
-    >> g[x_.] := {x}
-    >> g[a]
-     = {a}
-    >> g[]
-     = {3}
-    """
-
-    attributes = ("HoldAll",)
-
-    def apply(self, symbol, evaluation):
-        "DefaultValues[symbol_]"
-
-        return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
-
-
+# Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
 class LoadModule(Builtin):
     """
     <dl>
-    <dt>'LoadModule[$module$]'</dt>
-    <dd>'Load Mathics definitions from the python module $module$</dd>
+      <dt>'LoadModule[$module$]'</dt>
+      <dd>'Load Mathics definitions from the python module $module$</dd>
     </dl>
     >> LoadModule["nomodule"]
      : Python module nomodule does not exist.
