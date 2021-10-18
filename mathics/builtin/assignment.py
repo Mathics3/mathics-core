@@ -26,7 +26,7 @@ from mathics.core.systemsymbols import (
 from mathics.core.atoms import String
 
 from mathics.core.definitions import PyMathicsLoadException
-from mathics.algorithm.parts import walk_parts
+from mathics.algorithm.parts import walk_parts_new
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 
@@ -407,7 +407,6 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
         new_context, allow_initial_backquote=True
     ):
         evaluation.message(lhs_name, "cxset", rhs)
-        exit()
         raise AssignmentException(lhs, None)
 
     # With $Context in Mathematica you can do some strange
@@ -676,11 +675,7 @@ class _SetOperator(object):
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False
             indices = lhs.leaves[1:]
-            result = walk_parts([rule.replace], indices, evaluation, rhs)
-            if result:
-                evaluation.definitions.set_ownvalue(name, result)
-            else:
-                return False
+            return walk_parts_new([rule.replace], indices, evaluation, rhs)
         else:
             return self.assign_elementary(lhs, rhs, evaluation)
 

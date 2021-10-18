@@ -9,6 +9,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer, from_python
 from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
     InvalidLevelspecError,
@@ -218,6 +219,30 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
 def _parts(items, selectors, evaluation, assignment=False):
     heads = {}
     return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+
+
+def walk_parts_new(list_of_list, indices, evaluation, assign_list=None):
+    walk_list = list_of_list[0]
+    indices = [index.evaluate(evaluation) for index in indices]
+    if assign_list is not None:
+        try:
+            result = SubExpression(walk_list, indices)
+            result.replace(assign_list.copy())
+            result = result.to_expression()
+        except MessageException as e:
+            e.message(evaluation)
+            return False
+        result.clear_cache()
+        return result
+    else:
+        try:
+            result = _parts(
+                walk_list, _part_selectors(indices), evaluation, assign_list is not None
+            )
+        except MessageException as e:
+            e.message(evaluation)
+            return False
+        return result
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
