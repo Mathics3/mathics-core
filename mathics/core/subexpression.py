@@ -1,7 +1,16 @@
+# cython: language_level=3
+# -*- coding: utf-8 -*-
+
+
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, Atom
 from mathics.core.atoms import Integer
 from mathics.builtin.base import MessageException
+
+"""
+This module provides some infraestructure to deal with SubExpressions. 
+
+"""
 
 
 def _pspec_span_to_tuple(pspec, expr):
@@ -12,31 +21,34 @@ def _pspec_span_to_tuple(pspec, expr):
     if len(leaves) > 3:
         raise MessageException("Part", "span", leaves)
     if len(leaves) > 0:
-        start = leaves[0].get_int_value() - 1
+        start = leaves[0].get_int_value()
     if len(leaves) > 1:
-        stop = leaves[1].get_int_value() - 1
-    if stop is None:
-        if leaves[1].get_name() == "System`All":
-            stop = None
+        stop = leaves[1].get_int_value()
+        if stop is None:
+            if leaves[1].get_name() == "System`All":
+                stop = None
+            else:
+                raise MessageException("Part", "span", pspec)
         else:
-            raise MessageException("Part", "span", pspec)
+            stop = stop - 1 if stop > 0 else len(expr.leaves) + stop
+
     if len(pspec.leaves) > 2:
         step = leaves[2].get_int_value()
-
-    if start == 0 or stop == 0:
-        # index 0 is undefined
-        raise MessageException("Part", "span", 0)
-    if start < 0:
-        start = len(expr.leaves) - start
 
     if start is None or step is None:
         raise MessageException("Part", "span", pspec)
 
+    if start == 0 or stop == 0:
+        # index 0 is undefined
+        raise MessageException("Part", "span", Integer(0))
+
+    if start < 0:
+        start = len(expr.leaves) - start
+    else:
+        start = start - 1
+
     if stop is None:
         stop = 0 if step < 0 else len(expr.leaves) - 1
-
-    if stop < 0:
-        stop = len(expr.leaves) - stop
 
     stop = stop + 1 if step > 0 else stop - 1
     return tuple(k for k in range(start, stop, step))
@@ -100,6 +112,9 @@ class ExpressionPointer(object):
     def leaves(self, value):
         raise ValueError("ExpressionPointer.leaves is write protected.")
 
+    def get_head_name(self):
+        return self.head.get_name()
+
     def is_atom(self):
         pos = self.position
         if pos is None:
@@ -125,9 +140,9 @@ class ExpressionPointer(object):
 
     def replace(self, new):
         parent = self.parent
+        pos = [self.position]
         while type(parent) is ExpressionPointer:
             position = parent.position
-            pos = [self.position]
             if position is None:
                 parent = parent.parent
                 continue
@@ -135,13 +150,17 @@ class ExpressionPointer(object):
             parent = parent.parent
         # At this point, we hit the expression, and we have
         # the path to reach the position
+        root = parent
         i = pos.pop()
-        while pos:
-            if i == 0:
-                parent = parent._head
-            else:
-                parent = parent._leaves[i - 1]
-            i = pos.pop()
+        try:
+            while pos:
+                if i == 0:
+                    parent = parent._head
+                else:
+                    parent = parent._leaves[i - 1]
+                i = pos.pop()
+        except Exception:
+            raise MessageException("Part", "span", pos)
 
         if i == 0:
             parent.set_head(new)
@@ -200,6 +219,9 @@ class SubExpression(object):
             ]
             return self
 
+    def is_atom(self):
+        return False
+
     def __str__(self):
         return (
             self.head.__str__()
@@ -219,6 +241,9 @@ class SubExpression(object):
     def head(self, value):
         raise ValueError("SubExpression.head is write protected.")
 
+    def get_head_name(self):
+        return self._headp.parent.get_head_name()
+
     @property
     def leaves(self):
         return self._leavesp
@@ -232,3 +257,13 @@ class SubExpression(object):
             self._headp.to_expression(),
             *(leaf.to_expression() for leaf in self._leavesp)
         )
+
+    def replace(self, new):
+        if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
+            new.leaves
+        ) == len(self._leavesp):
+            for leaf, sub_new in zip(self._leavesp, new.leaves):
+                leaf.replace(sub_new)
+        else:
+            for leaf in self._leavesp:
+                leaf.replace(new)

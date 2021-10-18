@@ -6,7 +6,7 @@ SparseArray Functions
 
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
-from mathics.algorithm.parts import walk_parts
+from mathics.algorithm.parts import walk_parts_new
 
 from mathics.builtin.base import Builtin
 
@@ -121,7 +121,7 @@ class SparseArray(Builtin):
         for item in data.leaves:
             pos, val = item.leaves
             if pos.has_form("List", None):
-                table = walk_parts([table], pos.leaves, evaluation, val)
+                walk_parts_new([table], pos.leaves, evaluation, val)
         return table
 
     def find_dimensions(self, rules, evaluation):
