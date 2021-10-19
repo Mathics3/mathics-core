@@ -14,6 +14,11 @@ This module provides some infraestructure to deal with SubExpressions.
 
 
 def _pspec_span_to_tuple(pspec, expr):
+    """
+    This function takes an expression and a Mathics
+    `Span` Expression and returns a tuple with the positions
+    of the leaves.
+    """
     start = 1
     stop = None
     step = 1
@@ -55,9 +60,23 @@ def _pspec_span_to_tuple(pspec, expr):
 
 
 class ExpressionPointer(object):
-    def __init__(self, expr, pos=None, parent=None):
-        # If pos is None, and expr is an ExpressionPointer,
-        # then just copy it
+    """
+    This class represents a reference to a leaf in an expression.
+    Supports a minimal part of the basic interface of `mathics.core.symbols.BaseExpression`.
+    """
+
+    def __init__(self, expr, pos=None):
+        """
+        Initializes a ExpressionPointer pointing to the leaf in position `pos`
+        of `expr`.
+
+        expr: can be an Expression, a Symbol, or another ExpressionPointer
+        pos: int or None
+
+        If `pos==0`, then the pointer points to the `head` of the expression.
+        If `pos` is `None`, it points out the whole expression.
+
+        """
         if pos is None:
             if type(expr) is ExpressionPointer:
                 self.parent = expr.parent
@@ -66,10 +85,7 @@ class ExpressionPointer(object):
                 self.parent = expr
                 self.position = None
         else:
-            if parent:
-                self.parent = parent
-            else:
-                self.parent = expr
+            self.parent = expr
             self.position = pos
 
     def __str__(self) -> str:
@@ -139,6 +155,11 @@ class ExpressionPointer(object):
                 return leaf.copy()
 
     def replace(self, new):
+        """
+        This method replaces the value pointed out by a `new` value.
+        """
+        # First, look for the ancestor that is not an ExpressionPointer,
+        # keeping the positions of each step:
         parent = self.parent
         pos = [self.position]
         while type(parent) is ExpressionPointer:
@@ -162,6 +183,8 @@ class ExpressionPointer(object):
         except Exception:
             raise MessageException("Part", "span", pos)
 
+        # Now, we have a pointer to a leaf in a true `Expression`.
+        # Now, set it to the new value.
         if i == 0:
             parent.set_head(new)
         else:
@@ -179,9 +202,12 @@ class SubExpression(object):
         `expr` can be an `Expression`, a `ExpressionPointer` or
         another `SubExpression`
         `pos` can be `None`, an integer value or an `Expression` that
-        indicates a subset of leaves in the original `Expression`
+        indicates a subset of leaves in the original `Expression`.
+        If `pos` points out to a single whole leaf of `expr`, then
+        returns an `ExpressionPointer`.
         """
-        # If pos is a list, take the first element
+        # If pos is a list, take the first element, and
+        # store the remainder.
         if type(pos) in (tuple, list):
             pos, rem_pos = pos[0], pos[1:]
             if len(rem_pos) == 0:
@@ -206,6 +232,7 @@ class SubExpression(object):
                 pos = _pspec_span_to_tuple(pos, expr)
             else:
                 raise MessageException("Part", "pspec", pos)
+
         if pos is None or type(pos) is int:
             if rem_pos is None:
                 return ExpressionPointer(expr, pos)
@@ -259,6 +286,9 @@ class SubExpression(object):
         )
 
     def replace(self, new):
+        """
+        Asigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
+        """
         if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
             new.leaves
         ) == len(self._leavesp):
