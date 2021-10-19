@@ -682,10 +682,6 @@ class _SetOperator(object):
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False
             indices = lhs.leaves[1:]
-            result = walk_parts([rule.replace], indices, evaluation, rhs)
-            if result:
-                evaluation.definitions.set_ownvalue(name, result)
-            else:
-                return False
+            return walk_parts([rule.replace], indices, evaluation, rhs)
         else:
             return self.assign_elementary(lhs, rhs, evaluation)
