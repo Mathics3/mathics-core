@@ -256,7 +256,6 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
         new_context, allow_initial_backquote=True
     ):
         evaluation.message(lhs_name, "cxset", rhs)
-        exit()
         raise AssignmentException(lhs, None)
 
     # With $Context in Mathematica you can do some strange
