@@ -2,7 +2,7 @@
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-from mathics.algorithm.parts import walk_parts_new
+from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
@@ -681,12 +681,6 @@ class _SetOperator(object):
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False
             indices = lhs.leaves[1:]
-            return walk_parts_new([rule.replace], indices, evaluation, rhs)
-            #
-            # result = walk_parts([rule.replace], indices, evaluation, rhs)
-            # if result:
-            #     evaluation.definitions.set_ownvalue(name, result)
-            # else:
-            #     return False
+            return walk_parts([rule.replace], indices, evaluation, rhs)
         else:
             return self.assign_elementary(lhs, rhs, evaluation)

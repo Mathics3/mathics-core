@@ -221,7 +221,7 @@ def _parts(items, selectors, evaluation, assignment=False):
     return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
 
 
-def walk_parts_new(list_of_list, indices, evaluation, assign_list=None):
+def walk_parts(list_of_list, indices, evaluation, assign_list=None):
     walk_list = list_of_list[0]
     indices = [index.evaluate(evaluation) for index in indices]
     if assign_list is not None:
@@ -243,61 +243,6 @@ def walk_parts_new(list_of_list, indices, evaluation, assign_list=None):
             e.message(evaluation)
             return False
         return result
-
-
-def walk_parts(list_of_list, indices, evaluation, assign_list=None):
-    walk_list = list_of_list[0]
-
-    if assign_list is not None:
-        # this double copying is needed to make the current logic in
-        # the assign_list and its access to original work.
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-        list_of_list = [walk_list]
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-
-    indices = [index.evaluate(evaluation) for index in indices]
-
-    try:
-        result = _parts(
-            walk_list, _part_selectors(indices), evaluation, assign_list is not None
-        )
-    except MessageException as e:
-        e.message(evaluation)
-        return False
-
-    if assign_list is not None:
-
-        def replace_item(all, item, new):
-            if item.position is None:
-                all[0] = new
-            else:
-                item.position.replace(new)
-
-        def process_level(item, assignment):
-            if item.is_atom():
-                replace_item(list_of_list, item.original, assignment)
-            elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
-                assignment.leaves
-            ):
-                if item.original:
-                    replace_item(list_of_list, item.original, assignment)
-                else:
-                    for leaf in item.leaves:
-                        process_level(leaf, assignment)
-            else:
-                for sub_item, sub_assignment in zip(item.leaves, assignment.leaves):
-                    process_level(sub_item, sub_assignment)
-
-        process_level(result, assign_list)
-
-        result = list_of_list[0]
-        result.clear_cache()
-
-    return result
 
 
 def is_in_level(current, depth, start=1, stop=None):

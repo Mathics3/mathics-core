@@ -26,7 +26,7 @@ from mathics.algorithm.parts import (
     python_levelspec,
     set_part,
     walk_levels,
-    walk_parts_new,
+    walk_parts,
 )
 
 from mathics.builtin.base import MessageException
@@ -924,7 +924,7 @@ class Part(Builtin):
             return
 
         # Otherwise...
-        result = walk_parts_new([list], indices, evaluation)
+        result = walk_parts([list], indices, evaluation)
         if result:
             return result
 
