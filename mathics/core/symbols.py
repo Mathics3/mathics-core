@@ -605,9 +605,6 @@ class Atom(BaseExpression):
         result.original = self
         return result
 
-    def set_positions(self, position=None) -> None:
-        self.position = position
-
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return [0, 0, 1, 1, 0, 0, 0, 1]
@@ -633,7 +630,7 @@ class Symbol(Atom):
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
-            # cls.defined_symbols[name] = self
+            cls.defined_symbols[name] = self
         return self
 
     def __str__(self) -> str:
