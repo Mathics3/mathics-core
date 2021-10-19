@@ -1769,9 +1769,8 @@ class CoefficientArrays(_CoefficientHandler):
                 if dim1 == 1 and order == 0:
                     arrays[0] = coeff
                 else:
-                    arrays[order] = walk_parts_new(
-                        [curr_array], arrayidx, evaluation, coeff
-                    )
+                    walk_parts_new([curr_array], arrayidx, evaluation, coeff)
+                    arrays[order] = curr_array
         return Expression("List", *arrays)
 
 
