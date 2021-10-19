@@ -13,7 +13,7 @@ from mathics.builtin.base import Builtin
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
-from mathics.core.systemsymbols import SymbolTrue
+from mathics.core.symbols import SymbolTrue
 
 
 # Levenshtein's algorithm is defined by the following construction:

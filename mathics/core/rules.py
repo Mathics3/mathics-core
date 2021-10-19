@@ -116,6 +116,8 @@ class BuiltinRule(BaseRule):
         self.check_options = check_options
         self.pass_expression = "expression" in function_arguments(function)
 
+    # If you update this, you must also update traced_do_replace
+    # (that's in the same file TraceBuiltins is)
     def do_replace(self, expression, vars, options, evaluation):
         if options and self.check_options:
             if not self.check_options(options, evaluation):

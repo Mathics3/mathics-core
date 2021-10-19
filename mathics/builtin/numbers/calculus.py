@@ -17,26 +17,30 @@ from mathics.core.atoms import (
     Real,
     from_python,
 )
-from mathics.core.systemsymbols import (
-    SymbolTrue,
+
+from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolList,
+    SymbolTrue,
+)
+
+from mathics.core.systemsymbols import (
+    SymbolPlus,
+    SymbolPower,
     SymbolRule,
+    SymbolTimes,
     SymbolUndefined,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.rules import Pattern
-from mathics.core.numbers import dps
+from mathics.core.number import dps
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.numeric import apply_N
-from mathics import Symbol
 
 import sympy
 
 
-SymbolPlus = Symbol("Plus")
-SymbolTimes = Symbol("Times")
-SymbolPower = Symbol("Power")
 IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
 

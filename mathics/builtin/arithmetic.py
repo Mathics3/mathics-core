@@ -35,14 +35,11 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolTrue,
-    SymbolFalse,
     SymbolUndefined,
-    SymbolList,
 )
-from mathics.core.numbers import min_prec, dps, SpecialValueError
+from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.builtin.lists import _IterationFunction
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix

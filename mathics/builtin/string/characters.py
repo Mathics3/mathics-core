@@ -9,7 +9,7 @@ from mathics.builtin.base import Builtin, Test
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import SymbolList
 
 
 class Characters(Builtin):

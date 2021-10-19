@@ -21,10 +21,8 @@ from mathics.core.atoms import (
     Integer0,
     from_python,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList, SymbolN
 from mathics.core.systemsymbols import (
-    SymbolList,
-    SymbolN,
     SymbolRule,
 )
 

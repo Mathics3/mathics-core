@@ -17,12 +17,12 @@ from mathics.builtin.base import (
     PartError,
 )
 
-from mathics.builtin.lists import (
+from mathics.builtin.lists import list_boxes
+from mathics.algorithm.parts import (
     _drop_span_selector,
     _parts,
     _take_span_selector,
     deletecases_with_levelspec,
-    list_boxes,
     python_levelspec,
     set_part,
     walk_levels,
@@ -32,13 +32,11 @@ from mathics.builtin.lists import (
 from mathics.builtin.base import MessageException
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
-    SymbolList,
     SymbolMakeBoxes,
-    SymbolNull,
     SymbolSequence,
 )
 

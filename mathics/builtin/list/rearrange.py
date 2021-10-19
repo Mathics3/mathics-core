@@ -26,7 +26,7 @@ from mathics.core.expression import (
 )
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolList
+from mathics.core.symbols import SymbolList
 
 
 def _is_sameq(same_test):

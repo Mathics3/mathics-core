@@ -18,11 +18,10 @@ from mathics.builtin.lists import list_boxes
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
-    SymbolList,
 )
 
 

@@ -4,13 +4,14 @@ CHANGES
 Internals
 =========
 
-* now `Expression.is_numeric()` accepts an `Evaluation` object as a parameter,
-  to use the definitions.
-* To numerify expressions, the function `apply_N` was introduced in the module `mathics.builtin.numeric` to avoid the idiom
-  `Expression("N", expr, prec).evaluate(evaluation)`. The idea is to avoid when it is possible to call the Pattern matching routines to obtain the numeric value of an expression.
-* A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
+
+* To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
+* ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
+* ``apply_N`` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of
+  ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
+* A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * `BaseExpression.is_symbol()` was removed in favor of `type(s) is Symbol` reducing the overhead of the function call.
-  
+
 
 4.0.1
 -----
@@ -19,6 +20,8 @@ New builtins
 ++++++++++++
 
 * ``Guidermannian``
+* ``Cone``
+* ``Tube``
 
 Tensor functions:
 
@@ -46,6 +49,18 @@ Uniform Polyhedron
 * ``Octahedron``
 * ``TetraHedron``
 * ``UniformPolyedron``
+
+Mathics-specific
+
+* ``TraceBuiltin[]``, ``$TraceBuiltins``, ``ClearTrace[]``, ``PrintTrace[]``
+
+These collect builtin-function call counts and elapsed time in the routines.
+``TraceBuiltin[expr]`` collects information for just *expr*. Whereas
+setting ``$TraceBuiltins`` to True will accumulate results of evaluations
+``PrintTrace[]`` dumps the statistics and ``ClearTrace[]`` clears the statistics data.
+
+``mathics -T/--trace-builtin`` is about the same as setting
+``$TraceBuiltins = True`` on entry and runs ``PrintTrace[]`` on exit.
 
 
 Bugs

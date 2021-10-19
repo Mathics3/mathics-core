@@ -19,13 +19,13 @@ from mathics.core.atoms import (
     Integer0,
     String,
 )
-from mathics.core.systemsymbols import (
+from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
 )
 from mathics.core.rules import Pattern
 
-from mathics.builtin.lists import get_part
+from mathics.algorithm.parts import get_part
 
 
 def get_default_distance(p):

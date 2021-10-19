@@ -9,16 +9,19 @@ from typing import Any, Optional
 from itertools import chain
 from bisect import bisect_left
 
-# from mathics.core.formatter import *
 from mathics.core.atoms import from_python, Number, Integer
-from mathics.core.symbols import Atom, BaseExpression, Monomial, Symbol, system_symbols
-from mathics.core.systemsymbols import (
+from mathics.core.number import dps
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.symbols import (
+    Atom,
+    BaseExpression,
+    Monomial,
+    Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
+    system_symbols,
 )
-from mathics.core.numbers import dps
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.systemsymbols import SymbolSequence
 
 
 def fully_qualified_symbol_name(name) -> bool:
@@ -64,49 +67,6 @@ class BoxError(Exception):
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
         self.box = box
         self.form = form
-
-
-class ExpressionPointer(object):
-    def __init__(self, parent, position) -> None:
-        self.parent = parent
-        self.position = position
-
-    def replace(self, new) -> None:
-        if self.position == 0:
-            self.parent.set_head(new)
-        else:
-            self.parent.set_leaf(self.position - 1, new)
-
-    def __str__(self) -> str:
-        return "%s[[%s]]" % (self.parent, self.position)
-
-
-# class KeyComparable(object):
-#     def get_sort_key(self):
-#         raise NotImplementedError
-
-#     def __lt__(self, other) -> bool:
-#         return self.get_sort_key() < other.get_sort_key()
-
-#     def __gt__(self, other) -> bool:
-#         return self.get_sort_key() > other.get_sort_key()
-
-#     def __le__(self, other) -> bool:
-#         return self.get_sort_key() <= other.get_sort_key()
-
-#     def __ge__(self, other) -> bool:
-#         return self.get_sort_key() >= other.get_sort_key()
-
-#     def __eq__(self, other) -> bool:
-#         return (
-#             hasattr(other, "get_sort_key")
-#             and self.get_sort_key() == other.get_sort_key()
-#         )
-
-#     def __ne__(self, other) -> bool:
-#         return (
-#             not hasattr(other, "get_sort_key")
-#         ) or self.get_sort_key() != other.get_sort_key()
 
 
 # ExpressionCache keeps track of the following attributes for one Expression instance:
@@ -416,12 +376,6 @@ class Expression(BaseExpression):
         expr.options = self.options
         # expr.last_evaluated = self.last_evaluated
         return expr
-
-    def set_positions(self, position=None) -> None:
-        self.position = position
-        self._head.set_positions(ExpressionPointer(self, 0))
-        for index, leaf in enumerate(self._leaves):
-            leaf.set_positions(ExpressionPointer(self, index + 1))
 
     def get_head(self):
         return self._head
