@@ -15,7 +15,9 @@ from mathics.core.symbols import (
     Atom,
     BaseExpression,
     Symbol,
+    SymbolHoldForm,
     SymbolFalse,
+    SymbolFullForm,
     SymbolList,
     SymbolNull,
     SymbolTrue,
@@ -31,6 +33,10 @@ import base64
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
 COMPARE_PREC = 50
+
+SymbolDivide = Symbol("Divide")
+SymbolMinus = Symbol("Minus")
+SymbolRational = Symbol("Rational")
 
 
 @lru_cache(maxsize=1024)
@@ -230,10 +236,10 @@ class Rational(Number):
     def do_format(self, evaluation, form) -> "Expression":
         from mathics.core.expression import Expression
 
-        assert fully_qualified_symbol_name(form)
-        if form == "System`FullForm":
+        assert isinstance(form, Symbol)
+        if form is SymbolFullForm:
             return Expression(
-                Expression("HoldForm", Symbol("Rational")),
+                Expression(SymbolHoldForm, SymbolRational),
                 self.numerator(),
                 self.denominator(),
             ).do_format(evaluation, form)
@@ -242,10 +248,10 @@ class Rational(Number):
             minus = numerator.value < 0
             if minus:
                 numerator = Integer(-numerator.value)
-            result = Expression("Divide", numerator, self.denominator())
+            result = Expression(SymbolDivide, numerator, self.denominator())
             if minus:
-                result = Expression("Minus", result)
-            result = Expression("HoldForm", result)
+                result = Expression(SymbolMinus, result)
+            result = Expression(SymbolHoldForm, result)
             return result.do_format(evaluation, form)
 
     def default_format(self, evaluation, form) -> str:

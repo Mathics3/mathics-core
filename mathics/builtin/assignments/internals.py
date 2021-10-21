@@ -479,6 +479,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
             "TeXForm",
             "MathMLForm",
         )
+        form = [f.name for f in form]
     lhs = focus = lhs.leaves[0]
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation

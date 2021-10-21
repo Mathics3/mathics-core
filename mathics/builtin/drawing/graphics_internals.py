@@ -13,7 +13,7 @@ from mathics.builtin.base import (
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
 
-from mathics.core.symbols import system_symbols_dict
+from mathics.core.symbols import system_symbols_dict, Symbol
 
 
 class _GraphicsElement(InstanceableBuiltin):
@@ -31,6 +31,7 @@ class _GraphicsElement(InstanceableBuiltin):
 
 
 def get_class(name):
+    assert isinstance(name, Symbol)
     c = GLOBALS.get(name)
     if c is None:
         return GLOBALS3D.get(name)
@@ -43,5 +44,7 @@ def get_class(name):
 
 # FIXME: GLOBALS and GLOBALS3D are a horrible names.
 # These ares updated in mathics.builtin.graphics in and mathics.builtin.box.graphics3d
+
+
 GLOBALS = system_symbols_dict({})
 GLOBALS3D = system_symbols_dict({})

@@ -11,12 +11,12 @@ from mathics.core.convert import sympy_symbol_prefix
 
 # system_symbols('A', 'B', ...) -> ['System`A', 'System`B', ...]
 def system_symbols(*symbols) -> typing.List[str]:
-    return [ensure_context(s) for s in symbols]
+    return [Symbol(s) for s in symbols]
 
 
 # system_symbols_dict({'SomeSymbol': ...}) -> {'System`SomeSymbol': ...}
 def system_symbols_dict(d):
-    return {ensure_context(k): v for k, v in d.items()}
+    return {Symbol(k): v for k, v in d.items()}
 
 
 def fully_qualified_symbol_name(name) -> bool:
@@ -213,7 +213,7 @@ class BaseExpression(KeyComparable):
         return id(self) == id(rhs)
 
     def get_sequence(self):
-        if self.get_head().get_name() == "System`Sequence":
+        if self.get_head() is SymbolSequence:
             return self.leaves
         else:
             return [self]
@@ -243,20 +243,15 @@ class BaseExpression(KeyComparable):
         superfluous enclosing formats.
         """
 
-        formats = system_symbols(
-            "InputForm",
-            "OutputForm",
-            "StandardForm",
-            "FullForm",
-            "TraditionalForm",
-            "TeXForm",
-            "MathMLForm",
-        )
+        if isinstance(form, str):
+            print(form, " should be a symbol...")
+            form = Symbol(form)
+        formats = format_symbols
 
         evaluation.inc_recursion_depth()
         try:
             expr = self
-            head = self.get_head_name()
+            head = self.get_head()
             leaves = self.get_leaves()
             include_form = False
             # If the expression is enclosed by a Format
@@ -264,12 +259,12 @@ class BaseExpression(KeyComparable):
             # removes the format from the expression.
             if head in formats and len(leaves) == 1:
                 expr = leaves[0]
-                if not (form == "System`OutputForm" and head == "System`StandardForm"):
+                if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
             unformatted = expr
             # If form is Fullform, return it without changes
-            if form == "System`FullForm":
+            if form is SymbolFullForm:
                 if include_form:
                     expr = self.create_expression(form, expr)
                     expr.unformatted = unformatted
@@ -277,32 +272,32 @@ class BaseExpression(KeyComparable):
 
             # Repeated and RepeatedNull confuse the formatter,
             # so we need to hardlink their format rules:
-            if head == "System`Repeated":
+            if head is SymbolRepeated:
                 if len(leaves) == 1:
                     return self.create_expression(
-                        "System`HoldForm",
+                        SymbolHoldForm,
                         self.create_expression(
-                            "System`Postfix",
-                            self.create_expression("System`List", leaves[0]),
+                            SymbolPostfix,
+                            self.create_expression(SymbolList, leaves[0]),
                             "..",
                             170,
                         ),
                     )
                 else:
-                    return self.create_expression("System`HoldForm", expr)
-            elif head == "System`RepeatedNull":
+                    return self.create_expression(SymbolHoldForm, expr)
+            elif head is SymbolRepeatedNull:
                 if len(leaves) == 1:
                     return self.create_expression(
-                        "System`HoldForm",
+                        SymbolHoldForm,
                         self.create_expression(
-                            "System`Postfix",
-                            self.create_expression("System`List", leaves[0]),
+                            SymbolPostfix,
+                            self.create_expression(SymbolList, leaves[0]),
                             "...",
                             170,
                         ),
                     )
                 else:
-                    return self.create_expression("System`HoldForm", expr)
+                    return self.create_expression(SymbolHoldForm, expr)
 
             # If expr is not an atom, looks for formats in its definition
             # and apply them.
@@ -311,7 +306,8 @@ class BaseExpression(KeyComparable):
                     # expr is of the form f[...][...]
                     return None
                 name = expr.get_lookup_name()
-                formats = evaluation.definitions.get_formats(name, form)
+                formats = evaluation.definitions.get_formats(name, form.get_name())
+                print("  formats for  ", name, ": ", formats)
                 for rule in formats:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
@@ -330,14 +326,14 @@ class BaseExpression(KeyComparable):
             # iterate.
             # If the expression is not atomic or of certain
             # specific cases, iterate over the leaves.
-            head = expr.get_head_name()
+            head = expr.get_head()
             if head in formats:
                 expr = expr.do_format(evaluation, form)
             elif (
-                head != "System`NumberForm"
+                head is not SymbolNumberForm
                 and not expr.is_atom()
-                and head != "System`Graphics"
-                and head != "System`Graphics3D"
+                and head is not SymbolGraphics
+                and head is not SymbolGraphics3D
             ):
                 # print("Not inside graphics or numberform, and not is atom")
                 new_leaves = [leaf.do_format(evaluation, form) for leaf in expr.leaves]
@@ -356,9 +352,10 @@ class BaseExpression(KeyComparable):
         """
         Applies formats associated to the expression, and then calls Makeboxes
         """
-
+        if isinstance(form, str):
+            form = Symbol(form)
         expr = self.do_format(evaluation, form)
-        result = self.create_expression(SymbolMakeBoxes, expr, Symbol(form)).evaluate(
+        result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
             evaluation
         )
         return result
@@ -707,7 +704,7 @@ class Symbol(Atom):
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)"""
 
-        if self.sameQ(rhs):
+        if self is rhs:
             return True
 
         # Booleans are treated like constants, but all other symbols
@@ -720,7 +717,13 @@ class Symbol(Atom):
 
     def sameQ(self, rhs: Any) -> bool:
         """Mathics SameQ"""
-        return id(self) == id(rhs) or isinstance(rhs, Symbol) and self.name == rhs.name
+        return self is rhs
+
+    def __eq__(self, other) -> bool:
+        return self is other
+
+    def __ne__(self, other) -> bool:
+        return self is not other
 
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
@@ -745,9 +748,7 @@ class Symbol(Atom):
         return self == Symbol("True")
 
     def is_numeric(self, evaluation=None) -> bool:
-        return self.name in system_symbols(
-            "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
-        )
+        return self in system_numeric_constants
 
     def __hash__(self):
         return hash(("Symbol", self.name))  # to distinguish from String
@@ -760,8 +761,39 @@ class Symbol(Atom):
 
 
 SymbolFalse = Symbol("System`False")
+SymbolGraphics = Symbol("System`Graphics")
+SymbolGraphics3D = Symbol("System`Graphics3D")
+SymbolHoldForm = Symbol("System`HoldForm")
 SymbolList = Symbol("System`List")
 SymbolMakeBoxes = Symbol("System`MakeBoxes")
 SymbolN = Symbol("System`N")
 SymbolNull = Symbol("System`Null")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolPostfix = Symbol("System`Postfix")
+SymbolRepeated = Symbol("System`Repeated")
+SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolSequence = Symbol("System`Sequence")
 SymbolTrue = Symbol("System`True")
+
+
+(
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolStandardForm,
+    SymbolFullForm,
+    SymbolTraditionalForm,
+    TeXForm,
+    MathMLForm,
+) = format_symbols = system_symbols(
+    "InputForm",
+    "OutputForm",
+    "StandardForm",
+    "FullForm",
+    "TraditionalForm",
+    "TeXForm",
+    "MathMLForm",
+)
+
+system_numeric_constants = system_symbols(
+    "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
+)
