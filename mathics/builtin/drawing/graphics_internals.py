@@ -30,11 +30,11 @@ class _GraphicsElement(InstanceableBuiltin):
         return klass(graphics, item)
 
 
-def get_class(name):
-    assert isinstance(name, Symbol)
-    c = GLOBALS.get(name)
+def get_class(symbol):
+    assert isinstance(symbol, Symbol)
+    c = GLOBALS.get(symbol)
     if c is None:
-        return GLOBALS3D.get(name)
+        return GLOBALS3D.get(symbol)
     else:
         return c
 
@@ -44,7 +44,5 @@ def get_class(name):
 
 # FIXME: GLOBALS and GLOBALS3D are a horrible names.
 # These ares updated in mathics.builtin.graphics in and mathics.builtin.box.graphics3d
-
-
 GLOBALS = system_symbols_dict({})
 GLOBALS3D = system_symbols_dict({})
