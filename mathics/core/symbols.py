@@ -6,22 +6,27 @@ import sympy
 import typing
 from typing import Any, Optional
 
+# I put this constants here instead of inside `mathics.core.convert`
+# to avoid a circular reference. Maybe they should be in its own module.
 
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
 
-# system_symbols('A', 'B', ...) -> ['System`A', 'System`B', ...]
+# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
 def system_symbols(*symbols) -> typing.List[str]:
     return [Symbol(s) for s in symbols]
 
 
-# system_symbols_dict({'SomeSymbol': ...}) -> {'System`SomeSymbol': ...}
+# system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
 def system_symbols_dict(d):
     return {Symbol(k): v for k, v in d.items()}
 
 
 def fully_qualified_symbol_name(name) -> bool:
+    """
+    Checks if `name` is a fully qualified symbol name.
+    """
     return (
         isinstance(name, str)
         and "`" in name
@@ -760,6 +765,8 @@ class Symbol(Atom):
         return (self.name, self.sympy_dummy)
 
 
+# Symbols used in this module.
+
 SymbolFalse = Symbol("System`False")
 SymbolGraphics = Symbol("System`Graphics")
 SymbolGraphics3D = Symbol("System`Graphics3D")
@@ -779,6 +786,7 @@ SymbolSequence = Symbol("System`Sequence")
 SymbolTrue = Symbol("System`True")
 
 
+# The available formats.
 (
     SymbolInputForm,
     SymbolOutputForm,
@@ -797,6 +805,8 @@ SymbolTrue = Symbol("System`True")
     "MathMLForm",
 )
 
+
+# Used to check if a symbol is `Numeric` without evaluation.
 system_numeric_constants = system_symbols(
     "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
 )

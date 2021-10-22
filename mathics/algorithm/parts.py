@@ -89,6 +89,9 @@ def set_part(varlist, indices, newval):
 
 
 def _parts_all_selector():
+    """
+    Selector for `System`All` pspec
+    """
     start = 1
     stop = None
     step = 1
@@ -105,6 +108,9 @@ def _parts_all_selector():
 
 
 def _parts_span_selector(pspec):
+    """
+    Selector for `System`Span` pspec
+    """
     if len(pspec.leaves) > 3:
         raise MessageException("Part", "span", pspec)
     start = 1
@@ -141,6 +147,9 @@ def _parts_span_selector(pspec):
 
 
 def _parts_sequence_selector(pspec):
+    """
+    Selector for `System`Sequence` pspec
+    """
     if not isinstance(pspec, (tuple, list)):
         indices = [pspec]
     else:
@@ -173,6 +182,10 @@ def _parts_sequence_selector(pspec):
 
 
 def _part_selectors(indices):
+    """
+    _part_selectors returns a suitable `selector` function according to
+    the kind of specifications in `indices`.
+    """
     for index in indices:
         if index.has_form("Span", None):
             yield _parts_span_selector(index)
@@ -187,6 +200,9 @@ def _part_selectors(indices):
 
 
 def _list_parts(items, selectors, heads, evaluation, assignment):
+    """
+    _list_parts looks recursively by the parts specified by selectors.
+    """
     if not selectors:
         for item in items:
             yield item
@@ -219,11 +235,29 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
 
 
 def _parts(items, selectors, evaluation, assignment=False):
+    """
+    Select from the `Expression` items those elements indicated by
+    the `selectors`.
+    """
     heads = {}
     return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
+    """
+    walk_parts takes the first element of `list_of_list`, and builds
+    a subexpression according to the specification of `indices`.
+    If assign_list is not `None`, replaces the values in the selected
+    elements by those speficied in `assign_list`.
+
+    list_of_list: a list of `Expression`s with a unique element.
+
+    indices: a list of part specification `Expression`s, including
+    `Integer` indices,  `Span` `Expression`s, `List` of `Integer`s
+    and
+
+    assign_list: None or an `Expression` object.
+    """
     walk_list = list_of_list[0]
     indices = [index.evaluate(evaluation) for index in indices]
     if assign_list is not None:
