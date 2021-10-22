@@ -38,6 +38,8 @@ SymbolDivide = Symbol("Divide")
 SymbolMinus = Symbol("Minus")
 SymbolRational = Symbol("Rational")
 
+SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = system_symbols("InputForm", "FullForm")
+
 
 @lru_cache(maxsize=1024)
 def from_mpmath(value, prec=None):
@@ -565,7 +567,9 @@ class Complex(Number):
     def do_format(self, evaluation, form) -> "Expression":
         from mathics.core.expression import Expression
 
-        if form == "System`FullForm":
+        assert isinstance(form, Symbol)
+
+        if form is Symbol("System`FullForm"):
             return Expression(
                 Expression("HoldForm", Symbol("Complex")), self.real, self.imag
             ).do_format(evaluation, form)
@@ -809,7 +813,7 @@ class String(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         inner = str(self.value)
-        if f in system_symbols("InputForm", "FullForm"):
+        if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
 
         return String('"' + inner + '"')

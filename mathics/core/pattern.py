@@ -14,6 +14,21 @@ from itertools import chain
 # from mathics.core import pattern_nocython
 
 
+SYSTEM_SYMBOLS_PATTERNS = system_symbols(
+    "Pattern",
+    "PatternTest",
+    "Condition",
+    "Optional",
+    "Blank",
+    "BlankSequence",
+    "BlankNullSequence",
+    "Alternatives",
+    "OptionsPattern",
+    "Repeated",
+    "RepeatedNull",
+)
+
+
 def Pattern_create(expr):
     from mathics.builtin import pattern_objects
 
@@ -509,22 +524,7 @@ class ExpressionPattern(Pattern):
         # of pattern.
         # TODO: This could be further optimized!
         try_flattened = ("System`Flat" in attributes) and (
-            leaf.get_head()
-            in (
-                system_symbols(
-                    "Pattern",
-                    "PatternTest",
-                    "Condition",
-                    "Optional",
-                    "Blank",
-                    "BlankSequence",
-                    "BlankNullSequence",
-                    "Alternatives",
-                    "OptionsPattern",
-                    "Repeated",
-                    "RepeatedNull",
-                )
-            )
+            leaf.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
         if try_flattened:
