@@ -25,7 +25,7 @@ from mathics.core.symbols import (
     system_symbols,
 )
 
-from mathics.core.systemsymbols import SymbolByteArray
+from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
 
 from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
 import base64
@@ -34,9 +34,13 @@ import base64
 # We have to be able to match mpmath values with sympy values
 COMPARE_PREC = 50
 
+SymbolComplex = Symbol("Complex")
 SymbolDivide = Symbol("Divide")
+SymbolI = Symbol("I")
 SymbolMinus = Symbol("Minus")
+SymbolPlus = Symbol("Plus")
 SymbolRational = Symbol("Rational")
+SymbolTimes = Symbol("Times")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = system_symbols("InputForm", "FullForm")
 
@@ -85,12 +89,14 @@ def _NumberFormat(man, base, exp, options):
             "System`OutputForm",
             "System`FullForm",
         ):
-            return Expression("RowBox", Expression(SymbolList, man, String("*^"), exp))
+            return Expression(
+                SymbolRowBox, Expression(SymbolList, man, String("*^"), exp)
+            )
         else:
             return Expression(
-                "RowBox",
+                SymbolRowBox,
                 Expression(
-                    "List",
+                    SymbolList,
                     man,
                     String(options["NumberMultiplier"]),
                     Expression("SuperscriptBox", base, exp),
@@ -569,25 +575,25 @@ class Complex(Number):
 
         assert isinstance(form, Symbol)
 
-        if form is Symbol("System`FullForm"):
+        if form is SymbolFullForm:
             return Expression(
-                Expression("HoldForm", Symbol("Complex")), self.real, self.imag
+                Expression(SymbolHoldForm, SymbolComplex), self.real, self.imag
             ).do_format(evaluation, form)
 
         parts: typing.List[Any] = []
         if self.is_machine_precision() or not self.real.is_zero:
             parts.append(self.real)
         if self.imag.sameQ(Integer(1)):
-            parts.append(Symbol("I"))
+            parts.append(SymbolI)
         else:
-            parts.append(Expression("Times", self.imag, Symbol("I")))
+            parts.append(Expression(SymbolTimes, self.imag, SymbolI))
 
         if len(parts) == 1:
             result = parts[0]
         else:
-            result = Expression("Plus", *parts)
+            result = Expression(SymbolPlus, *parts)
 
-        return Expression("HoldForm", result).do_format(evaluation, form)
+        return Expression(SymbolHoldForm, result).do_format(evaluation, form)
 
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
@@ -987,7 +993,7 @@ def from_python(arg):
     elif isinstance(arg, dict):
         entries = [
             Expression(
-                "Rule",
+                SymbolRule,
                 from_python(key),
                 from_python(arg[key]),
             )

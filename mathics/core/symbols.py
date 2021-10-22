@@ -6,7 +6,9 @@ import sympy
 import typing
 from typing import Any, Optional
 
-from mathics.core.convert import sympy_symbol_prefix
+
+sympy_symbol_prefix = "_Mathics_User_"
+sympy_slot_prefix = "_Mathics_Slot_"
 
 
 # system_symbols('A', 'B', ...) -> ['System`A', 'System`B', ...]
@@ -763,7 +765,10 @@ SymbolGraphics = Symbol("System`Graphics")
 SymbolGraphics3D = Symbol("System`Graphics3D")
 SymbolHoldForm = Symbol("System`HoldForm")
 SymbolList = Symbol("System`List")
+SymbolMachinePrecision = Symbol("MachinePrecision")
 SymbolMakeBoxes = Symbol("System`MakeBoxes")
+SymbolMaxPrecision = Symbol("$MaxPrecision")
+SymbolMinPrecision = Symbol("$MinPrecision")
 SymbolN = Symbol("System`N")
 SymbolNull = Symbol("System`Null")
 SymbolNumberForm = Symbol("System`NumberForm")

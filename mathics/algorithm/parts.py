@@ -18,6 +18,8 @@ from mathics.builtin.exceptions import (
     PartRangeError,
 )
 
+SymbolNothing = Symbol("Nothing")
+
 
 def join_lists(lists):
     new_list = []
@@ -472,7 +474,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
     n indicates the number of occurrences to return. By default, it returns all the occurences.
     """
-    nothing = Symbol("System`Nothing")
+    nothing = SymbolNothing
     from mathics.builtin.patterns import Matcher
 
     match = Matcher(pattern)

@@ -27,6 +27,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import SymbolSequence
 
 
+SymbolAborted = Symbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
 SymbolBlank = Symbol("System`Blank")
 SymbolBlankSequence = Symbol("System`BlankSequence")
@@ -756,7 +757,7 @@ class Expression(BaseExpression):
                         limit = "inf"
                 if limit != "inf" and iteration > limit:
                     evaluation.error("$IterationLimit", "itlim", limit)
-                    return Symbol("$Aborted")
+                    return SymbolAborted
 
         # "Return gets discarded only if it was called from within the r.h.s.
         # of a user-defined rule."
