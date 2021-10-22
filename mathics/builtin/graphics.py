@@ -1160,10 +1160,10 @@ class _GraphicsElements(object):
         def stylebox_style(style, specs):
             new_style = style.clone()
             for spec in _flatten(specs):
-                head_name = spec.get_head_name()
-                if head_name in style_and_form_heads:
+                head = spec.get_head()
+                if head in style_and_form_heads:
                     new_style.append(spec)
-                elif head_name == "System`Rule" and len(spec.leaves) == 2:
+                elif head is Symbol("System`Rule") and len(spec.leaves) == 2:
                     option, expr = spec.leaves
                     if not isinstance(option, Symbol):
                         raise BoxConstructError

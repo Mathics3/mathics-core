@@ -682,6 +682,7 @@ class String(Atom):
 
     def __new__(cls, value):
         self = super().__new__(cls)
+
         self.value = str(value)
         return self
 
@@ -808,8 +809,7 @@ class String(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         inner = str(self.value)
-
-        if f.get_name() in system_symbols("InputForm", "FullForm"):
+        if f in system_symbols("InputForm", "FullForm"):
             inner = inner.replace("\\", "\\\\")
 
         return String('"' + inner + '"')

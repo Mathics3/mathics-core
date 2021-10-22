@@ -244,7 +244,6 @@ class BaseExpression(KeyComparable):
         """
 
         if isinstance(form, str):
-            print(form, " should be a symbol...")
             form = Symbol(form)
         formats = format_symbols
 
@@ -307,7 +306,6 @@ class BaseExpression(KeyComparable):
                     return None
                 name = expr.get_lookup_name()
                 formats = evaluation.definitions.get_formats(name, form.get_name())
-                print("  formats for  ", name, ": ", formats)
                 for rule in formats:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
