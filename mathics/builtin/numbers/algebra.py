@@ -33,6 +33,16 @@ from mathics.core.systemsymbols import (
     SymbolPower,
     SymbolSqrt,
     SymbolTimes,
+    SymbolSin,
+    SymbolCos,
+    SymbolTan,
+    SymbolCot,
+    SymbolSinh,
+    SymbolCosh,
+    SymbolTanh,
+    SymbolCoth,
+    SymbolRule,
+    SymbolRuleDelayed,
 )
 
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
@@ -41,15 +51,6 @@ from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
 
 import sympy
-
-SymbolSin = Symbol("Sin")
-SymbolSinh = Symbol("Sinh")
-SymbolCos = Symbol("Cos")
-SymbolCosh = Symbol("Cosh")
-SymbolTan = Symbol("Tan")
-SymbolTanh = Symbol("Tanh")
-SymbolCot = Symbol("Cot")
-SymbolCoth = Symbol("Coth")
 
 
 def sympy_factor(expr_sympy):
@@ -87,8 +88,8 @@ def cancel(expr):
 
 
 def expand(expr, numer=True, denom=False, deep=False, **kwargs):
-    def _expand(expr):
-        return expand(expr, numer=numer, denom=denom, deep=deep, **kwargs)
+    def _expand(expr2):
+        return expand(expr2, numer=numer, denom=denom, deep=deep, **kwargs)
 
     if kwargs["modulus"] is not None and kwargs["modulus"] <= 0:
         return Integer0
@@ -99,7 +100,17 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
     # A special case for trigonometric functions
     if "trig" in kwargs and kwargs["trig"]:
         if expr.has_form(
-            ("Sin", "Cos", "Tan", "Cot", "Sinh", "Cosh", "Tanh", "Coth"), 1
+            (
+                SymbolSin,
+                SymbolCos,
+                SymbolTan,
+                SymbolCot,
+                SymbolSinh,
+                SymbolCosh,
+                SymbolTanh,
+                SymbolCoth,
+            ),
+            1,
         ):
             head = expr.get_head()
             theta = expr.leaves[0]
@@ -123,49 +134,49 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         _expand(Expression(SymbolSin, y)),
                     )
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cos"):
+                elif head == SymbolCos:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCos, x)),
                         _expand(Expression(SymbolCos, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSin, x)),
                         _expand(Expression(SymbolSin, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, -b))
-                elif head == Symbol("Sinh"):
+                elif head == SymbolSinh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cosh"):
+                elif head is SymbolCosh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head is Symbol("Tan"):
+                elif head is SymbolTan:
                     a = _expand(Expression(SymbolSin, theta))
                     b = Expression(
                         SymbolPower, _expand(Expression(SymbolCos, theta)), Integer(-1)
@@ -174,7 +185,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elif head is SymbolCot:
                     a = _expand(Expression(SymbolCos, theta))
                     b = Expression(
-                        "Power", _expand(Expression(SymbolSin, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolSin, theta)), Integer(-1)
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolTanh:
@@ -184,7 +195,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolCoth:
-                    a = _expand(Expression(SymbolTimes, "Cosh", theta))
+                    a = _expand(Expression(SymbolCosh, theta))
                     b = Expression(
                         SymbolPower, _expand(Expression(SymbolSinh, theta)), Integer(-1)
                     )
@@ -256,7 +267,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 sub_exprs[i] = Expression(head, *leaves)
     else:
         # thread over Lists etc.
-        threaded_heads = ("List", "Rule")
+        threaded_heads = (SymbolList, SymbolRule)
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
                 if sub_expr.has_form(head, None):
@@ -308,7 +319,7 @@ def find_all_vars(expr):
             return
         elif e.is_symbol():
             variables.add(e)
-        elif e.has_form(("Plus", "Times"), None):
+        elif e.has_form((SymbolPlus, SymbolTimes), None):
             for l in e.leaves:
                 l_sympy = l.to_sympy()
                 if l_sympy is not None:
@@ -735,9 +746,9 @@ class _Expand(Builtin):
             py_modulus = None
 
         trig = options["System`Trig"]
-        if trig == SymbolTrue:
+        if trig is SymbolTrue:
             py_trig = True
-        elif trig == SymbolFalse:
+        elif trig is SymbolFalse:
             py_trig = False
         else:
             return evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
@@ -813,7 +824,7 @@ class Expand(_Expand):
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
-        if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
+        if target.get_head() in (SymbolRule, SymbolRuleDelayed):
             optname = target.leaves[0].get_name()
             options[optname] = target.leaves[1]
             target = None

@@ -9,7 +9,9 @@ from mathics.core.atoms import (
     Real,
     Number,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+
+SymbolQuantity = Symbol("Quantity")
 
 from pint import UnitRegistry
 
@@ -96,15 +98,15 @@ class UnitConvert(Builtin):
             if q_mag - int(q_mag) > 0:
                 return Expression("Quantity", Real(q_mag), target)
             else:
-                return Expression("Quantity", Integer(q_mag), target)
+                return Expression(SymbolQuantity, Integer(q_mag), target)
 
         if len(evaluation.out) > 0:
             return
 
-        if toUnit.has_form("Quantity", None):
+        if toUnit.has_form(SymbolQuantity, None):
             targetUnit = toUnit.leaves[1].get_string_value().lower()
-        elif toUnit.has_form("List", None):
-            if not toUnit.leaves[0].has_form("Quantity", None):
+        elif toUnit.has_form(SymbolList, None):
+            if not toUnit.leaves[0].has_form(SymbolQuantity, None):
                 return
             else:
                 targetUnit = toUnit.leaves[0].leaves[1].get_string_value().lower()
@@ -112,7 +114,7 @@ class UnitConvert(Builtin):
             targetUnit = toUnit.get_string_value().lower()
         else:
             return
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             abc = []
             for i in range(len(expr.leaves)):
                 abc.append(convert_unit(expr.leaves[i].leaves, targetUnit))
@@ -139,7 +141,7 @@ class UnitConvert(Builtin):
 
         if len(evaluation.out) > 0:
             return
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             abc = []
             for i in range(len(expr.leaves)):
                 abc.append(convert_unit(expr.leaves[i].leaves))
@@ -203,7 +205,7 @@ class Quantity(Builtin):
         "Quantity[mag_, unit_String]"
 
         if self.validate(unit, evaluation):
-            if mag.has_form("List", None):
+            if mag.has_form(SymbolList, None):
                 results = []
                 for i in range(len(mag.leaves)):
                     quantity = Q_(mag.leaves[i], unit.get_string_value().lower())
@@ -308,7 +310,7 @@ class QuantityUnit(Builtin):
 
         if len(evaluation.out) > 0:
             return
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             results = []
             for i in range(len(expr.leaves)):
                 results.append(get_unit(expr.leaves[i].leaves))
@@ -366,7 +368,7 @@ class QuantityMagnitude(Builtin):
 
         if len(evaluation.out) > 0:
             return
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             results = []
             for i in range(len(expr.leaves)):
                 results.append(get_magnitude(expr.leaves[i].leaves))
@@ -392,10 +394,10 @@ class QuantityMagnitude(Builtin):
             return
 
         # Getting the target unit
-        if unit.has_form("Quantity", None):
+        if unit.has_form(SymbolQuantity, None):
             targetUnit = unit.leaves[1].get_string_value().lower()
-        elif unit.has_form("List", None):
-            if not unit.leaves[0].has_form("Quantity", None):
+        elif unit.has_form(SymbolList, None):
+            if not unit.leaves[0].has_form(SymbolQuantity, None):
                 return
             else:
                 targetUnit = unit.leaves[0].leaves[1].get_string_value().lower()
@@ -405,7 +407,7 @@ class QuantityMagnitude(Builtin):
             return
 
         # convert the quantity to the target unit and return the magnitude
-        if expr.has_form("List", None):
+        if expr.has_form(SymbolList, None):
             results = []
             for i in range(len(expr.leaves)):
                 results.append(

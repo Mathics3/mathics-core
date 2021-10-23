@@ -438,11 +438,9 @@ class Expression(BaseExpression):
 
         head = self._head
         if isinstance(heads, (tuple, list, set)):
-            if head not in [h if isinstance(h, Symbol) else Symbol(h) for h in heads]:
+            if all(head is not h for h in heads):
                 return False
         else:
-            if not isinstance(heads, Symbol):
-                heads = Symbol(heads)
             if head is not heads:
                 return False
         if not leaf_counts:

@@ -9,7 +9,13 @@ from mathics.builtin.base import MessageException
 from mathics.builtin.strings import to_python_encoding
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolInputStream,
+    SymbolOutputStream,
+)
 from mathics.core.streams import Stream, path_search, stream_manager
 
 SymbolEndOfFile = Symbol("EndOfFile")
@@ -88,16 +94,16 @@ def channel_to_stream(channel, mode="r"):
         else:
             raise ValueError(f"Unknown format {mode}")
         return Expression(head, channel, Integer(n))
-    elif channel.has_form("InputStream", 2):
+    elif channel.has_form(SymbolInputStream, 2):
         return channel
-    elif channel.has_form("OutputStream", 2):
+    elif channel.has_form(SymbolOutputStream, 2):
         return channel
     else:
         return None
 
 
 def read_name_and_stream_from_channel(channel, evaluation):
-    if channel.has_form("OutputStream", 2):
+    if channel.has_form(SymbolOutputStream, 2):
         evaluation.message("General", "openw", channel)
         return None, None, None
 
@@ -126,7 +132,7 @@ def read_list_from_types(read_types):
     """Return a Mathics List from a list of read_type names or a single read_type"""
 
     # Trun read_types into a list if it isn't already one.
-    if read_types.has_form("List", None):
+    if read_types.has_form(SymbolList, None):
         read_types = read_types._leaves
     else:
         read_types = (read_types,)

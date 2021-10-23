@@ -13,17 +13,17 @@ from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Real, from_mpmath
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 
 
 def matrix_data(m):
-    if not m.has_form("List", None):
+    if not m.has_form(SymbolList, None):
         return None
-    if all(leaf.has_form("List", None) for leaf in m.leaves):
+    if all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
         result = [[item.to_sympy() for item in row.leaves] for row in m.leaves]
         if not any(None in row for row in result):
             return result
-    elif not any(leaf.has_form("List", None) for leaf in m.leaves):
+    elif not any(leaf.has_form(SymbolList, None) for leaf in m.leaves):
         result = [item.to_sympy() for item in m.leaves]
         if None not in result:
             return result
@@ -47,9 +47,9 @@ def to_mpmath_matrix(data, **kwargs):
     """
 
     def mpmath_matrix_data(m):
-        if not m.has_form("List", None):
+        if not m.has_form(SymbolList, None):
             return None
-        if not all(leaf.has_form("List", None) for leaf in m.leaves):
+        if not all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
             return None
         return [[str(item) for item in row.leaves] for row in m.leaves]
 
@@ -262,10 +262,10 @@ class SingularValueDecomposition(Builtin):
 
         U, S, V = mp.svd(matrix)
         S = mp.diag(S)
-        U_list = Expression("List", *U.tolist())
-        S_list = Expression("List", *S.tolist())
-        V_list = Expression("List", *V.tolist())
-        return Expression("List", *[U_list, S_list, V_list])
+        U_list = Expression(SymbolList, *U.tolist())
+        S_list = Expression(SymbolList, *S.tolist())
+        V_list = Expression(SymbolList, *V.tolist())
+        return Expression(SymbolList, *[U_list, S_list, V_list])
 
 
 class QRDecomposition(Builtin):
@@ -299,7 +299,7 @@ class QRDecomposition(Builtin):
         except sympy.matrices.MatrixError:
             return evaluation.message("QRDecomposition", "sympy")
         Q = Q.transpose()
-        return Expression("List", *[from_sympy(Q), from_sympy(R)])
+        return Expression(SymbolList, *[from_sympy(Q), from_sympy(R)])
 
 
 class PseudoInverse(Builtin):
@@ -437,13 +437,13 @@ class LinearSolve(Builtin):
         matrix = matrix_data(m)
         if matrix is None:
             return evaluation.message("LinearSolve", "matrix", m, 1)
-        if not b.has_form("List", None):
+        if not b.has_form(SymbolList, None):
             return
         if len(b.leaves) != len(matrix):
             return evaluation.message("LinearSolve", "lslc")
 
         for leaf in b.leaves:
-            if leaf.has_form("List", None):
+            if leaf.has_form(SymbolList, None):
                 return evaluation.message("LinearSolve", "matrix", b, 2)
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.leaves)]
@@ -732,7 +732,7 @@ class Eigenvalues(Builtin):
             key=lambda v: (abs(v[0]), -v[0].real, -(v[0].imag)), reverse=True
         )
         eigenvalues = [[from_mpmath(c) for c in row] for row in eigenvalues]
-        return Expression("List", *eigenvalues)
+        return Expression(SymbolList, *eigenvalues)
 
     options = {"Method": "sympy"}
 
@@ -764,7 +764,7 @@ class Eigenvalues(Builtin):
                     from_sympy(v) for (v, c) in eigenvalues for _ in range(c)
                 ]
 
-                return Expression("List", *eigenvalues)
+                return Expression(SymbolList, *eigenvalues)
             except TypeError:
                 pass
 
@@ -775,7 +775,7 @@ class Eigenvalues(Builtin):
 
         eigenvalues = [v for (v, c) in eigenvalues for _ in range(c)]
 
-        return Expression("List", *eigenvalues)
+        return Expression(SymbolList, *eigenvalues)
 
 
 class Eigensystem(Builtin):
@@ -1072,9 +1072,9 @@ class Eigenvectors(Builtin):
             # Add the vectors to results
             result.extend(vects)
         result.extend(
-            [Expression("List", *([0] * matrix.rows))] * (matrix.rows - len(result))
+            [Expression(SymbolList, *([0] * matrix.rows))] * (matrix.rows - len(result))
         )
-        return Expression("List", *result)
+        return Expression(SymbolList, *result)
 
 
 def _norm_calc(head, u, v, evaluation):

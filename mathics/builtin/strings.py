@@ -26,6 +26,7 @@ from mathics.core.symbols import (
     SymbolList,
 )
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
@@ -34,7 +35,12 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolInputForm,
     SymbolOutputForm,
+    SymbolPattern,
     SymbolRegularExpression,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolRule,
+    SymbolStringExpression,
 )
 
 from mathics.core.atoms import (
@@ -211,7 +217,7 @@ def to_regex(
             "System`HexidecimalCharacter": r"[0-9a-fA-F]",
         }.get(expr.get_name())
 
-    if expr.has_form("CharacterRange", 2):
+    if expr.has_form(Symbol("CharacterRange"), 2):
         (start, stop) = (leaf.get_string_value() for leaf in expr.leaves)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
@@ -232,36 +238,36 @@ def to_regex(
         leaves = [recurse(leaf) for leaf in leaves]
         if all(leaf is not None for leaf in leaves):
             return "(?!{0}){1}".format(*leaves)
-    if expr.has_form("Characters", 1):
+    if expr.has_form(Symbol("Characters"), 1):
         leaf = expr.leaves[0].get_string_value()
         if leaf is not None:
             return "[{0}]".format(re.escape(leaf))
-    if expr.has_form("StringExpression", None):
+    if expr.has_form(SymbolStringExpression, None):
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if None in leaves:
             return None
         return "".join(leaves)
-    if expr.has_form("Repeated", 1):
+    if expr.has_form(SymbolRepeated, 1):
         leaf = recurse(expr.leaves[0])
         if leaf is not None:
             return "({0})".format(leaf) + q["+"]
-    if expr.has_form("RepeatedNull", 1):
+    if expr.has_form(SymbolRepeatedNull, 1):
         leaf = recurse(expr.leaves[0])
         if leaf is not None:
             return "({0})".format(leaf) + q["*"]
-    if expr.has_form("Alternatives", None):
+    if expr.has_form(SymbolAlternatives, None):
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if all(leaf is not None for leaf in leaves):
             return "|".join(leaves)
-    if expr.has_form("Shortest", 1):
+    if expr.has_form(Symbol("Shortest"), 1):
         return recurse(expr.leaves[0], quantifiers=_regex_shortest)
-    if expr.has_form("Longest", 1):
+    if expr.has_form(Symbol("Longest"), 1):
         return recurse(expr.leaves[0], quantifiers=_regex_longest)
-    if expr.has_form("Pattern", 2) and isinstance(expr.leaves[0], Symbol):
+    if expr.has_form(SymbolPattern, 2) and isinstance(expr.leaves[0], Symbol):
         name = expr.leaves[0].get_name()
         patt = groups.get(name, None)
         if patt is not None:
-            if expr.leaves[1].has_form("Blank", 0):
+            if expr.leaves[1].has_form(SymbolBlank, 0):
                 pass  # ok, no warnings
             elif not expr.leaves[1].sameQ(patt):
                 evaluation.message(
@@ -643,7 +649,7 @@ class _StringFind(Builtin):
 
         # convert rule
         def convert_rule(r):
-            if r.has_form("Rule", None) and len(r.leaves) == 2:
+            if r.has_form(SymbolRule, None) and len(r.leaves) == 2:
                 py_s = to_regex(r.leaves[0], evaluation)
                 if py_s is None:
                     return evaluation.message(

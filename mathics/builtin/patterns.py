@@ -1481,7 +1481,7 @@ class OptionsPattern(PatternObject):
 
     def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
         def _match(leaf):
-            return leaf.has_form(("Rule", "RuleDelayed"), 2) or leaf.has_form(
+            return leaf.has_form((SymbolRule, SymbolRuleDelayed), 2) or leaf.has_form(
                 "List", None
             )
 

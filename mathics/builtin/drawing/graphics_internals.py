@@ -18,7 +18,7 @@ from mathics.core.symbols import system_symbols_dict, Symbol
 
 class _GraphicsElement(InstanceableBuiltin):
     def init(self, graphics, item=None, style=None, opacity=1.0):
-        if item is not None and not item.has_form(self.get_name(), None):
+        if item is not None and not item.get_head() is Symbol(self.get_name()):
             raise BoxConstructError
         self.graphics = graphics
         self.style = style

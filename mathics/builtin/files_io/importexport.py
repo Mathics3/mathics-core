@@ -14,7 +14,9 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList, SymbolNull, strip_context
 from mathics.core.systemsymbols import (
     SymbolRule,
+    SymbolRuleDelayed,
     SymbolFailed,
+    SymbolOutputStream,
 )
 from mathics.core.streams import stream_manager
 
@@ -895,7 +897,7 @@ def _importer_exporter_options(
     custom_options = []
     remaining_options = options.copy()
 
-    if available_options and available_options.has_form("List", None):
+    if available_options and available_options.has_form(SymbolList, None):
         for name in available_options.leaves:
             if isinstance(name, String):
                 py_name = name.get_string_value()
@@ -1093,7 +1095,7 @@ class RegisterImport(Builtin):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
-        if function.has_form("List", None):
+        if function.has_form(SymbolList, None):
             leaves = function.get_leaves()
         else:
             leaves = [function]
@@ -1101,7 +1103,7 @@ class RegisterImport(Builtin):
         if not (
             len(leaves) >= 1
             and isinstance(leaves[-1], Symbol)
-            and all(x.has_form("RuleDelayed", None) for x in leaves[:-1])
+            and all(x.has_form(SymbolRuleDelayed, None) for x in leaves[:-1])
         ):
             # TODO: Message
             return SymbolFailed
@@ -1366,7 +1368,7 @@ class Import(Builtin):
     def _import(findfile, determine_filetype, elements, evaluation, options, data=None):
         current_predetermined_out = evaluation.predetermined_out
         # Check elements
-        if elements.has_form("List", None):
+        if elements.has_form(SymbolList, None):
             elements = elements.get_leaves()
         else:
             elements = [elements]
@@ -1426,7 +1428,7 @@ class Import(Builtin):
                     tmpfile = True
                     stream = Expression("OpenWrite").evaluate(evaluation)
                     findfile = stream.leaves[0]
-                    if not data is None:
+                    if data is not None:
                         Expression("WriteString", data).evaluate(evaluation)
                     else:
                         Expression("WriteString", String("")).evaluate(evaluation)
@@ -1456,7 +1458,7 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
             tmp = tmp.get_leaves()
-            if not all(expr.has_form("Rule", None) for expr in tmp):
+            if not all(expr.has_form(SymbolRule, None) for expr in tmp):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 
@@ -1478,7 +1480,7 @@ class Import(Builtin):
             if default_element == Symbol("Automatic"):
                 evaluation.predetermined_out = current_predetermined_out
                 return Expression(
-                    "List",
+                    SymbolList,
                     *(
                         Expression(SymbolRule, String(key), defaults[key])
                         for key in defaults.keys()
@@ -1846,7 +1848,7 @@ class Export(Builtin):
             )
             res = exporter_function.evaluate(evaluation)
             Expression("Close", stream).evaluate(evaluation)
-        if res == Symbol("Null"):
+        if res is SymbolNull:
             evaluation.predetermined_out = current_predetermined_out
             return filename
         evaluation.predetermined_out = current_predetermined_out
@@ -2011,7 +2013,9 @@ class ExportString(Builtin):
 
             name = "ExportString"
             stream = stream_manager.add(name, mode="w", io=pystream)
-            outstream = Expression("OutputStream", String("String"), Integer(stream.n))
+            outstream = Expression(
+                SymbolOutputStream, String("String"), Integer(stream.n)
+            )
             exporter_function = Expression(
                 exporter_symbol,
                 outstream,

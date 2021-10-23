@@ -36,8 +36,11 @@ from mathics.core.atoms import Integer, Integer0
 from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
+    SymbolHeads,
     SymbolMakeBoxes,
     SymbolSequence,
+    SymbolRule,
+    SymbolRuleDelayed,
 )
 
 from mathics.core.rules import Rule
@@ -192,10 +195,10 @@ class Cases(Builtin):
 
         from mathics.builtin.patterns import Matcher
 
-        if ls.has_form("Rule", 2):
-            if ls.leaves[0].get_name() == "System`Heads":
+        if ls.has_form(SymbolRule, 2):
+            if ls.leaves[0] is SymbolHeads:
                 heads = ls.leaves[1].is_true()
-                ls = Expression("List", 1)
+                ls = Expression(SymbolList, 1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
@@ -208,7 +211,7 @@ class Cases(Builtin):
 
         results = []
 
-        if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
+        if pattern.has_form((SymbolRule, SymbolRuleDelayed), 2):
 
             match = Matcher(pattern.leaves[0]).match
             rule = Rule(pattern.leaves[0], pattern.leaves[1])
@@ -613,7 +616,7 @@ class FirstPosition(Builtin):
                 for i in range(len(expr_list.leaves))
             )
 
-        if level.has_form("List", None):
+        if level.has_form(SymbolList, None):
             len_list = len(level.leaves)
             if len_list > 2 or not is_interger_list(level):
                 return evaluation.message("FirstPosition", "level", level)
@@ -1136,8 +1139,10 @@ class ReplacePart(Builtin):
         new_expr = expr.copy()
         replacements = replacements.get_sequence()
         for replacement in replacements:
-            if not replacement.has_form("Rule", 2) and not replacement.has_form(  # noqa
-                "RuleDelayed", 2
+            if not replacement.has_form(
+                SymbolRule, 2
+            ) and not replacement.has_form(  # noqa
+                SymbolRuleDelayed, 2
             ):
                 evaluation.message(
                     "ReplacePart", "reps", Expression(SymbolList, *replacements)
@@ -1145,7 +1150,7 @@ class ReplacePart(Builtin):
                 return
             position = replacement.leaves[0]
             replace = replacement.leaves[1]
-            if position.has_form("List", None):
+            if position.has_form(SymbolList, None):
                 position = position.get_mutable_leaves()
             else:
                 position = [position]
@@ -1159,7 +1164,7 @@ class ReplacePart(Builtin):
             if position is None:
                 continue
             try:
-                if replacement.get_head_name() == "System`RuleDelayed":
+                if replacement.get_head() is SymbolRuleDelayed:
                     replace_value = replace.evaluate(evaluation)
                 else:
                     replace_value = replace
