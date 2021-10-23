@@ -184,7 +184,7 @@ class Expression(BaseExpression):
 
         head = self._head
         # Here we only need to deal with Expressions.
-        equal_heads = head.equal2(rhs.get_head())
+        equal_heads = head.equal2(rhs._head)
         if not equal_heads:
             return equal_heads
         # From here, we can assume that both heads are the same
