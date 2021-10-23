@@ -380,7 +380,7 @@ class BaseExpression(KeyComparable):
         from mathics.core.atoms import String
 
         options = self
-        if options.has_form("List", None):
+        if options.has_form(SymbolList, None):
             options = options.flatten(SymbolList)
             values = options.leaves
         else:
@@ -392,7 +392,7 @@ class BaseExpression(KeyComparable):
                 options = evaluation.definitions.get_options(symbol_name)
                 option_values.update(options)
             else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
+                if not option.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     if stop_on_error:
                         return None
                     else:
@@ -413,13 +413,13 @@ class BaseExpression(KeyComparable):
 
         list_expr = self.flatten(SymbolList)
         list = []
-        if list_expr.has_form("List", None):
+        if list_expr.has_form(SymbolList, None):
             list.extend(list_expr.leaves)
         else:
             list.append(list_expr)
         rules = []
         for item in list:
-            if not item.has_form(("Rule", "RuleDelayed"), 2):
+            if not item.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return None
             rule = Rule(item.leaves[0], item.leaves[1])
             rules.append(rule)
@@ -782,6 +782,8 @@ SymbolNumberForm = Symbol("System`NumberForm")
 SymbolPostfix = Symbol("System`Postfix")
 SymbolRepeated = Symbol("System`Repeated")
 SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolRule = Symbol("Rule")
+SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSequence = Symbol("System`Sequence")
 SymbolTrue = Symbol("System`True")
 

@@ -36,13 +36,13 @@ from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_color, asy_number
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.atoms import (
     Integer,
     Real,
     String,
 )
-from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import SymbolRule
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):
@@ -60,7 +60,7 @@ class _RoundBox(_GraphicsElement):
             rx = ry = 1
         elif len(item.leaves) == 2:
             r = item.leaves[1]
-            if r.has_form("List", 2):
+            if r.has_form(SymbolList, 2):
                 rx = r.leaves[0].round_to_float()
                 ry = r.leaves[1].round_to_float()
             else:
@@ -383,7 +383,7 @@ class GraphicsBox(BoxConstruct):
         if isinstance(image_size, Integer):
             base_width = image_size.get_int_value()
             base_height = None  # will be computed later in calc_dimensions
-        elif image_size.has_form("System`List", 2):
+        elif image_size.has_form(SymbolList, 2):
             base_width, base_height = (
                 [x.round_to_float() for x in image_size.leaves] + [0, 0]
             )[:2]
@@ -749,18 +749,18 @@ clip(%s);
         axes = graphics_options.get("System`Axes")
         if axes.is_true():
             axes = (True, True)
-        elif axes.has_form("List", 2):
+        elif axes.has_form(SymbolList, 2):
             axes = (axes.leaves[0].is_true(), axes.leaves[1].is_true())
         else:
             axes = (False, False)
         ticks_style = graphics_options.get("System`TicksStyle")
         axes_style = graphics_options.get("System`AxesStyle")
         label_style = graphics_options.get("System`LabelStyle")
-        if ticks_style.has_form("List", 2):
+        if ticks_style.has_form(SymbolList, 2):
             ticks_style = ticks_style.leaves
         else:
             ticks_style = [ticks_style] * 2
-        if axes_style.has_form("List", 2):
+        if axes_style.has_form(SymbolList, 2):
             axes_style = axes_style.leaves
         else:
             axes_style = [axes_style] * 2
@@ -903,7 +903,11 @@ class FilledCurveBox(_GraphicsElement):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
-        if item is not None and item.leaves and item.leaves[0].has_form("List", None):
+        if (
+            item is not None
+            and item.leaves
+            and item.leaves[0].has_form(SymbolList, None)
+        ):
             if len(item.leaves) != 1:
                 raise BoxConstructError
             leaves = item.leaves[0].leaves
@@ -1053,8 +1057,8 @@ class PointBox(_Polyline):
             if len(item.leaves) != 1:
                 raise BoxConstructError
             points = item.leaves[0]
-            if points.has_form("List", None) and len(points.leaves) != 0:
-                if all(not leaf.has_form("List", None) for leaf in points.leaves):
+            if points.has_form(SymbolList, None) and len(points.leaves) != 0:
+                if all(not leaf.has_form(SymbolList, None) for leaf in points.leaves):
                     points = Expression(SymbolList, points)
             self.do_init(graphics, points)
         else:
@@ -1084,7 +1088,7 @@ class PolygonBox(_Polyline):
             self.do_init(graphics, points)
             self.vertex_colors = None
             for leaf in item.leaves[1:]:
-                if not leaf.has_form("Rule", 2):
+                if not leaf.has_form(SymbolRule, 2):
                     raise BoxConstructError
                 name = leaf.leaves[0].get_name()
                 self.process_option(name, leaf.leaves[1])
@@ -1093,7 +1097,7 @@ class PolygonBox(_Polyline):
 
     def process_option(self, name, value):
         if name == "System`VertexColors":
-            if not value.has_form("List", None):
+            if not value.has_form(SymbolList, None):
                 raise BoxConstructError
             black = RGBColor(components=[0, 0, 0, 1])
             self.vertex_colors = [[black] * len(line) for line in self.lines]
@@ -1104,7 +1108,7 @@ class PolygonBox(_Polyline):
                 if line_index >= len(colors):
                     break
                 line_colors = colors[line_index]
-                if not line_colors.has_form("List", None):
+                if not line_colors.has_form(SymbolList, None):
                     continue
                 for index, color in enumerate(line_colors.leaves):
                     if index >= len(self.vertex_colors[line_index]):
@@ -1160,7 +1164,7 @@ class RegularPolygonBox(PolygonBox):
             y = 0.0
             if len(item.leaves) == 3:
                 pos = item.leaves[0]
-                if not pos.has_form("List", 2):
+                if not pos.has_form(SymbolList, 2):
                     raise BoxConstructError
                 x = pos.leaves[0].round_to_float()
                 y = pos.leaves[1].round_to_float()

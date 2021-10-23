@@ -19,33 +19,40 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
     system_symbols,
     ensure_context,
     strip_context,
 )
-from mathics.core.systemsymbols import SymbolSequence
-
-
-SymbolAborted = Symbol("$Aborted")
-SymbolAlternatives = Symbol("Alternatives")
-SymbolBlank = Symbol("System`Blank")
-SymbolBlankSequence = Symbol("System`BlankSequence")
-SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
-SymbolCompile = Symbol("Compile")
-SymbolCompiledFunction = Symbol("CompiledFunction")
-SymbolCondition = Symbol("Condition")
-SymbolDefault = Symbol("Default")
-SymbolDirectedInfinity = Symbol("DirectedInfinity")
-SymbolFunction = Symbol("Function")
-SymbolOptional = Symbol("Optional")
-SymbolOptionsPattern = Symbol("OptionsPattern")
-SymbolPattern = Symbol("Pattern")
-SymbolPatternTest = Symbol("PatternTest")
-SymbolSlot = Symbol("Slot")
-SymbolSlotSequence = Symbol("SlotSequence")
-SymbolTimes = Symbol("Times")
-SymbolVerbatim = Symbol("Verbatim")
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCompile,
+    SymbolCompiledFunction,
+    SymbolCondition,
+    SymbolDefault,
+    SymbolDirectedInfinity,
+    SymbolEvaluate,
+    SymbolFractionBox,
+    SymbolFunction,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolPower,
+    SymbolRowBox,
+    SymbolRule,
+    SymbolSequence,
+    SymbolSlot,
+    SymbolSlotSequence,
+    SymbolStyleBox,
+    SymbolSuperscriptBox,
+    SymbolTimes,
+    SymbolUnevaluated,
+    SymbolVerbatim,
+)
 
 
 symbols_arithmetic_operations = system_symbols(
@@ -224,17 +231,19 @@ class Expression(BaseExpression):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(leaves))
 
-    def _no_symbol(self, symbol_name):
+    def _no_symbol(self, symbol):
         # if this return True, it's safe to say that self.leaves or its
         # sub leaves contain no Symbol with symbol_name. if this returns
         # False, such a Symbol might or might not exist.
+        if not isinstance(symbol, Symbol):
+            return False
 
         cache = self._cache
         if cache is None:
             return False
 
         symbols = cache.symbols
-        if symbols is not None and symbol_name not in symbols:
+        if symbols is not None and symbol.name not in symbols:
             return True
         else:
             return False
@@ -410,7 +419,7 @@ class Expression(BaseExpression):
             res = self._leaves[2]
             if res.is_symbol():
                 return (str(res),)
-            elif res.has_form("List", None):
+            elif res.has_form(SymbolList, None):
                 return set(str(a) for a in res._leaves)
         return set()
 
@@ -419,6 +428,7 @@ class Expression(BaseExpression):
 
     def has_form(self, heads, *leaf_counts):
         """
+        heads: Symbol or List of Symbols
         leaf_counts:
             (,):        no leaves allowed
             (None,):    no constraint on number of leaves
@@ -426,12 +436,14 @@ class Expression(BaseExpression):
             (n1, n2, ...):    leaf count in {n1, n2, ...}
         """
 
-        head_name = self._head.get_name()
+        head = self._head
         if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
+            if head not in [h if isinstance(h, Symbol) else Symbol(h) for h in heads]:
                 return False
         else:
-            if head_name != ensure_context(heads):
+            if not isinstance(heads, Symbol):
+                heads = Symbol(heads)
+            if head is not heads:
                 return False
         if not leaf_counts:
             return False
@@ -448,11 +460,11 @@ class Expression(BaseExpression):
                     return False
         return True
 
-    def has_symbol(self, symbol_name) -> bool:
-        if self._no_symbol(symbol_name):
+    def has_symbol(self, symbol: Symbol) -> bool:
+        if self._no_symbol(symbol):
             return False
-        return self._head.has_symbol(symbol_name) or any(
-            leaf.has_symbol(symbol_name) for leaf in self._leaves
+        return self._head.has_symbol(symbol) or any(
+            leaf.has_symbol(symbol) for leaf in self._leaves
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
@@ -648,14 +660,14 @@ class Expression(BaseExpression):
             if head is SymbolTimes:
                 for leaf in self._leaves:
                     name = leaf.get_name()
-                    if leaf.has_form("Power", 2):
+                    if leaf.has_form(SymbolPower, 2):
                         var = leaf._leaves[0].get_name()
                         exp = leaf._leaves[1].round_to_float()
                         if var and exp is not None:
                             exps[var] = exps.get(var, 0) + exp
                     elif name:
                         exps[name] = exps.get(name, 0) + 1
-            elif self.has_form("Power", 2):
+            elif self.has_form(SymbolPower, 2):
                 var = self._leaves[0].get_name()
                 exp = self._leaves[1].round_to_float()
                 if var and exp is not None:
@@ -691,7 +703,7 @@ class Expression(BaseExpression):
     ) -> "Expression":
         if level is not None and level <= 0:
             return self
-        if self._no_symbol(head.get_name()):
+        if self._no_symbol(head):
             return self
         sub_level = None if level is None else level - 1
         do_flatten = False
@@ -784,17 +796,17 @@ class Expression(BaseExpression):
 
         def rest_range(indices):
             if "System`HoldAllComplete" not in attributes:
-                if self._no_symbol("System`Evaluate"):
+                if self._no_symbol(Symbol("System`Evaluate")):
                     return
                 for index in indices:
                     leaf = leaves[index]
-                    if leaf.has_form("Evaluate", 1):
+                    if leaf.has_form(SymbolEvaluate, 1):
                         leaves[index] = leaf.evaluate(evaluation)
 
         def eval_range(indices):
             for index in indices:
                 leaf = leaves[index]
-                if not leaf.has_form("Unevaluated", 1):
+                if not leaf.has_form(SymbolUnevaluated, 1):
                     leaf = leaf.evaluate(evaluation)
                     if leaf:
                         leaves[index] = leaf
@@ -829,7 +841,7 @@ class Expression(BaseExpression):
             dirty_leaves = None
 
             for index, leaf in enumerate(leaves):
-                if leaf.has_form("Unevaluated", 1):
+                if leaf.has_form(SymbolUnevaluated, 1):
                     if dirty_leaves is None:
                         dirty_leaves = list(leaves)
                     dirty_leaves[index] = leaf._leaves[0]
@@ -921,10 +933,10 @@ class Expression(BaseExpression):
         return "<Expression: %s>" % self
 
     def process_style_box(self, options):
-        if self.has_form("StyleBox", 1, None):
+        if self.has_form(SymbolStyleBox, 1, None):
             rules = self._leaves[1:]
             for rule in rules:
-                if rule.has_form("Rule", 2):
+                if rule.has_form(SymbolRule, 2):
                     name = rule._leaves[0].get_name()
                     value = rule._leaves[1]
                     if name == "System`ShowStringCharacters":
@@ -932,7 +944,7 @@ class Expression(BaseExpression):
                         options = options.copy()
                         options["show_string_characters"] = value
                     elif name == "System`ImageSizeMultipliers":
-                        if value.has_form("List", 2):
+                        if value.has_form(SymbolList, 2):
                             m1 = value._leaves[0].round_to_float()
                             m2 = value._leaves[1].round_to_float()
                             if m1 is not None and m2 is not None:
@@ -946,15 +958,15 @@ class Expression(BaseExpression):
         is_style, options = self.process_style_box(options)
         if is_style:
             return self._leaves[0].boxes_to_text(**options)
-        if self.has_form("RowBox", 1) and self._leaves[0].has_form(  # nopep8
-            "List", None
+        if self.has_form(SymbolRowBox, 1) and self._leaves[0].has_form(  # nopep8
+            SymbolList, None
         ):
             return "".join(
                 [leaf.boxes_to_text(**options) for leaf in self._leaves[0]._leaves]
             )
-        elif self.has_form("SuperscriptBox", 2):
+        elif self.has_form(SymbolSuperscriptBox, 2):
             return "^".join([leaf.boxes_to_text(**options) for leaf in self._leaves])
-        elif self.has_form("FractionBox", 2):
+        elif self.has_form(SymbolFractionBox, 2):
             return "/".join(
                 [" ( " + leaf.boxes_to_text(**options) + " ) " for leaf in self._leaves]
             )
@@ -977,7 +989,7 @@ class Expression(BaseExpression):
             options = options.copy()
 
             def is_list_interior(content):
-                if content.has_form("List", None) and all(
+                if content.has_form(SymbolList, None) and all(
                     leaf.get_string_value() == "," for leaf in content._leaves[1::2]
                 ):
                     return True
@@ -988,7 +1000,7 @@ class Expression(BaseExpression):
                 len(self._leaves[0]._leaves) == 3
                 and self._leaves[0]._leaves[0].get_string_value() == "{"  # nopep8
                 and self._leaves[0]._leaves[2].get_string_value() == "}"
-                and self._leaves[0]._leaves[1].has_form("RowBox", 1)
+                and self._leaves[0]._leaves[1].has_form(SymbolRowBox, 1)
             ):
                 content = self._leaves[0]._leaves[1]._leaves[0]
                 if is_list_interior(content):
@@ -1108,14 +1120,15 @@ class Expression(BaseExpression):
             leaves.sort()
         self.set_reordered_leaves(leaves)
 
-    def filter_leaves(self, head_name):
+    def filter_leaves(self, head):
         # TODO: should use sorting
-        head_name = ensure_context(head_name)
+        if isinstance(head, str):
+            head = Symbol(head)
 
-        if self._no_symbol(head_name):
+        if self._no_symbol(head):
             return []
         else:
-            return [leaf for leaf in self._leaves if leaf.get_head_name() == head_name]
+            return [leaf for leaf in self._leaves if leaf._head is head]
 
     def apply_rules(self, rules, evaluation, level=0, options=None):
         """for rule in rules:
@@ -1184,7 +1197,8 @@ class Expression(BaseExpression):
                 self._head is SymbolFunction
                 and len(self._leaves) > 1
                 and (
-                    self._leaves[0].has_form("List", None) or self._leaves[0].get_name()
+                    self._leaves[0].has_form(SymbolList, None)
+                    or self._leaves[0].get_name()
                 )
             ):
                 if self._leaves[0].get_name():

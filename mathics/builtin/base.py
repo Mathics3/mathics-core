@@ -663,12 +663,14 @@ class BoxConstruct(InstanceableBuiltin):
             (n1, n2, ...):    leaf count in {n1, n2, ...}
         """
 
-        head_name = self.get_name()
+        head = Symbol(self.get_name())
         if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
+            if head not in [h if isinstance(h, Symbol) else Symbol(h) for h in heads]:
                 return False
         else:
-            if head_name != ensure_context(heads):
+            if not isinstance(head, Symbol):
+                heads = Symbol(heads)
+            if head is not heads:
                 return False
         if not leaf_counts:
             return False

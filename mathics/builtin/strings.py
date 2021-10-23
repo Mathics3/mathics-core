@@ -25,7 +25,18 @@ from mathics.core.symbols import (
     SymbolTrue,
     SymbolList,
 )
-from mathics.core.systemsymbols import SymbolFailed, SymbolDirectedInfinity
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolDirectedInfinity,
+    SymbolExcept,
+    SymbolFailed,
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolRegularExpression,
+)
+
 from mathics.core.atoms import (
     String,
     Integer,
@@ -38,10 +49,8 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
 
-SymbolBlank = Symbol("Blank")
-SymbolOutputForm = Symbol("OutputForm")
 SymbolToExpression = Symbol("ToExpression")
-SymbolInputForm = Symbol("InputForm")
+
 
 _regex_longest = {
     "+": "+",
@@ -174,7 +183,7 @@ def to_regex(
         else:
             result = re.escape(result)
         return result
-    if expr.has_form("RegularExpression", 1):
+    if expr.has_form(SymbolRegularExpression, 1):
         regex = expr.leaves[0].get_string_value()
         if regex is None:
             return regex
@@ -207,13 +216,13 @@ def to_regex(
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
 
-    if expr.has_form("Blank", 0):
+    if expr.has_form(SymbolBlank, 0):
         return r"(.|\n)"
-    if expr.has_form("BlankSequence", 0):
+    if expr.has_form(SymbolBlankSequence, 0):
         return r"(.|\n)" + q["+"]
-    if expr.has_form("BlankNullSequence", 0):
+    if expr.has_form(SymbolBlankNullSequence, 0):
         return r"(.|\n)" + q["*"]
-    if expr.has_form("Except", 1, 2):
+    if expr.has_form(SymbolExcept, 1, 2):
         if len(expr.leaves) == 1:
             # TODO: Check if this shouldn't be SymbolBlank
             # instad of SymbolBlank[]
@@ -550,7 +559,7 @@ class LetterNumber(Builtin):
                         cp = alphabet["Uppercase"].find(c) + 1
                     r.append(cp)
                 return Expression(SymbolList, *r)
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for leaf in chars.leaves:
                 result.append(self.apply_alpha_str(leaf, alpha, evaluation))
@@ -574,7 +583,7 @@ class LetterNumber(Builtin):
                     for c in py_chars
                 ]
                 return Expression(SymbolList, *r)
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for leaf in chars.leaves:
                 result.append(self.apply(leaf, evaluation))
@@ -623,7 +632,7 @@ class _StringFind(Builtin):
             expr = Expression(self.get_name(), string, rule, n)
 
         # convert string
-        if string.has_form("List", None):
+        if string.has_form(SymbolList, None):
             py_strings = [stri.get_string_value() for stri in string.leaves]
             if None in py_strings:
                 return evaluation.message(self.get_name(), "strse", Integer1, expr)
@@ -650,7 +659,7 @@ class _StringFind(Builtin):
 
             return evaluation.message(self.get_name(), "srep", r)
 
-        if rule.has_form("List", None):
+        if rule.has_form(SymbolList, None):
             py_rules = [convert_rule(r) for r in rule.leaves]
         else:
             py_rules = [convert_rule(rule)]
@@ -1036,7 +1045,7 @@ class Transliterate(Builtin):
 
 def _pattern_search(name, string, patt, evaluation, options, matched):
     # Get the pattern list and check validity for each
-    if patt.has_form("List", None):
+    if patt.has_form(SymbolList, None):
         patts = patt.get_leaves()
     else:
         patts = [patt]
@@ -1057,7 +1066,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         return SymbolFalse if matched else SymbolTrue
 
     # Check string validity and perform regex searchhing
-    if string.has_form("List", None):
+    if string.has_form(SymbolList, None):
         py_s = [s.get_string_value() for s in string.leaves]
         if any(s is None for s in py_s):
             return evaluation.message(

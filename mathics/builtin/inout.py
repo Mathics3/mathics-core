@@ -29,6 +29,7 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.expression import Expression, BoxError
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue, SymbolFalse, SymbolNull
 
+
 from mathics.core.atoms import (
     String,
     StringFromPython,
@@ -39,9 +40,27 @@ from mathics.core.atoms import (
     PrecisionReal,
 )
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolFullForm,
+    SymbolHold,
+    SymbolHoldForm,
+    SymbolInfinity,
+    SymbolInfix,
     SymbolMakeBoxes,
+    SymbolMessageName,
+    SymbolNumberForm,
+    SymbolOutputForm,
+    SymbolPostfix,
+    SymbolPrecedenceForm,
+    SymbolPrefix,
+    SymbolRow,
+    SymbolRowBox,
     SymbolRule,
+    SymbolRuleDelayed,
+    SymbolSubscriptBox,
+    SymbolSuperscriptBox,
 )
+
 from mathics.core.number import (
     dps,
     convert_base,
@@ -52,18 +71,6 @@ from mathics.core.number import (
 from mathics.core.evaluation import Message as EvaluationMessage
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
-
-SymbolAutomatic = Symbol("Automatic")
-SymbolFullForm = Symbol("FullForm")
-SymbolInfinity = Symbol("Infinity")
-SymbolMessageName = Symbol("MessageName")
-SymbolNumberForm = Symbol("NumberForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolRow = Symbol("Row")
-SymbolRowBox = Symbol("RowBox")
-SymbolRuleDelayed = Symbol("RuleDelayed")
-SymbolSuperscriptBox = Symbol("SuperscriptBox")
-SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
 class Format(Builtin):
@@ -100,11 +107,11 @@ class Format(Builtin):
 def parenthesize(precedence, leaf, leaf_boxes, when_equal):
     from mathics.builtin import builtins_precedence
 
-    while leaf.has_form("HoldForm", 1):
+    while leaf.has_form(SymbolHoldForm, 1):
         leaf = leaf.leaves[0]
-    if leaf.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+    if leaf.has_form((SymbolInfix, SymbolPrefix, SymbolPostfix), 3, None):
         leaf_prec = leaf.leaves[2].get_int_value()
-    elif leaf.has_form("PrecedenceForm", 2):
+    elif leaf.has_form(SymbolPrecedenceForm, 2):
         leaf_prec = leaf.leaves[1].get_int_value()
     else:
         leaf_prec = builtins_precedence.get(leaf.get_head_name())
@@ -582,7 +589,7 @@ class MakeBoxes(Builtin):
 
         leaves = expr.get_leaves()
         if len(leaves) > 1:
-            if h.has_form("List", len(leaves) - 1):
+            if h.has_form(SymbolList, len(leaves) - 1):
                 ops = [get_op(op) for op in h.leaves]
             else:
                 ops = [get_op(h)] * (len(leaves) - 1)
@@ -705,8 +712,8 @@ class GridBox(BoxConstruct):
         if not leaves:
             raise BoxConstructError
         expr = leaves[0]
-        if not expr.has_form("List", None):
-            if not all(leaf.has_form("List", None) for leaf in expr.leaves):
+        if not expr.has_form(SymbolList, None):
+            if not all(leaf.has_form(SymbolList, None) for leaf in expr.leaves):
                 raise BoxConstructError
         items = [leaf.leaves for leaf in expr.leaves]
         if not is_constant_list([len(row) for row in items]):
@@ -1250,7 +1257,7 @@ class Message(Builtin):
 
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
-    if expr.has_form("MessageName", 2):
+    if expr.has_form(SymbolMessageName, 2):
         symbol, tag = expr.get_leaves()
         if symbol.get_name() and tag.get_string_value():
             return True
@@ -1349,7 +1356,7 @@ class Check(Builtin):
         def get_msg_list(exprs):
             messages = []
             for expr in exprs:
-                if expr.has_form("List", None):
+                if expr.has_form(SymbolList, None):
                     messages.extend(get_msg_list(expr.leaves))
                 elif check_message(expr):
                     messages.append(expr)
@@ -1460,7 +1467,7 @@ class Quiet(Builtin):
             elif expr.get_name() == "System`None":
                 all = False
                 messages = []
-            elif expr.has_form("List", None):
+            elif expr.has_form(SymbolList, None):
                 all = False
                 messages = []
                 for item in expr.leaves:
@@ -2194,7 +2201,7 @@ class _NumberForm(Builtin):
             return [0, 0]
         elif py_value is not None and py_value > 0:
             return [py_value, py_value]
-        elif value.has_form("List", 2):
+        elif value.has_form(SymbolList, 2):
             nleft, nright = value.leaves
             py_left, py_right = nleft.get_int_value(), nright.get_int_value()
             if nleft.sameQ(SymbolInfinity):
@@ -2258,7 +2265,7 @@ class _NumberForm(Builtin):
         return evaluation.message(self.get_name(), "opttf", value)
 
     def _check_List2str(self, value, msg, evaluation):
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             result = [leaf.get_string_value() for leaf in value.leaves]
             if None not in result:
                 return result

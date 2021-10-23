@@ -9,10 +9,17 @@ from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
     SymbolN,
+    SymbolList,
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolPattern,
+    SymbolMachinePrecision,
+    SymbolHoldPattern,
+    SymbolRuleDelayed,
+)
 
 
 class AssignmentException(Exception):
@@ -53,7 +60,7 @@ def build_rulopc(optval):
 
 
 def get_symbol_list(list, error_callback):
-    if list.has_form("List", None):
+    if list.has_form(SymbolList, None):
         list = list.leaves
     else:
         list = [list]
@@ -81,11 +88,11 @@ def get_symbol_values(symbol, func_name, position, evaluation):
     for rule in definition.get_values_list(position):
         if isinstance(rule, Rule):
             pattern = rule.pattern
-            if pattern.has_form("HoldPattern", 1):
+            if pattern.has_form(SymbolHoldPattern, 1):
                 pattern = pattern.expr
             else:
-                pattern = Expression("HoldPattern", pattern.expr)
-            leaves.append(Expression("RuleDelayed", pattern, rule.replace))
+                pattern = Expression(SymbolHoldPattern, pattern.expr)
+            leaves.append(Expression(SymbolRuleDelayed, pattern, rule.replace))
     return Expression("List", *leaves)
 
 
@@ -98,8 +105,8 @@ def repl_pattern_by_symbol(expr):
     if len(leaves) == 0:
         return expr
 
-    headname = expr.get_head_name()
-    if headname == "System`Pattern":
+    head = expr.get_head()
+    if head is SymbolPattern:
         return leaves[0]
 
     changed = False
@@ -110,7 +117,7 @@ def repl_pattern_by_symbol(expr):
             changed = True
         newleaves.append(leaf)
     if changed:
-        return Expression(headname, *newleaves)
+        return Expression(head, *newleaves)
     else:
         return expr
 
@@ -284,7 +291,9 @@ def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
     context_path = [
         s if (s is None or s[0] != "`") else currContext[:-1] + s for s in context_path
     ]
-    if rhs.has_form("List", None) and all(valid_context_name(s) for s in context_path):
+    if rhs.has_form(SymbolList, None) and all(
+        valid_context_name(s) for s in context_path
+    ):
         evaluation.definitions.set_context_path(context_path)
         return True
     else:
@@ -310,7 +319,7 @@ def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
 def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
-    if rhs.has_form("DirectedInfinity", 1) and rhs.leaves[0].get_int_value() == 1:
+    if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.leaves[0].get_int_value() == 1:
         return False
     elif rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
