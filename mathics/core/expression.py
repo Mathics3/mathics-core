@@ -157,8 +157,8 @@ class Expression(BaseExpression):
         from mathics.builtin.base import BoxConstruct
 
         self = super().__new__(cls)
-        if not all(isinstance(leaf, BaseExpression) for leaf in leaves):
-            print("   ->", leaves)
+        # if not all(isinstance(leaf, BaseExpression) for leaf in leaves):
+        #    print("   ->", leaves)
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head

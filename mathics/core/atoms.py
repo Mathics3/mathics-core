@@ -241,10 +241,9 @@ class Rational(Number):
     def denominator(self) -> "Integer":
         return Integer(self.value.as_numer_denom()[1])
 
-    def do_format(self, evaluation, form) -> "Expression":
+    def do_format(self, evaluation, form: Symbol) -> "Expression":
         from mathics.core.expression import Expression
 
-        assert isinstance(form, Symbol)
         if form is SymbolFullForm:
             return Expression(
                 Expression(SymbolHoldForm, SymbolRational),
@@ -570,10 +569,8 @@ class Complex(Number):
     def to_mpmath(self):
         return mpmath.mpc(self.real.to_mpmath(), self.imag.to_mpmath())
 
-    def do_format(self, evaluation, form) -> "Expression":
+    def do_format(self, evaluation, form: Symbol) -> "Expression":
         from mathics.core.expression import Expression
-
-        assert isinstance(form, Symbol)
 
         if form is SymbolFullForm:
             return Expression(

@@ -272,7 +272,7 @@ class BaseExpression(KeyComparable):
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
-                    expr = self.create_expression(Symbol(form), expr)
+                    expr = self.create_expression(form, expr)
                     expr.unformatted = unformatted
                 return expr
 
@@ -642,8 +642,6 @@ class Symbol(Atom):
     defined_symbols = {}
 
     def __new__(cls, name, sympy_dummy=None):
-        if not isinstance(name, str):
-            print(name)
         name = ensure_context(name)
         self = cls.defined_symbols.get(name, None)
         if self is None:
@@ -749,6 +747,7 @@ class Symbol(Atom):
         return self is not other
 
     def replace_vars(self, vars, options={}, in_scoping=True):
+        # TODO: vars should be also symbols...
         assert all(fully_qualified_symbol_name(v) for v in vars)
         var = vars.get(self.name, None)
         if var is None:

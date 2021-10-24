@@ -7,7 +7,7 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.atoms import Integer, from_python
+from mathics.core.atoms import Integer, Integer1, from_python
 from mathics.core.systemsymbols import SymbolInfinity, SymbolAll
 from mathics.core.subexpression import SubExpression
 
