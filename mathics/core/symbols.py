@@ -457,28 +457,40 @@ class BaseExpression(KeyComparable):
         return self.create_expression("Times", self, Integer(-1))
 
     def __add__(self, other) -> "BaseExpression":
-        return self.create_expression("Plus", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Plus", self, from_python(other))
 
     def __sub__(self, other) -> "BaseExpression":
-        from mathics.core.atoms import Integer
+        from mathics.core.atoms import Integer, from_python
 
         return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, Integer(-1))
+            "Plus",
+            self,
+            self.create_expression("Times", from_python(other), Integer(-1)),
         )
 
     def __mul__(self, other) -> "BaseExpression":
-        return self.create_expression("Times", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Times", self, from_python(other))
 
     def __truediv__(self, other) -> "BaseExpression":
-        return self.create_expression("Divide", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Divide", self, from_python(other))
 
     def __floordiv__(self, other) -> "BaseExpression":
+        from mathics.core.atoms import from_python
+
         return self.create_expression(
-            "Floor", self.create_expression("Divide", self, other)
+            "Floor", self.create_expression("Divide", self, from_python(other))
         )
 
     def __pow__(self, other) -> "BaseExpression":
-        return self.create_expression("Power", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Power", self, from_python(other))
 
 
 class Monomial(object):

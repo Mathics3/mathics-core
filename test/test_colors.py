@@ -14,7 +14,7 @@ from mathics.builtin.numpy_utils import array, stacked, vectorize
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-
+from mathics.core.atoms import Real, String
 
 _color_tests = [
     [
@@ -211,18 +211,20 @@ class ColorTest(unittest.TestCase):
                 for to_space in spaces[i + 1 :]:
                     try:
                         construct_name = space_to_head(from_space)
-                        source_color = Expression(construct_name, *original)
+                        source_color = Expression(
+                            construct_name, *[Real(cc) for cc in original]
+                        )
 
                         # now calculate from_space -> to_space -> from_space
                         target_color = Expression(
-                            "ColorConvert", source_color, to_space
+                            "ColorConvert", source_color, String(to_space)
                         ).evaluate(self.evaluation)
                         self.assertEqual(
                             target_color.get_head_name(), space_to_head(to_space)
                         )
 
                         checked_color = Expression(
-                            "ColorConvert", target_color, from_space
+                            "ColorConvert", target_color, String(from_space)
                         ).evaluate(self.evaluation)
                         self.assertEqual(
                             checked_color.get_head_name(), source_color.get_head_name()
@@ -336,11 +338,14 @@ class ColorTest(unittest.TestCase):
         components = [
             c.to_python()
             for c in Expression(
-                "ColorConvert", Expression(construct_name, *from_components), to_space
+                "ColorConvert",
+                Expression(construct_name, *[Real(cc) for cc in from_components]),
+                String(to_space),
             )
             .evaluate(self.evaluation)
             .leaves
         ]
+        print("**********************************************Components:", components)
         self.assertEqual(len(components), len(to_components))
         for x, y in zip(components, to_components):
             self.assertAlmostEqual(x, y, places)

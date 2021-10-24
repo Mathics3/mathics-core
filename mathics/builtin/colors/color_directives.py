@@ -587,5 +587,4 @@ def color_to_expression(components, colorspace):
         converted_color_name = "Hue"
     else:
         converted_color_name = colorspace + "Color"
-    print(components)
-    return Expression(converted_color_name, *components)
+    return Expression(converted_color_name, *[MachineReal(cc) for cc in components])
