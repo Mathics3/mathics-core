@@ -207,7 +207,14 @@ def _part_selectors(indices):
 
 def _list_parts(items, selectors, evaluation, assignment):
     """
-    _list_parts looks recursively by the parts specified by selectors.
+    _list_parts returns an generator of Expressions using selectors to pick out parts of `items`.
+    If `selectors` is empty then a generator of items is returned.
+
+    If a selector in `selectors` is a tuple it consists of a function to determine whether or
+    not to select an expression and a optional function to unwrap the resulting selected expressions.
+
+    `evaluation` is used in  expression restructuring an unwrapped expression when the there neither an assignment nor a
+    unwrapping function in the selector.
     """
     if not selectors:
         for item in items:
