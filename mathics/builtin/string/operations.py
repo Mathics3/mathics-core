@@ -19,6 +19,8 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolDirectedInfinity
+
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -33,6 +35,9 @@ from mathics.builtin.strings import (
     mathics_split,
     to_regex,
 )
+
+
+SymbolAll = Symbol("All")
 
 
 class StringDrop(Builtin):
@@ -286,7 +291,7 @@ class StringInsert(Builtin):
 
         # Check and create list of position
         listpos = []
-        if pos.has_form("List", None):
+        if pos.has_form(SymbolList, None):
             leaves = pos.get_leaves()
             if not leaves:
                 return strsource
@@ -303,7 +308,7 @@ class StringInsert(Builtin):
             listpos.append(py_pos)
 
         # Check and perform the insertion
-        if strsource.has_form("List", None):
+        if strsource.has_form(SymbolList, None):
             py_strsource = [sub.get_string_value() for sub in strsource.leaves]
             if any(sub is None for sub in py_strsource):
                 return evaluation.message("StringInsert", "strse", Integer1, exp)
@@ -351,7 +356,7 @@ class StringJoin(BinaryOperator):
 
         result = ""
         items = items.flatten(SymbolList)
-        if items.get_head_name() == "System`List":
+        if items.get_head() is SymbolList:
             items = items.leaves
         else:
             items = items.get_sequence()
@@ -470,7 +475,7 @@ class StringPosition(Builtin):
         return self.apply_n(
             string,
             patt,
-            Expression("DirectedInfinity", Integer1),
+            Expression(SymbolDirectedInfinity, Integer1),
             evaluation,
             options,
         )
@@ -481,7 +486,7 @@ class StringPosition(Builtin):
         expr = Expression("StringPosition", string, patt, n)
 
         # check n
-        if n.has_form("DirectedInfinity", 1):
+        if n.has_form(SymbolDirectedInfinity, 1):
             py_n = float("inf")
         else:
             py_n = n.get_int_value()
@@ -493,7 +498,7 @@ class StringPosition(Builtin):
             overlap = True
         elif options["System`Overlaps"] == SymbolFalse:
             overlap = False
-        elif options["System`Overlaps"] == Symbol("All"):
+        elif options["System`Overlaps"] == SymbolAll:
             # TODO
             evaluation.message("StringPosition", "overall")
             overlap = True
@@ -501,7 +506,7 @@ class StringPosition(Builtin):
             overlap = False  # unknown options are teated as False
 
         # convert patterns
-        if patt.has_form("List", None):
+        if patt.has_form(SymbolList, None):
             patts = patt.get_leaves()
         else:
             patts = [patt]
@@ -514,7 +519,7 @@ class StringPosition(Builtin):
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 
         # string or list of strings
-        if string.has_form("List", None):
+        if string.has_form(SymbolList, None):
             py_strings = [s.get_string_value() for s in string.leaves]
             if None in py_strings:
                 return
@@ -770,7 +775,7 @@ class StringRiffle(Builtin):
         if len(separators) > 1:
             return evaluation.message("StringRiffle", "mulsep")
         elif len(separators) == 1:
-            if separators[0].has_form("List", None):
+            if separators[0].has_form(SymbolList, None):
                 if len(separators[0].leaves) != 3 or any(
                     not isinstance(s, String) for s in separators[0].leaves
                 ):
@@ -779,10 +784,10 @@ class StringRiffle(Builtin):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string
-        if not liststr.has_form("List", None):
+        if not liststr.has_form(SymbolList, None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
             return evaluation.message("StringRiffle", "argmu", exp)
-        elif any(leaf.has_form("List", None) for leaf in liststr.leaves):
+        elif any(leaf.has_form(SymbolList, None) for leaf in liststr.leaves):
             return evaluation.message("StringRiffle", "sublist")
 
         # Determine the separation token
@@ -790,7 +795,7 @@ class StringRiffle(Builtin):
         if len(separators) == 0:
             sep = " "
         else:
-            if separators[0].has_form("List", None):
+            if separators[0].has_form(SymbolList, None):
                 left = separators[0].leaves[0].value
                 sep = separators[0].leaves[1].value
                 right = separators[0].leaves[2].value
@@ -886,7 +891,7 @@ class StringSplit(Builtin):
     def apply(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
-        if string.get_head_name() == "System`List":
+        if string.get_head() is SymbolList:
             leaves = [self.apply(s, patt, evaluation, options) for s in string._leaves]
             return Expression(SymbolList, *leaves)
 
@@ -897,7 +902,7 @@ class StringSplit(Builtin):
                 "StringSplit", "strse", Integer1, Expression("StringSplit", string)
             )
 
-        if patt.has_form("List", None):
+        if patt.has_form(SymbolList, None):
             patts = patt.get_leaves()
         else:
             patts = [patt]

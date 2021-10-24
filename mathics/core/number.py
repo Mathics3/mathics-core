@@ -9,6 +9,13 @@ import string
 
 import typing
 
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolMinPrecision,
+    SymbolMaxPrecision,
+    SymbolMachinePrecision,
+)
+
 C = log(10, 2)  # ~ 3.3219280948873626
 
 
@@ -40,7 +47,7 @@ class SpecialValueError(Exception):
 
 def _get_float_inf(value, evaluation) -> typing.Optional[float]:
     value = value.evaluate(evaluation)
-    if value.has_form("DirectedInfinity", 1):
+    if value.has_form(SymbolDirectedInfinity, 1):
         if value.leaves[0].get_int_value() == 1:
             return float("inf")
         elif value.leaves[0].get_int_value() == -1:
@@ -51,14 +58,13 @@ def _get_float_inf(value, evaluation) -> typing.Optional[float]:
 
 
 def get_precision(value, evaluation) -> typing.Optional[int]:
-    if value.get_name() == "System`MachinePrecision":
+    if value is SymbolMachinePrecision:
         return None
     else:
-        from mathics.core.symbols import Symbol
         from mathics.core.atoms import MachineReal
 
-        dmin = _get_float_inf(Symbol("$MinPrecision"), evaluation)
-        dmax = _get_float_inf(Symbol("$MaxPrecision"), evaluation)
+        dmin = _get_float_inf(SymbolMinPrecision, evaluation)
+        dmax = _get_float_inf(SymbolMaxPrecision, evaluation)
         d = value.round_to_float(evaluation)
         assert dmin is not None and dmax is not None
         if d is None:

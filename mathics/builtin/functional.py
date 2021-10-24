@@ -13,6 +13,8 @@ from itertools import chain
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
+from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import SymbolFunction
 
 
 class Function(PostfixOperator):
@@ -74,13 +76,13 @@ class Function(PostfixOperator):
     def apply_slots(self, body, args, evaluation):
         "Function[body_][args___]"
 
-        args = list(chain([Expression("Function", body)], args.get_sequence()))
+        args = list(chain([Expression(SymbolFunction, body)], args.get_sequence()))
         return body.replace_slots(args, evaluation)
 
     def apply_named(self, vars, body, args, evaluation):
         "Function[vars_, body_][args___]"
 
-        if vars.has_form("List", None):
+        if vars.has_form(SymbolList, None):
             vars = vars.leaves
         else:
             vars = [vars]
@@ -106,7 +108,7 @@ class Function(PostfixOperator):
     # Not sure if DRY is possible here...
     def apply_named_attr(self, vars, body, attr, args, evaluation):
         "Function[vars_, body_, attr_][args___]"
-        if vars.has_form("List", None):
+        if vars.has_form(SymbolList, None):
             vars = vars.leaves
         else:
             vars = [vars]

@@ -14,6 +14,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolAll, SymbolDirectedInfinity, SymbolSubsets
 from mathics.builtin.arithmetic import _MPMathFunction
 from itertools import combinations
 
@@ -427,13 +428,13 @@ class Subsets(Builtin):
     def apply_2(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
 
-        expr = Expression("Subsets", list, n)
+        expr = Expression(SymbolSubsets, list, n)
 
         if list.is_atom():
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
-            if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
+            if n is SymbolAll or n.has_form(SymbolDirectedInfinity, 1):
                 return self.apply(list, evaluation)
 
             n_len = len(n.leaves)
@@ -453,7 +454,7 @@ class Subsets(Builtin):
                 elem1 = n.leaves[0].get_int_value()
                 elem2 = (
                     n.leaves[1].get_int_value()
-                    if not n.leaves[1].has_form("DirectedInfinity", 1)
+                    if not n.leaves[1].has_form(SymbolDirectedInfinity, 1)
                     else len(list.leaves) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
@@ -466,7 +467,7 @@ class Subsets(Builtin):
                 elem1 = n.leaves[0].get_int_value()
                 elem2 = (
                     n.leaves[1].get_int_value()
-                    if not n.leaves[1].has_form("DirectedInfinity", 1)
+                    if not n.leaves[1].has_form(SymbolDirectedInfinity, 1)
                     else len(list.leaves) + 1
                 )
                 elem3 = n.leaves[2].get_int_value()

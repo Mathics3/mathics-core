@@ -27,7 +27,8 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue, SymbolFalse, SymbolNull
+
 
 from mathics.core.atoms import (
     String,
@@ -39,9 +40,27 @@ from mathics.core.atoms import (
     PrecisionReal,
 )
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolFullForm,
+    SymbolHold,
+    SymbolHoldForm,
+    SymbolInfinity,
+    SymbolInfix,
     SymbolMakeBoxes,
+    SymbolMessageName,
+    SymbolNumberForm,
+    SymbolOutputForm,
+    SymbolPostfix,
+    SymbolPrecedenceForm,
+    SymbolPrefix,
+    SymbolRow,
+    SymbolRowBox,
     SymbolRule,
+    SymbolRuleDelayed,
+    SymbolSubscriptBox,
+    SymbolSuperscriptBox,
 )
+
 from mathics.core.number import (
     dps,
     convert_base,
@@ -88,11 +107,11 @@ class Format(Builtin):
 def parenthesize(precedence, leaf, leaf_boxes, when_equal):
     from mathics.builtin import builtins_precedence
 
-    while leaf.has_form("HoldForm", 1):
+    while leaf.has_form(SymbolHoldForm, 1):
         leaf = leaf.leaves[0]
-    if leaf.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+    if leaf.has_form((SymbolInfix, SymbolPrefix, SymbolPostfix), 3, None):
         leaf_prec = leaf.leaves[2].get_int_value()
-    elif leaf.has_form("PrecedenceForm", 2):
+    elif leaf.has_form(SymbolPrecedenceForm, 2):
         leaf_prec = leaf.leaves[1].get_int_value()
     else:
         leaf_prec = builtins_precedence.get(leaf.get_head_name())
@@ -542,7 +561,7 @@ class MakeBoxes(Builtin):
             else:
                 args = (h, leaf)
 
-            return Expression("RowBox", Expression(SymbolList, *args))
+            return Expression(SymbolRowBox, Expression(SymbolList, *args))
         else:
             return MakeBoxes(expr, f)
 
@@ -570,7 +589,7 @@ class MakeBoxes(Builtin):
 
         leaves = expr.get_leaves()
         if len(leaves) > 1:
-            if h.has_form("List", len(leaves) - 1):
+            if h.has_form(SymbolList, len(leaves) - 1):
                 ops = [get_op(op) for op in h.leaves]
             else:
                 ops = [get_op(h)] * (len(leaves) - 1)
@@ -693,8 +712,8 @@ class GridBox(BoxConstruct):
         if not leaves:
             raise BoxConstructError
         expr = leaves[0]
-        if not expr.has_form("List", None):
-            if not all(leaf.has_form("List", None) for leaf in expr.leaves):
+        if not expr.has_form(SymbolList, None):
+            if not all(leaf.has_form(SymbolList, None) for leaf in expr.leaves):
                 raise BoxConstructError
         items = [leaf.leaves for leaf in expr.leaves]
         if not is_constant_list([len(row) for row in items]):
@@ -831,7 +850,7 @@ class Grid(Builtin):
                 "List",
                 *(
                     Expression(
-                        "List",
+                        SymbolList,
                         *(Expression(SymbolMakeBoxes, item, f) for item in row.leaves),
                     )
                     for row in array.leaves
@@ -842,6 +861,9 @@ class Grid(Builtin):
 
 
 #        return Expression('GridBox',Expression('List', *(Expression('List', *(Expression('MakeBoxes', item, f) for item in row.leaves)) for row in array.leaves)),            *options_to_rules(options))
+
+
+SymbolTableDepth = Symbol("TableDepth")
 
 
 class TableForm(Builtin):
@@ -888,7 +910,7 @@ class TableForm(Builtin):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         f:StandardForm|TraditionalForm|OutputForm]"""
 
-        dims = len(get_dimensions(table, head=Symbol("List")))
+        dims = len(get_dimensions(table, head=SymbolList))
         depth = self.get_option(options, "TableDepth", evaluation).unformatted
         depth = expr_min((Integer(dims), depth))
         depth = depth.get_int_value()
@@ -901,7 +923,7 @@ class TableForm(Builtin):
         elif depth == 1:
             return GridBox(
                 Expression(
-                    "List",
+                    SymbolList,
                     *(
                         Expression(SymbolList, Expression(SymbolMakeBoxes, item, f))
                         for item in table.leaves
@@ -1008,7 +1030,7 @@ class Subscript(Builtin):
 
         y = y.get_sequence()
         return Expression(
-            "SubscriptBox", Expression(SymbolMakeBoxes, x, f), *list_boxes(y, f)
+            SymbolSubscriptBox, Expression(SymbolMakeBoxes, x, f), *list_boxes(y, f)
         )
 
 
@@ -1230,12 +1252,12 @@ class Message(Builtin):
 
         params = params.get_sequence()
         evaluation.message(symbol.name, tag.value, *params)
-        return Symbol("Null")
+        return SymbolNull
 
 
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
-    if expr.has_form("MessageName", 2):
+    if expr.has_form(SymbolMessageName, 2):
         symbol, tag = expr.get_leaves()
         if symbol.get_name() and tag.get_string_value():
             return True
@@ -1334,7 +1356,7 @@ class Check(Builtin):
         def get_msg_list(exprs):
             messages = []
             for expr in exprs:
-                if expr.has_form("List", None):
+                if expr.has_form(SymbolList, None):
                     messages.extend(get_msg_list(expr.leaves))
                 elif check_message(expr):
                     messages.append(expr)
@@ -1365,7 +1387,7 @@ class Check(Builtin):
                 if type(out_msg) is not EvaluationMessage:
                     continue
                 pattern = Expression(
-                    "MessageName", Symbol(out_msg.symbol), String(out_msg.tag)
+                    SymbolMessageName, Symbol(out_msg.symbol), String(out_msg.tag)
                 )
                 if pattern in check_messages:
                     display_fail_expr = True
@@ -1445,7 +1467,7 @@ class Quiet(Builtin):
             elif expr.get_name() == "System`None":
                 all = False
                 messages = []
-            elif expr.has_form("List", None):
+            elif expr.has_form(SymbolList, None):
                 all = False
                 messages = []
                 for item in expr.leaves:
@@ -1536,14 +1558,14 @@ class Off(Builtin):
 
         for e in seq:
             if isinstance(e, Symbol):
-                quiet_messages.add(Expression("MessageName", e, String("trace")))
+                quiet_messages.add(Expression(SymbolMessageName, e, String("trace")))
             elif check_message(e):
                 quiet_messages.add(e)
             else:
                 evaluation.message("Message", "name", e)
             evaluation.set_quiet_messages(quiet_messages)
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class On(Builtin):
@@ -1582,13 +1604,15 @@ class On(Builtin):
 
         for e in seq:
             if isinstance(e, Symbol):
-                quiet_messages.discard(Expression("MessageName", e, String("trace")))
+                quiet_messages.discard(
+                    Expression(SymbolMessageName, e, String("trace"))
+                )
             elif check_message(e):
                 quiet_messages.discard(e)
             else:
                 evaluation.message("Message", "name", e)
             evaluation.set_quiet_messages(quiet_messages)
-        return Symbol("Null")
+        return SymbolNull
 
 
 class MessageName(BinaryOperator):
@@ -1631,7 +1655,7 @@ class MessageName(BinaryOperator):
     def apply(self, symbol, tag, evaluation):
         "MessageName[symbol_Symbol, tag_String]"
 
-        pattern = Expression("MessageName", symbol, tag)
+        pattern = Expression(SymbolMessageName, symbol, tag)
         return evaluation.definitions.get_value(
             symbol.get_name(), "System`Messages", pattern, evaluation
         )
@@ -1855,9 +1879,9 @@ class Print(Builtin):
         "Print[expr__]"
 
         expr = expr.get_sequence()
-        expr = Expression("Row", Expression(SymbolList, *expr))
+        expr = Expression(SymbolRow, Expression(SymbolList, *expr))
         evaluation.print_out(expr)
-        return Symbol("Null")
+        return SymbolNull
 
 
 class FullForm(Builtin):
@@ -1968,7 +1992,7 @@ class MathMLForm(Builtin):
             evaluation.message(
                 "General",
                 "notboxes",
-                Expression("FullForm", boxes).evaluate(evaluation),
+                Expression(SymbolFullForm, boxes).evaluate(evaluation),
             )
             mathml = ""
         is_a_picture = mathml[:6] == "<mtext"
@@ -1982,7 +2006,7 @@ class MathMLForm(Builtin):
                 mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
 
         mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-        return Expression("RowBox", Expression(SymbolList, String(mathml)))
+        return Expression(SymbolRowBox, Expression(SymbolList, String(mathml)))
 
 
 class PythonForm(Builtin):
@@ -2084,10 +2108,10 @@ class TeXForm(Builtin):
             evaluation.message(
                 "General",
                 "notboxes",
-                Expression("FullForm", boxes).evaluate(evaluation),
+                Expression(SymbolFullForm, boxes).evaluate(evaluation),
             )
             tex = ""
-        return Expression("RowBox", Expression(SymbolList, String(tex)))
+        return Expression(SymbolRowBox, Expression(SymbolList, String(tex)))
 
 
 class Style(Builtin):
@@ -2173,20 +2197,20 @@ class _NumberForm(Builtin):
 
     def check_DigitBlock(self, value, evaluation):
         py_value = value.get_int_value()
-        if value.sameQ(Symbol("Infinity")):
+        if value.sameQ(SymbolInfinity):
             return [0, 0]
         elif py_value is not None and py_value > 0:
             return [py_value, py_value]
-        elif value.has_form("List", 2):
+        elif value.has_form(SymbolList, 2):
             nleft, nright = value.leaves
             py_left, py_right = nleft.get_int_value(), nright.get_int_value()
-            if nleft.sameQ(Symbol("Infinity")):
+            if nleft.sameQ(SymbolInfinity):
                 nleft = 0
             elif py_left is not None and py_left > 0:
                 nleft = py_left
             else:
                 nleft = None
-            if nright.sameQ(Symbol("Infinity")):
+            if nright.sameQ(SymbolInfinity):
                 nright = 0
             elif py_right is not None and py_right > 0:
                 nright = py_right
@@ -2198,7 +2222,7 @@ class _NumberForm(Builtin):
         return evaluation.message(self.get_name(), "dblk", value)
 
     def check_ExponentFunction(self, value, evaluation):
-        if value.sameQ(Symbol("Automatic")):
+        if value.sameQ(SymbolAutomatic):
             return self.default_ExponentFunction
 
         def exp_function(x):
@@ -2207,7 +2231,7 @@ class _NumberForm(Builtin):
         return exp_function
 
     def check_NumberFormat(self, value, evaluation):
-        if value.sameQ(Symbol("Automatic")):
+        if value.sameQ(SymbolAutomatic):
             return self.default_NumberFormat
 
         def num_function(man, base, exp, options):
@@ -2234,14 +2258,14 @@ class _NumberForm(Builtin):
         return result
 
     def check_SignPadding(self, value, evaluation):
-        if value.sameQ(Symbol("True")):
+        if value.sameQ(SymbolTrue):
             return True
-        elif value.sameQ(Symbol("False")):
+        elif value.sameQ(SymbolFalse):
             return False
         return evaluation.message(self.get_name(), "opttf", value)
 
     def _check_List2str(self, value, msg, evaluation):
-        if value.has_form("List", 2):
+        if value.has_form(SymbolList, 2):
             result = [leaf.get_string_value() for leaf in value.leaves]
             if None not in result:
                 return result
@@ -2501,7 +2525,7 @@ class NumberForm(_NumberForm):
     def default_ExponentFunction(value):
         n = value.get_int_value()
         if -5 <= n <= 5:
-            return Symbol("Null")
+            return SymbolNull
         else:
             return value
 
@@ -2511,9 +2535,9 @@ class NumberForm(_NumberForm):
         if py_exp:
             mul = String(options["NumberMultiplier"])
             return Expression(
-                "RowBox",
+                SymbolRowBox,
                 Expression(
-                    SymbolList, man, mul, Expression("SuperscriptBox", base, exp)
+                    SymbolList, man, mul, Expression(SymbolSuperscriptBox, base, exp)
                 ),
             )
         else:
@@ -2522,24 +2546,26 @@ class NumberForm(_NumberForm):
     def apply_list_n(self, expr, n, evaluation, options) -> Expression:
         "NumberForm[expr_List, n_, OptionsPattern[NumberForm]]"
         options = [
-            Expression("RuleDelayed", Symbol(key), value)
+            Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
         return Expression(
-            "List",
-            *[Expression("NumberForm", leaf, n, *options) for leaf in expr.leaves],
+            SymbolList,
+            *[Expression(SymbolNumberForm, leaf, n, *options) for leaf in expr.leaves],
         )
 
     def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
         "NumberForm[expr_List, {n_, f_}, OptionsPattern[NumberForm]]"
         options = [
-            Expression("RuleDelayed", Symbol(key), value)
+            Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
         return Expression(
-            "List",
+            SymbolList,
             *[
-                Expression("NumberForm", leaf, Expression(SymbolList, n, f), *options)
+                Expression(
+                    SymbolNumberForm, leaf, Expression(SymbolList, n, f), *options
+                )
                 for leaf in expr.leaves
             ],
         )
@@ -2686,7 +2712,7 @@ class BaseForm(Builtin):
         except ValueError:
             return evaluation.message("BaseForm", "basf", n)
 
-        if f.get_name() == "System`OutputForm":
+        if f is SymbolOutputForm:
             return from_python("%s_%d" % (val, base))
         else:
-            return Expression("SubscriptBox", String(val), String(base))
+            return Expression(SymbolSubscriptBox, String(val), String(base))

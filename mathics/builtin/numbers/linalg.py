@@ -24,13 +24,13 @@ from mathics.core.symbols import Symbol, SymbolList
 
 
 def matrix_data(m):
-    if not m.has_form("List", None):
+    if not m.has_form(SymbolList, None):
         return None
-    if all(leaf.has_form("List", None) for leaf in m.leaves):
+    if all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
         result = [[item.to_sympy() for item in row.leaves] for row in m.leaves]
         if not any(None in row for row in result):
             return result
-    elif not any(leaf.has_form("List", None) for leaf in m.leaves):
+    elif not any(leaf.has_form(SymbolList, None) for leaf in m.leaves):
         result = [item.to_sympy() for item in m.leaves]
         if None not in result:
             return result
@@ -54,9 +54,9 @@ def to_mpmath_matrix(data, **kwargs):
     """
 
     def mpmath_matrix_data(m):
-        if not m.has_form("List", None):
+        if not m.has_form(SymbolList, None):
             return None
-        if not all(leaf.has_form("List", None) for leaf in m.leaves):
+        if not all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
             return None
         return [[str(item) for item in row.leaves] for row in m.leaves]
 
@@ -270,12 +270,12 @@ class SingularValueDecomposition(Builtin):
         U, S, V = mp.svd(matrix)
         S = mp.diag(S)
         u = [from_python(u) for u in U.tolist()]
-        U_list = Expression("List", *u)
+        U_list = Expression(SymbolList, *u)
         s = [from_python(s) for s in S.tolist()]
-        S_list = Expression("List", *s)
+        S_list = Expression(SymbolList, *s)
         v = [from_python(v) for v in V.tolist()]
-        V_list = Expression("List", *v)
-        return Expression("List", *[U_list, S_list, V_list])
+        V_list = Expression(SymbolList, *v)
+        return Expression(SymbolList, *[U_list, S_list, V_list])
 
 
 class QRDecomposition(Builtin):
@@ -309,7 +309,7 @@ class QRDecomposition(Builtin):
         except sympy.matrices.MatrixError:
             return evaluation.message("QRDecomposition", "sympy")
         Q = Q.transpose()
-        return Expression("List", *[from_sympy(Q), from_sympy(R)])
+        return Expression(SymbolList, *[from_sympy(Q), from_sympy(R)])
 
 
 class PseudoInverse(Builtin):
@@ -447,13 +447,13 @@ class LinearSolve(Builtin):
         matrix = matrix_data(m)
         if matrix is None:
             return evaluation.message("LinearSolve", "matrix", m, Integer1)
-        if not b.has_form("List", None):
+        if not b.has_form(SymbolList, None):
             return
         if len(b.leaves) != len(matrix):
             return evaluation.message("LinearSolve", "lslc")
 
         for leaf in b.leaves:
-            if leaf.has_form("List", None):
+            if leaf.has_form(SymbolList, None):
                 return evaluation.message("LinearSolve", "matrix", b, Integer(2))
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.leaves)]
@@ -788,7 +788,7 @@ class Eigenvalues(Builtin):
 
         eigenvalues = [from_python(v) for (v, c) in eigenvalues for _ in range(c)]
 
-        return Expression("List", *eigenvalues)
+        return Expression(SymbolList, *eigenvalues)
 
 
 class Eigensystem(Builtin):

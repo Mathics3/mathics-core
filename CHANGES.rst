@@ -3,7 +3,8 @@ CHANGES
 
 Internals
 =========
-
+ 
+* To speed up the code, `Symbol`s objets are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to `ensure_context`.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * ``Expression.__init__()`` does not tries now to convert generic leaves into ``BaseExpression`` objects by using ``from_python``.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.

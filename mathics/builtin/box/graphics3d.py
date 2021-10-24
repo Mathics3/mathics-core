@@ -24,7 +24,8 @@ from mathics.builtin.drawing.graphics3d import (
 )
 
 from mathics.builtin.drawing.graphics_internals import get_class
-from mathics.core.expression import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolRGBColor
 from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_create_pens, asy_number
 
@@ -608,7 +609,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         axes = graphics_options.get("System`Axes")
         if axes.is_true():
             axes = (True, True, True)
-        elif axes.has_form("List", 3):
+        elif axes.has_form(SymbolList, 3):
             axes = (leaf.is_true() for leaf in axes.leaves)
         else:
             axes = (False, False, False)
@@ -617,14 +618,14 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         label_style = graphics_options.get("System`LabelStyle")
 
         # FIXME: Doesn't handle GrayScale
-        if ticks_style.has_form("List", 1, 2, 3):
+        if ticks_style.has_form(SymbolList, 1, 2, 3):
             ticks_style = ticks_style.leaves
-        elif ticks_style.has_form("RGBColor", None):
+        elif ticks_style.has_form(SymbolRGBColor, None):
             ticks_style = [ticks_style] * 3
         else:
             ticks_style = []
 
-        if axes_style.has_form("List", 1, 2, 3):
+        if axes_style.has_form(SymbolList, 1, 2, 3):
             axes_style = axes_style.leaves
         else:
             axes_style = [axes_style] * 3
@@ -953,14 +954,14 @@ class Tube3DBox(InstanceableBuiltin):
 # FIXME: GLOBALS3D is a horrible name.
 GLOBALS3D.update(
     {
-        "System`Arrow3DBox": Arrow3DBox,
-        "System`Cone3DBox": Cone3DBox,
-        "System`Cuboid3DBox": Cuboid3DBox,
-        "System`Cylinder3DBox": Cylinder3DBox,
-        "System`Line3DBox": Line3DBox,
-        "System`Point3DBox": Point3DBox,
-        "System`Polygon3DBox": Polygon3DBox,
-        "System`Sphere3DBox": Sphere3DBox,
-        "System`Tube3DBox": Tube3DBox,
+        Symbol("Arrow3DBox"): Arrow3DBox,
+        Symbol("Cone3DBox"): Cone3DBox,
+        Symbol("Cuboid3DBox"): Cuboid3DBox,
+        Symbol("Cylinder3DBox"): Cylinder3DBox,
+        Symbol("Line3DBox"): Line3DBox,
+        Symbol("Point3DBox"): Point3DBox,
+        Symbol("Polygon3DBox"): Polygon3DBox,
+        Symbol("Sphere3DBox"): Sphere3DBox,
+        Symbol("Tube3DBox"): Tube3DBox,
     }
 )

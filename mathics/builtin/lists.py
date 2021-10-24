@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 List Functions - Miscellaneous
 """
@@ -62,14 +61,31 @@ from mathics.core.atoms import (
     min_prec,
 )
 
-from mathics.core.symbols import Symbol, SymbolList, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolList,
+    strip_context,
+    SymbolTrue,
+    SymbolFalse,
+)
 
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolAutomatic,
     SymbolByteArray,
+    SymbolContainsOnly,
     SymbolFailed,
+    SymbolKey,
+    SymbolLess,
     SymbolMakeBoxes,
+    SymbolMatchQ,
+    SymbolPlus,
+    SymbolRange,
+    SymbolRowBox,
     SymbolRule,
     SymbolSequence,
+    SymbolSplit,
+    SymbolSubsetQ,
 )
 
 
@@ -121,7 +137,7 @@ class ByteArray(Builtin):
         except Exception:
             evaluation.message("ByteArray", "lend", string)
             return SymbolFailed
-        return Expression("ByteArray", atom)
+        return Expression(SymbolByteArray, atom)
 
     def apply_to_str(self, baa, evaluation):
         "ToString[ByteArray[baa_ByteArrayAtom]]"
@@ -133,7 +149,7 @@ class ByteArray(Builtin):
 
     def apply_list(self, values, evaluation):
         "ByteArray[values_List]"
-        if not values.has_form("List", None):
+        if not values.has_form(SymbolList, None):
             return
         try:
             ba = bytearray([b.get_int_value() for b in values._leaves])
@@ -212,8 +228,8 @@ class ContainsOnly(Builtin):
         self.check_options(None, evaluation, options)
         for a in list1.leaves:
             if not any(sameQ(a, b) for b in list2.leaves):
-                return Symbol("False")
-        return Symbol("True")
+                return SymbolFalse
+        return SymbolTrue
 
     def apply_msg(self, e1, e2, evaluation, options={}):
         "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
@@ -223,13 +239,13 @@ class ContainsOnly(Builtin):
             if len(options) <= 1
             else [Expression(SymbolList, *options_to_rules(options))]
         )
-        expr = Expression("ContainsOnly", e1, e2, *opts)
+        expr = Expression(SymbolContainsOnly, e1, e2, *opts)
 
-        if not isinstance(e1, Symbol) and not e1.has_form("List", None):
+        if not isinstance(e1, Symbol) and not e1.has_form(SymbolList, None):
             evaluation.message("ContainsOnly", "lsa", e1)
             return self.check_options(expr, evaluation, options)
 
-        if not isinstance(e2, Symbol) and not e2.has_form("List", None):
+        if not isinstance(e2, Symbol) and not e2.has_form(SymbolList, None):
             evaluation.message("ContainsOnly", "lsa", e2)
             return self.check_options(expr, evaluation, options)
 
@@ -345,15 +361,15 @@ class Delete(Builtin):
             return evaluation.message("Delete", "argr")
 
         positions = positions[0]
-        if not positions.has_form("List", None):
+        if not positions.has_form(SymbolList, None):
             return evaluation.message(
-                "Delete", "pkspec", positions, Expression("Key", positions)
+                "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
 
         # Create new python list of the positions and sort it
         positions = (
             [t for t in positions.leaves]
-            if positions.leaves[0].has_form("List", None)
+            if positions.leaves[0].has_form(SymbolList, None)
             else [positions]
         )
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
@@ -589,7 +605,7 @@ def list_boxes(items, f, open=None, close=None):
         sep = ","
     result = riffle(result, String(sep))
     if len(items) > 1:
-        result = Expression("RowBox", Expression(SymbolList, *result))
+        result = Expression(SymbolRowBox, Expression(SymbolList, *result))
     elif items:
         result = result[0]
     if result:
@@ -660,7 +676,7 @@ class Split(Builtin):
     def apply(self, mlist, test, evaluation):
         "Split[mlist_, test_]"
 
-        expr = Expression("Split", mlist, test)
+        expr = Expression(SymbolSplit, mlist, test)
 
         if mlist.is_atom():
             evaluation.message("Select", "normal", 1, expr)
@@ -711,7 +727,7 @@ class SplitBy(Builtin):
     def apply(self, mlist, func, evaluation):
         "SplitBy[mlist_, func_?NotListQ]"
 
-        expr = Expression("Split", mlist, func)
+        expr = Expression(SymbolSplit, mlist, func)
 
         if mlist.is_atom():
             evaluation.message("Select", "normal", 1, expr)
@@ -735,7 +751,7 @@ class SplitBy(Builtin):
 
     def apply_multiple(self, mlist, funcs, evaluation):
         "SplitBy[mlist_, funcs_List]"
-        expr = Expression("Split", mlist, funcs)
+        expr = Expression(SymbolSplit, mlist, funcs)
 
         if mlist.is_atom():
             evaluation.message("Select", "normal", 1, expr)
@@ -888,12 +904,12 @@ class _IterationFunction(Builtin):
     def apply_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
         iterator = iterator.evaluate(evaluation)
-        if iterator.has_form(["List", "Range", "Sequence"], None):
+        if iterator.has_form([SymbolList, SymbolRange, SymbolSequence], None):
             leaves = iterator.leaves
             if len(leaves) == 1:
                 return self.apply_max(expr, *leaves, evaluation)
             elif len(leaves) == 2:
-                if leaves[1].has_form(["List", "Sequence"], None):
+                if leaves[1].has_form([SymbolList, SymbolSequence], None):
                     seq = Expression(SymbolSequence, *(leaves[1].leaves))
                     return self.apply_list(expr, leaves[0], seq, evaluation)
                 else:
@@ -910,12 +926,12 @@ class _IterationFunction(Builtin):
     def apply_range(self, expr, i, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imax_}]"
         imax = imax.evaluate(evaluation)
-        if imax.has_form("Range", None):
+        if imax.has_form(SymbolRange, None):
             # FIXME: this should work as an iterator in Python3, not
             # building the sequence explicitly...
             seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).leaves))
             return self.apply_list(expr, i, seq, evaluation)
-        elif imax.has_form("List", None):
+        elif imax.has_form(SymbolList, None):
             seq = Expression(SymbolSequence, *(imax.leaves))
             return self.apply_list(expr, i, seq, evaluation)
         else:
@@ -988,12 +1004,12 @@ class _IterationFunction(Builtin):
         result = []
         compare_type = (
             "GreaterEqual"
-            if Expression("Less", di, Integer0).evaluate(evaluation).to_python()
+            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
             else "LessEqual"
         )
         while True:
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont == Symbol("False"):
+            if cont == SymbolFalse:
                 break
             if not cont.is_true():
                 if self.throw_iterb:
@@ -1019,7 +1035,7 @@ class _IterationFunction(Builtin):
                     return e.expr
                 else:
                     raise
-            index = Expression("Plus", index, di).evaluate(evaluation)
+            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
         return self.get_result(result)
 
     def apply_list(self, expr, i, items, evaluation):
@@ -1482,11 +1498,11 @@ class _RankedTake(Builtin):
                             return False
 
                 else:
-                    excluded = Expression("Alternatives", *excluded.leaves)
+                    excluded = Expression(SymbolAlternatives, *excluded.leaves)
 
                     def exclude(item):
                         return (
-                            Expression("MatchQ", item, excluded)
+                            Expression(SymbolMatchQ, item, excluded)
                             .evaluate(evaluation)
                             .is_true()
                         )
@@ -1936,17 +1952,14 @@ class _LazyDistances(LazyDistances):
 
 def _dist_repr(p):
     dist_p = repr_p = None
-    if p.has_form("Rule", 2):
-        if all(q.get_head_name() == "System`List" for q in p.leaves):
+    if p.has_form(SymbolRule, 2):
+        if all(q._head is SymbolList for q in p.leaves):
             dist_p, repr_p = (q.leaves for q in p.leaves)
-        elif (
-            p.leaves[0].get_head_name() == "System`List"
-            and p.leaves[1].get_name() == "System`Automatic"
-        ):
+        elif p.leaves[0]._head is SymbolList and p.leaves[1] is SymbolAutomatic:
             dist_p = p.leaves[0].leaves
             repr_p = [Integer(i + 1) for i in range(len(dist_p))]
-    elif p.get_head_name() == "System`List":
-        if all(q.get_head_name() == "System`Rule" for q in p.leaves):
+    elif p.get_head() is SymbolList:
+        if all(q.get_head() is SymbolRule for q in p.leaves):
             dist_p, repr_p = ([q.leaves[i] for q in p.leaves] for i in range(2))
         else:
             dist_p = repr_p = p.leaves
@@ -2320,7 +2333,7 @@ class Nearest(Builtin):
             evaluation.message(self.get_name(), "list", expression)
             return
 
-        if limit.has_form("List", 2):
+        if limit.has_form(SymbolList, 2):
             up_to = limit.leaves[0]
             py_r = limit.leaves[1].to_mpmath()
         else:
@@ -2363,7 +2376,7 @@ class Nearest(Builtin):
             calls = [Expression(distance_function, x, y) for y in dist_p]
             distances = Expression(SymbolList, *calls).evaluate(evaluation)
 
-            if not distances.has_form("List", len(dist_p)):
+            if not distances.has_form(SymbolList, len(dist_p)):
                 raise ValueError()
 
             py_distances = [
@@ -2454,7 +2467,7 @@ class SubsetQ(Builtin):
 
         if expr.is_atom():
             return evaluation.message(
-                "SubsetQ", "normal", Integer(1), Expression("SubsetQ", expr, subset)
+                "SubsetQ", "normal", Integer(1), Expression(SymbolSubsetQ, expr, subset)
             )
 
         subset = subset.get_sequence()
@@ -2466,7 +2479,7 @@ class SubsetQ(Builtin):
         subset = subset[0]
         if subset.is_atom():
             return evaluation.message(
-                "SubsetQ", "normal", Integer(2), Expression("SubsetQ", expr, subset)
+                "SubsetQ", "normal", Integer(2), Expression(SymbolSubsetQ, expr, subset)
             )
         if expr.get_head_name() != subset.get_head_name():
             return evaluation.message(
@@ -2474,9 +2487,9 @@ class SubsetQ(Builtin):
             )
 
         if set(subset.leaves).issubset(set(expr.leaves)):
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 def delete_one(expr, pos):
@@ -2484,7 +2497,7 @@ def delete_one(expr, pos):
         raise PartDepthError(pos)
     leaves = expr.leaves
     if pos == 0:
-        return Expression(Symbol("System`Sequence"), *leaves)
+        return Expression(SymbolSequence, *leaves)
     s = len(leaves)
     truepos = pos
     if truepos < 0:
@@ -2493,7 +2506,7 @@ def delete_one(expr, pos):
         truepos = truepos - 1
     if truepos < 0 or truepos >= s:
         raise PartRangeError
-    leaves = leaves[:truepos] + (Expression("System`Sequence"),) + leaves[truepos + 1 :]
+    leaves = leaves[:truepos] + (Expression(SymbolSequence),) + leaves[truepos + 1 :]
     return Expression(expr.get_head(), *leaves)
 
 

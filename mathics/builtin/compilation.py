@@ -16,7 +16,12 @@ from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.builtin.numeric import apply_N
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue, SymbolFalse
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolFunction,
+    SymbolCompiledFunction,
+)
 
 from mathics.core.atoms import (
     Integer,
@@ -106,13 +111,13 @@ class Compile(Builtin):
 
         # _Complex not implemented
         permitted_types = {
-            Expression("Blank", Symbol("Integer")): int_type,
-            Expression("Blank", Symbol("Real")): real_type,
-            Symbol("True"): bool_type,
-            Symbol("False"): bool_type,
+            Expression(SymbolBlank, Symbol("Integer")): int_type,
+            Expression(SymbolBlank, Symbol("Real")): real_type,
+            SymbolTrue: bool_type,
+            SymbolFalse: bool_type,
         }
 
-        if not vars.has_form("List", None):
+        if not vars.has_form(SymbolList, None):
             return evaluation.message("Compile", "invars")
         args = []
         names = []
@@ -121,7 +126,7 @@ class Compile(Builtin):
                 symb = var
                 name = symb.get_name()
                 typ = real_type
-            elif var.has_form("List", 2):
+            elif var.has_form(SymbolList, 2):
                 symb, typ = var.get_leaves()
                 if isinstance(symb, Symbol) and typ in permitted_types:
                     name = symb.get_name()
@@ -161,12 +166,12 @@ class Compile(Builtin):
 
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
-            args = Expression("List", *names)
-            return Expression("Function", args, expr)
+            args = Expression(SymbolList, *names)
+            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
-        arg_names = Expression("List", *(Symbol(arg.name) for arg in args))
-        return Expression("CompiledFunction", arg_names, expr, code)
+        arg_names = Expression(SymbolList, *(Symbol(arg.name) for arg in args))
+        return Expression(SymbolCompiledFunction, arg_names, expr, code)
 
 
 class CompiledCode(Atom):

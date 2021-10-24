@@ -13,12 +13,12 @@ from mathics.builtin.base import (
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
 
-from mathics.core.symbols import system_symbols_dict
+from mathics.core.symbols import system_symbols_dict, Symbol
 
 
 class _GraphicsElement(InstanceableBuiltin):
     def init(self, graphics, item=None, style=None, opacity=1.0):
-        if item is not None and not item.has_form(self.get_name(), None):
+        if item is not None and not item.get_head() is Symbol(self.get_name()):
             raise BoxConstructError
         self.graphics = graphics
         self.style = style
@@ -30,10 +30,15 @@ class _GraphicsElement(InstanceableBuiltin):
         return klass(graphics, item)
 
 
-def get_class(name):
-    c = GLOBALS.get(name)
+def get_class(symbol: Symbol):
+    """
+    Returns the Builtin graphic primitive associated to the
+    Symbol `symbol`
+    """
+    assert isinstance(symbol, Symbol)
+    c = GLOBALS.get(symbol)
     if c is None:
-        return GLOBALS3D.get(name)
+        return GLOBALS3D.get(symbol)
     else:
         return c
 

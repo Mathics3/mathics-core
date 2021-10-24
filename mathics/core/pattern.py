@@ -14,6 +14,21 @@ from itertools import chain
 # from mathics.core import pattern_nocython
 
 
+SYSTEM_SYMBOLS_PATTERNS = system_symbols(
+    "Pattern",
+    "PatternTest",
+    "Condition",
+    "Optional",
+    "Blank",
+    "BlankSequence",
+    "BlankNullSequence",
+    "Alternatives",
+    "OptionsPattern",
+    "Repeated",
+    "RepeatedNull",
+)
+
+
 def Pattern_create(expr):
     from mathics.builtin import pattern_objects
 
@@ -187,7 +202,6 @@ class ExpressionPattern(Pattern):
         wrap_oneid=True,
     ):
         evaluation.check_stopped()
-
         attributes = self.head.get_attributes(evaluation.definitions)
         if "System`Flat" not in attributes:
             fully = True
@@ -296,8 +310,8 @@ class ExpressionPattern(Pattern):
             wrap_oneid
             and not evaluation.ignore_oneidentity
             and "System`OneIdentity" in attributes
-            and expression.get_head() != self.head  # nopep8
-            and expression != self.head
+            and not self.head.expr.sameQ(expression.get_head())  # nopep8
+            and not self.head.expr.sameQ(expression)
         ):
             # and 'OneIdentity' not in
             # (expression.get_attributes(evaluation.definitions) |
@@ -510,22 +524,7 @@ class ExpressionPattern(Pattern):
         # of pattern.
         # TODO: This could be further optimized!
         try_flattened = ("System`Flat" in attributes) and (
-            leaf.get_head_name()
-            in (
-                system_symbols(
-                    "Pattern",
-                    "PatternTest",
-                    "Condition",
-                    "Optional",
-                    "Blank",
-                    "BlankSequence",
-                    "BlankNullSequence",
-                    "Alternatives",
-                    "OptionsPattern",
-                    "Repeated",
-                    "RepeatedNull",
-                )
-            )
+            leaf.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
         if try_flattened:

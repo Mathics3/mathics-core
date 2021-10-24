@@ -11,10 +11,18 @@ import bisect
 from collections import defaultdict
 
 import typing
-from mathics.core.symbols import fully_qualified_symbol_name, strip_context, Symbol
+from mathics.core.symbols import (
+    fully_qualified_symbol_name,
+    strip_context,
+    Symbol,
+    SymbolList,
+)
+
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
+
+from mathics.core.systemsymbols import SymbolInfinity, SymbolDirectedInfinity
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -260,7 +268,7 @@ class Definitions(object):
     def get_context_path(self):
         context_path_rule = self.get_ownvalue("System`$ContextPath")
         context_path = context_path_rule.replace
-        assert context_path.has_form("System`List", None)
+        assert context_path.has_form(SymbolList, None)
         context_path = [c.get_string_value() for c in context_path.leaves]
         assert not any([c is None for c in context_path])
         return context_path
@@ -398,7 +406,7 @@ class Definitions(object):
     def get_package_names(self) -> typing.List[str]:
         packages = self.get_ownvalue("System`$Packages")
         packages = packages.replace
-        assert packages.has_form("System`List", None)
+        assert packages.has_form(SymbolList, None)
         packages = [c.get_string_value() for c in packages.leaves]
         return packages
 
@@ -686,9 +694,7 @@ class Definitions(object):
                 value = value[0].replace
             except AttributeError:
                 return None
-            if value.get_name() == "System`Infinity" or value.has_form(
-                "DirectedInfinity", 1
-            ):
+            if value is SymbolInfinity or value.has_form(SymbolDirectedInfinity, 1):
                 return None
 
             return int(value.get_int_value())

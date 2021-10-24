@@ -19,9 +19,13 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolList
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolRule,
+    SymbolDivide,
+    SymbolSimplify,
+    SymbolAutomatic,
 )
 
 from mathics.builtin.colors.color_internals import (
@@ -110,7 +114,7 @@ class _Exif:
                     if name == "FocalLength":
                         value = value.round(2)
                     else:
-                        value = Expression("Simplify", value).evaluate(evaluation)
+                        value = Expression(SymbolSimplify, value).evaluate(evaluation)
                 elif isinstance(v, bytes):  # Byte
                     value = String(" ".join(["%d" % x for x in v]))
                 elif isinstance(v, (int, str)):  # Short, Long, Ascii
@@ -346,10 +350,7 @@ class RandomImage(_ImageBuiltin):
     def apply(self, minval, maxval, w, h, evaluation, options):
         "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}, {w_Integer, h_Integer}, OptionsPattern[RandomImage]]"
         color_space = self.get_option(options, "ColorSpace", evaluation)
-        if (
-            isinstance(color_space, Symbol)
-            and color_space.get_name() == "System`Automatic"
-        ):
+        if isinstance(color_space, Symbol) and color_space is SymbolAutomatic:
             cs = "Grayscale"
         else:
             cs = color_space.get_string_value()
@@ -454,10 +455,10 @@ class ImageResize(_ImageBuiltin):
 
         if isinstance(new_size, Symbol):
             name = new_size.get_name()
-            if name == "System`All":
+            if new_size is SymbolAll:
                 return old_size
             return predefined_sizes.get(name, None)
-        if new_size.has_form("Scaled", 1):
+        if new_size.has_form(Symbol("Scaled"), 1):
             s = new_size.leaves[0].round_to_float()
             if s is None:
                 return None
@@ -467,17 +468,17 @@ class ImageResize(_ImageBuiltin):
     def apply_resize_width(self, image, s, evaluation, options):
         "ImageResize[image_Image, s_, OptionsPattern[ImageResize]]"
         old_w = image.pixels.shape[1]
-        if s.has_form("List", 1):
+        if s.has_form(SymbolList, 1):
             width = s.leaves[0]
         else:
             width = s
         w = self._get_image_size_spec(old_w, width)
         if w is None:
             return evaluation.message("ImageResize", "imgrssz", s)
-        if s.has_form("List", 1):
+        if s.has_form(SymbolList, 1):
             height = width
         else:
-            height = Symbol("Automatic")
+            height = SymbolAutomatic
         return self.apply_resize_width_height(image, width, height, evaluation, options)
 
     def apply_resize_width_height(self, image, width, height, evaluation, options):
@@ -1211,7 +1212,10 @@ class ColorQuantize(_ImageBuiltin):
         "ColorQuantize[image_Image, n_Integer]"
         if n.get_int_value() <= 0:
             return evaluation.message(
-                "ColorQuantize", "intp", Expression("ColorQuantize", image, n), 2
+                "ColorQuantize",
+                "intp",
+                Expression(Symbol("ColorQuantize"), image, n),
+                2,
             )
         converted = image.color_convert("RGB")
         if converted is None:
@@ -1296,7 +1300,9 @@ class Binarize(_SkimageBuiltin):
     def apply(self, image, evaluation):
         "Binarize[image_Image]"
         image = image.grayscale()
-        thresh = Expression("Threshold", image).evaluate(evaluation).round_to_float()
+        thresh = (
+            Expression(Symbol("Threshold"), image).evaluate(evaluation).round_to_float()
+        )
         if thresh is not None:
             return Image(image.pixels > thresh, "Grayscale")
 
@@ -1353,7 +1359,11 @@ class ColorCombine(_ImageBuiltin):
 
         numpy_channels = []
         for channel in channels.leaves:
-            if not Expression("MatrixQ", channel).evaluate(evaluation).is_true():
+            if (
+                not Expression(Symbol("MatrixQ"), channel)
+                .evaluate(evaluation)
+                .is_true()
+            ):
                 return
             numpy_channels.append(matrix_to_numpy(channel))
 
@@ -1426,7 +1436,7 @@ class Colorize(_ImageBuiltin):
             pixels = values.grayscale().pixels
             matrix = pixels_as_ubyte(pixels.reshape(pixels.shape[:2]))
         else:
-            if not Expression("MatrixQ", values).evaluate(evaluation).is_true():
+            if not Expression(Symbol("MatrixQ"), values).evaluate(evaluation).is_true():
                 return
             matrix = matrix_to_numpy(values)
 
@@ -1690,7 +1700,7 @@ class ImageAspectRatio(_ImageBuiltin):
     def apply(self, image, evaluation):
         "ImageAspectRatio[image_Image]"
         dim = image.dimensions()
-        return Expression("Divide", Integer(dim[1]), Integer(dim[0]))
+        return Expression(SymbolDivide, Integer(dim[1]), Integer(dim[0]))
 
 
 class ImageChannels(_ImageBuiltin):
@@ -2009,7 +2019,7 @@ class ImageAtom(AtomBuiltin):
             is_rgb = len(shape) == 3 and shape[2] in (3, 4)
             return Image(pixels.clip(0, 1), "RGB" if is_rgb else "Grayscale")
         else:
-            return Expression("Image", array)
+            return Expression(Symbol("Image"), array)
 
 
 # complex operations
@@ -2167,8 +2177,8 @@ if "Pyston" not in sys.version:
                 return
 
         def _word_cloud(self, words, evaluation, options):
-            ignore_case = self.get_option(options, "IgnoreCase", evaluation) == Symbol(
-                "True"
+            ignore_case = (
+                self.get_option(options, "IgnoreCase", evaluation) is SymbolTrue
             )
 
             freq = defaultdict(int)
@@ -2185,12 +2195,9 @@ if "Pyston" not in sys.version:
                 py_max_items = 200
 
             image_size = self.get_option(options, "ImageSize", evaluation)
-            if image_size == Symbol("Automatic"):
+            if image_size == SymbolAutomatic:
                 py_image_size = (800, 600)
-            elif (
-                image_size.get_head_name() == "System`List"
-                and len(image_size.leaves) == 2
-            ):
+            elif image_size.get_head() is SymbolList and len(image_size.leaves) == 2:
                 py_image_size = []
                 for leaf in image_size.leaves:
                     if not isinstance(leaf, Integer):

@@ -7,6 +7,8 @@ import ctypes
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Real
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolIf
+
 from mathics.builtin.compile.types import int_type, real_type, bool_type, void_type
 from mathics.builtin.compile.utils import pairwise, llvm_to_ctype
 from mathics.builtin.compile.base import CompileError
@@ -242,7 +244,7 @@ class IRGenerator(object):
         return method(expr)
 
     def _gen_If(self, expr):
-        if not expr.has_form("If", 3):
+        if not expr.has_form(SymbolIf, 3):
             raise CompileError()
 
         builder = self.builder

@@ -47,6 +47,9 @@ from mathics.builtin.numeric import apply_N
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolList,
+    SymbolFalse,
+    SymbolTrue,
 )
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -56,10 +59,12 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.symbols import (
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
+from mathics.core.systemsymbols import (
+    SymbolDispatch,
+    SymbolPower,
+    SymbolRule,
+    SymbolRuleDelayed,
+    SymbolSequence,
 )
 from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
@@ -117,16 +122,16 @@ class RuleDelayed(BinaryOperator):
 def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
-    elif rules_expr.has_form("Dispatch", None):
+    elif rules_expr.has_form(SymbolDispatch, None):
         return Dispatch(rules_expr._leaves, evaluation)
 
-    if rules_expr.has_form("List", None):
+    if rules_expr.has_form(SymbolList, None):
         rules = rules_expr.leaves
     else:
         rules = [rules_expr]
-    any_lists = any(item.has_form(("List", "Dispatch"), None) for item in rules)
+    any_lists = any(item.has_form((SymbolList, SymbolDispatch), None) for item in rules)
     if any_lists:
-        all_lists = all(item.has_form("List", None) for item in rules)
+        all_lists = all(item.has_form(SymbolList, None) for item in rules)
         if all_lists:
             return (
                 Expression(
@@ -517,13 +522,13 @@ class PatternTest(BinaryOperator, PatternObject):
             # pass
         elif test == "System`NegativePowerQ":
             return (
-                candidate.has_form("Power", 2)
+                candidate.has_form(SymbolPower, 2)
                 and isinstance(candidate.leaves[1], (Integer, Rational, Real))
                 and candidate.leaves[1].value < 0
             )
         elif test == "System`NotNegativePowerQ":
             return not (
-                candidate.has_form("Power", 2)
+                candidate.has_form(SymbolPower, 2)
                 and isinstance(candidate.leaves[1], (Integer, Rational, Real))
                 and candidate.leaves[1].value < 0
             )
@@ -982,7 +987,7 @@ class Optional(BinaryOperator, PatternObject):
         leaf_count=None,
         **kwargs
     ):
-        if expression.has_form("Sequence", 0):
+        if expression.has_form(SymbolSequence, 0):
             if self.default is None:
                 if head is None:  # head should be given by match_leaf!
                     default = None
@@ -1075,7 +1080,7 @@ class Blank(_Blank):
     }
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        if not expression.has_form("Sequence", 0):
+        if not expression.has_form(SymbolSequence, 0):
             if self.head is not None:
                 if expression.get_head().sameQ(self.head):
                     yield_func(vars, None)
@@ -1247,7 +1252,7 @@ class Repeated(PostfixOperator, PatternObject):
             allnumbers = not any(
                 leaf.get_int_value() is None for leaf in leaf_1.get_leaves()
             )
-            if leaf_1.has_form("List", 1, 2) and allnumbers:
+            if leaf_1.has_form(SymbolList, 1, 2) and allnumbers:
                 self.max = leaf_1.leaves[-1].get_int_value()
                 self.min = leaf_1.leaves[0].get_int_value()
             elif leaf_1.get_int_value():
@@ -1476,7 +1481,7 @@ class OptionsPattern(PatternObject):
 
     def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
         def _match(leaf):
-            return leaf.has_form(("Rule", "RuleDelayed"), 2) or leaf.has_form(
+            return leaf.has_form((SymbolRule, SymbolRuleDelayed), 2) or leaf.has_form(
                 "List", None
             )
 
@@ -1571,12 +1576,12 @@ class DispatchAtom(AtomBuiltin):
         if rules.is_symbol():
             rules = rules.evaluate(evaluation)
 
-        if rules.has_form("List", None):
+        if rules.has_form(SymbolList, None):
             rules = rules._leaves
         else:
             rules = [rules]
 
-        all_list = all(rule.has_form("List", None) for rule in rules)
+        all_list = all(rule.has_form(SymbolList, None) for rule in rules)
         if all_list:
             leaves = [self.apply_create(rule, evaluation) for rule in rules]
             return Expression(SymbolList, *leaves)
@@ -1584,9 +1589,9 @@ class DispatchAtom(AtomBuiltin):
         for rule in rules:
             if rule.is_symbol():
                 rule = rule.evaluate(evaluation)
-            if rule.has_form("List", None):
+            if rule.has_form(SymbolList, None):
                 flatten_list.extend(rule._leaves)
-            elif rule.has_form(("Rule", "RuleDelayed"), 2):
+            elif rule.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 flatten_list.append(rule)
             elif isinstance(rule, Dispatch):
                 flatten_list.extend(rule.src._leaves)

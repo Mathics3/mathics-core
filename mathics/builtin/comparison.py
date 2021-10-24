@@ -25,11 +25,16 @@ from mathics.core.atoms import (
     Integer1,
     Number,
 )
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue, SymbolList
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,
+    SymbolSign,
+    SymbolExactNumberQ,
+    SymbolAnd,
+    SymbolMaxExtraPrecision,
+    SymbolInequality,
 )
 from mathics.core.number import dps
 
@@ -254,7 +259,7 @@ class _EqualityOperator(_InequalityOperator):
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs._leaves[0]), Integer1, max_extra_prec
+                    Expression(SymbolSign, lhs._leaves[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -269,8 +274,8 @@ class _EqualityOperator(_InequalityOperator):
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:
-            dir1 = Expression("Sign", dir1)
-            dir2 = Expression("Sign", dir2)
+            dir1 = Expression(SymbolSign, dir1)
+            dir2 = Expression(SymbolSign, dir2)
             return self.equal2(dir1, dir2, max_extra_prec)
         return
 
@@ -340,10 +345,10 @@ class _EqualityOperator(_InequalityOperator):
         if n <= 1:
             return SymbolTrue
         is_exact_vals = [
-            Expression("ExactNumberQ", arg).evaluate(evaluation)
+            Expression(SymbolExactNumberQ, arg).evaluate(evaluation)
             for arg in items_sequence
         ]
-        if not all(val == SymbolTrue for val in is_exact_vals):
+        if not all(val is SymbolTrue for val in is_exact_vals):
             return self.apply_other(items, evaluation)
         args = self.numerify_args(items, evaluation)
         for x, y in self.get_pairs(args):
@@ -357,9 +362,7 @@ class _EqualityOperator(_InequalityOperator):
     def apply_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
         args = args.get_sequence()
-        max_extra_prec = (
-            Symbol("$MaxExtraPrecision").evaluate(evaluation).get_int_value()
-        )
+        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         for x, y in self.get_pairs(args):
@@ -436,10 +439,10 @@ class Inequality(Builtin):
                 return Expression(name, items[0], items[2])
         else:
             groups = [
-                Expression("Inequality", *items[index - 1 : index + 2])
+                Expression(SymbolInequality, *items[index - 1 : index + 2])
                 for index in range(1, count - 1, 2)
             ]
-            return Expression("And", *groups)
+            return Expression(SymbolAnd, *groups)
 
 
 def do_cplx_equal(x, y) -> Optional[int]:
@@ -481,7 +484,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     for x in (x1, x2):
         # TODO: Send message General::nord
         if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.leaves[0], Complex)
+            x.has_form(SymbolDirectedInfinity, 1) and isinstance(x.leaves[0], Complex)
         ):
             return None
 
@@ -895,7 +898,7 @@ class NonPositive(Builtin):
 
 
 def expr_max(items):
-    result = Expression("DirectedInfinity", -1)
+    result = Expression(SymbolDirectedInfinity, -1)
     for item in items:
         c = do_cmp(item, result)
         if c > 0:
@@ -904,7 +907,7 @@ def expr_max(items):
 
 
 def expr_min(items):
-    result = Expression("DirectedInfinity", Integer1)
+    result = Expression(SymbolDirectedInfinity, Integer1)
     for item in items:
         c = do_cmp(item, result)
         if c < 0:
@@ -919,12 +922,12 @@ class _MinMax(Builtin):
     def apply(self, items, evaluation):
         "%(name)s[items___]"
 
-        items = items.flatten(Symbol("List")).get_sequence()
+        items = items.flatten(SymbolList).get_sequence()
         results = []
         best = None
 
         for item in items:
-            if item.has_form("List", None):
+            if item.has_form(SymbolList, None):
                 leaves = item.leaves
             else:
                 leaves = [item]
@@ -942,7 +945,7 @@ class _MinMax(Builtin):
                     results.append(leaf)
 
         if not results:
-            return Expression("DirectedInfinity", -self.sense)
+            return Expression(SymbolDirectedInfinity, -self.sense)
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):

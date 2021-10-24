@@ -10,6 +10,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolDivide
+
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -177,7 +179,7 @@ class FactorInteger(Builtin):
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
             return Expression(
-                "List",
+                SymbolList,
                 *(
                     Expression(SymbolList, from_python(factor), from_python(exp))
                     for factor, exp in factors
@@ -440,7 +442,9 @@ class MantissaExponent(Builtin):
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
         return Expression(
-            SymbolList, Expression("Divide", n, b ** from_python(exp)), from_python(exp)
+            SymbolList,
+            Expression(SymbolDivide, n, b ** from_python(exp)),
+            from_python(exp),
         )
 
     def apply_2(self, n, evaluation):
@@ -462,7 +466,9 @@ class MantissaExponent(Builtin):
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
         return Expression(
-            "List", Expression("Divide", n, from_python(10 ** exp)), Integer(exp)
+            SymbolList,
+            Expression(SymbolDivide, n, from_python(10 ** exp)),
+            Integer(exp),
         )
 
 
@@ -573,7 +579,7 @@ class Prime(SympyFunction):
         return from_sympy(SympyPrime(n.to_sympy()))
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Prime", 1):
+        if expr.has_form(Symbol("Prime"), 1):
             return SympyPrime(expr.leaves[0].to_sympy(**kwargs))
 
 

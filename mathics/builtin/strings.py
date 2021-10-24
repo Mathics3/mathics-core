@@ -26,8 +26,23 @@ from mathics.core.symbols import (
     SymbolList,
 )
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolDirectedInfinity,
+    SymbolExcept,
     SymbolFailed,
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolPattern,
+    SymbolRegularExpression,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolRule,
+    SymbolStringExpression,
 )
+
 from mathics.core.atoms import (
     String,
     Integer,
@@ -39,6 +54,10 @@ from mathics.core.atoms import (
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
+
+
+SymbolToExpression = Symbol("ToExpression")
+
 
 _regex_longest = {
     "+": "+",
@@ -171,7 +190,7 @@ def to_regex(
         else:
             result = re.escape(result)
         return result
-    if expr.has_form("RegularExpression", 1):
+    if expr.has_form(SymbolRegularExpression, 1):
         regex = expr.leaves[0].get_string_value()
         if regex is None:
             return regex
@@ -199,55 +218,57 @@ def to_regex(
             "System`HexidecimalCharacter": r"[0-9a-fA-F]",
         }.get(expr.get_name())
 
-    if expr.has_form("CharacterRange", 2):
+    if expr.has_form(Symbol("CharacterRange"), 2):
         (start, stop) = (leaf.get_string_value() for leaf in expr.leaves)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
 
-    if expr.has_form("Blank", 0):
+    if expr.has_form(SymbolBlank, 0):
         return r"(.|\n)"
-    if expr.has_form("BlankSequence", 0):
+    if expr.has_form(SymbolBlankSequence, 0):
         return r"(.|\n)" + q["+"]
-    if expr.has_form("BlankNullSequence", 0):
+    if expr.has_form(SymbolBlankNullSequence, 0):
         return r"(.|\n)" + q["*"]
-    if expr.has_form("Except", 1, 2):
+    if expr.has_form(SymbolExcept, 1, 2):
         if len(expr.leaves) == 1:
-            leaves = [expr.leaves[0], Expression("Blank")]
+            # TODO: Check if this shouldn't be SymbolBlank
+            # instad of SymbolBlank[]
+            leaves = [expr.leaves[0], Expression(SymbolBlank)]
         else:
             leaves = [expr.leaves[0], expr.leaves[1]]
         leaves = [recurse(leaf) for leaf in leaves]
         if all(leaf is not None for leaf in leaves):
             return "(?!{0}){1}".format(*leaves)
-    if expr.has_form("Characters", 1):
+    if expr.has_form(Symbol("Characters"), 1):
         leaf = expr.leaves[0].get_string_value()
         if leaf is not None:
             return "[{0}]".format(re.escape(leaf))
-    if expr.has_form("StringExpression", None):
+    if expr.has_form(SymbolStringExpression, None):
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if None in leaves:
             return None
         return "".join(leaves)
-    if expr.has_form("Repeated", 1):
+    if expr.has_form(SymbolRepeated, 1):
         leaf = recurse(expr.leaves[0])
         if leaf is not None:
             return "({0})".format(leaf) + q["+"]
-    if expr.has_form("RepeatedNull", 1):
+    if expr.has_form(SymbolRepeatedNull, 1):
         leaf = recurse(expr.leaves[0])
         if leaf is not None:
             return "({0})".format(leaf) + q["*"]
-    if expr.has_form("Alternatives", None):
+    if expr.has_form(SymbolAlternatives, None):
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if all(leaf is not None for leaf in leaves):
             return "|".join(leaves)
-    if expr.has_form("Shortest", 1):
+    if expr.has_form(Symbol("Shortest"), 1):
         return recurse(expr.leaves[0], quantifiers=_regex_shortest)
-    if expr.has_form("Longest", 1):
+    if expr.has_form(Symbol("Longest"), 1):
         return recurse(expr.leaves[0], quantifiers=_regex_longest)
-    if expr.has_form("Pattern", 2) and isinstance(expr.leaves[0], Symbol):
+    if expr.has_form(SymbolPattern, 2) and isinstance(expr.leaves[0], Symbol):
         name = expr.leaves[0].get_name()
         patt = groups.get(name, None)
         if patt is not None:
-            if expr.leaves[1].has_form("Blank", 0):
+            if expr.leaves[1].has_form(SymbolBlank, 0):
                 pass  # ok, no warnings
             elif not expr.leaves[1].sameQ(patt):
                 evaluation.message(
@@ -545,7 +566,7 @@ class LetterNumber(Builtin):
                         cp = alphabet["Uppercase"].find(c) + 1
                     r.append(cp)
                 return Expression(SymbolList, *r)
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for leaf in chars.leaves:
                 result.append(self.apply_alpha_str(leaf, alpha, evaluation))
@@ -569,7 +590,7 @@ class LetterNumber(Builtin):
                     for c in py_chars
                 ]
                 return Expression(SymbolList, *[from_python(rr) for rr in r])
-        elif chars.has_form("List", 1, None):
+        elif chars.has_form(SymbolList, 1, None):
             result = []
             for leaf in chars.leaves:
                 result.append(self.apply(leaf, evaluation))
@@ -618,7 +639,7 @@ class _StringFind(Builtin):
             expr = Expression(self.get_name(), string, rule, n)
 
         # convert string
-        if string.has_form("List", None):
+        if string.has_form(SymbolList, None):
             py_strings = [stri.get_string_value() for stri in string.leaves]
             if None in py_strings:
                 return evaluation.message(self.get_name(), "strse", Integer1, expr)
@@ -629,7 +650,7 @@ class _StringFind(Builtin):
 
         # convert rule
         def convert_rule(r):
-            if r.has_form("Rule", None) and len(r.leaves) == 2:
+            if r.has_form(SymbolRule, None) and len(r.leaves) == 2:
                 py_s = to_regex(r.leaves[0], evaluation)
                 if py_s is None:
                     return evaluation.message(
@@ -645,7 +666,7 @@ class _StringFind(Builtin):
 
             return evaluation.message(self.get_name(), "srep", r)
 
-        if rule.has_form("List", None):
+        if rule.has_form(SymbolList, None):
             py_rules = [convert_rule(r) for r in rule.leaves]
         else:
             py_rules = [convert_rule(rule)]
@@ -655,7 +676,7 @@ class _StringFind(Builtin):
         # convert n
         if n is None:
             py_n = 0
-        elif n == Expression("DirectedInfinity", Integer1):
+        elif n == Expression(SymbolDirectedInfinity, Integer1):
             py_n = 0
         else:
             py_n = n.get_int_value()
@@ -669,7 +690,7 @@ class _StringFind(Builtin):
 
         if isinstance(py_strings, list):
             return Expression(
-                "List",
+                SymbolList,
                 *[
                     self._find(py_stri, py_rules, py_n, flags, evaluation)
                     for py_stri in py_strings
@@ -789,7 +810,7 @@ class ToString(Builtin):
 
     def apply_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
-        return self.apply_form(value, Symbol("System`OutputForm"), evaluation, options)
+        return self.apply_form(value, SymbolOutputForm, evaluation, options)
 
     def apply_form(self, value, form, evaluation, options):
         "ToString[value_, form_, OptionsPattern[ToString]]"
@@ -823,7 +844,7 @@ class InterpretedBox(PrefixOperator):
         # In the first place, this should handle different kind
         # of boxes in different ways.
         reinput = boxes.boxes_to_text()
-        return Expression("ToExpression", reinput).evaluate(evaluation)
+        return Expression(SymbolToExpression, reinput).evaluate(evaluation)
 
 
 class ToExpression(Builtin):
@@ -895,7 +916,7 @@ class ToExpression(Builtin):
         # Organise Arguments
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], Symbol("InputForm"), None)
+            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
             (inp, form, head) = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
@@ -913,7 +934,7 @@ class ToExpression(Builtin):
             return
 
         # Apply the different forms
-        if form == Symbol("InputForm"):
+        if form == SymbolInputForm:
             if isinstance(inp, String):
 
                 # TODO: turn the below up into a function and call that.
@@ -1031,7 +1052,7 @@ class Transliterate(Builtin):
 
 def _pattern_search(name, string, patt, evaluation, options, matched):
     # Get the pattern list and check validity for each
-    if patt.has_form("List", None):
+    if patt.has_form(SymbolList, None):
         patts = patt.get_leaves()
     else:
         patts = [patt]
@@ -1052,7 +1073,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         return SymbolFalse if matched else SymbolTrue
 
     # Check string validity and perform regex searchhing
-    if string.has_form("List", None):
+    if string.has_form(SymbolList, None):
         py_s = [s.get_string_value() for s in string.leaves]
         if any(s is None for s in py_s):
             return evaluation.message(

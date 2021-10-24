@@ -21,7 +21,13 @@ from mathics.core.symbols import (
     SymbolList,
     strip_context,
 )
-
+from mathics.core.systemsymbols import (
+    SymbolSortBy,
+    SymbolMap,
+    SymbolMapThread,
+    SymbolOperate,
+    SymbolDirectedInfinity,
+)
 from mathics.core.atoms import (
     String,
     Integer,
@@ -141,11 +147,11 @@ class SortBy(Builtin):
 
         if l.is_atom():
             return evaluation.message("Sort", "normal")
-        elif l.get_head_name() != "System`List":
-            expr = Expression("SortBy", l, f)
+        elif l.get_head() is not SymbolList:
+            expr = Expression(SymbolSortBy, l, f)
             return evaluation.message(self.get_name(), "list", expr, 1)
         else:
-            keys_expr = Expression("Map", f, l).evaluate(evaluation)  # precompute:
+            keys_expr = Expression(SymbolMap, f, l).evaluate(evaluation)  # precompute:
             # even though our sort function has only (n log n) comparisons, we should
             # compute f no more than n times.
 
@@ -154,7 +160,7 @@ class SortBy(Builtin):
                 or keys_expr.get_head_name() != "System`List"
                 or len(keys_expr.leaves) != len(l.leaves)
             ):
-                expr = Expression("SortBy", l, f)
+                expr = Expression(SymbolSortBy, l, f)
                 return evaluation.message("SortBy", "func", expr, 2)
 
             keys = keys_expr.leaves
@@ -717,7 +723,9 @@ class MapIndexed(Builtin):
             return
 
         def callback(level, pos):
-            return Expression(f, level, Expression("List", *[Integer(p) for p in pos]))
+            return Expression(
+                f, level, Expression(SymbolList, *[Integer(p) for p in pos])
+            )
 
         heads = self.get_option(options, "Heads", evaluation).is_true()
         result, depth = walk_levels(
@@ -785,17 +793,17 @@ class MapThread(Builtin):
 
         if n is None:
             n = 1
-            full_expr = Expression("MapThread", f, expr)
+            full_expr = Expression(SymbolMapThread, f, expr)
         else:
-            full_expr = Expression("MapThread", f, expr, n)
+            full_expr = Expression(SymbolMapThread, f, expr, n)
             n = n.get_int_value()
 
         if n is None or n < 0:
             return evaluation.message("MapThread", "intnm", full_expr, 3)
 
-        if expr.has_form("List", 0):
+        if expr.has_form(SymbolList, 0):
             return Expression(SymbolList)
-        if not expr.has_form("List", None):
+        if not expr.has_form(SymbolList, None):
             return evaluation.message("MapThread", "list", 2, full_expr)
 
         heads = expr.get_leaves()
@@ -807,7 +815,7 @@ class MapThread(Builtin):
             else:
                 dim = None
                 for i, arg in enumerate(args):
-                    if not arg.has_form("List", None):
+                    if not arg.has_form(SymbolList, None):
                         raise MessageException(
                             "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
                         )
@@ -1084,8 +1092,7 @@ class Flatten(Builtin):
 
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
-
-        if n == Expression("DirectedInfinity", Integer1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             n = None
         else:
             n_int = n.get_int_value()
@@ -1289,7 +1296,7 @@ class Operate(Builtin):
         head_depth = n.get_int_value()
         if head_depth is None or head_depth < 0:
             return evaluation.message(
-                "Operate", "intnn", Expression("Operate", p, expr, n), 3
+                "Operate", "intnn", Expression(SymbolOperate, p, expr, n), 3
             )
 
         if head_depth == 0:

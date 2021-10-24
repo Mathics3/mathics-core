@@ -9,7 +9,18 @@ from mathics.builtin.base import Builtin, PrefixOperator
 
 from mathics.core.rules import Rule
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolHoldForm,
+    SymbolAttributes,
+    SymbolRule,
+    SymbolOptions,
+    SymbolInputForm,
+    SymbolInfix,
+    SymbolFormat,
+    SymbolSet,
+)
+
 
 from mathics.core.atoms import String
 
@@ -206,7 +217,7 @@ class Definition(Builtin):
                     "HoldForm",
                     Expression(
                         "Set",
-                        Expression("Attributes", symbol),
+                        Expression(SymbolAttributes, symbol),
                         Expression(
                             "List", *(Symbol(attribute) for attribute in attributes)
                         ),
@@ -230,14 +241,14 @@ class Definition(Builtin):
                 for rule in rules:
 
                     def lhs(expr):
-                        return Expression("Format", expr, Symbol(format))
+                        return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
-                        if expr.has_form("Infix", None):
+                        if expr.has_form(SymbolInfix, None):
                             expr = Expression(
-                                Expression("HoldForm", expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.leaves
                             )
-                        return Expression("InputForm", expr)
+                        return Expression(SymbolInputForm, expr)
 
                     print_rule(rule, lhs=lhs, rhs=rhs)
         for rule in all.defaultvalues:
@@ -249,11 +260,11 @@ class Definition(Builtin):
                     "HoldForm",
                     Expression(
                         "Set",
-                        Expression("Options", symbol),
+                        Expression(SymbolOptions, symbol),
                         Expression(
-                            "List",
+                            SymbolList,
                             *(
-                                Expression("Rule", Symbol(name), value)
+                                Expression(SymbolRule, Symbol(name), value)
                                 for name, value in options
                             )
                         ),
@@ -264,15 +275,17 @@ class Definition(Builtin):
             if lines:
                 return Expression(
                     "Grid",
-                    Expression("List", *(Expression("List", line) for line in lines)),
-                    Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(
+                        SymbolList, *(Expression(SymbolList, line) for line in lines)
+                    ),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
                 )
             else:
-                return Symbol("Null")
+                return SymbolNull
         else:
             for line in lines:
-                evaluation.print_out(Expression("InputForm", line))
-            return Symbol("Null")
+                evaluation.print_out(Expression(SymbolInputForm, line))
+            return SymbolNull
 
     def format_definition_input(self, symbol, evaluation):
         "InputForm: Definition[symbol_]"
@@ -399,14 +412,16 @@ class Information(PrefixOperator):
                 ]
                 infoshow = Expression(
                     "Grid",
-                    Expression("List", *(Expression("List", line) for line in lines)),
-                    Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
+                    Expression(
+                        SymbolList, *(Expression(SymbolList, line) for line in lines)
+                    ),
+                    Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
                 )
                 evaluation.print_out(infoshow)
         else:
             for line in lines:
                 line = String(line) if isinstance(line, str) else line
-                evaluation.print_out(Expression("InputForm", line))
+                evaluation.print_out(Expression(SymbolInputForm, line))
         return ret
 
         # It would be deserable to call here the routine inside Definition, but for some reason it fails...
@@ -444,12 +459,12 @@ class Information(PrefixOperator):
             attributes.sort()
             lines.append(
                 Expression(
-                    "HoldForm",
+                    SymbolHoldForm,
                     Expression(
-                        "Set",
-                        Expression("Attributes", symbol),
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
                         Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
+                            SymbolList, *(Symbol(attribute) for attribute in attributes)
                         ),
                     ),
                 )
@@ -471,14 +486,14 @@ class Information(PrefixOperator):
                 for rule in rules:
 
                     def lhs(expr):
-                        return Expression("Format", expr, Symbol(format))
+                        return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
-                        if expr.has_form("Infix", None):
+                        if expr.has_form(SymbolInfix, None):
                             expr = Expression(
-                                Expression("HoldForm", expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.leaves
                             )
-                        return Expression("InputForm", expr)
+                        return Expression(SymbolInputForm, expr)
 
                     print_rule(rule, lhs=lhs, rhs=rhs)
         for rule in all.defaultvalues:
@@ -490,11 +505,11 @@ class Information(PrefixOperator):
                     "HoldForm",
                     Expression(
                         "Set",
-                        Expression("Options", symbol),
+                        Expression(SymbolOptions, symbol),
                         Expression(
-                            "List",
+                            SymbolList,
                             *(
-                                Expression("Rule", Symbol(name), value)
+                                Expression(SymbolRule, Symbol(name), value)
                                 for name, value in options
                             )
                         ),

@@ -6,9 +6,10 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer, Integer1, from_python
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.atoms import Integer, from_python
+from mathics.core.systemsymbols import SymbolInfinity, SymbolAll
+from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
     InvalidLevelspecError,
@@ -16,6 +17,10 @@ from mathics.builtin.exceptions import (
     PartDepthError,
     PartRangeError,
 )
+
+
+SymbolNothing = Symbol("Nothing")
+SymbolSpan = Symbol("Span")
 
 
 def join_lists(lists):
@@ -86,6 +91,9 @@ def set_part(varlist, indices, newval):
 
 
 def _parts_all_selector():
+    """
+    Selector for `System`All` pspec
+    """
     start = 1
     stop = None
     step = 1
@@ -102,6 +110,9 @@ def _parts_all_selector():
 
 
 def _parts_span_selector(pspec):
+    """
+    Selector for `System`Span` pspec
+    """
     if len(pspec.leaves) > 3:
         raise MessageException("Part", "span", pspec)
     start = 1
@@ -112,7 +123,7 @@ def _parts_span_selector(pspec):
     if len(pspec.leaves) > 1:
         stop = pspec.leaves[1].get_int_value()
         if stop is None:
-            if pspec.leaves[1].get_name() == "System`All":
+            if pspec.leaves[1] is SymbolAll:
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
@@ -138,6 +149,9 @@ def _parts_span_selector(pspec):
 
 
 def _parts_sequence_selector(pspec):
+    """
+    Selector for `System`Sequence` pspec
+    """
     if not isinstance(pspec, (tuple, list)):
         indices = [pspec]
     else:
@@ -170,12 +184,16 @@ def _parts_sequence_selector(pspec):
 
 
 def _part_selectors(indices):
+    """
+    _part_selectors returns a suitable `selector` function according to
+    the kind of specifications in `indices`.
+    """
     for index in indices:
-        if index.has_form("Span", None):
+        if index.has_form(SymbolSpan, None):
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
-        elif index.has_form("List", None):
+        elif index.has_form(SymbolList, None):
             yield _parts_sequence_selector(index.leaves)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
@@ -184,6 +202,9 @@ def _part_selectors(indices):
 
 
 def _list_parts(items, selectors, heads, evaluation, assignment):
+    """
+    _list_parts looks recursively by the parts specified by selectors.
+    """
     if not selectors:
         for item in items:
             yield item
@@ -216,63 +237,50 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
 
 
 def _parts(items, selectors, evaluation, assignment=False):
+    """
+    Select from the `Expression` items those elements indicated by
+    the `selectors`.
+    """
     heads = {}
     return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
+    """
+    walk_parts takes the first element of `list_of_list`, and builds
+    a subexpression according to the specification of `indices`.
+    If assign_list is not `None`, replaces the values in the selected
+    elements by those speficied in `assign_list`.
+
+    list_of_list: a list of `Expression`s with a unique element.
+
+    indices: a list of part specification `Expression`s, including
+    `Integer` indices,  `Span` `Expression`s, `List` of `Integer`s
+    and
+
+    assign_list: None or an `Expression` object.
+    """
     walk_list = list_of_list[0]
-
-    if assign_list is not None:
-        # this double copying is needed to make the current logic in
-        # the assign_list and its access to original work.
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-        list_of_list = [walk_list]
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-
     indices = [index.evaluate(evaluation) for index in indices]
-
-    try:
-        result = _parts(
-            walk_list, _part_selectors(indices), evaluation, assign_list is not None
-        )
-    except MessageException as e:
-        e.message(evaluation)
-        return False
-
     if assign_list is not None:
-
-        def replace_item(all, item, new):
-            if item.position is None:
-                all[0] = new
-            else:
-                item.position.replace(new)
-
-        def process_level(item, assignment):
-            if item.is_atom():
-                replace_item(list_of_list, item.original, assignment)
-            elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
-                assignment.leaves
-            ):
-                if item.original:
-                    replace_item(list_of_list, item.original, assignment)
-                else:
-                    for leaf in item.leaves:
-                        process_level(leaf, assignment)
-            else:
-                for sub_item, sub_assignment in zip(item.leaves, assignment.leaves):
-                    process_level(sub_item, sub_assignment)
-
-        process_level(result, assign_list)
-
-        result = list_of_list[0]
+        try:
+            result = SubExpression(walk_list, indices)
+            result.replace(assign_list.copy())
+            result = result.to_expression()
+        except MessageException as e:
+            e.message(evaluation)
+            return False
         result.clear_cache()
-
-    return result
+        return result
+    else:
+        try:
+            result = _parts(
+                walk_list, _part_selectors(indices), evaluation, assign_list is not None
+            )
+        except MessageException as e:
+            e.message(evaluation)
+            return False
+        return result
 
 
 def is_in_level(current, depth, start=1, stop=None):
@@ -348,7 +356,7 @@ def python_levelspec(levelspec):
         else:
             return value
 
-    if levelspec.has_form("List", None):
+    if levelspec.has_form(SymbolList, None):
         values = [value_to_level(leaf) for leaf in levelspec.leaves]
         if len(values) == 1:
             return values[0], values[0]
@@ -441,7 +449,7 @@ def convert_seq(seq):
             stop = value
         else:
             start = value
-    elif seq.has_form("List", 1, 2, 3):
+    elif seq.has_form(SymbolList, 1, 2, 3):
         if len(seq.leaves) == 1:
             start = stop = seq.leaves[0].get_int_value()
             if stop is None:
@@ -502,7 +510,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
     n indicates the number of occurrences to return. By default, it returns all the occurences.
     """
-    nothing = Symbol("System`Nothing")
+    nothing = SymbolNothing
     from mathics.builtin.patterns import Matcher
 
     match = Matcher(pattern)

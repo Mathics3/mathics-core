@@ -20,11 +20,12 @@ from mathics.core.symbols import (
 from mathics.core.symbols import (
     SymbolList,
     SymbolNull,
+    system_symbols,
 )
 from mathics.core.atoms import Integer
 from mathics.core.systemsymbols import SymbolAborted
 
-FORMATS = [
+FORMATS = system_symbols(
     "StandardForm",
     "FullForm",
     "TraditionalForm",
@@ -34,7 +35,7 @@ FORMATS = [
     "MathMLForm",
     "MatrixForm",
     "TableForm",
-]
+)
 
 
 class EvaluationInterrupt(Exception):

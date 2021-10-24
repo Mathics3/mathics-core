@@ -39,6 +39,10 @@ from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
+
+SymbolSum = Symbol("Sum")
+SymbolProduct = Symbol("Product")
+
 from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.builtin.lists import _IterationFunction
@@ -1165,7 +1169,7 @@ class Sum(_IterationFunction, SympyFunction):
         """
         Perform summation via sympy.summation
         """
-        if expr.has_form("Sum", 2) and expr.leaves[1].has_form("List", 3):
+        if expr.has_form(SymbolSum, 2) and expr.leaves[1].has_form(SymbolList, 3):
             index = expr.leaves[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
@@ -1274,7 +1278,7 @@ class Product(_IterationFunction, SympyFunction):
         return Expression("Times", *items)
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Product", 2) and expr.leaves[1].has_form("List", 3):
+        if expr.has_form(SymbolProduct, 2) and expr.leaves[1].has_form(SymbolList, 3):
             index = expr.leaves[1]
             try:
                 e_kwargs = kwargs.copy()
@@ -1446,7 +1450,7 @@ class Assuming(Builtin):
         assumptions = assumptions.evaluate(evaluation)
         if assumptions.is_true():
             cond = []
-        elif assumptions.is_symbol() or not assumptions.has_form("List", None):
+        elif assumptions.is_symbol() or not assumptions.has_form(SymbolList, None):
             cond = [assumptions]
         else:
             cond = assumptions._leaves

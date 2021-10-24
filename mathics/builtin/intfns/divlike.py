@@ -11,7 +11,11 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, Test, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, from_python
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse, SymbolList
+from mathics.core.systemsymbols import SymbolComplexInfinity
+
+SymbolQuotient = Symbol("Quotient")
+SymbolQuotientRemainder = Symbol("QuotientRemainder")
 
 
 class CoprimeQ(Builtin):
@@ -51,12 +55,12 @@ class CoprimeQ(Builtin):
 
         py_args = [arg.to_python() for arg in args.get_sequence()]
         if not all(isinstance(i, int) or isinstance(i, complex) for i in py_args):
-            return Symbol("False")
+            return SymbolFalse
 
         if all(sympy.gcd(n, m) == 1 for (n, m) in combinations(py_args, 2)):
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 class EvenQ(Test):
@@ -282,13 +286,13 @@ class PrimeQ(SympyFunction):
 
         n = n.get_int_value()
         if n is None:
-            return Symbol("False")
+            return SymbolFalse
 
         n = abs(n)
         if sympy.isprime(n):
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 class Quotient(Builtin):
@@ -323,8 +327,8 @@ class Quotient(Builtin):
         py_m = m.get_int_value()
         py_n = n.get_int_value()
         if py_n == 0:
-            evaluation.message("Quotient", "infy", Expression("Quotient", m, n))
-            return Symbol("ComplexInfinity")
+            evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
+            return SymbolComplexInfinity
         return Integer(py_m // py_n)
 
 
@@ -370,10 +374,12 @@ class QuotientRemainder(Builtin):
             py_n = n.to_python()
             if py_n == 0:
                 return evaluation.message(
-                    "QuotientRemainder", "divz", Expression("QuotientRemainder", m, n)
+                    "QuotientRemainder",
+                    "divz",
+                    Expression(SymbolQuotientRemainder, m, n),
                 )
             return Expression(
                 SymbolList, Integer(py_m // py_n), from_python(py_m % py_n)
             )
         else:
-            return Expression("QuotientRemainder", m, n)
+            return Expression(SymbolQuotientRemainder, m, n)

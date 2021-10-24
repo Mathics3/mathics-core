@@ -5,12 +5,19 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
+    SymbolList,
     fully_qualified_symbol_name,
 )
 from mathics.core.atoms import (
     String,
     Integer,
 )
+
+from mathics.core.systemsymbols import (
+    SymbolSet,
+)
+
+SymbolSymbol = Symbol("Symbol")
 
 from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
@@ -21,19 +28,19 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
         if msg_symbol and evaluation:
             evaluation.message(msg_symbol, tag, *args)
 
-    if not var_list.has_form("List", None):
+    if not var_list.has_form(SymbolList, None):
         message("lvlist", var_list)
         return
     vars = var_list.leaves
     scoping_vars = set()
     for var in vars:
         var_name = None
-        if var.has_form("Set", 2):
+        if var.has_form(SymbolSet, 2):
             var_name = var.leaves[0].get_name()
             new_def = var.leaves[1]
             if evaluation:
                 new_def = new_def.evaluate(evaluation)
-        elif var.has_form("Symbol"):
+        elif isinstance(var, Symbol):
             var_name = var.get_name()
             new_def = None
         if not var_name:
@@ -274,7 +281,7 @@ class Module(Builtin):
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def)
+                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace, in_scoping=False)
         result = new_expr.evaluate(evaluation)
@@ -389,7 +396,7 @@ class Unique(Predefined):
             return evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
 
         # Check valid symbol variables
-        symbols = vars.leaves if vars.has_form("List", None) else [vars]
+        symbols = vars.leaves if vars.has_form(SymbolList, None) else [vars]
         for symbol in symbols:
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()
@@ -410,7 +417,7 @@ class Unique(Predefined):
         for symbol in symbols:
             if isinstance(symbol, Symbol):
                 list.append(
-                    Module(Expression("List", symbol), symbol).evaluate(evaluation)
+                    Module(Expression(SymbolList, symbol), symbol).evaluate(evaluation)
                 )
             else:
                 new_name = "%s%d" % (symbol.get_string_value(), self.seq_number)
@@ -424,8 +431,8 @@ class Unique(Predefined):
             for att in attrs:
                 evaluation.definitions.set_attribute(symbol.get_name(), att)
 
-        if vars.has_form("List", None):
-            return Expression("List", *list)
+        if vars.has_form(SymbolList, None):
+            return Expression(SymbolList, *list)
         else:
             return list[0]
 
@@ -498,7 +505,7 @@ class Contexts(Builtin):
         for name in evaluation.definitions.get_names():
             contexts.add(String(name[: name.rindex("`") + 1]))
 
-        return Expression("List", *sorted(contexts))
+        return Expression(SymbolList, *sorted(contexts))
 
 
 class Context_(Predefined):

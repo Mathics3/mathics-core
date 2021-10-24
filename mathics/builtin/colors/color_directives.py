@@ -150,7 +150,6 @@ class _Color(_GraphicsElement):
                 # we must not clip here; we copy the components, without clipping,
                 # e.g. RGBColor[-1, 0, 0] stays RGBColor[-1, 0, 0]. this is especially
                 # important for color spaces like LAB that have negative components.
-
                 components = [value.round_to_float() for value in leaves]
                 if None in components:
                     raise ColorError
@@ -171,7 +170,7 @@ class _Color(_GraphicsElement):
 
     @staticmethod
     def create(expr):
-        head = expr.get_head_name()
+        head = expr.get_head()
         cls = get_class(head)
         if cls is None:
             raise ColorError
@@ -318,7 +317,7 @@ class ColorDistance(Builtin):
             if not compute:
                 evaluation.message("ColorDistance", "invdist", distance_function)
                 return
-        elif distance_function.has_form("List", 2):
+        elif distance_function.has_form(SymbolList, 2):
             if distance_function.leaves[0].get_string_value() == "CMC":
                 if distance_function.leaves[1].get_string_value() == "Acceptability":
                     compute = (
@@ -333,7 +332,7 @@ class ColorDistance(Builtin):
                 elif distance_function.leaves[1].get_string_value() == "Perceptibility":
                     compute = ColorDistance._distances.get("CMC")
 
-                elif distance_function.leaves[1].has_form("List", 2):
+                elif distance_function.leaves[1].has_form(SymbolList, 2):
                     if isinstance(
                         distance_function.leaves[1].leaves[0], Integer
                     ) and isinstance(distance_function.leaves[1].leaves[1], Integer):

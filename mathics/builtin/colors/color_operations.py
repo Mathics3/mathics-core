@@ -24,6 +24,9 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+)
 
 from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
@@ -118,7 +121,7 @@ class Blend(Builtin):
             evaluation.message("Blend", "arg", Expression(SymbolList, colors_orig))
             return
 
-        if u.has_form("List", None):
+        if u.has_form(SymbolList, None):
             values = [value.round_to_float(evaluation) for value in u.leaves]
             if None in values:
                 values = None
@@ -322,7 +325,7 @@ class DominantColors(_ImageBuiltin):
 
         if (
             isinstance(min_color_distance, Symbol)
-            and min_color_distance.get_name() == "System`Automatic"
+            and min_color_distance is SymbolAutomatic
         ):
             py_min_color_distance = 0.15
         else:
@@ -330,13 +333,10 @@ class DominantColors(_ImageBuiltin):
             if py_min_color_distance is None:
                 return
 
-        if (
-            isinstance(color_coverage, Symbol)
-            and color_coverage.get_name() == "System`Automatic"
-        ):
+        if isinstance(color_coverage, Symbol) and color_coverage is SymbolAutomatic:
             py_min_color_coverage = 0.05
             py_max_color_coverage = 1.0
-        elif color_coverage.has_form("List", 2):
+        elif color_coverage.has_form(SymbolList, 2):
             py_min_color_coverage = color_coverage.leaves[0].round_to_float()
             py_max_color_coverage = color_coverage.leaves[1].round_to_float()
         else:

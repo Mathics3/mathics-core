@@ -2,6 +2,7 @@
 import os.path as osp
 import sys
 from .helper import check_evaluation, evaluate
+from mathics.core.symbols import SymbolList
 
 
 def test_compress():
@@ -34,7 +35,7 @@ if sys.platform not in ("win32",):
         # Check that AppendTo[$Path] works in conjunction with Get[]
         dirname = osp.join(osp.dirname(osp.abspath(__file__)), "data")
         evaled = evaluate(f"""AppendTo[$Path, "{dirname}"]""")
-        assert evaled.has_form("List", 1, None)
+        assert evaled.has_form(SymbolList, 1, None)
         check_evaluation('Get["fortytwo.m"]', "42")
 
 

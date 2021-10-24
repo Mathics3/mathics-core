@@ -22,6 +22,7 @@ from mathics.core.atoms import (
 from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
+    SymbolList,
 )
 from mathics.core.rules import Pattern
 
@@ -139,7 +140,7 @@ class ArrayQ(Builtin):
         dims = [len(expr.get_leaves())]  # to ensure an atom is not an array
 
         def check(level, expr):
-            if not expr.has_form("List", None):
+            if not expr.has_form(SymbolList, None):
                 test_expr = Expression(test, expr)
                 if test_expr.evaluate(evaluation) != SymbolTrue:
                     return False
@@ -195,8 +196,8 @@ class DiagonalMatrix(Builtin):
         for index, item in enumerate(list.leaves):
             row = [Integer0] * n
             row[index] = item
-            result.append(Expression("List", *row))
-        return Expression("List", *result)
+            result.append(Expression(SymbolList, *row))
+        return Expression(SymbolList, *result)
 
 
 class Dimensions(Builtin):
@@ -233,7 +234,7 @@ class Dimensions(Builtin):
     def apply(self, expr, evaluation):
         "Dimensions[expr_]"
 
-        return Expression("List", *[Integer(dim) for dim in get_dimensions(expr)])
+        return Expression(SymbolList, *[Integer(dim) for dim in get_dimensions(expr)])
 
 
 class Dot(BinaryOperator):
@@ -585,7 +586,7 @@ class Transpose(Builtin):
                     result.append([item])
                 else:
                     result[col_index].append(item)
-        return Expression("List", *[Expression("List", *row) for row in result])
+        return Expression(SymbolList, *[Expression(SymbolList, *row) for row in result])
 
 
 class VectorQ(Builtin):
