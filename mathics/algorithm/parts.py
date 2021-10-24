@@ -20,12 +20,18 @@ from mathics.builtin.exceptions import (
 
 SymbolNothing = Symbol("Nothing")
 
-
-def join_lists(lists):
-    new_list = []
-    for list in lists:
-        new_list.extend(list)
-    return new_list
+# TODO: delete me
+# def join_lists(lists):
+#    """
+#    flatten a list of list.
+#    Maybe there are better, standard options, like
+#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
+#    In any case, is not used in the following code.
+#    """
+#    new_list = []
+#    for list in lists:
+#        new_list.extend(list)
+#    return new_list
 
 
 def get_part(varlist, indices):
@@ -199,7 +205,7 @@ def _part_selectors(indices):
             raise MessageException("Part", "pspec", index)
 
 
-def _list_parts(items, selectors, heads, evaluation, assignment):
+def _list_parts(items, selectors, evaluation, assignment):
     """
     _list_parts looks recursively by the parts specified by selectors.
     """
@@ -217,9 +223,7 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
         for item in items:
             selected = list(select(item))
 
-            picked = list(
-                _list_parts(selected, selectors[1:], heads, evaluation, assignment)
-            )
+            picked = list(_list_parts(selected, selectors[1:], evaluation, assignment))
 
             if unwrap is None:
                 if assignment:
@@ -240,7 +244,7 @@ def _parts(items, selectors, evaluation, assignment=False):
     the `selectors`.
     """
     heads = {}
-    return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+    return list(_list_parts([items], list(selectors), evaluation, assignment))[0]
 
 
 def walk_parts(list_of_list, indices, evaluation, assign_list=None):
