@@ -15,7 +15,7 @@ sympy_slot_prefix = "_Mathics_Slot_"
 
 # system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
 def system_symbols(*symbols) -> typing.List[str]:
-    return [Symbol(s) for s in symbols]
+    return frozenset(Symbol(s) for s in symbols)
 
 
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
@@ -789,15 +789,8 @@ SymbolTrue = Symbol("System`True")
 
 
 # The available formats.
-(
-    SymbolInputForm,
-    SymbolOutputForm,
-    SymbolStandardForm,
-    SymbolFullForm,
-    SymbolTraditionalForm,
-    TeXForm,
-    MathMLForm,
-) = format_symbols = system_symbols(
+
+format_symbols = system_symbols(
     "InputForm",
     "OutputForm",
     "StandardForm",
@@ -806,6 +799,15 @@ SymbolTrue = Symbol("System`True")
     "TeXForm",
     "MathMLForm",
 )
+
+
+SymbolInputForm = Symbol("InputForm")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolStandardForm = Symbol("StandardForm")
+SymbolFullForm = Symbol("FullForm")
+SymbolTraditionalForm = Symbol("TraditionalForm")
+SymbolTeXForm = Symbol("TeXForm")
+SymbolMathMLForm = Symbol("MathMLForm")
 
 
 # Used to check if a symbol is `Numeric` without evaluation.

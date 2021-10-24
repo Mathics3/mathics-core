@@ -22,12 +22,18 @@ from mathics.builtin.exceptions import (
 SymbolNothing = Symbol("Nothing")
 SymbolSpan = Symbol("Span")
 
-
-def join_lists(lists):
-    new_list = []
-    for list in lists:
-        new_list.extend(list)
-    return new_list
+# TODO: delete me
+# def join_lists(lists):
+#    """
+#    flatten a list of list.
+#    Maybe there are better, standard options, like
+#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
+#    In any case, is not used in the following code.
+#    """
+#    new_list = []
+#    for list in lists:
+#        new_list.extend(list)
+#    return new_list
 
 
 def get_part(varlist, indices):
@@ -92,7 +98,7 @@ def set_part(varlist, indices, newval):
 
 def _parts_all_selector():
     """
-    Selector for `System`All` pspec
+    Selector for `System`All` as a part specification.
     """
     start = 1
     stop = None
@@ -111,7 +117,7 @@ def _parts_all_selector():
 
 def _parts_span_selector(pspec):
     """
-    Selector for `System`Span` pspec
+    Selector for `System`Span` part specification
     """
     if len(pspec.leaves) > 3:
         raise MessageException("Part", "span", pspec)
@@ -150,7 +156,7 @@ def _parts_span_selector(pspec):
 
 def _parts_sequence_selector(pspec):
     """
-    Selector for `System`Sequence` pspec
+    Selector for `System`Sequence` part specification
     """
     if not isinstance(pspec, (tuple, list)):
         indices = [pspec]
@@ -201,13 +207,20 @@ def _part_selectors(indices):
             raise MessageException("Part", "pspec", index)
 
 
-def _list_parts(items, selectors, heads, evaluation, assignment):
+def _list_parts(exprs, selectors, evaluation):
     """
-    _list_parts looks recursively by the parts specified by selectors.
+    _list_parts returns an generator of Expressions using selectors to pick out parts of `exprs`.
+    If `selectors` is empty then a generator of items is returned.
+
+    If a selector in `selectors` is a tuple it consists of a function to determine whether or
+    not to select an expression and a optional function to unwrap the resulting selected expressions.
+
+    `evaluation` is used in  expression restructuring an unwrapped expression when the there a
+    unwrapping function in the selector.
     """
     if not selectors:
-        for item in items:
-            yield item
+        for expr in exprs:
+            yield expr
     else:
         selector = selectors[0]
         if isinstance(selector, tuple):
@@ -216,41 +229,33 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
             select = selector
             unwrap = None
 
-        for item in items:
-            selected = list(select(item))
+        for expr in exprs:
+            selected = list(select(expr))
 
-            picked = list(
-                _list_parts(selected, selectors[1:], heads, evaluation, assignment)
-            )
+            picked = list(_list_parts(selected, selectors[1:], evaluation))
 
             if unwrap is None:
-                if assignment:
-                    expr = Expression(item.head, *picked)
-                    expr.original = None
-                    expr.set_positions()
-                else:
-                    expr = item.restructure(item.head, picked, evaluation)
-
+                expr = expr.restructure(expr.head, picked, evaluation)
                 yield expr
             else:
                 yield unwrap(picked)
 
 
-def _parts(items, selectors, evaluation, assignment=False):
+def _parts(expr, selectors, evaluation):
     """
-    Select from the `Expression` items those elements indicated by
+    Select from the `Expression` expr those elements indicated by
     the `selectors`.
     """
-    heads = {}
-    return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+    return list(_list_parts([expr], list(selectors), evaluation))[0]
 
 
-def walk_parts(list_of_list, indices, evaluation, assign_list=None):
+def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
     """
     walk_parts takes the first element of `list_of_list`, and builds
-    a subexpression according to the specification of `indices`.
-    If assign_list is not `None`, replaces the values in the selected
-    elements by those speficied in `assign_list`.
+    a subexpression composed of the expressions at the index positions
+    listed in `indices`.
+
+    `assign_rhs`, when not empty, indicates where to the store parts of the composed list.
 
     list_of_list: a list of `Expression`s with a unique element.
 
@@ -258,14 +263,14 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
     `Integer` indices,  `Span` `Expression`s, `List` of `Integer`s
     and
 
-    assign_list: None or an `Expression` object.
+    assign_rhs: None or an `Expression` object.
     """
     walk_list = list_of_list[0]
     indices = [index.evaluate(evaluation) for index in indices]
-    if assign_list is not None:
+    if assign_rhs is not None:
         try:
             result = SubExpression(walk_list, indices)
-            result.replace(assign_list.copy())
+            result.replace(assign_rhs.copy())
             result = result.to_expression()
         except MessageException as e:
             e.message(evaluation)
@@ -274,9 +279,7 @@ def walk_parts(list_of_list, indices, evaluation, assign_list=None):
         return result
     else:
         try:
-            result = _parts(
-                walk_list, _part_selectors(indices), evaluation, assign_list is not None
-            )
+            result = _parts(walk_list, _part_selectors(indices), evaluation)
         except MessageException as e:
             e.message(evaluation)
             return False
