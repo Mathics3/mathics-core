@@ -180,13 +180,13 @@ class ElementData(Builtin):
             result = _ELEMENT_DATA[py_n][iprop]
 
             if result == "NOT_AVAILABLE":
-                return Expression("Missing", "NotAvailable")
+                return Expression("Missing", String("NotAvailable"))
 
             if result == "NOT_APPLICABLE":
-                return Expression("Missing", "NotApplicable")
+                return Expression("Missing", String("NotApplicable"))
 
             if result == "NOT_KNOWN":
-                return Expression("Missing", "Unknown")
+                return Expression("Missing", String("Unknown"))
 
             result = evaluation.parse(result)
             if isinstance(result, Symbol):

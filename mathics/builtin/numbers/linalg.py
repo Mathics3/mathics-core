@@ -12,8 +12,15 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Real, from_mpmath
-from mathics.core.symbols import Symbol
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    Real,
+    from_mpmath,
+    from_python,
+)
+from mathics.core.symbols import Symbol, SymbolList
 
 
 def matrix_data(m):
@@ -262,9 +269,12 @@ class SingularValueDecomposition(Builtin):
 
         U, S, V = mp.svd(matrix)
         S = mp.diag(S)
-        U_list = Expression("List", *U.tolist())
-        S_list = Expression("List", *S.tolist())
-        V_list = Expression("List", *V.tolist())
+        u = [from_python(u) for u in U.tolist()]
+        U_list = Expression("List", *u)
+        s = [from_python(s) for s in S.tolist()]
+        S_list = Expression("List", *s)
+        v = [from_python(v) for v in V.tolist()]
+        V_list = Expression("List", *v)
         return Expression("List", *[U_list, S_list, V_list])
 
 
@@ -293,7 +303,7 @@ class QRDecomposition(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("QRDecomposition", "matrix", m, 1)
+            return evaluation.message("QRDecomposition", "matrix", m, Integer1)
         try:
             Q, R = matrix.QRdecomposition()
         except sympy.matrices.MatrixError:
@@ -333,7 +343,7 @@ class PseudoInverse(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("PseudoInverse", "matrix", m, 1)
+            return evaluation.message("PseudoInverse", "matrix", m, Integer1)
         pinv = matrix.pinv()
         return from_sympy(pinv)
 
@@ -379,11 +389,11 @@ class LeastSquares(Builtin):
 
         matrix = to_sympy_matrix(m)
         if matrix is None:
-            return evaluation.message("LeastSquares", "matrix", m, 1)
+            return evaluation.message("LeastSquares", "matrix", m, Integer1)
 
         b_vector = to_sympy_matrix(b)
         if b_vector is None:
-            return evaluation.message("LeastSquares", "matrix", b, 2)
+            return evaluation.message("LeastSquares", "matrix", b, Integer(2))
 
         try:
             solution = matrix.solve_least_squares(b_vector)  # default method = Cholesky
@@ -436,7 +446,7 @@ class LinearSolve(Builtin):
 
         matrix = matrix_data(m)
         if matrix is None:
-            return evaluation.message("LinearSolve", "matrix", m, 1)
+            return evaluation.message("LinearSolve", "matrix", m, Integer1)
         if not b.has_form("List", None):
             return
         if len(b.leaves) != len(matrix):
@@ -444,12 +454,12 @@ class LinearSolve(Builtin):
 
         for leaf in b.leaves:
             if leaf.has_form("List", None):
-                return evaluation.message("LinearSolve", "matrix", b, 2)
+                return evaluation.message("LinearSolve", "matrix", b, Integer(2))
 
         system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.leaves)]
         system = to_sympy_matrix(system)
         if system is None:
-            return evaluation.message("LinearSolve", "matrix", b, 2)
+            return evaluation.message("LinearSolve", "matrix", b, Integer(2))
         syms = [sympy.Dummy("LinearSolve_var%d" % k) for k in range(system.cols - 1)]
         sol = sympy.solve_linear_system(system, *syms)
         if sol:
@@ -731,8 +741,11 @@ class Eigenvalues(Builtin):
         eigenvalues.sort(
             key=lambda v: (abs(v[0]), -v[0].real, -(v[0].imag)), reverse=True
         )
-        eigenvalues = [[from_mpmath(c) for c in row] for row in eigenvalues]
-        return Expression("List", *eigenvalues)
+        eigenvalues = [
+            Expression(SymbolList, *[from_mpmath(c) for c in row])
+            for row in eigenvalues
+        ]
+        return Expression(SymbolList, *eigenvalues)
 
     options = {"Method": "sympy"}
 
@@ -764,7 +777,7 @@ class Eigenvalues(Builtin):
                     from_sympy(v) for (v, c) in eigenvalues for _ in range(c)
                 ]
 
-                return Expression("List", *eigenvalues)
+                return Expression(SymbolList, *[from_python(ev) for ev in eigenvalues])
             except TypeError:
                 pass
 
@@ -773,7 +786,7 @@ class Eigenvalues(Builtin):
         # Sort the eigenvalues by their sort key
         eigenvalues.sort(key=lambda v: v[0].get_sort_key())
 
-        eigenvalues = [v for (v, c) in eigenvalues for _ in range(c)]
+        eigenvalues = [from_python(v) for (v, c) in eigenvalues for _ in range(c)]
 
         return Expression("List", *eigenvalues)
 
@@ -823,7 +836,7 @@ class MatrixPower(Builtin):
         "MatrixPower[m_, power_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixPower", "matrix", m, 1)
+            return evaluation.message("MatrixPower", "matrix", m, Integer1)
 
         sympy_power = power.to_sympy()
         if sympy_power is None:
@@ -870,7 +883,7 @@ class MatrixExp(Builtin):
         "MatrixExp[m_]"
         sympy_m = to_sympy_matrix(m)
         if sympy_m is None:
-            return evaluation.message("MatrixExp", "matrix", m, 1)
+            return evaluation.message("MatrixExp", "matrix", m, Integer1)
 
         try:
             res = sympy_m.exp()
@@ -1072,9 +1085,10 @@ class Eigenvectors(Builtin):
             # Add the vectors to results
             result.extend(vects)
         result.extend(
-            [Expression("List", *([0] * matrix.rows))] * (matrix.rows - len(result))
+            [Expression(SymbolList, *([Integer0] * matrix.rows))]
+            * (matrix.rows - len(result))
         )
-        return Expression("List", *result)
+        return Expression(SymbolList, *result)
 
 
 def _norm_calc(head, u, v, evaluation):
@@ -1134,7 +1148,7 @@ class SquaredEuclideanDistance(Builtin):
         "SquaredEuclideanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Power", Expression("Norm", t), 2)
+            return Expression("Power", Expression("Norm", t), Integer(2))
 
 
 class ManhattanDistance(Builtin):
@@ -1255,7 +1269,7 @@ class CosineDistance(Builtin):
         if dot is not None:
             return Expression(
                 "Subtract",
-                1,
+                Integer1,
                 Expression(
                     "Divide",
                     dot,

@@ -12,6 +12,7 @@ def pairwise(args):
     [(1, 2), (2, 3)]
     """
     first = True
+    last = None
     for arg in args:
         if not first:
             yield last, arg

@@ -11,6 +11,7 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
 from mathics.core.expression import Expression
+from mathics.core.atoms import Integer
 
 
 class Correlation(Builtin):
@@ -79,7 +80,7 @@ class Covariance(Builtin):
             return Expression(
                 "Divide",
                 Expression("Dot", ma, Expression("Conjugate", mb)),
-                len(a.leaves) - 1,
+                Integer(len(a.leaves) - 1),
             )
 
 
@@ -206,5 +207,5 @@ class Variance(_Rectangular):
             return Expression(
                 "Divide",
                 Expression("Dot", d, Expression("Conjugate", d)),
-                len(l.leaves) - 1,
+                Integer(len(l.leaves) - 1),
             )

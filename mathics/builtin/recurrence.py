@@ -10,6 +10,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
+from mathics.core.atoms import Integer
 
 
 class RSolve(Builtin):
@@ -118,9 +119,9 @@ class RSolve(Builtin):
         relation = relations[0]
 
         left, right = relation.leaves
-        relation = Expression("Plus", left, Expression("Times", -1, right)).evaluate(
-            evaluation
-        )
+        relation = Expression(
+            "Plus", left, Expression("Times", Integer(-1), right)
+        ).evaluate(evaluation)
 
         sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
         if sym_eq is None:

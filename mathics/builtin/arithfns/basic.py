@@ -93,9 +93,9 @@ class CubeRoot(Builtin):
 
     def apply(self, n, evaluation):
         "CubeRoot[n_Complex]"
-
+        RationalOneThird = Rational(Integer1, Integer(3))
         evaluation.message("CubeRoot", "preal", n)
-        return Expression("Power", n, Expression("Divide", 1, 3))
+        return Expression("Power", n, RationalOneThird)
 
 
 class Divide(BinaryOperator):
@@ -303,7 +303,7 @@ class Plus(BinaryOperator, SympyFunction):
             elif isinstance(item, Number):
                 return -item.to_sympy()
             else:
-                return Expression("Times", -1, item)
+                return Expression("Times", Integer(-1), item)
 
         def is_negative(value):
             if isinstance(value, Complex):
@@ -331,7 +331,7 @@ class Plus(BinaryOperator, SympyFunction):
             "Infix",
             Expression("List", *values),
             Expression("List", *ops),
-            310,
+            Integer(310),
             Symbol("Left"),
         )
 

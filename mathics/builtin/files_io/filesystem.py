@@ -807,11 +807,11 @@ class FileDate(Builtin):
             result = osp.getatime(py_path)
         elif time_type == "Creation":
             if os.name == "posix":
-                return Expression("Missing", "NotApplicable")
+                return Expression("Missing", String("NotApplicable"))
             result = osp.getctime(py_path)
         elif time_type == "Change":
             if os.name != "posix":
-                return Expression("Missing", "NotApplicable")
+                return Expression("Missing", String("NotApplicable"))
             result = osp.getctime(py_path)
         elif time_type == "Modification":
             result = osp.getmtime(py_path)
@@ -821,7 +821,7 @@ class FileDate(Builtin):
 
         # Offset for system epoch
         epochtime = Expression(
-            "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
+            "AbsoluteTime", from_python(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
         ).to_python(n_evaluation=evaluation)
         result += epochtime
 
@@ -2139,7 +2139,10 @@ class SetFileDate(Builtin):
             return
 
         epochtime = (
-            Expression("AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
+            Expression(
+                "AbsoluteTime",
+                from_python(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))),
+            )
             .evaluate(evaluation)
             .to_python()
         )

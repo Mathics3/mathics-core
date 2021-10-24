@@ -21,7 +21,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolNull,
 )
-
+from mathics.core.atoms import Integer
 from mathics.core.systemsymbols import SymbolAborted
 
 FORMATS = [
@@ -327,7 +327,9 @@ class Evaluation(object):
 
         def evaluate():
             if history_length > 0:
-                self.definitions.add_rule("In", Rule(Expression("In", line_no), query))
+                self.definitions.add_rule(
+                    "In", Rule(Expression("In", Integer(line_no)), query)
+                )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression("System`$Pre", query).evaluate(self)
             else:
@@ -346,7 +348,7 @@ class Evaluation(object):
 
                 stored_result = self.get_stored_result(out_result)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression("Out", line_no), stored_result)
+                    "Out", Rule(Expression("Out", Integer(line_no)), stored_result)
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
@@ -379,10 +381,12 @@ class Evaluation(object):
             except WLThrowInterrupt as ti:
                 if ti.tag:
                     self.exc_result = Expression(
-                        "Hold", Expression("Throw", ti.value, ti.tag)
+                        "Hold", Expression("Throw", Integer(ti.value), ti.tag)
                     )
                 else:
-                    self.exc_result = Expression("Hold", Expression("Throw", ti.value))
+                    self.exc_result = Expression(
+                        "Hold", Expression("Throw", Integer(ti.value))
+                    )
                 self.message("Throw", "nocatch", self.exc_result)
             except OverflowError:
                 self.message("General", "ovfl")
@@ -417,8 +421,8 @@ class Evaluation(object):
 
         line = line_no - history_length
         while line > 0:
-            unset_in = self.definitions.unset("In", Expression("In", line))
-            unset_out = self.definitions.unset("Out", Expression("Out", line))
+            unset_in = self.definitions.unset("In", Expression("In", Integer(line)))
+            unset_out = self.definitions.unset("Out", Expression("Out", Integer(line)))
             if not (unset_in or unset_out):
                 break
             line -= 1

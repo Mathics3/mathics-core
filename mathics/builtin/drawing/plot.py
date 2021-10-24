@@ -19,6 +19,7 @@ from mathics.core.atoms import (
     String,
     Integer,
     Integer0,
+    Integer1,
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList, SymbolN
@@ -84,15 +85,19 @@ class ColorDataFunction(Builtin):
 class _GradientColorScheme(object):
     def color_data_function(self, name):
         colors = Expression(
-            "List", *[Expression("RGBColor", *color) for color in self.colors()]
+            "List",
+            *[
+                Expression("RGBColor", *[MachineReal(cc) for cc in color])
+                for color in self.colors()
+            ]
         )
         blend = Expression(
-            "Function", Expression("Blend", colors, Expression("Slot", 1))
+            "Function", Expression("Blend", colors, Expression("Slot", Integer1))
         )
         arguments = [
             String(name),
             String("Gradients"),
-            Expression(SymbolList, 0, 1),
+            Expression(SymbolList, Integer0, Integer1),
             blend,
         ]
         return Expression("ColorDataFunction", *arguments)
@@ -657,7 +662,9 @@ class _Plot(Builtin):
             if exclusions == "System`None":  # Join all the Lines
                 points = [[(xx, yy) for line in points for xx, yy in line]]
 
-            graphics.append(Expression("Hue", hue, 0.6, 0.6))
+            graphics.append(
+                Expression("Hue", MachineReal(hue), MachineReal(0.6), MachineReal(0.6))
+            )
             graphics.append(Expression("Line", from_python(points)))
 
             for line in points:
@@ -692,8 +699,15 @@ class _Plot(Builtin):
 
         if mesh != "None":
             for hue, points in zip(function_hues, mesh_points):
-                graphics.append(Expression("Hue", hue, 0.6, 0.6))
-                meshpoints = [Expression(SymbolList, xx, yy) for xx, yy in points]
+                graphics.append(
+                    Expression(
+                        "Hue", MachineReal(hue), MachineReal(0.6), MachineReal(0.6)
+                    )
+                )
+                meshpoints = [
+                    Expression(SymbolList, MachineReal(xx), MachineReal(yy))
+                    for xx, yy in points
+                ]
                 graphics.append(
                     Expression("Point", Expression(SymbolList, *meshpoints))
                 )
@@ -773,9 +787,13 @@ class _Chart(Builtin):
                 multiple_colors = True
 
             if not multiple_colors and not self.never_monochrome:
-                colors = [Expression("RGBColor", *mpl_colors[0])]
+                colors = (MachineReal(c) for c in mpl_colors[0])
+                colors = [Expression("RGBColor", *colors)]
             else:
-                colors = [Expression("RGBColor", *c) for c in mpl_colors]
+                colors = [
+                    Expression("RGBColor", *[MachineReal(cc) for cc in c])
+                    for c in mpl_colors
+                ]
             spread_colors = True
         else:
             return
@@ -796,7 +814,9 @@ class _Chart(Builtin):
                         "List", Expression("FaceForm", color), Expression("Rectangle")
                     ),
                     Expression(
-                        SymbolRule, Symbol("ImageSize"), Expression(SymbolList, 50, 50)
+                        SymbolRule,
+                        Symbol("ImageSize"),
+                        Expression(SymbolList, Integer(50), Integer(50)),
                     ),
                 )
 
@@ -816,7 +836,7 @@ class _Chart(Builtin):
                 for j in range(n_cols):
                     k = 1 + i + j * rows_per_col
                     if k - 1 < len(names):
-                        items.extend([box(color(k, n)), names[k - 1]])
+                        items.extend([box(color(k, n)), String(names[k - 1])])
                     else:
                         items.extend([String(""), String("")])
                 yield Expression(SymbolList, *items)
@@ -1016,7 +1036,7 @@ class PieChart(_Chart):
             graphics.extend(list(labels(chart_labels.leaves)))
 
         options["System`PlotRange"] = Expression(
-            "List", vector2(-2.0, 2.0), vector2(-2.0, 2.0)
+            SymbolList, vector2(-2.0, 2.0), vector2(-2.0, 2.0)
         )
 
         return Expression(
@@ -1102,8 +1122,8 @@ class BarChart(_Chart):
                     "Style",
                     Expression(
                         "Rectangle",
-                        Expression(SymbolList, x0, 0),
-                        Expression(SymbolList, x1, y),
+                        Expression(SymbolList, MachineReal(x0), MachineReal(0)),
+                        Expression(SymbolList, MachineReal(x1), MachineReal(y)),
                     ),
                     color(k, n),
                 )
@@ -1270,18 +1290,20 @@ class Histogram(Builtin):
                         x = minimum + ((i + 1) * span) / n_bins
 
                 def rectangles():
-                    yield Expression("EdgeForm", Expression("RGBColor", 0, 0, 0))
+                    yield Expression(
+                        "EdgeForm", Expression("RGBColor", Integer0, Integer0, Integer0)
+                    )
 
                     last_x1 = 0
-                    style = Expression("RGBColor", *color)
+                    style = Expression("RGBColor", *[MachineReal(c) for c in color])
 
                     for x0, x1, y in boxes():
                         yield Expression(
                             "Style",
                             Expression(
                                 "Rectangle",
-                                Expression(SymbolList, x0, 0),
-                                Expression(SymbolList, x1, y),
+                                Expression(SymbolList, MachineReal(x0), MachineReal(0)),
+                                Expression(SymbolList, MachineReal(x1), MachineReal(y)),
                             ),
                             style,
                         )
@@ -1291,9 +1313,9 @@ class Histogram(Builtin):
                     yield Expression(
                         "Line",
                         Expression(
-                            "List",
-                            Expression(SymbolList, 0, 0),
-                            Expression(SymbolList, last_x1, 0),
+                            SymbolList,
+                            Expression(SymbolList, Integer0, Integer0),
+                            Expression(SymbolList, MachineReal(last_x1), Integer0),
                         ),
                     )
 
@@ -1562,12 +1584,22 @@ class _ListPlot(Builtin):
 
         graphics = []
         for indx, line in enumerate(all_points):
-            graphics.append(Expression("Hue", hue, 0.6, 0.6))
+            graphics.append(
+                Expression("Hue", MachineReal(hue), MachineReal(0.6), MachineReal(0.6))
+            )
             for segment in line:
                 if joined:
                     graphics.append(Expression("Line", from_python(segment)))
                     if filling is not None:
-                        graphics.append(Expression("Hue", hue, 0.6, 0.6, 0.2))
+                        graphics.append(
+                            Expression(
+                                "Hue",
+                                MachineReal(hue),
+                                MachineReal(0.6),
+                                MachineReal(0.6),
+                                MachineReal(0.2),
+                            )
+                        )
                         fill_area = list(segment)
                         fill_area.append([segment[-1][0], filling])
                         fill_area.append([segment[0][0], filling])
@@ -2430,9 +2462,9 @@ class Plot3D(_Plot3D):
                     "Polygon",
                     Expression(
                         "List",
-                        Expression(SymbolList, *p1),
-                        Expression(SymbolList, *p2),
-                        Expression(SymbolList, *p3),
+                        Expression(SymbolList, *(MachineReal(u) for u in p1)),
+                        Expression(SymbolList, *(MachineReal(u) for u in p2)),
+                        Expression(SymbolList, *(MachineReal(u) for u in p3)),
                     ),
                 )
             )
@@ -2443,9 +2475,9 @@ class Plot3D(_Plot3D):
                 line.append(
                     Expression(
                         "List",
-                        mesh_points[xi][yi][0],
-                        mesh_points[xi][yi][1],
-                        mesh_points[xi][yi][2],
+                        MachineReal(mesh_points[xi][yi][0]),
+                        MachineReal(mesh_points[xi][yi][1]),
+                        MachineReal(mesh_points[xi][yi][2]),
                     )
                 )
             graphics.append(Expression("Line", Expression(SymbolList, *line)))
@@ -2514,14 +2546,14 @@ class DensityPlot(_Plot3D):
         if color_function.get_name() == "System`Automatic":
             color_function = String("LakeColors")
         if color_function.get_string_value():
-            func = Expression("ColorData", color_function.get_string_value()).evaluate(
-                evaluation
-            )
+            func = Expression(
+                "ColorData", String(color_function.get_string_value())
+            ).evaluate(evaluation)
             if func.has_form("ColorDataFunction", 4):
                 color_function_min = func.leaves[2].leaves[0].round_to_float()
                 color_function_max = func.leaves[2].leaves[1].round_to_float()
                 color_function = Expression(
-                    "Function", Expression(func.leaves[3], Expression("Slot", 1))
+                    "Function", Expression(func.leaves[3], Expression("Slot", Integer1))
                 )
             else:
                 evaluation.message("DensityPlot", "color", func)
@@ -2575,7 +2607,13 @@ class DensityPlot(_Plot3D):
         graphics = []
         for p in triangles:
             points.append(
-                Expression(SymbolList, *(Expression(SymbolList, *x[:2]) for x in p))
+                Expression(
+                    SymbolList,
+                    *(
+                        Expression(SymbolList, *(MachineReal(u) for u in x[:2]))
+                        for x in p
+                    )
+                )
             )
             vertex_colors.append(Expression(SymbolList, *(eval_color(*x) for x in p)))
 
@@ -2597,7 +2635,9 @@ class DensityPlot(_Plot3D):
             for yi in range(len(mesh_points[xi])):
                 line.append(
                     Expression(
-                        SymbolList, mesh_points[xi][yi][0], mesh_points[xi][yi][1]
+                        SymbolList,
+                        Real(mesh_points[xi][yi][0]),
+                        Real(mesh_points[xi][yi][1]),
                     )
                 )
             graphics.append(Expression("Line", Expression(SymbolList, *line)))

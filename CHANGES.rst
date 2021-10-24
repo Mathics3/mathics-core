@@ -5,6 +5,7 @@ Internals
 =========
 
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
+* ``Expression.__init__()`` does not tries now to convert generic leaves into ``BaseExpression`` objects by using ``from_python``.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * ``apply_N`` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of
   ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.

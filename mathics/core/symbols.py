@@ -271,7 +271,7 @@ class BaseExpression(KeyComparable):
             # If form is Fullform, return it without changes
             if form == "System`FullForm":
                 if include_form:
-                    expr = self.create_expression(form, expr)
+                    expr = self.create_expression(Symbol(form), expr)
                     expr.unformatted = unformatted
                 return expr
 
@@ -452,14 +452,18 @@ class BaseExpression(KeyComparable):
         return self
 
     def __neg__(self):
-        return self.create_expression("Times", self, -1)
+        from mathics.core.atoms import Integer
+
+        return self.create_expression("Times", self, Integer(-1))
 
     def __add__(self, other) -> "BaseExpression":
         return self.create_expression("Plus", self, other)
 
     def __sub__(self, other) -> "BaseExpression":
+        from mathics.core.atoms import Integer
+
         return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, -1)
+            "Plus", self, self.create_expression("Times", other, Integer(-1))
         )
 
     def __mul__(self, other) -> "BaseExpression":
@@ -627,6 +631,8 @@ class Symbol(Atom):
     defined_symbols = {}
 
     def __new__(cls, name, sympy_dummy=None):
+        if not isinstance(name, str):
+            print(name)
         name = ensure_context(name)
         self = cls.defined_symbols.get(name, None)
         if self is None:

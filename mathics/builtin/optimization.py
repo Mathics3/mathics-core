@@ -11,7 +11,7 @@ We intend to provide local and global optimization techniques, both numeric and 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
-from mathics.core.atoms import from_python
+from mathics.core.atoms import from_python, Integer
 from mathics.core.convert import from_sympy
 
 import sympy
@@ -376,7 +376,7 @@ class Maximize(Builtin):
         solutions = []
         for dual_solution in dual_solutions:
             solution_leaves = dual_solution.leaves
-            solutions.append([solution_leaves[0] * -1, solution_leaves[1]])
+            solutions.append([solution_leaves[0] * Integer(-1), solution_leaves[1]])
 
         return from_python(solutions)
 
@@ -393,6 +393,6 @@ class Maximize(Builtin):
         solutions = []
         for dual_solution in dual_solutions:
             solution_leaves = dual_solution.leaves
-            solutions.append([solution_leaves[0] * -1, solution_leaves[1]])
+            solutions.append([solution_leaves[0] * Integer(-1), solution_leaves[1]])
 
         return from_python(solutions)

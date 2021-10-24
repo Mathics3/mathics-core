@@ -13,7 +13,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0, String
+from mathics.core.atoms import Integer, Integer0, String, from_python
+from mathics.core.symbols import SymbolList
 
 
 class Floor(SympyFunction):
@@ -432,7 +433,9 @@ class DigitCount(_IntBaseBuiltin):
         for digit in _reversed_digits(n.get_int_value(), base):
             occurence_count[digit] += 1
         # result list is rotated by one element to the left
-        return Expression("List", *(occurence_count[1:] + [occurence_count[0]]))
+        leaves = occurence_count[1:] + [occurence_count[0]]
+        leaves = (from_python(leaf) for leaf in leaves)
+        return Expression(SymbolList, *leaves)
 
 
 class IntegerReverse(_IntBaseBuiltin):
