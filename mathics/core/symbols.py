@@ -278,7 +278,7 @@ class BaseExpression(KeyComparable):
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
-                    expr = self.create_expression(form, expr)
+                    expr = self.create_expression(Symbol(form), expr)
                     expr.unformatted = unformatted
                 return expr
 
@@ -460,29 +460,45 @@ class BaseExpression(KeyComparable):
         return self
 
     def __neg__(self):
-        return self.create_expression("Times", self, -1)
+        from mathics.core.atoms import Integer
+
+        return self.create_expression("Times", self, Integer(-1))
 
     def __add__(self, other) -> "BaseExpression":
-        return self.create_expression("Plus", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Plus", self, from_python(other))
 
     def __sub__(self, other) -> "BaseExpression":
+        from mathics.core.atoms import Integer, from_python
+
         return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, -1)
+            "Plus",
+            self,
+            self.create_expression("Times", from_python(other), Integer(-1)),
         )
 
     def __mul__(self, other) -> "BaseExpression":
-        return self.create_expression("Times", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Times", self, from_python(other))
 
     def __truediv__(self, other) -> "BaseExpression":
-        return self.create_expression("Divide", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Divide", self, from_python(other))
 
     def __floordiv__(self, other) -> "BaseExpression":
+        from mathics.core.atoms import from_python
+
         return self.create_expression(
-            "Floor", self.create_expression("Divide", self, other)
+            "Floor", self.create_expression("Divide", self, from_python(other))
         )
 
     def __pow__(self, other) -> "BaseExpression":
-        return self.create_expression("Power", self, other)
+        from mathics.core.atoms import from_python
+
+        return self.create_expression("Power", self, from_python(other))
 
 
 class Monomial(object):
@@ -632,6 +648,8 @@ class Symbol(Atom):
     defined_symbols = {}
 
     def __new__(cls, name, sympy_dummy=None):
+        if not isinstance(name, str):
+            print(name)
         name = ensure_context(name)
         self = cls.defined_symbols.get(name, None)
         if self is None:

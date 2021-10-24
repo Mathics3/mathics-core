@@ -24,6 +24,7 @@ from mathics.core.atoms import (
     Integer1,
     RationalOneHalf,
     Number,
+    from_python,
 )
 
 from mathics.core.systemsymbols import (
@@ -1470,11 +1471,12 @@ class Exponent(Builtin):
             return Expression(SymbolDirectedInfinity, Integer(-1))
 
         if not form.has_form("List", None):
-            return Expression(h, *[i for i in find_exponents(expr, form)])
+            return Expression(h, *[from_python(i) for i in find_exponents(expr, form)])
         else:
             exponents = [find_exponents(expr, var) for var in form.leaves]
             return Expression(
-                "List", *[Expression(h, *[i for i in s]) for s in exponents]
+                SymbolList,
+                *[Expression(h, *[from_python(i) for i in s]) for s in exponents]
             )
 
 

@@ -56,7 +56,7 @@ class Median(_Rectangular):
                 i = n // 2
                 a = introselect(v, i)
                 b = introselect(v, i - 1)
-                return Expression("Divide", Expression("Plus", a, b), 2)
+                return Expression("Divide", Expression("Plus", a, b), Integer(2))
             else:
                 i = n // 2
                 return introselect(v, i)

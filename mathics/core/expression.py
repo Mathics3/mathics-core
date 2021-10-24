@@ -147,11 +147,13 @@ class Expression(BaseExpression):
     _sequences: Any
 
     def __new__(cls, head, *leaves, **kwargs) -> "Expression":
+        from mathics.builtin.base import BoxConstruct
+
         self = super().__new__(cls)
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head
-        self._leaves = tuple(from_python(leaf) for leaf in leaves)
+        self._leaves = tuple(leaf for leaf in leaves)
         self._sequences = None
         self._format_cache = None
         return self

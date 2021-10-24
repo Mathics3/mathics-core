@@ -192,7 +192,7 @@ def create_infix(items, operator, prec, grouping):
             "Infix",
             Expression("List", *items),
             String(operator),
-            prec,
+            Integer(prec),
             Symbol(grouping),
         )
 
@@ -527,7 +527,9 @@ class Sign(SympyFunction):
         "%(name)s[x_]"
         # Sympy and mpmath do not give the desired form of complex number
         if isinstance(x, Complex):
-            return Expression("Times", x, Expression("Power", Expression("Abs", x), -1))
+            return Expression(
+                "Times", x, Expression("Power", Expression("Abs", x), Integer(-1))
+            )
 
         sympy_x = x.to_sympy()
         if sympy_x is None:

@@ -32,7 +32,7 @@ from mathics.algorithm.parts import (
 from mathics.builtin.base import MessageException
 
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms import Integer, Integer0, Integer1, from_python, String
 from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
@@ -195,7 +195,7 @@ class Cases(Builtin):
         if ls.has_form("Rule", 2):
             if ls.leaves[0].get_name() == "System`Heads":
                 heads = ls.leaves[1].is_true()
-                ls = Expression("List", 1)
+                ls = Expression("List", Integer1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
@@ -596,9 +596,14 @@ class FirstPosition(Builtin):
         if isinstance(expr, Expression) and (maxLevel is None or maxLevel > 0):
             is_found = check_pattern(expr, pattern, result, 1)
         if is_found:
+            result = [from_python(leaf) for leaf in result]
             return Expression(SymbolList, *result)
         else:
-            return Expression("Missing", "NotFound") if default is None else default
+            return (
+                Expression("Missing", String("NotFound"))
+                if default is None
+                else default
+            )
 
     def apply_default(self, expr, pattern, default, evaluation):
         "FirstPosition[expr_, pattern_, default_]"

@@ -11,8 +11,8 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.expression import Expression
 from mathics.core.atoms import String, from_python
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 
 from mathics.builtin.base import MessageException
 
@@ -39,7 +39,9 @@ def xml_cdata(node):
 
 def xml_comments(node):
     if lxml_available:
-        return Expression("List", *[String(s.text) for s in node.xpath("//comment()")])
+        return Expression(
+            SymbolList, *[String(s.text) for s in node.xpath("//comment()")]
+        )
 
 
 _namespace_key = Expression(
@@ -104,19 +106,19 @@ def node_to_xml_element(node, parent_namespace=None, strip_whitespace=True):
                 name = _namespace_key
             else:
                 name = String(name)
-            yield Expression("Rule", name, from_python(value))
+            yield Expression(SymbolRule, from_python(name), from_python(value))
 
     if namespace is None or namespace == default_namespace:
         name = String(localname)
     else:
-        name = Expression("List", String(namespace), String(localname))
+        name = Expression(SymbolList, String(namespace), String(localname))
 
     return [
         Expression(
             "XMLElement",
             name,
-            Expression("List", *list(attributes())),
-            Expression("List", *list(children())),
+            Expression(SymbolList, *list(attributes())),
+            Expression(SymbolList, *list(children())),
         )
     ]
 
@@ -127,8 +129,12 @@ def xml_object(root):
         declaration = [
             Expression(
                 Expression("XMLObject", String("Declaration")),
-                Expression("Rule", String("Version"), String(tree.docinfo.xml_version)),
-                Expression("Rule", String("Encoding"), String(tree.docinfo.encoding)),
+                Expression(
+                    SymbolRule, String("Version"), String(tree.docinfo.xml_version)
+                ),
+                Expression(
+                    SymbolRule, String("Encoding"), String(tree.docinfo.encoding)
+                ),
             )
         ]
     else:
@@ -136,7 +142,7 @@ def xml_object(root):
 
     return Expression(
         Expression("XMLObject", String("Document")),
-        Expression("List", *declaration),
+        Expression(SymbolList, *declaration),
         *node_to_xml_element(root)
     )
 
@@ -286,7 +292,9 @@ class PlaintextImport(Builtin):
                     yield s
 
         plaintext = String("\n".join(lines()))
-        return Expression("List", Expression("Rule", "Plaintext", plaintext))
+        return Expression(
+            SymbolList, Expression(SymbolRule, String("Plaintext"), plaintext)
+        )
 
 
 class TagsImport(Builtin):
@@ -307,14 +315,16 @@ class TagsImport(Builtin):
                 gather(child)
 
         gather(root)
-        return Expression("List", *[String(tag) for tag in sorted(list(tags))])
+        return Expression(SymbolList, *[String(tag) for tag in sorted(list(tags))])
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
             return root
-        return Expression("List", Expression("Rule", "Tags", self._tags(root)))
+        return Expression(
+            SymbolList, Expression(SymbolRule, String("Tags"), self._tags(root))
+        )
 
 
 class XMLObjectImport(Builtin):
@@ -331,4 +341,4 @@ class XMLObjectImport(Builtin):
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
         xml = Expression("XML`Parser`XMLGet", text).evaluate(evaluation)
-        return Expression("List", Expression("Rule", "XMLObject", xml))
+        return Expression(SymbolList, Expression(SymbolRule, String("XMLObject"), xml))

@@ -118,7 +118,9 @@ class _Exif:
                 else:
                     continue
 
-                yield Expression(SymbolRule, String(_Exif._names.get(k, name)), value)
+                yield Expression(
+                    SymbolRule, String(_Exif._names.get(k, name)), from_python(value)
+                )
 
 
 class ImageImport(_ImageBuiltin):
@@ -141,11 +143,12 @@ class ImageImport(_ImageBuiltin):
         pillow = PIL.Image.open(path.get_string_value())
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        exif = Expression(SymbolList, *list(_Exif.extract(pillow, evaluation)))
+        leaves = [from_python(leaf) for leaf in list(_Exif.extract(pillow, evaluation))]
+        exif = Expression(SymbolList, *leaves)
 
         image = Image(pixels, "RGB" if is_rgb else "Grayscale")
         return Expression(
-            "List",
+            SymbolList,
             Expression(SymbolRule, String("Image"), image),
             Expression(SymbolRule, String("ColorSpace"), String(image.color_space)),
             Expression(
@@ -1634,7 +1637,10 @@ class PixelValuePositions(_ImageBuiltin):
             result = sorted(
                 (j + 1, height - i, k + 1) for i, j, k in positions.tolist()
             )
-        return Expression(SymbolList, *(Expression(SymbolList, *arg) for arg in result))
+        leaves = (
+            Expression(SymbolList, *[from_python(a) for a in arg]) for arg in result
+        )
+        return Expression(SymbolList, *leaves)
 
 
 # image attribute queries
@@ -1662,7 +1668,8 @@ class ImageDimensions(_ImageBuiltin):
 
     def apply(self, image, evaluation):
         "ImageDimensions[image_Image]"
-        return Expression(SymbolList, *image.dimensions())
+        dims = [Integer(d) for d in image.dimensions()]
+        return Expression(SymbolList, *dims)
 
 
 class ImageAspectRatio(_ImageBuiltin):
@@ -1977,7 +1984,7 @@ class Image(Atom):
 
     def options(self):
         return Expression(
-            "List",
+            SymbolList,
             Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
             Expression(SymbolRule, String("MetaInformation"), self.metadata),
         )

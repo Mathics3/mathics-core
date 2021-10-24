@@ -941,7 +941,8 @@ class ImportFormats(Predefined):
     name = "$ImportFormats"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *sorted(IMPORTERS.keys()))
+        leaves = (from_python(key) for key in sorted(IMPORTERS.keys()))
+        return Expression(SymbolList, *leaves)
 
 
 class ExportFormats(Predefined):
@@ -958,7 +959,8 @@ class ExportFormats(Predefined):
     name = "$ExportFormats"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *sorted(EXPORTERS.keys()))
+        leaves = (from_python(key) for key in sorted(EXPORTERS.keys()))
+        return Expression(SymbolList, *leaves)
 
 
 class ConverterDumpsExtensionMappings(Predefined):

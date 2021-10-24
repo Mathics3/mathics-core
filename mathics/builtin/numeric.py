@@ -1625,7 +1625,7 @@ class RealDigits(Builtin):
                     leaves.append(Integer(int(x)))
             leaves.append(from_python(tails))
             list_str = Expression(SymbolList, *leaves)
-        return Expression(SymbolList, list_str, exp)
+        return Expression(SymbolList, list_str, Integer(exp))
 
     def apply_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
@@ -1654,7 +1654,9 @@ class RealDigits(Builtin):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
                 n = Expression(
-                    "N", n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
+                    "N",
+                    n,
+                    Integer(int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1),
                 ).evaluate(evaluation)
             else:
                 if rational_no:
@@ -1683,8 +1685,8 @@ class RealDigits(Builtin):
                         "Round",
                         Expression(
                             "Divide",
-                            Expression("Precision", py_n),
-                            Expression("Log", 10, py_b),
+                            Expression("Precision", Real(py_n)),
+                            Expression("Log", Integer(10), Real(py_b)),
                         ),
                     ),
                 )
@@ -1750,7 +1752,7 @@ class RealDigits(Builtin):
                     while len(leaves) < nr_elements:
                         leaves.append(from_python(Symbol("Indeterminate")))
         list_str = Expression(SymbolList, *leaves)
-        return Expression(SymbolList, list_str, exp)
+        return Expression(SymbolList, list_str, Integer(exp))
 
     def apply_with_base_and_length(self, n, b, length, evaluation, pos=None):
         "%(name)s[n_?NumericQ, b_Integer, length_]"

@@ -36,6 +36,7 @@ from mathics.core.expression import BoxError, Expression
 from mathics.core.atoms import (
     Complex,
     Integer,
+    Integer0,
     MachineReal,
     Real,
     String,
@@ -524,7 +525,9 @@ class Read(Builtin):
                             tmp = float(tmp)
                         except ValueError:
                             evaluation.message(
-                                "Read", "readn", Expression("InputSteam", name, n)
+                                "Read",
+                                "readn",
+                                Expression("InputSteam", String(name), n),
                             )
                             return SymbolFailed
                     result.append(tmp)
@@ -638,8 +641,8 @@ class _BinaryFormat(object):
                 "DirectedInfinity",
                 Expression(
                     "Complex",
-                    (-1) ** (real < 0) if math.isinf(real) else 0,
-                    (-1) ** (imag < 0) if math.isinf(imag) else 0,
+                    from_python((-1) ** (real < 0)) if math.isinf(real) else Integer0,
+                    from_python((-1) ** (imag < 0)) if math.isinf(imag) else Integer0,
                 ),
             )
         else:

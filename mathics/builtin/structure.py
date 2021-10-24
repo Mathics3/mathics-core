@@ -1085,7 +1085,7 @@ class Flatten(Builtin):
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression("DirectedInfinity", Integer1):
             n = None
         else:
             n_int = n.get_int_value()

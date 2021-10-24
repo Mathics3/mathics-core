@@ -927,8 +927,7 @@ class TableForm(Builtin):
             #        Expression('List', Expression('MakeBoxes', item, f))
             #        for item in table.leaves)))
         else:
-            new_depth = Expression(SymbolRule, SymbolTableDepth, depth - 2)
-
+            new_depth = Expression(SymbolRule, SymbolTableDepth, Integer(depth - 2))
             def transform_item(item):
                 if depth > 2:
                     return Expression(self.get_name(), item, new_depth)

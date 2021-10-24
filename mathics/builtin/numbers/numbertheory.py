@@ -9,7 +9,7 @@ import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -162,7 +162,11 @@ class FactorInteger(Builtin):
             factors = sympy.factorint(n.value)
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(
+                    Expression(SymbolList, from_python(factor), from_python(exp))
+                    for factor, exp in factors
+                )
             )
 
         elif isinstance(n, Rational):
@@ -173,7 +177,11 @@ class FactorInteger(Builtin):
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                "List",
+                *(
+                    Expression(SymbolList, from_python(factor), from_python(exp))
+                    for factor, exp in factors
+                )
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -186,12 +194,12 @@ def _fractional_part(self, n, expr, evaluation):
             positive_integer_part = (
                 Expression("Floor", n).evaluate(evaluation).to_python()
             )
-            result = n - positive_integer_part
+            result = n - from_python(positive_integer_part)
         else:
             negative_integer_part = (
                 Expression("Ceiling", n).evaluate(evaluation).to_python()
             )
-            result = n - negative_integer_part
+            result = n - from_python(negative_integer_part)
     else:
         return expr
 
@@ -431,7 +439,9 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, b ** exp), exp)
+        return Expression(
+            SymbolList, Expression("Divide", n, b ** from_python(exp)), from_python(exp)
+        )
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -451,7 +461,9 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, (10 ** exp)), exp)
+        return Expression(
+            "List", Expression("Divide", n, from_python(10 ** exp)), Integer(exp)
+        )
 
 
 class NextPrime(Builtin):

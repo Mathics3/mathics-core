@@ -16,7 +16,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.atoms import from_python
+from mathics.core.atoms import from_python, Integer1
 from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
@@ -423,7 +423,7 @@ class FixedPoint(Builtin):
 
     def apply(self, f, expr, n, evaluation, options):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression("DirectedInfinity", Integer1):
             count = None
         else:
             count = n.get_int_value()
@@ -503,7 +503,7 @@ class FixedPointList(Builtin):
     def apply(self, f, expr, n, evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
 
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression("DirectedInfinity", Integer1):
             count = None
         else:
             count = n.get_int_value()
