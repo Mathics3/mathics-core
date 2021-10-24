@@ -115,7 +115,7 @@ def _parts_all_selector():
 
 def _parts_span_selector(pspec):
     """
-    Selector for `System`Span` pspec
+    Selector for `System`Span` part specification
     """
     if len(pspec.leaves) > 3:
         raise MessageException("Part", "span", pspec)
@@ -154,7 +154,7 @@ def _parts_span_selector(pspec):
 
 def _parts_sequence_selector(pspec):
     """
-    Selector for `System`Sequence` pspec
+    Selector for `System`Sequence` part specification
     """
     if not isinstance(pspec, (tuple, list)):
         indices = [pspec]
