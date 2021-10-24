@@ -207,7 +207,7 @@ def _part_selectors(indices):
 
 def _list_parts(exprs, selectors, evaluation):
     """
-    _list_parts returns an generator of Expressions using selectors to pick out parts of `exprs`.
+    _list_parts returns a generator of Expressions using selectors to pick out parts of `exprs`.
     If `selectors` is empty then a generator of items is returned.
 
     If a selector in `selectors` is a tuple it consists of a function to determine whether or
