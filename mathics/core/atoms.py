@@ -969,6 +969,8 @@ def from_python(arg):
     from mathics.builtin.base import BoxConstruct
     from mathics.core.expression import Expression
 
+    if isinstance(arg, BaseExpression):
+        return arg
     number_type = get_type(arg)
     if arg is None:
         return SymbolNull
@@ -1000,8 +1002,6 @@ def from_python(arg):
             for key in arg
         ]
         return Expression(SymbolList, *entries)
-    elif isinstance(arg, BaseExpression):
-        return arg
     elif isinstance(arg, BoxConstruct):
         return arg
     elif isinstance(arg, list) or isinstance(arg, tuple):
