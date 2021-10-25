@@ -35,6 +35,9 @@ from mathics.builtin.strings import (
 )
 
 
+SymbolAll = Symbol("All")
+
+
 class StringDrop(Builtin):
     """
     <dl>
@@ -488,7 +491,7 @@ class StringPosition(Builtin):
             overlap = True
         elif options["System`Overlaps"] == SymbolFalse:
             overlap = False
-        elif options["System`Overlaps"] == Symbol("All"):
+        elif options["System`Overlaps"] == SymbolAll:
             # TODO
             evaluation.message("StringPosition", "overall")
             overlap = True

@@ -8,11 +8,37 @@ Conversion to SymPy is handled directly in BaseExpression descendants.
 
 import sympy
 
-sympy_symbol_prefix = "_Mathics_User_"
-sympy_slot_prefix = "_Mathics_Slot_"
-
 
 BasicSympy = sympy.Expr
+
+
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolTrue,
+    sympy_symbol_prefix,
+    sympy_slot_prefix,
+)
+
+
+SymbolEqual = Symbol("Equal")
+SymbolFunction = Symbol("Function")
+SymbolGreater = Symbol("Greater")
+SymbolGreaterEqual = Symbol("GreaterEqual")
+SymbolIndeterminate = Symbol("Indeterminate")
+SymbolInfinity = Symbol("Infinity")
+SymbolLess = Symbol("Less")
+SymbolLessEqual = Symbol("LessEqual")
+SymbolO = Symbol("O")
+SymbolPiecewise = Symbol("Piecewise")
+SymbolPlus = Symbol("Plus")
+SymbolPower = Symbol("Power")
+SymbolPrime = Symbol("Prime")
+SymbolRoot = Symbol("Root")
+SymbolRootSum = Symbol("RootSum")
+SymbolSlot = Symbol("Slot")
+SymbolTimes = Symbol("Times")
+SymbolUnequal = Symbol("Unequal")
 
 
 def is_Cn_expr(name) -> bool:
@@ -183,7 +209,7 @@ def from_sympy(expr):
         ):
             return Symbol(expr.__class__.__name__)
         elif isinstance(expr, sympy.core.numbers.NegativeInfinity):
-            return Expression("Times", Integer(-1), Symbol("Infinity"))
+            return Expression(SymbolTimes, Integer(-1), SymbolInfinity)
         elif isinstance(expr, sympy.core.numbers.ImaginaryUnit):
             return Complex(Integer0, Integer1)
         elif isinstance(expr, sympy.Integer):
@@ -192,37 +218,37 @@ def from_sympy(expr):
             numerator, denominator = map(int, expr.as_numer_denom())
             if denominator == 0:
                 if numerator > 0:
-                    return Symbol("Infinity")
+                    return SymbolInfinity
                 elif numerator < 0:
-                    return Expression("Times", Integer(-1), Symbol("Infinity"))
+                    return Expression(SymbolTimes, Integer(-1), SymbolInfinity)
                 else:
                     assert numerator == 0
-                    return Symbol("Indeterminate")
+                    return SymbolIndeterminate
             return Rational(numerator, denominator)
         elif isinstance(expr, sympy.Float):
             if expr._prec == machine_precision:
                 return MachineReal(float(expr))
             return Real(expr)
         elif isinstance(expr, sympy.core.numbers.NaN):
-            return Symbol("Indeterminate")
+            return SymbolIndeterminate
         elif isinstance(expr, sympy.core.function.FunctionClass):
             return Symbol(str(expr))
         elif expr is sympy.true:
-            return Symbol("True")
+            return SymbolTrue
         elif expr is sympy.false:
-            return Symbol("False")
+            return SymbolFalse
 
     elif expr.is_number and all([x.is_Number for x in expr.as_real_imag()]):
         # Hack to convert 3 * I to Complex[0, 3]
         return Complex(*[from_sympy(arg) for arg in expr.as_real_imag()])
     elif expr.is_Add:
-        return Expression("Plus", *sorted([from_sympy(arg) for arg in expr.args]))
+        return Expression(SymbolPlus, *sorted([from_sympy(arg) for arg in expr.args]))
     elif expr.is_Mul:
-        return Expression("Times", *sorted([from_sympy(arg) for arg in expr.args]))
+        return Expression(SymbolTimes, *sorted([from_sympy(arg) for arg in expr.args]))
     elif expr.is_Pow:
-        return Expression("Power", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolPower, *[from_sympy(arg) for arg in expr.args])
     elif expr.is_Equality:
-        return Expression("Equal", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolEqual, *[from_sympy(arg) for arg in expr.args])
 
     elif isinstance(expr, SympyExpression):
         return expr.expr
@@ -230,7 +256,7 @@ def from_sympy(expr):
     elif isinstance(expr, sympy.Piecewise):
         args = expr.args
         return Expression(
-            "Piecewise",
+            SymbolPiecewise,
             Expression(
                 SymbolList,
                 *[
@@ -241,9 +267,9 @@ def from_sympy(expr):
         )
 
     elif isinstance(expr, SympyPrime):
-        return Expression("Prime", from_sympy(expr.args[0]))
+        return Expression(SymbolPrime, from_sympy(expr.args[0]))
     elif isinstance(expr, sympy.RootSum):
-        return Expression("RootSum", from_sympy(expr.poly), from_sympy(expr.fun))
+        return Expression(SymbolRootSum, from_sympy(expr.poly), from_sympy(expr.fun))
     elif isinstance(expr, sympy.PurePoly):
         coeffs = expr.coeffs()
         monoms = expr.monoms()
@@ -254,34 +280,34 @@ def from_sympy(expr):
                 factors.append(from_sympy(coeff))
             for index, exp in enumerate(monom):
                 if exp != 0:
-                    slot = Expression("Slot", index + 1)
+                    slot = Expression(SymbolSlot, index + 1)
                     if exp == 1:
                         factors.append(slot)
                     else:
-                        factors.append(Expression("Power", slot, from_sympy(exp)))
+                        factors.append(Expression(SymbolPower, slot, from_sympy(exp)))
             if factors:
-                result.append(Expression("Times", *factors))
+                result.append(Expression(SymbolTimes, *factors))
             else:
                 result.append(Integer1)
-        return Expression("Function", Expression("Plus", *result))
+        return Expression(SymbolFunction, Expression(SymbolPlus, *result))
     elif isinstance(expr, sympy.CRootOf):
         try:
             e, i = expr.args
         except ValueError:
-            return Expression("Null")
+            return SymbolNull
 
         try:
             e = sympy.PurePoly(e)
         except Exception:
             pass
 
-        return Expression("Root", from_sympy(e), i + 1)
+        return Expression(SymbolRoot, from_sympy(e), i + 1)
     elif isinstance(expr, sympy.Lambda):
         vars = [
             sympy.Symbol("%s%d" % (sympy_slot_prefix, index + 1))
             for index in range(len(expr.variables))
         ]
-        return Expression("Function", from_sympy(expr(*vars)))
+        return Expression(SymbolFunction, from_sympy(expr(*vars)))
 
     elif expr.is_Function or isinstance(
         expr, (sympy.Integral, sympy.Derivative, sympy.Sum, sympy.Product)
@@ -328,25 +354,25 @@ def from_sympy(expr):
     #    return Expression('Sum', )
 
     elif isinstance(expr, sympy.LessThan):
-        return Expression("LessEqual", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolLessEqual, *[from_sympy(arg) for arg in expr.args])
     elif isinstance(expr, sympy.StrictLessThan):
-        return Expression("Less", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolLess, *[from_sympy(arg) for arg in expr.args])
     elif isinstance(expr, sympy.GreaterThan):
-        return Expression("GreaterEqual", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolGreaterEqual, *[from_sympy(arg) for arg in expr.args])
     elif isinstance(expr, sympy.StrictGreaterThan):
-        return Expression("Greater", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolGreater, *[from_sympy(arg) for arg in expr.args])
     elif isinstance(expr, sympy.Unequality):
-        return Expression("Unequal", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolUnequal, *[from_sympy(arg) for arg in expr.args])
     elif isinstance(expr, sympy.Equality):
-        return Expression("Equal", *[from_sympy(arg) for arg in expr.args])
+        return Expression(SymbolEqual, *[from_sympy(arg) for arg in expr.args])
 
     elif isinstance(expr, sympy.O):
         if expr.args[0].func == sympy.core.power.Pow:
             [var, power] = [from_sympy(arg) for arg in expr.args[0].args]
             o = Expression("O", var)
-            return Expression("Power", o, power)
+            return Expression(SymbolPower, o, power)
         else:
-            return Expression("O", from_sympy(expr.args[0]))
+            return Expression(SymbolO, from_sympy(expr.args[0]))
     else:
         raise ValueError(
             "Unknown SymPy expression: {} (instance of {})".format(
