@@ -21,6 +21,7 @@ New builtins
 * ``Guidermannian``
 * ``Cone``
 * ``Tube``
+* ``Normal`` now have a basic support for ``SeriesData``
 
 Tensor functions:
 
