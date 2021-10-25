@@ -1487,8 +1487,14 @@ class Series(Builtin):
 
     >> Series[Exp[x],{x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
-    >> Series[Exp[x^2],{x,0,2}]
+    >> s=Series[Exp[x^2],{x,0,2}]
      = 1 + x ^ 2 + O[x] ^ 3
+    >> s /. x->4
+     = 1 + 4 ^ 2 + O[4] ^ 3
+    >> s // Normal
+     = 1 + x ^ 2
+    >> (s // Normal) /. x-> 4
+     = 17
 
     """
 
@@ -1514,7 +1520,7 @@ class Series(Builtin):
             ).evaluate(evaluation)
             data.append(newcoeff)
         data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression("SeriesData", x, x0, data, IntegerZero, n, Integer1)
+        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
 
 
 class SeriesData(Builtin):
@@ -1527,6 +1533,13 @@ class SeriesData(Builtin):
     TODO:
     - Implement sum, product and composition of series
     """
+
+    def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
+        """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
+        return Expression(
+            SymbolPlus,
+            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data.leaves)]
+        )
 
     def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
         """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer], form_Symbol]"""
