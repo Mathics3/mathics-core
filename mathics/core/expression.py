@@ -157,15 +157,17 @@ class Expression(BaseExpression):
         from mathics.builtin.base import BoxConstruct
 
         self = super().__new__(cls)
-        # if not all(isinstance(leaf, BaseExpression) for leaf in leaves):
-        #    print("   ->", leaves)
-        if isinstance(head, str):
-            head = Symbol(head)
-        self._head = head
         self._leaves = tuple(leaf for leaf in leaves)
         self._sequences = None
         self._format_cache = None
-        return self
+
+        if type(head) is Symbol:
+            self._head = head
+            return self
+        elif type(head) is str:
+            self._head = Symbol(head)
+        else:
+            RuntimeError("")
 
     @property
     def head(self):

@@ -42,11 +42,11 @@ def mytimeit(func):
     return time_with_units(enlapsed)
 
 
-print("build a list of 100 random `int`s")
-print(mytimeit(lambda: ([x for x in randint(0, 100000, 100)])))
+print("build a list of 1000 random `int`s")
+print(mytimeit(lambda: ([x for x in randint(0, 100000, 1000)])))
 
-print("build a list of 100 random `Integer`s")
-print(mytimeit(lambda: [Integer(x) for x in randint(0, 100000, 100)]))
+print("build a list of 1000 random `Integer`s")
+print(mytimeit(lambda: [Integer(x) for x in randint(0, 100000, 1000)]))
 
 print("build a Symbol labeled by random integers")
 print(mytimeit(lambda: Symbol("System`try" + str(randint(0, 100000)))))
@@ -71,7 +71,7 @@ print(mytimeit(lambda: Expression(symbolhead)))
 
 symbolhead = Symbol("System`myhead")
 print(
-    "build an `Expressions` with random heads using a fixed string as the head parameter and 10 leaves:"
+    "build an `Expressions` with random heads using a fixed Symbol as the head parameter and 10 leaves:"
 )
 print(
     mytimeit(
@@ -81,10 +81,10 @@ print(
 
 symbolhead = Symbol("System`myhead")
 print(
-    "build an `Expressions` with random heads using a fixed string as the head parameter and 100 leaves:"
+    "build an `Expressions` with random heads using a fixed Symbol as the head parameter and 1000 leaves:"
 )
 print(
     mytimeit(
-        lambda: Expression(symbolhead, *(Integer(x) for x in randint(0, 100000, 100)))
+        lambda: Expression(symbolhead, *(Integer(x) for x in randint(0, 100000, 1000)))
     )
 )
