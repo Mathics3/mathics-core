@@ -274,7 +274,7 @@ class Module(Builtin):
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def)
+                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace, in_scoping=False)
         result = new_expr.evaluate(evaluation)

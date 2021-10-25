@@ -256,7 +256,6 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
         new_context, allow_initial_backquote=True
     ):
         evaluation.message(lhs_name, "cxset", rhs)
-        exit()
         raise AssignmentException(lhs, None)
 
     # With $Context in Mathematica you can do some strange
@@ -480,6 +479,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
             "TeXForm",
             "MathMLForm",
         )
+        form = [f.name for f in form]
     lhs = focus = lhs.leaves[0]
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
@@ -682,10 +682,6 @@ class _SetOperator(object):
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False
             indices = lhs.leaves[1:]
-            result = walk_parts([rule.replace], indices, evaluation, rhs)
-            if result:
-                evaluation.definitions.set_ownvalue(name, result)
-            else:
-                return False
+            return walk_parts([rule.replace], indices, evaluation, rhs)
         else:
             return self.assign_elementary(lhs, rhs, evaluation)
