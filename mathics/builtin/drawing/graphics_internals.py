@@ -35,7 +35,6 @@ def get_class(symbol: Symbol):
     Returns the Builtin graphic primitive associated to the
     Symbol `symbol`
     """
-    assert isinstance(symbol, Symbol)
     c = GLOBALS.get(symbol)
     if c is None:
         return GLOBALS3D.get(symbol)

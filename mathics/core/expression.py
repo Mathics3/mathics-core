@@ -441,7 +441,7 @@ class Expression(BaseExpression):
         """
 
         head = self._head
-        if isinstance(heads, (tuple, list, set)):
+        if isinstance(heads, (frozenset, tuple, list, set)):
             if all(head is not h for h in heads):
                 return False
         else:
