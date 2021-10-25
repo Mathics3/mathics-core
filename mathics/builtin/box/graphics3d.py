@@ -953,14 +953,14 @@ class Tube3DBox(InstanceableBuiltin):
 # FIXME: GLOBALS3D is a horrible name.
 GLOBALS3D.update(
     {
-        "System`Arrow3DBox": Arrow3DBox,
-        "System`Cone3DBox": Cone3DBox,
-        "System`Cuboid3DBox": Cuboid3DBox,
-        "System`Cylinder3DBox": Cylinder3DBox,
-        "System`Line3DBox": Line3DBox,
-        "System`Point3DBox": Point3DBox,
-        "System`Polygon3DBox": Polygon3DBox,
-        "System`Sphere3DBox": Sphere3DBox,
-        "System`Tube3DBox": Tube3DBox,
+        Symbol("Arrow3DBox"): Arrow3DBox,
+        Symbol("Cone3DBox"): Cone3DBox,
+        Symbol("Cuboid3DBox"): Cuboid3DBox,
+        Symbol("Cylinder3DBox"): Cylinder3DBox,
+        Symbol("Line3DBox"): Line3DBox,
+        Symbol("Point3DBox"): Point3DBox,
+        Symbol("Polygon3DBox"): Polygon3DBox,
+        Symbol("Sphere3DBox"): Sphere3DBox,
+        Symbol("Tube3DBox"): Tube3DBox,
     }
 )

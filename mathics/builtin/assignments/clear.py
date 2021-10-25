@@ -241,28 +241,20 @@ class Unset(PostfixOperator):
     def apply(self, expr, evaluation):
         "Unset[expr_]"
 
-        name = expr.get_head_name()
-        if name in system_symbols(
-            "OwnValues",
-            "DownValues",
-            "SubValues",
-            "UpValues",
-            "NValues",
-            "Options",
-            "Messages",
-        ):
+        head = expr.get_head()
+        if head in SYSTEM_SYMBOL_VALUES:
             if len(expr.leaves) != 1:
-                evaluation.message_args(name, len(expr.leaves), 1)
+                evaluation.message_args(expr.get_head_name(), len(expr.leaves), 1)
                 return SymbolFailed
             symbol = expr.leaves[0].get_name()
             if not symbol:
-                evaluation.message(name, "fnsym", expr)
+                evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
-            if name == "System`Options":
+            if head is Symbol("System`Options"):
                 empty = {}
             else:
                 empty = []
-            evaluation.definitions.set_values(symbol, name, empty)
+            evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
             return Symbol("Null")
         name = expr.get_lookup_name()
         if not name:
@@ -273,3 +265,14 @@ class Unset(PostfixOperator):
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
         return Symbol("Null")
+
+
+SYSTEM_SYMBOL_VALUES = system_symbols(
+    "OwnValues",
+    "DownValues",
+    "SubValues",
+    "UpValues",
+    "NValues",
+    "Options",
+    "Messages",
+)

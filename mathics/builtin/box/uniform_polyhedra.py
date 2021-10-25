@@ -5,6 +5,7 @@ from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.builtin.colors.color_directives import _Color
 
 import numbers
+from mathics.core.symbols import Symbol
 
 
 class UniformPolyhedron3DBox(InstanceableBuiltin):
@@ -55,6 +56,6 @@ class UniformPolyhedron3DBox(InstanceableBuiltin):
 # FIXME: GLOBALS3D is a horrible name.
 GLOBALS3D.update(
     {
-        "System`UniformPolyhedron3DBox": UniformPolyhedron3DBox,
+        Symbol("System`UniformPolyhedron3DBox"): UniformPolyhedron3DBox,
     }
 )

@@ -149,7 +149,6 @@ class _Color(_GraphicsElement):
                 # we must not clip here; we copy the components, without clipping,
                 # e.g. RGBColor[-1, 0, 0] stays RGBColor[-1, 0, 0]. this is especially
                 # important for color spaces like LAB that have negative components.
-
                 components = [value.round_to_float() for value in leaves]
                 if None in components:
                     raise ColorError
@@ -170,7 +169,7 @@ class _Color(_GraphicsElement):
 
     @staticmethod
     def create(expr):
-        head = expr.get_head_name()
+        head = expr.get_head()
         cls = get_class(head)
         if cls is None:
             raise ColorError

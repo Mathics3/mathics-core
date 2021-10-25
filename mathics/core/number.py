@@ -9,6 +9,12 @@ import string
 
 import typing
 
+from mathics.core.symbols import (
+    SymbolMinPrecision,
+    SymbolMaxPrecision,
+    SymbolMachinePrecision,
+)
+
 C = log(10, 2)  # ~ 3.3219280948873626
 
 
@@ -51,14 +57,13 @@ def _get_float_inf(value, evaluation) -> typing.Optional[float]:
 
 
 def get_precision(value, evaluation) -> typing.Optional[int]:
-    if value.get_name() == "System`MachinePrecision":
+    if value is SymbolMachinePrecision:
         return None
     else:
-        from mathics.core.symbols import Symbol
         from mathics.core.atoms import MachineReal
 
-        dmin = _get_float_inf(Symbol("$MinPrecision"), evaluation)
-        dmax = _get_float_inf(Symbol("$MaxPrecision"), evaluation)
+        dmin = _get_float_inf(SymbolMinPrecision, evaluation)
+        dmax = _get_float_inf(SymbolMaxPrecision, evaluation)
         d = value.round_to_float(evaluation)
         assert dmin is not None and dmax is not None
         if d is None:
