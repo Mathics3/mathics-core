@@ -42,36 +42,36 @@ def mytimeit(func):
     return time_with_units(enlapsed)
 
 
-print("build a list of 1000 random `int`s")
+print("1. build a list of 1000 random `int`s")
 print(mytimeit(lambda: ([x for x in randint(0, 100000, 1000)])))
 
-print("build a list of 1000 random `Integer`s")
+print("2. build a list of 1000 random `Integer`s")
 print(mytimeit(lambda: [Integer(x) for x in randint(0, 100000, 1000)]))
 
-print("build a Symbol labeled by random integers")
+print("3. build a Symbol labeled by random integers")
 print(mytimeit(lambda: Symbol("System`try" + str(randint(0, 100000)))))
 
 
 print(
-    "build an `Expressions` with random heads using random strings as the head parameter:"
+    "4. build an `Expressions` with random heads using random strings as the head parameter:"
 )
 print(mytimeit(lambda: Expression("System`tryheadstring" + str(randint(0, 100000)))))
 
 print(
-    "build an `Expressions` with random heads using a fixed string as the head parameter:"
+    "5. build an `Expressions` with random heads using a fixed string as the head parameter:"
 )
 print(mytimeit(lambda: Expression("System`tryheadstringfix")))
 
 symbolhead = Symbol("System`myhead")
 print(
-    "build an `Expressions` with random heads using a fixed Symbol as the head parameter:"
+    "6. build an `Expressions` with random heads using a fixed Symbol as the head parameter:"
 )
 print(mytimeit(lambda: Expression(symbolhead)))
 
 
 symbolhead = Symbol("System`myhead")
 print(
-    "build an `Expressions` with random heads using a fixed Symbol as the head parameter and 10 leaves:"
+    "7. build an `Expressions` with random heads using a fixed Symbol as the head parameter and 10 leaves:"
 )
 print(
     mytimeit(
@@ -81,7 +81,7 @@ print(
 
 symbolhead = Symbol("System`myhead")
 print(
-    "build an `Expressions` with random heads using a fixed Symbol as the head parameter and 1000 leaves:"
+    "8. build an `Expressions` with random heads using a fixed Symbol as the head parameter and 1000 leaves:"
 )
 print(
     mytimeit(
