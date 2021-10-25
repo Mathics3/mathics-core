@@ -63,10 +63,11 @@ from mathics.core.atoms import (
 
 from mathics.core.symbols import (
     Symbol,
-    SymbolList,
-    strip_context,
-    SymbolTrue,
     SymbolFalse,
+    SymbolList,
+    SymbolSequence,
+    SymbolTrue,
+    strip_context,
 )
 
 from mathics.core.systemsymbols import (

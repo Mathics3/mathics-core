@@ -19,6 +19,7 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
+    SymbolSequence,
     system_symbols,
     ensure_context,
     strip_context,
@@ -53,7 +54,6 @@ from mathics.core.systemsymbols import (
     SymbolUnevaluated,
     SymbolVerbatim,
 )
-
 
 symbols_arithmetic_operations = system_symbols(
     "Sqrt",

@@ -8,7 +8,7 @@ Algorithms to access and manipulate elements in nested lists / expressions
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.atoms import Integer, Integer1, from_python
-from mathics.core.systemsymbols import SymbolInfinity, SymbolAll
+from mathics.core.systemsymbols import SymbolInfinity, SymbolAll, SymbolSpan
 from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
@@ -18,9 +18,7 @@ from mathics.builtin.exceptions import (
     PartRangeError,
 )
 
-
 SymbolNothing = Symbol("Nothing")
-SymbolSpan = Symbol("Span")
 
 # TODO: delete me
 # def join_lists(lists):
@@ -209,7 +207,7 @@ def _part_selectors(indices):
 
 def _list_parts(exprs, selectors, evaluation):
     """
-    _list_parts returns an generator of Expressions using selectors to pick out parts of `exprs`.
+    _list_parts returns a generator of Expressions using selectors to pick out parts of `exprs`.
     If `selectors` is empty then a generator of items is returned.
 
     If a selector in `selectors` is a tuple it consists of a function to determine whether or

@@ -56,6 +56,8 @@ from mathics.builtin.numeric import apply_N
 
 SymbolLeft = Symbol("Left")
 
+RationalOneThird = Rational(1, 3)
+
 
 class CubeRoot(Builtin):
     """
@@ -105,7 +107,6 @@ class CubeRoot(Builtin):
 
     def apply(self, n, evaluation):
         "CubeRoot[n_Complex]"
-        RationalOneThird = Rational(Integer1, Integer(3))
         evaluation.message("CubeRoot", "preal", n)
         return Expression(SymbolPower, n, RationalOneThird)
 

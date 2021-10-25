@@ -131,6 +131,10 @@ class Definitions(object):
             self.builtin.update(self.user)
             self.user = {}
             self.clear_cache()
+        else:
+            self.set_current_context("System`")
+            self.set_context_path(["System`"])
+            return
 
         # FIXME load dynamically as we do other things
         import mathics.format.asy  # noqa

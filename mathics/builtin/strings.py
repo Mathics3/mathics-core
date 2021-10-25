@@ -25,6 +25,7 @@ from mathics.core.symbols import (
     SymbolTrue,
     SymbolList,
 )
+
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolBlank,
@@ -57,7 +58,6 @@ from mathics_scanner import TranslateError
 
 
 SymbolToExpression = Symbol("ToExpression")
-
 
 _regex_longest = {
     "+": "+",

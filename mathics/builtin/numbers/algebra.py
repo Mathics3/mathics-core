@@ -46,12 +46,29 @@ from mathics.core.systemsymbols import (
     SymbolRuleDelayed,
 )
 
+from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolDirectedInfinity,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
+
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
 from mathics.core.rules import Pattern
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
 
 import sympy
+
+SymbolSin = Symbol("Sin")
+SymbolSinh = Symbol("Sinh")
+SymbolCos = Symbol("Cos")
+SymbolCosh = Symbol("Cosh")
+SymbolTan = Symbol("Tan")
+SymbolTanh = Symbol("Tanh")
+SymbolCot = Symbol("Cot")
+SymbolCoth = Symbol("Coth")
 
 
 def sympy_factor(expr_sympy):
@@ -135,7 +152,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         _expand(Expression(SymbolSin, y)),
                     )
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == SymbolCos:
+                elif head is SymbolCos:
                     a = Expression(
                         SymbolTimes,
                         _expand(Expression(SymbolCos, x)),
@@ -149,7 +166,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
 
                     return _expand(Expression(SymbolPlus, a, -b))
-                elif head == SymbolSinh:
+                elif head is SymbolSinh:
                     a = Expression(
                         SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
@@ -157,7 +174,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
 
                     b = Expression(
-                        SymbolTimes,
+                        "Times",
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
@@ -212,7 +229,8 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
     def get_sub_expr(expr):
         name = expr.get_name()
         assert isinstance(expr, Symbol) and name.startswith("System`")
-        i = int(name[len("System`") :])
+        # i = int(name[len("System`") :])
+        i = int(name[7:])
         return sub_exprs[i]
 
     def convert_sympy(expr):
