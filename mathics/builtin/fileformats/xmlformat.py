@@ -103,7 +103,7 @@ def node_to_xml_element(node, parent_namespace=None, strip_whitespace=True):
             if name == "xmlns":
                 name = _namespace_key
             else:
-                name = from_python(name)
+                name = String(name)
             yield Expression("Rule", name, from_python(value))
 
     if namespace is None or namespace == default_namespace:

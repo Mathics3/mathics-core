@@ -608,7 +608,7 @@ class Write(Builtin):
         expr = Expression("Row", Expression("List", *expr))
 
         evaluation.format = "text"
-        text = evaluation.format_output(from_python(expr))
+        text = evaluation.format_output(expr)
         stream.io.write(str(text) + "\n")
         return SymbolNull
 
@@ -2333,7 +2333,7 @@ class FilePrint(Builtin):
             result = result[:-1]
 
         for res in result:
-            evaluation.print_out(from_python(res))
+            evaluation.print_out(String(res))
 
         return SymbolNull
 
@@ -2416,7 +2416,7 @@ class StreamPosition(Builtin):
             evaluation.message("General", "openx", name)
             return
 
-        return from_python(stream.io.tell())
+        return Integer(stream.io.tell())
 
     def apply_output(self, name, n, evaluation):
         "StreamPosition[OutputStream[name_, n_]]"
@@ -2498,7 +2498,7 @@ class SetStreamPosition(Builtin):
         except IOError:
             evaluation.message("SetStreamPosition", "seek")
 
-        return from_python(stream.io.tell())
+        return Integer(stream.io.tell())
 
     def apply_output(self, name, n, m, evaluation):
         "SetStreamPosition[OutputStream[name_, n_], m_]"
