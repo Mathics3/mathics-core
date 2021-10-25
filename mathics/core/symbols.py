@@ -14,7 +14,13 @@ sympy_slot_prefix = "_Mathics_Slot_"
 
 
 # system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.List[str]:
+def system_symbols(*symbols) -> typing.FrozenSet[str]:
+    """
+    Return a frozenset of symbols from a list of names (strings).
+    We will use this in testing membership, so an immutable object is fine.
+
+    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    """
     return frozenset(Symbol(s) for s in symbols)
 
 
