@@ -1488,7 +1488,7 @@ class Import(Builtin):
                 result = defaults.get(default_element.get_string_value())
                 if result is None:
                     evaluation.message(
-                        "Import", "noelem", default_element, from_python(filetype)
+                        "Import", "noelem", default_element, String(filetype)
                     )
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
@@ -1539,7 +1539,7 @@ class Import(Builtin):
                         return defaults[el]
                     else:
                         evaluation.message(
-                            "Import", "noelem", from_python(el), from_python(filetype)
+                            "Import", "noelem", from_python(el), String(filetype)
                         )
                         evaluation.predetermined_out = current_predetermined_out
                         return SymbolFailed

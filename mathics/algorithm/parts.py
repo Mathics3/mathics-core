@@ -7,7 +7,7 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer, from_python
+from mathics.core.atoms import Integer
 from mathics.core.systemsymbols import SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
@@ -605,7 +605,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             continue
         curr_leave = tree[-1][curr_index[-1]]
         if match(curr_leave, evaluation) and (len(curr_index) >= lsmin):
-            found.append([from_python(i) for i in curr_index])
+            found.append([Integer(i) for i in curr_index])
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue
