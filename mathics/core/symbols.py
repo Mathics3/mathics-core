@@ -647,9 +647,9 @@ class Symbol(Atom):
     defined_symbols = {}
 
     def __new__(cls, name, sympy_dummy=None):
+        name = ensure_context(name)
         self = cls.defined_symbols.get(name, None)
         if self is None:
-            name = ensure_context(name)
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
