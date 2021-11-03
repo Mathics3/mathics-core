@@ -605,7 +605,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             continue
         curr_leave = tree[-1][curr_index[-1]]
         if match(curr_leave, evaluation) and (len(curr_index) >= lsmin):
-            found.append([from_python(i) for i in curr_index])
+            found.append([Integer(i) for i in curr_index])
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue

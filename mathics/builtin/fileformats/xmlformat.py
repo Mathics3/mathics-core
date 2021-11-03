@@ -105,8 +105,8 @@ def node_to_xml_element(node, parent_namespace=None, strip_whitespace=True):
             if name == "xmlns":
                 name = _namespace_key
             else:
-                name = from_python(name)
-            yield Expression(SymbolRule, from_python(name), from_python(value))
+                name = String(name)
+            yield Expression(SymbolRule, name, from_python(value))
 
     if namespace is None or namespace == default_namespace:
         name = String(localname)

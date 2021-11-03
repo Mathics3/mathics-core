@@ -143,7 +143,7 @@ class ElementData(Builtin):
                 return
 
             # Enter in the next if, but with expr being the index
-            expr = from_python(indx)
+            expr = Integer(indx)
         if isinstance(expr, Integer):
             py_n = expr.value
             py_prop = prop.to_python()

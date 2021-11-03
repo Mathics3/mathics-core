@@ -34,7 +34,6 @@ from mathics.core.atoms import (
     StringFromPython,
     Integer,
     Real,
-    from_python,
     MachineReal,
     PrecisionReal,
 )
@@ -2724,6 +2723,6 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return from_python("%s_%d" % (val, base))
+            return String("%s_%d" % (val, base))
         else:
             return Expression(SymbolSubscriptBox, String(val), String(base))
