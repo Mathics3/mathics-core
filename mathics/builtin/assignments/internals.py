@@ -68,7 +68,7 @@ def get_symbol_list(list, error_callback):
     return values
 
 
-def get_symbol_values(symbol, func_name, position, evaluation):
+def get_symbol_values(symbol, func_name, position, evaluation, user=False):
     if not symbol.is_symbol():
         evaluation.message(func_name, "sym", symbol, 1)
         return
@@ -77,7 +77,12 @@ def get_symbol_values(symbol, func_name, position, evaluation):
     else:
         definition = evaluation.definitions.get_user_definition(symbol)
     leaves = []
-    for rule in definition.get_values_list(position):
+    if user:
+        values_list = definition.get_user_values_list(position)
+    else:
+        values_list = definition.get_values_list(position)
+
+    for rule in values_list:
         if isinstance(rule, Rule):
             pattern = rule.pattern
             if pattern.has_form("HoldPattern", 1):

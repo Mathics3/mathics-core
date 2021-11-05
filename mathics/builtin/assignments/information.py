@@ -236,7 +236,10 @@ class Definition(Builtin):
                         return Expression("InputForm", expr)
 
                     print_rule(rule, lhs=lhs, rhs=rhs)
-        for rule in all.defaultvalues:
+        defaultvalues = all.defaultvalues
+        if all.symbol.builtin_definition:
+            defaultvalues = defaultvalues + all.symbol.builtin_definition.defaultvalues
+        for rule in defaultvalues:
             print_rule(rule)
         if all.options:
             options = sorted(all.options.items())

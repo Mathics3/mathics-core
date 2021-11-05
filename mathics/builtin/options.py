@@ -272,7 +272,7 @@ class Default(Builtin):
         if not name:
             evaluation.message("Default", "sym", f, 1)
             return
-        result = get_default_value(name, evaluation, *i)
+        result = get_default_value(f, evaluation, *i)
         return result
 
 

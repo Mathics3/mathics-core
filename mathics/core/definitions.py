@@ -324,17 +324,18 @@ class Definitions(object):
         self.clear_cache()
 
     def get_builtin_names(self):
+        defined_symbols = Symbol.defined_symbols
         return set(
-            symbol.name
-            for symbol in Symbol.defined_symbols
-            if definition.builtin_definition
+            symbol
+            for symbol in defined_symbols
+            if defined_symbols[symbol].builtin_definition
         )
 
     def get_user_names(self):
         return set(
             symbol.name
-            for symbol in Symbol.defined_symbols
-            if definition.builtin_definition is None
+            for symbol in self.definitions_dict
+            if symbol.builtin_definition is None
         )
 
     def get_pymathics_names(self):
@@ -558,43 +559,28 @@ class Definitions(object):
         return result + builtin.defaultvalues if builtin else result
 
     def get_formats(self, symbol, format=""):
-        print("----get_formats----")
         if isinstance(symbol, str):
             if symbol == "" or symbol[-1] == "`":
-                print("no symbol... :(\n-------------")
                 return []
             symbol = Symbol(self.lookup_name(symbol))
 
-        print("looking for ", format, " which is", type(format))
-
         definition = self.get_definition(symbol)
         formats = self.get_definition(symbol).formatvalues
-        print(" from user definition")
-        print("    formats:", formats)
-
         result = formats.get(format, []) + formats.get("", [])
         # If the symbol is a builtin, add the corresponding formats:
         builtin = symbol.builtin_definition
         if builtin:
-            print("builtins:")
             formats = builtin.formatvalues
-            print("    formats:", formats)
             result = result + formats.get(format, []) + formats.get("", [])
         result.sort()
         return result
 
     def get_value(self, symbol, pos, pattern, evaluation):
         symbol = ensure_symbol(symbol)
+        pos = valuesname(pos)
         definition = self.get_definition(symbol)
         if definition:
-            rules = definition.get_values_list(valuesname(pos))
-            for rule in rules:
-                result = rule.apply(pattern, evaluation)
-                if result is not None:
-                    return result
-        builtin = symbol.builtin_definition
-        if builtin:
-            rules = builtin.get_values_list(valuesname(pos))
+            rules = definition.get_values_list(pos)
             for rule in rules:
                 result = rule.apply(pattern, evaluation)
                 if result is not None:
@@ -840,7 +826,6 @@ class Definitions(object):
 
 
 def get_tag_position(pattern, symbol) -> typing.Optional[str]:
-    print("get_tag_position", (pattern, symbol))
     if isinstance(symbol, str):
         symbol = Symbol(symbol)
     if pattern.get_name() == symbol.name:
@@ -871,7 +856,7 @@ def insert_rule(values, rule) -> None:
             break
     # use insort_left to guarantee that if equal rules exist, newer rules will
     # get higher precedence by being inserted before them. see DownValues[].
-    bisect.insort_left(values, rule)
+    res = bisect.insort_left(values, rule)
 
 
 class Definition(object):
@@ -939,15 +924,23 @@ class Definition(object):
 
     def get_values_list(self, pos):
         assert pos.isalpha()
+        builtin = self.symbol.builtin_definition
         if pos == "messages":
-            return self.messages
+            return self.messages + builtin.messages if builtin else self.messages
         else:
-            builtin = self.symbol.builtin_definition
             key = "%svalues" % pos
             if builtin:
                 return getattr(self, key) + getattr(builtin, key)
             else:
                 return getattr(self, key)
+
+    def get_user_values_list(self, pos):
+        assert pos.isalpha()
+        if pos == "messages":
+            return self.messages
+        else:
+            key = "%svalues" % pos
+            return getattr(self, key)
 
     def set_values_list(self, pos, rules) -> None:
         assert pos.isalpha()
@@ -957,13 +950,12 @@ class Definition(object):
             setattr(self, "%svalues" % pos, rules)
 
     def add_rule_at(self, rule, position) -> bool:
-        values = self.get_values_list(position)
+        values = self.get_user_values_list(position)
         insert_rule(values, rule)
         return True
 
     def add_rule(self, rule) -> bool:
         pos = get_tag_position(rule.pattern, self.symbol)
-        print("add rule at ", pos)
         if pos:
             return self.add_rule_at(rule, pos)
         return False

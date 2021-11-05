@@ -784,7 +784,6 @@ class Expression(BaseExpression):
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
         from mathics.builtin.base import BoxConstruct
 
-        print("------ evaluate_next-------", self)
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
         leaves = self.get_mutable_leaves()
@@ -821,7 +820,6 @@ class Expression(BaseExpression):
 
         new = Expression(head)
         new._leaves = tuple(leaves)
-        print("new expression:", new)
         if (
             "System`SequenceHold" not in attributes
             and "System`HoldAllComplete" not in attributes  # noqa
@@ -874,13 +872,10 @@ class Expression(BaseExpression):
             if "System`HoldAllComplete" not in attributes:
                 for leaf in leaves:
                     symbol = leaf.get_lookup_symbol()
-                    print("upvalues for symbol?", symbol)
                     if symbol:  # only lookup rules if this is a symbol
-                        print("rules_symbols", rules_symbols)
                         if symbol not in rules_symbols:  # only pick the rule once
                             rules_symbols.add(symbol)
                             upvalues = evaluation.definitions.get_upvalues(symbol)
-                            print("           upvalues:", upvalues)
                             for rule in upvalues:
                                 yield rule
             lookup_symbol = new.get_lookup_symbol()
@@ -891,7 +886,6 @@ class Expression(BaseExpression):
                 for rule in evaluation.definitions.get_subvalues(lookup_symbol):
                     yield rule
 
-        print("    \n\nTring rules over the expression")
         for rule in rules():
             result = rule.apply(new, evaluation, fully=False)
             if result is not None:
@@ -903,7 +897,6 @@ class Expression(BaseExpression):
                 else:
                     return result, True
 
-        print("rule not found...")
         dirty_leaves = None
 
         # Expression did not change, re-apply Unevaluated
@@ -1346,7 +1339,11 @@ def _create_expression(self, head, *leaves):
 BaseExpression.create_expression = _create_expression
 
 
-def get_default_value(name, evaluation, k=None, n=None):
+def get_default_value(symbol, evaluation, k=None, n=None):
+    if isinstance(symbol, str):
+        print("get_default_value: symbol is str")
+        symbol = Symbol(name)
+
     pos = []
     if k is not None:
         pos.append(k)
@@ -1355,10 +1352,10 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(list(range(len(pos) + 1))):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault, symbol, *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
+            symbol, "System`DefaultValues", defaultexpr, evaluation
         )
         if result is not None:
             if result.sameQ(defaultexpr):

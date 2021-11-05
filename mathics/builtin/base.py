@@ -303,7 +303,7 @@ class Builtin(object):
 
         if makeboxes_def is None:
             makeboxes_def = Definition(symbol=SymbolMakeBoxes, definitions=None)
-            SymbolMakeBoxes.builtin_definition = SymbolMakeBoxes.builtin_definition
+            SymbolMakeBoxes.builtin_definition = makeboxes_def
 
         for rule in box_rules:
             makeboxes_def.add_rule(rule)

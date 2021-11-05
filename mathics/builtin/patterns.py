@@ -981,6 +981,10 @@ class Optional(BinaryOperator, PatternObject):
         leaf_count=None,
         **kwargs
     ):
+        if not isinstance(head, Symbol):
+            print(head, " is an ", type(head), ". -> Symbol")
+            head = head.expr
+
         if expression.has_form("Sequence", 0):
             if self.default is None:
                 if head is None:  # head should be given by match_leaf!
@@ -1013,7 +1017,9 @@ def get_default_value(symbol, evaluation, k=None, n=None):
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            Symbol("Default"), symbol, *[Integer(index) for index in pos[:pos_len]]
+            Symbol("Default"),
+            String(symbol.name),
+            *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
             symbol, "System`DefaultValues", defaultexpr, evaluation

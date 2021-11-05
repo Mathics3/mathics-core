@@ -322,9 +322,6 @@ class BaseExpression(KeyComparable):
                     return None
                 symbol = expr.get_lookup_symbol()
                 formats = evaluation.definitions.get_formats(symbol, form.get_name())
-                print("formats found for ", symbol)
-                for f in formats:
-                    print("   ", f)
                 for rule in formats:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
@@ -372,11 +369,9 @@ class BaseExpression(KeyComparable):
         if isinstance(form, str):
             form = Symbol(form)
         expr = self.do_format(evaluation, form)
-        print("now, makeboxes")
         result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
             evaluation
         )
-        print("   result->", result)
         return result
 
     def is_free(self, form, evaluation) -> bool:

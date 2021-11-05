@@ -1033,4 +1033,5 @@ def from_python(arg):
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
         return Expression(SymbolByteArray, ByteArrayAtom(arg))
     else:
+        print("from_python: arg", arg, "can not be promoted to a python object")
         raise NotImplementedError

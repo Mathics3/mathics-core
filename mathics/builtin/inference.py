@@ -116,15 +116,10 @@ def remove_nots_when_unnecesary(pred, evaluation):
 
 
 def get_assumptions_list(evaluation):
-    assumptions = None
-    assumptions_def = evaluation.definitions.get_definition(
-        SymbolAssumptions, only_if_exists=True
-    )
-    if assumptions_def:
-        assumptions = assumptions_def.ownvalues
-        if len(assumptions) > 0:
-            assumptions = assumptions[0].replace
-    if assumptions is None:
+    assumptions = evaluation.definitions.get_ownvalues(SymbolAssumptions)
+    if assumptions:
+        assumptions = assumptions[0].replace
+    else:
         return None
 
     if assumptions.is_atom() or not assumptions.has_form("List", None):
