@@ -1025,7 +1025,7 @@ class StringTake(Builtin):
         return String(result[py_slice])
 
     def apply_strings(self, strings, spec, evaluation):
-        "StringTake[strings__, spec_]"
+        "StringTake[strings_List, spec_]"
         result_list = []
         for string in strings.leaves:
             result = self.apply(string, spec, evaluation)

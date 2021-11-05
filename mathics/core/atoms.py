@@ -25,7 +25,16 @@ from mathics.core.symbols import (
     system_symbols,
 )
 
-from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolRowBox,
+    SymbolRule,
+    SymbolComplex,
+    SymbolRational,
+    SymbolReal,
+    SymbolInteger,
+    SymbolString,
+)
 
 from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
 import base64
@@ -132,6 +141,9 @@ class Integer(Number):
     def __init__(self, value) -> "Integer":
         super().__init__()
 
+    def get_lookup_symbol(self):
+        return SymbolInteger
+
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
 
@@ -212,6 +224,9 @@ class Rational(Number):
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
         return self
+
+    def get_lookup_symbol(self):
+        return SymbolRational
 
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
@@ -329,6 +344,9 @@ class Real(Number):
             return MachineReal.__new__(MachineReal, value)
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
+
+    def get_lookup_symbol(self):
+        return SymbolReal
 
     def boxes_to_text(self, **options) -> str:
         return self.make_boxes("System`OutputForm").boxes_to_text(**options)
@@ -553,6 +571,9 @@ class Complex(Number):
         self.imag = imag
         return self
 
+    def get_lookup_symbol(self):
+        return SymbolComplex
+
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
 
@@ -695,6 +716,9 @@ class String(Atom):
 
         self.value = str(value)
         return self
+
+    def get_lookup_symbol(self):
+        return SymbolString
 
     def __str__(self) -> str:
         return '"%s"' % self.value

@@ -9,7 +9,7 @@ from mathics.core.atoms import (
     Real,
     Number,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolFalse
 
 from pint import UnitRegistry
 
@@ -184,7 +184,7 @@ class Quantity(Builtin):
     }
 
     def validate(self, unit, evaluation):
-        if KnownUnitQ(unit).evaluate(evaluation) == Symbol("False"):
+        if KnownUnitQ(unit).evaluate(evaluation) is SymbolFalse:
             return False
         return True
 

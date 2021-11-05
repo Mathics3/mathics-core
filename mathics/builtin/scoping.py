@@ -53,19 +53,19 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
     """
     original_definitions = {}
     for var_name, new_def in vars.items():
-        assert fully_qualified_symbol_name(var_name)
-        original_definitions[var_name] = evaluation.definitions.get_user_definition(
-            var_name
+        var_symbol = Symbol(var_name)
+        original_definitions[var_symbol] = evaluation.definitions.get_user_definition(
+            var_symbol
         )
-        evaluation.definitions.reset_user_definition(var_name)
+        evaluation.definitions.reset_user_definition(var_symbol)
         if new_def is not None:
             new_def = new_def.evaluate(evaluation)
-            evaluation.definitions.set_ownvalue(var_name, new_def)
+            evaluation.definitions.set_ownvalue(var_symbol, new_def)
     try:
         result = func(evaluation)
     finally:
-        for name, definition in original_definitions.items():
-            evaluation.definitions.add_user_definition(name, definition)
+        for symbol, definition in original_definitions.items():
+            evaluation.definitions.add_user_definition(symbol, definition)
     return result
 
 
@@ -270,11 +270,13 @@ class Module(Builtin):
         number = Symbol("$ModuleNumber").evaluate(evaluation).get_int_value()
         if number is None:
             number = 1
-        evaluation.definitions.set_ownvalue("$ModuleNumber", Integer(number + 1))
+        evaluation.definitions.set_ownvalue(
+            Symbol("$ModuleNumber"), Integer(number + 1)
+        )
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
+                evaluation.definitions.set_ownvalue(Symbol(new_name), new_def.copy())
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace, in_scoping=False)
         result = new_expr.evaluate(evaluation)

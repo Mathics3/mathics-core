@@ -9,7 +9,7 @@ import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse, SymbolList
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -162,7 +162,8 @@ class FactorInteger(Builtin):
             factors = sympy.factorint(n.value)
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
 
         elif isinstance(n, Rational):
@@ -173,7 +174,8 @@ class FactorInteger(Builtin):
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -451,7 +453,7 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, (10 ** exp)), exp)
+        return Expression(SymbolList, Expression("Divide", n, (10 ** exp)), exp)
 
 
 class NextPrime(Builtin):
@@ -653,13 +655,13 @@ class PrimePowerQ(Builtin):
         "PrimePowerQ[n_]"
         n = n.get_int_value()
         if n is None:
-            return Symbol("False")
+            return SymbolFalse
 
         n = abs(n)
         if len(sympy.factorint(n)) == 1:
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 class RandomPrime(Builtin):

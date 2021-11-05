@@ -20,6 +20,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolN,
     SymbolSequence,
+    SymbolString,
     system_symbols,
     ensure_context,
     strip_context,
@@ -137,7 +138,7 @@ class ExpressionCache:
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
 
         return ExpressionCache(
-            definitions.now, symbols, None if "System`Sequence" in symbols else tuple()
+            definitions.now, symbols, None if SymbolSequence in symbols else tuple()
         )
 
 
@@ -416,6 +417,9 @@ class Expression(BaseExpression):
 
     def get_lookup_name(self) -> bool:
         return self._head.get_lookup_name()
+
+    def get_lookup_symbol(self) -> bool:
+        return self._head.get_lookup_symbol()
 
     def has_form(self, heads, *leaf_counts):
         """
@@ -752,7 +756,7 @@ class Expression(BaseExpression):
                 iteration += 1
 
                 if limit is None:
-                    limit = definitions.get_config_value("$IterationLimit")
+                    limit = definitions.get_config_value("System`$IterationLimit")
                     if limit is None:
                         limit = "inf"
                 if limit != "inf" and iteration > limit:
@@ -765,7 +769,7 @@ class Expression(BaseExpression):
         # Otherwise it propogates up.
         #
         except ReturnInterrupt as ret:
-            if names.intersection(definitions.user.keys()):
+            if names.intersection(definitions.get_user_names()):
                 return ret.expr
             else:
                 raise ret
@@ -861,21 +865,21 @@ class Expression(BaseExpression):
                     return threaded, True
 
         def rules():
-            rules_names = set()
+            rules_symbols = set()
             if "System`HoldAllComplete" not in attributes:
                 for leaf in leaves:
-                    name = leaf.get_lookup_name()
-                    if len(name) > 0:  # only lookup rules if this is a symbol
-                        if name not in rules_names:
-                            rules_names.add(name)
-                            for rule in evaluation.definitions.get_upvalues(name):
+                    symbol = leaf.get_lookup_symbol()
+                    if symbol:  # only lookup rules if this is a symbol
+                        if symbol not in rules_symbols:  # only pick the rule once
+                            rules_symbols.add(symbol)
+                            for rule in evaluation.definitions.get_upvalues(symbol):
                                 yield rule
-            lookup_name = new.get_lookup_name()
-            if lookup_name == new.get_head_name():
-                for rule in evaluation.definitions.get_downvalues(lookup_name):
+            lookup_symbol = new.get_lookup_symbol()
+            if lookup_symbol is new.get_head():
+                for rule in evaluation.definitions.get_downvalues(lookup_symbol):
                     yield rule
             else:
-                for rule in evaluation.definitions.get_subvalues(lookup_name):
+                for rule in evaluation.definitions.get_subvalues(lookup_symbol):
                     yield rule
 
         for rule in rules():
@@ -1361,19 +1365,19 @@ def print_parenthesizes(
     )
 
 
-def _is_neutral_symbol(symbol_name, cache, evaluation):
+def _is_neutral_symbol(symbol, cache, evaluation):
     # a symbol is neutral if it does not invoke any rules, but is sure to make its Expression stay
     # the way it is (e.g. List[1, 2, 3] will always stay List[1, 2, 3], so long as nobody defines
     # a rule on this).
 
     if cache:
-        r = cache.get(symbol_name)
+        r = cache.get(symbol)
         if r is not None:
             return r
 
     definitions = evaluation.definitions
 
-    definition = definitions.get_definition(symbol_name, only_if_exists=True)
+    definition = definitions.get_definition(symbol, only_if_exists=True)
     if definition is None:
         r = True
     else:
@@ -1383,7 +1387,7 @@ def _is_neutral_symbol(symbol_name, cache, evaluation):
         )
 
     if cache:
-        cache[symbol_name] = r
+        cache[symbol] = r
 
     return r
 
@@ -1392,7 +1396,7 @@ def _is_neutral_head(head, cache, evaluation):
     if not isinstance(head, Symbol):
         return False
 
-    return _is_neutral_symbol(head.get_name(), cache, evaluation)
+    return _is_neutral_symbol(head, cache, evaluation)
 
 
 # Structure helps implementations make the ExpressionCache not invalidate across simple commands
@@ -1510,7 +1514,7 @@ def structure(head, origins, evaluation, structure_cache=None):
         return LinkedStructure(head, cache)
 
 
-def atom_list_constructor(evaluation, head, *atom_names):
+def atom_list_constructor(evaluation, head, *atom_heads):
     # if we encounter an Expression that consists wholly of atoms and those atoms (and the
     # expression's head) have no rules associated with them, we can speed up evaluation.
 
@@ -1518,15 +1522,11 @@ def atom_list_constructor(evaluation, head, *atom_names):
     # long as the evaluation's Definitions are guaranteed to not change.
 
     if not _is_neutral_head(head, None, evaluation) or any(
-        not atom for atom in atom_names
+        not atom for atom in atom_heads
     ):
         optimize = False
     else:
-        full_atom_names = [ensure_context(atom) for atom in atom_names]
-
-        if not all(
-            _is_neutral_symbol(atom, None, evaluation) for atom in full_atom_names
-        ):
+        if not all(_is_neutral_symbol(atom, None, evaluation) for atom in atom_heads):
             optimize = False
         else:
             optimize = True
@@ -1536,7 +1536,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
         def construct(leaves):
             expr = Expression(head)
             expr._leaves = list(leaves)
-            sym = set(chain([head.get_name()], full_atom_names))
+            sym = set(chain([head], atom_heads))
             expr._cache = ExpressionCache(evaluation.definitions.now, sym, None)
             return expr
 
@@ -1551,4 +1551,4 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 
 def string_list(head, leaves, evaluation):
-    return atom_list_constructor(evaluation, head, "String")(leaves)
+    return atom_list_constructor(evaluation, head, SymbolString)(leaves)

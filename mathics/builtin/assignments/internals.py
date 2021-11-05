@@ -38,7 +38,7 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
         if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
             continue
         count += 1
-        defs.add_rule(tag, rule, position=position)
+        defs.add_rule(Symbol(tag), rule, position=position)
     return count > 0
 
 
@@ -69,14 +69,13 @@ def get_symbol_list(list, error_callback):
 
 
 def get_symbol_values(symbol, func_name, position, evaluation):
-    name = symbol.get_name()
-    if not name:
+    if not symbol.is_symbol():
         evaluation.message(func_name, "sym", symbol, 1)
         return
     if position in ("default",):
-        definition = evaluation.definitions.get_definition(name)
+        definition = evaluation.definitions.get_definition(symbol)
     else:
-        definition = evaluation.definitions.get_user_definition(name)
+        definition = evaluation.definitions.get_user_definition(symbol)
     leaves = []
     for rule in definition.get_values_list(position):
         if isinstance(rule, Rule):
@@ -330,7 +329,7 @@ def process_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
     if rules is None:
         evaluation.message(name, "vrule", lhs, rhs)
         raise AssignmentException(lhs, None)
-    evaluation.definitions.set_values(tag, name, rules)
+    evaluation.definitions.set_values(Symbol(tag), name, rules)
     return True
 
 
@@ -382,7 +381,7 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_nvalue(tag, rule)
+        defs.add_nvalue(Symbol(tag), rule)
     return count > 0
 
 
@@ -453,7 +452,7 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_default(tag, rule)
+        defs.add_default(Symbol(tag), rule)
     return count > 0
 
 
@@ -490,7 +489,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_format(tag, rule, form)
+        defs.add_format(Symbol(tag), rule, form)
     return count > 0
 
 
@@ -512,7 +511,7 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_message(tag, rule)
+        defs.add_message(Symbol(tag), rule)
     return count > 0
 
 
@@ -677,7 +676,7 @@ class _SetOperator(object):
             if is_protected(name, defs):
                 evaluation.message(self.get_name(), "wrsym", symbol)
                 return False
-            rule = defs.get_ownvalue(name)
+            rule = defs.get_ownvalue(Symbol(name))
             if rule is None:
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False

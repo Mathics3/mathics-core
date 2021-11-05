@@ -13,6 +13,7 @@ from mathics_scanner import TranslateError
 
 from mathics import settings
 from mathics.core.symbols import (
+    Symbol,
     ensure_context,
     KeyComparable,
 )
@@ -323,11 +324,13 @@ class Evaluation(object):
         result = None
 
         def check_io_hook(hook):
-            return len(self.definitions.get_ownvalues(hook)) > 0
+            return len(self.definitions.get_ownvalues(Symbol(hook))) > 0
 
         def evaluate():
             if history_length > 0:
-                self.definitions.add_rule("In", Rule(Expression("In", line_no), query))
+                self.definitions.add_rule(
+                    Symbol("In"), Rule(Expression("In", line_no), query)
+                )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression("System`$Pre", query).evaluate(self)
             else:
@@ -346,7 +349,7 @@ class Evaluation(object):
 
                 stored_result = self.get_stored_result(out_result)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression("Out", line_no), stored_result)
+                    Symbol("Out"), Rule(Expression("Out", line_no), stored_result)
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
@@ -417,8 +420,8 @@ class Evaluation(object):
 
         line = line_no - history_length
         while line > 0:
-            unset_in = self.definitions.unset("In", Expression("In", line))
-            unset_out = self.definitions.unset("Out", Expression("Out", line))
+            unset_in = self.definitions.unset(Symbol("In"), Expression("In", line))
+            unset_out = self.definitions.unset(Symbol("Out"), Expression("Out", line))
             if not (unset_in or unset_out):
                 break
             line -= 1
@@ -470,12 +473,14 @@ class Evaluation(object):
         from mathics.core.expression import Expression
 
         value = Expression(SymbolList, *messages)
-        self.definitions.set_ownvalue("Internal`$QuietMessages", value)
+        self.definitions.set_ownvalue(Symbol("Internal`$QuietMessages"), value)
 
     def get_quiet_messages(self):
         from mathics.core.expression import Expression
 
-        value = self.definitions.get_definition("Internal`$QuietMessages").ownvalues
+        value = self.definitions.get_definition(
+            Symbol("Internal`$QuietMessages")
+        ).ownvalues
         if value:
             try:
                 value = value[0].replace
@@ -492,10 +497,12 @@ class Evaluation(object):
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
         # System`MyBuiltin)
-        symbol = ensure_context(symbol)
+        if isinstance(symbol, str):
+            symbol = Symbol(ensure_context(symbol))
+
         quiet_messages = set(self.get_quiet_messages())
 
-        pattern = Expression("MessageName", Symbol(symbol), String(tag))
+        pattern = Expression("MessageName", symbol, String(tag))
 
         if pattern in quiet_messages or self.quiet_all:
             return
@@ -504,7 +511,7 @@ class Evaluation(object):
         # settings. This makes sure we print the context, if it would
         # be necessary to find the symbol that this message is
         # attached to.
-        symbol_shortname = self.definitions.shorten_name(symbol)
+        symbol_shortname = self.definitions.shorten_name(symbol.get_name())
 
         if settings.DEBUG_PRINT:
             print("MESSAGE: %s::%s (%s)" % (symbol_shortname, tag, args))
@@ -513,7 +520,7 @@ class Evaluation(object):
         if text is None:
             pattern = Expression("MessageName", Symbol("General"), String(tag))
             text = self.definitions.get_value(
-                "System`General", "System`Messages", pattern, self
+                Symbol("System`General"), "System`Messages", pattern, self
             )
 
         if text is None:
@@ -576,7 +583,7 @@ class Evaluation(object):
     def inc_recursion_depth(self) -> None:
         self.check_stopped()
         limit = self.definitions.get_config_value(
-            "$RecursionLimit", MAX_RECURSION_DEPTH
+            "System`$RecursionLimit", MAX_RECURSION_DEPTH
         )
         if limit is not None:
             if limit < 20:

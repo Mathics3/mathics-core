@@ -18,7 +18,7 @@ from mathics.builtin.lists import list_boxes
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
@@ -277,7 +277,7 @@ class Keys(Builtin):
                 return expr.leaves[0]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) == Symbol("True")
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(SymbolList, *[get_keys(leaf) for leaf in expr.leaves])
             else:
@@ -392,7 +392,7 @@ class Values(Builtin):
                 return expr.leaves[1]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) == Symbol("True")
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(
                     SymbolList, *[get_values(leaf) for leaf in expr.leaves]

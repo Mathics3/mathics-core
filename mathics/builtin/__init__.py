@@ -10,6 +10,7 @@ import importlib
 import pkgutil
 import re
 import os.path as osp
+from mathics.core.symbols import Symbol
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -57,12 +58,12 @@ def builtins_dict():
     }
 
 
-def contribute(definitions):
+def contribute():
     # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
+    _builtins["System`MakeBoxes"].contribute()
     for name, item in _builtins.items():
         if name != "System`MakeBoxes":
-            item.contribute(definitions)
+            item.contribute()
 
     from mathics.core.expression import ensure_context
     from mathics.core.parser import all_operator_names
@@ -72,9 +73,9 @@ def contribute(definitions):
     # any remaining operators that don't have them. This allows
     # operators like \[Cup] to behave correctly.
     for operator in all_operator_names:
-        if not definitions.have_definition(ensure_context(operator)):
-            op = ensure_context(operator)
-            definitions.builtin[op] = Definition(name=op)
+        op = Symbol(operator)
+        if op.builtin_definition is None:
+            op.builtin_definition = Definition(symbol=op, definitions=None)
 
 
 def get_module_doc(module):

@@ -873,11 +873,11 @@ class N(Builtin):
         if isinstance(expr, Number):
             return expr.round(d)
 
-        name = expr.get_lookup_name()
-        if name != "":
+        symbol = expr.get_lookup_symbol()
+        if symbol:
             nexpr = Expression(SymbolN, expr, prec)
             result = evaluation.definitions.get_value(
-                name, "System`NValues", nexpr, evaluation
+                symbol, "System`NValues", nexpr, evaluation
             )
             if result is not None:
                 if not result.sameQ(nexpr):

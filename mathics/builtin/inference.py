@@ -4,6 +4,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
+    Symbol,
     SymbolTrue,
     SymbolFalse,
 )
@@ -14,6 +15,8 @@ from mathics.core.parser.util import SystemDefinitions
 from mathics.core.parser import parse_builtin_rule
 
 # TODO: Extend these rules?
+
+SymbolAssumptions = Symbol("$Assumptions")
 
 
 def debug_logical_expr(pref, expr, evaluation):
@@ -115,7 +118,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
 def get_assumptions_list(evaluation):
     assumptions = None
     assumptions_def = evaluation.definitions.get_definition(
-        "System`$Assumptions", only_if_exists=True
+        SymbolAssumptions, only_if_exists=True
     )
     if assumptions_def:
         assumptions = assumptions_def.ownvalues

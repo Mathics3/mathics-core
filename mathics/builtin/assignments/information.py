@@ -20,7 +20,7 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     """
     Returns a python string with the documentation associated to a given symbol.
     """
-    definition = evaluation.definitions.get_definition(symbol.name)
+    definition = evaluation.definitions.get_definition(symbol)
     ruleusage = definition.get_values_list("messages")
     usagetext = None
     import re
@@ -34,11 +34,8 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
         # the value to a HTML form...
         return usagetext
     # Otherwise, look at the pymathics, and builtin docstrings:
-    builtins = evaluation.definitions.builtin
-    pymathics = evaluation.definitions.pymathics
-    bio = pymathics.get(definition.name)
-    if bio is None:
-        bio = builtins.get(definition.name)
+    builtins = evaluation.definitions.definitions_dict
+    bio = builtins.get(symbol)
 
     if bio is not None:
         if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):
@@ -191,13 +188,12 @@ class Definition(Builtin):
                     )
                 )
 
-        name = symbol.get_name()
-        if not name:
+        if not symbol.is_symbol():
             evaluation.message("Definition", "sym", symbol, 1)
             return
-        attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
-        all = evaluation.definitions.get_definition(name)
+        attributes = evaluation.definitions.get_attributes(symbol)
+        definition = evaluation.definitions.get_user_definition(symbol, create=False)
+        all = evaluation.definitions.get_definition(symbol)
         if attributes:
             attributes = list(attributes)
             attributes.sort()
@@ -428,13 +424,12 @@ class Information(PrefixOperator):
                     )
                 )
 
-        name = symbol.get_name()
-        if not name:
+        if not symbol.is_symbol():
             evaluation.message("Definition", "sym", symbol, 1)
             return
-        attributes = evaluation.definitions.get_attributes(name)
-        definition = evaluation.definitions.get_user_definition(name, create=False)
-        all = evaluation.definitions.get_definition(name)
+        attributes = evaluation.definitions.get_attributes(symbol)
+        definition = evaluation.definitions.get_user_definition(symbol, create=False)
+        all = evaluation.definitions.get_definition(symbol)
         if attributes:
             attributes = list(attributes)
             attributes.sort()

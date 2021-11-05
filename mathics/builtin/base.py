@@ -38,8 +38,12 @@ from mathics.core.atoms import (
 from mathics.core.expression import Expression
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolTrue,
+)
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
 )
 
 
@@ -97,7 +101,7 @@ class Builtin(object):
         if hasattr(self, "python_equivalent"):
             mathics_to_python[self.get_name()] = self.python_equivalent
 
-    def contribute(self, definitions, is_pymodule=False):
+    def contribute(self, is_pymodule=False):
         from mathics.core.parser import parse_builtin_rule
 
         # Set the default context
@@ -118,9 +122,12 @@ class Builtin(object):
                 # Create a definition for the option's symbol.
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
-                if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
+                symbol_option = Symbol(option)
+                if symbol_option.builtin_definition is None:
+                    symbol_option.builtin_definition = Definition(
+                        symbol=symbol_option,
+                        attributes=set(),
+                        definitions=None,
                     )
 
         # Check if the given options are actually supported by the Builtin.
@@ -261,9 +268,10 @@ class Builtin(object):
                 # Create a definition for the option's symbol.
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
-                if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
+                symbol_option = Symbol(option)
+                if symbol_option.builtin_definition is None:
+                    symbol_option.builtin_definition = Definition(
+                        symbol=symbol_option, attributes=set(), definitions=None
                     )
         defaults = []
         for spec, value in self.defaults.items():
@@ -276,8 +284,10 @@ class Builtin(object):
             if pattern is not None:
                 defaults.append(Rule(pattern, value, system=True))
 
+        symbol = Symbol(name)
         definition = Definition(
-            name=name,
+            symbol=symbol,
+            definitions=None,
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
@@ -286,12 +296,15 @@ class Builtin(object):
             defaultvalues=defaults,
             builtin=self,
         )
-        if is_pymodule:
-            definitions.pymathics[name] = definition
-        else:
-            definitions.builtin[name] = definition
+        if symbol.builtin_definition is None:
+            symbol.builtin_definition = definition
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
+        if SymbolMakeBoxes.builtin_definition is None:
+            SymbolMakeBoxes.builtin_definition = Definition(
+                symbol=SymbolMakeBoxes, definitions=None
+            )
+
+        makeboxes_def = SymbolMakeBoxes.builtin_definition
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
 
@@ -616,6 +629,9 @@ class BoxConstruct(InstanceableBuiltin):
 
     def get_lookup_name(self):
         return self.get_name()
+
+    def get_lookup_symbol(self):
+        return Symbol(self.get_name())
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"

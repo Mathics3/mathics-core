@@ -1649,7 +1649,7 @@ class MessageName(BinaryOperator):
 
         pattern = Expression(SymbolMessageName, symbol, tag)
         return evaluation.definitions.get_value(
-            symbol.get_name(), "System`Messages", pattern, evaluation
+            symbol, "System`Messages", pattern, evaluation
         )
 
 
@@ -2143,7 +2143,7 @@ class Precedence(Builtin):
         name = expr.get_name()
         precedence = 1000
         if name:
-            builtin = evaluation.definitions.get_definition(name, only_if_exists=True)
+            builtin = evaluation.definitions.get_definition(expr, only_if_exists=True)
             if builtin:
                 builtin = builtin.builtin
             if builtin is not None and isinstance(builtin, Operator):

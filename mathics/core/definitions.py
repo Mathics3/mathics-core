@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import pickle
@@ -11,12 +10,26 @@ import bisect
 from collections import defaultdict
 
 import typing
-from mathics.core.symbols import fully_qualified_symbol_name, strip_context, Symbol
+from mathics.core.symbols import (
+    fully_qualified_symbol_name,
+    strip_context,
+    Symbol,
+    SymbolList,
+)
+from mathics.core.systemsymbols import SymbolInfinity
+
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
+
+
+def ensure_symbol(symbol):
+    assert not isinstance(symbol, str)
+    # if isinstance(symbol, str):
+    #    symbol = Symbol(self.lookup_name(symbol))
+    return symbol
 
 
 def get_file_time(file) -> float:
@@ -55,9 +68,11 @@ def autoload_files(
         # Autoloads that accidentally define a name in Global`
         # could cause confusion, so check for this.
 
-        for name in defs.user:
-            if name.startswith("Global`"):
-                raise ValueError("autoload defined %s." % name)
+        for symbol in defs.definitions_dict:
+            if isinstance(symbol, str):
+                symbol = Symbol(symbol)
+            if symbol.name.startswith("Global`"):
+                raise ValueError("autoload defined %s." % symbol.name)
 
 
 class PyMathicsLoadException(Exception):
@@ -66,25 +81,63 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
+def load_builtins(definitions):
+    from mathics.builtin import modules, contribute
+    from mathics.settings import ROOT_DIR
+
+    print("Contribute:")
+    contribute()
+    print("Done")
+    for module in []:  # definitions.extension_modules:
+        try:
+            definitions.load_pymathics_module(module, remove_on_quit=False)
+        except PyMathicsLoadException:
+            raise
+        except ImportError:
+            raise
+
+    # autoload_files(definitions, ROOT_DIR, "autoload")
+
+    # Move any user definitions created by autoloaded files to
+    # builtins, and clear out the user definitions list. This
+    # means that any autoloaded definitions become shared
+    # between users and no longer disappear after a Quit[].
+    #
+    # Autoloads that accidentally define a name in Global`
+    # could cause confusion, so check for this.
+    #
+    for symbol in definitions.definitions_dict:
+        if symbol.name.startswith("Global`"):
+            raise ValueError("autoload defined %s." % name)
+    for symbol in definitions.definitions_dict:
+        if symbol.builtin_definition is None:
+            symbol.builtin_definition = definitions.definitions_dict[symbol]
+    definitions.definitions_dict = {}
+    definitions.clear_cache()
+
+
 class Definitions(object):
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
-        self.user = {}
-        self.pymathics = {}
+        self.definitions_dict = {}
+        #        self.builtin = {}
+        #        self.user = {}
+        #        self.pymathics = {}
         self.definitions_cache = {}
         self.lookup_cache = {}
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
+        self.extension_modules = extension_modules
 
         if add_builtin:
             from mathics.builtin import modules, contribute
             from mathics.settings import ROOT_DIR
 
             loaded = False
+            """
             if builtin_filename is not None:
                 builtin_dates = [get_file_time(module.__file__) for module in modules]
                 builtin_time = max(builtin_dates)
@@ -92,37 +145,9 @@ class Definitions(object):
                     builtin_file = open(builtin_filename, "rb")
                     self.builtin = pickle.load(builtin_file)
                     loaded = True
+            """
             if not loaded:
-                contribute(self)
-                for module in extension_modules:
-                    try:
-                        self.load_pymathics_module(module, remove_on_quit=False)
-                    except PyMathicsLoadException:
-                        raise
-                    except ImportError:
-                        raise
-
-                if builtin_filename is not None:
-                    builtin_file = open(builtin_filename, "wb")
-                    pickle.dump(self.builtin, builtin_file, -1)
-
-            autoload_files(self, ROOT_DIR, "autoload")
-
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            self.builtin.update(self.user)
-            self.user = {}
-            self.clear_cache()
+                load_builtins(self)
 
         # FIXME load dynamically as we do other things
         import mathics.format.asy  # noqa
@@ -197,7 +222,7 @@ class Definitions(object):
         self.pymathics = {}
         return None
 
-    def clear_cache(self, name=None):
+    def clear_cache(self, symbol=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
         # e.g. "xy" -> d and "MyContext`xy" -> d. we need to clear this cache if a Definition() changes (which
         # would happen if a Definition is combined from a builtin and a user definition and some content in the
@@ -213,28 +238,42 @@ class Definitions(object):
         # 'A`MySymbol', 'C`A`MySymbol', and so on. proxy identifies symbols using their stripped name and thus might
         # give us symbols in other contexts that are actually not affected. still, this is a safe solution.
 
-        if name is None:
+        if symbol is None:
             self.definitions_cache = {}
             self.lookup_cache = {}
             self.proxy = defaultdict(set)
         else:
+            if isinstance(symbol, str):
+                symbol = Symbol(self.lookup_name(symbol))
+
             definitions_cache = self.definitions_cache
             lookup_cache = self.lookup_cache
-            tail = strip_context(name)
+            tail = strip_context(symbol.name)
             for k in self.proxy.pop(tail, []):
                 definitions_cache.pop(k, None)
-                lookup_cache.pop(k, None)
+                lookup_cache.pop(k.get_name(), None)
 
-    def clear_definitions_cache(self, name) -> None:
+    def clear_definitions_cache(self, symbol) -> None:
         definitions_cache = self.definitions_cache
-        tail = strip_context(name)
+        symbol = ensure_symbol(symbol)
+        tail = strip_context(symbol.name)
         for k in self.proxy.pop(tail, []):
             definitions_cache.pop(k, None)
 
     def has_changed(self, maximum, symbols):
         # timestamp for the most recently changed part of a given expression.
-        for name in symbols:
-            symb = self.get_definition(name, only_if_exists=True)
+        ensured_symbols = []
+        for symbol in ensured_symbols:
+            if isinstance(symbol, str):
+                if symbol == "" or symbol[-1] == "`":
+                    continue
+                ensured_symbols.append(Symbol(symbol))
+            else:
+                ensured_symbols.append(symbol)
+        symbols = ensured_symbols
+
+        for symbol in symbols:
+            symb = self.get_definition(symbol, only_if_exists=True)
             if symb is None:
                 # symbol doesn't exist so it was never changed
                 pass
@@ -252,13 +291,18 @@ class Definitions(object):
         # It's crucial to specify System` in this get_ownvalue() call,
         # otherwise we'll end up back in this function and trigger
         # infinite recursion.
-        context_rule = self.get_ownvalue("System`$Context")
-        context = context_rule.replace.get_string_value()
+        context_rule = self.get_ownvalue(Symbol("System`$Context"))
+        if context_rule:
+            context = context_rule.replace.get_string_value()
+        else:
+            context = "System`"
         assert context is not None, "$Context somehow set to an invalid value"
         return context
 
     def get_context_path(self):
-        context_path_rule = self.get_ownvalue("System`$ContextPath")
+        context_path_rule = self.get_ownvalue(Symbol("System`$ContextPath"))
+        if context_path_rule is None:
+            return ["System`"]
         context_path = context_path_rule.replace
         assert context_path.has_form("System`List", None)
         context_path = [c.get_string_value() for c in context_path.leaves]
@@ -267,31 +311,40 @@ class Definitions(object):
 
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)
-        self.set_ownvalue("System`$Context", String(context))
+        self.set_ownvalue(Symbol("System`$Context"), String(context))
         self.clear_cache()
 
     def set_context_path(self, context_path) -> None:
         assert isinstance(context_path, list)
         assert all([isinstance(c, str) for c in context_path])
         self.set_ownvalue(
-            "System`$ContextPath",
-            Expression("System`List", *[String(c) for c in context_path]),
+            Symbol("System`$ContextPath"),
+            Expression(SymbolList, *[String(c) for c in context_path]),
         )
         self.clear_cache()
 
     def get_builtin_names(self):
-        return set(self.builtin)
+        return set(
+            symbol.name
+            for symbol in Symbol.defined_symbols
+            if definition.builtin_definition
+        )
 
     def get_user_names(self):
-        return set(self.user)
+        return set(
+            symbol.name
+            for symbol in Symbol.defined_symbols
+            if definition.builtin_definition is None
+        )
 
     def get_pymathics_names(self):
-        return set(self.pymathics)
+        return set()
+        # return set(self.pymathics)
 
     def get_names(self):
         return (
             self.get_builtin_names()
-            | self.get_pymathics_names()
+            # | self.get_pymathics_names()
             | self.get_user_names()
         )
 
@@ -391,12 +444,12 @@ class Definitions(object):
         # if not self.have_definition(with_context):
         for ctx in self.get_context_path():
             n = ctx + name
-            if self.have_definition(n):
+            if self.have_definition(Symbol(n)):
                 return n
         return with_context
 
     def get_package_names(self) -> typing.List[str]:
-        packages = self.get_ownvalue("System`$Packages")
+        packages = self.get_ownvalue(Symbol("System`$Packages"))
         packages = packages.replace
         assert packages.has_form("System`List", None)
         packages = [c.get_string_value() for c in packages.leaves]
@@ -418,185 +471,234 @@ class Definitions(object):
                 return name_with_ctx[len(ctx) :]
         return name_with_ctx
 
-    def have_definition(self, name) -> bool:
-        return self.get_definition(name, only_if_exists=True) is not None
+    def have_definition(self, symbol) -> bool:
+        if isinstance(symbol, str):
+            assert False
+            symbol = symbol(self.lookup_name(symbol))
+        if symbol.builtin_definition:
+            return True
+        return self.get_definition(symbol, only_if_exists=True) is not None
 
-    def get_definition(self, name, only_if_exists=False) -> "Definition":
-        definition = self.definitions_cache.get(name, None)
+    def get_definition(self, symbol, only_if_exists=False) -> "Definition":
+        definition = self.definitions_cache.get(symbol, None)
         if definition is not None:
             return definition
+        assert not isinstance(symbol, str)
+        if isinstance(symbol, str):
+            if symbol == "" or symbol[-1] == "`":
+                return None
+            name = symbol
+            original_name = name
+            name = self.lookup_name(name)
+            lookup_symbol = Symbol(name)
+        else:
+            lookup_symbol = symbol
+            name = symbol.name
+            original_name = name
 
-        original_name = name
-        name = self.lookup_name(name)
-        user = self.user.get(name, None)
-        pymathics = self.pymathics.get(name, None)
-        builtin = self.builtin.get(name, None)
-
-        candidates = [user] if user else []
-        builtin_instance = None
-        if pymathics:
-            builtin_instance = pymathics
-            candidates.append(pymathics)
-        if builtin:
-            candidates.append(builtin)
-            if builtin_instance is None:
-                builtin_instance = builtin
-
-        definition = candidates[0] if len(candidates) == 1 else None
-        if len(candidates) > 0 and not definition:
-            attributes = (
-                user.attributes
-                if user
-                else (
-                    pymathics.attributes
-                    if pymathics
-                    else (builtin.attributes if builtin else set())
-                )
-            )
-            options = {}
-            formatvalues = {
-                "": [],
-            }
-            # Merge definitions
-            its = [c for c in candidates]
-            while its:
-                curr = its.pop()
-                options.update(curr.options)
-                for form, rules in curr.formatvalues.items():
-                    if form in formatvalues:
-                        formatvalues[form].extend(rules)
-                    else:
-                        formatvalues[form] = rules
-            # Build the new definition
-            definition = Definition(
-                name=name,
-                ownvalues=sum((c.ownvalues for c in candidates), []),
-                downvalues=sum((c.downvalues for c in candidates), []),
-                subvalues=sum((c.subvalues for c in candidates), []),
-                upvalues=sum((c.upvalues for c in candidates), []),
-                formatvalues=formatvalues,
-                messages=sum((c.messages for c in candidates), []),
-                attributes=attributes,
-                options=options,
-                nvalues=sum((c.nvalues for c in candidates), []),
-                defaultvalues=sum((c.defaultvalues for c in candidates), []),
-                builtin=builtin_instance,
-            )
-
+        definition = self.definitions_dict.get(lookup_symbol, None)
         if definition is not None:
-            self.proxy[strip_context(original_name)].add(original_name)
-            self.definitions_cache[original_name] = definition
+            self.proxy[strip_context(name)].add(symbol)
+            self.definitions_cache[symbol] = definition
             self.lookup_cache[original_name] = name
         elif not only_if_exists:
-            definition = Definition(name=name)
-            if name[-1] != "`":
-                self.user[name] = definition
+            assert symbol.name != "Global`False"
+            definition = Definition(symbol=lookup_symbol, definitions=self)
+            builtin = lookup_symbol.builtin_definition
+            if builtin:
+                definition.attributes.update(builtin.attributes)
+                definition.options.update(builtin.options)
+                definition.builtin = builtin.builtin
+            self.definitions_dict[lookup_symbol] = definition
 
         return definition
 
-    def get_attributes(self, name):
-        return self.get_definition(name).attributes
+    def get_attributes(self, symbol):
+        # Attributes are always stored in the user definition
+        # If the definition is reset, then the builtin values are copied
+        if isinstance(symbol, str):
+            lookup_name = self.lookup_name(symbol)
+            symbol = Symbol(self.lookup_name(symbol))
+        return self.get_definition(symbol).attributes
 
-    def get_ownvalues(self, name):
-        return self.get_definition(name).ownvalues
+    def get_ownvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.ownvalues if definition else []
+        return result + builtin.ownvalues if builtin else result
 
-    def get_downvalues(self, name):
-        return self.get_definition(name).downvalues
+    def get_downvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.downvalues if definition else []
+        return result + builtin.downvalues if builtin else result
 
-    def get_subvalues(self, name):
-        return self.get_definition(name).subvalues
+    def get_subvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.subvalues if definition else []
+        return result + builtin.subvalues if builtin else result
 
-    def get_upvalues(self, name):
-        return self.get_definition(name).upvalues
+    def get_upvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.upvalues if definition else []
+        return result + builtin.upvalues if builtin else result
 
-    def get_formats(self, name, format=""):
-        formats = self.get_definition(name).formatvalues
+    def get_nvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.nvalues if definition else []
+        return result + builtin.nvalues if builtin else result
+
+    def get_defaultvalues(self, symbol):
+        definition = self.get_definition(symbol)
+        builtin = symbol.builtin_definition
+        result = definition.defaultvalues if definition else []
+        return result + builtin.defaultvalues if builtin else result
+
+    def get_formats(self, symbol, format=""):
+        print("----get_formats----")
+        if isinstance(symbol, str):
+            if symbol == "" or symbol[-1] == "`":
+                print("no symbol... :(\n-------------")
+                return []
+            symbol = Symbol(self.lookup_name(symbol))
+
+        print("looking for ", format, " which is", type(format))
+
+        definition = self.get_definition(symbol)
+        formats = self.get_definition(symbol).formatvalues
+        print(" from user definition")
+        print("    formats:", formats)
+
         result = formats.get(format, []) + formats.get("", [])
+        # If the symbol is a builtin, add the corresponding formats:
+        builtin = symbol.builtin_definition
+        if builtin:
+            print("builtins:")
+            formats = builtin.formatvalues
+            print("    formats:", formats)
+            result = result + formats.get(format, []) + formats.get("", [])
         result.sort()
         return result
 
-    def get_nvalues(self, name):
-        return self.get_definition(name).nvalues
+    def get_value(self, symbol, pos, pattern, evaluation):
+        symbol = ensure_symbol(symbol)
+        definition = self.get_definition(symbol)
+        if definition:
+            rules = definition.get_values_list(valuesname(pos))
+            for rule in rules:
+                result = rule.apply(pattern, evaluation)
+                if result is not None:
+                    return result
+        builtin = symbol.builtin_definition
+        if builtin:
+            rules = builtin.get_values_list(valuesname(pos))
+            for rule in rules:
+                result = rule.apply(pattern, evaluation)
+                if result is not None:
+                    return result
 
-    def get_defaultvalues(self, name):
-        return self.get_definition(name).defaultvalues
+    def get_user_definition(self, symbol, create=True) -> typing.Optional["Definition"]:
+        symbol = ensure_symbol(symbol)
 
-    def get_value(self, name, pos, pattern, evaluation):
-        assert isinstance(name, str)
-        assert "`" in name
-        rules = self.get_definition(name).get_values_list(valuesname(pos))
-        for rule in rules:
-            result = rule.apply(pattern, evaluation)
-            if result is not None:
-                return result
-
-    def get_user_definition(self, name, create=True) -> typing.Optional["Definition"]:
-        assert not isinstance(name, Symbol)
-
-        existing = self.user.get(name)
+        existing = self.definitions_dict.get(symbol)
         if existing:
             return existing
         else:
             if not create:
                 return None
-            builtin = self.builtin.get(name)
-            if builtin:
-                attributes = builtin.attributes
-            else:
-                attributes = set()
-            self.user[name] = Definition(name=name, attributes=attributes)
-            self.clear_cache(name)
-            return self.user[name]
+            new_definition = Definition(symbol=symbol, definitions=self)
+            self.definitions_dict[symbol] = new_definition
+            self.clear_cache(symbol)
+            return new_definition
+
+    def get_options(self, symbol):
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+        return self.get_definition(symbol).options
 
     def mark_changed(self, definition) -> None:
         self.now += 1
         definition.changed = self.now
 
-    def reset_user_definition(self, name) -> None:
-        assert not isinstance(name, Symbol)
-        fullname = self.lookup_name(name)
-        del self.user[fullname]
-        self.clear_cache(fullname)
+    def reset_user_definition(self, symbol) -> None:
+        if isinstance(symbol, str):
+            symbol = Symbol(symbol)
+
+        definition = self.definitions_dict.get(symbol, None)
+        builtin = symbol.builtin_definition
+        if definition:
+            del self.definitions_dict[symbol]
+
+        if builtin:
+            # Notice that it is important to reset a new definition,
+            # since the old definition could be hold in another place
+            # to be restored later (for example, is what it happens in
+            # `mathics.builtin.dynamical_scoping`)
+            new_definition = Definition(
+                symbol=symbol, builtin=builtin.builtin, definitions=self
+            )
+            new_definition.attributes.update(builtin.attributes)
+            new_definition.options.update(builtin.options)
+            # new_definition.reset_definition()
+            self.definitions_dict[symbol] = new_definition
+
+        self.clear_cache(symbol)
         # TODO fix changed
 
-    def add_user_definition(self, name, definition) -> None:
-        assert not isinstance(name, Symbol)
+    def add_user_definition(self, symbol, definition) -> None:
+        symbol = ensure_symbol(symbol)
         self.mark_changed(definition)
-        fullname = self.lookup_name(name)
-        self.user[fullname] = definition
-        self.clear_cache(fullname)
+        self.definitions_dict[symbol] = definition
+        self.clear_cache(symbol)
 
-    def set_attribute(self, name, attribute) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def set_attribute(self, symbol, attribute) -> None:
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         definition.attributes.add(attribute)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def set_attributes(self, name, attributes) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def set_attributes(self, symbol, attributes) -> None:
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+
+        definition = self.get_user_definition(symbol)
         definition.attributes = set(attributes)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def clear_attribute(self, name, attribute) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def clear_attribute(self, symbol, attribute) -> None:
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+
+        definition = self.get_user_definition(symbol)
         if attribute in definition.attributes:
             definition.attributes.remove(attribute)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def add_rule(self, name, rule, position=None):
-        definition = self.get_user_definition(self.lookup_name(name))
+    def add_rule(self, symbol, rule, position=None):
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         if position is None:
             result = definition.add_rule(rule)
         else:
             result = definition.add_rule_at(rule, position)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
         return result
 
-    def add_format(self, name, rule, form="") -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def add_format(self, symbol, rule, form="") -> None:
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         if isinstance(form, tuple) or isinstance(form, list):
             forms = form
         else:
@@ -606,134 +708,157 @@ class Definitions(object):
                 definition.formatvalues[form] = []
             insert_rule(definition.formatvalues[form], rule)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def add_nvalue(self, name, rule) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def add_nvalue(self, symbol, rule) -> None:
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         definition.add_rule_at(rule, "n")
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def add_default(self, name, rule) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def add_default(self, symbol, rule) -> None:
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         definition.add_rule_at(rule, "default")
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def add_message(self, name, rule) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def add_message(self, symbol, rule) -> None:
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         definition.add_rule_at(rule, "messages")
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def set_values(self, name, values, rules) -> None:
+    def set_values(self, symbol, values, rules) -> None:
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         pos = valuesname(values)
-        definition = self.get_user_definition(self.lookup_name(name))
         definition.set_values_list(pos, rules)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
-
-    def get_options(self, name):
-        return self.get_definition(self.lookup_name(name)).options
+        self.clear_definitions_cache(symbol)
 
     def reset_user_definitions(self) -> None:
-        self.user = {}
+        self.definitions_dict = dict()
         self.clear_cache()
         # TODO changed
 
     def get_user_definitions(self):
-        return base64.encodebytes(pickle.dumps(self.user, protocol=2)).decode("ascii")
+        return base64.encodebytes(
+            pickle.dumps(self.definitions_dict, protocol=2)
+        ).decode("ascii")
 
     def set_user_definitions(self, definitions) -> None:
         if definitions:
-            self.user = pickle.loads(base64.decodebytes(definitions.encode("ascii")))
+            self.definitions_dict = pickle.loads(
+                base64.decodebytes(definitions.encode("ascii"))
+            )
         else:
-            self.user = {}
+            self.definitions_dict = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name):
-        ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
+    def get_ownvalue(self, symbol):
+        symbol = ensure_symbol(symbol)
+        ownvalues = self.get_definition(symbol).ownvalues
+        if ownvalues:
+            return ownvalues[0]
+        ownvalues = symbol.builtin_definition.ownvalues
         if ownvalues:
             return ownvalues[0]
         return None
 
-    def set_ownvalue(self, name, value) -> None:
+    def set_ownvalue(self, symbol, value) -> None:
         from .expression import Symbol
         from .rules import Rule
 
-        name = self.lookup_name(name)
-        self.add_rule(name, Rule(Symbol(name), value))
-        self.clear_cache(name)
+        symbol = ensure_symbol(symbol)
+        self.add_rule(symbol, Rule(symbol, value))
+        self.clear_cache(symbol)
 
-    def set_options(self, name, options) -> None:
-        definition = self.get_user_definition(self.lookup_name(name))
+    def set_options(self, symbol, options) -> None:
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         definition.options = options
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
 
-    def unset(self, name, expr):
-        definition = self.get_user_definition(self.lookup_name(name))
+    def unset(self, symbol, expr):
+        symbol = ensure_symbol(symbol)
+        definition = self.get_user_definition(symbol)
         result = definition.remove_rule(expr)
         self.mark_changed(definition)
-        self.clear_definitions_cache(name)
+        self.clear_definitions_cache(symbol)
         return result
 
-    def get_config_value(self, name, default=None):
+    def get_config_value(self, symbol, default=None):
         "Infinity -> None, otherwise returns integer."
-        value = self.get_definition(name).ownvalues
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+        value = self.get_definition(symbol).ownvalues
+        builtin = symbol.builtin_definition
+        if len(value) == 0 and builtin:
+            value = builtin.ownvalues
         if value:
             try:
                 value = value[0].replace
             except AttributeError:
                 return None
-            if value.get_name() == "System`Infinity" or value.has_form(
-                "DirectedInfinity", 1
-            ):
+            if value is SymbolInfinity or value.has_form("DirectedInfinity", 1):
                 return None
 
             return int(value.get_int_value())
         else:
             return default
 
-    def set_config_value(self, name, new_value) -> None:
+    def set_config_value(self, symbol, new_value) -> None:
         from mathics.core.expression import Integer
 
-        self.set_ownvalue(name, Integer(new_value))
+        if isinstance(symbol, str):
+            symbol = Symbol(self.lookup_name(symbol))
+        symbol = ensure_symbol(symbol)
+
+        self.set_ownvalue(symbol, Integer(new_value))
 
     def set_line_no(self, line_no) -> None:
-        self.set_config_value("$Line", line_no)
+        self.set_config_value(Symbol("$Line"), line_no)
 
     def get_line_no(self):
-        return self.get_config_value("$Line", 0)
+        return self.get_config_value(Symbol("$Line"), 0)
 
     def increment_line_no(self, increment: int = 1) -> None:
-        self.set_config_value("$Line", self.get_line_no() + increment)
+        self.set_config_value(Symbol("$Line"), self.get_line_no() + increment)
 
     def get_history_length(self):
-        history_length = self.get_config_value("$HistoryLength", 100)
+        history_length = self.get_config_value(Symbol("$HistoryLength"), 100)
         if history_length is None or history_length > 100:
             history_length = 100
         return history_length
 
 
-def get_tag_position(pattern, name) -> typing.Optional[str]:
-    if pattern.get_name() == name:
+def get_tag_position(pattern, symbol) -> typing.Optional[str]:
+    if isinstance(symbol, str):
+        symbol = Symbol(symbol)
+    if pattern.get_name() == symbol.name:
         return "own"
     elif pattern.is_atom():
         return None
     else:
         head_name = pattern.get_head_name()
-        if head_name == name:
+        if head_name == symbol.name:
             return "down"
         elif head_name == "System`N" and len(pattern.leaves) == 2:
             return "n"
         elif head_name == "System`Condition" and len(pattern.leaves) > 0:
-            return get_tag_position(pattern.leaves[0], name)
-        elif pattern.get_lookup_name() == name:
+            return get_tag_position(pattern.leaves[0], symbol)
+        elif pattern.get_lookup_name() == symbol.name:
             return "sub"
         else:
             for leaf in pattern.leaves:
-                if leaf.get_lookup_name() == name:
+                if leaf.get_lookup_name() == symbol.name:
                     return "up"
         return None
 
@@ -751,7 +876,8 @@ def insert_rule(values, rule) -> None:
 class Definition(object):
     def __init__(
         self,
-        name,
+        symbol,
+        definitions,
         rules=None,
         ownvalues=None,
         downvalues=None,
@@ -767,7 +893,11 @@ class Definition(object):
     ) -> None:
 
         super(Definition, self).__init__()
-        self.name = name
+        if isinstance(symbol, str):
+            symbol = Symbol(symbol)
+
+        self.definitions = definitions
+        self.symbol = symbol
 
         if rules is None:
             rules = []
@@ -811,7 +941,12 @@ class Definition(object):
         if pos == "messages":
             return self.messages
         else:
-            return getattr(self, "%svalues" % pos)
+            builtin = self.symbol.builtin_definition
+            key = "%svalues" % pos
+            if builtin:
+                return getattr(self, key) + getattr(builtin, key)
+            else:
+                return getattr(self, key)
 
     def set_values_list(self, pos, rules) -> None:
         assert pos.isalpha()
@@ -826,13 +961,13 @@ class Definition(object):
         return True
 
     def add_rule(self, rule) -> bool:
-        pos = get_tag_position(rule.pattern, self.name)
+        pos = get_tag_position(rule.pattern, self.symbol)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
 
     def remove_rule(self, lhs) -> bool:
-        position = get_tag_position(lhs, self.name)
+        position = get_tag_position(lhs, self.symbol)
         if position:
             values = self.get_values_list(position)
             for index, existing in enumerate(values):
@@ -841,8 +976,25 @@ class Definition(object):
                     return True
         return False
 
+    def reset_definition(self):
+        self.ownvalues = []
+        self.downvalues = []
+        self.subvalues = []
+        self.upvalues = []
+        self.formatvalues = {}
+        self.messages = []
+        self.attributes = {}
+        self.options = {}
+        self.nvalues = []
+        self.defaultvalues = []
+
     def __repr__(self) -> str:
-        s = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
-            self.name, self.downvalues, self.formatvalues, self.attributes
+        s = "<Definition: id:{}  name: {}, ownvalues: {}, downvalues: {}, formats: {}, attributes: {}>".format(
+            id(self),
+            self.symbol.get_name(),
+            self.ownvalues,
+            self.downvalues,
+            self.formatvalues,
+            self.attributes,
         )
         return s

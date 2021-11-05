@@ -107,7 +107,7 @@ class Clear(Builtin):
                 if not self.allow_locked and "System`Locked" in attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
-                definition = evaluation.definitions.get_user_definition(name)
+                definition = evaluation.definitions.get_user_definition(Symbol(name))
                 self.do_clear(definition)
 
         return Symbol("Null")

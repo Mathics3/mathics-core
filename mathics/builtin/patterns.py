@@ -544,16 +544,15 @@ class PatternTest(BinaryOperator, PatternObject):
             items = expression.get_sequence()
             for item in items:
                 item = item.evaluate(evaluation)
-                quick_test = self.quick_pattern_test(item, self.test_name, evaluation)
-                if quick_test is False:
-                    break
-                    # raise StopGenerator
-                else:
-                    test_expr = Expression(self.test, item)
-                    test_value = test_expr.evaluate(evaluation)
-                    if not test_value.is_true():
+                if self.test.is_symbol():
+                    quick_test = self.quick_pattern_test(item, self.test, evaluation)
+                    if quick_test is False:
                         break
-                        # raise StopGenerator
+                test_expr = Expression(self.test, item)
+                test_value = test_expr.evaluate(evaluation)
+                if not test_value.is_true():
+                    break
+                # raise StopGenerator
             else:
                 yield_func(vars_2, None)
 
@@ -987,9 +986,8 @@ class Optional(BinaryOperator, PatternObject):
                 if head is None:  # head should be given by match_leaf!
                     default = None
                 else:
-                    name = head.get_name()
                     default = get_default_value(
-                        name, evaluation, leaf_index, leaf_count
+                        head, evaluation, leaf_index, leaf_count
                     )
                 if default is None:
                     evaluation.message("Pattern", "nodef", head, leaf_index, leaf_count)
@@ -1006,7 +1004,7 @@ class Optional(BinaryOperator, PatternObject):
         return (0, 1)
 
 
-def get_default_value(name, evaluation, k=None, n=None):
+def get_default_value(symbol, evaluation, k=None, n=None):
     pos = []
     if k is not None:
         pos.append(k)
@@ -1015,10 +1013,10 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            Symbol("Default"), symbol, *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
-            name, "System`DefaultValues", defaultexpr, evaluation
+            symbol, "System`DefaultValues", defaultexpr, evaluation
         )
         if result is not None:
             if result.sameQ(defaultexpr):

@@ -90,7 +90,7 @@ class TerminalShell(MathicsLineFeeder):
 
         self.incolors, self.outcolors = term_colors
         self.definitions = definitions
-        autoload_files(definitions, get_srcdir(), "autoload-cli")
+        # autoload_files(definitions, get_srcdir(), "autoload-cli")
 
     def get_last_line_number(self):
         return self.definitions.get_line_no()

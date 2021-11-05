@@ -170,8 +170,10 @@ class BaseExpression(KeyComparable):
 
     def get_lookup_name(self):
         "Returns symbol name of leftmost head"
-
         return self.get_name()
+
+    def get_lookup_symbol(self):
+        return Symbol(self.get_name())
 
     def get_head(self):
         return None
@@ -276,6 +278,7 @@ class BaseExpression(KeyComparable):
                     include_form = True
             unformatted = expr
             # If form is Fullform, return it without changes
+
             if form is SymbolFullForm:
                 if include_form:
                     expr = self.create_expression(form, expr)
@@ -317,8 +320,11 @@ class BaseExpression(KeyComparable):
                 if not (expr.is_atom()) and not (expr.head.is_atom()):
                     # expr is of the form f[...][...]
                     return None
-                name = expr.get_lookup_name()
-                formats = evaluation.definitions.get_formats(name, form.get_name())
+                symbol = expr.get_lookup_symbol()
+                formats = evaluation.definitions.get_formats(symbol, form.get_name())
+                print("formats found for ", symbol)
+                for f in formats:
+                    print("   ", f)
                 for rule in formats:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
@@ -366,9 +372,11 @@ class BaseExpression(KeyComparable):
         if isinstance(form, str):
             form = Symbol(form)
         expr = self.do_format(evaluation, form)
+        print("now, makeboxes")
         result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
             evaluation
         )
+        print("   result->", result)
         return result
 
     def is_free(self, form, evaluation) -> bool:
@@ -593,6 +601,9 @@ class Atom(BaseExpression):
     def get_head(self) -> "Symbol":
         return Symbol(self.get_atom_name())
 
+    def get_lookup_symbol(self):
+        return Symbol(self.__class__.__name__)
+
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
@@ -638,7 +649,11 @@ class Symbol(Atom):
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
+            self.builtin_definition = None
             cls.defined_symbols[name] = self
+        return self
+
+    def get_lookup_symbol(self):
         return self
 
     def __str__(self) -> str:
@@ -748,7 +763,7 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
-        rules = evaluation.definitions.get_ownvalues(self.name)
+        rules = evaluation.definitions.get_ownvalues(self)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
@@ -756,7 +771,7 @@ class Symbol(Atom):
         return self
 
     def is_true(self) -> bool:
-        return self == Symbol("True")
+        return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
         return self in system_numeric_constants
@@ -789,6 +804,8 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolRepeated = Symbol("System`Repeated")
 SymbolRepeatedNull = Symbol("System`RepeatedNull")
 SymbolSequence = Symbol("System`Sequence")
+SymbolSymbol = Symbol("Symbol")
+SymbolString = Symbol("String")
 SymbolTrue = Symbol("System`True")
 
 
@@ -812,7 +829,7 @@ SymbolFullForm = Symbol("FullForm")
 SymbolTraditionalForm = Symbol("TraditionalForm")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolMathMLForm = Symbol("MathMLForm")
-
+SymbolRowBox = Symbol("RowBox")
 
 # Used to check if a symbol is `Numeric` without evaluation.
 system_numeric_constants = system_symbols(

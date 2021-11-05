@@ -54,6 +54,7 @@ from mathics.core.atoms import (
     ByteArrayAtom,
     Integer,
     Integer0,
+    Integer1,
     Number,
     Real,
     String,
@@ -541,7 +542,7 @@ class List(Builtin):
 
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
 
         items = items.get_sequence()
         return Expression(
@@ -966,7 +967,7 @@ class _IterationFunction(Builtin):
 
     def apply_iter_nostep(self, expr, i, imin, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.apply_iter(expr, i, imin, imax, Integer(1), evaluation)
+        return self.apply_iter(expr, i, imin, imax, Integer1, evaluation)
 
     def apply_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
