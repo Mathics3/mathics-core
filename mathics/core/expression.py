@@ -225,7 +225,7 @@ class Expression(BaseExpression):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(leaves))
 
-    def _no_symbol(self, symbol_name):
+    def _no_symbol(self, symbol):
         # if this return True, it's safe to say that self.leaves or its
         # sub leaves contain no Symbol with symbol_name. if this returns
         # False, such a Symbol might or might not exist.
@@ -235,7 +235,7 @@ class Expression(BaseExpression):
             return False
 
         symbols = cache.symbols
-        if symbols is not None and symbol_name not in symbols:
+        if symbols is not None and symbol not in symbols:
             return True
         else:
             return False
@@ -270,7 +270,7 @@ class Expression(BaseExpression):
 
     def flatten_sequence(self, evaluation):
         def sequence(leaf):
-            if leaf.get_head_name() == "System`Sequence":
+            if leaf.get_head() is SymbolSequence:
                 return leaf._leaves
             else:
                 return [leaf]
@@ -756,7 +756,9 @@ class Expression(BaseExpression):
                 iteration += 1
 
                 if limit is None:
-                    limit = definitions.get_config_value("System`$IterationLimit")
+                    limit = definitions.get_config_value(
+                        Symbol("System`$IterationLimit")
+                    )
                     if limit is None:
                         limit = "inf"
                 if limit != "inf" and iteration > limit:
@@ -782,13 +784,14 @@ class Expression(BaseExpression):
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
         from mathics.builtin.base import BoxConstruct
 
+        print("------ evaluate_next-------", self)
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
             if "System`HoldAllComplete" not in attributes:
-                if self._no_symbol("System`Evaluate"):
+                if self._no_symbol(Symbol("System`Evaluate")):
                     return
                 for index in indices:
                     leaf = leaves[index]
@@ -818,7 +821,7 @@ class Expression(BaseExpression):
 
         new = Expression(head)
         new._leaves = tuple(leaves)
-
+        print("new expression:", new)
         if (
             "System`SequenceHold" not in attributes
             and "System`HoldAllComplete" not in attributes  # noqa
@@ -827,6 +830,8 @@ class Expression(BaseExpression):
             leaves = new._leaves
 
         for leaf in leaves:
+            # TODO: Warning! Look at this to check if this jeopardizes
+            # the evaluation of singletonized symbols.
             leaf.unevaluated = False
 
         if "System`HoldAllComplete" not in attributes:
@@ -869,10 +874,14 @@ class Expression(BaseExpression):
             if "System`HoldAllComplete" not in attributes:
                 for leaf in leaves:
                     symbol = leaf.get_lookup_symbol()
+                    print("upvalues for symbol?", symbol)
                     if symbol:  # only lookup rules if this is a symbol
+                        print("rules_symbols", rules_symbols)
                         if symbol not in rules_symbols:  # only pick the rule once
                             rules_symbols.add(symbol)
-                            for rule in evaluation.definitions.get_upvalues(symbol):
+                            upvalues = evaluation.definitions.get_upvalues(symbol)
+                            print("           upvalues:", upvalues)
+                            for rule in upvalues:
                                 yield rule
             lookup_symbol = new.get_lookup_symbol()
             if lookup_symbol is new.get_head():
@@ -882,6 +891,7 @@ class Expression(BaseExpression):
                 for rule in evaluation.definitions.get_subvalues(lookup_symbol):
                     yield rule
 
+        print("    \n\nTring rules over the expression")
         for rule in rules():
             result = rule.apply(new, evaluation, fully=False)
             if result is not None:
@@ -893,6 +903,7 @@ class Expression(BaseExpression):
                 else:
                     return result, True
 
+        print("rule not found...")
         dirty_leaves = None
 
         # Expression did not change, re-apply Unevaluated
@@ -1116,7 +1127,7 @@ class Expression(BaseExpression):
         # TODO: should use sorting
         head_name = ensure_context(head_name)
 
-        if self._no_symbol(head_name):
+        if self._no_symbol(Symbol(head_name)):
             return []
         else:
             return [leaf for leaf in self._leaves if leaf.get_head_name() == head_name]

@@ -299,12 +299,12 @@ class Builtin(object):
         if symbol.builtin_definition is None:
             symbol.builtin_definition = definition
 
-        if SymbolMakeBoxes.builtin_definition is None:
-            SymbolMakeBoxes.builtin_definition = Definition(
-                symbol=SymbolMakeBoxes, definitions=None
-            )
-
         makeboxes_def = SymbolMakeBoxes.builtin_definition
+
+        if makeboxes_def is None:
+            makeboxes_def = Definition(symbol=SymbolMakeBoxes, definitions=None)
+            SymbolMakeBoxes.builtin_definition = SymbolMakeBoxes.builtin_definition
+
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
 

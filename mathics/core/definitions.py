@@ -840,6 +840,7 @@ class Definitions(object):
 
 
 def get_tag_position(pattern, symbol) -> typing.Optional[str]:
+    print("get_tag_position", (pattern, symbol))
     if isinstance(symbol, str):
         symbol = Symbol(symbol)
     if pattern.get_name() == symbol.name:
@@ -962,6 +963,7 @@ class Definition(object):
 
     def add_rule(self, rule) -> bool:
         pos = get_tag_position(rule.pattern, self.symbol)
+        print("add rule at ", pos)
         if pos:
             return self.add_rule_at(rule, pos)
         return False
