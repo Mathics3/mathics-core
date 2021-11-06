@@ -70,7 +70,7 @@ class CustomGraphicsBox(BoxConstruct):
 def test_custom_boxconstruct():
     defs = session.evaluation.definitions
     instance_custom_atom = CustomAtom(expression=False)
-    instance_custom_atom.contribute(defs, is_pymodule=True)
+    instance_custom_atom.contribute(is_pymodule=True)
     evaluate("MakeBoxes[CustomAtom, InputForm]")
     formatted = session.format_result().boxes_to_mathml()
     assert formatted == "CustomBoxConstruct<<[1, 2, 3]>>"
@@ -81,7 +81,7 @@ def test_custom_graphicsbox_constructor():
     instance_customgb_atom = CustomGraphicsBox(
         expression=False, evaluation=session.evaluation
     )
-    instance_customgb_atom.contribute(defs, is_pymodule=True)
+    instance_customgb_atom.contribute(is_pymodule=True)
     evaluate("MakeBoxes[Graphics[{Circle[{0,0},1]}], OutputForm]")
     formatted = session.format_result().boxes_to_mathml()
     assert (

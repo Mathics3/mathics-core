@@ -726,6 +726,7 @@ class Expression(BaseExpression):
     def evaluate(self, evaluation) -> typing.Union["Expression", "Symbol"]:
         from mathics.core.evaluation import ReturnInterrupt
 
+        print("      ------ evaluating  ", self, "   ---")
         if evaluation.timeout:
             return
 
@@ -750,6 +751,8 @@ class Expression(BaseExpression):
                     evaluation.options = expr.options
 
                 expr, reevaluate = expr.evaluate_next(evaluation)
+                print("result of the evaluation:", expr)
+                print("reevaluate?", reevaluate)
                 if not reevaluate:
                     break
 

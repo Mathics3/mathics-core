@@ -85,9 +85,7 @@ def load_builtins(definitions):
     from mathics.builtin import modules, contribute
     from mathics.settings import ROOT_DIR
 
-    print("Contribute:")
     contribute()
-    print("Done")
     for module in []:  # definitions.extension_modules:
         try:
             definitions.load_pymathics_module(module, remove_on_quit=False)
@@ -96,7 +94,7 @@ def load_builtins(definitions):
         except ImportError:
             raise
 
-    # autoload_files(definitions, ROOT_DIR, "autoload")
+    autoload_files(definitions, ROOT_DIR, "autoload")
 
     # Move any user definitions created by autoloaded files to
     # builtins, and clear out the user definitions list. This

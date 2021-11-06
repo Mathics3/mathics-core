@@ -190,11 +190,13 @@ class CompoundExpression(BinaryOperator):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
+        print("\nCompount Expression\n-------------\n")
+        print("items:", items)
         result = Symbol("Null")
         for expr in items:
             prev_result = result
             result = expr.evaluate(evaluation)
-
+            print("     result:", result)
             # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
             # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
             if result == Symbol("Null") and prev_result != Symbol("Null"):

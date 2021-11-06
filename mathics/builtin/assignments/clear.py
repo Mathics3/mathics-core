@@ -246,8 +246,8 @@ class Unset(PostfixOperator):
             if len(expr.leaves) != 1:
                 evaluation.message_args(expr.get_head_name(), len(expr.leaves), 1)
                 return SymbolFailed
-            symbol = expr.leaves[0].get_name()
-            if not symbol:
+            symbol = expr.leaves[0]
+            if not symbol.is_symbol():
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
             if head is Symbol("System`Options"):
@@ -256,13 +256,13 @@ class Unset(PostfixOperator):
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
             return Symbol("Null")
-        name = expr.get_lookup_name()
-        if not name:
+        symbol = expr.get_lookup_symbol()
+        if not symbol:
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed
-        if not evaluation.definitions.unset(name, expr):
+        if not evaluation.definitions.unset(symbol, expr):
             if not expr.is_atom():
-                evaluation.message("Unset", "norep", expr, Symbol(name))
+                evaluation.message("Unset", "norep", expr, symbol)
                 return SymbolFailed
         return Symbol("Null")
 

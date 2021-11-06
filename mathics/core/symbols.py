@@ -759,9 +759,11 @@ class Symbol(Atom):
 
     def evaluate(self, evaluation):
         rules = evaluation.definitions.get_ownvalues(self)
+        print("ownvalues of ", self, ": ", rules)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
+                print("result of type", result.evaluate)
                 return result.evaluate(evaluation)
         return self
 
