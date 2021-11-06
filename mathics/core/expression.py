@@ -830,10 +830,9 @@ class Expression(BaseExpression):
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
 
+        unevaluated_leaves = dict({})
         for leaf in leaves:
-            # TODO: Warning! Look at this to check if this jeopardizes
-            # the evaluation of singletonized symbols.
-            leaf.unevaluated = False
+            unevaluated_leaves[id(leaf)] = False
 
         if "System`HoldAllComplete" not in attributes:
             dirty_leaves = None
@@ -843,7 +842,7 @@ class Expression(BaseExpression):
                     if dirty_leaves is None:
                         dirty_leaves = list(leaves)
                     dirty_leaves[index] = leaf._leaves[0]
-                    dirty_leaves[index].unevaluated = True
+                    unevaluated_leaves[id(dirty_leaves[index])] = True
 
             if dirty_leaves:
                 new = Expression(head)
@@ -852,7 +851,7 @@ class Expression(BaseExpression):
 
         def flatten_callback(new_leaves, old):
             for leaf in new_leaves:
-                leaf.unevaluated = old.unevaluated
+                unevaluated_leaves[id(leaf)] = unevaluated_leaves[id(old)]
 
         if "System`Flat" in attributes:
             new = new.flatten(new._head, callback=flatten_callback)
@@ -904,7 +903,7 @@ class Expression(BaseExpression):
 
         # Expression did not change, re-apply Unevaluated
         for index, leaf in enumerate(new._leaves):
-            if leaf.unevaluated:
+            if unevaluated_leaves[id(leaf)]:
                 if dirty_leaves is None:
                     dirty_leaves = list(new._leaves)
                 dirty_leaves[index] = Expression("Unevaluated", leaf)
