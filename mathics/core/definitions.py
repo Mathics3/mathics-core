@@ -747,9 +747,11 @@ class Definitions(object):
         ownvalues = self.get_definition(symbol).ownvalues
         if ownvalues:
             return ownvalues[0]
-        ownvalues = symbol.builtin_definition.ownvalues
-        if ownvalues:
-            return ownvalues[0]
+        builtin = symbol.builtin_definition
+        if builtin:
+            ownvalues = builtin.ownvalues
+            if ownvalues:
+                return ownvalues[0]
         return None
 
     def set_ownvalue(self, symbol, value) -> None:

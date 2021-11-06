@@ -10,6 +10,7 @@ In particular we provide:
 """
 
 import os.path as osp
+from mathics.core.symbols import Symbol
 from mathics.core.definitions import autoload_files
 from mathics.core.parser import parse, MathicsSingleLineFeeder
 from mathics.core.definitions import Definitions
@@ -34,7 +35,7 @@ def load_default_settings_files(
 
 def get_settings_value(definitions: Definitions, setting_name: str):
     """Get a Mathics Settings` value with name "setting_name" from definitions. If setting_name is not defined return None"""
-    settings_value = definitions.get_ownvalue(setting_name)
+    settings_value = definitions.get_ownvalue(Symbol(setting_name))
     if settings_value is None:
         return None
     return settings_value.replace.to_python(string_quotes=False)
