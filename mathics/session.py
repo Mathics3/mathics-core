@@ -55,7 +55,7 @@ class MathicsSession:
     """
 
     def __init__(self, add_builtin=True, catch_interrupt=False, form="InputForm"):
-        self.definitions = Definitions(add_builtin)
+        self.definitions = Definitions(add_builtin=add_builtin)
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
