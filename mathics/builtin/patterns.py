@@ -531,7 +531,11 @@ class PatternTest(BinaryOperator, PatternObject):
             from mathics.builtin.base import Test
 
             builtin = None
-            builtin = evaluation.definitions.get_definition(test)
+            if test:
+                definitions = evaluation.definitions
+                builtin = definitions.definitions_cache.get(test, None)
+                if builtin is None:
+                    builtin = definitions.get_definition(test, True)
             if builtin:
                 builtin = builtin.builtin
             if builtin is not None and isinstance(builtin, Test):

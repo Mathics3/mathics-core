@@ -748,7 +748,12 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
-        rules = evaluation.definitions.get_ownvalues(self.name)
+        name = self.name
+        defcache = evaluation.definitions.definitions_cache
+        if name in defcache:
+            rules = defcache[name].ownvalues
+        else:
+            rules = evaluation.definitions.get_ownvalues(name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
@@ -756,7 +761,7 @@ class Symbol(Atom):
         return self
 
     def is_true(self) -> bool:
-        return self == Symbol("True")
+        return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
         return self in system_numeric_constants

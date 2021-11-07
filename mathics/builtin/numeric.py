@@ -1654,7 +1654,7 @@ class RealDigits(Builtin):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
                 n = Expression(
-                    "N", n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
+                    SymbolN, n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
                 ).evaluate(evaluation)
             else:
                 if rational_no:
@@ -1678,7 +1678,7 @@ class RealDigits(Builtin):
         else:
             display_len = int(
                 Expression(
-                    "N",
+                    SymbolN,
                     Expression(
                         "Round",
                         Expression(

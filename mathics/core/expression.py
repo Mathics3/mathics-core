@@ -778,8 +778,9 @@ class Expression(BaseExpression):
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
         from mathics.builtin.base import BoxConstruct
 
+        definitions = evaluation.definitions
         head = self._head.evaluate(evaluation)
-        attributes = head.get_attributes(evaluation.definitions)
+        attributes = head.get_attributes(definitions)
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
@@ -861,6 +862,7 @@ class Expression(BaseExpression):
                     return threaded, True
 
         def rules():
+            defcache = definitions.definitions_cache
             rules_names = set()
             if "System`HoldAllComplete" not in attributes:
                 for leaf in leaves:
@@ -868,14 +870,28 @@ class Expression(BaseExpression):
                     if len(name) > 0:  # only lookup rules if this is a symbol
                         if name not in rules_names:
                             rules_names.add(name)
-                            for rule in evaluation.definitions.get_upvalues(name):
+                            definition = defcache.get(name, None)
+                            if definition:
+                                rules_up = definition.upvalues
+                            else:
+                                rules_up = definitions.get_upvalues(name)
+                            for rule in rules_up:
                                 yield rule
             lookup_name = new.get_lookup_name()
+            definition = defcache.get(lookup_name, None)
             if lookup_name == new.get_head_name():
-                for rule in evaluation.definitions.get_downvalues(lookup_name):
+                if definition:
+                    rules_down = definition.downvalues
+                else:
+                    rules_down = definitions.get_downvalues(lookup_name)
+                for rule in rules_down:
                     yield rule
             else:
-                for rule in evaluation.definitions.get_subvalues(lookup_name):
+                if definition:
+                    rules_sub = definition.subvalues
+                else:
+                    rules_sub = definitions.get_subvalues(lookup_name)
+                for rule in rules_sub:
                     yield rule
 
         for rule in rules():
@@ -1057,6 +1073,7 @@ class Expression(BaseExpression):
             and len(self._leaves) == 1
             and self._leaves[0].get_head_name() == "System`List"  # nopep8
         ):
+            print("Rowbox:<<<<", self, ">>>>")
             return "".join(
                 [leaf.boxes_to_tex(**options) for leaf in self._leaves[0].get_leaves()]
             )
@@ -1091,6 +1108,7 @@ class Expression(BaseExpression):
         elif name == "System`SqrtBox" and len(self._leaves) == 1:
             return "\\sqrt{%s}" % self._leaves[0].boxes_to_tex(**options)
         else:
+            print("Invalid  Rowbox:<<<<", self, ">>>>")
             raise BoxError(self, "tex")
 
     def default_format(self, evaluation, form) -> str:

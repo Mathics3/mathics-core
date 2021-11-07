@@ -3,6 +3,8 @@
 Boxing Routines for 2D Graphics
 """
 
+from mathics.version import __version__  # noqa used in loading to check consistency.
+
 import base64
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
