@@ -436,11 +436,9 @@ class Definitions(object):
         """
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
-            self.definition_cache_found = self.definition_cache_found + 1
             return definition
 
         if name == "" or name[-1] == "`":
-            self.definition_invalid = self.definition_invalid + 1
             return None
 
         original_name = name
@@ -463,16 +461,13 @@ class Definitions(object):
 
         if ncandidates == 1:
             definition = candidates[0]
-            self.definition_found = self.definition_found + 1
         elif ncandidates == 0:
-            self.definition_notfound = self.definition_notfound + 1
             if only_if_exists:
                 return None
             else:
                 definition = Definition(name=name)
                 self.user[name] = definition
         else:
-            self.definition_clash = self.definition_clash + 1
             attributes = (
                 user.attributes
                 if user
