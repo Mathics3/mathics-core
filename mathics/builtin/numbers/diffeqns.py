@@ -43,7 +43,7 @@ class DSolve(Builtin):
      = {{f[x, y] -> 2 Log[x] + C[1][y / x]}}
 
     >> DSolve[D[y[x, t], t] + 2 D[y[x, t], x] == 0, y[x, t], {x, t}]
-     = {{y[x, t] -> C[1][x - 2 t]}}
+     = {{y[x, t] -> C[1][-2 t + x]}}
 
     ## FIXME: sympy solves this as `Function[{x}, C[1] + Integrate[ArcSin[f[2 x]], x]]`
     ## #> Attributes[f] = {HoldAll};

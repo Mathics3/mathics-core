@@ -1,3 +1,6 @@
+from mathics.version import __version__  # noqa used in loading to check consistency.
+
+
 from mathics.builtin.box.graphics3d import Coords3D
 
 from mathics.builtin.base import BoxConstructError, InstanceableBuiltin

@@ -18,7 +18,6 @@ from mathics.builtin.exceptions import (
     PartRangeError,
 )
 
-
 SymbolNothing = Symbol("Nothing")
 SymbolSpan = Symbol("Span")
 
@@ -209,7 +208,7 @@ def _part_selectors(indices):
 
 def _list_parts(exprs, selectors, evaluation):
     """
-    _list_parts returns an generator of Expressions using selectors to pick out parts of `exprs`.
+    _list_parts returns a generator of Expressions using selectors to pick out parts of `exprs`.
     If `selectors` is empty then a generator of items is returned.
 
     If a selector in `selectors` is a tuple it consists of a function to determine whether or
@@ -607,7 +606,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             continue
         curr_leave = tree[-1][curr_index[-1]]
         if match(curr_leave, evaluation) and (len(curr_index) >= lsmin):
-            found.append([from_python(i) for i in curr_index])
+            found.append([Integer(i) for i in curr_index])
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue

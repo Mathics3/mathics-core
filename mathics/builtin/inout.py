@@ -29,13 +29,11 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.expression import Expression, BoxError
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue, SymbolFalse, SymbolNull
 
-
 from mathics.core.atoms import (
     String,
     StringFromPython,
     Integer,
     Real,
-    from_python,
     MachineReal,
     PrecisionReal,
 )
@@ -71,6 +69,18 @@ from mathics.core.number import (
 from mathics.core.evaluation import Message as EvaluationMessage
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
+
+SymbolAutomatic = Symbol("Automatic")
+SymbolFullForm = Symbol("FullForm")
+SymbolInfinity = Symbol("Infinity")
+SymbolMessageName = Symbol("MessageName")
+SymbolNumberForm = Symbol("NumberForm")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolRow = Symbol("Row")
+SymbolRowBox = Symbol("RowBox")
+SymbolRuleDelayed = Symbol("RuleDelayed")
+SymbolSuperscriptBox = Symbol("SuperscriptBox")
+SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
 class Format(Builtin):
@@ -2713,6 +2723,6 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return from_python("%s_%d" % (val, base))
+            return String("%s_%d" % (val, base))
         else:
             return Expression(SymbolSubscriptBox, String(val), String(base))

@@ -55,8 +55,10 @@ from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
 
+SymbolBlank = Symbol("Blank")
+SymbolOutputForm = Symbol("OutputForm")
 SymbolToExpression = Symbol("ToExpression")
-
+SymbolInputForm = Symbol("InputForm")
 
 _regex_longest = {
     "+": "+",

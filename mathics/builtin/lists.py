@@ -67,6 +67,7 @@ from mathics.core.symbols import (
     strip_context,
     SymbolTrue,
     SymbolFalse,
+    SymbolSequence,
 )
 
 from mathics.core.systemsymbols import (

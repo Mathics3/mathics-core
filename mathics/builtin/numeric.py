@@ -1623,8 +1623,8 @@ class RealDigits(Builtin):
 
             leaves = []
             for x in head:
-                if not x == "0":
-                    leaves.append(from_python(int(x)))
+                if x != "0":
+                    leaves.append(Integer(int(x)))
             leaves.append(from_python(tails))
             list_str = Expression(SymbolList, *leaves)
         return Expression(SymbolList, list_str, exp)
@@ -1632,7 +1632,7 @@ class RealDigits(Builtin):
     def apply_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
 
-        return self.apply_rational_with_base(n, from_python(10), evaluation)
+        return self.apply_rational_with_base(n, Integer(10), evaluation)
 
     def apply(self, n, evaluation):
         "%(name)s[n_]"
@@ -1656,7 +1656,7 @@ class RealDigits(Builtin):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
                 n = Expression(
-                    "N", n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
+                    SymbolN, n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
                 ).evaluate(evaluation)
             else:
                 if rational_no:
@@ -1680,7 +1680,7 @@ class RealDigits(Builtin):
         else:
             display_len = int(
                 Expression(
-                    "N",
+                    SymbolN,
                     Expression(
                         "Round",
                         Expression(
@@ -1732,11 +1732,11 @@ class RealDigits(Builtin):
             if x == "e" or x == "E":
                 break
             # Convert to Mathics' list format
-            leaves.append(from_python(int(x)))
+            leaves.append(Integer(int(x)))
 
         if not rational_no:
             while len(leaves) < display_len:
-                leaves.append(from_python(0))
+                leaves.append(Integer0)
 
         if nr_elements is not None:
             # display_len == nr_elements
@@ -1746,7 +1746,7 @@ class RealDigits(Builtin):
             else:
                 if isinstance(n, Integer):
                     while len(leaves) < nr_elements:
-                        leaves.append(from_python(0))
+                        leaves.append(Integer0)
                 else:
                     # Adding Indeterminate if the length is greater than the precision
                     while len(leaves) < nr_elements:
@@ -1850,13 +1850,13 @@ class Hash(Builtin):
         user_hash(h.update)
         res = h.hexdigest()
         if py_format in ("HexString", "HexStringLittleEndian"):
-            return from_python(res)
+            return String(res)
         res = int(res, 16)
         if py_format == "DecimalString":
-            return from_python(str(res))
+            return String(str(res))
         elif py_format == "ByteArray":
             return from_python(bytearray(res))
-        return from_python(res)
+        return Integer(res)
 
     def apply(self, expr, hashtype, outformat, evaluation):
         "Hash[expr_, hashtype_String, outformat_String]"

@@ -3,14 +3,22 @@ CHANGES
 
 Internals
 =========
+<<<<<<< HEAD
  
 * To speed up the Mathics `Expression` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to `ensure_context`.
+=======
+
+* To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
+>>>>>>> definition3
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * ``apply_N`` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of
   ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
-
+* Module mathics.builtin.box is included as a builtin
+* Extra sort() was removed from Plus.apply
+* Reorganize Definitions.get_definition to deal with heavier rare cases later.
+* Avoid call Definitions.get_definition in favor of Definitions.definition_cache.get always it is possible.  
 
 4.0.1
 -----

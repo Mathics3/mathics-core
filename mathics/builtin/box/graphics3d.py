@@ -3,6 +3,8 @@
 Boxing Routines for 3D Graphics
 """
 
+from mathics.version import __version__  # noqa used in loading to check consistency.
+
 import html
 import json
 import numbers

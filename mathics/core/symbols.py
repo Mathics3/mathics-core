@@ -14,7 +14,13 @@ sympy_slot_prefix = "_Mathics_Slot_"
 
 
 # system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.List[str]:
+def system_symbols(*symbols) -> typing.FrozenSet[str]:
+    """
+    Return a frozenset of symbols from a list of names (strings).
+    We will use this in testing membership, so an immutable object is fine.
+
+    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    """
     return frozenset(Symbol(s) for s in symbols)
 
 
@@ -742,7 +748,12 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
-        rules = evaluation.definitions.get_ownvalues(self.name)
+        name = self.name
+        defcache = evaluation.definitions.definitions_cache
+        if name in defcache:
+            rules = defcache[name].ownvalues
+        else:
+            rules = evaluation.definitions.get_ownvalues(name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
@@ -750,7 +761,7 @@ class Symbol(Atom):
         return self
 
     def is_true(self) -> bool:
-        return self == Symbol("True")
+        return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
         return self in system_numeric_constants

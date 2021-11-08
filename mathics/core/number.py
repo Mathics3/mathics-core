@@ -9,6 +9,7 @@ import string
 
 import typing
 
+
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolMinPrecision,
