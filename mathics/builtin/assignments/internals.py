@@ -60,7 +60,7 @@ def build_rulopc(optval):
 
 
 def get_symbol_list(list, error_callback):
-    if list.has_form(SymbolList, None):
+    if list.get_head() is SymbolList:
         list = list.leaves
     else:
         list = [list]
@@ -291,7 +291,7 @@ def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
     context_path = [
         s if (s is None or s[0] != "`") else currContext[:-1] + s for s in context_path
     ]
-    if rhs.has_form(SymbolList, None) and all(
+    if rhs.get_head() is SymbolList and all(
         valid_context_name(s) for s in context_path
     ):
         evaluation.definitions.set_context_path(context_path)

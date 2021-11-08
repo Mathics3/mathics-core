@@ -565,6 +565,14 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
+    _head_symbol = None
+
+    def get_head(self) -> "Symbol":
+        return self._head_symbol
+
+    def get_head_name(self):
+        return self._head_symbol.name
+
     def is_atom(self) -> bool:
         return True
 
@@ -589,9 +597,6 @@ class Atom(BaseExpression):
 
     def has_symbol(self, symbol_name) -> bool:
         return False
-
-    def get_head(self) -> "Symbol":
-        return Symbol(self.get_atom_name())
 
     def get_atom_name(self) -> str:
         return self.__class__.__name__
@@ -630,6 +635,7 @@ class Symbol(Atom):
     name: str
     sympy_dummy: Any
     defined_symbols = {}
+    _head_symbol = "sdasdasdsad"
 
     def __new__(cls, name, sympy_dummy=None):
         name = ensure_context(name)
@@ -695,6 +701,9 @@ class Symbol(Atom):
 
     def get_name(self) -> str:
         return self.name
+
+    def get_head_name(self) -> str:
+        return "System`Symbol"
 
     def is_symbol(self) -> bool:
         return True
@@ -774,6 +783,11 @@ class Symbol(Atom):
 
     def __getnewargs__(self):
         return (self.name, self.sympy_dummy)
+
+
+# We need to define this outside the class
+# for obvious reasons...
+Symbol._head_symbol = Symbol("Symbol")
 
 
 # Symbols used in this module.

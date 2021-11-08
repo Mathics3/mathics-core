@@ -654,7 +654,7 @@ class Integrate(SympyFunction):
             else:
                 cases = result._leaves[0]._leaves
                 default = result._leaves[1]
-            if default.has_form(SymbolIntegrate, None):
+            if default.get_head() is SymbolIntegrate:
                 if default._leaves[0] == f:
                     default = SymbolUndefined
 
@@ -1469,7 +1469,7 @@ class FindRoot(Builtin):
             f = Expression(SymbolPlus, f_val.leaves[0], f_val.leaves[1])
 
         xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form(SymbolList, None):
+        if xtuple_value.get_head() is SymbolList:
             nleaves = len(xtuple_value.leaves)
             if nleaves == 2:
                 x, x0 = xtuple.evaluate(evaluation).leaves

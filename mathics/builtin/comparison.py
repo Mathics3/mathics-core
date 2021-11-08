@@ -927,7 +927,7 @@ class _MinMax(Builtin):
         best = None
 
         for item in items:
-            if item.has_form(SymbolList, None):
+            if item.get_head() is SymbolList:
                 leaves = item.leaves
             else:
                 leaves = [item]

@@ -117,7 +117,7 @@ class Compile(Builtin):
             SymbolFalse: bool_type,
         }
 
-        if not vars.has_form(SymbolList, None):
+        if not vars.get_head() is SymbolList:
             return evaluation.message("Compile", "invars")
         args = []
         names = []
@@ -175,6 +175,8 @@ class Compile(Builtin):
 
 
 class CompiledCode(Atom):
+    _head_symbol = Symbol("CompiledCode")
+
     def __init__(self, cfunc, args, **kwargs):
         super(CompiledCode, self).__init__(**kwargs)
         self.cfunc = cfunc

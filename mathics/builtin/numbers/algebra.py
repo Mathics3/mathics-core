@@ -76,7 +76,7 @@ def sympy_factor(expr_sympy):
 
 
 def cancel(expr):
-    if expr.has_form(SymbolPlus, None):
+    if expr.get_head() is SymbolPlus:
         return Expression(SymbolPlus, *[cancel(leaf) for leaf in expr.leaves])
     else:
         try:
@@ -279,7 +279,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         threaded_heads = (SymbolList, SymbolRule)
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
-                if sub_expr.has_form(head, None):
+                if sub_expr.get_head() is head:
                     leaves = sub_expr.get_leaves()
                     if target_pat:
                         leaves = [
@@ -328,7 +328,7 @@ def find_all_vars(expr):
             return
         elif e.is_symbol():
             variables.add(e)
-        elif e.has_form((SymbolPlus, SymbolTimes), None):
+        elif e.get_head() in (SymbolPlus, SymbolTimes):
             for l in e.leaves:
                 l_sympy = l.to_sympy()
                 if l_sympy is not None:
@@ -343,7 +343,7 @@ def find_all_vars(expr):
         elif not (e.is_atom()):
             variables.add(e)
 
-    exprs = expr.leaves if expr.has_form(SymbolList, None) else [expr]
+    exprs = expr.leaves if expr.get_head() is SymbolList else [expr]
     for e in exprs:
         e_sympy = e.to_sympy()
         if e_sympy is not None:
@@ -1196,7 +1196,7 @@ class PolynomialQ(Builtin):
         var = v[0]
         if var == SymbolNull:
             return SymbolTrue
-        elif var.has_form(SymbolList, None):
+        elif var.get_head() is SymbolList:
             if len(var.leaves) == 0:
                 return evaluation.message("PolynomialQ", "novar")
             sympy_var = [x.to_sympy() for x in var.leaves]
@@ -1363,9 +1363,7 @@ class CoefficientList(Builtin):
 
     def apply(self, expr, form, evaluation):
         "CoefficientList[expr_, form_]"
-        vars = (
-            [form] if not form.has_form(SymbolList, None) else [v for v in form.leaves]
-        )
+        vars = [form] if not form.get_head() is SymbolList else [v for v in form.leaves]
 
         # check form is not a variable
         for v in vars:
@@ -1399,7 +1397,7 @@ class CoefficientList(Builtin):
             ]
 
             # single & multiple variables cases
-            if not form.has_form(SymbolList, None):
+            if not form.get_head() is SymbolList:
                 return Expression(
                     "List",
                     *[
@@ -1492,7 +1490,7 @@ class Exponent(Builtin):
         if expr == Integer0:
             return Expression(SymbolDirectedInfinity, Integer(-1))
 
-        if not form.has_form(SymbolList, None):
+        if not form.get_head() is SymbolList:
             return Expression(h, *[i for i in find_exponents(expr, form)])
         else:
             exponents = [find_exponents(expr, var) for var in form.leaves]
@@ -1545,7 +1543,7 @@ class _CoefficientHandler(Builtin):
                     if matchval:
                         powers[i] = pf._leaves[1]
                         return powers
-            if pf.has_form(SymbolTimes, None):
+            if pf.get_head() is SymbolTimes:
                 contrib = [powers_list(factor) for factor in pf._leaves]
                 for i in range(len(var_pats)):
                     powers[i] = Expression(
@@ -1572,7 +1570,7 @@ class _CoefficientHandler(Builtin):
                 or term.has_form(SymbolSqrt, 1)
             ):
                 powers.append(term)
-            elif term.has_form(SymbolTimes, None):
+            elif term.get_head() is SymbolTimes:
                 for factor in term.leaves:
                     if factor.is_free(target_pat, evaluation):
                         coeffs.append(factor)
@@ -1638,7 +1636,7 @@ class _CoefficientHandler(Builtin):
                 if not coeff.is_free(target_pat, evaluation):
                     return []
                 return [(powers_list(expr), coeff)]
-        elif expr.has_form(SymbolTimes, None):
+        elif expr.get_head() is SymbolTimes:
             coeff, powers = split_coeff_pow(expr)
             if coeff is None:
                 coeff = Integer1
@@ -1659,7 +1657,7 @@ class _CoefficientHandler(Builtin):
             else:
                 pl = powers_list(powers)
                 return [(pl, coeff)]
-        elif expr.has_form(SymbolPlus, None):
+        elif expr.get_head() is SymbolPlus:
             coeff_dict = {}
             powers_dict = {}
             powers_order = {}
@@ -1751,14 +1749,14 @@ class CoefficientArrays(_CoefficientHandler):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
         from mathics.algorithm.parts import walk_parts
 
-        if polys.has_form(SymbolList, None):
+        if polys.get_head() is SymbolList:
             list_polys = polys.leaves
         else:
             list_polys = [polys]
 
         if varlist.is_symbol():
             var_exprs = [varlist]
-        elif varlist.has_form(SymbolList, None):
+        elif varlist.get_head() is SymbolList:
             var_exprs = varlist.get_leaves()
         else:
             var_exprs = [varlist]
@@ -1851,7 +1849,7 @@ class Collect(_CoefficientHandler):
             filt = None
         if varlst.is_symbol():
             var_exprs = [varlst]
-        elif varlst.has_form(SymbolList, None):
+        elif varlst.get_head() is SymbolList:
             var_exprs = varlst.get_leaves()
         else:
             var_exprs = [varlst]

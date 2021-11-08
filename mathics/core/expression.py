@@ -453,7 +453,8 @@ class Expression(BaseExpression):
         heads: Symbol or List of Symbols
         leaf_counts:
             (,):        no leaves allowed
-            (None,):    no constraint on number of leaves
+            (None,):    no constraint on number of leaves.
+                        If possible, use ``.get_head() in heads`` instead.
             (n, None):  leaf count >= n
             (n1, n2, ...):    leaf count in {n1, n2, ...}
         """

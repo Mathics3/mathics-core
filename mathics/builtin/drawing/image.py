@@ -1802,6 +1802,8 @@ class ImageQ(_ImageTest):
 
 
 class Image(Atom):
+    _head_symbol = Symbol("Image")
+
     def __init__(self, pixels, color_space, metadata={}, **kwargs):
         super(Image, self).__init__(**kwargs)
         if len(pixels.shape) == 2:

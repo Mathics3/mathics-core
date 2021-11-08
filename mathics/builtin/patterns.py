@@ -1517,6 +1517,8 @@ def item_is_free(item, form, evaluation):
 
 
 class Dispatch(Atom):
+    _head_symbol = Symbol("Dispatch")
+
     def __init__(self, rulelist, evaluation):
         self.src = Expression(SymbolList, *rulelist)
         self.rules = [Rule(rule._leaves[0], rule._leaves[1]) for rule in rulelist]
@@ -1558,6 +1560,8 @@ class DispatchAtom(AtomBuiltin):
     >>  F[2] /. dispatchrules
      = 4
     """
+
+    _head_symbol = Symbol("DispatchAtom")
 
     messages = {
         "invrpl": "`1` is not a valid rule or list of rules.",

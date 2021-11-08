@@ -38,6 +38,7 @@ from mathics.core.atoms import (
     PrecisionReal,
 )
 from mathics.core.systemsymbols import (
+    SymbolAll,
     SymbolAutomatic,
     SymbolFullForm,
     SymbolHold,
@@ -46,6 +47,7 @@ from mathics.core.systemsymbols import (
     SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
+    SymbolNone,
     SymbolNumberForm,
     SymbolOutputForm,
     SymbolPostfix,
@@ -722,8 +724,8 @@ class GridBox(BoxConstruct):
         if not leaves:
             raise BoxConstructError
         expr = leaves[0]
-        if not expr.has_form(SymbolList, None):
-            if not all(leaf.has_form(SymbolList, None) for leaf in expr.leaves):
+        if not expr.get_head() is SymbolList:
+            if not all(leaf.get_head() is SymbolList for leaf in expr.leaves):
                 raise BoxConstructError
         items = [leaf.leaves for leaf in expr.leaves]
         if not is_constant_list([len(row) for row in items]):
@@ -1366,7 +1368,7 @@ class Check(Builtin):
         def get_msg_list(exprs):
             messages = []
             for expr in exprs:
-                if expr.has_form(SymbolList, None):
+                if expr.get_head() is SymbolList:
                     messages.extend(get_msg_list(expr.leaves))
                 elif check_message(expr):
                     messages.append(expr)
@@ -1471,13 +1473,13 @@ class Quiet(Builtin):
         def get_msg_list(expr):
             if check_message(expr):
                 expr = Expression(SymbolList, expr)
-            if expr.get_name() == "System`All":
+            if expr is SymbolAll:
                 all = True
                 messages = []
-            elif expr.get_name() == "System`None":
+            elif expr is SymbolNone:
                 all = False
                 messages = []
-            elif expr.has_form(SymbolList, None):
+            elif expr.get_head() is SymbolList:
                 all = False
                 messages = []
                 for item in expr.leaves:
