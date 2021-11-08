@@ -386,7 +386,7 @@ class BaseExpression(KeyComparable):
         from mathics.core.atoms import String
 
         options = self
-        if options.has_form(SymbolList, None):
+        if options.get_head() is SymbolList:
             options = options.flatten(SymbolList)
             values = options.leaves
         else:
@@ -419,7 +419,7 @@ class BaseExpression(KeyComparable):
 
         list_expr = self.flatten(SymbolList)
         list = []
-        if list_expr.has_form(SymbolList, None):
+        if list_expr.get_head() is SymbolList:
             list.extend(list_expr.leaves)
         else:
             list.append(list_expr)

@@ -122,16 +122,16 @@ class RuleDelayed(BinaryOperator):
 def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
-    elif rules_expr.has_form(SymbolDispatch, None):
+    elif rules_expr.get_head() is SymbolDispatch:
         return Dispatch(rules_expr._leaves, evaluation)
 
-    if rules_expr.has_form(SymbolList, None):
+    if rules_expr.get_head() is SymbolList:
         rules = rules_expr.leaves
     else:
         rules = [rules_expr]
-    any_lists = any(item.has_form((SymbolList, SymbolDispatch), None) for item in rules)
+    any_lists = any(item.get_head() in (SymbolList, SymbolDispatch) for item in rules)
     if any_lists:
-        all_lists = all(item.has_form(SymbolList, None) for item in rules)
+        all_lists = all(item.get_head() is SymbolList for item in rules)
         if all_lists:
             return (
                 Expression(
@@ -1485,8 +1485,9 @@ class OptionsPattern(PatternObject):
 
     def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
         def _match(leaf):
-            return leaf.has_form((SymbolRule, SymbolRuleDelayed), 2) or leaf.has_form(
-                "List", None
+            return (
+                leaf.has_form((SymbolRule, SymbolRuleDelayed), 2)
+                or leaf.get_head() is SymbolList
             )
 
         return [leaf for leaf in leaves if _match(leaf)]
@@ -1580,12 +1581,12 @@ class DispatchAtom(AtomBuiltin):
         if rules.is_symbol():
             rules = rules.evaluate(evaluation)
 
-        if rules.has_form(SymbolList, None):
+        if rules.get_head() is SymbolList:
             rules = rules._leaves
         else:
             rules = [rules]
 
-        all_list = all(rule.has_form(SymbolList, None) for rule in rules)
+        all_list = all(rule.get_head() is SymbolList for rule in rules)
         if all_list:
             leaves = [self.apply_create(rule, evaluation) for rule in rules]
             return Expression(SymbolList, *leaves)
@@ -1593,7 +1594,7 @@ class DispatchAtom(AtomBuiltin):
         for rule in rules:
             if rule.is_symbol():
                 rule = rule.evaluate(evaluation)
-            if rule.has_form(SymbolList, None):
+            if rule.get_head() is SymbolList:
                 flatten_list.extend(rule._leaves)
             elif rule.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 flatten_list.append(rule)

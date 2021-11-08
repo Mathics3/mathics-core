@@ -803,7 +803,7 @@ class MapThread(Builtin):
 
         if expr.has_form(SymbolList, 0):
             return Expression(SymbolList)
-        if not expr.has_form(SymbolList, None):
+        if not expr.get_head() is SymbolList:
             return evaluation.message("MapThread", "list", 2, full_expr)
 
         heads = expr.get_leaves()
@@ -815,7 +815,7 @@ class MapThread(Builtin):
             else:
                 dim = None
                 for i, arg in enumerate(args):
-                    if not arg.has_form(SymbolList, None):
+                    if not arg.get_head() is SymbolList:
                         raise MessageException(
                             "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
                         )

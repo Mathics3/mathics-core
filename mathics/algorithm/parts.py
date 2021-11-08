@@ -194,11 +194,11 @@ def _part_selectors(indices):
     the kind of specifications in `indices`.
     """
     for index in indices:
-        if index.has_form(SymbolSpan, None):
+        if index.get_head() is SymbolSpan:
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
-        elif index.has_form(SymbolList, None):
+        elif index.get_head() is SymbolList:
             yield _parts_sequence_selector(index.leaves)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
@@ -358,7 +358,7 @@ def python_levelspec(levelspec):
         else:
             return value
 
-    if levelspec.has_form(SymbolList, None):
+    if levelspec.get_head() is SymbolList:
         values = [value_to_level(leaf) for leaf in levelspec.leaves]
         if len(values) == 1:
             return values[0], values[0]

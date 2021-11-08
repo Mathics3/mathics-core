@@ -28,7 +28,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
         if msg_symbol and evaluation:
             evaluation.message(msg_symbol, tag, *args)
 
-    if not var_list.has_form(SymbolList, None):
+    if not var_list.get_head() is SymbolList:
         message("lvlist", var_list)
         return
     vars = var_list.leaves
@@ -397,7 +397,7 @@ class Unique(Predefined):
             return evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
 
         # Check valid symbol variables
-        symbols = vars.leaves if vars.has_form(SymbolList, None) else [vars]
+        symbols = vars.leaves if vars.get_head() is SymbolList else [vars]
         for symbol in symbols:
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()
@@ -433,7 +433,7 @@ class Unique(Predefined):
             for att in attrs:
                 definitions.set_attribute(symbol.get_name(), att)
 
-        if vars.has_form(SymbolList, None):
+        if vars.get_head() is SymbolList:
             return Expression(SymbolList, *list)
         else:
             return list[0]

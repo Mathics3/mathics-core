@@ -268,7 +268,7 @@ class Definitions(object):
     def get_context_path(self):
         context_path_rule = self.get_ownvalue("System`$ContextPath")
         context_path = context_path_rule.replace
-        assert context_path.has_form(SymbolList, None)
+        assert context_path.get_head() is SymbolList
         context_path = [c.get_string_value() for c in context_path.leaves]
         assert not any([c is None for c in context_path])
         return context_path
@@ -406,7 +406,7 @@ class Definitions(object):
     def get_package_names(self) -> typing.List[str]:
         packages = self.get_ownvalue("System`$Packages")
         packages = packages.replace
-        assert packages.has_form(SymbolList, None)
+        assert packages.get_head() is SymbolList
         packages = [c.get_string_value() for c in packages.leaves]
         return packages
 

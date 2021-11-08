@@ -441,7 +441,7 @@ class Expression(BaseExpression):
             res = self._leaves[2]
             if res.is_symbol():
                 return (str(res),)
-            elif res.has_form(SymbolList, None):
+            elif res.get_head() is SymbolList:
                 return set(str(a) for a in res._leaves)
         return set()
 
@@ -1025,7 +1025,7 @@ class Expression(BaseExpression):
             options = options.copy()
 
             def is_list_interior(content):
-                if content.has_form(SymbolList, None) and all(
+                if content.get_head() is SymbolList and all(
                     leaf.get_string_value() == "," for leaf in content._leaves[1::2]
                 ):
                     return True
@@ -1105,7 +1105,6 @@ class Expression(BaseExpression):
             and len(self._leaves) == 1
             and self._leaves[0].get_head_name() == "System`List"  # nopep8
         ):
-            print("Rowbox:<<<<", self, ">>>>")
             return "".join(
                 [leaf.boxes_to_tex(**options) for leaf in self._leaves[0].get_leaves()]
             )
@@ -1140,7 +1139,6 @@ class Expression(BaseExpression):
         elif name == "System`SqrtBox" and len(self._leaves) == 1:
             return "\\sqrt{%s}" % self._leaves[0].boxes_to_tex(**options)
         else:
-            print("Invalid  Rowbox:<<<<", self, ">>>>")
             raise BoxError(self, "tex")
 
     def default_format(self, evaluation, form) -> str:
@@ -1235,7 +1233,7 @@ class Expression(BaseExpression):
                 self._head is SymbolFunction
                 and len(self._leaves) > 1
                 and (
-                    self._leaves[0].has_form(SymbolList, None)
+                    self._leaves[0].get_head() is SymbolList
                     or self._leaves[0].get_name()
                 )
             ):

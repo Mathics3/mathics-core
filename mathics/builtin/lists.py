@@ -150,7 +150,7 @@ class ByteArray(Builtin):
 
     def apply_list(self, values, evaluation):
         "ByteArray[values_List]"
-        if not values.has_form(SymbolList, None):
+        if not values.get_head() is SymbolList:
             return
         try:
             ba = bytearray([b.get_int_value() for b in values._leaves])
@@ -242,11 +242,11 @@ class ContainsOnly(Builtin):
         )
         expr = Expression(SymbolContainsOnly, e1, e2, *opts)
 
-        if not isinstance(e1, Symbol) and not e1.has_form(SymbolList, None):
+        if not isinstance(e1, Symbol) and not e1.get_head() is SymbolList:
             evaluation.message("ContainsOnly", "lsa", e1)
             return self.check_options(expr, evaluation, options)
 
-        if not isinstance(e2, Symbol) and not e2.has_form(SymbolList, None):
+        if not isinstance(e2, Symbol) and not e2.get_head() is SymbolList:
             evaluation.message("ContainsOnly", "lsa", e2)
             return self.check_options(expr, evaluation, options)
 
@@ -362,7 +362,7 @@ class Delete(Builtin):
             return evaluation.message("Delete", "argr")
 
         positions = positions[0]
-        if not positions.has_form(SymbolList, None):
+        if not positions.get_head() is SymbolList:
             return evaluation.message(
                 "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
@@ -370,7 +370,7 @@ class Delete(Builtin):
         # Create new python list of the positions and sort it
         positions = (
             [t for t in positions.leaves]
-            if positions.leaves[0].has_form(SymbolList, None)
+            if positions.leaves[0].get_head() is SymbolList
             else [positions]
         )
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
@@ -927,12 +927,12 @@ class _IterationFunction(Builtin):
     def apply_range(self, expr, i, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imax_}]"
         imax = imax.evaluate(evaluation)
-        if imax.has_form(SymbolRange, None):
+        if imax.get_head() is SymbolRange:
             # FIXME: this should work as an iterator in Python3, not
             # building the sequence explicitly...
             seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).leaves))
             return self.apply_list(expr, i, seq, evaluation)
-        elif imax.has_form(SymbolList, None):
+        elif imax.get_head() is SymbolList:
             seq = Expression(SymbolSequence, *(imax.leaves))
             return self.apply_list(expr, i, seq, evaluation)
         else:
