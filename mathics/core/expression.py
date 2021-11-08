@@ -1073,7 +1073,6 @@ class Expression(BaseExpression):
             and len(self._leaves) == 1
             and self._leaves[0].get_head_name() == "System`List"  # nopep8
         ):
-            print("Rowbox:<<<<", self, ">>>>")
             return "".join(
                 [leaf.boxes_to_tex(**options) for leaf in self._leaves[0].get_leaves()]
             )

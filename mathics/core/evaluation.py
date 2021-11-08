@@ -422,6 +422,7 @@ class Evaluation(object):
             if not (unset_in or unset_out):
                 break
             line -= 1
+        self.definitions.show_definitions_found()
         return result
 
     def get_stored_result(self, eval_result):

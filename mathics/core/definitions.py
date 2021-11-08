@@ -67,6 +67,17 @@ class PyMathicsLoadException(Exception):
 
 
 class Definitions(object):
+    def show_definitions_found(self):
+        print("get definition:")
+        print("               found:", self.definition_found)
+        print("         cache found:", self.definition_cache_found)
+        print("               clash:", self.definition_clash)
+        print("           not found:", self.definition_notfound)
+        print("         key invalid:", self.definition_invalid)
+
+    def __del__(self):
+        show_definitions_found(self)
+
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
@@ -79,6 +90,12 @@ class Definitions(object):
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
+
+        self.definition_found = 0
+        self.definition_cache_found = 0
+        self.definition_clash = 0
+        self.definition_notfound = 0
+        self.definition_invalid = 0
 
         if add_builtin:
             from mathics.builtin import modules, contribute
@@ -436,9 +453,11 @@ class Definitions(object):
         """
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
+            self.definition_cache_found = self.definition_cache_found + 1
             return definition
 
         if name == "" or name[-1] == "`":
+            self.definition_invalid = self.definition_invalid + 1
             return None
 
         original_name = name
@@ -461,16 +480,16 @@ class Definitions(object):
 
         if ncandidates == 1:
             definition = candidates[0]
+            self.definition_found = self.definition_found + 1
         elif ncandidates == 0:
+            self.definition_notfound = self.definition_notfound + 1
             if only_if_exists:
                 return None
             else:
-                if name and name[-1] != "`":
-                    definition = Definition(name=name)
-                    self.user[name] = definition
-                else:
-                    return None
+                definition = Definition(name=name)
+                self.user[name] = definition
         else:
+            self.definition_clash = self.definition_clash + 1
             attributes = (
                 user.attributes
                 if user
