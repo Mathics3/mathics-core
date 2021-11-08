@@ -67,17 +67,6 @@ class PyMathicsLoadException(Exception):
 
 
 class Definitions(object):
-    def show_definitions_found(self):
-        print("get definition:")
-        print("               found:", self.definition_found)
-        print("         cache found:", self.definition_cache_found)
-        print("               clash:", self.definition_clash)
-        print("           not found:", self.definition_notfound)
-        print("         key invalid:", self.definition_invalid)
-
-    def __del__(self):
-        show_definitions_found(self)
-
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
@@ -90,12 +79,6 @@ class Definitions(object):
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
-
-        self.definition_found = 0
-        self.definition_cache_found = 0
-        self.definition_clash = 0
-        self.definition_notfound = 0
-        self.definition_invalid = 0
 
         if add_builtin:
             from mathics.builtin import modules, contribute
