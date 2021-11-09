@@ -291,8 +291,6 @@ add_conversion_fn(Cuboid3DBox)
 def cylinder3dbox(self, **options) -> str:
     face_color = self.face_color.to_js()
 
-    # FIXME: currently always drawing around the axis X+Y
-    axes_point = (1, 1, 0)
     rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cylinder3DBox\n"
@@ -310,8 +308,14 @@ def cylinder3dbox(self, **options) -> str:
             ) ** 0.5
 
             asy += (
-                f"draw(surface(cylinder({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {rgb});"
-                + "\n"
+                # In Asymptote B-A
+                f"""
+                draw(surface(cylinder(
+                    {tuple(point1)}, // start of the cylinder
+                    {self.radius},
+                    {distance},
+                    {tuple(point2)} - {tuple(point1)} // draw from point1 to point2
+                )), {rgb});"""
             )
         except:  # noqa
             pass
