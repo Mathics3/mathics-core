@@ -40,6 +40,7 @@ from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
+    SymbolLeft,
     SymbolMinus,
     SymbolPattern,
     SymbolPlus,
@@ -52,9 +53,6 @@ from mathics.core.number import min_prec, dps
 from mathics.core.convert import from_sympy
 
 from mathics.builtin.numeric import apply_N
-
-
-SymbolLeft = Symbol("Left")
 
 
 class CubeRoot(Builtin):
@@ -533,7 +531,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     formats = {
         Expression(
-            "Power",
+            SymbolPower,
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             Rational(1, 2),
         ): "HoldForm[Sqrt[x]]",

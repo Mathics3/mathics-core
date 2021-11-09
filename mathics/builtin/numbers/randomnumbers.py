@@ -17,7 +17,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
 from mathics.core.atoms import Integer, String, Real, Complex
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import SymbolNull
 from mathics.core.expression import Expression
 
 try:
@@ -227,14 +227,14 @@ class SeedRandom(Builtin):
             return evaluation.message("SeedRandom", "seed", x)
         with RandomEnv(evaluation) as rand:
             rand.seed(value)
-        return Symbol("Null")
+        return SymbolNull
 
     def apply_empty(self, evaluation):
         "SeedRandom[]"
 
         with RandomEnv(evaluation) as rand:
             rand.seed()
-        return Symbol("Null")
+        return SymbolNull
 
 
 class _RandomBase(Builtin):

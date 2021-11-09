@@ -22,7 +22,7 @@ from mathics.core.symbols import (
     SymbolNull,
 )
 
-from mathics.core.systemsymbols import SymbolAborted
+from mathics.core.systemsymbols import SymbolAborted, SymbolGeneral
 
 FORMATS = [
     "StandardForm",
@@ -305,7 +305,6 @@ class Evaluation(object):
         """
         from mathics.core.expression import Expression
         from mathics.core.rules import Rule
-        from mathics.builtin.assignments.internals import AssignmentException
 
         self.recursion_depth = 0
         self.timeout = False
@@ -394,8 +393,6 @@ class Evaluation(object):
             except ContinueInterrupt:
                 self.message("Continue", "nofdw")
                 self.exc_result = Expression("Hold", Expression("Continue"))
-            except AssignmentException:
-                self.exc_result = SymbolFalse
             except TimeoutInterrupt:
                 self.stopped = False
                 self.timeout = True
@@ -514,7 +511,7 @@ class Evaluation(object):
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
-            pattern = Expression("MessageName", Symbol("General"), String(tag))
+            pattern = Expression("MessageName", SymbolGeneral, String(tag))
             text = self.definitions.get_value(
                 "System`General", "System`Messages", pattern, self
             )

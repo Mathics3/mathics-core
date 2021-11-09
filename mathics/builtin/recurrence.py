@@ -8,8 +8,18 @@ Solving Recurrence Equations
 import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
+from mathics.core.symbols import SymbolList
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
+from mathics.core.systemsymbols import (
+    SymbolTimes,
+    SymbolPlus,
+    SymbolFunction,
+    SymbolPower,
+    SymbolRule,
+    SymbolEqual,
+    SymbolConstant,
+)
 
 
 class RSolve(Builtin):
@@ -56,20 +66,20 @@ class RSolve(Builtin):
 
         # TODO: Do this with rules?
         if not eqns.has_form("List", None):
-            eqns = Expression("List", eqns)
+            eqns = Expression(SymbolList, eqns)
 
         if len(eqns.leaves) == 0:
             return
 
         for eqn in eqns.leaves:
-            if eqn.get_head_name() != "System`Equal":
+            if eqn.get_head() is not SymbolEqual:
                 evaluation.message("RSolve", "deqn", eqn)
                 return
 
         if (
             (n.is_atom() and not n.is_symbol())
-            or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
-            or "System`Constant" in n.get_attributes(evaluation.definitions)
+            or n.get_head() in (SymbolPlus, SymbolTimes, SymbolPower)
+            or SymbolConstant in n.get_attributes(evaluation.definitions)
         ):
             # TODO: Factor out this check for dsvar into a separate
             # function. DSolve uses this too.
@@ -82,7 +92,7 @@ class RSolve(Builtin):
             func = a
         except AttributeError:
             func = Expression(a, n)
-            function_form = Expression("List", n)
+            function_form = Expression(SymbolList, n)
 
         if func.is_atom() or len(func.leaves) != 1:
             evaluation.message("RSolve", "dsfun", a)
@@ -118,9 +128,9 @@ class RSolve(Builtin):
         relation = relations[0]
 
         left, right = relation.leaves
-        relation = Expression("Plus", left, Expression("Times", -1, right)).evaluate(
-            evaluation
-        )
+        relation = Expression(
+            SymbolPlus, left, Expression(SymbolTimes, -1, right)
+        ).evaluate(evaluation)
 
         sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
         if sym_eq is None:
@@ -153,20 +163,20 @@ class RSolve(Builtin):
             return Expression(
                 "List",
                 *[
-                    Expression("List", Expression("Rule", a, from_sympy(soln)))
+                    Expression(SymbolList, Expression(SymbolRule, a, from_sympy(soln)))
                     for soln in sym_result
                 ]
             )
         else:
             return Expression(
-                "List",
+                SymbolList,
                 *[
                     Expression(
-                        "List",
+                        SymbolList,
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             a,
-                            Expression("Function", function_form, from_sympy(soln)),
+                            Expression(SymbolFunction, function_form, from_sympy(soln)),
                         ),
                     )
                     for soln in sym_result

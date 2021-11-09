@@ -55,6 +55,11 @@ from mathics.core.number import (
 )
 
 
+SymbolNHoldAll = Symbol("System`NHoldAll")
+SymbolNHoldFirst = Symbol("System`NHoldFirst")
+SymbolNHoldRest = Symbol("System`NHoldRest")
+
+
 @lru_cache(maxsize=1024)
 def log_n_b(py_n, py_b) -> int:
     return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
@@ -888,11 +893,11 @@ class N(Builtin):
             return expr
         else:
             attributes = expr.head.get_attributes(evaluation.definitions)
-            if Symbol("System`NHoldAll") in attributes:
+            if SymbolNHoldAll in attributes:
                 eval_range = ()
-            elif Symbol("System`NHoldFirst") in attributes:
+            elif SymbolNHoldFirst in attributes:
                 eval_range = range(1, len(expr.leaves))
-            elif Symbol("System`NHoldRest") in attributes:
+            elif SymbolNHoldRest in attributes:
                 if len(expr.leaves) > 0:
                     eval_range = (0,)
                 else:

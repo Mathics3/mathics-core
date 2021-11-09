@@ -19,6 +19,10 @@ from mathics.core.atoms import String
 from mathics.builtin.assignments.internals import get_symbol_list
 
 
+SymbolLocked = Symbol("System`Locked")
+SymbolProtected = Symbol("System`Protected")
+
+
 class Attributes(Builtin):
     """
     <dl>
@@ -105,7 +109,7 @@ class SetAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if Symbol("System`Locked") in evaluation.definitions.get_attributes(symbol):
+            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -149,7 +153,7 @@ class ClearAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if Symbol("System`Locked") in evaluation.definitions.get_attributes(symbol):
+            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -182,7 +186,6 @@ class Protect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Protect[symbols___]"
-        protected = Symbol("System`Protected")
         items = []
 
         if isinstance(symbols, Symbol):
@@ -210,14 +213,12 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not Symbol(
-                        "System`Locked"
-                    ) in evaluation.definitions.get_attributes(defn):
+                    if not SymbolLocked in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("SetAttributes", Expression("List", *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            "SetAttributes", Expression("List", *items), SymbolProtected
+        ).evaluate(evaluation)
         return SymbolNull
 
 
@@ -239,7 +240,6 @@ class Unprotect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Unprotect[symbols___]"
-        protected = Symbol("System`Protected")
         items = []
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -264,14 +264,12 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not Symbol(
-                        "System`Locked"
-                    ) in evaluation.definitions.get_attributes(defn):
+                    if not SymbolLocked in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("ClearAttributes", Expression("List", *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            "ClearAttributes", Expression("List", *items), SymbolProtected
+        ).evaluate(evaluation)
         return SymbolNull
 
 

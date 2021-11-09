@@ -9,7 +9,7 @@ import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import SymbolTrue, SymbolFalse
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -653,13 +653,13 @@ class PrimePowerQ(Builtin):
         "PrimePowerQ[n_]"
         n = n.get_int_value()
         if n is None:
-            return Symbol("False")
+            return SymbolFalse
 
         n = abs(n)
         if len(sympy.factorint(n)) == 1:
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 class RandomPrime(Builtin):

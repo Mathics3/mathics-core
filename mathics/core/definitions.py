@@ -594,9 +594,12 @@ class Definitions(object):
         self.clear_definitions_cache(name)
 
     def clear_attribute(self, name, attribute) -> None:
+        if isinstance(attribute, str):
+            attribute = Symbol(attribute)
         definition = self.get_user_definition(self.lookup_name(name))
-        if attribute in definition.attributes:
-            definition.attributes.remove(attribute)
+        attributes = definition.attributes
+        if attribute in attributes:
+            attributes.remove(attribute)
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 

@@ -442,9 +442,7 @@ class Information(PrefixOperator):
                     Expression(
                         "Set",
                         Expression("Attributes", symbol),
-                        Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
-                        ),
+                        Expression("List", *attributes),
                     ),
                 )
             )

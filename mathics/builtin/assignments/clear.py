@@ -12,12 +12,11 @@ from mathics.builtin.base import (
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
+    SymbolNull,
     system_symbols,
 )
 
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-)
+from mathics.core.systemsymbols import SymbolFailed, SymbolLocked, SymbolOptions
 
 from mathics.core.atoms import String
 
@@ -101,16 +100,16 @@ class Clear(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
             for name in names:
                 attributes = evaluation.definitions.get_attributes(name)
-                if is_protected(name, evaluation.definitions):
+                if is_protected(Symbol(name), evaluation.definitions):
                     evaluation.message("Clear", "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and Symbol("System`Locked") in attributes:
+                if not self.allow_locked and SymbolLocked in attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
                 definition = evaluation.definitions.get_user_definition(name)
                 self.do_clear(definition)
 
-        return Symbol("Null")
+        return SymbolNull
 
     def apply_all(self, evaluation):
         "Clear[System`All]"
@@ -250,12 +249,12 @@ class Unset(PostfixOperator):
             if not symbol:
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
-            if head is Symbol("System`Options"):
+            if head is SymbolOptions:
                 empty = {}
             else:
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
-            return Symbol("Null")
+            return SymbolNull
         name = expr.get_lookup_name()
         if not name:
             evaluation.message("Unset", "usraw", expr)
@@ -264,7 +263,7 @@ class Unset(PostfixOperator):
             if not expr.is_atom():
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
-        return Symbol("Null")
+        return SymbolNull
 
 
 SYSTEM_SYMBOL_VALUES = system_symbols(

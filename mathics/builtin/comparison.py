@@ -25,8 +25,9 @@ from mathics.core.atoms import (
     Integer1,
     Number,
 )
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue, SymbolList
 from mathics.core.systemsymbols import (
+    SymbolMaxExtraPrecision,
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,
@@ -357,9 +358,7 @@ class _EqualityOperator(_InequalityOperator):
     def apply_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
         args = args.get_sequence()
-        max_extra_prec = (
-            Symbol("$MaxExtraPrecision").evaluate(evaluation).get_int_value()
-        )
+        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         for x, y in self.get_pairs(args):
@@ -919,7 +918,7 @@ class _MinMax(Builtin):
     def apply(self, items, evaluation):
         "%(name)s[items___]"
 
-        items = items.flatten(Symbol("List")).get_sequence()
+        items = items.flatten(SymbolList).get_sequence()
         results = []
         best = None
 

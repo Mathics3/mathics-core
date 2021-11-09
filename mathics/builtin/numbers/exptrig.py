@@ -19,7 +19,7 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolE, SymbolPower
 
 from mathics.builtin.numeric import Fold
 from mathics.builtin.arithmetic import _MPMathFunction
@@ -720,7 +720,7 @@ class Exp(_MPMathFunction):
     }
 
     def from_sympy(self, sympy_name, leaves):
-        return Expression("Power", Symbol("E"), leaves[0])
+        return Expression(SymbolPower, SymbolE, leaves[0])
 
 
 class Haversine(_MPMathFunction):

@@ -19,33 +19,41 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
     system_symbols,
     ensure_context,
     strip_context,
 )
-from mathics.core.systemsymbols import SymbolSequence
-
-
-SymbolAborted = Symbol("$Aborted")
-SymbolAlternatives = Symbol("Alternatives")
-SymbolBlank = Symbol("System`Blank")
-SymbolBlankSequence = Symbol("System`BlankSequence")
-SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
-SymbolCompile = Symbol("Compile")
-SymbolCompiledFunction = Symbol("CompiledFunction")
-SymbolCondition = Symbol("Condition")
-SymbolDefault = Symbol("Default")
-SymbolDirectedInfinity = Symbol("DirectedInfinity")
-SymbolFunction = Symbol("Function")
-SymbolOptional = Symbol("Optional")
-SymbolOptionsPattern = Symbol("OptionsPattern")
-SymbolPattern = Symbol("Pattern")
-SymbolPatternTest = Symbol("PatternTest")
-SymbolSlot = Symbol("Slot")
-SymbolSlotSequence = Symbol("SlotSequence")
-SymbolTimes = Symbol("Times")
-SymbolVerbatim = Symbol("Verbatim")
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCompile,
+    SymbolCompiledFunction,
+    SymbolCondition,
+    SymbolDefault,
+    SymbolDirectedInfinity,
+    SymbolFlat,
+    SymbolFunction,
+    SymbolHoldAll,
+    SymbolHoldAllComplete,
+    SymbolHoldFirst,
+    SymbolHoldRest,
+    SymbolListable,
+    SymbolNumericFunction,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolOrderless,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolSequence,
+    SymbolSequenceHold,
+    SymbolSlot,
+    SymbolSlotSequence,
+    SymbolTimes,
+    SymbolVerbatim,
+)
 
 
 symbols_arithmetic_operations = system_symbols(
@@ -426,6 +434,9 @@ class Expression(BaseExpression):
             lookup_symbol = lookup_symbol._head
         return lookup_symbol
 
+    def get_lookup_symbol(self):
+        return self._head.get_lookup_symbol()
+
     def has_form(self, heads, *leaf_counts):
         """
         leaf_counts:
@@ -792,7 +803,7 @@ class Expression(BaseExpression):
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
-            if Symbol("System`HoldAllComplete") not in attributes:
+            if SymbolHoldAllComplete not in attributes:
                 if self._no_symbol("System`Evaluate"):
                     return
                 for index in indices:
@@ -808,16 +819,13 @@ class Expression(BaseExpression):
                     if leaf:
                         leaves[index] = leaf
 
-        if (
-            Symbol("System`HoldAll") in attributes
-            or Symbol("System`HoldAllComplete") in attributes
-        ):
+        if SymbolHoldAll in attributes or SymbolHoldAllComplete in attributes:
             # eval_range(range(0, 0))
             rest_range(range(len(leaves)))
-        elif Symbol("System`HoldFirst") in attributes:
+        elif SymbolHoldFirst in attributes:
             rest_range(range(0, min(1, len(leaves))))
             eval_range(range(1, len(leaves)))
-        elif Symbol("System`HoldRest") in attributes:
+        elif SymbolHoldRest in attributes:
             eval_range(range(0, min(1, len(leaves))))
             rest_range(range(1, len(leaves)))
         else:
@@ -828,8 +836,8 @@ class Expression(BaseExpression):
         new._leaves = tuple(leaves)
 
         if (
-            Symbol("System`SequenceHold") not in attributes
-            and Symbol("System`HoldAllComplete") not in attributes  # noqa
+            SymbolSequenceHold not in attributes
+            and SymbolHoldAllComplete not in attributes  # noqa
         ):
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
@@ -837,7 +845,7 @@ class Expression(BaseExpression):
         for leaf in leaves:
             leaf.unevaluated = False
 
-        if Symbol("System`HoldAllComplete") not in attributes:
+        if SymbolHoldAllComplete not in attributes:
             dirty_leaves = None
 
             for index, leaf in enumerate(leaves):
@@ -856,14 +864,14 @@ class Expression(BaseExpression):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
 
-        if Symbol("System`Flat") in attributes:
+        if SymbolFlat in attributes:
             new = new.flatten(new._head, callback=flatten_callback)
-        if Symbol("System`Orderless") in attributes:
+        if SymbolOrderless in attributes:
             new.sort()
 
         new._timestamp_cache(evaluation)
 
-        if Symbol("System`Listable") in attributes:
+        if SymbolListable in attributes:
             done, threaded = new.thread(evaluation)
             if done:
                 if threaded.sameQ(new):
@@ -874,7 +882,7 @@ class Expression(BaseExpression):
 
         def rules():
             rules_names = set()
-            if Symbol("System`HoldAllComplete") not in attributes:
+            if SymbolHoldAllComplete not in attributes:
                 for leaf in leaves:
                     name = leaf.get_lookup_name()
                     if len(name) > 0:  # only lookup rules if this is a symbol
@@ -1282,9 +1290,9 @@ class Expression(BaseExpression):
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
-            if Symbol(
-                "System`NumericFunction"
-            ) not in evaluation.definitions.get_attributes(self._head.get_name()):
+            if SymbolNumericFunction not in evaluation.definitions.get_attributes(
+                self._head.get_name()
+            ):
                 return False
             return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
         else:

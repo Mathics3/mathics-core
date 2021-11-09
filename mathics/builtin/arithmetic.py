@@ -37,6 +37,14 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+    SymbolTable,
     SymbolUndefined,
 )
 from mathics.core.number import min_prec, dps, SpecialValueError
@@ -55,7 +63,7 @@ def call_mpmath(mpmath_function, mpmath_args):
     except ValueError as exc:
         text = str(exc)
         if text == "gamma function pole":
-            return Symbol("ComplexInfinity")
+            return SymbolComplexInfinity
         else:
             raise
     except ZeroDivisionError:
@@ -119,13 +127,13 @@ class _MPMathFunction(SympyFunction):
             result = call_mpmath(mpmath_function, tuple(float_args))
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = Symbol("ComplexInfinity")
+                    result = SymbolComplexInfinity
                 elif mpmath.isinf(result) and result > 0:
-                    result = Expression("DirectedInfinity", Integer1)
+                    result = Expression(SymbolDirectedInfinity, Integer1)
                 elif mpmath.isinf(result) and result < 0:
-                    result = Expression("DirectedInfinity", Integer(-1))
+                    result = Expression(SymbolDirectedInfinity, Integer(-1))
                 elif mpmath.isnan(result):
-                    result = Symbol("Indeterminate")
+                    result = SymbolIndeterminate
                 else:
                     result = from_mpmath(result)
         else:
@@ -147,7 +155,7 @@ class _MPMathFunction(SympyFunction):
         except ValueError as exc:
             text = str(exc)
             if text == "gamma function pole":
-                return Symbol("ComplexInfinity")
+                return SymbolComplexInfinity
             else:
                 raise
         except ZeroDivisionError:
@@ -190,7 +198,7 @@ def create_infix(items, operator, prec, grouping):
     else:
         return Expression(
             "Infix",
-            Expression("List", *items),
+            Expression(SymbolList, *items),
             String(operator),
             prec,
             Symbol(grouping),
@@ -470,7 +478,7 @@ class Arg(_MPMathFunction):
 
     def apply(self, z, evaluation, options={}):
         "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression("PossibleZeroQ", z).evaluate(evaluation) == SymbolTrue:
+        if Expression("PossibleZeroQ", z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
         if preference is None or preference == "Automatic":
@@ -527,7 +535,9 @@ class Sign(SympyFunction):
         "%(name)s[x_]"
         # Sympy and mpmath do not give the desired form of complex number
         if isinstance(x, Complex):
-            return Expression("Times", x, Expression("Power", Expression("Abs", x), -1))
+            return Expression(
+                SymbolTimes, x, Expression(SymbolPower, Expression("Abs", x), -1)
+            )
 
         sympy_x = x.to_sympy()
         if sympy_x is None:
@@ -539,7 +549,7 @@ class Sign(SympyFunction):
         return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
-class I(Predefined):
+class I_(Predefined):
     """
     <dl>
     <dt>'I'
@@ -552,6 +562,7 @@ class I(Predefined):
      = 10
     """
 
+    name = "I"
     python_equivalent = 1j
 
     def evaluate(self, evaluation):
@@ -634,7 +645,7 @@ class PossibleZeroQ(SympyFunction):
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif (
-                Expression("NumericQ", numeric_val).evaluate(evaluation) == SymbolFalse
+                Expression("NumericQ", numeric_val).evaluate(evaluation) is SymbolFalse
             ):
                 return (
                     SymbolTrue
@@ -1035,7 +1046,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
 
         pref_expr = self.get_option(options, "Method", evaluation)
         is_automatic = False
-        if pref_expr == Symbol("System`Automatic"):
+        if pref_expr is SymbolAutomatic:
             is_automatic = True
             preference = "mpmath"
         else:
@@ -1157,7 +1168,7 @@ class Sum(_IterationFunction, SympyFunction):
     )
 
     def get_result(self, items):
-        return Expression("Plus", *items)
+        return Expression(SymbolPlus, *items)
 
     def to_sympy(self, expr, **kwargs) -> SympyExpression:
         """
@@ -1203,7 +1214,7 @@ class Sum(_IterationFunction, SympyFunction):
                     # Sum[f[x], {<limits>}] into
                     #   MathicsSum[Table[f[x], {<limits>}]]
                     # where MathicsSum is self.get_result() our Iteration iterator.
-                    values = Expression("Table", *expr.leaves).evaluate(evaluation)
+                    values = Expression(SymbolTable, *expr.leaves).evaluate(evaluation)
                     ret = self.get_result(values.leaves).evaluate(evaluation)
                     # Make sure to convert the result back to sympy.
                     return ret.to_sympy()
@@ -1269,7 +1280,7 @@ class Product(_IterationFunction, SympyFunction):
     )
 
     def get_result(self, items):
-        return Expression("Times", *items)
+        return Expression(SymbolTimes, *items)
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Product", 2) and expr.leaves[1].has_form("List", 3):
@@ -1353,9 +1364,9 @@ class Piecewise(SympyFunction):
 
             sympy_cond = None
             if isinstance(cond, Symbol):
-                if cond == SymbolTrue:
+                if cond is SymbolTrue:
                     sympy_cond = True
-                elif cond == SymbolFalse:
+                elif cond is SymbolFalse:
                     sympy_cond = False
             if sympy_cond is None:
                 sympy_cond = cond.to_sympy(**kwargs)
@@ -1398,9 +1409,9 @@ class Boole(Builtin):
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
         if isinstance(expr, Symbol):
-            if expr == SymbolTrue:
+            if expr is SymbolTrue:
                 return Integer1
-            elif expr == SymbolFalse:
+            elif expr is SymbolFalse:
                 return Integer0
         return None
 
@@ -1449,7 +1460,7 @@ class Assuming(Builtin):
         else:
             cond = assumptions._leaves
         cond = tuple(cond) + get_assumptions_list(evaluation)
-        list_cond = Expression("List", *cond)
+        list_cond = Expression(SymbolList, *cond)
         # TODO: reduce the list of predicates
         return dynamic_scoping(
             lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
@@ -1501,15 +1512,15 @@ class ConditionalExpression(Builtin):
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
-        if not cond.is_atom() and cond._head == SymbolList:
-            cond = Expression("System`And", *(cond._leaves))
+        if not cond.is_atom() and cond._head is SymbolList:
+            cond = Expression("And", *(cond._leaves))
         else:
-            cond = Expression("System`And", cond)
+            cond = Expression("And", cond)
         if cond is None:
             return
         if cond.is_true():
             return expr
-        if cond == SymbolFalse:
+        if cond is SymbolFalse:
             return SymbolUndefined
         return
 
@@ -1521,9 +1532,9 @@ class ConditionalExpression(Builtin):
 
         sympy_cond = None
         if isinstance(cond, Symbol):
-            if cond == SymbolTrue:
+            if cond is SymbolTrue:
                 sympy_cond = True
-            elif cond == SymbolFalse:
+            elif cond is SymbolFalse:
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)

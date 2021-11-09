@@ -26,6 +26,8 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolConstant,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -875,7 +877,7 @@ class Solve(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or SymbolConstant in var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Solve", "ivar", vars_original)
@@ -1193,7 +1195,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit.sameQ(SymbolAutomatic):
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1258,7 +1260,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     df = opts["System`Jacobian"]
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit.sameQ(SymbolAutomatic):
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1419,9 +1421,7 @@ class FindRoot(Builtin):
             method = method.value
 
         # Determine the "jacobian"
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
-        ):
+        if method in ("Newton",) and options["System`Jacobian"].sameQ(SymbolAutomatic):
 
             def diff(evaluation):
                 return Expression("D", f, x).evaluate(evaluation)
@@ -1462,7 +1462,7 @@ class FindRoot(Builtin):
         return
 
 
-class O(Builtin):
+class O_(Builtin):
     """
     <dl>
     <dt>'O[$x$]^n'
@@ -1475,6 +1475,7 @@ class O(Builtin):
 
     """
 
+    name = "O"
     pass
 
 
