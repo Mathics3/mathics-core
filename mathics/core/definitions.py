@@ -44,7 +44,10 @@ def autoload_files(
     # Load symbols from the autoload folder
     for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
         for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
-            Expression("Get", String(path)).evaluate(Evaluation(defs))
+            try:
+                Expression("Get", String(path)).evaluate(Evaluation(defs))
+            except:
+                print("module ", path, " couldn't be loaded.")
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
@@ -575,13 +578,18 @@ class Definitions(object):
 
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
+        if isinstance(attribute, str):
+            attribute = Symbol(attribute)
         definition.attributes.add(attribute)
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def set_attributes(self, name, attributes) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes = set(attributes)
+        definition.attributes = set(
+            Symbol(attribute) if isinstance(attribute, str) else Symbol(attribute)
+            for attribute in attributes
+        )
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -805,7 +813,7 @@ class Definition(object):
         self.messages = messages
         self.attributes = set(attributes)
         for a in self.attributes:
-            assert "`" in a, "%s attribute %s has no context" % (name, a)
+            assert not isinstance(a, str)
         self.options = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues

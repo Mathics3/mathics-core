@@ -79,7 +79,8 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or Symbol("System`Constant")
+                in var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -158,7 +159,8 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or Symbol("System`Constant")
+                in var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)

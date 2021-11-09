@@ -250,9 +250,9 @@ class Builtin(object):
             self.attributes = list(self.attributes)
             self.attributes.remove("Unprotected")
         else:
-            attributes = ["System`Protected"]
+            attributes = [Symbol("System`Protected")]
 
-        attributes += list(ensure_context(a) for a in self.attributes)
+        attributes += list(Symbol(a) for a in self.attributes)
         options = {}
         for option, value in self.options.items():
             option = ensure_context(option)

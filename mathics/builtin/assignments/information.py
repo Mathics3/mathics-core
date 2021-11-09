@@ -207,14 +207,12 @@ class Definition(Builtin):
                     Expression(
                         "Set",
                         Expression("Attributes", symbol),
-                        Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
-                        ),
+                        Expression("List", *(attribute for attribute in attributes)),
                     ),
                 )
             )
 
-        if definition is not None and "System`ReadProtected" not in attributes:
+        if definition is not None and Symbol("System`ReadProtected") not in attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -451,7 +449,7 @@ class Information(PrefixOperator):
                 )
             )
 
-        if definition is not None and "System`ReadProtected" not in attributes:
+        if definition is not None and Symbol("System`ReadProtected") not in attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:

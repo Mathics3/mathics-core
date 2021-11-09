@@ -88,24 +88,13 @@ class Set(BinaryOperator, _SetOperator):
     attributes = ("HoldFirst", "SequenceHold")
     grouping = "Right"
 
-    messages = {
-        "setraw": "Cannot assign to raw object `1`.",
-        "shape": "Lists `1` and `2` are not the same shape.",
-    }
-
     operator = "="
     precedence = 40
-
-    messages = {
-        "setraw": "Cannot assign to raw object `1`.",
-        "shape": "Lists `1` and `2` are not the same shape.",
-    }
 
     summary_text = "assign a value"
 
     def apply(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
-
         self.assign(lhs, rhs, evaluation)
         return rhs
 

@@ -104,7 +104,7 @@ class Clear(Builtin):
                 if is_protected(name, evaluation.definitions):
                     evaluation.message("Clear", "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and "System`Locked" in attributes:
+                if not self.allow_locked and Symbol("System`Locked") in attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
                 definition = evaluation.definitions.get_user_definition(name)

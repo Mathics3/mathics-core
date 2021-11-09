@@ -888,11 +888,11 @@ class N(Builtin):
             return expr
         else:
             attributes = expr.head.get_attributes(evaluation.definitions)
-            if "System`NHoldAll" in attributes:
+            if Symbol("System`NHoldAll") in attributes:
                 eval_range = ()
-            elif "System`NHoldFirst" in attributes:
+            elif Symbol("System`NHoldFirst") in attributes:
                 eval_range = range(1, len(expr.leaves))
-            elif "System`NHoldRest" in attributes:
+            elif Symbol("System`NHoldRest") in attributes:
                 if len(expr.leaves) > 0:
                     eval_range = (0,)
                 else:

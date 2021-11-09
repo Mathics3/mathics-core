@@ -305,6 +305,7 @@ class Evaluation(object):
         """
         from mathics.core.expression import Expression
         from mathics.core.rules import Rule
+        from mathics.builtin.assignments.internals import AssignmentException
 
         self.recursion_depth = 0
         self.timeout = False
@@ -393,6 +394,8 @@ class Evaluation(object):
             except ContinueInterrupt:
                 self.message("Continue", "nofdw")
                 self.exc_result = Expression("Hold", Expression("Continue"))
+            except AssignmentException:
+                self.exc_result = SymbolFalse
             except TimeoutInterrupt:
                 self.stopped = False
                 self.timeout = True

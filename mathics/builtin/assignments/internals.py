@@ -90,7 +90,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return "System`Protected" in defin.get_attributes(tag)
+    return Symbol("System`Protected") in defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):
@@ -427,7 +427,7 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     )
     if attributes is None:
         raise AssignmentException(lhs, rhs)
-    if "System`Locked" in evaluation.definitions.get_attributes(tag):
+    if Symbol("System`Locked") in evaluation.definitions.get_attributes(tag):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
     evaluation.definitions.set_attributes(tag, attributes)
@@ -631,11 +631,18 @@ class _SetOperator(object):
         "System`Default": process_assign_default,
         "System`Format": process_assign_format,
     }
+    messages = {
+        "setraw": "Cannot assign to raw object `1`.",
+        "shape": "Lists `1` and `2` are not the same shape.",
+    }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
         if type(lhs) is Symbol:
             name = lhs.name
-        else:
+        elif lhs.is_atom():
+            evaluation.message(self.get_name(), "setraw", lhs)
+            raise AssignmentException(lhs, None)
+        else:  # Expression
             name = lhs.get_head_name()
         lhs._format_cache = None
         try:
