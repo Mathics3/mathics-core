@@ -38,6 +38,19 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMakeBoxes,
     SymbolSequence,
+    SymbolSet,
+    SymbolAppend,
+    SymbolAppendTo,
+    SymbolDeleteCases,
+    SymbolDrop,
+    SymbolRowBox,
+    SymbolByteArray,
+    SymbolAll,
+    SymbolPrepend,
+    SymbolPrependTo,
+    SymbolTake,
+    SymbolInfinity,
+    SymbolMissing,
 )
 
 from mathics.core.rules import Rule
@@ -122,10 +135,14 @@ class AppendTo(Builtin):
             return evaluation.message("AppendTo", "rvalue", s)
 
         if not resolved_s.is_atom():
-            result = Expression("Set", s, Expression("Append", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolAppend, resolved_s, item)
+            )
             return result.evaluate(evaluation)
 
-        return evaluation.message("AppendTo", "normal", Expression("AppendTo", s, item))
+        return evaluation.message(
+            "AppendTo", "normal", Expression(SymbolAppendTo, s, item)
+        )
 
 
 class Cases(Builtin):
@@ -195,7 +212,7 @@ class Cases(Builtin):
         if ls.has_form("Rule", 2):
             if ls.leaves[0].get_name() == "System`Heads":
                 heads = ls.leaves[1].is_true()
-                ls = Expression("List", 1)
+                ls = Expression(SymbolList, 1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
@@ -299,21 +316,21 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n == Symbol("Infinity"):
+        if n is SymbolInfinity:
             n = -1
-        elif n.get_head_name() == "System`Integer":
+        elif isinstance(n, Integer):
             n = n.get_int_value()
             if n < 0:
                 evaluation.message(
                     "DeleteCases",
                     "innf",
-                    Expression("DeleteCases", items, pattern, levelspec, n),
+                    Expression(SymbolDeleteCases, items, pattern, levelspec, n),
                 )
         else:
             evaluation.message(
                 "DeleteCases",
                 "innf",
-                Expression("DeleteCases", items, pattern, levelspec, n),
+                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
             )
             return SymbolNull
 
@@ -395,7 +412,7 @@ class Drop(Builtin):
 
         if items.is_atom():
             return evaluation.message(
-                "Drop", "normal", 1, Expression("Drop", items, *seqs)
+                "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
             )
 
         try:
@@ -598,7 +615,7 @@ class FirstPosition(Builtin):
         if is_found:
             return Expression(SymbolList, *result)
         else:
-            return Expression("Missing", "NotFound") if default is None else default
+            return Expression(SymbolMissing, "NotFound") if default is None else default
 
     def apply_default(self, expr, pattern, default, evaluation):
         "FirstPosition[expr_, pattern_, default_]"
@@ -881,7 +898,7 @@ class Part(Builtin):
         else:
             open, close = "\u301a", "\u301b"
         indices = list_boxes(i, f, open, close)
-        result = Expression("RowBox", Expression(SymbolList, list, *indices))
+        result = Expression(SymbolRowBox, Expression(SymbolList, list, *indices))
         return result
 
     def apply(self, list, i, evaluation):
@@ -900,10 +917,10 @@ class Part(Builtin):
                 )
                 return
             idx = indices[0]
-            if idx.get_head_name() == "System`Integer":
+            if isinstance(idx, Integer):
                 idx = idx.get_int_value()
                 if idx == 0:
-                    return Symbol("System`ByteArray")
+                    return SymbolByteArray
                 data = list._leaves[0].value
                 lendata = len(data)
                 if idx < 0:
@@ -917,7 +934,7 @@ class Part(Builtin):
                         evaluation.message("Part", "partw", i, list)
                         return
                 return Integer(data[idx])
-            if idx == Symbol("System`All"):
+            if idx is SymbolAll:
                 return list
             # TODO: handling ranges and lists...
             evaluation.message("Part", "notimplemented")
@@ -1071,11 +1088,13 @@ class PrependTo(Builtin):
             return evaluation.message("PrependTo", "rvalue", s)
 
         if not resolved_s.is_atom():
-            result = Expression("Set", s, Expression("Prepend", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolPrepend, resolved_s, item)
+            )
             return result.evaluate(evaluation)
 
         return evaluation.message(
-            "PrependTo", "normal", Expression("PrependTo", s, item)
+            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
         )
 
 
@@ -1307,7 +1326,7 @@ class Take(Builtin):
 
         if items.is_atom():
             return evaluation.message(
-                "Take", "normal", 1, Expression("Take", items, *seqs)
+                "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
             )
 
         try:

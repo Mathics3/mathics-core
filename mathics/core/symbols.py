@@ -766,7 +766,7 @@ class Symbol(Atom):
         return self
 
     def is_true(self) -> bool:
-        return self == Symbol("True")
+        return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
         return self in system_numeric_constants

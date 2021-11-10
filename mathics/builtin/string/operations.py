@@ -19,6 +19,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolAll
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -33,9 +34,6 @@ from mathics.builtin.strings import (
     mathics_split,
     to_regex,
 )
-
-
-SymbolAll = Symbol("All")
 
 
 class StringDrop(Builtin):

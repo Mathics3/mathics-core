@@ -812,7 +812,7 @@ class Which(Builtin):
             test_result = test.evaluate(evaluation)
             if test_result.is_true():
                 return item.evaluate(evaluation)
-            elif test_result != SymbolFalse:
+            elif test_result is not SymbolFalse:
                 if len(items) == nr_items:
                     return None
                 return Expression(SymbolWhich, *items)

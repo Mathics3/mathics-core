@@ -374,7 +374,6 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
-    print("process_assign_n", (lhs, rhs, condition))
     if len(lhs.leaves) not in (1, 2):
         evaluation.message_args("N", len(lhs.leaves), 1, 2)
         raise AssignmentException(lhs, None)
@@ -382,14 +381,11 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
         nprec = SymbolMachinePrecision
     else:
         nprec = lhs.leaves[1]
-    print("looking for focus")
     focus = lhs.leaves[0]
     lhs = Expression(SymbolN, focus, nprec)
-    print("looking for tags")
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
     )
-    print("tags:", tags)
     count = 0
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
@@ -561,7 +557,6 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
     focus = focus.evaluate_leaves(evaluation)
     evaluation.ignore_oneidentity = flag_ioi
     head = lhs.get_head()
-    print("process_tags", (tags, upset))
     if tags is None and not upset:
         head = focus.get_lookup_symbol()
         if head is None or not head.is_symbol():
@@ -572,10 +567,9 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
         tags = [focus.get_lookup_symbol()]
     else:
         allowed_symbols = [focus.get_lookup_symbol()]
-        print("allowed", allowed_symbols)
         for symbol in tags:
             if symbol not in allowed_symbols:
-                evaluation.message(self.get_name(), "tagnfd", head)
+                evaluation.message(self.get_name(), "tagnfd", symbol)
                 raise AssignmentException(lhs, None)
     return tags
 
@@ -621,7 +615,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
             allowed_symbols.append(leaf.get_lookup_symbol())
         for symbol in tags:
             if symbol not in allowed_symbols:
-                evaluation.message(self.get_name(), "tagnfd", head)
+                evaluation.message(self.get_name(), "tagnfd", symbol)
                 raise AssignmentException(lhs, None)
 
     return tags, focus
@@ -665,9 +659,7 @@ class _SetOperator(object):
             # the definition object
             func = self.special_cases.get(name, None)
             if func:
-                print("special case:", func)
                 return func(self, lhs, rhs, evaluation, tags, upset)
-            print("general case...")
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
             return False

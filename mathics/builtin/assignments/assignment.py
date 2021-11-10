@@ -200,7 +200,6 @@ class TagSet(Builtin, _SetOperator):
             return
 
         rhs = rhs.evaluate(evaluation)
-        print("call assign_elementary", (lhs, rhs, [f]))
         self.assign_elementary(lhs, rhs, evaluation, tags=[f])
         return rhs
 
