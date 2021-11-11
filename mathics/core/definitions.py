@@ -505,7 +505,13 @@ class Definitions(object):
         return definition
 
     def get_attributes(self, name):
-        return self.get_definition(name).attributes
+        definition = self.definitions_cache.get(name, None)
+        if definition:
+            return definition.attributes
+        definition = self.get_definition(name, False)
+        if definition:
+            return definition.attributes
+        return set()
 
     def get_ownvalues(self, name):
         return self.get_definition(name).ownvalues

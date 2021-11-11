@@ -798,8 +798,9 @@ class Expression(BaseExpression):
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
         from mathics.builtin.base import BoxConstruct
 
+        definitions = evaluation.definitions
         head = self._head.evaluate(evaluation)
-        attributes = head.get_attributes(evaluation.definitions)
+        attributes = head.get_attributes(definitions)
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
@@ -864,38 +865,44 @@ class Expression(BaseExpression):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
 
-        if SymbolFlat in attributes:
-            new = new.flatten(new._head, callback=flatten_callback)
-        if SymbolOrderless in attributes:
-            new.sort()
-
-        new._timestamp_cache(evaluation)
-
-        if SymbolListable in attributes:
-            done, threaded = new.thread(evaluation)
-            if done:
-                if threaded.sameQ(new):
-                    new._timestamp_cache(evaluation)
-                    return new, False
-                else:
-                    return threaded, True
+        if attributes:
+            if SymbolFlat in attributes:
+                new = new.flatten(new._head, callback=flatten_callback)
+            if SymbolOrderless in attributes:
+                new.sort()
+            new._timestamp_cache(evaluation)
+            if SymbolListable in attributes:
+                done, threaded = new.thread(evaluation)
+                if done:
+                    if threaded.sameQ(new):
+                        new._timestamp_cache(evaluation)
+                        return new, False
+                    else:
+                        return threaded, True
+        else:
+            new._timestamp_cache(evaluation)
 
         def rules():
-            rules_names = set()
+            rules_symbols = set()
             if SymbolHoldAllComplete not in attributes:
                 for leaf in leaves:
-                    name = leaf.get_lookup_name()
-                    if len(name) > 0:  # only lookup rules if this is a symbol
-                        if name not in rules_names:
-                            rules_names.add(name)
-                            for rule in evaluation.definitions.get_upvalues(name):
+                    symbol = leaf.get_lookup_symbol()
+                    if symbol:  # only lookup rules if this is a symbol
+                        if symbol not in rules_symbols:
+                            rules_symbols.add(symbol)
+                            symbol_name = symbol.name
+                            for rule in definitions.get_upvalues(symbol_name):
                                 yield rule
-            lookup_name = new.get_lookup_name()
-            if lookup_name == new.get_head_name():
-                for rule in evaluation.definitions.get_downvalues(lookup_name):
+            lookup_symbol = new.get_lookup_symbol()
+            if lookup_symbol is None:
+                return
+            elif lookup_symbol is new.get_head():
+                lookup_name = lookup_symbol.name
+                for rule in definitions.get_downvalues(lookup_name):
                     yield rule
             else:
-                for rule in evaluation.definitions.get_subvalues(lookup_name):
+                lookup_name = lookup_symbol.name
+                for rule in definitions.get_subvalues(lookup_name):
                     yield rule
 
         for rule in rules():
@@ -1289,10 +1296,18 @@ class Expression(BaseExpression):
             return True, Expression(head, *leaves)
 
     def is_numeric(self, evaluation=None) -> bool:
+        name = self._head.get_name()
         if evaluation:
-            if SymbolNumericFunction not in evaluation.definitions.get_attributes(
-                self._head.get_name()
-            ):
+            definitions = evaluation.definitions
+            definition = definitions.definitions_cache.get(name, None)
+            if definition is None:
+                definition = definitions.get_definition(name, True)
+                if definition:
+                    attributes = definition.attributes
+                else:
+                    return False
+            attributes = definition.attributes
+            if SymbolNumericFunction not in attributes:
                 return False
             return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
         else:

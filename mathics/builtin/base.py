@@ -617,6 +617,9 @@ class BoxConstruct(InstanceableBuiltin):
     def get_lookup_name(self):
         return self.get_name()
 
+    def get_lookup_symbol(self):
+        return Symbol(self.get_name())
+
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
 
