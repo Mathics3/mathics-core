@@ -3,6 +3,8 @@
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.expression import Expression
+from mathics.core.systemsymbols import SymbolModuleNumber
+
 from mathics.core.symbols import (
     Symbol,
     fully_qualified_symbol_name,
@@ -267,7 +269,7 @@ class Module(Builtin):
 
         scoping_vars = get_scoping_vars(vars, "Module", evaluation)
         replace = {}
-        number = Symbol("$ModuleNumber").evaluate(evaluation).get_int_value()
+        number = SymbolModuleNumber.evaluate(evaluation).get_int_value()
         if number is None:
             number = 1
         evaluation.definitions.set_ownvalue("$ModuleNumber", Integer(number + 1))

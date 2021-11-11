@@ -13,14 +13,16 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Predefined, Builtin
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolLocked,
+    SymbolProtected,
+    SymbolSetAttributes,
+    SymbolClearAttributes,
+)
 from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
-
-
-SymbolLocked = Symbol("System`Locked")
-SymbolProtected = Symbol("System`Protected")
 
 
 class Attributes(Builtin):
@@ -73,7 +75,7 @@ class Attributes(Builtin):
         name = expr.get_lookup_name()
         attributes = list(evaluation.definitions.get_attributes(name))
         attributes.sort()
-        return Expression("List", *attributes)
+        return Expression(SymbolList, *attributes)
 
 
 class SetAttributes(Builtin):
@@ -213,11 +215,11 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not SymbolLocked in evaluation.definitions.get_attributes(defn):
+                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(
-            "SetAttributes", Expression("List", *items), SymbolProtected
+            SymbolSetAttributes, Expression(SymbolList, *items), SymbolProtected
         ).evaluate(evaluation)
         return SymbolNull
 
@@ -264,11 +266,11 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not SymbolLocked in evaluation.definitions.get_attributes(defn):
+                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(
-            "ClearAttributes", Expression("List", *items), SymbolProtected
+            SymbolClearAttributes, Expression(SymbolList, *items), SymbolProtected
         ).evaluate(evaluation)
         return SymbolNull
 

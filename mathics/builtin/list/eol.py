@@ -904,7 +904,7 @@ class Part(Builtin):
     def apply(self, list, i, evaluation):
         "Part[list_, i___]"
 
-        if list == SymbolFailed:
+        if list is SymbolFailed:
             return
         indices = i.get_sequence()
         # How to deal with ByteArrays

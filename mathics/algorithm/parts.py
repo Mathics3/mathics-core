@@ -8,7 +8,7 @@ Algorithms to access and manipulate elements in nested lists / expressions
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.systemsymbols import SymbolInfinity, SymbolNothing
 from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
@@ -18,7 +18,6 @@ from mathics.builtin.exceptions import (
     PartRangeError,
 )
 
-SymbolNothing = Symbol("Nothing")
 
 # TODO: delete me
 # def join_lists(lists):

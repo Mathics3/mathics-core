@@ -16,7 +16,14 @@ from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.builtin.numeric import apply_N
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue, SymbolFalse
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolInteger,
+    SymbolReal,
+    SymbolFunction,
+    SymbolCompiledFunction,
+)
 
 from mathics.core.atoms import (
     Integer,
@@ -106,10 +113,10 @@ class Compile(Builtin):
 
         # _Complex not implemented
         permitted_types = {
-            Expression("Blank", Symbol("Integer")): int_type,
-            Expression("Blank", Symbol("Real")): real_type,
-            Symbol("True"): bool_type,
-            Symbol("False"): bool_type,
+            Expression(SymbolBlank, SymbolInteger): int_type,
+            Expression(SymbolBlank, SymbolReal): real_type,
+            SymbolTrue: bool_type,
+            SymbolFalse: bool_type,
         }
 
         if not vars.has_form("List", None):
@@ -161,12 +168,12 @@ class Compile(Builtin):
 
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
-            args = Expression("List", *names)
-            return Expression("Function", args, expr)
+            args = Expression(SymbolList, *names)
+            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
-        arg_names = Expression("List", *(Symbol(arg.name) for arg in args))
-        return Expression("CompiledFunction", arg_names, expr, code)
+        arg_names = Expression(SymbolList, *(Symbol(arg.name) for arg in args))
+        return Expression(SymbolCompiledFunction, arg_names, expr, code)
 
 
 class CompiledCode(Atom):
@@ -247,9 +254,9 @@ class CompiledFunction(Builtin):
         for arg in argseq:
             if isinstance(arg, Integer):
                 py_args.append(arg.get_int_value())
-            elif arg.sameQ(Symbol("True")):
+            elif arg is SymbolTrue:
                 py_args.append(True)
-            elif arg.sameQ(Symbol("False")):
+            elif arg is SymbolFalse:
                 py_args.append(False)
             else:
                 py_args.append(arg.round_to_float(evaluation))
