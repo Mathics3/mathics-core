@@ -25,7 +25,14 @@ from mathics.core.symbols import (
     SymbolTrue,
     SymbolList,
 )
-from mathics.core.systemsymbols import SymbolFailed, SymbolDirectedInfinity
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolDirectedInfinity,
+    SymbolFailed,
+    SymbolInputForm,
+    SymbolOutputForm,
+    SymbolToExpression,
+)
 from mathics.core.atoms import (
     String,
     Integer,
@@ -37,11 +44,6 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
-
-SymbolBlank = Symbol("Blank")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolToExpression = Symbol("ToExpression")
-SymbolInputForm = Symbol("InputForm")
 
 _regex_longest = {
     "+": "+",

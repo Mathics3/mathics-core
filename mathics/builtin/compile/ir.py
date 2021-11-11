@@ -7,6 +7,7 @@ import ctypes
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Real
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolE
 from mathics.builtin.compile.types import int_type, real_type, bool_type, void_type
 from mathics.builtin.compile.utils import pairwise, llvm_to_ctype
 from mathics.builtin.compile.base import CompileError
@@ -358,7 +359,7 @@ class IRGenerator(object):
             return exponent
 
         # E ^ exponent
-        if leaves[0].sameQ(Symbol("E")) and exponent.type == real_type:
+        if leaves[0].sameQ(SymbolE) and exponent.type == real_type:
             return self.call_fp_intr("llvm.exp", [exponent])
 
         # 2 ^ exponent

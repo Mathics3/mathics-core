@@ -17,7 +17,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
 from mathics.core.atoms import Integer, String, Real, Complex
-from mathics.core.symbols import SymbolNull
+from mathics.core.symbols import SymbolNull, SymbolList
+from mathics.core.systemsymbols import SymbolTotal, SymbolDivide
 from mathics.core.expression import Expression
 
 try:
@@ -320,7 +321,7 @@ class RandomInteger(Builtin):
 
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
             return evaluation.message(
-                "RandomInteger", "unifr", Expression("List", rmin, rmax)
+                "RandomInteger", "unifr", Expression(SymbolList, rmin, rmax)
             )
         rmin, rmax = rmin.value, rmax.value
         with RandomEnv(evaluation) as rand:
@@ -330,7 +331,7 @@ class RandomInteger(Builtin):
         "RandomInteger[{rmin_, rmax_}, ns_List]"
         if not isinstance(rmin, Integer) or not isinstance(rmax, Integer):
             return evaluation.message(
-                "RandomInteger", "unifr", Expression("List", rmin, rmax)
+                "RandomInteger", "unifr", Expression(SymbolList, rmin, rmax)
             )
         rmin, rmax = rmin.value, rmax.value
         result = ns.to_python()
@@ -399,7 +400,7 @@ class RandomReal(Builtin):
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
             return evaluation.message(
-                "RandomReal", "unifr", Expression("List", xmin, xmax)
+                "RandomReal", "unifr", Expression(SymbolList, xmin, xmax)
             )
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
@@ -414,14 +415,14 @@ class RandomReal(Builtin):
             isinstance(xmin, (Real, Integer)) and isinstance(xmax, (Real, Integer))
         ):
             return evaluation.message(
-                "RandomReal", "unifr", Expression("List", xmin, xmax)
+                "RandomReal", "unifr", Expression(SymbolList, xmin, xmax)
             )
 
         min_value, max_value = xmin.to_python(), xmax.to_python()
         result = ns.to_python()
 
         if not all([isinstance(i, int) and i >= 0 for i in result]):
-            expr = Expression("RandomReal", Expression("List", xmin, xmax), ns)
+            expr = Expression("RandomReal", Expression(SymbolList, xmin, xmax), ns)
             return evaluation.message("RandomReal", "array", expr, ns)
 
         assert all([isinstance(i, int) for i in result])
@@ -506,7 +507,7 @@ class RandomComplex(Builtin):
         )
         if min_value is None or max_value is None:
             return evaluation.message(
-                "RandomComplex", "unifr", Expression("List", zmin, zmax)
+                "RandomComplex", "unifr", Expression(SymbolList, zmin, zmax)
             )
 
         with RandomEnv(evaluation) as rand:
@@ -516,7 +517,7 @@ class RandomComplex(Builtin):
 
     def apply_list(self, zmin, zmax, ns, evaluation):
         "RandomComplex[{zmin_, zmax_}, ns_]"
-        expr = Expression("RandomComplex", Expression("List", zmin, zmax), ns)
+        expr = Expression("RandomComplex", Expression(SymbolList, zmin, zmax), ns)
 
         min_value, max_value = (
             self.to_complex(zmin, evaluation),
@@ -524,7 +525,7 @@ class RandomComplex(Builtin):
         )
         if min_value is None or max_value is None:
             return evaluation.message(
-                "RandomComplex", "unifr", Expression("List", zmin, zmax)
+                "RandomComplex", "unifr", Expression(SymbolList, zmin, zmax)
             )
 
         py_ns = ns.to_python()
@@ -598,7 +599,7 @@ class _RandomSelection(_RandomBase):
             is_proper_spec and len(weights.leaves) > 1
         ):  # normalize before we lose accuracy
             norm_weights = Expression(
-                "Divide", weights, Expression("Total", weights)
+                SymbolDivide, weights, Expression(SymbolTotal, weights)
             ).evaluate(evaluation)
             if norm_weights is None or not all(
                 w.is_numeric(evaluation) for w in norm_weights.leaves

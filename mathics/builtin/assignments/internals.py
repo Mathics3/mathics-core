@@ -33,6 +33,7 @@ from mathics.core.systemsymbols import (
     SymbolPart,
     SymbolPattern,
     SymbolProtected,
+    SymbolRuleDelayed,
     SymbolRecursionLimit,
 )
 
@@ -106,9 +107,9 @@ def get_symbol_values(symbol, func_name, position, evaluation):
             if pattern.has_form("HoldPattern", 1):
                 pattern = pattern.expr
             else:
-                pattern = Expression("HoldPattern", pattern.expr)
-            leaves.append(Expression("RuleDelayed", pattern, rule.replace))
-    return Expression("List", *leaves)
+                pattern = Expression(SymbolHoldPattern, pattern.expr)
+            leaves.append(Expression(SymbolRuleDelayed, pattern, rule.replace))
+    return Expression(SymbolList, *leaves)
 
 
 def is_protected(tag, defin):

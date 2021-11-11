@@ -37,12 +37,19 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAbs,
+    SymbolAnd,
     SymbolAutomatic,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolExpandAll,
     SymbolIndeterminate,
+    SymbolNumericQ,
     SymbolPlus,
+    SymbolPiecewise,
+    SymbolPossibleZeroQ,
     SymbolPower,
+    SymbolSimplify,
     SymbolTimes,
     SymbolTable,
     SymbolUndefined,
@@ -478,7 +485,7 @@ class Arg(_MPMathFunction):
 
     def apply(self, z, evaluation, options={}):
         "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression("PossibleZeroQ", z).evaluate(evaluation) is SymbolTrue:
+        if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
         if preference is None or preference == "Automatic":
@@ -536,7 +543,7 @@ class Sign(SympyFunction):
         # Sympy and mpmath do not give the desired form of complex number
         if isinstance(x, Complex):
             return Expression(
-                SymbolTimes, x, Expression(SymbolPower, Expression("Abs", x), -1)
+                SymbolTimes, x, Expression(SymbolPower, Expression(SymbolAbs, x), -1)
             )
 
         sympy_x = x.to_sympy()
@@ -636,7 +643,7 @@ class PossibleZeroQ(SympyFunction):
         result = _iszero(sympy_expr)
         if result is None:
             # try expanding the expression
-            exprexp = Expression("ExpandAll", expr).evaluate(evaluation)
+            exprexp = Expression(SymbolExpandAll, expr).evaluate(evaluation)
             exprexp = exprexp.to_sympy()
             result = _iszero(exprexp)
         if result is None:
@@ -645,11 +652,12 @@ class PossibleZeroQ(SympyFunction):
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif (
-                Expression("NumericQ", numeric_val).evaluate(evaluation) is SymbolFalse
+                Expression(SymbolNumericQ, numeric_val).evaluate(evaluation)
+                is SymbolFalse
             ):
                 return (
                     SymbolTrue
-                    if Expression("Simplify", expr).evaluate(evaluation) == Integer0
+                    if Expression(SymbolSimplify, expr).evaluate(evaluation) == Integer0
                     else SymbolFalse
                 )
 
@@ -1338,7 +1346,7 @@ class Piecewise(SympyFunction):
     def apply(self, items, evaluation):
         "%(name)s[items__]"
         result = self.to_sympy(
-            Expression("Piecewise", *items.get_sequence()), evaluation=evaluation
+            Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
         )
         if result is None:
             return
@@ -1513,9 +1521,9 @@ class ConditionalExpression(Builtin):
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
         if not cond.is_atom() and cond._head is SymbolList:
-            cond = Expression("And", *(cond._leaves))
+            cond = Expression(SymbolAnd, *(cond._leaves))
         else:
-            cond = Expression("And", cond)
+            cond = Expression(SymbolAnd, cond)
         if cond is None:
             return
         if cond.is_true():

@@ -19,7 +19,24 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
 )
-from mathics.core.systemsymbols import SymbolE, SymbolPower
+from mathics.core.systemsymbols import (
+    SymbolE,
+    SymbolPower,
+    SymbolCos,
+    SymbolCosh,
+    SymbolSinh,
+    SymbolSin,
+    SymbolTan,
+    SymbolTanh,
+    SymbolArcTan,
+    SymbolArcTanh,
+    SymbolArcSin,
+    SymbolArcSinh,
+    SymbolArcCos,
+    SymbolArcCosh,
+)
+
+from mathics.core.symbols import SymbolList
 
 from mathics.builtin.numeric import Fold
 from mathics.builtin.arithmetic import _MPMathFunction
@@ -68,12 +85,12 @@ class AnglePath(Builtin):
     @staticmethod
     def _compute(x0, y0, phi0, steps, evaluation):
         if not steps:
-            return Expression("List")
+            return Expression(SymbolList)
 
-        if steps[0].get_head_name() == "System`List":
+        if steps[0].get_head() is SymbolList:
 
             def parse(step):
-                if step.get_head_name() != "System`List":
+                if step.get_head() is not SymbolList:
                     raise _IllegalStepSpecification
                 arguments = step.leaves
                 if len(arguments) != 2:
@@ -83,18 +100,19 @@ class AnglePath(Builtin):
         else:
 
             def parse(step):
-                if step.get_head_name() == "System`List":
+                if step.get_head() is SymbolList:
                     raise _IllegalStepSpecification
                 return None, step
 
         try:
             fold = AnglePathFold(parse)
             leaves = [
-                Expression("List", x, y) for x, y, _ in fold.fold((x0, y0, phi0), steps)
+                Expression(SymbolList, x, y)
+                for x, y, _ in fold.fold((x0, y0, phi0), steps)
             ]
-            return Expression("List", *leaves)
+            return Expression(SymbolList, *leaves)
         except _IllegalStepSpecification:
-            evaluation.message("AnglePath", "steps", Expression("List", *steps))
+            evaluation.message("AnglePath", "steps", Expression(SymbolList, *steps))
 
     def apply(self, steps, evaluation):
         "AnglePath[{steps___}]"
@@ -118,7 +136,7 @@ class AnglePath(Builtin):
 
     def apply_xy_dx(self, x, y, dx, dy, steps, evaluation):
         "AnglePath[{{x_, y_}, {dx_, dy_}}, {steps___}]"
-        phi0 = Expression("ArcTan", dx, dy)
+        phi0 = Expression(SymbolArcTan, dx, dy)
         return AnglePath._compute(x, y, phi0, steps.get_sequence(), evaluation)
 
 
@@ -341,7 +359,7 @@ class ArcCsc(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "ArcSin", Expression("Power", expr.leaves[0], Integer(-1))
+                SymbolArcSin, Expression(SymbolPower, expr.leaves[0], Integer(-1))
             ).to_sympy()
 
 
@@ -370,7 +388,7 @@ class ArcCsch(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "ArcSinh", Expression("Power", expr.leaves[0], Integer(-1))
+                SymbolArcSinh, Expression(SymbolPower, expr.leaves[0], Integer(-1))
             ).to_sympy()
 
 
@@ -399,7 +417,7 @@ class ArcSec(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "ArcCos", Expression("Power", expr.leaves[0], Integer(-1))
+                SymbolArcCos, Expression(SymbolPower, expr.leaves[0], Integer(-1))
             ).to_sympy()
 
 
@@ -430,7 +448,7 @@ class ArcSech(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "ArcCosh", Expression("Power", expr.leaves[0], Integer(-1))
+                SymbolArcCosh, Expression(SymbolPower, expr.leaves[0], Integer(-1))
             ).to_sympy()
 
 
@@ -662,7 +680,7 @@ class Csc(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Sin", expr.leaves[0]), Integer(-1)
+                SymbolPower, Expression(SymbolSin, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
@@ -689,7 +707,7 @@ class Csch(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Sinh", expr.leaves[0]), Integer(-1)
+                SymbolPower, Expression(SymbolSinh, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
@@ -945,7 +963,7 @@ class Sec(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Cos", expr.leaves[0]), Integer(-1)
+                SymbolPower, Expression(SymbolCos, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
@@ -970,7 +988,7 @@ class Sech(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Cosh", expr.leaves[0]), Integer(-1)
+                SymbolPower, Expression(SymbolCosh, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
