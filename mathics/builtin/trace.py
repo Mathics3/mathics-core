@@ -289,10 +289,10 @@ class TraceBuiltinsVariable(Builtin):
     def apply_set(self, value, evaluation):
         "%(name)s = value_"
 
-        if value == SymbolTrue:
+        if value is SymbolTrue:
             self.value = SymbolTrue
             TraceBuiltins.enable_trace(evaluation)
-        elif value == SymbolFalse:
+        elif value is SymbolFalse:
             self.value = SymbolFalse
             TraceBuiltins.disable_trace(evaluation)
         else:

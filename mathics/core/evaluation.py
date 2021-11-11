@@ -257,7 +257,7 @@ class Evaluation(object):
         self.quiet_all = False
         self.format = format
         self.catch_interrupt = catch_interrupt
-
+        self.show_steps = False
         self.SymbolNull = SymbolNull
 
         # status of last evaluate

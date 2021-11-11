@@ -762,10 +762,14 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
+        if evaluation.show_steps:
+            print("\t Evaluating: ", self)
         rules = evaluation.definitions.get_ownvalues(self.name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
+                if evaluation.show_steps:
+                    print("\t->", result)
                 return result.evaluate(evaluation)
         return self
 
