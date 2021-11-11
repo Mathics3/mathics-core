@@ -28,3 +28,6 @@ SymbolRule = Symbol("Rule")
 SymbolSequence = Symbol("Sequence")
 SymbolTimes = Symbol("Times")
 SymbolUndefined = Symbol("Undefined")
+
+
+SymbolShowSteps = Symbol("ShowSteps")

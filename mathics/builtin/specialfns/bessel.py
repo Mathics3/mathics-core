@@ -667,7 +667,9 @@ class SphericalBesselJ(_Bessel):
 
     attributes = ("Listable", "NumericFunction", "Protected")
 
-    rules = {"SphericalBesselJ[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] BesselJ[n + 0.5, z]"}
+    rules = {
+        "SphericalBesselJ[n_, z_]": "Times[Rational[1, 2], Power[Pi, Rational[1, 2]], Power[2, Rational[1, 2]], BesselJ[Rational[3, 2], z], Power[Power[z, -1], Rational[1, 2]]]"
+    }
 
     summary_text = "spherical Bessel function of the second kind"
     sympy_name = "jn"

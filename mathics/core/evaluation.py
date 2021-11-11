@@ -22,7 +22,7 @@ from mathics.core.symbols import (
     SymbolNull,
 )
 
-from mathics.core.systemsymbols import SymbolAborted
+from mathics.core.systemsymbols import SymbolAborted, SymbolShowSteps
 
 FORMATS = [
     "StandardForm",
@@ -257,7 +257,7 @@ class Evaluation(object):
         self.quiet_all = False
         self.format = format
         self.catch_interrupt = catch_interrupt
-
+        self.show_steps = False
         self.SymbolNull = SymbolNull
 
         # status of last evaluate
@@ -321,6 +321,10 @@ class Evaluation(object):
         history_length = self.definitions.get_history_length()
 
         result = None
+
+        self.show_steps = self.definitions.get_ownvalue(
+            "System`ShowSteps"
+        ).replace.is_true()
 
         def check_io_hook(hook):
             return len(self.definitions.get_ownvalues(hook)) > 0

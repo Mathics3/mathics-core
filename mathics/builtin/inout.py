@@ -18,6 +18,7 @@ from mathics.builtin.base import (
     BoxConstruct,
     BoxConstructError,
     Builtin,
+    Predefined,
     BinaryOperator,
     Operator,
 )
@@ -63,6 +64,20 @@ SymbolRowBox = Symbol("RowBox")
 SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
+
+
+class ShowSteps(Predefined):
+    """
+    If this variable is set to `True`, the steps in the evaluation are shown.
+    """
+
+    name = "ShowSteps"
+    attributes = {
+        "Unprotected",
+    }
+    rules = {
+        "ShowSteps": "False",
+    }
 
 
 class Format(Builtin):

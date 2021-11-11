@@ -1,6 +1,11 @@
 CHANGES
 =======
 
+New Builtins
+============
+* ``ShowStep=True`` makes that every step in the evaluation is printed out. If it is set to ``False`` the standard behaviour is recovered.
+
+
 Internals
 =========
 

@@ -734,6 +734,8 @@ class Expression(BaseExpression):
 
         old_options = evaluation.options
         evaluation.inc_recursion_depth()
+        if evaluation.show_steps:
+            print("\t Evaluating: ", expr)
         try:
             while reevaluate:
                 # changed before last evaluated?
@@ -748,7 +750,8 @@ class Expression(BaseExpression):
                 expr, reevaluate = expr.evaluate_next(evaluation)
                 if not reevaluate:
                     break
-
+                if evaluation.show_steps:
+                    print("\t-> ", expr)
                 iteration += 1
 
                 if limit is None:
