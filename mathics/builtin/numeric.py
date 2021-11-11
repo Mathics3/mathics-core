@@ -891,11 +891,12 @@ class N(Builtin):
         if isinstance(expr, Number):
             return expr.round(d)
 
-        name = expr.get_lookup_name()
-        if name != "":
+        symbol = expr.get_lookup_symbol()
+        definitions = evaluation.definitions
+        if symbol:
             nexpr = Expression(SymbolN, expr, prec)
-            result = evaluation.definitions.get_value(
-                name, "System`NValues", nexpr, evaluation
+            result = definitions.get_value(
+                symbol.name, "System`NValues", nexpr, evaluation
             )
             if result is not None:
                 if not result.sameQ(nexpr):
@@ -905,7 +906,7 @@ class N(Builtin):
         if expr.is_atom():
             return expr
         else:
-            attributes = expr.head.get_attributes(evaluation.definitions)
+            attributes = expr.head.get_attributes(definitions)
             if SymbolNHoldAll in attributes:
                 eval_range = ()
             elif SymbolNHoldFirst in attributes:

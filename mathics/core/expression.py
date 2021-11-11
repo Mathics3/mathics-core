@@ -23,12 +23,14 @@ from mathics.core.symbols import (
     ensure_context,
     strip_context,
 )
+
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
+    SymbolBlock,
     SymbolCompile,
     SymbolCompiledFunction,
     SymbolCondition,
@@ -41,6 +43,7 @@ from mathics.core.systemsymbols import (
     SymbolHoldFirst,
     SymbolHoldRest,
     SymbolListable,
+    SymbolModule,
     SymbolNumericFunction,
     SymbolOptional,
     SymbolOptionsPattern,
@@ -53,6 +56,7 @@ from mathics.core.systemsymbols import (
     SymbolSlotSequence,
     SymbolTimes,
     SymbolVerbatim,
+    SymbolWith,
 )
 
 
@@ -277,7 +281,7 @@ class Expression(BaseExpression):
 
     def flatten_sequence(self, evaluation):
         def sequence(leaf):
-            if leaf.get_head_name() == "System`Sequence":
+            if leaf.get_head() is SymbolSequence:
                 return leaf._leaves
             else:
                 return [leaf]
@@ -435,7 +439,10 @@ class Expression(BaseExpression):
         return lookup_symbol
 
     def get_lookup_symbol(self):
-        return self._head.get_lookup_symbol()
+        symbol = self._head
+        while not isinstance(symbol, Symbol):
+            symbol = symbol._head
+        return symbol
 
     def has_form(self, heads, *leaf_counts):
         """
@@ -1190,8 +1197,7 @@ class Expression(BaseExpression):
 
         if not in_scoping:
             if (
-                self._head.get_name()
-                in ("System`Module", "System`Block", "System`With")
+                self._head in (SymbolModule, SymbolBlock, SymbolWith)
                 and len(self._leaves) > 0
             ):  # nopep8
 
