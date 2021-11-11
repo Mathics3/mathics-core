@@ -83,7 +83,10 @@ class Definitions(object):
         self.now = 0  # increments whenever something is updated
         self._packages = []
         self.current_context = "Global`"
-        self.context_path = ["Global`", "System`"]
+        self.context_path = (
+            "Global`",
+            "System`",
+        )
 
         if add_builtin:
             from mathics.builtin import modules, contribute
@@ -258,6 +261,7 @@ class Definitions(object):
         # It's crucial to specify System` in this get_ownvalue() call,
         # otherwise we'll end up back in this function and trigger
         # infinite recursion.
+        return self.current_context
         context_rule = self.get_ownvalue("System`$Context")
         context = context_rule.replace.get_string_value()
         assert context is not None, "$Context somehow set to an invalid value"
