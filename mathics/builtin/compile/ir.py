@@ -359,7 +359,7 @@ class IRGenerator(object):
             return exponent
 
         # E ^ exponent
-        if leaves[0].sameQ(SymbolE) and exponent.type == real_type:
+        if leaves[0] is SymbolE and exponent.type == real_type:
             return self.call_fp_intr("llvm.exp", [exponent])
 
         # 2 ^ exponent

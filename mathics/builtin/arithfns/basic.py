@@ -588,8 +588,9 @@ class Power(BinaryOperator, _MPMathFunction):
             )
 
         result = self.apply(Expression(SymbolSequence, x, y), evaluation)
-        if result is None or result is not SymbolNull:
-            return result
+        if result is SymbolNull:
+            return None
+        return result
 
 
 class Sqrt(SympyFunction):

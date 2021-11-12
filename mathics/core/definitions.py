@@ -258,23 +258,9 @@ class Definitions(object):
 
     def get_current_context(self):
         return self.current_context
-        # It's crucial to specify System` in this get_ownvalue() call,
-        # otherwise we'll end up back in this function and trigger
-        # infinite recursion.
-        return self.current_context
-        context_rule = self.get_ownvalue("System`$Context")
-        context = context_rule.replace.get_string_value()
-        assert context is not None, "$Context somehow set to an invalid value"
-        return context
 
     def get_context_path(self):
         return self.context_path
-        context_path_rule = self.get_ownvalue("System`$ContextPath")
-        context_path = context_path_rule.replace
-        assert context_path.has_form("System`List", None)
-        context_path = [c.get_string_value() for c in context_path.leaves]
-        assert not any([c is None for c in context_path])
-        return context_path
 
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)

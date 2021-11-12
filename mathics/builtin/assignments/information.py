@@ -218,11 +218,13 @@ class Definition(Builtin):
             attributes.sort()
             lines.append(
                 Expression(
-                    "HoldForm",
+                    SymbolHoldForm,
                     Expression(
-                        "Set",
-                        Expression("Attributes", symbol),
-                        Expression("List", *(attribute for attribute in attributes)),
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        Expression(
+                            SymbolList, *(attribute for attribute in attributes)
+                        ),
                     ),
                 )
             )
@@ -259,14 +261,14 @@ class Definition(Builtin):
             options = sorted(all.options.items())
             lines.append(
                 Expression(
-                    "HoldForm",
+                    SymbolHoldForm,
                     Expression(
-                        "Set",
-                        Expression("Options", symbol),
+                        SymbolSet,
+                        Expression(SymbolOptions, symbol),
                         Expression(
-                            "List",
+                            SymbolList,
                             *(
-                                Expression("Rule", Symbol(name), value)
+                                Expression(SymbolRule, Symbol(name), value)
                                 for name, value in options
                             )
                         ),
