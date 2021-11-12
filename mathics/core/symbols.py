@@ -691,7 +691,12 @@ class Symbol(Atom):
         return self.name
 
     def get_attributes(self, definitions):
-        return definitions.get_attributes(self.name)
+        name = self.name
+        definition = definitions.definitions_cache.get(name, None)
+        if definition:
+            return definition.attributes
+        definition = definitions.get_definition(name)
+        return definition.attributes
 
     def get_name(self) -> str:
         return self.name
