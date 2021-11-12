@@ -429,18 +429,24 @@ class Expression(BaseExpression):
     def get_lookup_name(self) -> bool:
         lookup_symbol = self._head
         while not isinstance(lookup_symbol, Symbol):
+            if not isinstance(lookup_symbol, Expression):
+                return ""
             lookup_symbol = lookup_symbol._head
         return lookup_symbol.name
 
     def get_lookup_symbol(self):
         lookup_symbol = self._head
         while not isinstance(lookup_symbol, Symbol):
+            if not isinstance(lookup_symbol, Expression):
+                return None
             lookup_symbol = lookup_symbol._head
         return lookup_symbol
 
     def get_lookup_symbol(self):
         symbol = self._head
         while not isinstance(symbol, Symbol):
+            if not isinstance(symbol, Expression):
+                return None
             symbol = symbol._head
         return symbol
 
