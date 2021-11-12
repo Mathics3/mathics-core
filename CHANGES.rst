@@ -4,6 +4,8 @@ CHANGES
 Internals
 =========
 
+* To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
+
 * To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.

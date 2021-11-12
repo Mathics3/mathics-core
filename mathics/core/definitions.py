@@ -79,6 +79,8 @@ class Definitions(object):
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
+        self.current_context = "Global`"
+        self.context_path = ["Global`", "System`"]
 
         if add_builtin:
             from mathics.builtin import modules, contribute
@@ -249,6 +251,7 @@ class Definitions(object):
         return False
 
     def get_current_context(self):
+        return self.current_context
         # It's crucial to specify System` in this get_ownvalue() call,
         # otherwise we'll end up back in this function and trigger
         # infinite recursion.
@@ -258,6 +261,7 @@ class Definitions(object):
         return context
 
     def get_context_path(self):
+        return self.context_path
         context_path_rule = self.get_ownvalue("System`$ContextPath")
         context_path = context_path_rule.replace
         assert context_path.has_form("System`List", None)
@@ -268,6 +272,7 @@ class Definitions(object):
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
+        self.current_context = context
         self.clear_cache()
 
     def set_context_path(self, context_path) -> None:
@@ -277,6 +282,7 @@ class Definitions(object):
             "System`$ContextPath",
             Expression("System`List", *[String(c) for c in context_path]),
         )
+        self.context_path = context_path
         self.clear_cache()
 
     def get_builtin_names(self):
@@ -297,8 +303,8 @@ class Definitions(object):
 
     def get_accessible_contexts(self):
         "Return the contexts reachable though $Context or $ContextPath."
-        accessible_ctxts = set(self.get_context_path())
-        accessible_ctxts.add(self.get_current_context())
+        accessible_ctxts = set(ctx for ctx in self.context_path)
+        accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
     def get_matching_names(self, pattern) -> typing.List[str]:
@@ -380,7 +386,7 @@ class Definitions(object):
         if fully_qualified_symbol_name(name):
             return name
 
-        current_context = self.get_current_context()
+        current_context = self.current_context
 
         if "`" in name:
             if name.startswith("`"):
@@ -389,7 +395,7 @@ class Definitions(object):
 
         with_context = current_context + name
         # if not self.have_definition(with_context):
-        for ctx in self.get_context_path():
+        for ctx in self.context_path:
             n = ctx + name
             if self.have_definition(n):
                 return n
@@ -411,9 +417,10 @@ class Definitions(object):
         def in_ctx(name, ctx):
             return name.startswith(ctx) and "`" not in name[len(ctx) :]
 
-        if in_ctx(name_with_ctx, self.get_current_context()):
-            return name_with_ctx[len(self.get_current_context()) :]
-        for ctx in self.get_context_path():
+        current_context = self.current_context
+        if in_ctx(name_with_ctx, current_context):
+            return name_with_ctx[len(current_context) :]
+        for ctx in self.context_path:
             if in_ctx(name_with_ctx, ctx):
                 return name_with_ctx[len(ctx) :]
         return name_with_ctx
