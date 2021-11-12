@@ -170,8 +170,10 @@ class BaseExpression(KeyComparable):
 
     def get_lookup_name(self):
         "Returns symbol name of leftmost head"
-
         return self.get_name()
+
+    def get_lookup_symbol(self):
+        return None
 
     def get_head(self):
         return None
@@ -639,6 +641,9 @@ class Symbol(Atom):
             self.name = name
             self.sympy_dummy = sympy_dummy
             cls.defined_symbols[name] = self
+        return self
+
+    def get_lookup_symbol(self):
         return self
 
     def __str__(self) -> str:

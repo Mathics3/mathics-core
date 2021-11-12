@@ -127,6 +127,9 @@ class Pattern(object):
     def get_lookup_name(self):
         return self.expr.get_lookup_name()
 
+    def get_lookup_symbol(self):
+        return self.expr.get_lookup_symbol()
+
     def get_attributes(self, definitions):
         return self.expr.get_attributes(definitions)
 
