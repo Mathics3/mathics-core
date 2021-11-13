@@ -351,7 +351,7 @@ class Delete(Builtin):
         try:
             return delete_one(expr, pos)
         except PartRangeError:
-            evaluation.message("Part", "partw", Expression(SymbolList, pos), expr)
+            evaluation.message("Part", "partw", Expression(SymbolList, position), expr)
 
     def apply(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
@@ -2096,6 +2096,7 @@ class _Cluster(Builtin):
                 SymbolList, *[Expression(SymbolList, *c) for c in clusters]
             )
         elif mode == "components":
+            clusters = [from_python(c) for c in clusters]
             return Expression(SymbolList, *clusters)
         else:
             raise ValueError("illegal mode %s" % mode)

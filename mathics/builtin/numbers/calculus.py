@@ -683,7 +683,9 @@ class Integrate(SympyFunction):
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases._leaves))
             else:
-                result = Expression(result._head, cases, default)
+                result = Expression(
+                    result._head, Expression(SymbolList, *cases), default
+                )
         else:
             result = Expression(SymbolSimplify, result, assuming).evaluate(evaluation)
         return result
@@ -1251,9 +1253,9 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
         inv_deltaf = from_python(1.0 / (f1 - f0))
         num = Expression(
-            "Plus",
-            Expression(SymbolTimes, x0, f1),
-            Expression(SymbolTimes, x1, f0, Integer(-1)),
+            SymbolPlus,
+            Expression(SymbolTimes, x0, Real(f1)),
+            Expression(SymbolTimes, x1, Real(f0), Integer(-1)),
         )
         x2 = Expression(SymbolTimes, num, inv_deltaf)
         x2 = x2.evaluate(evaluation)

@@ -10,7 +10,7 @@ from itertools import combinations
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, Test, SympyFunction
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, from_python
 from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse, SymbolList
 from mathics.core.systemsymbols import SymbolComplexInfinity
 
@@ -378,6 +378,8 @@ class QuotientRemainder(Builtin):
                     "divz",
                     Expression(SymbolQuotientRemainder, m, n),
                 )
-            return Expression(SymbolList, Integer(py_m // py_n), (py_m % py_n))
+            return Expression(
+                SymbolList, Integer(py_m // py_n), from_python(py_m % py_n)
+            )
         else:
             return Expression(SymbolQuotientRemainder, m, n)

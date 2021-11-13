@@ -48,6 +48,7 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    from_python,
 )
 
 from mathics.core.parser import MathicsFileLineFeeder, parse
@@ -590,7 +591,7 @@ class LetterNumber(Builtin):
                     letter_number(c, start_ord)[0] if c.isalpha() else 0
                     for c in py_chars
                 ]
-                return Expression(SymbolList, *r)
+                return Expression(SymbolList, *[from_python(rr) for rr in r])
         elif chars.has_form(SymbolList, 1, None):
             result = []
             for leaf in chars.leaves:

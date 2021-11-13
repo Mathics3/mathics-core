@@ -179,7 +179,10 @@ def from_sympy(expr):
         else:
             return Expression(
                 SymbolList,
-                *[[from_sympy(item) for item in row] for row in expr.tolist()]
+                *[
+                    Expression(SymbolList, *[from_sympy(item) for item in row])
+                    for row in expr.tolist()
+                ]
             )
     if isinstance(expr, sympy.MatPow):
         return Expression("MatrixPower", from_sympy(expr.base), from_sympy(expr.exp))
@@ -191,12 +194,12 @@ def from_sympy(expr):
                 name = name + ("__Dummy_%d" % expr.dummy_index)
                 return Symbol(name, sympy_dummy=expr)
             if is_Cn_expr(name):
-                return Expression("C", int(name[1:]))
+                return Expression("C", Integer(int(name[1:])))
             if name.startswith(sympy_symbol_prefix):
                 name = name[len(sympy_symbol_prefix) :]
             if name.startswith(sympy_slot_prefix):
                 index = name[len(sympy_slot_prefix) :]
-                return Expression("Slot", int(index))
+                return Expression("Slot", Integer(int(index)))
         elif expr.is_NumberSymbol:
             name = str(expr)
         if name is not None:
@@ -280,7 +283,7 @@ def from_sympy(expr):
                 factors.append(from_sympy(coeff))
             for index, exp in enumerate(monom):
                 if exp != 0:
-                    slot = Expression(SymbolSlot, index + 1)
+                    slot = Expression(SymbolSlot, Integer(index + 1))
                     if exp == 1:
                         factors.append(slot)
                     else:
@@ -301,7 +304,7 @@ def from_sympy(expr):
         except Exception:
             pass
 
-        return Expression(SymbolRoot, from_sympy(e), i + 1)
+        return Expression(SymbolRoot, from_sympy(e), Integer(i + 1))
     elif isinstance(expr, sympy.Lambda):
         vars = [
             sympy.Symbol("%s%d" % (sympy_slot_prefix, index + 1))
@@ -336,7 +339,7 @@ def from_sympy(expr):
             name = expr.func.__name__
             if is_Cn_expr(name):
                 return Expression(
-                    Expression("C", int(name[1:])),
+                    Expression("C", Integer(int(name[1:]))),
                     *[from_sympy(arg) for arg in expr.args]
                 )
             if name.startswith(sympy_symbol_prefix):

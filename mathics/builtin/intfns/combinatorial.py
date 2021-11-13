@@ -144,7 +144,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
     """
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, n)
+        return Expression("Divide", Integer(c_tf + c_ft), Integer(n))
 
 
 class JaccardDissimilarity(_BooleanDissimilarity):
@@ -161,7 +161,7 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     """
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, c_tt + c_ft + c_tf)
+        return Expression("Divide", Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf))
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
@@ -178,7 +178,9 @@ class DiceDissimilarity(_BooleanDissimilarity):
     """
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
+        return Expression(
+            "Divide", Integer(c_tf + c_ft), Integer(2 * c_tt + c_ft + c_tf)
+        )
 
 
 class YuleDissimilarity(_BooleanDissimilarity):
@@ -196,7 +198,7 @@ class YuleDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r_half = c_tf * c_ft
-        return Expression("Divide", 2 * r_half, c_tt * c_ff + r_half)
+        return Expression("Divide", Integer(2 * r_half), Integer(c_tt * c_ff + r_half))
 
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
@@ -214,7 +216,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression("Divide", r, c_tt + r)
+        return Expression("Divide", Integer(r), Integer(c_tt + r))
 
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
@@ -231,7 +233,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", n - c_tt, n)
+        return Expression("Divide", Integer(n - c_tt), Integer(n))
 
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
@@ -249,7 +251,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression("Divide", r, c_tt + c_ff + r)
+        return Expression("Divide", Integer(r), Integer(c_tt + c_ff + r))
 
 
 class Subsets(Builtin):

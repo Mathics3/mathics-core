@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Real,
     String,
     from_python,
+    MachineReal,
 )
 
 from mathics.core.symbols import Symbol, SymbolList
@@ -191,7 +192,7 @@ class _Color(_GraphicsElement):
         return self.to_rgba()
 
     def to_expr(self):
-        return Expression(self.get_name(), *self.components)
+        return Expression(self.get_name(), *[MachineReal(c) for c in self.components])
 
     def to_rgba(self):
         return self.to_color_space("RGB")
@@ -585,5 +586,4 @@ def color_to_expression(components, colorspace):
         converted_color_name = "Hue"
     else:
         converted_color_name = colorspace + "Color"
-
-    return Expression(converted_color_name, *components)
+    return Expression(converted_color_name, *[MachineReal(cc) for cc in components])

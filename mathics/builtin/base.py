@@ -34,6 +34,7 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
     String,
+    from_python,
 )
 from mathics.core.expression import Expression
 from mathics.core.number import get_precision, PrecisionValueError
@@ -142,7 +143,7 @@ class Builtin(object):
                         evaluation.message(
                             name,
                             "optx",
-                            Expression("Rule", short_key, value),
+                            Expression("Rule", String(short_key), from_python(value)),
                             strip_context(name),
                         )
                         if option_syntax in ("Strict", "System`Strict"):

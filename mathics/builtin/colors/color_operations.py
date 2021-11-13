@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Integer,
     Rational,
     Real,
+    from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
@@ -415,7 +416,9 @@ class DominantColors(_ImageBuiltin):
                             mask = mask | (pixels == i)
                         yield Image(mask.reshape(tuple(reversed(im.size))), "Grayscale")
                     else:
-                        yield Expression(out_palette_head, *prototype)
+                        yield Expression(
+                            out_palette_head, *[from_python(p) for p in prototype]
+                        )
 
         return Expression(SymbolList, *itertools.islice(result(), 0, at_most))
 

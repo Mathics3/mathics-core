@@ -255,7 +255,12 @@ class StringInsert(Builtin):
                 evaluation.message("StringInsert", "ins", Integer(pos), String(str))
                 return evaluation.format_output(
                     Expression(
-                        "StringInsert", str, add, lpos[0] if len(lpos) == 1 else lpos
+                        "StringInsert",
+                        String(str),
+                        String(add),
+                        Integer(lpos[0])
+                        if len(lpos) == 1
+                        else Expression(SymbolList, *[Integer(ll) for ll in lpos]),
                     )
                 )
 

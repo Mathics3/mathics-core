@@ -165,7 +165,10 @@ class FactorInteger(Builtin):
             factors = sorted(factors.items())
             return Expression(
                 SymbolList,
-                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
+                *(
+                    Expression(SymbolList, from_python(factor), from_python(exp))
+                    for factor, exp in factors
+                )
             )
 
         elif isinstance(n, Rational):
@@ -177,7 +180,10 @@ class FactorInteger(Builtin):
             factors = sorted(factors.items())
             return Expression(
                 SymbolList,
-                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
+                *(
+                    Expression(SymbolList, from_python(factor), from_python(exp))
+                    for factor, exp in factors
+                )
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -190,12 +196,12 @@ def _fractional_part(self, n, expr, evaluation):
             positive_integer_part = (
                 Expression("Floor", n).evaluate(evaluation).to_python()
             )
-            result = n - positive_integer_part
+            result = n - from_python(positive_integer_part)
         else:
             negative_integer_part = (
                 Expression("Ceiling", n).evaluate(evaluation).to_python()
             )
-            result = n - negative_integer_part
+            result = n - from_python(negative_integer_part)
     else:
         return expr
 
@@ -435,7 +441,11 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression(SymbolList, Expression(SymbolDivide, n, b ** exp), exp)
+        return Expression(
+            SymbolList,
+            Expression(SymbolDivide, n, b ** from_python(exp)),
+            from_python(exp),
+        )
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -454,8 +464,11 @@ class MantissaExponent(Builtin):
 
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
-
-        return Expression(SymbolList, Expression(SymbolDivide, n, (10 ** exp)), exp)
+        return Expression(
+            SymbolList,
+            Expression(SymbolDivide, n, from_python(10 ** exp)),
+            Integer(exp),
+        )
 
 
 class NextPrime(Builtin):

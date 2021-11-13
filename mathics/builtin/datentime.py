@@ -23,7 +23,7 @@ from mathics.core.atoms import (
     from_python,
     Real,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolInfinity,
@@ -659,7 +659,7 @@ class DateObject(_DateFormat):
             datelist = [Integer(d) for d in datelist[:5]] + [Real(datelist[5])]
         return Expression(
             "DateObject",
-            datelist,
+            Expression(SymbolList, *datelist),
             epoch,
             Symbol("Gregorian"),
             timezone,
@@ -670,14 +670,17 @@ class DateObject(_DateFormat):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
         if fmt.sameQ(Symbol("Automatic")):
-            fmt = Expression("List", "DateTimeShort")
+            fmt = Expression("List", String("DateTimeShort"))
         fmtds = Expression("DateString", datetime, fmt).evaluate(evaluation)
         if fmtds is None:
             return
         # tz = Expression("ToString", tz).evaluate(evaluation)
         tz = int(tz.to_python())
         tz = String(str(tz))
-        return Expression("RowBox", Expression("List", "[", fmtds, "  GTM", tz, "]"))
+        return Expression(
+            "RowBox",
+            Expression("List", String("["), fmtds, String("  GTM"), tz, String("]")),
+        )
 
 
 class DatePlus(Builtin):
@@ -763,11 +766,17 @@ class DatePlus(Builtin):
             return
 
         if isinstance(date_prec, int):
-            result = Expression("List", *idate.to_list()[:date_prec])
+            leaves = idate.to_list()[:date_prec]
+            leaves = [from_python(leaf) for leaf in leaves]
+            result = Expression("List", *leaves)
         elif date_prec == "absolute":
-            result = Expression("AbsoluteTime", idate.to_list())
+            leaves = idate.to_list()
+            leaves = [from_python(leaf) for leaf in leaves]
+            result = Expression("AbsoluteTime", *leaves)
         elif date_prec == "string":
-            result = Expression("DateString", Expression("List", *idate.to_list()))
+            leaves = idate.to_list()
+            leaves = [from_python(leaf) for leaf in leaves]
+            result = Expression("DateString", Expression("List", *leaves))
 
         return result
 
@@ -836,7 +845,7 @@ class DateList(_DateFormat):
         if datelist is None:
             return
 
-        return Expression("List", *datelist)
+        return Expression(SymbolList, *[from_python(dd) for dd in datelist])
 
 
 class DateString(_DateFormat):

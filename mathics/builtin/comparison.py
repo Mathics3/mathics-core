@@ -907,7 +907,7 @@ def expr_max(items):
 
 
 def expr_min(items):
-    result = Expression(SymbolDirectedInfinity, 1)
+    result = Expression(SymbolDirectedInfinity, Integer1)
     for item in items:
         c = do_cmp(item, result)
         if c < 0:

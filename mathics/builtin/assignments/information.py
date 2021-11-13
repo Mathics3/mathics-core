@@ -407,6 +407,9 @@ class Information(PrefixOperator):
 
         if grid:
             if lines:
+                lines = [
+                    String(line) if isinstance(line, str) else line for line in lines
+                ]
                 infoshow = Expression(
                     "Grid",
                     Expression(
@@ -417,6 +420,7 @@ class Information(PrefixOperator):
                 evaluation.print_out(infoshow)
         else:
             for line in lines:
+                line = String(line) if isinstance(line, str) else line
                 evaluation.print_out(Expression(SymbolInputForm, line))
         return ret
 
