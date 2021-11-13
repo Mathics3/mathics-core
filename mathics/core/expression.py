@@ -416,15 +416,23 @@ class Expression(BaseExpression):
 
     def get_lookup_name(self) -> bool:
         lookup_symbol = self._head
-        while not isinstance(lookup_symbol, Symbol):
+        while True:
+            if isinstance(lookup_symbol, Symbol):
+                return lookup_symbol.name
+            if isinstance(lookup_symbol, Atom):
+                return lookup_symbol.get_head().name
             lookup_symbol = lookup_symbol._head
-        return lookup_symbol.name
+        return None
 
     def get_lookup_symbol(self):
         lookup_symbol = self._head
-        while not isinstance(lookup_symbol, Symbol):
+        while True:
+            if isinstance(lookup_symbol, Symbol):
+                return lookup_symbol
+            if isinstance(lookup_symbol, Atom):
+                return lookup_symbol.get_head()
             lookup_symbol = lookup_symbol._head
-        return lookup_symbol
+        return None
 
     def has_form(self, heads, *leaf_counts):
         """
