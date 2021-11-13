@@ -426,12 +426,27 @@ class Definitions(object):
         return name_with_ctx
 
     def have_definition(self, name) -> bool:
-        return self.get_definition(name, only_if_exists=True) is not None
+        if name in self.definitions_cache:
+            return True
+        if name in self.user or name in self.builtin or name in self.pymathics:
+            return True
+        name = self.lookup_name(name)
+        if name in self.user or name in self.builtin or name in self.pymathics:
+            return True
 
     def get_definition(self, name, only_if_exists=False) -> "Definition":
+        """
+        If there is a definition in the cache associated to  ``name``,
+        then returns it. Otherwise, look at definitions in builtin, pymathics
+        and user dictionaries. If there is just one definition, returns it.
+        Otherwise, merge all the definitions in one and returns it.
+        """
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
+
+        if name == "" or name[-1] == "`":
+            return None
 
         original_name = name
         name = self.lookup_name(name)
@@ -449,8 +464,17 @@ class Definitions(object):
             if builtin_instance is None:
                 builtin_instance = builtin
 
-        definition = candidates[0] if len(candidates) == 1 else None
-        if len(candidates) > 0 and not definition:
+        ncandidates = len(candidates)
+
+        if ncandidates == 1:
+            definition = candidates[0]
+        elif ncandidates == 0:
+            if only_if_exists:
+                return None
+            else:
+                definition = Definition(name=name)
+                self.user[name] = definition
+        else:
             attributes = (
                 user.attributes
                 if user
@@ -490,48 +514,100 @@ class Definitions(object):
                 builtin=builtin_instance,
             )
 
-        if definition is not None:
-            self.proxy[strip_context(original_name)].add(original_name)
-            self.definitions_cache[original_name] = definition
-            self.lookup_cache[original_name] = name
-        elif not only_if_exists:
-            definition = Definition(name=name)
-            if name[-1] != "`":
-                self.user[name] = definition
-
+        self.proxy[strip_context(original_name)].add(original_name)
+        self.definitions_cache[original_name] = definition
+        self.lookup_cache[original_name] = name
+        assert definition is not None
         return definition
 
     def get_attributes(self, name):
-        return self.get_definition(name).attributes
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return set()
+        return definition.attributes
+
+    def get_ownvalue(self, name):
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return None
+        ownvalues = definition.ownvalues
+        if ownvalues:
+            return ownvalues[0]
 
     def get_ownvalues(self, name):
-        return self.get_definition(name).ownvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.ownvalues
 
     def get_downvalues(self, name):
-        return self.get_definition(name).downvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.downvalues
 
     def get_subvalues(self, name):
-        return self.get_definition(name).subvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.subvalues
 
     def get_upvalues(self, name):
-        return self.get_definition(name).upvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.upvalues
 
     def get_formats(self, name, format=""):
-        formats = self.get_definition(name).formatvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        formats = definition.formatvalues
         result = formats.get(format, []) + formats.get("", [])
         result.sort()
         return result
 
     def get_nvalues(self, name):
-        return self.get_definition(name).nvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.nvalues
 
     def get_defaultvalues(self, name):
-        return self.get_definition(name).defaultvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return []
+        return definition.defaultvalues
 
     def get_value(self, name, pos, pattern, evaluation):
         assert isinstance(name, str)
         assert "`" in name
-        rules = self.get_definition(name).get_values_list(valuesname(pos))
+
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return
+
+        rules = definition.get_values_list(valuesname(pos))
         for rule in rules:
             result = rule.apply(pattern, evaluation)
             if result is not None:
@@ -658,12 +734,6 @@ class Definitions(object):
             self.user = {}
         self.clear_cache()
 
-    def get_ownvalue(self, name):
-        ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
-        if ownvalues:
-            return ownvalues[0]
-        return None
-
     def set_ownvalue(self, name, value) -> None:
         from .expression import Symbol
         from .rules import Rule
@@ -687,7 +757,12 @@ class Definitions(object):
 
     def get_config_value(self, name, default=None):
         "Infinity -> None, otherwise returns integer."
-        value = self.get_definition(name).ownvalues
+        definition = self.definitions_cache.get(name, None)
+        if definition is None:
+            definition = self.get_definition(name, True)
+        if definition is None:
+            return default
+        value = definition.ownvalues
         if value:
             try:
                 value = value[0].replace

@@ -388,7 +388,6 @@ class Plus(BinaryOperator, SympyFunction):
                             if len(rest) == 1:
                                 rest = rest[0]
                             else:
-                                rest.sort()
                                 rest = Expression(SymbolTimes, *rest)
                             break
                 if count is None:
@@ -426,7 +425,6 @@ class Plus(BinaryOperator, SympyFunction):
         elif len(leaves) == 1:
             return leaves[0]
         else:
-            leaves.sort()
             return Expression(SymbolPlus, *leaves)
 
 
