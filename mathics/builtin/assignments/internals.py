@@ -8,16 +8,34 @@ from mathics.core.expression import Expression
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
+    SymbolList,
     SymbolN,
     SymbolList,
     system_symbols,
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
     SymbolDirectedInfinity,
-    SymbolPattern,
-    SymbolMachinePrecision,
+    SymbolHistoryLength,
     SymbolHoldPattern,
+    SymbolInfinity,
+    SymbolIterationLimit,
+    SymbolLine,
+    SymbolLocked,
+    SymbolMachinePrecision,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
+    SymbolModuleNumber,
+    SymbolOptionValue,
+    SymbolPart,
+    SymbolPattern,
+    SymbolProtected,
+    SymbolRecursionLimit,
     SymbolRuleDelayed,
 )
 
@@ -45,7 +63,7 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
         if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
             continue
         count += 1
-        defs.add_rule(tag, rule, position=position)
+        defs.add_rule(tag.name, rule, position=position)
     return count > 0
 
 
@@ -53,9 +71,9 @@ def build_rulopc(optval):
     return Rule(
         Expression(
             "OptionValue",
-            Expression("Pattern", Symbol("$cond$"), Expression("Blank")),
+            Expression(SymbolPattern, Symbol("$cond$"), Expression(SymbolBlank)),
         ),
-        Expression("OptionValue", optval, Symbol("$cond$")),
+        Expression(SymbolOptionValue, optval, Symbol("$cond$")),
     )
 
 
@@ -93,11 +111,11 @@ def get_symbol_values(symbol, func_name, position, evaluation):
             else:
                 pattern = Expression(SymbolHoldPattern, pattern.expr)
             leaves.append(Expression(SymbolRuleDelayed, pattern, rule.replace))
-    return Expression("List", *leaves)
+    return Expression(SymbolList, *leaves)
 
 
 def is_protected(tag, defin):
-    return "System`Protected" in defin.get_attributes(tag)
+    return SymbolProtected in defin.get_attributes(tag.name)
 
 
 def repl_pattern_by_symbol(expr):
@@ -130,28 +148,28 @@ def repl_pattern_by_symbol(expr):
 def rejected_because_protected(self, lhs, tag, evaluation, ignore=False):
     defs = evaluation.definitions
     if not ignore and is_protected(tag, defs):
-        if lhs.get_name() == tag:
-            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+        if lhs is tag:
+            evaluation.message(self.get_name(), "wrsym", tag)
         else:
-            evaluation.message(self.get_name(), "write", Symbol(tag), lhs)
+            evaluation.message(self.get_name(), "write", tag, lhs)
         return True
     return False
 
 
 def find_tag_and_check(lhs, tags, evaluation):
-    name = lhs.get_head_name()
+    head = lhs.get_head()
     if len(lhs.leaves) != 1:
-        evaluation.message_args(name, len(lhs.leaves), 1)
+        evaluation.message_args(head.get_name(), len(lhs.leaves), 1)
         raise AssignmentException(lhs, None)
-    tag = lhs.leaves[0].get_name()
-    if not tag:
-        evaluation.message(name, "sym", lhs.leaves[0], 1)
+    tag = lhs.leaves[0]
+    if not tag.is_symbol():
+        evaluation.message(head.get_name(), "sym", tag, 1)
         raise AssignmentException(lhs, None)
     if tags is not None and tags != [tag]:
-        evaluation.message(name, "tag", Symbol(name), Symbol(tag))
+        evaluation.message(head.get_name(), "tag", head, tag)
         raise AssignmentException(lhs, None)
     if is_protected(tag, evaluation.definitions):
-        evaluation.message(name, "wrsym", Symbol(tag))
+        evaluation.message(head.get_name(), "wrsym", tag)
         raise AssignmentException(lhs, None)
     return tag
 
@@ -159,17 +177,16 @@ def find_tag_and_check(lhs, tags, evaluation):
 def unroll_patterns(lhs, rhs, evaluation):
     if type(lhs) is Symbol:
         return lhs, rhs
-    name = lhs.get_head_name()
+    symbol = lhs.get_head()
     lhsleaves = lhs._leaves
-    if name == "System`Pattern":
+    if symbol is SymbolPattern:
         lhs = lhsleaves[1]
         rulerepl = (lhsleaves[0], repl_pattern_by_symbol(lhs))
         rhs, status = rhs.apply_rules([Rule(*rulerepl)], evaluation)
-        name = lhs.get_head_name()
+        symbol = lhs.get_head()
 
-    if name == "System`HoldPattern":
+    if symbol is SymbolHoldPattern:
         lhs = lhsleaves[0]
-        name = lhs.get_head_name()
     return lhs, rhs
 
 
@@ -178,21 +195,21 @@ def unroll_conditions(lhs):
     if type(lhs) is Symbol:
         return lhs, None
     else:
-        name, lhs_leaves = lhs.get_head_name(), lhs._leaves
+        head, lhs_leaves = lhs.get_head(), lhs._leaves
     condition = []
     # This handle the case of many sucesive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
-    while name == "System`Condition" and len(lhs.leaves) == 2:
+    while head is SymbolCondition and len(lhs.leaves) == 2:
         condition.append(lhs_leaves[1])
         lhs = lhs_leaves[0]
-        name, lhs_leaves = lhs.get_head_name(), lhs._leaves
+        head, lhs_leaves = lhs.get_head(), lhs._leaves
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:
-        condition = Expression("System`And", *condition)
+        condition = Expression(SymbolAnd, *condition)
     else:
         condition = condition[0]
-    condition = Expression("System`Condition", lhs, condition)
+    condition = Expression(SymbolCondition, lhs, condition)
     lhs._format_cache = None
     return lhs, condition
 
@@ -222,9 +239,7 @@ def process_assign_recursion_limit(lhs, rhs, evaluation):
 
 def process_assign_iteration_limit(lhs, rhs, evaluation):
     rhs_int_value = rhs.get_int_value()
-    if (
-        not rhs_int_value or rhs_int_value < 20
-    ) and not rhs.get_name() == "System`Infinity":
+    if (not rhs_int_value or rhs_int_value < 20) and rhs is not SymbolInfinity:
         evaluation.message("$IterationLimit", "limset", rhs)
         raise AssignmentException(lhs, None)
     return False
@@ -241,10 +256,9 @@ def process_assign_module_number(lhs, rhs, evaluation):
 def process_assign_line_number_and_history_length(
     self, lhs, rhs, evaluation, tags, upset
 ):
-    lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     if rhs_int_value is None or rhs_int_value < 0:
-        evaluation.message(lhs_name, "intnn", rhs)
+        evaluation.message(lhs.get_name(), "intnn", rhs)
         raise AssignmentException(lhs, None)
     return False
 
@@ -257,12 +271,11 @@ def process_assign_random_state(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
-    lhs_name = lhs.get_head_name()
     new_context = rhs.get_string_value()
     if new_context is None or not valid_context_name(
         new_context, allow_initial_backquote=True
     ):
-        evaluation.message(lhs_name, "cxset", rhs)
+        evaluation.message(lhs.get_name(), "cxset", rhs)
         raise AssignmentException(lhs, None)
 
     # With $Context in Mathematica you can do some strange
@@ -285,7 +298,6 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
-    lhs_name = lhs.get_name()
     currContext = evaluation.definitions.get_current_context()
     context_path = [s.get_string_value() for s in rhs.get_leaves()]
     context_path = [
@@ -297,73 +309,69 @@ def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
         evaluation.definitions.set_context_path(context_path)
         return True
     else:
-        evaluation.message(lhs_name, "cxlist", rhs)
+        evaluation.message(lhs.get_name(), "cxlist", rhs)
         raise AssignmentException(lhs, None)
 
 
 def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
-    lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     # $MinPrecision = Infinity is not allowed
     if rhs_int_value is not None and rhs_int_value >= 0:
         max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
         if max_prec is not None and max_prec < rhs_int_value:
-            evaluation.message("$MinPrecision", "preccon", Symbol("$MinPrecision"))
+            evaluation.message("$MinPrecision", "preccon", SymbolMinPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:
-        evaluation.message(lhs_name, "precset", lhs, rhs)
+        evaluation.message(lhs.get_name(), "precset", lhs, rhs)
         raise AssignmentException(lhs, None)
 
 
 def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
-    lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     if rhs.has_form(SymbolDirectedInfinity, 1) and rhs.leaves[0].get_int_value() == 1:
         return False
     elif rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
         if min_prec is not None and rhs_int_value < min_prec:
-            evaluation.message("$MaxPrecision", "preccon", Symbol("$MaxPrecision"))
+            evaluation.message("$MaxPrecision", "preccon", SymbolMaxPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:
-        evaluation.message(lhs_name, "precset", lhs, rhs)
+        evaluation.message(lhs.get_name(), "precset", lhs, rhs)
         raise AssignmentException(lhs, None)
 
 
 def process_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
-    name = lhs.get_head_name()
     tag = find_tag_and_check(lhs, tags, evaluation)
     rules = rhs.get_rules_list()
     if rules is None:
-        evaluation.message(name, "vrule", lhs, rhs)
+        evaluation.message(lhs.get_head_name(), "vrule", lhs, rhs)
         raise AssignmentException(lhs, None)
-    evaluation.definitions.set_values(tag, name, rules)
+    evaluation.definitions.set_values(tag.name, lhs.get_head_name(), rules)
     return True
 
 
 def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
     lhs_leaves = lhs.leaves
-    name = lhs.get_head_name()
     if len(lhs_leaves) != 1:
-        evaluation.message_args(name, len(lhs_leaves), 1)
+        evaluation.message_args(lhs.get_head_name(), len(lhs_leaves), 1)
         raise AssignmentException(lhs, rhs)
-    tag = lhs_leaves[0].get_name()
-    if not tag:
-        evaluation.message(name, "sym", lhs_leaves[0], 1)
+    tag = lhs_leaves[0]
+    if not tag.is_symbol():
+        evaluation.message(lhs.get_head_name(), "sym", tag, 1)
         raise AssignmentException(lhs, rhs)
     if tags is not None and tags != [tag]:
-        evaluation.message(name, "tag", Symbol(name), Symbol(tag))
+        evaluation.message(lhs.get_head_name(), "tag", lhs.get_head(), tag)
         raise AssignmentException(lhs, rhs)
     if is_protected(tag, evaluation.definitions):
-        evaluation.message(name, "wrsym", Symbol(tag))
+        evaluation.message(lhs.get_head_name(), "wrsym", tag)
         raise AssignmentException(lhs, None)
     option_values = rhs.get_option_values(evaluation)
     if option_values is None:
-        evaluation.message(name, "options", rhs)
+        evaluation.message(lhs.get_head_name(), "options", rhs)
         raise AssignmentException(lhs, None)
-    evaluation.definitions.set_options(tag, option_values)
+    evaluation.definitions.set_options(tag.name, option_values)
     return True
 
 
@@ -371,7 +379,6 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
-
     if len(lhs.leaves) not in (1, 2):
         evaluation.message_args("N", len(lhs.leaves), 1, 2)
         raise AssignmentException(lhs, None)
@@ -391,7 +398,7 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_nvalue(tag, rule)
+        defs.add_nvalue(tag.name, rule)
     return count > 0
 
 
@@ -399,20 +406,19 @@ def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
     tags, focus = process_tags_and_upset_allow_custom(
         tags, upset, self, lhs, evaluation
     )
-    lhs_name = lhs.get_name()
-    if lhs_name == "System`$RecursionLimit":
+    if lhs is SymbolRecursionLimit:
         process_assign_recursion_limit(self, lhs, rhs, evaluation, tags, upset)
-    elif lhs_name in ("System`$Line", "System`$HistoryLength"):
+    elif lhs in (SymbolLine, SymbolHistoryLength):
         process_assign_line_number_and_history_length(
             self, lhs, rhs, evaluation, tags, upset
         )
-    elif lhs_name == "System`$IterationLimit":
+    elif lhs is SymbolIterationLimit:
         process_assign_iteration_limit(self, lhs, rhs, evaluation, tags, upset)
-    elif lhs_name == "System`$ModuleNumber":
+    elif lhs is SymbolModuleNumber:
         process_assign_module_number(self, lhs, rhs, evaluation, tags, upset)
-    elif lhs_name == "System`$MinPrecision":
+    elif lhs is SymbolMinPrecision:
         process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
-    elif lhs_name == "System`$MaxPrecision":
+    elif lhs is SymbolMaxPrecision:
         process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset)
     else:
         return False, tags
@@ -420,26 +426,25 @@ def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
 
 
 def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
-    name = lhs.get_head_name()
     if len(lhs.leaves) != 1:
-        evaluation.message_args(name, len(lhs.leaves), 1)
+        evaluation.message_args(lhs.get_head_name(), len(lhs.leaves), 1)
         raise AssignmentException(lhs, rhs)
-    tag = lhs.leaves[0].get_name()
-    if not tag:
-        evaluation.message(name, "sym", lhs.leaves[0], 1)
+    tag = lhs.leaves[0]
+    if not tag.is_symbol():
+        evaluation.message(lhs.get_head_name(), "sym", tag, 1)
         raise AssignmentException(lhs, rhs)
     if tags is not None and tags != [tag]:
-        evaluation.message(name, "tag", Symbol(name), Symbol(tag))
+        evaluation.message(lhs.get_head_name(), "tag", lhs.get_head(), tag)
         raise AssignmentException(lhs, rhs)
     attributes = get_symbol_list(
-        rhs, lambda item: evaluation.message(name, "sym", item, 1)
+        rhs, lambda item: evaluation.message(lhs.get_head_name(), "sym", item, 1)
     )
     if attributes is None:
         raise AssignmentException(lhs, rhs)
-    if "System`Locked" in evaluation.definitions.get_attributes(tag):
-        evaluation.message(name, "locked", Symbol(tag))
+    if SymbolLocked in evaluation.definitions.get_attributes(tag.name):
+        evaluation.message(lhs.get_head_name(), "locked", tag)
         raise AssignmentException(lhs, rhs)
-    evaluation.definitions.set_attributes(tag, attributes)
+    evaluation.definitions.set_attributes(tag.name, attributes)
     return True
 
 
@@ -462,7 +467,7 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_default(tag, rule)
+        defs.add_default(tag.name, rule)
     return count > 0
 
 
@@ -499,7 +504,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_format(tag, rule, form)
+        defs.add_format(tag.name, rule, form)
     return count > 0
 
 
@@ -521,7 +526,7 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_message(tag, rule)
+        defs.add_message(tag.name, rule)
     return count > 0
 
 
@@ -556,20 +561,20 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
     flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
     focus = focus.evaluate_leaves(evaluation)
     evaluation.ignore_oneidentity = flag_ioi
-    name = lhs.get_head_name()
+    head = lhs.get_head()
     if tags is None and not upset:
-        name = focus.get_lookup_name()
-        if not name:
+        head = focus.get_lookup_symbol()
+        if head is None or not head.is_symbol():
             evaluation.message(self.get_name(), "setraw", focus)
             raise AssignmentException(lhs, None)
-        tags = [name]
+        tags = [head]
     elif upset:
-        tags = [focus.get_lookup_name()]
+        tags = [focus.get_lookup_symbol()]
     else:
-        allowed_names = [focus.get_lookup_name()]
-        for name in tags:
-            if name not in allowed_names:
-                evaluation.message(self.get_name(), "tagnfd", Symbol(name))
+        allowed_symbols = [focus.get_lookup_symbol()]
+        for symbol in tags:
+            if symbol not in allowed_symbols:
+                evaluation.message(self.get_name(), "tagnfd", symbol)
                 raise AssignmentException(lhs, None)
     return tags
 
@@ -578,44 +583,44 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     # TODO: the following provides a hacky fix for 1259. I know @rocky loves
     # this kind of things, but otherwise we need to work on rebuild the pattern
     # matching mechanism...
-    name = lhs.get_head_name()
+    head = lhs.get_head()
     focus = lhs
     flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
     focus = focus.evaluate_leaves(evaluation)
     evaluation.ignore_oneidentity = flag_ioi
     if tags is None and not upset:
-        name = focus.get_lookup_name()
-        if not name:
+        head = focus.get_lookup_symbol()
+        if not head:
             evaluation.message(self.get_name(), "setraw", focus)
             raise AssignmentException(lhs, None)
-        tags = [name]
+        tags = [head]
     elif upset:
         tags = []
         if focus.is_atom():
             evaluation.message(self.get_name(), "normal")
             raise AssignmentException(lhs, None)
         for leaf in focus.leaves:
-            name = leaf.get_lookup_name()
-            tags.append(name)
+            head = leaf.get_lookup_symbol()
+            tags.append(head)
     else:
-        allowed_names = [focus.get_lookup_name()]
+        allowed_symbols = [focus.get_lookup_symbol()]
         for leaf in focus.get_leaves():
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`HoldPattern",):
+            if not leaf.is_symbol() and leaf.get_head() in (SymbolHoldPattern,):
                 leaf = leaf.leaves[0]
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`Pattern",):
+            if not leaf.is_symbol() and leaf.get_head() in (SymbolPattern,):
                 leaf = leaf.leaves[1]
-            if not leaf.is_symbol() and leaf.get_head_name() in (
-                "System`Blank",
-                "System`BlankSequence",
-                "System`BlankNullSequence",
+            if not leaf.is_symbol() and leaf.get_head() in (
+                SymbolBlank,
+                SymbolBlankSequence,
+                SymbolBlankNullSequence,
             ):
                 if len(leaf.leaves) == 1:
                     leaf = leaf.leaves[0]
 
-            allowed_names.append(leaf.get_lookup_name())
-        for name in tags:
-            if name not in allowed_names:
-                evaluation.message(self.get_name(), "tagnfd", Symbol(name))
+            allowed_symbols.append(leaf.get_lookup_symbol())
+        for symbol in tags:
+            if symbol not in allowed_symbols:
+                evaluation.message(self.get_name(), "tagnfd", symbol)
                 raise AssignmentException(lhs, None)
 
     return tags, focus
@@ -640,11 +645,18 @@ class _SetOperator(object):
         "System`Default": process_assign_default,
         "System`Format": process_assign_format,
     }
+    messages = {
+        "setraw": "Cannot assign to raw object `1`.",
+        "shape": "Lists `1` and `2` are not the same shape.",
+    }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
         if type(lhs) is Symbol:
             name = lhs.name
-        else:
+        elif lhs.is_atom():
+            evaluation.message(self.get_name(), "setraw", lhs)
+            raise AssignmentException(lhs, None)
+        else:  # Expression
             name = lhs.get_head_name()
         lhs._format_cache = None
         try:
@@ -653,7 +665,6 @@ class _SetOperator(object):
             func = self.special_cases.get(name, None)
             if func:
                 return func(self, lhs, rhs, evaluation, tags, upset)
-
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
             return False
@@ -661,8 +672,8 @@ class _SetOperator(object):
     def assign(self, lhs, rhs, evaluation):
         lhs._format_cache = None
         defs = evaluation.definitions
-        if lhs.get_head_name() == "System`List":
-            if not (rhs.get_head_name() == "System`List") or len(lhs.leaves) != len(
+        if lhs.get_head() is SymbolList:
+            if not (rhs.get_head() is SymbolList) or len(lhs.leaves) != len(
                 rhs.leaves
             ):  # nopep8
 
@@ -674,19 +685,18 @@ class _SetOperator(object):
                     if not self.assign(left, right, evaluation):
                         result = False
                 return result
-        elif lhs.get_head_name() == "System`Part":
+        elif lhs.get_head() is SymbolPart:
             if len(lhs.leaves) < 1:
                 evaluation.message(self.get_name(), "setp", lhs)
                 return False
             symbol = lhs.leaves[0]
-            name = symbol.get_name()
-            if not name:
+            if not symbol.is_symbol():
                 evaluation.message(self.get_name(), "setps", symbol)
                 return False
-            if is_protected(name, defs):
+            if is_protected(symbol, defs):
                 evaluation.message(self.get_name(), "wrsym", symbol)
                 return False
-            rule = defs.get_ownvalue(name)
+            rule = defs.get_ownvalue(symbol.name)
             if rule is None:
                 evaluation.message(self.get_name(), "noval", symbol)
                 return False

@@ -52,7 +52,10 @@ def autoload_files(
     # Load symbols from the autoload folder
     for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
         for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
-            Expression("Get", String(path)).evaluate(Evaluation(defs))
+            try:
+                Expression("Get", String(path)).evaluate(Evaluation(defs))
+            except:
+                print("module ", path, " couldn't be loaded.")
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
@@ -88,7 +91,10 @@ class Definitions(object):
         self.now = 0  # increments whenever something is updated
         self._packages = []
         self.current_context = "Global`"
-        self.context_path = ["Global`", "System`"]
+        self.context_path = (
+            "Global`",
+            "System`",
+        )
 
         if add_builtin:
             from mathics.builtin import modules, contribute
@@ -260,22 +266,9 @@ class Definitions(object):
 
     def get_current_context(self):
         return self.current_context
-        # It's crucial to specify System` in this get_ownvalue() call,
-        # otherwise we'll end up back in this function and trigger
-        # infinite recursion.
-        context_rule = self.get_ownvalue("System`$Context")
-        context = context_rule.replace.get_string_value()
-        assert context is not None, "$Context somehow set to an invalid value"
-        return context
 
     def get_context_path(self):
         return self.context_path
-        context_path_rule = self.get_ownvalue("System`$ContextPath")
-        context_path = context_path_rule.replace
-        assert context_path.get_head() is SymbolList
-        context_path = [c.get_string_value() for c in context_path.leaves]
-        assert not any([c is None for c in context_path])
-        return context_path
 
     def set_current_context(self, context) -> None:
         assert isinstance(context, str)
@@ -659,20 +652,28 @@ class Definitions(object):
 
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
+        if isinstance(attribute, str):
+            attribute = Symbol(attribute)
         definition.attributes.add(attribute)
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def set_attributes(self, name, attributes) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes = set(attributes)
+        definition.attributes = set(
+            Symbol(attribute) if isinstance(attribute, str) else Symbol(attribute)
+            for attribute in attributes
+        )
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def clear_attribute(self, name, attribute) -> None:
+        if isinstance(attribute, str):
+            attribute = Symbol(attribute)
         definition = self.get_user_definition(self.lookup_name(name))
-        if attribute in definition.attributes:
-            definition.attributes.remove(attribute)
+        attributes = definition.attributes
+        if attribute in attributes:
+            attributes.remove(attribute)
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -886,7 +887,7 @@ class Definition(object):
         self.messages = messages
         self.attributes = set(attributes)
         for a in self.attributes:
-            assert "`" in a, "%s attribute %s has no context" % (name, a)
+            assert not isinstance(a, str)
         self.options = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues

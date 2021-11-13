@@ -16,7 +16,7 @@ from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.expression import Expression
 from mathics.core.atoms import String, from_python
 from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.builtin.base import MessageException
 
 from io import BytesIO
@@ -112,10 +112,10 @@ def parse_html(parse, text, evaluation):
         return parse(text.get_string_value())
     except IOError:
         evaluation.message("General", "noopen", text.get_string_value())
-        return Symbol("$Failed")
+        return SymbolFailed
     except MessageException as e:
         e.message(evaluation)
-        return Symbol("$Failed")
+        return SymbolFailed
 
 
 class _HTMLBuiltin(Builtin):

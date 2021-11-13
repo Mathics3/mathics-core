@@ -13,7 +13,13 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Predefined, Builtin
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolLocked,
+    SymbolProtected,
+    SymbolSetAttributes,
+    SymbolClearAttributes,
+)
 from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
@@ -69,8 +75,7 @@ class Attributes(Builtin):
         name = expr.get_lookup_name()
         attributes = list(evaluation.definitions.get_attributes(name))
         attributes.sort()
-        attr = [Symbol(attribute) for attribute in attributes]
-        return Expression("List", *attr)
+        return Expression(SymbolList, *attributes)
 
 
 class SetAttributes(Builtin):
@@ -106,7 +111,7 @@ class SetAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if "System`Locked" in evaluation.definitions.get_attributes(symbol):
+            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -150,7 +155,7 @@ class ClearAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if "System`Locked" in evaluation.definitions.get_attributes(symbol):
+            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -183,7 +188,6 @@ class Protect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Protect[symbols___]"
-        protected = Symbol("System`Protected")
         items = []
 
         if isinstance(symbols, Symbol):
@@ -211,14 +215,12 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not "System`Locked" in evaluation.definitions.get_attributes(
-                        defn
-                    ):
+                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("SetAttributes", Expression("List", *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            SymbolSetAttributes, Expression(SymbolList, *items), SymbolProtected
+        ).evaluate(evaluation)
         return SymbolNull
 
 
@@ -240,7 +242,6 @@ class Unprotect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Unprotect[symbols___]"
-        protected = Symbol("System`Protected")
         items = []
         if isinstance(symbols, Symbol):
             symbols = [symbols]
@@ -265,14 +266,12 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not "System`Locked" in evaluation.definitions.get_attributes(
-                        defn
-                    ):
+                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("ClearAttributes", Expression("List", *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            SymbolClearAttributes, Expression(SymbolList, *items), SymbolProtected
+        ).evaluate(evaluation)
         return SymbolNull
 
 

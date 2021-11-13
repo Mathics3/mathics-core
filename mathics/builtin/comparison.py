@@ -27,6 +27,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue, SymbolList
 from mathics.core.systemsymbols import (
+    SymbolMaxExtraPrecision,
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,

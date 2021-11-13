@@ -21,12 +21,17 @@ from mathics.core.symbols import (
     SymbolList,
     strip_context,
 )
+
 from mathics.core.systemsymbols import (
-    SymbolSortBy,
+    SymbolAborted,
+    SymbolAborted,
+    SymbolAll,
+    SymbolDirectedInfinity,
     SymbolMap,
     SymbolMapThread,
     SymbolOperate,
-    SymbolDirectedInfinity,
+    SymbolRule,
+    SymbolSortBy,
 )
 from mathics.core.atoms import (
     String,
@@ -157,7 +162,7 @@ class SortBy(Builtin):
 
             if (
                 keys_expr is None
-                or keys_expr.get_head_name() != "System`List"
+                or keys_expr.get_head() is not SymbolList
                 or len(keys_expr.leaves) != len(l.leaves)
             ):
                 expr = Expression(SymbolSortBy, l, f)
@@ -235,7 +240,7 @@ class BinarySearch(Builtin):
         if (
             lower_index > upper_index
         ):  # empty list l? Length[l] > 0 condition should guard us, but check anyway
-            return Symbol("$Aborted")
+            return SymbolAborted
 
         # "transform" is a handy wrapper for applying "f" or nothing
         if f.get_name() == "System`Identity":
@@ -579,9 +584,7 @@ class MapAt(Builtin):
             else:
                 raise PartRangeError
             replace_leaf = new_leaves[j]
-            if hasattr(replace_leaf, "head") and replace_leaf.head == Symbol(
-                "System`Rule"
-            ):
+            if hasattr(replace_leaf, "head") and replace_leaf.head is SymbolRule:
                 new_leaves[j] = Expression(
                     "System`Rule",
                     replace_leaf.leaves[0],

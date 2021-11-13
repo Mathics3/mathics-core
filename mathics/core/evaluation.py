@@ -22,8 +22,9 @@ from mathics.core.symbols import (
     SymbolNull,
     system_symbols,
 )
+
 from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolAborted
+from mathics.core.systemsymbols import SymbolAborted, SymbolGeneral, SymbolOverflow
 
 FORMATS = system_symbols(
     "StandardForm",
@@ -516,7 +517,7 @@ class Evaluation(object):
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
-            pattern = Expression("MessageName", Symbol("General"), String(tag))
+            pattern = Expression("MessageName", SymbolGeneral, String(tag))
             text = self.definitions.get_value(
                 "System`General", "System`Messages", pattern, self
             )

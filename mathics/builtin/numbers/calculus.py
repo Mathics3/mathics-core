@@ -37,6 +37,8 @@ from mathics.core.systemsymbols import (
     SymbolIntegrate,
     SymbolLog,
     SymbolO,
+    SymbolAutomatic,
+    SymbolConstant,
     SymbolPlus,
     SymbolPower,
     SymbolRoot,
@@ -192,7 +194,7 @@ class D(SympyFunction):
         # So, this is not an atom...
 
         head = f.get_head()
-        if head == SymbolPlus:
+        if head is SymbolPlus:
             terms = [
                 Expression(SymbolD, term, x)
                 for term in f.leaves
@@ -201,7 +203,7 @@ class D(SympyFunction):
             if len(terms) == 0:
                 return IntegerZero
             return Expression(SymbolPlus, *terms)
-        elif head == SymbolTimes:
+        elif head is SymbolTimes:
             terms = []
             for i, factor in enumerate(f.leaves):
                 if factor.is_free(x_pattern, evaluation):
@@ -213,7 +215,7 @@ class D(SympyFunction):
                 return Expression(SymbolPlus, *terms)
             else:
                 return IntegerZero
-        elif head == SymbolPower and len(f.leaves) == 2:
+        elif head is SymbolPower and len(f.leaves) == 2:
             base, exp = f.leaves
             terms = []
             if not base.is_free(x_pattern, evaluation):
@@ -679,7 +681,7 @@ class Integrate(SympyFunction):
                     resif = resif._leaves[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
-            if default == SymbolUndefined and len(cases) == 1:
+            if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases._leaves))
             else:
@@ -895,7 +897,7 @@ class Solve(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or SymbolConstant in var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Solve", "ivar", vars_original)
@@ -908,9 +910,9 @@ class Solve(Builtin):
         sympy_eqs = []
         sympy_denoms = []
         for eq in eqs:
-            if eq == SymbolTrue:
+            if eq is SymbolTrue:
                 pass
-            elif eq == SymbolFalse:
+            elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form(SymbolEqual, 2):
                 return evaluation.message("Solve", "eqf", eqs_original)
@@ -1213,7 +1215,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit.sameQ(SymbolAutomatic):
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1280,7 +1282,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     df = opts["System`Jacobian"]
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit.sameQ(SymbolAutomatic):
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1441,9 +1443,7 @@ class FindRoot(Builtin):
             method = method.value
 
         # Determine the "jacobian"
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
-        ):
+        if method in ("Newton",) and options["System`Jacobian"].sameQ(SymbolAutomatic):
 
             def diff(evaluation):
                 return Expression(SymbolD, f, x).evaluate(evaluation)

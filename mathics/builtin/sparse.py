@@ -13,10 +13,11 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import SymbolList
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolRule,
     SymbolRuleDelayed,
-    SymbolAutomatic,
     SymbolSparseArray,
     SymbolTable,
 )

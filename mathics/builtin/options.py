@@ -10,6 +10,7 @@ from mathics.builtin.base import Builtin, Test, get_option
 from mathics.core.atoms import Integer
 from mathics.core.symbols import (
     Symbol,
+    SymbolList,
     ensure_context,
     strip_context,
 )

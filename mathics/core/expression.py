@@ -19,33 +19,44 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
     system_symbols,
     ensure_context,
     strip_context,
 )
+
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
     SymbolBlank,
     SymbolBlankNullSequence,
     SymbolBlankSequence,
+    SymbolBlock,
     SymbolCompile,
     SymbolCompiledFunction,
     SymbolCondition,
     SymbolDefault,
     SymbolDirectedInfinity,
     SymbolEvaluate,
+    SymbolFlat,
     SymbolFractionBox,
     SymbolFunction,
+    SymbolHoldAll,
+    SymbolHoldAllComplete,
+    SymbolHoldFirst,
+    SymbolHoldRest,
+    SymbolListable,
+    SymbolModule,
+    SymbolNumericFunction,
     SymbolOptional,
     SymbolOptionsPattern,
+    SymbolOrderless,
     SymbolPattern,
     SymbolPatternTest,
     SymbolPower,
     SymbolRowBox,
     SymbolRule,
     SymbolSequence,
+    SymbolSequenceHold,
     SymbolSlot,
     SymbolSlotSequence,
     SymbolStyleBox,
@@ -53,28 +64,8 @@ from mathics.core.systemsymbols import (
     SymbolTimes,
     SymbolUnevaluated,
     SymbolVerbatim,
+    SymbolWith,
 )
-
-
-SymbolAborted = Symbol("$Aborted")
-SymbolAlternatives = Symbol("Alternatives")
-SymbolBlank = Symbol("System`Blank")
-SymbolBlankSequence = Symbol("System`BlankSequence")
-SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
-SymbolCompile = Symbol("Compile")
-SymbolCompiledFunction = Symbol("CompiledFunction")
-SymbolCondition = Symbol("Condition")
-SymbolDefault = Symbol("Default")
-SymbolDirectedInfinity = Symbol("DirectedInfinity")
-SymbolFunction = Symbol("Function")
-SymbolOptional = Symbol("Optional")
-SymbolOptionsPattern = Symbol("OptionsPattern")
-SymbolPattern = Symbol("Pattern")
-SymbolPatternTest = Symbol("PatternTest")
-SymbolSlot = Symbol("Slot")
-SymbolSlotSequence = Symbol("SlotSequence")
-SymbolTimes = Symbol("Times")
-SymbolVerbatim = Symbol("Verbatim")
 
 
 symbols_arithmetic_operations = system_symbols(
@@ -303,7 +294,7 @@ class Expression(BaseExpression):
 
     def flatten_sequence(self, evaluation):
         def sequence(leaf):
-            if leaf.get_head_name() == "System`Sequence":
+            if leaf.get_head() is SymbolSequence:
                 return leaf._leaves
             else:
                 return [leaf]
@@ -467,6 +458,14 @@ class Expression(BaseExpression):
                 return lookup_symbol.get_head()
             lookup_symbol = lookup_symbol._head
         return None
+
+    def get_lookup_symbol(self):
+        symbol = self._head
+        while not isinstance(symbol, Symbol):
+            if not isinstance(symbol, Expression):
+                return None
+            symbol = symbol._head
+        return symbol
 
     def has_form(self, heads, *leaf_counts):
         """
@@ -837,8 +836,9 @@ class Expression(BaseExpression):
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
-            if "System`HoldAllComplete" not in attributes:
-                if self._no_symbol(Symbol("System`Evaluate")):
+
+            if SymbolHoldAllComplete not in attributes:
+                if self._no_symbol(SymbolEvaluate):
                     return
                 for index in indices:
                     leaf = leaves[index]
@@ -853,13 +853,13 @@ class Expression(BaseExpression):
                     if leaf:
                         leaves[index] = leaf
 
-        if "System`HoldAll" in attributes or "System`HoldAllComplete" in attributes:
+        if SymbolHoldAll in attributes or SymbolHoldAllComplete in attributes:
             # eval_range(range(0, 0))
             rest_range(range(len(leaves)))
-        elif "System`HoldFirst" in attributes:
+        elif SymbolHoldFirst in attributes:
             rest_range(range(0, min(1, len(leaves))))
             eval_range(range(1, len(leaves)))
-        elif "System`HoldRest" in attributes:
+        elif SymbolHoldRest in attributes:
             eval_range(range(0, min(1, len(leaves))))
             rest_range(range(1, len(leaves)))
         else:
@@ -870,8 +870,8 @@ class Expression(BaseExpression):
         new._leaves = tuple(leaves)
 
         if (
-            "System`SequenceHold" not in attributes
-            and "System`HoldAllComplete" not in attributes  # noqa
+            SymbolSequenceHold not in attributes
+            and SymbolHoldAllComplete not in attributes  # noqa
         ):
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
@@ -880,7 +880,7 @@ class Expression(BaseExpression):
         for leaf in leaves:
             unevaluated_leaves[id(leaf)] = False
 
-        if "System`HoldAllComplete" not in attributes:
+        if SymbolHoldAllComplete not in attributes:
             dirty_leaves = None
 
             for index, leaf in enumerate(leaves):
@@ -899,41 +899,48 @@ class Expression(BaseExpression):
             for leaf in new_leaves:
                 unevaluated_leaves[id(leaf)] = unevaluated_leaves[id(old)]
 
-        if "System`Flat" in attributes:
-            new = new.flatten(new._head, callback=flatten_callback)
-        if "System`Orderless" in attributes:
-            new.sort()
-
-        new._timestamp_cache(evaluation)
-
-        if "System`Listable" in attributes:
-            done, threaded = new.thread(evaluation)
-            if done:
-                if threaded.sameQ(new):
-                    new._timestamp_cache(evaluation)
-                    return new, False
-                else:
-                    return threaded, True
+        if attributes:
+            if SymbolFlat in attributes:
+                new = new.flatten(new._head, callback=flatten_callback)
+            if SymbolOrderless in attributes:
+                new.sort()
+            new._timestamp_cache(evaluation)
+            if SymbolListable in attributes:
+                done, threaded = new.thread(evaluation)
+                if done:
+                    if threaded.sameQ(new):
+                        new._timestamp_cache(evaluation)
+                        return new, False
+                    else:
+                        return threaded, True
+        else:
+            new._timestamp_cache(evaluation)
 
         def rules():
             defcache = definitions.definitions_cache
-            rules_names = set()
-            if "System`HoldAllComplete" not in attributes:
+            rules_symbols = set()
+            if SymbolHoldAllComplete not in attributes:
                 for leaf in leaves:
-                    name = leaf.get_lookup_name()
-                    if len(name) > 0:  # only lookup rules if this is a symbol
-                        if name not in rules_names:
-                            rules_names.add(name)
-                            definition = defcache.get(name, None)
+                    symbol = leaf.get_lookup_symbol()
+                    if symbol:  # only lookup rules if this is a symbol
+                        if symbol not in rules_symbols:
+                            rules_symbols.add(symbol)
+                            symbol_name = symbol.name
+                            definition = definitions.definitions_cache.get(
+                                symbol_name, None
+                            )
                             if definition:
                                 rules_up = definition.upvalues
                             else:
-                                rules_up = definitions.get_upvalues(name)
+                                rules_up = definitions.get_upvalues(symbol_name)
                             for rule in rules_up:
                                 yield rule
-            lookup_name = new.get_lookup_name()
-            definition = defcache.get(lookup_name, None)
-            if lookup_name == new.get_head_name():
+            lookup_symbol = new.get_lookup_symbol()
+            if lookup_symbol is None:
+                return
+            lookup_name = lookup_symbol.name
+            definition = definitions.definitions_cache.get(lookup_name)
+            if lookup_symbol is new.get_head():
                 if definition:
                     rules_down = definition.downvalues
                 else:
@@ -966,7 +973,7 @@ class Expression(BaseExpression):
             if unevaluated_leaves[id(leaf)]:
                 if dirty_leaves is None:
                     dirty_leaves = list(new._leaves)
-                dirty_leaves[index] = Expression("Unevaluated", leaf)
+                dirty_leaves[index] = Expression(SymbolUnevaluated, leaf)
 
         if dirty_leaves:
             new = Expression(head)
@@ -1232,8 +1239,7 @@ class Expression(BaseExpression):
 
         if not in_scoping:
             if (
-                self._head.get_name()
-                in ("System`Module", "System`Block", "System`With")
+                self._head in (SymbolModule, SymbolBlock, SymbolWith)
                 and len(self._leaves) > 0
             ):  # nopep8
 
@@ -1339,10 +1345,18 @@ class Expression(BaseExpression):
             return True, Expression(head, *leaves)
 
     def is_numeric(self, evaluation=None) -> bool:
+        name = self._head.get_name()
         if evaluation:
-            if "System`NumericFunction" not in evaluation.definitions.get_attributes(
-                self._head.get_name()
-            ):
+            definitions = evaluation.definitions
+            definition = definitions.definitions_cache.get(name, None)
+            if definition is None:
+                definition = definitions.get_definition(name, True)
+                if definition:
+                    attributes = definition.attributes
+                else:
+                    return False
+            attributes = definition.attributes
+            if SymbolNumericFunction not in attributes:
                 return False
             return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
         else:

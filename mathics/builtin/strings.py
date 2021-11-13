@@ -41,6 +41,7 @@ from mathics.core.systemsymbols import (
     SymbolRepeatedNull,
     SymbolRule,
     SymbolStringExpression,
+    SymbolToExpression,
 )
 
 from mathics.core.atoms import (
@@ -55,11 +56,6 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
-
-SymbolBlank = Symbol("Blank")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolToExpression = Symbol("ToExpression")
-SymbolInputForm = Symbol("InputForm")
 
 _regex_longest = {
     "+": "+",
@@ -687,7 +683,7 @@ class _StringFind(Builtin):
 
         # flags
         flags = re.MULTILINE
-        if options["System`IgnoreCase"] == SymbolTrue:
+        if options["System`IgnoreCase"] is SymbolTrue:
             flags = flags | re.IGNORECASE
 
         if isinstance(py_strings, list):
@@ -936,7 +932,7 @@ class ToExpression(Builtin):
             return
 
         # Apply the different forms
-        if form == SymbolInputForm:
+        if form is SymbolInputForm:
             if isinstance(inp, String):
 
                 # TODO: turn the below up into a function and call that.
@@ -1066,7 +1062,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         re_patts.append(py_p)
 
     flags = re.MULTILINE
-    if options["System`IgnoreCase"] == SymbolTrue:
+    if options["System`IgnoreCase"] is SymbolTrue:
         flags = flags | re.IGNORECASE
 
     def _search(patts, str, flags, matched):

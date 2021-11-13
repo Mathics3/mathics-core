@@ -21,6 +21,17 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import (
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+    SymbolAbs,
+    SymbolNorm,
+    SymbolTotal,
+    SymbolSubtract,
+    SymbolMax,
+    SymbolDivide,
+)
 
 
 def matrix_data(m):
@@ -733,7 +744,7 @@ class Eigenvalues(Builtin):
     def mp_eig(mp_matrix) -> Expression:
         try:
             _, ER = mp.eig(mp_matrix)
-        except:
+        except Exception:
             return None
 
         eigenvalues = ER.tolist()
@@ -1127,7 +1138,7 @@ class EuclideanDistance(Builtin):
         "EuclideanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Norm", t)
+            return Expression(SymbolNorm, t)
 
 
 class SquaredEuclideanDistance(Builtin):
@@ -1148,7 +1159,7 @@ class SquaredEuclideanDistance(Builtin):
         "SquaredEuclideanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Power", Expression("Norm", t), Integer(2))
+            return Expression(SymbolPower, Expression(SymbolNorm, t), Integer(2))
 
 
 class ManhattanDistance(Builtin):
@@ -1170,7 +1181,7 @@ class ManhattanDistance(Builtin):
         "ManhattanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Total", Expression("Abs", t))
+            return Expression("Total", Expression(SymbolAbs, t))
 
 
 class ChessboardDistance(Builtin):
@@ -1192,7 +1203,7 @@ class ChessboardDistance(Builtin):
         "ChessboardDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Max", Expression("Abs", t))
+            return Expression(SymbolMax, Expression(SymbolAbs, t))
 
 
 class CanberraDistance(Builtin):
@@ -1215,11 +1226,13 @@ class CanberraDistance(Builtin):
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
             return Expression(
-                "Total",
+                SymbolTotal,
                 Expression(
-                    "Divide",
-                    Expression("Abs", t),
-                    Expression("Plus", Expression("Abs", u), Expression("Abs", v)),
+                    SymbolDivide,
+                    Expression(SymbolAbs, t),
+                    Expression(
+                        SymbolPlus, Expression(SymbolAbs, u), Expression(SymbolAbs, v)
+                    ),
                 ),
             )
 
@@ -1243,9 +1256,11 @@ class BrayCurtisDistance(Builtin):
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
             return Expression(
-                "Divide",
-                Expression("Total", Expression("Abs", t)),
-                Expression("Total", Expression("Abs", Expression("Plus", u, v))),
+                SymbolDivide,
+                Expression(SymbolTotal, Expression(SymbolAbs, t)),
+                Expression(
+                    SymbolTotal, Expression(SymbolAbs, Expression(SymbolPlus, u, v))
+                ),
             )
 
 
@@ -1268,11 +1283,15 @@ class CosineDistance(Builtin):
         dot = _norm_calc("Dot", u, v, evaluation)
         if dot is not None:
             return Expression(
-                "Subtract",
+                SymbolSubtract,
                 Integer1,
                 Expression(
-                    "Divide",
+                    SymbolDivide,
                     dot,
-                    Expression("Times", Expression("Norm", u), Expression("Norm", v)),
+                    Expression(
+                        SymbolTimes,
+                        Expression(SymbolNorm, u),
+                        Expression(SymbolNorm, v),
+                    ),
                 ),
             )

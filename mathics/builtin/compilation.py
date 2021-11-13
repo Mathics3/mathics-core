@@ -19,8 +19,10 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue, SymbolFalse
 from mathics.core.systemsymbols import (
     SymbolBlank,
-    SymbolFunction,
     SymbolCompiledFunction,
+    SymbolFunction,
+    SymbolInteger,
+    SymbolReal,
 )
 
 from mathics.core.atoms import (
@@ -111,8 +113,8 @@ class Compile(Builtin):
 
         # _Complex not implemented
         permitted_types = {
-            Expression(SymbolBlank, Symbol("Integer")): int_type,
-            Expression(SymbolBlank, Symbol("Real")): real_type,
+            Expression(SymbolBlank, SymbolInteger): int_type,
+            Expression(SymbolBlank, SymbolReal): real_type,
             SymbolTrue: bool_type,
             SymbolFalse: bool_type,
         }
@@ -254,9 +256,9 @@ class CompiledFunction(Builtin):
         for arg in argseq:
             if isinstance(arg, Integer):
                 py_args.append(arg.get_int_value())
-            elif arg.sameQ(Symbol("True")):
+            elif arg is SymbolTrue:
                 py_args.append(True)
-            elif arg.sameQ(Symbol("False")):
+            elif arg is SymbolFalse:
                 py_args.append(False)
             else:
                 py_args.append(arg.round_to_float(evaluation))

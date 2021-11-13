@@ -59,9 +59,13 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
+
 from mathics.core.systemsymbols import (
+    SymbolDefault,
     SymbolDispatch,
+    SymbolInfinity,
     SymbolPower,
+    SymbolRowBox,
     SymbolRule,
     SymbolRuleDelayed,
     SymbolSequence,
@@ -1024,7 +1028,7 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
             name, "System`DefaultValues", defaultexpr, evaluation
@@ -1523,7 +1527,7 @@ class Dispatch(Atom):
         self.src = Expression(SymbolList, *rulelist)
         self.rules = [Rule(rule._leaves[0], rule._leaves[1]) for rule in rulelist]
         self._leaves = None
-        self._head = Symbol("Dispatch")
+        self._head = SymbolDispatch
 
     def get_sort_key(self):
         return self.src.get_sort_key()
@@ -1537,7 +1541,7 @@ class Dispatch(Atom):
     def atom_to_boxes(self, f, evaluation):
         leaves = self.src.format(evaluation, f.get_name())
         return Expression(
-            "RowBox",
+            SymbolRowBox,
             Expression(
                 SymbolList, String("Dispatch"), String("["), leaves, String("]")
             ),

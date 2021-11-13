@@ -13,7 +13,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue, SymbolList
 from mathics.core.systemsymbols import SymbolAll, SymbolDirectedInfinity, SymbolSubsets
 from mathics.builtin.arithmetic import _MPMathFunction
 from itertools import combinations
@@ -100,9 +100,9 @@ class _BooleanDissimilarity(Builtin):
                     else:
                         raise _NoBoolVector
                 elif isinstance(leaf, Symbol):
-                    if leaf == SymbolTrue:
+                    if leaf is SymbolTrue:
                         yield 1
-                    elif leaf == SymbolFalse:
+                    elif leaf is SymbolFalse:
                         yield 0
                     else:
                         raise _NoBoolVector
@@ -413,7 +413,7 @@ class Subsets(Builtin):
             head_t = list.head
             n_value = n.get_int_value()
             if n_value == 0:
-                return Expression("List", Expression("List"))
+                return Expression(SymbolList, Expression(SymbolList))
             if n_value is None or n_value < 0:
                 return evaluation.message("Subsets", "nninfseq", expr)
 

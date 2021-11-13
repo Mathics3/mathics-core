@@ -10,8 +10,7 @@ from mathics.core.atoms import (
     Number,
 )
 from mathics.core.symbols import Symbol, SymbolList
-
-SymbolQuantity = Symbol("Quantity")
+from mathics.core.systemsymbols import SymbolQuantity, SymbolRowBox
 
 from pint import UnitRegistry
 
@@ -96,7 +95,7 @@ class UnitConvert(Builtin):
 
             # Displaying the magnitude in Integer form if the convert rate is an Integer
             if q_mag - int(q_mag) > 0:
-                return Expression("Quantity", Real(q_mag), target)
+                return Expression(SymbolQuantity, Real(q_mag), target)
             else:
                 return Expression(SymbolQuantity, Integer(q_mag), target)
 
@@ -118,7 +117,7 @@ class UnitConvert(Builtin):
             abc = []
             for i in range(len(expr.leaves)):
                 abc.append(convert_unit(expr.leaves[i].leaves, targetUnit))
-            return Expression("List", *abc)
+            return Expression(SymbolList, *abc)
         else:
             return convert_unit(expr.leaves, targetUnit)
 
@@ -134,7 +133,7 @@ class UnitConvert(Builtin):
             converted_quantity = quantity.to_base_units()
 
             return Expression(
-                "Quantity",
+                SymbolQuantity,
                 converted_quantity.magnitude,
                 String(converted_quantity.units),
             )
@@ -145,7 +144,7 @@ class UnitConvert(Builtin):
             abc = []
             for i in range(len(expr.leaves)):
                 abc.append(convert_unit(expr.leaves[i].leaves))
-            return Expression("List", *abc)
+            return Expression(SymbolList, *abc)
         else:
             return convert_unit(expr.leaves)
 
@@ -186,7 +185,7 @@ class Quantity(Builtin):
     }
 
     def validate(self, unit, evaluation):
-        if KnownUnitQ(unit).evaluate(evaluation) == Symbol("False"):
+        if KnownUnitQ(unit).evaluate(evaluation) is SymbolFalse:
             return False
         return True
 
@@ -195,10 +194,11 @@ class Quantity(Builtin):
 
         q_unit = unit.get_string_value().lower()
         if self.validate(unit, evaluation):
-            return Expression("RowBox", Expression("List", mag, " ", q_unit))
+            return Expression(SymbolRowBox, Expression(SymbolList, mag, " ", q_unit))
         else:
             return Expression(
-                "RowBox", Expression("List", "Quantity", "[", mag, ",", q_unit, "]")
+                SymbolRowBox,
+                Expression(SymbolList, "Quantity", "[", mag, ",", q_unit, "]"),
             )
 
     def apply_n(self, mag, unit, evaluation):
@@ -211,14 +211,14 @@ class Quantity(Builtin):
                     quantity = Q_(mag.leaves[i], unit.get_string_value().lower())
                     results.append(
                         Expression(
-                            "Quantity", quantity.magnitude, String(quantity.units)
+                            SymbolQuantity, quantity.magnitude, String(quantity.units)
                         )
                     )
-                return Expression("List", *results)
+                return Expression(SymbolList, *results)
             else:
                 quantity = Q_(mag, unit.get_string_value().lower())
                 return Expression(
-                    "Quantity", quantity.magnitude, String(quantity.units)
+                    SymbolQuantity, quantity.magnitude, String(quantity.units)
                 )
         else:
             return evaluation.message("Quantity", "unkunit", unit)
@@ -314,7 +314,7 @@ class QuantityUnit(Builtin):
             results = []
             for i in range(len(expr.leaves)):
                 results.append(get_unit(expr.leaves[i].leaves))
-            return Expression("List", *results)
+            return Expression(SymbolList, *results)
         else:
             return get_unit(expr.leaves)
 
@@ -372,7 +372,7 @@ class QuantityMagnitude(Builtin):
             results = []
             for i in range(len(expr.leaves)):
                 results.append(get_magnitude(expr.leaves[i].leaves))
-            return Expression("List", *results)
+            return Expression(SymbolList, *results)
         else:
             return get_magnitude(expr.leaves)
 
@@ -413,6 +413,6 @@ class QuantityMagnitude(Builtin):
                 results.append(
                     get_magnitude(expr.leaves[i].leaves, targetUnit, evaluation)
                 )
-            return Expression("List", *results)
+            return Expression(SymbolList, *results)
         else:
             return get_magnitude(expr.leaves, targetUnit, evaluation)

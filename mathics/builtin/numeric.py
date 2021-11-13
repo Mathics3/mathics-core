@@ -42,9 +42,27 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolCompile,
+    SymbolComplex,
+    SymbolCos,
+    SymbolDivide,
+    SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolIntegerDigits,
+    SymbolLog,
     SymbolMachinePrecision,
-    SymbolSequence,
+    SymbolNHoldAll,
+    SymbolNHoldFirst,
+    SymbolNHoldRest,
+    SymbolPrecision,
+    SymbolRealDigits,
     SymbolRoot,
+    SymbolRound,
+    SymbolRule,
+    SymbolSequence,
+    SymbolSin,
+    SymbolTimes,
 )
 
 from mathics.core.number import (
@@ -63,7 +81,7 @@ def log_n_b(py_n, py_b) -> int:
 
 
 def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
-    return Expression("N", expression, prec).evaluate(evaluation)
+    return Expression(SymbolN, expression, prec).evaluate(evaluation)
 
 
 def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
@@ -373,8 +391,8 @@ class Fold(object):
             sin=mpmath.sin,
         ),
         SYMBOLIC: ComputationFunctions(
-            cos=lambda x: Expression("Cos", x),
-            sin=lambda x: Expression("Sin", x),
+            cos=lambda x: Expression(SymbolCos, x),
+            sin=lambda x: Expression(SymbolSin, x),
         ),
     }
 
@@ -540,7 +558,7 @@ class IntegerDigits(Builtin):
 
         if not (isinstance(n, Integer)):
             return evaluation.message(
-                "IntegerDigits", "int", Expression("IntegerDigits", n, base)
+                "IntegerDigits", "int", Expression(SymbolIntegerDigits, n, base)
             )
 
         if not (isinstance(base, Integer) and base.get_int_value() > 1):
@@ -862,7 +880,7 @@ class N(Builtin):
         except PrecisionValueError:
             return
 
-        if expr.get_head_name() in ("System`List", "System`Rule"):
+        if expr.get_head() in (SymbolList, SymbolRule):
             return Expression(
                 expr.head,
                 *[self.apply_with_prec(leaf, prec, evaluation) for leaf in expr.leaves],
@@ -875,11 +893,12 @@ class N(Builtin):
         if isinstance(expr, Number):
             return expr.round(d)
 
-        name = expr.get_lookup_name()
-        if name != "":
+        symbol = expr.get_lookup_symbol()
+        definitions = evaluation.definitions
+        if symbol:
             nexpr = Expression(SymbolN, expr, prec)
-            result = evaluation.definitions.get_value(
-                name, "System`NValues", nexpr, evaluation
+            result = definitions.get_value(
+                symbol.name, "System`NValues", nexpr, evaluation
             )
             if result is not None:
                 if not result.sameQ(nexpr):
@@ -889,12 +908,12 @@ class N(Builtin):
         if expr.is_atom():
             return expr
         else:
-            attributes = expr.head.get_attributes(evaluation.definitions)
-            if "System`NHoldAll" in attributes:
+            attributes = expr.head.get_attributes(definitions)
+            if SymbolNHoldAll in attributes:
                 eval_range = ()
-            elif "System`NHoldFirst" in attributes:
+            elif SymbolNHoldFirst in attributes:
                 eval_range = range(1, len(expr.leaves))
-            elif "System`NHoldRest" in attributes:
+            elif SymbolNHoldRest in attributes:
                 if len(expr.leaves) > 0:
                     eval_range = (0,)
                 else:
@@ -1037,9 +1056,9 @@ class NIntegrate(Builtin):
                 evaluation.message("ilim", interval)
                 return None
             boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
+            if any([isinstance(b, Complex) for b in boundaries]):
                 intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
+                    SymbolList, intvar, Expression(SymbolBlank, SymbolComplex)
                 )
             for i in range(len(boundaries) - 1):
                 intervals.append((boundaries[i], boundaries[i + 1]))
@@ -1092,7 +1111,7 @@ class NIntegrate(Builtin):
             return
 
         intvars = Expression(SymbolList, *coords)
-        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
+        integrand = Expression(SymbolCompile, intvars, func).evaluate(evaluation)
 
         if len(integrand.leaves) >= 3:
             integrand = integrand.leaves[2].cfunc
@@ -1163,17 +1182,19 @@ class NIntegrate(Builtin):
                 continue
 
             if any(coordtransform):
-                func2 = lambda *u: (
-                    integrand(
+
+                def func2(*u):
+                    integral_value = integrand(
                         *[
                             x[0](u[i]) if x else u[i]
                             for i, x in enumerate(coordtransform)
                         ]
                     )
-                    * np.prod(
+                    jac = np.prod(
                         [jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac]
                     )
-                )
+                    return integral_value * jac
+
             opts = {
                 "acur": accuracy,
                 "tol": tolerance,
@@ -1282,7 +1303,7 @@ class Precision(Builtin):
         "Precision[z_]"
 
         if not z.is_inexact():
-            return Symbol("Infinity")
+            return SymbolInfinity
         elif z.to_sympy().is_zero:
             return Real(0)
         else:
@@ -1508,7 +1529,7 @@ class Round(Builtin):
     def apply(self, expr, k, evaluation):
         "Round[expr_?NumericQ, k_?NumericQ]"
 
-        n = Expression("Divide", expr, k).round_to_float(
+        n = Expression(SymbolDivide, expr, k).round_to_float(
             evaluation, permit_complex=True
         )
         if n is None:
@@ -1518,7 +1539,7 @@ class Round(Builtin):
         else:
             n = round(n)
         n = int(n)
-        return Expression("Times", Integer(n), k)
+        return Expression(SymbolTimes, Integer(n), k)
 
 
 class RealDigits(Builtin):
@@ -1647,7 +1668,7 @@ class RealDigits(Builtin):
     def apply_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         "%(name)s[n_?NumericQ, b_Integer]"
 
-        expr = Expression("RealDigits", n)
+        expr = Expression(SymbolRealDigits, n)
         rational_no = (
             True if isinstance(n, Rational) else False
         )  # it is used for checking whether the input n is a rational or not
@@ -1684,11 +1705,11 @@ class RealDigits(Builtin):
                 Expression(
                     SymbolN,
                     Expression(
-                        "Round",
+                        SymbolRound,
                         Expression(
-                            "Divide",
-                            Expression("Precision", Real(py_n)),
-                            Expression("Log", Integer(10), Real(py_b)),
+                            SymbolDivide,
+                            Expression(SymbolPrecision, Real(py_n)),
+                            Expression(SymbolLog, Integer(10), Real(py_b)),
                         ),
                     ),
                 )
@@ -1752,7 +1773,7 @@ class RealDigits(Builtin):
                 else:
                     # Adding Indeterminate if the length is greater than the precision
                     while len(leaves) < nr_elements:
-                        leaves.append(from_python(Symbol("Indeterminate")))
+                        leaves.append(from_python(SymbolIndeterminate))
         list_str = Expression(SymbolList, *leaves)
         return Expression(SymbolList, list_str, Integer(exp))
 
@@ -1761,7 +1782,7 @@ class RealDigits(Builtin):
         leaves = []
         if pos is not None:
             leaves.append(from_python(pos))
-        expr = Expression("RealDigits", n, b, length, *leaves)
+        expr = Expression(SymbolRealDigits, n, b, length, *leaves)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
             return evaluation.message("RealDigits", "intnm", expr)
 
@@ -1773,7 +1794,7 @@ class RealDigits(Builtin):
         "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
         if not isinstance(p, Integer):
             return evaluation.message(
-                "RealDigits", "intm", Expression("RealDigits", n, b, length, p)
+                "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
             )
 
         return self.apply_with_base_and_length(

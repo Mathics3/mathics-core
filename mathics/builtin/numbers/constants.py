@@ -18,6 +18,10 @@ from mathics.core.symbols import (
     Symbol,
     strip_context,
 )
+from mathics.core.systemsymbols import (
+    SymbolMachinePrecision,
+    SymbolDegree,
+)
 from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
@@ -276,12 +280,12 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "degree"
 
     def to_sympy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is SymbolDegree:
             # return mpmath.degree
             return sympy.pi / 180
 
     def to_numpy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is SymbolDegree:
             # return mpmath.degree
             return numpy.pi / 180
 
@@ -291,7 +295,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             if precision:
                 d = get_precision(precision, evaluation)
             else:
-                d = get_precision(Symbol("System`MachinePrecision"), evaluation)
+                d = get_precision(SymbolMachinePrecision, evaluation)
         except PrecisionValueError:
             return
 

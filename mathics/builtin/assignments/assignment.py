@@ -8,7 +8,7 @@ from mathics.version import __version__  # noqa used in loading to check consist
 from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.rules import Rule
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolNull
 
 from mathics.core.systemsymbols import (
     SymbolFailed,
@@ -88,24 +88,17 @@ class Set(BinaryOperator, _SetOperator):
     attributes = ("HoldFirst", "SequenceHold")
     grouping = "Right"
 
-    messages = {
-        "setraw": "Cannot assign to raw object `1`.",
-        "shape": "Lists `1` and `2` are not the same shape.",
-    }
-
     operator = "="
     precedence = 40
 
+    summary_text = "assign a value"
     messages = {
         "setraw": "Cannot assign to raw object `1`.",
         "shape": "Lists `1` and `2` are not the same shape.",
     }
 
-    summary_text = "assign a value"
-
     def apply(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
-
         self.assign(lhs, rhs, evaluation)
         return rhs
 
@@ -160,7 +153,7 @@ class SetDelayed(Set):
         "lhs_ := rhs_"
 
         if self.assign(lhs, rhs, evaluation):
-            return Symbol("Null")
+            return SymbolNull
         else:
             return SymbolFailed
 
@@ -202,13 +195,12 @@ class TagSet(Builtin, _SetOperator):
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
 
-        name = f.get_name()
-        if not name:
+        if not f.is_symbol():
             evaluation.message(self.get_name(), "sym", f, 1)
             return
 
         rhs = rhs.evaluate(evaluation)
-        self.assign_elementary(lhs, rhs, evaluation, tags=[name])
+        self.assign_elementary(lhs, rhs, evaluation, tags=[f])
         return rhs
 
 
@@ -228,13 +220,12 @@ class TagSetDelayed(TagSet):
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"
 
-        name = f.get_name()
-        if not name:
+        if not f.is_symbol():
             evaluation.message(self.get_name(), "sym", f, 1)
             return
 
-        if self.assign_elementary(lhs, rhs, evaluation, tags=[name]):
-            return Symbol("Null")
+        if self.assign_elementary(lhs, rhs, evaluation, tags=[f]):
+            return SymbolNull
         else:
             return SymbolFailed
 

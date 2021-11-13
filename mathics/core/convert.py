@@ -13,32 +13,32 @@ BasicSympy = sympy.Expr
 
 
 from mathics.core.symbols import (
-    Symbol,
     SymbolFalse,
     SymbolTrue,
     sympy_symbol_prefix,
     sympy_slot_prefix,
 )
 
-
-SymbolEqual = Symbol("Equal")
-SymbolFunction = Symbol("Function")
-SymbolGreater = Symbol("Greater")
-SymbolGreaterEqual = Symbol("GreaterEqual")
-SymbolIndeterminate = Symbol("Indeterminate")
-SymbolInfinity = Symbol("Infinity")
-SymbolLess = Symbol("Less")
-SymbolLessEqual = Symbol("LessEqual")
-SymbolO = Symbol("O")
-SymbolPiecewise = Symbol("Piecewise")
-SymbolPlus = Symbol("Plus")
-SymbolPower = Symbol("Power")
-SymbolPrime = Symbol("Prime")
-SymbolRoot = Symbol("Root")
-SymbolRootSum = Symbol("RootSum")
-SymbolSlot = Symbol("Slot")
-SymbolTimes = Symbol("Times")
-SymbolUnequal = Symbol("Unequal")
+from mathics.core.systemsymbols import (
+    SymbolEqual,
+    SymbolFunction,
+    SymbolGreater,
+    SymbolGreaterEqual,
+    SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolLess,
+    SymbolLessEqual,
+    SymbolO,
+    SymbolPiecewise,
+    SymbolPlus,
+    SymbolPower,
+    SymbolPrime,
+    SymbolRoot,
+    SymbolRootSum,
+    SymbolSlot,
+    SymbolTimes,
+    SymbolUnequal,
+)
 
 
 def is_Cn_expr(name) -> bool:

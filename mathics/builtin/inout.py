@@ -72,18 +72,6 @@ from mathics.core.evaluation import Message as EvaluationMessage
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
-SymbolAutomatic = Symbol("Automatic")
-SymbolFullForm = Symbol("FullForm")
-SymbolInfinity = Symbol("Infinity")
-SymbolMessageName = Symbol("MessageName")
-SymbolNumberForm = Symbol("NumberForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolRow = Symbol("Row")
-SymbolRowBox = Symbol("RowBox")
-SymbolRuleDelayed = Symbol("RuleDelayed")
-SymbolSuperscriptBox = Symbol("SuperscriptBox")
-SymbolSubscriptBox = Symbol("SubscriptBox")
-
 
 class Format(Builtin):
     """
