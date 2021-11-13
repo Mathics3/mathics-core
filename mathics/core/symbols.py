@@ -280,7 +280,7 @@ class BaseExpression(KeyComparable):
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
-                    expr = self.create_expression(Symbol(form), expr)
+                    expr = self.create_expression(form, expr)
                     expr.unformatted = unformatted
                 return expr
 
