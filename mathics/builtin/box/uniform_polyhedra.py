@@ -7,6 +7,8 @@ from mathics.builtin.colors.color_directives import _Color
 import numbers
 from mathics.core.symbols import Symbol
 
+from mathics.version import __version__  # noqa used in loading to check consistency.
+
 
 class UniformPolyhedron3DBox(InstanceableBuiltin):
     def init(self, graphics, style, item):
