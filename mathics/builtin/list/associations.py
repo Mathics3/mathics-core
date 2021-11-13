@@ -18,9 +18,11 @@ from mathics.builtin.lists import list_boxes
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
+    SymbolRule,
+    SymbolRuleDelayed,
     SymbolMakeBoxes,
 )
 
@@ -95,9 +97,11 @@ class Association(Builtin):
 
         def validate(exprs):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     pass
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
+                elif expr.has_form(SymbolList, None) or expr.has_form(
+                    SymbolAssociation, None
+                ):
                     if validate(expr.leaves) is not True:
                         return False
                 else:
@@ -127,13 +131,15 @@ class Association(Builtin):
 
         def make_flatten(exprs, dic={}, keys=[]):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     key = expr.leaves[0].evaluate(evaluation)
                     value = expr.leaves[1].evaluate(evaluation)
                     dic[key] = Expression(expr.get_head(), key, value)
                     if key not in keys:
                         keys.append(key)
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
+                elif expr.has_form(SymbolList, None) or expr.has_form(
+                    SymbolAssociation, None
+                ):
                     make_flatten(expr.leaves, dic, keys)
                 else:
                     raise
@@ -149,10 +155,12 @@ class Association(Builtin):
 
         def find_key(exprs, dic={}):
             for expr in exprs:
-                if expr.has_form(("Rule", "RuleDelayed"), 2):
+                if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     if expr.leaves[0] == key:
                         dic[key] = expr.leaves[1]
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
+                elif expr.has_form(SymbolList, None) or expr.has_form(
+                    SymbolAssociation, None
+                ):
                     find_key(expr.leaves)
                 else:
                     raise
@@ -188,9 +196,11 @@ class AssociationQ(Test):
     def test(self, expr):
         def validate(leaves):
             for leaf in leaves:
-                if leaf.has_form(("Rule", "RuleDelayed"), 2):
+                if leaf.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     pass
-                elif leaf.has_form("List", None) or leaf.has_form("Association", None):
+                elif leaf.has_form(SymbolList, None) or leaf.has_form(
+                    SymbolAssociation, None
+                ):
                     if validate(leaf.leaves) is not True:
                         return False
                 else:
@@ -273,11 +283,11 @@ class Keys(Builtin):
         "Keys[rules___]"
 
         def get_keys(expr):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return expr.leaves[0]
-            elif expr.has_form("List", None) or (
-                expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) == Symbol("True")
+            elif expr.has_form(SymbolList, None) or (
+                expr.has_form(SymbolAssociation, None)
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(SymbolList, *[get_keys(leaf) for leaf in expr.leaves])
             else:
@@ -388,11 +398,11 @@ class Values(Builtin):
         "Values[rules___]"
 
         def get_values(expr):
-            if expr.has_form(("Rule", "RuleDelayed"), 2):
+            if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return expr.leaves[1]
-            elif expr.has_form("List", None) or (
-                expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) == Symbol("True")
+            elif expr.has_form(SymbolList, None) or (
+                expr.has_form(SymbolAssociation, None)
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(
                     SymbolList, *[get_values(leaf) for leaf in expr.leaves]

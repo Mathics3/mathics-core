@@ -42,9 +42,15 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, SymbolList
 from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
     SymbolFailed,
+    SymbolHold,
+    SymbolHoldExpression,
+    SymbolIndeterminate,
+    SymbolInputStream,
+    SymbolOutputStream,
 )
 
 from mathics.core.number import dps
@@ -425,7 +431,7 @@ class Read(Builtin):
             return
 
         # Wrap types in a list (if it isn't already one)
-        if types.has_form("List", None):
+        if types.has_form(SymbolList, None):
             types = types._leaves
         else:
             types = (types,)
@@ -433,7 +439,7 @@ class Read(Builtin):
         # TODO: look for a better implementation handling "Hold[Expression]".
         #
         types = (
-            Symbol("HoldExpression")
+            SymbolHoldExpression
             if (
                 typ.get_head_name() == "System`Hold"
                 and typ.leaves[0].get_name() == "System`Expression"
@@ -441,7 +447,7 @@ class Read(Builtin):
             else typ
             for typ in types
         )
-        types = Expression("List", *types)
+        types = Expression(SymbolList, *types)
 
         for typ in types.leaves:
             if typ not in READ_TYPES:
@@ -475,17 +481,17 @@ class Read(Builtin):
 
         for typ in types.leaves:
             try:
-                if typ == Symbol("Byte"):
+                if typ is Symbol("Byte"):
                     tmp = stream.io.read(1)
                     if tmp == "":
                         raise EOFError
                     result.append(ord(tmp))
-                elif typ == Symbol("Character"):
+                elif typ is Symbol("Character"):
                     tmp = stream.io.read(1)
                     if tmp == "":
                         raise EOFError
                     result.append(tmp)
-                elif typ == Symbol("Expression") or typ == Symbol("HoldExpression"):
+                elif typ is Symbol("Expression") or typ == Symbol("HoldExpression"):
                     tmp = next(read_record)
                     while True:
                         try:
@@ -504,18 +510,18 @@ class Read(Builtin):
 
                     if expr == SymbolEndOfFile:
                         evaluation.message(
-                            "Read", "readt", tmp, Expression("InputSteam", name, n)
+                            "Read", "readt", tmp, Expression(SymbolInputStream, name, n)
                         )
                         return SymbolFailed
                     elif isinstance(expr, BaseExpression):
-                        if typ == Symbol("HoldExpression"):
-                            expr = Expression("Hold", expr)
+                        if typ is SymbolHoldExpression:
+                            expr = Expression(SymbolHold, expr)
                         result.append(expr)
                     # else:
                     #  TODO: Supposedly we can't get here
                     # what code should we put here?
 
-                elif typ == Symbol("Number"):
+                elif typ is Symbol("Number"):
                     tmp = next(read_number)
                     try:
                         tmp = int(tmp)
@@ -524,7 +530,7 @@ class Read(Builtin):
                             tmp = float(tmp)
                         except ValueError:
                             evaluation.message(
-                                "Read", "readn", Expression("InputSteam", name, n)
+                                "Read", "readn", Expression(SymbolInputStream, name, n)
                             )
                             return SymbolFailed
                     result.append(tmp)
@@ -536,18 +542,18 @@ class Read(Builtin):
                         tmp = float(tmp)
                     except ValueError:
                         evaluation.message(
-                            "Read", "readn", Expression("InputSteam", name, n)
+                            "Read", "readn", Expression(SymbolInputStream, name, n)
                         )
                         return SymbolFailed
                     result.append(tmp)
-                elif typ == Symbol("Record"):
+                elif typ is Symbol("Record"):
                     result.append(next(read_record))
-                elif typ == Symbol("String"):
+                elif typ is Symbol("String"):
                     tmp = stream.io.readline()
                     if len(tmp) == 0:
                         raise EOFError
                     result.append(tmp.rstrip("\n"))
-                elif typ == Symbol("Word"):
+                elif typ is Symbol("Word"):
                     result.append(next(read_word))
 
             except EOFError:
@@ -605,7 +611,7 @@ class Write(Builtin):
             return SymbolNull
 
         expr = expr.get_sequence()
-        expr = Expression("Row", Expression("List", *expr))
+        expr = Expression("Row", Expression(SymbolList, *expr))
 
         evaluation.format = "text"
         text = evaluation.format_output(expr)
@@ -623,7 +629,7 @@ class _BinaryFormat(object):
         if math.isnan(real):
             return Symbol("Indeterminate")
         elif math.isinf(real):
-            return Expression("DirectedInfinity", Integer((-1) ** (real < 0)))
+            return Expression(SymbolDirectedInfinity, Integer((-1) ** (real < 0)))
         else:
             return Real(real)
 
@@ -757,9 +763,9 @@ class _BinaryFormat(object):
             return Real(sympy.Float(0, 4965))
         elif expbits == 0x7FFF:
             if fracbits == 0:
-                return Expression("DirectedInfinity", Integer((-1) ** signbit))
+                return Expression(SymbolDirectedInfinity, Integer((-1) ** signbit))
             else:
-                return Symbol("Indeterminate")
+                return SymbolIndeterminate
 
         with mpmath.workprec(112):
             core = mpmath.fdiv(fracbits, 2 ** 112)
@@ -1205,13 +1211,13 @@ class BinaryWrite(Builtin):
             return expr
 
         # Check b
-        if b.has_form("List", None):
+        if b.has_form(SymbolList, None):
             pyb = b.leaves
         else:
             pyb = [b]
 
         # Check Type
-        if typ.has_form("List", None):
+        if typ.has_form(SymbolList, None):
             types = typ.get_leaves()
         else:
             types = [typ]
@@ -1237,7 +1243,7 @@ class BinaryWrite(Builtin):
             elif t.startswith("Real"):
                 if isinstance(x, Real):
                     x = x.to_python()
-                elif x.has_form("DirectedInfinity", 1):
+                elif x.has_form(SymbolDirectedInfinity, 1):
                     if x.leaves[0].get_int_value() == 1:
                         x = float("+inf")
                     elif x.leaves[0].get_int_value() == -1:
@@ -1252,7 +1258,7 @@ class BinaryWrite(Builtin):
             elif t.startswith("Complex"):
                 if isinstance(x, (Complex, Real, Integer)):
                     x = x.to_python()
-                elif x.has_form("DirectedInfinity", 1):
+                elif x.has_form(SymbolDirectedInfinity, 1):
                     x = x.leaves[0].to_python(n_evaluation=evaluation)
 
                     # x*float('+inf') creates nan if x.real or x.imag are zero
@@ -1549,7 +1555,7 @@ class BinaryRead(Builtin):
     def apply(self, name, n, typ, evaluation):
         "BinaryRead[InputStream[name_, n_], typ_]"
 
-        channel = Expression("InputStream", name, n)
+        channel = Expression(SymbolInputStream, name, n)
 
         # Check typ
         if typ is None:
@@ -1569,7 +1575,7 @@ class BinaryRead(Builtin):
             evaluation.message("BinaryRead", "bfmt", channel)
             return expr
 
-        if typ.has_form("List", None):
+        if typ.has_form(SymbolList, None):
             types = typ.get_leaves()
         else:
             types = [typ]
@@ -1587,8 +1593,8 @@ class BinaryRead(Builtin):
             except struct.error:
                 result.append(SymbolEndOfFile)
 
-        if typ.has_form("List", None):
-            return Expression("List", *result)
+        if typ.has_form(SymbolList, None):
+            return Expression(SymbolList, *result)
         else:
             if len(result) == 1:
                 return result[0]
@@ -2373,7 +2379,7 @@ class Close(Builtin):
     def apply(self, channel, evaluation):
         "Close[channel_]"
 
-        if channel.has_form(("InputStream", "OutputStream"), 2):
+        if channel.has_form((SymbolInputStream, SymbolOutputStream), 2):
             [name, n] = channel.get_leaves()
             py_n = n.get_int_value()
             stream = stream_manager.lookup_stream(py_n)
@@ -2483,7 +2489,7 @@ class SetStreamPosition(Builtin):
         seekpos = m.to_python()
         if not (isinstance(seekpos, int) or seekpos == float("inf")):
             evaluation.message(
-                "SetStreamPosition", "stmrng", Expression("InputStream", name, n), m
+                "SetStreamPosition", "stmrng", Expression(SymbolInputStream, name, n), m
             )
             return
 
@@ -2559,7 +2565,7 @@ class Skip(Read):
     def apply(self, name, n, types, m, evaluation, options):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
 
-        channel = Expression("InputStream", name, n)
+        channel = Expression(SymbolInputStream, name, n)
 
         # Options
         # TODO Implement extra options
@@ -2575,7 +2581,7 @@ class Skip(Read):
             evaluation.message(
                 "Skip",
                 "intm",
-                Expression("Skip", Expression("InputStream", name, n), types, m),
+                Expression("Skip", Expression(SymbolInputStream, name, n), types, m),
             )
             return
         for i in range(py_m):
@@ -2633,7 +2639,7 @@ class Find(Read):
 
         py_text = text.to_python()
 
-        channel = Expression("InputStream", name, n)
+        channel = Expression(SymbolInputStream, name, n)
 
         if not isinstance(py_text, list):
             py_text = [py_text]
@@ -2730,7 +2736,7 @@ class StringToStream(Builtin):
 
         name = Symbol("String")
         stream = stream_manager.add(pystring, io=fp)
-        return Expression("InputStream", name, Integer(stream.n))
+        return Expression(SymbolInputStream, name, Integer(stream.n))
 
 
 class Streams(Builtin):
@@ -2782,4 +2788,4 @@ class Streams(Builtin):
             expr = Expression(head, _name, Integer(stream.n))
             if name is None or _name == name:
                 result.append(expr)
-        return Expression("List", *result)
+        return Expression(SymbolList, *result)

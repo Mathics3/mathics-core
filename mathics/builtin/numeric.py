@@ -43,6 +43,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.systemsymbols import (
     SymbolMachinePrecision,
+    SymbolSequence,
+    SymbolRoot,
 )
 
 from mathics.core.number import (
@@ -867,7 +869,7 @@ class N(Builtin):
             )
 
         # Special case for the Root builtin
-        if expr.has_form("Root", 2):
+        if expr.has_form(SymbolRoot, 2):
             return from_sympy(sympy.N(expr.to_sympy(), d))
 
         if isinstance(expr, Number):
@@ -1017,7 +1019,7 @@ class NIntegrate(Builtin):
 
     @staticmethod
     def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
+        if interval.has_form(SymbolSequence, 1, None):
             intervals = []
             for leaf in interval.leaves:
                 inner_interval = NIntegrate.decompose_domain(leaf, evaluation)
@@ -1028,7 +1030,7 @@ class NIntegrate(Builtin):
                     return None
             return intervals
 
-        if interval.has_form("System`List", 3, None):
+        if interval.has_form(SymbolList, 3, None):
             intervals = []
             intvar = interval.leaves[0]
             if not isinstance(intvar, Symbol):
@@ -1051,7 +1053,7 @@ class NIntegrate(Builtin):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
         method = options["System`Method"].evaluate(evaluation)
         method_options = {}
-        if method.has_form("System`List", 2):
+        if method.has_form(SymbolList, 2):
             method = method.leaves[0]
             method_options.update(method.leaves[1].get_option_values())
         if isinstance(method, String):

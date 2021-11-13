@@ -25,6 +25,7 @@ from mathics.core.expression import (
 )
 from mathics.core.atoms import Integer
 from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import SymbolAll, SymbolDirectedInfinity
 
 
 class Array(Builtin):
@@ -74,7 +75,7 @@ class Array(Builtin):
     def apply(self, f, dimsexpr, origins, head, evaluation):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
 
-        if dimsexpr.has_form("List", None):
+        if dimsexpr.has_form(SymbolList, None):
             dims = dimsexpr.get_mutable_leaves()
         else:
             dims = [dimsexpr]
@@ -84,7 +85,7 @@ class Array(Builtin):
                 evaluation.message("Array", "ilsnn", 2)
                 return
             dims[index] = value
-        if origins.has_form("List", None):
+        if origins.has_form(SymbolList, None):
             if len(origins.leaves) != len(dims):
                 evaluation.message("Array", "plen", dimsexpr, origins)
                 return
@@ -243,12 +244,12 @@ class Permutations(Builtin):
         rs = None
         if isinstance(n, Integer):
             py_n = min(n.get_int_value(), len(li.leaves))
-        elif n.has_form("List", 1) and isinstance(n.leaves[0], Integer):
+        elif n.has_form(SymbolList, 1) and isinstance(n.leaves[0], Integer):
             py_n = n.leaves[0].get_int_value()
             rs = (py_n,)
         elif (
-            n.has_form("DirectedInfinity", 1) and n.leaves[0].get_int_value() == 1
-        ) or n.get_name() == "System`All":
+            n.has_form(SymbolDirectedInfinity, 1) and n.leaves[0].get_int_value() == 1
+        ) or n is SymbolAll:
             py_n = len(li.leaves)
         else:
             py_n = None

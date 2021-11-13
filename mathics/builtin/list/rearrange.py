@@ -25,7 +25,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import SymbolList, Symbol
 
 
 def _is_sameq(same_test):
@@ -83,7 +83,7 @@ class _GatherOperation(Builtin):
             evaluation.message(self.get_name(), "normal", 1, expr)
             return False
 
-        if values.get_head_name() != "System`List":
+        if values.get_head() is not SymbolList:
             expr = Expression(self.get_name(), values, arg2)
             evaluation.message(self.get_name(), "list", expr, 1)
             return False
@@ -135,7 +135,7 @@ class _Rotate(Builtin):
         "%(name)s[expr_, n_]"
         if isinstance(n, Integer):
             py_cycles = [n.get_int_value()]
-        elif n.get_head_name() == "System`List" and all(
+        elif n.get_head() is SymbolList and all(
             isinstance(x, Integer) for x in n.leaves
         ):
             py_cycles = [x.get_int_value() for x in n.leaves]
@@ -244,17 +244,17 @@ class Catenate(Builtin):
 
         def parts():
             for li in lists.leaves:
-                head_name = li.get_head_name()
-                if head_name == "System`List":
+                head = li.get_head()
+                if head is SymbolList:
                     yield li.leaves
-                elif head_name != "System`Missing":
+                elif head is not Symbol("System`Missing"):
                     raise MessageException("Catenate", "invrp", li)
 
         try:
             result = list(chain(*list(parts())))
             if result:
                 return lists.leaves[0].restructure(
-                    "List", result, evaluation, deps=lists.leaves
+                    SymbolList, result, evaluation, deps=lists.leaves
                 )
             else:
                 return Expression(SymbolList)
@@ -490,8 +490,8 @@ class Partition(Builtin):
     def _partition(self, expr, n, d, evaluation):
         assert n > 0 and d > 0
 
-        inner = structure("List", expr, evaluation)
-        outer = structure("List", inner, evaluation)
+        inner = structure(SymbolList, expr, evaluation)
+        outer = structure(SymbolList, inner, evaluation)
 
         make_slice = inner.slice
 
@@ -587,7 +587,7 @@ class Reverse(Builtin):
         "Reverse[expr_, levels_]"
         if isinstance(levels, Integer):
             py_levels = [levels.get_int_value()]
-        elif levels.get_head_name() == "System`List":
+        elif levels.get_head() is SymbolList:
             if not levels.leaves:
                 return expr
             if any(not isinstance(level, Integer) for level in levels.leaves):
@@ -654,12 +654,12 @@ class Riffle(Builtin):
     def apply(self, list, sep, evaluation):
         "Riffle[list_List, sep_]"
 
-        if sep.has_form("List", None):
+        if sep.has_form(SymbolList, None):
             result = riffle_lists(list.get_leaves(), sep.leaves)
         else:
             result = riffle_lists(list.get_leaves(), [sep])
 
-        return list.restructure("List", result, evaluation, deps=(list, sep))
+        return list.restructure(SymbolList, result, evaluation, deps=(list, sep))
 
 
 class RotateLeft(_Rotate):

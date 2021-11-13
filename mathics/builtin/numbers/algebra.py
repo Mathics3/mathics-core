@@ -31,7 +31,18 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolPlus,
     SymbolPower,
+    SymbolSqrt,
     SymbolTimes,
+    SymbolSin,
+    SymbolCos,
+    SymbolTan,
+    SymbolCot,
+    SymbolSinh,
+    SymbolCosh,
+    SymbolTanh,
+    SymbolCoth,
+    SymbolRule,
+    SymbolRuleDelayed,
 )
 
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
@@ -65,7 +76,7 @@ def sympy_factor(expr_sympy):
 
 
 def cancel(expr):
-    if expr.has_form("Plus", None):
+    if expr.get_head() is SymbolPlus:
         return Expression(SymbolPlus, *[cancel(leaf) for leaf in expr.leaves])
     else:
         try:
@@ -86,8 +97,8 @@ def cancel(expr):
 
 
 def expand(expr, numer=True, denom=False, deep=False, **kwargs):
-    def _expand(expr):
-        return expand(expr, numer=numer, denom=denom, deep=deep, **kwargs)
+    def _expand(expr2):
+        return expand(expr2, numer=numer, denom=denom, deep=deep, **kwargs)
 
     if kwargs["modulus"] is not None and kwargs["modulus"] <= 0:
         return Integer0
@@ -98,7 +109,17 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
     # A special case for trigonometric functions
     if "trig" in kwargs and kwargs["trig"]:
         if expr.has_form(
-            ("Sin", "Cos", "Tan", "Cot", "Sinh", "Cosh", "Tanh", "Coth"), 1
+            (
+                SymbolSin,
+                SymbolCos,
+                SymbolTan,
+                SymbolCot,
+                SymbolSinh,
+                SymbolCosh,
+                SymbolTanh,
+                SymbolCoth,
+            ),
+            1,
         ):
             head = expr.get_head()
             theta = expr.leaves[0]
@@ -107,7 +128,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             if deep:
                 theta = _expand(theta)
 
-            if theta.has_form("Plus", 2, None):
+            if theta.has_form(SymbolPlus, 2, None):
                 x, y = theta.leaves[0], Expression(SymbolPlus, *theta.leaves[1:])
                 if head is SymbolSin:
                     a = Expression(
@@ -122,49 +143,49 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         _expand(Expression(SymbolSin, y)),
                     )
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cos"):
+                elif head is SymbolCos:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCos, x)),
                         _expand(Expression(SymbolCos, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSin, x)),
                         _expand(Expression(SymbolSin, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, -b))
-                elif head == Symbol("Sinh"):
+                elif head is SymbolSinh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cosh"):
+                elif head is SymbolCosh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head is Symbol("Tan"):
+                elif head is SymbolTan:
                     a = _expand(Expression(SymbolSin, theta))
                     b = Expression(
                         SymbolPower, _expand(Expression(SymbolCos, theta)), Integer(-1)
@@ -173,7 +194,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 elif head is SymbolCot:
                     a = _expand(Expression(SymbolCos, theta))
                     b = Expression(
-                        "Power", _expand(Expression(SymbolSin, theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolSin, theta)), Integer(-1)
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolTanh:
@@ -183,7 +204,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
                     return _expand(Expression(SymbolTimes, a, b))
                 elif head is SymbolCoth:
-                    a = _expand(Expression(SymbolTimes, "Cosh", theta))
+                    a = _expand(Expression(SymbolCosh, theta))
                     b = Expression(
                         SymbolPower, _expand(Expression(SymbolSinh, theta)), Integer(-1)
                     )
@@ -210,16 +231,16 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         if target_pat is not None and not isinstance(expr, Number):
             if expr.is_free(target_pat, evaluation):
                 return store_sub_expr(expr)
-        if expr.has_form("Power", 2):
+        if expr.has_form(SymbolPower, 2):
             # sympy won't expand `(a + b) / x` to `a / x + b / x` if denom is False
             # if denom is False we store negative powers to prevent this.
             n1 = leaves[1].get_int_value()
             if not denom and n1 is not None and n1 < 0:
                 return store_sub_expr(expr)
             return sympy.Pow(*[convert_sympy(leaf) for leaf in leaves])
-        elif expr.has_form("Times", 2, None):
+        elif expr.has_form(SymbolTimes, 2, None):
             return sympy.Mul(*[convert_sympy(leaf) for leaf in leaves])
-        elif expr.has_form("Plus", 2, None):
+        elif expr.has_form(SymbolPlus, 2, None):
             return sympy.Add(*[convert_sympy(leaf) for leaf in leaves])
         else:
             return store_sub_expr(expr)
@@ -255,10 +276,10 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 sub_exprs[i] = Expression(head, *leaves)
     else:
         # thread over Lists etc.
-        threaded_heads = ("List", "Rule")
+        threaded_heads = (SymbolList, SymbolRule)
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
-                if sub_expr.has_form(head, None):
+                if sub_expr.get_head() is head:
                     leaves = sub_expr.get_leaves()
                     if target_pat:
                         leaves = [
@@ -307,12 +328,12 @@ def find_all_vars(expr):
             return
         elif e.is_symbol():
             variables.add(e)
-        elif e.has_form(("Plus", "Times"), None):
+        elif e.get_head() in (SymbolPlus, SymbolTimes):
             for l in e.leaves:
                 l_sympy = l.to_sympy()
                 if l_sympy is not None:
                     find_vars(l, l_sympy)
-        elif e.has_form("Power", 2):
+        elif e.has_form(SymbolPower, 2):
             (a, b) = e.leaves  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
@@ -322,7 +343,7 @@ def find_all_vars(expr):
         elif not (e.is_atom()):
             variables.add(e)
 
-    exprs = expr.leaves if expr.has_form("List", None) else [expr]
+    exprs = expr.leaves if expr.get_head() is SymbolList else [expr]
     for e in exprs:
         e_sympy = e.to_sympy()
         if e_sympy is not None:
@@ -734,9 +755,9 @@ class _Expand(Builtin):
             py_modulus = None
 
         trig = options["System`Trig"]
-        if trig == SymbolTrue:
+        if trig is SymbolTrue:
             py_trig = True
-        elif trig == SymbolFalse:
+        elif trig is SymbolFalse:
             py_trig = False
         else:
             return evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
@@ -812,7 +833,7 @@ class Expand(_Expand):
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
-        if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
+        if target.get_head() in (SymbolRule, SymbolRuleDelayed):
             optname = target.leaves[0].get_name()
             options[optname] = target.leaves[1]
             target = None
@@ -1175,7 +1196,7 @@ class PolynomialQ(Builtin):
         var = v[0]
         if var == SymbolNull:
             return SymbolTrue
-        elif var.has_form("List", None):
+        elif var.get_head() is SymbolList:
             if len(var.leaves) == 0:
                 return evaluation.message("PolynomialQ", "novar")
             sympy_var = [x.to_sympy() for x in var.leaves]
@@ -1342,7 +1363,7 @@ class CoefficientList(Builtin):
 
     def apply(self, expr, form, evaluation):
         "CoefficientList[expr_, form_]"
-        vars = [form] if not form.has_form("List", None) else [v for v in form.leaves]
+        vars = [form] if not form.get_head() is SymbolList else [v for v in form.leaves]
 
         # check form is not a variable
         for v in vars:
@@ -1360,7 +1381,7 @@ class CoefficientList(Builtin):
             return Expression(SymbolList, SymbolNull)
         elif f_null:
             return Expression(SymbolList, expr)
-        elif form.has_form("List", 0):
+        elif form.has_form(SymbolList, 0):
             return expr
 
         sympy_expr = expr.to_sympy()
@@ -1376,7 +1397,7 @@ class CoefficientList(Builtin):
             ]
 
             # single & multiple variables cases
-            if not form.has_form("List", None):
+            if not form.get_head() is SymbolList:
                 return Expression(
                     "List",
                     *[
@@ -1386,7 +1407,7 @@ class CoefficientList(Builtin):
                         for n in range(dimensions[0] + 1)
                     ]
                 )
-            elif form.has_form("List", 1):
+            elif form.has_form(SymbolList, 1):
                 form = form.leaves[0]
                 return Expression(
                     "List",
@@ -1469,7 +1490,7 @@ class Exponent(Builtin):
         if expr == Integer0:
             return Expression(SymbolDirectedInfinity, Integer(-1))
 
-        if not form.has_form("List", None):
+        if not form.get_head() is SymbolList:
             return Expression(h, *[i for i in find_exponents(expr, form)])
         else:
             exponents = [find_exponents(expr, var) for var in form.leaves]
@@ -1511,18 +1532,18 @@ class _CoefficientHandler(Builtin):
                     if match(pf, pat, evaluation):
                         powers[i] = Integer(1)
                         return powers
-            if pf.has_form("Sqrt", 1):
+            if pf.has_form(SymbolSqrt, 1):
                 for i, pat in enumerate(var_pats):
                     if match(pf._leaves[0], pat, evaluation):
                         powers[i] = RationalOneHalf
                         return powers
-            if pf.has_form("Power", 2):
+            if pf.has_form(SymbolPower, 2):
                 for i, pat in enumerate(var_pats):
                     matchval = match(pf._leaves[0], pat, evaluation)
                     if matchval:
                         powers[i] = pf._leaves[1]
                         return powers
-            if pf.has_form("Times", None):
+            if pf.get_head() is SymbolTimes:
                 contrib = [powers_list(factor) for factor in pf._leaves]
                 for i in range(len(var_pats)):
                     powers[i] = Expression(
@@ -1545,18 +1566,19 @@ class _CoefficientHandler(Builtin):
                 coeffs.append(term)
             elif (
                 term.is_symbol()
-                or term.has_form("Power", 2)
-                or term.has_form("Sqrt", 1)
+                or term.has_form(SymbolPower, 2)
+                or term.has_form(SymbolSqrt, 1)
             ):
                 powers.append(term)
-            elif term.has_form("Times", None):
+            elif term.get_head() is SymbolTimes:
                 for factor in term.leaves:
                     if factor.is_free(target_pat, evaluation):
                         coeffs.append(factor)
                     elif match(factor, target_pat, evaluation):
                         powers.append(factor)
                     elif (
-                        factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
+                        factor.has_form(SymbolPower, 2)
+                        or factor.has_form(SymbolSqrt, 1)
                     ) and match(factor._leaves[0], target_pat, evaluation):
                         powers.append(factor)
                     else:
@@ -1599,8 +1621,8 @@ class _CoefficientHandler(Builtin):
         elif (
             expr.is_symbol()
             or match(expr, target_pat, evaluation)
-            or expr.has_form("Power", 2)
-            or expr.has_form("Sqrt", 1)
+            or expr.has_form(SymbolPower, 2)
+            or expr.has_form(SymbolSqrt, 1)
         ):
             coeff = (
                 Expression(filt, Integer1).evaluate(evaluation) if filt else Integer1
@@ -1614,7 +1636,7 @@ class _CoefficientHandler(Builtin):
                 if not coeff.is_free(target_pat, evaluation):
                     return []
                 return [(powers_list(expr), coeff)]
-        elif expr.has_form("Times", None):
+        elif expr.get_head() is SymbolTimes:
             coeff, powers = split_coeff_pow(expr)
             if coeff is None:
                 coeff = Integer1
@@ -1635,7 +1657,7 @@ class _CoefficientHandler(Builtin):
             else:
                 pl = powers_list(powers)
                 return [(pl, coeff)]
-        elif expr.has_form("Plus", None):
+        elif expr.get_head() is SymbolPlus:
             coeff_dict = {}
             powers_dict = {}
             powers_order = {}
@@ -1727,14 +1749,14 @@ class CoefficientArrays(_CoefficientHandler):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
         from mathics.algorithm.parts import walk_parts
 
-        if polys.has_form("List", None):
+        if polys.get_head() is SymbolList:
             list_polys = polys.leaves
         else:
             list_polys = [polys]
 
         if varlist.is_symbol():
             var_exprs = [varlist]
-        elif varlist.has_form("List", None):
+        elif varlist.get_head() is SymbolList:
             var_exprs = varlist.get_leaves()
         else:
             var_exprs = [varlist]
@@ -1827,7 +1849,7 @@ class Collect(_CoefficientHandler):
             filt = None
         if varlst.is_symbol():
             var_exprs = [varlst]
-        elif varlst.has_form("List", None):
+        elif varlst.get_head() is SymbolList:
             var_exprs = varlst.get_leaves()
         else:
             var_exprs = [varlst]

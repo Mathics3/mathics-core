@@ -8,6 +8,13 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import from_sympy
+from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import (
+    SymbolRule,
+    SymbolEqual,
+    SymbolFunction,
+)
+
 
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -109,19 +116,19 @@ class DSolve(Builtin):
     def apply(self, eqn, y, x, evaluation):
         "DSolve[eqn_, y_, x_]"
 
-        if eqn.has_form("List", None):
+        if eqn.has_form(SymbolList, None):
             # TODO: Try and solve BVPs using Solve or something analagous OR
             # add this functonality to sympy.
             evaluation.message("DSolve", "symsys")
             return
 
-        if eqn.get_head_name() != "System`Equal":
+        if eqn.get_head() is not SymbolEqual:
             evaluation.message("DSolve", "deqn", eqn)
             return
 
         if x.is_symbol():
             syms = [x]
-        elif x.has_form("List", 1, None):
+        elif x.has_form(SymbolList, 1, None):
             syms = sorted(x.get_leaves())
         else:
             return evaluation.message("DSolve", "dsvar", x)
@@ -133,7 +140,7 @@ class DSolve(Builtin):
             func = y
         except AttributeError:
             func = Expression(y, *syms)
-            function_form = Expression("List", *syms)
+            function_form = Expression(SymbolList, *syms)
 
         if func.is_atom():
             evaluation.message("DSolve", "dsfun", y)
@@ -180,23 +187,27 @@ class DSolve(Builtin):
 
         if function_form is None:
             return Expression(
-                "List",
+                SymbolList,
                 *[
-                    Expression("List", Expression("Rule", *from_sympy(soln).leaves))
+                    Expression(
+                        SymbolList, Expression(SymbolRule, *from_sympy(soln).leaves)
+                    )
                     for soln in sym_result
                 ]
             )
         else:
             return Expression(
-                "List",
+                SymbolList,
                 *[
                     Expression(
-                        "List",
+                        SymbolList,
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             y,
                             Expression(
-                                "Function", function_form, *from_sympy(soln).leaves[1:]
+                                SymbolFunction,
+                                function_form,
+                                *from_sympy(soln).leaves[1:]
                             ),
                         ),
                     )

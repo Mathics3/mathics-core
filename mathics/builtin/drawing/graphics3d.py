@@ -18,10 +18,11 @@ from mathics.builtin.graphics import (
     Style,
 )
 from mathics.builtin.numeric import apply_N
+from mathics.core.symbols import Symbol, SymbolList
 
 
 def coords3D(value):
-    if value.has_form("List", 3):
+    if value.has_form(SymbolList, 3):
         result = (
             value.leaves[0].round_to_float(),
             value.leaves[1].round_to_float(),
@@ -36,7 +37,7 @@ class Coords3D(object):
     def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
         if expr is not None:
-            if expr.has_form("Offset", 1, 2):
+            if expr.has_form(Symbol("Offset"), 1, 2):
                 if len(expr.leaves) > 1:
                     self.p = coords3D(expr.leaves[1])
             else:

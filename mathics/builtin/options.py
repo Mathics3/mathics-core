@@ -16,6 +16,8 @@ from mathics.core.expression import (
     Expression,
     get_default_value,
 )
+from mathics.core.symbols import SymbolList
+from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 from mathics.core.atoms import String
 
 from mathics.builtin.drawing.image import Image
@@ -309,13 +311,14 @@ class OptionQ(Test):
     """
 
     def test(self, expr):
-        expr = expr.flatten(Symbol("List"))
-        if not expr.has_form("List", None):
+        expr = expr.flatten(SymbolList)
+        if not expr.has_form(SymbolList, None):
             expr = [expr]
         else:
             expr = expr.get_leaves()
         return all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+            e.has_form(SymbolRule, None) or e.has_form(SymbolRuleDelayed, 2)
+            for e in expr
         )
 
 
@@ -339,13 +342,14 @@ class NotOptionQ(Test):
     """
 
     def test(self, expr):
-        expr = expr.flatten(Symbol("List"))
-        if not expr.has_form("List", None):
+        expr = expr.flatten(SymbolList)
+        if not expr.has_form(SymbolList, None):
             expr = [expr]
         else:
             expr = expr.get_leaves()
         return not all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+            e.has_form(SymbolRule, None) or e.has_form(SymbolRuleDelayed, 2)
+            for e in expr
         )
 
 
@@ -377,7 +381,7 @@ class FilterRules(Builtin):
 
         def matched():
             for rule in rules.leaves:
-                if rule.has_form("Rule", 2) and match(rule.leaves[0], evaluation):
+                if rule.has_form(SymbolRule, 2) and match(rule.leaves[0], evaluation):
                     yield rule
 
         return Expression("List", *list(matched()))

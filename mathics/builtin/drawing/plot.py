@@ -23,7 +23,10 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol, SymbolList, SymbolN
 from mathics.core.systemsymbols import (
+    SymbolColorDataFunction,
     SymbolRule,
+    SymbolAutomatic,
+    SymbolNone,
 )
 
 from mathics.builtin.base import Builtin
@@ -45,12 +48,12 @@ except ImportError:
 def gradient_palette(color_function, n, evaluation):  # always returns RGB values
     if isinstance(color_function, String):
         color_data = Expression("ColorData", color_function).evaluate(evaluation)
-        if not color_data.has_form("ColorDataFunction", 4):
+        if not color_data.has_form(SymbolColorDataFunction, 4):
             return
         name, kind, interval, blend = color_data.leaves
         if not isinstance(kind, String) or kind.get_string_value() != "Gradients":
             return
-        if not interval.has_form("List", 2):
+        if not interval.has_form(SymbolList, 2):
             return
         x0, x1 = (x.round_to_float() for x in interval.leaves)
     else:
@@ -272,7 +275,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
         vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
         value = dynamic_scoping(quiet_expr.evaluate, vars, evaluation)
         if expect_list:
-            if value.has_form("List", None):
+            if value.has_form(SymbolList, None):
                 value = [extract_pyreal(item) for item in value.leaves]
                 if any(item is None for item in value):
                     return None
@@ -905,7 +908,7 @@ class PieChart(_Chart):
         data = [[max(0.0, x) for x in group] for group in data]
 
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
-        if not sector_origin.has_form("List", 2):
+        if not sector_origin.has_form(SymbolList, 2):
             return
         sector_origin = apply_N(sector_origin, evaluation)
 
@@ -916,7 +919,7 @@ class PieChart(_Chart):
         ):
             sector_phi = pi
             sector_sign = -1.0
-        elif orientation.has_form("List", 2) and isinstance(
+        elif orientation.has_form(SymbolList, 2) and isinstance(
             orientation.leaves[1], String
         ):
             sector_phi = orientation.leaves[0].round_to_float()
@@ -932,13 +935,13 @@ class PieChart(_Chart):
 
         sector_spacing = self.get_option(options, "SectorSpacing", evaluation)
         if isinstance(sector_spacing, Symbol):
-            if sector_spacing.get_name() == "System`Automatic":
+            if sector_spacing is SymbolAutomatic:
                 sector_spacing = Expression(SymbolList, Integer0, Real(0.2))
-            elif sector_spacing.get_name() == "System`None":
+            elif sector_spacing is SymbolNone:
                 sector_spacing = Expression(SymbolList, Integer0, Integer0)
             else:
                 return
-        if not sector_spacing.has_form("List", 2):
+        if not sector_spacing.has_form(SymbolList, 2):
             return
         segment_spacing = 0.0  # not yet implemented; needs real arc graphics
         radius_spacing = max(0.0, min(1.0, sector_spacing.leaves[1].round_to_float()))
@@ -2104,7 +2107,7 @@ class Plot(_Plot):
     """
 
     def get_functions_param(self, functions):
-        if functions.has_form("List", None):
+        if functions.has_form(SymbolList, None):
             functions = functions.leaves
         else:
             functions = [functions]
@@ -2161,9 +2164,9 @@ class ParametricPlot(_Plot):
     expect_list = True
 
     def get_functions_param(self, functions):
-        if functions.has_form("List", 2) and not (
-            functions.leaves[0].has_form("List", None)
-            or functions.leaves[1].has_form("List", None)
+        if functions.has_form(SymbolList, 2) and not (
+            functions.leaves[0].has_form(SymbolList, None)
+            or functions.leaves[1].has_form(SymbolList, None)
         ):
             # One function given
             functions = [functions]
@@ -2237,7 +2240,7 @@ class PolarPlot(_Plot):
     )
 
     def get_functions_param(self, functions):
-        if functions.has_form("List", None):
+        if functions.has_form(SymbolList, None):
             functions = functions.leaves
         else:
             functions = [functions]
@@ -2415,7 +2418,7 @@ class Plot3D(_Plot3D):
     )
 
     def get_functions_param(self, functions):
-        if functions.has_form("List", None):
+        if functions.has_form(SymbolList, None):
             return functions.leaves
         else:
             return [functions]
@@ -2517,7 +2520,7 @@ class DensityPlot(_Plot3D):
             func = Expression("ColorData", color_function.get_string_value()).evaluate(
                 evaluation
             )
-            if func.has_form("ColorDataFunction", 4):
+            if func.has_form(SymbolColorDataFunction, 4):
                 color_function_min = func.leaves[2].leaves[0].round_to_float()
                 color_function_max = func.leaves[2].leaves[1].round_to_float()
                 color_function = Expression(
@@ -2526,7 +2529,7 @@ class DensityPlot(_Plot3D):
             else:
                 evaluation.message("DensityPlot", "color", func)
                 return
-        if color_function.has_form("ColorDataFunction", 4):
+        if color_function.has_form(SymbolColorDataFunction, 4):
             color_function_min = color_function.leaves[2].leaves[0].round_to_float()
             color_function_max = color_function.leaves[2].leaves[1].round_to_float()
 
@@ -2536,7 +2539,7 @@ class DensityPlot(_Plot3D):
         if v_range == 0:
             v_range = 1
 
-        if color_function.has_form("ColorDataFunction", 4):
+        if color_function.has_form(SymbolColorDataFunction, 4):
             color_func = color_function.leaves[3]
         else:
             color_func = color_function

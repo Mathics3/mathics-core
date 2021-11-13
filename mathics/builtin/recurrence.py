@@ -8,6 +8,7 @@ Solving Recurrence Equations
 import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin
+from mathics.core.symbols import SymbolList
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
 
@@ -55,8 +56,8 @@ class RSolve(Builtin):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
-        if not eqns.has_form("List", None):
-            eqns = Expression("List", eqns)
+        if not eqns.has_form(SymbolList, None):
+            eqns = Expression(SymbolList, eqns)
 
         if len(eqns.leaves) == 0:
             return

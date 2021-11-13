@@ -3,13 +3,13 @@
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, Atom
+from mathics.core.symbols import Symbol, Atom, SymbolList
+from mathics.core.systemsymbols import SymbolAll, SymbolSpan
 from mathics.core.atoms import Integer
 from mathics.builtin.base import MessageException
 
 """
 This module provides some infraestructure to deal with SubExpressions. 
-
 """
 
 
@@ -30,7 +30,7 @@ def _pspec_span_to_tuple(pspec, expr):
     if len(leaves) > 1:
         stop = leaves[1].get_int_value()
         if stop is None:
-            if leaves[1].get_name() == "System`All":
+            if leaves[1] is SymbolAll:
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
@@ -171,7 +171,6 @@ class ExpressionPointer(object):
             parent = parent.parent
         # At this point, we hit the expression, and we have
         # the path to reach the position
-        root = parent
         i = pos.pop()
         try:
             while pos:
@@ -220,15 +219,15 @@ class SubExpression(object):
         if type(pos) is Integer:
             pos = pos.get_int_value()
         # pos == `System`All`
-        elif type(pos) is Symbol and pos.get_name() == "System`All":
+        elif type(pos) is Symbol and pos is SymbolAll:
             pos = None
         elif type(pos) is Expression:
-            if pos.has_form("System`List", None):
+            if pos.get_head() is SymbolList:
                 tuple_pos = [i.get_int_value() for i in pos.leaves]
                 if any([i is None for i in tuple_pos]):
                     raise MessageException("Part", "pspec", pos)
                 pos = tuple_pos
-            elif pos.has_form("System`Span", None):
+            elif pos.get_head() is SymbolSpan:
                 pos = _pspec_span_to_tuple(pos, expr)
             else:
                 raise MessageException("Part", "pspec", pos)
@@ -289,9 +288,10 @@ class SubExpression(object):
         """
         Asigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
         """
-        if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
-            new.leaves
-        ) == len(self._leavesp):
+        # `new` could be a SubExpression or a Pointer. So, we need to compare names...
+        if (
+            new.get_head() is SymbolList or new.get_head_name() == "System`List"
+        ) and len(new.leaves) == len(self._leavesp):
             for leaf, sub_new in zip(self._leavesp, new.leaves):
                 leaf.replace(sub_new)
         else:

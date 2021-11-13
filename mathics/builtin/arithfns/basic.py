@@ -300,7 +300,7 @@ class Plus(BinaryOperator, SympyFunction):
         "Plus[items__]"
 
         def negate(item):
-            if item.has_form("Times", 1, None):
+            if item.has_form(SymbolTimes, 1, None):
                 if isinstance(item.leaves[0], Number):
                     neg = -item.leaves[0]
                     if neg.sameQ(Integer1):
@@ -331,7 +331,7 @@ class Plus(BinaryOperator, SympyFunction):
         ops = []
         for item in items[1:]:
             if (
-                item.has_form("Times", 1, None) and is_negative(item.leaves[0])
+                item.has_form(SymbolTimes, 1, None) and is_negative(item.leaves[0])
             ) or is_negative(item):
                 item = negate(item)
                 op = "-"
@@ -363,7 +363,7 @@ class Plus(BinaryOperator, SympyFunction):
                 if last_count == 1:
                     leaves.append(last_item)
                 else:
-                    if last_item.has_form("Times", None):
+                    if last_item.has_form(SymbolTimes, None):
                         leaves.append(
                             Expression(
                                 SymbolTimes, from_sympy(last_count), *last_item.leaves
@@ -379,7 +379,7 @@ class Plus(BinaryOperator, SympyFunction):
                 numbers.append(item)
             else:
                 count = rest = None
-                if item.has_form("Times", None):
+                if item.has_form(SymbolTimes, None):
                     for leaf in item.leaves:
                         if isinstance(leaf, Number):
                             count = leaf.to_sympy()
@@ -774,7 +774,7 @@ class Times(BinaryOperator, SympyFunction):
         "Times[items__]"
 
         def inverse(item):
-            if item.has_form("Power", 2) and isinstance(  # noqa
+            if item.has_form(SymbolPower, 2) and isinstance(  # noqa
                 item.leaves[1], (Integer, Rational, Real)
             ):
                 neg = -item.leaves[1]
@@ -790,7 +790,7 @@ class Times(BinaryOperator, SympyFunction):
         negative = []
         for item in items:
             if (
-                item.has_form("Power", 2)
+                item.has_form(SymbolPower, 2)
                 and isinstance(item.leaves[1], (Integer, Rational, Real))
                 and item.leaves[1].to_sympy() < 0
             ):  # nopep8
@@ -860,8 +860,8 @@ class Times(BinaryOperator, SympyFunction):
                 leaves[-1] = Expression(SymbolPower, leaves[-1], Integer(2))
             elif (
                 leaves
-                and item.has_form("Power", 2)
-                and leaves[-1].has_form("Power", 2)
+                and item.has_form(SymbolPower, 2)
+                and leaves[-1].has_form(SymbolPower, 2)
                 and item.leaves[0].sameQ(leaves[-1].leaves[0])
             ):
                 leaves[-1] = Expression(
@@ -871,7 +871,7 @@ class Times(BinaryOperator, SympyFunction):
                 )
             elif (
                 leaves
-                and item.has_form("Power", 2)
+                and item.has_form(SymbolPower, 2)
                 and item.leaves[0].sameQ(leaves[-1])
             ):
                 leaves[-1] = Expression(
@@ -881,7 +881,7 @@ class Times(BinaryOperator, SympyFunction):
                 )
             elif (
                 leaves
-                and leaves[-1].has_form("Power", 2)
+                and leaves[-1].has_form(SymbolPower, 2)
                 and leaves[-1].leaves[0].sameQ(item)
             ):
                 leaves[-1] = Expression(
@@ -925,7 +925,11 @@ class Times(BinaryOperator, SympyFunction):
             if infinity_factor:
                 return SymbolIndeterminate
             return number
-        elif number.sameQ(Integer(-1)) and leaves and leaves[0].has_form("Plus", None):
+        elif (
+            number.sameQ(Integer(-1))
+            and leaves
+            and leaves[0].has_form(SymbolPlus, None)
+        ):
             leaves[0] = Expression(
                 leaves[0].get_head(),
                 *[

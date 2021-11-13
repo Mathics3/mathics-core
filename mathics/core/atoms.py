@@ -121,6 +121,7 @@ _number_form_options = {
 
 class Integer(Number):
     value: int
+    _head_symbol = Symbol("Integer")
 
     def __new__(cls, value) -> "Integer":
         n = int(value)
@@ -207,6 +208,8 @@ Integer1 = Integer(1)
 
 
 class Rational(Number):
+    _head_symbol = Symbol("Rational")
+
     @lru_cache()
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)
@@ -306,6 +309,8 @@ RationalOneHalf = Rational(1, 2)
 
 
 class Real(Number):
+    _head_symbol = Symbol("Real")
+
     def __new__(cls, value, p=None) -> "Real":
         if isinstance(value, str):
             value = str(value)
@@ -533,6 +538,7 @@ class Complex(Number):
 
     real: Any
     imag: Any
+    _head_symbol = Symbol("Complex")
 
     def __new__(cls, real, imag):
         self = super().__new__(cls)
@@ -689,6 +695,7 @@ class Complex(Number):
 
 class String(Atom):
     value: str
+    _head_symbol = Symbol("String")
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -867,6 +874,7 @@ class String(Atom):
 
 class ByteArrayAtom(Atom):
     value: str
+    _head_symbol = Symbol("ByteArrayAtom")
 
     def __new__(cls, value):
         self = super().__new__(cls)

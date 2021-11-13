@@ -6,9 +6,9 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.atoms import Integer, from_python
+from mathics.core.systemsymbols import SymbolInfinity, SymbolAll
 from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
@@ -19,6 +19,7 @@ from mathics.builtin.exceptions import (
 )
 
 SymbolNothing = Symbol("Nothing")
+SymbolSpan = Symbol("Span")
 
 # TODO: delete me
 # def join_lists(lists):
@@ -127,7 +128,7 @@ def _parts_span_selector(pspec):
     if len(pspec.leaves) > 1:
         stop = pspec.leaves[1].get_int_value()
         if stop is None:
-            if pspec.leaves[1].get_name() == "System`All":
+            if pspec.leaves[1] is SymbolAll:
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
@@ -193,11 +194,11 @@ def _part_selectors(indices):
     the kind of specifications in `indices`.
     """
     for index in indices:
-        if index.has_form("Span", None):
+        if index.get_head() is SymbolSpan:
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
-        elif index.has_form("List", None):
+        elif index.get_head() is SymbolList:
             yield _parts_sequence_selector(index.leaves)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
@@ -357,7 +358,7 @@ def python_levelspec(levelspec):
         else:
             return value
 
-    if levelspec.has_form("List", None):
+    if levelspec.get_head() is SymbolList:
         values = [value_to_level(leaf) for leaf in levelspec.leaves]
         if len(values) == 1:
             return values[0], values[0]
@@ -450,7 +451,7 @@ def convert_seq(seq):
             stop = value
         else:
             start = value
-    elif seq.has_form("List", 1, 2, 3):
+    elif seq.has_form(SymbolList, 1, 2, 3):
         if len(seq.leaves) == 1:
             start = stop = seq.leaves[0].get_int_value()
             if stop is None:

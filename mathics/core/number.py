@@ -9,7 +9,9 @@ import string
 
 import typing
 
-from mathics.core.symbols import (
+
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
     SymbolMinPrecision,
     SymbolMaxPrecision,
     SymbolMachinePrecision,
@@ -46,7 +48,7 @@ class SpecialValueError(Exception):
 
 def _get_float_inf(value, evaluation) -> typing.Optional[float]:
     value = value.evaluate(evaluation)
-    if value.has_form("DirectedInfinity", 1):
+    if value.has_form(SymbolDirectedInfinity, 1):
         if value.leaves[0].get_int_value() == 1:
             return float("inf")
         elif value.leaves[0].get_int_value() == -1:

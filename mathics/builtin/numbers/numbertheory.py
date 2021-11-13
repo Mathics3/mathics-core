@@ -9,7 +9,9 @@ import sympy
 from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolDivide
+
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -162,7 +164,8 @@ class FactorInteger(Builtin):
             factors = sympy.factorint(n.value)
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
 
         elif isinstance(n, Rational):
@@ -173,7 +176,8 @@ class FactorInteger(Builtin):
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -431,7 +435,7 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, b ** exp), exp)
+        return Expression(SymbolList, Expression(SymbolDivide, n, b ** exp), exp)
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -451,7 +455,7 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, (10 ** exp)), exp)
+        return Expression(SymbolList, Expression(SymbolDivide, n, (10 ** exp)), exp)
 
 
 class NextPrime(Builtin):
@@ -561,7 +565,7 @@ class Prime(SympyFunction):
         return from_sympy(SympyPrime(n.to_sympy()))
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Prime", 1):
+        if expr.has_form(Symbol("Prime"), 1):
             return SympyPrime(expr.leaves[0].to_sympy(**kwargs))
 
 

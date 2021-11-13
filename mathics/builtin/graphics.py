@@ -81,7 +81,7 @@ class CoordinatesError(BoxConstructError):
 
 
 def coords(value):
-    if value.has_form("List", 2):
+    if value.has_form(SymbolList, 2):
         x, y = value.leaves[0].round_to_float(), value.leaves[1].round_to_float()
         if x is None or y is None:
             raise CoordinatesError
@@ -95,7 +95,7 @@ class Coords(object):
         self.p = pos
         self.d = d
         if expr is not None:
-            if expr.has_form("Offset", 1, 2):
+            if expr.has_form(Symbol("Offset"), 1, 2):
                 self.d = coords(expr.leaves[0])
                 if len(expr.leaves) > 1:
                     self.p = coords(expr.leaves[1])
@@ -547,12 +547,12 @@ class Text(Inset):
 
 class _Polyline(_GraphicsElement):
     def do_init(self, graphics, points):
-        if not points.has_form("List", None):
+        if not points.has_form(SymbolList, None):
             raise BoxConstructError
         if (
             points.leaves
-            and points.leaves[0].has_form("List", None)
-            and all(leaf.has_form("List", None) for leaf in points.leaves[0].leaves)
+            and points.leaves[0].has_form(SymbolList, None)
+            and all(leaf.has_form(SymbolList, None) for leaf in points.leaves[0].leaves)
         ):
             leaves = points.leaves
             self.multi_parts = True
@@ -561,7 +561,7 @@ class _Polyline(_GraphicsElement):
             self.multi_parts = False
         lines = []
         for leaf in leaves:
-            if leaf.has_form("List", None):
+            if leaf.has_form(SymbolList, None):
                 lines.append(leaf.leaves)
             else:
                 raise BoxConstructError
@@ -1042,7 +1042,7 @@ def _style(graphics, item):
         if len(item.leaves) > 1:
             raise BoxConstructError
         if item.leaves:
-            if item.leaves[0].has_form("List", None):
+            if item.leaves[0].has_form(SymbolList, None):
                 for dir in item.leaves[0].leaves:
                     style.append(dir, allow_forms=False)
             else:
@@ -1179,7 +1179,7 @@ class _GraphicsElements(object):
             return new_style
 
         def convert(content, style):
-            if content.has_form("List", None):
+            if content.has_form(SymbolList, None):
                 items = content.leaves
             else:
                 items = [content]
@@ -1219,7 +1219,7 @@ class _GraphicsElements(object):
         style = self.style_class(self)
 
         def convert(expr):
-            if expr.has_form(("List", "Directive"), None):
+            if expr.has_form((SymbolList, Symbol("Directive")), None):
                 for item in expr.leaves:
                     convert(item)
             else:

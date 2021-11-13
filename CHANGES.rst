@@ -5,7 +5,6 @@ Internals
 =========
 
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
-
 * To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
@@ -15,7 +14,9 @@ Internals
 * Module mathics.builtin.box is included as a builtin
 * Extra sort() was removed from Plus.apply
 * Reorganize Definitions.get_definition to deal with heavier rare cases later.
-* Avoid call Definitions.get_definition in favor of Definitions.definition_cache.get always it is possible.  
+* Avoid call Definitions.get_definition in favor of Definitions.definition_cache.get always it is possible.
+* For ``Atoms`` ``get_head`` and ``get_head_name`` were speed-up by using a class member ``_head_symbol`` instead of looking for a symbol each time.
+  
 
 4.0.1
 -----

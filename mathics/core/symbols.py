@@ -388,7 +388,7 @@ class BaseExpression(KeyComparable):
         from mathics.core.atoms import String
 
         options = self
-        if options.has_form("List", None):
+        if options.get_head() is SymbolList:
             options = options.flatten(SymbolList)
             values = options.leaves
         else:
@@ -400,7 +400,7 @@ class BaseExpression(KeyComparable):
                 options = evaluation.definitions.get_options(symbol_name)
                 option_values.update(options)
             else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
+                if not option.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     if stop_on_error:
                         return None
                     else:
@@ -421,13 +421,13 @@ class BaseExpression(KeyComparable):
 
         list_expr = self.flatten(SymbolList)
         list = []
-        if list_expr.has_form("List", None):
+        if list_expr.get_head() is SymbolList:
             list.extend(list_expr.leaves)
         else:
             list.append(list_expr)
         rules = []
         for item in list:
-            if not item.has_form(("Rule", "RuleDelayed"), 2):
+            if not item.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return None
             rule = Rule(item.leaves[0], item.leaves[1])
             rules.append(rule)
@@ -567,6 +567,14 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
+    _head_symbol = None
+
+    def get_head(self) -> "Symbol":
+        return self._head_symbol
+
+    def get_head_name(self):
+        return self._head_symbol.name
+
     def is_atom(self) -> bool:
         return True
 
@@ -591,9 +599,6 @@ class Atom(BaseExpression):
 
     def has_symbol(self, symbol_name) -> bool:
         return False
-
-    def get_head(self) -> "Symbol":
-        return Symbol(self.get_atom_name())
 
     def get_atom_name(self) -> str:
         return self.__class__.__name__
@@ -632,6 +637,7 @@ class Symbol(Atom):
     name: str
     sympy_dummy: Any
     defined_symbols = {}
+    _head_symbol = "sdasdasdsad"
 
     def __new__(cls, name, sympy_dummy=None):
         name = ensure_context(name)
@@ -705,6 +711,9 @@ class Symbol(Atom):
 
     def get_name(self) -> str:
         return self.name
+
+    def get_head_name(self) -> str:
+        return "System`Symbol"
 
     def is_symbol(self) -> bool:
         return True
@@ -786,6 +795,11 @@ class Symbol(Atom):
         return (self.name, self.sympy_dummy)
 
 
+# We need to define this outside the class
+# for obvious reasons...
+Symbol._head_symbol = Symbol("Symbol")
+
+
 # Symbols used in this module.
 
 SymbolFalse = Symbol("System`False")
@@ -803,6 +817,8 @@ SymbolNumberForm = Symbol("System`NumberForm")
 SymbolPostfix = Symbol("System`Postfix")
 SymbolRepeated = Symbol("System`Repeated")
 SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolRule = Symbol("Rule")
+SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSequence = Symbol("System`Sequence")
 SymbolTrue = Symbol("System`True")
 

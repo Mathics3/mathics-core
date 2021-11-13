@@ -316,7 +316,7 @@ class ColorDistance(Builtin):
             if not compute:
                 evaluation.message("ColorDistance", "invdist", distance_function)
                 return
-        elif distance_function.has_form("List", 2):
+        elif distance_function.has_form(SymbolList, 2):
             if distance_function.leaves[0].get_string_value() == "CMC":
                 if distance_function.leaves[1].get_string_value() == "Acceptability":
                     compute = (
@@ -331,7 +331,7 @@ class ColorDistance(Builtin):
                 elif distance_function.leaves[1].get_string_value() == "Perceptibility":
                     compute = ColorDistance._distances.get("CMC")
 
-                elif distance_function.leaves[1].has_form("List", 2):
+                elif distance_function.leaves[1].has_form(SymbolList, 2):
                     if isinstance(
                         distance_function.leaves[1].leaves[0], Integer
                     ) and isinstance(distance_function.leaves[1].leaves[1], Integer):

@@ -26,9 +26,23 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolBlank,
+    SymbolConditionalExpression,
+    SymbolD,
+    SymbolDerivative,
+    SymbolEqual,
+    SymbolFactorial,
+    SymbolFunction,
+    SymbolIntegrate,
+    SymbolLog,
+    SymbolO,
     SymbolPlus,
     SymbolPower,
+    SymbolRoot,
     SymbolRule,
+    SymbolSeriesData,
+    SymbolSimplify,
     SymbolTimes,
     SymbolUndefined,
 )
@@ -180,7 +194,7 @@ class D(SympyFunction):
         head = f.get_head()
         if head == SymbolPlus:
             terms = [
-                Expression("D", term, x)
+                Expression(SymbolD, term, x)
                 for term in f.leaves
                 if not term.is_free(x_pattern, evaluation)
             ]
@@ -193,7 +207,7 @@ class D(SympyFunction):
                 if factor.is_free(x_pattern, evaluation):
                     continue
                 factors = [leaf for j, leaf in enumerate(f.leaves) if j != i]
-                factors.append(Expression("D", factor, x))
+                factors.append(Expression(SymbolD, factor, x))
                 terms.append(Expression(SymbolTimes, *factors))
             if len(terms) != 0:
                 return Expression(SymbolPlus, *terms)
@@ -212,19 +226,21 @@ class D(SympyFunction):
                             base,
                             Expression(SymbolPlus, exp, IntegerMinusOne),
                         ),
-                        Expression("D", base, x),
+                        Expression(SymbolD, base, x),
                     )
                 )
             if not exp.is_free(x_pattern, evaluation):
                 if base.is_atom() and base.get_name() == "System`E":
-                    terms.append(Expression(SymbolTimes, f, Expression("D", exp, x)))
+                    terms.append(
+                        Expression(SymbolTimes, f, Expression(SymbolD, exp, x))
+                    )
                 else:
                     terms.append(
                         Expression(
                             SymbolTimes,
                             f,
-                            Expression("Log", base),
-                            Expression("D", exp, x),
+                            Expression(SymbolLog, base),
+                            Expression(SymbolD, exp, x),
                         )
                     )
 
@@ -237,14 +253,14 @@ class D(SympyFunction):
         elif len(f.leaves) == 1:
             if f.leaves[0] == x:
                 return Expression(
-                    Expression(Expression("Derivative", Integer(1)), f.head), x
+                    Expression(Expression(SymbolDerivative, Integer(1)), f.head), x
                 )
             else:
                 g = f.leaves[0]
                 return Expression(
                     SymbolTimes,
-                    Expression("D", Expression(f.head, g), g),
-                    Expression("D", g, x),
+                    Expression(SymbolD, Expression(f.head, g), g),
+                    Expression(SymbolD, g, x),
                 )
         else:  # many leaves
 
@@ -266,7 +282,7 @@ class D(SympyFunction):
                 if leaf.sameQ(x):
                     return result
                 else:
-                    return Expression("Times", result, Expression("D", leaf, x))
+                    return Expression(SymbolTimes, result, Expression(SymbolD, leaf, x))
 
             result = [
                 summand(leaf, index)
@@ -279,14 +295,14 @@ class D(SympyFunction):
             elif len(result) == 0:
                 return IntegerZero
             else:
-                return Expression("Plus", *result)
+                return Expression(SymbolPlus, *result)
 
     def apply_wrong(self, expr, x, other, evaluation):
         "D[expr_, {x_, other___}]"
 
         arg = Expression(SymbolList, x, *other.get_sequence())
         evaluation.message("D", "dvar", arg)
-        return Expression("D", expr, arg)
+        return Expression(SymbolD, expr, arg)
 
 
 class Derivative(PostfixOperator, SympyFunction):
@@ -556,14 +572,14 @@ class Integrate(SympyFunction):
     def prepare_sympy(self, leaves):
         if len(leaves) == 2:
             x = leaves[1]
-            if x.has_form("List", 3):
+            if x.has_form(SymbolList, 3):
                 return [leaves[0]] + x.leaves
         return leaves
 
     def from_sympy(self, sympy_name, leaves):
         args = []
         for leaf in leaves[1:]:
-            if leaf.has_form("List", 1):
+            if leaf.has_form(SymbolList, 1):
                 # {x} -> x
                 args.append(leaf.leaves[0])
             else:
@@ -574,7 +590,7 @@ class Integrate(SympyFunction):
     def apply(self, f, xs, evaluation, options):
         "Integrate[f_, xs__, OptionsPattern[]]"
         self.patpow0 = Pattern.create(
-            Expression("Power", Integer0, Expression("Blank"))
+            Expression(SymbolPower, Integer0, Expression(SymbolBlank))
         )
         assuming = options["System`Assumptions"].evaluate(evaluation)
         f_sympy = f.to_sympy()
@@ -584,7 +600,7 @@ class Integrate(SympyFunction):
         vars = []
         prec = None
         for x in xs:
-            if x.has_form("List", 3):
+            if x.has_form(SymbolList, 3):
                 x, a, b = x.leaves
                 prec_a = a.get_precision()
                 prec_b = b.get_precision()
@@ -638,7 +654,7 @@ class Integrate(SympyFunction):
             else:
                 cases = result._leaves[0]._leaves
                 default = result._leaves[1]
-            if default.has_form("Integrate", None):
+            if default.get_head() is SymbolIntegrate:
                 if default._leaves[0] == f:
                     default = SymbolUndefined
 
@@ -647,27 +663,29 @@ class Integrate(SympyFunction):
                 # TODO: if something like 0^n or 1/expr appears,
                 # put the condition n!=0 or expr!=0 accordingly in the list of
                 # conditions...
-                cond = Expression("Simplify", case._leaves[1], assuming).evaluate(
+                cond = Expression(SymbolSimplify, case._leaves[1], assuming).evaluate(
                     evaluation
                 )
-                resif = Expression("Simplify", case._leaves[0], assuming).evaluate(
+                resif = Expression(SymbolSimplify, case._leaves[0], assuming).evaluate(
                     evaluation
                 )
                 if cond.is_true():
                     return resif
-                if resif.has_form("ConditionalExpression", 2):
-                    cond = Expression("And", resif._leaves[1], cond)
-                    cond = Expression("Simplify", cond, assuming).evaluate(evaluation)
+                if resif.has_form(SymbolConditionalExpression, 2):
+                    cond = Expression(SymbolAnd, resif._leaves[1], cond)
+                    cond = Expression(SymbolSimplify, cond, assuming).evaluate(
+                        evaluation
+                    )
                     resif = resif._leaves[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
             if default == SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
-                result = Expression("ConditionalExpression", *(cases._leaves))
+                result = Expression(SymbolConditionalExpression, *(cases._leaves))
             else:
                 result = Expression(result._head, cases, default)
         else:
-            result = Expression("Simplify", result, assuming).evaluate(evaluation)
+            result = Expression(SymbolSimplify, result, assuming).evaluate(evaluation)
         return result
 
 
@@ -700,7 +718,7 @@ class Root(SympyFunction):
         "Root[f_, i_]"
 
         try:
-            if not f.has_form("Function", 1):
+            if not f.has_form(SymbolFunction, 1):
                 raise sympy.PolynomialError
 
             body = f.leaves[0]
@@ -727,12 +745,12 @@ class Root(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         try:
-            if not expr.has_form("Root", 2):
+            if not expr.has_form(SymbolRoot, 2):
                 return None
 
             f = expr.leaves[0]
 
-            if not f.has_form("Function", 1):
+            if not f.has_form(SymbolFunction, 1):
                 return None
 
             body = f.leaves[0].replace_slots([f, Symbol("_1")], None)
@@ -892,7 +910,7 @@ class Solve(Builtin):
                 pass
             elif eq == SymbolFalse:
                 return Expression(SymbolList)
-            elif not eq.has_form("Equal", 2):
+            elif not eq.has_form(SymbolEqual, 2):
                 return evaluation.message("Solve", "eqf", eqs_original)
             else:
                 left, right = eq.leaves
@@ -1217,7 +1235,9 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
                 Expression(
                     "Times",
                     Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
+                    Expression(
+                        SymbolPlus, x1, Expression(SymbolTimes, Integer(-1), x0)
+                    ),
                 ),
             )
             x1 = x1.evaluate(evaluation)
@@ -1232,10 +1252,10 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
         inv_deltaf = from_python(1.0 / (f1 - f0))
         num = Expression(
             "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
+            Expression(SymbolTimes, x0, f1),
+            Expression(SymbolTimes, x1, f0, Integer(-1)),
         )
-        x2 = Expression("Times", num, inv_deltaf)
+        x2 = Expression(SymbolTimes, num, inv_deltaf)
         x2 = x2.evaluate(evaluation)
         f2 = dynamic_scoping(
             lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
@@ -1268,7 +1288,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if d_value == Integer(0):
             return None
         return Expression(
-            "Times", f, Expression("Power", d_value, Integer(-1))
+            SymbolTimes, f, Expression(SymbolPower, d_value, Integer(-1))
         ).evaluate(evaluation)
 
     count = 0
@@ -1277,9 +1297,9 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
             return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
+        x1 = Expression(
+            SymbolPlus, x0, Expression(SymbolTimes, Integer(-1), minus)
+        ).evaluate(evaluation)
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
@@ -1399,7 +1419,7 @@ class FindRoot(Builtin):
         # members. Again, ensure the scope in the evaluation
         if f.get_head_name() == "System`Equal":
             f = Expression(
-                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
+                "Plus", f.leaves[0], Expression(SymbolTimes, Integer(-1), f.leaves[1])
             )
             f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
 
@@ -1424,7 +1444,7 @@ class FindRoot(Builtin):
         ):
 
             def diff(evaluation):
-                return Expression("D", f, x).evaluate(evaluation)
+                return Expression(SymbolD, f, x).evaluate(evaluation)
 
             d = dynamic_scoping(diff, {x_name: None}, evaluation)
             options["System`Jacobian"] = d
@@ -1445,11 +1465,11 @@ class FindRoot(Builtin):
         "FindRoot[f_, xtuple_, OptionsPattern[]]"
         f_val = f.evaluate(evaluation)
 
-        if f_val.has_form("Equal", 2):
-            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+        if f_val.has_form(SymbolEqual, 2):
+            f = Expression(SymbolPlus, f_val.leaves[0], f_val.leaves[1])
 
         xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
+        if xtuple_value.get_head() is SymbolList:
             nleaves = len(xtuple_value.leaves)
             if nleaves == 2:
                 x, x0 = xtuple.evaluate(evaluation).leaves
@@ -1462,7 +1482,7 @@ class FindRoot(Builtin):
         return
 
 
-class O(Builtin):
+class O_(Builtin):
     """
     <dl>
     <dt>'O[$x$]^n'
@@ -1475,6 +1495,7 @@ class O(Builtin):
 
     """
 
+    name = "O"
     pass
 
 
@@ -1504,9 +1525,9 @@ class Series(Builtin):
         data = [f.replace_vars(vars)]
         df = f
         for i in range(n.get_int_value()):
-            df = Expression("D", df, x).evaluate(evaluation)
+            df = Expression(SymbolD, df, x).evaluate(evaluation)
             newcoeff = df.replace_vars(vars)
-            factorial = Expression("Factorial", Integer(i + 1))
+            factorial = Expression(SymbolFactorial, Integer(i + 1))
             newcoeff = Expression(
                 SymbolTimes,
                 Expression(SymbolPower, factorial, IntegerMinusOne),
@@ -1514,7 +1535,7 @@ class Series(Builtin):
             ).evaluate(evaluation)
             data.append(newcoeff)
         data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression("SeriesData", x, x0, data, IntegerZero, n, Integer1)
+        return Expression(SymbolSeriesData, x, x0, data, IntegerZero, n, Integer1)
 
 
 class SeriesData(Builtin):
@@ -1569,7 +1590,7 @@ class SeriesData(Builtin):
                     )
             expansion.append(term)
         expansion = expansion + [
-            Expression(SymbolPower, Expression("O", variable), powers[-1])
+            Expression(SymbolPower, Expression(SymbolO, variable), powers[-1])
         ]
         # expansion = [ex.format(form) for ex in expansion]
         expansion = Expression(SymbolPlus, *expansion)
