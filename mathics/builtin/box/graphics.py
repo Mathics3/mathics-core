@@ -905,11 +905,7 @@ class FilledCurveBox(_GraphicsElement):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
-        if (
-            item is not None
-            and item.leaves
-            and item.leaves[0].has_form(SymbolList, None)
-        ):
+        if item is not None and item.leaves and item.leaves[0].get_head() is SymbolList:
             if len(item.leaves) != 1:
                 raise BoxConstructError
             leaves = item.leaves[0].leaves
@@ -1059,8 +1055,8 @@ class PointBox(_Polyline):
             if len(item.leaves) != 1:
                 raise BoxConstructError
             points = item.leaves[0]
-            if points.has_form(SymbolList, None) and len(points.leaves) != 0:
-                if all(not leaf.has_form(SymbolList, None) for leaf in points.leaves):
+            if points.get_head() is SymbolList and len(points.leaves) != 0:
+                if all(not leaf.get_head() is SymbolList for leaf in points.leaves):
                     points = Expression(SymbolList, points)
             self.do_init(graphics, points)
         else:
@@ -1099,7 +1095,7 @@ class PolygonBox(_Polyline):
 
     def process_option(self, name, value):
         if name == "System`VertexColors":
-            if not value.has_form(SymbolList, None):
+            if not value.get_head() is SymbolList:
                 raise BoxConstructError
             black = RGBColor(components=[0, 0, 0, 1])
             self.vertex_colors = [[black] * len(line) for line in self.lines]
@@ -1110,7 +1106,7 @@ class PolygonBox(_Polyline):
                 if line_index >= len(colors):
                     break
                 line_colors = colors[line_index]
-                if not line_colors.has_form(SymbolList, None):
+                if not line_colors.get_head() is SymbolList:
                     continue
                 for index, color in enumerate(line_colors.leaves):
                     if index >= len(self.vertex_colors[line_index]):

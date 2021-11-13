@@ -244,7 +244,7 @@ class Definition(Builtin):
                         return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
-                        if expr.has_form(SymbolInfix, None):
+                        if expr.get_head() is SymbolInfix:
                             expr = Expression(
                                 Expression(SymbolHoldForm, expr.head), *expr.leaves
                             )
@@ -489,7 +489,7 @@ class Information(PrefixOperator):
                         return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
-                        if expr.has_form(SymbolInfix, None):
+                        if expr.get_head() is SymbolInfix:
                             expr = Expression(
                                 Expression(SymbolHoldForm, expr.head), *expr.leaves
                             )

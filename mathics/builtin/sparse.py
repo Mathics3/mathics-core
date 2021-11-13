@@ -55,18 +55,18 @@ class SparseArray(Builtin):
 
         leaves = []
         dims = None
-        if not array.has_form(SymbolList, None):
+        if array.get_head() is not SymbolList:
             return array
         if len(array.leaves) == 0:
             return
         # The first leaf determines the dimensions
         dims = None
         leaf = array.leaves[0]
-        if leaf.has_form(SymbolList, None):
+        if leaf.get_head() is SymbolList:
             leaf = self.list_to_sparse(leaf, evaluation)
             if leaf is None:
                 return None
-        if leaf.has_form(SymbolSparseArray, None):
+        if leaf.get_head() is SymbolSparseArray:
             dims = leaf.leaves[1]
         if dims:
             leaves = [leaf]
@@ -76,16 +76,14 @@ class SparseArray(Builtin):
                 newleaf = self.list_to_sparse(leaf, evaluation)
                 if newleaf is None:
                     return
-                if not newleaf.has_form(SymbolSparseArray, None):
+                if not newleaf.get_head() is SymbolSparseArray:
                     return
-                if not dims == newleaf.leaves[1]:
+                if not dims.sameQ(newleaf.leaves[1]):
                     return
                 leaves.append(newleaf)
         else:
             for i, leaf in enumerate(array.leaves):
-                if leaf.has_form(SymbolSparseArray, None) or leaf.has_form(
-                    SymbolList, None
-                ):
+                if leaf.get_head() in (SymbolSparseArray, SymbolList):
                     return
                 if leaf.is_numeric(evaluation) and leaf.is_zero:
                     continue
@@ -129,7 +127,7 @@ class SparseArray(Builtin):
         # Now, apply the rules...
         for item in data.leaves:
             pos, val = item.leaves
-            if pos.has_form(SymbolList, None):
+            if pos.get_head() is SymbolList:
                 walk_parts([table], pos.leaves, evaluation, val)
         return table
 
@@ -137,7 +135,7 @@ class SparseArray(Builtin):
         dims = None
         for rule in rules:
             pos = rule.leaves[0]
-            if pos.has_form(SymbolList, None):
+            if pos.get_head() is SymbolList:
                 if dims is None:
                     dims = [0] * len(pos.leaves)
                 for i, idx in enumerate(pos.leaves):
@@ -151,7 +149,7 @@ class SparseArray(Builtin):
 
     def apply_1(self, rules, evaluation):
         """SparseArray[rules_List]"""
-        if not (rules.has_form(SymbolList, None) and len(rules.leaves) > 0):
+        if not (rules.get_head() is SymbolList and len(rules.leaves) > 0):
             if rules is SymbolAutomatic:
                 return
             print(rules.has_form(SymbolList, (1,)))

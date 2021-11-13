@@ -621,7 +621,7 @@ class FirstPosition(Builtin):
                 for i in range(len(expr_list.leaves))
             )
 
-        if level.has_form(SymbolList, None):
+        if level.get_head() is SymbolList:
             len_list = len(level.leaves)
             if len_list > 2 or not is_interger_list(level):
                 return evaluation.message("FirstPosition", "level", level)
@@ -1155,7 +1155,7 @@ class ReplacePart(Builtin):
                 return
             position = replacement.leaves[0]
             replace = replacement.leaves[1]
-            if position.has_form(SymbolList, None):
+            if position.get_head() is SymbolList:
                 position = position.get_mutable_leaves()
             else:
                 position = [position]

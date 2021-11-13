@@ -99,9 +99,7 @@ class Association(Builtin):
             for expr in exprs:
                 if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     pass
-                elif expr.has_form(SymbolList, None) or expr.has_form(
-                    SymbolAssociation, None
-                ):
+                elif expr.get_head() in (SymbolList, SymbolAssociation):
                     if validate(expr.leaves) is not True:
                         return False
                 else:
@@ -137,9 +135,7 @@ class Association(Builtin):
                     dic[key] = Expression(expr.get_head(), key, value)
                     if key not in keys:
                         keys.append(key)
-                elif expr.has_form(SymbolList, None) or expr.has_form(
-                    SymbolAssociation, None
-                ):
+                elif expr.get_head() in (SymbolList, SymbolAssociation):
                     make_flatten(expr.leaves, dic, keys)
                 else:
                     raise
@@ -158,9 +154,7 @@ class Association(Builtin):
                 if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     if expr.leaves[0] == key:
                         dic[key] = expr.leaves[1]
-                elif expr.has_form(SymbolList, None) or expr.has_form(
-                    SymbolAssociation, None
-                ):
+                elif expr.get_head() in (SymbolList, SymbolAssociation):
                     find_key(expr.leaves)
                 else:
                     raise
@@ -198,9 +192,7 @@ class AssociationQ(Test):
             for leaf in leaves:
                 if leaf.has_form((SymbolRule, SymbolRuleDelayed), 2):
                     pass
-                elif leaf.has_form(SymbolList, None) or leaf.has_form(
-                    SymbolAssociation, None
-                ):
+                elif leaf.get_head() in (SymbolList, SymbolAssociation):
                     if validate(leaf.leaves) is not True:
                         return False
                 else:
@@ -283,10 +275,11 @@ class Keys(Builtin):
         "Keys[rules___]"
 
         def get_keys(expr):
+            head = expr.get_head()
             if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return expr.leaves[0]
-            elif expr.has_form(SymbolList, None) or (
-                expr.has_form(SymbolAssociation, None)
+            elif head is (SymbolList) or (
+                head is SymbolAssociation
                 and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(SymbolList, *[get_keys(leaf) for leaf in expr.leaves])
@@ -398,10 +391,11 @@ class Values(Builtin):
         "Values[rules___]"
 
         def get_values(expr):
+            head = expr.get_head()
             if expr.has_form((SymbolRule, SymbolRuleDelayed), 2):
                 return expr.leaves[1]
-            elif expr.has_form(SymbolList, None) or (
-                expr.has_form(SymbolAssociation, None)
+            elif head is SymbolList or (
+                head is SymbolAssociation
                 and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(

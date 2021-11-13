@@ -140,7 +140,7 @@ class ArrayQ(Builtin):
         dims = [len(expr.get_leaves())]  # to ensure an atom is not an array
 
         def check(level, expr):
-            if not expr.has_form(SymbolList, None):
+            if not expr.get_head() is SymbolList:
                 test_expr = Expression(test, expr)
                 if test_expr.evaluate(evaluation) != SymbolTrue:
                     return False

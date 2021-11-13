@@ -547,12 +547,12 @@ class Text(Inset):
 
 class _Polyline(_GraphicsElement):
     def do_init(self, graphics, points):
-        if not points.has_form(SymbolList, None):
+        if not points.get_head() is SymbolList:
             raise BoxConstructError
         if (
             points.leaves
-            and points.leaves[0].has_form(SymbolList, None)
-            and all(leaf.has_form(SymbolList, None) for leaf in points.leaves[0].leaves)
+            and points.leaves[0].get_head() is SymbolList
+            and all(leaf.get_head() is SymbolList for leaf in points.leaves[0].leaves)
         ):
             leaves = points.leaves
             self.multi_parts = True
@@ -561,7 +561,7 @@ class _Polyline(_GraphicsElement):
             self.multi_parts = False
         lines = []
         for leaf in leaves:
-            if leaf.has_form(SymbolList, None):
+            if leaf.get_head() is SymbolList:
                 lines.append(leaf.leaves)
             else:
                 raise BoxConstructError
@@ -1042,7 +1042,7 @@ def _style(graphics, item):
         if len(item.leaves) > 1:
             raise BoxConstructError
         if item.leaves:
-            if item.leaves[0].has_form(SymbolList, None):
+            if item.leaves[0].get_head() is SymbolList:
                 for dir in item.leaves[0].leaves:
                     style.append(dir, allow_forms=False)
             else:
@@ -1179,7 +1179,7 @@ class _GraphicsElements(object):
             return new_style
 
         def convert(content, style):
-            if content.has_form(SymbolList, None):
+            if content.get_head() is SymbolList:
                 items = content.leaves
             else:
                 items = [content]
@@ -1219,7 +1219,7 @@ class _GraphicsElements(object):
         style = self.style_class(self)
 
         def convert(expr):
-            if expr.has_form((SymbolList, Symbol("Directive")), None):
+            if expr.get_head() in (SymbolList, Symbol("Directive")):
                 for item in expr.leaves:
                     convert(item)
             else:

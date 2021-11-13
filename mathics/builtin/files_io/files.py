@@ -432,7 +432,7 @@ class Read(Builtin):
             return
 
         # Wrap types in a list (if it isn't already one)
-        if types.has_form(SymbolList, None):
+        if types.get_head() is SymbolList:
             types = types._leaves
         else:
             types = (types,)
@@ -1214,13 +1214,13 @@ class BinaryWrite(Builtin):
             return expr
 
         # Check b
-        if b.has_form(SymbolList, None):
+        if b.get_head() is SymbolList:
             pyb = b.leaves
         else:
             pyb = [b]
 
         # Check Type
-        if typ.has_form(SymbolList, None):
+        if typ.get_head() is SymbolList:
             types = typ.get_leaves()
         else:
             types = [typ]
@@ -1578,7 +1578,7 @@ class BinaryRead(Builtin):
             evaluation.message("BinaryRead", "bfmt", channel)
             return expr
 
-        if typ.has_form(SymbolList, None):
+        if typ.get_head() is SymbolList:
             types = typ.get_leaves()
         else:
             types = [typ]
@@ -1596,7 +1596,7 @@ class BinaryRead(Builtin):
             except struct.error:
                 result.append(SymbolEndOfFile)
 
-        if typ.has_form(SymbolList, None):
+        if typ.get_head() is SymbolList:
             return Expression(SymbolList, *result)
         else:
             if len(result) == 1:

@@ -363,7 +363,7 @@ class Plus(BinaryOperator, SympyFunction):
                 if last_count == 1:
                     leaves.append(last_item)
                 else:
-                    if last_item.has_form(SymbolTimes, None):
+                    if last_item.get_head() is SymbolTimes:
                         leaves.append(
                             Expression(
                                 SymbolTimes, from_sympy(last_count), *last_item.leaves
@@ -379,7 +379,7 @@ class Plus(BinaryOperator, SympyFunction):
                 numbers.append(item)
             else:
                 count = rest = None
-                if item.has_form(SymbolTimes, None):
+                if item.get_head() is SymbolTimes:
                     for leaf in item.leaves:
                         if isinstance(leaf, Number):
                             count = leaf.to_sympy()
@@ -926,9 +926,7 @@ class Times(BinaryOperator, SympyFunction):
                 return SymbolIndeterminate
             return number
         elif (
-            number.sameQ(Integer(-1))
-            and leaves
-            and leaves[0].has_form(SymbolPlus, None)
+            number.sameQ(Integer(-1)) and leaves and leaves[0].get_head() is SymbolPlus
         ):
             leaves[0] = Expression(
                 leaves[0].get_head(),

@@ -7,6 +7,7 @@ Options and Default Arguments
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin, Test, get_option
+from mathics.core.atoms import Integer
 from mathics.core.symbols import (
     Symbol,
     ensure_context,
@@ -93,7 +94,7 @@ class Options(Builtin):
                 # FIXME ColorSpace, MetaInformation
                 options = f.metadata
             else:
-                evaluation.message("Options", "sym", f, 1)
+                evaluation.message("Options", "sym", f, Integer(1))
                 return
         else:
             options = evaluation.definitions.get_options(name)
@@ -101,8 +102,8 @@ class Options(Builtin):
         for option, value in sorted(options.items(), key=lambda item: item[0]):
             # Don't use HoldPattern, since the returned List should be
             # assignable to Options again!
-            result.append(Expression("RuleDelayed", Symbol(option), value))
-        return Expression("List", *result)
+            result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
+        return Expression(SymbolList, *result)
 
 
 class OptionValue(Builtin):
@@ -163,7 +164,7 @@ class OptionValue(Builtin):
             if name:
                 name = ensure_context(name)
         if not name:
-            evaluation.message("OptionValue", "sym", optname, 1)
+            evaluation.message("OptionValue", "sym", optname, Integer(1))
             return
 
         val = get_option(evaluation.options, name, evaluation)
@@ -202,9 +203,9 @@ class OptionValue(Builtin):
                     evaluation.definitions.get_options(f.get_name()), name, evaluation
                 )
             else:
-                if f.get_head_name() in ("System`Rule", "System`RuleDelayed"):
-                    f = Expression("List", f)
-                if f.get_head_name() == "System`List":
+                if f.get_head() in (SymbolRule, SymbolRuleDelayed):
+                    f = Expression(SymbolList, f)
+                if f.get_head() is SymbolList:
                     for leave in f.get_leaves():
                         if leave.is_symbol():
                             val = get_option(
@@ -312,13 +313,12 @@ class OptionQ(Test):
 
     def test(self, expr):
         expr = expr.flatten(SymbolList)
-        if not expr.has_form(SymbolList, None):
+        if not expr.get_head() is SymbolList:
             expr = [expr]
         else:
             expr = expr.get_leaves()
         return all(
-            e.has_form(SymbolRule, None) or e.has_form(SymbolRuleDelayed, 2)
-            for e in expr
+            e.get_head() is SymbolRule or e.has_form(SymbolRuleDelayed, 2) for e in expr
         )
 
 
@@ -343,13 +343,12 @@ class NotOptionQ(Test):
 
     def test(self, expr):
         expr = expr.flatten(SymbolList)
-        if not expr.has_form(SymbolList, None):
+        if not expr.get_head() is SymbolList:
             expr = [expr]
         else:
             expr = expr.get_leaves()
         return not all(
-            e.has_form(SymbolRule, None) or e.has_form(SymbolRuleDelayed, 2)
-            for e in expr
+            e.get_head() is SymbolRule or e.has_form(SymbolRuleDelayed, 2) for e in expr
         )
 
 
@@ -384,7 +383,7 @@ class FilterRules(Builtin):
                 if rule.has_form(SymbolRule, 2) and match(rule.leaves[0], evaluation):
                     yield rule
 
-        return Expression("List", *list(matched()))
+        return Expression(SymbolList, *list(matched()))
 
 
 def options_to_rules(options, filter=None):

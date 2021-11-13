@@ -280,7 +280,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
         vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
         value = dynamic_scoping(quiet_expr.evaluate, vars, evaluation)
         if expect_list:
-            if value.has_form(SymbolList, None):
+            if value.get_head() is SymbolList:
                 value = [extract_pyreal(item) for item in value.leaves]
                 if any(item is None for item in value):
                     return None
@@ -759,7 +759,7 @@ class _Chart(Builtin):
             groups = [points]
 
         chart_legends = self.get_option(options, "ChartLegends", evaluation)
-        has_chart_legends = chart_legends.get_head_name() == "System`List"
+        has_chart_legends = chart_legends.get_head() is SymbolList
         if has_chart_legends:
             multiple_colors = True
 
@@ -2139,7 +2139,7 @@ class Plot(_Plot):
     """
 
     def get_functions_param(self, functions):
-        if functions.has_form(SymbolList, None):
+        if functions.get_head() is SymbolList:
             functions = functions.leaves
         else:
             functions = [functions]
@@ -2197,8 +2197,8 @@ class ParametricPlot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form(SymbolList, 2) and not (
-            functions.leaves[0].has_form(SymbolList, None)
-            or functions.leaves[1].has_form(SymbolList, None)
+            functions.leaves[0].get_head() is SymbolList
+            or functions.leaves[1].get_head() is SymbolList
         ):
             # One function given
             functions = [functions]
@@ -2272,7 +2272,7 @@ class PolarPlot(_Plot):
     )
 
     def get_functions_param(self, functions):
-        if functions.has_form(SymbolList, None):
+        if functions.get_head() is SymbolList:
             functions = functions.leaves
         else:
             functions = [functions]
@@ -2450,7 +2450,7 @@ class Plot3D(_Plot3D):
     )
 
     def get_functions_param(self, functions):
-        if functions.has_form(SymbolList, None):
+        if functions.get_head() is SymbolList:
             return functions.leaves
         else:
             return [functions]

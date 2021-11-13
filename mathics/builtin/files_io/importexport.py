@@ -897,7 +897,7 @@ def _importer_exporter_options(
     custom_options = []
     remaining_options = options.copy()
 
-    if available_options and available_options.has_form(SymbolList, None):
+    if available_options and available_options.get_head() is SymbolList:
         for name in available_options.leaves:
             if isinstance(name, String):
                 py_name = name.get_string_value()
@@ -1097,7 +1097,7 @@ class RegisterImport(Builtin):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
-        if function.has_form(SymbolList, None):
+        if function.get_head() is SymbolList:
             leaves = function.get_leaves()
         else:
             leaves = [function]
@@ -1105,7 +1105,7 @@ class RegisterImport(Builtin):
         if not (
             len(leaves) >= 1
             and isinstance(leaves[-1], Symbol)
-            and all(x.has_form(SymbolRuleDelayed, None) for x in leaves[:-1])
+            and all(x.get_head() is SymbolRuleDelayed for x in leaves[:-1])
         ):
             # TODO: Message
             return SymbolFailed
@@ -1370,7 +1370,7 @@ class Import(Builtin):
     def _import(findfile, determine_filetype, elements, evaluation, options, data=None):
         current_predetermined_out = evaluation.predetermined_out
         # Check elements
-        if elements.has_form(SymbolList, None):
+        if elements.get_head() is SymbolList:
             elements = elements.get_leaves()
         else:
             elements = [elements]
@@ -1460,7 +1460,7 @@ class Import(Builtin):
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
             tmp = tmp.get_leaves()
-            if not all(expr.has_form(SymbolRule, None) for expr in tmp):
+            if not all(expr.get_head() is SymbolRule for expr in tmp):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 

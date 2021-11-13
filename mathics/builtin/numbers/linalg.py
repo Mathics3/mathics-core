@@ -24,13 +24,13 @@ from mathics.core.symbols import Symbol, SymbolList
 
 
 def matrix_data(m):
-    if not m.has_form(SymbolList, None):
+    if not m.get_head() is SymbolList:
         return None
-    if all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
+    if all(leaf.get_head() is SymbolList for leaf in m.leaves):
         result = [[item.to_sympy() for item in row.leaves] for row in m.leaves]
         if not any(None in row for row in result):
             return result
-    elif not any(leaf.has_form(SymbolList, None) for leaf in m.leaves):
+    elif not any(leaf.get_head() is SymbolList for leaf in m.leaves):
         result = [item.to_sympy() for item in m.leaves]
         if None not in result:
             return result
@@ -54,9 +54,9 @@ def to_mpmath_matrix(data, **kwargs):
     """
 
     def mpmath_matrix_data(m):
-        if not m.has_form(SymbolList, None):
+        if not m.get_head() is SymbolList:
             return None
-        if not all(leaf.has_form(SymbolList, None) for leaf in m.leaves):
+        if not all(leaf.get_head() is SymbolList for leaf in m.leaves):
             return None
         return [[str(item) for item in row.leaves] for row in m.leaves]
 

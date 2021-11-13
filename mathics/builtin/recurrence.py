@@ -57,7 +57,7 @@ class RSolve(Builtin):
         "RSolve[eqns_, a_, n_]"
 
         # TODO: Do this with rules?
-        if not eqns.has_form(SymbolList, None):
+        if not eqns.get_head() is SymbolList:
             eqns = Expression(SymbolList, eqns)
 
         if len(eqns.leaves) == 0:

@@ -654,7 +654,7 @@ class Riffle(Builtin):
     def apply(self, list, sep, evaluation):
         "Riffle[list_List, sep_]"
 
-        if sep.has_form(SymbolList, None):
+        if sep.get_head() is SymbolList:
             result = riffle_lists(list.get_leaves(), sep.leaves)
         else:
             result = riffle_lists(list.get_leaves(), [sep])

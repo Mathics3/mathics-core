@@ -177,6 +177,7 @@ class Expression(BaseExpression):
 
     def __new__(cls, head, *leaves, **kwargs) -> "Expression":
         from mathics.builtin.base import BoxConstruct
+        from mathics.builtin.base import InstanceableBuiltin
 
         self = super().__new__(cls)
         if isinstance(head, str):
@@ -1015,9 +1016,7 @@ class Expression(BaseExpression):
         is_style, options = self.process_style_box(options)
         if is_style:
             return self._leaves[0].boxes_to_text(**options)
-        if self.has_form(SymbolRowBox, 1) and self._leaves[0].has_form(  # nopep8
-            SymbolList, None
-        ):
+        if self.has_form(SymbolRowBox, 1) and self._leaves[0].get_head() is SymbolList:
             return "".join(
                 [leaf.boxes_to_text(**options) for leaf in self._leaves[0]._leaves]
             )

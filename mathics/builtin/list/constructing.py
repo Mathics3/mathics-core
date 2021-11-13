@@ -75,7 +75,7 @@ class Array(Builtin):
     def apply(self, f, dimsexpr, origins, head, evaluation):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
 
-        if dimsexpr.has_form(SymbolList, None):
+        if dimsexpr.get_head() is SymbolList:
             dims = dimsexpr.get_mutable_leaves()
         else:
             dims = [dimsexpr]
@@ -85,7 +85,7 @@ class Array(Builtin):
                 evaluation.message("Array", "ilsnn", 2)
                 return
             dims[index] = value
-        if origins.has_form(SymbolList, None):
+        if origins.get_head() is SymbolList:
             if len(origins.leaves) != len(dims):
                 evaluation.message("Array", "plen", dimsexpr, origins)
                 return

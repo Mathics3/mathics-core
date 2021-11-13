@@ -83,7 +83,7 @@ class ToCharacterCode(Builtin):
     def _encode(self, string, encoding, evaluation):
         exp = Expression("ToCharacterCode", string)
 
-        if string.has_form(SymbolList, None):
+        if string.get_head() is SymbolList:
             string = [substring.get_string_value() for substring in string.leaves]
             if any(substring is None for substring in string):
                 evaluation.message("ToCharacterCode", "strse", Integer1, exp)
@@ -232,16 +232,16 @@ class FromCharacterCode(Builtin):
                 return pack_bytes(codes).decode(py_encoding)
 
         try:
-            if n.has_form(SymbolList, None):
+            if n.get_head() is SymbolList:
                 if not n.get_leaves():
                     return String("")
                 # Mathematica accepts FromCharacterCode[{{100}, 101}],
                 # so to match this, just check the first leaf to see
                 # if we're dealing with nested lists.
-                elif n.get_leaves()[0].has_form(SymbolList, None):
+                elif n.get_leaves()[0].get_head() is SymbolList:
                     list_of_strings = []
                     for leaf in n.get_leaves():
-                        if leaf.has_form(SymbolList, None):
+                        if leaf.get_head() is SymbolList:
                             stringi = convert_codepoint_list(leaf.get_leaves())
                         else:
                             stringi = convert_codepoint_list([leaf])

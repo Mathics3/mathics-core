@@ -121,7 +121,7 @@ class Blend(Builtin):
             evaluation.message("Blend", "arg", Expression(SymbolList, colors_orig))
             return
 
-        if u.has_form(SymbolList, None):
+        if u.get_head() is SymbolList:
             values = [value.round_to_float(evaluation) for value in u.leaves]
             if None in values:
                 values = None

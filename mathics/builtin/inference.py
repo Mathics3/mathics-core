@@ -141,7 +141,7 @@ def get_assumptions_list(evaluation):
     if assumptions is None:
         return None
 
-    if assumptions.is_atom() or not assumptions.has_form(SymbolList, None):
+    if assumptions.is_atom() or not assumptions.get_head() is SymbolList:
         assumptions = (assumptions,)
     else:
         assumptions = assumptions._leaves
@@ -178,19 +178,19 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                 continue
             new_assumptions_list.append(assumption)
             continue
-        if assumption.has_form(SymbolAnd, None):
+        if assumption.get_head() is SymbolAnd:
             changed = True
             for leaf in assumption.leaves:
                 new_assumptions_list.append(leaf)
             continue
         if assumption.has_form(SymbolNot, 1):
             sentence = assumption._leaves[0]
-            if sentence.has_form(SymbolOr, None):
+            if sentence.get_head() is SymbolOr:
                 changed = True
                 for leaf in sentence._leaves:
                     new_assumptions_list.append(Expression(SymbolNot, leaf))
                 continue
-            if sentence.has_form(SymbolAnd, None):
+            if sentence.get_head() is SymbolAnd:
                 leaves = (Expression(SymbolNot, leaf) for leaf in sentence._leaves)
                 new_assumptions_list.append(Expression(SymbolOr, *leaves))
                 continue
@@ -198,7 +198,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                 changed = True
                 new_assumptions_list.append(sentence._leaves[0])
                 new_assumptions_list.append(Expression(SymbolNot, sentence._leaves[1]))
-        if assumption.has_form(SymbolNor, None):
+        if assumption.get_head() is SymbolNor:
             changed = True
             for leaf in assumption.leaves:
                 new_assumptions_list.append(Expression(SymbolNot, leaf))
@@ -368,7 +368,7 @@ def evaluate_predicate(pred, evaluation):
     global logical_algebraic_rules
     global remove_not_rules
 
-    if pred.has_form((SymbolList, SymbolSequence), None):
+    if pred.get_head() in (SymbolList, SymbolSequence):
         return Expression(
             pred._head, *[evaluate_predicate(subp, evaluation) for subp in pred._leaves]
         )

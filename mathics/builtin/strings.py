@@ -245,7 +245,7 @@ def to_regex(
         leaf = expr.leaves[0].get_string_value()
         if leaf is not None:
             return "[{0}]".format(re.escape(leaf))
-    if expr.has_form(SymbolStringExpression, None):
+    if expr.get_head() is SymbolStringExpression:
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if None in leaves:
             return None
@@ -258,7 +258,7 @@ def to_regex(
         leaf = recurse(expr.leaves[0])
         if leaf is not None:
             return "({0})".format(leaf) + q["*"]
-    if expr.has_form(SymbolAlternatives, None):
+    if expr.get_head() is SymbolAlternatives:
         leaves = [recurse(leaf) for leaf in expr.leaves]
         if all(leaf is not None for leaf in leaves):
             return "|".join(leaves)
@@ -641,7 +641,7 @@ class _StringFind(Builtin):
             expr = Expression(self.get_name(), string, rule, n)
 
         # convert string
-        if string.has_form(SymbolList, None):
+        if string.get_head() is SymbolList:
             py_strings = [stri.get_string_value() for stri in string.leaves]
             if None in py_strings:
                 return evaluation.message(self.get_name(), "strse", Integer1, expr)
@@ -652,7 +652,7 @@ class _StringFind(Builtin):
 
         # convert rule
         def convert_rule(r):
-            if r.has_form(SymbolRule, None) and len(r.leaves) == 2:
+            if r.get_head() is SymbolRule and len(r.leaves) == 2:
                 py_s = to_regex(r.leaves[0], evaluation)
                 if py_s is None:
                     return evaluation.message(
@@ -668,7 +668,7 @@ class _StringFind(Builtin):
 
             return evaluation.message(self.get_name(), "srep", r)
 
-        if rule.has_form(SymbolList, None):
+        if rule.get_head() is SymbolList:
             py_rules = [convert_rule(r) for r in rule.leaves]
         else:
             py_rules = [convert_rule(rule)]
@@ -1054,7 +1054,7 @@ class Transliterate(Builtin):
 
 def _pattern_search(name, string, patt, evaluation, options, matched):
     # Get the pattern list and check validity for each
-    if patt.has_form(SymbolList, None):
+    if patt.get_head() is SymbolList:
         patts = patt.get_leaves()
     else:
         patts = [patt]
@@ -1075,7 +1075,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         return SymbolFalse if matched else SymbolTrue
 
     # Check string validity and perform regex searchhing
-    if string.has_form(SymbolList, None):
+    if string.get_head() is SymbolList:
         py_s = [s.get_string_value() for s in string.leaves]
         if any(s is None for s in py_s):
             return evaluation.message(

@@ -82,7 +82,7 @@ class Function(PostfixOperator):
     def apply_named(self, vars, body, args, evaluation):
         "Function[vars_, body_][args___]"
 
-        if vars.has_form(SymbolList, None):
+        if vars.get_head() is SymbolList:
             vars = vars.leaves
         else:
             vars = [vars]
@@ -108,7 +108,7 @@ class Function(PostfixOperator):
     # Not sure if DRY is possible here...
     def apply_named_attr(self, vars, body, attr, args, evaluation):
         "Function[vars_, body_, attr_][args___]"
-        if vars.has_form(SymbolList, None):
+        if vars.get_head() is SymbolList:
             vars = vars.leaves
         else:
             vars = [vars]

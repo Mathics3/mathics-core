@@ -905,12 +905,12 @@ class _IterationFunction(Builtin):
     def apply_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
         iterator = iterator.evaluate(evaluation)
-        if iterator.has_form([SymbolList, SymbolRange, SymbolSequence], None):
+        if iterator.get_head() in (SymbolList, SymbolRange, SymbolSequence):
             leaves = iterator.leaves
             if len(leaves) == 1:
                 return self.apply_max(expr, *leaves, evaluation)
             elif len(leaves) == 2:
-                if leaves[1].has_form([SymbolList, SymbolSequence], None):
+                if leaves[1].get_head() in (SymbolList, SymbolSequence):
                     seq = Expression(SymbolSequence, *(leaves[1].leaves))
                     return self.apply_list(expr, leaves[0], seq, evaluation)
                 else:
