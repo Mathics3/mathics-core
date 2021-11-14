@@ -667,7 +667,17 @@ class SphericalBesselJ(_Bessel):
 
     attributes = ("Listable", "NumericFunction", "Protected")
 
-    rules = {"SphericalBesselJ[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] BesselJ[n + 0.5, z]"}
+    rules = {
+        "SphericalBesselJ[n_, z_]": """
+             Times[Rational[1, 2], 
+                   Power[Pi, Rational[1, 2]], 
+                   Power[2, Rational[1, 2]], 
+                   Power[z, Rational[-1, 2]], 
+                   BesselJ[Plus[Rational[1, 2], n], z]
+             ]
+             """,
+        "N[SphericalBesselJ[n_,z_]]": "Sqrt[Pi/2]/Sqrt[z] * BesselJ[N[1/2+n], N[z]]",
+    }
 
     summary_text = "spherical Bessel function of the second kind"
     sympy_name = "jn"
@@ -691,7 +701,18 @@ class SphericalBesselY(_Bessel):
 
     attributes = ("Listable", "NumericFunction", "Protected")
 
-    rules = {"SphericalBesselY[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] BesselY[n + 0.5, z]"}
+    rules = {
+        "SphericalBesselY[n_, z_]": """
+             Times[
+                Rational[1, 2], 
+                Power[Pi, Rational[1, 2]], 
+                Power[2, Rational[1, 2]], 
+                Power[z, Rational[-1, 2]], 
+                BesselY[Plus[Rational[1, 2], n], z]
+               ]
+             """,
+        "N[SphericalBesselY[n_,z_]]": "Sqrt[Pi/2]/Sqrt[z] * BesselY[N[1/2+n], N[z]]",
+    }
 
     summary_text = "spherical Bessel function of the second kind"
     sympy_name = "yn"
