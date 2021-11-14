@@ -43,6 +43,7 @@ from mathics.core.formatter import lookup_method, add_conversion_fn
 from mathics.format.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
+    asy_add_solids_import,
     asy_bezier,
     asy_color,
     asy_create_pens,
@@ -294,29 +295,22 @@ def cylinder3dbox(self, **options) -> str:
     rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cylinder3DBox\n"
+    asy += asy_add_solids_import(self)
+    # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
     i = 0
     while i < len(self.points) / 2:
         try:
             point1 = self.points[i * 2].pos()[0]
             point2 = self.points[i * 2 + 1].pos()[0]
+            asy += f"real r={self.radius};\n"
+            asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
+            asy += "real h=abs(A-B);\n"
+            asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
+            asy += f"""draw(surface(cyl),{rgb});\n"""
 
-            # Compute distance between start point and end point.
-            distance = (
-                (point1[0] - point2[0]) ** 2
-                + (point1[1] - point2[1]) ** 2
-                + (point1[2] - point2[2]) ** 2
-            ) ** 0.5
-
-            asy += (
-                # In Asymptote B-A
-                f"""
-                draw(surface(cylinder(
-                    {tuple(point1)}, // start of the cylinder
-                    {self.radius},
-                    {distance},
-                    {tuple(point2)} - {tuple(point1)} // draw from point1 to point2
-                )), {rgb});"""
-            )
+            # The above is an open cylinder. Draw the ends.
+            asy += f"draw(surface(circle(A,r,normal=B-A)),{rgb});\n"
+            asy += f"draw(surface(circle(B,r,normal=B-A)),{rgb});\n"
         except:  # noqa
             pass
 

@@ -776,12 +776,13 @@ class Cuboid3DBox(InstanceableBuiltin):
         pass
 
 
-class Cylinder3DBox(InstanceableBuiltin):
+class Cylinder3DBox(Graphics3DBox):
     """
     Internal Python class used when Boxing a 'Cylinder' object.
     """
 
     def init(self, graphics, style, item):
+        self.graphics = graphics
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
         if len(item.leaves) != 2:
