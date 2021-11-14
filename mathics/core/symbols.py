@@ -351,10 +351,6 @@ class BaseExpression(KeyComparable):
             ):
                 # print("Not inside graphics or numberform, and not is atom")
                 new_leaves = [leaf.do_format(evaluation, form) for leaf in expr.leaves]
-                assert all(
-                    isinstance(leaf, (BaseExpression, InstanceableBuiltin))
-                    for leaf in new_leaves
-                ), new_leaves
                 expr = self.create_expression(
                     expr.head.do_format(evaluation, form), *new_leaves
                 )

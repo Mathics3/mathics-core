@@ -95,7 +95,7 @@ class Definitions(object):
             "Global`",
             "System`",
         )
-
+        self.accessible_contexts = self.context_path
         if add_builtin:
             from mathics.builtin import modules, contribute
             from mathics.settings import ROOT_DIR
@@ -274,6 +274,9 @@ class Definitions(object):
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
         self.current_context = context
+        accessible_ctxts = set(ctx for ctx in self.context_path)
+        accessible_ctxts.add(self.current_context)
+        self.accesible_contexts = accessible_ctxts
         self.clear_cache()
 
     def set_context_path(self, context_path) -> None:
@@ -284,6 +287,9 @@ class Definitions(object):
             Expression("System`List", *[String(c) for c in context_path]),
         )
         self.context_path = context_path
+        accessible_ctxts = set(ctx for ctx in self.context_path)
+        accessible_ctxts.add(self.current_context)
+        self.accesible_contexts = accessible_ctxts
         self.clear_cache()
 
     def get_builtin_names(self):
@@ -304,6 +310,11 @@ class Definitions(object):
 
     def get_accessible_contexts(self):
         "Return the contexts reachable though $Context or $ContextPath."
+        return self.accesible_contexts
+        # for  ctx in self.context_path:
+        #   yield ctx
+        # yield self.current_context
+        # return
         accessible_ctxts = set(ctx for ctx in self.context_path)
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
@@ -350,7 +361,7 @@ class Definitions(object):
                 short_pattern = pattern
                 # start with a group matching the accessible contexts
                 ctx_pattern = "(?:%s)" % "|".join(
-                    re.escape(c) for c in self.get_accessible_contexts()
+                    re.escape(c) for c in self.accessible_contexts
                 )
 
             short_pattern = (
@@ -523,10 +534,9 @@ class Definitions(object):
 
     def get_attributes(self, name):
         definition = self.definitions_cache.get(name, None)
-        if definition is None:
-            definition = self.get_definition(name, True)
-        if definition is None:
-            return set()
+        if definition:
+            return definition.attributes
+        definition = self.get_definition(name)
         return definition.attributes
 
     def get_ownvalue(self, name):

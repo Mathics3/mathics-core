@@ -691,7 +691,9 @@ class DateObject(_DateFormat):
         tz = String(str(tz))
         return Expression(
             SymbolRowBox,
-            Expression(SymbolList, "[", fmtds, String("  GTM"), tz, String("]")),
+            Expression(
+                SymbolList, String("["), fmtds, String("  GTM"), tz, String("]")
+            ),
         )
 
 
