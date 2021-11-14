@@ -266,8 +266,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
                 return None
 
             return quiet_f
-
-    expr = Expression(SymbolN, expr)
+    expr = Expression(SymbolN, expr).evaluate(evaluation)
     quiet_expr = Expression(
         "Quiet",
         expr,
