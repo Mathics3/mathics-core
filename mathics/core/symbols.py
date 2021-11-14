@@ -608,13 +608,12 @@ class Atom(BaseExpression):
     def has_form(self, heads, *leaf_counts) -> bool:
         if leaf_counts:
             return False
-        name = self.get_atom_name()
         if isinstance(heads, tuple):
-            return name in heads
+            return self in heads
         else:
-            return heads == name
+            return heads is self
 
-    def has_symbol(self, symbol_name) -> bool:
+    def has_symbol(self, symbol: "Symbol") -> bool:
         return False
 
     def get_atom_name(self) -> str:
@@ -782,8 +781,9 @@ class Symbol(Atom):
         else:
             return var
 
-    def has_symbol(self, symbol_name) -> bool:
-        return self.name == ensure_context(symbol_name)
+    def has_symbol(self, symbol: "Symbol") -> bool:
+        assert isinstance(symbol, Symbol)
+        return self is symbol
 
     def evaluate(self, evaluation):
         name = self.name
