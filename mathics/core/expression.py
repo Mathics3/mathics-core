@@ -253,19 +253,16 @@ class Expression(BaseExpression):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(leaves))
 
-    def _no_symbol(self, symbol):
+    def _no_symbol(self, symbol_name):
         # if this return True, it's safe to say that self.leaves or its
         # sub leaves contain no Symbol with symbol_name. if this returns
         # False, such a Symbol might or might not exist.
-        if not isinstance(symbol, Symbol):
-            return False
-
         cache = self._cache
         if cache is None:
             return False
 
         symbols = cache.symbols
-        if symbols is not None and symbol.name not in symbols:
+        if symbols is not None and symbol_name not in symbols:
             return True
         else:
             return False
@@ -300,7 +297,7 @@ class Expression(BaseExpression):
 
     def flatten_sequence(self, evaluation):
         def sequence(leaf):
-            if leaf.get_head_name() == "System`Sequence":
+            if leaf.get_head() is SymbolSequence:
                 return leaf._leaves
             else:
                 return [leaf]
@@ -481,11 +478,11 @@ class Expression(BaseExpression):
                     return False
         return True
 
-    def has_symbol(self, symbol: Symbol) -> bool:
-        if self._no_symbol(symbol):
+    def has_symbol(self, symbol_name: str) -> bool:
+        if self._no_symbol(symbol_name):
             return False
-        return self._head.has_symbol(symbol) or any(
-            leaf.has_symbol(symbol) for leaf in self._leaves
+        return self._head.has_symbol(symbol_name) or any(
+            leaf.has_symbol(symbol_name) for leaf in self._leaves
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
@@ -724,7 +721,7 @@ class Expression(BaseExpression):
     ) -> "Expression":
         if level is not None and level <= 0:
             return self
-        if self._no_symbol(head):
+        if self._no_symbol(head.get_name()):
             return self
         sub_level = None if level is None else level - 1
         do_flatten = False
@@ -818,7 +815,7 @@ class Expression(BaseExpression):
 
         def rest_range(indices):
             if "System`HoldAllComplete" not in attributes:
-                if self._no_symbol(Symbol("System`Evaluate")):
+                if self._no_symbol("System`Evaluate"):
                     return
                 for index in indices:
                     leaf = leaves[index]
@@ -1157,15 +1154,13 @@ class Expression(BaseExpression):
             leaves.sort()
         self.set_reordered_leaves(leaves)
 
-    def filter_leaves(self, head):
+    def filter_leaves(self, head_name):
         # TODO: should use sorting
-        if isinstance(head, str):
-            head = Symbol(head)
-
-        if self._no_symbol(head):
+        head_name = ensure_context(head_name)
+        if self._no_symbol(head_name):
             return []
         else:
-            return [leaf for leaf in self._leaves if leaf._head is head]
+            return [leaf for leaf in self._leaves if leaf.get_head_name() == head_name]
 
     def apply_rules(self, rules, evaluation, level=0, options=None):
         """for rule in rules:
