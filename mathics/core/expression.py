@@ -104,8 +104,6 @@ class BoxError(Exception):
 
 class ExpressionCache:
     def __init__(self, time=None, symbols=None, sequences=None, copy=None):
-        if symbols:
-            assert all(isinstance(s, str) for s in symbols)
         if copy is not None:
             time = time or copy.time
             symbols = symbols or copy.symbols
