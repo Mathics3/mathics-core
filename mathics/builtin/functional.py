@@ -10,7 +10,7 @@ It is made richer by expressions like $f$[$x$] being treating as symbolic data.
 
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 

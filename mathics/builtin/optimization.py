@@ -8,7 +8,7 @@ Optimization problems of sorts arise in all quantitative disciplines from comput
 We intend to provide local and global optimization techniques, both numeric and symbolic.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import from_python
