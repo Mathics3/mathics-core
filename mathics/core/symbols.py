@@ -653,7 +653,6 @@ class Symbol(Atom):
     name: str
     sympy_dummy: Any
     defined_symbols = {}
-    _head_symbol = "sdasdasdsad"
 
     def __new__(cls, name, sympy_dummy=None):
         if not isinstance(name, str):
