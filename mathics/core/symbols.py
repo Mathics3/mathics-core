@@ -613,7 +613,7 @@ class Atom(BaseExpression):
         else:
             return heads is self
 
-    def has_symbol(self, symbol: "Symbol") -> bool:
+    def has_symbol(self, symbol_name: str) -> bool:
         return False
 
     def get_atom_name(self) -> str:
@@ -780,9 +780,8 @@ class Symbol(Atom):
         else:
             return var
 
-    def has_symbol(self, symbol: "Symbol") -> bool:
-        assert isinstance(symbol, Symbol)
-        return self is symbol
+    def has_symbol(self, symbol_name: "str") -> bool:
+        return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
         name = self.name

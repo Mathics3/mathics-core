@@ -250,7 +250,7 @@ class Definitions(object):
     def has_changed(self, maximum, symbols):
         # timestamp for the most recently changed part of a given expression.
         for symbol in symbols:
-            symb = self.get_definition(symbol.name, only_if_exists=True)
+            symb = self.get_definition(symbol, only_if_exists=True)
             if symb is None:
                 # symbol doesn't exist so it was never changed
                 pass

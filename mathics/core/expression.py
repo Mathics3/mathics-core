@@ -104,7 +104,8 @@ class BoxError(Exception):
 
 class ExpressionCache:
     def __init__(self, time=None, symbols=None, sequences=None, copy=None):
-        print("ExpressionCache: symbols=", symbols)
+        if symbols:
+            assert all(isinstance(s, str) for s in symbols)
         if copy is not None:
             time = time or copy.time
             symbols = symbols or copy.symbols
@@ -158,7 +159,7 @@ class ExpressionCache:
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
 
         return ExpressionCache(
-            definitions.now, symbols, None if SymbolSequence in symbols else tuple()
+            definitions.now, symbols, None if "System`Sequence" in symbols else tuple()
         )
 
 
@@ -311,7 +312,6 @@ class Expression(BaseExpression):
 
     def _rebuild_cache(self):
         cache = self._cache
-
         if cache is None:
             time = None
         elif cache.symbols is None:
@@ -321,17 +321,17 @@ class Expression(BaseExpression):
         else:
             return cache
 
-        sym = set((self.get_head(),))
+        sym = set((self.get_head_name(),))
         seq = []
 
         for i, leaf in enumerate(self._leaves):
             if isinstance(leaf, Expression):
                 leaf_symbols = leaf._rebuild_cache().symbols
                 sym.update(leaf_symbols)
-                if SymbolSequence in leaf_symbols:
+                if "System`Sequence" in leaf_symbols:
                     seq.append(i)
             elif isinstance(leaf, Symbol):
-                sym.add(leaf.get_head())
+                sym.add(leaf.get_name())
 
         cache = ExpressionCache(time, sym, seq)
         self._cache = cache
@@ -1593,11 +1593,14 @@ def atom_list_constructor(evaluation, head, *atom_names):
     # note that you may use a constructor constructed via atom_list_constructor() only as
     # long as the evaluation's Definitions are guaranteed to not change.
     if not _is_neutral_head(head, None, evaluation) or any(
-        not atom for atom in atom_symbols
+        not atom for atom in atom_names
     ):
         optimize = False
     else:
-        if not all(_is_neutral_symbol(atom, None, evaluation) for atom in atom_symbols):
+        full_atom_names = [ensure_context(atom) for atom in atom_names]
+        if not all(
+            _is_neutral_symbol(atom, None, evaluation) for atom in full_atom_names
+        ):
             optimize = False
         else:
             optimize = True
@@ -1607,7 +1610,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
         def construct(leaves):
             expr = Expression(head)
             expr._leaves = list(leaves)
-            sym = set(chain([head], atom_symbols))
+            sym = set(chain([head.get_head_name()], full_atom_names))
             expr._cache = ExpressionCache(evaluation.definitions.now, sym, None)
             return expr
 
