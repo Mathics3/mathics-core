@@ -534,36 +534,70 @@ class DateDifference(Builtin):
                 flag = True
 
             if unit == "Year":
-                result.append([intdiv(seconds, 365 * 24 * 60 * 60, flag), "Year"])
+                result.append(
+                    [
+                        from_python(intdiv(seconds, 365 * 24 * 60 * 60, flag)),
+                        String("Year"),
+                    ]
+                )
                 seconds = seconds % (365 * 24 * 60 * 60)
             if unit == "Quarter":
-                result.append([intdiv(seconds, 365 * 6 * 60 * 60, flag), "Quarter"])
+                result.append(
+                    [
+                        from_python(intdiv(seconds, 365 * 6 * 60 * 60, flag)),
+                        String("Quarter"),
+                    ]
+                )
                 seconds = seconds % (365 * 6 * 60 * 60)
             if unit == "Month":
-                result.append([intdiv(seconds, 365 * 2 * 60 * 60, flag), "Month"])
+                result.append(
+                    [
+                        from_python(intdiv(seconds, 365 * 2 * 60 * 60, flag)),
+                        String("Month"),
+                    ]
+                )
                 seconds = seconds % (365 * 2 * 60 * 60)
             if unit == "Week":
-                result.append([intdiv(seconds, 7 * 24 * 60 * 60, flag), "Week"])
+                result.append(
+                    [
+                        from_python(intdiv(seconds, 7 * 24 * 60 * 60, flag)),
+                        String("Week"),
+                    ]
+                )
                 seconds = seconds % (7 * 24 * 60 * 60)
             if unit == "Day":
-                result.append([intdiv(seconds, 24 * 60 * 60, flag), "Day"])
+                result.append(
+                    [from_python(intdiv(seconds, 24 * 60 * 60, flag)), String("Day")]
+                )
                 seconds = seconds % (24 * 60 * 60)
             if unit == "Hour":
-                result.append([intdiv(seconds, 60 * 60, flag), "Hour"])
+                result.append(
+                    [from_python(intdiv(seconds, 60 * 60, flag)), String("Hour")]
+                )
                 seconds = seconds % (60 * 60)
             if unit == "Minute":
-                result.append([intdiv(seconds, 60, flag), "Minute"])
+                result.append(
+                    [from_python(intdiv(seconds, 60, flag)), String("Minute")]
+                )
                 seconds = seconds % 60
             if unit == "Second":
                 result.append(
-                    [intdiv(seconds + total_seconds(tdelta) % 1, 1, flag), "Second"]
+                    [
+                        from_python(
+                            intdiv(seconds + total_seconds(tdelta) % 1, 1, flag)
+                        ),
+                        String("Second"),
+                    ]
                 )
 
         if len(result) == 1:
             if pyunits[0] == "Day":
-                return Integer(result[0][0])
-            return from_python(result[0])
-        return from_python(result)
+                return result[0][0]
+
+            return Expression(SymbolList, result[0][0], result[0][1])
+        return Expression(
+            SymbolList, *(Expression(SymbolList, r[0], r[1]) for r in result)
+        )
 
 
 class DateObject(_DateFormat):

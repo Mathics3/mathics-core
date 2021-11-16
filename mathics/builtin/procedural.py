@@ -15,8 +15,8 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.atoms import from_python, Integer1
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.atoms import Integer1
 from mathics.core.symbols import (
     SymbolTrue,
     SymbolFalse,
@@ -526,7 +526,7 @@ class FixedPointList(Builtin):
             interm = new_result
             index += 1
 
-        return from_python(result)
+        return Expression(SymbolList, *result)
 
 
 class Interrupt(Builtin):
@@ -611,7 +611,7 @@ class NestList(Builtin):
             interm = Expression(f, interm).evaluate(evaluation)
             result.append(interm)
 
-        return from_python(result)
+        return Expression(SymbolList, *result)
 
 
 class NestWhile(Builtin):

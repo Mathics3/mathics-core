@@ -636,7 +636,7 @@ class PossibleZeroQ(SympyFunction):
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif (
-                Expression("NumericQ", numeric_val).evaluate(evaluation) == SymbolFalse
+                Expression("NumericQ", numeric_val).evaluate(evaluation) is SymbolFalse
             ):
                 return (
                     SymbolTrue

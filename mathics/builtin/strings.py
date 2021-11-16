@@ -31,7 +31,6 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
-    from_python,
 )
 
 from mathics.core.parser import MathicsFileLineFeeder, parse
@@ -568,13 +567,15 @@ class LetterNumber(Builtin):
             py_chars = chars.get_string_value()
             if len(py_chars) == 1:
                 # FIXME generalize ord("a")
-                return letter_number([py_chars[0]], start_ord)[0]
+                return letter_number([py_chars[0]], start_ord)[
+                    0
+                ]  # Expression(SymbolList, letter_number([py_chars[0]], start_ord)[0])
             else:
                 r = [
-                    letter_number(c, start_ord)[0] if c.isalpha() else 0
+                    letter_number(c, start_ord)[0] if c.isalpha() else Integer0
                     for c in py_chars
                 ]
-                return Expression(SymbolList, *[from_python(rr) for rr in r])
+                return Expression(SymbolList, *[rr for rr in r])
         elif chars.has_form("List", 1, None):
             result = []
             for leaf in chars.leaves:

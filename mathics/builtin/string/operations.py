@@ -23,7 +23,6 @@ from mathics.core.atoms import (
     Integer,
     Integer1,
     String,
-    from_python,
 )
 from mathics.algorithm.parts import python_seq, convert_seq
 from mathics.builtin.strings import (
