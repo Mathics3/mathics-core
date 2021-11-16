@@ -315,7 +315,7 @@ class Plus(BinaryOperator, SympyFunction):
             elif isinstance(item, Number):
                 return -item.to_sympy()
             else:
-                return Expression(SymbolTimes,  Integer(-1), item)
+                return Expression(SymbolTimes, Integer(-1), item)
 
         def is_negative(value):
             if isinstance(value, Complex):
