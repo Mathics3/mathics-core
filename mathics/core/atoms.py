@@ -975,27 +975,29 @@ def from_python(arg):
 
     if isinstance(arg, (BaseExpression, BoxConstruct)):
         return arg
-    number_type = get_type(arg)
+
     if arg is None:
         return SymbolNull
     if isinstance(arg, bool):
         return SymbolTrue if arg else SymbolFalse
+    if isinstance(arg, str):
+        return String(arg)
+        # if arg[0] == arg[-1] == '"':
+        #     return String(arg[1:-1])
+        # else:
+        #     return Symbol(arg)
+
+    number_type = get_type(arg)
     if isinstance(arg, int) or number_type == "z":
         return Integer(arg)
     elif isinstance(arg, float) or number_type == "f":
         return Real(arg)
     elif number_type == "q":
         return Rational(arg)
-    elif isinstance(arg, complex):
-        return Complex(Real(arg.real), Real(arg.imag))
     elif number_type == "c":
         return Complex(arg.real, arg.imag)
-    elif isinstance(arg, str):
-        return String(arg)
-        # if arg[0] == arg[-1] == '"':
-        #     return String(arg[1:-1])
-        # else:
-        #     return Symbol(arg)
+    elif isinstance(arg, complex):
+        return Complex(Real(arg.real), Real(arg.imag))
     elif isinstance(arg, dict):
         entries = [
             Expression(
