@@ -2141,7 +2141,7 @@ class SetFileDate(Builtin):
         epochtime = (
             Expression(
                 "AbsoluteTime",
-                from_python(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))),
+                String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))),
             )
             .evaluate(evaluation)
             .to_python()

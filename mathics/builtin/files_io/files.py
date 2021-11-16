@@ -641,8 +641,8 @@ class _BinaryFormat(object):
                 "DirectedInfinity",
                 Expression(
                     "Complex",
-                    from_python((-1) ** (real < 0)) if math.isinf(real) else Integer0,
-                    from_python((-1) ** (imag < 0)) if math.isinf(imag) else Integer0,
+                    Integer((-1) ** (real < 0)) if math.isinf(real) else Integer0,
+                    Integer((-1) ** (imag < 0)) if math.isinf(imag) else Integer0,
                 ),
             )
         else:

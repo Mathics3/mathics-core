@@ -204,6 +204,9 @@ class Integer(Number):
 
 Integer0 = Integer(0)
 Integer1 = Integer(1)
+Integer2 = Integer(2)
+Integer3 = Integer(3)
+IntegerMinus1 = Integer(-1)
 
 
 class Rational(Number):
@@ -303,6 +306,7 @@ class Rational(Number):
 
 
 RationalOneHalf = Rational(1, 2)
+RationalOneThird = Rational(1, 3)
 
 
 class Real(Number):

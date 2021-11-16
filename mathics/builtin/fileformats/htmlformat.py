@@ -29,6 +29,10 @@ try:
 except ImportError:
     pass
 
+SymbolXMLElement = Symbol("XMLElement")
+SymbolXMLObject = Symbol("XMLObject")
+Symbol__HTMLGet = Symbol("HTML`Parser`HTMLGet")
+
 
 def node_to_xml_element(node, strip_whitespace=True):
     def children():
@@ -50,14 +54,14 @@ def node_to_xml_element(node, strip_whitespace=True):
 
     def attributes():
         for name, value in node.attrib.items():
-            yield Expression("Rule", from_python(name), from_python(value))
+            yield Expression(SymbolRule, from_python(name), from_python(value))
 
     return [
         Expression(
-            "XMLElement",
+            SymbolXMLElement,
             String(node.tag),
-            Expression("List", *list(attributes())),
-            Expression("List", *list(children())),
+            Expression(SymbolList, *list(attributes())),
+            Expression(SymbolList, *list(children())),
         )
     ]
 
@@ -65,22 +69,22 @@ def node_to_xml_element(node, strip_whitespace=True):
 def xml_object(tree):
     declaration = [
         Expression(
-            Expression("XMLObject", String("Declaration")),
+            Expression(SymbolXMLObject, String("Declaration")),
             Expression(
-                "Rule", String("Version"), String(tree.docinfo.xml_version or "1.0")
+                SymbolRule, String("Version"), String(tree.docinfo.xml_version or "1.0")
             ),
             Expression(
-                "Rule",
+                SymbolRule,
                 String("Standalone"),
                 String("yes") if tree.docinfo.standalone else String("no"),
             ),
-            Expression("Rule", String("Encoding"), String(tree.docinfo.encoding)),
+            Expression(SymbolRule, String("Encoding"), String(tree.docinfo.encoding)),
         )
     ]
 
     return Expression(
-        Expression("XMLObject", String("Document")),
-        Expression("List", *declaration),
+        Expression(SymbolXMLObject, String("Document")),
+        Expression(SymbolList, *declaration),
         *node_to_xml_element(tree.getroot())
     )
 
@@ -199,7 +203,7 @@ class _DataImport(_TagImport):
                     l.extend(x)
                 elif x:
                     x = [from_python(y) for y in x]
-                    l.append(Expression("List", *x))
+                    l.append(Expression(SymbolList, *x))
                 return l
 
         newline = re.compile(r"\s+")
@@ -253,7 +257,7 @@ class _DataImport(_TagImport):
             result = []
 
         result = (from_python(leaf) for leaf in result)
-        return Expression("List", *result)
+        return Expression(SymbolList, *result)
 
 
 class DataImport(_DataImport):
@@ -279,8 +283,8 @@ class _LinksImport(_TagImport):
         raise NotImplementedError
 
     def _import(self, tree):
-        leaves = [String(leaf) for leaf in list(self._links(tree))]
-        return Expression("List", *leaves)
+        leaves = [String(leaf) for leaf in self._links(tree)]
+        return Expression(SymbolList, *leaves)
 
 
 class HyperlinksImport(_LinksImport):
@@ -343,7 +347,8 @@ class SourceImport(_HTMLBuiltin):
         def source(filename):
             with MathicsOpen(filename, "r", encoding="UTF-8") as f:
                 return Expression(
-                    "List", Expression(SymbolRule, String("Source"), String(f.read()))
+                    SymbolList,
+                    Expression(SymbolRule, String("Source"), String(f.read())),
                 )
 
         return parse_html(source, text, evaluation)
@@ -371,5 +376,5 @@ class XMLObjectImport(_HTMLBuiltin):
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
-        xml = Expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
+        xml = Expression(Symbol__HTMLGet, text).evaluate(evaluation)
         return Expression(SymbolList, Expression(SymbolRule, String("XMLObject"), xml))
