@@ -74,6 +74,7 @@ from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolAutomatic,
     SymbolByteArray,
+    SymbolComplex,
     SymbolContainsOnly,
     SymbolFailed,
     SymbolKey,
@@ -82,6 +83,7 @@ from mathics.core.systemsymbols import (
     SymbolMatchQ,
     SymbolPlus,
     SymbolRange,
+    SymbolRational,
     SymbolRowBox,
     SymbolRule,
     SymbolSequence,
@@ -812,11 +814,9 @@ class LeafCount(Builtin):
 
         def callback(level):
             if isinstance(level, Rational):
-                leaves.extend(
-                    [level.get_head(), level.numerator(), level.denominator()]
-                )
+                leaves.extend([SymbolRational, level.numerator(), level.denominator()])
             elif isinstance(level, Complex):
-                leaves.extend([level.get_head(), level.real, level.imag])
+                leaves.extend([SymbolComplex, level.real, level.imag])
             else:
                 leaves.append(level)
             return level
