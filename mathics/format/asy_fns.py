@@ -30,13 +30,6 @@ def asy_add_graph_import(self) -> str:
     return "import graph;\n\n"
 
 
-def asy_add_solids_import(self) -> str:
-    if hasattr(self.graphics, "solids_import_added") and self.solids_import_added:
-        return ""
-    self.graphics.solids_import_added = True
-    return "import solids;\n\n"
-
-
 def asy_bezier(*segments):
     # see http://asymptote.sourceforge.net/doc/Bezier-curves.html#Bezier-curves
 

@@ -43,7 +43,6 @@ from mathics.core.formatter import lookup_method, add_conversion_fn
 from mathics.format.asy_fns import (
     asy_add_bezier_fn,
     asy_add_graph_import,
-    asy_add_solids_import,
     asy_bezier,
     asy_color,
     asy_create_pens,
@@ -295,7 +294,6 @@ def cylinder3dbox(self, **options) -> str:
     rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cylinder3DBox\n"
-    asy += asy_add_solids_import(self)
     # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
     i = 0
     while i < len(self.points) / 2:
@@ -306,7 +304,7 @@ def cylinder3dbox(self, **options) -> str:
             asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
             asy += "real h=abs(A-B);\n"
             asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
-            asy += f"""draw(surface(cyl),{rgb});\n"""
+            asy += f"draw(surface(cyl),{rgb});\n"
 
             # The above is an open cylinder. Draw the ends.
             asy += f"draw(surface(circle(A,r,normal=B-A)),{rgb});\n"
