@@ -298,7 +298,10 @@ class Graphics3DBox(GraphicsBox):
                             light["target"][j] * boxscale[j] for j in range(3)
                         ]
 
-            return xmin, xmax, ymin, ymax, zmin, zmax, boxscale
+            w = 0 if (xmin is None or xmax is None) else xmax - xmin
+            h = 0 if (ymin is None or ymax is None) else ymax - ymin
+
+            return xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h
 
         (
             xmin,
@@ -308,6 +311,8 @@ class Graphics3DBox(GraphicsBox):
             zmin,
             zmax,
             boxscale,
+            w,
+            h,
         ) = calc_dimensions(final_pass=False)
 
         axes, ticks, ticks_style = self.create_axes(
@@ -355,7 +360,8 @@ class Graphics3DBox(GraphicsBox):
 
         elements._apply_boxscaling(boxscale)
 
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale = calc_dimensions()
+        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
+        elements.view_width = w
 
         # FIXME: json is the only thing we can convert MathML into.
         # Handle other graphics formats.
@@ -413,7 +419,7 @@ class Graphics3DBox(GraphicsBox):
         else:
             asy = elements.to_asy()
 
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale = calc_dimensions()
+        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
 
         # TODO: Intelligently place the axes on the longest non-middle edge.
         # See algorithm used by web graphics in mathics/web/media/graphics.js
