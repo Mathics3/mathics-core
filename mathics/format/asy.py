@@ -291,7 +291,7 @@ add_conversion_fn(Cuboid3DBox)
 def cylinder3dbox(self, **options) -> str:
     face_color = self.face_color.to_js()
 
-    rgb = "rgb({0},{1},{1})".format(*face_color[:3])
+    pen = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cylinder3DBox\n"
     # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
@@ -304,11 +304,11 @@ def cylinder3dbox(self, **options) -> str:
             asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
             asy += "real h=abs(A-B);\n"
             asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
-            asy += f"draw(surface(cyl),{rgb});\n"
+            asy += f"draw(surface(cyl),{pen});\n"
 
             # The above is an open cylinder. Draw the ends.
-            asy += f"draw(surface(circle(A,r,normal=B-A)),{rgb});\n"
-            asy += f"draw(surface(circle(B,r,normal=B-A)),{rgb});\n"
+            asy += f"draw(surface(circle(A,r,normal=B-A)),{pen});\n"
+            asy += f"draw(surface(circle(B,r,normal=B-A)),{pen});\n"
         except:  # noqa
             pass
 
