@@ -627,15 +627,11 @@ class Sqrt(SympyFunction):
     attributes = ("Listable", "NumericFunction")
 
     rules = {
-        #        "Sqrt[x_]": "x ^ (1 / 2)",
+        "Sqrt[x_]": "x ^ (1 / 2)",
         "MakeBoxes[Sqrt[x_], f:StandardForm|TraditionalForm]": (
             "SqrtBox[MakeBoxes[x, f]]"
         ),
     }
-
-    def apply(self, x, evaluation):
-        "Sqrt[x_]"
-        return Expression(SymbolPower, x, RationalOneHalf)
 
     summary_text = "square root"
 
