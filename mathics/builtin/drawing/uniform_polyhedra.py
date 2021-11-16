@@ -6,7 +6,6 @@ Uniform Polyhedra
 Uniform polyhedra is the grouping of platonic solids, Archimedean solids, and regular star polyhedra.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
 
