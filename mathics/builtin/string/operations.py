@@ -545,12 +545,21 @@ class StringPosition(Builtin):
                 found_match = True
                 result.append([m.start() + 1, m.end()])  # 0 to 1 based indexing
                 if len(result) == py_n:
-                    return from_python(result)
+                    return Expression(
+                        SymbolList,
+                        *(
+                            Expression(SymbolList, Integer(s[0]), Integer(s[1]))
+                            for s in result
+                        )
+                    )
                 if not overlap:
                     start = m.end()
             if overlap or not found_match:
                 start += 1
-        return from_python(result)
+        return Expression(
+            SymbolList,
+            *(Expression(SymbolList, Integer(s[0]), Integer(s[1])) for s in result)
+        )
 
 
 class StringReplace(_StringFind):
