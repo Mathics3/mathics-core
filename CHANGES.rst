@@ -10,7 +10,7 @@ Internals
 * ``apply_N`` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of
   ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
-* Improving support for working with ``Series``.
+* Improved support for ``Series`` Issue #46
 * ``Cylinder`` rendering is implemented in Asymptote
 
 4.0.1
