@@ -11,6 +11,7 @@ Internals
   ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improving support for working with ``Series``.
+* ``Cylinder`` rendering is implemented in Asymptote
 
 4.0.1
 -----
