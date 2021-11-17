@@ -273,11 +273,11 @@ class Graphics3DBox(GraphicsBox):
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":
-                boxscale[0] /= xmax - xmin
+                boxscale[0] = boxratios[0] / (xmax - xmin)
             if boxratios[1] != "System`Automatic":
-                boxscale[1] /= ymax - ymin
+                boxscale[1] = boxratios[1] / (ymax - ymin)
             if boxratios[2] != "System`Automatic":
-                boxscale[2] /= zmax - zmin
+                boxscale[2] = boxratios[2] / (zmax - zmin)
 
             if final_pass:
                 xmin *= boxscale[0]
