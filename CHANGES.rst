@@ -4,7 +4,6 @@ CHANGES
 Internals
 =========
 
-
 * now `Expression.is_numeric()` accepts an `Evaluation` object as a parameter,
   to use the definitions.
 * To numerify expressions, the function `apply_N` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
@@ -15,6 +14,7 @@ Internals
 * Now, `SameQ` first checks type, then `id`s, and then names in symbols.
 * In `mathics.builtin.patterns.PatternTest`, if the condition is one of the most used tests (`NumberQ`, `NumericQ`, `StringQ`, etc) the `match` method is overwritten to specialized versions that avoid function calls.
 * in the same aim, `mathics.core.patterns.AtomPattern` now specializes the comparison depending of the `Atom` type.
+* To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 
 
@@ -54,6 +54,18 @@ Uniform Polyhedron
 * ``Octahedron``
 * ``TetraHedron``
 * ``UniformPolyedron``
+
+Mathics-specific
+
+* ``TraceBuiltin[]``, ``$TraceBuiltins``, ``ClearTrace[]``, ``PrintTrace[]``
+
+These collect builtin-function call counts and elapsed time in the routines.
+``TraceBuiltin[expr]`` collects information for just *expr*. Whereas
+setting ``$TraceBuiltins`` to True will accumulate results of evaluations
+``PrintTrace[]`` dumps the statistics and ``ClearTrace[]`` clears the statistics data.
+
+``mathics -T/--trace-builtin`` is about the same as setting
+``$TraceBuiltins = True`` on entry and runs ``PrintTrace[]`` on exit.
 
 
 Bugs

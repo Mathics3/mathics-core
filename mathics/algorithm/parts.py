@@ -7,8 +7,9 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer, from_python
+from mathics.core.atoms import Integer
 from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
     InvalidLevelspecError,
@@ -17,12 +18,20 @@ from mathics.builtin.exceptions import (
     PartRangeError,
 )
 
+SymbolNothing = Symbol("Nothing")
 
-def join_lists(lists):
-    new_list = []
-    for list in lists:
-        new_list.extend(list)
-    return new_list
+# TODO: delete me
+# def join_lists(lists):
+#    """
+#    flatten a list of list.
+#    Maybe there are better, standard options, like
+#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
+#    In any case, is not used in the following code.
+#    """
+#    new_list = []
+#    for list in lists:
+#        new_list.extend(list)
+#    return new_list
 
 
 def get_part(varlist, indices):
@@ -86,6 +95,9 @@ def set_part(varlist, indices, newval):
 
 
 def _parts_all_selector():
+    """
+    Selector for `System`All` as a part specification.
+    """
     start = 1
     stop = None
     step = 1
@@ -102,6 +114,9 @@ def _parts_all_selector():
 
 
 def _parts_span_selector(pspec):
+    """
+    Selector for `System`Span` part specification
+    """
     if len(pspec.leaves) > 3:
         raise MessageException("Part", "span", pspec)
     start = 1
@@ -138,6 +153,9 @@ def _parts_span_selector(pspec):
 
 
 def _parts_sequence_selector(pspec):
+    """
+    Selector for `System`Sequence` part specification
+    """
     if not isinstance(pspec, (tuple, list)):
         indices = [pspec]
     else:
@@ -170,6 +188,10 @@ def _parts_sequence_selector(pspec):
 
 
 def _part_selectors(indices):
+    """
+    _part_selectors returns a suitable `selector` function according to
+    the kind of specifications in `indices`.
+    """
     for index in indices:
         if index.has_form("Span", None):
             yield _parts_span_selector(index)
@@ -183,10 +205,20 @@ def _part_selectors(indices):
             raise MessageException("Part", "pspec", index)
 
 
-def _list_parts(items, selectors, heads, evaluation, assignment):
+def _list_parts(exprs, selectors, evaluation):
+    """
+    _list_parts returns a generator of Expressions using selectors to pick out parts of `exprs`.
+    If `selectors` is empty then a generator of items is returned.
+
+    If a selector in `selectors` is a tuple it consists of a function to determine whether or
+    not to select an expression and a optional function to unwrap the resulting selected expressions.
+
+    `evaluation` is used in  expression restructuring an unwrapped expression when the there a
+    unwrapping function in the selector.
+    """
     if not selectors:
-        for item in items:
-            yield item
+        for expr in exprs:
+            yield expr
     else:
         selector = selectors[0]
         if isinstance(selector, tuple):
@@ -195,84 +227,61 @@ def _list_parts(items, selectors, heads, evaluation, assignment):
             select = selector
             unwrap = None
 
-        for item in items:
-            selected = list(select(item))
+        for expr in exprs:
+            selected = list(select(expr))
 
-            picked = list(
-                _list_parts(selected, selectors[1:], heads, evaluation, assignment)
-            )
+            picked = list(_list_parts(selected, selectors[1:], evaluation))
 
             if unwrap is None:
-                if assignment:
-                    expr = Expression(item.head, *picked)
-                    expr.original = None
-                    expr.set_positions()
-                else:
-                    expr = item.restructure(item.head, picked, evaluation)
-
+                expr = expr.restructure(expr.head, picked, evaluation)
                 yield expr
             else:
                 yield unwrap(picked)
 
 
-def _parts(items, selectors, evaluation, assignment=False):
-    heads = {}
-    return list(_list_parts([items], list(selectors), heads, evaluation, assignment))[0]
+def _parts(expr, selectors, evaluation):
+    """
+    Select from the `Expression` expr those elements indicated by
+    the `selectors`.
+    """
+    return list(_list_parts([expr], list(selectors), evaluation))[0]
 
 
-def walk_parts(list_of_list, indices, evaluation, assign_list=None):
+def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
+    """
+    walk_parts takes the first element of `list_of_list`, and builds
+    a subexpression composed of the expressions at the index positions
+    listed in `indices`.
+
+    `assign_rhs`, when not empty, indicates where to the store parts of the composed list.
+
+    list_of_list: a list of `Expression`s with a unique element.
+
+    indices: a list of part specification `Expression`s, including
+    `Integer` indices,  `Span` `Expression`s, `List` of `Integer`s
+    and
+
+    assign_rhs: None or an `Expression` object.
+    """
     walk_list = list_of_list[0]
-
-    if assign_list is not None:
-        # this double copying is needed to make the current logic in
-        # the assign_list and its access to original work.
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-        list_of_list = [walk_list]
-
-        walk_list = walk_list.copy()
-        walk_list.set_positions()
-
     indices = [index.evaluate(evaluation) for index in indices]
-
-    try:
-        result = _parts(
-            walk_list, _part_selectors(indices), evaluation, assign_list is not None
-        )
-    except MessageException as e:
-        e.message(evaluation)
-        return False
-
-    if assign_list is not None:
-
-        def replace_item(all, item, new):
-            if item.position is None:
-                all[0] = new
-            else:
-                item.position.replace(new)
-
-        def process_level(item, assignment):
-            if item.is_atom():
-                replace_item(list_of_list, item.original, assignment)
-            elif assignment.get_head_name() != "System`List" or len(item.leaves) != len(
-                assignment.leaves
-            ):
-                if item.original:
-                    replace_item(list_of_list, item.original, assignment)
-                else:
-                    for leaf in item.leaves:
-                        process_level(leaf, assignment)
-            else:
-                for sub_item, sub_assignment in zip(item.leaves, assignment.leaves):
-                    process_level(sub_item, sub_assignment)
-
-        process_level(result, assign_list)
-
-        result = list_of_list[0]
+    if assign_rhs is not None:
+        try:
+            result = SubExpression(walk_list, indices)
+            result.replace(assign_rhs.copy())
+            result = result.to_expression()
+        except MessageException as e:
+            e.message(evaluation)
+            return False
         result.clear_cache()
-
-    return result
+        return result
+    else:
+        try:
+            result = _parts(walk_list, _part_selectors(indices), evaluation)
+        except MessageException as e:
+            e.message(evaluation)
+            return False
+        return result
 
 
 def is_in_level(current, depth, start=1, stop=None):
@@ -502,7 +511,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     If a tuple (nmin, nmax) is provided, it just return those occurences with a number of "coordinates" between nmin and nmax.
     n indicates the number of occurrences to return. By default, it returns all the occurences.
     """
-    nothing = Symbol("System`Nothing")
+    nothing = SymbolNothing
     from mathics.builtin.patterns import Matcher
 
     match = Matcher(pattern)
@@ -596,7 +605,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             continue
         curr_leave = tree[-1][curr_index[-1]]
         if match(curr_leave, evaluation) and (len(curr_index) >= lsmin):
-            found.append([from_python(i) for i in curr_index])
+            found.append([Integer(i) for i in curr_index])
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue

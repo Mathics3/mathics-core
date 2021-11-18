@@ -16,7 +16,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.atoms import String
 
-from mathics.builtin.assignment import get_symbol_list
+from mathics.builtin.assignments.internals import get_symbol_list
 
 
 class Attributes(Builtin):
