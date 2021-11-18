@@ -13,7 +13,6 @@ from mathics.core.atoms import from_python, Number, Integer
 from mathics.core.number import dps
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.symbols import (
-    arithmetic_head_symbols,
     Atom,
     BaseExpression,
     Monomial,

@@ -70,16 +70,6 @@ def strip_context(name) -> str:
     return name
 
 
-predefined_numeric_constants = system_symbols(
-    "MachinePrecision",
-    "Pi",
-    "E",
-    "Catalan",
-    "EulerGamma",
-    "GoldenRatio",
-)
-
-
 class KeyComparable(object):
     def get_sort_key(self):
         raise NotImplementedError
