@@ -2,6 +2,8 @@
 
 """
 Calculus
+
+Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
 
@@ -48,14 +50,17 @@ IntegerMinusOne = Integer(-1)
 class D(SympyFunction):
     """
     <dl>
-    <dt>'D[$f$, $x$]'
-        <dd>gives the partial derivative of $f$ with respect to $x$.
-    <dt>'D[$f$, $x$, $y$, ...]'
-        <dd>differentiates successively with respect to $x$, $y$, etc.
-    <dt>'D[$f$, {$x$, $n$}]'
-        <dd>gives the multiple derivative of order $n$.
-    <dt>'D[$f$, {{$x1$, $x2$, ...}}]'
-        <dd>gives the vector derivative of $f$ with respect to $x1$, $x2$, etc.
+      <dt>'D[$f$, $x$]'
+      <dd>gives the partial derivative of $f$ with respect to $x$.
+
+      <dt>'D[$f$, $x$, $y$, ...]'
+      <dd>differentiates successively with respect to $x$, $y$, etc.
+
+      <dt>'D[$f$, {$x$, $n$}]'
+      <dd>gives the multiple derivative of order $n$.
+
+      <dt>'D[$f$, {{$x1$, $x2$, ...}}]'
+      <dd>gives the vector derivative of $f$ with respect to $x1$, $x2$, etc.
     </dl>
 
     First-order derivative of a polynomial:
@@ -164,6 +169,8 @@ class D(SympyFunction):
             "Nest[Function[{t}, D[t, x]], expr, n]"
         ),
     }
+
+    summary_text = "partial derivatives of scalar or vector functions"
 
     def apply(self, f, x, evaluation):
         "D[f_, x_?NotListQ]"
@@ -292,10 +299,11 @@ class D(SympyFunction):
 class Derivative(PostfixOperator, SympyFunction):
     """
     <dl>
-    <dt>'Derivative[$n$][$f$]'
-        <dd>represents the $n$th derivative of the function $f$.
-    <dt>'Derivative[$n1$, $n2$, ...][$f$]'
-        <dd>represents a multivariate derivative.
+      <dt>'Derivative[$n$][$f$]'
+      <dd>represents the $n$th derivative of the function $f$.
+
+      <dt>'Derivative[$n1$, $n2$, ...][$f$]'
+      <dd>represents a multivariate derivative.
     </dl>
 
     >> Derivative[1][Sin]
@@ -396,6 +404,8 @@ class Derivative(PostfixOperator, SympyFunction):
             Sequence @@ Table[{Slot[i], {n}[[i]]}, {i, 1, Length[{n}]}]]]&""",
     }
 
+    summary_text = "symbolic and numerical derivative functions"
+
     default_formats = False
 
     def __init__(self, *args, **kwargs):
@@ -443,10 +453,11 @@ class Derivative(PostfixOperator, SympyFunction):
 class Integrate(SympyFunction):
     r"""
     <dl>
-    <dt>'Integrate[$f$, $x$]'
-        <dd>integrates $f$ with respect to $x$. The result does not contain the additive integration constant.
-    <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
-        <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
+      <dt>'Integrate[$f$, $x$]'
+      <dd>integrates $f$ with respect to $x$. The result does not contain the additive integration constant.
+
+      <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
+      <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
     </dl>
 
     Integrate a polynomial:
@@ -529,8 +540,6 @@ class Integrate(SympyFunction):
     # = t / 2
     attributes = ("ReadProtected",)
 
-    sympy_name = "Integral"
-
     options = {
         "Assumptions": "$Assumptions",
         "GenerateConditions": "Automatic",
@@ -552,6 +561,9 @@ class Integrate(SympyFunction):
                 MakeBoxes[b, form]], "\[InvisibleTimes]" , MakeBoxes[f, form], "\[InvisibleTimes]",
                 RowBox[{"\[DifferentialD]", MakeBoxes[x, form]}]}]""",
     }
+
+    summary_text = "symbolic integrals in one or more dimensions"
+    sympy_name = "Integral"
 
     def prepare_sympy(self, leaves):
         if len(leaves) == 2:
@@ -751,10 +763,11 @@ class Root(SympyFunction):
 class Solve(Builtin):
     """
     <dl>
-    <dt>'Solve[$equation$, $vars$]'
-        <dd>attempts to solve $equation$ for the variables $vars$.
-    <dt>'Solve[$equation$, $vars$, $domain$]'
-        <dd>restricts variables to $domain$, which can be 'Complexes' or 'Reals' or 'Integers'.
+      <dt>'Solve[$equation$, $vars$]'
+      <dd>attempts to solve $equation$ for the variables $vars$.
+
+      <dt>'Solve[$equation$, $vars$, $domain$]'
+      <dd>restricts variables to $domain$, which can be 'Complexes' or 'Reals' or 'Integers'.
     </dl>
 
     >> Solve[x ^ 2 - 3 x == 4, x]
@@ -861,6 +874,8 @@ class Solve(Builtin):
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
         ),
     }
+
+    summary_text = "find generic solutions for variables"
 
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
@@ -1049,12 +1064,14 @@ class Complexes(Builtin):
 class Limit(Builtin):
     """
     <dl>
-    <dt>'Limit[$expr$, $x$->$x0$]'
-        <dd>gives the limit of $expr$ as $x$ approaches $x0$.
-    <dt>'Limit[$expr$, $x$->$x0$, Direction->1]'
-        <dd>approaches $x0$ from smaller values.
-    <dt>'Limit[$expr$, $x$->$x0$, Direction->-1]'
-        <dd>approaches $x0$ from larger values.
+      <dt>'Limit[$expr$, $x$->$x0$]'
+      <dd>gives the limit of $expr$ as $x$ approaches $x0$.
+
+      <dt>'Limit[$expr$, $x$->$x0$, Direction->1]'
+      <dd>approaches $x0$ from smaller values.
+
+      <dt>'Limit[$expr$, $x$->$x0$, Direction->-1]'
+      <dd>approaches $x0$ from larger values.
     </dl>
 
     >> Limit[x, x->2]
@@ -1086,6 +1103,8 @@ class Limit(Builtin):
     messages = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
     }
+
+    summary_text = "directed and undirected limits"
 
     def apply(self, expr, x, x0, evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
@@ -1126,8 +1145,8 @@ class Limit(Builtin):
 class DiscreteLimit(Builtin):
     """
     <dl>
-    <dt>'DiscreteLimit[$f$, $k$->Infinity]'
-        <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
+      <dt>'DiscreteLimit[$f$, $k$->Infinity]'
+      <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
     </dl>
 
     >> DiscreteLimit[n/(n + 1), n -> Infinity]
@@ -1152,6 +1171,8 @@ class DiscreteLimit(Builtin):
     messages = {
         "dltrials": "The value of Trials should be a positive integer",
     }
+
+    summary_text = "limits of sequences including recurrence and number theory"
 
     def apply(self, f, n, n0, evaluation, options={}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
@@ -1465,9 +1486,9 @@ class FindRoot(Builtin):
 class O(Builtin):
     """
     <dl>
-    <dt>'O[$x$]^n'
-        <dd> Represents a term of order $x^n$.
-        <dd> O[x]^n is generated to represent omitted higher order terms in power series.
+      <dt>'O[$x$]^n'
+      <dd> Represents a term of order $x^n$.
+      <dd> O[x]^n is generated to represent omitted higher order terms in power series.
     </dl>
 
     >> Series[1/(1-x),{x,0,2}]
@@ -1475,7 +1496,7 @@ class O(Builtin):
 
     """
 
-    pass
+    summary_text = "symbolic representation of a higher-order series term"
 
 
 class Series(Builtin):
@@ -1504,6 +1525,8 @@ class Series(Builtin):
      = 17
     >> Clear[s];
     """
+
+    summary_text = "power series and asymptotic expansions"
 
     def apply_series(self, f, x, x0, n, evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
@@ -1540,6 +1563,8 @@ class SeriesData(Builtin):
     TODO:
     - Implement sum, product and composition of series
     """
+
+    summary_text = "Mathics representation Power series"
 
     def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
