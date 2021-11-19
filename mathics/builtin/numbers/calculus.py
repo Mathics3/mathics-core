@@ -1481,15 +1481,28 @@ class O(Builtin):
 class Series(Builtin):
     """
     <dl>
-    <dt>'Series[$f$, {$x$, $x0$, $n$}]'
-        <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
+      <dt>'Series[$f$, {$x$, $x0$, $n$}]'
+      <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
     </dl>
 
-    >> Series[Exp[x],{x,0,2}]
+    For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
+    >> Series[Exp[x], {x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
-    >> Series[Exp[x^2],{x,0,2}]
+    >> % // FullForm
+     = SeriesData[x, 0, List[1, 1, Rational[1, 2]], 0, 2, 1]
+    Replacing the variable by a value, the series will not be evaluated as
+    an expression, but as a 'SeriesData' object:
+    >> s = Series[Exp[x^2],{x,0,2}]
      = 1 + x ^ 2 + O[x] ^ 3
+    >> s /. x->4
+     = 1 + 4 ^ 2 + O[4] ^ 3
 
+    'Normal' transforms a 'SeriesData' expression into a polynomial:
+    >> s // Normal
+     = 1 + x ^ 2
+    >> (s // Normal) /. x-> 4
+     = 17
+    >> Clear[s];
     """
 
     def apply_series(self, f, x, x0, n, evaluation):
@@ -1514,7 +1527,7 @@ class Series(Builtin):
             ).evaluate(evaluation)
             data.append(newcoeff)
         data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression("SeriesData", x, x0, data, IntegerZero, n, Integer1)
+        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
 
 
 class SeriesData(Builtin):
@@ -1528,8 +1541,16 @@ class SeriesData(Builtin):
     - Implement sum, product and composition of series
     """
 
+    def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
+        """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
+        return Expression(
+            SymbolPlus,
+            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data.leaves)]
+        )
+
     def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
-        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer], form_Symbol]"""
+        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         form = form.get_name()
         if x0.is_zero:
