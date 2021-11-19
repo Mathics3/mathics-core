@@ -173,20 +173,13 @@ class AtomPattern(Pattern):
         fully=True,
         wrap_oneid=True,
     ):
-        # Here also would get some advantage singletonizing symbols.
-        # if id(expression) == id(atom)
-        if isinstance(expression, Symbol) and expression.name == self.atom.name:
-            # yield vars, None
+        if expression is self.atom:
             yield_func(vars, None)
 
     def get_match_symbol_candidates(
         self, leaves, expression, attributes, evaluation, vars={}
     ):
-        return [
-            leaf
-            for leaf in leaves
-            if (isinstance(leaf, Symbol) and leaf.name == self.atom.name)
-        ]
+        return [leaf for leaf in leaves if (leaf is self.atom)]
 
     def match(
         self,

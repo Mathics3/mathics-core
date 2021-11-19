@@ -46,6 +46,7 @@ from mathics.builtin.numeric import apply_N
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolList,
 )
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -60,6 +61,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolDispatch
 from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
 
@@ -125,14 +127,14 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
         rules = [rules_expr]
     any_lists = False
     for item in rules:
-        if item.has_form(("List", "Dispatch"), None):
+        if item.get_head() in (SymbolList, SymbolDispatch):
             any_lists = True
             break
 
     if any_lists:
         all_lists = True
         for item in rules:
-            if not item.has_form("List", None):
+            if not item.get_head() is SymbolList:
                 all_lists = False
                 break
 
