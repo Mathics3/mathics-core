@@ -859,7 +859,6 @@ class N(Builtin):
             d = get_precision(prec, evaluation)
         except PrecisionValueError:
             return
-
         if expr.get_head_name() in ("System`List", "System`Rule"):
             return Expression(
                 expr.head,
