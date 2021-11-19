@@ -17,7 +17,6 @@ from io import BytesIO
 import os.path as osp
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics_scanner import TranslateError
 from mathics.core.parser import MathicsFileLineFeeder, parse
