@@ -1481,21 +1481,23 @@ class O(Builtin):
 class Series(Builtin):
     """
     <dl>
-    <dt>'Series[$f$, {$x$, $x0$, $n$}]'
-        <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
+      <dt>'Series[$f$, {$x$, $x0$, $n$}]'
+      <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
     </dl>
-    For elementary expressions, `Series` returns the explicit power series as a `SeriesData` expression:
+
+    For elementary expressions, 'Series' returns the explicit power series as a 'SeriesData' expression:
     >> Series[Exp[x], {x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
     >> % // FullForm
      = SeriesData[x, 0, List[1, 1, Rational[1, 2]], 0, 2, 1]
-    Replacing the variable by a value, the Series will not be evaluated as
-    an expression, but as a SeriesData object:
+    Replacing the variable by a value, the series will not be evaluated as
+    an expression, but as a 'SeriesData' object:
     >> s = Series[Exp[x^2],{x,0,2}]
      = 1 + x ^ 2 + O[x] ^ 3
     >> s /. x->4
      = 1 + 4 ^ 2 + O[4] ^ 3
-    ``Normal`` transforms a ``SeriesData`` expression into a polinomial:
+
+    'Normal' transforms a 'SeriesData' expression into a polynomial:
     >> s // Normal
      = 1 + x ^ 2
     >> (s // Normal) /. x-> 4
