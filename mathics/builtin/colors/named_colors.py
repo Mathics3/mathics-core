@@ -8,8 +8,6 @@ from mathics.builtin.base import Builtin
 
 from mathics.core.symbols import strip_context
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 
 class _ColorObject(Builtin):
     text_name = None

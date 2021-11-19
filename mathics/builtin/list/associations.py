@@ -6,8 +6,6 @@ Associations
 An Association maps keys to values and is similar to a dictionary in Python; it is often sparse in that their key space is much larger than the number of actual keys found in the collection.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 
 from mathics.builtin.base import (
     Builtin,

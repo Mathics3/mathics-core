@@ -4,9 +4,9 @@ CHANGES
 Internals
 =========
 
-* now `Expression.is_numeric()` accepts an `Evaluation` object as a parameter,
-  to use the definitions.
-* To numerify expressions, the function `apply_N` was introduced in module ``mathics.builtin.numeric`` was used to speed up critically used built-in function ``N``. Its use reduces the use of ``Expression("N", expr, prec).evaluate(evaluation)`` which is slower.
+* ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
+* To numerify expressions, the function `apply_N` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function 
+``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules.
 * A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
 * `any`/`all` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
@@ -16,7 +16,9 @@ Internals
 * in the same aim, `mathics.core.patterns.AtomPattern` now specializes the comparison depending of the `Atom` type.
 * To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
-
+* A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
+* Improved support for ``Series`` Issue #46
+* ``Cylinder`` rendering is implemented in Asymptote
 
 4.0.1
 -----
@@ -27,6 +29,7 @@ New builtins
 * ``Guidermannian``
 * ``Cone``
 * ``Tube``
+* ``Normal`` now have a basic support for ``SeriesData``
 
 Tensor functions:
 

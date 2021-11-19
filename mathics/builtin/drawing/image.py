@@ -4,7 +4,7 @@ Image[] and image related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox

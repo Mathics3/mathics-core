@@ -37,7 +37,6 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
 from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec

@@ -16,8 +16,6 @@ The various common Plot and Graphics options, along with the meaning of specific
 
 from mathics.builtin.base import Builtin
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 
 class Automatic(Builtin):
     """
