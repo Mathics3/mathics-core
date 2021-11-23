@@ -22,7 +22,7 @@ from mathics.core.symbols import (
     SymbolNull,
 )
 
-from mathics.core.systemsymbols import SymbolAborted, SymbolShowSteps
+from mathics.core.systemsymbols import SymbolAborted
 
 FORMATS = [
     "StandardForm",
