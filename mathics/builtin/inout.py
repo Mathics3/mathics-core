@@ -18,7 +18,6 @@ from mathics.builtin.base import (
     BoxConstruct,
     BoxConstructError,
     Builtin,
-    Predefined,
     BinaryOperator,
     Operator,
 )
@@ -66,7 +65,7 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
-class ShowStepsVariable(Predefined):
+class ShowStepsVariable(Builtin):
     """
     <dl>
       <dt>'$ShowSteps'
