@@ -17,7 +17,6 @@ from mathics.builtin.base import (
     BoxConstruct,
     BoxConstructError,
     Builtin,
-    Predefined,
     BinaryOperator,
     Operator,
 )
@@ -65,7 +64,7 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
-class ShowStepsVariable(Predefined):
+class ShowStepsVariable(Builtin):
     """
     <dl>
       <dt>'$ShowSteps'
@@ -131,7 +130,7 @@ class ShowSteps(Builtin):
         result = expr.evaluate(evaluation)
         evaluation.show_steps = False
 
-        print (expr)
+        print(expr)
 
         return result
 
