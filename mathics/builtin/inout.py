@@ -131,7 +131,7 @@ class ShowSteps(Builtin):
         result = expr.evaluate(evaluation)
         evaluation.show_steps = False
 
-        print (expr)
+        print(expr)
 
         return result
 
