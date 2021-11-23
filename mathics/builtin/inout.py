@@ -66,18 +66,75 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
-class ShowSteps(Predefined):
+class ShowStepsVariable(Predefined):
     """
-    If this variable is set to `True`, the steps in the evaluation are shown.
+    <dl>
+      <dt>'$ShowSteps'
+      <dd>Enable or disable displaying the steps to get the result.
+    </dl>
+
+    >> $ShowSteps = True
+     = True
+
+    ## We shouldn't let this enabled.
+    #> $ShowSteps = False
+     = False
+
+    '$ShowSteps' cannot be set to a non-boolean value.
+    >> $ShowSteps = x
+     : x should be True or False.
+     = x
     """
 
-    name = "ShowSteps"
-    attributes = {
-        "Unprotected",
-    }
-    rules = {
-        "ShowSteps": "False",
-    }
+    name = "$ShowSteps"
+
+    messages = {"bool": "`1` should be True or False."}
+
+    value = SymbolFalse
+
+    summary_text = "enable or disable displaying the steps to get the result"
+
+    def apply_get(self, evaluation):
+        "%(name)s"
+
+        return self.value
+
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
+
+        if value is SymbolTrue:
+            self.value = SymbolTrue
+            evaluation.show_steps = True
+        elif value is SymbolFalse:
+            self.value = SymbolFalse
+            evaluation.show_steps = False
+        else:
+            evaluation.message("$ShowSteps", "bool", value)
+
+        return value
+
+
+class ShowSteps(Builtin):
+    """
+    <dl>
+      <dt>'ShowSteps[$expr$]'
+      <dd>Evaluate $expr$ and print each step of the evaluation.
+    </dl>
+
+    >> ShowSteps[(x + x)^2]
+     = ...
+    """
+
+    def apply(self, expr, evaluation):
+        "%(name)s[expr_]"
+
+        evaluation.show_steps = True
+        result = expr.evaluate(evaluation)
+        evaluation.show_steps = False
+
+        print (expr)
+
+        return result
 
 
 class Format(Builtin):

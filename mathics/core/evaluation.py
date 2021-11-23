@@ -322,10 +322,6 @@ class Evaluation(object):
 
         result = None
 
-        self.show_steps = self.definitions.get_ownvalue(
-            "System`ShowSteps"
-        ).replace.is_true()
-
         def check_io_hook(hook):
             return len(self.definitions.get_ownvalues(hook)) > 0
 
