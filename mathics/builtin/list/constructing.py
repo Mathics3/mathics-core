@@ -8,7 +8,6 @@ Functions for constructing lists of various sizes and structure.
 
 from itertools import permutations
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin, Pattern
 

@@ -121,6 +121,7 @@ _number_form_options = {
 
 class Integer(Number):
     value: int
+    class_head_name = "System`Integer"
 
     def __new__(cls, value) -> "Integer":
         n = int(value)
@@ -131,6 +132,9 @@ class Integer(Number):
     @lru_cache()
     def __init__(self, value) -> "Integer":
         super().__init__()
+
+    def get_head_name(self):
+        return "System`Integer"
 
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
@@ -207,11 +211,16 @@ Integer1 = Integer(1)
 
 
 class Rational(Number):
+    class_head_name = "System`Rational"
+
     @lru_cache()
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
         return self
+
+    def get_head_name(self):
+        return "System`Rational"
 
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
@@ -306,6 +315,8 @@ RationalOneHalf = Rational(1, 2)
 
 
 class Real(Number):
+    class_head_name = "System`Real"
+
     def __new__(cls, value, p=None) -> "Real":
         if isinstance(value, str):
             value = str(value)
@@ -329,6 +340,9 @@ class Real(Number):
             return MachineReal.__new__(MachineReal, value)
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
+
+    def get_head_name(self):
+        return "System`Real"
 
     def boxes_to_text(self, **options) -> str:
         return self.make_boxes("System`OutputForm").boxes_to_text(**options)
@@ -531,6 +545,7 @@ class Complex(Number):
     Complex wraps two real-valued Numbers.
     """
 
+    class_head_name = "System`Complex"
     real: Any
     imag: Any
 
@@ -552,6 +567,9 @@ class Complex(Number):
         self.real = real
         self.imag = imag
         return self
+
+    def get_head_name(self):
+        return "System`Complex"
 
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
@@ -689,6 +707,7 @@ class Complex(Number):
 
 class String(Atom):
     value: str
+    class_head_name = "System`String"
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -698,6 +717,9 @@ class String(Atom):
 
     def __str__(self) -> str:
         return '"%s"' % self.value
+
+    def get_head_name(self):
+        return "System`String"
 
     def boxes_to_text(self, show_string_characters=False, **options) -> str:
         value = self.value
@@ -867,6 +889,7 @@ class String(Atom):
 
 class ByteArrayAtom(Atom):
     value: str
+    class_head_name = "System`ByteArrayAtom"
 
     def __new__(cls, value):
         self = super().__new__(cls)

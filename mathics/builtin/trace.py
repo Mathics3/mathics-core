@@ -8,7 +8,6 @@ Built-in Function Tracing provides one high-level way understand where the time 
 With this it may be possible for both users and implementers to figure out how to speed up running expressions.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
 from mathics.core.rules import BuiltinRule
