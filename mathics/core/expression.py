@@ -384,6 +384,9 @@ class Expression(BaseExpression):
     def get_head(self):
         return self._head
 
+    def get_head_name(self):
+        return self._head.name if isinstance(self._head, Symbol) else ""
+
     def set_head(self, head):
         self._head = head
         self._cache = None
@@ -690,18 +693,20 @@ class Expression(BaseExpression):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._leaves, 1]
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, other: BaseExpression) -> bool:
         """Mathics SameQ"""
-        if id(self) == id(other):
+        if not isinstance(other, Expression):
+            return False
+        if self is other:
             return True
         if not self._head.sameQ(other.get_head()):
             return False
         if len(self._leaves) != len(other.get_leaves()):
             return False
-        for leaf, other in zip(self._leaves, other.get_leaves()):
-            if not leaf.sameQ(other):
-                return False
-        return True
+        return all(
+            (id(leaf) == id(oleaf) or leaf.sameQ(oleaf))
+            for leaf, oleaf in zip(self._leaves, other.get_leaves())
+        )
 
     def flatten(
         self, head, pattern_only=False, callback=None, level=None
@@ -1291,7 +1296,11 @@ class Expression(BaseExpression):
                 self._head.get_name()
             ):
                 return False
-            return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
+            for leaf in self._leaves:
+                if not leaf.is_numeric(evaluation):
+                    return False
+            return True
+            # return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
         else:
             return self._head in symbols_arithmetic_operations and all(
                 leaf.is_numeric() for leaf in self._leaves
