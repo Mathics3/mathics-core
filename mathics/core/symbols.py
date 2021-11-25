@@ -763,14 +763,14 @@ class Symbol(Atom):
 
     def evaluate(self, evaluation):
         if evaluation.show_steps:
-            print("  " * evaluation.recursion_depth + "Evaluating: ", self)
+            print("  " * evaluation.recursion_depth + "  Evaluating: ", self)
 
         rules = evaluation.definitions.get_ownvalues(self.name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
                 if evaluation.show_steps:
-                    print("  " * evaluation.recursion_depth + "->", result)
+                    print("  " * evaluation.recursion_depth + "  ->", result)
                 return result.evaluate(evaluation)
         return self
 
