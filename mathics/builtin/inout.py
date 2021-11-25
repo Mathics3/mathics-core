@@ -83,6 +83,8 @@ class ShowStepsVariable(Builtin):
     >> $ShowSteps = False
      | ...
      = False
+    >> $ShowSteps
+     = False
 
     >> a + a
      = 2 a
@@ -137,7 +139,7 @@ class ShowSteps(Builtin):
         curr_show_steps = evaluation.definitions.show_steps
         evaluation.definitions.show_steps = True
         result = expr.evaluate(evaluation)
-        evaluation.definitions.evshow_steps = curr_show_steps
+        evaluation.definitions.show_steps = curr_show_steps
         return result
 
 
