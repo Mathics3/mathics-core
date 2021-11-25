@@ -123,15 +123,15 @@ class ShowSteps(Builtin):
      = ...
     """
 
-    def apply(self, expr, evaluation):
-        "%(name)s[expr_]"
+    attributes = {
+        "HoldAll",
+    }
 
+    def apply(self, expr, evaluation):
+        "ShowSteps[expr_]"
         evaluation.show_steps = True
         result = expr.evaluate(evaluation)
         evaluation.show_steps = False
-
-        print(expr)
-
         return result
 
 
