@@ -4,7 +4,7 @@
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import system_symbols, ensure_context, Symbol
+from mathics.core.symbols import system_symbols, ensure_context, Atom, Symbol
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
@@ -12,6 +12,21 @@ from itertools import chain
 # from mathics.core.pattern_nocython import (
 #    StopGenerator #, Pattern #, ExpressionPattern)
 # from mathics.core import pattern_nocython
+
+
+SYSTEM_SYMBOLS_PATTERNS = system_symbols(
+    "Pattern",
+    "PatternTest",
+    "Condition",
+    "Optional",
+    "Blank",
+    "BlankSequence",
+    "BlankNullSequence",
+    "Alternatives",
+    "OptionsPattern",
+    "Repeated",
+    "RepeatedNull",
+)
 
 
 def Pattern_create(expr):
@@ -23,7 +38,7 @@ def Pattern_create(expr):
     pattern_object = pattern_objects.get(name)
     if pattern_object is not None:
         return pattern_object(expr)
-    if expr.is_atom():
+    if isinstance(expr, Atom):
         return AtomPattern(expr)
     else:
         return ExpressionPattern(expr)
@@ -145,9 +160,32 @@ class AtomPattern(Pattern):
     def __init__(self, expr):
         self.atom = expr
         self.expr = expr
+        if isinstance(expr, Symbol):
+            self.match = self.match_symbol
+            self.get_match_candidates = self.get_match_symbol_candidates
 
     def __repr__(self):
         return "<AtomPattern: %s>" % self.atom
+
+    def match_symbol(
+        self,
+        yield_func,
+        expression,
+        vars,
+        evaluation,
+        head=None,
+        leaf_index=None,
+        leaf_count=None,
+        fully=True,
+        wrap_oneid=True,
+    ):
+        if expression is self.atom:
+            yield_func(vars, None)
+
+    def get_match_symbol_candidates(
+        self, leaves, expression, attributes, evaluation, vars={}
+    ):
+        return [leaf for leaf in leaves if (leaf is self.atom)]
 
     def match(
         self,
@@ -161,12 +199,16 @@ class AtomPattern(Pattern):
         fully=True,
         wrap_oneid=True,
     ):
-        if expression.sameQ(self.atom):
+        if isinstance(expression, Atom) and expression.sameQ(self.atom):
             # yield vars, None
             yield_func(vars, None)
 
     def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
-        return [leaf for leaf in leaves if leaf.sameQ(self.atom)]
+        return [
+            leaf
+            for leaf in leaves
+            if (isinstance(leaf, Atom) and leaf.sameQ(self.atom))
+        ]
 
     def get_match_count(self, vars={}):
         return (1, 1)
@@ -193,7 +235,6 @@ class ExpressionPattern(Pattern):
         wrap_oneid=True,
     ):
         evaluation.check_stopped()
-
         attributes = self.head.get_attributes(evaluation.definitions)
         if "System`Flat" not in attributes:
             fully = True
@@ -302,8 +343,8 @@ class ExpressionPattern(Pattern):
             wrap_oneid
             and not evaluation.ignore_oneidentity
             and "System`OneIdentity" in attributes
-            and expression.get_head() != self.head  # nopep8
-            and expression != self.head
+            and not self.head.expr.sameQ(expression.get_head())  # nopep8
+            and not self.head.expr.sameQ(expression)
         ):
             # and 'OneIdentity' not in
             # (expression.get_attributes(evaluation.definitions) |
@@ -516,22 +557,7 @@ class ExpressionPattern(Pattern):
         # of pattern.
         # TODO: This could be further optimized!
         try_flattened = ("System`Flat" in attributes) and (
-            leaf.get_head_name()
-            in (
-                system_symbols(
-                    "Pattern",
-                    "PatternTest",
-                    "Condition",
-                    "Optional",
-                    "Blank",
-                    "BlankSequence",
-                    "BlankNullSequence",
-                    "Alternatives",
-                    "OptionsPattern",
-                    "Repeated",
-                    "RepeatedNull",
-                )
-            )
+            leaf.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
         if try_flattened:

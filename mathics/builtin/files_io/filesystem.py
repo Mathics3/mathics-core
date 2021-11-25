@@ -12,10 +12,9 @@ import time
 
 import os.path as osp
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.core.expression import Expression
-from mathics.core.atoms import String, from_python
+from mathics.core.atoms import Real, Integer, String, from_python
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -684,7 +683,7 @@ class FileBaseName(Builtin):
         path = filename.to_python()[1:-1]
 
         filename_base, filename_ext = osp.splitext(path)
-        return from_python(filename_base)
+        return String(filename_base)
 
 
 class FileByteCount(Builtin):
@@ -727,7 +726,7 @@ class FileByteCount(Builtin):
             e.message(evaluation)
             return
 
-        return from_python(count)
+        return Integer(count)
 
 
 class FileDate(Builtin):
@@ -825,7 +824,7 @@ class FileDate(Builtin):
         ).to_python(n_evaluation=evaluation)
         result += epochtime
 
-        return Expression("DateList", from_python(result))
+        return Expression("DateList", Real(result))
 
     def apply_default(self, path, evaluation):
         "FileDate[path_]"
@@ -898,7 +897,7 @@ class FileExtension(Builtin):
         path = filename.to_python()[1:-1]
         filename_base, filename_ext = osp.splitext(path)
         filename_ext = filename_ext.lstrip(".")
-        return from_python(filename_ext)
+        return String(filename_ext)
 
 
 class FileHash(Builtin):
@@ -1093,7 +1092,7 @@ class FileNameJoin(Builtin):
         else:
             result = osp.join(*py_pathlist)
 
-        return from_python(result)
+        return String(result)
 
 
 class FileType(Builtin):
@@ -1416,7 +1415,7 @@ class FileNameTake(Builtin):
     def apply(self, filename, evaluation, options):
         "FileNameTake[filename_String, OptionsPattern[FileBaseName]]"
         path = pathlib.Path(filename.to_python()[1:-1])
-        return from_python(path.name)
+        return String(path.name)
 
     def apply_n(self, filename, n, evaluation, options):
         "FileNameTake[filename_String, n_Integer, OptionsPattern[FileBaseName]]"
@@ -1426,7 +1425,7 @@ class FileNameTake(Builtin):
             subparts = parts[:n_int]
         else:
             subparts = parts[n_int:]
-        return from_python(str(pathlib.PurePath(*subparts)))
+        return String(str(pathlib.PurePath(*subparts)))
 
 
 class FindList(Builtin):

@@ -10,7 +10,6 @@ import sympy
 from collections import defaultdict
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.algorithm.introselect import introselect
 from mathics.algorithm.parts import (
@@ -62,7 +61,14 @@ from mathics.core.atoms import (
     min_prec,
 )
 
-from mathics.core.symbols import Symbol, SymbolList, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolList,
+    strip_context,
+    SymbolTrue,
+    SymbolFalse,
+    SymbolSequence,
+)
 
 from mathics.core.systemsymbols import (
     SymbolByteArray,
@@ -212,8 +218,8 @@ class ContainsOnly(Builtin):
         self.check_options(None, evaluation, options)
         for a in list1.leaves:
             if not any(sameQ(a, b) for b in list2.leaves):
-                return Symbol("False")
-        return Symbol("True")
+                return SymbolFalse
+        return SymbolTrue
 
     def apply_msg(self, e1, e2, evaluation, options={}):
         "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
@@ -993,7 +999,7 @@ class _IterationFunction(Builtin):
         )
         while True:
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont == Symbol("False"):
+            if cont == SymbolFalse:
                 break
             if not cont.is_true():
                 if self.throw_iterb:
@@ -2473,9 +2479,9 @@ class SubsetQ(Builtin):
             )
 
         if set(subset.leaves).issubset(set(expr.leaves)):
-            return Symbol("True")
+            return SymbolTrue
         else:
-            return Symbol("False")
+            return SymbolFalse
 
 
 def delete_one(expr, pos):
@@ -2483,7 +2489,7 @@ def delete_one(expr, pos):
         raise PartDepthError(pos)
     leaves = expr.leaves
     if pos == 0:
-        return Expression(Symbol("System`Sequence"), *leaves)
+        return Expression(SymbolSequence, *leaves)
     s = len(leaves)
     truepos = pos
     if truepos < 0:

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -12,7 +12,7 @@ from mathics.core.atoms import (
     Integer,
 )
 
-from mathics.core.rules import Rule
+from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
 
 
@@ -274,7 +274,7 @@ class Module(Builtin):
         for name, new_def in scoping_vars:
             new_name = "%s$%d" % (name, number)
             if new_def is not None:
-                evaluation.definitions.set_ownvalue(new_name, new_def)
+                evaluation.definitions.set_ownvalue(new_name, new_def.copy())
             replace[name] = Symbol(new_name)
         new_expr = expr.replace_vars(replace, in_scoping=False)
         result = new_expr.evaluate(evaluation)
@@ -383,7 +383,6 @@ class Unique(Predefined):
         "Unique[vars_, attributes___]"
 
         from mathics.core.parser import is_symbol_name
-        from mathics.builtin.attributes import get_symbol_list
 
         attributes = attributes.get_sequence()
         if len(attributes) > 1:

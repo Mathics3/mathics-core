@@ -8,7 +8,6 @@ Drawing Graphics
 
 from math import sqrt
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     Builtin,
@@ -41,6 +40,7 @@ from mathics.core.symbols import (
     system_symbols,
     system_symbols_dict,
     SymbolList,
+    SymbolNull,
 )
 from mathics.core.atoms import (
     Integer,
@@ -54,6 +54,9 @@ from mathics.core.systemsymbols import (
 from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_bezier
 
+
+SymbolEdgeForm = Symbol("System`EdgeForm")
+SymbolFaceForm = Symbol("System`FaceForm")
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -276,29 +279,29 @@ class Graphics(Builtin):
         StandardForm|TraditionalForm|OutputForm]"""
 
         def convert(content):
-            head = content.get_head_name()
+            head = content.get_head()
 
-            if head == "System`List":
+            if head is SymbolList:
                 return Expression(
                     SymbolList, *[convert(item) for item in content.leaves]
                 )
-            elif head == "System`Style":
+            elif head is Symbol("System`Style"):
                 return Expression(
                     "StyleBox", *[convert(item) for item in content.leaves]
                 )
 
             if head in element_heads:
-                if head == "System`Text":
-                    head = "System`Inset"
+                if head is Symbol("System`Text"):
+                    head = Symbol("System`Inset")
                 atoms = content.get_atoms(include_heads=False)
                 if any(
                     not isinstance(atom, (Integer, Real))
-                    and not atom.get_name() in GRAPHICS_SYMBOLS
+                    and atom not in GRAPHICS_SYMBOLS
                     for atom in atoms
                 ):
-                    if head == "System`Inset":
+                    if head is Symbol("System`Inset"):
                         inset = content.leaves[0]
-                        if inset.get_head_name() == "System`Graphics":
+                        if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._leaves[0].name:opt_leaves[1]   for opt in  inset._leaves[1:])
                             inset = self.apply_makeboxes(
@@ -313,7 +316,7 @@ class Graphics(Builtin):
                         )
                 else:
                     n_leaves = content.leaves
-                return Expression(head + self.box_suffix, *n_leaves)
+                return Expression(head.name + self.box_suffix, *n_leaves)
             return content
 
         for option in options:
@@ -1027,13 +1030,13 @@ class FaceForm(Builtin):
 
 
 def _style(graphics, item):
-    head = item.get_head_name()
+    head = item.get_head()
     if head in style_heads:
         klass = get_class(head)
         style = klass.create_as_style(klass, graphics, item)
-    elif head in ("System`EdgeForm", "System`FaceForm"):
+    elif head in (SymbolEdgeForm, SymbolFaceForm):
         style = graphics.style_class(
-            graphics, edge=head == "System`EdgeForm", face=head == "System`FaceForm"
+            graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
         )
         if len(item.leaves) > 1:
             raise BoxConstructError
@@ -1127,9 +1130,9 @@ class Style(object):
 
 def _flatten(leaves):
     for leaf in leaves:
-        if leaf.get_head_name() == "System`List":
-            flattened = leaf.flatten(Symbol("List"))
-            if flattened.get_head_name() == "System`List":
+        if leaf.get_head() is SymbolList:
+            flattened = leaf.flatten(SymbolList)
+            if flattened.get_head() is SymbolList:
                 for x in flattened.leaves:
                     yield x
             else:
@@ -1156,10 +1159,10 @@ class _GraphicsElements(object):
         def stylebox_style(style, specs):
             new_style = style.clone()
             for spec in _flatten(specs):
-                head_name = spec.get_head_name()
-                if head_name in style_and_form_heads:
+                head = spec.get_head()
+                if head in style_and_form_heads:
                     new_style.append(spec)
-                elif head_name == "System`Rule" and len(spec.leaves) == 2:
+                elif head is Symbol("System`Rule") and len(spec.leaves) == 2:
                     option, expr = spec.leaves
                     if not isinstance(option, Symbol):
                         raise BoxConstructError
@@ -1181,21 +1184,21 @@ class _GraphicsElements(object):
                 items = [content]
             style = style.clone()
             for item in items:
-                if item.get_name() == "System`Null":
+                if item is SymbolNull:
                     continue
-                head = item.get_head_name()
+                head = item.get_head()
                 if head in style_and_form_heads:
                     style.append(item)
-                elif head == "System`StyleBox":
+                elif head is Symbol("System`StyleBox"):
                     if len(item.leaves) < 1:
                         raise BoxConstructError
                     for element in convert(
                         item.leaves[0], stylebox_style(style, item.leaves[1:])
                     ):
                         yield element
-                elif head[-3:] == "Box":  # and head[:-3] in element_heads:
+                elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
-                    options = get_options(head[:-3])
+                    options = get_options(head.name[:-3])
                     if options:
                         data, options = _data_and_options(item.leaves, options)
                         new_item = Expression(head, *data)
@@ -1203,7 +1206,7 @@ class _GraphicsElements(object):
                     else:
                         element = element_class(self, style, item)
                     yield element
-                elif head == "System`List":
+                elif head is SymbolList:
                     for element in convert(item, style):
                         yield element
                 else:
@@ -1386,28 +1389,30 @@ style_options = system_symbols_dict(
 style_heads = frozenset(styles.keys())
 
 style_and_form_heads = frozenset(
-    style_heads.union({"System`EdgeForm", "System`FaceForm"})
+    style_heads.union(system_symbols("System`EdgeForm", "System`FaceForm"))
 )
 
 GLOBALS.update(
-    {
-        "Rectangle": Rectangle,
-        "Disk": Disk,
-        "Circle": Circle,
-        "Polygon": Polygon,
-        "RegularPolygon": RegularPolygon,
-        "Inset": Inset,
-        "Text": Text,
-    }
+    system_symbols_dict(
+        {
+            "Rectangle": Rectangle,
+            "Disk": Disk,
+            "Circle": Circle,
+            "Polygon": Polygon,
+            "RegularPolygon": RegularPolygon,
+            "Inset": Inset,
+            "Text": Text,
+        }
+    )
 )
 
 GLOBALS.update(styles)
 
 GRAPHICS_SYMBOLS = {
-    "System`List",
-    "System`Rule",
-    "System`VertexColors",
+    Symbol("System`List"),
+    Symbol("System`Rule"),
+    Symbol("System`VertexColors"),
     *element_heads,
-    *[element + "Box" for element in element_heads],
+    *[Symbol(element.name + "Box") for element in element_heads],
     *style_heads,
 }

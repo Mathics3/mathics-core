@@ -1196,16 +1196,16 @@ class RegularPolygonBox(PolygonBox):
 # FIXME: GLOBALS is a horrible name.
 GLOBALS.update(
     {
-        "System`RectangleBox": RectangleBox,
-        "System`DiskBox": DiskBox,
-        "System`LineBox": LineBox,
-        "System`BezierCurveBox": BezierCurveBox,
-        "System`FilledCurveBox": FilledCurveBox,
-        "System`ArrowBox": ArrowBox,
-        "System`CircleBox": CircleBox,
-        "System`PolygonBox": PolygonBox,
-        "System`RegularPolygonBox": RegularPolygonBox,
-        "System`PointBox": PointBox,
-        "System`InsetBox": InsetBox,
+        Symbol("RectangleBox"): RectangleBox,
+        Symbol("DiskBox"): DiskBox,
+        Symbol("LineBox"): LineBox,
+        Symbol("BezierCurveBox"): BezierCurveBox,
+        Symbol("FilledCurveBox"): FilledCurveBox,
+        Symbol("ArrowBox"): ArrowBox,
+        Symbol("CircleBox"): CircleBox,
+        Symbol("PolygonBox"): PolygonBox,
+        Symbol("RegularPolygonBox"): RegularPolygonBox,
+        Symbol("PointBox"): PointBox,
+        Symbol("InsetBox"): InsetBox,
     }
 )

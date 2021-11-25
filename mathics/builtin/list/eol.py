@@ -8,7 +8,6 @@ Functions for accessing elements of lists using either indices, positions, or pa
 
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     BinaryOperator,

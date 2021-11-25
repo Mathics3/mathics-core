@@ -21,6 +21,7 @@ from mathics.builtin.drawing.graphics_internals import GLOBALS3D
 from mathics.builtin.drawing.graphics3d import (
     Coords3D,
     Graphics3DElements,
+    Style3D,
 )
 
 from mathics.builtin.drawing.graphics_internals import get_class
@@ -98,12 +99,14 @@ class Graphics3DBox(GraphicsBox):
                     "position": [0, 2, 2],
                 },
             ]
+        elif lighting == "System`None":
+            pass
 
         elif isinstance(lighting, list) and all(
             isinstance(light, list) for light in lighting
         ):
             for light in lighting:
-                if light[0] in ('"Ambient"', '"Directional"', '"Point"', '"Spot"'):
+                if light[0] in ['"Ambient"', '"Directional"', '"Point"', '"Spot"']:
                     try:
                         head = light[1].get_head_name()
                     except AttributeError:
@@ -209,6 +212,8 @@ class Graphics3DBox(GraphicsBox):
         boxratios = self.graphics_options["System`BoxRatios"].to_python()
         if boxratios == "System`Automatic":
             boxratios = ["System`Automatic"] * 3
+        else:
+            boxratios = boxratios
         if not isinstance(boxratios, list) or len(boxratios) != 3:
             raise BoxConstructError
 
@@ -235,7 +240,7 @@ class Graphics3DBox(GraphicsBox):
                         xmin -= 1
                         xmax += 1
                 elif isinstance(plot_range[0], list) and len(plot_range[0]) == 2:
-                    xmin, xmax = float(plot_range[0][0]), float(plot_range[0][1])
+                    xmin, xmax = list(map(float, plot_range[0]))
                     xmin = elements.translate((xmin, 0, 0))[0]
                     xmax = elements.translate((xmax, 0, 0))[0]
                 else:
@@ -249,7 +254,7 @@ class Graphics3DBox(GraphicsBox):
                         ymin -= 1
                         ymax += 1
                 elif isinstance(plot_range[1], list) and len(plot_range[1]) == 2:
-                    ymin, ymax = float(plot_range[1][0]), float(plot_range[1][1])
+                    ymin, ymax = list(map(float, plot_range[1]))
                     ymin = elements.translate((0, ymin, 0))[1]
                     ymax = elements.translate((0, ymax, 0))[1]
                 else:
@@ -263,7 +268,7 @@ class Graphics3DBox(GraphicsBox):
                         zmin -= 1
                         zmax += 1
                 elif isinstance(plot_range[1], list) and len(plot_range[1]) == 2:
-                    zmin, zmax = float(plot_range[2][0]), float(plot_range[2][1])
+                    zmin, zmax = list(map(float, plot_range[2]))
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]
                 else:
@@ -273,11 +278,11 @@ class Graphics3DBox(GraphicsBox):
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":
-                boxscale[0] /= xmax - xmin
+                boxscale[0] = boxratios[0] / (xmax - xmin)
             if boxratios[1] != "System`Automatic":
-                boxscale[1] /= ymax - ymin
+                boxscale[1] = boxratios[1] / (ymax - ymin)
             if boxratios[2] != "System`Automatic":
-                boxscale[2] /= zmax - zmin
+                boxscale[2] = boxratios[2] / (zmax - zmin)
 
             if final_pass:
                 xmin *= boxscale[0]
@@ -298,17 +303,14 @@ class Graphics3DBox(GraphicsBox):
                             light["target"][j] * boxscale[j] for j in range(3)
                         ]
 
-            return xmin, xmax, ymin, ymax, zmin, zmax, boxscale
+            w = 0 if (xmin is None or xmax is None) else xmax - xmin
+            h = 0 if (ymin is None or ymax is None) else ymax - ymin
 
-        (
-            xmin,
-            xmax,
-            ymin,
-            ymax,
-            zmin,
-            zmax,
-            boxscale,
-        ) = calc_dimensions(final_pass=False)
+            return xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h
+
+        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions(
+            final_pass=False
+        )
 
         axes, ticks, ticks_style = self.create_axes(
             elements,
@@ -355,7 +357,8 @@ class Graphics3DBox(GraphicsBox):
 
         elements._apply_boxscaling(boxscale)
 
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale = calc_dimensions()
+        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
+        elements.view_width = w
 
         # FIXME: json is the only thing we can convert MathML into.
         # Handle other graphics formats.
@@ -413,7 +416,7 @@ class Graphics3DBox(GraphicsBox):
         else:
             asy = elements.to_asy()
 
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale = calc_dimensions()
+        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
 
         # TODO: Intelligently place the axes on the longest non-middle edge.
         # See algorithm used by web graphics in mathics/web/media/graphics.js
@@ -838,8 +841,17 @@ class Line3DBox(LineBox):
 
 
 class Point3DBox(PointBox):
+    def get_default_face_color(self):
+        return RGBColor(components=(0, 0, 0, 1))
+
     def init(self, *args, **kwargs):
+        # The default color isn't white as it's for the other 3d primitives
+        # here it's black.
+        get_default_face_color_copy = Style3D.get_default_face_color
+
+        Style3D.get_default_face_color = self.get_default_face_color
         super(Point3DBox, self).init(*args, **kwargs)
+        Style3D.get_default_face_color = get_default_face_color_copy
 
     def process_option(self, name, value):
         super(Point3DBox, self).process_option(name, value)
@@ -953,14 +965,14 @@ class Tube3DBox(InstanceableBuiltin):
 # FIXME: GLOBALS3D is a horrible name.
 GLOBALS3D.update(
     {
-        "System`Arrow3DBox": Arrow3DBox,
-        "System`Cone3DBox": Cone3DBox,
-        "System`Cuboid3DBox": Cuboid3DBox,
-        "System`Cylinder3DBox": Cylinder3DBox,
-        "System`Line3DBox": Line3DBox,
-        "System`Point3DBox": Point3DBox,
-        "System`Polygon3DBox": Polygon3DBox,
-        "System`Sphere3DBox": Sphere3DBox,
-        "System`Tube3DBox": Tube3DBox,
+        Symbol("Arrow3DBox"): Arrow3DBox,
+        Symbol("Cone3DBox"): Cone3DBox,
+        Symbol("Cuboid3DBox"): Cuboid3DBox,
+        Symbol("Cylinder3DBox"): Cylinder3DBox,
+        Symbol("Line3DBox"): Line3DBox,
+        Symbol("Point3DBox"): Point3DBox,
+        Symbol("Polygon3DBox"): Polygon3DBox,
+        Symbol("Sphere3DBox"): Sphere3DBox,
+        Symbol("Tube3DBox"): Tube3DBox,
     }
 )

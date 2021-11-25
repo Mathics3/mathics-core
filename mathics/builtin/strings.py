@@ -10,7 +10,6 @@ from binascii import hexlify, unhexlify
 from heapq import heappush, heappop
 from typing import Any, List
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     Builtin,
@@ -25,9 +24,7 @@ from mathics.core.symbols import (
     SymbolTrue,
     SymbolList,
 )
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-)
+from mathics.core.systemsymbols import SymbolFailed, SymbolDirectedInfinity
 from mathics.core.atoms import (
     String,
     Integer,
@@ -38,6 +35,12 @@ from mathics.core.atoms import (
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
+
+
+SymbolBlank = Symbol("Blank")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolToExpression = Symbol("ToExpression")
+SymbolInputForm = Symbol("InputForm")
 
 _regex_longest = {
     "+": "+",
@@ -211,7 +214,9 @@ def to_regex(
         return r"(.|\n)" + q["*"]
     if expr.has_form("Except", 1, 2):
         if len(expr.leaves) == 1:
-            leaves = [expr.leaves[0], Expression("Blank")]
+            # TODO: Check if this shouldn't be SymbolBlank
+            # instad of SymbolBlank[]
+            leaves = [expr.leaves[0], Expression(SymbolBlank)]
         else:
             leaves = [expr.leaves[0], expr.leaves[1]]
         leaves = [recurse(leaf) for leaf in leaves]
@@ -654,7 +659,7 @@ class _StringFind(Builtin):
         # convert n
         if n is None:
             py_n = 0
-        elif n == Expression("DirectedInfinity", Integer1):
+        elif n == Expression(SymbolDirectedInfinity, Integer1):
             py_n = 0
         else:
             py_n = n.get_int_value()
@@ -668,7 +673,7 @@ class _StringFind(Builtin):
 
         if isinstance(py_strings, list):
             return Expression(
-                "List",
+                SymbolList,
                 *[
                     self._find(py_stri, py_rules, py_n, flags, evaluation)
                     for py_stri in py_strings
@@ -788,7 +793,7 @@ class ToString(Builtin):
 
     def apply_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
-        return self.apply_form(value, Symbol("System`OutputForm"), evaluation, options)
+        return self.apply_form(value, SymbolOutputForm, evaluation, options)
 
     def apply_form(self, value, form, evaluation, options):
         "ToString[value_, form_, OptionsPattern[ToString]]"
@@ -822,7 +827,7 @@ class InterpretedBox(PrefixOperator):
         # In the first place, this should handle different kind
         # of boxes in different ways.
         reinput = boxes.boxes_to_text()
-        return Expression("ToExpression", reinput).evaluate(evaluation)
+        return Expression(SymbolToExpression, reinput).evaluate(evaluation)
 
 
 class ToExpression(Builtin):
@@ -894,7 +899,7 @@ class ToExpression(Builtin):
         # Organise Arguments
         py_seq = seq.get_sequence()
         if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], Symbol("InputForm"), None)
+            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
         elif len(py_seq) == 2:
             (inp, form, head) = (py_seq[0], py_seq[1], None)
         elif len(py_seq) == 3:
@@ -912,7 +917,7 @@ class ToExpression(Builtin):
             return
 
         # Apply the different forms
-        if form == Symbol("InputForm"):
+        if form == SymbolInputForm:
             if isinstance(inp, String):
 
                 # TODO: turn the below up into a function and call that.

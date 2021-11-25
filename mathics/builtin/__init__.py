@@ -110,10 +110,6 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
             print(f"    mathics.builtin loads from {__file__[:-11]}")
             return None
 
-        if __version__ != module.__version__:
-            print(
-                f"Version {module.__version__} in the module does not match top-level Mathics version {__version__}"
-            )
         if module:
             modules.append(module)
 
@@ -155,6 +151,7 @@ disable_file_module_names = (
 
 for subdir in (
     "arithfns",
+    "assignments",
     "colors",
     "distance",
     "drawing",

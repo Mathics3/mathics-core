@@ -14,7 +14,6 @@ import re
 import sys
 import time
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -373,7 +372,7 @@ class AbsoluteTime(_DateFormat):
     def apply_now(self, evaluation):
         "AbsoluteTime[]"
 
-        return from_python(total_seconds(datetime.now() - EPOCH_START))
+        return Real(total_seconds(datetime.now() - EPOCH_START))
 
     def apply_spec(self, epochtime, evaluation):
         "AbsoluteTime[epochtime_]"
@@ -386,8 +385,8 @@ class AbsoluteTime(_DateFormat):
         date = _Date(datelist=datelist)
         tdelta = date.date - EPOCH_START
         if tdelta.microseconds == 0:
-            return from_python(int(total_seconds(tdelta)))
-        return from_python(total_seconds(tdelta))
+            return Integer(int(total_seconds(tdelta)))
+        return Real(total_seconds(tdelta))
 
 
 class AbsoluteTiming(Builtin):
@@ -561,7 +560,7 @@ class DateDifference(Builtin):
 
         if len(result) == 1:
             if pyunits[0] == "Day":
-                return from_python(result[0][0])
+                return Integer(result[0][0])
             return from_python(result[0])
         return from_python(result)
 
@@ -944,7 +943,7 @@ class DateString(_DateFormat):
 
             datestrs.append(tmp)
 
-        return from_python("".join(datestrs))
+        return String("".join(datestrs))
 
 
 class DateStringFormat(Predefined):

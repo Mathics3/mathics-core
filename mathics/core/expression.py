@@ -19,47 +19,46 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
+    SymbolSequence,
     system_symbols,
+    ensure_context,
+    strip_context,
 )
 from mathics.core.systemsymbols import SymbolSequence
 
 
-def fully_qualified_symbol_name(name) -> bool:
-    return (
-        isinstance(name, str)
-        and "`" in name
-        and not name.startswith("`")
-        and not name.endswith("`")
-        and "``" not in name
-    )
+SymbolAborted = Symbol("$Aborted")
+SymbolAlternatives = Symbol("Alternatives")
+SymbolBlank = Symbol("System`Blank")
+SymbolBlankSequence = Symbol("System`BlankSequence")
+SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
+SymbolCompile = Symbol("Compile")
+SymbolCompiledFunction = Symbol("CompiledFunction")
+SymbolCondition = Symbol("Condition")
+SymbolDefault = Symbol("Default")
+SymbolDirectedInfinity = Symbol("DirectedInfinity")
+SymbolFunction = Symbol("Function")
+SymbolOptional = Symbol("Optional")
+SymbolOptionsPattern = Symbol("OptionsPattern")
+SymbolPattern = Symbol("Pattern")
+SymbolPatternTest = Symbol("PatternTest")
+SymbolSlot = Symbol("Slot")
+SymbolSlotSequence = Symbol("SlotSequence")
+SymbolTimes = Symbol("Times")
+SymbolVerbatim = Symbol("Verbatim")
 
 
-def valid_context_name(ctx, allow_initial_backquote=False) -> bool:
-    return (
-        isinstance(ctx, str)
-        and ctx.endswith("`")
-        and "``" not in ctx
-        and (allow_initial_backquote or not ctx.startswith("`"))
-    )
-
-
-def ensure_context(name, context="System`") -> str:
-    assert isinstance(name, str)
-    assert name != ""
-    if "`" in name:
-        # Symbol has a context mark -> it came from the parser
-        assert fully_qualified_symbol_name(name)
-        return name
-    # Symbol came from Python code doing something like
-    # Expression('Plus', ...) -> use System` or more generally
-    # context + name
-    return context + name
-
-
-def strip_context(name) -> str:
-    if "`" in name:
-        return name[name.rindex("`") + 1 :]
-    return name
+symbols_arithmetic_operations = system_symbols(
+    "Sqrt",
+    "Times",
+    "Plus",
+    "Subtract",
+    "Minus",
+    "Power",
+    "Abs",
+    "Divide",
+    "Sin",
+)
 
 
 class BoxError(Exception):
@@ -67,49 +66,6 @@ class BoxError(Exception):
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
         self.box = box
         self.form = form
-
-
-class ExpressionPointer(object):
-    def __init__(self, parent, position) -> None:
-        self.parent = parent
-        self.position = position
-
-    def replace(self, new) -> None:
-        if self.position == 0:
-            self.parent.set_head(new)
-        else:
-            self.parent.set_leaf(self.position - 1, new)
-
-    def __str__(self) -> str:
-        return "%s[[%s]]" % (self.parent, self.position)
-
-
-# class KeyComparable(object):
-#     def get_sort_key(self):
-#         raise NotImplementedError
-
-#     def __lt__(self, other) -> bool:
-#         return self.get_sort_key() < other.get_sort_key()
-
-#     def __gt__(self, other) -> bool:
-#         return self.get_sort_key() > other.get_sort_key()
-
-#     def __le__(self, other) -> bool:
-#         return self.get_sort_key() <= other.get_sort_key()
-
-#     def __ge__(self, other) -> bool:
-#         return self.get_sort_key() >= other.get_sort_key()
-
-#     def __eq__(self, other) -> bool:
-#         return (
-#             hasattr(other, "get_sort_key")
-#             and self.get_sort_key() == other.get_sort_key()
-#         )
-
-#     def __ne__(self, other) -> bool:
-#         return (
-#             not hasattr(other, "get_sort_key")
-#         ) or self.get_sort_key() != other.get_sort_key()
 
 
 # ExpressionCache keeps track of the following attributes for one Expression instance:
@@ -226,12 +182,13 @@ class Expression(BaseExpression):
         elif isinstance(rhs, Atom):
             return None
 
+        head = self._head
         # Here we only need to deal with Expressions.
-        equal_heads = self._head.equal2(rhs._head)
+        equal_heads = head.equal2(rhs._head)
         if not equal_heads:
             return equal_heads
         # From here, we can assume that both heads are the same
-        if self.get_head_name() in ("System`List", "System`Sequence"):
+        if head in (SymbolList, SymbolSequence):
             if len(self._leaves) != len(rhs._leaves):
                 return False
             for item1, item2 in zip(self._leaves, rhs._leaves):
@@ -239,7 +196,7 @@ class Expression(BaseExpression):
                 if not result:
                     return result
             return True
-        elif self.get_head_name() in ("System`DirectedInfinity",):
+        elif head in (SymbolDirectedInfinity,):
             return self._leaves[0].equal2(rhs._leaves[0])
         return None
 
@@ -322,7 +279,7 @@ class Expression(BaseExpression):
     def flatten_pattern_sequence(self, evaluation):
         def sequence(leaf):
             flattened = leaf.flatten_pattern_sequence(evaluation)
-            if leaf.get_head_name() == "System`Sequence" and leaf.pattern_sequence:
+            if leaf.get_head() is SymbolSequence and leaf.pattern_sequence:
                 return flattened._leaves
             else:
                 return [flattened]
@@ -395,6 +352,10 @@ class Expression(BaseExpression):
     def do_format(self, evaluation, form):
         if self._format_cache is None:
             self._format_cache = {}
+        if isinstance(form, str):
+
+            raise Exception("Expression.do_format\n", form, " should be a Symbol")
+            form = Symbol(form)
 
         last_evaluated, expr = self._format_cache.get(form, (None, None))
         if last_evaluated is not None and expr is not None:
@@ -420,14 +381,11 @@ class Expression(BaseExpression):
         # expr.last_evaluated = self.last_evaluated
         return expr
 
-    def set_positions(self, position=None) -> None:
-        self.position = position
-        self._head.set_positions(ExpressionPointer(self, 0))
-        for index, leaf in enumerate(self._leaves):
-            leaf.set_positions(ExpressionPointer(self, index + 1))
-
     def get_head(self):
         return self._head
+
+    def get_head_name(self):
+        return self._head.name if isinstance(self._head, Symbol) else ""
 
     def set_head(self, head):
         self._head = head
@@ -451,7 +409,7 @@ class Expression(BaseExpression):
             self._cache = self._cache.reordered()
 
     def get_attributes(self, definitions):
-        if self.get_head_name() == "System`Function" and len(self._leaves) > 2:
+        if self.get_head() is SymbolFunction and len(self._leaves) > 2:
             res = self._leaves[2]
             if res.is_symbol():
                 return (str(res),)
@@ -560,25 +518,26 @@ class Expression(BaseExpression):
         from mathics.builtin.base import mathics_to_python
 
         n_evaluation = kwargs.get("n_evaluation")
-        head_name = self._head.get_name()
+        head = self._head
         if n_evaluation is not None:
-            if head_name == "System`Function":
-                compiled = Expression("System`Compile", *(self._leaves))
+            if head is SymbolFunction:
+                compiled = Expression(SymbolCompile, *(self._leaves))
                 compiled = compiled.evaluate(n_evaluation)
-                if compiled.get_head_name() == "System`CompiledFunction":
+                if compiled.get_head() is SymbolCompiledFunction:
                     return compiled.leaves[2].cfunc
             value = Expression(SymbolN, self).evaluate(n_evaluation)
             return value.to_python()
 
-        if head_name == "System`DirectedInfinity" and len(self._leaves) == 1:
+        if head is SymbolDirectedInfinity and len(self._leaves) == 1:
             direction = self._leaves[0].get_int_value()
             if direction == 1:
                 return math.inf
             if direction == -1:
                 return -math.inf
-        elif head_name == "System`List":
+        elif head is SymbolList:
             return [leaf.to_python(*args, **kwargs) for leaf in self._leaves]
 
+        head_name = head.get_name()
         if head_name in mathics_to_python:
             py_obj = mathics_to_python[head_name]
             # Start here
@@ -608,13 +567,13 @@ class Expression(BaseExpression):
             7: 0/1:        0 for Condition
             """
 
-            name = self._head.get_name()
+            head = self._head
             pattern = 0
-            if name == "System`Blank":
+            if head is SymbolBlank:
                 pattern = 1
-            elif name == "System`BlankSequence":
+            elif head is SymbolBlankSequence:
                 pattern = 2
-            elif name == "System`BlankNullSequence":
+            elif head is SymbolBlankNullSequence:
                 pattern = 3
             if pattern > 0:
                 if self._leaves:
@@ -628,36 +587,36 @@ class Expression(BaseExpression):
                     1,
                     1,
                     0,
-                    self._head.get_sort_key(True),
+                    head.get_sort_key(True),
                     tuple(leaf.get_sort_key(True) for leaf in self._leaves),
                     1,
                 ]
 
-            if name == "System`PatternTest":
+            if head is SymbolPatternTest:
                 if len(self._leaves) != 2:
-                    return [3, 0, 0, 0, 0, self._head, self._leaves, 1]
+                    return [3, 0, 0, 0, 0, head, self._leaves, 1]
                 sub = self._leaves[0].get_sort_key(True)
                 sub[2] = 0
                 return sub
-            elif name == "System`Condition":
+            elif head is SymbolCondition:
                 if len(self._leaves) != 2:
-                    return [3, 0, 0, 0, 0, self._head, self._leaves, 1]
+                    return [3, 0, 0, 0, 0, head, self._leaves, 1]
                 sub = self._leaves[0].get_sort_key(True)
                 sub[7] = 0
                 return sub
-            elif name == "System`Pattern":
+            elif head is SymbolPattern:
                 if len(self._leaves) != 2:
-                    return [3, 0, 0, 0, 0, self._head, self._leaves, 1]
+                    return [3, 0, 0, 0, 0, head, self._leaves, 1]
                 sub = self._leaves[1].get_sort_key(True)
                 sub[3] = 0
                 return sub
-            elif name == "System`Optional":
+            elif head is SymbolOptional:
                 if len(self._leaves) not in (1, 2):
-                    return [3, 0, 0, 0, 0, self._head, self._leaves, 1]
+                    return [3, 0, 0, 0, 0, head, self._leaves, 1]
                 sub = self._leaves[0].get_sort_key(True)
                 sub[4] = 1
                 return sub
-            elif name == "System`Alternatives":
+            elif head is SymbolAlternatives:
                 min_key = [4]
                 min = None
                 for leaf in self._leaves:
@@ -669,12 +628,12 @@ class Expression(BaseExpression):
                     # empty alternatives -> very restrictive pattern
                     return [2, 1]
                 return min_key
-            elif name == "System`Verbatim":
+            elif head is SymbolVerbatim:
                 if len(self._leaves) != 1:
-                    return [3, 0, 0, 0, 0, self._head, self._leaves, 1]
+                    return [3, 0, 0, 0, 0, head, self._leaves, 1]
                 return self._leaves[0].get_sort_key(True)
-            elif name == "System`OptionsPattern":
-                return [2, 40, 0, 1, 1, 0, self._head, self._leaves, 1]
+            elif head is SymbolOptionsPattern:
+                return [2, 40, 0, 1, 1, 0, head, self._leaves, 1]
             else:
                 # Append [4] to leaves so that longer expressions have higher
                 # precedence
@@ -684,7 +643,7 @@ class Expression(BaseExpression):
                     1,
                     1,
                     0,
-                    self._head.get_sort_key(True),
+                    head.get_sort_key(True),
                     tuple(
                         chain(
                             (leaf.get_sort_key(True) for leaf in self._leaves), ([4],)
@@ -694,8 +653,8 @@ class Expression(BaseExpression):
                 ]
         else:
             exps = {}
-            head = self._head.get_name()
-            if head == "System`Times":
+            head = self._head
+            if head is SymbolTimes:
                 for leaf in self._leaves:
                     name = leaf.get_name()
                     if leaf.has_form("Power", 2):
@@ -716,27 +675,27 @@ class Expression(BaseExpression):
                     2,
                     Monomial(exps),
                     1,
-                    self._head,
+                    head,
                     self._leaves,
                     1,
                 ]
             else:
-                return [1 if self.is_numeric() else 2, 3, self._head, self._leaves, 1]
+                return [1 if self.is_numeric() else 2, 3, head, self._leaves, 1]
 
-    def sameQ(self, other) -> bool:
+    def sameQ(self, other: BaseExpression) -> bool:
         """Mathics SameQ"""
-        if id(self) == id(other):
-            return True
-        if self.get_head_name() != other.get_head_name():
+        if not isinstance(other, Expression):
             return False
+        if self is other:
+            return True
         if not self._head.sameQ(other.get_head()):
             return False
         if len(self._leaves) != len(other.get_leaves()):
             return False
-        for leaf, other in zip(self._leaves, other.get_leaves()):
-            if not leaf.sameQ(other):
-                return False
-        return True
+        return all(
+            (id(leaf) == id(oleaf) or leaf.sameQ(oleaf))
+            for leaf, oleaf in zip(self._leaves, other.get_leaves())
+        )
 
     def flatten(
         self, head, pattern_only=False, callback=None, level=None
@@ -809,7 +768,7 @@ class Expression(BaseExpression):
                         limit = "inf"
                 if limit != "inf" and iteration > limit:
                     evaluation.error("$IterationLimit", "itlim", limit)
-                    return Symbol("$Aborted")
+                    return SymbolAborted
 
         # "Return gets discarded only if it was called from within the r.h.s.
         # of a user-defined rule."
@@ -1021,7 +980,7 @@ class Expression(BaseExpression):
         if (
             name == "System`RowBox"
             and len(self._leaves) == 1
-            and self._leaves[0].get_head_name() == "System`List"  # nopep8
+            and self._leaves[0].get_head() is SymbolList  # nopep8
         ):
             result = []
             inside_row = options.get("inside_row")
@@ -1233,7 +1192,7 @@ class Expression(BaseExpression):
         leaves = self._leaves
         if in_function:
             if (
-                self._head.get_name() == "System`Function"
+                self._head is SymbolFunction
                 and len(self._leaves) > 1
                 and (
                     self._leaves[0].has_form("List", None) or self._leaves[0].get_name()
@@ -1264,7 +1223,7 @@ class Expression(BaseExpression):
         )
 
     def replace_slots(self, slots, evaluation):
-        if self._head.get_name() == "System`Slot":
+        if self._head is SymbolSlot:
             if len(self._leaves) != 1:
                 evaluation.message_args("Slot", len(self._leaves), 1)
             else:
@@ -1275,7 +1234,7 @@ class Expression(BaseExpression):
                     evaluation.message("Function", "slotn", slot)
                 else:
                     return slots[int(slot)]
-        elif self._head.get_name() == "System`SlotSequence":
+        elif self._head is SymbolSlotSequence:
             if len(self._leaves) != 1:
                 evaluation.message_args("SlotSequence", len(self._leaves), 1)
             else:
@@ -1283,7 +1242,7 @@ class Expression(BaseExpression):
                 if slot is None or slot < 1:
                     evaluation.error("Function", "slot", self._leaves[0])
             return Expression(SymbolSequence, *slots[slot:])
-        elif self._head.get_name() == "System`Function" and len(self._leaves) == 1:
+        elif self._head is SymbolFunction and len(self._leaves) == 1:
             # do not replace Slots in nested Functions
             return self
         return Expression(
@@ -1293,7 +1252,7 @@ class Expression(BaseExpression):
 
     def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
         if head is None:
-            head = Symbol("List")
+            head = SymbolList
 
         items = []
         dim = None
@@ -1326,22 +1285,14 @@ class Expression(BaseExpression):
                 self._head.get_name()
             ):
                 return False
-            return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
+            for leaf in self._leaves:
+                if not leaf.is_numeric(evaluation):
+                    return False
+            return True
+            # return all(leaf.is_numeric(evaluation) for leaf in self._leaves)
         else:
-            return (
-                self._head.get_name()
-                in system_symbols(
-                    "Sqrt",
-                    "Times",
-                    "Plus",
-                    "Subtract",
-                    "Minus",
-                    "Power",
-                    "Abs",
-                    "Divide",
-                    "Sin",
-                )
-                and all(leaf.is_numeric() for leaf in self._leaves)
+            return self._head in symbols_arithmetic_operations and all(
+                leaf.is_numeric() for leaf in self._leaves
             )
 
     def numerify(self, evaluation) -> "Expression":
@@ -1404,7 +1355,7 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(list(range(len(pos) + 1))):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
             name, "System`DefaultValues", defaultexpr, evaluation

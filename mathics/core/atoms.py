@@ -15,7 +15,9 @@ from mathics.core.symbols import (
     Atom,
     BaseExpression,
     Symbol,
+    SymbolHoldForm,
     SymbolFalse,
+    SymbolFullForm,
     SymbolList,
     SymbolNull,
     SymbolTrue,
@@ -23,7 +25,7 @@ from mathics.core.symbols import (
     system_symbols,
 )
 
-from mathics.core.systemsymbols import SymbolByteArray
+from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
 
 from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
 import base64
@@ -31,6 +33,16 @@ import base64
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
 COMPARE_PREC = 50
+
+SymbolComplex = Symbol("Complex")
+SymbolDivide = Symbol("Divide")
+SymbolI = Symbol("I")
+SymbolMinus = Symbol("Minus")
+SymbolPlus = Symbol("Plus")
+SymbolRational = Symbol("Rational")
+SymbolTimes = Symbol("Times")
+
+SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = system_symbols("InputForm", "FullForm")
 
 
 @lru_cache(maxsize=1024)
@@ -77,12 +89,14 @@ def _NumberFormat(man, base, exp, options):
             "System`OutputForm",
             "System`FullForm",
         ):
-            return Expression("RowBox", Expression(SymbolList, man, String("*^"), exp))
+            return Expression(
+                SymbolRowBox, Expression(SymbolList, man, String("*^"), exp)
+            )
         else:
             return Expression(
-                "RowBox",
+                SymbolRowBox,
                 Expression(
-                    "List",
+                    SymbolList,
                     man,
                     String(options["NumberMultiplier"]),
                     Expression("SuperscriptBox", base, exp),
@@ -107,6 +121,7 @@ _number_form_options = {
 
 class Integer(Number):
     value: int
+    class_head_name = "System`Integer"
 
     def __new__(cls, value) -> "Integer":
         n = int(value)
@@ -117,6 +132,9 @@ class Integer(Number):
     @lru_cache()
     def __init__(self, value) -> "Integer":
         super().__init__()
+
+    def get_head_name(self):
+        return "System`Integer"
 
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
@@ -193,11 +211,16 @@ Integer1 = Integer(1)
 
 
 class Rational(Number):
+    class_head_name = "System`Rational"
+
     @lru_cache()
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
         return self
+
+    def get_head_name(self):
+        return "System`Rational"
 
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
@@ -230,10 +253,10 @@ class Rational(Number):
     def do_format(self, evaluation, form) -> "Expression":
         from mathics.core.expression import Expression
 
-        assert fully_qualified_symbol_name(form)
-        if form == "System`FullForm":
+        assert isinstance(form, Symbol)
+        if form is SymbolFullForm:
             return Expression(
-                Expression("HoldForm", Symbol("Rational")),
+                Expression(SymbolHoldForm, SymbolRational),
                 self.numerator(),
                 self.denominator(),
             ).do_format(evaluation, form)
@@ -242,10 +265,10 @@ class Rational(Number):
             minus = numerator.value < 0
             if minus:
                 numerator = Integer(-numerator.value)
-            result = Expression("Divide", numerator, self.denominator())
+            result = Expression(SymbolDivide, numerator, self.denominator())
             if minus:
-                result = Expression("Minus", result)
-            result = Expression("HoldForm", result)
+                result = Expression(SymbolMinus, result)
+            result = Expression(SymbolHoldForm, result)
             return result.do_format(evaluation, form)
 
     def default_format(self, evaluation, form) -> str:
@@ -292,6 +315,8 @@ RationalOneHalf = Rational(1, 2)
 
 
 class Real(Number):
+    class_head_name = "System`Real"
+
     def __new__(cls, value, p=None) -> "Real":
         if isinstance(value, str):
             value = str(value)
@@ -315,6 +340,9 @@ class Real(Number):
             return MachineReal.__new__(MachineReal, value)
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
+
+    def get_head_name(self):
+        return "System`Real"
 
     def boxes_to_text(self, **options) -> str:
         return self.make_boxes("System`OutputForm").boxes_to_text(**options)
@@ -517,6 +545,7 @@ class Complex(Number):
     Complex wraps two real-valued Numbers.
     """
 
+    class_head_name = "System`Complex"
     real: Any
     imag: Any
 
@@ -539,6 +568,9 @@ class Complex(Number):
         self.imag = imag
         return self
 
+    def get_head_name(self):
+        return "System`Complex"
+
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
 
@@ -559,25 +591,27 @@ class Complex(Number):
     def do_format(self, evaluation, form) -> "Expression":
         from mathics.core.expression import Expression
 
-        if form == "System`FullForm":
+        assert isinstance(form, Symbol)
+
+        if form is SymbolFullForm:
             return Expression(
-                Expression("HoldForm", Symbol("Complex")), self.real, self.imag
+                Expression(SymbolHoldForm, SymbolComplex), self.real, self.imag
             ).do_format(evaluation, form)
 
         parts: typing.List[Any] = []
         if self.is_machine_precision() or not self.real.is_zero:
             parts.append(self.real)
         if self.imag.sameQ(Integer(1)):
-            parts.append(Symbol("I"))
+            parts.append(SymbolI)
         else:
-            parts.append(Expression("Times", self.imag, Symbol("I")))
+            parts.append(Expression(SymbolTimes, self.imag, SymbolI))
 
         if len(parts) == 1:
             result = parts[0]
         else:
-            result = Expression("Plus", *parts)
+            result = Expression(SymbolPlus, *parts)
 
-        return Expression("HoldForm", result).do_format(evaluation, form)
+        return Expression(SymbolHoldForm, result).do_format(evaluation, form)
 
     def default_format(self, evaluation, form) -> str:
         return "Complex[%s, %s]" % (
@@ -673,14 +707,19 @@ class Complex(Number):
 
 class String(Atom):
     value: str
+    class_head_name = "System`String"
 
     def __new__(cls, value):
         self = super().__new__(cls)
+
         self.value = str(value)
         return self
 
     def __str__(self) -> str:
         return '"%s"' % self.value
+
+    def get_head_name(self):
+        return "System`String"
 
     def boxes_to_text(self, show_string_characters=False, **options) -> str:
         value = self.value
@@ -802,8 +841,7 @@ class String(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         inner = str(self.value)
-
-        if f.get_name() in system_symbols("InputForm", "FullForm"):
+        if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
 
         return String('"' + inner + '"')
@@ -851,6 +889,7 @@ class String(Atom):
 
 class ByteArrayAtom(Atom):
     value: str
+    class_head_name = "System`ByteArrayAtom"
 
     def __new__(cls, value):
         self = super().__new__(cls)
@@ -977,7 +1016,7 @@ def from_python(arg):
     elif isinstance(arg, dict):
         entries = [
             Expression(
-                "Rule",
+                SymbolRule,
                 from_python(key),
                 from_python(arg[key]),
             )

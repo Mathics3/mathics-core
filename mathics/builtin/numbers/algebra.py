@@ -4,8 +4,6 @@ Algebraic Manipulation
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 
@@ -26,12 +24,29 @@ from mathics.core.atoms import (
     Number,
 )
 
+from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolDirectedInfinity,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
+
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
 from mathics.core.rules import Pattern
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
 
 import sympy
+
+SymbolSin = Symbol("Sin")
+SymbolSinh = Symbol("Sinh")
+SymbolCos = Symbol("Cos")
+SymbolCosh = Symbol("Cosh")
+SymbolTan = Symbol("Tan")
+SymbolTanh = Symbol("Tanh")
+SymbolCot = Symbol("Cot")
+SymbolCoth = Symbol("Coth")
 
 
 def sympy_factor(expr_sympy):
@@ -49,7 +64,7 @@ def sympy_factor(expr_sympy):
 
 def cancel(expr):
     if expr.has_form("Plus", None):
-        return Expression("Plus", *[cancel(leaf) for leaf in expr.leaves])
+        return Expression(SymbolPlus, *[cancel(leaf) for leaf in expr.leaves])
     else:
         try:
             result = expr.to_sympy()
@@ -91,84 +106,84 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 theta = _expand(theta)
 
             if theta.has_form("Plus", 2, None):
-                x, y = theta.leaves[0], Expression("Plus", *theta.leaves[1:])
-                if head == Symbol("Sin"):
+                x, y = theta.leaves[0], Expression(SymbolPlus, *theta.leaves[1:])
+                if head is SymbolSin:
                     a = Expression(
-                        "Times",
-                        _expand(Expression("Sin", x)),
-                        _expand(Expression("Cos", y)),
+                        SymbolTimes,
+                        _expand(Expression(SymbolSin, x)),
+                        _expand(Expression(SymbolCos, y)),
                     )
 
                     b = Expression(
-                        "Times",
-                        _expand(Expression("Cos", x)),
-                        _expand(Expression("Sin", y)),
+                        SymbolTimes,
+                        _expand(Expression(SymbolCos, x)),
+                        _expand(Expression(SymbolSin, y)),
                     )
-                    return _expand(Expression("Plus", a, b))
+                    return _expand(Expression(SymbolPlus, a, b))
                 elif head == Symbol("Cos"):
                     a = Expression(
                         "Times",
-                        _expand(Expression("Cos", x)),
-                        _expand(Expression("Cos", y)),
+                        _expand(Expression(SymbolCos, x)),
+                        _expand(Expression(SymbolCos, y)),
                     )
 
                     b = Expression(
                         "Times",
-                        _expand(Expression("Sin", x)),
-                        _expand(Expression("Sin", y)),
+                        _expand(Expression(SymbolSin, x)),
+                        _expand(Expression(SymbolSin, y)),
                     )
 
-                    return _expand(Expression("Plus", a, -b))
+                    return _expand(Expression(SymbolPlus, a, -b))
                 elif head == Symbol("Sinh"):
                     a = Expression(
                         "Times",
-                        _expand(Expression("Sinh", x)),
-                        _expand(Expression("Cosh", y)),
+                        _expand(Expression(SymbolSinh, x)),
+                        _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
                         "Times",
-                        _expand(Expression("Cosh", x)),
-                        _expand(Expression("Sinh", y)),
+                        _expand(Expression(SymbolCosh, x)),
+                        _expand(Expression(SymbolSinh, y)),
                     )
 
-                    return _expand(Expression("Plus", a, b))
+                    return _expand(Expression(SymbolPlus, a, b))
                 elif head == Symbol("Cosh"):
                     a = Expression(
                         "Times",
-                        _expand(Expression("Cosh", x)),
-                        _expand(Expression("Cosh", y)),
+                        _expand(Expression(SymbolCosh, x)),
+                        _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
                         "Times",
-                        _expand(Expression("Sinh", x)),
-                        _expand(Expression("Sinh", y)),
+                        _expand(Expression(SymbolSinh, x)),
+                        _expand(Expression(SymbolSinh, y)),
                     )
 
-                    return _expand(Expression("Plus", a, b))
-                elif head == Symbol("Tan"):
-                    a = _expand(Expression("Sin", theta))
+                    return _expand(Expression(SymbolPlus, a, b))
+                elif head is Symbol("Tan"):
+                    a = _expand(Expression(SymbolSin, theta))
                     b = Expression(
-                        "Power", _expand(Expression("Cos", theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolCos, theta)), Integer(-1)
                     )
-                    return _expand(Expression("Times", a, b))
-                elif head == Symbol("Cot"):
-                    a = _expand(Expression("Cos", theta))
+                    return _expand(Expression(SymbolTimes, a, b))
+                elif head is SymbolCot:
+                    a = _expand(Expression(SymbolCos, theta))
                     b = Expression(
-                        "Power", _expand(Expression("Sin", theta)), Integer(-1)
+                        "Power", _expand(Expression(SymbolSin, theta)), Integer(-1)
                     )
-                    return _expand(Expression("Times", a, b))
-                elif head == Symbol("Tanh"):
-                    a = _expand(Expression("Sinh", theta))
+                    return _expand(Expression(SymbolTimes, a, b))
+                elif head is SymbolTanh:
+                    a = _expand(Expression(SymbolSinh, theta))
                     b = Expression(
-                        "Power", _expand(Expression("Cosh", theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolCosh, theta)), Integer(-1)
                     )
-                    return _expand(Expression("Times", a, b))
-                elif head == Symbol("Coth"):
-                    a = _expand(Expression("Times", "Cosh", theta))
+                    return _expand(Expression(SymbolTimes, a, b))
+                elif head is SymbolCoth:
+                    a = _expand(Expression(SymbolTimes, "Cosh", theta))
                     b = Expression(
-                        "Power", _expand(Expression("Sinh", theta)), Integer(-1)
+                        SymbolPower, _expand(Expression(SymbolSinh, theta)), Integer(-1)
                     )
                     return _expand(Expression(a, b))
 
@@ -571,9 +586,9 @@ class FactorTermsList(Builtin):
     def apply_list(self, expr, vars, evaluation):
         "FactorTermsList[expr_, vars_List]"
         if expr == Integer0:
-            return Expression("List", Integer1, Integer0)
+            return Expression(SymbolList, Integer1, Integer0)
         elif isinstance(expr, Number):
-            return Expression("List", expr, Integer1)
+            return Expression(SymbolList, expr, Integer1)
 
         for x in vars.leaves:
             if not (isinstance(x, Atom)):
@@ -581,7 +596,7 @@ class FactorTermsList(Builtin):
 
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
-            return Expression("List", Integer1, expr)
+            return Expression(SymbolList, Integer1, expr)
         sympy_expr = sympy.together(sympy_expr)
 
         sympy_vars = [
@@ -632,7 +647,7 @@ class FactorTermsList(Builtin):
             result.append(sympy.expand(numer))
             # evaluation.message(self.get_name(), 'poly', expr)
 
-        return Expression("List", *[from_sympy(i) for i in result])
+        return Expression(SymbolList, *[from_sympy(i) for i in result])
 
 
 class Apart(Builtin):
@@ -1017,7 +1032,7 @@ class Variables(Builtin):
 
         variables = find_all_vars(expr)
 
-        variables = Expression("List", *variables)
+        variables = Expression(SymbolList, *variables)
         variables.sort()  # MMA doesn't do this
         return variables
 
@@ -1336,13 +1351,13 @@ class CoefficientList(Builtin):
         e_null = expr == SymbolNull
         f_null = form == SymbolNull
         if expr == Integer0:
-            return Expression("List")
+            return Expression(SymbolList)
         elif e_null and f_null:
             return Expression(SymbolList, Integer0)
         elif e_null and not f_null:
-            return Expression("List", SymbolNull)
+            return Expression(SymbolList, SymbolNull)
         elif f_null:
-            return Expression("List", expr)
+            return Expression(SymbolList, expr)
         elif form.has_form("List", 0):
             return expr
 
@@ -1393,7 +1408,7 @@ class CoefficientList(Builtin):
                         subs = _nth(poly, dims[1:], exponents)
                         leaves.append(subs)
                         exponents.pop()
-                    result = Expression("List", *leaves)
+                    result = Expression(SymbolList, *leaves)
                     return result
 
                 return _nth(sympy_poly, dimensions, [])
@@ -1450,7 +1465,7 @@ class Exponent(Builtin):
     def apply(self, expr, form, h, evaluation):
         "Exponent[expr_, form_, h_]"
         if expr == Integer0:
-            return Expression("DirectedInfinity", Integer(-1))
+            return Expression(SymbolDirectedInfinity, Integer(-1))
 
         if not form.has_form("List", None):
             return Expression(h, *[i for i in find_exponents(expr, form)])
@@ -1474,12 +1489,12 @@ class _CoefficientHandler(Builtin):
             target_pat = Pattern.create(var_exprs[0])
             var_pats = [target_pat]
         else:
-            target_pat = Pattern.create(Expression("Alternatives", *var_exprs))
+            target_pat = Pattern.create(Expression(SymbolAlternatives, *var_exprs))
             var_pats = [Pattern.create(var) for var in var_exprs]
 
         ####### Auxiliary functions #########
         def key_powers(lst):
-            key = Expression("Plus", *lst)
+            key = Expression(SymbolPlus, *lst)
             key = key.evaluate(evaluation)
             if key.is_numeric(evaluation):
                 return key.to_python()
@@ -1508,9 +1523,9 @@ class _CoefficientHandler(Builtin):
             if pf.has_form("Times", None):
                 contrib = [powers_list(factor) for factor in pf._leaves]
                 for i in range(len(var_pats)):
-                    powers[i] = Expression("Plus", *[c[i] for c in contrib]).evaluate(
-                        evaluation
-                    )
+                    powers[i] = Expression(
+                        SymbolPlus, *[c[i] for c in contrib]
+                    ).evaluate(evaluation)
                 return powers
             return powers
 
@@ -1653,7 +1668,7 @@ class _CoefficientHandler(Builtin):
                 elif len(val) == 1:
                     coeff = val[0]
                 else:
-                    coeff = Expression("Plus", *val)
+                    coeff = Expression(SymbolPlus, *val)
                 if filt:
                     coeff = Expression(filt, coeff).evaluate(evaluation)
 
@@ -1666,7 +1681,7 @@ class _CoefficientHandler(Builtin):
                 else:
                     terms.append([powerfactor, coeff])
             if form == "expr":
-                return Expression("Plus", *terms)
+                return Expression(SymbolPlus, *terms)
             else:
                 return terms
         else:
@@ -1738,7 +1753,9 @@ class CoefficientArrays(_CoefficientHandler):
                 return
             for idxcoeff in component:
                 idx, coeff = idxcoeff
-                order = Expression("Plus", *idx).evaluate(evaluation).get_int_value()
+                order = (
+                    Expression(SymbolPlus, *idx).evaluate(evaluation).get_int_value()
+                )
                 if order is None:
                     evaluation.message("CoefficientArrays", "poly", polys, varlist)
                     return
@@ -1769,10 +1786,9 @@ class CoefficientArrays(_CoefficientHandler):
                 if dim1 == 1 and order == 0:
                     arrays[0] = coeff
                 else:
-                    arrays[order] = walk_parts(
-                        [curr_array], arrayidx, evaluation, coeff
-                    )
-        return Expression("List", *arrays)
+                    walk_parts([curr_array], arrayidx, evaluation, coeff)
+                    arrays[order] = curr_array
+        return Expression(SymbolList, *arrays)
 
 
 class Collect(_CoefficientHandler):

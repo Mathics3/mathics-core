@@ -12,7 +12,7 @@ Support for numeric evaluation with arbitrary precision is just a proof-of-conce
 Precision is not "guarded" through the evaluation process. Only integer precision is supported.
 However, things like 'N[Pi, 100]' should work as expected.
 """
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 import sympy
 import mpmath
 import numpy as np
@@ -859,7 +859,6 @@ class N(Builtin):
             d = get_precision(prec, evaluation)
         except PrecisionValueError:
             return
-
         if expr.get_head_name() in ("System`List", "System`Rule"):
             return Expression(
                 expr.head,
@@ -1621,8 +1620,8 @@ class RealDigits(Builtin):
 
             leaves = []
             for x in head:
-                if not x == "0":
-                    leaves.append(from_python(int(x)))
+                if x != "0":
+                    leaves.append(Integer(int(x)))
             leaves.append(from_python(tails))
             list_str = Expression(SymbolList, *leaves)
         return Expression(SymbolList, list_str, exp)
@@ -1630,7 +1629,7 @@ class RealDigits(Builtin):
     def apply_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
 
-        return self.apply_rational_with_base(n, from_python(10), evaluation)
+        return self.apply_rational_with_base(n, Integer(10), evaluation)
 
     def apply(self, n, evaluation):
         "%(name)s[n_]"
@@ -1730,11 +1729,11 @@ class RealDigits(Builtin):
             if x == "e" or x == "E":
                 break
             # Convert to Mathics' list format
-            leaves.append(from_python(int(x)))
+            leaves.append(Integer(int(x)))
 
         if not rational_no:
             while len(leaves) < display_len:
-                leaves.append(from_python(0))
+                leaves.append(Integer0)
 
         if nr_elements is not None:
             # display_len == nr_elements
@@ -1744,7 +1743,7 @@ class RealDigits(Builtin):
             else:
                 if isinstance(n, Integer):
                     while len(leaves) < nr_elements:
-                        leaves.append(from_python(0))
+                        leaves.append(Integer0)
                 else:
                     # Adding Indeterminate if the length is greater than the precision
                     while len(leaves) < nr_elements:
@@ -1848,13 +1847,13 @@ class Hash(Builtin):
         user_hash(h.update)
         res = h.hexdigest()
         if py_format in ("HexString", "HexStringLittleEndian"):
-            return from_python(res)
+            return String(res)
         res = int(res, 16)
         if py_format == "DecimalString":
-            return from_python(str(res))
+            return String(str(res))
         elif py_format == "ByteArray":
             return from_python(bytearray(res))
-        return from_python(res)
+        return Integer(res)
 
     def apply(self, expr, hashtype, outformat, evaluation):
         "Hash[expr_, hashtype_String, outformat_String]"

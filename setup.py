@@ -102,18 +102,18 @@ else:
             for parent, modules in EXTENSIONS_DICT.items()
             for module in modules
         ]
-    # EXTENSIONS_SUBDIR_DICT = {
-    #     "builtin": [("numbers", "arithmetic"), ("numbers", "numeric"), ("drawing", "graphics")],
-    # }
-    # EXTENSIONS.append(
-    #     Extension(
-    #         "mathics.%s.%s.%s" % (parent, module[0], module[1]), ["mathics/%s/%s/%s.py" % (parent, module[0], module[1])]
-    #     )
-    #     for parent, modules in EXTENSIONS_SUBDIR_DICT.items()
-    #     for module in modules
-    # )
-    CMDCLASS = {"build_ext": build_ext}
-    INSTALL_REQUIRES += ["cython>=0.15.1"]
+        # EXTENSIONS_SUBDIR_DICT = {
+        #     "builtin": [("numbers", "arithmetic"), ("numbers", "numeric"), ("drawing", "graphics")],
+        # }
+        # EXTENSIONS.append(
+        #     Extension(
+        #         "mathics.%s.%s.%s" % (parent, module[0], module[1]), ["mathics/%s/%s/%s.py" % (parent, module[0], module[1])]
+        #     )
+        #     for parent, modules in EXTENSIONS_SUBDIR_DICT.items()
+        #     for module in modules
+        # )
+        CMDCLASS = {"build_ext": build_ext}
+        INSTALL_REQUIRES += ["cython>=0.15.1"]
 
 # General Requirements
 INSTALL_REQUIRES += [
@@ -146,6 +146,7 @@ setup(
         "mathics.core.parser",
         "mathics.builtin",
         "mathics.builtin.arithfns",
+        "mathics.builtin.assignments",
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.compile",
@@ -215,6 +216,7 @@ setup(
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
         "Topic :: Scientific/Engineering",

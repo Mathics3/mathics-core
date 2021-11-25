@@ -6,7 +6,6 @@ The functions here are the basic arithmetic operations that you might find on a 
 
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 import sympy
 import mpmath
@@ -31,11 +30,20 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull, SymbolHoldForm
 from mathics.core.systemsymbols import (
+    SymbolBlank,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolDivide,
+    SymbolIndeterminate,
     SymbolInfinity,
+    SymbolInfix,
+    SymbolMinus,
+    SymbolPattern,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
     SymbolSequence,
 )
 from mathics.core.number import min_prec, dps
@@ -43,6 +51,9 @@ from mathics.core.number import min_prec, dps
 from mathics.core.convert import from_sympy
 
 from mathics.builtin.numeric import apply_N
+
+
+SymbolLeft = Symbol("Left")
 
 
 class CubeRoot(Builtin):
@@ -95,7 +106,7 @@ class CubeRoot(Builtin):
         "CubeRoot[n_Complex]"
 
         evaluation.message("CubeRoot", "preal", n)
-        return Expression("Power", n, Expression("Divide", 1, 3))
+        return Expression(SymbolPower, n, Expression(SymbolDivide, 1, 3))
 
 
 class Divide(BinaryOperator):
@@ -295,15 +306,15 @@ class Plus(BinaryOperator, SympyFunction):
                         if len(item.leaves) == 1:
                             return neg
                         else:
-                            return Expression("Times", *item.leaves[1:])
+                            return Expression(SymbolTimes, *item.leaves[1:])
                     else:
-                        return Expression("Times", neg, *item.leaves[1:])
+                        return Expression(SymbolTimes, neg, *item.leaves[1:])
                 else:
-                    return Expression("Times", -1, *item.leaves)
+                    return Expression(SymbolTimes, -1, *item.leaves)
             elif isinstance(item, Number):
                 return -item.to_sympy()
             else:
-                return Expression("Times", -1, item)
+                return Expression(SymbolTimes, -1, item)
 
         def is_negative(value):
             if isinstance(value, Complex):
@@ -315,7 +326,7 @@ class Plus(BinaryOperator, SympyFunction):
             return False
 
         items = items.get_sequence()
-        values = [Expression("HoldForm", item) for item in items[:1]]
+        values = [Expression(SymbolHoldForm, item) for item in items[:1]]
         ops = []
         for item in items[1:]:
             if (
@@ -325,14 +336,14 @@ class Plus(BinaryOperator, SympyFunction):
                 op = "-"
             else:
                 op = "+"
-            values.append(Expression("HoldForm", item))
+            values.append(Expression(SymbolHoldForm, item))
             ops.append(String(op))
         return Expression(
-            "Infix",
-            Expression("List", *values),
-            Expression("List", *ops),
+            SymbolInfix,
+            Expression(SymbolList, *values),
+            Expression(SymbolList, *ops),
             310,
-            Symbol("Left"),
+            SymbolLeft,
         )
 
     def apply(self, items, evaluation):
@@ -354,12 +365,12 @@ class Plus(BinaryOperator, SympyFunction):
                     if last_item.has_form("Times", None):
                         leaves.append(
                             Expression(
-                                "Times", from_sympy(last_count), *last_item.leaves
+                                SymbolTimes, from_sympy(last_count), *last_item.leaves
                             )
                         )
                     else:
                         leaves.append(
-                            Expression("Times", from_sympy(last_count), last_item)
+                            Expression(SymbolTimes, from_sympy(last_count), last_item)
                         )
 
         for item in items:
@@ -377,7 +388,7 @@ class Plus(BinaryOperator, SympyFunction):
                                 rest = rest[0]
                             else:
                                 rest.sort()
-                                rest = Expression("Times", *rest)
+                                rest = Expression(SymbolTimes, *rest)
                             break
                 if count is None:
                     count = sympy.Integer(1)
@@ -415,7 +426,7 @@ class Plus(BinaryOperator, SympyFunction):
             return leaves[0]
         else:
             leaves.sort()
-            return Expression("Plus", *leaves)
+            return Expression(SymbolPlus, *leaves)
 
 
 class Power(BinaryOperator, _MPMathFunction):
@@ -522,7 +533,7 @@ class Power(BinaryOperator, _MPMathFunction):
     formats = {
         Expression(
             "Power",
-            Expression("Pattern", Symbol("x"), Expression("Blank")),
+            Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
             Rational(1, 2),
         ): "HoldForm[Sqrt[x]]",
         (("InputForm", "OutputForm"), "x_ ^ y_"): (
@@ -561,15 +572,21 @@ class Power(BinaryOperator, _MPMathFunction):
                 if py_y > 0:
                     return x
                 elif py_y == 0.0:
-                    evaluation.message("Power", "indet", Expression("Power", x, y_err))
-                    return Symbol("Indeterminate")
+                    evaluation.message(
+                        "Power", "indet", Expression(SymbolPower, x, y_err)
+                    )
+                    return SymbolIndeterminate
                 elif py_y < 0:
-                    evaluation.message("Power", "infy", Expression("Power", x, y_err))
-                    return Symbol("ComplexInfinity")
+                    evaluation.message(
+                        "Power", "infy", Expression(SymbolPower, x, y_err)
+                    )
+                    return SymbolComplexInfinity
         if isinstance(x, Complex) and x.real.is_zero:
-            yhalf = Expression("Times", y, Rational(1, 2))
-            factor = self.apply(Expression("Sequence", x.imag, y), evaluation)
-            return Expression("Times", factor, Expression("Power", Integer(-1), yhalf))
+            yhalf = Expression(SymbolTimes, y, Rational(1, 2))
+            factor = self.apply(Expression(SymbolSequence, x.imag, y), evaluation)
+            return Expression(
+                SymbolTimes, factor, Expression(SymbolPower, Integer(-1), yhalf)
+            )
 
         result = self.apply(Expression(SymbolSequence, x, y), evaluation)
         if result is None or result != SymbolNull:
@@ -765,7 +782,7 @@ class Times(BinaryOperator, SympyFunction):
                 if neg.sameQ(Integer1):
                     return item.leaves[0]
                 else:
-                    return Expression("Power", item.leaves[0], neg)
+                    return Expression(SymbolPower, item.leaves[0], neg)
             else:
                 return item
 
@@ -792,8 +809,8 @@ class Times(BinaryOperator, SympyFunction):
             minus = True
         else:
             minus = False
-        positive = [Expression("HoldForm", item) for item in positive]
-        negative = [Expression("HoldForm", item) for item in negative]
+        positive = [Expression(SymbolHoldForm, item) for item in positive]
+        negative = [Expression(SymbolHoldForm, item) for item in negative]
         if positive:
             positive = create_infix(positive, op, 400, "None")
         else:
@@ -801,17 +818,17 @@ class Times(BinaryOperator, SympyFunction):
         if negative:
             negative = create_infix(negative, op, 400, "None")
             result = Expression(
-                "Divide",
-                Expression("HoldForm", positive),
-                Expression("HoldForm", negative),
+                SymbolDivide,
+                Expression(SymbolHoldForm, positive),
+                Expression(SymbolHoldForm, negative),
             )
         else:
             result = positive
         if minus:
             result = Expression(
-                "Minus", result
+                SymbolMinus, result
             )  # Expression('PrecedenceForm', result, 481))
-        result = Expression("HoldForm", result)
+        result = Expression(SymbolHoldForm, result)
         return result
 
     def format_inputform(self, items, evaluation):
@@ -841,7 +858,7 @@ class Times(BinaryOperator, SympyFunction):
             if isinstance(item, Number):
                 numbers.append(item)
             elif leaves and item == leaves[-1]:
-                leaves[-1] = Expression("Power", leaves[-1], Integer(2))
+                leaves[-1] = Expression(SymbolPower, leaves[-1], Integer(2))
             elif (
                 leaves
                 and item.has_form("Power", 2)
@@ -849,9 +866,9 @@ class Times(BinaryOperator, SympyFunction):
                 and item.leaves[0].sameQ(leaves[-1].leaves[0])
             ):
                 leaves[-1] = Expression(
-                    "Power",
+                    SymbolPower,
                     leaves[-1].leaves[0],
-                    Expression("Plus", item.leaves[1], leaves[-1].leaves[1]),
+                    Expression(SymbolPlus, item.leaves[1], leaves[-1].leaves[1]),
                 )
             elif (
                 leaves
@@ -859,7 +876,9 @@ class Times(BinaryOperator, SympyFunction):
                 and item.leaves[0].sameQ(leaves[-1])
             ):
                 leaves[-1] = Expression(
-                    "Power", leaves[-1], Expression("Plus", item.leaves[1], Integer1)
+                    SymbolPower,
+                    leaves[-1],
+                    Expression(SymbolPlus, item.leaves[1], Integer1),
                 )
             elif (
                 leaves
@@ -867,7 +886,9 @@ class Times(BinaryOperator, SympyFunction):
                 and leaves[-1].leaves[0].sameQ(item)
             ):
                 leaves[-1] = Expression(
-                    "Power", item, Expression("Plus", Integer1, leaves[-1].leaves[1])
+                    SymbolPower,
+                    item,
+                    Expression(SymbolPlus, Integer1, leaves[-1].leaves[1]),
                 )
             elif item.get_head().sameQ(SymbolDirectedInfinity):
                 infinity_factor = True
@@ -903,12 +924,15 @@ class Times(BinaryOperator, SympyFunction):
             number = None
         elif number.is_zero:
             if infinity_factor:
-                return Symbol("Indeterminate")
+                return SymbolIndeterminate
             return number
         elif number.sameQ(Integer(-1)) and leaves and leaves[0].has_form("Plus", None):
             leaves[0] = Expression(
                 leaves[0].get_head(),
-                *[Expression("Times", Integer(-1), leaf) for leaf in leaves[0].leaves],
+                *[
+                    Expression(SymbolTimes, Integer(-1), leaf)
+                    for leaf in leaves[0].leaves
+                ],
             )
             number = None
 
@@ -926,7 +950,7 @@ class Times(BinaryOperator, SympyFunction):
         if len(leaves) == 1:
             ret = leaves[0]
         else:
-            ret = Expression("Times", *leaves)
+            ret = Expression(SymbolTimes, *leaves)
         if infinity_factor:
             return Expression(SymbolDirectedInfinity, ret)
         else:

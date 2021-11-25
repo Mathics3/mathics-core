@@ -6,7 +6,6 @@ Operations on Strings
 
 import re
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     BinaryOperator,
@@ -33,6 +32,9 @@ from mathics.builtin.strings import (
     mathics_split,
     to_regex,
 )
+
+
+SymbolAll = Symbol("All")
 
 
 class StringDrop(Builtin):
@@ -488,7 +490,7 @@ class StringPosition(Builtin):
             overlap = True
         elif options["System`Overlaps"] == SymbolFalse:
             overlap = False
-        elif options["System`Overlaps"] == Symbol("All"):
+        elif options["System`Overlaps"] == SymbolAll:
             # TODO
             evaluation.message("StringPosition", "overall")
             overlap = True
