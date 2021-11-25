@@ -243,7 +243,7 @@ class TraceBuiltinsVariable(Builtin):
     """
     <dl>
       <dt>'$TraceBuiltins'
-      <dd>Enable or disable Built-in Function evaluation statistics.
+      <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
     Setting this variable True will enable statistics collection for Built-in functions that are evaluated.

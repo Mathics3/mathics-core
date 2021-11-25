@@ -68,7 +68,7 @@ class ShowStepsVariable(Builtin):
     """
     <dl>
       <dt>'$ShowSteps'
-      <dd>Enable or disable displaying the steps to get the result.
+      <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
     >> $ShowSteps = True
@@ -94,18 +94,14 @@ class ShowStepsVariable(Builtin):
 
     def apply_get(self, evaluation):
         "%(name)s"
-
-        return self.value
+        return SymbolTrue if evaluation.definitions.show_steps else SymbolFalse
 
     def apply_set(self, value, evaluation):
         "%(name)s = value_"
-
         if value is SymbolTrue:
-            self.value = SymbolTrue
-            evaluation.show_steps = True
+            evaluation.definitions.show_steps = True
         elif value is SymbolFalse:
-            self.value = SymbolFalse
-            evaluation.show_steps = False
+            evaluation.definitions.show_steps = False
         else:
             evaluation.message("$ShowSteps", "bool", value)
 
@@ -129,9 +125,10 @@ class ShowSteps(Builtin):
 
     def apply(self, expr, evaluation):
         "ShowSteps[expr_]"
-        evaluation.show_steps = True
+        curr_show_steps = evaluation.definitions.show_steps
+        evaluation.definitions.show_steps = True
         result = expr.evaluate(evaluation)
-        evaluation.show_steps = False
+        evaluation.definitions.evshow_steps = curr_show_steps
         return result
 
 
