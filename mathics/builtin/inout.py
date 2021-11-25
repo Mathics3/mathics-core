@@ -72,12 +72,20 @@ class ShowStepsVariable(Builtin):
     </dl>
 
     >> $ShowSteps = True
+     | ...
      = True
 
-    ## We shouldn't let this enabled.
-    #> $ShowSteps = False
+    >> a + a
+     | ...
+     = 2 a
+
+    Setting it to 'False' again recovers the normal behaviour:
+    >> $ShowSteps = False
+     | ...
      = False
 
+    >> a + a
+     = 2 a
     '$ShowSteps' cannot be set to a non-boolean value.
     >> $ShowSteps = x
      : x should be True or False.
