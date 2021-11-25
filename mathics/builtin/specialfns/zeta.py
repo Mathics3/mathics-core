@@ -6,7 +6,6 @@ Exponential Integral and Special Functions
 
 import mpmath
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.core.atoms import from_mpmath

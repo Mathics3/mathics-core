@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit

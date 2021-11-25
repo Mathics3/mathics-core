@@ -9,7 +9,6 @@ from itertools import chain
 import typing
 from typing import Any, cast
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.exceptions import (
     BoxConstructError,

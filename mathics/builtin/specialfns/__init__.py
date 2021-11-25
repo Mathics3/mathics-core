@@ -10,5 +10,3 @@ A number of special functions can be evaluated for arbitrary complex values of t
 For example, integral representations of functions are only valid when the integral exists, but the functions can usually be defined b by analytic continuation.
 
 """
-
-from mathics.version import __version__  # noqa used in loading to check consistency.

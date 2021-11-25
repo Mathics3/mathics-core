@@ -9,7 +9,6 @@ The builtin-attributes having a predefined meaning in \Mathics which are describ
 However in contrast to \Mathematica, you can set any symbol as an attribute.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Predefined, Builtin
 from mathics.core.expression import Expression

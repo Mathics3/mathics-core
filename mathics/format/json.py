@@ -157,10 +157,7 @@ def point_3d_box(self) -> list:
     """
     # TODO: account for point size
 
-    # Tempoary bug fix: default Point color should be black not white
     face_color = self.face_color.to_rgba()
-    if face_color[:3] == (1, 1, 1):
-        face_color = (0, 0, 0, face_color[3])
 
     point_size, _ = self.style.get_style(PointSize, face_element=False)
     relative_point_size = 0.01 if point_size is None else point_size.value

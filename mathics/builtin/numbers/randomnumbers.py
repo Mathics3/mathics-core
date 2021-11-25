@@ -13,7 +13,7 @@ import hashlib
 from operator import mul as operator_mul
 from functools import reduce
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
 from mathics.core.atoms import Integer, String, Real, Complex

@@ -10,7 +10,6 @@ import mpmath
 import typing
 from typing import Any
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.box.inout import RowBox
 

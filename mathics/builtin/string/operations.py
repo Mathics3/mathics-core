@@ -6,7 +6,6 @@ Operations on Strings
 
 import re
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     BinaryOperator,
