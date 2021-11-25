@@ -4,6 +4,7 @@ CHANGES
 Internals
 =========
 
+* `Expression.get_lookup_name()` now use an iterative algorithm instead a recursive one. `BaseExpression.get_lookup_name()` now returns an empty string (`""`) to avoid looking up for definitions of `Atom`s that are not `Symbol`s.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * To numerify expressions, the function `apply_N` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function 
 ``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
