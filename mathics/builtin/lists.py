@@ -10,7 +10,6 @@ import sympy
 from collections import defaultdict
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.algorithm.introselect import introselect
 from mathics.algorithm.parts import (

@@ -9,5 +9,3 @@ Showing something visually can be don in a number of ways:
   <li>Compute the points of the space using a function. This is done using functions like 'Plot' and 'ListPlot'.
 </ul>
 """
-
-from mathics.version import __version__  # noqa used in loading to check consistency.

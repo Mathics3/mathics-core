@@ -9,7 +9,6 @@ When LLVM and Python libraries are available, compilation produces LLVM code.
 
 import ctypes
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
@@ -170,6 +169,8 @@ class Compile(Builtin):
 
 
 class CompiledCode(Atom):
+    class_head_name = "System`CompiledCode"
+
     def __init__(self, cfunc, args, **kwargs):
         super(CompiledCode, self).__init__(**kwargs)
         self.cfunc = cfunc
