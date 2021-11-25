@@ -124,6 +124,7 @@ class ShowSteps(Builtin):
     </dl>
 
     >> ShowSteps[(x + x)^2]
+     | ...
      = ...
     """
 
