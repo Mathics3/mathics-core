@@ -5,6 +5,7 @@ Internals
 =========
 
 * Definitions for symbols `CurrentContext` and `ContextPath[]` are mirrored in the `mathics.core.definitions.Definitions` object for faster access. 
+* ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * To numerify expressions, the function `apply_N` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function 
 ``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
