@@ -79,6 +79,7 @@ class Definitions(object):
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
+        self.show_steps = False
 
         if add_builtin:
             from mathics.builtin import modules, contribute
