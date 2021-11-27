@@ -257,7 +257,6 @@ class Evaluation(object):
         self.quiet_all = False
         self.format = format
         self.catch_interrupt = catch_interrupt
-
         self.SymbolNull = SymbolNull
 
         # status of last evaluate
@@ -529,7 +528,12 @@ class Evaluation(object):
     def print_out(self, text) -> None:
         from mathics.core.atoms import from_python
 
-        text = self.format_output(from_python(text), "text")
+        if self.definitions.show_steps:
+            self.definitions.show_steps = False
+            text = self.format_output(from_python(text), "text")
+            self.definitions.show_steps = True
+        else:
+            text = self.format_output(from_python(text), "text")
 
         self.out.append(Print(text))
         self.output.out(self.out[-1])

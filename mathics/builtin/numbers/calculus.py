@@ -837,7 +837,7 @@ class Solve(Builtin):
      = {{x -> -1}, {x -> 1}}
 
     #> Solve[x^2 +1 == 0, x] // FullForm
-     = List[List[Rule[x, Complex[0, -1]]], List[Rule[x, Complex[0, 1]]]]
+     = {{Rule[x, Complex[0, -1]]},{Rule[x, Complex[0, 1]]}}
 
     #> Solve[x^5==x,x]
      = {{x -> -1}, {x -> 0}, {x -> 1}, {x -> -I}, {x -> I}}
@@ -1510,7 +1510,7 @@ class Series(Builtin):
     >> Series[Exp[x], {x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
     >> % // FullForm
-     = SeriesData[x, 0, List[1, 1, Rational[1, 2]], 0, 2, 1]
+     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 2, 1]
     Replacing the variable by a value, the series will not be evaluated as
     an expression, but as a 'SeriesData' object:
     >> s = Series[Exp[x^2],{x,0,2}]
