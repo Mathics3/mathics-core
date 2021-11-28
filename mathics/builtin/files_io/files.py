@@ -55,6 +55,8 @@ import mathics
 from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
 from mathics.builtin.base import MessageException
 
+from mathics.core.attributes import Protected, ReadProtected
+
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
 
@@ -79,7 +81,7 @@ class Input(Predefined):
      = #<--#
     """
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = Protected | ReadProtected
     name = "$Input"
 
     def evaluate(self, evaluation):

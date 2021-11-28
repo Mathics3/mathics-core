@@ -1176,7 +1176,7 @@ class Symbol_(Builtin):
     """
 
     name = "Symbol"
-    attributes = ("Locked",)
+    attributes = Locked | Protected
 
     messages = {
         "symname": (

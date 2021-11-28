@@ -49,6 +49,8 @@ from mathics.core.number import (
 
 from mathics.core.evaluation import Message as EvaluationMessage
 
+from mathics.core.attributes import HoldAll, HoldAllComplete, HoldFirst, Protected
+
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 SymbolAutomatic = Symbol("Automatic")
@@ -130,9 +132,7 @@ class ShowSteps(Builtin):
      = ...
     """
 
-    attributes = {
-        "HoldAll",
-    }
+    attributes = HoldAll | Protected
 
     def apply(self, expr, evaluation):
         "ShowSteps[expr_]"
@@ -543,7 +543,7 @@ class MakeBoxes(Builtin):
      = RowBox[{a, ,, b}]
     """
 
-    attributes = ("HoldAllComplete", "Unprotected")
+    attributes = HoldAllComplete | Protected
 
     rules = {
         "MakeBoxes[Infix[head_[leaves___]], "
@@ -1311,7 +1311,7 @@ class Message(Builtin):
      : Hello you, Mr 007!
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     messages = {
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language."
@@ -1405,7 +1405,7 @@ class Check(Builtin):
      = err
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     messages = {
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
@@ -1506,7 +1506,7 @@ class Quiet(Builtin):
      = Quiet[x + x, {a::b}, {a::b}]
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     messages = {
         "anmlist": (
@@ -1614,7 +1614,7 @@ class Off(Builtin):
     #> On[Power::infy, Power::indet, Syntax::com]
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     def apply(self, expr, evaluation):
         "Off[expr___]"
@@ -1660,7 +1660,7 @@ class On(Builtin):
      : Message f::x not found.
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     def apply(self, expr, evaluation):
         "On[expr___]"
@@ -1706,7 +1706,7 @@ class MessageName(BinaryOperator):
 
     operator = "::"
     precedence = 750
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     default_formats = False
 

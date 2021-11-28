@@ -36,6 +36,8 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
+from mathics.core.attributes import Listable, Protected
+
 
 SymbolBlank = Symbol("Blank")
 SymbolOutputForm = Symbol("OutputForm")
@@ -878,7 +880,7 @@ class ToExpression(Builtin):
     #> ToExpression["log(x)", StandardForm]
      = log x
     """
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     messages = {
         "argb": (

@@ -54,6 +54,16 @@ from mathics.core.number import (
     PrecisionValueError,
 )
 
+from mathics.core.attributes import (
+    Listable,
+    NHoldAll,
+    NHoldFirst,
+    NHoldRest,
+    NumericFunction,
+    Protected,
+    ReadProtected,
+)
+
 
 @lru_cache(maxsize=1024)
 def log_n_b(py_n, py_b) -> int:
@@ -514,7 +524,7 @@ class IntegerDigits(Builtin):
      = {0}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -887,11 +897,11 @@ class N(Builtin):
             return expr
         else:
             attributes = expr.head.get_attributes(evaluation.definitions)
-            if "System`NHoldAll" in attributes:
+            if NHoldAll & attributes:
                 eval_range = ()
-            elif "System`NHoldFirst" in attributes:
+            elif NHoldFirst & attributes:
                 eval_range = range(1, len(expr.leaves))
-            elif "System`NHoldRest" in attributes:
+            elif NHoldRest & attributes:
                 if len(expr.leaves) > 0:
                     eval_range = (0,)
                 else:
@@ -1493,7 +1503,7 @@ class Round(Builtin):
      = Round[1.5, k]
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     rules = {
         "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
@@ -1589,7 +1599,7 @@ class RealDigits(Builtin):
 
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     messages = {
         "realx": "The value `1` is not a real number.",
@@ -1824,7 +1834,7 @@ class Hash(Builtin):
         "Hash[expr_, type_String]": 'Hash[expr, type, "Integer"]',
     }
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = Protected | ReadProtected
 
     # FIXME md2
     _supported_hashes = {

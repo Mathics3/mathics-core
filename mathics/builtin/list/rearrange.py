@@ -25,6 +25,8 @@ from mathics.core.expression import (
 from mathics.core.atoms import Integer
 from mathics.core.symbols import SymbolList
 
+from mathics.core.attributes import Flat, OneIdentity, Protected
+
 
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
@@ -431,7 +433,7 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    attributes = ("Flat", "OneIdentity")
+    attributes = Flat | OneIdentity | Protected
 
     def apply(self, lists, evaluation):
         "Join[lists___]"

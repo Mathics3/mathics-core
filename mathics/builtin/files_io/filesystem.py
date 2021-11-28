@@ -47,6 +47,8 @@ from mathics.builtin.strings import to_regex
 from mathics.builtin.base import MessageException
 import re
 
+from mathics.core.attributes import Listable, Locked, Protected, ReadProtected
+
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
 
@@ -240,7 +242,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     options = {
         "CreateIntermediateDirectories": "True",
@@ -302,7 +304,7 @@ class CreateFile(Builtin):
         "OverwriteTarget": "True",
     }
 
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     def apply(self, filename, evaluation, **options):
         "CreateFile[filename_String, OptionsPattern[CreateFile]]"
@@ -948,7 +950,7 @@ class FileHash(Builtin):
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
     }
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = Protected | ReadProtected
 
     def apply(self, filename, hashtype, format, evaluation):
         "FileHash[filename_String, hashtype_String, format_String]"
@@ -1585,7 +1587,7 @@ class InstallationDirectory(Predefined):
      = ...
     """
 
-    attributes = ("Unprotected",)
+    attributes = 0
     name = "$InstallationDirectory"
 
     def evaluate(self, evaluation):
@@ -1740,7 +1742,7 @@ class OperatingSystem(Predefined):
      = ...
     """
 
-    attributes = ("Locked", "Protected")
+    attributes = Locked | Protected
     name = "$OperatingSystem"
 
     def evaluate(self, evaluation):
@@ -1803,7 +1805,7 @@ class Path(Predefined):
      = ...
     """
 
-    attributes = ("Unprotected",)
+    attributes = 0
     name = "$Path"
 
     def evaluate(self, evaluation):

@@ -23,6 +23,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.number import get_precision, PrecisionValueError, machine_precision
 
+from mathics.core.attributes import Constant, Protected, ReadProtected
+
 
 def mp_constant(fn: str, d=None) -> mpmath.mpf:
     """
@@ -67,7 +69,7 @@ def sympy_constant(fn, d=None):
 
 class _Constant_Common(Predefined):
 
-    attributes = ("Constant", "Protected", "ReadProtected")
+    attributes = Constant | Protected | ReadProtected
     nargs = 0
     options = {"Method": "Automatic"}
 

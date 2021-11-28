@@ -46,6 +46,15 @@ from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
 from mathics.builtin.numeric import apply_N
 
+from mathics.core.attributes import (
+    HoldAll,
+    HoldRest,
+    Listable,
+    Nothing,
+    NumericFunction,
+    Protected,
+)
+
 
 @lru_cache(maxsize=1024)
 def call_mpmath(mpmath_function, mpmath_args):
@@ -74,7 +83,7 @@ class _MPMathFunction(SympyFunction):
     # However hey are not correct for some derived classes, like
     # InverseErf or InverseErfc.
     # So those classes should expclicitly set/override this.
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
 
     mpmath_name = None
 
@@ -302,7 +311,7 @@ class Re(SympyFunction):
      = MachinePrecision
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
     sympy_name = "re"
 
     def apply_complex(self, number, evaluation):
@@ -340,7 +349,7 @@ class Im(SympyFunction):
      = MachinePrecision
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     def apply_complex(self, number, evaluation):
         "Im[number_Complex]"
@@ -460,7 +469,7 @@ class Arg(_MPMathFunction):
         "Arg[DirectedInfinity[a_]]": "Arg[a]",
     }
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
     options = {"Method": "Automatic"}
 
     numpy_name = "angle"  # for later
@@ -516,7 +525,7 @@ class Sign(SympyFunction):
     sympy_name = "sign"
     # mpmath_name = 'sign'
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     messages = {
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
@@ -612,7 +621,7 @@ class PossibleZeroQ(SympyFunction):
      = False
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
 
     sympy_name = "_iszero"
 
@@ -972,7 +981,7 @@ class Factorial(PostfixOperator, _MPMathFunction):
      = 1
     """
 
-    attributes = ("NumericFunction",)
+    attributes = NumericFunction | Protected
 
     operator = "!"
     precedence = 610
@@ -1003,7 +1012,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
      = 3.35237
     """
 
-    attributes = ("NumericFunction",)
+    attributes = NumericFunction | Protected
     operator = "!!"
     precedence = 610
     mpmath_name = "fac2"
@@ -1319,7 +1328,7 @@ class Piecewise(SympyFunction):
 
     sympy_name = "Piecewise"
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     def apply(self, items, evaluation):
         "%(name)s[items__]"
@@ -1390,7 +1399,7 @@ class Boole(Builtin):
      = Boole[a == 7]
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
@@ -1411,7 +1420,7 @@ class Assumptions(Predefined):
     """
 
     name = "$Assumptions"
-    attributes = ("Unprotected",)
+    attributes = Nothing
     rules = {
         "$Assumptions": "True",
     }
@@ -1433,7 +1442,7 @@ class Assuming(Builtin):
      = ConditionalExpression[x ^ 2 y, y > 0]
     """
 
-    attributes = ("HoldRest",)
+    attributes = HoldRest | Protected
 
     def apply_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"

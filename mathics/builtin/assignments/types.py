@@ -36,7 +36,7 @@ class DefaultValues(Builtin):
      = {3}
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = (
         "gives default values for the arguments associated with a function symbol"
     )
@@ -65,7 +65,7 @@ class Messages(Builtin):
      : bar
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives the list the messages associated with a particular symbol"
 
     def apply(self, symbol, evaluation):
@@ -108,7 +108,7 @@ class NValues(Builtin):
      = d
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives the list of numerical values associated with a symbol"
 
     def apply(self, symbol, evaluation):
@@ -136,7 +136,7 @@ class SubValues(Builtin):
      . f[1][x_] = x
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives the list of subvalues associated with a symbol"
 
     def apply(self, symbol, evaluation):

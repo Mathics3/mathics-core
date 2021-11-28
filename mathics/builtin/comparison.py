@@ -31,6 +31,16 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.number import dps
 
+from mathics.core.attributes import (
+    Flat,
+    HoldFirst,
+    Listable,
+    NumericFunction,
+    OneIdentity,
+    Orderless,
+    Protected,
+)
+
 
 def cmp(a, b) -> int:
     "Returns 0 if a == b, -1 if a < b and 1 if a > b"
@@ -169,7 +179,7 @@ class ValueQ(Builtin):
      = False
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     def apply(self, expr, evaluation):
         "ValueQ[expr_]"
@@ -820,7 +830,7 @@ class Positive(Builtin):
      = {False, True}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
@@ -849,7 +859,7 @@ class Negative(Builtin):
      = {True, False}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
@@ -867,7 +877,7 @@ class NonNegative(Builtin):
      = {False, True}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
@@ -885,7 +895,7 @@ class NonPositive(Builtin):
      = {False, True}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
@@ -912,7 +922,7 @@ def expr_min(items):
 
 class _MinMax(Builtin):
 
-    attributes = ("Flat", "NumericFunction", "OneIdentity", "Orderless")
+    attributes = Flat | NumericFunction | OneIdentity | Orderless | Protected
 
     def apply(self, items, evaluation):
         "%(name)s[items___]"

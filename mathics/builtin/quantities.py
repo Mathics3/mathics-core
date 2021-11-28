@@ -11,6 +11,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol
 
+from mathics.core.attributes import HoldRest, NHoldRest, Protected, ReadProtected
+
 from pint import UnitRegistry
 
 ureg = UnitRegistry()
@@ -177,7 +179,7 @@ class Quantity(Builtin):
      = 1 foot
     """
 
-    attributes = ("HoldRest", "NHoldRest", "Protected", "ReadProtected")
+    attributes = HoldRest | NHoldRest | Protected | ReadProtected
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",

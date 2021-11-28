@@ -25,6 +25,7 @@ except ImportError:
     # fallback to non-Manipulate-enabled build if we don't have ipywidgets installed.
     _ipywidgets = False
 
+from mathics.core.attributes import HoldAll, Protected
 
 """
 A basic implementation of Manipulate[]. There is currently no support for Dynamic[] elements.
@@ -275,7 +276,9 @@ class Manipulate(Builtin):
      = Manipulate[x, {x, 1, 0}]
     """
 
-    attributes = ("HoldAll",)  # we'll call ReleaseHold at the time of evaluation below
+    attributes = (
+        HoldAll | Protected
+    )  # we'll call ReleaseHold at the time of evaluation below
 
     messages = {
         "jupyter": "Manipulate[] only works inside a Jupyter notebook.",
