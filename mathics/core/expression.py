@@ -739,7 +739,7 @@ class Expression(BaseExpression):
 
         old_options = evaluation.options
         evaluation.inc_recursion_depth()
-        if evaluation.definitions.show_steps:
+        if evaluation.definitions.trace_evaluation:
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
             )
@@ -757,7 +757,7 @@ class Expression(BaseExpression):
                 expr, reevaluate = expr.evaluate_next(evaluation)
                 if not reevaluate:
                     break
-                if evaluation.definitions.show_steps:
+                if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "-> %s" % expr
                     )
