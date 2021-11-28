@@ -18,6 +18,8 @@ from mathics.core.definitions import PyMathicsLoadException
 
 from mathics.builtin.assignments.internals import _SetOperator, get_symbol_values
 
+from mathics.core.attributes import HoldFirst, Protected, SequenceHold
+
 
 class Set(BinaryOperator, _SetOperator):
     """
@@ -85,7 +87,7 @@ class Set(BinaryOperator, _SetOperator):
     #> x = Infinity;
     """
 
-    attributes = ("HoldFirst", "SequenceHold")
+    attributes = HoldFirst | Protected | SequenceHold
     grouping = "Right"
 
     messages = {
@@ -152,7 +154,7 @@ class SetDelayed(Set):
     """
 
     operator = ":="
-    attributes = ("HoldAll", "SequenceHold")
+    attributes = HoldAll | Protected | SequenceHold
 
     summary_text = "test a delayed value; used in defining functions"
 
@@ -192,7 +194,7 @@ class TagSet(Builtin, _SetOperator):
      = 3
     """
 
-    attributes = ("HoldAll", "SequenceHold")
+    attributes = HoldAll | Protected | SequenceHold
 
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
@@ -222,7 +224,7 @@ class TagSetDelayed(TagSet):
     </dl>
     """
 
-    attributes = ("HoldAll", "SequenceHold")
+    attributes = HoldAll | Protected | SequenceHold
     summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with the a symbol."
 
     def apply(self, f, lhs, rhs, evaluation):

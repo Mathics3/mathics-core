@@ -8,6 +8,8 @@ from mathics.builtin.base import SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer0
 
+from mathics.core.attributes import Listable, NumericFunction, Protected
+
 
 class Gamma(_MPMathMultiFunction):
     """
@@ -106,7 +108,7 @@ class Pochhammer(SympyFunction):
      = 6652800
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
 
     sympy_name = "RisingFactorial"
 
@@ -135,7 +137,7 @@ class PolyGamma(_MPMathMultiFunction):
      = -22369 / 3456 + Pi ^ 4 / 15
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
 
     mpmath_names = {
         1: "digamma",  # 1 argument
@@ -163,7 +165,7 @@ class StieltjesGamma(SympyFunction):
     ##  = ...
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
 
     summary_text = "Stieltjes function"
     sympy_name = "stieltjes"

@@ -52,6 +52,8 @@ from mathics.core.convert import from_sympy
 
 from mathics.builtin.numeric import apply_N
 
+from mathics.core.attributes import Listable, NumericFunction, Protected, ReadProtected
+
 
 SymbolLeft = Symbol("Left")
 
@@ -86,7 +88,7 @@ class CubeRoot(Builtin):
      = (3 + 4 I) ^ (1 / 3)
     """
 
-    attributes = {"Listable", "NumericFunction", "ReadProtected"}
+    attributes = Listable | NumericFunction | Protected | ReadProtected
 
     messages = {
         "preal": "The parameter `1` should be real valued.",
@@ -152,7 +154,7 @@ class Divide(BinaryOperator):
 
     operator = "/"
     precedence = 470
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
     grouping = "Left"
 
     default_formats = False
@@ -194,7 +196,7 @@ class Minus(PrefixOperator):
 
     operator = "-"
     precedence = 480
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     rules = {
         "Minus[x_]": "Times[-1, x]",
@@ -277,14 +279,7 @@ class Plus(BinaryOperator, SympyFunction):
 
     operator = "+"
     precedence = 310
-    attributes = (
-        "Flat",
-        "Listable",
-        "NumericFunction",
-        "OneIdentity",
-        "Orderless",
-        "Protected",
-    )
+    attributes = Flat | Listable | NumericFunction | OneIdentity | Orderless | Protected
 
     default_formats = False
 
@@ -512,7 +507,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     operator = "^"
     precedence = 590
-    attributes = ("Listable", "NumericFunction", "OneIdentity")
+    attributes = Listable | NumericFunction | OneIdentity | Protected
     grouping = "Right"
 
     default_formats = False
@@ -622,7 +617,7 @@ class Sqrt(SympyFunction):
      = 1.4142135623730950488016887242096980785696718753769
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     rules = {
         "Sqrt[x_]": "x ^ (1/2)",
@@ -655,7 +650,7 @@ class Subtract(BinaryOperator):
     operator = "-"
     precedence_parse = 311
     precedence = 310
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
     grouping = "Left"
 
     rules = {
@@ -748,14 +743,7 @@ class Times(BinaryOperator, SympyFunction):
     operator = "*"
     operator_display = " "
     precedence = 400
-    attributes = (
-        "Flat",
-        "Listable",
-        "NumericFunction",
-        "OneIdentity",
-        "Orderless",
-        "Protected",
-    )
+    attributes = Flat | Listable | NumericFunction | OneIdentity | Orderless | Protected
 
     defaults = {
         None: "1",

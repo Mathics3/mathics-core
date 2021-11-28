@@ -8,6 +8,7 @@ from mathics.core.symbols import system_symbols, ensure_context, Atom, Symbol
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
+from mathics.core.attributes import Flat, OneIdentity, Orderless
 
 # from mathics.core.pattern_nocython import (
 #    StopGenerator #, Pattern #, ExpressionPattern)
@@ -230,7 +231,7 @@ class ExpressionPattern(Pattern):
     ):
         evaluation.check_stopped()
         attributes = self.head.get_attributes(evaluation.definitions)
-        if "System`Flat" not in attributes:
+        if not Flat & attributes:
             fully = True
         if not expression.is_atom():
             # don't do this here, as self.get_pre_choices changes the
@@ -259,7 +260,7 @@ class ExpressionPattern(Pattern):
                 # call to get_match_candidates_count(), which is slow.
 
                 unmatched_leaves = expression.leaves
-                leading_blanks = "System`Orderless" not in attributes
+                leading_blanks = not Orderless & attributes
 
                 for leaf in self.leaves:
                     match_count = leaf.get_match_count()
@@ -336,11 +337,11 @@ class ExpressionPattern(Pattern):
         if (
             wrap_oneid
             and not evaluation.ignore_oneidentity
-            and "System`OneIdentity" in attributes
+            and OneIdentity & attributes
             and not self.head.expr.sameQ(expression.get_head())  # nopep8
             and not self.head.expr.sameQ(expression)
         ):
-            # and 'OneIdentity' not in
+            # and not OneIdentity &
             # (expression.get_attributes(evaluation.definitions) |
             # expression.get_head().get_attributes(evaluation.definitions)):
             new_expression = Expression(self.head, expression)
@@ -375,7 +376,7 @@ class ExpressionPattern(Pattern):
             )
 
     def get_pre_choices(self, yield_func, expression, attributes, vars):
-        if "System`Orderless" in attributes:
+        if Orderless & attributes:
             self.sort()
             patterns = self.filter_leaves("Pattern")
             groups = {}
@@ -498,7 +499,7 @@ class ExpressionPattern(Pattern):
             yield_func(items[0])
         else:
             if max_count is None or len(items) <= max_count:
-                if "System`Orderless" in attributes:
+                if Orderless & attributes:
                     for perm in permutations(items):
                         sequence = Expression("Sequence", *perm)
                         sequence.pattern_sequence = True
@@ -507,7 +508,7 @@ class ExpressionPattern(Pattern):
                     sequence = Expression("Sequence", *items)
                     sequence.pattern_sequence = True
                     yield_func(sequence)
-            if "System`Flat" in attributes and include_flattened:
+            if Flat & attributes and include_flattened:
                 yield_func(Expression(expression.get_head(), *items))
 
     def match_leaf(
@@ -550,7 +551,7 @@ class ExpressionPattern(Pattern):
         # "Artificially" only use more leaves than specified for some kind
         # of pattern.
         # TODO: This could be further optimized!
-        try_flattened = ("System`Flat" in attributes) and (
+        try_flattened = Flat & attributes and (
             leaf.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
@@ -563,12 +564,12 @@ class ExpressionPattern(Pattern):
         # into one operand may occur.
         # This can of course also be when flat and same head.
         try_flattened = try_flattened or (
-            ("System`Flat" in attributes) and leaf.get_head() == expression.head
+            Flat & attributes and leaf.get_head() == expression.head
         )
 
         less_first = len(rest_leaves) > 0
 
-        if "System`Orderless" in attributes:
+        if Orderless & attributes:
             # we only want leaf_candidates to be a set if we're orderless.
             # otherwise, constructing a set() is very slow for large lists.
             # performance test case:
@@ -582,7 +583,7 @@ class ExpressionPattern(Pattern):
                 if existing is not None:
                     head = existing.get_head()
                     if head.get_name() == "System`Sequence" or (
-                        "System`Flat" in attributes and head == expression.get_head()
+                        Flat & attributes and head == expression.get_head()
                     ):
                         needed = existing.leaves
                     else:

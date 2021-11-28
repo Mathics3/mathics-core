@@ -103,7 +103,7 @@ class With(Builtin):
 
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     messages = {
         "lvsym": (
@@ -161,7 +161,7 @@ class Block(Builtin):
      = x
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     messages = {
         "lvsym": (
@@ -249,7 +249,7 @@ class Module(Builtin):
 
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     messages = {
         "lvsym": (
@@ -362,7 +362,7 @@ class Unique(Predefined):
         "attnf": "`1` is not a known attribute.",
     }
 
-    attributes = ("Protected",)
+    attributes = Protected
 
     rules = {
         "Unique[x_Symbol]": "Module[{x}, x]",
@@ -463,7 +463,7 @@ class Context(Builtin):
      = Pattern[a`b, Blank[]]
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     rules = {"Context[]": "$Context"}
 

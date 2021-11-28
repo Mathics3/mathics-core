@@ -21,6 +21,14 @@ import mpmath
 
 from mathics.builtin.numeric import apply_N
 
+from mathics.core.attributes import (
+    Listable,
+    NumericFunction,
+    Orderless,
+    Protected,
+    ReadProtected,
+)
+
 
 class ContinuedFraction(SympyFunction):
     """
@@ -43,7 +51,7 @@ class ContinuedFraction(SympyFunction):
 
     sympy_name = "continued_fraction"
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     def apply_1(self, x, evaluation):
         "%(name)s[x_]"
@@ -83,7 +91,7 @@ class Divisors(Builtin):
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     def apply(self, n, evaluation):
         "Divisors[n_Integer]"
@@ -114,7 +122,7 @@ class Divisors(Builtin):
 #    'ExtendedGCD' does not work for rational numbers and Gaussian integers yet
 #    """
 #
-#    attributes = ('Listable',)
+#    attributes = Listable | Protected
 #
 #    def apply(self, ns, evaluation):
 #        'ExtendedGCD[ns___Integer]'
@@ -150,7 +158,7 @@ class FactorInteger(Builtin):
      = {{2, 1}, {3, 1}, {5, 1}, {67, 1}, {2011, -1}}
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     # TODO: GausianIntegers option
     # e.g. FactorInteger[5, GaussianIntegers -> True]
@@ -227,7 +235,7 @@ class FractionalPart(Builtin):
      = -8769956796 + Pi ^ 20
     """
 
-    attributes = ("Listable", "NumericFunction", "ReadProtected")
+    attributes = Listable | NumericFunction | ReadProtected | Protected
 
     def apply(self, n, evaluation):
         "FractionalPart[n_]"
@@ -265,7 +273,7 @@ class FromContinuedFraction(SympyFunction):
 
     sympy_name = "continued_fraction_reduce"
 
-    attributes = ("NumericFunction",)
+    attributes = NumericFunction | Protected
 
     def apply_1(self, expr, evaluation):
         "%(name)s[expr_List]"
@@ -291,7 +299,7 @@ class IntegerExponent(Builtin):
      = IntegerExponent[10, b]
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     rules = {
         "IntegerExponent[n_]": "IntegerExponent[n, 10]",
@@ -388,7 +396,7 @@ class MantissaExponent(Builtin):
      = {0, 0}
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     rules = {
         "MantissaExponent[0]": "{0, 0}",
@@ -517,7 +525,7 @@ class PartitionsP(SympyFunction):
      = {0, 0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77}
     """
 
-    attributes = ("Listable", "NumericFunction", "Orderless", "Protected")
+    attributes = Listable | NumericFunction | Orderless | Protected
     sympy_name = "npartitions"
 
     def apply(self, n, evaluation):
@@ -554,7 +562,7 @@ class Prime(SympyFunction):
      = {Prime[0], 2, Prime[1.2], 5}
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     def apply(self, n, evaluation):
         "Prime[n_]"
@@ -592,7 +600,7 @@ class PrimePi(SympyFunction):
     sympy_name = "ntheory.primepi"
     mpmath_name = "primepi"
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     # TODO: Traditional Form
 
@@ -629,7 +637,7 @@ class PrimePowerQ(Builtin):
         "PrimePowerQ[1]": "False",
     }
 
-    attributes = ("Listable", "Protected", "ReadProtected")
+    attributes = Listable | Protected | ReadProtected
 
     # TODO: GaussianIntegers option
     """

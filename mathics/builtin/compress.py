@@ -20,8 +20,6 @@ class Compress(Builtin):
 
     """
 
-    attributes = ("Protected",)
-
     options = {
         "Method": "{}",
     }
@@ -61,8 +59,6 @@ class Uncompress(Builtin):
     >> Uncompress[b]
      = x ^ 2 + y Sin[x] + 10 Log[15]
     """
-
-    attributes = ("Protected",)
 
     def apply(self, string, evaluation):
         "Uncompress[string_String]"

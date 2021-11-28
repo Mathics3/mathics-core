@@ -14,6 +14,8 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_values
 
+from mathics.core.attributes import HoldAll, SequenceHold, Protect, ReadProtect
+
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     """
@@ -161,7 +163,7 @@ class Definition(Builtin):
      = Null
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     precedence = 670
     summary_text = "gives values of a symbol in a form that can be stored in a package"
 
@@ -213,7 +215,7 @@ class Definition(Builtin):
                 )
             )
 
-        if definition is not None and "System`ReadProtected" not in attributes:
+        if definition is not None and not ReadProtected & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -325,7 +327,7 @@ class DownValues(Builtin):
      = 5
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives a list of transformation rules corresponding to all downvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -363,7 +365,7 @@ class Information(PrefixOperator):
 
     """
 
-    attributes = ("HoldAll", "SequenceHold", "Protect", "ReadProtect")
+    attributes = HoldAll | SequenceHold | Protect | ReadProtect
     messages = {"notfound": "Expression `1` is not a symbol"}
     operator = "??"
     options = {
@@ -450,7 +452,7 @@ class Information(PrefixOperator):
                 )
             )
 
-        if definition is not None and "System`ReadProtected" not in attributes:
+        if definition is not None and not ReadProtected & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -529,7 +531,7 @@ class OwnValues(Builtin):
      = 5
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives the rule corresponding to any ownvalue defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -559,7 +561,7 @@ class UpValues(Builtin):
      = 0
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     summary_text = "gives list of transformation rules corresponding to upvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):

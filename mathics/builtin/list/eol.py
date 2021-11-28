@@ -41,6 +41,8 @@ from mathics.core.systemsymbols import (
 
 from mathics.core.rules import Rule
 
+from mathics.core.attributes import NHoldRest, Protected
+
 
 class Append(Builtin):
     """
@@ -108,7 +110,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
@@ -477,7 +479,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
-    attributes = ("NHoldRest",)
+    attributes = NHoldRest | Protected
 
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
@@ -867,7 +869,7 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
-    attributes = ("NHoldRest", "ReadProtected")
+    attributes = NHoldRest | Protected | ReadProtected
 
     def apply_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
@@ -1056,7 +1058,7 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
