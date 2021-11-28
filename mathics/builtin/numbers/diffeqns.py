@@ -16,9 +16,6 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
-
 class DSolve(Builtin):
     """
     <dl>
@@ -57,7 +54,7 @@ class DSolve(Builtin):
     ##  = DSolve[f[2 x] == Sin[f'[x]], f, x]
 
     #> DSolve[f'[x] == f[x], f, x] // FullForm
-     = List[List[Rule[f, Function[List[x], Times[C[1], Power[E, x]]]]]]
+     = {{Rule[f, Function[{x}, Times[C[1], Power[E, x]]]]}}
 
     #> DSolve[f'[x] == f[x], f, x] /. {C[1] -> 1}
      = {{f -> (Function[{x}, 1 E ^ x])}}

@@ -8,7 +8,6 @@ Built-in Function Tracing provides one high-level way understand where the time 
 With this it may be possible for both users and implementers to figure out how to speed up running expressions.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
 from mathics.core.rules import BuiltinRule
@@ -244,7 +243,7 @@ class TraceBuiltinsVariable(Builtin):
     """
     <dl>
       <dt>'$TraceBuiltins'
-      <dd>Enable or disable Built-in Function evaluation statistics.
+      <dd>A Boolean Built-in variable when True collects function evaluation statistics.
     </dl>
 
     Setting this variable True will enable statistics collection for Built-in functions that are evaluated.
@@ -290,10 +289,10 @@ class TraceBuiltinsVariable(Builtin):
     def apply_set(self, value, evaluation):
         "%(name)s = value_"
 
-        if value == SymbolTrue:
+        if value is SymbolTrue:
             self.value = SymbolTrue
             TraceBuiltins.enable_trace(evaluation)
-        elif value == SymbolFalse:
+        elif value is SymbolFalse:
             self.value = SymbolFalse
             TraceBuiltins.disable_trace(evaluation)
         else:
