@@ -177,7 +177,7 @@ class BaseExpression(KeyComparable):
         return None
 
     def get_head_name(self):
-        return self.get_head().get_name()
+        raise NotImplementedError
 
     def get_leaves(self):
         return []
@@ -565,13 +565,9 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
-    _head_symbol = None
-
-    def get_head(self) -> "Symbol":
-        return self._head_symbol
-
-    def get_head_name(self):
-        return self._head_symbol.name
+    _head_name = ""
+    _symbol_head = None
+    class_head_name = ""
 
     def is_atom(self) -> bool:
         return True
@@ -597,6 +593,12 @@ class Atom(BaseExpression):
 
     def has_symbol(self, symbol_name) -> bool:
         return False
+
+    def get_head(self) -> "Symbol":
+        return self._symbol_head
+
+    def get_head_name(self) -> "str":
+        return self.class_head_name  # System`" + self.__class__.__name__
 
     def get_atom_name(self) -> str:
         return self.__class__.__name__
@@ -635,6 +637,7 @@ class Symbol(Atom):
     name: str
     sympy_dummy: Any
     defined_symbols = {}
+    class_head_name = "System`Symbol"
 
     def __new__(cls, name, sympy_dummy=None):
         name = ensure_context(name)
@@ -651,6 +654,12 @@ class Symbol(Atom):
 
     def do_copy(self) -> "Symbol":
         return Symbol(self.name)
+
+    def get_head(self) -> "Symbol":
+        return Symbol("Symbol")
+
+    def get_head_name(self):
+        return "System`Symbol"
 
     def boxes_to_text(self, **options) -> str:
         return str(self.name)
@@ -762,9 +771,19 @@ class Symbol(Atom):
             rules = defcache[name].ownvalues
         else:
             rules = evaluation.definitions.get_ownvalues(name)
+
+        if evaluation.definitions.show_steps:
+            evaluation.print_out(
+                "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
+            )
+
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
+                if evaluation.definitions.show_steps:
+                    evaluation.print_out(
+                        "  " * evaluation.recursion_depth + "  -> %s" % result
+                    )
                 return result.evaluate(evaluation)
         return self
 
@@ -773,6 +792,17 @@ class Symbol(Atom):
 
     def is_numeric(self, evaluation=None) -> bool:
         return self in system_numeric_constants
+        """
+        if evaluation:
+            qexpr = Expression(SymbolNumericQ, self)
+           result = evaluation.definitions.get_value(
+                self.name, "System`UpValues", qexpr, evaluation
+            )
+            if result is not None:
+                if result.is_true():
+                    return True
+        return False
+        """
 
     def __hash__(self):
         return hash(("Symbol", self.name))  # to distinguish from String
@@ -786,7 +816,7 @@ class Symbol(Atom):
 
 # We need to define this outside the class
 # for obvious reasons...
-Symbol._head_symbol = Symbol("Symbol")
+Symbol._symbol_head = Symbol("Symbol")
 
 
 # Symbols used in this module.

@@ -405,8 +405,12 @@ Nested calculations are nested function calls:
   = Plus[a, Times[b, Plus[c, d]]]
 
 Even lists are function calls of the function 'List':
+  >> Head[{1, 2, 3}]
+  = List
+
+However, its full form is presented with ${\ldots}$
   >> FullForm[{1, 2, 3}]
-  = List[1, 2, 3]
+   = {1,2,3}
 
  The head of an expression can be determined with 'Head':
   >> Head[a + b + c]

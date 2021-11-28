@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 from typing import Optional, Any
 
 import sympy

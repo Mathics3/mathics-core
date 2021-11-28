@@ -3,7 +3,6 @@
 # No external builtins appear here.
 # Also no docstring which may confuse the doc system
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     InstanceableBuiltin,

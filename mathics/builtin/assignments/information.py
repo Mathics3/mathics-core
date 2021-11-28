@@ -3,7 +3,6 @@
 Information about Assignments
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin, PrefixOperator
 
