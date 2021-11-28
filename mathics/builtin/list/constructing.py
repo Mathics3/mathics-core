@@ -168,7 +168,7 @@ class Range(Builtin):
         "Range[imin_?RealNumberQ, imax_?RealNumberQ]": "Range[imin, imax, 1]",
     }
 
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     summary_text = "form a list from a range of numbers or other objects"
 
@@ -304,7 +304,7 @@ class Reap(Builtin):
      = {x, {}}
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     rules = {
         "Reap[expr_, pattern_, f_]": (

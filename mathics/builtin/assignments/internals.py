@@ -89,7 +89,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return "System`Protected" in defin.get_attributes(tag)
+    return Protected & defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):
@@ -426,7 +426,7 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     )
     if attributes is None:
         raise AssignmentException(lhs, rhs)
-    if "System`Locked" in evaluation.definitions.get_attributes(tag):
+    if Locked & evaluation.definitions.get_attributes(tag):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
     evaluation.definitions.set_attributes(tag, attributes)

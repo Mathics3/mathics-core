@@ -342,7 +342,7 @@ def get_plot_range(values, all_values, option):
 
 class _Plot(Builtin):
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -703,7 +703,7 @@ class _Plot(Builtin):
 
 
 class _Chart(Builtin):
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -1176,7 +1176,7 @@ class Histogram(Builtin):
      = -Graphics-
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -2283,7 +2283,7 @@ class ListPlot(_ListPlot):
      = -Graphics-
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -2321,7 +2321,7 @@ class ListLinePlot(_ListPlot):
      = -Graphics-
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -2399,7 +2399,7 @@ class Plot3D(_Plot3D):
     #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(
@@ -2481,7 +2481,7 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     options = Graphics.options.copy()
     options.update(

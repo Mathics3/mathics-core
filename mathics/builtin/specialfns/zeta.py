@@ -25,8 +25,6 @@ class LerchPhi(_MPMathFunction):
      = 17.1973
     """
 
-    # attributes = ("Listable", "NumericFunction") # inherited
-
     mpmath_name = "lerchphi"
     sympy_name = "lerchphi"
 

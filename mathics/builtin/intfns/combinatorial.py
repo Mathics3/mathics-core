@@ -13,6 +13,7 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.core.attributes import Listable, NumericFunction, Protected
 from itertools import combinations
 
 
@@ -41,7 +42,7 @@ class Binomial(_MPMathFunction):
      = Infinity
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     nargs = 2
     sympy_name = "binomial"
@@ -67,7 +68,7 @@ class Multinomial(Builtin):
      = 10
     """
 
-    attributes = ("Listable", "NumericFunction", "Orderless")
+    attributes = Listable | NumericFunction | Orderless | Protected
 
     def apply(self, values, evaluation):
         "Multinomial[values___]"

@@ -17,6 +17,8 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
 
+from mathics.core.attributes import HoldAll, HoldFirst, Listable, Protected
+
 
 class Attributes(Builtin):
     """
@@ -58,7 +60,7 @@ class Attributes(Builtin):
      = {Listable}
     """
 
-    attributes = ("HoldAll", "Listable")
+    attributes = HoldAll | Listable | Protected
 
     def apply(self, expr, evaluation):
         "Attributes[expr_]"
@@ -89,7 +91,7 @@ class SetAttributes(Builtin):
      = {Flat, Orderless}
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     def apply(self, symbols, attributes, evaluation):
         "SetAttributes[symbols_, attributes_]"
@@ -105,7 +107,7 @@ class SetAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if "System`Locked" in evaluation.definitions.get_attributes(symbol):
+            if Locked & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -132,7 +134,7 @@ class ClearAttributes(Builtin):
      = {}
     """
 
-    attributes = ("HoldFirst",)
+    attributes = HoldFirst | Protected
 
     def apply(self, symbols, attributes, evaluation):
         "ClearAttributes[symbols_, attributes_]"
@@ -149,7 +151,7 @@ class ClearAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if "System`Locked" in evaluation.definitions.get_attributes(symbol):
+            if Locked & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -175,7 +177,7 @@ class Protect(Builtin):
      = {1, 2, 3}
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -210,9 +212,7 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not "System`Locked" in evaluation.definitions.get_attributes(
-                        defn
-                    ):
+                    if not Locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression("SetAttributes", Expression("List", *items), protected).evaluate(
@@ -232,7 +232,7 @@ class Unprotect(Builtin):
     </dl>
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -264,9 +264,7 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not "System`Locked" in evaluation.definitions.get_attributes(
-                        defn
-                    ):
+                    if not Locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression("ClearAttributes", Expression("List", *items), protected).evaluate(

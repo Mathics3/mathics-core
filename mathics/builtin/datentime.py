@@ -33,6 +33,8 @@ from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.builtin.base import Builtin, Predefined
 from mathics.settings import TIME_12HOUR
 
+from mathics.core.attributes import HoldAll, Protected, ReadProtected
+
 
 START_TIME = time.time()
 
@@ -402,7 +404,7 @@ class AbsoluteTiming(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     summary_text = "total wall-clock time to run a Mathics command"
 
@@ -458,7 +460,7 @@ class DateDifference(Builtin):
         ),
     }
 
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
 
     summary_text = "find the difference in days, weeks, etc. between two dates"
 
@@ -707,7 +709,7 @@ class DatePlus(Builtin):
      = {2010, 4, 3}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -896,7 +898,7 @@ class DateString(_DateFormat):
 
     """
 
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
 
     rules = {
         "DateString[]": "DateString[DateList[], $DateStringFormat]",
@@ -1110,7 +1112,7 @@ if sys.platform != "win32" and ("Pyston" not in sys.version):
         # >> a=1; s
         # =  Cos[x] (-5 + Cos[2 x]) / 6
 
-        attributes = ("HoldAll",)
+        attributes = HoldAll | Protected
         messages = {
             "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
         }
@@ -1153,7 +1155,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = ("Unprotected",)
+    attributes = 0
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 
@@ -1209,7 +1211,7 @@ class Timing(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = ("HoldAll",)
+    attributes = HoldAll | Protected
 
     summary_text = "CPU time to run a Mathics command"
 

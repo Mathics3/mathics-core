@@ -7,6 +7,8 @@ Error Function and Related Functions
 
 from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
 
+from mathics.core.attributes import Listable, NumericFunction, Protected
+
 
 class Erf(_MPMathMultiFunction):
     """
@@ -31,7 +33,7 @@ class Erf(_MPMathMultiFunction):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = Listable | NumericFunction | Protected
 
     mpmath_names = {
         1: "erf",
@@ -62,8 +64,6 @@ class Erfc(_MPMathFunction):
     >> Plot[Erfc[x], {x, -2, 2}]
      = -Graphics-
     """
-
-    # attributes = ("Listable", "NumericFunction") # inherited
 
     mpmath_name = "erfc"
 
@@ -132,7 +132,7 @@ class InverseErf(_MPMathFunction):
     """
 
     # No inherited NumericFunction
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
 
     sympy_name = "erfinv"
     mpmath_name = "erfinv"
@@ -165,7 +165,7 @@ class InverseErfc(_MPMathFunction):
     """
 
     # No inherited NumericFunction
-    attributes = ("Listable", "Protected")
+    attributes = Listable | Protected
     sympy_name = "erfcinv"
 
     rules = {

@@ -15,6 +15,7 @@ from mathics.core.symbols import fully_qualified_symbol_name, strip_context, Sym
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
+from mathics.core.attributes import Nothing
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -446,9 +447,9 @@ class Definitions(object):
                 user.attributes
                 if user
                 else (
-                    pymathics.attributes
+                    pymathics.core.attributes
                     if pymathics
-                    else (builtin.attributes if builtin else set())
+                    else (builtin.attributes if builtin else Nothing)
                 )
             )
             options = {}
@@ -541,7 +542,7 @@ class Definitions(object):
             if builtin:
                 attributes = builtin.attributes
             else:
-                attributes = set()
+                attributes = Nothing
             self.user[name] = Definition(name=name, attributes=attributes)
             self.clear_cache(name)
             return self.user[name]
@@ -566,20 +567,19 @@ class Definitions(object):
 
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes.add(attribute)
+        definition.attributes |= attribute
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def set_attributes(self, name, attributes) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        definition.attributes = set(attributes)
+        definition.attributes = attributes
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
     def clear_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
-        if attribute in definition.attributes:
-            definition.attributes.remove(attribute)
+        definition.attributes &= ~attribute
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -757,7 +757,7 @@ class Definition(object):
         upvalues=None,
         formatvalues=None,
         messages=None,
-        attributes=(),
+        attributes=Nothing,
         options=None,
         nvalues=None,
         defaultvalues=None,
@@ -794,9 +794,7 @@ class Definition(object):
         self.upvalues = upvalues
         self.formatvalues = dict((name, list) for name, list in formatvalues.items())
         self.messages = messages
-        self.attributes = set(attributes)
-        for a in self.attributes:
-            assert "`" in a, "%s attribute %s has no context" % (name, a)
+        self.attributes = attributes
         self.options = options
         self.nvalues = nvalues
         self.defaultvalues = defaultvalues

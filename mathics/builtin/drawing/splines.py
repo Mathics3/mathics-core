@@ -7,6 +7,8 @@ A Spline is a mathematical function used for interpolation or smoothing. Splines
 
 from mathics.builtin.base import Builtin
 
+from mathics.core.attributes import Listable, NumericFunction, Protected
+
 
 # For a more generic implementation in Python using scipy,
 # sympy and numpy, see:
@@ -28,7 +30,7 @@ class BernsteinBasis(Builtin):
      = 0.25
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = Listable | NumericFunction | Protected
     rules = {
         "BernsteinBasis[d_, n_, x_]": "Piecewise[{{Binomial[d, n] * x ^ n * (1 - x) ^ (d - n), 0 < x < 1}}, 0]"
     }
