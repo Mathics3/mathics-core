@@ -64,14 +64,14 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
-class ShowStepsVariable(Builtin):
+class TraceExpressionVariable(Builtin):
     """
     <dl>
-      <dt>'$ShowSteps'
+      <dt>'$TraceExpression'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
-    >> $ShowSteps = True
+    >> $TraceExpression = True
      | ...
      = True
 
@@ -80,21 +80,21 @@ class ShowStepsVariable(Builtin):
      = 2 a
 
     Setting it to 'False' again recovers the normal behaviour:
-    >> $ShowSteps = False
+    >> $TraceExpression = False
      | ...
      = False
-    >> $ShowSteps
+    >> $TraceExpression
      = False
 
     >> a + a
      = 2 a
-    '$ShowSteps' cannot be set to a non-boolean value.
-    >> $ShowSteps = x
+    '$TraceExpression' cannot be set to a non-boolean value.
+    >> $TraceExpression = x
      : x should be True or False.
      = x
     """
 
-    name = "$ShowSteps"
+    name = "$TraceExpression"
 
     messages = {"bool": "`1` should be True or False."}
 
@@ -113,19 +113,19 @@ class ShowStepsVariable(Builtin):
         elif value is SymbolFalse:
             evaluation.definitions.show_steps = False
         else:
-            evaluation.message("$ShowSteps", "bool", value)
+            evaluation.message("$TraceExpression", "bool", value)
 
         return value
 
 
-class ShowSteps(Builtin):
+class TraceExpression(Builtin):
     """
     <dl>
-      <dt>'ShowSteps[$expr$]'
+      <dt>'TraceExpression[$expr$]'
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
-    >> ShowSteps[(x + x)^2]
+    >> TraceExpression[(x + x)^2]
      | ...
      = ...
     """
@@ -135,7 +135,7 @@ class ShowSteps(Builtin):
     }
 
     def apply(self, expr, evaluation):
-        "ShowSteps[expr_]"
+        "TraceExpression[expr_]"
         curr_show_steps = evaluation.definitions.show_steps
         evaluation.definitions.show_steps = True
         result = expr.evaluate(evaluation)
