@@ -6,6 +6,8 @@ import sympy
 import typing
 from typing import Any, Optional
 
+from mathics.core.attributes import Nothing
+
 # I put this constants here instead of inside `mathics.core.convert`
 # to avoid a circular reference. Maybe they should be in its own module.
 
@@ -145,7 +147,7 @@ class BaseExpression(KeyComparable):
         return self
 
     def get_attributes(self, definitions):
-        return set()
+        return Nothing
 
     def evaluate_next(self, evaluation):
         return self.evaluate(evaluation), False

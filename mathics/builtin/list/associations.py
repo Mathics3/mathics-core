@@ -22,6 +22,8 @@ from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
 )
 
+from mathics.core.attributes import HoldAllComplete, Protected
+
 
 class Association(Builtin):
     """
@@ -80,10 +82,7 @@ class Association(Builtin):
 
     error_idx = 0
 
-    attributes = (
-        "HoldAllComplete",
-        "Protected",
-    )
+    attributes = HoldAllComplete | Protected
 
     summary_text = "an association between keys and values"
 
@@ -258,7 +257,7 @@ class Keys(Builtin):
      = Keys[a -> x, b -> y]
     """
 
-    attributes = ("Protected",)
+    attributes = Protected
 
     messages = {
         "argx": "Keys called with `1` arguments; 1 argument is expected.",
@@ -373,7 +372,7 @@ class Values(Builtin):
      = Values[a -> x, b -> y]
     """
 
-    attributes = ("Protected",)
+    attributes = Protected
 
     messages = {
         "argx": "Values called with `1` arguments; 1 argument is expected.",

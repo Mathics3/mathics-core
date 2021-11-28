@@ -26,6 +26,9 @@ from mathics.builtin.base import (
 )
 
 from mathics.builtin.pymimesniffer import magic
+
+from mathics.core.attributes import Nothing, Protected, ReadProtected
+
 import mimetypes
 import sys
 from itertools import chain
@@ -970,7 +973,7 @@ class ConverterDumpsExtensionMappings(Predefined):
 
     context = "System`ConvertersDump`"
     name = "$extensionMappings"
-    attributes = ["Unprotected"]
+    attributes = Nothing
 
     def evaluate(self, evaluation):
         return from_python(EXTENSIONMAPPINGS)
@@ -986,7 +989,7 @@ class ConverterDumpsFormatMappings(Predefined):
 
     context = "System`ConvertersDump`"
     name = "$formatMappings"
-    attributes = ["Unprotected"]
+    attributes = Nothing
 
     def evaluate(self, evaluation):
         return from_python(FORMATMAPPINGS)
@@ -1067,7 +1070,7 @@ class RegisterImport(Builtin):
 
     context = "ImportExport`"
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = Protected | ReadProtected
 
     # XXX OptionsIssue
     options = {
@@ -2225,7 +2228,7 @@ class ConvertCommonDumpRemoveLinearSyntax(Builtin):
         "System`Convert`CommonDump`ConvertRecursive": "False",
     }
     # options = {"ConvertRecursive" : "False", }
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
     context = "System`Convert`CommonDump`"
     name = "RemoveLinearSyntax"
 

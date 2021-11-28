@@ -34,7 +34,7 @@ class Minimize(Builtin):
      = {{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
 
     def apply_onevariable(self, f, x, evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
@@ -79,7 +79,7 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or Constant & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -158,7 +158,7 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or "System`Constant" in var.get_attributes(evaluation.definitions)
+                or Constant & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -362,7 +362,7 @@ class Maximize(Builtin):
      = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = ReadProtected | Protected
 
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"

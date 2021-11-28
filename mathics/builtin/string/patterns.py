@@ -29,6 +29,8 @@ from mathics.builtin.strings import (
     to_regex,
 )
 
+from mathics.core.attributes import Flat, OneIdentity, Protected
+
 
 class DigitCharacter(Builtin):
     """
@@ -232,7 +234,7 @@ class StringExpression(BinaryOperator):
 
     operator = "~~"
     precedence = 135
-    attributes = ("Flat", "OneIdentity", "Protected")
+    attributes = Flat | OneIdentity | Protected
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
@@ -398,7 +400,7 @@ class StringMatchQ(Builtin):
      = False
     """
 
-    attributes = ("Listable",)
+    attributes = Listable | Protected
 
     options = {
         "IgnoreCase": "False",

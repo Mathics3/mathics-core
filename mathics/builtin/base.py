@@ -41,6 +41,8 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
+from mathics.core.attributes import Nothing, Protected
+
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
     # we do not care whether an option X is given as System`X,
@@ -71,9 +73,9 @@ mathics_to_python = {}
 
 class Builtin(object):
     name: typing.Optional[str] = None
-    context = ""
-    abstract = False
-    attributes: typing.Tuple[Any, ...] = ()
+    context: str = ""
+    abstract: bool = False
+    attributes: int = Protected
     rules: typing.Dict[str, Any] = {}
     formats: typing.Dict[str, Any] = {}
     messages: typing.Dict[str, Any] = {}
@@ -119,7 +121,7 @@ class Builtin(object):
                 # used, so it won't work.
                 if option not in definitions.builtin:
                     definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
+                        name=name, attributes=Nothing
                     )
 
         # Check if the given options are actually supported by the Builtin.
@@ -244,14 +246,6 @@ class Builtin(object):
             )
         )
 
-        if "Unprotected" in self.attributes:
-            attributes = []
-            self.attributes = list(self.attributes)
-            self.attributes.remove("Unprotected")
-        else:
-            attributes = ["System`Protected"]
-
-        attributes += list(ensure_context(a) for a in self.attributes)
         options = {}
         for option, value in self.options.items():
             option = ensure_context(option)
@@ -262,7 +256,7 @@ class Builtin(object):
                 # used, so it won't work.
                 if option not in definitions.builtin:
                     definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
+                        name=name, attributes=Nothing
                     )
         defaults = []
         for spec, value in self.defaults.items():
@@ -280,7 +274,7 @@ class Builtin(object):
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=attributes,
+            attributes=self.attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,
