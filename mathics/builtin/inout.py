@@ -64,14 +64,14 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
-class TraceExpressionVariable(Builtin):
+class TraceEvaluationVariable(Builtin):
     """
     <dl>
-      <dt>'$TraceExpression'
+      <dt>'$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
     </dl>
 
-    >> $TraceExpression = True
+    >> $TraceEvaluation = True
      | ...
      = True
 
@@ -80,21 +80,21 @@ class TraceExpressionVariable(Builtin):
      = 2 a
 
     Setting it to 'False' again recovers the normal behaviour:
-    >> $TraceExpression = False
+    >> $TraceEvaluation = False
      | ...
      = False
-    >> $TraceExpression
+    >> $TraceEvaluation
      = False
 
     >> a + a
      = 2 a
-    '$TraceExpression' cannot be set to a non-boolean value.
-    >> $TraceExpression = x
+    '$TraceEvaluation' cannot be set to a non-boolean value.
+    >> $TraceEvaluation = x
      : x should be True or False.
      = x
     """
 
-    name = "$TraceExpression"
+    name = "$TraceEvaluation"
 
     messages = {"bool": "`1` should be True or False."}
 
@@ -104,28 +104,28 @@ class TraceExpressionVariable(Builtin):
 
     def apply_get(self, evaluation):
         "%(name)s"
-        return SymbolTrue if evaluation.definitions.show_steps else SymbolFalse
+        return SymbolTrue if evaluation.definitions.trace_evaluation else SymbolFalse
 
     def apply_set(self, value, evaluation):
         "%(name)s = value_"
         if value is SymbolTrue:
-            evaluation.definitions.show_steps = True
+            evaluation.definitions.trace_evaluation = True
         elif value is SymbolFalse:
-            evaluation.definitions.show_steps = False
+            evaluation.definitions.trace_evaluation = False
         else:
-            evaluation.message("$TraceExpression", "bool", value)
+            evaluation.message("$TraceEvaluation", "bool", value)
 
         return value
 
 
-class TraceExpression(Builtin):
+class TraceEvaluation(Builtin):
     """
     <dl>
-      <dt>'TraceExpression[$expr$]'
+      <dt>'TraceEvaluation[$expr$]'
       <dd>Evaluate $expr$ and print each step of the evaluation.
     </dl>
 
-    >> TraceExpression[(x + x)^2]
+    >> TraceEvaluation[(x + x)^2]
      | ...
      = ...
     """
@@ -135,11 +135,11 @@ class TraceExpression(Builtin):
     }
 
     def apply(self, expr, evaluation):
-        "TraceExpression[expr_]"
-        curr_show_steps = evaluation.definitions.show_steps
-        evaluation.definitions.show_steps = True
+        "TraceEvaluation[expr_]"
+        curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        evaluation.definitions.trace_evaluation = True
         result = expr.evaluate(evaluation)
-        evaluation.definitions.show_steps = curr_show_steps
+        evaluation.definitions.trace_evaluation = curr_trace_evaluation
         return result
 
 

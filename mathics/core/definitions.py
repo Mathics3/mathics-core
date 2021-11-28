@@ -84,7 +84,7 @@ class Definitions(object):
             "Global`",
             "System`",
         )
-        self.show_steps = False
+        self.trace_evaluation = False
 
         if add_builtin:
             from mathics.builtin import modules, contribute
