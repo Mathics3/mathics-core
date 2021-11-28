@@ -291,28 +291,24 @@ add_conversion_fn(Cuboid3DBox)
 def cylinder3dbox(self, **options) -> str:
     face_color = self.face_color.to_js()
 
-    # FIXME: currently always drawing around the axis X+Y
-    axes_point = (1, 1, 0)
-    rgb = "rgb({0},{1},{1})".format(*face_color[:3])
+    pen = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cylinder3DBox\n"
+    # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
     i = 0
     while i < len(self.points) / 2:
         try:
             point1 = self.points[i * 2].pos()[0]
             point2 = self.points[i * 2 + 1].pos()[0]
+            asy += f"real r={self.radius};\n"
+            asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
+            asy += "real h=abs(A-B);\n"
+            asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
+            asy += f"draw(surface(cyl),{pen});\n"
 
-            # Compute distance between start point and end point.
-            distance = (
-                (point1[0] - point2[0]) ** 2
-                + (point1[1] - point2[1]) ** 2
-                + (point1[2] - point2[2]) ** 2
-            ) ** 0.5
-
-            asy += (
-                f"draw(surface(cylinder({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {rgb});"
-                + "\n"
-            )
+            # The above is an open cylinder. Draw the ends.
+            asy += f"draw(surface(circle(A,r,normal=B-A)),{pen});\n"
+            asy += f"draw(surface(circle(B,r,normal=B-A)),{pen});\n"
         except:  # noqa
             pass
 

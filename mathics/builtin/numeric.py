@@ -12,7 +12,7 @@ Support for numeric evaluation with arbitrary precision is just a proof-of-conce
 Precision is not "guarded" through the evaluation process. Only integer precision is supported.
 However, things like 'N[Pi, 100]' should work as expected.
 """
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 import sympy
 import mpmath
 import numpy as np
@@ -859,7 +859,6 @@ class N(Builtin):
             d = get_precision(prec, evaluation)
         except PrecisionValueError:
             return
-
         if expr.get_head_name() in ("System`List", "System`Rule"):
             return Expression(
                 expr.head,

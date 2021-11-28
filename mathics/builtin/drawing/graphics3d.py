@@ -5,7 +5,6 @@
 Functions for working with 3D graphics.
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.core.atoms import Real, Integer, Rational
 

@@ -10,7 +10,6 @@ import sympy
 from collections import defaultdict
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.algorithm.introselect import introselect
 from mathics.algorithm.parts import (
@@ -541,7 +540,7 @@ class List(Builtin):
 
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
 
         items = items.get_sequence()
         return Expression(

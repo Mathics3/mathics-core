@@ -10,7 +10,6 @@ import mpmath
 import typing
 from typing import Any
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.box.inout import RowBox
 
@@ -63,6 +62,85 @@ SymbolRowBox = Symbol("RowBox")
 SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
+
+
+class ShowStepsVariable(Builtin):
+    """
+    <dl>
+      <dt>'$ShowSteps'
+      <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
+    </dl>
+
+    >> $ShowSteps = True
+     | ...
+     = True
+
+    >> a + a
+     | ...
+     = 2 a
+
+    Setting it to 'False' again recovers the normal behaviour:
+    >> $ShowSteps = False
+     | ...
+     = False
+    >> $ShowSteps
+     = False
+
+    >> a + a
+     = 2 a
+    '$ShowSteps' cannot be set to a non-boolean value.
+    >> $ShowSteps = x
+     : x should be True or False.
+     = x
+    """
+
+    name = "$ShowSteps"
+
+    messages = {"bool": "`1` should be True or False."}
+
+    value = SymbolFalse
+
+    summary_text = "enable or disable displaying the steps to get the result"
+
+    def apply_get(self, evaluation):
+        "%(name)s"
+        return SymbolTrue if evaluation.definitions.show_steps else SymbolFalse
+
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
+        if value is SymbolTrue:
+            evaluation.definitions.show_steps = True
+        elif value is SymbolFalse:
+            evaluation.definitions.show_steps = False
+        else:
+            evaluation.message("$ShowSteps", "bool", value)
+
+        return value
+
+
+class ShowSteps(Builtin):
+    """
+    <dl>
+      <dt>'ShowSteps[$expr$]'
+      <dd>Evaluate $expr$ and print each step of the evaluation.
+    </dl>
+
+    >> ShowSteps[(x + x)^2]
+     | ...
+     = ...
+    """
+
+    attributes = {
+        "HoldAll",
+    }
+
+    def apply(self, expr, evaluation):
+        "ShowSteps[expr_]"
+        curr_show_steps = evaluation.definitions.show_steps
+        evaluation.definitions.show_steps = True
+        result = expr.evaluate(evaluation)
+        evaluation.definitions.show_steps = curr_show_steps
+        return result
 
 
 class Format(Builtin):
