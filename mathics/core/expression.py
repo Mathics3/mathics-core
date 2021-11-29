@@ -33,6 +33,7 @@ from mathics.core.attributes import (
     hold_first,
     hold_rest,
     listable,
+    nothing,
     numeric_function,
     orderless,
     sequence_hold,
@@ -427,7 +428,7 @@ class Expression(BaseExpression):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._leaves)
-        return set()
+        return nothing
 
     def get_lookup_name(self) -> bool:
         return self._head.get_lookup_name()
