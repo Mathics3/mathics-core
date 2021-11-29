@@ -1394,11 +1394,10 @@ class Boole(Builtin):
 
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
-        if isinstance(expr, Symbol):
-            if expr == SymbolTrue:
-                return Integer1
-            elif expr == SymbolFalse:
-                return Integer0
+        if expr is SymbolTrue:
+            return Integer1
+        elif expr is SymbolFalse:
+            return Integer0
         return None
 
 
