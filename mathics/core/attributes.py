@@ -36,7 +36,7 @@ orderless         = 0b0000000100000000
 hold_first        = 0b0000001000000000
 hold_rest         = 0b0000010000000000
 hold_all          = 0b0000100000000000
-hold_all_complete = 0b0001100000000000
+hold_all_complete = 0b0001000000000000
 
 n_hold_first      = 0b0010000000000000
 n_hold_rest       = 0b0100000000000000
