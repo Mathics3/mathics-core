@@ -55,13 +55,13 @@ from mathics.core.number import (
 )
 
 from mathics.core.attributes import (
-    Listable,
-    NHoldAll,
-    NHoldFirst,
-    NHoldRest,
-    NumericFunction,
-    Protected,
-    ReadProtected,
+    listable,
+    n_hold_all,
+    n_hold_first,
+    n_hold_rest,
+    numeric_function,
+    protected,
+    read_protected,
 )
 
 
@@ -524,7 +524,7 @@ class IntegerDigits(Builtin):
      = {0}
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -897,11 +897,11 @@ class N(Builtin):
             return expr
         else:
             attributes = expr.head.get_attributes(evaluation.definitions)
-            if NHoldAll & attributes:
+            if n_hold_all & attributes:
                 eval_range = ()
-            elif NHoldFirst & attributes:
+            elif n_hold_first & attributes:
                 eval_range = range(1, len(expr.leaves))
-            elif NHoldRest & attributes:
+            elif n_hold_rest & attributes:
                 if len(expr.leaves) > 0:
                     eval_range = (0,)
                 else:
@@ -1503,7 +1503,7 @@ class Round(Builtin):
      = Round[1.5, k]
     """
 
-    attributes = Listable | NumericFunction | Protected
+    attributes = listable | numeric_function | protected
 
     rules = {
         "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
@@ -1599,7 +1599,7 @@ class RealDigits(Builtin):
 
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     messages = {
         "realx": "The value `1` is not a real number.",
@@ -1834,7 +1834,7 @@ class Hash(Builtin):
         "Hash[expr_, type_String]": 'Hash[expr, type, "Integer"]',
     }
 
-    attributes = Protected | ReadProtected
+    attributes = protected | read_protected
 
     # FIXME md2
     _supported_hashes = {

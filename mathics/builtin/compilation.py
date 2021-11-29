@@ -23,7 +23,7 @@ from mathics.core.atoms import (
     from_python,
 )
 
-from mathics.core.attributes import HoldAll, Protected
+from mathics.core.attributes import hold_all, protected
 
 from types import FunctionType
 
@@ -85,7 +85,7 @@ class Compile(Builtin):
 
     requires = ("llvmlite",)
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
 
     messages = {
         "invar": "Variable `1` should be {symbol, type} annotation.",

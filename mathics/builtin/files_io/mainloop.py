@@ -23,7 +23,7 @@ Similarly, if you assign a function to global variable '$Pre', it will be applie
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.attributes import Nothing
+from mathics.core.attributes import listable, nothing, protected
 
 
 class HistoryLength(Builtin):
@@ -86,7 +86,7 @@ class In(Builtin):
      . In[1] = x = 1
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
@@ -149,7 +149,7 @@ class IOHookPost(Builtin):
     """
 
     name = "$Post"
-    attributes = Nothing
+    attributes = nothing
 
 
 class IOHookPrePrint(Builtin):
@@ -162,7 +162,7 @@ class IOHookPrePrint(Builtin):
     """
 
     name = "$PrePrint"
-    attributes = Nothing
+    attributes = nothing
 
 
 class IOHookSyntaxHandler(Builtin):
@@ -176,7 +176,7 @@ class IOHookSyntaxHandler(Builtin):
     """
 
     name = "$SyntaxHandler"
-    attributes = Nothing
+    attributes = nothing
 
 
 class Line(Builtin):
@@ -239,7 +239,7 @@ class Out(Builtin):
      = 12
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     rules = {
         "Out[k_Integer?Negative]": "Out[$Line + k]",

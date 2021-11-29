@@ -15,7 +15,7 @@ from mathics.core.symbols import fully_qualified_symbol_name, strip_context, Sym
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
-from mathics.core.attributes import Nothing
+from mathics.core.attributes import nothing
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -449,7 +449,7 @@ class Definitions(object):
                 else (
                     pymathics.core.attributes
                     if pymathics
-                    else (builtin.attributes if builtin else Nothing)
+                    else (builtin.attributes if builtin else nothing)
                 )
             )
             options = {}
@@ -542,7 +542,7 @@ class Definitions(object):
             if builtin:
                 attributes = builtin.attributes
             else:
-                attributes = Nothing
+                attributes = nothing
             self.user[name] = Definition(name=name, attributes=attributes)
             self.clear_cache(name)
             return self.user[name]
@@ -757,7 +757,7 @@ class Definition(object):
         upvalues=None,
         formatvalues=None,
         messages=None,
-        attributes=Nothing,
+        attributes=nothing,
         options=None,
         nvalues=None,
         defaultvalues=None,
