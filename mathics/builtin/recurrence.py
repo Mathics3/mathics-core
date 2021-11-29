@@ -10,6 +10,7 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
+from mathics.core.attributes import constant
 
 
 class RSolve(Builtin):
@@ -69,7 +70,7 @@ class RSolve(Builtin):
         if (
             (n.is_atom() and not n.is_symbol())
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
-            or Constant & n.get_attributes(evaluation.definitions)
+            or constant & n.get_attributes(evaluation.definitions)
         ):
             # TODO: Factor out this check for dsvar into a separate
             # function. DSolve uses this too.
