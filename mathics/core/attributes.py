@@ -17,7 +17,7 @@
 # To remove an attribute you do:
 # attributes = ~ATTRIBUTE_NAME & attributes
 
-from typing import Dict
+from typing import Dict, List
 
 # fmt: off
 nothing           = 0b0000000000000000 #  it is used when there're no attributes
@@ -84,3 +84,21 @@ attribute_string_to_number: Dict[str, int] = {
     "System`ReadProtected": read_protected,
     "System`SequenceHold": sequence_hold,
 }
+
+
+def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
+    attributes_list = []
+    # bin(number) returns a string "0b...", we iterate over all characters
+    # except "0b".
+    # We revert the string because we want to iterate from the right to the
+    # left, otherwise, e.g. 0b10000000 would be treated as 1, not 64.
+    for position, bit in enumerate(bin(attributes_bitset)[:1:-1]):
+        # Append only if the bit is 1.
+        if int(bit):
+            print(1)
+            # Convert the attribute to a string.
+            attributes_list.append(attribute_number_to_string[int(bit) << position])
+
+    attributes_list.sort()
+
+    return attributes_list

@@ -18,7 +18,7 @@ from mathics.core.atoms import String
 from mathics.builtin.assignments.internals import get_symbol_list
 
 from mathics.core.attributes import (
-    attribute_number_to_string,
+    attributes_bitset_to_list,
     attribute_string_to_number,
     hold_all,
     hold_first,
@@ -76,21 +76,11 @@ class Attributes(Builtin):
         if isinstance(expr, String):
             expr = Symbol(expr.get_string_value())
         name = expr.get_lookup_name()
-        attributes_bitset = evaluation.definitions.get_attributes(name)
 
-        attributes_list = []
-        # bin(number) returns a string "0b...", we iterate over all characters
-        # except "0b".
-        # We revert the string because we want to iterate from the right to the
-        # left, otherwise, e.g. 0b10000000 would be treated as 1, not 64.
-        for position, bit in enumerate(bin(attributes_bitset)[:2:-1]):
-            # Append only if the bit is 1.
-            if int(bit):
-                # Convert the attribute to a string.
-                attributes_list.append(attribute_number_to_string[int(bit) << position])
-
-        attributes_list.sort()
-        attributes_symbols = [Symbol(attribute) for attribute in attributes_list]
+        attributes = attributes_bitset_to_list(
+            evaluation.definitions.get_attributes(name)
+        )
+        attributes_symbols = [Symbol(attribute) for attribute in attributes]
         return Expression("List", *attributes_symbols)
 
 
@@ -113,6 +103,10 @@ class SetAttributes(Builtin):
 
     attributes = hold_first | protected
 
+    messages = {
+        "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
+    }
+
     def apply(self, symbols, attributes, evaluation):
         "SetAttributes[symbols_, attributes_]"
 
@@ -131,9 +125,12 @@ class SetAttributes(Builtin):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.set_attribute(
-                        symbol, attribute_string_to_number[value]
-                    )
+                    try:
+                        evaluation.definitions.set_attribute(
+                            symbol, attribute_string_to_number[value]
+                        )
+                    except KeyError:
+                        evaluation.message("SetAttributes", "unknowattr", value)
         return SymbolNull
 
 
