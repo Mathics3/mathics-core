@@ -14,7 +14,13 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_values
 
-from mathics.core.attributes import hold_all, sequence_hold, protected, read_protected
+from mathics.core.attributes import (
+    attributes_bitset_to_list,
+    hold_all,
+    sequence_hold,
+    protected,
+    read_protected,
+)
 
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
@@ -437,8 +443,7 @@ class Information(PrefixOperator):
         definition = evaluation.definitions.get_user_definition(name, create=False)
         all = evaluation.definitions.get_definition(name)
         if attributes:
-            attributes = list(attributes)
-            attributes.sort()
+            attributes_list = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
                     "HoldForm",
@@ -446,7 +451,8 @@ class Information(PrefixOperator):
                         "Set",
                         Expression("Attributes", symbol),
                         Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
+                            "List",
+                            *(Symbol(attribute) for attribute in attributes_list)
                         ),
                     ),
                 )

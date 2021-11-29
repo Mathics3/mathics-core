@@ -434,9 +434,17 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
 
+    def reduce_attributes_to_list(x: int, y: str) -> int:
+        try:
+            return x | attribute_string_to_number[y]
+        except KeyError:
+            evaluation.message("SetAttributes", "unknowattr", y)
+            return x
+
     attributes = reduce(
-        lambda x, y: x | attribute_string_to_number[y],
+        reduce_attributes_to_list,
         attributes_list,
+        0,
     )
 
     evaluation.definitions.set_attributes(tag, attributes)
