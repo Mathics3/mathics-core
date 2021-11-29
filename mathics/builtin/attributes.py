@@ -17,7 +17,14 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
 
-from mathics.core.attributes import hold_all, hold_first, listable, locked, protected
+from mathics.core.attributes import (
+    attribute_string_to_number,
+    hold_all,
+    hold_first,
+    listable,
+    locked,
+    protected,
+)
 
 
 class Attributes(Builtin):
@@ -111,7 +118,9 @@ class SetAttributes(Builtin):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.set_attribute(symbol, value)
+                    evaluation.definitions.set_attribute(
+                        symbol, attribute_string_to_number[value]
+                    )
         return SymbolNull
 
 
@@ -155,7 +164,9 @@ class ClearAttributes(Builtin):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.clear_attribute(symbol, value)
+                    evaluation.definitions.clear_attribute(
+                        symbol, attribute_string_to_number[value]
+                    )
         return SymbolNull
 
 
