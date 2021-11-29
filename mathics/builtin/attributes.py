@@ -81,7 +81,9 @@ class Attributes(Builtin):
         attributes_list = []
         # bin(number) returns a string "0b...", we iterate over all characters
         # except "0b".
-        for position, bit in enumerate(bin(attributes_bitset)[2:]):
+        # We revert the string because we want to iterate from the right to the
+        # left, otherwise, e.g. 0b10000000 would be treated as 1, not 64.
+        for position, bit in enumerate(bin(attributes_bitset)[:2:-1]):
             # Append only if the bit is 1.
             if int(bit):
                 # Convert the attribute to a string.
