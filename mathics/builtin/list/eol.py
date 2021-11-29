@@ -41,7 +41,13 @@ from mathics.core.systemsymbols import (
 
 from mathics.core.rules import Rule
 
-from mathics.core.attributes import NHoldRest, Protected
+from mathics.core.attributes import (
+    hold_first,
+    hold_rest,
+    n_hold_rest,
+    protected,
+    read_protected,
+)
 
 
 class Append(Builtin):
@@ -110,7 +116,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
@@ -453,7 +459,7 @@ class FirstCase(Builtin):
 
     """
 
-    attributes = "HoldRest"
+    attributes = hold_rest | protected
     options = Cases.options
     rules = {
         'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
@@ -479,7 +485,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
-    attributes = NHoldRest | Protected
+    attributes = n_hold_rest | protected
 
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
@@ -869,7 +875,7 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
-    attributes = NHoldRest | Protected | ReadProtected
+    attributes = n_hold_rest | protected | read_protected
 
     def apply_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
@@ -1058,7 +1064,7 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",

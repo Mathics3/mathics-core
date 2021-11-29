@@ -66,11 +66,11 @@ from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
 
 from mathics.core.attributes import (
-    HoldAll,
-    HoldFirst,
-    HoldRest,
-    Protected,
-    SequenceHold,
+    hold_all,
+    hold_first,
+    hold_rest,
+    protected,
+    sequence_hold,
 )
 
 
@@ -99,7 +99,7 @@ class Rule_(BinaryOperator):
     name = "Rule"
     operator = "->"
     precedence = 120
-    attributes = SequenceHold | Protected
+    attributes = sequence_hold | protected
     grouping = "Right"
     needs_verbatim = True
 
@@ -119,7 +119,7 @@ class RuleDelayed(BinaryOperator):
 
     operator = ":>"
     precedence = 120
-    attributes = SequenceHold | HoldRest | Protected
+    attributes = sequence_hold | hold_rest | protected
     needs_verbatim = True
 
 
@@ -891,7 +891,7 @@ class HoldPattern(PatternObject):
      = {HoldAll, Protected}
     """
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
 
     arg_counts = [1]
 
@@ -950,7 +950,7 @@ class Pattern_(PatternObject):
 
     arg_counts = [2]
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
 
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
@@ -1475,7 +1475,7 @@ class Condition(BinaryOperator, PatternObject):
     precedence = 130
 
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = HoldRest | Protected
+    attributes = hold_rest | protected
 
     arg_counts = [2]
 

@@ -10,7 +10,7 @@ from mathics.core.symbols import (
     SymbolFalse,
 )
 
-from mathics.core.attributes import Flat, HoldAll, OneIdentity, Orderless, Protected
+from mathics.core.attributes import flat, hold_all, one_identity, orderless, protected
 
 
 class Or(BinaryOperator):
@@ -34,7 +34,7 @@ class Or(BinaryOperator):
 
     operator = "||"
     precedence = 215
-    attributes = Flat | HoldAll | OneIdentity | Protected
+    attributes = flat | hold_all | one_identity | protected
 
     #    rules = {
     #        "Or[a_]": "a",
@@ -82,7 +82,7 @@ class And(BinaryOperator):
 
     operator = "&&"
     precedence = 215
-    attributes = Flat | HoldAll | OneIdentity | Protected
+    attributes = flat | hold_all | one_identity | protected
 
     #    rules = {
     #        "And[a_]": "a",
@@ -236,7 +236,7 @@ class Equivalent(BinaryOperator):
 
     operator = "\u29E6"
     precedence = 205
-    attributes = "Orderless"
+    attributes = orderless | protected
 
     def apply(self, args, evaluation):
         "Equivalent[args___]"
@@ -295,7 +295,7 @@ class Xor(BinaryOperator):
 
     operator = "\u22BB"
     precedence = 215
-    attributes = Flat | OneIdentity | Orderless | Protected
+    attributes = flat | one_identity | orderless | protected
 
     def apply(self, args, evaluation):
         "Xor[args___]"
