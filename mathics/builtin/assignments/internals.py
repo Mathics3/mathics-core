@@ -435,7 +435,8 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, rhs)
 
     attributes = reduce(
-        lambda x, y: attribute_string_to_number(x) | attribute_string_to_number(y)
+        lambda x, y: x | attribute_string_to_number[y],
+        attributes_list,
     )
 
     evaluation.definitions.set_attributes(tag, attributes)
