@@ -824,7 +824,7 @@ class Expression(BaseExpression):
                     if leaf:
                         leaves[index] = leaf
 
-        if hold_all & attributes:
+        if (hold_all | hold_all_complete) & attributes:
             # eval_range(range(0, 0))
             rest_range(range(len(leaves)))
         elif hold_first & attributes:
