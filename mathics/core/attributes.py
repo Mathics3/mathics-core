@@ -8,10 +8,6 @@
 # the attributes you need to add Protected if the builtin is not Unprotected
 # (the most of the cases).
 
-# In this file you will see that every attribute appears twice, in a variable
-# declaration and in the attributes_dict dictionary, that variable is used to
-# get the string from the attribute number and vice-versa.
-
 # To check if a builtin has an attribute, you do:
 # ATTRIBUTE_NAME & attributes
 # To set all the attributes of a builtin you do:
@@ -20,6 +16,8 @@
 # attributes = ATTRIBUTE_NAME | attributes
 # To remove an attribute you do:
 # attributes = ~ATTRIBUTE_NAME & attributes
+
+from typing import Dict
 
 # fmt: off
 nothing           = 0b0000000000000000 #  it is used when there're no attributes
@@ -47,22 +45,42 @@ n_hold_all        = 0b1000000000000000
 sequence_hold     = 0b10000000000000000
 # fmt: on
 
-attributes_dict = {
-    constant: "Constant",
-    flat: "Flat",
-    hold_all: "HoldAll",
-    hold_all_complete: "HoldAllComplete",
-    hold_first: "HoldFirst",
-    hold_rest: "HoldRest",
-    listable: "Listable",
-    locked: "Locked",
-    n_hold_all: "NHoldAll",
-    n_hold_first: "NHoldFirst",
-    n_hold_rest: "NHoldRest",
-    numeric_function: "NumericFunction",
-    one_identity: "OneIdentity",
-    orderless: "Orderless",
-    protected: "Protected",
-    read_protected: "ReadProtected",
-    sequence_hold: "SequenceHold",
+attribute_number_to_string: Dict[int, str] = {
+    constant: "System`Constant",
+    flat: "System`Flat",
+    hold_all: "System`HoldAll",
+    hold_all_complete: "System`HoldAllComplete",
+    hold_first: "System`HoldFirst",
+    hold_rest: "System`HoldRest",
+    listable: "System`Listable",
+    locked: "System`Locked",
+    n_hold_all: "System`NHoldAll",
+    n_hold_first: "System`NHoldFirst",
+    n_hold_rest: "System`NHoldRest",
+    numeric_function: "System`NumericFunction",
+    one_identity: "System`OneIdentity",
+    orderless: "System`Orderless",
+    protected: "System`Protected",
+    read_protected: "System`ReadProtected",
+    sequence_hold: "System`SequenceHold",
+}
+
+attribute_string_to_number: Dict[str, int] = {
+    "System`Constant": constant,
+    "System`Flat": flat,
+    "System`HoldAll": hold_all,
+    "System`HoldAllComplete": hold_all_complete,
+    "System`HoldFirst": hold_first,
+    "System`HoldRest": hold_rest,
+    "System`Listable": listable,
+    "System`Locked": locked,
+    "System`NHoldAll": n_hold_all,
+    "System`NHoldFirst": n_hold_first,
+    "System`NHoldRest": n_hold_rest,
+    "System`NumericFunction": numeric_function,
+    "System`OneIdentity": one_identity,
+    "System`Orderless": orderless,
+    "System`Protected": protected,
+    "System`ReadProtected": read_protected,
+    "System`SequenceHold": sequence_hold,
 }
