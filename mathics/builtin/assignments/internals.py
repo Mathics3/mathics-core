@@ -13,7 +13,9 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolMachinePrecision
 
-from mathics.core.attributes import protected
+from mathics.core.attributes import attribute_string_to_number, locked, protected
+
+from functools import reduce
 
 
 class AssignmentException(Exception):
@@ -423,15 +425,21 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     if tags is not None and tags != [tag]:
         evaluation.message(name, "tag", Symbol(name), Symbol(tag))
         raise AssignmentException(lhs, rhs)
-    attributes = get_symbol_list(
+    attributes_list = get_symbol_list(
         rhs, lambda item: evaluation.message(name, "sym", item, 1)
     )
-    if attributes is None:
+    if attributes_list is None:
         raise AssignmentException(lhs, rhs)
-    if Locked & evaluation.definitions.get_attributes(tag):
+    if locked & evaluation.definitions.get_attributes(tag):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
+
+    attributes = reduce(
+        lambda x, y: attribute_string_to_number(x) | attribute_string_to_number(y)
+    )
+
     evaluation.definitions.set_attributes(tag, attributes)
+
     return True
 
 
