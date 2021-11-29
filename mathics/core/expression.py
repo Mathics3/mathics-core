@@ -27,15 +27,15 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import SymbolSequence
 
 from mathics.core.attributes import (
-    Flat,
-    HoldAll,
-    HoldAllComplete,
-    HoldFirst,
-    HoldRest,
-    Listable,
-    NumericFunction,
-    Orderless,
-    SequenceHold,
+    flat,
+    hold_all,
+    hold_all_complete,
+    hold_first,
+    hold_rest,
+    listable,
+    numeric_function,
+    orderless,
+    sequence_hold,
 )
 
 
@@ -807,7 +807,7 @@ class Expression(BaseExpression):
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
-            if not HoldAllComplete & attributes:
+            if not hold_all_complete & attributes:
                 if self._no_symbol("System`Evaluate"):
                     return
                 for index in indices:
@@ -823,13 +823,13 @@ class Expression(BaseExpression):
                     if leaf:
                         leaves[index] = leaf
 
-        if HoldAll & attributes:
+        if hold_all & attributes:
             # eval_range(range(0, 0))
             rest_range(range(len(leaves)))
-        elif HoldFirst & attributes:
+        elif hold_first & attributes:
             rest_range(range(0, min(1, len(leaves))))
             eval_range(range(1, len(leaves)))
-        elif HoldRest & attributes:
+        elif hold_rest & attributes:
             eval_range(range(0, min(1, len(leaves))))
             rest_range(range(1, len(leaves)))
         else:
@@ -839,14 +839,14 @@ class Expression(BaseExpression):
         new = Expression(head)
         new._leaves = tuple(leaves)
 
-        if not (SequenceHold | HoldAllComplete) & attributes:
+        if not (sequence_hold | hold_all_complete) & attributes:
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
 
         for leaf in leaves:
             leaf.unevaluated = False
 
-        if not HoldAllComplete & attributes:
+        if not hold_all_complete & attributes:
             dirty_leaves = None
 
             for index, leaf in enumerate(leaves):
@@ -865,14 +865,14 @@ class Expression(BaseExpression):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
 
-        if Flat & attributes:
+        if flat & attributes:
             new = new.flatten(new._head, callback=flatten_callback)
-        if Orderless & attributes:
+        if orderless & attributes:
             new.sort()
 
         new._timestamp_cache(evaluation)
 
-        if Listable & attributes:
+        if listable & attributes:
             done, threaded = new.thread(evaluation)
             if done:
                 if threaded.sameQ(new):
@@ -883,7 +883,7 @@ class Expression(BaseExpression):
 
         def rules():
             rules_names = set()
-            if not HoldAllComplete & attributes:
+            if not hold_all_complete & attributes:
                 for leaf in leaves:
                     name = leaf.get_lookup_name()
                     if len(name) > 0:  # only lookup rules if this is a symbol
@@ -1291,7 +1291,7 @@ class Expression(BaseExpression):
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
-            if not NumericFunction & evaluation.definitions.get_attributes(
+            if not numeric_function & evaluation.definitions.get_attributes(
                 self._head.get_name()
             ):
                 return False

@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 
-from mathics.core.attributes import HoldFirst, Protected, ReadProtected
+from mathics.core.attributes import hold_first, protected, read_protected
 
 
 class AddTo(BinaryOperator):
@@ -38,7 +38,7 @@ class AddTo(BinaryOperator):
      = 12
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
     grouping = "Right"
     operator = "+="
     precedence = 100
@@ -67,7 +67,7 @@ class Decrement(PostfixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = HoldFirst | Protected | ReadProtected
+    attributes = hold_first | protected | read_protected
 
     rules = {
         "x_--": "Module[{t=x}, x = x - 1; t]",
@@ -94,7 +94,7 @@ class DivideBy(BinaryOperator):
      = 5
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
     grouping = "Right"
     operator = "/="
     precedence = 100
@@ -126,7 +126,7 @@ class Increment(PostfixOperator):
 
     operator = "++"
     precedence = 660
-    attributes = HoldFirst | Protected | ReadProtected
+    attributes = hold_first | protected | read_protected
 
     rules = {
         "x_++": (
@@ -158,7 +158,7 @@ class PreIncrement(PrefixOperator):
      = 3
     """
 
-    attributes = HoldFirst | Protected | ReadProtected
+    attributes = hold_first | protected | read_protected
     operator = "++"
     precedence = 660
 
@@ -188,7 +188,7 @@ class PreDecrement(PrefixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = HoldFirst | Protected | ReadProtected
+    attributes = hold_first | protected | read_protected
 
     rules = {
         "--x_": "x = x - 1",
@@ -211,7 +211,7 @@ class SubtractFrom(BinaryOperator):
      = 8
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
     grouping = "Right"
     operator = "-="
     precedence = 100
@@ -240,7 +240,7 @@ class TimesBy(BinaryOperator):
 
     operator = "*="
     precedence = 100
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
     grouping = "Right"
 
     rules = {

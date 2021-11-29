@@ -44,7 +44,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import SymbolList
 
-from mathics.core.attributes import HoldAll, Protected, ReadProtected
+from mathics.core.attributes import hold_all, protected, read_protected
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):
@@ -359,7 +359,7 @@ class GraphicsBox(BoxConstruct):
 
     options = Graphics.options
 
-    attributes = HoldAll | Protected | ReadProtected
+    attributes = hold_all | protected | read_protected
 
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)

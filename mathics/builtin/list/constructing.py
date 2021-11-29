@@ -25,6 +25,8 @@ from mathics.core.expression import (
 from mathics.core.atoms import Integer
 from mathics.core.symbols import SymbolList
 
+from mathics.core.attributes import hold_first, listable, protected
+
 
 class Array(Builtin):
     """
@@ -168,7 +170,7 @@ class Range(Builtin):
         "Range[imin_?RealNumberQ, imax_?RealNumberQ]": "Range[imin, imax, 1]",
     }
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     summary_text = "form a list from a range of numbers or other objects"
 
@@ -304,7 +306,7 @@ class Reap(Builtin):
      = {x, {}}
     """
 
-    attributes = HoldFirst | Protected
+    attributes = hold_first | protected
 
     rules = {
         "Reap[expr_, pattern_, f_]": (

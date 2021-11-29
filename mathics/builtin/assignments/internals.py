@@ -13,6 +13,8 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolMachinePrecision
 
+from mathics.core.attributes import protected
+
 
 class AssignmentException(Exception):
     def __init__(self, lhs, rhs) -> None:
@@ -89,7 +91,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return Protected & defin.get_attributes(tag)
+    return protected & defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):

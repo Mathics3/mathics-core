@@ -10,6 +10,8 @@ from mathics.builtin.base import Builtin
 
 from mathics.builtin.assignments.internals import get_symbol_values
 
+from mathics.core.attributes import hold_all, protected
+
 
 class DefaultValues(Builtin):
     """
@@ -36,7 +38,7 @@ class DefaultValues(Builtin):
      = {3}
     """
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
     summary_text = (
         "gives default values for the arguments associated with a function symbol"
     )
@@ -65,7 +67,7 @@ class Messages(Builtin):
      : bar
     """
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
     summary_text = "gives the list the messages associated with a particular symbol"
 
     def apply(self, symbol, evaluation):
@@ -108,7 +110,7 @@ class NValues(Builtin):
      = d
     """
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
     summary_text = "gives the list of numerical values associated with a symbol"
 
     def apply(self, symbol, evaluation):
@@ -136,7 +138,7 @@ class SubValues(Builtin):
      . f[1][x_] = x
     """
 
-    attributes = HoldAll | Protected
+    attributes = hold_all | protected
     summary_text = "gives the list of subvalues associated with a symbol"
 
     def apply(self, symbol, evaluation):
