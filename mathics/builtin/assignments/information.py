@@ -206,7 +206,7 @@ class Definition(Builtin):
         definition = evaluation.definitions.get_user_definition(name, create=False)
         all = evaluation.definitions.get_definition(name)
         if attributes:
-            attributes = attributes_bitset_to_list(attributes)
+            attributes_list = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
                     "HoldForm",
@@ -214,7 +214,8 @@ class Definition(Builtin):
                         "Set",
                         Expression("Attributes", symbol),
                         Expression(
-                            "List", *(Symbol(attribute) for attribute in attributes)
+                            "List",
+                            *(Symbol(attribute) for attribute in attributes_list)
                         ),
                     ),
                 )
