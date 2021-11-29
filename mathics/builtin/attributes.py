@@ -18,6 +18,7 @@ from mathics.core.atoms import String
 from mathics.builtin.assignments.internals import get_symbol_list
 
 from mathics.core.attributes import (
+    attribute_number_to_string,
     attribute_string_to_number,
     hold_all,
     hold_first,
@@ -75,10 +76,20 @@ class Attributes(Builtin):
         if isinstance(expr, String):
             expr = Symbol(expr.get_string_value())
         name = expr.get_lookup_name()
-        attributes = list(evaluation.definitions.get_attributes(name))
-        attributes.sort()
-        attr = [Symbol(attribute) for attribute in attributes]
-        return Expression("List", *attr)
+        attributes_bitset = evaluation.definitions.get_attributes(name)
+
+        attributes_list = []
+        # bin(number) returns a string "0b...", we iterate over all characters
+        # except "0b".
+        for position, bit in enumerate(bin(attributes_bitset)[2:]):
+            # Append only if the bit is 1.
+            if int(bit):
+                # Convert the attribute to a string.
+                attributes_list.append(attribute_number_to_string[int(bit) << position])
+
+        attributes_list.sort()
+        attributes_symbols = [Symbol(attribute) for attribute in attributes_list]
+        return Expression("List", *attributes_symbols)
 
 
 class SetAttributes(Builtin):
