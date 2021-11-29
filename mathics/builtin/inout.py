@@ -543,7 +543,7 @@ class MakeBoxes(Builtin):
      = RowBox[{a, ,, b}]
     """
 
-    attributes = hold_all_complete | protected
+    attributes = hold_all_complete
 
     rules = {
         "MakeBoxes[Infix[head_[leaves___]], "
