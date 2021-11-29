@@ -5,28 +5,21 @@ Filesystem Operations
 """
 
 import os
+import os.path as osp
 import pathlib
+import re
 import shutil
 import tempfile
 import time
 
-import os.path as osp
-
-
+from mathics.builtin.base import Builtin, MessageException, Predefined
+from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
+from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
+from mathics.builtin.numeric import Hash
+from mathics.builtin.strings import to_regex
+from mathics.core.atoms import Integer, Real, String, from_python
+from mathics.core.attributes import listable, locked, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.atoms import Real, Integer, String, from_python
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolNull,
-    SymbolTrue,
-    valid_context_name,
-)
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-)
-
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,
@@ -35,19 +28,15 @@ from mathics.core.streams import (
     path_search,
     urlsave_tmp,
 )
-
-from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.files_io.files import (
-    DIRECTORY_STACK,
-    INITIAL_DIR,  # noqa is used via global
-    MathicsOpen,
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolNull,
+    SymbolTrue,
+    valid_context_name,
 )
-from mathics.builtin.numeric import Hash
-from mathics.builtin.strings import to_regex
-from mathics.builtin.base import MessageException
-import re
-
-from mathics.core.attributes import Listable, Locked, Protected, ReadProtected
+from mathics.core.systemsymbols import SymbolFailed
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
@@ -67,8 +56,6 @@ class AbsoluteFileName(Builtin):
      : File not found during AbsoluteFileName[Some/NonExistant/Path.ext].
      = $Failed
     """
-
-    attributes = "Protected"
 
     messages = {
         "fstr": ("File specification x is not a string of one or more characters."),
@@ -109,8 +96,6 @@ class BaseDirectory(Predefined):
 
     name = "$BaseDirectory"
 
-    attributes = "Protected"
-
     def evaluate(self, evaluation):
         global ROOT_DIR
         return String(ROOT_DIR)
@@ -123,8 +108,6 @@ class CopyDirectory(Builtin):
       <dd>copies directory $dir1$ to $dir2$.
     </dl>
     """
-
-    attributes = "Protected"
 
     messages = {
         "argr": "called with `1` argument; 2 arguments are expected.",
@@ -186,8 +169,6 @@ class CopyFile(Builtin):
         "nffil": "File not found during `1`.",
     }
 
-    attributes = "Protected"
-
     def apply(self, source, dest, evaluation):
         "CopyFile[source_, dest_]"
 
@@ -242,7 +223,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     options = {
         "CreateIntermediateDirectories": "True",
@@ -304,7 +285,7 @@ class CreateFile(Builtin):
         "OverwriteTarget": "True",
     }
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     def apply(self, filename, evaluation, **options):
         "CreateFile[filename_String, OptionsPattern[CreateFile]]"
@@ -353,8 +334,6 @@ class DeleteDirectory(Builtin):
     #> Quiet[DeleteDirectory[dir]]
      = $Failed
     """
-
-    attributes = "Protected"
 
     options = {
         "DeleteContents": "False",
@@ -427,8 +406,6 @@ class DeleteFile(Builtin):
         "nffil": "File not found during `1`.",
     }
 
-    attributes = "Protected"
-
     def apply(self, filename, evaluation):
         "DeleteFile[filename_]"
 
@@ -475,8 +452,6 @@ class Directory(Builtin):
     = ...
     """
 
-    attributes = "Protected"
-
     def apply(self, evaluation):
         "Directory[]"
         result = os.getcwd()
@@ -513,8 +488,6 @@ class DirectoryName(Builtin):
      : String expected at position 1 in DirectoryName[x].
      = DirectoryName[x]
     """
-
-    attributes = "Protected"
 
     options = {
         "OperatingSystem": "$OperatingSystem",
@@ -567,8 +540,6 @@ class DirectoryStack(Builtin):
     = ...
     """
 
-    attributes = "Protected"
-
     def apply(self, evaluation):
         "DirectoryStack[]"
         global DIRECTORY_STACK
@@ -600,8 +571,6 @@ class DirectoryQ(Builtin):
         ),
     }
 
-    attributes = "Protected"
-
     def apply(self, pathname, evaluation):
         "DirectoryQ[pathname_]"
         path = pathname.to_python()
@@ -629,8 +598,6 @@ class ExpandFileName(Builtin):
      = ...
     """
 
-    attributes = "Protected"
-
     messages = {
         "string": "String expected at position 1 in `1`.",
     }
@@ -651,7 +618,7 @@ class ExpandFileName(Builtin):
 
 
 class File(Builtin):
-    attributes = "Protected"
+    pass
 
 
 class FileBaseName(Builtin):
@@ -673,8 +640,6 @@ class FileBaseName(Builtin):
     #> FileBaseName["file"]
      = file
     """
-
-    attributes = "Protected"
 
     options = {
         "OperatingSystem": "$OperatingSystem",
@@ -784,8 +749,6 @@ class FileDate(Builtin):
             "Modification" -> FileDate[filepath, "Modification"]}""",
     }
 
-    attributes = "Protected"
-
     def apply(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
         py_path = path_search(path.to_python()[1:-1])
@@ -852,8 +815,6 @@ class FileExistsQ(Builtin):
         ),
     }
 
-    attributes = "Protected"
-
     def apply(self, filename, evaluation):
         "FileExistsQ[filename_]"
         path = filename.to_python()
@@ -887,8 +848,6 @@ class FileExtension(Builtin):
     #> FileExtension["file"]
      = #<--#
     """
-
-    attributes = "Protected"
 
     options = {
         "OperatingSystem": "$OperatingSystem",
@@ -950,7 +909,7 @@ class FileHash(Builtin):
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
     }
 
-    attributes = Protected | ReadProtected
+    attributes = protected | read_protected
 
     def apply(self, filename, hashtype, format, evaluation):
         "FileHash[filename_String, hashtype_String, format_String]"
@@ -1014,8 +973,6 @@ class FileNameDepth(Builtin):
      = 0
     """
 
-    attributes = "Protected"
-
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -1044,8 +1001,6 @@ class FileNameJoin(Builtin):
     >> FileNameJoin[{"dir1", "dir2", "dir3"}, OperatingSystem -> "Windows"]
      = dir1\\dir2\\dir3
     """
-
-    attributes = "Protected"
 
     options = {
         "OperatingSystem": "$OperatingSystem",
@@ -1122,8 +1077,6 @@ class FileType(Builtin):
         ),
     }
 
-    attributes = "Protected"
-
     def apply(self, filename, evaluation):
         "FileType[filename_]"
         if not isinstance(filename, String):
@@ -1161,8 +1114,6 @@ class FindFile(Builtin):
     #> FindFile["SomeTypoPackage`"]
      = $Failed
     """
-
-    attributes = "Protected"
 
     messages = {
         "string": "String expected at position 1 in `1`.",
@@ -1339,8 +1290,6 @@ class FileNameSplit(Builtin):
      = {example, path}
     """
 
-    attributes = "Protected"
-
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -1408,8 +1357,6 @@ class FileNameTake(Builtin):
     # >> FileNameTake["tmp/file.txt", -1]
     #  = file.txt
 
-    attributes = "Protected"
-
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -1459,8 +1406,6 @@ class FindList(Builtin):
         "strs": "String or non-empty list of strings expected at position `1` in `2`.",
         "intnm": "Non-negative machine-sized integer expected at position `1` in `2`.",
     }
-
-    attributes = "Protected"
 
     options = {
         "AnchoredSearch": "False",
@@ -1551,8 +1496,6 @@ class HomeDirectory(Predefined):
     """
 
     name = "$HomeDirectory"
-
-    attributes = "Protected"
 
     def evaluate(self, evaluation):
         global HOME_DIR
@@ -1742,7 +1685,7 @@ class OperatingSystem(Predefined):
      = ...
     """
 
-    attributes = Locked | Protected
+    attributes = locked | protected
     name = "$OperatingSystem"
 
     def evaluate(self, evaluation):
@@ -1778,8 +1721,6 @@ class ParentDirectory(Builtin):
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
-
-    attributes = "Protected"
 
     def apply(self, path, evaluation):
         "ParentDirectory[path_]"
@@ -1836,8 +1777,6 @@ class RenameDirectory(Builtin):
       <dd>renames directory $dir1$ to $dir2$.
     </dl>
     """
-
-    attributes = "Protected"
 
     messages = {
         "argr": "called with `1` argument; 2 arguments are expected.",
@@ -1901,8 +1840,6 @@ class RenameFile(Builtin):
         "nffil": "File not found during `1`.",
     }
 
-    attributes = "Protected"
-
     def apply(self, source, dest, evaluation):
         "RenameFile[source_, dest_]"
 
@@ -1954,8 +1891,6 @@ class ResetDirectory(Builtin):
         "dtop": "Directory stack is empty.",
     }
 
-    attributes = "Protected"
-
     def apply(self, evaluation):
         "ResetDirectory[]"
         try:
@@ -1980,8 +1915,6 @@ class RootDirectory(Predefined):
     """
 
     name = "$RootDirectory"
-
-    attributes = "Protected"
 
     def evaluate(self, evaluation):
         global SYS_ROOT_DIR
@@ -2013,8 +1946,6 @@ class SetDirectory(Builtin):
         ),
         "cdir": "Cannot set current directory to `1`.",
     }
-
-    attributes = "Protected"
 
     def apply(self, path, evaluation):
         "SetDirectory[path_]"
@@ -2091,8 +2022,6 @@ class SetFileDate(Builtin):
             "The Creation date of a file cannot be set on " "Macintosh or Unix."
         ),
     }
-
-    attributes = "Protected"
 
     def apply(self, filename, datelist, attribute, evaluation):
         "SetFileDate[filename_, datelist_, attribute_]"
@@ -2235,8 +2164,6 @@ class UserBaseDirectory(Predefined):
     """
 
     name = "$UserBaseDirectory"
-
-    attributes = "Protected"
 
     def evaluate(self, evaluation):
         global HOME_DIR

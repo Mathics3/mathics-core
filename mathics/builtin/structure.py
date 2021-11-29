@@ -38,6 +38,8 @@ from mathics.builtin.lists import (
     List,
 )
 
+from mathics.core.attributes import locked, protected
+
 import platform
 
 if platform.python_implementation() == "PyPy":
@@ -1176,7 +1178,7 @@ class Symbol_(Builtin):
     """
 
     name = "Symbol"
-    attributes = Locked | Protected
+    attributes = locked | protected
 
     messages = {
         "symname": (

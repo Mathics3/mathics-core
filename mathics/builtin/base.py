@@ -41,7 +41,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import Nothing, Protected
+from mathics.core.attributes import nothing, protected
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -75,7 +75,7 @@ class Builtin(object):
     name: typing.Optional[str] = None
     context: str = ""
     abstract: bool = False
-    attributes: int = Protected
+    attributes: int = protected
     rules: typing.Dict[str, Any] = {}
     formats: typing.Dict[str, Any] = {}
     messages: typing.Dict[str, Any] = {}
@@ -121,7 +121,7 @@ class Builtin(object):
                 # used, so it won't work.
                 if option not in definitions.builtin:
                     definitions.builtin[option] = Definition(
-                        name=name, attributes=Nothing
+                        name=name, attributes=nothing
                     )
 
         # Check if the given options are actually supported by the Builtin.
@@ -256,7 +256,7 @@ class Builtin(object):
                 # used, so it won't work.
                 if option not in definitions.builtin:
                     definitions.builtin[option] = Definition(
-                        name=name, attributes=Nothing
+                        name=name, attributes=nothing
                     )
         defaults = []
         for spec, value in self.defaults.items():

@@ -14,7 +14,7 @@ from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0, String
 
-from mathics.core.attributes import Listable, NumericFunction, Protected
+from mathics.core.attributes import listable, numeric_function, protected
 
 
 class Floor(SympyFunction):
@@ -52,7 +52,7 @@ class Floor(SympyFunction):
      = -10
     """
 
-    attributes = Listable | NumericFunction | Protected
+    attributes = listable | numeric_function | protected
 
     sympy_name = "floor"
     rules = {"Floor[x_, a_]": "Floor[x / a] * a"}
@@ -81,7 +81,7 @@ class Ceiling(SympyFunction):
      = 2 + I
     """
 
-    attributes = Listable | NumericFunction | Protected
+    attributes = listable | numeric_function | protected
 
     rules = {"Ceiling[x_, a_]": "Ceiling[x / a] * a"}
 
@@ -127,7 +127,7 @@ class IntegerLength(Builtin):
      = True
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     rules = {
         "IntegerLength[n_]": "IntegerLength[n, 10]",
@@ -190,7 +190,7 @@ class BitLength(Builtin):
      = 0
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     def apply(self, n, evaluation):
         "BitLength[n_Integer]"
@@ -255,7 +255,7 @@ class IntegerString(Builtin):
      = c6i5
     """
 
-    attributes = Listable | Protected
+    attributes = listable | protected
 
     rules = {
         "IntegerString[n_Integer]": "IntegerString[n, 10]",
