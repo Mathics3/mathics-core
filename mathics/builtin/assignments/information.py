@@ -206,8 +206,7 @@ class Definition(Builtin):
         definition = evaluation.definitions.get_user_definition(name, create=False)
         all = evaluation.definitions.get_definition(name)
         if attributes:
-            attributes = list(attributes)
-            attributes.sort()
+            attributes = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
                     "HoldForm",
