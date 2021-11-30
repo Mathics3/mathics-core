@@ -94,7 +94,7 @@ def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
     # left, otherwise, e.g. 0b10000000 would be treated as 1, not 64.
     for position, bit in enumerate(bin(attributes_bitset)[:1:-1]):
         # Append only if the bit is 1.
-        if int(bit):
+        if bit == "1":
             # Convert the attribute to a string.
             attributes_list.append(attribute_number_to_string[int(bit) << position])
 
