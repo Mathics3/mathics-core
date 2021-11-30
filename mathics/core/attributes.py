@@ -86,7 +86,21 @@ attribute_string_to_number: Dict[str, int] = {
 }
 
 
+def attributes_strset_to_bitset(attributes_set: set) -> int:
+    """
+    converts a list of attributes in its bitset version
+    """
+    attributes_bitset = nothing
+    for s in attributes_set:
+        attributes_bitset |= attribute_string_to_number[s]
+    return attributes_bitset
+
+
 def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
+    """
+    converts a bitset representation of a Symbol attributes to a list
+    of attributes names.
+    """
     attributes_list = []
     # bin(number) returns a string "0b...", we iterate over all characters
     # except "0b".

@@ -41,7 +41,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import nothing, protected
+from mathics.core.attributes import nothing, protected, attributes_strset_to_bitset
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -265,12 +265,16 @@ class Builtin(object):
             if pattern is not None:
                 defaults.append(Rule(pattern, value, system=True))
 
+        attributes = self.attributes
+        # backward compatibility
+        if isinstance(self.attributes, set):
+            attributes = attributes_strset_to_bitset(self.attributes)
         definition = Definition(
             name=name,
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=self.attributes,
+            attributes=attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,
