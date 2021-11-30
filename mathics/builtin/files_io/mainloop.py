@@ -104,7 +104,7 @@ class IOHookPreRead(Builtin):
     """
 
     name = "$PreRead"
-    attributes = 0
+    attributes = nothing
 
 
 class IOHookPre(Builtin):
@@ -136,7 +136,7 @@ class IOHookPre(Builtin):
     """
 
     name = "$Pre"
-    attributes = 0
+    attributes = nothing
 
 
 class IOHookPost(Builtin):
