@@ -18,7 +18,7 @@ from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.numeric import Hash
 from mathics.builtin.strings import to_regex
 from mathics.core.atoms import Integer, Real, String, from_python
-from mathics.core.attributes import listable, locked, protected, read_protected
+from mathics.core.attributes import listable, locked, nothing, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,
@@ -1530,7 +1530,7 @@ class InstallationDirectory(Predefined):
      = ...
     """
 
-    attributes = 0
+    attributes = nothing
     name = "$InstallationDirectory"
 
     def evaluate(self, evaluation):
@@ -1746,7 +1746,7 @@ class Path(Predefined):
      = ...
     """
 
-    attributes = 0
+    attributes = nothing
     name = "$Path"
 
     def evaluate(self, evaluation):

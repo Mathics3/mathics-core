@@ -8,33 +8,21 @@ Dates and times are represented symbolically; computations can be performed on t
 Date object can also input and output dates and times in a wide range of formats, as well as handle calendars.
 """
 
-from datetime import datetime, timedelta
-import dateutil.parser
 import re
 import sys
 import time
+from datetime import datetime, timedelta
 
-
-from mathics.core.expression import Expression
-from mathics.core.atoms import (
-    String,
-    Integer,
-    from_python,
-    Real,
-)
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import (
-    SymbolAborted,
-    SymbolInfinity,
-)
-
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+import dateutil.parser
 
 from mathics.builtin.base import Builtin, Predefined
+from mathics.core.atoms import Integer, Real, String, from_python
+from mathics.core.attributes import hold_all, nothing, protected, read_protected
+from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolAborted, SymbolInfinity
 from mathics.settings import TIME_12HOUR
-
-from mathics.core.attributes import hold_all, protected, read_protected
-
 
 START_TIME = time.time()
 
@@ -1155,7 +1143,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = 0
+    attributes = nothing
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 
