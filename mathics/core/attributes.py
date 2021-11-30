@@ -95,7 +95,6 @@ def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
     for position, bit in enumerate(bin(attributes_bitset)[:1:-1]):
         # Append only if the bit is 1.
         if int(bit):
-            print(1)
             # Convert the attribute to a string.
             attributes_list.append(attribute_number_to_string[int(bit) << position])
 
