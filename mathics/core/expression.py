@@ -422,7 +422,7 @@ class Expression(BaseExpression):
             self._cache = self._cache.reordered()
 
     def get_attributes(self, definitions):
-        if self.get_head() is SymbolFunction and len(self._leaves) > 2:
+        if self._head is SymbolFunction and len(self._leaves) > 2:
             res = self._leaves[2]
             if res.is_symbol():
                 return (str(res),)
@@ -431,7 +431,13 @@ class Expression(BaseExpression):
         return nothing
 
     def get_lookup_name(self) -> bool:
-        return self._head.get_lookup_name()
+        lookup_symbol = self._head
+        while True:
+            if isinstance(lookup_symbol, Symbol):
+                return lookup_symbol.name
+            if isinstance(lookup_symbol, Atom):
+                return lookup_symbol.get_head().name
+            lookup_symbol = lookup_symbol._head
 
     def has_form(self, heads, *leaf_counts):
         """
