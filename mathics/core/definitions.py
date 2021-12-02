@@ -374,7 +374,8 @@ class Definitions(object):
         if cached is not None:
             return cached
 
-        assert isinstance(name, str)
+        if isinstance(name, Symbol):
+            return name.name
 
         # Bail out if the name we're being asked to look up is already
         # fully qualified.

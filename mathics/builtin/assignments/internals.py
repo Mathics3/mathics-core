@@ -116,7 +116,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return protected & defin.get_attributes(tag)
+    return protected & defin.get_attributes(tag.name)
 
 
 def repl_pattern_by_symbol(expr):

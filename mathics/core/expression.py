@@ -911,7 +911,7 @@ class Expression(BaseExpression):
                     return threaded, True
 
         def rules():
-            rules_names = set()
+            rules_symbols = set()
             if not hold_all_complete & attributes:
                 for leaf in leaves:
                     symbol = leaf.get_lookup_symbol()
