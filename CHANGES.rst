@@ -3,17 +3,17 @@ CHANGES
 
 New Builtins
 ============
-* ``ShowStep=True`` makes that every step in the evaluation is printed out. If it is set to ``False`` the standard behaviour is recovered.
+* ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
 
 
 Internals
 =========
 
 
-* Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access. 
+* Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
-* To numerify expressions, the function ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function 
+* To numerify expressions, the function ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function
 ``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules.
 * A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
