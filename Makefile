@@ -62,8 +62,14 @@ clean-cython:
 	find mathics -name "*.so" -type f -delete; \
 	find mathics -name "*.c" -type f -delete
 
+#: Remove Python cache files
+clean-cache:
+	find mathics -name *.py[co] -type f -delete; \
+	find mathics -name __pycache__ -type d -delete; \
+	rm -rf build || true
+
 #: Remove derived files
-clean: clean-cython
+clean: clean-cython clean-cache
 	for dir in mathics/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
