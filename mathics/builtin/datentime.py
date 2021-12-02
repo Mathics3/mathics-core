@@ -8,19 +8,23 @@ Dates and times are represented symbolically; computations can be performed on t
 Date object can also input and output dates and times in a wide range of formats, as well as handle calendars.
 """
 
-from datetime import datetime, timedelta
-import dateutil.parser
 import re
 import sys
 import time
+from datetime import datetime, timedelta
 
+import dateutil.parser
 
+from mathics.builtin.base import Builtin, Predefined
+from mathics.core.attributes import hold_all, nothing, protected, read_protected
+from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
-    from_python,
     Real,
+    String,
+    from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
@@ -38,7 +42,6 @@ from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.settings import TIME_12HOUR
-
 
 START_TIME = time.time()
 
@@ -414,7 +417,7 @@ class AbsoluteTiming(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     summary_text = "total wall-clock time to run a Mathics command"
 
@@ -470,7 +473,7 @@ class DateDifference(Builtin):
         ),
     }
 
-    attributes = ("ReadProtected",)
+    attributes = read_protected | protected
 
     summary_text = "find the difference in days, weeks, etc. between two dates"
 
@@ -721,7 +724,7 @@ class DatePlus(Builtin):
      = {2010, 4, 3}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = read_protected | protected
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -912,7 +915,7 @@ class DateString(_DateFormat):
 
     """
 
-    attributes = ("ReadProtected",)
+    attributes = read_protected | protected
 
     rules = {
         "DateString[]": "DateString[DateList[], $DateStringFormat]",
@@ -1126,7 +1129,7 @@ if sys.platform != "win32" and ("Pyston" not in sys.version):
         # >> a=1; s
         # =  Cos[x] (-5 + Cos[2 x]) / 6
 
-        attributes = ("HoldAll",)
+        attributes = hold_all | protected
         messages = {
             "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
         }
@@ -1172,7 +1175,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = ("Unprotected",)
+    attributes = nothing
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 
@@ -1228,7 +1231,7 @@ class Timing(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     summary_text = "CPU time to run a Mathics command"
 

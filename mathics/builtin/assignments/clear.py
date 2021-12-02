@@ -21,6 +21,16 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import is_protected
 
+from mathics.core.attributes import (
+    hold_all,
+    hold_first,
+    listable,
+    locked,
+    nothing,
+    protected,
+    read_protected,
+)
+
 
 class Clear(Builtin):
     """
@@ -60,7 +70,7 @@ class Clear(Builtin):
     """
 
     allow_locked = True
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -102,7 +112,7 @@ class Clear(Builtin):
                 if is_protected(Symbol(name), evaluation.definitions):
                     evaluation.message("Clear", "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and SymbolLocked in attributes:
+                if not self.allow_locked and locked & attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
                 definition = evaluation.definitions.get_user_definition(name)
@@ -145,7 +155,7 @@ class ClearAll(Clear):
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
-        definition.attributes = set()
+        definition.attributes = nothing
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []
@@ -226,7 +236,7 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    attributes = ("HoldFirst", "Listable", "ReadProtected")
+    attributes = hold_first | listable | protected | read_protected
     operator = "=."
 
     messages = {

@@ -14,6 +14,15 @@ from mathics.core.atoms import Integer
 from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse, SymbolList
 from mathics.core.systemsymbols import SymbolComplexInfinity
 
+from mathics.core.attributes import (
+    flat,
+    listable,
+    numeric_function,
+    one_identity,
+    orderless,
+    protected,
+)
+
 SymbolQuotient = Symbol("Quotient")
 SymbolQuotientRemainder = Symbol("QuotientRemainder")
 
@@ -48,7 +57,7 @@ class CoprimeQ(Builtin):
      = False
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     def apply(self, args, evaluation):
         "CoprimeQ[args__]"
@@ -78,7 +87,7 @@ class EvenQ(Test):
      = False
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def test(self, n):
         value = n.get_int_value()
@@ -104,7 +113,7 @@ class GCD(Builtin):
     'GCD' does not work for rational numbers and Gaussian integers yet.
     """
 
-    attributes = ("Flat", "Listable", "OneIdentity", "Orderless")
+    attributes = flat | listable | one_identity | orderless | protected
 
     def apply(self, ns, evaluation):
         "GCD[ns___Integer]"
@@ -132,7 +141,7 @@ class LCM(Builtin):
      = 600
     """
 
-    attributes = ("Flat", "Listable", "OneIdentity", "Orderless")
+    attributes = flat | listable | one_identity | orderless | protected
 
     def apply(self, ns, evaluation):
         "LCM[ns___Integer]"
@@ -165,7 +174,7 @@ class Mod(Builtin):
      = Mod[5, 0]
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = listable | numeric_function | protected
 
     def apply(self, n, m, evaluation):
         "Mod[n_Integer, m_Integer]"
@@ -190,7 +199,7 @@ class OddQ(Test):
      = False
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def test(self, n):
         value = n.get_int_value()
@@ -218,7 +227,7 @@ class PowerMod(Builtin):
     'PowerMod' does not support rational coefficients (roots) yet.
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
@@ -277,7 +286,7 @@ class PrimeQ(SympyFunction):
      = {False, True, True, False, True, False, True, False, False, False, True, False, True, False, False, False, True, False, True, False}
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = listable | numeric_function | protected
 
     sympy_name = "isprime"
 
@@ -316,7 +325,7 @@ class Quotient(Builtin):
      = -5
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = listable | numeric_function | protected
 
     messages = {
         "infy": "Infinite expression `1` encountered.",
@@ -361,7 +370,7 @@ class QuotientRemainder(Builtin):
      = {2, 1.}
     """
 
-    attributes = ("Listable", "NumericFunction")
+    attributes = listable | numeric_function | protected
 
     messages = {
         "divz": "The argument 0 in `1` should be nonzero.",

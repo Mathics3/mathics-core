@@ -35,6 +35,8 @@ from mathics.core.evaluation import (
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
+from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
+
 
 class Abort(Builtin):
     """
@@ -108,7 +110,7 @@ class Catch(Builtin):
     #> Clear[f]
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     summary_text = "Handles an exception raised by a 'Throw'"
 
@@ -184,7 +186,7 @@ class CompoundExpression(BinaryOperator):
     #> Clear[x]; Clear[z]
     """
 
-    attributes = ("HoldAll", "ReadProtected")
+    attributes = hold_all | protected | read_protected
     operator = ";"
     precedence = 10
 
@@ -311,7 +313,7 @@ class For(Builtin):
      = 120
     """
 
-    attributes = ("HoldRest",)
+    attributes = hold_rest | protected
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
@@ -363,7 +365,7 @@ class If(Builtin):
     >> If[a, (*then*) b, (*else*) c];
     """
 
-    attributes = ("HoldRest",)
+    attributes = hold_rest | protected
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def apply_2(self, condition, t, evaluation):
@@ -736,7 +738,7 @@ class Switch(Builtin):
      = Switch[b, b]
     """
 
-    attributes = ("HoldRest",)
+    attributes = hold_rest | protected
 
     messages = {
         "argct": (
@@ -791,7 +793,7 @@ class Which(Builtin):
      = Which[a, b, c]
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     summary_text = "test which of a sequence of conditions are true"
 
     def apply(self, items, evaluation):
@@ -838,7 +840,7 @@ class While(Builtin):
      = 12
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     rules = {
         "While[test_]": "While[test, Null]",
     }

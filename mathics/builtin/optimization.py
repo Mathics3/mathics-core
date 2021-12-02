@@ -9,12 +9,13 @@ We intend to provide local and global optimization techniques, both numeric and 
 """
 
 
+import sympy
+
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
 from mathics.core.atoms import from_python
 from mathics.core.convert import from_sympy
-
-import sympy
+from mathics.core.expression import Expression
+from mathics.core.attributes import constant, protected, read_protected
 
 from mathics.core.symbols import Symbol
 
@@ -38,7 +39,7 @@ class Minimize(Builtin):
      = {{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     def apply_onevariable(self, f, x, evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
@@ -83,7 +84,7 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or SymbolConstant in var.get_attributes(evaluation.definitions)
+                or constant & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -162,7 +163,7 @@ class Minimize(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or SymbolConstant in var.get_attributes(evaluation.definitions)
+                or constant & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -366,7 +367,7 @@ class Maximize(Builtin):
      = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"

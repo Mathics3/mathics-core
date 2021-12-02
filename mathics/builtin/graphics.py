@@ -54,6 +54,8 @@ from mathics.core.systemsymbols import (
 from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_bezier
 
+from mathics.core.attributes import protected, read_protected
+
 
 SymbolEdgeForm = Symbol("System`EdgeForm")
 SymbolFaceForm = Symbol("System`FaceForm")
@@ -1300,7 +1302,7 @@ class GraphicsElements(_GraphicsElements):
 
 
 class Directive(Builtin):
-    attributes = ("ReadProtected",)
+    attributes = read_protected | protected
 
 
 class Tiny(Builtin):

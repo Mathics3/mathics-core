@@ -43,6 +43,8 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
+from mathics.core.attributes import listable, protected
+
 
 _regex_longest = {
     "+": "+",
@@ -598,7 +600,6 @@ class HexidecimalCharacter(Builtin):
 
 
 class _StringFind(Builtin):
-    attributes = "Protected"
 
     options = {
         "IgnoreCase": "False",
@@ -880,7 +881,7 @@ class ToExpression(Builtin):
     #> ToExpression["log(x)", StandardForm]
      = log x
     """
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     messages = {
         "argb": (

@@ -48,6 +48,8 @@ from mathics.core.rules import Pattern
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
 
+from mathics.core.attributes import listable, protected
+
 import sympy
 
 
@@ -380,7 +382,7 @@ class Cancel(Builtin):
      = 2 f[x] / x
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, expr, evaluation):
         "Cancel[expr_]"
@@ -496,7 +498,7 @@ class Together(Builtin):
      = f[x] (1 + x) / x ^ 2
     """
 
-    attributes = ["Listable"]
+    attributes = listable | protected
 
     def apply(self, expr, evaluation):
         "Together[expr_]"
@@ -528,7 +530,7 @@ class Factor(Builtin):
      = {x (1 + x)}
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     def apply(self, expr, evaluation):
         "Factor[expr_]"
@@ -690,7 +692,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    attributes = ["Listable"]
+    attributes = listable | protected
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"
@@ -969,7 +971,7 @@ class Numerator(Builtin):
      = a + b
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, expr, evaluation):
         "Numerator[expr_]"
@@ -996,7 +998,7 @@ class Denominator(Builtin):
      = 1
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, expr, evaluation):
         "Denominator[expr_]"
@@ -1076,7 +1078,7 @@ class MinimalPolynomial(Builtin):
      = 1 - 4 #1 ^ 2 + #1 ^ 4
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     messages = {
         "nalg": "`1` is not an explicit algebraic number.",
@@ -1280,7 +1282,7 @@ class Coefficient(Builtin):
         "ivar": "`1` is not a valid variable.",
     }
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     def apply_noform(self, expr, evaluation):
         "Coefficient[expr_]"
@@ -1452,7 +1454,7 @@ class Exponent(Builtin):
      = Exponent[x ^ 2]
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     messages = {
         "argtu": "Exponent called with `1` argument; 2 or 3 arguments are expected.",

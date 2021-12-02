@@ -14,6 +14,8 @@ from itertools import chain
 from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
+from mathics.core.attributes import flat, hold_all, n_hold_all, one_identity, protected
+
 
 class Function(PostfixOperator):
     """
@@ -62,7 +64,7 @@ class Function(PostfixOperator):
 
     operator = "&"
     precedence = 90
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "slot": "`1` should contain a positive integer.",
@@ -151,7 +153,7 @@ class Slot(Builtin):
      = #0
     """
 
-    attributes = ("NHoldAll",)
+    attributes = n_hold_all | protected
 
     rules = {
         "Slot[]": "Slot[1]",
@@ -183,7 +185,7 @@ class SlotSequence(Builtin):
      = ##1
     """
 
-    attributes = ("NHoldAll",)
+    attributes = n_hold_all | protected
 
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
@@ -213,7 +215,7 @@ class Composition(Builtin):
      = Composition[f, g, h]
     """
 
-    attributes = ("Flat", "OneIdentity")
+    attributes = flat | one_identity | protected
 
     rules = {
         "Composition[]": "Identity",

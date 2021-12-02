@@ -10,6 +10,8 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics.core.symbols import SymbolList
 
+from mathics.core.attributes import listable, protected, read_protected
+
 
 class Characters(Builtin):
     """
@@ -34,7 +36,7 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     def apply(self, string, evaluation):
         "Characters[string_String]"
@@ -56,7 +58,7 @@ class CharacterRange(Builtin):
      = {}
     """
 
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     messages = {
         "argtype": "Arguments `1` and `2` are not both strings of length 1.",
@@ -166,7 +168,7 @@ class ToLowerCase(Builtin):
      = new york
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, s, evaluation):
         "ToLowerCase[s_String]"
@@ -184,7 +186,7 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, s, evaluation):
         "ToUpperCase[s_String]"

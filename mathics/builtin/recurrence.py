@@ -20,6 +20,7 @@ from mathics.core.systemsymbols import (
     SymbolEqual,
     SymbolConstant,
 )
+from mathics.core.attributes import constant
 
 
 class RSolve(Builtin):
@@ -78,8 +79,8 @@ class RSolve(Builtin):
 
         if (
             (n.is_atom() and not n.is_symbol())
-            or n.get_head() in (SymbolPlus, SymbolTimes, SymbolPower)
-            or SymbolConstant in n.get_attributes(evaluation.definitions)
+            or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
+            or constant & n.get_attributes(evaluation.definitions)
         ):
             # TODO: Factor out this check for dsvar into a separate
             # function. DSolve uses this too.

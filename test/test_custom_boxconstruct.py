@@ -2,6 +2,7 @@ from .helper import evaluate, session
 
 from mathics.builtin.base import BoxConstruct, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
+from mathics.core.attributes import hold_all, protected, read_protected
 
 
 class CustomBoxConstruct(BoxConstruct):
@@ -44,7 +45,7 @@ class CustomGraphicsBox(BoxConstruct):
     """"""
 
     options = GRAPHICS_OPTIONS
-    attributes = ("HoldAll", "ReadProtected")
+    attributes = hold_all | protected | read_protected
 
     def apply_box(self, elems, evaluation, options):
         """System`MakeBoxes[System`Graphics[elems_, System`OptionsPattern[System`Graphics]],

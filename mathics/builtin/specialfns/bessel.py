@@ -11,10 +11,18 @@ from mathics.core.atoms import from_mpmath
 from mathics.core.number import machine_precision, get_precision, PrecisionValueError
 from mathics.core.number import prec as _prec
 
+from mathics.core.attributes import (
+    listable,
+    n_hold_first,
+    numeric_function,
+    protected,
+    read_protected,
+)
+
 
 class _Bessel(_MPMathFunction):
 
-    attributes = ("Listable", "NumericFunction", "Protected", "ReadProtected")
+    attributes = listable | numeric_function | protected | read_protected
 
     nargs = 2
 
@@ -39,8 +47,6 @@ class AiryAi(_MPMathFunction):
     >> Plot[AiryAi[x], {x, -10, 10}]
      = -Graphics-
     """
-
-    # attributes = ("Listable", "NumericFunction") # inherited
 
     rules = {
         "Derivative[1][AiryAi]": "AiryAiPrime",
@@ -72,8 +78,6 @@ class AiryAiPrime(_MPMathFunction):
     rules = {
         "Derivative[1][AiryAiPrime]": "(#1 AiryAi[#1])&",
     }
-
-    attributes = ("Listable", "NumericFunction")
 
     summary_text = "Derivative of the Airy function Ai"
     sympy_name = "airyaiprime"
@@ -107,13 +111,7 @@ class AiryAiZero(Builtin):
 
     # TODO: 'AiryAiZero[$k$, $x0$]' - $k$th zero less than x0
 
-    attributes = (
-        "Listable",
-        "NHoldFirst",
-        "NumericFunction",
-        "Protected",
-        "ReadProtected",
-    )
+    attributes = listable | n_hold_first | numeric_function | protected | read_protected
 
     rules = {
         "AiryAi[AiryAiZero[k_]]": "0",
@@ -162,8 +160,6 @@ class AiryBi(_MPMathFunction):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction")
-
     mpmath_name = "airybi"
 
     rules = {
@@ -190,8 +186,6 @@ class AiryBiPrime(_MPMathFunction):
     >> AiryBiPrime[0.5]
      = 0.544573
     """
-
-    # attributes = ("Listable", "NumericFunction") # inherited
 
     mpmath_name = ""
     sympy_name = "airybiprime"
@@ -231,13 +225,7 @@ class AiryBiZero(Builtin):
 
     # TODO: 'AiryBiZero[$k$, $x0$]' - $k$th zero less than x0
 
-    attributes = (
-        "Listable",
-        "NHoldFirst",
-        "NumericFunction",
-        "Protected",
-        "ReadProtected",
-    )
+    attributes = listable | n_hold_first | numeric_function | protected | read_protected
 
     rules = {
         "AiryBi[AiryBiZero[z_]]": "0",
@@ -281,8 +269,6 @@ class AngerJ(_Bessel):
 
     # TODO: Associated Anger function AngerJ[v, u, z]
 
-    # attributes = ("Listable", "NumericFunction") # inherited
-
     mpmath_name = "angerj"
     summary_text = "Anger function J"
     sympy_name = ""
@@ -311,8 +297,6 @@ class BesselI(_Bessel):
     rules = {
         "Derivative[0, 1][BesselI]": "((BesselI[-1 + #1, #2] + BesselI[1 + #1, #2])/2)&",
     }
-
-    attributes = ("Listable", "NumericFunction", "Protected")
 
     mpmath_name = "besseli"
     sympy_name = "besseli"
@@ -349,7 +333,6 @@ class BesselJ(_Bessel):
     >> BesselJ[1/2, x]
      = Sqrt[2 / Pi] Sin[x] / Sqrt[x]
     """
-    attributes = ("Listable", "NumericFunction", "Protected")
 
     mpmath_name = "besselj"
     rules = {
@@ -375,8 +358,6 @@ class BesselK(_Bessel):
     >> Plot[BesselK[0, x], {x, 0, 5}]
      = -Graphics-
     """
-
-    attributes = ("Listable", "NumericFunction", "Protected")
 
     mpmath_name = "besselk"
 
@@ -415,8 +396,6 @@ class BesselY(_Bessel):
         "Derivative[0,1][BesselY]": "(BesselY[-1 + #1, #2] / 2 - BesselY[1 + #1, #2] / 2)&",
     }
 
-    attributes = ("Listable", "NumericFunction", "Protected")
-
     mpmath_name = "bessely"
     summary_text = "function of the second kind"
     sympy_name = "bessely"
@@ -436,8 +415,6 @@ class BesselJZero(_Bessel):
      = 2.404825558
     """
 
-    # attributes = ("Listable", "NumericFunction") # inherited
-
     mpmath_name = "besseljzero"
     summary_text = "Get kth zero of an BesselJ function"
     sympy_name = ""
@@ -456,8 +433,6 @@ class BesselYZero(_Bessel):
     >> N[BesselYZero[0, 1], 10]
      = 0.8935769663
     """
-
-    attributes = ("Listable", "NumericFunction")
 
     mpmath_name = "besselyzero"
     summary_text = "Get kth zero of an BesselY function"
@@ -533,8 +508,6 @@ class KelvinBei(_Bessel):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction")
-
     mpmath_name = "bei"
     rules = {
         "KelvinBei[z_]": "KelvinBei[0, z]",
@@ -567,8 +540,6 @@ class KelvinBer(_Bessel):
     >> Plot[KelvinBer[x], {x, 0, 10}]
      = -Graphics-
     """
-
-    attributes = ("Listable", "NumericFunction")
 
     mpmath_name = "ber"
     rules = {
@@ -635,8 +606,6 @@ class KelvinKer(_Bessel):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction")
-
     mpmath_name = "ker"
     rules = {
         "KelvinKer[z_]": "KelvinKer[0, z]",
@@ -663,8 +632,6 @@ class SphericalBesselJ(_Bessel):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
-
     rules = {"SphericalBesselJ[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] BesselJ[n + 0.5, z]"}
 
     summary_text = "spherical Bessel function of the second kind"
@@ -687,8 +654,6 @@ class SphericalBesselY(_Bessel):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
-
     rules = {"SphericalBesselY[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] BesselY[n + 0.5, z]"}
 
     summary_text = "spherical Bessel function of the second kind"
@@ -708,8 +673,6 @@ class SphericalHankelH1(_Bessel):
     >> SphericalHankelH1[3, 1.5]
      = 0.0283246 - 3.78927 I
     """
-
-    attributes = ("Listable", "NumericFunction", "Protected")
 
     rules = {"SphericalHankelH1[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] HankelH1[n + 0.5, z]"}
 
@@ -731,8 +694,6 @@ class SphericalHankelH2(_Bessel):
      = 0.0283246 + 3.78927 I
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
-
     rules = {"SphericalHankelH2[n_, z_]": "Sqrt[Pi / 2] / Sqrt[z] HankelH2[n + 0.5, z]"}
 
     summary_text = "spherical Hankel function of the second kind"
@@ -753,8 +714,6 @@ class StruveH(_Bessel):
      = -Graphics-
     """
 
-    attributes = ("Listable", "NumericFunction")
-
     mpmath_name = "struveh"
     summary_text = "Struvel function H"
     sympy_name = ""
@@ -773,8 +732,6 @@ class StruveL(_Bessel):
     >> Plot[StruveL[0, x], {x, 0, 5}]
      = -Graphics-
     """
-
-    attributes = ("Listable", "NumericFunction")
 
     mpmath_name = "struvel"
     summary_text = "Struvel function L"
@@ -796,8 +753,6 @@ class WeberE(_Bessel):
     """
 
     # TODO: Associated Weber function WeberE[v, u, z]
-
-    attributes = ("Listable", "NumericFunction")
 
     mpmath_name = "webere"
     summary_text = "Weber function E"

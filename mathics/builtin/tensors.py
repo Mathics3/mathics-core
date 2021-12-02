@@ -26,6 +26,8 @@ from mathics.core.rules import Pattern
 
 from mathics.algorithm.parts import get_part
 
+from mathics.core.attributes import flat, one_identity, protected
+
 
 def get_default_distance(p):
     if all(q.is_numeric() for q in p):
@@ -258,7 +260,7 @@ class Dot(BinaryOperator):
 
     operator = "."
     precedence = 490
-    attributes = ("Flat", "OneIdentity")
+    attributes = flat | one_identity | protected
 
     rules = {
         "Dot[a_List, b_List]": "Inner[Times, a, b, Plus]",

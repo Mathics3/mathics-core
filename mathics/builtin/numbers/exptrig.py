@@ -40,6 +40,8 @@ from mathics.core.symbols import SymbolList
 from mathics.builtin.numeric import Fold
 from mathics.builtin.arithmetic import _MPMathFunction
 
+from mathics.core.attributes import listable, numeric_function, protected
+
 
 class AnglePath(Builtin):
     """
@@ -846,7 +848,7 @@ class Log2(Builtin):
      = 2 / Log[2]
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = listable | numeric_function | protected
 
     rules = {
         "Log2[x_]": "Log[2, x]",
@@ -868,7 +870,7 @@ class Log10(Builtin):
      = 3 / Log[10]
     """
 
-    attributes = ("Listable", "NumericFunction", "Protected")
+    attributes = listable | numeric_function | protected
 
     rules = {
         "Log10[x_]": "Log[10, x]",
@@ -895,11 +897,7 @@ class LogisticSigmoid(Builtin):
      = LogisticSigmoid[I Pi]
     """
 
-    attributes = (
-        "Listable",
-        "NumericFunction",
-        "Protected",
-    )
+    attributes = listable | numeric_function | protected
 
     rules = {"LogisticSigmoid[z_?NumberQ]": "1 / (1 + Exp[-z])"}
 

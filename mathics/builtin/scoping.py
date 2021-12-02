@@ -17,6 +17,8 @@ from mathics.core.atoms import (
 from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
 
+from mathics.core.attributes import hold_all, hold_first, protected
+
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     def message(tag, *args):
@@ -105,7 +107,7 @@ class With(Builtin):
 
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "lvsym": (
@@ -163,7 +165,7 @@ class Block(Builtin):
      = x
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "lvsym": (
@@ -251,7 +253,7 @@ class Module(Builtin):
 
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "lvsym": (
@@ -364,7 +366,7 @@ class Unique(Predefined):
         "attnf": "`1` is not a known attribute.",
     }
 
-    attributes = ("Protected",)
+    attributes = protected
 
     rules = {
         "Unique[x_Symbol]": "Module[{x}, x]",
@@ -465,7 +467,7 @@ class Context(Builtin):
      = Pattern[a`b, Blank[]]
     """
 
-    attributes = ("HoldFirst",)
+    attributes = hold_first | protected
 
     rules = {"Context[]": "$Context"}
 

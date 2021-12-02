@@ -42,6 +42,15 @@ from mathics.core.number import dps
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.numeric import apply_N
 
+from mathics.core.attributes import (
+    constant,
+    hold_all,
+    listable,
+    n_hold_all,
+    protected,
+    read_protected,
+)
+
 import sympy
 
 
@@ -358,7 +367,7 @@ class Derivative(PostfixOperator, SympyFunction):
 
     operator = "'"
     precedence = 670
-    attributes = ("NHoldAll", "Unprotected")
+    attributes = n_hold_all
 
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
@@ -540,7 +549,7 @@ class Integrate(SympyFunction):
     # be merged...
     # >> Assuming[Abs[Arg[t]] < Pi / 2, Integrate[x/Exp[x^2/t], {x, 0, Infinity}]]
     # = t / 2
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     options = {
         "Assumptions": "$Assumptions",
@@ -892,7 +901,7 @@ class Solve(Builtin):
             if (
                 (var.is_atom() and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or SymbolConstant in var.get_attributes(evaluation.definitions)
+                or constant & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Solve", "ivar", vars_original)
@@ -1096,7 +1105,7 @@ class Limit(Builtin):
      = Limit[(1 + cos[x]) / x, x -> 0]
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     options = {
         "Direction": "1",
@@ -1164,7 +1173,7 @@ class DiscreteLimit(Builtin):
      = 1 / E
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     options = {
         "Trials": "5",
@@ -1379,7 +1388,7 @@ class FindRoot(Builtin):
         "StepMonitor": "None",
         "Jacobian": "Automatic",
     }
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "snum": "Value `1` is not a number.",

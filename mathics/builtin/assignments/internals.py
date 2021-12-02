@@ -36,6 +36,10 @@ from mathics.core.systemsymbols import (
     SymbolRecursionLimit,
 )
 
+from mathics.core.attributes import attribute_string_to_number, locked, protected
+
+from functools import reduce
+
 
 class AssignmentException(Exception):
     def __init__(self, lhs, rhs) -> None:
@@ -112,7 +116,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return SymbolProtected in defin.get_attributes(tag.name)
+    return protected & defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):
@@ -431,15 +435,30 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     if tags is not None and tags != [tag]:
         evaluation.message(lhs.get_head_name(), "tag", lhs.get_head(), tag)
         raise AssignmentException(lhs, rhs)
-    attributes = get_symbol_list(
-        rhs, lambda item: evaluation.message(lhs.get_head_name(), "sym", item, 1)
+    attributes_list = get_symbol_list(
+        rhs, lambda item: evaluation.message(name, "sym", item, 1)
     )
-    if attributes is None:
+    if attributes_list is None:
         raise AssignmentException(lhs, rhs)
-    if SymbolLocked in evaluation.definitions.get_attributes(tag.name):
-        evaluation.message(lhs.get_head_name(), "locked", tag)
+    if locked & evaluation.definitions.get_attributes(tag):
+        evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
-    evaluation.definitions.set_attributes(tag.name, attributes)
+
+    def reduce_attributes_from_list(x: int, y: str) -> int:
+        try:
+            return x | attribute_string_to_number[y]
+        except KeyError:
+            evaluation.message("SetAttributes", "unknowattr", y)
+            return x
+
+    attributes = reduce(
+        reduce_attributes_from_list,
+        attributes_list,
+        0,
+    )
+
+    evaluation.definitions.set_attributes(tag, attributes)
+
     return True
 
 

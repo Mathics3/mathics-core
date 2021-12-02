@@ -78,6 +78,15 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
 )
 
+from mathics.core.attributes import (
+    flat,
+    hold_all,
+    locked,
+    one_identity,
+    protected,
+    read_protected,
+)
+
 
 class All(Predefined):
     """
@@ -184,7 +193,7 @@ class ContainsOnly(Builtin):
      = True
     """
 
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
@@ -536,7 +545,7 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
-    attributes = ("Locked",)
+    attributes = locked | protected
 
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
@@ -884,7 +893,7 @@ class _IterationFunction(Builtin):
      = 15
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     allow_loopcontrol = False
     throw_iterb = True
 
@@ -1095,7 +1104,7 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    attributes = ("Flat", "OneIdentity")
+    attributes = flat | one_identity | protected
 
     def apply(self, lists, evaluation):
         "Join[lists___]"

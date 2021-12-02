@@ -29,6 +29,14 @@ from mathics.core.systemsymbols import (
     SymbolOptions,
 )
 
+from mathics.core.attributes import (
+    attributes_bitset_to_list,
+    hold_all,
+    sequence_hold,
+    protected,
+    read_protected,
+)
+
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     """
@@ -176,7 +184,7 @@ class Definition(Builtin):
      = Null
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     precedence = 670
     summary_text = "gives values of a symbol in a form that can be stored in a package"
 
@@ -213,8 +221,7 @@ class Definition(Builtin):
         definition = evaluation.definitions.get_user_definition(name, create=False)
         all = evaluation.definitions.get_definition(name)
         if attributes:
-            attributes = list(attributes)
-            attributes.sort()
+            attributes_list = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
                     SymbolHoldForm,
@@ -222,13 +229,14 @@ class Definition(Builtin):
                         SymbolSet,
                         Expression(SymbolAttributes, symbol),
                         Expression(
-                            SymbolList, *(attribute for attribute in attributes)
+                            SymbolList,
+                            *(Symbol(attribute) for attribute in attributes_list)
                         ),
                     ),
                 )
             )
 
-        if definition is not None and SymbolReadProtected not in attributes:
+        if definition is not None and not read_protected & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -342,7 +350,7 @@ class DownValues(Builtin):
      = 5
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     summary_text = "gives a list of transformation rules corresponding to all downvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -380,7 +388,7 @@ class Information(PrefixOperator):
 
     """
 
-    attributes = ("HoldAll", "SequenceHold", "Protect", "ReadProtect")
+    attributes = hold_all | sequence_hold | protected | read_protected
     messages = {"notfound": "Expression `1` is not a symbol"}
     operator = "??"
     options = {
@@ -456,20 +464,22 @@ class Information(PrefixOperator):
         definition = evaluation.definitions.get_user_definition(name, create=False)
         all = evaluation.definitions.get_definition(name)
         if attributes:
-            attributes = list(attributes)
-            attributes.sort()
+            attributes_list = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
                     SymbolHoldForm,
                     Expression(
                         SymbolSet,
                         Expression(SymbolAttributes, symbol),
-                        Expression(SymbolList, *attributes),
+                        Expression(
+                            SymbolList,
+                            *(Symbol(attribute) for attribute in attributes_list)
+                        ),
                     ),
                 )
             )
 
-        if definition is not None and SymbolReadProtected not in attributes:
+        if definition is not None and not read_protected & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -548,7 +558,7 @@ class OwnValues(Builtin):
      = 5
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     summary_text = "gives the rule corresponding to any ownvalue defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -578,7 +588,7 @@ class UpValues(Builtin):
      = 0
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     summary_text = "gives list of transformation rules corresponding to upvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):

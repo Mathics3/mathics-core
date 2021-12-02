@@ -55,6 +55,8 @@ import mathics
 from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
 from mathics.builtin.base import MessageException
 
+from mathics.core.attributes import protected, read_protected
+
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
 
@@ -79,7 +81,7 @@ class Input(Predefined):
      = #<--#
     """
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = protected | read_protected
     name = "$Input"
 
     def evaluate(self, evaluation):
@@ -349,8 +351,6 @@ class Read(Builtin):
         "WordSeparators": '{" ", "\t"}',
     }
 
-    attributes = "Protected"
-
     def check_options(self, options):
         # Options
         # TODO Proper error messages
@@ -585,8 +585,6 @@ class Write(Builtin):
      = {10 x + 15 y ^ 2, 3 Sin[z]}
     #> Close[stream];
     """
-
-    attributes = "Protected"
 
     def apply(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
@@ -1643,8 +1641,6 @@ class WriteString(Builtin):
         "writex": "`1`.",
     }
 
-    attributes = "Protected"
-
     def apply(self, channel, expr, evaluation):
         "WriteString[channel_, expr___]"
         strm = channel_to_stream(channel, "w")
@@ -1681,8 +1677,6 @@ class WriteString(Builtin):
 
 
 class _OpenAction(Builtin):
-
-    attributes = "Protected"
 
     # BinaryFormat: 'False',
     # CharacterEncoding :> Automatic,
@@ -1882,8 +1876,6 @@ class Get(PrefixOperator):
 
     operator = "<<"
     precedence = 720
-    attributes = "Protected"
-
     options = {
         "Trace": "False",
     }
@@ -2089,7 +2081,6 @@ class PutAppend(BinaryOperator):
 
     operator = ">>>"
     precedence = 30
-    attributes = "Protected"
 
     def apply(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
@@ -2182,8 +2173,6 @@ class ReadList(Read):
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
-
-    attributes = "Protected"
 
     options = {
         "NullRecords": "False",
@@ -2285,8 +2274,6 @@ class FilePrint(Builtin):
         "WordSeparators": '{" ", "\t"}',
     }
 
-    attributes = "Protected"
-
     def apply(self, path, evaluation, options):
         "FilePrint[path_ OptionsPattern[FilePrint]]"
         pypath = path.to_python()
@@ -2363,8 +2350,6 @@ class Close(Builtin):
      = Close[OutputStream[...]]
     """
 
-    attributes = "Protected"
-
     messages = {
         "closex": "`1`.",
     }
@@ -2404,8 +2389,6 @@ class StreamPosition(Builtin):
     >> StreamPosition[stream]
      = 7
     """
-
-    attributes = "Protected"
 
     def apply_input(self, name, n, evaluation):
         "StreamPosition[InputStream[name_, n_]]"
@@ -2465,8 +2448,6 @@ class SetStreamPosition(Builtin):
         ),
         "seek": "Invalid I/O Seek.",
     }
-
-    attributes = "Protected"
 
     def apply_input(self, name, n, m, evaluation):
         "SetStreamPosition[InputStream[name_, n_], m_]"
@@ -2553,8 +2534,6 @@ class Skip(Read):
         "WordSeparators": '{" ", "\t"}',
     }
 
-    attributes = "Protected"
-
     def apply(self, name, n, types, m, evaluation, options):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
 
@@ -2607,8 +2586,6 @@ class Find(Read):
     >> Close[stream]
      = ...
     """
-
-    attributes = "Protected"
 
     options = {
         "AnchoredSearch": "False",
@@ -2673,12 +2650,6 @@ class InputStream(Builtin):
      = String
     """
 
-    attributes = "Protected"
-
-    def apply(self, name, n, evaluation):
-        "InputStream[name_, n_]"
-        return
-
 
 class OutputStream(Builtin):
     """
@@ -2692,12 +2663,6 @@ class OutputStream(Builtin):
     >> Close[%]
      = ...
     """
-
-    attributes = "Protected"
-
-    def apply(self, name, n, evaluation):
-        "OutputStream[name_, n_]"
-        return
 
 
 class StringToStream(Builtin):
@@ -2719,8 +2684,6 @@ class StringToStream(Builtin):
     #> Close[strm]
      = String
     """
-
-    attributes = "Protected"
 
     def apply(self, string, evaluation):
         "StringToStream[string_]"
@@ -2753,8 +2716,6 @@ class Streams(Builtin):
     #> Streams["some_nonexistant_name"]
      = {}
     """
-
-    attributes = "Protected"
 
     def apply(self, evaluation):
         "Streams[]"

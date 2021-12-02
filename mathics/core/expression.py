@@ -24,6 +24,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 
+
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
@@ -57,6 +58,19 @@ from mathics.core.systemsymbols import (
     SymbolTimes,
     SymbolVerbatim,
     SymbolWith,
+)
+
+from mathics.core.attributes import (
+    flat,
+    hold_all,
+    hold_all_complete,
+    hold_first,
+    hold_rest,
+    listable,
+    nothing,
+    numeric_function,
+    orderless,
+    sequence_hold,
 )
 
 
@@ -427,15 +441,16 @@ class Expression(BaseExpression):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._leaves)
-        return set()
+        return nothing
 
     def get_lookup_name(self) -> bool:
         lookup_symbol = self._head
-        while not isinstance(lookup_symbol, Symbol):
-            if not isinstance(lookup_symbol, Expression):
-                return ""
+        while True:
+            if isinstance(lookup_symbol, Symbol):
+                return lookup_symbol.name
+            if isinstance(lookup_symbol, Atom):
+                return lookup_symbol.get_head().name
             lookup_symbol = lookup_symbol._head
-        return lookup_symbol.name
 
     def get_lookup_symbol(self):
         lookup_symbol = self._head
@@ -444,14 +459,6 @@ class Expression(BaseExpression):
                 return None
             lookup_symbol = lookup_symbol._head
         return lookup_symbol
-
-    def get_lookup_symbol(self):
-        symbol = self._head
-        while not isinstance(symbol, Symbol):
-            if not isinstance(symbol, Expression):
-                return None
-            symbol = symbol._head
-        return symbol
 
     def has_form(self, heads, *leaf_counts):
         """
@@ -829,7 +836,7 @@ class Expression(BaseExpression):
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
-            if SymbolHoldAllComplete not in attributes:
+            if not hold_all_complete & attributes:
                 if self._no_symbol("System`Evaluate"):
                     return
                 for index in indices:
@@ -845,13 +852,13 @@ class Expression(BaseExpression):
                     if leaf:
                         leaves[index] = leaf
 
-        if SymbolHoldAll in attributes or SymbolHoldAllComplete in attributes:
+        if (hold_all | hold_all_complete) & attributes:
             # eval_range(range(0, 0))
             rest_range(range(len(leaves)))
-        elif SymbolHoldFirst in attributes:
+        elif hold_first & attributes:
             rest_range(range(0, min(1, len(leaves))))
             eval_range(range(1, len(leaves)))
-        elif SymbolHoldRest in attributes:
+        elif hold_rest & attributes:
             eval_range(range(0, min(1, len(leaves))))
             rest_range(range(1, len(leaves)))
         else:
@@ -861,17 +868,14 @@ class Expression(BaseExpression):
         new = Expression(head)
         new._leaves = tuple(leaves)
 
-        if (
-            SymbolSequenceHold not in attributes
-            and SymbolHoldAllComplete not in attributes  # noqa
-        ):
+        if not (sequence_hold | hold_all_complete) & attributes:
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
 
         for leaf in leaves:
             leaf.unevaluated = False
 
-        if SymbolHoldAllComplete not in attributes:
+        if not hold_all_complete & attributes:
             dirty_leaves = None
 
             for index, leaf in enumerate(leaves):
@@ -890,26 +894,25 @@ class Expression(BaseExpression):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
 
-        if attributes:
-            if SymbolFlat in attributes:
-                new = new.flatten(new._head, callback=flatten_callback)
-            if SymbolOrderless in attributes:
-                new.sort()
-            new._timestamp_cache(evaluation)
-            if SymbolListable in attributes:
-                done, threaded = new.thread(evaluation)
-                if done:
-                    if threaded.sameQ(new):
-                        new._timestamp_cache(evaluation)
-                        return new, False
-                    else:
-                        return threaded, True
-        else:
-            new._timestamp_cache(evaluation)
+        if flat & attributes:
+            new = new.flatten(new._head, callback=flatten_callback)
+        if orderless & attributes:
+            new.sort()
+
+        new._timestamp_cache(evaluation)
+
+        if listable & attributes:
+            done, threaded = new.thread(evaluation)
+            if done:
+                if threaded.sameQ(new):
+                    new._timestamp_cache(evaluation)
+                    return new, False
+                else:
+                    return threaded, True
 
         def rules():
-            rules_symbols = set()
-            if SymbolHoldAllComplete not in attributes:
+            rules_names = set()
+            if not hold_all_complete & attributes:
                 for leaf in leaves:
                     symbol = leaf.get_lookup_symbol()
                     if symbol:  # only lookup rules if this is a symbol
@@ -1322,16 +1325,9 @@ class Expression(BaseExpression):
     def is_numeric(self, evaluation=None) -> bool:
         name = self._head.get_name()
         if evaluation:
-            definitions = evaluation.definitions
-            definition = definitions.definitions_cache.get(name, None)
-            if definition is None:
-                definition = definitions.get_definition(name, True)
-                if definition:
-                    attributes = definition.attributes
-                else:
-                    return False
-            attributes = definition.attributes
-            if SymbolNumericFunction not in attributes:
+            if not numeric_function & evaluation.definitions.get_attributes(
+                self._head.get_name()
+            ):
                 return False
             for leaf in self._leaves:
                 if not leaf.is_numeric(evaluation):

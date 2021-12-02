@@ -60,6 +60,8 @@ from mathics.core.number import (
 
 from mathics.core.evaluation import Message as EvaluationMessage
 
+from mathics.core.attributes import hold_all, hold_all_complete, hold_first, protected
+
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 
@@ -129,9 +131,7 @@ class TraceEvaluation(Builtin):
      = ...
     """
 
-    attributes = {
-        "HoldAll",
-    }
+    attributes = hold_all | protected
 
     def apply(self, expr, evaluation):
         "TraceEvaluation[expr_]"
@@ -542,7 +542,7 @@ class MakeBoxes(Builtin):
      = RowBox[{a, ,, b}]
     """
 
-    attributes = ("HoldAllComplete", "Unprotected")
+    attributes = hold_all_complete
 
     rules = {
         "MakeBoxes[Infix[head_[leaves___]], "
@@ -1310,7 +1310,7 @@ class Message(Builtin):
      : Hello you, Mr 007!
     """
 
-    attributes = ("HoldFirst",)
+    attributes = hold_first | protected
 
     messages = {
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language."
@@ -1404,7 +1404,7 @@ class Check(Builtin):
      = err
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
@@ -1505,7 +1505,7 @@ class Quiet(Builtin):
      = Quiet[x + x, {a::b}, {a::b}]
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     messages = {
         "anmlist": (
@@ -1613,7 +1613,7 @@ class Off(Builtin):
     #> On[Power::infy, Power::indet, Syntax::com]
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     def apply(self, expr, evaluation):
         "Off[expr___]"
@@ -1659,7 +1659,7 @@ class On(Builtin):
      : Message f::x not found.
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
 
     def apply(self, expr, evaluation):
         "On[expr___]"
@@ -1705,7 +1705,7 @@ class MessageName(BinaryOperator):
 
     operator = "::"
     precedence = 750
-    attributes = ("HoldFirst",)
+    attributes = hold_first | protected
 
     default_formats = False
 

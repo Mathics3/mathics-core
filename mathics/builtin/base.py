@@ -41,6 +41,8 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
+from mathics.core.attributes import nothing, protected
+
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
     # we do not care whether an option X is given as System`X,
@@ -71,9 +73,9 @@ mathics_to_python = {}
 
 class Builtin(object):
     name: typing.Optional[str] = None
-    context = ""
-    abstract = False
-    attributes: typing.Tuple[Any, ...] = ()
+    context: str = ""
+    abstract: bool = False
+    attributes: int = protected
     rules: typing.Dict[str, Any] = {}
     formats: typing.Dict[str, Any] = {}
     messages: typing.Dict[str, Any] = {}
@@ -118,9 +120,7 @@ class Builtin(object):
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
-                    )
+                    definitions.builtin[option] = Definition(name=name)
 
         # Check if the given options are actually supported by the Builtin.
         # If not, we might issue an optx error and abort. Using '$OptionSyntax'
@@ -244,14 +244,6 @@ class Builtin(object):
             )
         )
 
-        if "Unprotected" in self.attributes:
-            attributes = []
-            self.attributes = list(self.attributes)
-            self.attributes.remove("Unprotected")
-        else:
-            attributes = [Symbol("System`Protected")]
-
-        attributes += list(Symbol(a) for a in self.attributes)
         options = {}
         for option, value in self.options.items():
             option = ensure_context(option)
@@ -261,9 +253,7 @@ class Builtin(object):
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(
-                        name=name, attributes=set()
-                    )
+                    definitions.builtin[option] = Definition(name=name)
         defaults = []
         for spec, value in self.defaults.items():
             value = parse_builtin_rule(value)
@@ -280,7 +270,7 @@ class Builtin(object):
             rules=rules,
             formatvalues=formatvalues,
             messages=messages,
-            attributes=attributes,
+            attributes=self.attributes,
             options=options,
             defaultvalues=defaults,
             builtin=self,

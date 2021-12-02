@@ -23,6 +23,16 @@ from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
 
+from mathics.core.attributes import (
+    attributes_bitset_to_list,
+    attribute_string_to_number,
+    hold_all,
+    hold_first,
+    listable,
+    locked,
+    protected,
+)
+
 
 class Attributes(Builtin):
     """
@@ -64,7 +74,7 @@ class Attributes(Builtin):
      = {Listable}
     """
 
-    attributes = ("HoldAll", "Listable")
+    attributes = hold_all | listable | protected
 
     def apply(self, expr, evaluation):
         "Attributes[expr_]"
@@ -72,9 +82,12 @@ class Attributes(Builtin):
         if isinstance(expr, String):
             expr = Symbol(expr.get_string_value())
         name = expr.get_lookup_name()
-        attributes = list(evaluation.definitions.get_attributes(name))
-        attributes.sort()
-        return Expression(SymbolList, *attributes)
+
+        attributes = attributes_bitset_to_list(
+            evaluation.definitions.get_attributes(name)
+        )
+        attributes_symbols = [Symbol(attribute) for attribute in attributes]
+        return Expression("List", *attributes_symbols)
 
 
 class SetAttributes(Builtin):
@@ -94,7 +107,11 @@ class SetAttributes(Builtin):
      = {Flat, Orderless}
     """
 
-    attributes = ("HoldFirst",)
+    attributes = hold_first | protected
+
+    messages = {
+        "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
+    }
 
     def apply(self, symbols, attributes, evaluation):
         "SetAttributes[symbols_, attributes_]"
@@ -110,11 +127,16 @@ class SetAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
+            if locked & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.set_attribute(symbol, value)
+                    try:
+                        evaluation.definitions.set_attribute(
+                            symbol, attribute_string_to_number[value]
+                        )
+                    except KeyError:
+                        evaluation.message("SetAttributes", "unknowattr", value)
         return SymbolNull
 
 
@@ -137,7 +159,7 @@ class ClearAttributes(Builtin):
      = {}
     """
 
-    attributes = ("HoldFirst",)
+    attributes = hold_first | protected
 
     def apply(self, symbols, attributes, evaluation):
         "ClearAttributes[symbols_, attributes_]"
@@ -154,11 +176,13 @@ class ClearAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if SymbolLocked in evaluation.definitions.get_attributes(symbol):
+            if locked & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.clear_attribute(symbol, value)
+                    evaluation.definitions.clear_attribute(
+                        symbol, attribute_string_to_number[value]
+                    )
         return SymbolNull
 
 
@@ -180,7 +204,7 @@ class Protect(Builtin):
      = {1, 2, 3}
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -214,7 +238,7 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
+                    if not locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(
@@ -234,7 +258,7 @@ class Unprotect(Builtin):
     </dl>
     """
 
-    attributes = ("HoldAll",)
+    attributes = hold_all | protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -265,7 +289,7 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if SymbolLocked not in evaluation.definitions.get_attributes(defn):
+                    if not locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(

@@ -2,6 +2,8 @@
 
 from mathics.builtin.base import Builtin
 
+from mathics.core.attributes import hold_all_complete, protected, read_protected
+
 
 class ButtonBox(Builtin):
     """
@@ -12,7 +14,7 @@ class ButtonBox(Builtin):
     </dl>
     """
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = protected | read_protected
 
 
 class InterpretationBox(Builtin):
@@ -24,7 +26,7 @@ class InterpretationBox(Builtin):
     </dl>
     """
 
-    attributes = ("HoldAllComplete", "Protected", "ReadProtected")
+    attributes = hold_all_complete | protected | read_protected
 
 
 class SubscriptBox(Builtin):
@@ -61,7 +63,7 @@ class StyleBox(Builtin):
     </dl>
     """
 
-    attributes = ("Protected", "ReadProtected")
+    attributes = protected | read_protected
 
 
 class TagBox(Builtin):
@@ -73,7 +75,7 @@ class TagBox(Builtin):
     </dl>
     """
 
-    attributes = ("HoldAllComplete", "Protected", "ReadProtected")
+    attributes = hold_all_complete | protected | read_protected
 
 
 class TemplateBox(Builtin):
@@ -84,7 +86,7 @@ class TemplateBox(Builtin):
     </dl>
     """
 
-    attributes = ("HoldAllComplete", "Protected", "ReadProtected")
+    attributes = hold_all_complete | protected | read_protected
 
 
 class TooltipBox(Builtin):

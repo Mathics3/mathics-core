@@ -34,6 +34,14 @@ from mathics.builtin.strings import (
     to_regex,
 )
 
+from mathics.core.attributes import (
+    flat,
+    listable,
+    one_identity,
+    protected,
+    read_protected,
+)
+
 
 class StringDrop(Builtin):
     """
@@ -335,7 +343,7 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    attributes = ("Flat", "OneIdentity")
+    attributes = flat | one_identity | protected
     operator = "<>"
     precedence = 600
 
@@ -376,7 +384,7 @@ class StringLength(Builtin):
      = StringLength[x]
     """
 
-    attributes = ("Listable",)
+    attributes = listable | protected
 
     summary_text = "length of a string (in Unicode characters)"
 
@@ -671,7 +679,7 @@ class StringReverse(Builtin):
        = evil
     """
 
-    attributes = ("Listable", "Protected")
+    attributes = listable | protected
 
     def apply(self, string, evaluation):
         "StringReverse[string_String]"
@@ -739,7 +747,7 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
-    attributes = ("ReadProtected",)
+    attributes = protected | read_protected
 
     messages = {
         "list": "List expected at position `1` in `2`.",
