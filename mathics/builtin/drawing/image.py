@@ -2162,7 +2162,7 @@ if "Pyston" not in sys.version:
                 return
 
         def _word_cloud(self, words, evaluation, options):
-            ignore_case = self.get_option(options, "IgnoreCase", evaluation) == Symbol(
+            ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
                 "True"
             )
 
@@ -2180,7 +2180,7 @@ if "Pyston" not in sys.version:
                 py_max_items = 200
 
             image_size = self.get_option(options, "ImageSize", evaluation)
-            if image_size == Symbol("Automatic"):
+            if image_size is Symbol("Automatic"):
                 py_image_size = (800, 600)
             elif (
                 image_size.get_head_name() == "System`List"

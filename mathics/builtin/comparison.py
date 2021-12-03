@@ -341,7 +341,7 @@ class _EqualityOperator(_InequalityOperator):
             Expression("ExactNumberQ", arg).evaluate(evaluation)
             for arg in items_sequence
         ]
-        if not all(val == SymbolTrue for val in is_exact_vals):
+        if not all(val is SymbolTrue for val in is_exact_vals):
             return self.apply_other(items, evaluation)
         args = self.numerify_args(items, evaluation)
         for x, y in self.get_pairs(args):

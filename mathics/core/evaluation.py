@@ -528,10 +528,10 @@ class Evaluation(object):
     def print_out(self, text) -> None:
         from mathics.core.atoms import from_python
 
-        if self.definitions.show_steps:
-            self.definitions.show_steps = False
+        if self.definitions.trace_evaluation:
+            self.definitions.trace_evaluation = False
             text = self.format_output(from_python(text), "text")
-            self.definitions.show_steps = True
+            self.definitions.trace_evaluation = True
         else:
             text = self.format_output(from_python(text), "text")
 
