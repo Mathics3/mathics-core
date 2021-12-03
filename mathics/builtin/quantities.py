@@ -184,7 +184,7 @@ class Quantity(Builtin):
     }
 
     def validate(self, unit, evaluation):
-        if KnownUnitQ(unit).evaluate(evaluation) == Symbol("False"):
+        if KnownUnitQ(unit).evaluate(evaluation) is Symbol("False"):
             return False
         return True
 

@@ -60,6 +60,7 @@ def print_and_log(*args):
 def compare(result, wanted):
     if result == wanted:
         return True
+
     if result is None or wanted is None:
         return False
     result = result.splitlines()
@@ -126,6 +127,7 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None):
 
     time_comparing = datetime.now()
     comparison_result = compare(result, wanted)
+
     if check_partial_enlapsed_time:
         print("   comparison took ", datetime.now() - time_comparing)
     if not comparison_result:
@@ -135,13 +137,14 @@ def test_case(test, tests, index=0, subindex=0, quiet=False, section=None):
             fail_msg += "\nAdditional output:\n"
             fail_msg += "\n".join(str(o) for o in out)
         return fail(fail_msg)
-    output_ok = True
     time_comparing = datetime.now()
+    output_ok = True
     if len(out) != len(wanted_out):
-        output_ok = False
+        if len(wanted_out) != 1 or wanted_out[0].text != "...":
+            output_ok = False
     else:
         for got, wanted in zip(out, wanted_out):
-            if not got == wanted:
+            if not got == wanted and wanted.text != "...":
                 output_ok = False
                 break
     if check_partial_enlapsed_time:

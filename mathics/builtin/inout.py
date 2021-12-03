@@ -64,6 +64,85 @@ SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
 
+class TraceEvaluationVariable(Builtin):
+    """
+    <dl>
+      <dt>'$TraceEvaluation'
+      <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
+    </dl>
+
+    >> $TraceEvaluation = True
+     | ...
+     = True
+
+    >> a + a
+     | ...
+     = 2 a
+
+    Setting it to 'False' again recovers the normal behaviour:
+    >> $TraceEvaluation = False
+     | ...
+     = False
+    >> $TraceEvaluation
+     = False
+
+    >> a + a
+     = 2 a
+    '$TraceEvaluation' cannot be set to a non-boolean value.
+    >> $TraceEvaluation = x
+     : x should be True or False.
+     = x
+    """
+
+    name = "$TraceEvaluation"
+
+    messages = {"bool": "`1` should be True or False."}
+
+    value = SymbolFalse
+
+    summary_text = "enable or disable displaying the steps to get the result"
+
+    def apply_get(self, evaluation):
+        "%(name)s"
+        return SymbolTrue if evaluation.definitions.trace_evaluation else SymbolFalse
+
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
+        if value is SymbolTrue:
+            evaluation.definitions.trace_evaluation = True
+        elif value is SymbolFalse:
+            evaluation.definitions.trace_evaluation = False
+        else:
+            evaluation.message("$TraceEvaluation", "bool", value)
+
+        return value
+
+
+class TraceEvaluation(Builtin):
+    """
+    <dl>
+      <dt>'TraceEvaluation[$expr$]'
+      <dd>Evaluate $expr$ and print each step of the evaluation.
+    </dl>
+
+    >> TraceEvaluation[(x + x)^2]
+     | ...
+     = ...
+    """
+
+    attributes = {
+        "HoldAll",
+    }
+
+    def apply(self, expr, evaluation):
+        "TraceEvaluation[expr_]"
+        curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        evaluation.definitions.trace_evaluation = True
+        result = expr.evaluate(evaluation)
+        evaluation.definitions.trace_evaluation = curr_trace_evaluation
+        return result
+
+
 class Format(Builtin):
     """
     <dl>

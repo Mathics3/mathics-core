@@ -374,7 +374,7 @@ class GraphicsBox(BoxConstruct):
         if image_size_multipliers is None:
             image_size_multipliers = (0.5, 0.25)
 
-        if aspect_ratio == Symbol("Automatic"):
+        if aspect_ratio is Symbol("Automatic"):
             aspect = None
         else:
             aspect = aspect_ratio.round_to_float()
