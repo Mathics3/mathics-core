@@ -390,11 +390,11 @@ Please contribute to Mathics!""",
             shell.print_result(
                 result, no_out_prompt=True, strict_wl_output=args.strict_wl_output
             )
-            if evaluation.exc_result == SymbolNull:
+            if evaluation.exc_result is SymbolNull:
                 exit_rc = 0
-            elif evaluation.exc_result == SymbolAborted:
+            elif evaluation.exc_result is SymbolAborted:
                 exit_rc = -1
-            elif evaluation.exc_result == SymbolOverflow:
+            elif evaluation.exc_result is SymbolOverflow:
                 exit_rc = -2
             else:
                 exit_rc = -3
