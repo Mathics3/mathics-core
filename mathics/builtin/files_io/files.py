@@ -47,6 +47,7 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolHold,
     SymbolHoldExpression,
+    SymbolExpression,
     SymbolIndeterminate,
     SymbolInputStream,
     SymbolOutputStream,
@@ -490,7 +491,7 @@ class Read(Builtin):
                     if tmp == "":
                         raise EOFError
                     result.append(tmp)
-                elif typ is Symbol("Expression") or typ == Symbol("HoldExpression"):
+                elif typ is SymbolExpression or typ is SymbolHoldExpression:
                     tmp = next(read_record)
                     while True:
                         try:
@@ -507,7 +508,7 @@ class Read(Builtin):
                         except Exception as e:
                             print(e)
 
-                    if expr == SymbolEndOfFile:
+                    if expr is SymbolEndOfFile:
                         evaluation.message(
                             "Read", "readt", tmp, Expression(SymbolInputStream, name, n)
                         )
@@ -534,7 +535,7 @@ class Read(Builtin):
                             return SymbolFailed
                     result.append(tmp)
 
-                elif typ == Symbol("Real"):
+                elif typ is Symbol("Real"):
                     tmp = next(read_real)
                     tmp = tmp.replace("*^", "E")
                     try:
@@ -1905,7 +1906,7 @@ class Get(PrefixOperator):
             trace_get = evaluation.parse("Settings`$TraceGet")
             if (
                 options["System`Trace"].to_python()
-                or trace_get.evaluate(evaluation) == SymbolTrue
+                or trace_get.evaluate(evaluation) is SymbolTrue
             ):
                 import builtins
 
@@ -2218,10 +2219,10 @@ class ReadList(Read):
             if tmp is None:
                 return
 
-            if tmp == SymbolFailed:
+            if tmp is SymbolFailed:
                 return
 
-            if tmp == SymbolEndOfFile:
+            if tmp is SymbolEndOfFile:
                 break
             result.append(tmp)
         return from_python(result)
@@ -2249,7 +2250,7 @@ class ReadList(Read):
         for i in range(py_m):
             tmp = super(ReadList, self).apply(channel, types, evaluation, options)
 
-            if tmp == SymbolFailed:
+            if tmp is SymbolFailed:
                 return
 
             if tmp.to_python() == "EndOfFile":
@@ -2585,7 +2586,7 @@ class Skip(Read):
             return
         for i in range(py_m):
             result = super(Skip, self).apply(channel, types, evaluation, options)
-            if result == SymbolEndOfFile:
+            if result is SymbolEndOfFile:
                 return result
         return SymbolNull
 

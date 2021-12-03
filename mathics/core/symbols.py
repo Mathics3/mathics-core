@@ -685,11 +685,11 @@ class Symbol(Atom):
         return builtin.to_sympy(self, **kwargs)
 
     def to_python(self, *args, **kwargs):
-        if self == SymbolTrue:
+        if self is SymbolTrue:
             return True
-        if self == SymbolFalse:
+        if self is SymbolFalse:
             return False
-        if self == SymbolNull:
+        if self is SymbolNull:
             return None
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
@@ -765,22 +765,16 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
-        name = self.name
-        defcache = evaluation.definitions.definitions_cache
-        if name in defcache:
-            rules = defcache[name].ownvalues
-        else:
-            rules = evaluation.definitions.get_ownvalues(name)
-
-        if evaluation.definitions.show_steps:
+        if evaluation.definitions.trace_evaluation:
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
             )
 
+        rules = evaluation.definitions.get_ownvalues(self.name)
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):
-                if evaluation.definitions.show_steps:
+                if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "  -> %s" % result
                     )

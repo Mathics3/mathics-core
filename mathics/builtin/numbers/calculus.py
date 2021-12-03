@@ -199,7 +199,7 @@ class D(SympyFunction):
         # So, this is not an atom...
 
         head = f.get_head()
-        if head == SymbolPlus:
+        if head is SymbolPlus:
             terms = [
                 Expression(SymbolD, term, x)
                 for term in f.leaves
@@ -208,7 +208,7 @@ class D(SympyFunction):
             if len(terms) == 0:
                 return IntegerZero
             return Expression(SymbolPlus, *terms)
-        elif head == SymbolTimes:
+        elif head is SymbolTimes:
             terms = []
             for i, factor in enumerate(f.leaves):
                 if factor.is_free(x_pattern, evaluation):
@@ -220,7 +220,7 @@ class D(SympyFunction):
                 return Expression(SymbolPlus, *terms)
             else:
                 return IntegerZero
-        elif head == SymbolPower and len(f.leaves) == 2:
+        elif head is SymbolPower and len(f.leaves) == 2:
             base, exp = f.leaves
             terms = []
             if not base.is_free(x_pattern, evaluation):
@@ -691,7 +691,7 @@ class Integrate(SympyFunction):
                     resif = resif._leaves[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
-            if default == SymbolUndefined and len(cases) == 1:
+            if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases._leaves))
             else:
@@ -921,9 +921,9 @@ class Solve(Builtin):
         sympy_eqs = []
         sympy_denoms = []
         for eq in eqs:
-            if eq == SymbolTrue:
+            if eq is SymbolTrue:
                 pass
-            elif eq == SymbolFalse:
+            elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form(SymbolEqual, 2):
                 return evaluation.message("Solve", "eqf", eqs_original)

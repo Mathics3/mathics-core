@@ -95,7 +95,7 @@ class And(BinaryOperator):
         leaves = []
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result == SymbolFalse:
+            if result is SymbolFalse:
                 return SymbolFalse
             elif not result.is_true():
                 leaves.append(result)
@@ -198,7 +198,7 @@ class Implies(BinaryOperator):
         "Implies[x_, y_]"
 
         result0 = x.evaluate(evaluation)
-        if result0 == SymbolFalse:
+        if result0 is SymbolFalse:
             return SymbolTrue
         elif result0.is_true():
             return y.evaluate(evaluation)
@@ -246,7 +246,7 @@ class Equivalent(BinaryOperator):
         flag = False
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result == SymbolFalse or result.is_true():
+            if result is SymbolFalse or result.is_true():
                 flag = not flag
                 break
         if flag:

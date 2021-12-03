@@ -433,7 +433,7 @@ class StringMatchQ(Builtin):
         re_patt = anchor_pattern(re_patt)
 
         flags = re.MULTILINE
-        if options["System`IgnoreCase"] == SymbolTrue:
+        if options["System`IgnoreCase"] is SymbolTrue:
             flags = flags | re.IGNORECASE
 
         if re.match(re_patt, py_string, flags=flags) is None:

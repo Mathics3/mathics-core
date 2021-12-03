@@ -195,7 +195,7 @@ class CompoundExpression(BinaryOperator):
 
             # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
             # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
-            if result == Symbol("Null") and prev_result != Symbol("Null"):
+            if result is Symbol("Null") and prev_result != Symbol("Null"):
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -363,25 +363,25 @@ class If(Builtin):
     def apply_2(self, condition, t, evaluation):
         "If[condition_, t_]"
 
-        if condition == SymbolTrue:
+        if condition is SymbolTrue:
             return t.evaluate(evaluation)
-        elif condition == SymbolFalse:
+        elif condition is SymbolFalse:
             return Symbol("Null")
 
     def apply_3(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
 
-        if condition == SymbolTrue:
+        if condition is SymbolTrue:
             return t.evaluate(evaluation)
-        elif condition == SymbolFalse:
+        elif condition is SymbolFalse:
             return f.evaluate(evaluation)
 
     def apply_4(self, condition, t, f, u, evaluation):
         "If[condition_, t_, f_, u_]"
 
-        if condition == SymbolTrue:
+        if condition is SymbolTrue:
             return t.evaluate(evaluation)
-        elif condition == SymbolFalse:
+        elif condition is SymbolFalse:
             return f.evaluate(evaluation)
         else:
             return u.evaluate(evaluation)
@@ -439,7 +439,7 @@ class FixedPoint(Builtin):
         result = expr
         index = 0
         sametest = self.get_option(options, "SameTest", evaluation)
-        if sametest == Symbol("Automatic"):
+        if sametest is Symbol("Automatic"):
             sametest = None
 
         while count is None or index < count:
