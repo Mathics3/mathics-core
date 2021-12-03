@@ -62,12 +62,18 @@ clean-cython:
 	find mathics -name "*.so" -type f -delete; \
 	find mathics -name "*.c" -type f -delete
 
+#: Remove Python cache files
+clean-cache:
+	find mathics -name *.py[co] -type f -delete; \
+	find mathics -name __pycache__ -type d -delete
+
 #: Remove derived files
-clean: clean-cython
+clean: clean-cython clean-cache
 	for dir in mathics/doc ; do \
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
-	rm -f factorials || true
+	rm -f factorials || true; \
+	rm -rf build || true
 
 #: Run py.test tests. Use environment variable "o" for pytest options
 pytest:
