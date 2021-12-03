@@ -97,9 +97,9 @@ class _BooleanDissimilarity(Builtin):
                     else:
                         raise _NoBoolVector
                 elif isinstance(leaf, Symbol):
-                    if leaf == SymbolTrue:
+                    if leaf is SymbolTrue:
                         yield 1
-                    elif leaf == SymbolFalse:
+                    elif leaf is SymbolFalse:
                         yield 0
                     else:
                         raise _NoBoolVector

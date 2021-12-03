@@ -486,11 +486,11 @@ class StringPosition(Builtin):
                 return evaluation.message("StringPosition", "innf", expr, Integer(3))
 
         # check options
-        if options["System`Overlaps"] == SymbolTrue:
+        if options["System`Overlaps"] is SymbolTrue:
             overlap = True
-        elif options["System`Overlaps"] == SymbolFalse:
+        elif options["System`Overlaps"] is SymbolFalse:
             overlap = False
-        elif options["System`Overlaps"] == SymbolAll:
+        elif options["System`Overlaps"] is SymbolAll:
             # TODO
             evaluation.message("StringPosition", "overall")
             overlap = True
@@ -906,7 +906,7 @@ class StringSplit(Builtin):
             re_patts.append(py_p)
 
         flags = re.MULTILINE
-        if options["System`IgnoreCase"] == SymbolTrue:
+        if options["System`IgnoreCase"] is SymbolTrue:
             flags = flags | re.IGNORECASE
 
         result = [py_string]

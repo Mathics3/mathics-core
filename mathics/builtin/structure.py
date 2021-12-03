@@ -573,7 +573,7 @@ class MapAt(Builtin):
             else:
                 raise PartRangeError
             replace_leaf = new_leaves[j]
-            if hasattr(replace_leaf, "head") and replace_leaf.head == Symbol(
+            if hasattr(replace_leaf, "head") and replace_leaf.head is Symbol(
                 "System`Rule"
             ):
                 new_leaves[j] = Expression(
