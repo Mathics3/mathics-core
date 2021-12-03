@@ -1278,7 +1278,7 @@ class FileNames(Builtin):
             n = 1
 
         # list the files
-        if options.get("System`IgnoreCase", None) == SymbolTrue:
+        if options.get("System`IgnoreCase", None) is SymbolTrue:
             patterns = [
                 re.compile(
                     "^" + to_regex(p, evaluation, abbreviated_patterns=True),
@@ -1722,7 +1722,7 @@ class Needs(Builtin):
             return SymbolNull
         result = Expression("Get", context).evaluate(evaluation)
 
-        if result == SymbolFailed:
+        if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)
             return SymbolFailed
 

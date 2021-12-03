@@ -999,7 +999,7 @@ class _IterationFunction(Builtin):
         )
         while True:
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
-            if cont == SymbolFalse:
+            if cont is SymbolFalse:
                 break
             if not cont.is_true():
                 if self.throw_iterb:
