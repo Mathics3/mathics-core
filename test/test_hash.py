@@ -24,7 +24,7 @@ definitions = Definitions(add_builtin=True)
 def _symbol_truth_value(x):
     if x.is_true():
         return True
-    elif isinstance(x, Symbol) and x == SymbolFalse:
+    elif isinstance(x, Symbol) and x is SymbolFalse:
         return False
     else:
         return "undefined"
