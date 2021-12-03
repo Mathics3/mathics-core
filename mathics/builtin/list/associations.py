@@ -16,13 +16,16 @@ from mathics.builtin.lists import list_boxes
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
 )
 
 from mathics.core.attributes import hold_all_complete, protected
+
+
+SymbolRowBox = Symbol("RowBox")
 
 
 class Association(Builtin):
@@ -94,8 +97,8 @@ class Association(Builtin):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
                     pass
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
-                    if validate(expr.leaves) is not True:
+                elif expr.has_form(("List", "Association"), None):
+                    if not validate(expr.leaves):
                         return False
                 else:
                     return False
@@ -104,13 +107,13 @@ class Association(Builtin):
         rules = rules.get_sequence()
         if self.error_idx == 0 and validate(rules) is True:
             expr = Expression(
-                "RowBox", Expression(SymbolList, *list_boxes(rules, f, "<|", "|>"))
+                SymbolRowBox, Expression(SymbolList, *list_boxes(rules, f, "<|", "|>"))
             )
         else:
             self.error_idx += 1
             symbol = Expression(SymbolMakeBoxes, SymbolAssociation, f)
             expr = Expression(
-                "RowBox",
+                SymbolRowBox,
                 Expression(SymbolList, symbol, *list_boxes(rules, f, "[", "]")),
             )
 
@@ -122,47 +125,47 @@ class Association(Builtin):
     def apply(self, rules, evaluation):
         "Association[rules__]"
 
-        def make_flatten(exprs, dic={}, keys=[]):
+        def make_flatten(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
                     key = expr.leaves[0].evaluate(evaluation)
                     value = expr.leaves[1].evaluate(evaluation)
-                    dic[key] = Expression(expr.get_head(), key, value)
-                    if key not in keys:
-                        keys.append(key)
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
-                    make_flatten(expr.leaves, dic, keys)
+                    rules_dictionary[key] = Expression(expr.get_head(), key, value)
+                elif expr.has_form(("List", "Association"), None):
+                    make_flatten(expr.leaves, rules_dictionary)
                 else:
-                    raise
-            return [dic[key] for key in keys]
+                    raise TypeError
+            return rules_dictionary.values()
 
         try:
             return Expression(SymbolAssociation, *make_flatten(rules.get_sequence()))
-        except:  # noqa
+        except TypeError:
             return None
 
     def apply_key(self, rules, key, evaluation):
         "Association[rules__][key_]"
 
-        def find_key(exprs, dic={}):
+        def find_key(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
                     if expr.leaves[0] == key:
-                        dic[key] = expr.leaves[1]
-                elif expr.has_form("List", None) or expr.has_form("Association", None):
+                        rules_dictionary[key] = expr.leaves[1]
+                elif expr.has_form(("List", "Association"), None):
                     find_key(expr.leaves)
                 else:
-                    raise
-            return dic
+                    raise TypeError
+            return rules_dictionary
 
         try:
             result = find_key(rules.get_sequence())
-        except:  # noqa
-            return None
 
-        return (
-            result[key] if result else Expression("Missing", Symbol("KeyAbsent"), key)
-        )
+            return (
+                result[key]
+                if result
+                else Expression("Missing", Symbol("KeyAbsent"), key)
+            )
+        except TypeError:
+            return None
 
 
 class AssociationQ(Test):
@@ -177,7 +180,6 @@ class AssociationQ(Test):
 
     >> AssociationQ[<|a, b|>]
      = False
-
     """
 
     summary_text = "test if an expression is a valid association"
@@ -187,8 +189,8 @@ class AssociationQ(Test):
             for leaf in leaves:
                 if leaf.has_form(("Rule", "RuleDelayed"), 2):
                     pass
-                elif leaf.has_form("List", None) or leaf.has_form("Association", None):
-                    if validate(leaf.leaves) is not True:
+                elif leaf.has_form(("List", "Association"), None):
+                    if not validate(leaf.leaves):
                         return False
                 else:
                     return False
@@ -274,12 +276,12 @@ class Keys(Builtin):
                 return expr.leaves[0]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) is Symbol("True")
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(SymbolList, *[get_keys(leaf) for leaf in expr.leaves])
             else:
                 evaluation.message("Keys", "invrl", expr)
-                raise
+                raise TypeError
 
         rules = rules.get_sequence()
         if len(rules) != 1:
@@ -287,7 +289,7 @@ class Keys(Builtin):
 
         try:
             return get_keys(rules[0])
-        except:  # noqa
+        except TypeError:
             return None
 
 
@@ -389,13 +391,13 @@ class Values(Builtin):
                 return expr.leaves[1]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) is Symbol("True")
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
                 return Expression(
                     SymbolList, *[get_values(leaf) for leaf in expr.leaves]
                 )
             else:
-                raise
+                raise TypeError
 
         rules = rules.get_sequence()
         if len(rules) != 1:
@@ -403,5 +405,5 @@ class Values(Builtin):
 
         try:
             return get_values(rules[0])
-        except:  # noqa
+        except TypeError:
             return evaluation.message("Values", "invrl", rules[0])
