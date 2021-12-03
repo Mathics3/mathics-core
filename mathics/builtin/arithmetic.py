@@ -469,7 +469,7 @@ class Arg(_MPMathFunction):
 
     def apply(self, z, evaluation, options={}):
         "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression("PossibleZeroQ", z).evaluate(evaluation) == SymbolTrue:
+        if Expression("PossibleZeroQ", z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
         if preference is None or preference == "Automatic":
@@ -1032,7 +1032,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
 
         pref_expr = self.get_option(options, "Method", evaluation)
         is_automatic = False
-        if pref_expr == Symbol("System`Automatic"):
+        if pref_expr is Symbol("System`Automatic"):
             is_automatic = True
             preference = "mpmath"
         else:
@@ -1350,9 +1350,9 @@ class Piecewise(SympyFunction):
 
             sympy_cond = None
             if isinstance(cond, Symbol):
-                if cond == SymbolTrue:
+                if cond is SymbolTrue:
                     sympy_cond = True
-                elif cond == SymbolFalse:
+                elif cond is SymbolFalse:
                     sympy_cond = False
             if sympy_cond is None:
                 sympy_cond = cond.to_sympy(**kwargs)
@@ -1395,9 +1395,9 @@ class Boole(Builtin):
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
         if isinstance(expr, Symbol):
-            if expr == SymbolTrue:
+            if expr is SymbolTrue:
                 return Integer1
-            elif expr == SymbolFalse:
+            elif expr is SymbolFalse:
                 return Integer0
         return None
 
@@ -1498,7 +1498,7 @@ class ConditionalExpression(Builtin):
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
-        if not cond.is_atom() and cond._head == SymbolList:
+        if not cond.is_atom() and cond._head is SymbolList:
             cond = Expression("System`And", *(cond._leaves))
         else:
             cond = Expression("System`And", cond)
@@ -1506,7 +1506,7 @@ class ConditionalExpression(Builtin):
             return
         if cond.is_true():
             return expr
-        if cond == SymbolFalse:
+        if cond is SymbolFalse:
             return SymbolUndefined
         return
 
@@ -1518,9 +1518,9 @@ class ConditionalExpression(Builtin):
 
         sympy_cond = None
         if isinstance(cond, Symbol):
-            if cond == SymbolTrue:
+            if cond is SymbolTrue:
                 sympy_cond = True
-            elif cond == SymbolFalse:
+            elif cond is SymbolFalse:
                 sympy_cond = False
         if sympy_cond is None:
             sympy_cond = cond.to_sympy(**kwargs)

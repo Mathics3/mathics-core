@@ -275,12 +275,12 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "degree"
 
     def to_sympy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is Symbol("System`Degree"):
             # return mpmath.degree
             return sympy.pi / 180
 
     def to_numpy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is Symbol("System`Degree"):
             # return mpmath.degree
             return numpy.pi / 180
 
