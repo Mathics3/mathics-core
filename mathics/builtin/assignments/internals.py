@@ -590,11 +590,11 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     else:
         allowed_names = [focus.get_lookup_name()]
         for leaf in focus.get_leaves():
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`HoldPattern",):
+            if not leaf.is_symbol and leaf.get_head_name() in ("System`HoldPattern",):
                 leaf = leaf.leaves[0]
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`Pattern",):
+            if not leaf.is_symbol and leaf.get_head_name() in ("System`Pattern",):
                 leaf = leaf.leaves[1]
-            if not leaf.is_symbol() and leaf.get_head_name() in (
+            if not leaf.is_symbol and leaf.get_head_name() in (
                 "System`Blank",
                 "System`BlankSequence",
                 "System`BlankNullSequence",

@@ -105,6 +105,7 @@ class BaseExpression(KeyComparable):
     last_evaluated: Any
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
+    is_symbol: bool = False
 
     def __new__(cls, *args, **kwargs):
         self = object.__new__(cls)
@@ -161,9 +162,6 @@ class BaseExpression(KeyComparable):
         "Returns symbol's name if Symbol instance"
 
         return ""
-
-    def is_symbol(self) -> bool:
-        return False
 
     def is_machine_precision(self) -> bool:
         return False
@@ -637,7 +635,8 @@ class Symbol(Atom):
     name: str
     sympy_dummy: Any
     defined_symbols = {}
-    class_head_name = "System`Symbol"
+    class_head_name: str = "System`Symbol"
+    is_symbol: bool = True
 
     def __new__(cls, name, sympy_dummy=None):
         name = ensure_context(name)
@@ -709,9 +708,6 @@ class Symbol(Atom):
 
     def get_name(self) -> str:
         return self.name
-
-    def is_symbol(self) -> bool:
-        return True
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:

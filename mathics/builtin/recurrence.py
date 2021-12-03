@@ -67,7 +67,7 @@ class RSolve(Builtin):
                 return
 
         if (
-            (n.is_atom() and not n.is_symbol())
+            (n.is_atom() and not n.is_symbol)
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
             or "System`Constant" in n.get_attributes(evaluation.definitions)
         ):

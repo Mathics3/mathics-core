@@ -411,7 +411,7 @@ class Expression(BaseExpression):
     def get_attributes(self, definitions):
         if self.get_head() is SymbolFunction and len(self._leaves) > 2:
             res = self._leaves[2]
-            if res.is_symbol():
+            if res.is_symbol:
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._leaves)

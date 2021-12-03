@@ -117,7 +117,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "deqn", eqn)
             return
 
-        if x.is_symbol():
+        if x.is_symbol:
             syms = [x]
         elif x.has_form("List", 1, None):
             syms = sorted(x.get_leaves())

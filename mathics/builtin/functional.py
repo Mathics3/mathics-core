@@ -85,7 +85,7 @@ class Function(PostfixOperator):
         else:
             vars = [vars]
 
-        # print([v.get_head_name()=="System`Pattern" or v.is_symbol() for v in vars])
+        # print([v.get_head_name()=="System`Pattern" or v.is_symbol for v in vars])
         args = args.get_sequence()
         if len(vars) > len(args):
             evaluation.message("Function", "fpct")
@@ -94,7 +94,7 @@ class Function(PostfixOperator):
             # this is not included in WL, and here does not have any impact, but it is needed for
             # translating the function to a compiled version.
             var_names = (
-                var.get_name() if var.is_symbol() else var.leaves[0].get_name()
+                var.get_name() if var.is_symbol else var.leaves[0].get_name()
                 for var in vars
             )
             vars = dict(list(zip(var_names, args[: len(vars)])))

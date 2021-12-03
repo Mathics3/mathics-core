@@ -29,7 +29,7 @@ from mathics.core.symbols import SymbolList
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
-    return same_test.is_symbol() and same_test.get_name() == "System`SameQ"
+    return same_test.is_symbol and same_test.get_name() == "System`SameQ"
 
 
 class _DeleteDuplicatesBin:
