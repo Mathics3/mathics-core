@@ -7,7 +7,6 @@ import unicodedata
 
 from typing import Callable
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Builtin
 
@@ -125,7 +124,7 @@ class _StringDistance(Builtin):
         if isinstance(a, String) and isinstance(b, String):
             py_a = a.get_string_value()
             py_b = b.get_string_value()
-            if options["System`IgnoreCase"] == SymbolTrue:
+            if options["System`IgnoreCase"] is SymbolTrue:
                 if hasattr(str, "casefold"):
 
                     def normalize(c):

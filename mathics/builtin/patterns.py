@@ -37,7 +37,6 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
 from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
@@ -47,6 +46,7 @@ from mathics.builtin.numeric import apply_N
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolList,
 )
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -61,6 +61,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolDispatch
 from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
 
@@ -124,9 +125,19 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
         rules = rules_expr.leaves
     else:
         rules = [rules_expr]
-    any_lists = any(item.has_form(("List", "Dispatch"), None) for item in rules)
+    any_lists = False
+    for item in rules:
+        if item.get_head() in (SymbolList, SymbolDispatch):
+            any_lists = True
+            break
+
     if any_lists:
-        all_lists = all(item.has_form("List", None) for item in rules)
+        all_lists = True
+        for item in rules:
+            if not item.get_head() is SymbolList:
+                all_lists = False
+                break
+
         if all_lists:
             return (
                 Expression(
@@ -478,44 +489,140 @@ class PatternTest(BinaryOperator, PatternObject):
 
     def init(self, expr):
         super(PatternTest, self).init(expr)
+        # This class has an important effect in the general performance,
+        # since all the rules that requires specify the type of patterns
+        # call it. Then, for simple checks like `NumberQ` or `NumericQ`
+        # it is important to have the fastest possible implementation.
+        # To to this, we overwrite the match method taking it from the
+        # following dictionary. Here also would get some advantage by
+        # singletonizing the Symbol class and accessing this dictionary
+        # using an id() instead a string...
+
+        match_functions = {
+            "System`AtomQ": self.match_atom,
+            "System`StringQ": self.match_string,
+            "System`NumericQ": self.match_numericq,
+            "System`NumberQ": self.match_numberq,
+            "System`RealNumberQ": self.match_real_numberq,
+            "Internal`RealValuedNumberQ": self.match_real_numberq,
+            "System`Posive": self.match_positive,
+            "System`Negative": self.match_negative,
+            "System`NonPositive": self.match_nonpositive,
+            "System`NonNegative": self.match_nonnegative,
+        }
+
         self.pattern = Pattern.create(expr.leaves[0])
         self.test = expr.leaves[1]
-        self.test_name = self.test.get_name()
+        testname = self.test.get_name()
+        self.test_name = testname
+        match_function = match_functions.get(testname, None)
+        if match_function:
+            self.match = match_function
+
+    def match_atom(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            # Here we use a `for` loop instead an all over iterator
+            # because in Cython this is faster, since it avoids a function
+            # call. For pure Python, it is the opposite.
+            for item in items:
+                if not isinstance(item, Atom):
+                    break
+            else:
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_string(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            for item in items:
+                if not isinstance(item, String):
+                    break
+            else:
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_numberq(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            for item in items:
+                if not isinstance(item, Number):
+                    break
+            else:
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_numericq(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            for item in items:
+                if not (isinstance(item, Number) or item.is_numeric(evaluation)):
+                    break
+            else:
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_real_numberq(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            for item in items:
+                if not isinstance(item, (Integer, Rational, Real)):
+                    break
+            else:
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_positive(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            if all(
+                isinstance(item, (Integer, Rational, Real)) and item.value > 0
+                for item in items
+            ):
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_negative(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            if all(
+                isinstance(item, (Integer, Rational, Real)) and item.value < 0
+                for item in items
+            ):
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_nonpositive(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            if all(
+                isinstance(item, (Integer, Rational, Real)) and item.value <= 0
+                for item in items
+            ):
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
+
+    def match_nonnegative(self, yield_func, expression, vars, evaluation, **kwargs):
+        def yield_match(vars_2, rest):
+            items = expression.get_sequence()
+            if all(
+                isinstance(item, (Integer, Rational, Real)) and item.value >= 0
+                for item in items
+            ):
+                yield_func(vars_2, None)
+
+        self.pattern.match(yield_match, expression, vars, evaluation)
 
     def quick_pattern_test(self, candidate, test, evaluation):
-        if test == "System`NumberQ":
-            return isinstance(candidate, Number)
-        elif test == "System`NumericQ":
-            if isinstance(candidate, Number):
-                return True
-            # Otherwise, follow the standard evaluation
-        elif test == "System`RealNumberQ":
-            if isinstance(candidate, (Integer, Rational, Real)):
-                return True
-            candidate = apply_N(candidate, evaluation)
-            return isinstance(candidate, Real)
-            # pass
-        elif test == "System`Positive":
-            if isinstance(candidate, (Integer, Rational, Real)):
-                return candidate.value > 0
-            return False
-            # pass
-        elif test == "System`NonPositive":
-            if isinstance(candidate, (Integer, Rational, Real)):
-                return candidate.value <= 0
-            return False
-            # pass
-        elif test == "System`Negative":
-            if isinstance(candidate, (Integer, Rational, Real)):
-                return candidate.value < 0
-            return False
-            # pass
-        elif test == "System`NonNegative":
-            if isinstance(candidate, (Integer, Rational, Real)):
-                return candidate.value >= 0
-            return False
-            # pass
-        elif test == "System`NegativePowerQ":
+        if test == "System`NegativePowerQ":
             return (
                 candidate.has_form("Power", 2)
                 and isinstance(candidate.leaves[1], (Integer, Rational, Real))
@@ -539,14 +646,18 @@ class PatternTest(BinaryOperator, PatternObject):
         return None
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
+        # def match(self, yield_func, expression, vars, evaluation, **kwargs):
         # for vars_2, rest in self.pattern.match(expression, vars, evaluation):
         def yield_match(vars_2, rest):
+            testname = self.test_name
             items = expression.get_sequence()
             for item in items:
                 item = item.evaluate(evaluation)
-                quick_test = self.quick_pattern_test(item, self.test_name, evaluation)
+                quick_test = self.quick_pattern_test(item, testname, evaluation)
                 if quick_test is False:
                     break
+                elif quick_test is True:
+                    continue
                     # raise StopGenerator
                 else:
                     test_expr = Expression(self.test, item)
@@ -1507,6 +1618,8 @@ def item_is_free(item, form, evaluation):
 
 
 class Dispatch(Atom):
+    class_head_name = "System`Dispatch"
+
     def __init__(self, rulelist, evaluation):
         self.src = Expression(SymbolList, *rulelist)
         self.rules = [Rule(rule._leaves[0], rule._leaves[1]) for rule in rulelist]
@@ -1552,6 +1665,7 @@ class DispatchAtom(AtomBuiltin):
     messages = {
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
+    class_head_name = "System`DispatchAtom"
 
     def __repr__(self):
         return "dispatchatom"

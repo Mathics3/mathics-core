@@ -387,11 +387,11 @@ Please contribute to Mathics!""",
             shell.print_result(
                 result, no_out_prompt=True, strict_wl_output=args.strict_wl_output
             )
-            if evaluation.exc_result == Symbol("Null"):
+            if evaluation.exc_result is Symbol("Null"):
                 exit_rc = 0
-            elif evaluation.exc_result == Symbol("$Aborted"):
+            elif evaluation.exc_result is Symbol("$Aborted"):
                 exit_rc = -1
-            elif evaluation.exc_result == Symbol("Overflow"):
+            elif evaluation.exc_result is Symbol("Overflow"):
                 exit_rc = -2
             else:
                 exit_rc = -3

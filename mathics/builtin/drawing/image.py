@@ -4,7 +4,7 @@ Image[] and image related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
@@ -1799,6 +1799,8 @@ class ImageQ(_ImageTest):
 
 
 class Image(Atom):
+    class_head_name = "System`Image"
+
     def __init__(self, pixels, color_space, metadata={}, **kwargs):
         super(Image, self).__init__(**kwargs)
         if len(pixels.shape) == 2:
@@ -2167,7 +2169,7 @@ if "Pyston" not in sys.version:
                 return
 
         def _word_cloud(self, words, evaluation, options):
-            ignore_case = self.get_option(options, "IgnoreCase", evaluation) == Symbol(
+            ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
                 "True"
             )
 
@@ -2185,7 +2187,7 @@ if "Pyston" not in sys.version:
                 py_max_items = 200
 
             image_size = self.get_option(options, "ImageSize", evaluation)
-            if image_size == Symbol("Automatic"):
+            if image_size is Symbol("Automatic"):
                 py_image_size = (800, 600)
             elif (
                 image_size.get_head_name() == "System`List"

@@ -11,7 +11,6 @@ import mpmath
 import numpy
 import sympy
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import Predefined, SympyObject
 from mathics.core.symbols import (
@@ -276,12 +275,12 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     mpmath_name = "degree"
 
     def to_sympy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is Symbol("System`Degree"):
             # return mpmath.degree
             return sympy.pi / 180
 
     def to_numpy(self, expr=None, **kwargs):
-        if expr == Symbol("System`Degree"):
+        if expr is Symbol("System`Degree"):
             # return mpmath.degree
             return numpy.pi / 180
 

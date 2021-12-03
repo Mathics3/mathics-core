@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -107,7 +106,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
     while cc:
         pred, cc = pred.apply_rules(remove_not_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred == SymbolFalse:
+        if pred.is_true() or pred is SymbolFalse:
             return pred
     return pred
 
@@ -151,7 +150,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
             if assumption.is_true():
                 changed = True
                 continue
-            if assumption == SymbolFalse:
+            if assumption is SymbolFalse:
                 evaluation.message("Assumption", "faas")
                 changed = True
                 continue
@@ -269,7 +268,7 @@ def get_assumption_rules_dispatch(evaluation):
     # check for consistency:
     consistent_assumptions = Expression("And", *assumptions_list)
     val_consistent_assumptions = consistent_assumptions.evaluate(evaluation)
-    if val_consistent_assumptions == SymbolFalse:
+    if val_consistent_assumptions is SymbolFalse:
         evaluation.message("Inconsistent assumptions")
 
     # Expands Logically
@@ -362,7 +361,7 @@ def evaluate_predicate(pred, evaluation):
     while cc:
         pred, cc = pred.apply_rules(logical_algebraic_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred == SymbolFalse:
+        if pred.is_true() or pred is SymbolFalse:
             return pred
 
     assumption_rules = get_assumption_rules_dispatch(evaluation)

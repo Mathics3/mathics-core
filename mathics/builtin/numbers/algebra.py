@@ -4,8 +4,6 @@ Algebraic Manipulation
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 
@@ -123,7 +121,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         _expand(Expression(SymbolSin, y)),
                     )
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cos"):
+                elif head is Symbol("Cos"):
                     a = Expression(
                         "Times",
                         _expand(Expression(SymbolCos, x)),
@@ -137,7 +135,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
 
                     return _expand(Expression(SymbolPlus, a, -b))
-                elif head == Symbol("Sinh"):
+                elif head is Symbol("Sinh"):
                     a = Expression(
                         "Times",
                         _expand(Expression(SymbolSinh, x)),
@@ -151,7 +149,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head == Symbol("Cosh"):
+                elif head is Symbol("Cosh"):
                     a = Expression(
                         "Times",
                         _expand(Expression(SymbolCosh, x)),
@@ -735,9 +733,9 @@ class _Expand(Builtin):
             py_modulus = None
 
         trig = options["System`Trig"]
-        if trig == SymbolTrue:
+        if trig is SymbolTrue:
             py_trig = True
-        elif trig == SymbolFalse:
+        elif trig is SymbolFalse:
             py_trig = False
         else:
             return evaluation.message(self.get_name(), "opttf", Symbol("Trig"), trig)
@@ -1092,7 +1090,7 @@ class MinimalPolynomial(Builtin):
         if len(variables) > 0:
             return evaluation.message("MinimalPolynomial", "nalg", s)
 
-        if s == SymbolNull:
+        if s is SymbolNull:
             return evaluation.message("MinimalPolynomial", "nalg", s)
 
         sympy_s, sympy_x = s.to_sympy(), x.to_sympy()
@@ -1164,7 +1162,7 @@ class PolynomialQ(Builtin):
 
     def apply(self, expr, v, evaluation):
         "PolynomialQ[expr_, v___]"
-        if expr == SymbolNull:
+        if expr is SymbolNull:
             return SymbolTrue
 
         v = v.get_sequence()
@@ -1174,7 +1172,7 @@ class PolynomialQ(Builtin):
             return evaluation.message("PolynomialQ", "novar")
 
         var = v[0]
-        if var == SymbolNull:
+        if var is SymbolNull:
             return SymbolTrue
         elif var.has_form("List", None):
             if len(var.leaves) == 0:
@@ -1190,7 +1188,7 @@ class PolynomialQ(Builtin):
 
 # Get a coefficient of form in an expression
 def _coefficient(name, expr, form, n, evaluation):
-    if expr == SymbolNull or form == SymbolNull or n == SymbolNull:
+    if expr is SymbolNull or form is SymbolNull or n is SymbolNull:
         return Integer0
 
     if not (isinstance(form, Symbol)) and not (isinstance(form, Expression)):
@@ -1351,8 +1349,8 @@ class CoefficientList(Builtin):
                 return evaluation.message("CoefficientList", "ivar", v)
 
         # special cases for expr and form
-        e_null = expr == SymbolNull
-        f_null = form == SymbolNull
+        e_null = expr is SymbolNull
+        f_null = form is SymbolNull
         if expr == Integer0:
             return Expression(SymbolList)
         elif e_null and f_null:
@@ -1825,7 +1823,7 @@ class Collect(_CoefficientHandler):
 
     def apply_var_filter(self, expr, varlst, filt, evaluation):
         """Collect[expr_, varlst_, filt_]"""
-        if filt == Symbol("Identity"):
+        if filt is Symbol("Identity"):
             filt = None
         if varlst.is_symbol():
             var_exprs = [varlst]

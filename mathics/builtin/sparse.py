@@ -5,7 +5,6 @@ SparseArray Functions
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 from mathics.algorithm.parts import walk_parts
 
 from mathics.builtin.base import Builtin
@@ -143,7 +142,7 @@ class SparseArray(Builtin):
     def apply_1(self, rules, evaluation):
         """SparseArray[rules_List]"""
         if not (rules.has_form("List", None) and len(rules.leaves) > 0):
-            if rules == Symbol("Automatic"):
+            if rules is Symbol("Automatic"):
                 return
             print(rules.has_form("List", (1,)))
             evaluation.message("SparseArray", "list", rules)

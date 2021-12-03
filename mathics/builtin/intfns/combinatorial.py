@@ -8,8 +8,6 @@ It is closely related to many other areas of mathematics and has many applicatio
 """
 
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
@@ -99,9 +97,9 @@ class _BooleanDissimilarity(Builtin):
                     else:
                         raise _NoBoolVector
                 elif isinstance(leaf, Symbol):
-                    if leaf == SymbolTrue:
+                    if leaf is SymbolTrue:
                         yield 1
-                    elif leaf == SymbolFalse:
+                    elif leaf is SymbolFalse:
                         yield 0
                     else:
                         raise _NoBoolVector

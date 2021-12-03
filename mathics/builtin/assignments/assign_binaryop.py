@@ -12,7 +12,6 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     BinaryOperator,

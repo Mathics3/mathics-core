@@ -8,7 +8,6 @@ Functions for accessing elements of lists using either indices, positions, or pa
 
 from itertools import chain
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.builtin.base import (
     BinaryOperator,
@@ -299,7 +298,7 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n == Symbol("Infinity"):
+        if n is Symbol("Infinity"):
             n = -1
         elif n.get_head_name() == "System`Integer":
             n = n.get_int_value()
@@ -892,7 +891,7 @@ class Part(Builtin):
     def apply(self, list, i, evaluation):
         "Part[list_, i___]"
 
-        if list == SymbolFailed:
+        if list is SymbolFailed:
             return
         indices = i.get_sequence()
         # How to deal with ByteArrays
@@ -922,7 +921,7 @@ class Part(Builtin):
                         evaluation.message("Part", "partw", i, list)
                         return
                 return Integer(data[idx])
-            if idx == Symbol("System`All"):
+            if idx is Symbol("System`All"):
                 return list
             # TODO: handling ranges and lists...
             evaluation.message("Part", "notimplemented")

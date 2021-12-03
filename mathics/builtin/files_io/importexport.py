@@ -4,7 +4,6 @@
 Importing and Exporting
 """
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 from mathics.core.atoms import (
     ByteArrayAtom,
@@ -1351,7 +1350,7 @@ class Import(Builtin):
         # Load local file
         findfile = Expression("FindFile", filename).evaluate(evaluation)
 
-        if findfile == SymbolFailed:
+        if findfile is SymbolFailed:
             evaluation.message("Import", "nffil")
             return findfile
 
@@ -1477,7 +1476,7 @@ class Import(Builtin):
             if defaults is None:
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
-            if default_element == Symbol("Automatic"):
+            if default_element is Symbol("Automatic"):
                 evaluation.predetermined_out = current_predetermined_out
                 return Expression(
                     "List",
@@ -1848,7 +1847,7 @@ class Export(Builtin):
             )
             res = exporter_function.evaluate(evaluation)
             Expression("Close", stream).evaluate(evaluation)
-        if res == Symbol("Null"):
+        if res is Symbol("Null"):
             evaluation.predetermined_out = current_predetermined_out
             return filename
         evaluation.predetermined_out = current_predetermined_out
@@ -2021,7 +2020,7 @@ class ExportString(Builtin):
                 *list(chain(stream_options, custom_options))
             )
             res = exporter_function.evaluate(evaluation)
-            if res == SymbolNull:
+            if res is SymbolNull:
                 if is_binary:
                     res = Expression("ByteArray", ByteArrayAtom(pystream.getvalue()))
                 else:
@@ -2103,7 +2102,7 @@ class FileFormat(Builtin):
         "FileFormat[filename_String]"
 
         findfile = Expression("FindFile", filename).evaluate(evaluation)
-        if findfile == SymbolFailed:
+        if findfile is SymbolFailed:
             evaluation.message(
                 "FileFormat", "nffil", Expression("FileFormat", filename)
             )

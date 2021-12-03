@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.version import __version__  # noqa used in loading to check consistency.
+
 from mathics.builtin.base import Builtin, Test
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -184,7 +184,7 @@ class Quantity(Builtin):
     }
 
     def validate(self, unit, evaluation):
-        if KnownUnitQ(unit).evaluate(evaluation) == Symbol("False"):
+        if KnownUnitQ(unit).evaluate(evaluation) is Symbol("False"):
             return False
         return True
 
