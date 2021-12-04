@@ -133,7 +133,7 @@ class DSolve(Builtin):
             func = Expression(y, *syms)
             function_form = Expression("List", *syms)
 
-        if func.is_atom():
+        if func.is_atom:
             evaluation.message("DSolve", "dsfun", y)
             return
 

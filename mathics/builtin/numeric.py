@@ -13,23 +13,19 @@ Precision is not "guarded" through the evaluation process. Only integer precisio
 However, things like 'N[Pi, 100]' should work as expected.
 """
 
-import sympy
-import mpmath
-import numpy as np
-import math
 import hashlib
+import math
 import zlib
 from collections import namedtuple
 from contextlib import contextmanager
-from itertools import chain, product
 from functools import lru_cache
+from itertools import chain, product
 
+import mpmath
+import numpy as np
+import sympy
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.convert import from_sympy
-
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolN, SymbolTrue
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -41,18 +37,18 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
-from mathics.core.systemsymbols import (
-    SymbolMachinePrecision,
-)
-
+from mathics.core.convert import from_sympy
+from mathics.core.expression import Expression
 from mathics.core.number import (
-    dps,
-    convert_int_to_digit_list,
-    machine_precision,
-    machine_epsilon,
-    get_precision,
     PrecisionValueError,
+    convert_int_to_digit_list,
+    dps,
+    get_precision,
+    machine_epsilon,
+    machine_precision,
 )
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolN, SymbolTrue
+from mathics.core.systemsymbols import SymbolMachinePrecision
 
 
 @lru_cache(maxsize=1024)
@@ -883,7 +879,7 @@ class N(Builtin):
                     result = apply_N(result, evaluation, prec)
                 return result
 
-        if expr.is_atom():
+        if expr.is_atom:
             return expr
         else:
             attributes = expr.head.get_attributes(evaluation.definitions)
@@ -973,7 +969,7 @@ class NIntegrate(Builtin):
         super().__init__(*args, **kwargs)
         self.methods["Internal"] = (_internal_adaptative_simpsons_rule, False)
         try:
-            from scipy.integrate import romberg, quad, nquad
+            from scipy.integrate import nquad, quad, romberg
 
             self.methods["NQuadrature"] = (
                 _scipy_interface(

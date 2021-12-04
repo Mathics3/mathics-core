@@ -566,7 +566,7 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
 
-        if expr.is_atom():
+        if expr.is_atom:
             return expr.atom_to_boxes(f, evaluation)
         else:
             head = expr.head

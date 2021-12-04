@@ -131,13 +131,14 @@ class ExpressionPointer(object):
     def get_head_name(self):
         return self.head.get_name()
 
-    def is_atom(self):
+    @property
+    def is_atom(self) -> bool:
         pos = self.position
         if pos is None:
-            return self.parent.is_atom()
+            return self.parent.is_atom
         elif pos == 0:
-            return self.parent.head.is_atom()
-        return self.parent.leaves[pos - 1].is_atom()
+            return self.parent.head.is_atom
+        return self.parent.leaves[pos - 1].is_atom
 
     def to_expression(self):
         parent = self.parent
@@ -149,7 +150,7 @@ class ExpressionPointer(object):
                 return parent.head.copy()
         else:
             leaf = self.parent.leaves[p - 1]
-            if leaf.is_atom():
+            if leaf.is_atom:
                 return leaf
             else:
                 return leaf.copy()
@@ -196,6 +197,8 @@ class SubExpression(object):
     This class represents a Subexpression of an existing Expression.
     Assignment to a subexpression results in the change of the original Expression.
     """
+
+    is_atom: bool = False
 
     def __new__(cls, expr, pos=None):
         """
@@ -245,9 +248,6 @@ class SubExpression(object):
                 SubExpression(ExpressionPointer(expr, k + 1), rem_pos) for k in pos
             ]
             return self
-
-    def is_atom(self):
-        return False
 
     def __str__(self):
         return (

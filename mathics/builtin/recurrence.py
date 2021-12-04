@@ -67,7 +67,7 @@ class RSolve(Builtin):
                 return
 
         if (
-            (n.is_atom() and not n.is_symbol)
+            (n.is_atom and not n.is_symbol)
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
             or "System`Constant" in n.get_attributes(evaluation.definitions)
         ):
@@ -84,7 +84,7 @@ class RSolve(Builtin):
             func = Expression(a, n)
             function_form = Expression("List", n)
 
-        if func.is_atom() or len(func.leaves) != 1:
+        if func.is_atom or len(func.leaves) != 1:
             evaluation.message("RSolve", "dsfun", a)
 
         if n not in func.leaves:

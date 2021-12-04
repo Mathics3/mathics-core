@@ -1609,7 +1609,7 @@ def item_is_free(item, form, evaluation):
     except _StopGeneratorBaseExpressionIsFree as exc:
         return exc.value
 
-    if item.is_atom():
+    if item.is_atom:
         return True
     else:
         return item_is_free(item.head, form, evaluation) and all(

@@ -4,7 +4,7 @@
 import sympy
 
 import typing
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 # I put this constants here instead of inside `mathics.core.convert`
 # to avoid a circular reference. Maybe they should be in its own module.
@@ -104,8 +104,9 @@ class BaseExpression(KeyComparable):
     unformatted: Any
     last_evaluated: Any
     # this variable holds a function defined in mathics.core.expression that creates an expression
-    create_expression: Any
+    create_expression: Callable[..., Any]
     is_symbol: bool = False
+    is_atom: bool = False
 
     def __new__(cls, *args, **kwargs):
         self = object.__new__(cls)
@@ -188,9 +189,6 @@ class BaseExpression(KeyComparable):
 
     def get_string_value(self):
         return None
-
-    def is_atom(self) -> bool:
-        return False
 
     def is_true(self) -> bool:
         return False
@@ -312,7 +310,7 @@ class BaseExpression(KeyComparable):
             # If expr is not an atom, looks for formats in its definition
             # and apply them.
             def format_expr(expr):
-                if not (expr.is_atom()) and not (expr.head.is_atom()):
+                if not expr.is_atom and not expr.head.is_atom:
                     # expr is of the form f[...][...]
                     return None
                 name = expr.get_lookup_name()
@@ -339,8 +337,8 @@ class BaseExpression(KeyComparable):
             if head in formats:
                 expr = expr.do_format(evaluation, form)
             elif (
-                head is not SymbolNumberForm
-                and not expr.is_atom()
+                not expr.is_atom
+                and head is not SymbolNumberForm
                 and head is not SymbolGraphics
                 and head is not SymbolGraphics3D
             ):
@@ -566,9 +564,7 @@ class Atom(BaseExpression):
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
-
-    def is_atom(self) -> bool:
-        return True
+    is_atom: bool = True
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)

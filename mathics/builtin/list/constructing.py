@@ -460,7 +460,7 @@ class Tuples(Builtin):
     def apply_n(self, expr, n, evaluation):
         "Tuples[expr_, n_Integer]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             evaluation.message("Tuples", "normal")
             return
         n = n.get_int_value()
@@ -489,7 +489,7 @@ class Tuples(Builtin):
         items = []
         for expr in exprs:
             evaluation.check_stopped()
-            if expr.is_atom():
+            if expr.is_atom:
                 evaluation.message("Tuples", "normal")
                 return
             items.append(expr.leaves)

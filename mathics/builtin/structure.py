@@ -81,7 +81,7 @@ class Sort(Builtin):
     def apply(self, list, evaluation):
         "Sort[list_]"
 
-        if list.is_atom():
+        if list.is_atom:
             evaluation.message("Sort", "normal")
         else:
             new_leaves = sorted(list.leaves)
@@ -90,7 +90,7 @@ class Sort(Builtin):
     def apply_predicate(self, list, p, evaluation):
         "Sort[list_, p_]"
 
-        if list.is_atom():
+        if list.is_atom:
             evaluation.message("Sort", "normal")
         else:
 
@@ -139,7 +139,7 @@ class SortBy(Builtin):
     def apply(self, l, f, evaluation):
         "SortBy[l_, f_]"
 
-        if l.is_atom():
+        if l.is_atom:
             return evaluation.message("Sort", "normal")
         elif l.get_head_name() != "System`List":
             expr = Expression("SortBy", l, f)
@@ -450,7 +450,7 @@ class Apply(BinaryOperator):
             return
 
         def callback(level):
-            if level.is_atom():
+            if level.is_atom:
                 return level
             else:
                 return Expression(f, *level.leaves)
@@ -998,7 +998,7 @@ class Flatten(Builtin):
         max_depth = {"max_depth": max_depth}  # hack to modify max_depth from callback
 
         def callback(expr, pos):
-            if len(pos) < max_depth["max_depth"] and (expr.is_atom() or expr.head != h):
+            if len(pos) < max_depth["max_depth"] and (expr.is_atom or expr.head != h):
                 max_depth["max_depth"] = len(pos)
             return expr
 
@@ -1136,7 +1136,7 @@ class AtomQ(Test):
     """
 
     def test(self, expr):
-        return expr.is_atom()
+        return expr.is_atom
 
 
 class SymbolQ(Test):
@@ -1296,7 +1296,7 @@ class Operate(Builtin):
             # Act like Apply
             return Expression(p, expr)
 
-        if expr.is_atom():
+        if expr.is_atom:
             return expr
 
         expr = expr.copy()
@@ -1304,7 +1304,7 @@ class Operate(Builtin):
 
         for i in range(1, head_depth):
             e = e.head
-            if e.is_atom():
+            if e.is_atom:
                 # n is higher than the depth of heads in expr: return
                 # expr unmodified.
                 return expr

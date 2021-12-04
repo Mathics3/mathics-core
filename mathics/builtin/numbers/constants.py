@@ -187,7 +187,7 @@ class _SympyConstant(_Constant_Common, SympyObject):
     sympy_name = None
 
     def to_sympy(self, expr=None, **kwargs):
-        if expr is None or expr.is_atom():
+        if expr is None or expr.is_atom:
             result = getattr(sympy, self.sympy_name)
             if kwargs.get("evaluate", False):
                 result = mp_convert_constant(result, **kwargs)

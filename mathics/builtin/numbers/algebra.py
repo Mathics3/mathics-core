@@ -223,7 +223,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             return store_sub_expr(expr)
 
     def unconvert_subexprs(expr):
-        if expr.is_atom():
+        if expr.is_atom:
             if isinstance(expr, Symbol):
                 return get_sub_expr(expr)
             else:
@@ -240,7 +240,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             i,
             sub_expr,
         ) in enumerate(sub_exprs):
-            if not sub_expr.is_atom():
+            if not sub_expr.is_atom:
                 head = _expand(sub_expr.head)  # also expand head
                 leaves = sub_expr.get_leaves()
                 if target_pat:
@@ -317,7 +317,7 @@ def find_all_vars(expr):
                 return
             if not (a_sympy.is_constant()) and b_sympy.is_rational:
                 find_vars(a, a_sympy)
-        elif not (e.is_atom()):
+        elif not e.is_atom:
             variables.add(e)
 
     exprs = expr.leaves if expr.has_form("List", None) else [expr]
@@ -431,7 +431,7 @@ class Simplify(Builtin):
         "%(name)s[expr_]"
         # Check first if we are dealing with a logic expression...
         expr = evaluate_predicate(expr, evaluation)
-        if expr.is_atom():
+        if expr.is_atom:
             return expr
         # else, use sympy:
         leaves = [self.apply(leaf, evaluation) for leaf in expr._leaves]

@@ -717,7 +717,7 @@ class Definitions(object):
 def get_tag_position(pattern, name) -> typing.Optional[str]:
     if pattern.get_name() == name:
         return "own"
-    elif pattern.is_atom():
+    elif pattern.is_atom:
         return None
     else:
         head_name = pattern.get_head_name()

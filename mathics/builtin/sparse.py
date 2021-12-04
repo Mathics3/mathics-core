@@ -148,7 +148,7 @@ class SparseArray(Builtin):
             evaluation.message("SparseArray", "list", rules)
             return
 
-        if not rules.leaves[0].is_atom() and rules.leaves[0].get_head_name() in (
+        if not rules.leaves[0].is_atom and rules.leaves[0].get_head_name() in (
             "System`Rule",
             "System`DelayedRule",
         ):

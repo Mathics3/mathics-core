@@ -105,8 +105,9 @@ class Pattern(object):
     def get_name(self):
         return self.expr.get_name()
 
-    def is_atom(self):
-        return self.expr.is_atom()
+    @property
+    def is_atom(self) -> bool:
+        return self.expr.is_atom
 
     def get_head_name(self):
         return self.expr.get_head_name()
@@ -232,7 +233,7 @@ class ExpressionPattern(Pattern):
         attributes = self.head.get_attributes(evaluation.definitions)
         if "System`Flat" not in attributes:
             fully = True
-        if not expression.is_atom():
+        if not expression.is_atom:
             # don't do this here, as self.get_pre_choices changes the
             # ordering of the leaves!
             # if self.leaves:

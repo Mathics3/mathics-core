@@ -394,7 +394,7 @@ class Subsets(Builtin):
 
         return (
             evaluation.message("Subsets", "normal", Expression("Subsets", list))
-            if list.is_atom()
+            if list.is_atom
             else self.apply_1(list, Integer(len(list.leaves)), evaluation)
         )
 
@@ -402,7 +402,7 @@ class Subsets(Builtin):
         "Subsets[list_, n_]"
 
         expr = Expression("Subsets", list, n)
-        if list.is_atom():
+        if list.is_atom:
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
@@ -425,7 +425,7 @@ class Subsets(Builtin):
 
         expr = Expression("Subsets", list, n)
 
-        if list.is_atom():
+        if list.is_atom:
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head

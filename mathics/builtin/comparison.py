@@ -256,7 +256,7 @@ class _EqualityOperator(_InequalityOperator):
                 )
         if rhs.is_numeric():
             return False
-        elif rhs.is_atom():
+        elif rhs.is_atom:
             return None
         if rhs.get_head().sameQ(lhs.get_head()):
             dir1 = dir2 = Integer1

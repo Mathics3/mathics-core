@@ -68,7 +68,7 @@ class Append(Builtin):
     def apply(self, expr, item, evaluation):
         "Append[expr_, item_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             return evaluation.message("Append", "normal")
 
         return expr.restructure(
@@ -120,7 +120,7 @@ class AppendTo(Builtin):
         if s == resolved_s:
             return evaluation.message("AppendTo", "rvalue", s)
 
-        if not resolved_s.is_atom():
+        if not resolved_s.is_atom:
             result = Expression("Set", s, Expression("Append", resolved_s, item))
             return result.evaluate(evaluation)
 
@@ -186,7 +186,7 @@ class Cases(Builtin):
 
     def apply(self, items, pattern, ls, evaluation, options):
         "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
-        if items.is_atom():
+        if items.is_atom:
             return Expression(SymbolList)
 
         from mathics.builtin.patterns import Matcher
@@ -287,7 +287,7 @@ class DeleteCases(Builtin):
     def apply_ls_n(self, items, pattern, levelspec, n, evaluation):
         "DeleteCases[items_, pattern_, levelspec_:1, n_:System`Infinity]"
 
-        if items.is_atom():
+        if items.is_atom:
             evaluation.message("Select", "normal")
             return
         # If levelspec is specified to a non-trivial value,
@@ -392,7 +392,7 @@ class Drop(Builtin):
 
         seqs = seqs.get_sequence()
 
-        if items.is_atom():
+        if items.is_atom:
             return evaluation.message(
                 "Drop", "normal", 1, Expression("Drop", items, *seqs)
             )
@@ -424,7 +424,7 @@ class First(Builtin):
     def apply(self, expr, evaluation):
         "First[expr_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             evaluation.message("First", "normal")
             return
         return expr.leaves[0]
@@ -658,7 +658,7 @@ class Last(Builtin):
     def apply(self, expr, evaluation):
         "Last[expr_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             evaluation.message("Last", "normal")
             return
         return expr.leaves[-1]
@@ -696,7 +696,7 @@ class Length(Builtin):
     def apply(self, expr, evaluation):
         "Length[expr_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             return Integer0
         else:
             return Integer(len(expr.leaves))
@@ -751,7 +751,7 @@ class Most(Builtin):
     def apply(self, expr, evaluation):
         "Most[expr_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             evaluation.message("Most", "normal")
             return
         return expr.slice(expr.head, slice(0, -1), evaluation)
@@ -953,7 +953,7 @@ class Pick(Builtin):
             for x, s in zip(items, sel):
                 if match(s):
                     yield x
-                elif not x.is_atom() and not s.is_atom():
+                elif not x.is_atom and not s.is_atom:
                     yield x.restructure(x.head, pick(x.leaves, s.leaves), evaluation)
 
         r = list(pick([items0], [sel0]))
@@ -1005,7 +1005,7 @@ class Prepend(Builtin):
     def apply(self, expr, item, evaluation):
         "Prepend[expr_, item_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             return evaluation.message("Prepend", "normal")
 
         return expr.restructure(
@@ -1069,7 +1069,7 @@ class PrependTo(Builtin):
         if s == resolved_s:
             return evaluation.message("PrependTo", "rvalue", s)
 
-        if not resolved_s.is_atom():
+        if not resolved_s.is_atom:
             result = Expression("Set", s, Expression("Prepend", resolved_s, item))
             return result.evaluate(evaluation)
 
@@ -1190,7 +1190,7 @@ class Rest(Builtin):
     def apply(self, expr, evaluation):
         "Rest[expr_]"
 
-        if expr.is_atom():
+        if expr.is_atom:
             evaluation.message("Rest", "normal")
             return
         return expr.slice(expr.head, slice(1, len(expr.leaves)), evaluation)
@@ -1304,7 +1304,7 @@ class Take(Builtin):
 
         seqs = seqs.get_sequence()
 
-        if items.is_atom():
+        if items.is_atom:
             return evaluation.message(
                 "Take", "normal", 1, Expression("Take", items, *seqs)
             )
@@ -1343,7 +1343,7 @@ class Select(Builtin):
     def apply(self, items, expr, evaluation):
         "Select[items_, expr_]"
 
-        if items.is_atom():
+        if items.is_atom:
             evaluation.message("Select", "normal")
             return
 

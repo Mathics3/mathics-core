@@ -123,7 +123,7 @@ def get_assumptions_list(evaluation):
     if assumptions is None:
         return None
 
-    if assumptions.is_atom() or not assumptions.has_form("List", None):
+    if assumptions.is_atom or not assumptions.has_form("List", None):
         assumptions = (assumptions,)
     else:
         assumptions = assumptions._leaves

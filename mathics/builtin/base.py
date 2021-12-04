@@ -601,6 +601,8 @@ class SympyFunction(SympyObject):
 
 
 class BoxConstruct(InstanceableBuiltin):
+    is_atom: bool = False
+
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)
         instance._leaves = leaves
@@ -622,9 +624,6 @@ class BoxConstruct(InstanceableBuiltin):
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
         return expr.sameQ(self)
-
-    def is_atom(self):
-        return False
 
     def do_format(self, evaluation, format):
         return self

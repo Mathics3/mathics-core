@@ -260,7 +260,7 @@ class Unset(PostfixOperator):
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed
         if not evaluation.definitions.unset(name, expr):
-            if not expr.is_atom():
+            if not expr.is_atom:
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
         return Symbol("Null")
