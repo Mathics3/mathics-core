@@ -74,6 +74,7 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolMakeBoxes,
+    SymbolRowBox,
     SymbolRule,
     SymbolSequence,
 )
@@ -553,7 +554,7 @@ class List(Builtin):
 
         items = items.get_sequence()
         return Expression(
-            "RowBox", Expression(SymbolList, *list_boxes(items, f, "{", "}"))
+            SymbolRowBox, Expression(SymbolList, *list_boxes(items, f, "{", "}"))
         )
 
 
@@ -604,7 +605,7 @@ def list_boxes(items, f, open=None, close=None):
         sep = ","
     result = riffle(result, String(sep))
     if len(items) > 1:
-        result = Expression("RowBox", Expression(SymbolList, *result))
+        result = Expression(SymbolRowBox, Expression(SymbolList, *result))
     elif items:
         result = result[0]
     if result:

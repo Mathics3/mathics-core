@@ -20,12 +20,10 @@ from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
+    SymbolRowBox,
 )
 
 from mathics.core.attributes import hold_all_complete, protected
-
-
-SymbolRowBox = Symbol("RowBox")
 
 
 class Association(Builtin):

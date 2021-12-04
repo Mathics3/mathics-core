@@ -9,7 +9,8 @@ from mathics.core.atoms import (
     Real,
     Number,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolRowBox
 
 from mathics.core.attributes import hold_rest, n_hold_rest, protected, read_protected
 
@@ -195,10 +196,11 @@ class Quantity(Builtin):
 
         q_unit = unit.get_string_value().lower()
         if self.validate(unit, evaluation):
-            return Expression("RowBox", Expression("List", mag, " ", q_unit))
+            return Expression(SymbolRowBox, Expression(SymbolList, mag, " ", q_unit))
         else:
             return Expression(
-                "RowBox", Expression("List", "Quantity", "[", mag, ",", q_unit, "]")
+                SymbolRowBox,
+                Expression(SymbolList, "Quantity", "[", mag, ",", q_unit, "]"),
             )
 
     def apply_n(self, mag, unit, evaluation):
