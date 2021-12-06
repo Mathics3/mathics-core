@@ -10,7 +10,14 @@ from mathics.core.symbols import (
     SymbolFalse,
 )
 
-from mathics.core.attributes import flat, hold_all, one_identity, orderless, protected
+from mathics.core.attributes import (
+    flat,
+    hold_all,
+    one_identity,
+    orderless,
+    protected,
+    locked,
+)
 
 
 class Or(BinaryOperator):
@@ -331,6 +338,8 @@ class True_(Predefined):
     </dl>
     """
 
+    attributes = locked | protected
+
     name = "True"
 
 
@@ -342,6 +351,7 @@ class False_(Predefined):
     </dl>
     """
 
+    attributes = locked | protected
     name = "False"
 
 
