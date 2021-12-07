@@ -93,9 +93,9 @@ class AtomTests(ParserTests):
     def testSpecialSymbol(self):
         self.check("\\[Pi]", "Pi")
         self.check("\\[Degree]", "Degree")
-        self.check("\\[ExponentialE]", "E")
-        self.check("\\[ImaginaryI]", "I")
-        self.check("\\[ImaginaryJ]", "I")
+        self.check("\\[ExponentialE]", "ⅇ")
+        self.check("\\[ImaginaryI]", "ⅈ")
+        self.check("\\[ImaginaryJ]", "ⅉ")
         self.check("\\[Infinity]", "Infinity")
 
     def testNumber(self):
