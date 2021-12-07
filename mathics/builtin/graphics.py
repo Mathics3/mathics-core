@@ -1150,10 +1150,10 @@ class _GraphicsElements(object):
         self.evaluation = evaluation
         self.elements = []
 
-        builtins = evaluation.definitions.builtin
+        # builtins = evaluation.definitions.builtin
 
         def get_options(name):
-            builtin = builtins.get(name)
+            builtin = Symbol(name).builtin
             if builtin is None:
                 return None
             return builtin.options

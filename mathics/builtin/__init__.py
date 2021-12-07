@@ -10,6 +10,7 @@ import importlib
 import pkgutil
 import re
 import os.path as osp
+from mathics.core.symbols import Symbol
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -58,7 +59,8 @@ def builtins_dict():
 
 
 def contribute(definitions):
-    # let MakeBoxes contribute first
+    # Ensure that MaleBoxes definition is empty and let MakeBoxes contribute first
+    Symbol("System`MakeBoxes").builtin = None
     _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
         if name != "System`MakeBoxes":
@@ -74,7 +76,7 @@ def contribute(definitions):
     for operator in all_operator_names:
         if not definitions.have_definition(ensure_context(operator)):
             op = ensure_context(operator)
-            definitions.builtin[op] = Definition(name=op)
+            Symbol(op).builtin = Definition(name=op)
 
 
 def get_module_doc(module):

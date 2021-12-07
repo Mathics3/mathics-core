@@ -648,6 +648,8 @@ class Symbol(Atom):
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
+            self.definition = None
+            self.builtin = None
             cls.defined_symbols[name] = self
         return self
 

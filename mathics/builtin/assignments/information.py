@@ -41,11 +41,11 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
         # the value to a HTML form...
         return usagetext
     # Otherwise, look at the pymathics, and builtin docstrings:
-    builtins = evaluation.definitions.builtin
-    pymathics = evaluation.definitions.pymathics
-    bio = pymathics.get(definition.name)
-    if bio is None:
-        bio = builtins.get(definition.name)
+    # builtins = evaluation.definitions.builtin
+    # pymathics = evaluation.definitions.pymathics
+    # bio = pymathics.get(definition.name)
+    # if bio is None:
+    bio = Symbol(definition.name).builtin
 
     if bio is not None:
         if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):

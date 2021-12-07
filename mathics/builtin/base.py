@@ -119,8 +119,10 @@ class Builtin(object):
                 # Create a definition for the option's symbol.
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
-                if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(name=name)
+                soption = Symbol(option)
+                if soption.builtin is None:
+                    soption.builtin = Definition(name=name)
+                    # definitions.builtin[option] = Definition(name=name)
 
         # Check if the given options are actually supported by the Builtin.
         # If not, we might issue an optx error and abort. Using '$OptionSyntax'
@@ -252,8 +254,11 @@ class Builtin(object):
                 # Create a definition for the option's symbol.
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
-                if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(name=name)
+                soption = Symbol(option)
+                if soption.builtin is None:
+                    soption.builtin = Definition(name=name)
+                    # definitions.builtin[option] = Definition(name=name)
+
         defaults = []
         for spec, value in self.defaults.items():
             value = parse_builtin_rule(value)
@@ -275,12 +280,10 @@ class Builtin(object):
             defaultvalues=defaults,
             builtin=self,
         )
-        if is_pymodule:
-            definitions.pymathics[name] = definition
-        else:
-            definitions.builtin[name] = definition
+        sname = Symbol(name)
+        sname.builtin = definition
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
+        makeboxes_def = Symbol("System`MakeBoxes").builtin
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
 

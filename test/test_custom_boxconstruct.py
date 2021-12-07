@@ -1,4 +1,4 @@
-from .helper import evaluate, session
+from .helper import evaluate, session, reset_session
 
 from mathics.builtin.base import BoxConstruct, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
@@ -89,3 +89,4 @@ def test_custom_graphicsbox_constructor():
         formatted
         == "--custom graphics--: I should plot (<Expression: System`Circle[System`List[0, 0], 1]>,) items"
     )
+    reset_session()

@@ -72,9 +72,9 @@ class Definitions(object):
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
+        # self.builtin = {}
         self.user = {}
-        self.pymathics = {}
+        # self.pymathics = {}
         self.definitions_cache = {}
         self.lookup_cache = {}
         self.proxy = defaultdict(set)
@@ -127,7 +127,8 @@ class Definitions(object):
                 if name.startswith("Global`"):
                     raise ValueError("autoload defined %s." % name)
 
-            self.builtin.update(self.user)
+            for name in self.user:
+                Symbol(name).builtin = self.user[name]
             self.user = {}
             self.clear_cache()
 
@@ -278,20 +279,19 @@ class Definitions(object):
         self.clear_cache()
 
     def get_builtin_names(self):
-        return set(self.builtin)
+        return set(
+            [
+                name
+                for name in Symbol.defined_symbols
+                if Symbol.defined_symbols[name].builtin
+            ]
+        )
 
     def get_user_names(self):
         return set(self.user)
 
-    def get_pymathics_names(self):
-        return set(self.pymathics)
-
     def get_names(self):
-        return (
-            self.get_builtin_names()
-            | self.get_pymathics_names()
-            | self.get_user_names()
-        )
+        return self.get_builtin_names() | self.get_user_names()
 
     def get_accessible_contexts(self):
         "Return the contexts reachable though $Context or $ContextPath."
@@ -424,18 +424,15 @@ class Definitions(object):
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
-
+        if name == "":
+            return None
         original_name = name
         name = self.lookup_name(name)
         user = self.user.get(name, None)
-        pymathics = self.pymathics.get(name, None)
-        builtin = self.builtin.get(name, None)
+        builtin = Symbol(name).builtin
 
         candidates = [user] if user else []
         builtin_instance = None
-        if pymathics:
-            builtin_instance = pymathics
-            candidates.append(pymathics)
         if builtin:
             candidates.append(builtin)
             if builtin_instance is None:
@@ -509,21 +506,30 @@ class Definitions(object):
         return self.get_definition(name).upvalues
 
     def get_formats(self, name, format=""):
-        formats = self.get_definition(name).formatvalues
+        definition = self.get_definition(name)
+        if definition is None:
+            return []
+        formats = definition.formatvalues
         result = formats.get(format, []) + formats.get("", [])
         result.sort()
         return result
 
     def get_nvalues(self, name):
-        return self.get_definition(name).nvalues
+        definition = self.get_definition(name)
+        return definition.nvalues if definition else None
 
     def get_defaultvalues(self, name):
-        return self.get_definition(name).defaultvalues
+        definition = self.get_definition(name)
+        return definition.defaultvalues if definition else None
 
     def get_value(self, name, pos, pattern, evaluation):
         assert isinstance(name, str)
         assert "`" in name
-        rules = self.get_definition(name).get_values_list(valuesname(pos))
+        definition = self.get_definition(name)
+        if definition is None:
+            return None
+
+        rules = definition.get_values_list(valuesname(pos))
         for rule in rules:
             result = rule.apply(pattern, evaluation)
             if result is not None:
@@ -538,7 +544,7 @@ class Definitions(object):
         else:
             if not create:
                 return None
-            builtin = self.builtin.get(name)
+            builtin = Symbol(name).builtin
             if builtin:
                 attributes = builtin.attributes
             else:

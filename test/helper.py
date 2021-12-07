@@ -5,6 +5,12 @@ from mathics.session import MathicsSession
 session = MathicsSession(add_builtin=True, catch_interrupt=False)
 
 
+def reset_session():
+    global session
+    session = MathicsSession(add_builtin=True, catch_interrupt=False)
+    return True
+
+
 def evaluate_value(str_expr: str):
     return session.evaluate(str_expr).value
 
