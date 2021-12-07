@@ -13,7 +13,6 @@ jobs:
     runs-on: macos-latest
     strategy:
       matrix:
-        os: [macOS]
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
     - uses: actions/checkout@v2
@@ -26,6 +25,8 @@ jobs:
         brew install llvm@11
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
+        # Comment out after next Mathics Scanner release
+        pip install git+git://github.com/Mathics3/mathics-scanner.git#egg
     - name: Install Mathics with full dependencies
       run: |
         make develop-full

@@ -24,6 +24,8 @@ jobs:
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
         python -m pip install --upgrade pip
+        # Comment out after next Mathics Scanner release
+        pip install git+git://github.com/Mathics3/mathics-scanner.git#egg
     - name: Install Mathics with full dependencies
       run: |
         make develop-full

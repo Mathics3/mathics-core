@@ -13,7 +13,6 @@ jobs:
     runs-on: windows-latest
     strategy:
       matrix:
-        os: [windows]
         python-version: [3.7, 3.8]
     steps:
     - uses: actions/checkout@v2
@@ -27,6 +26,8 @@ jobs:
         python -m pip install wheel
         choco install llvm
         set LLVM_DIR="C:\Program Files\LLVM"
+        # Comment out after next Mathics Scanner release
+        pip install git+git://github.com/Mathics3/mathics-scanner.git#egg
         pip install -e .
     - name: Install Mathics
       run: |
