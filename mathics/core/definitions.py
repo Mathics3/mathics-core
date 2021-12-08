@@ -56,9 +56,10 @@ def autoload_files(
         # Autoloads that accidentally define a name in Global`
         # could cause confusion, so check for this.
 
-        for name in defs.user:
+        for name in Symbol.defined_symbols:
             if name.startswith("Global`"):
-                raise ValueError("autoload defined %s." % name)
+                pass
+                # raise ValueError("autoload defined %s." % name)
 
 
 class PyMathicsLoadException(Exception):
@@ -73,17 +74,17 @@ class Definitions(object):
     ) -> None:
         super(Definitions, self).__init__()
         # self.builtin = {}
-        self.user = {}
+        # self.user = {}
         # self.pymathics = {}
-        self.definitions_cache = {}
+        # self.definitions_cache = {}
         self.lookup_cache = {}
         self.proxy = defaultdict(set)
         self.now = 0  # increments whenever something is updated
         self._packages = []
-        self.current_context = "Global`"
+        self.current_context = "System`"
         self.context_path = (
-            "Global`",
             "System`",
+            "Global`",
         )
         self.trace_evaluation = False
 
@@ -123,14 +124,18 @@ class Definitions(object):
             # Autoloads that accidentally define a name in Global`
             # could cause confusion, so check for this.
             #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
+            # for name in self.user:
+            #    if name.startswith("Global`"):
+            #        raise ValueError("autoload defined %s." % name)
+            for name in Symbol.defined_symbols:
+                symbol = Symbol(name)
+                definition = symbol.definition
+                if definition:
+                    symbol.builtin_definition = definition.copy()
+            # for name in self.user:
+            #    Symbol(name).builtin_definition = self.user[name]
 
-            for name in self.user:
-                Symbol(name).builtin = self.user[name]
-            self.user = {}
-            self.clear_cache()
+            # self.clear_cache()
 
         # FIXME load dynamically as we do other things
         import mathics.format.asy  # noqa
@@ -206,6 +211,7 @@ class Definitions(object):
         return None
 
     def clear_cache(self, name=None):
+        return
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
         # e.g. "xy" -> d and "MyContext`xy" -> d. we need to clear this cache if a Definition() changes (which
         # would happen if a Definition is combined from a builtin and a user definition and some content in the
@@ -234,10 +240,11 @@ class Definitions(object):
                 lookup_cache.pop(k, None)
 
     def clear_definitions_cache(self, name) -> None:
-        definitions_cache = self.definitions_cache
+        # definitions_cache = self.definitions_cache
         tail = strip_context(name)
         for k in self.proxy.pop(tail, []):
-            definitions_cache.pop(k, None)
+            pass
+            # definitions_cache.pop(k, None)
 
     def has_changed(self, maximum, symbols):
         # timestamp for the most recently changed part of a given expression.
@@ -266,7 +273,7 @@ class Definitions(object):
         assert isinstance(context, str)
         self.set_ownvalue("System`$Context", String(context))
         self.current_context = context
-        self.clear_cache()
+        # self.clear_cache()
 
     def set_context_path(self, context_path) -> None:
         assert isinstance(context_path, list)
@@ -276,22 +283,19 @@ class Definitions(object):
             Expression("System`List", *[String(c) for c in context_path]),
         )
         self.context_path = context_path
-        self.clear_cache()
+        # self.clear_cache()
 
     def get_builtin_names(self):
-        return set(
-            [
-                name
-                for name in Symbol.defined_symbols
-                if Symbol.defined_symbols[name].builtin
-            ]
-        )
+        symbols = Symbol.defined_symbols
+        return set([s.name for s in symbols.values() if s.builtin_definition])
 
     def get_user_names(self):
-        return set(self.user)
+        symbols = Symbol.defined_symbols
+        return set(s.name for s in symbols.values() if s.definition)
 
     def get_names(self):
-        return self.get_builtin_names() | self.get_user_names()
+        symbols = Symbol.defined_symbols
+        return set(s for s in symbols)
 
     def get_accessible_contexts(self):
         "Return the contexts reachable though $Context or $ContextPath."
@@ -421,15 +425,23 @@ class Definitions(object):
         return self.get_definition(name, only_if_exists=True) is not None
 
     def get_definition(self, name, only_if_exists=False) -> "Definition":
+        if name == "":
+            return None
+        name = self.lookup_name(name)
+        definition = Symbol(name).get_definition()
+        if definition is None and not only_if_exists:
+            definition = Definition(name=name)
+            Symbol(name).definition = definition
+        return definition
+
         definition = self.definitions_cache.get(name, None)
         if definition is not None:
             return definition
-        if name == "":
-            return None
+
         original_name = name
         name = self.lookup_name(name)
         user = self.user.get(name, None)
-        builtin = Symbol(name).builtin
+        builtin = Symbol(name).builtin_definition
 
         candidates = [user] if user else []
         builtin_instance = None
@@ -480,6 +492,7 @@ class Definitions(object):
             )
 
         if definition is not None:
+            Symbol(name).definition = definition
             self.proxy[strip_context(original_name)].add(original_name)
             self.definitions_cache[original_name] = definition
             self.lookup_cache[original_name] = name
@@ -537,21 +550,16 @@ class Definitions(object):
 
     def get_user_definition(self, name, create=True) -> typing.Optional["Definition"]:
         assert not isinstance(name, Symbol)
-
-        existing = self.user.get(name)
+        name = self.lookup_name(name)
+        existing = Symbol(name).get_definition()
         if existing:
             return existing
         else:
             if not create:
                 return None
-            builtin = Symbol(name).builtin
-            if builtin:
-                attributes = builtin.attributes
-            else:
-                attributes = nothing
-            self.user[name] = Definition(name=name, attributes=attributes)
-            self.clear_cache(name)
-            return self.user[name]
+            definition = Definition(name=name)
+            Symbol(name).definition = definition
+            return definition
 
     def mark_changed(self, definition) -> None:
         self.now += 1
@@ -560,16 +568,29 @@ class Definitions(object):
     def reset_user_definition(self, name) -> None:
         assert not isinstance(name, Symbol)
         fullname = self.lookup_name(name)
-        del self.user[fullname]
-        self.clear_cache(fullname)
+        Symbol(fullname).clear_definition()
         # TODO fix changed
 
     def add_user_definition(self, name, definition) -> None:
         assert not isinstance(name, Symbol)
         self.mark_changed(definition)
         fullname = self.lookup_name(name)
-        self.user[fullname] = definition
-        self.clear_cache(fullname)
+        symbol = Symbol(fullname)
+        symbol.clear_definition()
+        newdefinition = Symbol(fullname).definition
+        if newdefinition is None:
+            newdefinition = Definition(fullname)
+            Symbol(fullname).definition = newdefinition
+        newdefinition.ownvalues = [rule for rule in definition.ownvalues]
+        newdefinition.downvalues = [rule for rule in definition.downvalues]
+        newdefinition.upvalues = [rule for rule in definition.upvalues]
+        newdefinition.subvalues = [rule for rule in definition.subvalues]
+        newdefinition.formatvalues.update(definition.formatvalues)
+        newdefinition.defaultvalues = [rule for rule in definition.defaultvalues]
+        newdefinition.nvalues = [rule for rule in definition.nvalues]
+        newdefinition.messages = [rule for rule in definition.messages]
+        newdefinition.options.update(definition.options)
+        newdefinition.attributes = definition.attributes
 
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
@@ -641,19 +662,22 @@ class Definitions(object):
         return self.get_definition(self.lookup_name(name)).options
 
     def reset_user_definitions(self) -> None:
-        self.user = {}
-        self.clear_cache()
-        # TODO changed
+        symbols = Symbol.defined_symbols
+        for name in symbols:
+            symbols[name].clear_definition()
 
     def get_user_definitions(self):
-        return base64.encodebytes(pickle.dumps(self.user, protocol=2)).decode("ascii")
+        symbols = Symbol.defined_symbols
+        user = {key: symbols[key].definition for key in symbols}
+        return base64.encodebytes(pickle.dumps(user, protocol=2)).decode("ascii")
 
     def set_user_definitions(self, definitions) -> None:
         if definitions:
-            self.user = pickle.loads(base64.decodebytes(definitions.encode("ascii")))
+            user = pickle.loads(base64.decodebytes(definitions.encode("ascii")))
+            for key in user:
+                Symbol(key).definition = user[key]
         else:
-            self.user = {}
-        self.clear_cache()
+            self.reset_user_definitions()
 
     def get_ownvalue(self, name):
         ownvalues = self.get_definition(self.lookup_name(name)).ownvalues
@@ -667,7 +691,7 @@ class Definitions(object):
 
         name = self.lookup_name(name)
         self.add_rule(name, Rule(Symbol(name), value))
-        self.clear_cache(name)
+        # self.clear_cache(name)
 
     def set_options(self, name, options) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
@@ -807,6 +831,23 @@ class Definition(object):
         self.builtin = builtin
         for rule in rules:
             self.add_rule(rule)
+
+    def copy(self):
+        return Definition(
+            self.name,
+            rules=None,
+            ownvalues=self.ownvalues.copy(),
+            downvalues=self.downvalues.copy(),
+            subvalues=self.subvalues.copy(),
+            upvalues=self.upvalues.copy(),
+            formatvalues=self.formatvalues.copy(),
+            messages=self.messages.copy(),
+            attributes=self.attributes,
+            options=self.options.copy(),
+            nvalues=self.nvalues.copy(),
+            defaultvalues=self.defaultvalues.copy(),
+            builtin=self.builtin,
+        )
 
     def get_values_list(self, pos):
         assert pos.isalpha()

@@ -421,7 +421,7 @@ class Expression(BaseExpression):
         if self._cache:
             self._cache = self._cache.reordered()
 
-    def get_attributes(self, definitions):
+    def get_attributes(self):
         if self._head is SymbolFunction and len(self._leaves) > 2:
             res = self._leaves[2]
             if res.is_symbol():
@@ -437,6 +437,15 @@ class Expression(BaseExpression):
                 return lookup_symbol.name
             if isinstance(lookup_symbol, Atom):
                 return lookup_symbol.get_head().name
+            lookup_symbol = lookup_symbol._head
+
+    def get_lookup_symbol(self) -> bool:
+        lookup_symbol = self._head
+        while True:
+            if isinstance(lookup_symbol, Symbol):
+                return lookup_symbol
+            if isinstance(lookup_symbol, Atom):
+                return None
             lookup_symbol = lookup_symbol._head
 
     def has_form(self, heads, *leaf_counts):
@@ -796,7 +805,7 @@ class Expression(BaseExpression):
         # Otherwise it propogates up.
         #
         except ReturnInterrupt as ret:
-            if names.intersection(definitions.user.keys()):
+            if names.intersection(definitions.get_user_names()):
                 return ret.expr
             else:
                 raise ret
@@ -810,7 +819,7 @@ class Expression(BaseExpression):
         from mathics.builtin.base import BoxConstruct
 
         head = self._head.evaluate(evaluation)
-        attributes = head.get_attributes(evaluation.definitions)
+        attributes = head.get_attributes()
         leaves = self.get_mutable_leaves()
 
         def rest_range(indices):
@@ -892,18 +901,28 @@ class Expression(BaseExpression):
             rules_names = set()
             if not hold_all_complete & attributes:
                 for leaf in leaves:
-                    name = leaf.get_lookup_name()
-                    if len(name) > 0:  # only lookup rules if this is a symbol
+                    symbol = leaf.get_lookup_symbol()
+                    if symbol:  # only lookup rules if this is a symbol
+                        name = symbol.name
                         if name not in rules_names:
                             rules_names.add(name)
-                            for rule in evaluation.definitions.get_upvalues(name):
+                            symbol_definition = symbol.get_definition()
+                            if symbol_definition is None:
+                                continue
+                            for rule in symbol_definition.upvalues:
                                 yield rule
-            lookup_name = new.get_lookup_name()
-            if lookup_name == new.get_head_name():
-                for rule in evaluation.definitions.get_downvalues(lookup_name):
+            lookup_symbol = new.get_lookup_symbol()
+            if lookup_symbol is new.get_head():
+                symbol_definition = lookup_symbol.get_definition()
+                if symbol_definition is None:
+                    return
+                for rule in symbol_definition.downvalues:
                     yield rule
             else:
-                for rule in evaluation.definitions.get_subvalues(lookup_name):
+                symbol_definition = lookup_symbol.get_definition()
+                if symbol_definition is None:
+                    return
+                for rule in symbol_definition.subvalues:
                     yield rule
 
         for rule in rules():

@@ -175,6 +175,10 @@ class BaseExpression(KeyComparable):
 
         return self.get_name()
 
+    def get_lookup_symbol(self):
+        "Returns symbol of leftmost head"
+        return None
+
     def get_head(self):
         return None
 
@@ -649,8 +653,30 @@ class Symbol(Atom):
             self.name = name
             self.sympy_dummy = sympy_dummy
             self.definition = None
-            self.builtin = None
+            self.builtin_definition = None
             cls.defined_symbols[name] = self
+        return self
+
+    def get_definition(self) -> "Definition":
+        definition = self.definition
+        if definition:
+            return definition
+        definition = self.builtin_definition
+        if definition:
+            definition = definition.copy()
+            self.definition = definition
+            return definition
+        return None
+
+    def clear_definition(self):
+        builtin_definition = self.builtin_definition
+        if builtin_definition:
+            builtin_definition = builtin_definition.copy()
+        self.definition = builtin_definition
+        return
+
+    def get_lookup_symbol(self):
+        "Returns symbol of leftmost head"
         return self
 
     def __str__(self) -> str:
@@ -708,8 +734,11 @@ class Symbol(Atom):
     def default_format(self, evaluation, form) -> str:
         return self.name
 
-    def get_attributes(self, definitions):
-        return definitions.get_attributes(self.name)
+    def get_attributes(self):
+        definition = self.definition
+        if definition:
+            return definition.attributes
+        return nothing
 
     def get_name(self) -> str:
         return self.name
@@ -766,12 +795,15 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
+        definition = self.get_definition()
+        if definition is None:
+            return self
+
         if evaluation.definitions.trace_evaluation:
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
             )
-
-        rules = evaluation.definitions.get_ownvalues(self.name)
+        rules = definition.ownvalues
         for rule in rules:
             result = rule.apply(self, evaluation, fully=True)
             if result is not None and not result.sameQ(self):

@@ -45,7 +45,7 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     # pymathics = evaluation.definitions.pymathics
     # bio = pymathics.get(definition.name)
     # if bio is None:
-    bio = Symbol(definition.name).builtin
+    bio = Symbol(definition.name).builtin_definition
 
     if bio is not None:
         if not is_long_form and hasattr(bio.builtin.__class__, "summary_text"):

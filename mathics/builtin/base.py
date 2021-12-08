@@ -120,8 +120,8 @@ class Builtin(object):
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 soption = Symbol(option)
-                if soption.builtin is None:
-                    soption.builtin = Definition(name=name)
+                if soption.builtin_definition is None:
+                    soption.builtin_definition = Definition(name=name)
                     # definitions.builtin[option] = Definition(name=name)
 
         # Check if the given options are actually supported by the Builtin.
@@ -255,7 +255,7 @@ class Builtin(object):
                 # Otherwise it'll be created in Global` when it's
                 # used, so it won't work.
                 soption = Symbol(option)
-                if soption.builtin is None:
+                if soption.builtin_definition is None:
                     soption.builtin = Definition(name=name)
                     # definitions.builtin[option] = Definition(name=name)
 
@@ -281,9 +281,9 @@ class Builtin(object):
             builtin=self,
         )
         sname = Symbol(name)
-        sname.builtin = definition
+        sname.builtin_definition = definition
 
-        makeboxes_def = Symbol("System`MakeBoxes").builtin
+        makeboxes_def = Symbol("System`MakeBoxes").builtin_definition
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
 
@@ -609,6 +609,9 @@ class BoxConstruct(InstanceableBuiltin):
     def get_lookup_name(self):
         return self.get_name()
 
+    def get_lookup_symbol(self):
+        return Symbol(self.get_name())
+
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
 
@@ -753,8 +756,8 @@ class PatternObject(InstanceableBuiltin, Pattern):
     def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
         return leaves
 
-    def get_attributes(self, definitions):
-        return self.head.get_attributes(definitions)
+    def get_attributes(self):
+        return self.head.get_attributes()
 
 
 class NegativeIntegerException(Exception):

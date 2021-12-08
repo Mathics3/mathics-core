@@ -1153,7 +1153,7 @@ class _GraphicsElements(object):
         # builtins = evaluation.definitions.builtin
 
         def get_options(name):
-            builtin = Symbol(name).builtin
+            builtin = Symbol(name).builtin_definition
             if builtin is None:
                 return None
             return builtin.options

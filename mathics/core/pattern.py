@@ -128,8 +128,8 @@ class Pattern(object):
     def get_lookup_name(self):
         return self.expr.get_lookup_name()
 
-    def get_attributes(self, definitions):
-        return self.expr.get_attributes(definitions)
+    def get_attributes(self):
+        return self.expr.get_attributes()
 
     def get_sequence(self):
         return self.expr.get_sequence()
@@ -230,7 +230,7 @@ class ExpressionPattern(Pattern):
         wrap_oneid=True,
     ):
         evaluation.check_stopped()
-        attributes = self.head.get_attributes(evaluation.definitions)
+        attributes = self.head.get_attributes()
         if not flat & attributes:
             fully = True
         if not expression.is_atom():

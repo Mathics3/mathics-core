@@ -896,7 +896,7 @@ class N(Builtin):
         if expr.is_atom():
             return expr
         else:
-            attributes = expr.head.get_attributes(evaluation.definitions)
+            attributes = expr.head.get_attributes()
             if n_hold_all & attributes:
                 eval_range = ()
             elif n_hold_first & attributes:

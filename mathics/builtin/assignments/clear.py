@@ -77,13 +77,28 @@ class Clear(Builtin):
     }
     summary_text = "clear all values associated with the LHS or symbol"
 
-    def do_clear(self, definition):
-        definition.ownvalues = []
-        definition.downvalues = []
-        definition.subvalues = []
-        definition.upvalues = []
-        definition.formatvalues = {}
-        definition.nvalues = []
+    def do_clear(self, name):
+        symbol = Symbol(name)
+        definition = symbol.definition
+        if definition is None:
+            return
+        if symbol.builtin_definition is None:
+            definition.ownvalues = []
+            definition.downvalues = []
+            definition.subvalues = []
+            definition.upvalues = []
+            definition.formatvalues = {}
+            definition.nvalues = []
+        else:
+            attributes = definition.attributes
+            messages = definition.messages
+            options = definition.options
+            defaultvalues = definition.defaultvalues
+            symbol.clear_definition()
+            definition.attributes = attributes
+            definition.messages = messages
+            definition.options = options
+            definition.defaultvalues = defaultvalues
 
     def apply(self, symbols, evaluation):
         "%(name)s[symbols___]"
@@ -116,8 +131,8 @@ class Clear(Builtin):
                 if not self.allow_locked and locked & attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
-                definition = evaluation.definitions.get_user_definition(name)
-                self.do_clear(definition)
+                # definition = evaluation.definitions.reset_user_definition(name)
+                self.do_clear(name)
 
         return Symbol("Null")
 
@@ -154,12 +169,9 @@ class ClearAll(Clear):
     allow_locked = False
     summary_text = "clear all values, definitions, messages and defaults for symbols"
 
-    def do_clear(self, definition):
-        super(ClearAll, self).do_clear(definition)
-        definition.attributes = nothing
-        definition.messages = []
-        definition.options = []
-        definition.defaultvalues = []
+    def do_clear(self, name):
+        Symbol(name).clear_definition()
+        return
 
     def apply_all(self, evaluation):
         "ClearAll[System`All]"

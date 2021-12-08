@@ -60,7 +60,6 @@ def builtins_dict():
 
 def contribute(definitions):
     # Ensure that MaleBoxes definition is empty and let MakeBoxes contribute first
-    Symbol("System`MakeBoxes").builtin = None
     _builtins["System`MakeBoxes"].contribute(definitions)
     for name, item in _builtins.items():
         if name != "System`MakeBoxes":
@@ -76,7 +75,7 @@ def contribute(definitions):
     for operator in all_operator_names:
         if not definitions.have_definition(ensure_context(operator)):
             op = ensure_context(operator)
-            Symbol(op).builtin = Definition(name=op)
+            Symbol(op).builtin_definition = Definition(name=op)
 
 
 def get_module_doc(module):
