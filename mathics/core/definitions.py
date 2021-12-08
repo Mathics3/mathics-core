@@ -291,7 +291,11 @@ class Definitions(object):
 
     def get_user_names(self):
         symbols = Symbol.defined_symbols
-        return set(s.name for s in symbols.values() if s.definition)
+        return set(
+            s.name
+            for s in symbols.values()
+            if s.definition and s.builtin_definition is None
+        )
 
     def get_names(self):
         symbols = Symbol.defined_symbols

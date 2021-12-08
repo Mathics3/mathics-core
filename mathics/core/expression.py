@@ -919,6 +919,8 @@ class Expression(BaseExpression):
                 for rule in symbol_definition.downvalues:
                     yield rule
             else:
+                if lookup_symbol is None:
+                    return
                 symbol_definition = lookup_symbol.get_definition()
                 if symbol_definition is None:
                     return

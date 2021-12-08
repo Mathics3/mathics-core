@@ -89,12 +89,14 @@ class Clear(Builtin):
             definition.upvalues = []
             definition.formatvalues = {}
             definition.nvalues = []
+            return
         else:
             attributes = definition.attributes
-            messages = definition.messages
-            options = definition.options
-            defaultvalues = definition.defaultvalues
+            messages = definition.messages.copy()
+            options = definition.options.copy()
+            defaultvalues = definition.defaultvalues.copy()
             symbol.clear_definition()
+            definition = symbol.definition
             definition.attributes = attributes
             definition.messages = messages
             definition.options = options

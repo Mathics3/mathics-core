@@ -146,7 +146,7 @@ class BaseExpression(KeyComparable):
     def flatten_pattern_sequence(self, evaluation) -> "BaseExpression":
         return self
 
-    def get_attributes(self, definitions):
+    def get_attributes(self):
         return nothing
 
     def evaluate_next(self, evaluation):
