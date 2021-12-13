@@ -12,7 +12,6 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
-    Integer0,
     Integer1,
     Number,
     Rational,
@@ -28,6 +27,7 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolIndeterminate,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -54,6 +54,8 @@ import sympy
 
 IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
+
+SymbolIntegrate = Symbol("Integrate")
 
 
 class D(SympyFunction):
@@ -594,9 +596,6 @@ class Integrate(SympyFunction):
 
     def apply(self, f, xs, evaluation, options):
         "Integrate[f_, xs__, OptionsPattern[]]"
-        self.patpow0 = Pattern.create(
-            Expression("Power", Integer0, Expression("Blank"))
-        )
         assuming = options["System`Assumptions"].evaluate(evaluation)
         f_sympy = f.to_sympy()
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
@@ -688,7 +687,10 @@ class Integrate(SympyFunction):
             else:
                 result = Expression(result._head, cases, default)
         else:
-            result = Expression("Simplify", result, assuming).evaluate(evaluation)
+            if result.get_head() is SymbolIntegrate:
+                # Sympy returned the same expression, so it can't be evaluated.
+                return SymbolIndeterminate
+            result = Expression("Simplify", result, assuming)
         return result
 
 
