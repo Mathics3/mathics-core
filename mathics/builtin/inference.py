@@ -151,11 +151,11 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                 changed = True
                 continue
             if assumption is SymbolFalse:
-                evaluation.message("Assumption", "faas")
+                evaluation.message("$Assumptions", "faas")
                 changed = True
                 continue
             if assumption.is_numeric(evaluation):
-                evaluation.message("Assumption", "baas")
+                evaluation.message("$Assumptions", "baas")
                 changed = True
                 continue
             new_assumptions_list.append(assumption)
@@ -269,7 +269,7 @@ def get_assumption_rules_dispatch(evaluation):
     consistent_assumptions = Expression("And", *assumptions_list)
     val_consistent_assumptions = consistent_assumptions.evaluate(evaluation)
     if val_consistent_assumptions is SymbolFalse:
-        evaluation.message("Inconsistent assumptions")
+        evaluation.message("$Assumptions", "faas")
 
     # Expands Logically
     assumptions_list, cont = logical_expand_assumptions(assumptions_list, evaluation)
