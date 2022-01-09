@@ -761,7 +761,7 @@ class Root(SympyFunction):
             body = f.leaves[0].replace_slots([f, Symbol("_1")], None)
             poly = body.to_sympy(**kwargs)
 
-            i = expr.leaves[1].get_int_value(**kwargs)
+            i = expr.leaves[1].get_int_value(**kwargs) - 1
 
             if i is None:
                 return None
