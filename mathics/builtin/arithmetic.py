@@ -1425,6 +1425,11 @@ class Assumptions(Predefined):
         "$Assumptions": "True",
     }
 
+    messages = {
+        "faas": "Assumptions should not be False.",
+        "baas": "Bad formed assumption.",
+    }
+
 
 class Assuming(Builtin):
     """
