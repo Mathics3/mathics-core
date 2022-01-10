@@ -35,8 +35,8 @@ Internals
 Bugs
 ++++
 
-* ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
-  
+* ``First``, ``Rest`` and  ``Last`` now handle invalid arguments (issue #104).
+* ``N`` now handles properly the conversion of large integers to PrecisionReal (issue #103).
   
 4.0.1
 -----
