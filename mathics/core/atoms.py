@@ -11,7 +11,6 @@ from typing import Any, Optional
 from functools import lru_cache
 
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
-from mathics.core.number import machine_precision
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
@@ -27,7 +26,14 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
 
-from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
+from mathics.core.number import (
+    dps,
+    get_type,
+    prec,
+    min_prec,
+    machine_digits,
+    machine_precision,
+)
 import base64
 
 # Imperical number that seems to work.
@@ -170,7 +176,7 @@ class Integer(Number):
                 return MachineReal(float(self.value))
             else:
                 # machine_precision / log_2(10) + 1
-                d = int(machine_precision / 3.3219 + 1.0)
+                d = machine_digits
         return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
