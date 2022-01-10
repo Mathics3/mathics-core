@@ -427,7 +427,15 @@ class First(Builtin):
     >> First[x]
      : Nonatomic expression expected.
      = First[x]
+    >> First[{}]
+     : {} has zero length and no first element.
+     = First[{}]
     """
+
+    messages = {
+        "normal": "Nonatomic expression expected.",
+        "nofirst": "`1` has zero length and no first element.",
+    }
 
     def apply(self, expr, evaluation):
         "First[expr_]"
@@ -435,6 +443,10 @@ class First(Builtin):
         if expr.is_atom():
             evaluation.message("First", "normal")
             return
+        if len(expr.leaves) == 0:
+            evaluation.message("First", "nofirst", expr)
+            return
+
         return expr.leaves[0]
 
 
@@ -661,7 +673,15 @@ class Last(Builtin):
     >> Last[x]
      : Nonatomic expression expected.
      = Last[x]
+    >> Last[{}]
+     : {} has zero length and no last element.
+     = Last[{}]
     """
+
+    messages = {
+        "normal": "Nonatomic expression expected.",
+        "nolast": "`1` has zero length and no last element.",
+    }
 
     def apply(self, expr, evaluation):
         "Last[expr_]"
@@ -669,6 +689,10 @@ class Last(Builtin):
         if expr.is_atom():
             evaluation.message("Last", "normal")
             return
+        if len(expr.leaves) == 0:
+            evaluation.message("Last", "nolast", expr)
+            return
+
         return expr.leaves[-1]
 
 
