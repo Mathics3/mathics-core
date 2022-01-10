@@ -165,11 +165,9 @@ class Integer(Number):
 
     def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
         if d is None:
-            try:
-                return MachineReal(float(self.value))
-            except:
-                d = 15
-        return PrecisionReal(sympy.Float(self.value, d))
+            return MachineReal(float(self.value))
+        else:
+            return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
         return self.value
