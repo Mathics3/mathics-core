@@ -169,7 +169,8 @@ class Integer(Number):
             if d <= machine_precision:
                 return MachineReal(float(self.value))
             else:
-                d = machine_precision
+                # machine_precision / log_2(10) + 1
+                d = int(machine_precision / 3.3219 + 1.0)
         return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
