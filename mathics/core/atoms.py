@@ -11,6 +11,7 @@ from typing import Any, Optional
 from functools import lru_cache
 
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
+from mathics.core.number import machine_precision
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
@@ -21,7 +22,6 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolNull,
     SymbolTrue,
-    fully_qualified_symbol_name,
     system_symbols,
 )
 
@@ -165,10 +165,11 @@ class Integer(Number):
 
     def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
         if d is None:
-            try:
+            d = self.value.bit_length()
+            if d <= machine_precision:
                 return MachineReal(float(self.value))
-            except:
-                d = 15
+            else:
+                d = machine_precision
         return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
