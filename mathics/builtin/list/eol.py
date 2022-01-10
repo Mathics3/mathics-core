@@ -1217,7 +1217,15 @@ class Rest(Builtin):
     >> Rest[x]
      : Nonatomic expression expected.
      = Rest[x]
+    >> Rest[{}]
+     : Cannot take Rest of expression {} with length zero.
+     = Rest[{}]
     """
+
+    messages = {
+        "normal": "Nonatomic expression expected.",
+        "norest": "Cannot take Rest of expression `1` with length zero.",
+    }
 
     def apply(self, expr, evaluation):
         "Rest[expr_]"
@@ -1225,6 +1233,10 @@ class Rest(Builtin):
         if expr.is_atom():
             evaluation.message("Rest", "normal")
             return
+        if len(expr.leaves) == 0:
+            evaluation.message("Rest", "norest", expr)
+            return
+
         return expr.slice(expr.head, slice(1, len(expr.leaves)), evaluation)
 
 

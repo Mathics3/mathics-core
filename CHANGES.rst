@@ -35,7 +35,7 @@ Internals
 Bugs
 ++++
 
-* ``First`` and  ``Last`` now handle invalid arguments.
+* ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
   
   
 4.0.1
