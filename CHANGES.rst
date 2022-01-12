@@ -36,7 +36,7 @@ Bugs
 ++++
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
-  
+* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
   
 4.0.1
 -----

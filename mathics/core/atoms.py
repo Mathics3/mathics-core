@@ -21,13 +21,19 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolNull,
     SymbolTrue,
-    fully_qualified_symbol_name,
     system_symbols,
 )
 
 from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
 
-from mathics.core.number import dps, get_type, prec, min_prec, machine_precision
+from mathics.core.number import (
+    dps,
+    get_type,
+    prec,
+    min_prec,
+    machine_digits,
+    machine_precision,
+)
 import base64
 
 # Imperical number that seems to work.
@@ -165,9 +171,13 @@ class Integer(Number):
 
     def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
         if d is None:
-            return MachineReal(float(self.value))
-        else:
-            return PrecisionReal(sympy.Float(self.value, d))
+            d = self.value.bit_length()
+            if d <= machine_precision:
+                return MachineReal(float(self.value))
+            else:
+                # machine_precision / log_2(10) + 1
+                d = machine_digits
+        return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
         return self.value
