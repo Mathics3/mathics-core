@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from mathics.builtin.base import BoxConstruct
+from mathics.core.symbols import ExpandOnce
 
 
-class CompiledCodeBox(BoxConstruct):
+class CompiledCodeBox(BoxConstruct, ExpandOnce):
     """Routines which get called when Boxing (adding formatting and bounding-box information)
     to CompiledCode.
     """

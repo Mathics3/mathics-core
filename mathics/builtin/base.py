@@ -12,11 +12,7 @@ from typing import Any, cast
 
 from mathics.builtin.exceptions import (
     BoxConstructError,
-    InvalidLevelspecError,
     MessageException,
-    PartError,
-    PartDepthError,
-    PartRangeError,
 )
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
@@ -29,6 +25,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.atoms import (
+    ExpandOnce,
     Integer,
     MachineReal,
     PrecisionReal,
@@ -41,7 +38,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import nothing, protected
+from mathics.core.attributes import protected
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -590,7 +587,7 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin):
+class BoxConstruct(InstanceableBuiltin, ExpandOnce):
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)
         instance._leaves = leaves

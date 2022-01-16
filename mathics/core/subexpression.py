@@ -8,7 +8,7 @@ from mathics.core.atoms import Integer
 from mathics.builtin.base import MessageException
 
 """
-This module provides some infraestructure to deal with SubExpressions. 
+This module provides some infraestructure to deal with SubExpressions.
 
 """
 
@@ -143,7 +143,7 @@ class ExpressionPointer(object):
         parent = self.parent
         p = self.position
         if p == 0:
-            if type(parent) is Symbol:
+            if isinstance(parent, Symbol):
                 return parent
             else:
                 return parent.head.copy()

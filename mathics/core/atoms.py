@@ -70,7 +70,17 @@ def from_mpmath(value, prec=None):
         raise TypeError(type(value))
 
 
-class Number(Atom):
+# This feels like a hack. It generalizes the method expression used in expression regarding
+# BoxConstruct.
+class ExpandOnce:
+    """Inherit from this class when you have an object that you never want expanded after
+    the initial try. BoxConstructs are like this
+    """
+
+    pass
+
+
+class Number(Atom, ExpandOnce):
     def __str__(self) -> str:
         return str(self.value)
 
@@ -125,7 +135,7 @@ _number_form_options = {
 }
 
 
-class Integer(Number):
+class Integer(Number, ExpandOnce):
     value: int
     class_head_name = "System`Integer"
 
@@ -220,7 +230,7 @@ Integer0 = Integer(0)
 Integer1 = Integer(1)
 
 
-class Rational(Number):
+class Rational(Number, ExpandOnce):
     class_head_name = "System`Rational"
 
     @lru_cache()
@@ -324,7 +334,7 @@ class Rational(Number):
 RationalOneHalf = Rational(1, 2)
 
 
-class Real(Number):
+class Real(Number, ExpandOnce):
     class_head_name = "System`Real"
 
     def __new__(cls, value, p=None) -> "Real":
@@ -715,7 +725,7 @@ class Complex(Number):
         return real_zero and imag_zero
 
 
-class String(Atom):
+class String(Atom, ExpandOnce):
     value: str
     class_head_name = "System`String"
 

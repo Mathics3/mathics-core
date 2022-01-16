@@ -15,6 +15,7 @@ from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
+    ExpandOnce,
     Monomial,
     Symbol,
     SymbolList,
@@ -22,9 +23,7 @@ from mathics.core.symbols import (
     SymbolSequence,
     system_symbols,
     ensure_context,
-    strip_context,
 )
-from mathics.core.systemsymbols import SymbolSequence
 
 from mathics.core.attributes import (
     flat,
@@ -807,7 +806,6 @@ class Expression(BaseExpression):
         return expr
 
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
-        from mathics.builtin.base import BoxConstruct
 
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
@@ -909,7 +907,7 @@ class Expression(BaseExpression):
         for rule in rules():
             result = rule.apply(new, evaluation, fully=False)
             if result is not None:
-                if isinstance(result, BoxConstruct):
+                if isinstance(result, ExpandOnce):
                     return result, False
                 if result.sameQ(new):
                     new._timestamp_cache(evaluation)

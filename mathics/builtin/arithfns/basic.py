@@ -30,7 +30,13 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
-from mathics.core.symbols import Symbol, SymbolList, SymbolNull, SymbolHoldForm
+from mathics.core.symbols import (
+    Constant,
+    Symbol,
+    SymbolList,
+    SymbolNull,
+    SymbolHoldForm,
+)
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplexInfinity,
@@ -63,7 +69,7 @@ from mathics.core.attributes import (
 )
 
 
-SymbolLeft = Symbol("Left")
+SymbolLeft = Constant("Left")
 
 
 class CubeRoot(Builtin):

@@ -42,7 +42,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import ExpandOnce, SymbolList
 
 from mathics.core.attributes import hold_all, protected, read_protected
 
@@ -352,7 +352,7 @@ class DiskBox(_ArcBox):
     face_element = True
 
 
-class GraphicsBox(BoxConstruct):
+class GraphicsBox(BoxConstruct, ExpandOnce):
     """Boxing method which get called when Boxing (adding formatting and bounding-box information)
     Graphics.
     """

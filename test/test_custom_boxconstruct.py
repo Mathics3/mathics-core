@@ -3,9 +3,10 @@ from .helper import evaluate, session
 from mathics.builtin.base import BoxConstruct, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.symbols import ExpandOnce
 
 
-class CustomBoxConstruct(BoxConstruct):
+class CustomBoxConstruct(BoxConstruct, ExpandOnce):
     def __init__(self, evaluation):
         super().__init__(evaluation=evaluation)
         self._leaves = [1, 2, 3]
@@ -41,7 +42,7 @@ class CustomAtom(Predefined):
         return CustomBoxConstruct(evaluation=evaluation)
 
 
-class CustomGraphicsBox(BoxConstruct):
+class CustomGraphicsBox(BoxConstruct, ExpandOnce):
     """"""
 
     options = GRAPHICS_OPTIONS

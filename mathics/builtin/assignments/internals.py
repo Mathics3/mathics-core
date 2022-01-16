@@ -153,7 +153,7 @@ def find_tag_and_check(lhs, tags, evaluation):
 
 
 def unroll_patterns(lhs, rhs, evaluation):
-    if type(lhs) is Symbol:
+    if isinstance(lhs, Symbol):
         return lhs, rhs
     name = lhs.get_head_name()
     lhsleaves = lhs._leaves
@@ -171,7 +171,7 @@ def unroll_patterns(lhs, rhs, evaluation):
 
 def unroll_conditions(lhs):
     condition = None
-    if type(lhs) is Symbol:
+    if isinstance(lhs, Symbol):
         return lhs, None
     else:
         name, lhs_leaves = lhs.get_head_name(), lhs._leaves
@@ -651,7 +651,7 @@ class _SetOperator(object):
     }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
-        if type(lhs) is Symbol:
+        if isinstance(lhs, Symbol):
             name = lhs.name
         else:
             name = lhs.get_head_name()

@@ -5,7 +5,7 @@ Forms of Assignment
 
 
 from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolNull
 
 from mathics.core.systemsymbols import (
     SymbolFailed,
@@ -159,7 +159,7 @@ class SetDelayed(Set):
         "lhs_ := rhs_"
 
         if self.assign(lhs, rhs, evaluation):
-            return Symbol("Null")
+            return SymbolNull
         else:
             return SymbolFailed
 

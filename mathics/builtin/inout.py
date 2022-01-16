@@ -26,7 +26,14 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.symbols import Symbol, SymbolList, SymbolTrue, SymbolFalse, SymbolNull
+from mathics.core.symbols import (
+    ExpandOnce,
+    Symbol,
+    SymbolList,
+    SymbolTrue,
+    SymbolFalse,
+    SymbolNull,
+)
 
 from mathics.core.atoms import (
     String,
@@ -752,7 +759,7 @@ def is_constant_list(list):
 
 # TODO: Inheritance of options["ColumnAlignments"] prevents us from
 # putting this in mathics.builtin.box. Figure out what's up here.
-class GridBox(BoxConstruct):
+class GridBox(BoxConstruct, ExpandOnce):
     r"""
     <dl>
     <dt>'GridBox[{{...}, {...}}]'

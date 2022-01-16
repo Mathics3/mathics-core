@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from mathics.builtin.base import BoxConstruct
+from mathics.core.symbols import ExpandOnce
 
 
-class ImageBox(BoxConstruct):
+class ImageBox(BoxConstruct, ExpandOnce):
     """Routines which get called when Boxing (adding formatting and bounding-box information)
     an Image object.
     """

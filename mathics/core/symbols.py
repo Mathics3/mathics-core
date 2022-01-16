@@ -14,6 +14,15 @@ from mathics.core.attributes import nothing
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
+# This feels like a hack. It generalizes the method expression used in expression regarding
+# BoxConstruct.
+class ExpandOnce:
+    """Inherit from this class when you have an object that you never want expanded after
+    the initial try. BoxConstructs are like this
+    """
+
+    pass
+
 
 # system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
 def system_symbols(*symbols) -> typing.FrozenSet[str]:
@@ -807,26 +816,40 @@ class Symbol(Atom):
         return (self.name, self.sympy_dummy)
 
 
+class Constant(Symbol, ExpandOnce):
+    """For Symbols that are cannot be changed"""
+
+    def __init__(self, name, sympy_dummy=None):
+        self = super().__new__(self, name, sympy_dummy)
+
+    pass
+
+
 # Symbols used in this module.
 
-SymbolFalse = Symbol("System`False")
-SymbolGraphics = Symbol("System`Graphics")
-SymbolGraphics3D = Symbol("System`Graphics3D")
-SymbolHoldForm = Symbol("System`HoldForm")
-SymbolList = Symbol("System`List")
-SymbolMachinePrecision = Symbol("MachinePrecision")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
-SymbolMaxPrecision = Symbol("$MaxPrecision")
-SymbolMinPrecision = Symbol("$MinPrecision")
-SymbolN = Symbol("System`N")
-SymbolNull = Symbol("System`Null")
-SymbolNumberForm = Symbol("System`NumberForm")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolRepeated = Symbol("System`Repeated")
-SymbolRepeatedNull = Symbol("System`RepeatedNull")
-SymbolSequence = Symbol("System`Sequence")
-SymbolTrue = Symbol("System`True")
+SymbolFalse = Constant("System`False")
+SymbolGraphics = Constant("System`Graphics")
+SymbolGraphics3D = Constant("System`Graphics3D")
+SymbolHoldForm = Constant("System`HoldForm")
+SymbolList = Constant("System`List")
+SymbolMachinePrecision = Constant("MachinePrecision")
+SymbolMakeBoxes = Constant("System`MakeBoxes")
+SymbolMaxPrecision = Constant("$MaxPrecision")
+SymbolMinPrecision = Constant("$MinPrecision")
+SymbolN = Constant("System`N")
 
+# FIXME: LinearModelFit[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x] ;
+# fails if we use a Constant below. Fix whatever is making this fail.
+# SymbolNull = Constant("System`Null")
+SymbolNull = Symbol("System`Null")
+
+SymbolNumberForm = Constant("System`NumberForm")
+
+SymbolPostfix = Constant("System`Postfix")
+SymbolRepeated = Constant("System`Repeated")
+SymbolRepeatedNull = Constant("System`RepeatedNull")
+SymbolSequence = Constant("System`Sequence")
+SymbolTrue = Constant("System`True")
 
 # The available formats.
 
@@ -841,13 +864,13 @@ format_symbols = system_symbols(
 )
 
 
-SymbolInputForm = Symbol("InputForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolStandardForm = Symbol("StandardForm")
-SymbolFullForm = Symbol("FullForm")
-SymbolTraditionalForm = Symbol("TraditionalForm")
-SymbolTeXForm = Symbol("TeXForm")
-SymbolMathMLForm = Symbol("MathMLForm")
+SymbolInputForm = Constant("InputForm")
+SymbolOutputForm = Constant("OutputForm")
+SymbolStandardForm = Constant("StandardForm")
+SymbolFullForm = Constant("FullForm")
+SymbolTraditionalForm = Constant("TraditionalForm")
+SymbolTeXForm = Constant("TeXForm")
+SymbolMathMLForm = Constant("MathMLForm")
 
 
 # Used to check if a symbol is `Numeric` without evaluation.
