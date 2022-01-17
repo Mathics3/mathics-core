@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 """
 List Functions - Miscellaneous
 """
@@ -29,15 +28,18 @@ from mathics.algorithm.clusters import (
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
-    InvalidLevelspecError,
     MessageException,
     NegativeIntegerException,
-    PartDepthError,
-    PartError,
-    PartRangeError,
     Predefined,
     SympyFunction,
     Test,
+)
+
+from mathics.builtin.exceptions import (
+    InvalidLevelspecError,
+    PartDepthError,
+    PartError,
+    PartRangeError,
 )
 
 from mathics.builtin.numbers.algebra import cancel

@@ -12,9 +12,9 @@ from itertools import chain
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
-    InvalidLevelspecError,
-    PartError,
 )
+
+from mathics.builtin.exceptions import InvalidLevelspecError, PartError
 
 from mathics.builtin.lists import list_boxes
 from mathics.algorithm.parts import (
