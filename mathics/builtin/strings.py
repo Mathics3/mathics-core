@@ -759,11 +759,11 @@ class String_(Builtin):
 class ToString(Builtin):
     """
     <dl>
-    <dt>'ToString[$expr$]'
-        <dd>returns a string representation of $expr$.
-    <dt>'ToString[$expr$, $form$]'
-        <dd>returns a string representation of $expr$ in the form
-          $form$.
+      <dt>'ToString[$expr$]'
+      <dd>returns a string representation of $expr$.
+
+      <dt>'ToString[$expr$, $form$]'
+      <dd>returns a string representation of $expr$ in the form $form$.
     </dl>
 
     >> ToString[2]

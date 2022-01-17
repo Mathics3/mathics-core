@@ -10,8 +10,8 @@ from mathics.builtin.base import (
     BinaryOperator,
     Test,
     MessageException,
-    PartRangeError,
 )
+from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Symbol,
@@ -34,7 +34,6 @@ from mathics.core.rules import Pattern
 from mathics.builtin.lists import (
     python_levelspec,
     walk_levels,
-    InvalidLevelspecError,
     List,
 )
 
