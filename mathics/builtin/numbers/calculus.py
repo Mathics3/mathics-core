@@ -1304,6 +1304,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         ).evaluate(evaluation)
 
     count = 0
+    print("iterating")
     while count < maxit:
         minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
         if minus is None:

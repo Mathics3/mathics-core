@@ -4,7 +4,10 @@ CHANGES
 New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+* Now, ``D`` can act over ``NIntegrate``.
 
+
+  
 
 Internals
 =========
@@ -37,6 +40,7 @@ Bugs
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
+
   
 4.0.1
 -----
