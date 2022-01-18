@@ -223,6 +223,9 @@ class Integer(Number):
 
 Integer0 = Integer(0)
 Integer1 = Integer(1)
+Integer2 = Integer(2)
+Integer3 = Integer(3)
+Integer10 = Integer(10)
 
 
 class Rational(Number):

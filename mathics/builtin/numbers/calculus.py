@@ -13,6 +13,9 @@ from mathics.core.atoms import (
     String,
     Integer,
     Integer1,
+    Integer2,
+    Integer3,
+    Integer10,
     Number,
     Rational,
     Real,
@@ -27,7 +30,10 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolNone,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -56,6 +62,33 @@ IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
 
 SymbolIntegrate = Symbol("Integrate")
+
+
+def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
+    """
+    Looks at an opts dictionary and tries to determine the numeric values of
+    Accuracy and Precision goals. If not available, returns None.
+    """
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    if acc_goal:
+        acc_goal = apply_N(acc_goal, evaluation)
+        if acc_goal is SymbolAutomatic:
+            acc_goal = from_python(9.0)
+        elif acc_goal is SymbolInfinity:
+            acc_goal = None
+        elif not insinstance(acc_goal, Number):
+            acc_goal = None
+
+    prec_goal = opts.get("System`PrecisionGoal", None)
+    if prec_goal:
+        prec_goal = apply_N(prec_goal, evaluation)
+        if prec_goal is SymbolAutomatic:
+            prec_goal = from_python(9.0)
+        elif prec_goal is SymbolInfinity:
+            prec_goal = None
+        elif not insinstance(prec_goal, Number):
+            prec_goal = None
+    return acc_goal, prec_goal
 
 
 class D(SympyFunction):
@@ -1225,7 +1258,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1287,25 +1320,104 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
 
 def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
+    """
+    Look for a root of a f: R->R using the Newton's method.
+    """
+    absf = abs(f)
     df = opts["System`Jacobian"]
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
 
+    acc_goal, prec_goal = get_accuracy_and_prec(opts, evaluation)
+
+    step_monitor = opts.get("System`StepMonitor", None)
+    if step_monitor is SymbolNone:
+        step_monitor = None
+    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
+    if evaluation_monitor is SymbolNone:
+        evaluation_monitor = None
+
+    def is_zero(val, acc_goal, prec_goal):
+        """
+        Check if val is zero upto the precision and accuracy goals
+        """
+        if not val.is_numeric():
+            return False
+        if val.is_zero:
+            return True
+        if acc_goal:
+            if prec_goal:
+                eps = apply_N(
+                    Expression(
+                        Symbol("Log"),
+                        Integer10 ** (-acc_goal) / abs(val) + Integer10 ** (-prec_goal),
+                    ),
+                    evaluation,
+                )
+            else:
+                eps = apply_N(
+                    Expression(Symbol("Log"), Integer10 ** (-acc_goal) / abs(val)),
+                    evaluation,
+                )
+            if isinstance(eps, Number):
+                return eps.to_python() > 0
+        return False
+
+    def decreasing(val1, val2):
+        """
+        Check if val2 has a smaller absolute value than val1
+        """
+        if not (val1.is_numeric() and val2.is_numeric()):
+            return False
+        if val2.is_zero:
+            return True
+        res = apply_N(Expression(Symbol("Log"), abs(val2 / val1)), evaluation)
+        if not res.is_numeric():
+            return False
+        return res.to_python() < 0
+
+    def new_seed():
+        """
+        looks for a new starting point, based on how close we are from the target.
+        """
+        x1 = apply_N(Integer2 * x0, evaluation)
+        x2 = apply_N(x0 / Integer3, evaluation)
+        x3 = apply_N(x0 - minus / Integer2, evaluation)
+        x4 = apply_N(x0 + minus / Integer3, evaluation)
+        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
+        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
+        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
+        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
+        if decreasing(absf1, absf2):
+            x1, absf1 = x2, absf2
+        if decreasing(absf1, absf3):
+            x1, absf1 = x3, absf3
+        if decreasing(absf1, absf4):
+            x1, absf1 = x4, absf4
+        return x1, absf1
+
     def sub(evaluation):
-        d_value = df.evaluate(evaluation)
+        d_value = apply_N(df, evaluation)
         if d_value == Integer(0):
             return None
-        return Expression(
-            "Times", f, Expression("Power", d_value, Integer(-1))
-        ).evaluate(evaluation)
+        result = apply_N(f / d_value, evaluation)
+        if evaluation_monitor:
+            dynamic_scoping(
+                lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
+        return result
 
+    currval = absf.replace_vars({x_name: x0}).evaluate(evaluation)
     count = 0
-    print("iterating")
     while count < maxit:
+        if step_monitor:
+            dynamic_scoping(
+                lambda ev: step_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
         minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
@@ -1316,12 +1428,23 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
-        # TODO: use Precision goal...
-        if x1 == x0:
-            break
-        x0 = apply_N(x1, evaluation)
-        # N required due to bug in sympy arithmetic
-        count += 1
+
+        # Check convergency:
+        new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
+        if is_zero(new_currval, acc_goal, prec_goal):
+            return x1, True
+
+        # This step tries to ensure that the new step goes forward to the convergency.
+        # If not, tries to restart in a another point closer to x0 than x1.
+        if decreasing(new_currval, currval):
+            x0, currval = new_seed()
+            count = count + 1
+            continue
+        else:
+            currval = new_currval
+            x0 = apply_N(x1, evaluation)
+            # N required due to bug in sympy arithmetic
+            count += 1
     else:
         evaluation.message("FindRoot", "maxiter")
     return x0, True
@@ -1382,6 +1505,8 @@ class FindRoot(Builtin):
     """
 
     options = {
+        "StepMonitor": "None",
+        "EvaluationMonitor": "None",
         "MaxIterations": "100",
         "Method": "Automatic",
         "AccuracyGoal": "Automatic",
@@ -1412,6 +1537,25 @@ class FindRoot(Builtin):
         "Secant": find_root_secant,
     }
 
+    @staticmethod
+    def determine_epsilon(x0, options, evaluation):
+        """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+        acc_goal, prec_goal = get_accuracy_and_prec(options, evaluation)
+        if acc_goal:
+            if prec_goal:
+                eps = apply_N(
+                    Integer10 ** (-acc_goal) + abs(x0) * Integer10 ** (-prec_goal),
+                    evaluation,
+                )
+            else:
+                eps = apply_N(Integer10 ** (-acc_goal), evaluation)
+        else:
+            if prec_goal:
+                eps = apply_N(abs(x0) * Integer10 ** (-prec_goal), evaluation)
+            else:
+                eps = from_python(1e-10)
+        return eps
+
     def apply(self, f, x, x0, evaluation, options):
         "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
         # First, determine x0 and x
@@ -1426,6 +1570,7 @@ class FindRoot(Builtin):
 
         # Now, get the explicit form of f, depending of x
         # keeping x without evaluation (Like inside a "Block[{x},f])
+
         f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
         # If after evaluation, we get an "Equal" expression,
         # convert it in a function by substracting both
@@ -1437,6 +1582,7 @@ class FindRoot(Builtin):
             f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
 
         # Determine the method
+
         method = options["System`Method"]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
@@ -1451,7 +1597,8 @@ class FindRoot(Builtin):
         else:
             method = method.value
 
-        # Determine the "jacobian"
+        # Determining the "jacobian"
+
         if method in ("Newton",) and options["System`Jacobian"].sameQ(
             Symbol("Automatic")
         ):
@@ -1460,6 +1607,19 @@ class FindRoot(Builtin):
                 return Expression("D", f, x).evaluate(evaluation)
 
             d = dynamic_scoping(diff, {x_name: None}, evaluation)
+            dval = d.replace_vars({x_name: x0}).evaluate(evaluation)
+
+            # If dval cannot be evaluated (for example, because f is a numeric function) tries to
+            # determine the derivative numerically:
+            if not isinstance(dval, Number):
+                eps = self.determine_epsilon(x0, options, evaluation)
+                d = (
+                    f.replace_vars({x_name: x + eps})
+                    - f.replace_vars({x_name: x - eps})
+                ) / (Integer(2) * eps)
+                ev_d = d.evaluate(evaluation)
+                if ev_d:
+                    d = ev_d
             options["System`Jacobian"] = d
 
         method = self.methods.get(method, None)
