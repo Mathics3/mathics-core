@@ -33,6 +33,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolIndeterminate,
+    SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
     SymbolLog,
@@ -1232,7 +1233,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1297,7 +1298,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     df = opts["System`Jacobian"]
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1558,8 +1559,9 @@ class _BaseFinder(Builtin):
             return
 
         # Determine the "jacobian"s
-        if method in ("Newton", "Automatic") and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
+        if (
+            method in ("Newton", "Automatic")
+            and options["System`Jacobian"] is SymbolAutomatic
         ):
 
             def diff(evaluation):
@@ -1897,7 +1899,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
             acc_goal = Real(12.0)
         elif acc_goal is SymbolInfinity:
             acc_goal = None
-        elif not insinstance(acc_goal, Number):
+        elif not isinstance(acc_goal, Number):
             acc_goal = None
 
     prec_goal = opts.get("System`PrecisionGoal", None)
@@ -1907,7 +1909,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
             prec_goal = Real(12.0)
         elif prec_goal is SymbolInfinity:
             prec_goal = None
-        elif not insinstance(prec_goal, Number):
+        elif not isinstance(prec_goal, Number):
             prec_goal = None
     return acc_goal, prec_goal
 
