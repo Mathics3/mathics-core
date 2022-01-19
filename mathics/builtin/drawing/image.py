@@ -20,9 +20,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolRule
 
 from mathics.builtin.colors.color_internals import (
     convert_color,

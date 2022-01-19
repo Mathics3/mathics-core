@@ -1333,6 +1333,12 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
+    is_find_maximum = opts.get("_isfindmaximum", False)
+    symbol_name = "FindMaximum" if is_find_maximum else "FindMinimum"
+    if is_find_maximum:
+        f = -f
+        # TODO: revert jacobian if given...
+
     x_name = x.name
     maxit = opts["System`MaxIterations"]
     step_monitor = opts.get("System`StepMonitor", None)
@@ -1342,7 +1348,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     if evaluation_monitor is SymbolNone:
         evaluation_monitor = None
 
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1353,8 +1359,11 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     # build the quadratic form:
     eps = determine_epsilon(x0, opts, evaluation)
     if not isinstance(curr_val, Number):
-        evaluation.message("FindMinimum", "nnum", x, x0)
-        return x0, False
+        evaluation.message(symbol_name, "nnum", x, x0)
+        if is_find_maximum:
+            return -x0, False
+        else:
+            return x0, False
     d1 = dynamic_scoping(
         lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
     )
@@ -1414,28 +1423,57 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
 
     # Main loop
     count = 0
-    while count < maxit:
 
+    while count < maxit:
         if step_monitor:
             step_monitor.replace_vars({x_name: x0}).evaluate(evaluation)
+
+        if val_d1.is_zero:
+            if is_find_maximum:
+                evaluation.message(
+                    symbol_name, "fmgz", String("maximum"), String("minimum")
+                )
+            else:
+                evaluation.message(
+                    symbol_name, "fmgz", String("minimum"), String("maximum")
+                )
+
+            if is_find_maximum:
+                return (x0, -curr_val), True
+            else:
+                return (x0, curr_val), True
+        if val_d2.is_zero:
+            val_d2 = Integer1
 
         offset = apply_N(val_d1 / abs(val_d2), evaluation)
         x1 = apply_N(x0 - offset, evaluation)
         new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
-        if Expression(SymbolLess, new_val, curr_val).evaluate(evaluation) is SymbolTrue:
+        if (
+            Expression(Symbol("LessEqual"), new_val, curr_val).evaluate(evaluation)
+            is SymbolTrue
+        ):
             if is_zero(offset, acc_goal, prec_goal, evaluation):
-                return (x1, new_val), True
+                if is_find_maximum:
+                    return (x1, -curr_val), True
+                else:
+                    return (x1, curr_val), True
             x0 = x1
             curr_val = new_val
         else:
             if is_zero(offset / Integer2, acc_goal, prec_goal, evaluation):
-                return (x0, curr_val), True
+                if is_find_maximum:
+                    return (x0, -curr_val), True
+                else:
+                    return (x0, curr_val), True
             x0, curr_val = reset_values(x0)
         val_d1, val_d2 = reevaluate_coeffs()
         count = count + 1
     else:
-        evaluation.message("FindMinimum", "maxiter")
-    return (x0, curr_val), True
+        evaluation.message(symbol_name, "maxiter")
+    if is_find_maximum:
+        return (x0, -curr_val), False
+    else:
+        return (x0, curr_val), False
 
 
 class _BaseFinder(Builtin):
@@ -1464,13 +1502,21 @@ class _BaseFinder(Builtin):
             "The maximum number of iterations was exceeded. "
             "The result might be inaccurate."
         ),
+        "fmgz": (
+            "Encountered a gradient that is effectively zero. "
+            "The result returned may not be a `1`; "
+            "it may be a `2` or a saddle point."
+        ),
     }
 
     methods = {}
 
     def apply(self, f, x, x0, evaluation, options):
         "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
+        # This is needed to get the right messages
+        options["_isfindmaximum"] = self.__class__ is FindMaximum
         # First, determine x0 and x
+
         x0 = apply_N(x0, evaluation)
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
@@ -1633,15 +1679,61 @@ class FindMinimum(_BaseFinder):
     r"""
     <dl>
     <dt>'FindMinimum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
-    <dt>'FindMinimum[$lhs$ == $rhs$, {$x$, $x0$}]'
-        <dd>tries to solve the equation '$lhs$ == $rhs$'.
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
     </dl>
 
     'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
 
+
+    >> FindMinimum[(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
     >> FindMinimum[Sin[x], {x, 1}]
      = {-1., {x -> -1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMinimum[phi[x]-x,{x,1.2}]
+     = {-0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+    """
+
+    methods = {
+        "Automatic": find_minimum_newton1d,
+        "Newton": find_minimum_newton1d,
+    }
+
+
+class FindMaximum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    </dl>
+
+    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+
+    >> FindMaximum[-(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[Sin[x], {x, 1}]
+     = {1., {x -> 1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMaximum[-phi[x]+x,{x,1.2}]
+     = {0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
     """
 
     methods = {
@@ -1801,7 +1893,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     if acc_goal:
         acc_goal = apply_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
-            acc_goal = from_python(9.0)
+            acc_goal = from_python(12.0)
         elif acc_goal is SymbolInfinity:
             acc_goal = None
         elif not insinstance(acc_goal, Number):
@@ -1811,7 +1903,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     if prec_goal:
         prec_goal = apply_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
-            prec_goal = from_python(9.0)
+            prec_goal = from_python(12.0)
         elif prec_goal is SymbolInfinity:
             prec_goal = None
         elif not insinstance(prec_goal, Number):

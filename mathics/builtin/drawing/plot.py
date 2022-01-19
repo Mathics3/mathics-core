@@ -22,9 +22,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolList, SymbolN
-from mathics.core.systemsymbols import (
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolRule
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
