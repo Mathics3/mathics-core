@@ -41,9 +41,7 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
-from mathics.core.systemsymbols import (
-    SymbolMachinePrecision,
-)
+from mathics.core.systemsymbols import SymbolMachinePrecision
 
 from mathics.core.number import (
     dps,

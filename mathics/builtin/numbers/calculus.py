@@ -6,13 +6,17 @@ Calculus
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
-
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
+    Integer0,
     Integer1,
+    Integer2,
+    Integer3,
+    Integer4,
+    Integer10,
     Number,
     Rational,
     Real,
@@ -27,7 +31,11 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolIndeterminate,
+    SymbolLess,
+    SymbolLog,
+    SymbolNone,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -52,9 +60,7 @@ from mathics.core.attributes import (
 import sympy
 
 
-IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
-
 SymbolIntegrate = Symbol("Integrate")
 
 
@@ -187,7 +193,7 @@ class D(SympyFunction):
         "D[f_, x_?NotListQ]"
         x_pattern = Pattern.create(x)
         if f.is_free(x_pattern, evaluation):
-            return IntegerZero
+            return Integer0
         elif f == x:
             return Integer1
         elif f.is_atom():  # Shouldn't happen
@@ -203,7 +209,7 @@ class D(SympyFunction):
                 if not term.is_free(x_pattern, evaluation)
             ]
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             return Expression(SymbolPlus, *terms)
         elif head is SymbolTimes:
             terms = []
@@ -216,7 +222,7 @@ class D(SympyFunction):
             if len(terms) != 0:
                 return Expression(SymbolPlus, *terms)
             else:
-                return IntegerZero
+                return Integer0
         elif head is SymbolPower and len(f.leaves) == 2:
             base, exp = f.leaves
             terms = []
@@ -247,7 +253,7 @@ class D(SympyFunction):
                     )
 
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             elif len(terms) == 1:
                 return terms[0]
             else:
@@ -272,9 +278,9 @@ class D(SympyFunction):
                         Expression(
                             "Derivative",
                             *(
-                                [IntegerZero] * (index)
+                                [Integer0] * (index)
                                 + [Integer1]
-                                + [IntegerZero] * (len(f.leaves) - index - 1)
+                                + [Integer0] * (len(f.leaves) - index - 1)
                             )
                         ),
                         f.head,
@@ -295,7 +301,7 @@ class D(SympyFunction):
             if len(result) == 1:
                 return result[0]
             elif len(result) == 0:
-                return IntegerZero
+                return Integer0
             else:
                 return Expression("Plus", *result)
 
@@ -1326,7 +1332,238 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     return x0, True
 
 
-class FindRoot(Builtin):
+def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
+    x_name = x.name
+    maxit = opts["System`MaxIterations"]
+    step_monitor = opts.get("System`StepMonitor", None)
+    if step_monitor is SymbolNone:
+        step_monitor = None
+    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
+    if evaluation_monitor is SymbolNone:
+        evaluation_monitor = None
+
+    if maxit.sameQ(Symbol("Automatic")):
+        maxit = 100
+    else:
+        maxit = maxit.evaluate(evaluation).get_int_value()
+
+    acc_goal, prec_goal = get_accuracy_and_prec(opts, evaluation)
+    curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
+
+    # build the quadratic form:
+    eps = determine_epsilon(x0, opts, evaluation)
+    if not isinstance(curr_val, Number):
+        evaluation.message("FindMinimum", "nnum", x, x0)
+        return x0, False
+    d1 = dynamic_scoping(
+        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
+    )
+    val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
+    if not isinstance(val_d1, Number):
+        d1 = None
+        d2 = None
+        f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+        f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+        val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+        val_d2 = apply_N(
+            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+        )
+    else:
+        d2 = dynamic_scoping(
+            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
+        )
+        val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
+        if not isinstance(val_d2, Number):
+            d2 = None
+            df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+            df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+            val_d2 = (df2val - df1val) / (Integer2 * eps)
+
+    def reset_values(x0):
+        x_try = [
+            apply_N(x0 / Integer3, evaluation),
+            apply_N(x0 * Integer2, evaluation),
+            apply_N(x0 - offset / Integer2, evaluation),
+        ]
+        vals = [(u, apply_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
+        vals = [v for v in vals if isinstance(v[1], Number)]
+        v0 = vals[0]
+        for v in vals:
+            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
+                v0 = v
+        return v0
+
+    def reevaluate_coeffs():
+        """reevaluates val_d1 and val_d2"""
+        if d1:
+            val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
+            if d2:
+                val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
+            else:
+                df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+                df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+                val_d2 = (df2val - df1val) / (Integer2 * eps)
+        else:
+            f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+            f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+            val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+            val_d2 = apply_N(
+                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+            )
+        return (val_d1, val_d2)
+
+    # Main loop
+    count = 0
+    while count < maxit:
+
+        if step_monitor:
+            step_monitor.replace_vars({x_name: x0}).evaluate(evaluation)
+
+        offset = apply_N(val_d1 / abs(val_d2), evaluation)
+        x1 = apply_N(x0 - offset, evaluation)
+        new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
+        if Expression(SymbolLess, new_val, curr_val).evaluate(evaluation) is SymbolTrue:
+            if is_zero(offset, acc_goal, prec_goal, evaluation):
+                return (x1, new_val), True
+            x0 = x1
+            curr_val = new_val
+        else:
+            if is_zero(offset / Integer2, acc_goal, prec_goal, evaluation):
+                return (x0, curr_val), True
+            x0, curr_val = reset_values(x0)
+        val_d1, val_d2 = reevaluate_coeffs()
+        count = count + 1
+    else:
+        evaluation.message("FindMinimum", "maxiter")
+    return (x0, curr_val), True
+
+
+class _BaseFinder(Builtin):
+    """
+    This class is the basis class for FindRoot, FindMinimum and FindMaximum.
+    """
+
+    options = {
+        "MaxIterations": "100",
+        "Method": "Automatic",
+        "AccuracyGoal": "Automatic",
+        "PrecisionGoal": "Automatic",
+        "StepMonitor": "None",
+        "EvaluationMonitor": "None",
+        "Jacobian": "Automatic",
+    }
+
+    attributes = hold_all | protected
+
+    messages = {
+        "snum": "Value `1` is not a number.",
+        "nnum": "The function value is not a number at `1` = `2`.",
+        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
+        "bdmthd": "Value option Method->`1` is not `2`",
+        "maxiter": (
+            "The maximum number of iterations was exceeded. "
+            "The result might be inaccurate."
+        ),
+    }
+
+    methods = {}
+
+    def apply(self, f, x, x0, evaluation, options):
+        "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
+        # First, determine x0 and x
+        x0 = apply_N(x0, evaluation)
+        if not isinstance(x0, Number):
+            evaluation.message(self.get_name(), "snum", x0)
+            return
+        x_name = x.get_name()
+        if not x_name:
+            evaluation.message(self.get_name(), "sym", x, 2)
+            return
+
+        # Now, get the explicit form of f, depending of x
+        # keeping x without evaluation (Like inside a "Block[{x},f])
+        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+        # If after evaluation, we get an "Equal" expression,
+        # convert it in a function by substracting both
+        # members. Again, ensure the scope in the evaluation
+        if f.get_head_name() == "System`Equal":
+            f = Expression(
+                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
+            )
+            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+
+        # Determine the method
+        method = options["System`Method"]
+        if isinstance(method, Expression):
+            if method.get_head() is SymbolList:
+                method = method._leaves[0]
+        if isinstance(method, Symbol):
+            method = method.get_name().split("`")[-1]
+        elif isinstance(method, String):
+            method = method.value
+        if not isinstance(method, str):
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+
+        # Determine the "jacobian"s
+        if method in ("Newton", "Automatic") and options["System`Jacobian"].sameQ(
+            Symbol("Automatic")
+        ):
+
+            def diff(evaluation):
+                return Expression("D", f, x).evaluate(evaluation)
+
+            d = dynamic_scoping(diff, {x_name: None}, evaluation)
+            options["System`Jacobian"] = d
+
+        method_caller = self.methods.get(method, None)
+        if method_caller is None:
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+        x0, success = method_caller(f, x0, x, options, evaluation)
+        if not success:
+            return
+        if isinstance(x0, tuple):
+            return Expression(
+                SymbolList,
+                x0[1],
+                Expression(SymbolList, Expression(SymbolRule, x, x0[0])),
+            )
+        else:
+            return Expression(SymbolList, Expression(SymbolRule, x, x0))
+
+    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
+        "%(name)s[f_, xtuple_, OptionsPattern[]]"
+        f_val = f.evaluate(evaluation)
+
+        if f_val.has_form("Equal", 2):
+            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+
+        xtuple_value = xtuple.evaluate(evaluation)
+        if xtuple_value.has_form("List", None):
+            nleaves = len(xtuple_value.leaves)
+            if nleaves == 2:
+                x, x0 = xtuple.evaluate(evaluation).leaves
+            elif nleaves == 3:
+                x, x0, x1 = xtuple.evaluate(evaluation).leaves
+                options["$$Region"] = (x0, x1)
+            else:
+                return
+            return self.apply(f, x, x0, evaluation, options)
+        return
+
+
+class FindRoot(_BaseFinder):
     r"""
     <dl>
     <dt>'FindRoot[$f$, {$x$, $x0$}]'
@@ -1380,27 +1617,6 @@ class FindRoot(Builtin):
 
     """
 
-    options = {
-        "MaxIterations": "100",
-        "Method": "Automatic",
-        "AccuracyGoal": "Automatic",
-        "PrecisionGoal": "Automatic",
-        "StepMonitor": "None",
-        "Jacobian": "Automatic",
-    }
-    attributes = hold_all | protected
-
-    messages = {
-        "snum": "Value `1` is not a number.",
-        "nnum": "The function value is not a number at `1` = `2`.",
-        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
-        "bdmthd": "Value option Method->`1` is not `2`",
-        "maxiter": (
-            "The maximum number of iterations was exceeded. "
-            "The result might be inaccurate."
-        ),
-    }
-
     rules = {
         "FindRoot[lhs_ == rhs_, {x_, xs_}, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, {x, xs}, opt]",
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
@@ -1408,90 +1624,30 @@ class FindRoot(Builtin):
 
     methods = {
         "Newton": find_root_newton,
+        "Automatic": find_root_newton,
         "Secant": find_root_secant,
     }
 
-    def apply(self, f, x, x0, evaluation, options):
-        "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
-        # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
-        if not isinstance(x0, Number):
-            evaluation.message("FindRoot", "snum", x0)
-            return
-        x_name = x.get_name()
-        if not x_name:
-            evaluation.message("FindRoot", "sym", x, 2)
-            return
 
-        # Now, get the explicit form of f, depending of x
-        # keeping x without evaluation (Like inside a "Block[{x},f])
-        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
-        # If after evaluation, we get an "Equal" expression,
-        # convert it in a function by substracting both
-        # members. Again, ensure the scope in the evaluation
-        if f.get_head_name() == "System`Equal":
-            f = Expression(
-                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
-            )
-            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+class FindMinimum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
+    <dt>'FindMinimum[$lhs$ == $rhs$, {$x$, $x0$}]'
+        <dd>tries to solve the equation '$lhs$ == $rhs$'.
+    </dl>
 
-        # Determine the method
-        method = options["System`Method"]
-        if isinstance(method, Symbol):
-            method = method.get_name().split("`")[-1]
-        if method == "Automatic":
-            method = "Newton"
-        elif not isinstance(method, String):
-            method = None
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
-        else:
-            method = method.value
+    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
 
-        # Determine the "jacobian"
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
-        ):
+    >> FindMinimum[Sin[x], {x, 1}]
+     = {-1., {x -> -1.5708}}
+    """
 
-            def diff(evaluation):
-                return Expression("D", f, x).evaluate(evaluation)
-
-            d = dynamic_scoping(diff, {x_name: None}, evaluation)
-            options["System`Jacobian"] = d
-
-        method = self.methods.get(method, None)
-        if method is None:
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
-
-        x0, success = method(f, x0, x, options, evaluation)
-        if not success:
-            return
-        return Expression(SymbolList, Expression(SymbolRule, x, x0))
-
-    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
-        "FindRoot[f_, xtuple_, OptionsPattern[]]"
-        f_val = f.evaluate(evaluation)
-
-        if f_val.has_form("Equal", 2):
-            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
-
-        xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
-            nleaves = len(xtuple_value.leaves)
-            if nleaves == 2:
-                x, x0 = xtuple.evaluate(evaluation).leaves
-            elif nleaves == 3:
-                x, x0, x1 = xtuple.evaluate(evaluation).leaves
-                options["$$Region"] = (x0, x1)
-            else:
-                return
-            return self.apply(f, x, x0, evaluation, options)
-        return
+    methods = {
+        "Automatic": find_minimum_newton1d,
+        "Newton": find_minimum_newton1d,
+    }
 
 
 class O(Builtin):
@@ -1561,7 +1717,7 @@ class Series(Builtin):
             ).evaluate(evaluation)
             data.append(newcoeff)
         data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
+        return Expression(Symbol("SeriesData"), x, x0, data, Integer0, n, Integer1)
 
 
 class SeriesData(Builtin):
@@ -1631,3 +1787,81 @@ class SeriesData(Builtin):
         # expansion = [ex.format(form) for ex in expansion]
         expansion = Expression(SymbolPlus, *expansion)
         return expansion.format(evaluation, form)
+
+
+# Auxiliary routines. Maybe should be moved to another module.
+
+
+def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
+    """
+    Looks at an opts dictionary and tries to determine the numeric values of
+    Accuracy and Precision goals. If not available, returns None.
+    """
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    if acc_goal:
+        acc_goal = apply_N(acc_goal, evaluation)
+        if acc_goal is SymbolAutomatic:
+            acc_goal = from_python(9.0)
+        elif acc_goal is SymbolInfinity:
+            acc_goal = None
+        elif not insinstance(acc_goal, Number):
+            acc_goal = None
+
+    prec_goal = opts.get("System`PrecisionGoal", None)
+    if prec_goal:
+        prec_goal = apply_N(prec_goal, evaluation)
+        if prec_goal is SymbolAutomatic:
+            prec_goal = from_python(9.0)
+        elif prec_goal is SymbolInfinity:
+            prec_goal = None
+        elif not insinstance(prec_goal, Number):
+            prec_goal = None
+    return acc_goal, prec_goal
+
+
+def is_zero(val, acc_goal, prec_goal, evaluation):
+    """
+    Check if val is zero upto the precision and accuracy goals
+    """
+    if not isinstance(val, Number):
+        val = apply_N(val, evaluation)
+    if not val.is_numeric():
+        return False
+    if val.is_zero:
+        return True
+    if acc_goal:
+        if prec_goal:
+            eps = apply_N(
+                Expression(
+                    SymbolLog,
+                    Integer10 ** (-acc_goal) / abs(val) + Integer10 ** (-prec_goal),
+                ),
+                evaluation,
+            )
+        else:
+            eps = apply_N(
+                Expression(SymbolLog, Integer10 ** (-acc_goal) / abs(val)),
+                evaluation,
+            )
+        if isinstance(eps, Number):
+            return eps.to_python() > 0
+    return False
+
+
+def determine_epsilon(x0, options, evaluation):
+    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+    acc_goal, prec_goal = get_accuracy_and_prec(options, evaluation)
+    if acc_goal:
+        if prec_goal:
+            eps = apply_N(
+                Integer10 ** (-acc_goal) + abs(x0) * Integer10 ** (-prec_goal),
+                evaluation,
+            )
+        else:
+            eps = apply_N(Integer10 ** (-acc_goal), evaluation)
+    else:
+        if prec_goal:
+            eps = apply_N(abs(x0) * Integer10 ** (-prec_goal), evaluation)
+        else:
+            eps = from_python(1e-10)
+    return eps
