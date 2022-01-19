@@ -33,6 +33,8 @@ from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolIndeterminate,
     SymbolInfinity,
+    SymbolLess,
+    SymbolLog,
     SymbolNone,
     SymbolPlus,
     SymbolPower,
@@ -1353,14 +1355,14 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             if prec_goal:
                 eps = apply_N(
                     Expression(
-                        Symbol("Log"),
+                        SymbolLog,
                         Integer10 ** (-acc_goal) / abs(val) + Integer10 ** (-prec_goal),
                     ),
                     evaluation,
                 )
             else:
                 eps = apply_N(
-                    Expression(Symbol("Log"), Integer10 ** (-acc_goal) / abs(val)),
+                    Expression(SymbolLog, Integer10 ** (-acc_goal) / abs(val)),
                     evaluation,
                 )
             if isinstance(eps, Number):
@@ -1375,7 +1377,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             return False
         if val2.is_zero:
             return True
-        res = apply_N(Expression(Symbol("Log"), abs(val2 / val1)), evaluation)
+        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
         if not res.is_numeric():
             return False
         return res.to_python() < 0
@@ -1533,6 +1535,7 @@ class FindRoot(Builtin):
     }
 
     methods = {
+        "Automatic": find_root_newton,
         "Newton": find_root_newton,
         "Secant": find_root_secant,
     }
@@ -1599,8 +1602,9 @@ class FindRoot(Builtin):
 
         # Determining the "jacobian"
 
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
+        if (
+            method in ("Newton", "Automatic")
+            and options["System`Jacobian"] is SymbolAutomatic
         ):
 
             def diff(evaluation):
