@@ -24,10 +24,12 @@ from contextlib import contextmanager
 from itertools import chain, product
 from functools import lru_cache
 
+from typing import Optional
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
 
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolN, SymbolTrue
 from mathics.core.atoms import (
@@ -41,13 +43,17 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
+
 from mathics.core.systemsymbols import (
-    SymbolMachinePrecision,
+    SymbolAutomatic,
     SymbolD,
-    SymbolTimes,
+    SymbolInfinity,
+    SymbolMachinePrecision,
     SymbolPlus,
     SymbolSequence,
+    SymbolTimes,
 )
+
 
 from mathics.core.number import (
     dps,
@@ -76,6 +82,49 @@ def log_n_b(py_n, py_b) -> int:
 
 def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
     return Expression("N", expression, prec).evaluate(evaluation)
+
+
+def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation"):
+    """
+    Looks at an opts dictionary and tries to determine the numeric values of
+    Accuracy and Precision goals. If not available, returns None.
+    """
+    # comment @mmatera: I fix the default value for Accuracy
+    # and Precision goals to 12 because it ensures that
+    # the results of the tests coincides with WMA upto
+    # 6 digits. In any case, probably the default value should be
+    # determined inside the methods that implements the specific
+    # solvers.
+
+    def to_real_or_none(value) -> Optional[Real]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Real(12.0)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    def to_integer_or_none(value) -> Optional[Integer]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Integer(100)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    acc_goal = to_real_or_none(acc_goal)
+    prec_goal = opts.get("System`PrecisionGoal", None)
+    prec_goal = to_real_or_none(prec_goal)
+    max_it = opts.get("System`MaxIteration")
+    max_it = to_integer_or_none(max_it)
+    return acc_goal, prec_goal, max_it
 
 
 def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
@@ -1177,19 +1226,21 @@ class NIntegrate(Builtin):
 
             if nulldomain:
                 continue
-
             if any(coordtransform):
-                func2 = lambda *u: (
-                    integrand(
-                        *[
-                            x[0](u[i]) if x else u[i]
-                            for i, x in enumerate(coordtransform)
-                        ]
+
+                def func2_(*u):
+                    x_u = (
+                        x[0](u[i]) if x else u[i] for i, x in enumerate(coordtransform)
                     )
-                    * np.prod(
-                        [jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac]
+                    punctual_value = integrand(*x_u)
+                    jac_factors = tuple(
+                        jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
                     )
-                )
+                    val_jac = np.prod(jac_factors)
+                    print("val_jac:", val_jac)
+                    return punctual_value * val_jac
+
+                func2 = func2_
             opts = {
                 "acur": accuracy,
                 "tol": tolerance,
@@ -1223,7 +1274,7 @@ class NIntegrate(Builtin):
                         val = _internal_adaptative_simpsons_rule(
                             func2, *(subdomain2[0]), **opts
                         )
-                    except:
+                    except Exception:
                         return None
             results.append(val)
 
