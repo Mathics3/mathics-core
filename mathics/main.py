@@ -15,9 +15,9 @@ from mathics import version_string, license_string, __version__
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.definitions import autoload_files, Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.expression import strip_context
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.rules import BuiltinRule
+from mathics.core.symbols import strip_context
 
 
 def get_srcdir():

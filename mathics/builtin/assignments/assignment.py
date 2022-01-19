@@ -7,9 +7,7 @@ Forms of Assignment
 from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.symbols import Symbol
 
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-)
+from mathics.core.systemsymbols import SymbolFailed
 
 from mathics.core.definitions import PyMathicsLoadException
 
