@@ -1295,6 +1295,10 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
 
 def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
+    """
+    Look for a root of a f: R->R using the Newton's method.
+    """
+    absf = abs(f)
     df = opts["System`Jacobian"]
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
@@ -1303,16 +1307,66 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
 
+    acc_goal, prec_goal = get_accuracy_and_prec(opts, evaluation)
+
+    step_monitor = opts.get("System`StepMonitor", None)
+    if step_monitor is SymbolNone:
+        step_monitor = None
+    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
+    if evaluation_monitor is SymbolNone:
+        evaluation_monitor = None
+
+    def decreasing(val1, val2):
+        """
+        Check if val2 has a smaller absolute value than val1
+        """
+        if not (val1.is_numeric() and val2.is_numeric()):
+            return False
+        if val2.is_zero:
+            return True
+        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
+        if not res.is_numeric():
+            return False
+        return res.to_python() < 0
+
+    def new_seed():
+        """
+        looks for a new starting point, based on how close we are from the target.
+        """
+        x1 = apply_N(Integer2 * x0, evaluation)
+        x2 = apply_N(x0 / Integer3, evaluation)
+        x3 = apply_N(x0 - minus / Integer2, evaluation)
+        x4 = apply_N(x0 + minus / Integer3, evaluation)
+        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
+        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
+        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
+        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
+        if decreasing(absf1, absf2):
+            x1, absf1 = x2, absf2
+        if decreasing(absf1, absf3):
+            x1, absf1 = x3, absf3
+        if decreasing(absf1, absf4):
+            x1, absf1 = x4, absf4
+        return x1, absf1
+
     def sub(evaluation):
-        d_value = df.evaluate(evaluation)
+        d_value = apply_N(df, evaluation)
         if d_value == Integer(0):
             return None
-        return Expression(
-            "Times", f, Expression("Power", d_value, Integer(-1))
-        ).evaluate(evaluation)
+        result = apply_N(f / d_value, evaluation)
+        if evaluation_monitor:
+            dynamic_scoping(
+                lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
+        return result
 
+    currval = absf.replace_vars({x_name: x0}).evaluate(evaluation)
     count = 0
     while count < maxit:
+        if step_monitor:
+            dynamic_scoping(
+                lambda ev: step_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
         minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
@@ -1323,12 +1377,23 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
-        # TODO: use Precision goal...
-        if x1 == x0:
-            break
-        x0 = apply_N(x1, evaluation)
-        # N required due to bug in sympy arithmetic
-        count += 1
+
+        # Check convergency:
+        new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
+        if is_zero(new_currval, acc_goal, prec_goal, evaluation):
+            return x1, True
+
+        # This step tries to ensure that the new step goes forward to the convergency.
+        # If not, tries to restart in a another point closer to x0 than x1.
+        if decreasing(new_currval, currval):
+            x0, currval = new_seed()
+            count = count + 1
+            continue
+        else:
+            currval = new_currval
+            x0 = apply_N(x1, evaluation)
+            # N required due to bug in sympy arithmetic
+            count += 1
     else:
         evaluation.message("FindRoot", "maxiter")
     return x0, True
