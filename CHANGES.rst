@@ -7,7 +7,7 @@ New Builtins
 * Now, ``D`` can act over ``NIntegrate``.
 * ``FindRoot`` was improved for supporting numerical derivatives.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options. 
-
+* ``$ScriptCommandLine`` now has the filename of the script as its first element.
   
 
 Internals
