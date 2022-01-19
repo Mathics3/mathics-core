@@ -34,6 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolIndeterminate,
     SymbolLess,
+    SymbolLessEqual,
     SymbolLog,
     SymbolNone,
     SymbolPlus,
@@ -1449,7 +1450,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         x1 = apply_N(x0 - offset, evaluation)
         new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
         if (
-            Expression(Symbol("LessEqual"), new_val, curr_val).evaluate(evaluation)
+            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
             is SymbolTrue
         ):
             if is_zero(offset, acc_goal, prec_goal, evaluation):
@@ -1893,7 +1894,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     if acc_goal:
         acc_goal = apply_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
-            acc_goal = from_python(12.0)
+            acc_goal = Real(12.0)
         elif acc_goal is SymbolInfinity:
             acc_goal = None
         elif not insinstance(acc_goal, Number):
@@ -1903,7 +1904,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     if prec_goal:
         prec_goal = apply_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
-            prec_goal = from_python(12.0)
+            prec_goal = Real(12.0)
         elif prec_goal is SymbolInfinity:
             prec_goal = None
         elif not insinstance(prec_goal, Number):
@@ -1955,5 +1956,5 @@ def determine_epsilon(x0, options, evaluation):
         if prec_goal:
             eps = apply_N(abs(x0) * Integer10 ** (-prec_goal), evaluation)
         else:
-            eps = from_python(1e-10)
+            eps = Real(1e-10)
     return eps

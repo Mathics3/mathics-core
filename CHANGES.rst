@@ -4,7 +4,7 @@ CHANGES
 New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
-* ``FindMinimum`` and ``FindMinimum`` now have a minimal implementation for 1D problems.
+* ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems.
 
 Internals
 =========
