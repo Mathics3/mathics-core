@@ -714,6 +714,18 @@ class Expression(BaseExpression):
     def flatten(
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Expression":
+        """
+        Flatten leaves in nested expressions
+
+        head: head of the leaves to be flatten
+        callback:  a callback function called each time a leaf is flattened.
+        level:   maximum deep to flatten
+        pattern_only: if True, just apply to leaf that are pattern_sequence (see ExpressionPattern.get_wrappings)
+
+        For example if head=G,
+        F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
+
+        """
         if level is not None and level <= 0:
             return self
         if self._no_symbol(head.get_name()):
@@ -895,7 +907,7 @@ class Expression(BaseExpression):
             leaves = new._leaves
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
-        # The idea is to mark which leaves was already evaluated.
+        # The idea is to mark which leaves was marked as "Unevaluated"
         for leaf in leaves:
             leaf.unevaluated = False
 
@@ -904,6 +916,12 @@ class Expression(BaseExpression):
         # change them to `leaf` and set a flag `unevaluated=True`
         # If the evaluation fails, use this flag to restore back the initial form
         # Unevaluated[leaf]
+
+        # comment @mmatera:
+        # what we need here is some way to track which leaves are marked as
+        # Unevaluated, that propagates by flatten, and at the end,
+        # to recover a list of positions that (eventually)
+        # must be marked again as Unevaluated.
 
         if not hold_all_complete & attributes:
             dirty_leaves = None
@@ -921,8 +939,8 @@ class Expression(BaseExpression):
                 leaves = dirty_leaves
 
         # If the attribute Flat is set, calls flatten with a callback
-        # that set leaves as unevaluated too. Probably would be better to call
-        # this before the previous block...
+        # that set leaves as unevaluated too.
+
         def flatten_callback(new_leaves, old):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
