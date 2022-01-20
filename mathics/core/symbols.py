@@ -73,6 +73,11 @@ def strip_context(name) -> str:
 
 
 class KeyComparable(object):
+    """
+    In certain cases, (Base)Expressions needs to be sorted to
+    an standard form. This class implements the basic ordering rules.
+    """
+
     def get_sort_key(self):
         raise NotImplementedError
 
@@ -149,14 +154,37 @@ class BaseExpression(KeyComparable):
     def get_attributes(self, definitions):
         return nothing
 
-    def evaluate_next(self, evaluation):
+    def evaluate_next(self, evaluation) -> ("BaseExpression", bool):
+        """
+        represents one step in the evaluation. Returns the result of the evaluation step and
+        a flag.
+        If the flag is `True`, then the evaluation didn't reach a fixed point.
+        If the flag is `False`, the evaluation reached the fixed point.
+        """
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
+        """
+        This method tries to evaluate the expression up to reach a fixed point, or until receive a stop signal.
+        For "inert" expressions (for example, strings and numbers) it just call `check_stopped`, which raise
+        an exception if the evaluation was aborted. Otherwise, returns self.
+        """
+        # comment @mmatera:
+        # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
+
         evaluation.check_stopped()
         return self
 
     def get_atoms(self, include_heads=True):
+        """
+        Returns a list of atoms that appears in the expression.
+        """
+        # Comment @mmatera:
+        # This function is used just in Graphics.apply_makeboxes
+        # to check if a graphics expression is composed just by
+        # real numbers (or integer) or graphics symbols.
+        # Probably, there is a simpler way to implement it without using
+        # this method.
         return []
 
     def get_name(self):
@@ -165,13 +193,19 @@ class BaseExpression(KeyComparable):
         return ""
 
     def is_symbol(self) -> bool:
+        """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
         return False
 
     def is_machine_precision(self) -> bool:
+        """Check if the number represents a floating point number"""
         return False
 
     def get_lookup_name(self):
-        "Returns symbol name of leftmost head"
+        """
+        Returns symbol name of leftmost head. This method is used
+        to determine which definition must be asked for rules
+        to apply in order to do the evaluation.
+        """
 
         return self.get_name()
 
@@ -181,6 +215,7 @@ class BaseExpression(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
+    # Probably, this method shouln't be here
     def get_leaves(self):
         return []
 
@@ -194,16 +229,25 @@ class BaseExpression(KeyComparable):
         return None
 
     def is_atom(self) -> bool:
+        """Better use isinstance(self, Atom)"""
         return False
 
     def is_true(self) -> bool:
+        """Better use self is SymbolTrue"""
         return False
 
     def is_numeric(self, evaluation=None) -> bool:
+        """Check if the expression is a number. If evaluation is given,
+        tries to determine if the expression can be evaluated as a number.
+        """
         # used by NumericQ and expression ordering
         return False
 
     def has_form(self, heads, *leaf_counts):
+        """Check if the expression is of the form Head[l1,...,ln]
+        with Head.name in `heads` and a number of leaves according to the specification in
+        leaf_counts.
+        """
         return False
 
     def flatten(self, head, pattern_only=False, callback=None) -> "BaseExpression":
@@ -228,17 +272,27 @@ class BaseExpression(KeyComparable):
         return id(self) == id(rhs)
 
     def get_sequence(self):
+        """Convert's a WL Sequence into a Python's list of expressions"""
         if self.get_head() is SymbolSequence:
             return self.leaves
         else:
             return [self]
 
     def evaluate_leaves(self, evaluation) -> "BaseExpression":
+        """
+        Create a new expression by evaluating the head and leaves of self.
+        """
+        #     # comment @mmatera: Just make sense if the Expressio has leaves...
         return self
 
     def apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> typing.Tuple["BaseExpression", bool]:
+        """
+        Tries to apply one by one the rules in `rules`.
+        If one of the rules matches, returns the result and the flag True.
+        Otherwise, returns self, False.
+        """
         if options:
             l1, l2 = options["levelspec"]
             if level < l1:
@@ -374,6 +428,9 @@ class BaseExpression(KeyComparable):
         return result
 
     def is_free(self, form, evaluation) -> bool:
+        """
+        Check if self has a subexpression of the form `form`.
+        """
         from mathics.builtin.patterns import item_is_free
 
         return item_is_free(self, form, evaluation)
@@ -385,6 +442,16 @@ class BaseExpression(KeyComparable):
         return None
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+        """
+        Build a dictionary of options from an expression.
+        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        will return a list of options associated to the definition of the symbol "Integrate".
+        If self is not an expression,
+        """
+        # comment @mmatera: The implementation of this is awfull.
+        # This general method (in BaseExpression) should be simpler (Numbers does not have Options).
+        # The implementation should be move to Symbol and Expression classes.
+
         from mathics.core.atoms import String
 
         options = self
@@ -417,7 +484,15 @@ class BaseExpression(KeyComparable):
         return option_values
 
     def get_rules_list(self):
+        """
+        If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
+        return a (python) list of rules.
+        """
         from mathics.core.rules import Rule
+
+        # comment mm: This makes sense for expressions, but not for numbers. This should
+        # have at most a trivial implementation here, and specialize it
+        # in the `Expression` class.
 
         list_expr = self.flatten(SymbolList)
         list = []
@@ -445,6 +520,11 @@ class BaseExpression(KeyComparable):
         """
         from mathics.core.atoms import Number
 
+        # comment @mmatera: this method should be
+        # specialized on each class. This definition is good for
+        # Symbols and Expressions, but for String does not make sense,
+        # and for Reals is too complicated.
+
         if evaluation is None:
             value = self
         elif isinstance(evaluation, sympy.core.numbers.NaN):
@@ -454,6 +534,9 @@ class BaseExpression(KeyComparable):
         if isinstance(value, Number):
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
+
+    # All these methods are a handy way to build arithmetic ``Expression``s
+    # using python syntax. Is handy but maybe could be misleading.
 
     def __abs__(self) -> "BaseExpression":
         return self.create_expression("Abs", self)
@@ -567,6 +650,11 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
+    """
+    Atomic expressions are those that do not have `Part`s:
+    `Number`s, `String`s, `Symbol`s or `Image`.
+    """
+
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
@@ -632,6 +720,8 @@ class Atom(BaseExpression):
         return [self]
 
     def atom_to_boxes(self, f, evaluation):
+        """Produces a Box expression that represents
+        how the expression should be formatted."""
         raise NotImplementedError
 
 
@@ -764,6 +854,10 @@ class Symbol(Atom):
         return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
+        """
+        Evaluates the symbol by applying the rules (ownvalues) in its definition,
+        recursively.
+        """
         if evaluation.definitions.trace_evaluation:
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
