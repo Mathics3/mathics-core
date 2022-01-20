@@ -49,6 +49,7 @@ from mathics.core.convert import from_sympy
 from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 
 from mathics.core.expression import Expression, structure
+from mathics.core.lists import ListExpression
 from mathics.core.atoms import (
     ByteArrayAtom,
     Integer,
@@ -75,7 +76,6 @@ from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMakeBoxes,
     SymbolRule,
-    SymbolSequence,
 )
 
 from mathics.core.attributes import (
@@ -546,6 +546,13 @@ class List(Builtin):
     """
 
     attributes = locked | protected
+
+    def apply(self, items, evaluation):
+        """{items___}"""
+        if items.get_head() is SymbolSequence:
+            return ListExpression(items._leaves)
+        else:
+            return ListExpression(tuple((items,)))
 
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},

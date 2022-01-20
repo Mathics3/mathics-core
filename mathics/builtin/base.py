@@ -611,6 +611,8 @@ class BoxConstruct(InstanceableBuiltin):
 
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
+        if isinstance(expr, BoxConstruct):
+            return expr is self
         return expr.sameQ(self)
 
     def is_atom(self):
