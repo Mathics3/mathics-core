@@ -30,7 +30,7 @@ Internals
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46
 * ``Cylinder`` rendering is implemented in Asymptote
-
+* `List` expressions are stored as `ListExpression` objects, with a simpler `evaluate` method.
 
 Bugs
 ++++
