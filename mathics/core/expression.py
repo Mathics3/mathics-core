@@ -971,6 +971,12 @@ class Expression(BaseExpression):
             return False, options
 
     def boxes_to_text(self, **options) -> str:
+        """
+        From a Boxed expression, produces a text representation.
+        """
+        # Idea @mmatera: All the Boxes expressions should be implemented as a different class
+        # which implements these ``boxes_to_*`` methods.
+
         is_style, options = self.process_style_box(options)
         if is_style:
             return self._leaves[0].boxes_to_text(**options)
@@ -1187,6 +1193,12 @@ class Expression(BaseExpression):
     def replace_vars(
         self, vars, options=None, in_scoping=True, in_function=True
     ) -> "Expression":
+        """
+        Replace the symbols in the expression by the expressions given in the vars dictionary.
+        in_scoping: if `False`, avoid to replace those symbols that are declared internal to the scope.
+        in_function: if `True`, and the Expression is of the form Function[{args},body], changes the names of the args
+        to avoid replacing them.
+        """
         from mathics.builtin.scoping import get_scoping_vars
 
         if not in_scoping:
@@ -1240,6 +1252,9 @@ class Expression(BaseExpression):
         )
 
     def replace_slots(self, slots, evaluation):
+        """
+        Replaces Slots (#1, ##, etc) by the corresponding values in `slots`
+        """
         if self._head is SymbolSlot:
             if len(self._leaves) != 1:
                 evaluation.message_args("Slot", len(self._leaves), 1)
@@ -1313,6 +1328,11 @@ class Expression(BaseExpression):
             )
 
     def numerify(self, evaluation) -> "Expression":
+        """
+        If one leaf in the expression is inexact,
+        returns a new expression with the non exact leaves replaced by
+        its numeric approximation.
+        """
         _prec = None
         for leaf in self._leaves:
             if leaf.is_inexact():
@@ -1327,6 +1347,7 @@ class Expression(BaseExpression):
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
                 if not isinstance(leaf, Number):
+                    # TODO: use apply_N instead ?
                     n_expr = Expression(SymbolN, leaf, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
@@ -1336,6 +1357,9 @@ class Expression(BaseExpression):
             return self
 
     def get_atoms(self, include_heads=True):
+        """Returns a list of atoms involved in the expression."""
+        # Comment @mmatera: maybe, what we really want here are the Symbol's
+        # involved in the expression, not the atoms.
         if include_heads:
             atoms = self._head.get_atoms()
         else:
