@@ -743,7 +743,13 @@ class Expression(BaseExpression):
         else:
             return self
 
-    def evaluate(self, evaluation) -> typing.Union["Expression", "Symbol"]:
+    def evaluate(self, evaluation) -> "BaseExpression":
+        """
+        Evaluate until reach a fixed point.
+        """
+        # comment @mmatera: Exceptions (like ReturnInterrupt) should be in a different module
+        # to avoid circular dependencies.
+
         from mathics.core.evaluation import ReturnInterrupt
 
         if evaluation.timeout:
@@ -763,25 +769,41 @@ class Expression(BaseExpression):
                 "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
             )
         try:
+            # Evaluation loop:
             while reevaluate:
                 # changed before last evaluated?
+                # This prevents to reevaluate expressions that
+                # have been already evaluated. This uses Expression._cache
                 if not expr.has_changed(definitions):
                     break
 
+                # Here the names of the lookupname of the expression
+                # are stored. This is necesary for the implementation
+                # of the builtin `Return[]`
                 names.add(expr.get_lookup_name())
 
+                # This loads the default options associated
+                # to the expression
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
+                # This calls evaluate_next. This routine implements a single
+                # step in the evaluation, and determines if a fixed point
+                # was reached (reevaluate->False).
                 expr, reevaluate = expr.evaluate_next(evaluation)
                 if not reevaluate:
                     break
+
+                # Trace evaluation...
                 if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "-> %s" % expr
                     )
                 iteration += 1
-
+                # Check if the iterationlimit was reached.
+                # we need to check on each step, in case that the expression
+                # changes its value. Maybe there is another way, for example,
+                # keeping the index in the Evaluation object.
                 if limit is None:
                     limit = definitions.get_config_value("$IterationLimit")
                     if limit is None:
@@ -801,13 +823,24 @@ class Expression(BaseExpression):
             else:
                 raise ret
         finally:
+            # Restores the state
             evaluation.options = old_options
             evaluation.dec_recursion_depth()
 
         return expr
 
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """
+        This implements a single evaluation step.
+        * Checks what part of the leaves must be evaluated first (HoldFirst/HoldAll/HoldRest)
+        *
+
+        """
         from mathics.builtin.base import BoxConstruct
+
+        # First step: evaluates the Head and the leaves according to the
+        # attributes HoldFirst / HoldAll / HoldRest  and the
+        # modifiers Evaluate / Unevaluated
 
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
@@ -843,15 +876,27 @@ class Expression(BaseExpression):
             eval_range(range(len(leaves)))
             # rest_range(range(0, 0))
 
+        # Build a new expression. Notice that leaves are given
+        # after creating the object, to avoid to call `from_python` on each leaf.
         new = Expression(head)
         new._leaves = tuple(leaves)
 
+        # Now, process the attributes of head
+        # If there are sequence, flatten them if the attributes allow it.
         if not (sequence_hold | hold_all_complete) & attributes:
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
 
+        # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
+        # The idea is to mark which leaves was already evaluated.
         for leaf in leaves:
             leaf.unevaluated = False
+
+        # If HoldAllComplete is not an attribute,
+        # and the expression has leaves of the form  `Unevaluated[leaf]`
+        # change them to `leaf` and set a flag `unevaluated=True`
+        # If the evaluation fails, use this flag to restore back the initial form
+        # Unevaluated[leaf]
 
         if not hold_all_complete & attributes:
             dirty_leaves = None
@@ -868,17 +913,28 @@ class Expression(BaseExpression):
                 new._leaves = tuple(dirty_leaves)
                 leaves = dirty_leaves
 
+        # If the attribute Flat is set, calls flatten with a callback
+        # that set leaves as unevaluated too. Probably would be better to call
+        # this before the previous block...
         def flatten_callback(new_leaves, old):
             for leaf in new_leaves:
                 leaf.unevaluated = old.unevaluated
 
         if flat & attributes:
             new = new.flatten(new._head, callback=flatten_callback)
+
+        # If the attribute `Orderless` is set, sort the leaves, according to the
+        # `get_sort` criteria.
         if orderless & attributes:
             new.sort()
 
+        # Now, rebuilds the ExpressionCache, which tracks which symbols
+        # where involved, and when was the last time they had changed.
         new._timestamp_cache(evaluation)
 
+        # For `Listable` expressions, calls `Expression.thread`.
+        # i.e. changes F[{a,b,c,...}] to {F[a], F[b], F[c], ...}
+        #
         if listable & attributes:
             done, threaded = new.thread(evaluation)
             if done:
@@ -887,6 +943,24 @@ class Expression(BaseExpression):
                     return new, False
                 else:
                     return threaded, True
+
+        # Now,the next step is to look at the rules associated to
+        # 1. the upvalues of each leaf
+        # 2. the downvalues / subvalues associated to the lookup_name
+        # if the lookup values matches or not the head.
+        # For example for an expression F[a, 1, b,a]
+        #
+        # first look for upvalue rules associated to a.
+        # If it finds it, try to apply the corresponding rule.
+        #    If it success, (the result is not None)
+        #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is not a BoxConstruct.
+        #    If the rule fails, continues with the next leaf.
+        #
+        # The next leaf is a number, so do not have upvalues. Then tries with upvalues from b.
+        # If it does not have  success, tries look at the next leaf. but the next leaf is again a. So, it skip it.
+        # Then, as new.head_name() == new.get_lookup_name(),  (because F is a symbol) tryies with the
+        # downvalues rules. If instead of "F[a, 1, a, c]" we had  "Q[s][a,1,a,c]",
+        # the routine would look for the subvalues of `Q`.
 
         def rules():
             rules_names = set()
@@ -917,9 +991,11 @@ class Expression(BaseExpression):
                 else:
                     return result, True
 
+        # If we are here, is because we didn't find any rule that matches with the expression.
+
         dirty_leaves = None
 
-        # Expression did not change, re-apply Unevaluated
+        # Expression did not change, restore the Unevaluated form
         for index, leaf in enumerate(new._leaves):
             if leaf.unevaluated:
                 if dirty_leaves is None:
@@ -930,11 +1006,14 @@ class Expression(BaseExpression):
             new = Expression(head)
             new._leaves = tuple(dirty_leaves)
 
+        # copy the "unformatted" form of the original expression,
         new.unformatted = self.unformatted
+        # updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
 
     def evaluate_leaves(self, evaluation) -> "Expression":
+        """Evaluate each leaf and the head, without evaluating the expression as a whole."""
         leaves = [leaf.evaluate(evaluation) for leaf in self._leaves]
         head = self._head.evaluate_leaves(evaluation)
         return Expression(head, *leaves)
@@ -1283,6 +1362,15 @@ class Expression(BaseExpression):
         )
 
     def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
+        """
+        Thread over expressions with head as Head:
+        Thread[F[{a,b},{c,d}, G[z,q]],G] -> newexpr = G[F[{a, b}, {c, d}, z], F[{a, b}, {c, d}, q]]
+
+        By default, head=SymbolList
+
+        If the expression has changes, returns True, newexpr
+        otherwise, return False, self
+        """
         if head is None:
             head = SymbolList
 
