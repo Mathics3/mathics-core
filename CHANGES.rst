@@ -4,7 +4,7 @@ CHANGES
 New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
-
+* ``$Echo``
 
 Internals
 =========
