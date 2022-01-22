@@ -850,7 +850,7 @@ class Expression(BaseExpression):
         """
         from mathics.builtin.base import BoxConstruct
 
-        # First step: evaluates the Head and the leaves according to the
+        # Step 1 : evaluates the Head and the leaves according to the
         # attributes HoldFirst / HoldAll / HoldRest  and the
         # modifiers Evaluate / Unevaluated
 
@@ -858,6 +858,13 @@ class Expression(BaseExpression):
         attributes = head.get_attributes(evaluation.definitions)
         leaves = self.get_mutable_leaves()
 
+        # The following  is one of the most expensives parts of the routine, because tries to evaluate
+        # each leaf, independently of the kind of leaf (strings and numbers
+        # are tried to be evaluated) as well as symbols already evaluated.
+        # So, F[1,2,3,...] takes more or less the same time that F[a1,a2,a3,..]
+        # and F[a1,a1,a1,a1] independently if a1... have assigned a numerical value
+        # or are not assigned. Here we can get some advantage by "compiling" / "caching"
+        # symbolic values.
         def rest_range(indices):
             if not hold_all_complete & attributes:
                 if self._no_symbol("System`Evaluate"):
@@ -888,19 +895,25 @@ class Expression(BaseExpression):
             eval_range(range(len(leaves)))
             # rest_range(range(0, 0))
 
-        # Build a new expression. Notice that leaves are given
+        # Step 2: Build a new expression. Notice that leaves are given
         # after creating the object, to avoid to call `from_python` on each leaf.
         new = Expression(head)
         new._leaves = tuple(leaves)
 
-        # Now, process the attributes of head
+        # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
         if not (sequence_hold | hold_all_complete) & attributes:
+            # This step is applied to most of the expressions
+            # and could be heavy for expressions with many leaves (like long lists)
+            # however, most of the times, expressions does not have `Sequence` expressions
+            # inside. Now this is handled by caching the sequences.
             new = new.flatten_sequence(evaluation)
             leaves = new._leaves
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
         # The idea is to mark which leaves was marked as "Unevaluated"
+        # Also, this consumes time for long lists, and is useful just for a very unfrequent
+        # expressions, involving `Unevaluated` leaves.
         for leaf in leaves:
             leaf.unevaluated = False
 
@@ -943,14 +956,16 @@ class Expression(BaseExpression):
 
         # If the attribute `Orderless` is set, sort the leaves, according to the
         # `get_sort` criteria.
+        # the most expensive part of this is to build the sort key.
         if orderless & attributes:
             new.sort()
 
-        # Now, rebuilds the ExpressionCache, which tracks which symbols
-        # where involved, and when was the last time they had changed.
+        # Step 4:  Now, rebuilds the ExpressionCache, which tracks which symbols
+        # where involved, the `Sequence`s present,  and when was the last time they had changed.
+
         new._timestamp_cache(evaluation)
 
-        # For `Listable` expressions, calls `Expression.thread`.
+        # Step 5:  For `Listable` expressions, calls `Expression.thread`.
         # i.e. changes F[{a,b,c,...}] to {F[a], F[b], F[c], ...}
         #
         if listable & attributes:
@@ -962,7 +977,7 @@ class Expression(BaseExpression):
                 else:
                     return threaded, True
 
-        # Now,the next step is to look at the rules associated to
+        # Step 6: Now,the next step is to look at the rules associated to
         # 1. the upvalues of each leaf
         # 2. the downvalues / subvalues associated to the lookup_name
         # if the lookup values matches or not the head.
@@ -979,6 +994,15 @@ class Expression(BaseExpression):
         # Then, as new.head_name() == new.get_lookup_name(),  (because F is a symbol) tryies with the
         # downvalues rules. If instead of "F[a, 1, a, c]" we had  "Q[s][a,1,a,c]",
         # the routine would look for the subvalues of `Q`.
+        #
+        # For `Plus` and `Times`, WMA behaves slightly different when deals with numbers. For example,
+        # ```
+        # Unprotect[Plus];
+        # Plus[2,3]:=fish;
+        # Plus[2,3]
+        # ```
+        # in mathics results in  `fish`, but in WL results in  `5`. This special behaviour suggests
+        # that WMA process in a different way certain symbols.
 
         def rules():
             rules_names = set()
@@ -995,6 +1019,9 @@ class Expression(BaseExpression):
                 for rule in evaluation.definitions.get_downvalues(lookup_name):
                     yield rule
             else:
+                # Subvalues applies for expressions of the form `D[1][f][x]`
+                # For this expression, the `head` would be `D[1][f]`
+                # while its `lookup_name` would be `D`.
                 for rule in evaluation.definitions.get_subvalues(lookup_name):
                     yield rule
 
@@ -1009,7 +1036,7 @@ class Expression(BaseExpression):
                 else:
                     return result, True
 
-        # If we are here, is because we didn't find any rule that matches with the expression.
+        # Step 7: If we are here, is because we didn't find any rule that matches with the expression.
 
         dirty_leaves = None
 
@@ -1026,9 +1053,22 @@ class Expression(BaseExpression):
 
         # copy the "unformatted" form of the original expression,
         new.unformatted = self.unformatted
-        # updates the cache and returns the new form, with the reevaluate flag to false.
+        # Step 8:updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
+
+    #  Now, let's see how much take each step for certain typical expressions:
+    #  (assuming that "F" and "a1", ... "a100" are undefined symbols, and n0->0, n1->1,..., n99->99)
+    #
+    #  Expr1: Expression("F", 1)                       (trivial evaluation to a short expression)
+    #  Expr2: Expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
+    #  Expr3: Expression("F", a0, a2, ...., a99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr4: Expression("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr5: Expression("Plus", 99,..., 0)            (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr6: Expression("Plus", a99,..., a0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr7: Expression("Plus", n99,..., n0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
+    #
 
     def evaluate_leaves(self, evaluation) -> "Expression":
         """Evaluate each leaf and the head, without evaluating the expression as a whole."""
