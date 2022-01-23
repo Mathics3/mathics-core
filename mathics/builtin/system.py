@@ -345,10 +345,9 @@ class ScriptCommandLine(Predefined):
         except ValueError:
             # not run in script mode
             return Expression(SymbolList)
-
-        return Expression(
-            SymbolList, *(String(arg) for arg in sys.argv[dash_index + 1 :])
-        )
+        scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
+        parms = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
+        return Expression(SymbolList, *(String(arg) for arg in parms))
 
 
 class Run(Builtin):
