@@ -12,11 +12,7 @@ from typing import Any, cast
 
 from mathics.builtin.exceptions import (
     BoxConstructError,
-    InvalidLevelspecError,
     MessageException,
-    PartError,
-    PartDepthError,
-    PartRangeError,
 )
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
@@ -41,7 +37,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import nothing, protected
+from mathics.core.attributes import protected
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
