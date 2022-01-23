@@ -1378,12 +1378,12 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
 
-        # Check convergency:
+        # Check convergence:
         new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
         if is_zero(new_currval, acc_goal, prec_goal, evaluation):
             return x1, True
 
-        # This step tries to ensure that the new step goes forward to the convergency.
+        # This step tries to ensure that the new step goes forward to the convergence.
         # If not, tries to restart in a another point closer to x0 than x1.
         if decreasing(new_currval, currval):
             x0, currval = new_seed()
@@ -1957,25 +1957,28 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
     """
-    acc_goal = opts.get("System`AccuracyGoal", None)
-    if acc_goal:
-        acc_goal = apply_N(acc_goal, evaluation)
-        if acc_goal is SymbolAutomatic:
-            acc_goal = Real(12.0)
-        elif acc_goal is SymbolInfinity:
-            acc_goal = None
-        elif not isinstance(acc_goal, Number):
-            acc_goal = None
+    # comment @mmatera: I fix the default value for Accuracy
+    # and Precision goals to 12 because it ensures that
+    # the results of the tests coincides with WMA upto
+    # 6 digits. In any case, probably the default value should be
+    # determined inside the methods that implements the specific
+    # solvers.
 
+    def to_number_or_none(value):
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Real(12.0)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    acc_goal = to_number_or_none(acc_goal)
     prec_goal = opts.get("System`PrecisionGoal", None)
-    if prec_goal:
-        prec_goal = apply_N(prec_goal, evaluation)
-        if prec_goal is SymbolAutomatic:
-            prec_goal = Real(12.0)
-        elif prec_goal is SymbolInfinity:
-            prec_goal = None
-        elif not isinstance(prec_goal, Number):
-            prec_goal = None
+    prec_goal = to_number_or_none(prec_goal)
     return acc_goal, prec_goal
 
 
