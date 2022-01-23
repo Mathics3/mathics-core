@@ -21,12 +21,14 @@ from mathics.core.atoms import (
 
 from mathics.core.symbols import (
     Symbol,
+    SymbolSequence,
     SymbolFalse,
     SymbolList,
     SymbolTrue,
 )
 
 from mathics.core.systemsymbols import (
+    SymbolD,
     SymbolIndeterminate,
     SymbolPlus,
     SymbolPower,
@@ -688,10 +690,97 @@ class Integrate(SympyFunction):
                 result = Expression(result._head, cases, default)
         else:
             if result.get_head() is SymbolIntegrate:
-                # Sympy returned the same expression, so it can't be evaluated.
-                return SymbolIndeterminate
+                if result._leaves[0].evaluate(evaluation).sameQ(f):
+                    # Sympy returned the same expression, so it can't be evaluated.
+                    return
             result = Expression("Simplify", result, assuming)
         return result
+
+    # TODO: The following methods are exactly the same that in NIntegrate. DRY it!
+    @staticmethod
+    def decompose_domain(interval, evaluation):
+        if interval.has_form("System`Sequence", 1, None):
+            intervals = []
+            for leaf in interval.leaves:
+                inner_interval = Integrate.decompose_domain(leaf, evaluation)
+                if inner_interval:
+                    intervals.append(inner_interval)
+                else:
+                    evaluation.message("ilim", leaf)
+                    return None
+            return intervals
+
+        if interval.has_form("System`List", 3, None):
+            intervals = []
+            intvar = interval.leaves[0]
+            if not isinstance(intvar, Symbol):
+                evaluation.message("ilim", interval)
+                return None
+            boundaries = [a for a in interval.leaves[1:]]
+            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
+                intvar = Expression(
+                    "List", intvar, Expression("Blank", Symbol("Complex"))
+                )
+            for i in range(len(boundaries) - 1):
+                intervals.append((boundaries[i], boundaries[i + 1]))
+            if len(intervals) > 0:
+                return (intvar, intervals)
+
+        evaluation.message("ilim", interval)
+        return None
+
+    def apply_D(self, func, domain, var, evaluation, options):
+        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
+        options = tuple(
+            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        )
+        # if the integration is along several variables, take the integration of the inner
+        # variables as func.
+        if domain._head is SymbolSequence:
+            func = Expression(
+                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
+            )
+            domain = domain._leaves[-1]
+
+        terms = []
+        # Evaluates the derivative regarding the integrand:
+        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
+        if integrand:
+            term = Expression(Symbol("Integrate"), integrand, domain, *options)
+            terms = [term]
+
+        # Run over the intervals, and evaluate the derivative
+        # regarding the integration limits.
+        list_domain = self.decompose_domain(domain, evaluation)
+        if not list_domain:
+            return
+
+        ivar, limits = list_domain
+        for limit in limits:
+            for k, lim in enumerate(limit):
+                jac = Expression(SymbolD, lim, var)
+                ev_jac = jac.evaluate(evaluation)
+                if ev_jac:
+                    jac = ev_jac
+                if isinstance(jac, Number) and jac.is_zero:
+                    continue
+                f = func.replace_vars({ivar.get_name(): lim})
+                if k == 1:
+                    f = Expression(SymbolTimes, f, jac)
+                else:
+                    f = Expression(SymbolTimes, Integer(-1), f, jac)
+                eval_f = f.evaluate(evaluation)
+                if eval_f:
+                    f = eval_f
+                if isinstance(f, Number) and f.is_zero:
+                    continue
+                terms.append(f)
+
+        if len(terms) == 0:
+            return Integer0
+        if len(terms) == 1:
+            return terms[0]
+        return Expression(SymbolPlus, *terms)
 
 
 class Root(SympyFunction):
