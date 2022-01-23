@@ -38,7 +38,7 @@ Bugs
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
-* `SetTag`: fixed issue #128.
+*  `Set*`: fixed issue #128.
 
 
 4.0.1
