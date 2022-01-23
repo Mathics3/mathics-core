@@ -493,10 +493,11 @@ class Integrate(SympyFunction):
     >> Integrate[4 Sin[x] Cos[x], x]
      = 2 Sin[x] ^ 2
 
-    ## This should better return -Infinity:
-    #> Integrate[-Infinity, {x, 0, Infinity}]
-     = Indeterminate
+    > Integrate[-Infinity, {x, 0, Infinity}]
+     = -Infinity
 
+    > Integrate[-Infinity, {x, Infinity, 0}]
+     = Infinity
 
     Integration in TeX:
     >> Integrate[f[x], {x, a, b}] // TeXForm
@@ -603,6 +604,8 @@ class Integrate(SympyFunction):
         "Integrate[f_, xs__, OptionsPattern[]]"
         assuming = options["System`Assumptions"].evaluate(evaluation)
         f_sympy = f.to_sympy()
+        if f_sympy.is_infinite:
+            return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
         if f_sympy is None or isinstance(f_sympy, SympyExpression):
             return
         xs = xs.get_sequence()
