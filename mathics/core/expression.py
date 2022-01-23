@@ -742,11 +742,29 @@ class Expression(BaseExpression):
         else:
             return self
 
-    # When we allow 3.9 only, the return type chould become type[Expression]
+    # When we allow 3.9 only, the return type could become type[Expression]
     # See https://adamj.eu/tech/2021/05/16/python-type-hints-return-class-not-instance/
-    def evaluate(self, evaluation) -> typing.Type["Expression"]:
-        """
-        Evaluate until reach a fixed point.
+    # Note that the return type is some subclass of BaseExpression, it could be
+    # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
+    # the point of evaluation when there is not an error is to produce a concrete result.
+    def evaluate(
+        self, evaluation: typing.Type["BaseExpression"]
+    ) -> typing.Type["BaseExpression"]:
+        """Pattern match and replace subexpressions evaluating the resulting
+        expression until either we are told not to go further, or
+        until we determine that the result of an evaluation cannot
+        produce a resulting expression that is different from the one
+        we started out with.
+
+        Some ways that we might be told not to do further are:
+        * a  limit of some sort is hit: timeout or iteration count
+        * some other exception occurs
+        * the result of evaluation indicates not to go futher
+
+        Some ways that a we determine the result of another evaluation cannot produce a different result:
+        * The result was exactly the same as the last time, and there were no definition changes
+        * the result of an evaluation indicates that we have the final value (sort of the same thing
+          as the last case in the list item above).
         """
         if evaluation.timeout:
             return
