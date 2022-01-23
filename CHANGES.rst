@@ -32,6 +32,12 @@ Internals
 * ``Cylinder`` rendering is implemented in Asymptote
 
 
+Compatibility
++++++++++++++
+
+- ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
+
+
 Bugs
 ++++
 
