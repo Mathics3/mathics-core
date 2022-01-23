@@ -30,6 +30,7 @@ from mathics.builtin.scoping import dynamic_scoping
 
 from mathics.core.atoms import (
     String,
+    Atom,
     Integer,
     Integer0,
     Integer1,
@@ -581,6 +582,8 @@ class Integrate(SympyFunction):
     and,
     >> D[Integrate[f[u, x],{u, a[x], b[x]}], x]
      = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] - f[a[x], x] a'[x] + f[b[x], x] b'[x]
+    >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
+     = 0.330804
     """
     # Reinstate as a unit test or describe why it should be an example and fix.
     # >> Integrate[x/Exp[x^2/t], {x, 0, Infinity}]
@@ -604,6 +607,7 @@ class Integrate(SympyFunction):
     }
 
     rules = {
+        "N[Integrate[f_, x__List]]": "NIntegrate[f, x]",
         "Integrate[list_List, x_]": "Integrate[#, x]& /@ list",
         "MakeBoxes[Integrate[f_, x_], form:StandardForm|TraditionalForm]": r"""RowBox[{"\[Integral]","\[InvisibleTimes]", MakeBoxes[f, form], "\[InvisibleTimes]",
                 RowBox[{"\[DifferentialD]", MakeBoxes[x, form]}]}]""",
@@ -683,9 +687,13 @@ class Integrate(SympyFunction):
             return
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
-            result = sympy_result.evalf(dps(prec))
-        else:
-            result = from_sympy(sympy_result)
+            sympy_result = sympy_result.evalf(dps(prec))
+        
+        result = from_sympy(sympy_result)
+        # If we obtain an atom (number or symbol)
+        # just return...
+        if isinstance(result, Atom):
+            return result
         # If the result is defined as a Piecewise expression,
         # use ConditionalExpression.
         # This does not work now because the form sympy returns the values
