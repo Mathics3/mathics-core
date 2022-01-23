@@ -5,7 +5,8 @@ Calculus
 
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
-
+from typing import Optional
+from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -15,7 +16,6 @@ from mathics.core.atoms import (
     Integer1,
     Integer2,
     Integer3,
-    Integer4,
     Integer10,
     Number,
     Rational,
@@ -24,6 +24,7 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.symbols import (
+    BaseExpression,
     Symbol,
     SymbolFalse,
     SymbolList,
@@ -775,7 +776,7 @@ class Root(SympyFunction):
                 return None
 
             return sympy.CRootOf(poly, i)
-        except:
+        except Exception:
             return None
 
 
@@ -1214,7 +1215,7 @@ class DiscreteLimit(Builtin):
 
         try:
             return from_sympy(sympy.limit_seq(f, n, trials))
-        except:
+        except Exception:
             pass
 
 
@@ -1964,7 +1965,7 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     # determined inside the methods that implements the specific
     # solvers.
 
-    def to_number_or_none(value):
+    def to_number_or_none(value) -> Optional[Real]:
         if value:
             value = apply_N(value, evaluation)
         if value is SymbolAutomatic:
@@ -1982,49 +1983,41 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     return acc_goal, prec_goal
 
 
-def is_zero(val, acc_goal, prec_goal, evaluation):
+def is_zero(
+    val: BaseExpression,
+    acc_goal: Optional[Real],
+    prec_goal: Optional[Real],
+    evaluation: Evaluation,
+) -> bool:
     """
     Check if val is zero upto the precision and accuracy goals
     """
     if not isinstance(val, Number):
         val = apply_N(val, evaluation)
-    if not val.is_numeric():
+    if not isinstance(val, Number):
         return False
     if val.is_zero:
         return True
+    if not (acc_goal or prec_goal):
+        return False
+
+    eps_expr: BaseExpression = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
-        if prec_goal:
-            eps = apply_N(
-                Expression(
-                    SymbolLog,
-                    Integer10 ** (-acc_goal) / abs(val) + Integer10 ** (-prec_goal),
-                ),
-                evaluation,
-            )
-        else:
-            eps = apply_N(
-                Expression(SymbolLog, Integer10 ** (-acc_goal) / abs(val)),
-                evaluation,
-            )
-        if isinstance(eps, Number):
-            return eps.to_python() > 0
-    return False
+        eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
+    threeshold_expr = Expression(SymbolLog, eps_expr)
+    threeshold: Real = apply_N(threeshold_expr, evaluation)
+    return threeshold.to_python() > 0
 
 
-def determine_epsilon(x0, options, evaluation):
+def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
     acc_goal, prec_goal = get_accuracy_and_prec(options, evaluation)
+    eps: Real = Real(1e-10)
+    if not (acc_goal or prec_goal):
+        return eps
+    eps = apply_N(
+        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
+    )
     if acc_goal:
-        if prec_goal:
-            eps = apply_N(
-                Integer10 ** (-acc_goal) + abs(x0) * Integer10 ** (-prec_goal),
-                evaluation,
-            )
-        else:
-            eps = apply_N(Integer10 ** (-acc_goal), evaluation)
-    else:
-        if prec_goal:
-            eps = apply_N(abs(x0) * Integer10 ** (-prec_goal), evaluation)
-        else:
-            eps = Real(1e-10)
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
     return eps
