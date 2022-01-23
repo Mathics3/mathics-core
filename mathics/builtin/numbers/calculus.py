@@ -543,6 +543,9 @@ class Integrate(SympyFunction):
 
     >> Integrate[f'[x], {x, a, b}]
      = f[b] - f[a]
+    and,
+    >> D[Integrate[f[u, x],{u, a[x], b[x]}], x]
+     = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] - f[a[x], x] a'[x] + f[b[x], x] b'[x]
     """
     # Reinstate as a unit test or describe why it should be an example and fix.
     # >> Integrate[x/Exp[x^2/t], {x, 0, Infinity}]
@@ -746,7 +749,8 @@ class Integrate(SympyFunction):
         # Evaluates the derivative regarding the integrand:
         integrand = Expression(SymbolD, func, var).evaluate(evaluation)
         if integrand:
-            term = Expression(Symbol("Integrate"), integrand, domain, *options)
+            # TODO: put back options is they are not the default...
+            term = Expression(Symbol("Integrate"), integrand, domain)
             terms = [term]
 
         # Run over the intervals, and evaluate the derivative
