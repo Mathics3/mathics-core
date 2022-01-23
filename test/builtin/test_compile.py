@@ -6,7 +6,13 @@ import random
 import io
 import math
 
+
+from test.helper import check_evaluation, session
+
+
 from mathics.builtin.compile import has_llvmlite
+from mathics.builtin.compilation import CompiledCode
+
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -36,6 +42,23 @@ if has_llvmlite:
         bool_type,
         CompileError,
     )
+
+
+def test_pythonize_code():
+    for str_expr, x, res in [
+        ("Sin[x]", 1.5, 0.997495),
+        ("Exp[-x^2/2.]", 0.0, 1.0),
+        ("Sqrt[x]", 1.0, 1.0),
+    ]:
+
+        expr = session.evaluate("Compile[{x}, " + str_expr + " ]")
+        assert expr.get_head_name() == "System`CompiledFunction"
+        assert len(expr.elements) == 3
+        code = expr.elements[2]
+        assert isinstance(code, CompiledCode)
+        print(code.cfunc)
+        y = code.cfunc(x)
+        assert abs(y - res) < 1.0e-6
 
 
 class CompileTest(unittest.TestCase):
