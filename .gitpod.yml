@@ -1,0 +1,34 @@
+github:
+  prebuilds:
+    addComment: false
+    addBadge: true
+
+ports:
+  - port: 8080-8081
+    onOpen: open-browser
+
+tasks:
+  - init: |
+      make
+      make install
+
+      cd /workspace
+      git clone https://github.com/Mathics3/mathicsscript
+      cd mathicsscript
+      make
+      make install
+
+      cd /workspace
+      git clone https://github.com/Mathics3/mathics-django
+      cd mathics-django
+      make
+      make install
+
+      cd /workspace
+      git clone https://github.com/Mathics3/mathics-benchmark
+      cd mathics-benchmark
+      make
+
+      cd /workspace/mathics-core
+
+    command: mathics
