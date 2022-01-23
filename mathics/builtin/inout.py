@@ -297,6 +297,7 @@ def number_form(expr, n, f, evaluation, options):
     assert f is None or (isinstance(f, int) and f >= 0)
 
     is_int = False
+
     if isinstance(expr, Integer):
         assert n is not None
         s, exp, nonnegative = int_to_s_exp(expr, n)

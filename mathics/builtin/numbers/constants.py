@@ -403,6 +403,10 @@ class Indeterminate(_SympyConstant):
 
     sympy_name = "nan"
 
+    def apply_N(self, precision, evaluation, options={}):
+        "N[%(name)s, precision_?NumericQ, OptionsPattern[%(name)s]]"
+        return Symbol("Indeterminate")
+
 
 class Infinity(_SympyConstant):
     """

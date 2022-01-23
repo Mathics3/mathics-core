@@ -864,7 +864,6 @@ class N(Builtin):
 
     def apply_with_prec(self, expr, prec, evaluation):
         "N[expr_, prec_]"
-
         try:
             d = get_precision(prec, evaluation)
         except PrecisionValueError:

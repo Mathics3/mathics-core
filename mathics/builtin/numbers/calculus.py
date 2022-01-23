@@ -11,6 +11,7 @@ from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
+    Atom,
     Integer,
     Integer1,
     Number,
@@ -541,6 +542,8 @@ class Integrate(SympyFunction):
 
     >> Integrate[f'[x], {x, a, b}]
      = f[b] - f[a]
+    >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
+     = 0.330804
     """
     # Reinstate as a unit test or describe why it should be an example and fix.
     # >> Integrate[x/Exp[x^2/t], {x, 0, Infinity}]
@@ -564,6 +567,7 @@ class Integrate(SympyFunction):
     }
 
     rules = {
+        "N[Integrate[f_, x__List]]": "NIntegrate[f, x]",
         "Integrate[list_List, x_]": "Integrate[#, x]& /@ list",
         "MakeBoxes[Integrate[f_, x_], form:StandardForm|TraditionalForm]": r"""RowBox[{"\[Integral]","\[InvisibleTimes]", MakeBoxes[f, form], "\[InvisibleTimes]",
                 RowBox[{"\[DifferentialD]", MakeBoxes[x, form]}]}]""",
@@ -642,8 +646,11 @@ class Integrate(SympyFunction):
         if prec is not None and isinstance(result, sympy.Integral):
             # TODO MaxExtaPrecision -> maxn
             result = result.evalf(dps(prec))
-        else:
-            result = from_sympy(result)
+        result = from_sympy(result)
+        # If we obtain an atom (number or symbol)
+        # just return...
+        if isinstance(result, Atom):
+            return result
         # If the result is defined as a Piecewise expression,
         # use ConditionalExpression.
         # This does not work now because the form sympy returns the values
@@ -688,8 +695,8 @@ class Integrate(SympyFunction):
                 result = Expression(result._head, cases, default)
         else:
             if result.get_head() is SymbolIntegrate:
-                # Sympy returned the same expression, so it can't be evaluated.
-                return SymbolIndeterminate
+                if result.leaves[0].evaluate(evaluation).sameQ(f):
+                    return
             result = Expression("Simplify", result, assuming)
         return result
 

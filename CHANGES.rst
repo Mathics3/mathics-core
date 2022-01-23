@@ -8,7 +8,7 @@ New Builtins
 
 Internals
 =========
-
+* ``N[Integrate[...]]`` now is evaluated as ``NIntegrate[...]`` 
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
@@ -37,7 +37,9 @@ Bugs
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
-  
+* `N[Indeterminate]` now produces `Indeterminate` instead a `PrecisionReal(nan)`.
+
+
 4.0.1
 -----
 
