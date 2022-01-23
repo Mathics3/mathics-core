@@ -6,8 +6,9 @@ Calculus
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
-
+from typing import Optional
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
@@ -25,6 +26,7 @@ from mathics.core.atoms import (
 
 from mathics.core.symbols import (
     Symbol,
+    BaseExpression,
     SymbolFalse,
     SymbolList,
     SymbolTrue,
@@ -774,7 +776,7 @@ class Root(SympyFunction):
                 return None
 
             return sympy.CRootOf(poly, i)
-        except:
+        except Exception:
             return None
 
 
@@ -1213,7 +1215,7 @@ class DiscreteLimit(Builtin):
 
         try:
             return from_sympy(sympy.limit_seq(f, n, trials))
-        except:
+        except Exception:
             pass
 
 
@@ -1586,7 +1588,7 @@ class FindRoot(Builtin):
         return
 
 
-class O(Builtin):
+class O_(Builtin):
     """
     <dl>
       <dt>'O[$x$]^n'
@@ -1599,6 +1601,7 @@ class O(Builtin):
 
     """
 
+    name = "O"
     summary_text = "symbolic representation of a higher-order series term"
 
 
@@ -1733,71 +1736,66 @@ def get_accuracy_and_prec(opts: dict, evaluation: "Evaluation"):
     Looks at an opts dictionary and tries to determine the numeric values of
     Accuracy and Precision goals. If not available, returns None.
     """
-    acc_goal = opts.get("System`AccuracyGoal", None)
-    if acc_goal:
-        acc_goal = apply_N(acc_goal, evaluation)
-        if acc_goal is SymbolAutomatic:
-            acc_goal = Real(12.0)
-        elif acc_goal is SymbolInfinity:
-            acc_goal = None
-        elif not isinstance(acc_goal, Number):
-            acc_goal = None
+    # comment @mmatera: I fix the default value for Accuracy
+    # and Precision goals to 12 because it ensures that
+    # the results of the tests coincides with WMA upto
+    # 6 digits. In any case, probably the default value should be
+    # determined inside the methods that implements the specific
+    # solvers.
 
+    def to_number_or_none(value) -> Optional[Real]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Real(12.0)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    acc_goal = to_number_or_none(acc_goal)
     prec_goal = opts.get("System`PrecisionGoal", None)
-    if prec_goal:
-        prec_goal = apply_N(prec_goal, evaluation)
-        if prec_goal is SymbolAutomatic:
-            prec_goal = Real(12.0)
-        elif prec_goal is SymbolInfinity:
-            prec_goal = None
-        elif not isinstance(prec_goal, Number):
-            prec_goal = None
+    prec_goal = to_number_or_none(prec_goal)
     return acc_goal, prec_goal
 
 
-def is_zero(val, acc_goal, prec_goal, evaluation):
+def is_zero(
+    val: BaseExpression,
+    acc_goal: Optional[Real],
+    prec_goal: Optional[Real],
+    evaluation: Evaluation,
+) -> bool:
     """
     Check if val is zero upto the precision and accuracy goals
     """
     if not isinstance(val, Number):
         val = apply_N(val, evaluation)
-    if not val.is_numeric():
+    if not isinstance(val, Number):
         return False
     if val.is_zero:
         return True
+    if not (acc_goal or prec_goal):
+        return False
+
+    eps_expr: BaseExpression = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
-        if prec_goal:
-            eps = apply_N(
-                Expression(
-                    SymbolLog,
-                    Integer10 ** (-acc_goal) / abs(val) + Integer10 ** (-prec_goal),
-                ),
-                evaluation,
-            )
-        else:
-            eps = apply_N(
-                Expression(SymbolLog, Integer10 ** (-acc_goal) / abs(val)),
-                evaluation,
-            )
-        if isinstance(eps, Number):
-            return eps.to_python() > 0
-    return False
+        eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
+    threeshold_expr = Expression(SymbolLog, eps_expr)
+    threeshold: Real = apply_N(threeshold_expr, evaluation)
+    return threeshold.to_python() > 0
 
 
-def determine_epsilon(x0, options, evaluation):
+def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
     acc_goal, prec_goal = get_accuracy_and_prec(options, evaluation)
+    eps: Real = Real(1e-10)
+    if not (acc_goal or prec_goal):
+        return eps
+    eps = apply_N(
+        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
+    )
     if acc_goal:
-        if prec_goal:
-            eps = apply_N(
-                Integer10 ** (-acc_goal) + abs(x0) * Integer10 ** (-prec_goal),
-                evaluation,
-            )
-        else:
-            eps = apply_N(Integer10 ** (-acc_goal), evaluation)
-    else:
-        if prec_goal:
-            eps = apply_N(abs(x0) * Integer10 ** (-prec_goal), evaluation)
-        else:
-            eps = Real(1e-10)
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
     return eps
