@@ -35,7 +35,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolD,
-    SymbolIndeterminate,
     SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
