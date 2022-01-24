@@ -10,9 +10,11 @@ from itertools import chain
 from bisect import bisect_left
 
 from mathics.core.atoms import from_python, Number, Integer
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.evaluation import Evaluation
+
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
@@ -748,23 +750,14 @@ class Expression(BaseExpression):
     # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
     # the point of evaluation when there is not an error is to produce a concrete result.
     def evaluate(
-        self, evaluation: typing.Type["BaseExpression"]
+        self,
+        evaluation: Evaluation,
     ) -> typing.Type["BaseExpression"]:
-        """Pattern match and replace subexpressions evaluating the resulting
-        expression until either we are told not to go further, or
-        until we determine that the result of an evaluation cannot
-        produce a resulting expression that is different from the one
-        we started out with.
+        """Apply transformation rules and expression evaluation to `evaluation` via
+        `evaluate_next()` until it tells us to stop or we hit some limit.
+        `evaluate_next()` may call us recusively.
 
-        Some ways that we might be told not to do further are:
-        * a  limit of some sort is hit: timeout or iteration count
-        * some other exception occurs
-        * the result of evaluation indicates not to go futher
-
-        Some ways that a we determine the result of another evaluation cannot produce a different result:
-        * The result was exactly the same as the last time, and there were no definition changes
-        * the result of an evaluation indicates that we have the final value (sort of the same thing
-          as the last case in the list item above).
+        Limits are either an evaluation iteration count or a timeout value.
         """
         if evaluation.timeout:
             return
