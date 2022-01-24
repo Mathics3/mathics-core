@@ -24,7 +24,12 @@ from mathics.core.symbols import (
     system_symbols,
 )
 
-from mathics.core.systemsymbols import SymbolByteArray, SymbolRowBox, SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolRowBox,
+    SymbolRule,
+    SymbolSequence,
+)
 
 from mathics.core.number import (
     dps,

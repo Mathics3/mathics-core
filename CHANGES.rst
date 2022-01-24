@@ -7,6 +7,8 @@ New Builtins
 * ``FindRoot`` was improved for supporting numerical derivatives (issue 67).
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems.
+* Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
+
 
 Internals
 =========
@@ -32,6 +34,12 @@ Internals
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46
 * ``Cylinder`` rendering is implemented in Asymptote
+
+
+Compatibility
++++++++++++++
+
+- ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
 
 
 Bugs
