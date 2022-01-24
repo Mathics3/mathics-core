@@ -47,10 +47,6 @@ from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.numeric import apply_N
 
-from mathics.core.convert import from_sympy
-from mathics.core.evaluation import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-
-from mathics.core.expression import Expression, structure
 from mathics.core.atoms import (
     ByteArrayAtom,
     Integer,
@@ -63,13 +59,16 @@ from mathics.core.atoms import (
     min_prec,
 )
 
+from mathics.core.convert import from_sympy
+from mathics.core.expression import Expression, structure
+
+from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.symbols import (
     Symbol,
     SymbolList,
     strip_context,
     SymbolTrue,
     SymbolFalse,
-    SymbolSequence,
 )
 
 from mathics.core.systemsymbols import (

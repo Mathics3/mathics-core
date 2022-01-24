@@ -12,19 +12,22 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 
 
 from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+
 from mathics.core.atoms import from_python
-from mathics.core.symbols import (
-    SymbolTrue,
-    SymbolFalse,
-)
-from mathics.core.evaluation import (
+from mathics.core.expression import Expression
+
+from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
     ContinueInterrupt,
     ReturnInterrupt,
     WLThrowInterrupt,
+)
+
+from mathics.core.symbols import (
+    Symbol,
+    SymbolTrue,
+    SymbolFalse,
 )
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
