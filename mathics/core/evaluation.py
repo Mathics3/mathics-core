@@ -12,14 +12,20 @@ from typing import Tuple
 from mathics_scanner import TranslateError
 
 from mathics import settings
-from mathics.core.symbols import (
-    ensure_context,
-    KeyComparable,
+from mathics.core.interrupt import (
+    AbortInterrupt,
+    BreakInterrupt,
+    ContinueInterrupt,
+    ReturnInterrupt,
+    TimeoutInterrupt,
+    WLThrowInterrupt,
 )
 
 from mathics.core.symbols import (
+    KeyComparable,
     SymbolList,
     SymbolNull,
+    ensure_context,
 )
 
 from mathics.core.systemsymbols import SymbolAborted
@@ -35,37 +41,6 @@ FORMATS = [
     "MatrixForm",
     "TableForm",
 ]
-
-
-class EvaluationInterrupt(Exception):
-    pass
-
-
-class AbortInterrupt(EvaluationInterrupt):
-    pass
-
-
-class TimeoutInterrupt(EvaluationInterrupt):
-    pass
-
-
-class ReturnInterrupt(EvaluationInterrupt):
-    def __init__(self, expr):
-        self.expr = expr
-
-
-class BreakInterrupt(EvaluationInterrupt):
-    pass
-
-
-class ContinueInterrupt(EvaluationInterrupt):
-    pass
-
-
-class WLThrowInterrupt(EvaluationInterrupt):
-    def __init__(self, value, tag=None):
-        self.tag = tag
-        self.value = value
 
 
 def _thread_target(request, queue) -> None:
