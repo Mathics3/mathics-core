@@ -160,7 +160,10 @@ class BaseExpression(KeyComparable):
         a flag.
         If the flag is `True`, then the evaluation didn't reach a fixed point.
         If the flag is `False`, the evaluation reached the fixed point.
+        Notice that this method is only called inside  `Expression.evaluate`.
         """
+        # By default, this delegates to self.evaluate (to avoid duplication?)
+        # Overloaded in ``Expression``.
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
@@ -171,7 +174,7 @@ class BaseExpression(KeyComparable):
         """
         # comment @mmatera:
         # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
-
+        # Overloaded in "Evaluable" ``BaseExpression`` sub-classes: ``Symbol`` and ``Expression``
         evaluation.check_stopped()
         return self
 

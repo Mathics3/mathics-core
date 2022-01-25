@@ -809,6 +809,8 @@ class Expression(BaseExpression):
                 # This calls evaluate_next. This routine implements a single
                 # step in the evaluation, and determines if a fixed point
                 # was reached (reevaluate->False).
+                # Notice that evaluate_next calls ``evaluate``
+                # for the other ``BaseExpression`` subclasses.
                 expr, reevaluate = expr.evaluate_next(evaluation)
                 if not reevaluate:
                     break
