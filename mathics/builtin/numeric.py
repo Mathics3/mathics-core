@@ -43,6 +43,10 @@ from mathics.core.atoms import (
 )
 from mathics.core.systemsymbols import (
     SymbolMachinePrecision,
+    SymbolD,
+    SymbolTimes,
+    SymbolPlus,
+    SymbolSequence,
 )
 
 from mathics.core.number import (
@@ -166,7 +170,10 @@ def _internal_adaptative_simpsons_rule(f, a, b, **opts):
             val = f(x)
         except ZeroDivisionError:
             return None
-        if np.isinf(val):
+        try:
+            if np.isinf(val):
+                return None
+        except TypeError:
             return None
         return val
 
@@ -1058,6 +1065,8 @@ class NIntegrate(Builtin):
 
     def apply_with_func_domain(self, func, domain, evaluation, options):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
+        if func.is_numeric() and func.is_zero:
+            return Integer0
         method = options["System`Method"].evaluate(evaluation)
         method_options = {}
         if method.has_form("System`List", 2):
@@ -1210,15 +1219,71 @@ class NIntegrate(Builtin):
                         **opts,
                     )
                 else:
-                    val = _internal_adaptative_simpsons_rule(
-                        func2, *(subdomain2[0]), **opts
-                    )
+                    try:
+                        val = _internal_adaptative_simpsons_rule(
+                            func2, *(subdomain2[0]), **opts
+                        )
+                    except:
+                        return None
             results.append(val)
 
         result = sum([r[0] for r in results])
         # error = sum([r[1] for r in results]) -> use it when accuracy
         #                                         be implemented...
         return from_python(result)
+
+    def apply_D(self, func, domain, var, evaluation, options):
+        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
+        options = tuple(
+            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        )
+        # if the integration is along several variables, take the integration of the inner
+        # variables as func.
+        if domain._head is SymbolSequence:
+            func = Expression(
+                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
+            )
+            domain = domain._leaves[-1]
+
+        terms = []
+        # Evaluates the derivative regarding the integrand:
+        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
+        if integrand:
+            term = Expression(Symbol("NIntegrate"), integrand, domain, *options)
+            terms = [term]
+
+        # Run over the intervals, and evaluate the derivative
+        # regarding the integration limits.
+        list_domain = self.decompose_domain(domain, evaluation)
+        if not list_domain:
+            return
+
+        ivar, limits = list_domain
+        for limit in limits:
+            for k, lim in enumerate(limit):
+                jac = Expression(SymbolD, lim, var)
+                ev_jac = jac.evaluate(evaluation)
+                if ev_jac:
+                    jac = ev_jac
+                if isinstance(jac, Number) and jac.is_zero:
+                    continue
+                f = func.replace_vars({ivar.get_name(): lim})
+                if k == 1:
+                    f = Expression(SymbolTimes, f, jac)
+                else:
+                    f = Expression(SymbolTimes, Integer(-1), f, jac)
+                eval_f = f.evaluate(evaluation)
+                if eval_f:
+                    f = eval_f
+                if isinstance(f, Number) and f.is_zero:
+                    continue
+                terms.append(f)
+
+        if len(terms) == 0:
+            return Integer0
+        if len(terms) == 1:
+            return terms[0]
+        return Expression(SymbolPlus, *terms)
 
 
 class NumericQ(Builtin):

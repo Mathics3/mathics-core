@@ -15,9 +15,10 @@ from mathics import version_string, license_string, __version__
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
 from mathics.core.definitions import autoload_files, Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
-from mathics.core.expression import strip_context, Expression
+from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.rules import BuiltinRule
+from mathics.core.symbols import strip_context
 
 from mathics.core.read import channel_to_stream
 from mathics.core.streams import stream_manager
@@ -152,7 +153,7 @@ class TerminalShell(MathicsLineFeeder):
         if last_eval is not None:
             try:
                 eval_type = last_eval.get_head_name()
-            except:
+            except Exception:
                 print(sys.exc_info()[1])
                 return
 
