@@ -3,12 +3,12 @@
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, Atom
+from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer
 from mathics.builtin.base import MessageException
 
 """
-This module provides some infraestructure to deal with SubExpressions. 
+This module provides some infrastructure to deal with SubExpressions.
 
 """
 

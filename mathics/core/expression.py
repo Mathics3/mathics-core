@@ -10,8 +10,11 @@ from itertools import chain
 from bisect import bisect_left
 
 from mathics.core.atoms import from_python, Number, Integer
-from mathics.core.number import dps
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.evaluation import Evaluation
+
+from mathics.core.interrupt import ReturnInterrupt
+from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
@@ -19,10 +22,8 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
-    SymbolSequence,
     system_symbols,
     ensure_context,
-    strip_context,
 )
 from mathics.core.systemsymbols import SymbolSequence
 
@@ -84,7 +85,7 @@ class BoxError(Exception):
 # ExpressionCache keeps track of the following attributes for one Expression instance:
 
 # time: (1) the last time (in terms of Definitions.now) this expression was evaluated
-#   or (2) None, if the current expression has not yet been evaluatec (i.e. is new or
+#   or (2) None, if the current expression has not yet been evaluated (i.e. is new or
 #   changed).
 # symbols: (1) a set of symbols occuring in this expression's head, its leaves'
 #   heads, any of its sub expressions' heads or as Symbol leaves somewhere (maybe deep
@@ -743,9 +744,21 @@ class Expression(BaseExpression):
         else:
             return self
 
-    def evaluate(self, evaluation) -> typing.Union["Expression", "Symbol"]:
-        from mathics.core.evaluation import ReturnInterrupt
+    # When we allow 3.9 only, the return type could become type[Expression]
+    # See https://adamj.eu/tech/2021/05/16/python-type-hints-return-class-not-instance/
+    # Note that the return type is some subclass of BaseExpression, it could be
+    # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
+    # the point of evaluation when there is not an error is to produce a concrete result.
+    def evaluate(
+        self,
+        evaluation: Evaluation,
+    ) -> typing.Type["BaseExpression"]:
+        """Apply transformation rules and expression evaluation to `evaluation` via
+        `evaluate_next()` until it tells us to stop or we hit some limit.
+        `evaluate_next()` may call us recusively.
 
+        Limits are either an evaluation iteration count or a timeout value.
+        """
         if evaluation.timeout:
             return
 
