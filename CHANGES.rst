@@ -32,7 +32,8 @@ Internals
 * Improved support for ``Series`` Issue #46.
 * ``Cylinder`` rendering is implemented in Asymptote.
 * `N[_,_,Method->method]` was reworked (Issue #137).
-
+* ``N.apply_with_prec`` and ``apply_N`` was reworked to reduce the number of calls to the ``evaluate`` method.
+  
 Compatibility
 +++++++++++++
 
