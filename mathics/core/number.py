@@ -56,7 +56,7 @@ def _get_float_inf(value, evaluation) -> typing.Optional[float]:
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation, show_messages=True) -> typing.Optional[int]:
+def get_precision(value, evaluation, show_messages=True) -> typing.Optional[float]:
     """
     Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
     If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
