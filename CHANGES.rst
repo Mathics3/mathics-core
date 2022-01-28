@@ -29,9 +29,9 @@ Internals
 * To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
-* Improved support for ``Series`` Issue #46
-* ``Cylinder`` rendering is implemented in Asymptote
-
+* Improved support for ``Series`` Issue #46.
+* ``Cylinder`` rendering is implemented in Asymptote.
+* `N[_,_,Method->method]` was reworked (Issue #137).
 
 Compatibility
 +++++++++++++

@@ -56,7 +56,12 @@ def _get_float_inf(value, evaluation) -> typing.Optional[float]:
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation) -> typing.Optional[int]:
+def get_precision(value, evaluation, show_messages=True) -> typing.Optional[int]:
+    """
+    Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
+    If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
+    If ``value`` fails to be evaluated as a number, returns None.
+    """
     if value is SymbolMachinePrecision:
         return None
     else:
@@ -67,14 +72,17 @@ def get_precision(value, evaluation) -> typing.Optional[int]:
         d = value.round_to_float(evaluation)
         assert dmin is not None and dmax is not None
         if d is None:
-            evaluation.message("N", "precbd", value)
+            if show_messages:
+                evaluation.message("N", "precbd", value)
         elif d < dmin:
             dmin = int(dmin)
-            evaluation.message("N", "precsm", value, MachineReal(dmin))
+            if show_messages:
+                evaluation.message("N", "precsm", value, MachineReal(dmin))
             return dmin
         elif d > dmax:
             dmax = int(dmax)
-            evaluation.message("N", "preclg", value, MachineReal(dmax))
+            if show_messages:
+                evaluation.message("N", "preclg", value, MachineReal(dmax))
             return dmax
         else:
             return d
