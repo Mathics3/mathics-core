@@ -34,7 +34,6 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolList,
-    SymbolN,
     SymbolTrue,
 )
 from mathics.core.atoms import (
@@ -61,34 +60,21 @@ from mathics.core.number import (
     convert_int_to_digit_list,
     machine_precision,
     machine_epsilon,
-    get_precision,
-    PrecisionValueError,
 )
 
 from mathics.core.attributes import (
     listable,
-    n_hold_all,
-    n_hold_first,
-    n_hold_rest,
     numeric_function,
     protected,
     read_protected,
 )
 
+from mathics.core.evaluators import apply_nvalues, apply_N, numerify
+
 
 @lru_cache(maxsize=1024)
 def log_n_b(py_n, py_b) -> int:
     return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
-
-
-def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
-    evaluated_expression = expression.evaluate(evaluation)
-    result = _applyN2(evaluated_expression, prec, evaluation)
-    if result is None:
-        return None
-    if isinstance(result, Number):
-        return result
-    return result.evaluate(evaluation)
 
 
 def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
@@ -916,7 +902,7 @@ class N(Builtin):
                 return result
 
         # No options, do what is expected by apply_N
-        return _applyN2(expr, prec, evaluation)
+        return apply_nvalues(expr, prec, evaluation)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
@@ -924,10 +910,10 @@ class N(Builtin):
         if isinstance(expr, Number):
             return expr.round()
         elif isinstance(expr, Symbol):
-            return _applyN2(expr, SymbolMachinePrecision, evaluation)
+            return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
         elif isinstance(expr, Atom):
             return expr
-        return _applyN2(expr, SymbolMachinePrecision, evaluation)
+        return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
 
 
 class NIntegrate(Builtin):
@@ -1231,7 +1217,7 @@ class NIntegrate(Builtin):
                         val = _internal_adaptative_simpsons_rule(
                             func2, *(subdomain2[0]), **opts
                         )
-                    except:
+                    except Exception:
                         return None
             results.append(val)
 
@@ -1948,73 +1934,3 @@ class Hash(Builtin):
 class TypeEscalation(Exception):
     def __init__(self, mode):
         self.mode = mode
-
-
-def _applyN2(expr, prec, evaluation):
-    """
-    Applies Nvalues until reach a fixed point.
-    """
-    try:
-        # Here ``get_precision`` is called with ``show_messages``
-        # set to ``False`` to avoid show the same warnings repeatedly.
-        d = get_precision(prec, evaluation, show_messages=False)
-    except PrecisionValueError:
-        return
-
-    if isinstance(expr, Number):
-        return expr.round(d)
-
-    if expr.get_head_name() in ("System`List", "System`Rule"):
-        leaves = expr.leaves
-        result = Expression(expr.head)
-        newleaves = [_applyN2(leaf, prec, evaluation) for leaf in expr.leaves]
-        result._leaves = tuple(
-            newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
-        )
-        return result
-
-    # Special case for the Root builtin
-    if expr.has_form("Root", 2):
-        return from_sympy(sympy.N(expr.to_sympy(), d))
-
-    name = expr.get_lookup_name()
-    if name != "":
-        nexpr = Expression(SymbolN, expr, prec)
-        result = evaluation.definitions.get_value(
-            name, "System`NValues", nexpr, evaluation
-        )
-        if result is not None:
-            if not result.sameQ(nexpr):
-                result = result.evaluate(evaluation)
-                result = _applyN2(result, prec, evaluation)
-            return result
-
-    if expr.is_atom():
-        return expr
-    else:
-        attributes = expr.head.get_attributes(evaluation.definitions)
-        head = expr.head
-        leaves = expr.get_mutable_leaves()
-        if n_hold_all & attributes:
-            eval_range = ()
-        elif n_hold_first & attributes:
-            eval_range = range(1, len(leaves))
-        elif n_hold_rest & attributes:
-            if len(expr.leaves) > 0:
-                eval_range = (0,)
-            else:
-                eval_range = ()
-        else:
-            eval_range = range(len(leaves))
-
-        newhead = _applyN2(head, prec, evaluation)
-        head = head if newhead is None else newhead
-
-        for index in eval_range:
-            newleaf = _applyN2(leaves[index], prec, evaluation)
-            if newleaf:
-                leaves[index] = newleaf
-
-        result = Expression(head)
-        result._leaves = tuple(leaves)
-        return result

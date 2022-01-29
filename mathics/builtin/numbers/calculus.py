@@ -40,7 +40,7 @@ from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_symp
 from mathics.core.rules import Pattern
 from mathics.core.number import dps
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.numeric import apply_N
+from mathics.core.evaluators import apply_N
 
 from mathics.core.attributes import (
     constant,

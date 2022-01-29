@@ -50,7 +50,7 @@ from mathics.core.number import min_prec, dps
 
 from mathics.core.convert import from_sympy
 
-from mathics.builtin.numeric import apply_N
+from mathics.builtin.numeric import apply_N, numerify
 
 from mathics.core.attributes import (
     flat,
@@ -354,7 +354,7 @@ class Plus(BinaryOperator, SympyFunction):
     def apply(self, items, evaluation):
         "Plus[items___]"
 
-        items = items.numerify(evaluation).get_sequence()
+        items = numerify(items, evaluation).get_sequence()
         leaves = []
         last_item = last_count = None
 
@@ -845,7 +845,7 @@ class Times(BinaryOperator, SympyFunction):
 
     def apply(self, items, evaluation):
         "Times[items___]"
-        items = items.numerify(evaluation).get_sequence()
+        items = numerify(items, evaluation).get_sequence()
         leaves = []
         numbers = []
         infinity_factor = False

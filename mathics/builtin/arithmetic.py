@@ -39,12 +39,12 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 from mathics.core.number import min_prec, dps, SpecialValueError
+from mathics.core.evaluators import apply_N, numerify
 
 from mathics.builtin.lists import _IterationFunction
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.attributes import (
     hold_all,
@@ -98,7 +98,7 @@ class _MPMathFunction(SympyFunction):
     def apply(self, z, evaluation):
         "%(name)s[z__]"
 
-        args = z.numerify(evaluation).get_sequence()
+        args = numerify(z, evaluation).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
         result = None
 

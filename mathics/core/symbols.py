@@ -614,9 +614,6 @@ class Atom(BaseExpression):
     def replace_slots(self, slots, evaluation) -> "Atom":
         return self
 
-    def numerify(self, evaluation) -> "Atom":
-        return self
-
     def copy(self, reevaluate=False) -> "Atom":
         result = self.do_copy()
         result.original = self

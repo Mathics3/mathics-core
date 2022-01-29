@@ -8,7 +8,7 @@ import sympy
 
 from collections import defaultdict
 from itertools import chain
-
+from mathics.core.evaluators import numerify
 
 from mathics.algorithm.introselect import introselect
 from mathics.algorithm.parts import (
@@ -942,7 +942,7 @@ class _IterationFunction(Builtin):
 
         index = 0
         imax = imax.evaluate(evaluation)
-        imax = imax.numerify(evaluation)
+        imax = numerify(imax, evaluation)
         if isinstance(imax, Number):
             imax = imax.round()
         imax = imax.get_float_value()

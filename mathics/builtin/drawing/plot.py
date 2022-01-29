@@ -26,10 +26,12 @@ from mathics.core.systemsymbols import (
     SymbolRule,
 )
 
+from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.drawing.graphics3d import Graphics3D
-from mathics.builtin.numeric import chop, apply_N
+from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 

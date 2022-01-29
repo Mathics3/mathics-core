@@ -16,7 +16,7 @@ from mathics.builtin.graphics import (
     Graphics,
     Style,
 )
-from mathics.builtin.numeric import apply_N
+from mathics.core.evaluators import apply_N
 
 
 def coords3D(value):

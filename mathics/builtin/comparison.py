@@ -11,7 +11,7 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
-from mathics.builtin.numeric import apply_N
+from mathics.core.evaluators import apply_N, numerify
 from mathics.builtin.numbers.constants import mp_convert_constant
 
 from mathics.core.expression import Expression
@@ -28,6 +28,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,
+    SymbolMaxExtraPrecision,
 )
 from mathics.core.number import dps
 
@@ -218,12 +219,11 @@ class _InequalityOperator(BinaryOperator):
             n_items = []
             for item in items:
                 if not isinstance(item, Number):
-                    # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    item = apply_N(item, evaluation, Integer(50))
+                    item = apply_N(item, evaluation, SymbolMaxExtraPrecision)
                 n_items.append(item)
             items = n_items
         else:
-            items = items.numerify(evaluation).get_sequence()
+            items = numerify(items, evaluation).get_sequence()
         return items
 
 
@@ -432,7 +432,7 @@ class Inequality(Builtin):
     def apply(self, items, evaluation):
         "Inequality[items___]"
 
-        items = items.numerify(evaluation).get_sequence()
+        items = numerify(items, evaluation).get_sequence()
         count = len(items)
         if count == 1:
             return SymbolTrue

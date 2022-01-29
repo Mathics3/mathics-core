@@ -16,6 +16,7 @@ from mathics.core.expression import (
     Integer,
     SymbolList,
 )
+from mathics.core.evaluators import numerify
 
 
 class Median(_Rectangular):
@@ -121,7 +122,7 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = qs.evaluate(evaluation).numerify(evaluation)
+        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
         results = []
 
         for q in numeric_qs.leaves:
@@ -135,7 +136,7 @@ class Quantile(Builtin):
                 "Plus", a, Expression("Times", Expression("Plus", Integer(n), b), q)
             )
 
-            numeric_x = x.evaluate(evaluation).numerify(evaluation)
+            numeric_x = numerify(x.evaluate(evaluation), evaluation)
 
             if isinstance(numeric_x, Integer):
                 results.append(ranked(numeric_x.get_int_value()))

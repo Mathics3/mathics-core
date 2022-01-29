@@ -9,7 +9,7 @@ from typing import Any, Optional
 from itertools import chain
 from bisect import bisect_left
 
-from mathics.core.atoms import from_python, Number, Integer
+from mathics.core.atoms import from_python, Number, Integer, MachineReal
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.evaluation import Evaluation
 
@@ -1324,29 +1324,6 @@ class Expression(BaseExpression):
             return self._head in symbols_arithmetic_operations and all(
                 leaf.is_numeric() for leaf in self._leaves
             )
-
-    def numerify(self, evaluation) -> "Expression":
-        _prec = None
-        for leaf in self._leaves:
-            if leaf.is_inexact():
-                leaf_prec = leaf.get_precision()
-                if _prec is None or leaf_prec < _prec:
-                    _prec = leaf_prec
-        if _prec is not None:
-            new_leaves = self.get_mutable_leaves()
-            for index in range(len(new_leaves)):
-                leaf = new_leaves[index]
-                # Don't "numerify" numbers: they should be numerified
-                # automatically by the processing function,
-                # and we don't want to lose exactness in e.g. 1.0+I.
-                if not isinstance(leaf, Number):
-                    n_expr = Expression(SymbolN, leaf, Integer(dps(_prec)))
-                    n_result = n_expr.evaluate(evaluation)
-                    if isinstance(n_result, Number):
-                        new_leaves[index] = n_result
-            return Expression(self._head, *new_leaves)
-        else:
-            return self
 
     def get_atoms(self, include_heads=True):
         if include_heads:

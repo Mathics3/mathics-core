@@ -36,7 +36,7 @@ from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
-
+from mathics.core.evaluators import numerify
 from mathics.core.attributes import protected
 
 
@@ -541,7 +541,7 @@ class SympyFunction(SympyObject):
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        args = z.numerify(evaluation).get_sequence()
+        args = numerify(z, evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
         sympy_fn = getattr(sympy, self.sympy_name)
         return from_sympy(sympy_fn(*sympy_args))
