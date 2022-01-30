@@ -29,7 +29,14 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolN, SymbolTrue
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolN,
+    SymbolTrue,
+)
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -831,6 +838,12 @@ class N(Builtin):
     >> % // Precision
      = 20.
 
+    N can also accept an option "Method". This establishes what is the prefered underlying method to
+    compute numerical values:
+    >> N[F[Pi], 30, Method->"numpy"]
+     = F[3.14159265358979300000000000000]
+    >> N[F[Pi], 30, Method->"sympy"]
+     = F[3.14159265358979323846264338328]
     #> p=N[Pi,100]
      = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
     #> ToString[p]
@@ -848,6 +861,8 @@ class N(Builtin):
      = 24.
     """
 
+    options = {"Method": "Automatic"}
+
     messages = {
         "precbd": ("Requested precision `1` is not a " + "machine-sized real number."),
         "preclg": (
@@ -863,24 +878,52 @@ class N(Builtin):
         ),
     }
 
-    rules = {
-        "N[expr_]": "N[expr, MachinePrecision]",
-    }
-
     summary_text = "numerical evaluation to specified precision and accuracy"
 
-    def apply_with_prec(self, expr, prec, evaluation):
-        "N[expr_, prec_]"
+    def apply_with_prec(self, expr, prec, evaluation, options=None):
+        "N[expr_, prec_, OptionsPattern[%(name)s]]"
+
+        # If options are passed, set the preference in evaluation, and call again
+        # without options set.
+        # This also prevents to store this as an nvalue (nvalues always have two leaves).
+        preference = None
+        # If a Method is passed, and the method is not either "Automatic" or
+        # the last preferred method, according to evaluation._preferred_n_method,
+        # set the new preference, reevaluate, and then remove the preference.
+        if options:
+            preference_queue = evaluation._preferred_n_method
+            preference = self.get_option(
+                options, "Method", evaluation
+            ).get_string_value()
+            if preference == "Automatic":
+                preference = None
+            if preference_queue and preference == preference_queue[-1]:
+                preference = None
+
+            if preference:
+                preference_queue.append(preference)
+                try:
+                    result = self.apply_with_prec(expr, prec, evaluation)
+                except Exception:
+                    result = None
+                preference_queue.pop()
+                return result
+
+        # No options, do what is expected by apply_N
 
         try:
-            d = get_precision(prec, evaluation)
+            # Here ``get_precision`` is called with ``show_messages``
+            # set to ``False`` to avoid show the same warnings repeatedly.
+            d = get_precision(prec, evaluation, show_messages=False)
         except PrecisionValueError:
             return
+
         if expr.get_head_name() in ("System`List", "System`Rule"):
-            return Expression(
+            result = Expression(
                 expr.head,
                 *[self.apply_with_prec(leaf, prec, evaluation) for leaf in expr.leaves],
             )
+            return result
 
         # Special case for the Root builtin
         if expr.has_form("Root", 2):
@@ -920,6 +963,11 @@ class N(Builtin):
             for index in eval_range:
                 leaves[index] = apply_N(leaves[index], evaluation, prec)
             return Expression(head, *leaves)
+
+    def apply_N(self, expr, evaluation):
+        """N[expr_]"""
+        # TODO: Specialize for atoms
+        return self.apply_with_prec(expr, SymbolMachinePrecision, evaluation, None)
 
 
 class NIntegrate(Builtin):
