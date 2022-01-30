@@ -34,7 +34,7 @@ class AtomQ(Test):
     >> AtomQ[x]
      = True
 
-    On the other hand, expressions, even those resulting in numeric values, aren't atoms:
+    On the other hand, expressions with more than one 'Part' after evaluation, even those resulting in numeric values, aren't atoms:
     >> AtomQ[2 + Pi]
      = False
 
