@@ -12,7 +12,8 @@ import itertools
 import palettable
 
 
-from mathics.builtin.atomic.numbers import chop, apply_N
+from mathics.core.evaluators import apply_N
+from mathics.builtin.atomic.numbers import chop
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.drawing.graphics3d import Graphics3D

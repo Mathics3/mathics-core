@@ -7,7 +7,7 @@ Number theoretic functions
 import sympy
 
 
-from mathics.builtin.atomic.numbers import apply_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol

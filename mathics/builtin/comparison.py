@@ -5,7 +5,7 @@ from typing import Optional, Any
 
 import sympy
 
-from mathics.builtin.atomic.numbers import apply_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,

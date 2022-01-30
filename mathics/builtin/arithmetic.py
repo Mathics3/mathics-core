@@ -13,7 +13,7 @@ import sys
 import mpmath
 from functools import lru_cache
 
-from mathics.builtin.atomic.numbers import apply_N
+from mathics.core.evaluators import apply_N
 
 from mathics.builtin.base import (
     Builtin,

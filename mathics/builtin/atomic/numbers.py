@@ -15,26 +15,24 @@ However, things like 'N[Pi, 100]' should work as expected.
 
 import sympy
 import mpmath
-import numpy as np
 import math
 import hashlib
 import zlib
 from collections import namedtuple
 from contextlib import contextmanager
-from itertools import chain, product
+from itertools import chain
 from functools import lru_cache
 
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
+from mathics.core.evaluators import apply_N
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
-    Atom,
     Symbol,
     SymbolFalse,
     SymbolList,
-    SymbolN,
     SymbolTrue,
 )
 from mathics.core.atoms import (
@@ -42,34 +40,22 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     MachineReal,
-    Number,
     Rational,
     Real,
     String,
     from_python,
 )
-from mathics.core.systemsymbols import (
-    SymbolMachinePrecision,
-    SymbolD,
-    SymbolTimes,
-    SymbolPlus,
-    SymbolSequence,
-)
+
 
 from mathics.core.number import (
     dps,
     convert_int_to_digit_list,
     machine_precision,
     machine_epsilon,
-    get_precision,
-    PrecisionValueError,
 )
 
 from mathics.core.attributes import (
     listable,
-    n_hold_all,
-    n_hold_first,
-    n_hold_rest,
     numeric_function,
     protected,
     read_protected,
@@ -79,159 +65,6 @@ from mathics.core.attributes import (
 @lru_cache(maxsize=1024)
 def log_n_b(py_n, py_b) -> int:
     return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
-
-
-def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
-    return Expression("N", expression, prec).evaluate(evaluation)
-
-
-def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
-    """
-    This function provides a proxy for scipy.integrate
-    functions, adapting the parameters.
-    """
-
-    def _scipy_proxy_func_filter(fun, a, b, **opts):
-        native_opts = {}
-        if mandatory:
-            native_opts.update(mandatory)
-        for opt, val in opts.items():
-            native_opt = options_map.get(opt, None)
-            if native_opt:
-                if native_opt[1]:
-                    val = native_opt[1](val)
-                native_opts[native_opt[0]] = val
-        return adapt_func(integrator(fun, a, b, **native_opts))
-
-    def _scipy_proxy_func(fun, a, b, **opts):
-        native_opts = {}
-        if mandatory:
-            native_opts.update(mandatory)
-        for opt, val in opts.items():
-            native_opt = options_map.get(opt, None)
-            if native_opt:
-                if native_opt[1]:
-                    val = native_opt[1](val)
-                native_opts[native_opt[0]] = val
-        return integrator(fun, a, b, **native_opts)
-
-    return _scipy_proxy_func_filter if adapt_func else _scipy_proxy_func
-
-
-def _internal_adaptative_simpsons_rule(f, a, b, **opts):
-    """
-    1D adaptative Simpson's rule integrator
-    Adapted from https://en.wikipedia.org/wiki/Adaptive_Simpson%27s_method
-       by @mmatera
-
-    TODO: handle weak divergences
-    """
-    wsr = 1.0 / 6.0
-
-    tol = opts.get("tol")
-    if not tol:
-        tol = 1.0e-10
-
-    maxrec = opts.get("maxrec")
-    if not maxrec:
-        maxrec = 150
-
-    def _quad_simpsons_mem(f, a, fa, b, fb):
-        """Evaluates the Simpson's Rule, also returning m and f(m) to reuse"""
-        m = 0.5 * (a + b)
-        try:
-            fm = f(m)
-        except ZeroDivisionError:
-            fm = None
-
-        if fm is None or np.isinf(fm):
-            m = m + 1e-10
-            fm = f(m)
-        return (m, fm, wsr * abs(b - a) * (fa + 4.0 * fm + fb))
-
-    def _quad_asr(f, a, fa, b, fb, eps, whole, m, fm, maxrec):
-        """
-        Efficient recursive implementation of adaptive Simpson's rule.
-        Function values at the start, middle, end of the intervals
-        are retained.
-        """
-        maxrec = maxrec - 1
-        try:
-            left = _quad_simpsons_mem(f, a, fa, m, fm)
-            lm, flm, left = left
-            right = _quad_simpsons_mem(f, m, fm, b, fb)
-            rm, frm, right = right
-
-            delta = left + right - whole
-            err = abs(delta)
-            if err <= 15 * eps or maxrec == 0:
-                return (left + right + delta / 15, err)
-            left = _quad_asr(f, a, fa, m, fm, 0.5 * eps, left, lm, flm, maxrec)
-            right = _quad_asr(f, m, fm, b, fb, 0.5 * eps, right, rm, frm, maxrec)
-            return (left[0] + right[0], left[1] + right[1])
-        except Exception:
-            raise
-
-    def ensure_evaluation(f, x):
-        try:
-            val = f(x)
-        except ZeroDivisionError:
-            return None
-        try:
-            if np.isinf(val):
-                return None
-        except TypeError:
-            return None
-        return val
-
-    invert_interval = False
-    if a > b:
-        b, a, invert_interval = a, b, True
-
-    fa, fb = ensure_evaluation(f, a), ensure_evaluation(f, b)
-    if fa is None:
-        x = 10.0 * machine_epsilon if a == 0 else a * (1.0 + 10.0 * machine_epsilon)
-        fa = ensure_evaluation(f, x)
-        if fa is None:
-            raise Exception(f"Function undefined around {a}. Cannot integrate")
-    if fb is None:
-        x = -10.0 * machine_epsilon if b == 0 else b * (1.0 - 10.0 * machine_epsilon)
-        fb = ensure_evaluation(f, x)
-        if fb is None:
-            raise Exception(f"Function undefined around {b}. Cannot integrate")
-
-    m, fm, whole = _quad_simpsons_mem(f, a, fa, b, fb)
-    if invert_interval:
-        return -_quad_asr(f, a, fa, b, fb, tol, whole, m, fm, maxrec)
-    else:
-        return _quad_asr(f, a, fa, b, fb, tol, whole, m, fm, maxrec)
-
-
-def _fubini(func, ranges, **opts):
-    if not ranges:
-        return 0.0
-    a, b = ranges[0]
-    integrator = opts["integrator"]
-    tol = opts.get("tol")
-    if tol is None:
-        opts["tol"] = 1.0e-10
-        tol = 1.0e-10
-
-    if len(ranges) > 1:
-
-        def subintegral(*u):
-            def ff(*z):
-                return func(*(u + z))
-
-            val = _fubini(ff, ranges[1:], **opts)[0]
-            return val
-
-        opts["tol"] = 4.0 * tol
-        val = integrator(subintegral, a, b, **opts)
-        return val
-    else:
-        val = integrator(func, a, b, **opts)
-        return val
 
 
 def check_finite_decimal(denominator):
@@ -909,429 +742,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        # No options, do what is expected by apply_N
-
-        try:
-            # Here ``get_precision`` is called with ``show_messages``
-            # set to ``False`` to avoid show the same warnings repeatedly.
-            d = get_precision(prec, evaluation, show_messages=False)
-        except PrecisionValueError:
-            return
-
-        if expr.get_head_name() in ("System`List", "System`Rule"):
-            result = Expression(
-                expr.head,
-                *[self.apply_with_prec(leaf, prec, evaluation) for leaf in expr.leaves],
-            )
-            return result
-
-        # Special case for the Root builtin
-        if expr.has_form("Root", 2):
-            return from_sympy(sympy.N(expr.to_sympy(), d))
-
-        if isinstance(expr, Number):
-            return expr.round(d)
-
-        name = expr.get_lookup_name()
-        if name != "":
-            nexpr = Expression(SymbolN, expr, prec)
-            result = evaluation.definitions.get_value(
-                name, "System`NValues", nexpr, evaluation
-            )
-            if result is not None:
-                if not result.sameQ(nexpr):
-                    result = apply_N(result, evaluation, prec)
-                return result
-
-        if expr.is_atom():
-            return expr
-        else:
-            attributes = expr.head.get_attributes(evaluation.definitions)
-            if n_hold_all & attributes:
-                eval_range = ()
-            elif n_hold_first & attributes:
-                eval_range = range(1, len(expr.leaves))
-            elif n_hold_rest & attributes:
-                if len(expr.leaves) > 0:
-                    eval_range = (0,)
-                else:
-                    eval_range = ()
-            else:
-                eval_range = range(len(expr.leaves))
-            head = apply_N(expr.head, evaluation, prec)
-            leaves = expr.get_mutable_leaves()
-            for index in eval_range:
-                leaves[index] = apply_N(leaves[index], evaluation, prec)
-            return Expression(head, *leaves)
+        return apply_N(expr, evaluation, prec)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return self.apply_with_prec(expr, SymbolMachinePrecision, evaluation, None)
-
-
-class NIntegrate(Builtin):
-    """
-    <dl>
-       <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
-
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
-    </dl>
-
-    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]
-     = 1.
-    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6]
-     = 1.
-    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6]
-     = 2.50663
-
-    >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
-     : The specified method failed to return a number. Falling back into the internal evaluator.
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
-     : Integration over a complex domain is not implemented yet
-     = NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance -> 0.0001]
-     ## = 6.2832 I
-
-    Integrate singularities with weak divergences:
-    >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.} ]
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    Mutiple Integrals :
-    >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
-     = 0.25
-
-    """
-
-    messages = {
-        "bdmtd": "The Method option should be a built-in method name.",
-        "inumr": (
-            "The integrand `1` has evaluated to non-numerical "
-            + "values for all sampling points in the region "
-            + "with boundaries `2`"
-        ),
-        "nlim": "`1` = `2` is not a valid limit of integration.",
-        "ilim": "Invalid integration variable or limit(s) in `1`.",
-        "mtdfail": (
-            "The specified method failed to return a "
-            + "number. Falling back into the internal "
-            + "evaluator."
-        ),
-        "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
-    }
-
-    options = {
-        "Method": '"Automatic"',
-        "Tolerance": "1*^-10",
-        "Accuracy": "1*^-10",
-        "MaxRecursion": "10",
-    }
-
-    methods = {
-        "Automatic": (None, False),
-    }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.methods["Internal"] = (_internal_adaptative_simpsons_rule, False)
-        try:
-            from scipy.integrate import romberg, quad, nquad
-
-            self.methods["NQuadrature"] = (
-                _scipy_interface(
-                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
-                ),
-                True,
-            )
-            self.methods["Quadrature"] = (
-                _scipy_interface(
-                    quad,
-                    {
-                        "tol": ("epsabs", None),
-                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
-                    },
-                    {"full_output": 1},
-                    lambda res: (res[0], res[1]),
-                ),
-                False,
-            )
-            self.methods["Romberg"] = (
-                _scipy_interface(
-                    romberg,
-                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
-                    None,
-                    lambda x: (x, np.nan),
-                ),
-                False,
-            )
-            self.methods["Automatic"] = self.methods["Quadrature"]
-        except Exception:
-            self.methods["Automatic"] = self.methods["Internal"]
-            self.methods["Simpson"] = self.methods["Internal"]
-
-        self.messages["bdmtd"] = (
-            "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(self.methods))
-            + "`}. Using `Automatic`"
-        )
-
-    @staticmethod
-    def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
-            intervals = []
-            for leaf in interval.leaves:
-                inner_interval = NIntegrate.decompose_domain(leaf, evaluation)
-                if inner_interval:
-                    intervals.append(inner_interval)
-                else:
-                    evaluation.message("ilim", leaf)
-                    return None
-            return intervals
-
-        if interval.has_form("System`List", 3, None):
-            intervals = []
-            intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
-                evaluation.message("ilim", interval)
-                return None
-            boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-                intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
-                )
-            for i in range(len(boundaries) - 1):
-                intervals.append((boundaries[i], boundaries[i + 1]))
-            if len(intervals) > 0:
-                return (intvar, intervals)
-
-        evaluation.message("ilim", interval)
-        return None
-
-    def apply_with_func_domain(self, func, domain, evaluation, options):
-        "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
-        if func.is_numeric() and func.is_zero:
-            return Integer0
-        method = options["System`Method"].evaluate(evaluation)
-        method_options = {}
-        if method.has_form("System`List", 2):
-            method = method.leaves[0]
-            method_options.update(method.leaves[1].get_option_values())
-        if isinstance(method, String):
-            method = method.value
-        elif isinstance(method, Symbol):
-            method = method.get_name()
-        else:
-            evaluation.message("NIntegrate", "bdmtd", method)
-            return
-        tolerance = options["System`Tolerance"].evaluate(evaluation)
-        tolerance = float(tolerance.value)
-        accuracy = options["System`Accuracy"].evaluate(evaluation)
-        accuracy = accuracy.value
-        maxrecursion = options["System`MaxRecursion"].evaluate(evaluation)
-        maxrecursion = maxrecursion.value
-        nintegrate_method = self.methods.get(method, None)
-        if nintegrate_method is None:
-            evaluation.message("NIntegrate", "bdmtd", method)
-            nintegrate_method = self.methods.get("Automatic")
-        if type(nintegrate_method) is tuple:
-            nintegrate_method, is_multidimensional = nintegrate_method
-        else:
-            is_multidimensional = False
-
-        domain = self.decompose_domain(domain, evaluation)
-        if not domain:
-            return
-        if not isinstance(domain, list):
-            domain = [domain]
-
-        coords = [axis[0] for axis in domain]
-        # If any of the points in the integration domain is complex,
-        # stop the evaluation...
-        if any([c.get_head_name() == "System`List" for c in coords]):
-            evaluation.message("NIntegrate", "cmpint")
-            return
-
-        intvars = Expression(SymbolList, *coords)
-        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
-
-        if len(integrand.leaves) >= 3:
-            integrand = integrand.leaves[2].cfunc
-        else:
-            evaluation.message("inumer", func, domain)
-            return
-        results = []
-        for subdomain in product(*[axis[1] for axis in domain]):
-            # On each subdomain, check if the region is bounded.
-            # If not, implement a coordinate map
-            func2 = integrand
-            subdomain2 = []
-            coordtransform = []
-            nulldomain = False
-            for i, r in enumerate(subdomain):
-                a = r[0].evaluate(evaluation)
-                b = r[1].evaluate(evaluation)
-                if a == b:
-                    nulldomain = True
-                    break
-                elif a.get_head_name() == "System`DirectedInfinity":
-                    if b.get_head_name() == "System`DirectedInfinity":
-                        a = a.to_python()
-                        b = b.to_python()
-                        le = 1 - machine_epsilon
-                        if a == b:
-                            nulldomain = True
-                            break
-                        elif a < b:
-                            subdomain2.append([-le, le])
-                        else:
-                            subdomain2.append([le, -le])
-                        coordtransform.append(
-                            (np.arctanh, lambda u: 1.0 / (1.0 - u ** 2))
-                        )
-                    else:
-                        if not b.is_numeric(evaluation):
-                            evaluation.message("nlim", coords[i], b)
-                            return
-                        z = a.leaves[0].value
-                        b = b.value
-                        subdomain2.append([machine_epsilon, 1.0])
-                        coordtransform.append(
-                            (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
-                        )
-                elif b.get_head_name() == "System`DirectedInfinity":
-                    if not a.is_numeric(evaluation):
-                        evaluation.message("nlim", coords[i], a)
-                        return
-                    a = a.value
-                    z = b.leaves[0].value
-                    subdomain2.append([machine_epsilon, 1.0])
-                    coordtransform.append(
-                        (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
-                    )
-                elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = apply_N(a, evaluation).value
-                    b = apply_N(b, evaluation).value
-                    subdomain2.append([a, b])
-                    coordtransform.append(None)
-                else:
-                    for x in (a, b):
-                        if not x.is_numeric(evaluation):
-                            evaluation.message("nlim", coords[i], x)
-                    return
-
-            if nulldomain:
-                continue
-
-            if any(coordtransform):
-                func2 = lambda *u: (
-                    integrand(
-                        *[
-                            x[0](u[i]) if x else u[i]
-                            for i, x in enumerate(coordtransform)
-                        ]
-                    )
-                    * np.prod(
-                        [jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac]
-                    )
-                )
-            opts = {
-                "acur": accuracy,
-                "tol": tolerance,
-                "maxrec": maxrecursion,
-            }
-            opts.update(method_options)
-            try:
-                if len(subdomain2) > 1:
-                    if is_multidimensional:
-                        nintegrate_method(func2, subdomain2, **opts)
-                    else:
-                        val = _fubini(
-                            func2, subdomain2, integrator=nintegrate_method, **opts
-                        )
-                else:
-                    val = nintegrate_method(func2, *(subdomain2[0]), **opts)
-            except Exception:
-                val = None
-
-            if val is None:
-                evaluation.message("NIntegrate", "mtdfail")
-                if len(subdomain2) > 1:
-                    val = _fubini(
-                        func2,
-                        subdomain2,
-                        integrator=_internal_adaptative_simpsons_rule,
-                        **opts,
-                    )
-                else:
-                    try:
-                        val = _internal_adaptative_simpsons_rule(
-                            func2, *(subdomain2[0]), **opts
-                        )
-                    except:
-                        return None
-            results.append(val)
-
-        result = sum([r[0] for r in results])
-        # error = sum([r[1] for r in results]) -> use it when accuracy
-        #                                         be implemented...
-        return from_python(result)
-
-    def apply_D(self, func, domain, var, evaluation, options):
-        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
-        )
-        # if the integration is along several variables, take the integration of the inner
-        # variables as func.
-        if domain._head is SymbolSequence:
-            func = Expression(
-                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
-            )
-            domain = domain._leaves[-1]
-
-        terms = []
-        # Evaluates the derivative regarding the integrand:
-        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
-        if integrand:
-            term = Expression(Symbol("NIntegrate"), integrand, domain, *options)
-            terms = [term]
-
-        # Run over the intervals, and evaluate the derivative
-        # regarding the integration limits.
-        list_domain = self.decompose_domain(domain, evaluation)
-        if not list_domain:
-            return
-
-        ivar, limits = list_domain
-        for limit in limits:
-            for k, lim in enumerate(limit):
-                jac = Expression(SymbolD, lim, var)
-                ev_jac = jac.evaluate(evaluation)
-                if ev_jac:
-                    jac = ev_jac
-                if isinstance(jac, Number) and jac.is_zero:
-                    continue
-                f = func.replace_vars({ivar.get_name(): lim})
-                if k == 1:
-                    f = Expression(SymbolTimes, f, jac)
-                else:
-                    f = Expression(SymbolTimes, Integer(-1), f, jac)
-                eval_f = f.evaluate(evaluation)
-                if eval_f:
-                    f = eval_f
-                if isinstance(f, Number) and f.is_zero:
-                    continue
-                terms.append(f)
-
-        if len(terms) == 0:
-            return Integer0
-        if len(terms) == 1:
-            return terms[0]
-        return Expression(SymbolPlus, *terms)
+        return apply_N(expr, evaluation)
 
 
 class NumericQ(Builtin):
