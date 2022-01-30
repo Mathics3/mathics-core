@@ -6,17 +6,16 @@ This module contains basic low-level functions that combines an Expression
 with an Evaluation objects to produce a new Expression following generic
 algorithms.
 
-  
+
 """
 
 import sympy
 
-from mathics.core.atoms import Number, Atom, MachineReal
+from mathics.core.atoms import Number
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.expression import Expression
 from mathics.core.convert import from_sympy
-from mathics.core.number import dps
 
 from mathics.core.attributes import (
     n_hold_all,
