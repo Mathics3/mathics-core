@@ -915,6 +915,11 @@ class N(Builtin):
             return expr
         return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
 
+    def apply_N(self, expr, evaluation):
+        """N[expr_]"""
+        # TODO: Specialize for atoms
+        return self.apply_with_prec(expr, SymbolMachinePrecision, evaluation, None)
+
 
 class NIntegrate(Builtin):
     """

@@ -34,8 +34,6 @@ Internals
 * `N[_,_,Method->method]` was reworked (Issue #137).
 * ``N.apply_with_prec`` and ``apply_N`` was reworked to reduce the number of calls to the ``evaluate`` method.
 * `numerify` is now a non-member function and uses `apply_N`.
-
-
   
 Compatibility
 +++++++++++++
