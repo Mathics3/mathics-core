@@ -11,7 +11,7 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.atomic.numbers import apply_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
