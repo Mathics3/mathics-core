@@ -15,7 +15,7 @@ from mathics.core.atoms import (
 from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
 
-from mathics.core.attributes import hold_all, hold_first, protected
+from mathics.core.attributes import hold_all, protected
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -430,55 +430,6 @@ class Unique(Predefined):
             return Expression("List", *list)
         else:
             return list[0]
-
-
-class Context(Builtin):
-    r"""
-    <dl>
-    <dt>'Context[$symbol$]'
-        <dd>yields the name of the context where $symbol$ is defined in.
-    <dt>'Context[]'
-        <dd>returns the value of '$Context'.
-    </dl>
-
-    >> Context[a]
-     = Global`
-    >> Context[b`c]
-     = b`
-
-    >> InputForm[Context[]]
-     = "Global`"
-
-    ## placeholder for general context-related tests
-    #> x === Global`x
-     = True
-    #> `x === Global`x
-     = True
-    #> a`x === Global`x
-     = False
-    #> a`x === a`x
-     = True
-    #> a`x === b`x
-     = False
-    ## awkward parser cases
-    #> FullForm[a`b_]
-     = Pattern[a`b, Blank[]]
-    """
-
-    attributes = hold_first | protected
-
-    rules = {"Context[]": "$Context"}
-
-    def apply(self, symbol, evaluation):
-        "Context[symbol_]"
-
-        name = symbol.get_name()
-        if not name:
-            evaluation.message("Context", "normal")
-            return
-        assert "`" in name
-        context = name[: name.rindex("`") + 1]
-        return String(context)
 
 
 class Contexts(Builtin):

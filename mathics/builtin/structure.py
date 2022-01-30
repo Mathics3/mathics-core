@@ -8,7 +8,6 @@ from mathics.builtin.base import (
     Builtin,
     Predefined,
     BinaryOperator,
-    Test,
     MessageException,
 )
 from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
@@ -19,11 +18,9 @@ from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
     SymbolList,
-    strip_context,
 )
 
 from mathics.core.atoms import (
-    String,
     Integer,
     Integer0,
     Integer1,
@@ -36,8 +33,6 @@ from mathics.builtin.lists import (
     walk_levels,
     List,
 )
-
-from mathics.core.attributes import locked, protected
 
 import platform
 
@@ -1113,113 +1108,6 @@ class Null(Predefined):
     >> ""
      = #<--#
     """
-
-
-class AtomQ(Test):
-    """
-    <dl>
-    <dt>'AtomQ[$x$]'
-        <dd>is true if $x$ is an atom (an object such as a number or
-        string, which cannot be divided into subexpressions using
-        'Part').
-    </dl>
-
-    >> AtomQ[x]
-     = True
-    >> AtomQ[1.2]
-     = True
-    >> AtomQ[2 + I]
-     = True
-    >> AtomQ[2 / 3]
-     = True
-    >> AtomQ[x + y]
-     = False
-    """
-
-    def test(self, expr):
-        return expr.is_atom()
-
-
-class SymbolQ(Test):
-    """
-    <dl>
-    <dt>'SymbolQ[$x$]'
-        <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
-    </dl>
-
-    >> SymbolQ[a]
-     = True
-    >> SymbolQ[1]
-     = False
-    >> SymbolQ[a + b]
-     = False
-    """
-
-    def test(self, expr):
-        return isinstance(expr, Symbol)
-
-
-class Symbol_(Builtin):
-    """
-    <dl>
-    <dt>'Symbol'
-        <dd>is the head of symbols.
-    </dl>
-
-    >> Head[x]
-     = Symbol
-    You can use 'Symbol' to create symbols from strings:
-    >> Symbol["x"] + Symbol["x"]
-     = 2 x
-
-    #> {\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}
-     = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
-    """
-
-    name = "Symbol"
-    attributes = locked | protected
-
-    messages = {
-        "symname": (
-            "The string `1` cannot be used for a symbol name. "
-            "A symbol name must start with a letter "
-            "followed by letters and numbers."
-        ),
-    }
-
-    def apply(self, string, evaluation):
-        "Symbol[string_String]"
-
-        from mathics.core.parser import is_symbol_name
-
-        text = string.get_string_value()
-        if is_symbol_name(text):
-            return Symbol(evaluation.definitions.lookup_name(string.value))
-        else:
-            evaluation.message("Symbol", "symname", string)
-
-
-class SymbolName(Builtin):
-    """
-    <dl>
-    <dt>'SymbolName[$s$]'
-        <dd>returns the name of the symbol $s$ (without any leading
-        context name).
-    </dl>
-
-    >> SymbolName[x] // InputForm
-     = "x"
-
-    #> SymbolName[a`b`x] // InputForm
-     = "x"
-    """
-
-    def apply(self, symbol, evaluation):
-        "SymbolName[symbol_Symbol]"
-
-        # MMA docs say "SymbolName always gives the short name,
-        # without any context"
-        return String(strip_context(symbol.get_name()))
 
 
 class Depth(Builtin):
