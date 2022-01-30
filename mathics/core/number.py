@@ -18,8 +18,11 @@ from mathics.core.symbols import (
 C = log(10, 2)  # ~ 3.3219280948873626
 
 
-# Number of bits of machine precision
-machine_precision = 53
+# Number of bits of machine precision.
+# Note this is a float, not an int.
+# WMA uses real values for precision, to take into account the internal representation of numbers.
+# This is why $MachinePrecision is not 16, but 15.9546`
+machine_precision = 53.0
 machine_digits = int(machine_precision / C)
 
 machine_epsilon = 2 ** (1 - machine_precision)
