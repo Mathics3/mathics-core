@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Atomic Primitives
+"""
+Atomic Primitives
 """
 
 from mathics.builtin.base import (
@@ -17,23 +18,27 @@ class AtomQ(Test):
         An expression that cannot be divided into subparts is called called an "atom".
     </dl>
 
-    Numbers are atoms:
-    >> AtomQ[1.2]
-     = True
+    Strings and expressions that produce strings are atoms:
+    >> Map[AtomQ, {"x", "x" <> "y", StringReverse["live"]}]
+     = {True, True, True}
 
-    So are symbolic constants:
-    >> AtomQ[2 + I]
-     = True
+    Numeric literals are atoms:
+    >> Map[AtomQ, {2, 2.1, 1/2, 2 + I, 2^^101}]
+     = {True, True, True, True, True}
+
+    So are Mathematical Constants:
+    >> Map[AtomQ, {Pi, E, I, Degree}]
+     = {True, True, True, True}
 
     A 'Symbol' not bound to a value is an atom too:
     >> AtomQ[x]
      = True
 
-    On the other hand, expressions aren't atoms:
+    On the other hand, expressions, even those resulting in numeric values, aren't atoms:
     >> AtomQ[2 + Pi]
      = False
 
-    Note that evaluation or the binding of $x$ to an expression is taken into account:
+    Note that evaluation or the binding of "x" to an expression is taken into account:
     >> x = 2 + Pi; AtomQ[x]
      = False
 
