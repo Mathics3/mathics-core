@@ -20,7 +20,7 @@ from mathics.core.symbols import (
 )
 
 
-from mathics.builtin.strings import (
+from mathics.builtin.atomic.strings import (
     _StringFind,
     _evaluate_match,
     _pattern_search,

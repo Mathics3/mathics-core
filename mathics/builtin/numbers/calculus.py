@@ -6,9 +6,12 @@ Calculus
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
+import sympy
 
+from mathics.builtin.atomic.numbers import apply_N
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
-from mathics.core.expression import Expression
+from mathics.builtin.scoping import dynamic_scoping
+
 from mathics.core.atoms import (
     String,
     Integer,
@@ -18,6 +21,21 @@ from mathics.core.atoms import (
     Real,
     from_python,
 )
+
+from mathics.core.attributes import (
+    constant,
+    hold_all,
+    listable,
+    n_hold_all,
+    protected,
+    read_protected,
+)
+
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
+
+from mathics.core.expression import Expression
+from mathics.core.number import dps
+from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
     Symbol,
@@ -29,29 +47,12 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import (
     SymbolD,
-    SymbolIndeterminate,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
     SymbolTimes,
     SymbolUndefined,
 )
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
-from mathics.core.rules import Pattern
-from mathics.core.number import dps
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.numeric import apply_N
-
-from mathics.core.attributes import (
-    constant,
-    hold_all,
-    listable,
-    n_hold_all,
-    protected,
-    read_protected,
-)
-
-import sympy
 
 
 IntegerZero = Integer(0)

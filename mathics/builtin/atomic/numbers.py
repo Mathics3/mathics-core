@@ -5,9 +5,9 @@
 # printed output, so be carful not to add then mid-sentence.
 
 """
-Numeric Evaluation and Precision
+Representation of Numbers
 
-Support for numeric evaluation with arbitrary precision is just a proof-of-concept.
+Integers and Real numbers with any number of digits, automatically tagging numerical preceision when appropriate.
 
 Precision is not "guarded" through the evaluation process. Only integer precision is supported.
 However, things like 'N[Pi, 100]' should work as expected.

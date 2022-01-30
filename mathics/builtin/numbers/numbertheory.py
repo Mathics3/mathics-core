@@ -7,6 +7,7 @@ Number theoretic functions
 import sympy
 
 
+from mathics.builtin.atomic.numbers import apply_N
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
@@ -18,8 +19,6 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert import from_sympy, SympyPrime
 import mpmath
-
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.attributes import (
     listable,

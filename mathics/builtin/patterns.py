@@ -41,7 +41,6 @@ from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomB
 from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.symbols import (
     Atom,

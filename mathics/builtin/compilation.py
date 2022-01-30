@@ -10,9 +10,9 @@ When LLVM and Python libraries are available, compilation produces LLVM code.
 import ctypes
 
 
+from mathics.builtin.atomic.numbers import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
-from mathics.builtin.numeric import apply_N
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol

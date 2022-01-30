@@ -13,6 +13,8 @@ import sys
 import mpmath
 from functools import lru_cache
 
+from mathics.builtin.atomic.numbers import apply_N
+
 from mathics.builtin.base import (
     Builtin,
     PostfixOperator,
@@ -20,6 +22,10 @@ from mathics.builtin.base import (
     SympyFunction,
     Test,
 )
+
+from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
+from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.scoping import dynamic_scoping
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -40,11 +46,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.number import min_prec, dps, SpecialValueError
 
-from mathics.builtin.lists import _IterationFunction
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.attributes import (
     hold_all,
