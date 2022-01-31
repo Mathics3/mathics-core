@@ -28,7 +28,7 @@ from mathics.core.systemsymbols import (
 )
 
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.numeric import apply_N, get_accuracy_prec_and_maxit
+from mathics.core.evaluators import apply_N
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -385,6 +385,67 @@ def is_zero(
     threeshold_expr = Expression(SymbolLog, eps_expr)
     threeshold: Real = apply_N(threeshold_expr, evaluation)
     return threeshold.to_python() > 0
+
+
+def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
+    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+    acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
+    eps: Real = Real(1e-10)
+    if not (acc_goal or prec_goal):
+        return eps
+    eps = apply_N(
+        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
+    )
+    if acc_goal:
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
+    return eps
+
+
+# comment @mmatera: I moved this method here, because it is going to be used in more than one place
+# and I didn't find a better place for it.
+
+
+def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
+    """
+    Looks at an opts dictionary and tries to determine the numeric values of
+    Accuracy and Precision goals. If not available, returns None.
+    """
+    # comment @mmatera: I fix the default value for Accuracy
+    # and Precision goals to 12 because it ensures that
+    # the results of the tests coincides with WMA upto
+    # 6 digits. In any case, probably the default value should be
+    # determined inside the methods that implements the specific
+    # solvers.
+
+    def to_real_or_none(value) -> Optional[Real]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Real(12.0)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    def to_integer_or_none(value) -> Optional[Integer]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Integer(100)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    acc_goal = to_real_or_none(acc_goal)
+    prec_goal = opts.get("System`PrecisionGoal", None)
+    prec_goal = to_real_or_none(prec_goal)
+    max_it = opts.get("System`MaxIteration")
+    max_it = to_integer_or_none(max_it)
+    return acc_goal, prec_goal, max_it
 
 
 def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
