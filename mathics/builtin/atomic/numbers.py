@@ -15,14 +15,11 @@ However, things like 'N[Pi, 100]' should work as expected.
 
 import sympy
 import mpmath
-import hashlib
-import zlib
 from functools import lru_cache
 
 
 from mathics.builtin.base import Builtin, Predefined, Test
 
-from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_N
 
 from mathics.core.expression import Expression
@@ -39,7 +36,6 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
-    String,
     from_python,
 )
 
@@ -54,7 +50,6 @@ from mathics.core.number import (
 from mathics.core.attributes import (
     listable,
     protected,
-    read_protected,
 )
 
 
