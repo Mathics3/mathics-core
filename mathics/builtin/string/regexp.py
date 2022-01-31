@@ -6,7 +6,7 @@ Regular Expressions
 
 from mathics.builtin.base import Builtin
 
-# builtin.strings.to_regex seems to have the implementation.
+# builtin.strings.atomic.to_regex seems to have the implementation.
 class RegularExpression(Builtin):
     r"""
     <dl>

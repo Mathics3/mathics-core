@@ -11,6 +11,7 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
+from mathics.core.evaluators import apply_N, numerify
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
@@ -49,8 +50,6 @@ from mathics.core.systemsymbols import (
 from mathics.core.number import min_prec, dps
 
 from mathics.core.convert import from_sympy
-
-from mathics.builtin.numeric import apply_N, numerify
 
 from mathics.core.attributes import (
     flat,

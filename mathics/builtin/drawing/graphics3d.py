@@ -6,8 +6,7 @@ Functions for working with 3D graphics.
 """
 
 
-from mathics.core.atoms import Real, Integer, Rational
-
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
@@ -16,7 +15,8 @@ from mathics.builtin.graphics import (
     Graphics,
     Style,
 )
-from mathics.core.evaluators import apply_N
+
+from mathics.core.atoms import Real, Integer, Rational
 
 
 def coords3D(value):

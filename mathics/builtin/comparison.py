@@ -5,13 +5,13 @@ from typing import Optional, Any
 
 import sympy
 
+from mathics.core.evaluators import apply_N, numerify
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
     SympyFunction,
 )
 
-from mathics.core.evaluators import apply_N, numerify
 from mathics.builtin.numbers.constants import mp_convert_constant
 
 from mathics.core.expression import Expression
@@ -34,7 +34,6 @@ from mathics.core.number import dps
 
 from mathics.core.attributes import (
     flat,
-    hold_first,
     listable,
     numeric_function,
     one_identity,
@@ -161,33 +160,6 @@ class BooleanQ(Builtin):
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
-
-
-class ValueQ(Builtin):
-    """
-    <dl>
-    <dt>'ValueQ[$expr$]'
-        <dd>returns 'True' if and only if $expr$ is defined.
-    </dl>
-
-    >> ValueQ[x]
-     = False
-    >> x = 1;
-    >> ValueQ[x]
-     = True
-
-    #> ValueQ[True]
-     = False
-    """
-
-    attributes = hold_first | protected
-
-    def apply(self, expr, evaluation):
-        "ValueQ[expr_]"
-        evaluated_expr = expr.evaluate(evaluation)
-        if expr.sameQ(evaluated_expr):
-            return SymbolFalse
-        return SymbolTrue
 
 
 operators = {

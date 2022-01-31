@@ -9,6 +9,8 @@ Drawing Graphics
 from math import sqrt
 
 
+from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import (
     Builtin,
     BoxConstructError,

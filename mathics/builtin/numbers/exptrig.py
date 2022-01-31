@@ -20,8 +20,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import Symbol
 
-from mathics.builtin.numeric import Fold
 from mathics.builtin.arithmetic import _MPMathFunction
+from mathics.builtin.atomic.numbers import Fold
 
 from mathics.core.attributes import listable, numeric_function, protected
 
