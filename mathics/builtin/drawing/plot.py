@@ -31,9 +31,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN
-from mathics.core.systemsymbols import (
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolRule
 
 
 try:

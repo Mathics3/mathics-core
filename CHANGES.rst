@@ -5,7 +5,9 @@ New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-  
+* ``FindRoot`` was improved for supporting numerical derivatives (issue 67).
+* ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
+* ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems.
 
 Internals
 =========

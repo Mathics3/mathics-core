@@ -9,8 +9,10 @@ Originally called infinitesimal calculus or "the calculus of infinitesimals", is
 import sympy
 import numpy as np
 from itertools import product
+from typing import Optional
 
 from mathics.core.evaluators import apply_N
+from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -19,6 +21,9 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    Integer2,
+    Integer3,
+    Integer10,
     Number,
     Rational,
     Real,
@@ -41,6 +46,7 @@ from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
+    BaseExpression,
     Symbol,
     SymbolSequence,
     SymbolFalse,
@@ -49,7 +55,13 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolD,
+    SymbolInfinity,
+    SymbolLess,
+    SymbolLessEqual,
+    SymbolLog,
+    SymbolNone,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -58,9 +70,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
-
 SymbolIntegrate = Symbol("Integrate")
 
 
@@ -193,7 +203,7 @@ class D(SympyFunction):
         "D[f_, x_?NotListQ]"
         x_pattern = Pattern.create(x)
         if f.is_free(x_pattern, evaluation):
-            return IntegerZero
+            return Integer0
         elif f == x:
             return Integer1
         elif f.is_atom():  # Shouldn't happen
@@ -209,7 +219,7 @@ class D(SympyFunction):
                 if not term.is_free(x_pattern, evaluation)
             ]
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             return Expression(SymbolPlus, *terms)
         elif head is SymbolTimes:
             terms = []
@@ -222,7 +232,7 @@ class D(SympyFunction):
             if len(terms) != 0:
                 return Expression(SymbolPlus, *terms)
             else:
-                return IntegerZero
+                return Integer0
         elif head is SymbolPower and len(f.leaves) == 2:
             base, exp = f.leaves
             terms = []
@@ -253,7 +263,7 @@ class D(SympyFunction):
                     )
 
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             elif len(terms) == 1:
                 return terms[0]
             else:
@@ -278,9 +288,9 @@ class D(SympyFunction):
                         Expression(
                             "Derivative",
                             *(
-                                [IntegerZero] * (index)
+                                [Integer0] * (index)
                                 + [Integer1]
-                                + [IntegerZero] * (len(f.leaves) - index - 1)
+                                + [Integer0] * (len(f.leaves) - index - 1)
                             ),
                         ),
                         f.head,
@@ -301,7 +311,7 @@ class D(SympyFunction):
             if len(result) == 1:
                 return result[0]
             elif len(result) == 0:
-                return IntegerZero
+                return Integer0
             else:
                 return Expression("Plus", *result)
 
@@ -1325,7 +1335,7 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
     maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
+    if maxit is SymbolAutomatic:
         maxit = 100
     else:
         maxit = maxit.evaluate(evaluation).get_int_value()
@@ -1387,24 +1397,73 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
 
 def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
+    """
+    Look for a root of a f: R->R using the Newton's method.
+    """
+    absf = abs(f)
     df = opts["System`Jacobian"]
-    maxit = opts["System`MaxIterations"]
     x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
-        maxit = 100
-    else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
+
+    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
+    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    step_monitor = opts.get("System`StepMonitor", None)
+    if step_monitor is SymbolNone:
+        step_monitor = None
+    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
+    if evaluation_monitor is SymbolNone:
+        evaluation_monitor = None
+
+    def decreasing(val1, val2):
+        """
+        Check if val2 has a smaller absolute value than val1
+        """
+        if not (val1.is_numeric() and val2.is_numeric()):
+            return False
+        if val2.is_zero:
+            return True
+        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
+        if not res.is_numeric():
+            return False
+        return res.to_python() < 0
+
+    def new_seed():
+        """
+        looks for a new starting point, based on how close we are from the target.
+        """
+        x1 = apply_N(Integer2 * x0, evaluation)
+        x2 = apply_N(x0 / Integer3, evaluation)
+        x3 = apply_N(x0 - minus / Integer2, evaluation)
+        x4 = apply_N(x0 + minus / Integer3, evaluation)
+        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
+        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
+        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
+        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
+        if decreasing(absf1, absf2):
+            x1, absf1 = x2, absf2
+        if decreasing(absf1, absf3):
+            x1, absf1 = x3, absf3
+        if decreasing(absf1, absf4):
+            x1, absf1 = x4, absf4
+        return x1, absf1
 
     def sub(evaluation):
-        d_value = df.evaluate(evaluation)
+        d_value = apply_N(df, evaluation)
         if d_value == Integer(0):
             return None
-        return Expression(
-            "Times", f, Expression("Power", d_value, Integer(-1))
-        ).evaluate(evaluation)
+        result = apply_N(f / d_value, evaluation)
+        if evaluation_monitor:
+            dynamic_scoping(
+                lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
+        return result
 
+    currval = absf.replace_vars({x_name: x0}).evaluate(evaluation)
     count = 0
     while count < maxit:
+        if step_monitor:
+            dynamic_scoping(
+                lambda ev: step_monitor.evaluate(ev), {x_name: x0}, evaluation
+            )
         minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
@@ -1415,18 +1474,303 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
-        # TODO: use Precision goal...
-        if x1 == x0:
-            break
-        x0 = apply_N(x1, evaluation)
-        # N required due to bug in sympy arithmetic
-        count += 1
+
+        # Check convergence:
+        new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
+        if is_zero(new_currval, acc_goal, prec_goal, evaluation):
+            return x1, True
+
+        # This step tries to ensure that the new step goes forward to the convergence.
+        # If not, tries to restart in a another point closer to x0 than x1.
+        if decreasing(new_currval, currval):
+            x0, currval = new_seed()
+            count = count + 1
+            continue
+        else:
+            currval = new_currval
+            x0 = apply_N(x1, evaluation)
+            # N required due to bug in sympy arithmetic
+            count += 1
     else:
         evaluation.message("FindRoot", "maxiter")
     return x0, True
 
 
-class FindRoot(Builtin):
+def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
+    is_find_maximum = opts.get("_isfindmaximum", False)
+    symbol_name = "FindMaximum" if is_find_maximum else "FindMinimum"
+    if is_find_maximum:
+        f = -f
+        # TODO: revert jacobian if given...
+
+    x_name = x.name
+    maxit = opts["System`MaxIterations"]
+    step_monitor = opts.get("System`StepMonitor", None)
+    if step_monitor is SymbolNone:
+        step_monitor = None
+    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
+    if evaluation_monitor is SymbolNone:
+        evaluation_monitor = None
+
+    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
+    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
+
+    # build the quadratic form:
+    eps = determine_epsilon(x0, opts, evaluation)
+    if not isinstance(curr_val, Number):
+        evaluation.message(symbol_name, "nnum", x, x0)
+        if is_find_maximum:
+            return -x0, False
+        else:
+            return x0, False
+    d1 = dynamic_scoping(
+        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
+    )
+    val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
+    if not isinstance(val_d1, Number):
+        d1 = None
+        d2 = None
+        f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+        f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+        val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+        val_d2 = apply_N(
+            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+        )
+    else:
+        d2 = dynamic_scoping(
+            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
+        )
+        val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
+        if not isinstance(val_d2, Number):
+            d2 = None
+            df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+            df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+            val_d2 = (df2val - df1val) / (Integer2 * eps)
+
+    def reset_values(x0):
+        x_try = [
+            apply_N(x0 / Integer3, evaluation),
+            apply_N(x0 * Integer2, evaluation),
+            apply_N(x0 - offset / Integer2, evaluation),
+        ]
+        vals = [(u, apply_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
+        vals = [v for v in vals if isinstance(v[1], Number)]
+        v0 = vals[0]
+        for v in vals:
+            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
+                v0 = v
+        return v0
+
+    def reevaluate_coeffs():
+        """reevaluates val_d1 and val_d2"""
+        if d1:
+            val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
+            if d2:
+                val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
+            else:
+                df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+                df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+                val_d2 = (df2val - df1val) / (Integer2 * eps)
+        else:
+            f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+            f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+            val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+            val_d2 = apply_N(
+                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+            )
+        return (val_d1, val_d2)
+
+    # Main loop
+    count = 0
+
+    while count < maxit:
+        if step_monitor:
+            step_monitor.replace_vars({x_name: x0}).evaluate(evaluation)
+
+        if val_d1.is_zero:
+            if is_find_maximum:
+                evaluation.message(
+                    symbol_name, "fmgz", String("maximum"), String("minimum")
+                )
+            else:
+                evaluation.message(
+                    symbol_name, "fmgz", String("minimum"), String("maximum")
+                )
+
+            if is_find_maximum:
+                return (x0, -curr_val), True
+            else:
+                return (x0, curr_val), True
+        if val_d2.is_zero:
+            val_d2 = Integer1
+
+        offset = apply_N(val_d1 / abs(val_d2), evaluation)
+        x1 = apply_N(x0 - offset, evaluation)
+        new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
+        if (
+            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
+            is SymbolTrue
+        ):
+            if is_zero(offset, acc_goal, prec_goal, evaluation):
+                if is_find_maximum:
+                    return (x1, -curr_val), True
+                else:
+                    return (x1, curr_val), True
+            x0 = x1
+            curr_val = new_val
+        else:
+            if is_zero(offset / Integer2, acc_goal, prec_goal, evaluation):
+                if is_find_maximum:
+                    return (x0, -curr_val), True
+                else:
+                    return (x0, curr_val), True
+            x0, curr_val = reset_values(x0)
+        val_d1, val_d2 = reevaluate_coeffs()
+        count = count + 1
+    else:
+        evaluation.message(symbol_name, "maxiter")
+    if is_find_maximum:
+        return (x0, -curr_val), False
+    else:
+        return (x0, curr_val), False
+
+
+class _BaseFinder(Builtin):
+    """
+    This class is the basis class for FindRoot, FindMinimum and FindMaximum.
+    """
+
+    options = {
+        "MaxIterations": "100",
+        "Method": "Automatic",
+        "AccuracyGoal": "Automatic",
+        "PrecisionGoal": "Automatic",
+        "StepMonitor": "None",
+        "EvaluationMonitor": "None",
+        "Jacobian": "Automatic",
+    }
+
+    attributes = hold_all | protected
+
+    messages = {
+        "snum": "Value `1` is not a number.",
+        "nnum": "The function value is not a number at `1` = `2`.",
+        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
+        "bdmthd": "Value option Method->`1` is not `2`",
+        "maxiter": (
+            "The maximum number of iterations was exceeded. "
+            "The result might be inaccurate."
+        ),
+        "fmgz": (
+            "Encountered a gradient that is effectively zero. "
+            "The result returned may not be a `1`; "
+            "it may be a `2` or a saddle point."
+        ),
+    }
+
+    methods = {}
+
+    def apply(self, f, x, x0, evaluation, options):
+        "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
+        # This is needed to get the right messages
+        options["_isfindmaximum"] = self.__class__ is FindMaximum
+        # First, determine x0 and x
+
+        x0 = apply_N(x0, evaluation)
+        if not isinstance(x0, Number):
+            evaluation.message(self.get_name(), "snum", x0)
+            return
+        x_name = x.get_name()
+        if not x_name:
+            evaluation.message(self.get_name(), "sym", x, 2)
+            return
+
+        # Now, get the explicit form of f, depending of x
+        # keeping x without evaluation (Like inside a "Block[{x},f])
+        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+        # If after evaluation, we get an "Equal" expression,
+        # convert it in a function by substracting both
+        # members. Again, ensure the scope in the evaluation
+        if f.get_head_name() == "System`Equal":
+            f = Expression(
+                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
+            )
+            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+
+        # Determine the method
+        method = options["System`Method"]
+        if isinstance(method, Expression):
+            if method.get_head() is SymbolList:
+                method = method._leaves[0]
+        if isinstance(method, Symbol):
+            method = method.get_name().split("`")[-1]
+        elif isinstance(method, String):
+            method = method.value
+        if not isinstance(method, str):
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+
+        # Determine the "jacobian"s
+        if (
+            method in ("Newton", "Automatic")
+            and options["System`Jacobian"] is SymbolAutomatic
+        ):
+
+            def diff(evaluation):
+                return Expression("D", f, x).evaluate(evaluation)
+
+            d = dynamic_scoping(diff, {x_name: None}, evaluation)
+            options["System`Jacobian"] = d
+
+        method_caller = self.methods.get(method, None)
+        if method_caller is None:
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+        x0, success = method_caller(f, x0, x, options, evaluation)
+        if not success:
+            return
+        if isinstance(x0, tuple):
+            return Expression(
+                SymbolList,
+                x0[1],
+                Expression(SymbolList, Expression(SymbolRule, x, x0[0])),
+            )
+        else:
+            return Expression(SymbolList, Expression(SymbolRule, x, x0))
+
+    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
+        "%(name)s[f_, xtuple_, OptionsPattern[]]"
+        f_val = f.evaluate(evaluation)
+
+        if f_val.has_form("Equal", 2):
+            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+
+        xtuple_value = xtuple.evaluate(evaluation)
+        if xtuple_value.has_form("List", None):
+            nleaves = len(xtuple_value.leaves)
+            if nleaves == 2:
+                x, x0 = xtuple.evaluate(evaluation).leaves
+            elif nleaves == 3:
+                x, x0, x1 = xtuple.evaluate(evaluation).leaves
+                options["$$Region"] = (x0, x1)
+            else:
+                return
+            return self.apply(f, x, x0, evaluation, options)
+        return
+
+
+class FindRoot(_BaseFinder):
     r"""
     <dl>
     <dt>'FindRoot[$f$, {$x$, $x0$}]'
@@ -1480,27 +1824,6 @@ class FindRoot(Builtin):
 
     """
 
-    options = {
-        "MaxIterations": "100",
-        "Method": "Automatic",
-        "AccuracyGoal": "Automatic",
-        "PrecisionGoal": "Automatic",
-        "StepMonitor": "None",
-        "Jacobian": "Automatic",
-    }
-    attributes = hold_all | protected
-
-    messages = {
-        "snum": "Value `1` is not a number.",
-        "nnum": "The function value is not a number at `1` = `2`.",
-        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
-        "bdmthd": "Value option Method->`1` is not `2`",
-        "maxiter": (
-            "The maximum number of iterations was exceeded. "
-            "The result might be inaccurate."
-        ),
-    }
-
     rules = {
         "FindRoot[lhs_ == rhs_, {x_, xs_}, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, {x, xs}, opt]",
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
@@ -1508,90 +1831,76 @@ class FindRoot(Builtin):
 
     methods = {
         "Newton": find_root_newton,
+        "Automatic": find_root_newton,
         "Secant": find_root_secant,
     }
 
-    def apply(self, f, x, x0, evaluation, options):
-        "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
-        # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
-        if not isinstance(x0, Number):
-            evaluation.message("FindRoot", "snum", x0)
-            return
-        x_name = x.get_name()
-        if not x_name:
-            evaluation.message("FindRoot", "sym", x, 2)
-            return
 
-        # Now, get the explicit form of f, depending of x
-        # keeping x without evaluation (Like inside a "Block[{x},f])
-        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
-        # If after evaluation, we get an "Equal" expression,
-        # convert it in a function by substracting both
-        # members. Again, ensure the scope in the evaluation
-        if f.get_head_name() == "System`Equal":
-            f = Expression(
-                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
-            )
-            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+class FindMinimum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+    </dl>
 
-        # Determine the method
-        method = options["System`Method"]
-        if isinstance(method, Symbol):
-            method = method.get_name().split("`")[-1]
-        if method == "Automatic":
-            method = "Newton"
-        elif not isinstance(method, String):
-            method = None
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
-        else:
-            method = method.value
+    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
 
-        # Determine the "jacobian"
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
-        ):
 
-            def diff(evaluation):
-                return Expression("D", f, x).evaluate(evaluation)
+    >> FindMinimum[(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[Sin[x], {x, 1}]
+     = {-1., {x -> -1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMinimum[phi[x]-x,{x,1.2}]
+     = {-0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+    """
 
-            d = dynamic_scoping(diff, {x_name: None}, evaluation)
-            options["System`Jacobian"] = d
+    methods = {
+        "Automatic": find_minimum_newton1d,
+        "Newton": find_minimum_newton1d,
+    }
 
-        method = self.methods.get(method, None)
-        if method is None:
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
 
-        x0, success = method(f, x0, x, options, evaluation)
-        if not success:
-            return
-        return Expression(SymbolList, Expression(SymbolRule, x, x0))
+class FindMaximum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    </dl>
 
-    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
-        "FindRoot[f_, xtuple_, OptionsPattern[]]"
-        f_val = f.evaluate(evaluation)
+    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
 
-        if f_val.has_form("Equal", 2):
-            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+    >> FindMaximum[-(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[Sin[x], {x, 1}]
+     = {1., {x -> 1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMaximum[-phi[x]+x,{x,1.2}]
+     = {0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+    """
 
-        xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
-            nleaves = len(xtuple_value.leaves)
-            if nleaves == 2:
-                x, x0 = xtuple.evaluate(evaluation).leaves
-            elif nleaves == 3:
-                x, x0, x1 = xtuple.evaluate(evaluation).leaves
-                options["$$Region"] = (x0, x1)
-            else:
-                return
-            return self.apply(f, x, x0, evaluation, options)
-        return
+    methods = {
+        "Automatic": find_minimum_newton1d,
+        "Newton": find_minimum_newton1d,
+    }
 
 
 class O_(Builtin):
@@ -1662,7 +1971,7 @@ class Series(Builtin):
             ).evaluate(evaluation)
             data.append(newcoeff)
         data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
+        return Expression(Symbol("SeriesData"), x, x0, data, Integer0, n, Integer1)
 
 
 class SeriesData(Builtin):
@@ -2138,19 +2447,21 @@ class NIntegrate(Builtin):
 
             if nulldomain:
                 continue
-
             if any(coordtransform):
-                func2 = lambda *u: (
-                    integrand(
-                        *[
-                            x[0](u[i]) if x else u[i]
-                            for i, x in enumerate(coordtransform)
-                        ]
+
+                def func2_(*u):
+                    x_u = (
+                        x[0](u[i]) if x else u[i] for i, x in enumerate(coordtransform)
                     )
-                    * np.prod(
-                        [jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac]
+                    punctual_value = integrand(*x_u)
+                    jac_factors = tuple(
+                        jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
                     )
-                )
+                    val_jac = np.prod(jac_factors)
+                    print("val_jac:", val_jac)
+                    return punctual_value * val_jac
+
+                func2 = func2_
             opts = {
                 "acur": accuracy,
                 "tol": tolerance,
@@ -2245,3 +2556,89 @@ class NIntegrate(Builtin):
         if len(terms) == 1:
             return terms[0]
         return Expression(SymbolPlus, *terms)
+
+
+# Auxiliary routines. Maybe should be moved to another module.
+
+
+def is_zero(
+    val: BaseExpression,
+    acc_goal: Optional[Real],
+    prec_goal: Optional[Real],
+    evaluation: Evaluation,
+) -> bool:
+    """
+    Check if val is zero upto the precision and accuracy goals
+    """
+    if not isinstance(val, Number):
+        val = apply_N(val, evaluation)
+    if not isinstance(val, Number):
+        return False
+    if val.is_zero:
+        return True
+    if not (acc_goal or prec_goal):
+        return False
+
+    eps_expr: BaseExpression = Integer10 ** (-prec_goal) if prec_goal else Integer0
+    if acc_goal:
+        eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
+    threeshold_expr = Expression(SymbolLog, eps_expr)
+    threeshold: Real = apply_N(threeshold_expr, evaluation)
+    return threeshold.to_python() > 0
+
+
+def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
+    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
+    acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
+    eps: Real = Real(1e-10)
+    if not (acc_goal or prec_goal):
+        return eps
+    eps = apply_N(
+        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
+    )
+    if acc_goal:
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
+    return eps
+
+
+def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation"):
+    """
+    Looks at an opts dictionary and tries to determine the numeric values of
+    Accuracy and Precision goals. If not available, returns None.
+    """
+    # comment @mmatera: I fix the default value for Accuracy
+    # and Precision goals to 12 because it ensures that
+    # the results of the tests coincides with WMA upto
+    # 6 digits. In any case, probably the default value should be
+    # determined inside the methods that implements the specific
+    # solvers.
+
+    def to_real_or_none(value) -> Optional[Real]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Real(12.0)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    def to_integer_or_none(value) -> Optional[Integer]:
+        if value:
+            value = apply_N(value, evaluation)
+        if value is SymbolAutomatic:
+            value = Integer(100)
+        elif value is SymbolInfinity:
+            value = None
+        elif not isinstance(value, Number):
+            value = None
+        return value
+
+    acc_goal = opts.get("System`AccuracyGoal", None)
+    acc_goal = to_real_or_none(acc_goal)
+    prec_goal = opts.get("System`PrecisionGoal", None)
+    prec_goal = to_real_or_none(prec_goal)
+    max_it = opts.get("System`MaxIteration")
+    max_it = to_integer_or_none(max_it)
+    return acc_goal, prec_goal, max_it

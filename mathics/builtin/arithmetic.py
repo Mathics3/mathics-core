@@ -41,9 +41,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolUndefined,
-)
+from mathics.core.systemsymbols import SymbolUndefined
 from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
