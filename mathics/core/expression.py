@@ -9,12 +9,11 @@ from typing import Any, Optional
 from itertools import chain
 from bisect import bisect_left
 
-from mathics.core.atoms import from_python, Number, Integer, MachineReal
+from mathics.core.atoms import from_python, Integer
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.evaluation import Evaluation
 
 from mathics.core.interrupt import ReturnInterrupt
-from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     BaseExpression,

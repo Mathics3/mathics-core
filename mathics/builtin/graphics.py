@@ -16,7 +16,6 @@ from mathics.builtin.base import (
     BoxConstructError,
 )
 
-
 from mathics.builtin.drawing.graphics_internals import (
     _GraphicsElement,
     GLOBALS,
@@ -36,7 +35,6 @@ from mathics.builtin.colors.color_directives import (
 
 from mathics.builtin.options import options_to_rules
 from mathics.core.expression import Expression
-from mathics.core.evaluators import apply_N
 from mathics.core.symbols import (
     Symbol,
     system_symbols,

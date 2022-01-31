@@ -20,8 +20,6 @@ from mathics.core.atoms import (
 from mathics.core.convert import from_sympy, SympyPrime
 import mpmath
 
-from mathics.core.evaluators import apply_N
-
 from mathics.core.attributes import (
     listable,
     numeric_function,

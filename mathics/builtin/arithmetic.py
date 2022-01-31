@@ -13,7 +13,7 @@ import sys
 import mpmath
 from functools import lru_cache
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import apply_N, numerify
 
 from mathics.builtin.base import (
     Builtin,
@@ -45,7 +45,6 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 from mathics.core.number import min_prec, dps, SpecialValueError
-from mathics.core.evaluators import apply_N, numerify
 
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
 

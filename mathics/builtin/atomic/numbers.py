@@ -26,7 +26,7 @@ from functools import lru_cache
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.convert import from_sympy
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import apply_nvalues, apply_N, numerify
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -60,8 +60,6 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-
-from mathics.core.evaluators import apply_nvalues, apply_N, numerify
 
 
 @lru_cache(maxsize=1024)

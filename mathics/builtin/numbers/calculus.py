@@ -56,22 +56,6 @@ from mathics.core.systemsymbols import (
     SymbolTimes,
     SymbolUndefined,
 )
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
-from mathics.core.rules import Pattern
-from mathics.core.number import dps
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.evaluators import apply_N
-
-from mathics.core.attributes import (
-    constant,
-    hold_all,
-    listable,
-    n_hold_all,
-    protected,
-    read_protected,
-)
-
-import sympy
 
 
 IntegerZero = Integer(0)
