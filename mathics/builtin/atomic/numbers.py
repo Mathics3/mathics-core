@@ -15,16 +15,13 @@ However, things like 'N[Pi, 100]' should work as expected.
 
 import sympy
 import mpmath
-import math
 import hashlib
 import zlib
-from collections import namedtuple
-from contextlib import contextmanager
-from itertools import chain
 from functools import lru_cache
 
 
-from mathics.builtin.base import Builtin, Predefined
+from mathics.builtin.base import Builtin, Predefined, Test
+
 from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_N
 
@@ -36,10 +33,10 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.atoms import (
-    Complex,
     Integer,
     Integer0,
     MachineReal,
+    Number,
     Rational,
     Real,
     String,
@@ -56,7 +53,6 @@ from mathics.core.number import (
 
 from mathics.core.attributes import (
     listable,
-    numeric_function,
     protected,
     read_protected,
 )
@@ -76,24 +72,6 @@ def check_finite_decimal(denominator):
         denominator = denominator / 2
 
     return True if denominator == 1 else False
-
-
-def chop(expr, delta=10.0 ** (-10.0)):
-    if isinstance(expr, Real):
-        if expr.is_nan(expr):
-            return expr
-        if -delta < expr.get_float_value() < delta:
-            return Integer0
-    elif isinstance(expr, Complex) and expr.is_inexact():
-        real, imag = expr.real, expr.imag
-        if -delta < real.get_float_value() < delta:
-            real = Integer0
-        if -delta < imag.get_float_value() < delta:
-            imag = Integer0
-        return Complex(real, imag)
-    elif isinstance(expr, Expression):
-        return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.leaves])
-    return expr
 
 
 def convert_repeating_decimal(numerator, denominator, base):
@@ -168,174 +146,31 @@ def convert_float_base(x, base, precision=10):
         raise TypeError(x)
 
 
-class Chop(Builtin):
+class ExactNumberQ(Test):
     """
     <dl>
-      <dt>'Chop[$expr$]'
-      <dd>replaces floating point numbers close to 0 by 0.
-
-      <dt>'Chop[$expr$, $delta$]'
-      <dd>uses a tolerance of $delta$. The default tolerance is '10^-10'.
+      <dt>'ExactNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an exact number, and 'False' otherwise.
     </dl>
 
-    >> Chop[10.0 ^ -16]
-     = 0
-    >> Chop[10.0 ^ -9]
-     = 1.*^-9
-    >> Chop[10 ^ -11 I]
-     = I / 100000000000
-    >> Chop[0. + 10 ^ -11 I]
-     = 0
+    >> ExactNumberQ[10]
+     = True
+    >> ExactNumberQ[4.0]
+     = False
+    >> ExactNumberQ[n]
+     = False
+
+    'ExactNumberQ' can be applied to complex numbers:
+    >> ExactNumberQ[1 + I]
+     = True
+    >> ExactNumberQ[1 + 1. I]
+     = False
     """
 
-    messages = {
-        "tolnn": "Tolerance specification a must be a non-negative number.",
-    }
+    summary_text = "tests if an expression is an exact real or complex number"
 
-    rules = {
-        "Chop[expr_]": "Chop[expr, 10^-10]",
-    }
-
-    summary_text = "set sufficiently small numbers or imaginary parts to zero"
-
-    def apply(self, expr, delta, evaluation):
-        "Chop[expr_, delta_:(10^-10)]"
-
-        delta = delta.round_to_float(evaluation)
-        if delta is None or delta < 0:
-            return evaluation.message("Chop", "tolnn")
-
-        return chop(expr, delta=delta)
-
-
-class Fold(object):
-    # allows inherited classes to specify a single algorithm implementation that
-    # can be called with machine precision, arbitrary precision or symbolically.
-
-    ComputationFunctions = namedtuple("ComputationFunctions", ("sin", "cos"))
-
-    FLOAT = 0
-    MPMATH = 1
-    SYMBOLIC = 2
-
-    math = {
-        FLOAT: ComputationFunctions(
-            cos=math.cos,
-            sin=math.sin,
-        ),
-        MPMATH: ComputationFunctions(
-            cos=mpmath.cos,
-            sin=mpmath.sin,
-        ),
-        SYMBOLIC: ComputationFunctions(
-            cos=lambda x: Expression("Cos", x),
-            sin=lambda x: Expression("Sin", x),
-        ),
-    }
-
-    operands = {
-        FLOAT: lambda x: None if x is None else x.round_to_float(),
-        MPMATH: lambda x: None if x is None else x.to_mpmath(),
-        SYMBOLIC: lambda x: x,
-    }
-
-    def _operands(self, state, steps):
-        raise NotImplementedError
-
-    def _fold(self, state, steps, math):
-        raise NotImplementedError
-
-    def _spans(self, operands):
-        spans = {}
-        k = 0
-        j = 0
-
-        for mode in (self.FLOAT, self.MPMATH):
-            for i, operand in enumerate(operands[k:]):
-                if operand[0] > mode:
-                    break
-                j = i + k + 1
-
-            if k == 0 and j == 1:  # only init state? then ignore.
-                j = 0
-
-            spans[mode] = slice(k, j)
-            k = j
-
-        spans[self.SYMBOLIC] = slice(k, len(operands))
-
-        return spans
-
-    def fold(self, x, ll):
-        # computes fold(x, ll) with the internal _fold function. will start
-        # its evaluation machine precision, and will escalate to arbitrary
-        # precision if or symbolical evaluation only if necessary. folded
-        # items already computed are carried over to new evaluation modes.
-
-        yield x  # initial state
-
-        init = None
-        operands = list(self._operands(x, ll))
-        spans = self._spans(operands)
-
-        for mode in (self.FLOAT, self.MPMATH, self.SYMBOLIC):
-            s_operands = [y[1:] for y in operands[spans[mode]]]
-
-            if not s_operands:
-                continue
-
-            if mode == self.MPMATH:
-                from mathics.core.number import min_prec
-
-                precision = min_prec(*[t for t in chain(*s_operands) if t is not None])
-                working_precision = mpmath.workprec
-            else:
-
-                @contextmanager
-                def working_precision(_):
-                    yield
-
-                precision = None
-
-            if mode == self.FLOAT:
-
-                def out(z):
-                    return Real(z)
-
-            elif mode == self.MPMATH:
-
-                def out(z):
-                    return Real(z, precision)
-
-            else:
-
-                def out(z):
-                    return z
-
-            as_operand = self.operands.get(mode)
-
-            def converted_operands():
-                for y in s_operands:
-                    yield tuple(as_operand(t) for t in y)
-
-            with working_precision(precision):
-                c_operands = converted_operands()
-
-                if init is not None:
-                    c_init = tuple(
-                        (None if t is None else as_operand(from_python(t)))
-                        for t in init
-                    )
-                else:
-                    c_init = next(c_operands)
-                    init = tuple((None if t is None else out(t)) for t in c_init)
-
-                generator = self._fold(c_init, c_operands, self.math.get(mode))
-
-                for y in generator:
-                    y = tuple(out(t) for t in y)
-                    yield y
-                    init = y
+    def test(self, expr):
+        return isinstance(expr, Number) and not expr.is_inexact()
 
 
 class IntegerDigits(Builtin):
@@ -382,6 +217,8 @@ class IntegerDigits(Builtin):
         "IntegerDigits[n_]": "IntegerDigits[n, 10]",
     }
 
+    summary_text = "digits of an integer in any base"
+
     def apply_len(self, n, base, length, evaluation):
         "IntegerDigits[n_, base_, length_]"
 
@@ -418,643 +255,209 @@ class IntegerDigits(Builtin):
         return Expression(SymbolList, *digits)
 
 
-class MaxPrecision(Predefined):
+class IntegerExponent(Builtin):
     """
     <dl>
-      <dt>'$MaxPrecision'
-      <dd>represents the maximum number of digits of precision permitted in abitrary-precision numbers.
+      <dt>'IntegerExponent[$n$, $b$]'
+      <dd>gives the highest exponent of $b$ that divides $n$.
     </dl>
 
-    >> $MaxPrecision
-     = Infinity
+    >> IntegerExponent[16, 2]
+     = 4
 
-    >> $MaxPrecision = 10;
+    >> IntegerExponent[-510000]
+     = 4
 
-    >> N[Pi, 11]
-     : Requested precision 11 is larger than $MaxPrecision. Using current $MaxPrecision of 10. instead. $MaxPrecision = Infinity specifies that any precision should be allowed.
-     = 3.141592654
-
-    #> N[Pi, 10]
-     = 3.141592654
-
-    #> $MaxPrecision = x
-     : Cannot set $MaxPrecision to x; value must be a positive number or Infinity.
-     = x
-    #> $MaxPrecision = -Infinity
-     : Cannot set $MaxPrecision to -Infinity; value must be a positive number or Infinity.
-     = -Infinity
-    #> $MaxPrecision = 0
-     : Cannot set $MaxPrecision to 0; value must be a positive number or Infinity.
-     = 0
-    #> $MaxPrecision = Infinity;
-
-    #> $MinPrecision = 15;
-    #> $MaxPrecision = 10
-     : Cannot set $MaxPrecision such that $MaxPrecision < $MinPrecision.
-     = 10
-    #> $MaxPrecision
-     = Infinity
-    #> $MinPrecision = 0;
+    >> IntegerExponent[10, b]
+     = IntegerExponent[10, b]
     """
+
+    attributes = listable | protected
 
     messages = {
-        "precset": "Cannot set `1` to `2`; value must be a positive number or Infinity.",
-        "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
+        "int": "Integer expected at position 1 in `1`",
+        "ibase": "Base `1` is not an integer greater than 1.",
     }
-
-    name = "$MaxPrecision"
 
     rules = {
-        "$MaxPrecision": "Infinity",
+        "IntegerExponent[n_]": "IntegerExponent[n, 10]",
     }
 
-    summary_text = "settable global maximum precision bound"
+    summary_text = "number of trailing 0s in a given base"
+
+    def apply(self, n, b, evaluation):
+        "IntegerExponent[n_Integer, b_Integer]"
+
+        py_n, py_b = n.to_python(), b.to_python()
+        expr = Expression("IntegerExponent", n, b)
+
+        if not isinstance(py_n, int):
+            evaluation.message("IntegerExponent", "int", expr)
+        py_n = abs(py_n)
+
+        if not (isinstance(py_b, int) and py_b > 1):
+            evaluation.message("IntegerExponent", "ibase", b)
+
+        # TODO: Optimise this (dont need to calc. base^result)
+        # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
+        # symbols
+        result = 1
+        while py_n % (py_b ** result) == 0:
+            result += 1
+
+        return Integer(result - 1)
 
 
-class MachineEpsilon_(Predefined):
+class IntegerLength(Builtin):
     """
     <dl>
-    <dt>'$MachineEpsilon'
-        <dd>is the distance between '1.0' and the next
-            nearest representable machine-precision number.
+    <dt>'IntegerLength[$x$]'
+        <dd>gives the number of digits in the base-10 representation of $x$.
+    <dt>'IntegerLength[$x$, $b$]'
+        <dd>gives the number of base-$b$ digits in $x$.
     </dl>
 
-    >> $MachineEpsilon
-     = 2.22045*^-16
-
-    >> x = 1.0 + {0.4, 0.5, 0.6} $MachineEpsilon;
-    >> x - 1
-     = {0., 0., 2.22045*^-16}
-    """
-
-    name = "$MachineEpsilon"
-
-    def evaluate(self, evaluation):
-        return MachineReal(machine_epsilon)
-
-
-class MachinePrecision_(Predefined):
-    """
-    <dl>
-    <dt>'$MachinePrecision'
-        <dd>is the number of decimal digits of precision for
-            machine-precision numbers.
-    </dl>
-
-    >> $MachinePrecision
-     = 15.9546
-    """
-
-    name = "$MachinePrecision"
-
-    rules = {
-        "$MachinePrecision": "N[MachinePrecision]",
-    }
-
-
-class MachinePrecision(Predefined):
-    """
-    <dl>
-    <dt>'MachinePrecision'
-        <dd>represents the precision of machine precision numbers.
-    </dl>
-
-    >> N[MachinePrecision]
-     = 15.9546
-    >> N[MachinePrecision, 30]
-     = 15.9545897701910033463281614204
-
-    #> N[E, MachinePrecision]
-     = 2.71828
-
-    #> Round[MachinePrecision]
-     = 16
-    """
-
-    rules = {
-        "N[MachinePrecision, prec_]": ("N[Log[10, 2] * %i, prec]" % machine_precision),
-    }
-
-
-class MinPrecision(Builtin):
-    """
-    <dl>
-      <dt>'$MinPrecision'
-      <dd>represents the minimum number of digits of precision permitted in abitrary-precision numbers.
-    </dl>
-
-    >> $MinPrecision
-     = 0
-
-    >> $MinPrecision = 10;
-
-    >> N[Pi, 9]
-     : Requested precision 9 is smaller than $MinPrecision. Using current $MinPrecision of 10. instead.
-     = 3.141592654
-
-    #> N[Pi, 10]
-     = 3.141592654
-
-    #> $MinPrecision = x
-     : Cannot set $MinPrecision to x; value must be a non-negative number.
-     = x
-    #> $MinPrecision = -Infinity
-     : Cannot set $MinPrecision to -Infinity; value must be a non-negative number.
-     = -Infinity
-    #> $MinPrecision = -1
-     : Cannot set $MinPrecision to -1; value must be a non-negative number.
-     = -1
-    #> $MinPrecision = 0;
-
-    #> $MaxPrecision = 10;
-    #> $MinPrecision = 15
-     : Cannot set $MinPrecision such that $MaxPrecision < $MinPrecision.
-     = 15
-    #> $MinPrecision
-     = 0
-    #> $MaxPrecision = Infinity;
-    """
-
-    messages = {
-        "precset": "Cannot set `1` to `2`; value must be a non-negative number.",
-        "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
-    }
-
-    name = "$MinPrecision"
-
-    rules = {
-        "$MinPrecision": "0",
-    }
-
-    summary_text = "settable global minimum precision bound"
-
-
-class N(Builtin):
-    """
-    <dl>
-    <dt>'N[$expr$, $prec$]'
-        <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
-    </dl>
-    >> N[Pi, 50]
-     = 3.1415926535897932384626433832795028841971693993751
-
-    >> N[1/7]
-     = 0.142857
-
-    >> N[1/7, 5]
-     = 0.14286
-
-    You can manually assign numerical values to symbols.
-    When you do not specify a precision, 'MachinePrecision' is taken.
-    >> N[a] = 10.9
-     = 10.9
-    >> a
-     = a
-
-    'N' automatically threads over expressions, except when a symbol has
-     attributes 'NHoldAll', 'NHoldFirst', or 'NHoldRest'.
-    >> N[a + b]
-     = 10.9 + b
-    >> N[a, 20]
-     = a
-    >> N[a, 20] = 11;
-    >> N[a + b, 20]
-     = 11.000000000000000000 + b
-    >> N[f[a, b]]
-     = f[10.9, b]
-    >> SetAttributes[f, NHoldAll]
-    >> N[f[a, b]]
-     = f[a, b]
-
-    The precision can be a pattern:
-    >> N[c, p_?(#>10&)] := p
-    >> N[c, 3]
-     = c
-    >> N[c, 11]
-     = 11.000000000
-
-    You can also use 'UpSet' or 'TagSet' to specify values for 'N':
-    >> N[d] ^= 5;
-    However, the value will not be stored in 'UpValues', but
-    in 'NValues' (as for 'Set'):
-    >> UpValues[d]
-     = {}
-    >> NValues[d]
-     = {HoldPattern[N[d, MachinePrecision]] :> 5}
-    >> e /: N[e] = 6;
-    >> N[e]
-     = 6.
-
-    Values for 'N[$expr$]' must be associated with the head of $expr$:
-    >> f /: N[e[f]] = 7;
-     : Tag f not found or too deep for an assigned rule.
-
-    You can use 'Condition':
-    >> N[g[x_, y_], p_] := x + y * Pi /; x + y > 3
-    >> SetAttributes[g, NHoldRest]
-    >> N[g[1, 1]]
-     = g[1., 1]
-    >> N[g[2, 2]] // InputForm
-     = 8.283185307179586
-
-    The precision of the result is no higher than the precision of the input
-    >> N[Exp[0.1], 100]
-     = 1.10517
-    >> % // Precision
-     = MachinePrecision
-    >> N[Exp[1/10], 100]
-     = 1.105170918075647624811707826490246668224547194737518718792863289440967966747654302989143318970748654
-    >> % // Precision
-     = 100.
-    >> N[Exp[1.0`20], 100]
-     = 2.7182818284590452354
-    >> % // Precision
-     = 20.
-
-    N can also accept an option "Method". This establishes what is the prefered underlying method to
-    compute numerical values:
-    >> N[F[Pi], 30, Method->"numpy"]
-     = F[3.14159265358979300000000000000]
-    >> N[F[Pi], 30, Method->"sympy"]
-     = F[3.14159265358979323846264338328]
-    #> p=N[Pi,100]
-     = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-    #> ToString[p]
-     = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998628034825342117068
-
-    #> N[1.012345678901234567890123, 20]
-     = 1.0123456789012345679
-
-    #> N[I, 30]
-     = 1.00000000000000000000000000000 I
-
-    #> N[1.012345678901234567890123, 50]
-     = 1.01234567890123456789012
-    #> % // Precision
-     = 24.
-    """
-
-    options = {"Method": "Automatic"}
-
-    messages = {
-        "precbd": ("Requested precision `1` is not a " + "machine-sized real number."),
-        "preclg": (
-            "Requested precision `1` is larger than $MaxPrecision. "
-            + "Using current $MaxPrecision of `2` instead. "
-            + "$MaxPrecision = Infinity specifies that any precision "
-            + "should be allowed."
-        ),
-        "precsm": (
-            "Requested precision `1` is smaller than "
-            + "$MinPrecision. Using current $MinPrecision of "
-            + "`2` instead."
-        ),
-    }
-
-    summary_text = "numerical evaluation to specified precision and accuracy"
-
-    def apply_with_prec(self, expr, prec, evaluation, options=None):
-        "N[expr_, prec_, OptionsPattern[%(name)s]]"
-
-        # If options are passed, set the preference in evaluation, and call again
-        # without options set.
-        # This also prevents to store this as an nvalue (nvalues always have two leaves).
-        preference = None
-        # If a Method is passed, and the method is not either "Automatic" or
-        # the last preferred method, according to evaluation._preferred_n_method,
-        # set the new preference, reevaluate, and then remove the preference.
-        if options:
-            preference_queue = evaluation._preferred_n_method
-            preference = self.get_option(
-                options, "Method", evaluation
-            ).get_string_value()
-            if preference == "Automatic":
-                preference = None
-            if preference_queue and preference == preference_queue[-1]:
-                preference = None
-
-            if preference:
-                preference_queue.append(preference)
-                try:
-                    result = self.apply_with_prec(expr, prec, evaluation)
-                except Exception:
-                    result = None
-                preference_queue.pop()
-                return result
-
-        return apply_N(expr, evaluation, prec)
-
-    def apply_N(self, expr, evaluation):
-        """N[expr_]"""
-        # TODO: Specialize for atoms
-        return apply_N(expr, evaluation)
-
-
-class NumericQ(Builtin):
-    """
-    <dl>
-    <dt>'NumericQ[$expr$]'
-        <dd>tests whether $expr$ represents a numeric quantity.
-    </dl>
-
-    >> NumericQ[2]
+    >> IntegerLength[123456]
+     = 6
+    >> IntegerLength[10^10000]
+     = 10001
+    >> IntegerLength[-10^1000]
+     = 1001
+    'IntegerLength' with base 2:
+    >> IntegerLength[8, 2]
+     = 4
+    Check that 'IntegerLength' is correct for the first 100 powers of 10:
+    >> IntegerLength /@ (10 ^ Range[100]) == Range[2, 101]
      = True
-    >> NumericQ[Sqrt[Pi]]
+    The base must be greater than 1:
+    >> IntegerLength[3, -2]
+     : Base -2 is not an integer greater than 1.
+     = IntegerLength[3, -2]
+
+    '0' is a special case:
+    >> IntegerLength[0]
+     = 0
+
+    #> IntegerLength /@ (10 ^ Range[100] - 1) == Range[1, 100]
      = True
-    >> NumberQ[Sqrt[Pi]]
+    """
+
+    attributes = listable | protected
+
+    messages = {
+        "base": "Base `1` is not an integer greater than 1.",
+    }
+
+    rules = {
+        "IntegerLength[n_]": "IntegerLength[n, 10]",
+    }
+
+    summary_text = "total number of digits in any base"
+
+    def apply(self, n, b, evaluation):
+        "IntegerLength[n_, b_]"
+
+        n, b = n.get_int_value(), b.get_int_value()
+        if n is None or b is None:
+            evaluation.message("IntegerLength", "int")
+            return
+        if b <= 1:
+            evaluation.message("IntegerLength", "base", b)
+            return
+
+        if n == 0:
+            # special case
+            return Integer0
+
+        n = abs(n)
+
+        # O(log(digits))
+
+        # find bounds
+        j = 1
+        while b ** j <= n:
+            j *= 2
+        i = j // 2
+
+        # bisection
+        while i + 1 < j:
+            # assert b ** i <= n <= b ** j
+            k = (i + j) // 2
+            if b ** k <= n:
+                i = k
+            else:
+                j = k
+        return Integer(j)
+
+
+class InexactNumberQ(Test):
+    """
+    <dl>
+      <dt>'InexactNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is not an exact number, and 'False' otherwise.
+    </dl>
+
+    >> InexactNumberQ[a]
+     = False
+    >> InexactNumberQ[3.0]
+     = True
+    >> InexactNumberQ[2/3]
+     = False
+
+    'InexactNumberQ' can be applied to complex numbers:
+    >> InexactNumberQ[4.0+I]
+     = True
+    """
+
+    summary_text = "the negation of ExactNumberQ"
+
+    def test(self, expr):
+        return isinstance(expr, Number) and expr.is_inexact()
+
+
+class IntegerQ(Test):
+    """
+    <dl>
+    <dt>'IntegerQ[$expr$]'
+        <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
+    </dl>
+
+    >> IntegerQ[3]
+     = True
+    >> IntegerQ[Pi]
      = False
     """
 
-    def apply(self, expr, evaluation):
-        "NumericQ[expr_]"
-        return SymbolTrue if expr.is_numeric(evaluation) else SymbolFalse
+    summary_text = "test whether an expression is an integer"
+
+    def test(self, expr):
+        return isinstance(expr, Integer)
 
 
-class Precision(Builtin):
+class MachineNumberQ(Test):
     """
     <dl>
-    <dt>'Precision[$expr$]'
-        <dd>examines the number of significant digits of $expr$.
-    </dl>
-    This is rather a proof-of-concept than a full implementation.
-    Precision of compound expression is not supported yet.
-    >> Precision[1]
-     = Infinity
-    >> Precision[1/2]
-     = Infinity
-    >> Precision[0.5]
-     = MachinePrecision
-
-    #> Precision[0.0]
-     = MachinePrecision
-    #> Precision[0.000000000000000000000000000000000000]
-     = 0.
-    #> Precision[-0.0]
-     = MachinePrecision
-    #> Precision[-0.000000000000000000000000000000000000]
-     = 0.
-
-    #> 1.0000000000000000 // Precision
-     = MachinePrecision
-    #> 1.00000000000000000 // Precision
-     = 17.
-
-    #> 0.4 + 2.4 I // Precision
-     = MachinePrecision
-    #> Precision[2 + 3 I]
-     = Infinity
-
-    #> Precision["abc"]
-     = Infinity
-    """
-
-    rules = {
-        "Precision[z_?MachineNumberQ]": "MachinePrecision",
-    }
-
-    summary_text = "find the precision of a number"
-
-    def apply(self, z, evaluation):
-        "Precision[z_]"
-
-        if not z.is_inexact():
-            return Symbol("Infinity")
-        elif z.to_sympy().is_zero:
-            return Real(0)
-        else:
-            return Real(dps(z.get_precision()))
-
-
-class Rationalize(Builtin):
-    """
-    <dl>
-      <dt>'Rationalize[$x$]'
-      <dd>converts a real number $x$ to a nearby rational number with small denominator.
-
-      <dt>'Rationalize[$x$, $dx$]'
-      <dd>finds the rational number lies within $dx$ of $x$.
+    <dt>'MachineNumberQ[$expr$]'
+        <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
     </dl>
 
-    >> Rationalize[2.2]
-    = 11 / 5
-
-    For negative $x$, '-Rationalize[-$x$] == Rationalize[$x$]' which gives symmetric results:
-    >> Rationalize[-11.5, 1]
-    = -11
-
-    Not all numbers can be well approximated.
-    >> Rationalize[N[Pi]]
-     = 3.14159
-
-    Find the exact rational representation of 'N[Pi]'
-    >> Rationalize[N[Pi], 0]
-     = 245850922 / 78256779
-
-    #> Rationalize[N[Pi] + 0.8 I, x]
-     : Tolerance specification x must be a non-negative number.
-     = Rationalize[3.14159 + 0.8 I, x]
-
-    #> Rationalize[N[Pi] + 0.8 I, -1]
-     : Tolerance specification -1 must be a non-negative number.
-     = Rationalize[3.14159 + 0.8 I, -1]
-
-    #> Rationalize[x, y]
-     : Tolerance specification y must be a non-negative number.
-     = Rationalize[x, y]
+     = True
+    >> MachineNumberQ[3.14159265358979324]
+     = False
+    >> MachineNumberQ[1.5 + 2.3 I]
+     = True
+    >> MachineNumberQ[2.71828182845904524 + 3.14159265358979324 I]
+     = False
+    #> MachineNumberQ[1.5 + 3.14159265358979324 I]
+     = True
+    #> MachineNumberQ[1.5 + 5 I]
+     = True
     """
 
-    messages = {
-        "tolnn": "Tolerance specification `1` must be a non-negative number.",
-    }
+    summary_text = "tests if expresion is a machine‐precision real or complex number"
 
-    rules = {
-        "Rationalize[z_Complex]": "Rationalize[Re[z]] + I Rationalize[Im[z]]",
-        "Rationalize[z_Complex, dx_?Internal`RealValuedNumberQ]/;dx >= 0": "Rationalize[Re[z], dx] + I Rationalize[Im[z], dx]",
-    }
-
-    summary_text = "find a rational approximation"
-
-    def apply(self, x, evaluation):
-        "Rationalize[x_]"
-
-        py_x = x.to_sympy()
-        if py_x is None or (not py_x.is_number) or (not py_x.is_real):
-            return x
-
-        # For negative x, MMA treads Rationalize[x] as -Rationalize[-x].
-        # Whether this is an implementation choice or not, it has been
-        # expressed that having this give symmetric results for +/-
-        # is nice.
-        # See https://mathematica.stackexchange.com/questions/253637/how-to-think-about-the-answer-to-rationlize-11-5-1
-        if py_x.is_positive:
-            return from_sympy(self.find_approximant(py_x))
-        else:
-            return -from_sympy(self.find_approximant(-py_x))
-
-    @staticmethod
-    def find_approximant(x):
-        c = 1e-4
-        it = sympy.ntheory.continued_fraction_convergents(
-            sympy.ntheory.continued_fraction_iterator(x)
-        )
-        for i in it:
-            p, q = i.as_numer_denom()
-            tol = c / q ** 2
-            if abs(i - x) <= tol:
-                return i
-            if tol < machine_epsilon:
-                break
-        return x
-
-    @staticmethod
-    def find_exact(x):
-        p, q = x.as_numer_denom()
-        it = sympy.ntheory.continued_fraction_convergents(
-            sympy.ntheory.continued_fraction_iterator(x)
-        )
-        for i in it:
-            p, q = i.as_numer_denom()
-            if abs(x - i) < machine_epsilon:
-                return i
-
-    def apply_dx(self, x, dx, evaluation):
-        "Rationalize[x_, dx_]"
-        py_x = x.to_sympy()
-        if py_x is None:
-            return x
-        py_dx = dx.to_sympy()
-        if (
-            py_dx is None
-            or (not py_dx.is_number)
-            or (not py_dx.is_real)
-            or py_dx.is_negative
-        ):
-            return evaluation.message("Rationalize", "tolnn", dx)
-        elif py_dx == 0:
-            return from_sympy(self.find_exact(py_x))
-
-        # For negative x, MMA treads Rationalize[x] as -Rationalize[-x].
-        # Whether this is an implementation choice or not, it has been
-        # expressed that having this give symmetric results for +/-
-        # is nice.
-        # See https://mathematica.stackexchange.com/questions/253637/how-to-think-about-the-answer-to-rationlize-11-5-1
-        if py_x.is_positive:
-            a = self.approx_interval_continued_fraction(py_x - py_dx, py_x + py_dx)
-            sym_x = sympy.ntheory.continued_fraction_reduce(a)
-        else:
-            a = self.approx_interval_continued_fraction(-py_x - py_dx, -py_x + py_dx)
-            sym_x = -sympy.ntheory.continued_fraction_reduce(a)
-
-        return Integer(sym_x) if sym_x.is_integer else Rational(sym_x)
-
-    @staticmethod
-    def approx_interval_continued_fraction(xmin, xmax):
-        result = []
-        a_gen = sympy.ntheory.continued_fraction_iterator(xmin)
-        b_gen = sympy.ntheory.continued_fraction_iterator(xmax)
-        while True:
-            a, b = next(a_gen), next(b_gen)
-            if a == b:
-                result.append(a)
-            else:
-                result.append(min(a, b) + 1)
-                break
-        return result
-
-
-class RealValuedNumericQ(Builtin):
-    # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
-    # to add something to the docs.
-    context = "Internal`"
-
-    rules = {
-        "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
-    }
-
-
-class RealValuedNumberQ(Builtin):
-    # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
-    # to add something to the docs.
-    context = "Internal`"
-
-    rules = {
-        "Internal`RealValuedNumberQ[x_Real]": "True",
-        "Internal`RealValuedNumberQ[x_Integer]": "True",
-        "Internal`RealValuedNumberQ[x_Rational]": "True",
-        "Internal`RealValuedNumberQ[x_]": "False",
-    }
-
-
-class Round(Builtin):
-    """
-    <dl>
-    <dt>'Round[$expr$]'
-        <dd>rounds $expr$ to the nearest integer.
-    <dt>'Round[$expr$, $k$]'
-        <dd>rounds $expr$ to the closest multiple of $k$.
-    </dl>
-
-    >> Round[10.6]
-     = 11
-    >> Round[0.06, 0.1]
-     = 0.1
-    >> Round[0.04, 0.1]
-     = 0.
-
-    Constants can be rounded too
-    >> Round[Pi, .5]
-     = 3.
-    >> Round[Pi^2]
-     = 10
-
-    Round to exact value
-    >> Round[2.6, 1/3]
-     = 8 / 3
-    >> Round[10, Pi]
-     = 3 Pi
-
-    Round complex numbers
-    >> Round[6/(2 + 3 I)]
-     = 1 - I
-    >> Round[1 + 2 I, 2 I]
-     = 2 I
-
-    Round Negative numbers too
-    >> Round[-1.4]
-     = -1
-
-    Expressions other than numbers remain unevaluated:
-    >> Round[x]
-     = Round[x]
-    >> Round[1.5, k]
-     = Round[1.5, k]
-    """
-
-    attributes = listable | numeric_function | protected
-
-    rules = {
-        "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",
-        "Round[expr_Complex, k_?RealNumberQ]": (
-            "Round[Re[expr], k] + I * Round[Im[expr], k]"
-        ),
-    }
-
-    def apply(self, expr, k, evaluation):
-        "Round[expr_?NumericQ, k_?NumericQ]"
-
-        n = Expression("Divide", expr, k).round_to_float(
-            evaluation, permit_complex=True
-        )
-        if n is None:
-            return
-        elif isinstance(n, complex):
-            n = round(n.real)
-        else:
-            n = round(n)
-        n = int(n)
-        return Expression("Times", Integer(n), k)
+    def test(self, expr):
+        return expr.is_machine_precision()
 
 
 class RealDigits(Builtin):
@@ -1315,92 +718,256 @@ class RealDigits(Builtin):
         )
 
 
-class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
-    def __init__(self, fn):
-        self._bytes = b""
-        self._fn = fn
-
-    def update(self, bytes):
-        self._bytes += bytes
-
-    def hexdigest(self):
-        return format(self._fn(self._bytes), "x")
-
-
-class Hash(Builtin):
+class MaxPrecision(Predefined):
     """
     <dl>
-    <dt>'Hash[$expr$]'
-      <dd>returns an integer hash for the given $expr$.
-    <dt>'Hash[$expr$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $expr$.</dd>
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".</dd>
-    <dt>'Hash[$expr$, $type$, $format$]'
-      <dd>Returns the hash in the specified format.</dd>
+      <dt>'$MaxPrecision'
+      <dd>represents the maximum number of digits of precision permitted in abitrary-precision numbers.
     </dl>
 
-    > Hash["The Adventures of Huckleberry Finn"]
-    = 213425047836523694663619736686226550816
+    >> $MaxPrecision
+     = Infinity
 
-    > Hash["The Adventures of Huckleberry Finn", "SHA256"]
-    = 95092649594590384288057183408609254918934351811669818342876362244564858646638
+    >> $MaxPrecision = 10;
 
-    > Hash[1/3]
-    = 56073172797010645108327809727054836008
+    >> N[Pi, 11]
+     : Requested precision 11 is larger than $MaxPrecision. Using current $MaxPrecision of 10. instead. $MaxPrecision = Infinity specifies that any precision should be allowed.
+     = 3.141592654
 
-    > Hash[{a, b, {c, {d, e, f}}}]
-    = 135682164776235407777080772547528225284
+    #> N[Pi, 10]
+     = 3.141592654
 
-    > Hash[SomeHead[3.1415]]
-    = 58042316473471877315442015469706095084
+    #> $MaxPrecision = x
+     : Cannot set $MaxPrecision to x; value must be a positive number or Infinity.
+     = x
+    #> $MaxPrecision = -Infinity
+     : Cannot set $MaxPrecision to -Infinity; value must be a positive number or Infinity.
+     = -Infinity
+    #> $MaxPrecision = 0
+     : Cannot set $MaxPrecision to 0; value must be a positive number or Infinity.
+     = 0
+    #> $MaxPrecision = Infinity;
 
-    >> Hash[{a, b, c}, "xyzstr"]
-     = Hash[{a, b, c}, xyzstr, Integer]
+    #> $MinPrecision = 15;
+    #> $MaxPrecision = 10
+     : Cannot set $MaxPrecision such that $MaxPrecision < $MinPrecision.
+     = 10
+    #> $MaxPrecision
+     = Infinity
+    #> $MinPrecision = 0;
+    """
+
+    messages = {
+        "precset": "Cannot set `1` to `2`; value must be a positive number or Infinity.",
+        "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
+    }
+
+    name = "$MaxPrecision"
+
+    rules = {
+        "$MaxPrecision": "Infinity",
+    }
+
+    summary_text = "settable global maximum precision bound"
+
+
+class MachineEpsilon_(Predefined):
+    """
+    <dl>
+    <dt>'$MachineEpsilon'
+        <dd>is the distance between '1.0' and the next
+            nearest representable machine-precision number.
+    </dl>
+
+    >> $MachineEpsilon
+     = 2.22045*^-16
+
+    >> x = 1.0 + {0.4, 0.5, 0.6} $MachineEpsilon;
+    >> x - 1
+     = {0., 0., 2.22045*^-16}
+    """
+
+    name = "$MachineEpsilon"
+
+    summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
+
+    def evaluate(self, evaluation):
+        return MachineReal(machine_epsilon)
+
+
+class MachinePrecision_(Predefined):
+    """
+    <dl>
+      <dt>'$MachinePrecision'
+      <dd>is the number of decimal digits of precision for machine-precision numbers.
+    </dl>
+
+    >> $MachinePrecision
+     = 15.9546
+    """
+
+    name = "$MachinePrecision"
+
+    summary_text = (
+        "the number of decimal digits of precision for machine-precision numbers"
+    )
+
+    rules = {
+        "$MachinePrecision": "N[MachinePrecision]",
+    }
+
+
+class MachinePrecision(Predefined):
+    """
+    <dl>
+      <dt>'MachinePrecision'
+      <dd>represents the precision of machine precision numbers.
+    </dl>
+
+    >> N[MachinePrecision]
+     = 15.9546
+    >> N[MachinePrecision, 30]
+     = 15.9545897701910033463281614204
+
+    #> N[E, MachinePrecision]
+     = 2.71828
+
+    #> Round[MachinePrecision]
+     = 16
     """
 
     rules = {
-        "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
-        "Hash[expr_, type_String]": 'Hash[expr, type, "Integer"]',
+        "N[MachinePrecision, prec_]": ("N[Log[10, 2] * %i, prec]" % machine_precision),
     }
 
-    attributes = protected | read_protected
+    summary_text = "symbol used to indicate machine‐number precision"
 
-    # FIXME md2
-    _supported_hashes = {
-        "Adler32": lambda: _ZLibHash(zlib.adler32),
-        "CRC32": lambda: _ZLibHash(zlib.crc32),
-        "MD5": hashlib.md5,
-        "SHA": hashlib.sha1,
-        "SHA224": hashlib.sha224,
-        "SHA256": hashlib.sha256,
-        "SHA384": hashlib.sha384,
-        "SHA512": hashlib.sha512,
+
+class MinPrecision(Builtin):
+    """
+    <dl>
+      <dt>'$MinPrecision'
+      <dd>represents the minimum number of digits of precision permitted in abitrary-precision numbers.
+    </dl>
+
+    >> $MinPrecision
+     = 0
+
+    >> $MinPrecision = 10;
+
+    >> N[Pi, 9]
+     : Requested precision 9 is smaller than $MinPrecision. Using current $MinPrecision of 10. instead.
+     = 3.141592654
+
+    #> N[Pi, 10]
+     = 3.141592654
+
+    #> $MinPrecision = x
+     : Cannot set $MinPrecision to x; value must be a non-negative number.
+     = x
+    #> $MinPrecision = -Infinity
+     : Cannot set $MinPrecision to -Infinity; value must be a non-negative number.
+     = -Infinity
+    #> $MinPrecision = -1
+     : Cannot set $MinPrecision to -1; value must be a non-negative number.
+     = -1
+    #> $MinPrecision = 0;
+
+    #> $MaxPrecision = 10;
+    #> $MinPrecision = 15
+     : Cannot set $MinPrecision such that $MaxPrecision < $MinPrecision.
+     = 15
+    #> $MinPrecision
+     = 0
+    #> $MaxPrecision = Infinity;
+    """
+
+    messages = {
+        "precset": "Cannot set `1` to `2`; value must be a non-negative number.",
+        "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
     }
 
-    @staticmethod
-    def compute(user_hash, py_hashtype, py_format):
-        hash_func = Hash._supported_hashes.get(py_hashtype)
-        if hash_func is None:  # unknown hash function?
-            return  # in order to return original Expression
-        h = hash_func()
-        user_hash(h.update)
-        res = h.hexdigest()
-        if py_format in ("HexString", "HexStringLittleEndian"):
-            return String(res)
-        res = int(res, 16)
-        if py_format == "DecimalString":
-            return String(str(res))
-        elif py_format == "ByteArray":
-            return from_python(bytearray(res))
-        return Integer(res)
+    name = "$MinPrecision"
 
-    def apply(self, expr, hashtype, outformat, evaluation):
-        "Hash[expr_, hashtype_String, outformat_String]"
-        return Hash.compute(
-            expr.user_hash, hashtype.get_string_value(), outformat.get_string_value()
-        )
+    rules = {
+        "$MinPrecision": "0",
+    }
+
+    summary_text = "settable global minimum precision bound"
 
 
-class TypeEscalation(Exception):
-    def __init__(self, mode):
-        self.mode = mode
+class NumericQ(Builtin):
+    """
+    <dl>
+    <dt>'NumericQ[$expr$]'
+        <dd>tests whether $expr$ represents a numeric quantity.
+    </dl>
+
+    >> NumericQ[2]
+     = True
+    >> NumericQ[Sqrt[Pi]]
+     = True
+    >> NumberQ[Sqrt[Pi]]
+     = False
+    """
+
+    summary_text = "test whether an exprssion is a number"
+
+    def apply(self, expr, evaluation):
+        "NumericQ[expr_]"
+        return SymbolTrue if expr.is_numeric(evaluation) else SymbolFalse
+
+
+class Precision(Builtin):
+    """
+    <dl>
+    <dt>'Precision[$expr$]'
+        <dd>examines the number of significant digits of $expr$.
+    </dl>
+    This is rather a proof-of-concept than a full implementation.
+    Precision of compound expression is not supported yet.
+    >> Precision[1]
+     = Infinity
+    >> Precision[1/2]
+     = Infinity
+    >> Precision[0.5]
+     = MachinePrecision
+
+    #> Precision[0.0]
+     = MachinePrecision
+    #> Precision[0.000000000000000000000000000000000000]
+     = 0.
+    #> Precision[-0.0]
+     = MachinePrecision
+    #> Precision[-0.000000000000000000000000000000000000]
+     = 0.
+
+    #> 1.0000000000000000 // Precision
+     = MachinePrecision
+    #> 1.00000000000000000 // Precision
+     = 17.
+
+    #> 0.4 + 2.4 I // Precision
+     = MachinePrecision
+    #> Precision[2 + 3 I]
+     = Infinity
+
+    #> Precision["abc"]
+     = Infinity
+    """
+
+    rules = {
+        "Precision[z_?MachineNumberQ]": "MachinePrecision",
+    }
+
+    summary_text = "find the precision of a number"
+
+    def apply(self, z, evaluation):
+        "Precision[z_]"
+
+        if not z.is_inexact():
+            return Symbol("Infinity")
+        elif z.to_sympy().is_zero:
+            return Real(0)
+        else:
+            return Real(dps(z.get_precision()))
