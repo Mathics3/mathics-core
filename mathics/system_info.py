@@ -6,7 +6,7 @@ import platform
 import mathics.builtin.system as msystem
 import mathics.builtin.datentime as datentime
 import mathics.builtin.files_io.filesystem as filesystem
-import mathics.builtin.numeric as numeric
+import mathics.builtin.atomic.numbers as numeric
 
 from mathics.core.evaluation import Evaluation
 

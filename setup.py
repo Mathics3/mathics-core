@@ -91,8 +91,15 @@ else:
     if not os.environ.get("NO_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
-            "core": ("expression", "symbols", "number", "rules", "pattern"),
-            "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
+            "core": (
+                "evaluators",
+                "expression",
+                "symbols",
+                "number",
+                "rules",
+                "pattern",
+            ),
+            "builtin": ["arithmetic", "patterns", "graphics"],
         }
         EXTENSIONS = [
             Extension(

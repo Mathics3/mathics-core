@@ -385,7 +385,17 @@ class BaseExpression(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def get_precision(self):
+    def get_precision(self) -> None:
+        """Returns the default specification for precision in N and other
+        numerical functions.  It is expected to be redefined in those
+        classes that provide inexact arithmetic like PrecisionReal.
+
+        Here in the default base implementation, `None` is used to indicate that the
+        precision is either not defined, or it is exact as in the case of Integer. In either case, the
+        values is not "inexact".
+
+        This function is called by method `is_inexact()`.
+        """
         return None
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):

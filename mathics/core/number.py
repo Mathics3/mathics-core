@@ -18,8 +18,11 @@ from mathics.core.symbols import (
 C = log(10, 2)  # ~ 3.3219280948873626
 
 
-# Number of bits of machine precision
-machine_precision = 53
+# Number of bits of machine precision.
+# Note this is a float, not an int.
+# WMA uses real values for precision, to take into account the internal representation of numbers.
+# This is why $MachinePrecision is not 16, but 15.9546`
+machine_precision = 53.0
 machine_digits = int(machine_precision / C)
 
 machine_epsilon = 2 ** (1 - machine_precision)
@@ -56,7 +59,12 @@ def _get_float_inf(value, evaluation) -> typing.Optional[float]:
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation) -> typing.Optional[int]:
+def get_precision(value, evaluation, show_messages=True) -> typing.Optional[float]:
+    """
+    Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
+    If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
+    If ``value`` fails to be evaluated as a number, returns None.
+    """
     if value is SymbolMachinePrecision:
         return None
     else:
@@ -67,14 +75,17 @@ def get_precision(value, evaluation) -> typing.Optional[int]:
         d = value.round_to_float(evaluation)
         assert dmin is not None and dmax is not None
         if d is None:
-            evaluation.message("N", "precbd", value)
+            if show_messages:
+                evaluation.message("N", "precbd", value)
         elif d < dmin:
             dmin = int(dmin)
-            evaluation.message("N", "precsm", value, MachineReal(dmin))
+            if show_messages:
+                evaluation.message("N", "precsm", value, MachineReal(dmin))
             return dmin
         elif d > dmax:
             dmax = int(dmax)
-            evaluation.message("N", "preclg", value, MachineReal(dmax))
+            if show_messages:
+                evaluation.message("N", "preclg", value, MachineReal(dmax))
             return dmax
         else:
             return d

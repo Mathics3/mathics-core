@@ -9,11 +9,9 @@ Global System Information
 import os
 import platform
 import sys
-import re
 import subprocess
 
 from mathics.version import __version__
-from mathics.core.symbols import strip_context
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
@@ -30,7 +28,6 @@ from mathics.core.systemsymbols import (
 )
 from mathics.builtin.base import Builtin, Predefined
 from mathics import version_string
-from mathics.builtin.strings import to_regex
 
 try:
     import psutil
@@ -199,57 +196,6 @@ class MathicsVersion(Predefined):
 
     def evaluate(self, evaluation) -> String:
         return String(__version__)
-
-
-class Names(Builtin):
-    """
-    <dl>
-      <dt>'Names["$pattern$"]'
-      <dd>returns the list of names matching $pattern$.
-    </dl>
-
-    >> Names["List"]
-     = {List}
-
-    The wildcard '*' matches any character:
-    >> Names["List*"]
-     = {List, ListLinePlot, ListPlot, ListQ, Listable}
-
-    The wildcard '@' matches only lowercase characters:
-    >> Names["List@"]
-     = {Listable}
-
-    >> x = 5;
-    >> Names["Global`*"]
-     = {x}
-
-    The number of built-in symbols:
-    >> Length[Names["System`*"]]
-     = ...
-
-    #> Length[Names["System`*"]] > 350
-     = True
-    """
-
-    def apply(self, pattern, evaluation):
-        "Names[pattern_]"
-        headname = pattern.get_head_name()
-        if headname == "System`StringExpression":
-            pattern = re.compile(to_regex(pattern, evaluation))
-        else:
-            pattern = pattern.get_string_value()
-
-        if pattern is None:
-            return
-
-        names = set()
-        for full_name in evaluation.definitions.get_matching_names(pattern):
-            short_name = strip_context(full_name)
-            names.add(short_name if short_name not in names else full_name)
-
-        # TODO: Mathematica ignores contexts when it sorts the list of
-        # names.
-        return Expression(SymbolList, *[String(name) for name in sorted(names)])
 
 
 class Packages(Predefined):
