@@ -1990,7 +1990,7 @@ class SeriesData(Builtin):
         data = new_data
         return Expression(
             SymbolPlus,
-            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data)]
+            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data)],
         )
 
     def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
