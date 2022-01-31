@@ -12,10 +12,10 @@ from mathics.builtin.base import (
 class AtomQ(Test):
     """
     <dl>
-    <dt>'AtomQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an expression which cannot be divided into subexpressions, or 'False' otherwise.
+      <dt>'AtomQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an expression which cannot be divided into subexpressions, or 'False' otherwise.
 
-        An expression that cannot be divided into subparts is called called an "atom".
+      An expression that cannot be divided into subparts is called called an "atom".
     </dl>
 
     Strings and expressions that produce strings are atoms:
@@ -37,6 +37,10 @@ class AtomQ(Test):
     On the other hand, expressions with more than one 'Part' after evaluation, even those resulting in numeric values, aren't atoms:
     >> AtomQ[2 + Pi]
      = False
+
+    Similarly any compound 'Expression', even lists of literals, aren't atoms:
+    >> Map[AtomQ, {{}, {1}, {2, 3, 4}}]
+     = {False, False, False}
 
     Note that evaluation or the binding of "x" to an expression is taken into account:
     >> x = 2 + Pi; AtomQ[x]
