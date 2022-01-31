@@ -69,6 +69,7 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 
+from mathics.core.evaluation import Evaluation
 
 IntegerMinusOne = Integer(-1)
 SymbolIntegrate = Symbol("Integrate")
@@ -804,6 +805,372 @@ class Integrate(SympyFunction):
         return Expression(SymbolPlus, *terms)
 
 
+class NIntegrate(Builtin):
+    """
+    <dl>
+       <dt>'NIntegrate[$expr$, $interval$]'
+       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+
+        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+    </dl>
+
+    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]
+     = 1.
+    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6]
+     = 1.
+    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6]
+     = 2.50663
+
+    >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
+     : The specified method failed to return a number. Falling back into the internal evaluator.
+     = {1., 2., 3., 4., 5., 6., 7.}
+
+    >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
+     : Integration over a complex domain is not implemented yet
+     = NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance -> 0.0001]
+     ## = 6.2832 I
+
+    Integrate singularities with weak divergences:
+    >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.} ]
+     = {1., 2., 3., 4., 5., 6., 7.}
+
+    Mutiple Integrals :
+    >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
+     = 0.25
+
+    """
+
+    messages = {
+        "bdmtd": "The Method option should be a built-in method name.",
+        "inumr": (
+            "The integrand `1` has evaluated to non-numerical "
+            + "values for all sampling points in the region "
+            + "with boundaries `2`"
+        ),
+        "nlim": "`1` = `2` is not a valid limit of integration.",
+        "ilim": "Invalid integration variable or limit(s) in `1`.",
+        "mtdfail": (
+            "The specified method failed to return a "
+            + "number. Falling back into the internal "
+            + "evaluator."
+        ),
+        "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
+    }
+
+    options = {
+        "Method": '"Automatic"',
+        "Tolerance": "1*^-10",
+        "Accuracy": "1*^-10",
+        "MaxRecursion": "10",
+    }
+
+    methods = {
+        "Automatic": (None, False),
+    }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.methods["Internal"] = (_internal_adaptative_simpsons_rule, False)
+        try:
+            from scipy.integrate import romberg, quad, nquad
+
+            self.methods["NQuadrature"] = (
+                _scipy_interface(
+                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
+                ),
+                True,
+            )
+            self.methods["Quadrature"] = (
+                _scipy_interface(
+                    quad,
+                    {
+                        "tol": ("epsabs", None),
+                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
+                    },
+                    {"full_output": 1},
+                    lambda res: (res[0], res[1]),
+                ),
+                False,
+            )
+            self.methods["Romberg"] = (
+                _scipy_interface(
+                    romberg,
+                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
+                    None,
+                    lambda x: (x, np.nan),
+                ),
+                False,
+            )
+            self.methods["Automatic"] = self.methods["Quadrature"]
+        except Exception:
+            self.methods["Automatic"] = self.methods["Internal"]
+            self.methods["Simpson"] = self.methods["Internal"]
+
+        self.messages["bdmtd"] = (
+            "The Method option should be a "
+            + "built-in method name in {`"
+            + "`, `".join(list(self.methods))
+            + "`}. Using `Automatic`"
+        )
+
+    @staticmethod
+    def decompose_domain(interval, evaluation):
+        if interval.has_form("System`Sequence", 1, None):
+            intervals = []
+            for leaf in interval.leaves:
+                inner_interval = NIntegrate.decompose_domain(leaf, evaluation)
+                if inner_interval:
+                    intervals.append(inner_interval)
+                else:
+                    evaluation.message("ilim", leaf)
+                    return None
+            return intervals
+
+        if interval.has_form("System`List", 3, None):
+            intervals = []
+            intvar = interval.leaves[0]
+            if not isinstance(intvar, Symbol):
+                evaluation.message("ilim", interval)
+                return None
+            boundaries = [a for a in interval.leaves[1:]]
+            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
+                intvar = Expression(
+                    "List", intvar, Expression("Blank", Symbol("Complex"))
+                )
+            for i in range(len(boundaries) - 1):
+                intervals.append((boundaries[i], boundaries[i + 1]))
+            if len(intervals) > 0:
+                return (intvar, intervals)
+
+        evaluation.message("ilim", interval)
+        return None
+
+    def apply_with_func_domain(self, func, domain, evaluation, options):
+        "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
+        if func.is_numeric() and func.is_zero:
+            return Integer0
+        method = options["System`Method"].evaluate(evaluation)
+        method_options = {}
+        if method.has_form("System`List", 2):
+            method = method.leaves[0]
+            method_options.update(method.leaves[1].get_option_values())
+        if isinstance(method, String):
+            method = method.value
+        elif isinstance(method, Symbol):
+            method = method.get_name()
+        else:
+            evaluation.message("NIntegrate", "bdmtd", method)
+            return
+        tolerance = options["System`Tolerance"].evaluate(evaluation)
+        tolerance = float(tolerance.value)
+        accuracy = options["System`Accuracy"].evaluate(evaluation)
+        accuracy = accuracy.value
+        maxrecursion = options["System`MaxRecursion"].evaluate(evaluation)
+        maxrecursion = maxrecursion.value
+        nintegrate_method = self.methods.get(method, None)
+        if nintegrate_method is None:
+            evaluation.message("NIntegrate", "bdmtd", method)
+            nintegrate_method = self.methods.get("Automatic")
+        if type(nintegrate_method) is tuple:
+            nintegrate_method, is_multidimensional = nintegrate_method
+        else:
+            is_multidimensional = False
+
+        domain = self.decompose_domain(domain, evaluation)
+        if not domain:
+            return
+        if not isinstance(domain, list):
+            domain = [domain]
+
+        coords = [axis[0] for axis in domain]
+        # If any of the points in the integration domain is complex,
+        # stop the evaluation...
+        if any([c.get_head_name() == "System`List" for c in coords]):
+            evaluation.message("NIntegrate", "cmpint")
+            return
+
+        intvars = Expression(SymbolList, *coords)
+        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
+
+        if len(integrand.leaves) >= 3:
+            integrand = integrand.leaves[2].cfunc
+        else:
+            evaluation.message("inumer", func, domain)
+            return
+        results = []
+        for subdomain in product(*[axis[1] for axis in domain]):
+            # On each subdomain, check if the region is bounded.
+            # If not, implement a coordinate map
+            func2 = integrand
+            subdomain2 = []
+            coordtransform = []
+            nulldomain = False
+            for i, r in enumerate(subdomain):
+                a = r[0].evaluate(evaluation)
+                b = r[1].evaluate(evaluation)
+                if a == b:
+                    nulldomain = True
+                    break
+                elif a.get_head_name() == "System`DirectedInfinity":
+                    if b.get_head_name() == "System`DirectedInfinity":
+                        a = a.to_python()
+                        b = b.to_python()
+                        le = 1 - machine_epsilon
+                        if a == b:
+                            nulldomain = True
+                            break
+                        elif a < b:
+                            subdomain2.append([-le, le])
+                        else:
+                            subdomain2.append([le, -le])
+                        coordtransform.append(
+                            (np.arctanh, lambda u: 1.0 / (1.0 - u ** 2))
+                        )
+                    else:
+                        if not b.is_numeric(evaluation):
+                            evaluation.message("nlim", coords[i], b)
+                            return
+                        z = a.leaves[0].value
+                        b = b.value
+                        subdomain2.append([machine_epsilon, 1.0])
+                        coordtransform.append(
+                            (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
+                        )
+                elif b.get_head_name() == "System`DirectedInfinity":
+                    if not a.is_numeric(evaluation):
+                        evaluation.message("nlim", coords[i], a)
+                        return
+                    a = a.value
+                    z = b.leaves[0].value
+                    subdomain2.append([machine_epsilon, 1.0])
+                    coordtransform.append(
+                        (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
+                    )
+                elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
+                    a = apply_N(a, evaluation).value
+                    b = apply_N(b, evaluation).value
+                    subdomain2.append([a, b])
+                    coordtransform.append(None)
+                else:
+                    for x in (a, b):
+                        if not x.is_numeric(evaluation):
+                            evaluation.message("nlim", coords[i], x)
+                    return
+
+            if nulldomain:
+                continue
+            if any(coordtransform):
+
+                def func2_(*u):
+                    x_u = (
+                        x[0](u[i]) if x else u[i] for i, x in enumerate(coordtransform)
+                    )
+                    punctual_value = integrand(*x_u)
+                    jac_factors = tuple(
+                        jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
+                    )
+                    val_jac = np.prod(jac_factors)
+                    print("val_jac:", val_jac)
+                    return punctual_value * val_jac
+
+                func2 = func2_
+            opts = {
+                "acur": accuracy,
+                "tol": tolerance,
+                "maxrec": maxrecursion,
+            }
+            opts.update(method_options)
+            try:
+                if len(subdomain2) > 1:
+                    if is_multidimensional:
+                        nintegrate_method(func2, subdomain2, **opts)
+                    else:
+                        val = _fubini(
+                            func2, subdomain2, integrator=nintegrate_method, **opts
+                        )
+                else:
+                    val = nintegrate_method(func2, *(subdomain2[0]), **opts)
+            except Exception:
+                val = None
+
+            if val is None:
+                evaluation.message("NIntegrate", "mtdfail")
+                if len(subdomain2) > 1:
+                    val = _fubini(
+                        func2,
+                        subdomain2,
+                        integrator=_internal_adaptative_simpsons_rule,
+                        **opts,
+                    )
+                else:
+                    try:
+                        val = _internal_adaptative_simpsons_rule(
+                            func2, *(subdomain2[0]), **opts
+                        )
+                    except Exception:
+                        return None
+            results.append(val)
+
+        result = sum([r[0] for r in results])
+        # error = sum([r[1] for r in results]) -> use it when accuracy
+        #                                         be implemented...
+        return from_python(result)
+
+    def apply_D(self, func, domain, var, evaluation, options):
+        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
+        options = tuple(
+            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        )
+        # if the integration is along several variables, take the integration of the inner
+        # variables as func.
+        if domain._head is SymbolSequence:
+            func = Expression(
+                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
+            )
+            domain = domain._leaves[-1]
+
+        terms = []
+        # Evaluates the derivative regarding the integrand:
+        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
+        if integrand:
+            term = Expression(Symbol("NIntegrate"), integrand, domain, *options)
+            terms = [term]
+
+        # Run over the intervals, and evaluate the derivative
+        # regarding the integration limits.
+        list_domain = self.decompose_domain(domain, evaluation)
+        if not list_domain:
+            return
+
+        ivar, limits = list_domain
+        for limit in limits:
+            for k, lim in enumerate(limit):
+                jac = Expression(SymbolD, lim, var)
+                ev_jac = jac.evaluate(evaluation)
+                if ev_jac:
+                    jac = ev_jac
+                if isinstance(jac, Number) and jac.is_zero:
+                    continue
+                f = func.replace_vars({ivar.get_name(): lim})
+                if k == 1:
+                    f = Expression(SymbolTimes, f, jac)
+                else:
+                    f = Expression(SymbolTimes, Integer(-1), f, jac)
+                eval_f = f.evaluate(evaluation)
+                if eval_f:
+                    f = eval_f
+                if isinstance(f, Number) and f.is_zero:
+                    continue
+                terms.append(f)
+
+        if len(terms) == 0:
+            return Integer0
+        if len(terms) == 1:
+            return terms[0]
+        return Expression(SymbolPlus, *terms)
+
+
 class Root(SympyFunction):
     """
     <dl>
@@ -1320,322 +1687,6 @@ class DiscreteLimit(Builtin):
             pass
 
 
-def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
-    region = opts.get("$$Region", None)
-    if not type(region) is list:
-        if x0.is_zero:
-            region = (Real(-1), Real(1))
-        else:
-            xmax = 2 * x0.to_python()
-            xmin = -2 * x0.to_python()
-            if xmin > xmax:
-                region = (Real(xmax), Real(xmin))
-            else:
-                region = (Real(xmin), Real(xmax))
-
-    maxit = opts["System`MaxIterations"]
-    x_name = x.get_name()
-    if maxit is SymbolAutomatic:
-        maxit = 100
-    else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
-
-    x0 = from_python(region[0])
-    x1 = from_python(region[1])
-    f0 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x0}, evaluation)
-    f1 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation)
-    if not isinstance(f0, Number):
-        return x0, False
-    if not isinstance(f1, Number):
-        return x0, False
-    f0 = f0.to_python(n_evaluation=True)
-    f1 = f1.to_python(n_evaluation=True)
-    count = 0
-    while count < maxit:
-        if f0 == f1:
-            x1 = Expression(
-                "Plus",
-                x0,
-                Expression(
-                    "Times",
-                    Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
-                ),
-            )
-            x1 = x1.evaluate(evaluation)
-            f1 = dynamic_scoping(
-                lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation
-            )
-            if not isinstance(f1, Number):
-                return x0, False
-            f1 = f1.to_python(n_evaluation=True)
-            continue
-
-        inv_deltaf = from_python(1.0 / (f1 - f0))
-        num = Expression(
-            "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
-        )
-        x2 = Expression("Times", num, inv_deltaf)
-        x2 = x2.evaluate(evaluation)
-        f2 = dynamic_scoping(
-            lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
-        )
-        if not isinstance(f2, Number):
-            return x0, False
-        f2 = f2.to_python(n_evaluation=True)
-        f1, f0 = f2, f1
-        x1, x0 = x2, x1
-        if x1 == x0 or abs(f2) == 0:
-            break
-        count = count + 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-        return x0, False
-    return x0, True
-
-
-def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
-    """
-    Look for a root of a f: R->R using the Newton's method.
-    """
-    absf = abs(f)
-    df = opts["System`Jacobian"]
-    x_name = x.get_name()
-
-    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
-    step_monitor = opts.get("System`StepMonitor", None)
-    if step_monitor is SymbolNone:
-        step_monitor = None
-    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
-    if evaluation_monitor is SymbolNone:
-        evaluation_monitor = None
-
-    def decreasing(val1, val2):
-        """
-        Check if val2 has a smaller absolute value than val1
-        """
-        if not (val1.is_numeric() and val2.is_numeric()):
-            return False
-        if val2.is_zero:
-            return True
-        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
-        if not res.is_numeric():
-            return False
-        return res.to_python() < 0
-
-    def new_seed():
-        """
-        looks for a new starting point, based on how close we are from the target.
-        """
-        x1 = apply_N(Integer2 * x0, evaluation)
-        x2 = apply_N(x0 / Integer3, evaluation)
-        x3 = apply_N(x0 - minus / Integer2, evaluation)
-        x4 = apply_N(x0 + minus / Integer3, evaluation)
-        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
-        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
-        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
-        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
-        if decreasing(absf1, absf2):
-            x1, absf1 = x2, absf2
-        if decreasing(absf1, absf3):
-            x1, absf1 = x3, absf3
-        if decreasing(absf1, absf4):
-            x1, absf1 = x4, absf4
-        return x1, absf1
-
-    def sub(evaluation):
-        d_value = apply_N(df, evaluation)
-        if d_value == Integer(0):
-            return None
-        result = apply_N(f / d_value, evaluation)
-        if evaluation_monitor:
-            dynamic_scoping(
-                lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
-            )
-        return result
-
-    currval = absf.replace_vars({x_name: x0}).evaluate(evaluation)
-    count = 0
-    while count < maxit:
-        if step_monitor:
-            dynamic_scoping(
-                lambda ev: step_monitor.evaluate(ev), {x_name: x0}, evaluation
-            )
-        minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
-        if minus is None:
-            evaluation.message("FindRoot", "dsing", x, x0)
-            return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
-        if not isinstance(x1, Number):
-            evaluation.message("FindRoot", "nnum", x, x0)
-            return x0, False
-
-        # Check convergence:
-        new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
-        if is_zero(new_currval, acc_goal, prec_goal, evaluation):
-            return x1, True
-
-        # This step tries to ensure that the new step goes forward to the convergence.
-        # If not, tries to restart in a another point closer to x0 than x1.
-        if decreasing(new_currval, currval):
-            x0, currval = new_seed()
-            count = count + 1
-            continue
-        else:
-            currval = new_currval
-            x0 = apply_N(x1, evaluation)
-            # N required due to bug in sympy arithmetic
-            count += 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-    return x0, True
-
-
-def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
-    is_find_maximum = opts.get("_isfindmaximum", False)
-    symbol_name = "FindMaximum" if is_find_maximum else "FindMinimum"
-    if is_find_maximum:
-        f = -f
-        # TODO: revert jacobian if given...
-
-    x_name = x.name
-    maxit = opts["System`MaxIterations"]
-    step_monitor = opts.get("System`StepMonitor", None)
-    if step_monitor is SymbolNone:
-        step_monitor = None
-    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
-    if evaluation_monitor is SymbolNone:
-        evaluation_monitor = None
-
-    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
-    curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
-
-    # build the quadratic form:
-    eps = determine_epsilon(x0, opts, evaluation)
-    if not isinstance(curr_val, Number):
-        evaluation.message(symbol_name, "nnum", x, x0)
-        if is_find_maximum:
-            return -x0, False
-        else:
-            return x0, False
-    d1 = dynamic_scoping(
-        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
-    )
-    val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
-    if not isinstance(val_d1, Number):
-        d1 = None
-        d2 = None
-        f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-        f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-        val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
-        val_d2 = apply_N(
-            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
-        )
-    else:
-        d2 = dynamic_scoping(
-            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
-        )
-        val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
-        if not isinstance(val_d2, Number):
-            d2 = None
-            df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-            df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
-            val_d2 = (df2val - df1val) / (Integer2 * eps)
-
-    def reset_values(x0):
-        x_try = [
-            apply_N(x0 / Integer3, evaluation),
-            apply_N(x0 * Integer2, evaluation),
-            apply_N(x0 - offset / Integer2, evaluation),
-        ]
-        vals = [(u, apply_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
-        vals = [v for v in vals if isinstance(v[1], Number)]
-        v0 = vals[0]
-        for v in vals:
-            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
-                v0 = v
-        return v0
-
-    def reevaluate_coeffs():
-        """reevaluates val_d1 and val_d2"""
-        if d1:
-            val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
-            if d2:
-                val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
-            else:
-                df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-                df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
-                val_d2 = (df2val - df1val) / (Integer2 * eps)
-        else:
-            f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-            f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-            val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
-            val_d2 = apply_N(
-                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
-            )
-        return (val_d1, val_d2)
-
-    # Main loop
-    count = 0
-
-    while count < maxit:
-        if step_monitor:
-            step_monitor.replace_vars({x_name: x0}).evaluate(evaluation)
-
-        if val_d1.is_zero:
-            if is_find_maximum:
-                evaluation.message(
-                    symbol_name, "fmgz", String("maximum"), String("minimum")
-                )
-            else:
-                evaluation.message(
-                    symbol_name, "fmgz", String("minimum"), String("maximum")
-                )
-
-            if is_find_maximum:
-                return (x0, -curr_val), True
-            else:
-                return (x0, curr_val), True
-        if val_d2.is_zero:
-            val_d2 = Integer1
-
-        offset = apply_N(val_d1 / abs(val_d2), evaluation)
-        x1 = apply_N(x0 - offset, evaluation)
-        new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
-        if (
-            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
-            is SymbolTrue
-        ):
-            if is_zero(offset, acc_goal, prec_goal, evaluation):
-                if is_find_maximum:
-                    return (x1, -curr_val), True
-                else:
-                    return (x1, curr_val), True
-            x0 = x1
-            curr_val = new_val
-        else:
-            if is_zero(offset / Integer2, acc_goal, prec_goal, evaluation):
-                if is_find_maximum:
-                    return (x0, -curr_val), True
-                else:
-                    return (x0, curr_val), True
-            x0, curr_val = reset_values(x0)
-        val_d1, val_d2 = reevaluate_coeffs()
-        count = count + 1
-    else:
-        evaluation.message(symbol_name, "maxiter")
-    if is_find_maximum:
-        return (x0, -curr_val), False
-    else:
-        return (x0, curr_val), False
-
-
 class _BaseFinder(Builtin):
     """
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
@@ -1678,6 +1729,9 @@ class _BaseFinder(Builtin):
         # First, determine x0 and x
 
         x0 = apply_N(x0, evaluation)
+        if isinstance(x0, Expression) and x0._head is SymbolList:
+            options["_x0"] = x0._leaves
+            x0 = x0._leaves[0]
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
             return
@@ -1829,11 +1883,24 @@ class FindRoot(_BaseFinder):
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
     }
 
-    methods = {
-        "Newton": find_root_newton,
-        "Automatic": find_root_newton,
-        "Secant": find_root_secant,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_findroot_methods
+
+        methods.update(native_findroot_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import (
+            scipy_findroot_methods,
+            update_findroot_messages,
+        )
+
+        methods.update(scipy_findroot_methods)
+        messages = _BaseFinder.messages.copy()
+        update_findroot_messages(messages)
+    except Exception:
+        pass
 
 
 class FindMinimum(_BaseFinder):
@@ -1864,10 +1931,19 @@ class FindMinimum(_BaseFinder):
      =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
     """
 
-    methods = {
-        "Automatic": find_minimum_newton1d,
-        "Newton": find_minimum_newton1d,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
 
 
 class FindMaximum(_BaseFinder):
@@ -1897,10 +1973,19 @@ class FindMaximum(_BaseFinder):
      = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
     """
 
-    methods = {
-        "Automatic": find_minimum_newton1d,
-        "Newton": find_minimum_newton1d,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
 
 
 class O_(Builtin):
@@ -2190,372 +2275,6 @@ def _fubini(func, ranges, **opts):
     else:
         val = integrator(func, a, b, **opts)
         return val
-
-
-class NIntegrate(Builtin):
-    """
-    <dl>
-       <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
-
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
-    </dl>
-
-    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]
-     = 1.
-    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6]
-     = 1.
-    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6]
-     = 2.50663
-
-    >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
-     : The specified method failed to return a number. Falling back into the internal evaluator.
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
-     : Integration over a complex domain is not implemented yet
-     = NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance -> 0.0001]
-     ## = 6.2832 I
-
-    Integrate singularities with weak divergences:
-    >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.} ]
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    Mutiple Integrals :
-    >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
-     = 0.25
-
-    """
-
-    messages = {
-        "bdmtd": "The Method option should be a built-in method name.",
-        "inumr": (
-            "The integrand `1` has evaluated to non-numerical "
-            + "values for all sampling points in the region "
-            + "with boundaries `2`"
-        ),
-        "nlim": "`1` = `2` is not a valid limit of integration.",
-        "ilim": "Invalid integration variable or limit(s) in `1`.",
-        "mtdfail": (
-            "The specified method failed to return a "
-            + "number. Falling back into the internal "
-            + "evaluator."
-        ),
-        "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
-    }
-
-    options = {
-        "Method": '"Automatic"',
-        "Tolerance": "1*^-10",
-        "Accuracy": "1*^-10",
-        "MaxRecursion": "10",
-    }
-
-    methods = {
-        "Automatic": (None, False),
-    }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.methods["Internal"] = (_internal_adaptative_simpsons_rule, False)
-        try:
-            from scipy.integrate import romberg, quad, nquad
-
-            self.methods["NQuadrature"] = (
-                _scipy_interface(
-                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
-                ),
-                True,
-            )
-            self.methods["Quadrature"] = (
-                _scipy_interface(
-                    quad,
-                    {
-                        "tol": ("epsabs", None),
-                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
-                    },
-                    {"full_output": 1},
-                    lambda res: (res[0], res[1]),
-                ),
-                False,
-            )
-            self.methods["Romberg"] = (
-                _scipy_interface(
-                    romberg,
-                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
-                    None,
-                    lambda x: (x, np.nan),
-                ),
-                False,
-            )
-            self.methods["Automatic"] = self.methods["Quadrature"]
-        except Exception:
-            self.methods["Automatic"] = self.methods["Internal"]
-            self.methods["Simpson"] = self.methods["Internal"]
-
-        self.messages["bdmtd"] = (
-            "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(self.methods))
-            + "`}. Using `Automatic`"
-        )
-
-    @staticmethod
-    def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
-            intervals = []
-            for leaf in interval.leaves:
-                inner_interval = NIntegrate.decompose_domain(leaf, evaluation)
-                if inner_interval:
-                    intervals.append(inner_interval)
-                else:
-                    evaluation.message("ilim", leaf)
-                    return None
-            return intervals
-
-        if interval.has_form("System`List", 3, None):
-            intervals = []
-            intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
-                evaluation.message("ilim", interval)
-                return None
-            boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-                intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
-                )
-            for i in range(len(boundaries) - 1):
-                intervals.append((boundaries[i], boundaries[i + 1]))
-            if len(intervals) > 0:
-                return (intvar, intervals)
-
-        evaluation.message("ilim", interval)
-        return None
-
-    def apply_with_func_domain(self, func, domain, evaluation, options):
-        "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
-        if func.is_numeric() and func.is_zero:
-            return Integer0
-        method = options["System`Method"].evaluate(evaluation)
-        method_options = {}
-        if method.has_form("System`List", 2):
-            method = method.leaves[0]
-            method_options.update(method.leaves[1].get_option_values())
-        if isinstance(method, String):
-            method = method.value
-        elif isinstance(method, Symbol):
-            method = method.get_name()
-        else:
-            evaluation.message("NIntegrate", "bdmtd", method)
-            return
-        tolerance = options["System`Tolerance"].evaluate(evaluation)
-        tolerance = float(tolerance.value)
-        accuracy = options["System`Accuracy"].evaluate(evaluation)
-        accuracy = accuracy.value
-        maxrecursion = options["System`MaxRecursion"].evaluate(evaluation)
-        maxrecursion = maxrecursion.value
-        nintegrate_method = self.methods.get(method, None)
-        if nintegrate_method is None:
-            evaluation.message("NIntegrate", "bdmtd", method)
-            nintegrate_method = self.methods.get("Automatic")
-        if type(nintegrate_method) is tuple:
-            nintegrate_method, is_multidimensional = nintegrate_method
-        else:
-            is_multidimensional = False
-
-        domain = self.decompose_domain(domain, evaluation)
-        if not domain:
-            return
-        if not isinstance(domain, list):
-            domain = [domain]
-
-        coords = [axis[0] for axis in domain]
-        # If any of the points in the integration domain is complex,
-        # stop the evaluation...
-        if any([c.get_head_name() == "System`List" for c in coords]):
-            evaluation.message("NIntegrate", "cmpint")
-            return
-
-        intvars = Expression(SymbolList, *coords)
-        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
-
-        if len(integrand.leaves) >= 3:
-            integrand = integrand.leaves[2].cfunc
-        else:
-            evaluation.message("inumer", func, domain)
-            return
-        results = []
-        for subdomain in product(*[axis[1] for axis in domain]):
-            # On each subdomain, check if the region is bounded.
-            # If not, implement a coordinate map
-            func2 = integrand
-            subdomain2 = []
-            coordtransform = []
-            nulldomain = False
-            for i, r in enumerate(subdomain):
-                a = r[0].evaluate(evaluation)
-                b = r[1].evaluate(evaluation)
-                if a == b:
-                    nulldomain = True
-                    break
-                elif a.get_head_name() == "System`DirectedInfinity":
-                    if b.get_head_name() == "System`DirectedInfinity":
-                        a = a.to_python()
-                        b = b.to_python()
-                        le = 1 - machine_epsilon
-                        if a == b:
-                            nulldomain = True
-                            break
-                        elif a < b:
-                            subdomain2.append([-le, le])
-                        else:
-                            subdomain2.append([le, -le])
-                        coordtransform.append(
-                            (np.arctanh, lambda u: 1.0 / (1.0 - u ** 2))
-                        )
-                    else:
-                        if not b.is_numeric(evaluation):
-                            evaluation.message("nlim", coords[i], b)
-                            return
-                        z = a.leaves[0].value
-                        b = b.value
-                        subdomain2.append([machine_epsilon, 1.0])
-                        coordtransform.append(
-                            (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
-                        )
-                elif b.get_head_name() == "System`DirectedInfinity":
-                    if not a.is_numeric(evaluation):
-                        evaluation.message("nlim", coords[i], a)
-                        return
-                    a = a.value
-                    z = b.leaves[0].value
-                    subdomain2.append([machine_epsilon, 1.0])
-                    coordtransform.append(
-                        (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
-                    )
-                elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = apply_N(a, evaluation).value
-                    b = apply_N(b, evaluation).value
-                    subdomain2.append([a, b])
-                    coordtransform.append(None)
-                else:
-                    for x in (a, b):
-                        if not x.is_numeric(evaluation):
-                            evaluation.message("nlim", coords[i], x)
-                    return
-
-            if nulldomain:
-                continue
-            if any(coordtransform):
-
-                def func2_(*u):
-                    x_u = (
-                        x[0](u[i]) if x else u[i] for i, x in enumerate(coordtransform)
-                    )
-                    punctual_value = integrand(*x_u)
-                    jac_factors = tuple(
-                        jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
-                    )
-                    val_jac = np.prod(jac_factors)
-                    print("val_jac:", val_jac)
-                    return punctual_value * val_jac
-
-                func2 = func2_
-            opts = {
-                "acur": accuracy,
-                "tol": tolerance,
-                "maxrec": maxrecursion,
-            }
-            opts.update(method_options)
-            try:
-                if len(subdomain2) > 1:
-                    if is_multidimensional:
-                        nintegrate_method(func2, subdomain2, **opts)
-                    else:
-                        val = _fubini(
-                            func2, subdomain2, integrator=nintegrate_method, **opts
-                        )
-                else:
-                    val = nintegrate_method(func2, *(subdomain2[0]), **opts)
-            except Exception:
-                val = None
-
-            if val is None:
-                evaluation.message("NIntegrate", "mtdfail")
-                if len(subdomain2) > 1:
-                    val = _fubini(
-                        func2,
-                        subdomain2,
-                        integrator=_internal_adaptative_simpsons_rule,
-                        **opts,
-                    )
-                else:
-                    try:
-                        val = _internal_adaptative_simpsons_rule(
-                            func2, *(subdomain2[0]), **opts
-                        )
-                    except Exception:
-                        return None
-            results.append(val)
-
-        result = sum([r[0] for r in results])
-        # error = sum([r[1] for r in results]) -> use it when accuracy
-        #                                         be implemented...
-        return from_python(result)
-
-    def apply_D(self, func, domain, var, evaluation, options):
-        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
-        )
-        # if the integration is along several variables, take the integration of the inner
-        # variables as func.
-        if domain._head is SymbolSequence:
-            func = Expression(
-                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
-            )
-            domain = domain._leaves[-1]
-
-        terms = []
-        # Evaluates the derivative regarding the integrand:
-        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
-        if integrand:
-            term = Expression(Symbol("NIntegrate"), integrand, domain, *options)
-            terms = [term]
-
-        # Run over the intervals, and evaluate the derivative
-        # regarding the integration limits.
-        list_domain = self.decompose_domain(domain, evaluation)
-        if not list_domain:
-            return
-
-        ivar, limits = list_domain
-        for limit in limits:
-            for k, lim in enumerate(limit):
-                jac = Expression(SymbolD, lim, var)
-                ev_jac = jac.evaluate(evaluation)
-                if ev_jac:
-                    jac = ev_jac
-                if isinstance(jac, Number) and jac.is_zero:
-                    continue
-                f = func.replace_vars({ivar.get_name(): lim})
-                if k == 1:
-                    f = Expression(SymbolTimes, f, jac)
-                else:
-                    f = Expression(SymbolTimes, Integer(-1), f, jac)
-                eval_f = f.evaluate(evaluation)
-                if eval_f:
-                    f = eval_f
-                if isinstance(f, Number) and f.is_zero:
-                    continue
-                terms.append(f)
-
-        if len(terms) == 0:
-            return Integer0
-        if len(terms) == 1:
-            return terms[0]
-        return Expression(SymbolPlus, *terms)
 
 
 # Auxiliary routines. Maybe should be moved to another module.
