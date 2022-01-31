@@ -28,7 +28,6 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolRowBox,
     SymbolRule,
-    SymbolSequence,
 )
 
 from mathics.core.number import (
@@ -145,7 +144,7 @@ class Integer(Number):
         super().__init__()
 
     def get_head_name(self):
-        return "System`Integer"
+        return self.class_head_name
 
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
@@ -225,7 +224,6 @@ Integer0 = Integer(0)
 Integer1 = Integer(1)
 Integer2 = Integer(2)
 Integer3 = Integer(3)
-Integer4 = Integer(4)
 Integer10 = Integer(10)
 
 
@@ -457,7 +455,8 @@ class MachineReal(Real):
     def is_machine_precision(self) -> bool:
         return True
 
-    def get_precision(self) -> int:
+    def get_precision(self) -> float:
+        """Returns the default specification for precision in N and other numerical functions."""
         return machine_precision
 
     def get_float_value(self, permit_complex=False) -> float:
@@ -534,8 +533,9 @@ class PrecisionReal(Real):
             return self.value == other.to_sympy()
         return False
 
-    def get_precision(self) -> int:
-        return self.value._prec + 1
+    def get_precision(self) -> float:
+        """Returns the default specification for precision in N and other numerical functions."""
+        return self.value._prec + 1.0
 
     def make_boxes(self, form):
         from mathics.builtin.inout import number_form
@@ -675,7 +675,13 @@ class Complex(Number):
         else:
             return None
 
-    def get_precision(self) -> Optional[int]:
+    def get_precision(self) -> Optional[float]:
+        """Returns the default specification for precision in N and other numerical functions.
+        When `None` is be returned no precision is has been defined and this object's value is
+        exact.
+
+        This function is called by method `is_inexact()`.
+        """
         real_prec = self.real.get_precision()
         imag_prec = self.imag.get_precision()
         if imag_prec is None or real_prec is None:

@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Number, Real
 from mathics.core.symbols import SymbolList, Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
-from mathics.builtin.numeric import apply_N
+from mathics.core.evaluators import apply_N
 
 from scipy.optimize import (
     minimize_scalar,

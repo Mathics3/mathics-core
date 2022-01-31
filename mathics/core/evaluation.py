@@ -240,6 +240,9 @@ class Evaluation(object):
         # Necesary to handle OneIdentity on
         # lhs in assignment
         self.ignore_oneidentity = False
+        # Used in ``mathics.builtin.numbers.constants.get_constant`` and
+        # ``mathics.builtin.numeric.N``.
+        self._preferred_n_method = []
 
     def parse(self, query):
         "Parse a single expression and print the messages."
