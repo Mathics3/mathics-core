@@ -4,14 +4,15 @@ CHANGES
 New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+* ``$Echo`` (Issue #42)
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
 * ``FindRoot`` was improved for supporting numerical derivatives (issue 67).
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems.
 
+  
 Internals
 =========
-
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
@@ -45,8 +46,10 @@ Bugs
 ++++
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
-* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
-  
+* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
+*  `Set*`: fixed issue #128.
+
+
 4.0.1
 -----
 

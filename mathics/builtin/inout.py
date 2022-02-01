@@ -19,6 +19,7 @@ from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
     Operator,
+    Predefined,
 )
 from mathics.builtin.tensors import get_dimensions
 from mathics.builtin.comparison import expr_min
@@ -1926,6 +1927,20 @@ class General(Builtin):
         "notboxes": "`1` is not a valid box structure.",
         "pyimport": '`1`[] is not available. Python module "`2`" is not installed.',
     }
+
+
+class Echo_(Predefined):
+    """
+    <dl>
+    <dt>'$Echo'
+        <dd>gives a list of files and pipes to which all input is echoed.
+
+    </dl>
+    """
+
+    attributes = 0
+    name = "$Echo"
+    rules = {"$Echo": "{}"}
 
 
 class Print(Builtin):
