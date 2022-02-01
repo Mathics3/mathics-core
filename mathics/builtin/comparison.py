@@ -74,7 +74,6 @@ class SameQ(BinaryOperator):
 
     def apply(self, lhs, rhs, evaluation):
         "lhs_ === rhs_"
-
         if lhs.sameQ(rhs):
             return SymbolTrue
         else:
