@@ -4,8 +4,9 @@ CHANGES
 New Builtins
 ============
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+* ``$Echo`` (Issue #42)
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-  
+
 
 
   
