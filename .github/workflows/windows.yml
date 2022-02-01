@@ -28,6 +28,7 @@ jobs:
         choco install llvm
         set LLVM_DIR="C:\Program Files\LLVM"
         pip install -e .
+	pip install scipy
     - name: Install Mathics
       run: |
         python setup.py install

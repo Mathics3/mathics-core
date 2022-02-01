@@ -24,7 +24,7 @@ jobs:
       run: |
         sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
         python -m pip install --upgrade pip
-	python -m pip install scipy
+	pip install scipy
     - name: Install Mathics with full dependencies
       run: |
         make develop-full
