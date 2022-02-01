@@ -5,6 +5,7 @@ from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
+from mathics.core.atoms import Atom
 from mathics.core.symbols import (
     Symbol,
     SymbolN,
@@ -153,7 +154,7 @@ def find_tag_and_check(lhs, tags, evaluation):
 
 
 def unroll_patterns(lhs, rhs, evaluation):
-    if type(lhs) is Symbol:
+    if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
     lhsleaves = lhs._leaves
@@ -181,6 +182,8 @@ def unroll_conditions(lhs):
     while name == "System`Condition" and len(lhs.leaves) == 2:
         condition.append(lhs_leaves[1])
         lhs = lhs_leaves[0]
+        if isinstance(lhs, Atom):
+            break
         name, lhs_leaves = lhs.get_head_name(), lhs._leaves
     if len(condition) == 0:
         return lhs, None
