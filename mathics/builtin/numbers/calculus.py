@@ -10,7 +10,7 @@ import sympy
 import numpy as np
 from itertools import product
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -1418,7 +1418,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         # TODO: use Precision goal...
         if x1 == x0:
             break
-        x0 = apply_N(x1, evaluation)
+        x0 = eval_N(x1, evaluation)
         # N required due to bug in sympy arithmetic
         count += 1
     else:
@@ -1514,7 +1514,7 @@ class FindRoot(Builtin):
     def apply(self, f, x, x0, evaluation, options):
         "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
         # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         if not isinstance(x0, Number):
             evaluation.message("FindRoot", "snum", x0)
             return
@@ -2126,8 +2126,8 @@ class NIntegrate(Builtin):
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
                 elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = apply_N(a, evaluation).value
-                    b = apply_N(b, evaluation).value
+                    a = eval_N(a, evaluation).value
+                    b = eval_N(b, evaluation).value
                     subdomain2.append([a, b])
                     coordtransform.append(None)
                 else:

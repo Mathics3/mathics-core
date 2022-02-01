@@ -9,7 +9,7 @@ Drawing Graphics
 from math import sqrt
 
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 
 from mathics.builtin.base import (
     Builtin,
@@ -209,7 +209,7 @@ class Show(Builtin):
 
         for option in options:
             if option not in ("System`ImageSize",):
-                options[option] = apply_N(options[option], evaluation)
+                options[option] = eval_N(options[option], evaluation)
 
         # The below could probably be done with graphics.filter..
         new_leaves = []
@@ -310,12 +310,10 @@ class Graphics(Builtin):
                                 inset._leaves[0], evaluation, opts
                             )
                         n_leaves = [inset] + [
-                            apply_N(leaf, evaluation) for leaf in content.leaves[1:]
+                            eval_N(leaf, evaluation) for leaf in content.leaves[1:]
                         ]
                     else:
-                        n_leaves = (
-                            apply_N(leaf, evaluation) for leaf in content.leaves
-                        )
+                        n_leaves = (eval_N(leaf, evaluation) for leaf in content.leaves)
                 else:
                     n_leaves = content.leaves
                 return Expression(head.name + self.box_suffix, *n_leaves)
@@ -323,7 +321,7 @@ class Graphics(Builtin):
 
         for option in options:
             if option not in ("System`ImageSize",):
-                options[option] = apply_N(options[option], evaluation)
+                options[option] = eval_N(options[option], evaluation)
 
         from mathics.builtin.box.graphics import GraphicsBox
         from mathics.builtin.box.graphics3d import Graphics3DBox

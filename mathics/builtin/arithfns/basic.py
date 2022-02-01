@@ -11,7 +11,7 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
@@ -570,7 +570,7 @@ class Power(BinaryOperator, _MPMathFunction):
             if isinstance(y, Number):
                 y_err = y
             else:
-                y_err = apply_N(y, evaluation)
+                y_err = eval_N(y, evaluation)
             if isinstance(y_err, Number):
                 py_y = y_err.round_to_float(permit_complex=True).real
                 if py_y > 0:

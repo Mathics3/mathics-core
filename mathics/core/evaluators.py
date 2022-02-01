@@ -24,12 +24,12 @@ from mathics.core.attributes import (
 )
 
 
-def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
+def eval_N(expression, evaluation, prec=SymbolMachinePrecision):
     """
     Equivalent to Expression("N", expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
-    result = apply_nvalues(evaluated_expression, prec, evaluation)
+    result = apply_N(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
     if isinstance(result, Number):
@@ -37,7 +37,7 @@ def apply_N(expression, evaluation, prec=SymbolMachinePrecision):
     return result.evaluate(evaluation)
 
 
-def apply_nvalues(expr, prec, evaluation):
+def apply_N(expr, prec, evaluation):
     """
     Applies Nvalues until reach a fixed point.
     """
@@ -54,7 +54,7 @@ def apply_nvalues(expr, prec, evaluation):
     if expr.get_head_name() in ("System`List", "System`Rule"):
         leaves = expr.leaves
         result = Expression(expr.head)
-        newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
+        newleaves = [apply_N(leaf, prec, evaluation) for leaf in expr.leaves]
         result._leaves = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
@@ -73,7 +73,7 @@ def apply_nvalues(expr, prec, evaluation):
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
-                result = apply_nvalues(result, prec, evaluation)
+                result = apply_N(result, prec, evaluation)
             return result
 
     if expr.is_atom():
@@ -94,11 +94,11 @@ def apply_nvalues(expr, prec, evaluation):
         else:
             eval_range = range(len(leaves))
 
-        newhead = apply_nvalues(head, prec, evaluation)
+        newhead = apply_N(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            newleaf = apply_nvalues(leaves[index], prec, evaluation)
+            newleaf = apply_N(leaves[index], prec, evaluation)
             if newleaf:
                 leaves[index] = newleaf
 

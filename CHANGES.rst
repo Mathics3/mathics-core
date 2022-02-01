@@ -32,7 +32,9 @@ Internals
 * Improved support for ``Series`` Issue #46.
 * ``Cylinder`` rendering is implemented in Asymptote.
 * `N[_,_,Method->method]` was reworked (Issue #137).
+* Ranaming of internal methods: `apply_N`->`eval_N`, `apply_nvalues`-> `apply_N` following the conventions in the rest of the code.
 
+  
 Compatibility
 +++++++++++++
 
