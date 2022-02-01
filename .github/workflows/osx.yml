@@ -26,7 +26,6 @@ jobs:
         brew install llvm@11
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
-	pip install scipy
     - name: Install Mathics with full dependencies
       run: |
         make develop-full
