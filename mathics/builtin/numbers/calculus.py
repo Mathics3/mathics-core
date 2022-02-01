@@ -50,12 +50,41 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import (
     SymbolD,
+    SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolInfix,
+    SymbolLeft,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
+    SymbolSequence,
+    SymbolSeries,
+    SymbolSeriesData,
     SymbolTimes,
     SymbolUndefined,
 )
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
+from mathics.core.rules import Pattern
+from mathics.core.number import dps
+from mathics.builtin.scoping import dynamic_scoping
+from mathics.builtin.numeric import apply_N
+
+from mathics.core.attributes import (
+    constant,
+    hold_all,
+    listable,
+    n_hold_all,
+    protected,
+    read_protected,
+)
+
+from mathics.algorithm.series import (
+    build_series,
+    series_plus_series,
+    series_times_series,
+    series_derivative,
+)
+import sympy
 
 
 IntegerZero = Integer(0)
@@ -1605,9 +1634,16 @@ class O_(Builtin):
     >> Series[1/(1-x),{x,0,2}]
      = 1 + x + x ^ 2 + O[x] ^ 3
 
+    When called alone, a `SeriesData` expression is built:
+    >> O[x] // FullForm
+     = SeriesData[x, 0, {}, 1, 1, 1]
+
     """
 
     name = "O"
+    rules = {
+        "O[x_Symbol]": "SeriesData[x, 0, {}, 1, 1, 1]",
+    }
     summary_text = "symbolic representation of a higher-order series term"
 
 
@@ -1622,7 +1658,7 @@ class Series(Builtin):
     >> Series[Exp[x], {x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
     >> % // FullForm
-     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 2, 1]
+     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 3, 1]
     Replacing the variable by a value, the series will not be evaluated as
     an expression, but as a 'SeriesData' object:
     >> s = Series[Exp[x^2],{x,0,2}]
@@ -1636,33 +1672,38 @@ class Series(Builtin):
     >> (s // Normal) /. x-> 4
      = 17
     >> Clear[s];
+    We can also expand over multiple variables
+    >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
+     = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+
     """
+
+    messages = {
+        "icm": "Series in `1` to be combined have unequal expansion points `2` and `3`.",
+        "serlim": "Series order specification `1` is not a machine-sized integer.",
+        "sspec": "Series specification `1` is not a list with three elements.",
+    }
 
     summary_text = "power series and asymptotic expansions"
 
     def apply_series(self, f, x, x0, n, evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
-        # TODO:
-        # - Asymptotic series
-        # - Series of compositions
-        vars = {
-            x.get_name(): x0,
-        }
+        return build_series(f, x, x0, n, evaluation)
 
-        data = [f.replace_vars(vars)]
-        df = f
-        for i in range(n.get_int_value()):
-            df = Expression("D", df, x).evaluate(evaluation)
-            newcoeff = df.replace_vars(vars)
-            factorial = Expression("Factorial", Integer(i + 1))
-            newcoeff = Expression(
-                SymbolTimes,
-                Expression(SymbolPower, factorial, IntegerMinusOne),
-                newcoeff,
-            ).evaluate(evaluation)
-            data.append(newcoeff)
-        data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
+    def apply_multivariate_series(self, f, varspec, evaluation):
+        """Series[f_,varspec__List]"""
+        lastvar = varspec._leaves[-1]
+        if not lastvar.has_form("List", 3):
+            return None
+        # inner = build_series(f, *(lastvar._leaves), evaluation)
+        inner = Expression(SymbolSeries, f, lastvar).evaluate(evaluation)
+        if inner:
+            if len(varspec.leaves) == 1:
+                return inner
+            remain_vars = Expression(Symbol("Sequence"), *varspec.leaves[:-1])
+            result = self.apply_multivariate_series(inner, remain_vars, evaluation)
+            return result
+        return None
 
 
 class SeriesData(Builtin):
@@ -1674,22 +1715,285 @@ class SeriesData(Builtin):
 
     TODO:
     - Implement sum, product and composition of series
+
+    Sum of two series:
+    >> Series[Cosh[x],{x,0,2}] + Series[Sinh[x],{x,0,3}]
+     = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
+    >> Series[f[x],{x,0,2}] * g[w]
+     = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
+    The product of two series on the same neighbourhood of the same variable are multiplied
+    >> Series[Exp[-a x],{x,0,2}] * Series[Exp[-b x],{x,0,2}]
+     = 1 + (-a - b) x + (a ^ 2 / 2 + a b + b ^ 2 / 2) x ^ 2 + O[x] ^ 3
+    >> D[Series[Exp[-a x],{x,0,2}],a]
+     = -x + a x ^ 2 + O[x] ^ 3
     """
 
     summary_text = "Mathics representation Power series"
+    precedence = 1000
+
+    def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
+        """SeriesData[x_,x0_,data_,nummin_Integer, nummax_Integer, den_Integer]"""
+        # This method tries to reduce the series expansion in two ways:
+        # if x===x0, evaluates the series
+        if x.sameQ(x0):
+            nummin_val = nummin.get_int_value()
+            if nummin_val > 0:
+                return Integer0
+            if nummin_val < 0:
+                return SymbolInfinity
+            if data.leaves:
+                return data.leaves[0]
+            else:
+                return Integer0
+        # if data has trailing zeros, the method tries to remove them.
+        coeffs = data._leaves
+        len_coeffs = len(coeffs)
+        # If the series is trivial, do not do anything:
+        if len_coeffs == 0:
+            return
+
+        nonzeroidx_left = 0
+        nonzeroidx_right = 0
+        while nonzeroidx_left < len_coeffs and Integer0.sameQ(coeffs[nonzeroidx_left]):
+            nonzeroidx_left = nonzeroidx_left + 1
+
+        len_coeffs = len_coeffs - nonzeroidx_left
+
+        while nonzeroidx_right < len_coeffs and Integer0.sameQ(
+            coeffs[-nonzeroidx_right - 1]
+        ):
+            nonzeroidx_right = nonzeroidx_right + 1
+
+        if nonzeroidx_left == 0 and nonzeroidx_right == 0:
+            return
+        # if the lower order coeffs vanishes, moves xmin and xmax.
+        if nonzeroidx_left:
+            nummin = Integer(nummin.get_int_value() + nonzeroidx_left)
+        if nonzeroidx_right:
+            return Expression(
+                SymbolSeriesData,
+                x,
+                x0,
+                data._leaves[nonzeroidx_left:(-nonzeroidx_right)],
+                nummin,
+                nummax,
+                den,
+            )
+        else:
+            return Expression(
+                SymbolSeriesData,
+                x,
+                x0,
+                data._leaves[nonzeroidx_left:],
+                nummin,
+                nummax,
+                den,
+            )
+
+    def apply_plus(self, x, x0, data, nummin, nummax, den, term, evaluation):
+        """Plus[SeriesData[x_, x0_, data_, nummin_Integer, nummax_Integer, den_Integer], term__]"""
+        # If the series is null, build a series with the remaining terms
+        if all(Integer0.sameQ(leaf) for leaf in data.leaves):
+            if term.get_head() is SymbolSequence:
+                term = Expression(SymbolPlus, *(term.leaves))
+            ret = build_series(
+                term,
+                x,
+                x0,
+                Integer(nummax.get_int_value() / nummax.get_int_value()),
+                evaluation,
+            )
+            return ret
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        if term.get_head() is SymbolSequence:
+            terms = term.leaves
+        else:
+            terms = [term]
+
+        # Tries to convert each term into a series around the same
+        # neighbourhood
+        incompat_series = []
+        max_exponent = Integer(int(series[2] / series[3] + 1))
+        for t in terms:
+            if Integer0.sameQ(t):
+                continue
+            # if t.get_head() is not SymbolSeriesData:
+            if t.get_head() is SymbolSeriesData:
+                y, y0 = t.leaves[0:2]
+                if y.sameQ(x):
+                    if not y0.sameQ(x0):
+                        evaluation.message("Series", "icm", x, x0, y0)
+                        incompat_series.append(t)
+                        continue
+                    else:
+                        data_y, nmin_y, nmax_y, den_y = t.leaves[2:]
+                        nmin_val = nmin_y.get_int_value()
+                        nmax_val = nmax_y.get_int_value()
+                        den_val = den_y.get_int_value()
+                        tseries = (data_y, nmin_val, nmax_val, den_val)
+                        series_new = series_plus_series(series, tseries)
+                        if series_new:
+                            series = series_new
+                            continue
+                        else:
+                            incompat_series.append(t)
+                            continue
+            # If t is not a series or is a series in a different variable,
+            # try to convert it into a series in x around x0:
+            tnew = build_series(t, x, x0, max_exponent, evaluation)
+            tseries = None
+            if tnew.get_head() is SymbolSeriesData:
+                y, y0, data_y, nmin_y, nmax_y, den_y = tnew.leaves
+                if y.sameQ(x) and y0.sameQ(x0):
+                    nmin_val = nmin_y.get_int_value()
+                    nmax_val = nmax_y.get_int_value()
+                    den_val = den_y.get_int_value()
+                    tseries = (data_y, nmin_val, nmax_val, den_val)
+
+            if tseries is None:
+                data_y = Expression(SymbolList, t)
+                tseries = (data_y, 0, max_exponent.get_int_value(), 1)
+            series_new = series_plus_series(series, tseries)
+            if series_new:
+                series = series_new
+            else:
+                incompat_series.append(t)
+
+        series_expr = Expression(
+            SymbolSeriesData, x, x0, series[0], *[Integer(u) for u in series[1:]]
+        )
+        if incompat_series:
+            series_expr = Expression(SymbolPlus, *incompat_series, series_expr)
+        return series_expr
+
+    def apply_times(self, x, x0, data, nummin, nummax, den, coeff, evaluation):
+        """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        x_pattern = Pattern.create(x)
+        incompat_series = []
+        max_exponent = Integer(int(series[2] / series[3] + 1))
+        if coeff.get_head() is SymbolSequence:
+            factors = coeff.leaves
+        else:
+            factors = [coeff]
+
+        for factor in factors:
+            if Integer0.sameQ(factor):
+                return Integer0
+            if Integer1.sameQ(factor):
+                continue
+            if factor.is_free(x_pattern, evaluation):
+                newdata = Expression(
+                    SymbolList, *[factor * leaf for leaf in data.leaves]
+                )
+                series = (newdata, *series[1:])
+                continue
+            if factor.get_head() is SymbolSeriesData:
+                y, y0 = factor.leaves[0:2]
+                if y.sameQ(x):
+                    if not y0.sameQ(x0):
+                        evaluation.message("Series", "icm", x, x0, y0)
+                        incompat_series.append(factor)
+                        continue
+                    else:
+                        data_y, nmin_y, nmax_y, den_y = factor.leaves[2:]
+                        nmin_val = nmin_y.get_int_value()
+                        nmax_val = nmax_y.get_int_value()
+                        den_val = den_y.get_int_value()
+                        tseries = (data_y, nmin_val, nmax_val, den_val)
+                        series_new = series_times_series(series, tseries)
+                        if series_new:
+                            series = series_new
+                            continue
+                        else:
+                            incompat_series.append(factor)
+                            continue
+
+            # If t is not a series or is a series in a different variable,
+            # try to convert it into a series in x around x0:
+            factor_new = build_series(factor, x, x0, max_exponent, evaluation)
+            fseries = None
+            if factor_new.get_head() is SymbolSeriesData:
+                y, y0, data_y, nmin_y, nmax_y, den_y = factor_new.leaves
+                if y.sameQ(x) and y0.sameQ(x0):
+                    nmin_val = nmin_y.get_int_value()
+                    nmax_val = nmax_y.get_int_value()
+                    den_val = den_y.get_int_value()
+                    fseries = (data_y, nmin_val, nmax_val, den_val)
+
+            if fseries is None:
+                data_y = Expression(SymbolList, factor)
+                fseries = (data_y, 0, max_exponent.get_int_value(), 1)
+            series_new = series_times_series(series, fseries)
+            if series_new:
+                series = series_new
+            else:
+                incompat_series.append(factor)
+
+        series_expr = Expression(
+            SymbolSeriesData, x, x0, series[0], *[Integer(u) for u in series[1:]]
+        )
+        if incompat_series:
+            series_expr = Expression(SymbolTimes, *incompat_series, series_expr)
+        return series_expr
+
+    def apply_derivative(self, x, x0, data, nummin, nummax, den, y, evaluation):
+        """D[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], y_]"""
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        if isinstance(y, Symbol):
+            order = 1
+        elif y.has_form("List", 2):
+            order = y.leaves[1].get_int_value()
+            y = y.leaves[0]
+        else:
+            return
+        while order:
+            series = series_derivative(series, x, x0, y, evaluation)
+            if series is None:
+                return Integer0
+            order = order - 1
+        result = Expression(
+            SymbolSeriesData,
+            x,
+            x0,
+            series[0],
+            Integer(series[1]),
+            Integer(series[2]),
+            Integer(series[3]),
+        )
+        return result
 
     def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
+        new_data = []
+        for leaf in data.leaves:
+            if leaf.has_form("SeriesData", 6):
+                leaf = self.apply_normal(*(leaf.leaves), evaluation)
+                if leaf is None:
+                    return
+            new_data.extend([leaf])
+        data = new_data
         return Expression(
             SymbolPlus,
-            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data.leaves)],
+            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data)],
         )
 
-    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
-        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        form = form.get_name()
+    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
         if x0.is_zero:
             variable = x
         else:
@@ -1698,7 +2002,7 @@ class SeriesData(Builtin):
             )
         den = den.get_int_value()
         nmin = nmin.get_int_value()
-        nmax = nmax.get_int_value() + 1
+        nmax = nmax.get_int_value()
         if den != 1:
             powers = [Rational(i, den) for i in range(nmin, nmax)]
             powers = powers + [Rational(nmax, den)]
@@ -1708,7 +2012,9 @@ class SeriesData(Builtin):
 
         expansion = []
         for i, leaf in enumerate(data.leaves):
-            if leaf.is_numeric(evaluation) and leaf.is_zero:
+            if leaf.get_head() is Symbol("SeriesData"):
+                leaf = self.pre_makeboxes(*(leaf.leaves), form, evaluation)
+            elif leaf.is_numeric(evaluation) and leaf.is_zero:
                 continue
             if powers[i].is_zero:
                 expansion.append(leaf)
@@ -1726,12 +2032,19 @@ class SeriesData(Builtin):
                         SymbolTimes, leaf, Expression(SymbolPower, variable, powers[i])
                     )
             expansion.append(term)
-        expansion = expansion + [
-            Expression(SymbolPower, Expression("O", variable), powers[-1])
-        ]
-        # expansion = [ex.format(form) for ex in expansion]
-        expansion = Expression(SymbolPlus, *expansion)
-        return expansion.format(evaluation, form)
+        expansion = Expression(
+            SymbolList,
+            Expression(SymbolPlus, *expansion),
+            Expression(SymbolPower, Expression("O", variable), powers[-1]),
+        )
+        return Expression(SymbolInfix, expansion, "+", 300, SymbolLeft)
+
+    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
+        return expansion.format(evaluation, form.get_name())
 
 
 def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):

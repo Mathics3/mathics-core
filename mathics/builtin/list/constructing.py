@@ -146,6 +146,14 @@ class Normal(Builtin):
 
     summary_text = "converts objects to normal expressions"
 
+    def apply_general(self, expr, evaluation):
+        "Normal[expr_]"
+        if expr.is_atom():
+            return
+        return Expression(
+            expr.get_head(), *[Expression("Normal", leaf) for leaf in expr.leaves]
+        )
+
 
 class Range(Builtin):
     """
