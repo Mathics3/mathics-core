@@ -21,8 +21,6 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
-    Integer2,
-    Integer3,
     Integer10,
     Number,
     Rational,
@@ -48,7 +46,6 @@ from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     BaseExpression,
     Symbol,
-    SymbolSequence,
     SymbolFalse,
     SymbolList,
     SymbolTrue,
@@ -56,12 +53,9 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
-    SymbolD,
-    SymbolInfinity,
-    SymbolLess,
-    SymbolLessEqual,
+    SymbolIntegrate,
     SymbolLog,
-    SymbolNone,
+    SymbolNIntegrate,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -69,9 +63,14 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 
+from mathics.algorithm.integrators import (
+    apply_D_to_Integral,
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+)
 
 IntegerMinusOne = Integer(-1)
-SymbolIntegrate = Symbol("Integrate")
 
 
 class D(SympyFunction):
@@ -716,92 +715,11 @@ class Integrate(SympyFunction):
             result = Expression("Simplify", result, assuming)
         return result
 
-    # TODO: The following methods are exactly the same that in NIntegrate. DRY it!
-    @staticmethod
-    def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
-            intervals = []
-            for leaf in interval.leaves:
-                inner_interval = Integrate.decompose_domain(leaf, evaluation)
-                if inner_interval:
-                    intervals.append(inner_interval)
-                else:
-                    evaluation.message("ilim", leaf)
-                    return None
-            return intervals
-
-        if interval.has_form("System`List", 3, None):
-            intervals = []
-            intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
-                evaluation.message("ilim", interval)
-                return None
-            boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-                intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
-                )
-            for i in range(len(boundaries) - 1):
-                intervals.append((boundaries[i], boundaries[i + 1]))
-            if len(intervals) > 0:
-                return (intvar, intervals)
-
-        evaluation.message("ilim", interval)
-        return None
-
     def apply_D(self, func, domain, var, evaluation, options):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        return apply_D_to_Integral(
+            func, domain, var, evaluation, options, SymbolIntegrate
         )
-        # if the integration is along several variables, take the integration of the inner
-        # variables as func.
-        if domain._head is SymbolSequence:
-            func = Expression(
-                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
-            )
-            domain = domain._leaves[-1]
-
-        terms = []
-        # Evaluates the derivative regarding the integrand:
-        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
-        if integrand:
-            # TODO: put back options is they are not the default...
-            term = Expression(Symbol("Integrate"), integrand, domain)
-            terms = [term]
-
-        # Run over the intervals, and evaluate the derivative
-        # regarding the integration limits.
-        list_domain = self.decompose_domain(domain, evaluation)
-        if not list_domain:
-            return
-
-        ivar, limits = list_domain
-        for limit in limits:
-            for k, lim in enumerate(limit):
-                jac = Expression(SymbolD, lim, var)
-                ev_jac = jac.evaluate(evaluation)
-                if ev_jac:
-                    jac = ev_jac
-                if isinstance(jac, Number) and jac.is_zero:
-                    continue
-                f = func.replace_vars({ivar.get_name(): lim})
-                if k == 1:
-                    f = Expression(SymbolTimes, f, jac)
-                else:
-                    f = Expression(SymbolTimes, Integer(-1), f, jac)
-                eval_f = f.evaluate(evaluation)
-                if eval_f:
-                    f = eval_f
-                if isinstance(f, Number) and f.is_zero:
-                    continue
-                terms.append(f)
-
-        if len(terms) == 0:
-            return Integer0
-        if len(terms) == 1:
-            return terms[0]
-        return Expression(SymbolPlus, *terms)
 
 
 class Root(SympyFunction):
@@ -1320,322 +1238,6 @@ class DiscreteLimit(Builtin):
             pass
 
 
-def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
-    region = opts.get("$$Region", None)
-    if not type(region) is list:
-        if x0.is_zero:
-            region = (Real(-1), Real(1))
-        else:
-            xmax = 2 * x0.to_python()
-            xmin = -2 * x0.to_python()
-            if xmin > xmax:
-                region = (Real(xmax), Real(xmin))
-            else:
-                region = (Real(xmin), Real(xmax))
-
-    maxit = opts["System`MaxIterations"]
-    x_name = x.get_name()
-    if maxit is SymbolAutomatic:
-        maxit = 100
-    else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
-
-    x0 = from_python(region[0])
-    x1 = from_python(region[1])
-    f0 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x0}, evaluation)
-    f1 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation)
-    if not isinstance(f0, Number):
-        return x0, False
-    if not isinstance(f1, Number):
-        return x0, False
-    f0 = f0.to_python(n_evaluation=True)
-    f1 = f1.to_python(n_evaluation=True)
-    count = 0
-    while count < maxit:
-        if f0 == f1:
-            x1 = Expression(
-                "Plus",
-                x0,
-                Expression(
-                    "Times",
-                    Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
-                ),
-            )
-            x1 = x1.evaluate(evaluation)
-            f1 = dynamic_scoping(
-                lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation
-            )
-            if not isinstance(f1, Number):
-                return x0, False
-            f1 = f1.to_python(n_evaluation=True)
-            continue
-
-        inv_deltaf = from_python(1.0 / (f1 - f0))
-        num = Expression(
-            "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
-        )
-        x2 = Expression("Times", num, inv_deltaf)
-        x2 = x2.evaluate(evaluation)
-        f2 = dynamic_scoping(
-            lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
-        )
-        if not isinstance(f2, Number):
-            return x0, False
-        f2 = f2.to_python(n_evaluation=True)
-        f1, f0 = f2, f1
-        x1, x0 = x2, x1
-        if x1 == x0 or abs(f2) == 0:
-            break
-        count = count + 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-        return x0, False
-    return x0, True
-
-
-def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
-    """
-    Look for a root of a f: R->R using the Newton's method.
-    """
-    absf = abs(f)
-    df = opts["System`Jacobian"]
-    x_name = x.get_name()
-
-    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
-    step_monitor = opts.get("System`StepMonitor", None)
-    if step_monitor is SymbolNone:
-        step_monitor = None
-    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
-    if evaluation_monitor is SymbolNone:
-        evaluation_monitor = None
-
-    def decreasing(val1, val2):
-        """
-        Check if val2 has a smaller absolute value than val1
-        """
-        if not (val1.is_numeric() and val2.is_numeric()):
-            return False
-        if val2.is_zero:
-            return True
-        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
-        if not res.is_numeric():
-            return False
-        return res.to_python() < 0
-
-    def new_seed():
-        """
-        looks for a new starting point, based on how close we are from the target.
-        """
-        x1 = apply_N(Integer2 * x0, evaluation)
-        x2 = apply_N(x0 / Integer3, evaluation)
-        x3 = apply_N(x0 - minus / Integer2, evaluation)
-        x4 = apply_N(x0 + minus / Integer3, evaluation)
-        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
-        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
-        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
-        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
-        if decreasing(absf1, absf2):
-            x1, absf1 = x2, absf2
-        if decreasing(absf1, absf3):
-            x1, absf1 = x3, absf3
-        if decreasing(absf1, absf4):
-            x1, absf1 = x4, absf4
-        return x1, absf1
-
-    def sub(evaluation):
-        d_value = apply_N(df, evaluation)
-        if d_value == Integer(0):
-            return None
-        result = apply_N(f / d_value, evaluation)
-        if evaluation_monitor:
-            dynamic_scoping(
-                lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
-            )
-        return result
-
-    currval = absf.replace_vars({x_name: x0}).evaluate(evaluation)
-    count = 0
-    while count < maxit:
-        if step_monitor:
-            dynamic_scoping(
-                lambda ev: step_monitor.evaluate(ev), {x_name: x0}, evaluation
-            )
-        minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
-        if minus is None:
-            evaluation.message("FindRoot", "dsing", x, x0)
-            return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
-        if not isinstance(x1, Number):
-            evaluation.message("FindRoot", "nnum", x, x0)
-            return x0, False
-
-        # Check convergence:
-        new_currval = absf.replace_vars({x_name: x1}).evaluate(evaluation)
-        if is_zero(new_currval, acc_goal, prec_goal, evaluation):
-            return x1, True
-
-        # This step tries to ensure that the new step goes forward to the convergence.
-        # If not, tries to restart in a another point closer to x0 than x1.
-        if decreasing(new_currval, currval):
-            x0, currval = new_seed()
-            count = count + 1
-            continue
-        else:
-            currval = new_currval
-            x0 = apply_N(x1, evaluation)
-            # N required due to bug in sympy arithmetic
-            count += 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-    return x0, True
-
-
-def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
-    is_find_maximum = opts.get("_isfindmaximum", False)
-    symbol_name = "FindMaximum" if is_find_maximum else "FindMinimum"
-    if is_find_maximum:
-        f = -f
-        # TODO: revert jacobian if given...
-
-    x_name = x.name
-    maxit = opts["System`MaxIterations"]
-    step_monitor = opts.get("System`StepMonitor", None)
-    if step_monitor is SymbolNone:
-        step_monitor = None
-    evaluation_monitor = opts.get("System`EvaluationMonitor", None)
-    if evaluation_monitor is SymbolNone:
-        evaluation_monitor = None
-
-    acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
-    curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
-
-    # build the quadratic form:
-    eps = determine_epsilon(x0, opts, evaluation)
-    if not isinstance(curr_val, Number):
-        evaluation.message(symbol_name, "nnum", x, x0)
-        if is_find_maximum:
-            return -x0, False
-        else:
-            return x0, False
-    d1 = dynamic_scoping(
-        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
-    )
-    val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
-    if not isinstance(val_d1, Number):
-        d1 = None
-        d2 = None
-        f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-        f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-        val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
-        val_d2 = apply_N(
-            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
-        )
-    else:
-        d2 = dynamic_scoping(
-            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
-        )
-        val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
-        if not isinstance(val_d2, Number):
-            d2 = None
-            df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-            df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
-            val_d2 = (df2val - df1val) / (Integer2 * eps)
-
-    def reset_values(x0):
-        x_try = [
-            apply_N(x0 / Integer3, evaluation),
-            apply_N(x0 * Integer2, evaluation),
-            apply_N(x0 - offset / Integer2, evaluation),
-        ]
-        vals = [(u, apply_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
-        vals = [v for v in vals if isinstance(v[1], Number)]
-        v0 = vals[0]
-        for v in vals:
-            if Expression(SymbolLess, v[1], v0[1]).evaluate(evaluation) is SymbolTrue:
-                v0 = v
-        return v0
-
-    def reevaluate_coeffs():
-        """reevaluates val_d1 and val_d2"""
-        if d1:
-            val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
-            if d2:
-                val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
-            else:
-                df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-                df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
-                val_d2 = (df2val - df1val) / (Integer2 * eps)
-        else:
-            f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-            f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-            val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
-            val_d2 = apply_N(
-                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
-            )
-        return (val_d1, val_d2)
-
-    # Main loop
-    count = 0
-
-    while count < maxit:
-        if step_monitor:
-            step_monitor.replace_vars({x_name: x0}).evaluate(evaluation)
-
-        if val_d1.is_zero:
-            if is_find_maximum:
-                evaluation.message(
-                    symbol_name, "fmgz", String("maximum"), String("minimum")
-                )
-            else:
-                evaluation.message(
-                    symbol_name, "fmgz", String("minimum"), String("maximum")
-                )
-
-            if is_find_maximum:
-                return (x0, -curr_val), True
-            else:
-                return (x0, curr_val), True
-        if val_d2.is_zero:
-            val_d2 = Integer1
-
-        offset = apply_N(val_d1 / abs(val_d2), evaluation)
-        x1 = apply_N(x0 - offset, evaluation)
-        new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
-        if (
-            Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
-            is SymbolTrue
-        ):
-            if is_zero(offset, acc_goal, prec_goal, evaluation):
-                if is_find_maximum:
-                    return (x1, -curr_val), True
-                else:
-                    return (x1, curr_val), True
-            x0 = x1
-            curr_val = new_val
-        else:
-            if is_zero(offset / Integer2, acc_goal, prec_goal, evaluation):
-                if is_find_maximum:
-                    return (x0, -curr_val), True
-                else:
-                    return (x0, curr_val), True
-            x0, curr_val = reset_values(x0)
-        val_d1, val_d2 = reevaluate_coeffs()
-        count = count + 1
-    else:
-        evaluation.message(symbol_name, "maxiter")
-    if is_find_maximum:
-        return (x0, -curr_val), False
-    else:
-        return (x0, curr_val), False
-
-
 class _BaseFinder(Builtin):
     """
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
@@ -1678,6 +1280,10 @@ class _BaseFinder(Builtin):
         # First, determine x0 and x
 
         x0 = apply_N(x0, evaluation)
+        # deal with non 1D problems.
+        if isinstance(x0, Expression) and x0._head is SymbolList:
+            options["_x0"] = x0._leaves
+            x0 = x0._leaves[0]
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
             return
@@ -1829,11 +1435,24 @@ class FindRoot(_BaseFinder):
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
     }
 
-    methods = {
-        "Newton": find_root_newton,
-        "Automatic": find_root_newton,
-        "Secant": find_root_secant,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_findroot_methods
+
+        methods.update(native_findroot_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import (
+            scipy_findroot_methods,
+            update_findroot_messages,
+        )
+
+        methods.update(scipy_findroot_methods)
+        messages = _BaseFinder.messages.copy()
+        update_findroot_messages(messages)
+    except Exception:
+        pass
 
 
 class FindMinimum(_BaseFinder):
@@ -1864,10 +1483,19 @@ class FindMinimum(_BaseFinder):
      =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
     """
 
-    methods = {
-        "Automatic": find_minimum_newton1d,
-        "Newton": find_minimum_newton1d,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
 
 
 class FindMaximum(_BaseFinder):
@@ -1897,10 +1525,19 @@ class FindMaximum(_BaseFinder):
      = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
     """
 
-    methods = {
-        "Automatic": find_minimum_newton1d,
-        "Newton": find_minimum_newton1d,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
 
 
 class O_(Builtin):
@@ -2043,155 +1680,6 @@ class SeriesData(Builtin):
         return expansion.format(evaluation, form)
 
 
-def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
-    """
-    This function provides a proxy for scipy.integrate
-    functions, adapting the parameters.
-    """
-
-    def _scipy_proxy_func_filter(fun, a, b, **opts):
-        native_opts = {}
-        if mandatory:
-            native_opts.update(mandatory)
-        for opt, val in opts.items():
-            native_opt = options_map.get(opt, None)
-            if native_opt:
-                if native_opt[1]:
-                    val = native_opt[1](val)
-                native_opts[native_opt[0]] = val
-        return adapt_func(integrator(fun, a, b, **native_opts))
-
-    def _scipy_proxy_func(fun, a, b, **opts):
-        native_opts = {}
-        if mandatory:
-            native_opts.update(mandatory)
-        for opt, val in opts.items():
-            native_opt = options_map.get(opt, None)
-            if native_opt:
-                if native_opt[1]:
-                    val = native_opt[1](val)
-                native_opts[native_opt[0]] = val
-        return integrator(fun, a, b, **native_opts)
-
-    return _scipy_proxy_func_filter if adapt_func else _scipy_proxy_func
-
-
-def _internal_adaptative_simpsons_rule(f, a, b, **opts):
-    """
-    1D adaptative Simpson's rule integrator
-    Adapted from https://en.wikipedia.org/wiki/Adaptive_Simpson%27s_method
-       by @mmatera
-
-    TODO: handle weak divergences
-    """
-    wsr = 1.0 / 6.0
-
-    tol = opts.get("tol")
-    if not tol:
-        tol = 1.0e-10
-
-    maxrec = opts.get("maxrec")
-    if not maxrec:
-        maxrec = 150
-
-    def _quad_simpsons_mem(f, a, fa, b, fb):
-        """Evaluates the Simpson's Rule, also returning m and f(m) to reuse"""
-        m = 0.5 * (a + b)
-        try:
-            fm = f(m)
-        except ZeroDivisionError:
-            fm = None
-
-        if fm is None or np.isinf(fm):
-            m = m + 1e-10
-            fm = f(m)
-        return (m, fm, wsr * abs(b - a) * (fa + 4.0 * fm + fb))
-
-    def _quad_asr(f, a, fa, b, fb, eps, whole, m, fm, maxrec):
-        """
-        Efficient recursive implementation of adaptive Simpson's rule.
-        Function values at the start, middle, end of the intervals
-        are retained.
-        """
-        maxrec = maxrec - 1
-        try:
-            left = _quad_simpsons_mem(f, a, fa, m, fm)
-            lm, flm, left = left
-            right = _quad_simpsons_mem(f, m, fm, b, fb)
-            rm, frm, right = right
-
-            delta = left + right - whole
-            err = abs(delta)
-            if err <= 15 * eps or maxrec == 0:
-                return (left + right + delta / 15, err)
-            left = _quad_asr(f, a, fa, m, fm, 0.5 * eps, left, lm, flm, maxrec)
-            right = _quad_asr(f, m, fm, b, fb, 0.5 * eps, right, rm, frm, maxrec)
-            return (left[0] + right[0], left[1] + right[1])
-        except Exception:
-            raise
-
-    def ensure_evaluation(f, x):
-        try:
-            val = f(x)
-        except ZeroDivisionError:
-            return None
-        try:
-            if np.isinf(val):
-                return None
-        except TypeError:
-            return None
-        return val
-
-    invert_interval = False
-    if a > b:
-        b, a, invert_interval = a, b, True
-
-    fa, fb = ensure_evaluation(f, a), ensure_evaluation(f, b)
-    if fa is None:
-        x = 10.0 * machine_epsilon if a == 0 else a * (1.0 + 10.0 * machine_epsilon)
-        fa = ensure_evaluation(f, x)
-        if fa is None:
-            raise Exception(f"Function undefined around {a}. Cannot integrate")
-    if fb is None:
-        x = -10.0 * machine_epsilon if b == 0 else b * (1.0 - 10.0 * machine_epsilon)
-        fb = ensure_evaluation(f, x)
-        if fb is None:
-            raise Exception(f"Function undefined around {b}. Cannot integrate")
-
-    m, fm, whole = _quad_simpsons_mem(f, a, fa, b, fb)
-    if invert_interval:
-        return -_quad_asr(f, a, fa, b, fb, tol, whole, m, fm, maxrec)
-    else:
-        return _quad_asr(f, a, fa, b, fb, tol, whole, m, fm, maxrec)
-
-
-def _fubini(func, ranges, **opts):
-    if not ranges:
-        return 0.0
-    a, b = ranges[0]
-    integrator = opts["integrator"]
-    tol = opts.get("tol")
-    if tol is None:
-        opts["tol"] = 1.0e-10
-        tol = 1.0e-10
-
-    if len(ranges) > 1:
-
-        def subintegral(*u):
-            def ff(*z):
-                return func(*(u + z))
-
-            val = _fubini(ff, ranges[1:], **opts)[0]
-            return val
-
-        opts["tol"] = 4.0 * tol
-        val = integrator(subintegral, a, b, **opts)
-        return val
-    else:
-        val = integrator(func, a, b, **opts)
-        return val
-
-
 class NIntegrate(Builtin):
     """
     <dl>
@@ -2256,82 +1744,38 @@ class NIntegrate(Builtin):
         "Automatic": (None, False),
     }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.methods["Internal"] = (_internal_adaptative_simpsons_rule, False)
-        try:
-            from scipy.integrate import romberg, quad, nquad
-
-            self.methods["NQuadrature"] = (
-                _scipy_interface(
-                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
-                ),
-                True,
-            )
-            self.methods["Quadrature"] = (
-                _scipy_interface(
-                    quad,
-                    {
-                        "tol": ("epsabs", None),
-                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
-                    },
-                    {"full_output": 1},
-                    lambda res: (res[0], res[1]),
-                ),
-                False,
-            )
-            self.methods["Romberg"] = (
-                _scipy_interface(
-                    romberg,
-                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
-                    None,
-                    lambda x: (x, np.nan),
-                ),
-                False,
-            )
-            self.methods["Automatic"] = self.methods["Quadrature"]
-        except Exception:
-            self.methods["Automatic"] = self.methods["Internal"]
-            self.methods["Simpson"] = self.methods["Internal"]
-
-        self.messages["bdmtd"] = (
-            "The Method option should be a "
-            + "built-in method name in {`"
-            + "`, `".join(list(self.methods))
-            + "`}. Using `Automatic`"
+    try:
+        from mathics.algorithm.integrators import (
+            integrator_methods,
+            integrator_messages,
         )
 
-    @staticmethod
-    def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
-            intervals = []
-            for leaf in interval.leaves:
-                inner_interval = NIntegrate.decompose_domain(leaf, evaluation)
-                if inner_interval:
-                    intervals.append(inner_interval)
-                else:
-                    evaluation.message("ilim", leaf)
-                    return None
-            return intervals
+        methods.update(integrator_methods)
+        messages.update(integrator_messages)
+    except Exception:
+        pass
 
-        if interval.has_form("System`List", 3, None):
-            intervals = []
-            intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
-                evaluation.message("ilim", interval)
-                return None
-            boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-                intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
-                )
-            for i in range(len(boundaries) - 1):
-                intervals.append((boundaries[i], boundaries[i + 1]))
-            if len(intervals) > 0:
-                return (intvar, intervals)
+    try:
+        from mathics.builtin.scipy_utils.integrators import (
+            scipy_nintegrate_methods,
+            scipy_nintegrate_messages,
+        )
 
-        evaluation.message("ilim", interval)
-        return None
+        methods.update(scipy_nintegrate_methods)
+        messages.update(scipy_nintegrate_messages)
+    except Exception as e:
+        print(e)
+        print("scipy integrators was not loaded.")
+        pass
+
+    methods.update(
+        {
+            "bdmtd": "The Method option should be a "
+            + "built-in method name in {`"
+            + "`, `".join(list(methods))
+            + "`}. Using `Automatic`"
+        }
+    )
 
     def apply_with_func_domain(self, func, domain, evaluation, options):
         "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
@@ -2364,7 +1808,7 @@ class NIntegrate(Builtin):
         else:
             is_multidimensional = False
 
-        domain = self.decompose_domain(domain, evaluation)
+        domain = decompose_domain(domain, evaluation)
         if not domain:
             return
         if not isinstance(domain, list):
@@ -2458,7 +1902,6 @@ class NIntegrate(Builtin):
                         jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
                     )
                     val_jac = np.prod(jac_factors)
-                    print("val_jac:", val_jac)
                     return punctual_value * val_jac
 
                 func2 = func2_
@@ -2506,56 +1949,9 @@ class NIntegrate(Builtin):
 
     def apply_D(self, func, domain, var, evaluation, options):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        return apply_D_to_Integral(
+            func, domain, var, evaluation, options, SymbolNIntegrate
         )
-        # if the integration is along several variables, take the integration of the inner
-        # variables as func.
-        if domain._head is SymbolSequence:
-            func = Expression(
-                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
-            )
-            domain = domain._leaves[-1]
-
-        terms = []
-        # Evaluates the derivative regarding the integrand:
-        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
-        if integrand:
-            term = Expression(Symbol("NIntegrate"), integrand, domain, *options)
-            terms = [term]
-
-        # Run over the intervals, and evaluate the derivative
-        # regarding the integration limits.
-        list_domain = self.decompose_domain(domain, evaluation)
-        if not list_domain:
-            return
-
-        ivar, limits = list_domain
-        for limit in limits:
-            for k, lim in enumerate(limit):
-                jac = Expression(SymbolD, lim, var)
-                ev_jac = jac.evaluate(evaluation)
-                if ev_jac:
-                    jac = ev_jac
-                if isinstance(jac, Number) and jac.is_zero:
-                    continue
-                f = func.replace_vars({ivar.get_name(): lim})
-                if k == 1:
-                    f = Expression(SymbolTimes, f, jac)
-                else:
-                    f = Expression(SymbolTimes, Integer(-1), f, jac)
-                eval_f = f.evaluate(evaluation)
-                if eval_f:
-                    f = eval_f
-                if isinstance(f, Number) and f.is_zero:
-                    continue
-                terms.append(f)
-
-        if len(terms) == 0:
-            return Integer0
-        if len(terms) == 1:
-            return terms[0]
-        return Expression(SymbolPlus, *terms)
 
 
 # Auxiliary routines. Maybe should be moved to another module.
@@ -2585,60 +1981,3 @@ def is_zero(
     threeshold_expr = Expression(SymbolLog, eps_expr)
     threeshold: Real = apply_N(threeshold_expr, evaluation)
     return threeshold.to_python() > 0
-
-
-def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
-    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
-    acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
-    eps: Real = Real(1e-10)
-    if not (acc_goal or prec_goal):
-        return eps
-    eps = apply_N(
-        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
-    )
-    if acc_goal:
-        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
-    return eps
-
-
-def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation"):
-    """
-    Looks at an opts dictionary and tries to determine the numeric values of
-    Accuracy and Precision goals. If not available, returns None.
-    """
-    # comment @mmatera: I fix the default value for Accuracy
-    # and Precision goals to 12 because it ensures that
-    # the results of the tests coincides with WMA upto
-    # 6 digits. In any case, probably the default value should be
-    # determined inside the methods that implements the specific
-    # solvers.
-
-    def to_real_or_none(value) -> Optional[Real]:
-        if value:
-            value = apply_N(value, evaluation)
-        if value is SymbolAutomatic:
-            value = Real(12.0)
-        elif value is SymbolInfinity:
-            value = None
-        elif not isinstance(value, Number):
-            value = None
-        return value
-
-    def to_integer_or_none(value) -> Optional[Integer]:
-        if value:
-            value = apply_N(value, evaluation)
-        if value is SymbolAutomatic:
-            value = Integer(100)
-        elif value is SymbolInfinity:
-            value = None
-        elif not isinstance(value, Number):
-            value = None
-        return value
-
-    acc_goal = opts.get("System`AccuracyGoal", None)
-    acc_goal = to_real_or_none(acc_goal)
-    prec_goal = opts.get("System`PrecisionGoal", None)
-    prec_goal = to_real_or_none(prec_goal)
-    max_it = opts.get("System`MaxIteration")
-    max_it = to_integer_or_none(max_it)
-    return acc_goal, prec_goal, max_it

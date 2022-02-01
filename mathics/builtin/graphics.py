@@ -47,7 +47,9 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.core.systemsymbols import (
+    SymbolMakeBoxes,
+)
 
 from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_bezier

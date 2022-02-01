@@ -42,7 +42,9 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+)
 
 from mathics.core.number import dps
 from mathics.core.streams import (

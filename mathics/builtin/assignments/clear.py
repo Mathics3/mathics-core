@@ -14,7 +14,9 @@ from mathics.core.symbols import (
     system_symbols,
 )
 
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+)
 
 from mathics.core.atoms import String
 

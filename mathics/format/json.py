@@ -5,7 +5,9 @@ Format a Mathics object as JSON data
 
 from mathics.builtin.graphics import PointSize
 
-from mathics.builtin.drawing.graphics3d import Graphics3DElements
+from mathics.builtin.drawing.graphics3d import (
+    Graphics3DElements,
+)
 
 from mathics.builtin.box.graphics3d import (
     Arrow3DBox,
