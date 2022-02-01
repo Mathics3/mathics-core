@@ -5,19 +5,20 @@ New Builtins
 ============
 * Support for ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
-* ``$Echo`` (Issue #42)
+* ``FindRoot`` was improved for supporting numerical derivatives (issue 67), as well as the use of scipy libraries when are available.
+* ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
+* ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
+* ``$Echo`` (Issue #42).
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-
-
 
   
 Internals
 =========
+* `NIntegrate` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
-* Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * To numerify expressions, the function ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function
