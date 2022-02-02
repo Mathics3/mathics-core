@@ -240,8 +240,8 @@ class FlowControlTest(CompileTest):
             Expression(
                 "If",
                 Symbol("x"),
-                Expression("Sin", Symbol("y")),
-                Expression("Cos", Symbol("y")),
+                Expression(SymbolSin, Symbol("y")),
+                Expression(SymbolCos, Symbol("y")),
             ),
         )
         args = [CompileArg("System`x", int_type), CompileArg("System`y", real_type)]

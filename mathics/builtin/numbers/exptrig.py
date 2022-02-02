@@ -23,6 +23,7 @@ from mathics.core.atoms import (
     Integer0,
 )
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolCos, SymbolSin
 
 from mathics.builtin.arithmetic import _MPMathFunction
 
@@ -49,8 +50,8 @@ class Fold(object):
             sin=mpmath.sin,
         ),
         SYMBOLIC: ComputationFunctions(
-            cos=lambda x: Expression("Cos", x),
-            sin=lambda x: Expression("Sin", x),
+            cos=lambda x: Expression(SymbolCos, x),
+            sin=lambda x: Expression(SymbolSin, x),
         ),
     }
 
@@ -796,7 +797,7 @@ class Csc(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Sin", expr.leaves[0]), Integer(-1)
+                "Power", Expression(SymbolSin, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
@@ -1075,7 +1076,7 @@ class Sec(_MPMathFunction):
     def to_sympy(self, expr, **kwargs):
         if len(expr.leaves) == 1:
             return Expression(
-                "Power", Expression("Cos", expr.leaves[0]), Integer(-1)
+                "Power", Expression(SymbolCos, expr.leaves[0]), Integer(-1)
             ).to_sympy()
 
 
