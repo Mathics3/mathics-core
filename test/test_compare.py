@@ -15,6 +15,9 @@ import pytest
         # Integer and MachineReal
         ("1", "1.", "False"),
         ("1.", "1", "False"),
+        # Rational and MachineReal
+        ("2./9.", "2/9", "False"),
+        ("2/9", "2./9.", "False"),
         # Integer and PrecisionReal
         ("1", "1.`3", "False"),
         ("1.`3", "1", "False"),
