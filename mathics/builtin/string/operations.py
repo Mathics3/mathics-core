@@ -20,7 +20,9 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolByteArray
 from mathics.core.atoms import (
+    ByteArrayAtom,
     Integer,
     Integer1,
     String,
@@ -127,7 +129,7 @@ class Hash(Builtin):
         if py_format == "DecimalString":
             return String(str(res))
         elif py_format == "ByteArray":
-            return from_python(bytearray(res))
+            return Expression(SymbolByteArray, ByteArrayAtom(arg))
         return Integer(res)
 
     def apply(self, expr, hashtype, outformat, evaluation):
