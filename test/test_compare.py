@@ -1,6 +1,41 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
+from .helper import check_evaluation, session
 import pytest
+
+
+# SameQ test
+@pytest.mark.parametrize(
+    ("str_lhs", "str_rhs", "str_expected"),
+    [  # Symbol and symbol
+        ("A", "B", "False"),
+        ("A", "A", "True"),
+        # Symbol and Integer
+        ("A", "1", "False"),
+        ("1", "A", "False"),
+        # Integer and MachineReal
+        ("1", "1.", "False"),
+        ("1.", "1", "False"),
+        # Integer and PrecisionReal
+        ("1", "1.`3", "False"),
+        ("1.`3", "1", "False"),
+        # MachineReal and PrecisionReal
+        ("1.", "1.`3", "True"),
+        ("1.`3", "1.", "True"),
+        ("2./9.", ".2222222222222222`16", "True"),
+        (".2222222222222222`16", "2./9.", "True"),
+        # PrecisionReal and PrecisionReal
+        (".222222`5", "N[2/9,4]", "True"),
+        ("N[2/9,4]", ".222222`5", "True"),
+        ("N[2/9,10]", ".222222`15", "False"),
+        ("N[2/9,10]", ".222222222`15", "False"),
+        ("N[2/9,3]", ".222222`15", "False"),
+    ],
+)
+def test_sameq(str_lhs, str_rhs, str_expected):
+    expr = str_lhs + " === " + str_rhs
+    print(expr)
+    print(session.evaluate(expr))
+    check_evaluation(expr, str_expected, to_string_expr=True, to_string_expected=True)
 
 
 #  The following tests where generated automatically calling wolframscript -c
