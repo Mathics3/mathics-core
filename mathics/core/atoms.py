@@ -449,11 +449,11 @@ class MachineReal(Real):
         if isinstance(other, MachineReal):
             return self.value == other.value
         if isinstance(other, PrecisionReal):
-            other = other.value
+            other_value = other.value
         else:
             return False
         value = self.value
-        diff = abs(value - other)
+        diff = abs(value - other_value)
         return diff < 0.5 ** (diff._prec)
 
     def is_machine_precision(self) -> bool:
@@ -532,13 +532,13 @@ class PrecisionReal(Real):
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         if isinstance(other, PrecisionReal):
-            other = other.value
+            other_value = other.value
         elif isinstance(other, MachineReal):
-            other = other.to_sympy()
+            other_value = other.to_sympy()
         else:
             return False
         value = self.value
-        diff = abs(value - other)
+        diff = abs(value - other_value)
         return diff < 0.5 ** (diff._prec)
 
     def get_precision(self) -> float:
