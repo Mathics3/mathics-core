@@ -6,11 +6,11 @@ import random
 import io
 import math
 
+from mathics.builtin.compile import has_llvmlite
+from mathics.core.atoms import Integer, MachineReal, String
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-from mathics.core.atoms import Integer, MachineReal, String
-
-from mathics.builtin.compile import has_llvmlite
+from mathics.core.systemsymbols import SymbolCos, SymbolSin
 
 if has_llvmlite:
     from mathics.builtin.compile import (
@@ -240,8 +240,8 @@ class FlowControlTest(CompileTest):
             Expression(
                 "If",
                 Symbol("x"),
-                Expression("Sin", Symbol("y")),
-                Expression("Cos", Symbol("y")),
+                Expression(SymbolSin, Symbol("y")),
+                Expression(SymbolCos, Symbol("y")),
             ),
         )
         args = [CompileArg("System`x", int_type), CompileArg("System`y", real_type)]

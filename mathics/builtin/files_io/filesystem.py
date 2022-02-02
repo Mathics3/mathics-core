@@ -15,7 +15,7 @@ import time
 from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
-from mathics.builtin.atomic.numbers import Hash
+from mathics.builtin.string.operations import Hash
 from mathics.builtin.atomic.strings import to_regex
 from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import listable, locked, nothing, protected, read_protected

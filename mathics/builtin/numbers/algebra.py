@@ -26,9 +26,11 @@ from mathics.core.atoms import (
 
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
+    SymbolCos,
     SymbolDirectedInfinity,
     SymbolPlus,
     SymbolPower,
+    SymbolSin,
     SymbolTimes,
 )
 
@@ -41,9 +43,7 @@ from mathics.core.attributes import listable, protected
 
 import sympy
 
-SymbolSin = Symbol("Sin")
 SymbolSinh = Symbol("Sinh")
-SymbolCos = Symbol("Cos")
 SymbolCosh = Symbol("Cosh")
 SymbolTan = Symbol("Tan")
 SymbolTanh = Symbol("Tanh")
