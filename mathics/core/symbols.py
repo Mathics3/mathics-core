@@ -798,18 +798,17 @@ class Symbol(Atom):
         return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
-        return self in system_numeric_constants
         """
+        Returns True if the symbol is tagged as a numeric constant.
+        """
+        if self in system_numeric_constants:
+            return True
         if evaluation:
-            qexpr = Expression(SymbolNumericQ, self)
-           result = evaluation.definitions.get_value(
-                self.name, "System`UpValues", qexpr, evaluation
-            )
-            if result is not None:
-                if result.is_true():
-                    return True
+            symbol_definition = evaluation.definitions.get_definition(self.name)
+            if symbol_definition is None:
+                return False
+            return symbol_definition.is_numeric_constant
         return False
-        """
 
     def __hash__(self):
         return hash(("Symbol", self.name))  # to distinguish from String

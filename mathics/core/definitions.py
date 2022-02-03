@@ -433,6 +433,8 @@ class Definitions(object):
 
         candidates = [user] if user else []
         builtin_instance = None
+        is_numeric_constant = False
+
         if pymathics:
             builtin_instance = pymathics
             candidates.append(pymathics)
@@ -443,15 +445,19 @@ class Definitions(object):
 
         definition = candidates[0] if len(candidates) == 1 else None
         if len(candidates) > 0 and not definition:
-            attributes = (
-                user.attributes
-                if user
-                else (
-                    pymathics.core.attributes
-                    if pymathics
-                    else (builtin.attributes if builtin else nothing)
-                )
-            )
+            if user:
+                is_numeric_constant = user.is_numeric_constant
+                attributes = user.attributes
+            elif pymathics:
+                is_numeric_constant = pymathics.is_numeric_constant
+                attributes = pymathics.attributes
+            elif builtin:
+                is_numeric_constant = builtin.is_numeric_constant
+                attributes = builtin.attributes
+            else:
+                is_numeric_constant = False
+                attributes = nothing
+
             options = {}
             formatvalues = {
                 "": [],
@@ -480,6 +486,7 @@ class Definitions(object):
                 nvalues=sum((c.nvalues for c in candidates), []),
                 defaultvalues=sum((c.defaultvalues for c in candidates), []),
                 builtin=builtin_instance,
+                is_numeric_constant=is_numeric_constant,
             )
 
         if definition is not None:
@@ -541,9 +548,15 @@ class Definitions(object):
             builtin = self.builtin.get(name)
             if builtin:
                 attributes = builtin.attributes
+                is_numeric_constant = builtin.is_numeric_constant
             else:
                 attributes = nothing
-            self.user[name] = Definition(name=name, attributes=attributes)
+                is_numeric_constant = False
+            self.user[name] = Definition(
+                name=name,
+                attributes=attributes,
+                is_numeric_constant=is_numeric_constant,
+            )
             self.clear_cache(name)
             return self.user[name]
 
@@ -762,6 +775,7 @@ class Definition(object):
         nvalues=None,
         defaultvalues=None,
         builtin=None,
+        is_numeric_constant=False,
     ) -> None:
 
         super(Definition, self).__init__()
@@ -788,6 +802,7 @@ class Definition(object):
         if messages is None:
             messages = []
 
+        self.is_numeric_constant = is_numeric_constant
         self.ownvalues = ownvalues
         self.downvalues = downvalues
         self.subvalues = subvalues
