@@ -383,8 +383,8 @@ def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
     if isinstance(target, Symbol):
         name = target.get_name()
         definition = evaluation.definitions.get_definition(name)
-        definition.is_numeric_constant = True if rhs is SymbolTrue else False
-        return False
+        definition.is_numeric_constant = rhs is SymbolTrue
+        return True
     else:
         evaluation.message("NumericQ", "set", lhs, rhs)
         # raise AssignmentException(lhs, rhs)

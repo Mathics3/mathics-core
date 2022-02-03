@@ -801,8 +801,6 @@ class Symbol(Atom):
         """
         Returns True if the symbol is tagged as a numeric constant.
         """
-        if self in system_numeric_constants:
-            return True
         if evaluation:
             symbol_definition = evaluation.definitions.get_definition(self.name)
             if symbol_definition is None:
