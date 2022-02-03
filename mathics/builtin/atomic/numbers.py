@@ -904,8 +904,34 @@ class NumericQ(Builtin):
      = True
     >> NumberQ[Sqrt[Pi]]
      = False
+
+    It is possible to set that a symbol is numeric or not by assign a boolean value
+    to ``NumericQ``
+    >> NumericQ[a]=True
+     = True
+    >> NumericQ[a]
+     = True
+    >> NumericQ[Sin[a]]
+     = True
+
+    Clear and ClearAll do not restore the default value.
+
+    >> Clear[a]; NumericQ[a]
+     = True
+    >> ClearAll[a]; NumericQ[a]
+     = True
+    >> NumericQ[a]=False; NumericQ[a]
+     = False
+    NumericQ can only set to True or False
+    >> NumericQ[a] = 37
+     : Cannot set NumericQ[a] to 37; the lhs argument must be a symbol and the rhs must be True or False.
+     = 37
     """
 
+    messages = {
+        "argx": "NumericQ called with `1` arguments; 1 argument is expected.",
+        "set": "Cannot set `1` to `2`; the lhs argument must be a symbol and the rhs must be True or False.",
+    }
     summary_text = "test whether an exprssion is a number"
 
     def apply(self, expr, evaluation):
