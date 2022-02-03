@@ -311,11 +311,6 @@ class SameQ(_ComparisonOperator):
     grouping = "None"  # Indeterminate grouping: Neither left nor right
     precedence = 290
 
-    rules = {
-        "SameQ[expr_]": "True",
-        "SameQ[]": "True",
-    }
-
     summary_text = "literal symbolic identity"
 
     def apply_list(self, items, evaluation):
