@@ -1,6 +1,17 @@
 CHANGES
 =======
 
+Enhancements
+============
+
+* ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+
+Documentation
+.............
+
+* "Testing Expressions" section added
+* "Representation of Numbers" section added
+
 New Builtins
 ============
 * Support for ``SeriesData`` operations was improved.
@@ -11,10 +22,10 @@ New Builtins
 * ``$Echo`` (Issue #42).
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
 
-  
+
 Internals
 =========
-* `NIntegrate` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
+* ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
@@ -47,7 +58,8 @@ Bugs
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
-*  `Set*`: fixed issue #128.
+*  ``Set*``: fixed issue #128.
+*  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 
 
 4.0.1
