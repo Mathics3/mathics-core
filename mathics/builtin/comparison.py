@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Testing Expressions
 
+There are a number of functions for testing Expressions.
+
+Functions that "ask a question" have names that end in "Q". They return 'True' for an explicit answer, and 'False' otherwise.
+"""
 
 from typing import Optional, Any
 
@@ -39,126 +45,6 @@ from mathics.core.attributes import (
     orderless,
     protected,
 )
-
-
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
-
-
-def is_number(sympy_value) -> bool:
-    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
-
-
-class SameQ(BinaryOperator):
-    """
-    <dl>
-      <dt>'SameQ[$x$, $y$]'
-      <dt>'$x$ === $y$'
-      <dd>returns 'True' if $x$ and $y$ are structurally identical.
-      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
-    </dl>
-
-    Any object is the same as itself:
-    >> a===a
-     = True
-
-    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the
-    same type:
-    >> {1==1., 1===1.}
-     = {True, False}
-    """
-
-    operator = "==="
-    precedence = 290
-
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ === rhs_"
-
-        if lhs.sameQ(rhs):
-            return SymbolTrue
-        else:
-            return SymbolFalse
-
-
-class UnsameQ(BinaryOperator):
-    """
-    <dl>
-      <dt>'UnsameQ[$x$, $y$]'
-      <dt>'$x$ =!= $y$'
-      <dd>returns 'True' if $x$ and $y$ are not structurally identical.
-      Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
-    </dl>
-
-    >> a=!=a
-     = False
-    >> 1=!=1.
-     = True
-    """
-
-    operator = "=!="
-    precedence = 290
-
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ =!= rhs_"
-
-        if lhs.sameQ(rhs):
-            return SymbolFalse
-        else:
-            return SymbolTrue
-
-
-class TrueQ(Builtin):
-    """
-    <dl>
-    <dt>'TrueQ[$expr$]'
-        <dd>returns 'True' if and only if $expr$ is 'True'.
-    </dl>
-
-    >> TrueQ[True]
-     = True
-
-    >> TrueQ[False]
-     = False
-
-    >> TrueQ[a]
-     = False
-    """
-
-    rules = {
-        "TrueQ[expr_]": "If[expr, True, False, False]",
-    }
-
-
-class BooleanQ(Builtin):
-    """
-    <dl>
-    <dt>'BooleanQ[$expr$]'
-        <dd>returns 'True' if $expr$ is either 'True' or 'False'.
-    </dl>
-
-    >> BooleanQ[True]
-     = True
-
-    >> BooleanQ[False]
-     = True
-
-    >> BooleanQ[a]
-     = False
-
-    >> BooleanQ[1 < 2]
-     = True
-
-    #> BooleanQ["string"]
-     = False
-
-    #> BooleanQ[Together[x/y + y/x]]
-     = False
-    """
-
-    rules = {
-        "BooleanQ[expr_]": "If[expr, True, True, False]",
-    }
 
 
 operators = {
@@ -371,6 +257,156 @@ class _ComparisonOperator(_InequalityOperator):
                 return SymbolFalse
             assert c in wanted
         return SymbolTrue
+
+
+def cmp(a, b) -> int:
+    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
+    return (a > b) - (a < b)
+
+
+def is_number(sympy_value) -> bool:
+    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
+
+
+class SameQ(_ComparisonOperator):
+    """
+    <dl>
+      <dt>'SameQ[$x$, $y$]'
+      <dt>'$x$ === $y$'
+      <dd>returns 'True' if $x$ and $y$ are structurally identical.
+      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
+
+    </dl>
+
+    <ul>
+      <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
+      <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
+    </ul>
+
+
+    Any object is the same as itself:
+    >> a===a
+     = True
+
+    Degenerate cases of 'SameQ':
+    >> SameQ[a] === True
+     = True
+
+    >> SameQ[] === True
+     = True
+
+    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the
+    same type:
+    >> {1==1., 1===1.}
+     = {True, False}
+
+
+    For 'PrecisionReal', comparision can be vary a little in the last bit. But only a little bit:
+    >> 2./9. === .2222222222222222`16
+     = True
+    >> 2./9. === .2222222222222222`17
+     = False
+    """
+
+    operator = "==="
+    grouping = "None"
+    precedence = 290
+
+    rules = {
+        "SameQ[expr_]": "True",
+        "SameQ[]": "True",
+    }
+
+    summary_text = "literal symbolic identity"
+
+    def apply(self, lhs, rhs, evaluation):
+        "lhs_ === rhs_"
+
+        if lhs.sameQ(rhs):
+            return SymbolTrue
+        else:
+            return SymbolFalse
+
+
+class UnsameQ(BinaryOperator):
+    """
+    <dl>
+      <dt>'UnsameQ[$x$, $y$]'
+      <dt>'$x$ =!= $y$'
+      <dd>returns 'True' if $x$ and $y$ are not structurally identical.
+      Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
+    </dl>
+
+    >> a=!=a
+     = False
+    >> 1=!=1.
+     = True
+    """
+
+    operator = "=!="
+    precedence = 290
+    summary_text = "not literal symbolic identity"
+
+    def apply(self, lhs, rhs, evaluation):
+        "lhs_ =!= rhs_"
+
+        if lhs.sameQ(rhs):
+            return SymbolFalse
+        else:
+            return SymbolTrue
+
+
+class TrueQ(Builtin):
+    """
+    <dl>
+      <dt>'TrueQ[$expr$]'
+      <dd>returns 'True' if and only if $expr$ is 'True'.
+    </dl>
+
+    >> TrueQ[True]
+     = True
+
+    >> TrueQ[False]
+     = False
+
+    >> TrueQ[a]
+     = False
+    """
+
+    rules = {
+        "TrueQ[expr_]": "If[expr, True, False, False]",
+    }
+
+
+class BooleanQ(Builtin):
+    """
+    <dl>
+      <dt>'BooleanQ[$expr$]'
+      <dd>returns 'True' if $expr$ is either 'True' or 'False'.
+    </dl>
+
+    >> BooleanQ[True]
+     = True
+
+    >> BooleanQ[False]
+     = True
+
+    >> BooleanQ[a]
+     = False
+
+    >> BooleanQ[1 < 2]
+     = True
+
+    #> BooleanQ["string"]
+     = False
+
+    #> BooleanQ[Together[x/y + y/x]]
+     = False
+    """
+
+    rules = {
+        "BooleanQ[expr_]": "If[expr, True, True, False]",
+    }
 
 
 class Inequality(Builtin):
@@ -619,6 +655,7 @@ class Equal(_EqualityOperator, SympyComparison):
 
     operator = "=="
     grouping = "None"
+    summary_text = "numerical equality"
     sympy_name = "Eq"
 
     @staticmethod
@@ -696,6 +733,7 @@ class Unequal(_EqualityOperator, SympyComparison):
     """
 
     operator = "!="
+    summary_text = "numerical inequality"
     sympy_name = "Ne"
 
     @staticmethod
@@ -970,8 +1008,8 @@ class Max(_MinMax):
 class Min(_MinMax):
     """
     <dl>
-    <dt>'Min[$e_1$, $e_2$, ..., $e_i$]'
-        <dd>returns the expression with the lowest value among the $e_i$.
+      <dt>'Min[$e_1$, $e_2$, ..., $e_i$]'
+      <dd>returns the expression with the lowest value among the $e_i$.
     </dl>
 
     Minimum of a series of values:
