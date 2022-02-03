@@ -280,36 +280,35 @@ class SameQ(_ComparisonOperator):
 
     <ul>
       <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
+      <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
       <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
     </ul>
 
 
     Any object is the same as itself:
-    >> a===a
+    >> a === a
      = True
 
-    Degenerate cases of 'SameQ':
-    >> SameQ[a] === True
+    Degenerate cases of 'SameQ' showing off how you can chain '===':
+    >> SameQ[a] === SameQ[] === True
      = True
 
-    >> SameQ[] === True
-     = True
-
-    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the
-    same type:
+    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same type:
     >> {1==1., 1===1.}
      = {True, False}
 
 
     For 'PrecisionReal', comparision can be vary a little in the last bit. But only a little bit:
-    >> 2./9. === .2222222222222222`16
+    >> 2./9. === .2222222222222222`15.9546
      = True
     >> 2./9. === .2222222222222222`17
      = False
+
+    15.9546 is the value of '$MaxPrecision'
     """
 
     operator = "==="
-    grouping = "None"
+    grouping = "None"  # Indeterminate grouping: Neither left nor right
     precedence = 290
 
     rules = {
@@ -319,13 +318,17 @@ class SameQ(_ComparisonOperator):
 
     summary_text = "literal symbolic identity"
 
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ === rhs_"
-
-        if lhs.sameQ(rhs):
+    def apply_list(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
             return SymbolTrue
-        else:
-            return SymbolFalse
+
+        first_item = items_sequence[0]
+        for item in items_sequence[1:]:
+            if not first_item.sameQ(item):
+                return SymbolFalse
+        return SymbolTrue
 
 
 class UnsameQ(BinaryOperator):
