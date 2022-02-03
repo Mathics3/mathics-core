@@ -445,16 +445,22 @@ class MachineReal(Real):
         return self
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics SameQ for MachineReal.
+
+        If the other comparision value is a MachineReal, the values
+        have to be equal.  If the other value is a PrecisionReal though, then
+        the two values have to be within 1/2 ** (precision) of
+        other-value's precision.  For any other type, sameQ is False.
+        """
         if isinstance(other, MachineReal):
             return self.value == other.value
         if isinstance(other, PrecisionReal):
             other_value = other.value
+            value = self.value
+            diff = abs(value - other_value)
+            return diff < 0.5 ** (diff._prec)
         else:
             return False
-        value = self.value
-        diff = abs(value - other_value)
-        return diff < 0.5 ** (diff._prec)
 
     def is_machine_precision(self) -> bool:
         return True
