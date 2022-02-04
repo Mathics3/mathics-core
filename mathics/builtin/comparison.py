@@ -299,12 +299,15 @@ class SameQ(_ComparisonOperator):
      = {True, False}
 
 
-    For 'PrecisionReal', comparision can be vary a little in the last bit. But only a little bit:
     >> 2./9. === .2222222222222222`15.9546
      = True
-    >> 2./9. === .2222222222222222`17
+    The comparison consider just the lowest precision
+    >> .2222222`6 === .2222`3
+     = True
+    Notice the extra decimal in the rhs. Because the internal representation,
+    $0.222`3$ is not equivalent to $0.2222`3$:
+    >> .2222222`6 === .222`3
      = False
-
     15.9546 is the value of '$MaxPrecision'
     """
 

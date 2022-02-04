@@ -28,7 +28,6 @@ Internals
 * ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
-* To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
@@ -47,13 +46,12 @@ Internals
 * ``Cylinder`` rendering is implemented in Asymptote.
 * `N[_,_,Method->method]` was reworked (Issue #137).
 * Ranaming of internal methods: `apply_N`->`eval_N`, `apply_nvalues`-> `apply_N` following the conventions in the rest of the code.
-
   
 Compatibility
 +++++++++++++
 
 - ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
-
+- Improving `Expression.numerify` in a way to obtain a behavior closer to WMA.
 
 Bugs
 ++++

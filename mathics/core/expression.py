@@ -1325,7 +1325,14 @@ class Expression(BaseExpression):
                 leaf.is_numeric() for leaf in self._leaves
             )
 
-    def numerify(self, evaluation) -> "Expression":
+    def numerify(self, evaluation) -> "BaseExpression":
+        """
+        Produces a new expression equivalent to the original,
+        s.t. inexact numeric leaves are reduced to Real numbers with
+        the same precision.
+        This is used in arithmetic evaluations (like `Plus`, `Times`, and `Power` )
+        and in iterators.
+        """
         _prec = None
         for leaf in self._leaves:
             if leaf.is_inexact():
@@ -1339,12 +1346,22 @@ class Expression(BaseExpression):
                 # Don't "numerify" numbers: they should be numerified
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
-                if not isinstance(leaf, Number):
+                # Also, for compatibility with WMA, numerify just the leaves
+                # s.t. ``NumericQ[leaf]==True``
+                if not isinstance(leaf, Number) and leaf.is_numeric(evaluation):
                     n_expr = Expression(SymbolN, leaf, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
                         new_leaves[index] = n_result
-            return Expression(self._head, *new_leaves)
+                        continue
+                    # If Nvalues are not available, just tries to do
+                    # a regular evaluation
+                    n_result = leaf.evaluate(evaluation)
+                    if isinstance(n_result, Number):
+                        new_leaves[index] = n_result
+            result = Expression(self._head)
+            result._leaves = tuple(new_leaves)
+            return result
         else:
             return self
 
