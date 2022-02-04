@@ -1,6 +1,17 @@
 CHANGES
 =======
 
+Enhancements
+============
+
+* ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+
+Documentation
+.............
+
+* "Testing Expressions" section added
+* "Representation of Numbers" section added
+
 New Builtins
 ============
 * Support for ``SeriesData`` operations was improved.
@@ -50,7 +61,8 @@ Bugs
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
-*  `Set*`: fixed issue #128.
+*  ``Set*``: fixed issue #128.
+*  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 
 
 4.0.1
