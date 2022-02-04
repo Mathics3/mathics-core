@@ -805,7 +805,7 @@ class Symbol(Atom):
             symbol_definition = evaluation.definitions.get_definition(self.name)
             if symbol_definition is None:
                 return False
-            return symbol_definition.is_numeric_constant
+            return symbol_definition.is_numeric
         return False
 
     def __hash__(self):
@@ -859,9 +859,3 @@ SymbolFullForm = Symbol("FullForm")
 SymbolTraditionalForm = Symbol("TraditionalForm")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolMathMLForm = Symbol("MathMLForm")
-
-
-# Used to check if a symbol is `Numeric` without evaluation.
-system_numeric_constants = system_symbols(
-    "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
-)

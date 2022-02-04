@@ -623,7 +623,7 @@ class Constant(Predefined):
     related functions:
     >> Solve[x + E == 0, E]
      : E is not a valid variable.
-     = Solve[E + x == 0, E]
+     = Solve[x + E == 0, E]
     """
 
 

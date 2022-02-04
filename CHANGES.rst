@@ -10,7 +10,7 @@ New Builtins
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
 * ``$Echo`` (Issue #42).
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-
+* `NumericFunction`
   
 Internals
 =========
@@ -40,7 +40,8 @@ Compatibility
 +++++++++++++
 
 - ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
-
+- ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that `a` must be considered
+  a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
 Bugs
 ++++

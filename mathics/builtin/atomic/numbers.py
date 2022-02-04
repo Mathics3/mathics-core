@@ -752,6 +752,7 @@ class MaxPrecision(Predefined):
     #> $MinPrecision = 0;
     """
 
+    is_numeric = False
     messages = {
         "precset": "Cannot set `1` to `2`; value must be a positive number or Infinity.",
         "preccon": "Cannot set `1` such that $MaxPrecision < $MinPrecision.",
@@ -782,6 +783,7 @@ class MachineEpsilon_(Predefined):
      = {0., 0., 2.22045*^-16}
     """
 
+    is_numeric = True
     name = "$MachineEpsilon"
 
     summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
@@ -806,7 +808,7 @@ class MachinePrecision_(Predefined):
     summary_text = (
         "the number of decimal digits of precision for machine-precision numbers"
     )
-
+    is_numeric = True
     rules = {
         "$MachinePrecision": "N[MachinePrecision]",
     }
@@ -831,6 +833,7 @@ class MachinePrecision(Predefined):
      = 16
     """
 
+    is_numeric = True
     rules = {
         "N[MachinePrecision, prec_]": ("N[Log[10, 2] * %i, prec]" % machine_precision),
     }
@@ -883,7 +886,7 @@ class MinPrecision(Builtin):
     }
 
     name = "$MinPrecision"
-
+    is_numeric = True
     rules = {
         "$MinPrecision": "0",
     }
