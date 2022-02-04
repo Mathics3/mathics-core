@@ -281,57 +281,6 @@ class FromContinuedFraction(SympyFunction):
             return from_sympy(sympy.continued_fraction_reduce(nums))
 
 
-class IntegerExponent(Builtin):
-    """
-    <dl>
-    <dt>'IntegerExponent[$n$, $b$]'
-        <dd>gives the highest exponent of $b$ that divides $n$.
-    </dl>
-
-    >> IntegerExponent[16, 2]
-     = 4
-
-    >> IntegerExponent[-510000]
-     = 4
-
-    >> IntegerExponent[10, b]
-     = IntegerExponent[10, b]
-    """
-
-    attributes = listable | protected
-
-    rules = {
-        "IntegerExponent[n_]": "IntegerExponent[n, 10]",
-    }
-
-    messages = {
-        "int": "Integer expected at position 1 in `1`",
-        "ibase": "Base `1` is not an integer greater than 1.",
-    }
-
-    def apply(self, n, b, evaluation):
-        "IntegerExponent[n_Integer, b_Integer]"
-
-        py_n, py_b = n.to_python(), b.to_python()
-        expr = Expression("IntegerExponent", n, b)
-
-        if not isinstance(py_n, int):
-            evaluation.message("IntegerExponent", "int", expr)
-        py_n = abs(py_n)
-
-        if not (isinstance(py_b, int) and py_b > 1):
-            evaluation.message("IntegerExponent", "ibase", b)
-
-        # TODO: Optimise this (dont need to calc. base^result)
-        # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
-        # symbols
-        result = 1
-        while py_n % (py_b ** result) == 0:
-            result += 1
-
-        return Integer(result - 1)
-
-
 class MantissaExponent(Builtin):
     """
     <dl>
