@@ -14,7 +14,9 @@ New Builtins
   
 Internals
 =========
-* `NIntegrate` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
+* ``Definition`` has a new property `is_numeric`.
+* ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
+* ``NIntegrate`` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
