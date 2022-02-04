@@ -10,11 +10,13 @@ algorithms.
 """
 
 import sympy
-
+from typing import Optional
 from mathics.core.atoms import Number
+from mathics.core.symbols import BaseExpression
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.expression import Expression
+from mathics.core.evaluation import Evaluation
 from mathics.core.convert import from_sympy
 
 from mathics.core.attributes import (
@@ -24,7 +26,11 @@ from mathics.core.attributes import (
 )
 
 
-def eval_N(expression, evaluation, prec=SymbolMachinePrecision):
+def eval_N(
+    expression: BaseExpression,
+    evaluation: Evaluation,
+    prec: BaseExpression = SymbolMachinePrecision,
+) -> BaseExpression:
     """
     Equivalent to Expression("N", expression).evaluate(evaluation)
     """
@@ -37,20 +43,32 @@ def eval_N(expression, evaluation, prec=SymbolMachinePrecision):
     return result.evaluate(evaluation)
 
 
-def apply_N(expr, prec, evaluation):
+def apply_N(
+    expr: BaseExpression, prec: BaseExpression, evaluation: Evaluation
+) -> Optional[BaseExpression]:
     """
-    Applies Nvalues until reach a fixed point.
+    Looks for the numeric value of ```expr`` with precision ``prec`` by appling NValues rules
+    stored in ``evaluation.definitions``.
+    If `prec` can not be evaluated as a number, returns None, otherwise, returns an expression.
     """
+
+    # The first step is to determine the precision goal
     try:
         # Here ``get_precision`` is called with ``show_messages``
         # set to ``False`` to avoid show the same warnings repeatedly.
         d = get_precision(prec, evaluation, show_messages=False)
     except PrecisionValueError:
+        # We can ensure that the function always return an expression if
+        # the exception was captured by the caller.
         return
-
+    # If the expression is a number, just round it to the required
+    # precision
     if isinstance(expr, Number):
         return expr.round(d)
 
+    # If expr is a List, or a Rule (or maybe expressions with heads for
+    # which we are sure do not have NValues or special attributes)
+    # just apply `apply_N` to each leaf and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         leaves = expr.leaves
         result = Expression(expr.head)
@@ -61,9 +79,16 @@ def apply_N(expr, prec, evaluation):
         return result
 
     # Special case for the Root builtin
+    # This should be implemented as an NValue
     if expr.has_form("Root", 2):
         return from_sympy(sympy.N(expr.to_sympy(), d))
 
+    # Here we look for the NValues associated to the
+    # lookup_name of the expression.
+    # If a rule is found and successfuly applied,
+    # reevaluate the result and apply `apply_N` again.
+    # This should be implemented as a loop instead of
+    # recursively.
     name = expr.get_lookup_name()
     if name != "":
         nexpr = Expression(SymbolN, expr, prec)
@@ -76,9 +101,15 @@ def apply_N(expr, prec, evaluation):
                 result = apply_N(result, prec, evaluation)
             return result
 
+    # If we are here, is because there are not NValues that matches
+    # to the expression. In such a case, if we arrive to an atomic expression,
+    # just return it.
     if expr.is_atom():
         return expr
     else:
+        # Otherwise, look at the attributes, determine over which leaves
+        # we need to apply `apply_N`, and rebuild the expression with
+        # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
         leaves = expr.get_mutable_leaves()

@@ -24,6 +24,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
+from mathics.core.symbols import SymbolMachinePrecision
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -263,12 +264,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return apply_N(expr, evaluation, prec)
+        return apply_N(expr, prec, evaluation)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return apply_N(expr, evaluation)
+        return apply_N(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):
