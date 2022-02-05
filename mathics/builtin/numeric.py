@@ -12,36 +12,24 @@ Support for approximate real numbers and exact real numbers represented in algeb
 
 import sympy
 
-from mathics.builtin.base import Builtin, Predefined, Test
+from mathics.builtin.base import Builtin
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_nvalues
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
+
 from mathics.core.symbols import SymbolMachinePrecision
 from mathics.core.atoms import (
     Complex,
     Integer,
     Integer0,
-    MachineReal,
-    Number,
     Rational,
     Real,
-    String,
-    from_python,
 )
 
 
 from mathics.core.number import (
-    dps,
-    convert_int_to_digit_list,
-    machine_precision,
     machine_epsilon,
 )
 
@@ -49,7 +37,6 @@ from mathics.core.attributes import (
     listable,
     numeric_function,
     protected,
-    read_protected,
 )
 
 

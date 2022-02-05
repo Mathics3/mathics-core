@@ -20,7 +20,7 @@ from functools import lru_cache
 
 from mathics.builtin.base import Builtin, Predefined, Test
 
-from mathics.core.evaluators import apply_N, apply_N
+from mathics.core.evaluators import apply_N
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -51,8 +51,6 @@ from mathics.core.attributes import (
     listable,
     protected,
 )
-
-from mathics.core.systemsymbols import SymbolMachinePrecision
 
 
 @lru_cache(maxsize=1024)

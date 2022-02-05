@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import pytest
 
 from mathics.session import MathicsSession
-from mathics.core.expression import Expression
 from mathics.core.evaluators import apply_N, apply_nvalues
 
 session = MathicsSession()
