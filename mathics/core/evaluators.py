@@ -26,7 +26,7 @@ from mathics.core.attributes import (
 )
 
 
-def eval_N(
+def apply_N(
     expression: BaseExpression,
     evaluation: Evaluation,
     prec: BaseExpression = SymbolMachinePrecision,
@@ -35,7 +35,7 @@ def eval_N(
     Equivalent to Expression("N", expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
-    result = apply_N(evaluated_expression, prec, evaluation)
+    result = apply_nvalues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
     if isinstance(result, Number):
@@ -43,7 +43,7 @@ def eval_N(
     return result.evaluate(evaluation)
 
 
-def apply_N(
+def apply_nvalues(
     expr: BaseExpression, prec: BaseExpression, evaluation: Evaluation
 ) -> Optional[BaseExpression]:
     """
@@ -68,11 +68,11 @@ def apply_N(
 
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
-    # just apply `apply_N` to each leaf and return the new list.
+    # just apply `apply_nvalues` to each leaf and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         leaves = expr.leaves
         result = Expression(expr.head)
-        newleaves = [apply_N(leaf, prec, evaluation) for leaf in expr.leaves]
+        newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
         result._leaves = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
@@ -86,7 +86,7 @@ def apply_N(
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
     # If a rule is found and successfuly applied,
-    # reevaluate the result and apply `apply_N` again.
+    # reevaluate the result and apply `apply_nvalues` again.
     # This should be implemented as a loop instead of
     # recursively.
     name = expr.get_lookup_name()
@@ -98,7 +98,7 @@ def apply_N(
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
-                result = apply_N(result, prec, evaluation)
+                result = apply_nvalues(result, prec, evaluation)
             return result
 
     # If we are here, is because there are not NValues that matches
@@ -108,7 +108,7 @@ def apply_N(
         return expr
     else:
         # Otherwise, look at the attributes, determine over which leaves
-        # we need to apply `apply_N`, and rebuild the expression with
+        # we need to apply `apply_nvalues`, and rebuild the expression with
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
@@ -125,11 +125,11 @@ def apply_N(
         else:
             eval_range = range(len(leaves))
 
-        newhead = apply_N(head, prec, evaluation)
+        newhead = apply_nvalues(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            newleaf = apply_N(leaves[index], prec, evaluation)
+            newleaf = apply_nvalues(leaves[index], prec, evaluation)
             if newleaf:
                 leaves[index] = newleaf
 

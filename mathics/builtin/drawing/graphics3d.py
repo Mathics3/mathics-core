@@ -6,7 +6,7 @@ Functions for working with 3D graphics.
 """
 
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
@@ -335,7 +335,7 @@ class Cylinder(Builtin):
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
-            nradius = eval_N(radius, evaluation)
+            nradius = apply_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 

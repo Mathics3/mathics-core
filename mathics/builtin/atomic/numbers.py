@@ -20,7 +20,7 @@ from functools import lru_cache
 
 from mathics.builtin.base import Builtin, Predefined, Test
 
-from mathics.core.evaluators import apply_N, eval_N
+from mathics.core.evaluators import apply_N, apply_N
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -596,7 +596,7 @@ class RealDigits(Builtin):
                 ).evaluate(evaluation)
             else:
                 if rational_no:
-                    n = eval_N(n, evaluation)
+                    n = apply_N(n, evaluation)
                 else:
                     return evaluation.message("RealDigits", "ndig", expr)
         py_n = abs(n.value)

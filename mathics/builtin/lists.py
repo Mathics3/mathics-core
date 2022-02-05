@@ -25,7 +25,7 @@ from mathics.algorithm.clusters import (
     optimize,
 )
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 
 from mathics.builtin.base import (
     Builtin,
@@ -1931,7 +1931,7 @@ class _PrecomputedDistances(PrecomputedDistances):
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = eval_N(Expression(SymbolList, *distances_form), evaluation)
+        distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
         mpmath_distances = [_to_real_distance(d) for d in distances.leaves]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -1947,7 +1947,7 @@ class _LazyDistances(LazyDistances):
 
     def _compute_distance(self, i, j):
         p = self._p
-        d = eval_N(self._df(p[i], p[j]), self._evaluation)
+        d = apply_N(self._df(p[i], p[j]), self._evaluation)
         return _to_real_distance(d)
 
 

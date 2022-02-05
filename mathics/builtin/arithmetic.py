@@ -13,7 +13,7 @@ import sys
 import mpmath
 from functools import lru_cache
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 
 from mathics.builtin.base import (
     Builtin,
@@ -141,7 +141,7 @@ class _MPMathFunction(SympyFunction):
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
+            args = [apply_N(arg, evaluation, Integer(d)) for arg in args]
             with mpmath.workprec(prec):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
@@ -643,7 +643,7 @@ class PossibleZeroQ(SympyFunction):
             result = _iszero(exprexp)
         if result is None:
             # Can't get exact answer, so try approximate equal
-            numeric_val = eval_N(expr, evaluation)
+            numeric_val = apply_N(expr, evaluation)
             if numeric_val and hasattr(numeric_val, "is_approx_zero"):
                 result = numeric_val.is_approx_zero
             elif not numeric_val.is_numeric(evaluation):

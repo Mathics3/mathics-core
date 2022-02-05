@@ -6,12 +6,11 @@ Calculus
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
-import sympy
 import numpy as np
 from itertools import product
 from typing import Optional
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
@@ -37,7 +36,6 @@ from mathics.core.attributes import (
     read_protected,
 )
 
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
 
 from mathics.core.expression import Expression
 from mathics.core.number import dps, machine_epsilon
@@ -53,8 +51,6 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
-    SymbolD,
-    SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
     SymbolIntegrate,
@@ -71,18 +67,7 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
-from mathics.core.rules import Pattern
-from mathics.core.number import dps
-from mathics.builtin.scoping import dynamic_scoping
 
-from mathics.core.attributes import (
-    constant,
-    hold_all,
-    listable,
-    n_hold_all,
-    protected,
-    read_protected,
-)
 
 from mathics.algorithm.series import (
     build_series,
@@ -1307,7 +1292,7 @@ class _BaseFinder(Builtin):
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
         # First, determine x0 and x
-        x0 = eval_N(x0, evaluation)
+        x0 = apply_N(x0, evaluation)
         # deal with non 1D problems.
         if isinstance(x0, Expression) and x0._head is SymbolList:
             options["_x0"] = x0._leaves
@@ -2191,8 +2176,8 @@ class NIntegrate(Builtin):
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
                 elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = eval_N(a, evaluation).value
-                    b = eval_N(b, evaluation).value
+                    a = apply_N(a, evaluation).value
+                    b = apply_N(b, evaluation).value
                     subdomain2.append([a, b])
                     coordtransform.append(None)
                 else:

@@ -12,7 +12,7 @@ import itertools
 import palettable
 
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.numeric import chop
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
@@ -908,7 +908,7 @@ class PieChart(_Chart):
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
         if not sector_origin.has_form("List", 2):
             return
-        sector_origin = eval_N(sector_origin, evaluation)
+        sector_origin = apply_N(sector_origin, evaluation)
 
         orientation = sector_origin.leaves[0]
         if (

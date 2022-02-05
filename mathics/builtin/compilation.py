@@ -10,7 +10,7 @@ When LLVM and Python libraries are available, compilation produces LLVM code.
 import ctypes
 
 
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.evaluation import Evaluation
@@ -151,7 +151,7 @@ class Compile(Builtin):
                     inner_evaluation = Evaluation(definitions=evaluation.definitions)
                     vars = dict(list(zip(names, x[: len(names)])))
                     pyexpr = expr.replace_vars(vars)
-                    pyexpr = eval_N(pyexpr, inner_evaluation)
+                    pyexpr = apply_N(pyexpr, inner_evaluation)
                     res = pyexpr.to_python(n_evaluation=inner_evaluation)
                     return res
 

@@ -28,7 +28,7 @@ from mathics.core.systemsymbols import (
 )
 
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.evaluators import eval_N
+from mathics.core.evaluators import apply_N
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -50,7 +50,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
     maxit = maxit_opt.get_int_value() if maxit_opt else 100
 
-    curr_val = eval_N(f.replace_vars({x_name: x0}), evaluation)
+    curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
 
     # build the quadratic form:
     eps = determine_epsilon(x0, opts, evaluation)
@@ -63,34 +63,34 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     d1 = dynamic_scoping(
         lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
     )
-    val_d1 = eval_N(d1.replace_vars({x_name: x0}), evaluation)
+    val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
     if not isinstance(val_d1, Number):
         d1 = None
         d2 = None
-        f2val = eval_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-        f1val = eval_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-        val_d1 = eval_N((f2val - f1val) / (Integer2 * eps), evaluation)
-        val_d2 = eval_N(
+        f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+        f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+        val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+        val_d2 = apply_N(
             (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
         )
     else:
         d2 = dynamic_scoping(
             lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
         )
-        val_d2 = eval_N(d2.replace_vars({x_name: x0}), evaluation)
+        val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
         if not isinstance(val_d2, Number):
             d2 = None
-            df2val = eval_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-            df1val = eval_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+            df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+            df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
             val_d2 = (df2val - df1val) / (Integer2 * eps)
 
     def reset_values(x0):
         x_try = [
-            eval_N(x0 / Integer3, evaluation),
-            eval_N(x0 * Integer2, evaluation),
-            eval_N(x0 - offset / Integer2, evaluation),
+            apply_N(x0 / Integer3, evaluation),
+            apply_N(x0 * Integer2, evaluation),
+            apply_N(x0 - offset / Integer2, evaluation),
         ]
-        vals = [(u, eval_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
+        vals = [(u, apply_N(f.replace_vars({x_name: u}), evaluation)) for u in x_try]
         vals = [v for v in vals if isinstance(v[1], Number)]
         v0 = vals[0]
         for v in vals:
@@ -101,18 +101,18 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
     def reevaluate_coeffs():
         """reevaluates val_d1 and val_d2"""
         if d1:
-            val_d1 = eval_N(d1.replace_vars({x_name: x0}), evaluation)
+            val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
             if d2:
-                val_d2 = eval_N(d2.replace_vars({x_name: x0}), evaluation)
+                val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
             else:
-                df2val = eval_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
-                df1val = eval_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
+                df2val = apply_N(d1.replace_vars({x_name: x0 + eps}), evaluation)
+                df1val = apply_N(d1.replace_vars({x_name: x0 - eps}), evaluation)
                 val_d2 = (df2val - df1val) / (Integer2 * eps)
         else:
-            f2val = eval_N(f.replace_vars({x_name: x0 + eps}), evaluation)
-            f1val = eval_N(f.replace_vars({x_name: x0 - eps}), evaluation)
-            val_d1 = eval_N((f2val - f1val) / (Integer2 * eps), evaluation)
-            val_d2 = eval_N(
+            f2val = apply_N(f.replace_vars({x_name: x0 + eps}), evaluation)
+            f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
+            val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
+            val_d2 = apply_N(
                 (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
             )
         return (val_d1, val_d2)
@@ -141,9 +141,9 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         if val_d2.is_zero:
             val_d2 = Integer1
 
-        offset = eval_N(val_d1 / abs(val_d2), evaluation)
-        x1 = eval_N(x0 - offset, evaluation)
-        new_val = eval_N(f.replace_vars({x_name: x1}), evaluation)
+        offset = apply_N(val_d1 / abs(val_d2), evaluation)
+        x1 = apply_N(x0 - offset, evaluation)
+        new_val = apply_N(f.replace_vars({x_name: x1}), evaluation)
         if (
             Expression(SymbolLessEqual, new_val, curr_val).evaluate(evaluation)
             is SymbolTrue
@@ -274,7 +274,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             return False
         if val2.is_zero:
             return True
-        res = eval_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
+        res = apply_N(Expression(SymbolLog, abs(val2 / val1)), evaluation)
         if not res.is_numeric():
             return False
         return res.to_python() < 0
@@ -283,14 +283,14 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         """
         looks for a new starting point, based on how close we are from the target.
         """
-        x1 = eval_N(Integer2 * x0, evaluation)
-        x2 = eval_N(x0 / Integer3, evaluation)
-        x3 = eval_N(x0 - minus / Integer2, evaluation)
-        x4 = eval_N(x0 + minus / Integer3, evaluation)
-        absf1 = eval_N(absf.replace_vars({x_name: x1}), evaluation)
-        absf2 = eval_N(absf.replace_vars({x_name: x2}), evaluation)
-        absf3 = eval_N(absf.replace_vars({x_name: x3}), evaluation)
-        absf4 = eval_N(absf.replace_vars({x_name: x4}), evaluation)
+        x1 = apply_N(Integer2 * x0, evaluation)
+        x2 = apply_N(x0 / Integer3, evaluation)
+        x3 = apply_N(x0 - minus / Integer2, evaluation)
+        x4 = apply_N(x0 + minus / Integer3, evaluation)
+        absf1 = apply_N(absf.replace_vars({x_name: x1}), evaluation)
+        absf2 = apply_N(absf.replace_vars({x_name: x2}), evaluation)
+        absf3 = apply_N(absf.replace_vars({x_name: x3}), evaluation)
+        absf4 = apply_N(absf.replace_vars({x_name: x4}), evaluation)
         if decreasing(absf1, absf2):
             x1, absf1 = x2, absf2
         if decreasing(absf1, absf3):
@@ -300,10 +300,10 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         return x1, absf1
 
     def sub(evaluation):
-        d_value = eval_N(df, evaluation)
+        d_value = apply_N(df, evaluation)
         if d_value == Integer(0):
             return None
-        result = eval_N(f / d_value, evaluation)
+        result = apply_N(f / d_value, evaluation)
         if evaluation_monitor:
             dynamic_scoping(
                 lambda ev: evaluation_monitor.evaluate(ev), {x_name: x0}, evaluation
@@ -341,7 +341,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
             continue
         else:
             currval = new_currval
-            x0 = eval_N(x1, evaluation)
+            x0 = apply_N(x1, evaluation)
             # N required due to bug in sympy arithmetic
             count += 1
     else:
@@ -371,7 +371,7 @@ def is_zero(
     Check if val is zero upto the precision and accuracy goals
     """
     if not isinstance(val, Number):
-        val = eval_N(val, evaluation)
+        val = apply_N(val, evaluation)
     if not isinstance(val, Number):
         return False
     if val.is_zero:
@@ -383,7 +383,7 @@ def is_zero(
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
     threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = eval_N(threeshold_expr, evaluation)
+    threeshold: Real = apply_N(threeshold_expr, evaluation)
     return threeshold.to_python() > 0
 
 
@@ -393,11 +393,11 @@ def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     eps: Real = Real(1e-10)
     if not (acc_goal or prec_goal):
         return eps
-    eps = eval_N(
+    eps = apply_N(
         abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
     )
     if acc_goal:
-        eps = eval_N(Integer10 ** (-acc_goal) + eps, evaluation)
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
     return eps
 
 
@@ -419,7 +419,7 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
 
     def to_real_or_none(value) -> Optional[Real]:
         if value:
-            value = eval_N(value, evaluation)
+            value = apply_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Real(12.0)
         elif value is SymbolInfinity:
@@ -430,7 +430,7 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
 
     def to_integer_or_none(value) -> Optional[Integer]:
         if value:
-            value = eval_N(value, evaluation)
+            value = apply_N(value, evaluation)
         if value is SymbolAutomatic:
             value = Integer(100)
         elif value is SymbolInfinity:
@@ -454,9 +454,9 @@ def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
     eps: Real = Real(1e-10)
     if not (acc_goal or prec_goal):
         return eps
-    eps = eval_N(
+    eps = apply_N(
         abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
     )
     if acc_goal:
-        eps = eval_N(Integer10 ** (-acc_goal) + eps, evaluation)
+        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
     return eps
