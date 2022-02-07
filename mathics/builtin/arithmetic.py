@@ -1058,7 +1058,7 @@ class Sum(_IterationFunction, SympyFunction):
     #> Sum[i / Log[i], {i, 1, Infinity}]
      = Sum[i / Log[i], {i, 1, Infinity}]
     #> Sum[Cos[Pi i], {i, 1, Infinity}]
-     = Sum[Cos[Pi i], {i, 1, Infinity}]
+     = Sum[Cos[i Pi], {i, 1, Infinity}]
     """
 
     # Do not throw warning message for symbolic iteration bounds

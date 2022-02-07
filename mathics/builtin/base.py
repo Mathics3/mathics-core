@@ -72,6 +72,7 @@ class Builtin(object):
     context: str = ""
     abstract: bool = False
     attributes: int = protected
+    is_numeric: bool = False
     rules: typing.Dict[str, Any] = {}
     formats: typing.Dict[str, Any] = {}
     messages: typing.Dict[str, Any] = {}
@@ -270,6 +271,7 @@ class Builtin(object):
             options=options,
             defaultvalues=defaults,
             builtin=self,
+            is_numeric=self.is_numeric,
         )
         if is_pymodule:
             definitions.pymathics[name] = definition

@@ -21,11 +21,13 @@ New Builtins
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
 * ``$Echo`` (Issue #42).
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-
-
+* `NumericFunction`
+  
 Internals
 =========
-* ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
+* ``Definition`` has a new property `is_numeric`.
+* ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
+* ``NIntegrate`` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
@@ -52,6 +54,8 @@ Compatibility
 
 - ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
 - Improving `Expression.numerify` in a way to obtain a behavior closer to WMA.
+- ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that `a` must be considered
+  a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
 Bugs
 ++++

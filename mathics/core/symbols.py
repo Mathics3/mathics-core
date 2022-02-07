@@ -798,18 +798,15 @@ class Symbol(Atom):
         return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
-        return self in system_numeric_constants
+        """
+        Returns True if the symbol is tagged as a numeric constant.
         """
         if evaluation:
-            qexpr = Expression(SymbolNumericQ, self)
-           result = evaluation.definitions.get_value(
-                self.name, "System`UpValues", qexpr, evaluation
-            )
-            if result is not None:
-                if result.is_true():
-                    return True
+            symbol_definition = evaluation.definitions.get_definition(self.name)
+            if symbol_definition is None:
+                return False
+            return symbol_definition.is_numeric
         return False
-        """
 
     def __hash__(self):
         return hash(("Symbol", self.name))  # to distinguish from String
@@ -862,9 +859,3 @@ SymbolFullForm = Symbol("FullForm")
 SymbolTraditionalForm = Symbol("TraditionalForm")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolMathMLForm = Symbol("MathMLForm")
-
-
-# Used to check if a symbol is `Numeric` without evaluation.
-system_numeric_constants = system_symbols(
-    "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
-)
