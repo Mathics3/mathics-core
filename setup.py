@@ -154,6 +154,7 @@ setup(
         "mathics.builtin",
         "mathics.builtin.arithfns",
         "mathics.builtin.assignments",
+        "mathics.builtin.atomic",
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.compile",
