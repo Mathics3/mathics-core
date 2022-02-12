@@ -755,7 +755,7 @@ class Expression(BaseExpression):
     ) -> typing.Type["BaseExpression"]:
         """Apply transformation rules and expression evaluation to `evaluation` via
         `evaluate_next()` until it tells us to stop or we hit some limit.
-        `evaluate_next()` may call us recusively.
+        `rewrite_apply_eval_step()` may call us recusively.
 
         Limits are either an evaluation iteration count or a timeout value.
         """
@@ -786,7 +786,7 @@ class Expression(BaseExpression):
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
-                expr, reevaluate = expr.evaluate_next(evaluation)
+                expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
                 if not reevaluate:
                     break
                 if evaluation.definitions.trace_evaluation:
@@ -819,7 +819,16 @@ class Expression(BaseExpression):
 
         return expr
 
-    def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """Perform a single rewrite/apply/eval step of the bigger Expression.evaluate() process.
+
+        We return the Expression as well as a Boolean which indicates
+        whether we should consider reevaluating the expression,
+        (depending on whether there is time or not too many steps have
+        already occurred).
+
+        This step is time consuming, complicated, and involved.
+        """
         from mathics.builtin.base import BoxConstruct
 
         head = self._head.evaluate(evaluation)

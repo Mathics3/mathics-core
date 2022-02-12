@@ -72,7 +72,31 @@ def strip_context(name) -> str:
     return name
 
 
+# FIXME: figure out how to split off KeyComparible, BaseExpression and
+# Atom from Symbol which is really more "variable"-like in the more
+# conventional programming sense of the word.  Also Split off
+# SymbolLiteral (the Lisp notion of Symbol, an immutable object like a
+# Wolfram Character Symbol) which is distinct from Symbol and seems
+# to be intercombined here.
+
+
 class KeyComparable(object):
+    """Some Mathics/WL Symbols have an "OrderLess" attribute
+    which is used in the evaluation process to arrange items in a list.
+
+    To do that, we need a way to compare Symbols, and that is what
+    this class is for.
+
+    This class adds the boilerplate Python comparision operators that
+    you expect in Python programs for comparing Python objects.
+
+    This class is not complete in of itself, it is intended to be
+    mixed into other classes.
+
+    Each class should provide a `get_sort_key()` method which
+    is the primative from which all other comparsions are based on.
+    """
+
     def get_sort_key(self):
         raise NotImplementedError
 
@@ -101,6 +125,15 @@ class KeyComparable(object):
 
 
 class BaseExpression(KeyComparable):
+    """
+    This is the base class from which all other Expressions are dervied from.
+
+    This class is not complete in of itself and subclasses should adapt or fill in
+    what is needed
+
+    Some important subclasses: Atom and Expression.
+    """
+
     options: Any
     pattern_sequence: bool
     unformatted: Any
@@ -149,7 +182,14 @@ class BaseExpression(KeyComparable):
     def get_attributes(self, definitions):
         return nothing
 
-    def evaluate_next(self, evaluation):
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
+        """
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
@@ -581,6 +621,18 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
+    """
+    Atoms are the leaves and heads of an Expression or S-Expression.
+
+    In other words they are the units of an expression that we cannot dig down structurally.
+    Various object primitives ie ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
+
+    """
+
+    # FIXME: I believe Atom's should have its own custom
+    # evaluate() and rewrite_apply_eval() routine since
+    # rewrite rules generally (or universally) are not relevant here.
+
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
