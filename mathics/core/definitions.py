@@ -68,6 +68,19 @@ class PyMathicsLoadException(Exception):
 
 
 class Definitions(object):
+    """
+    The state of one instance of the Mathics interpreter is stored in this object.
+
+    The state is then stored as ``Definition`` object of the different symbols defined during the runtime.
+
+    In the current implementation, the ``Definitions`` object stores ``Definition`` s in four dictionaries:
+
+    - builtins: stores the defintions of the ``Builtin`` symbols
+    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics modules.
+    - user: stores the definitions created during the runtime.
+    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the same symbol.
+    """
+
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
@@ -760,6 +773,12 @@ def insert_rule(values, rule) -> None:
 
 
 class Definition(object):
+    """A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
+
+    The ``Rule``s are internally organized in terms of the context of application in
+    ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
+    """
+
     def __init__(
         self,
         name,

@@ -16,6 +16,17 @@ class StopGenerator_BaseRule(StopGenerator):
 
 
 class BaseRule(KeyComparable):
+    """
+    This is the base class from which all other Rules are dervied from.
+
+    Rules are part of the rewriting system of Mathics. See https://en.wikipedia.org/wiki/Rewriting
+
+    This class is not complete in of itself and subclasses should adapt or fill in
+    what is needed. In particular ``do_replace()`` needs to be implemented.
+
+    Important subclasses: BuiltinRule and Rule.
+    """
+
     def __init__(self, pattern, system=False) -> None:
         self.pattern = Pattern.create(pattern)
         self.system = system
@@ -74,11 +85,31 @@ class BaseRule(KeyComparable):
         else:
             return None
 
+    def do_replace(self):
+        raise NotImplementedError
+
     def get_sort_key(self):
         return (self.system, self.pattern.get_sort_key(True))
 
 
 class Rule(BaseRule):
+    """There are two kinds of Rules.  This kind of Rule transforms an
+    Expression into another Expression based on the pattern and a
+    replacement term and doesn't involve function application.
+
+    Also, in contrast to BuiltinRule[] rule application cannot force
+    a reevaluation of the expression when the rewrite/apply/eval step
+    finishes.
+
+    Here is an example of a Rule::
+        F[x_] -> x^2   (* The same thing as: Rule[x_, x^2] *)
+
+
+    ``F[x_]`` is a pattern and ``x^2`` is the replacement term. When
+    applied to the expression ``G[F[1.], F[a]]`` the result is
+    ``G[1.^2, a^2]``
+    """
+
     def __init__(self, pattern, replace, system=False) -> None:
         super(Rule, self).__init__(pattern, system=system)
         self.replace = replace
@@ -109,6 +140,37 @@ class Rule(BaseRule):
 
 
 class BuiltinRule(BaseRule):
+    """A BuiltinRule is a rule that is associated a Python function.
+
+    Each time the Pattern part of the Rule matches an Expression, the
+    matching subexpression is replaced by the result of calling that
+    function, with parameters bound to parameters as determined the
+    matching found in the Pattern portion of the Rule.
+
+    For example, the symbol ``System`Plus`` has  associated a BuiltinRule::
+
+        Plus[items___] -> mathics.builtin.arithfns.basic.Plus.apply
+
+    The pattern ``items___`` matches a list of Expressions.
+
+    When applied to the expression ``F[a+a]`` the method ``mathics.builtin.arithfns.basic.Plus.apply`` is called
+    passing a parameter  ``items`` with a value ``Sequence[a,a]`` .
+
+    The return value of this function is ``Times[2, a]`` (``2*a``),
+    which is replaced in the original expression resulting in
+    ``F[2*a]``.
+
+    In contrast to Rule, these kinds of rules can also change the
+    state of definitions in the the system. For example, the rule::
+
+        SetAttributes[a_,b_] -> mathics.builtin.attributes.SetAttributes.apply
+
+    when applied to the expression ``SetAttributes[F,  NumericFunction]``
+
+    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and returns ``SymbolNull``.
+    This will cause `Expression.evalate() to peform an additional ``rewrite_apply_eval()`` step.
+    """
+
     def __init__(self, name, pattern, function, check_options, system=False) -> None:
         super(BuiltinRule, self).__init__(pattern, system=system)
         self.name = name
