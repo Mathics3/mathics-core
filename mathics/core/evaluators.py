@@ -108,6 +108,6 @@ def apply_nvalues(expr, prec, evaluation):
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
-# ``numerify``, ``evaluation``, ``evaluation_next``, ``format`` and ``boxes_to_*`` that in the current implementation
+# ``numerify``, ``evaluation``, ``_rewrite_apply_eval_step``, ``format`` and ``boxes_to_*`` that in the current implementation
 # requires to introduce local imports.
 # This also would make easier to test and profile classes that store Expression-like objects and methods that produce the evaluation.

@@ -754,10 +754,13 @@ class Expression(BaseExpression):
         evaluation: Evaluation,
     ) -> typing.Type["BaseExpression"]:
         """Apply transformation rules and expression evaluation to `evaluation` via
-        `evaluate_next()` until it tells us to stop or we hit some limit.
-        `evaluate_next()` may call us recusively.
+        `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
+
+        Note that this is a recusive process and
+        `rewrite_apply_eval_step()` may call us recursively.
 
         Limits are either an evaluation iteration count or a timeout value.
+
         """
         if evaluation.timeout:
             return
@@ -786,7 +789,7 @@ class Expression(BaseExpression):
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
-                expr, reevaluate = expr.evaluate_next(evaluation)
+                expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
                 if not reevaluate:
                     break
                 if evaluation.definitions.trace_evaluation:
@@ -819,7 +822,26 @@ class Expression(BaseExpression):
 
         return expr
 
-    def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """Perform a single rewrite/apply/eval step of the bigger
+        Expression.evaluate() process.
+
+        We return the Expression as well as a Boolean which indicates
+        whether the caller `evaluate()` should consider reevaluating
+        the expression.
+
+        Note that this is a recursive process: we may call something
+        that may call our parent: evaluate() which calls us again.
+
+        Also note that this step is time consuming, complicated, and involved.
+
+        Therefore, subclasses of the BaseEvaluation class may decide
+        to specialize this code so that it is simpler and faster. In
+        particular, a specialization for a particular kind of object
+        like a particular kind of Atom, may decide it does not need to
+        do the rule rewriting step. Or that it knows that after
+        performing this step no further transformation is needed.
+        """
         from mathics.builtin.base import BoxConstruct
 
         head = self._head.evaluate(evaluation)
