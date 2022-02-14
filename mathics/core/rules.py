@@ -17,7 +17,7 @@ class StopGenerator_BaseRule(StopGenerator):
 
 class BaseRule(KeyComparable):
     """
-    This is the base class from which all other Rules are dervied from.
+    This is the base class from which all other Rules are derived from.
 
     Rules are part of the rewriting system of Mathics. See https://en.wikipedia.org/wiki/Rewriting
 
@@ -93,11 +93,12 @@ class BaseRule(KeyComparable):
 
 
 class Rule(BaseRule):
-    """There are two kinds of Rules.  This kind of Rule transforms an
+    """
+    There are two kinds of Rules.  This kind of Rule transforms an
     Expression into another Expression based on the pattern and a
     replacement term and doesn't involve function application.
 
-    Also, in contrast to BuiltinRule[] rule application cannot force
+    Also, in contrast to BuiltinRule[], rule application cannot force
     a reevaluation of the expression when the rewrite/apply/eval step
     finishes.
 
@@ -140,35 +141,41 @@ class Rule(BaseRule):
 
 
 class BuiltinRule(BaseRule):
-    """A BuiltinRule is a rule that is associated a Python function.
+    """
+    A BuiltinRule is a rule that has a replacement term that is associated
+    a Python function rather than a Mathics Expression as happens in a Rule.
 
     Each time the Pattern part of the Rule matches an Expression, the
-    matching subexpression is replaced by the result of calling that
-    function, with parameters bound to parameters as determined the
-    matching found in the Pattern portion of the Rule.
+    matching subexpression is replaced by the expression returned
+    by application of that function to the remaining terms.
 
-    For example, the symbol ``System`Plus`` has  associated a BuiltinRule::
+    Parameters for the function are bound to parameters matched by the pattern.
+
+    Here is an example taken from the symbol ``System`Plus``.
+    It has has associated a BuiltinRule::
 
         Plus[items___] -> mathics.builtin.arithfns.basic.Plus.apply
 
     The pattern ``items___`` matches a list of Expressions.
 
     When applied to the expression ``F[a+a]`` the method ``mathics.builtin.arithfns.basic.Plus.apply`` is called
-    passing a parameter  ``items`` with a value ``Sequence[a,a]`` .
+    binding the parameter  ``items`` to the value ``Sequence[a,a]``.
 
-    The return value of this function is ``Times[2, a]`` (``2*a``),
-    which is replaced in the original expression resulting in
-    ``F[2*a]``.
+    The return value of this function is ``Times[2, a]`` (or more compactly: ``2*a``).
+    When replaced in the original expression, the result is: ``F[2*a]``.
 
-    In contrast to Rule, these kinds of rules can also change the
-    state of definitions in the the system. For example, the rule::
+    In contrast to Rule, BuiltinRules can change the state of definitions
+    in the the system.
+
+    For example, the rule::
 
         SetAttributes[a_,b_] -> mathics.builtin.attributes.SetAttributes.apply
 
     when applied to the expression ``SetAttributes[F,  NumericFunction]``
 
-    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and returns ``SymbolNull``.
-    This will cause `Expression.evalate() to peform an additional ``rewrite_apply_eval()`` step.
+    sets the attribute ``NumericFunction`` in the  definition of the symbol ``F`` and returns Null (``SymbolNull`)`.
+
+    This will cause `Expression.evalate() to perform an additional ``rewrite_apply_eval()`` step.
     """
 
     def __init__(self, name, pattern, function, check_options, system=False) -> None:

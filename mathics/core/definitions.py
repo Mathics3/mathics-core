@@ -773,7 +773,8 @@ def insert_rule(values, rule) -> None:
 
 
 class Definition(object):
-    """A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
+    """
+    A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
 
     The ``Rule``s are internally organized in terms of the context of application in
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
