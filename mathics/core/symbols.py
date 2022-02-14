@@ -81,7 +81,8 @@ def strip_context(name) -> str:
 
 
 class KeyComparable(object):
-    """Some Mathics/WL Symbols have an "OrderLess" attribute
+    """
+    Some Mathics/WL Symbols have an "OrderLess" attribute
     which is used in the evaluation process to arrange items in a list.
 
     To do that, we need a way to compare Symbols, and that is what
@@ -126,7 +127,7 @@ class KeyComparable(object):
 
 class BaseExpression(KeyComparable):
     """
-    This is the base class from which all other Expressions are dervied from.
+    This is the base class from which all other Expressions are derived from.
 
     This class is not complete in of itself and subclasses should adapt or fill in
     what is needed
@@ -153,7 +154,8 @@ class BaseExpression(KeyComparable):
         self._cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """
+        Mathics two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -622,11 +624,18 @@ class Monomial(object):
 
 class Atom(BaseExpression):
     """
-    Atoms are the leaves and heads of an Expression or S-Expression.
+    Atoms are the leaves (in the common tree sense, not the Mathics
+    ``_leaves`` sense) and Heads of an Expression or S-Expression.
 
-    In other words they are the units of an expression that we cannot dig down structurally.
-    Various object primitives ie ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
+    In other words, they are the units of an expression that we cannot
+    dig down deeper structurally.  Various object primitives i.e.
+    ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
 
+    Of note is the fact that the Mathics ``Part[]`` function of an
+    Atom object does not exist.
+
+    Atom is not a directly-mentioned WL entity, although conceptually
+    it very much seems to exist.
     """
 
     # FIXME: I believe Atom's should have its own custom
@@ -702,6 +711,31 @@ class Atom(BaseExpression):
 
 
 class Symbol(Atom):
+    """
+    Note: Symbol is right now used in a couple of ways which in the
+    future may be separated.
+
+    A Symbol is a kind of Atom that acts as a symbolic variable or
+    symbolic constant.
+
+    All Symbols have a name that can be converted to string form.
+
+    Inside a session, a Symbol can be associated with a ``Definition``
+    that determines its evaluation value.
+
+    We also have Symbols which are immutable or constant; here the
+    definitions are fixed. The predefined Symbols ``True``, ``False``,
+    and ``Null`` are like this.
+
+    Also there are situations where the Symbol acts like Python's
+    intern() built-in function or Lisp's Symbol without its modifyable
+    property list.  Here, the only attribute we care about is the name
+    which is unique across all mentions and uses, and therefore
+    needs it only to be stored as a single object in the system.
+
+    This aspect may or may not be true for the Symbolic Variable use case too.
+    """
+
     name: str
     sympy_dummy: Any
     defined_symbols = {}

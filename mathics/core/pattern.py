@@ -58,7 +58,16 @@ class StopGenerator_Pattern(StopGenerator):
     pass
 
 
-class Pattern(object):
+class Pattern:
+    """
+    This is the base class for Mathics Pattern objects.
+
+    A Pattern is a way to represent classes of expressions.
+    For example, ``F[x_Symbol]`` is a pattern which matches an expression whose
+    Head is ``F`` and that has a single parameter which is kind of Symbol.
+    When the pattern matches, the symbol is bound to the parameter ``x``.
+    """
+
     create = staticmethod(Pattern_create)
 
     def match(
