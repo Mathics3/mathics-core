@@ -251,11 +251,11 @@ class BaseExpression(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
-    # Probably, this method shouldn't be here
+    # Probably, this method shouldn't be here.
     def get_elements(self):
         return []
 
-    # Compatibily with old code. Deprecated, but remove after a little bit
+    # Compatibily with old code. Deprecated, but remove after a little bit.
     get_leaves = get_elements
 
     def get_int_value(self):

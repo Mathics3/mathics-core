@@ -1541,7 +1541,7 @@ class Expression(BaseExpression):
                 # Don't "numerify" numbers: they should be numerified
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
-                if not isinstance(leaf, Number):
+                if not isinstance(element, Number):
                     # TODO: use apply_N instead ?
                     n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
