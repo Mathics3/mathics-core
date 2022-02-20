@@ -96,7 +96,7 @@ class Association(Builtin):
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
                     pass
                 elif expr.has_form(("List", "Association"), None):
-                    if not validate(expr.elements):
+                    if not validate(expr._elements):
                         return False
                 else:
                     return False
@@ -123,14 +123,14 @@ class Association(Builtin):
     def apply(self, rules, evaluation):
         "Association[rules__]"
 
-        def make_flatten(exprs, rules_dictionary: dic = {}):
+        def make_flatten(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
-                    key = expr.elements[0].evaluate(evaluation)
-                    value = expr.elements[1].evaluate(evaluation)
+                    key = expr._elements[0].evaluate(evaluation)
+                    value = expr._elements[1].evaluate(evaluation)
                     rules_dictionary[key] = Expression(expr.get_head(), key, value)
                 elif expr.has_form(("List", "Association"), None):
-                    make_flatten(expr.elements, rules_dictionary)
+                    make_flatten(expr._elements, rules_dictionary)
                 else:
                     raise TypeError
             return rules_dictionary.values()
@@ -143,13 +143,13 @@ class Association(Builtin):
     def apply_key(self, rules, key, evaluation):
         "Association[rules__][key_]"
 
-        def find_key(exprs, rules_dictionary: dic = {}):
+        def find_key(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
-                    if expr.elements[0] == key:
-                        rules_dictionary[key] = expr.elements[1]
+                    if expr._elements[0] == key:
+                        rules_dictionary[key] = expr._elements[1]
                 elif expr.has_form(("List", "Association"), None):
-                    find_key(expr.elements)
+                    find_key(expr._elements)
                 else:
                     raise TypeError
             return rules_dictionary
@@ -394,7 +394,7 @@ class Values(Builtin):
                     SymbolList, *[get_values(leaf) for leaf in expr.leaves]
                 )
             else:
-                raise
+                raise TypeError
 
         rules = rules.get_sequence()
         if len(rules) != 1:
