@@ -250,7 +250,7 @@ class BaseExpression(KeyComparable):
 
     def get_head_name(self):
         raise NotImplementedError
-        
+
     # Probably, this method shouldn't be here
     def get_elements(self):
         return []
@@ -316,6 +316,7 @@ class BaseExpression(KeyComparable):
             return self.leaves
         else:
             return [self]
+
     def evaluate_elements(self, evaluation) -> "BaseExpression":
         """
         Create a new expression by evaluating the head and elements of self.
