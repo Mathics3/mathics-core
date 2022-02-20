@@ -718,12 +718,12 @@ class Expression(BaseExpression):
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Expression":
         """
-        Flatten leaves in nested expressions
+        Flatten elements in nested expressions
 
         head: head of the leaves to be flatten
-        callback:  a callback function called each time a leaf is flattened.
+        callback:  a callback function called each time a element is flattened.
         level:   maximum deep to flatten
-        pattern_only: if True, just apply to leaf that are pattern_sequence (see ExpressionPattern.get_wrappings)
+        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
 
         For example if head=G,
         F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
