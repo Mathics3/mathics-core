@@ -120,12 +120,14 @@ class _Rotate(Builtin):
             return expr
 
         index = (self._sign * n[0]) % len(leaves)  # with Python's modulo: index >= 1
-        new_leaves = chain(leaves[index:], leaves[:index])
+        new_elements = chain(leaves[index:], leaves[:index])
 
         if len(n) > 1:
-            new_leaves = [self._rotate(item, n[1:], evaluation) for item in new_leaves]
+            new_elements = [
+                self._rotate(item, n[1:], evaluation) for item in new_elements
+            ]
 
-        return expr.restructure(expr.head, new_leaves, evaluation)
+        return expr.restructure(expr.head, new_elements, evaluation)
 
     def apply_one(self, expr, evaluation):
         "%(name)s[expr_]"
@@ -655,9 +657,9 @@ class Riffle(Builtin):
         "Riffle[list_List, sep_]"
 
         if sep.has_form("List", None):
-            result = riffle_lists(list.get_leaves(), sep.leaves)
+            result = riffle_lists(list.get_elements(), sep.leaves)
         else:
-            result = riffle_lists(list.get_leaves(), [sep])
+            result = riffle_lists(list.get_elements(), [sep])
 
         return list.restructure("List", result, evaluation, deps=(list, sep))
 

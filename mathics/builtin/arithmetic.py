@@ -110,7 +110,7 @@ class _MPMathFunction(SympyFunction):
             result = self.prepare_mathics(result)
             result = from_sympy(result)
             # evaluate leaves to convert e.g. Plus[2, I] -> Complex[2, 1]
-            return result.evaluate_leaves(evaluation)
+            return result.evaluate_elements(evaluation)
         elif mpmath_function is None:
             return
 
@@ -285,14 +285,14 @@ class DirectedInfinity(SympyFunction):
     }
 
     def to_sympy(self, expr, **kwargs):
-        if len(expr._leaves) == 1:
+        if len(expr._elements) == 1:
             dir = expr.leaves[0].get_int_value()
             if dir == 1:
                 return sympy.oo
             elif dir == -1:
                 return -sympy.oo
             else:
-                return sympy.Mul((expr._leaves[0].to_sympy()), sympy.zoo)
+                return sympy.Mul((expr._elements[0].to_sympy()), sympy.zoo)
         else:
             return sympy.zoo
 
@@ -1373,7 +1373,7 @@ class Assuming(Builtin):
         elif assumptions.is_symbol() or not assumptions.has_form("List", None):
             cond = [assumptions]
         else:
-            cond = assumptions._leaves
+            cond = assumptions._elements
         cond = tuple(cond) + get_assumptions_list(evaluation)
         list_cond = Expression("List", *cond)
         # TODO: reduce the list of predicates
@@ -1428,7 +1428,7 @@ class ConditionalExpression(Builtin):
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
         if not cond.is_atom() and cond._head is SymbolList:
-            cond = Expression("System`And", *(cond._leaves))
+            cond = Expression("System`And", *(cond._elements))
         else:
             cond = Expression("System`And", cond)
         if cond is None:

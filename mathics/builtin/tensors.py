@@ -137,7 +137,7 @@ class ArrayQ(Builtin):
 
         pattern = Pattern.create(pattern)
 
-        dims = [len(expr.get_leaves())]  # to ensure an atom is not an array
+        dims = [len(expr.get_elements())]  # to ensure an atom is not an array
 
         def check(level, expr):
             if not expr.has_form("List", None):
