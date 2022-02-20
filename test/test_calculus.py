@@ -3,7 +3,7 @@
 Unit tests from builtins ... calculus.py
 """
 
-from .helper import check_evaluation
+from .helper import check_evaluation, session
 
 
 def test_calculus():
@@ -49,4 +49,5 @@ def test_calculus():
             "another sanity check for a more agressive sympy translation.",
         ),
     ):
+        session.evaluate("Clear[h]; Clear[g]; Clear[f];")
         check_evaluation(str_expr, str_expected, message)
