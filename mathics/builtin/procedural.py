@@ -647,10 +647,10 @@ class NestWhile(Builtin):
         results = [expr]
         while True:
             if m.get_name() == "All":
-                test_leaves = results
+                test_elements = results
             else:
-                test_leaves = results[-m.value :]
-            test_expr = Expression(test, *test_leaves)
+                test_elements = results[-m.value :]
+            test_expr = Expression(test, *test_elements)
             test_result = test_expr.evaluate(evaluation)
             if test_result.is_true():
                 next = Expression(f, results[-1])

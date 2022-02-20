@@ -10,15 +10,15 @@ class CompiledCodeBox(BoxConstruct):
 
     def boxes_to_text(self, leaves=None, **options):
         if leaves is None:
-            leaves = self._leaves
+            leaves = self._elements
         return leaves[0].value
 
     def boxes_to_mathml(self, leaves=None, **options):
         if leaves is None:
-            leaves = self._leaves
+            leaves = self._elements
         return leaves[0].value
 
     def boxes_to_tex(self, leaves=None, **options):
         if leaves is None:
-            leaves = self._leaves
+            leaves = self._elements
         return leaves[0].value

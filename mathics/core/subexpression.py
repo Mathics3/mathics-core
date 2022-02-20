@@ -178,7 +178,7 @@ class ExpressionPointer(object):
                 if i == 0:
                     parent = parent._head
                 else:
-                    parent = parent._leaves[i - 1]
+                    parent = parent._elements[i - 1]
                 i = pos.pop()
         except Exception:
             raise MessageException("Part", "span", pos)
@@ -241,7 +241,7 @@ class SubExpression(object):
         elif type(pos) is tuple:
             self = super(SubExpression, cls).__new__(cls)
             self._headp = ExpressionPointer(expr.head, 0)
-            self._leavesp = [
+            self._elementsp = [
                 SubExpression(ExpressionPointer(expr, k + 1), rem_pos) for k in pos
             ]
             return self
@@ -273,7 +273,7 @@ class SubExpression(object):
 
     @property
     def leaves(self):
-        return self._leavesp
+        return self._elementsp
 
     @leaves.setter
     def leaves(self, value):
@@ -282,7 +282,7 @@ class SubExpression(object):
     def to_expression(self):
         return Expression(
             self._headp.to_expression(),
-            *(leaf.to_expression() for leaf in self._leavesp)
+            *(leaf.to_expression() for leaf in self._elementsp)
         )
 
     def replace(self, new):
@@ -291,9 +291,9 @@ class SubExpression(object):
         """
         if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
             new.leaves
-        ) == len(self._leavesp):
-            for leaf, sub_new in zip(self._leavesp, new.leaves):
+        ) == len(self._elementsp):
+            for leaf, sub_new in zip(self._elementsp, new.leaves):
                 leaf.replace(sub_new)
         else:
-            for leaf in self._leavesp:
+            for leaf in self._elementsp:
                 leaf.replace(new)

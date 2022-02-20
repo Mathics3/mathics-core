@@ -39,7 +39,7 @@ def get_svg(expression):
 
     # Would be nice to DRY this boilerplate from boxes_to_mathml
 
-    leaves = boxes._leaves
+    leaves = boxes._elements
     elements, calc_dimensions = boxes._prepare_elements(
         leaves, options=options, neg_y=True
     )

@@ -52,7 +52,7 @@ class _RoundBox(_GraphicsElement):
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
-        if len(item._leaves) not in (1, 2):
+        if len(item._elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(
             _Color, face_element=self.face_element
@@ -657,7 +657,7 @@ class GraphicsBox(BoxConstruct):
         in to something suitable for SVG rendering.
         """
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
 
         elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
         xmin, xmax, ymin, ymax, w, h, self.width, self.height = calc_dimensions()
@@ -678,7 +678,7 @@ class GraphicsBox(BoxConstruct):
         """
 
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
             fields = self._prepare_elements(leaves, options, max_width=450)
             if len(fields) == 2:
                 elements, calc_dimensions = fields
@@ -742,7 +742,7 @@ clip(%s);
 
     def boxes_to_text(self, leaves=None, **options) -> str:
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
 
         self._prepare_elements(leaves, options)  # to test for Box errors
         return "-Graphics-"

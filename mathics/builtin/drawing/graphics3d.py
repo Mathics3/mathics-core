@@ -235,7 +235,7 @@ class Cone(Builtin):
     def apply_check(self, positions, radius, evaluation):
         "Cone[positions_List, radius_]"
 
-        if len(positions.get_leaves()) % 2 == 1:
+        if len(positions.get_elements()) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cone", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
@@ -291,7 +291,7 @@ class Cuboid(Builtin):
     def apply_check(self, positions, evaluation):
         "Cuboid[positions_List]"
 
-        if len(positions.get_leaves()) % 2 == 1:
+        if len(positions.get_elements()) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cuboid", "oddn", positions)
 
@@ -331,7 +331,7 @@ class Cylinder(Builtin):
     def apply_check(self, positions, radius, evaluation):
         "Cylinder[positions_List, radius_]"
 
-        if len(positions.get_leaves()) % 2 == 1:
+        if len(positions.get_elements()) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):

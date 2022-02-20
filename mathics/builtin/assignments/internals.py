@@ -100,7 +100,7 @@ def is_protected(tag, defin):
 
 
 def repl_pattern_by_symbol(expr):
-    leaves = expr.get_leaves()
+    leaves = expr.get_elements()
     if len(leaves) == 0:
         return expr
 
@@ -159,7 +159,7 @@ def unroll_patterns(lhs, rhs, evaluation):
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
-    lhsleaves = lhs._leaves
+    lhsleaves = lhs._elements
     if name == "System`Pattern":
         lhs = lhsleaves[1]
         rulerepl = (lhsleaves[0], repl_pattern_by_symbol(lhs))
@@ -177,16 +177,16 @@ def unroll_conditions(lhs):
     if type(lhs) is Symbol:
         return lhs, None
     else:
-        name, lhs_leaves = lhs.get_head_name(), lhs._leaves
+        name, lhs_elements = lhs.get_head_name(), lhs._elements
     condition = []
     # This handle the case of many sucesive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
     while name == "System`Condition" and len(lhs.leaves) == 2:
-        condition.append(lhs_leaves[1])
-        lhs = lhs_leaves[0]
+        condition.append(lhs_elements[1])
+        lhs = lhs_elements[0]
         if isinstance(lhs, Atom):
             break
-        name, lhs_leaves = lhs.get_head_name(), lhs._leaves
+        name, lhs_elements = lhs.get_head_name(), lhs._elements
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:
@@ -288,7 +288,7 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
 def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_name()
     currContext = evaluation.definitions.get_current_context()
-    context_path = [s.get_string_value() for s in rhs.get_leaves()]
+    context_path = [s.get_string_value() for s in rhs.get_elements()]
     context_path = [
         s if (s is None or s[0] != "`") else currContext[:-1] + s for s in context_path
     ]
@@ -343,14 +343,14 @@ def process_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
-    lhs_leaves = lhs.leaves
+    lhs_elements = lhs.leaves
     name = lhs.get_head_name()
-    if len(lhs_leaves) != 1:
-        evaluation.message_args(name, len(lhs_leaves), 1)
+    if len(lhs_elements) != 1:
+        evaluation.message_args(name, len(lhs_elements), 1)
         raise AssignmentException(lhs, rhs)
-    tag = lhs_leaves[0].get_name()
+    tag = lhs_elements[0].get_name()
     if not tag:
-        evaluation.message(name, "sym", lhs_leaves[0], 1)
+        evaluation.message(name, "sym", lhs_elements[0], 1)
         raise AssignmentException(lhs, rhs)
     if tags is not None and tags != [tag]:
         evaluation.message(name, "tag", Symbol(name), Symbol(tag))
@@ -593,7 +593,7 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
     # this kind of things, but otherwise we need to work on rebuild the pattern
     # matching mechanism...
     flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
-    focus = focus.evaluate_leaves(evaluation)
+    focus = focus.evaluate_elements(evaluation)
     evaluation.ignore_oneidentity = flag_ioi
     name = lhs.get_head_name()
     if tags is None and not upset:
@@ -620,7 +620,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     name = lhs.get_head_name()
     focus = lhs
     flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
-    focus = focus.evaluate_leaves(evaluation)
+    focus = focus.evaluate_elements(evaluation)
     evaluation.ignore_oneidentity = flag_ioi
     if tags is None and not upset:
         name = focus.get_lookup_name()
@@ -638,7 +638,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
             tags.append(name)
     else:
         allowed_names = [focus.get_lookup_name()]
-        for leaf in focus.get_leaves():
+        for leaf in focus.get_elements():
             if not leaf.is_symbol() and leaf.get_head_name() in ("System`HoldPattern",):
                 leaf = leaf.leaves[0]
             if not leaf.is_symbol() and leaf.get_head_name() in ("System`Pattern",):

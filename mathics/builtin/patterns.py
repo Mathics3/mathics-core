@@ -126,7 +126,7 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     elif rules_expr.has_form("Dispatch", None):
-        return Dispatch(rules_expr._leaves, evaluation)
+        return Dispatch(rules_expr._elements, evaluation)
 
     if rules_expr.has_form("List", None):
         rules = rules_expr.leaves
@@ -1363,7 +1363,7 @@ class Repeated(PostfixOperator, PatternObject):
         if len(expr.leaves) == 2:
             leaf_1 = expr.leaves[1]
             allnumbers = not any(
-                leaf.get_int_value() is None for leaf in leaf_1.get_leaves()
+                leaf.get_int_value() is None for leaf in leaf_1.get_elements()
             )
             if leaf_1.has_form("List", 1, 2) and allnumbers:
                 self.max = leaf_1.leaves[-1].get_int_value()
@@ -1380,17 +1380,17 @@ class Repeated(PostfixOperator, PatternObject):
         if self.max is not None and len(leaves) > self.max:
             return
 
-        def iter(yield_iter, rest_leaves, vars):
-            if rest_leaves:
-                # for new_vars, rest in self.pattern.match(rest_leaves[0],
+        def iter(yield_iter, rest_elements, vars):
+            if rest_elements:
+                # for new_vars, rest in self.pattern.match(rest_elements[0],
                 # vars, evaluation):
                 def yield_match(new_vars, rest):
-                    # for sub_vars, sub_rest in iter(rest_leaves[1:],
+                    # for sub_vars, sub_rest in iter(rest_elements[1:],
                     #                                new_vars):
                     #    yield sub_vars, rest
-                    iter(yield_iter, rest_leaves[1:], new_vars)
+                    iter(yield_iter, rest_elements[1:], new_vars)
 
-                self.pattern.match(yield_match, rest_leaves[0], vars, evaluation)
+                self.pattern.match(yield_match, rest_elements[0], vars, evaluation)
             else:
                 yield_iter(vars, None)
 
@@ -1629,8 +1629,8 @@ class Dispatch(Atom):
 
     def __init__(self, rulelist, evaluation):
         self.src = Expression(SymbolList, *rulelist)
-        self.rules = [Rule(rule._leaves[0], rule._leaves[1]) for rule in rulelist]
-        self._leaves = None
+        self.rules = [Rule(rule._elements[0], rule._elements[1]) for rule in rulelist]
+        self._elements = None
         self._head = Symbol("Dispatch")
 
     def get_sort_key(self):
@@ -1693,7 +1693,7 @@ class DispatchAtom(AtomBuiltin):
             rules = rules.evaluate(evaluation)
 
         if rules.has_form("List", None):
-            rules = rules._leaves
+            rules = rules._elements
         else:
             rules = [rules]
 
@@ -1706,11 +1706,11 @@ class DispatchAtom(AtomBuiltin):
             if rule.is_symbol():
                 rule = rule.evaluate(evaluation)
             if rule.has_form("List", None):
-                flatten_list.extend(rule._leaves)
+                flatten_list.extend(rule._elements)
             elif rule.has_form(("Rule", "RuleDelayed"), 2):
                 flatten_list.append(rule)
             elif isinstance(rule, Dispatch):
-                flatten_list.extend(rule.src._leaves)
+                flatten_list.extend(rule.src._elements)
             else:
                 # WMA does not raise this message: just leave it unevaluated,
                 # and raise an error when the dispatch rule is used.
@@ -1726,4 +1726,4 @@ class DispatchAtom(AtomBuiltin):
         if isinstance(dispatch, Dispatch):
             return dispatch.src
         else:
-            return dispatch._leaves[0]
+            return dispatch._elements[0]

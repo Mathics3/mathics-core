@@ -425,7 +425,7 @@ class Read(Builtin):
 
         # Wrap types in a list (if it isn't already one)
         if types.has_form("List", None):
-            types = types._leaves
+            types = types._elements
         else:
             types = (types,)
 
@@ -1209,7 +1209,7 @@ class BinaryWrite(Builtin):
 
         # Check Type
         if typ.has_form("List", None):
-            types = typ.get_leaves()
+            types = typ.get_elements()
         else:
             types = [typ]
 
@@ -1567,7 +1567,7 @@ class BinaryRead(Builtin):
             return expr
 
         if typ.has_form("List", None):
-            types = typ.get_leaves()
+            types = typ.get_elements()
         else:
             types = [typ]
 
@@ -2358,7 +2358,7 @@ class Close(Builtin):
         "Close[channel_]"
 
         if channel.has_form(("InputStream", "OutputStream"), 2):
-            [name, n] = channel.get_leaves()
+            [name, n] = channel.get_elements()
             py_n = n.get_int_value()
             stream = stream_manager.lookup_stream(py_n)
         else:

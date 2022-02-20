@@ -622,7 +622,7 @@ class MakeBoxes(Builtin):
 
         precedence = prec.get_int_value()
 
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if len(leaves) == 1:
             leaf = leaves[0]
             leaf_boxes = MakeBoxes(leaf, f)
@@ -658,7 +658,7 @@ class MakeBoxes(Builtin):
         precedence = prec.get_int_value()
         grouping = grouping.get_name()
 
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if len(leaves) > 1:
             if h.has_form("List", len(leaves) - 1):
                 ops = [get_op(op) for op in h.leaves]
@@ -793,7 +793,7 @@ class GridBox(BoxConstruct):
 
     def boxes_to_tex(self, leaves=None, **box_options) -> str:
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
         evaluation = box_options.get("evaluation")
         items, options = self.get_array(leaves, evaluation)
         new_box_options = box_options.copy()
@@ -824,7 +824,7 @@ class GridBox(BoxConstruct):
 
     def boxes_to_mathml(self, leaves=None, **box_options) -> str:
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
         evaluation = box_options.get("evaluation")
         items, options = self.get_array(leaves, evaluation)
         attrs = {}
@@ -852,7 +852,7 @@ class GridBox(BoxConstruct):
 
     def boxes_to_text(self, leaves=None, **box_options) -> str:
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
         evaluation = box_options.get("evaluation")
         items, options = self.get_array(leaves, evaluation)
         result = ""
@@ -1329,7 +1329,7 @@ class Message(Builtin):
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
     if expr.has_form("MessageName", 2):
-        symbol, tag = expr.get_leaves()
+        symbol, tag = expr.get_elements()
         if symbol.get_name() and tag.get_string_value():
             return True
     return False

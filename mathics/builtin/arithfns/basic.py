@@ -386,7 +386,7 @@ class Plus(BinaryOperator, SympyFunction):
                     for leaf in item.leaves:
                         if isinstance(leaf, Number):
                             count = leaf.to_sympy()
-                            rest = item.get_mutable_leaves()
+                            rest = item.get_mutable_elements()
                             rest.remove(leaf)
                             if len(rest) == 1:
                                 rest = rest[0]

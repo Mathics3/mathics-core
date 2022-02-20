@@ -591,7 +591,7 @@ class SympyFunction(SympyObject):
 class BoxConstruct(InstanceableBuiltin):
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)
-        instance._leaves = leaves
+        instance._elements = leaves
         return instance
 
     def evaluate(self, evaluation):
@@ -633,7 +633,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @property
     def leaves(self):
-        return self._leaves
+        return self._elements
 
     @leaves.setter
     def leaves(self, value):
@@ -660,7 +660,7 @@ class BoxConstruct(InstanceableBuiltin):
         if not leaf_counts:
             return False
         if leaf_counts and leaf_counts[0] is not None:
-            count = len(self._leaves)
+            count = len(self._elements)
             if count not in leaf_counts:
                 if (
                     len(leaf_counts) == 2

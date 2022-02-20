@@ -376,8 +376,8 @@ class Maximize(Builtin):
 
         solutions = []
         for dual_solution in dual_solutions:
-            solution_leaves = dual_solution.leaves
-            solutions.append([solution_leaves[0] * -1, solution_leaves[1]])
+            solution_elements = dual_solution.leaves
+            solutions.append([solution_elements[0] * -1, solution_elements[1]])
 
         return from_python(solutions)
 
@@ -393,7 +393,7 @@ class Maximize(Builtin):
 
         solutions = []
         for dual_solution in dual_solutions:
-            solution_leaves = dual_solution.leaves
-            solutions.append([solution_leaves[0] * -1, solution_leaves[1]])
+            solution_elements = dual_solution.leaves
+            solutions.append([solution_elements[0] * -1, solution_elements[1]])
 
         return from_python(solutions)

@@ -42,7 +42,7 @@ def get_part(varlist, indices):
             if cur.is_atom():
                 raise PartDepthError(rest[0])
             pos = rest[0]
-            leaves = cur.get_leaves()
+            leaves = cur.get_elements()
             try:
                 if pos > 0:
                     part = leaves[pos - 1]
@@ -69,11 +69,11 @@ def set_part(varlist, indices, newval):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = cur._leaves[pos - 1]
+                    part = cur._elements[pos - 1]
                 elif pos == 0:
                     part = cur.get_head()
                 else:
-                    part = cur._leaves[pos]
+                    part = cur._elements[pos]
             except IndexError:
                 raise PartRangeError
             return rec(part, rest[1:])
@@ -565,7 +565,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(list(curr_leave.get_leaves()))
+            tree.append(list(curr_leave.get_elements()))
             changed_marks.append([False for s in tree[-1]])
             curr_index.append(0)
     return tree[0][0]
@@ -591,7 +591,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
     else:
         lsmin = levelspec[0]
         lsmax = levelspec[1]
-    tree = [expr.get_leaves()]
+    tree = [expr.get_elements()]
     curr_index = [0]
     found = []
     while len(tree) > 0:
@@ -613,6 +613,6 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(curr_leave.get_leaves())
+            tree.append(curr_leave.get_elements())
             curr_index.append(0)
     return found

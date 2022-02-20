@@ -204,7 +204,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
 
     def convert_sympy(expr):
         "converts top-level to sympy"
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if isinstance(expr, Integer):
             return sympy.Integer(expr.get_int_value())
         if target_pat is not None and not isinstance(expr, Number):
@@ -232,7 +232,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 return expr
         else:
             return Expression(
-                expr.head, *[unconvert_subexprs(leaf) for leaf in expr.get_leaves()]
+                expr.head, *[unconvert_subexprs(leaf) for leaf in expr.get_elements()]
             )
 
     sympy_expr = convert_sympy(expr)
@@ -244,7 +244,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         ) in enumerate(sub_exprs):
             if not sub_expr.is_atom():
                 head = _expand(sub_expr.head)  # also expand head
-                leaves = sub_expr.get_leaves()
+                leaves = sub_expr.get_elements()
                 if target_pat:
                     leaves = [
                         leaf if leaf.is_free(target_pat, evaluation) else _expand(leaf)
@@ -259,7 +259,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
                 if sub_expr.has_form(head, None):
-                    leaves = sub_expr.get_leaves()
+                    leaves = sub_expr.get_elements()
                     if target_pat:
                         leaves = [
                             leaf
@@ -436,7 +436,7 @@ class Simplify(Builtin):
         if expr.is_atom():
             return expr
         # else, use sympy:
-        leaves = [self.apply(leaf, evaluation) for leaf in expr._leaves]
+        leaves = [self.apply(leaf, evaluation) for leaf in expr._elements]
         head = self.apply(expr.get_head(), evaluation)
         expr = Expression(head, *leaves)
 
@@ -1513,17 +1513,17 @@ class _CoefficientHandler(Builtin):
                         return powers
             if pf.has_form("Sqrt", 1):
                 for i, pat in enumerate(var_pats):
-                    if match(pf._leaves[0], pat, evaluation):
+                    if match(pf._elements[0], pat, evaluation):
                         powers[i] = RationalOneHalf
                         return powers
             if pf.has_form("Power", 2):
                 for i, pat in enumerate(var_pats):
-                    matchval = match(pf._leaves[0], pat, evaluation)
+                    matchval = match(pf._elements[0], pat, evaluation)
                     if matchval:
-                        powers[i] = pf._leaves[1]
+                        powers[i] = pf._elements[1]
                         return powers
             if pf.has_form("Times", None):
-                contrib = [powers_list(factor) for factor in pf._leaves]
+                contrib = [powers_list(factor) for factor in pf._elements]
                 for i in range(len(var_pats)):
                     powers[i] = Expression(
                         SymbolPlus, *[c[i] for c in contrib]
@@ -1557,7 +1557,7 @@ class _CoefficientHandler(Builtin):
                         powers.append(factor)
                     elif (
                         factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
-                    ) and match(factor._leaves[0], target_pat, evaluation):
+                    ) and match(factor._elements[0], target_pat, evaluation):
                         powers.append(factor)
                     else:
                         coeffs.append(factor)
@@ -1639,7 +1639,7 @@ class _CoefficientHandler(Builtin):
             coeff_dict = {}
             powers_dict = {}
             powers_order = {}
-            for term in expr._leaves:
+            for term in expr._elements:
                 coeff, powers = split_coeff_pow(term)
                 if (
                     form != "expr"
@@ -1735,7 +1735,7 @@ class CoefficientArrays(_CoefficientHandler):
         if varlist.is_symbol():
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
-            var_exprs = varlist.get_leaves()
+            var_exprs = varlist.get_elements()
         else:
             var_exprs = [varlist]
 
@@ -1828,7 +1828,7 @@ class Collect(_CoefficientHandler):
         if varlst.is_symbol():
             var_exprs = [varlst]
         elif varlst.has_form("List", None):
-            var_exprs = varlst.get_leaves()
+            var_exprs = varlst.get_elements()
         else:
             var_exprs = [varlst]
 

@@ -13,7 +13,7 @@ class ImageBox(BoxConstruct):
 
     def boxes_to_mathml(self, leaves=None, **options):
         if leaves is None:
-            leaves = self._leaves
+            leaves = self._elements
         # see https://tools.ietf.org/html/rfc2397
         return '<mglyph src="%s" width="%dpx" height="%dpx" />' % (
             leaves[0].get_string_value(),

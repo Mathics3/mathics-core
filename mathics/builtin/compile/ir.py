@@ -19,7 +19,7 @@ def single_real_arg(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if len(leaves) != 1:
             raise CompileError()
         arg = self._gen_ir(leaves[0])
@@ -40,7 +40,7 @@ def int_real_args(minargs):
 
     def wraps(f):
         def wrapped_f(self, expr):
-            leaves = expr.get_leaves()
+            leaves = expr.get_elements()
             if len(leaves) < minargs:
                 raise CompileError()
             args = [self._gen_ir(leaf) for leaf in leaves]
@@ -70,7 +70,7 @@ def int_args(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         args = [self._gen_ir(leaf) for leaf in leaves]
         for arg in args:
             if arg.type == void_type:
@@ -92,7 +92,7 @@ def bool_args(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         args = [self._gen_ir(leaf) for leaf in leaves]
         for arg in args:
             if arg.type == void_type:
@@ -246,7 +246,7 @@ class IRGenerator(object):
             raise CompileError()
 
         builder = self.builder
-        args = expr.get_leaves()
+        args = expr.get_elements()
 
         # condition
         cond = self._gen_ir(args[0])
@@ -306,7 +306,7 @@ class IRGenerator(object):
         return result
 
     def _gen_Return(self, expr):
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if len(leaves) != 1:
             raise CompileError()
 
@@ -346,7 +346,7 @@ class IRGenerator(object):
 
     def _gen_Power(self, expr):
         # TODO (int_type, int_type) power
-        leaves = expr.get_leaves()
+        leaves = expr.get_elements()
         if len(leaves) != 2:
             raise CompileError()
 

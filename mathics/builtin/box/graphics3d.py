@@ -342,7 +342,7 @@ class Graphics3DBox(GraphicsBox):
         the caller will do that if it is needed.
         """
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
 
         (
             elements,
@@ -397,7 +397,7 @@ class Graphics3DBox(GraphicsBox):
 
     def boxes_to_tex(self, leaves=None, **options):
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
 
         (
             elements,
@@ -602,7 +602,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
     def boxes_to_text(self, leaves=None, **options):
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
         return "-Graphics3D-"
 
     def create_axes(

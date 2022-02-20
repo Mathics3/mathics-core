@@ -128,8 +128,8 @@ class Pattern:
     def get_head(self):
         return self.expr.get_head()
 
-    def get_leaves(self):
-        return self.expr.get_leaves()
+    def get_elements(self):
+        return self.expr.get_elements()
 
     def get_sort_key(self, pattern_sort=False):
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
@@ -247,11 +247,11 @@ class ExpressionPattern(Pattern):
             # ordering of the leaves!
             # if self.leaves:
             #    next_leaf = self.leaves[0]
-            #    next_leaves = self.leaves[1:]
+            #    next_elements = self.leaves[1:]
 
             def yield_choice(pre_vars):
                 next_leaf = self.leaves[0]
-                next_leaves = self.leaves[1:]
+                next_elements = self.leaves[1:]
 
                 # "leading_blanks" below handles expressions with leading Blanks H[x_, y_, ...]
                 # much more efficiently by not calling get_match_candidates_count() on leaves
@@ -268,7 +268,7 @@ class ExpressionPattern(Pattern):
                 # without "leading_blanks", Range[5000] will be tested against {a__, b_} in a
                 # call to get_match_candidates_count(), which is slow.
 
-                unmatched_leaves = expression.leaves
+                unmatched_elements = expression.leaves
                 leading_blanks = not orderless & attributes
 
                 for leaf in self.leaves:
@@ -279,19 +279,19 @@ class ExpressionPattern(Pattern):
                             1,
                             1,
                         ):  # Blank? (i.e. length exactly 1?)
-                            if not unmatched_leaves:
+                            if not unmatched_elements:
                                 raise StopGenerator_ExpressionPattern_match()
                             if not leaf.does_match(
-                                unmatched_leaves[0], evaluation, pre_vars
+                                unmatched_elements[0], evaluation, pre_vars
                             ):
                                 raise StopGenerator_ExpressionPattern_match()
-                            unmatched_leaves = unmatched_leaves[1:]
+                            unmatched_elements = unmatched_elements[1:]
                         else:
                             leading_blanks = False
 
                     if not leading_blanks:
                         candidates = leaf.get_match_candidates_count(
-                            unmatched_leaves,
+                            unmatched_elements,
                             expression,
                             attributes,
                             evaluation,
@@ -310,7 +310,7 @@ class ExpressionPattern(Pattern):
                 self.match_leaf(
                     yield_func,
                     next_leaf,
-                    next_leaves,
+                    next_elements,
                     ([], expression.leaves),
                     pre_vars,
                     expression,
@@ -387,7 +387,7 @@ class ExpressionPattern(Pattern):
     def get_pre_choices(self, yield_func, expression, attributes, vars):
         if orderless & attributes:
             self.sort()
-            patterns = self.filter_leaves("Pattern")
+            patterns = self.filter_elements("Pattern")
             groups = {}
             prev_pattern = prev_name = None
             for pattern in patterns:
@@ -485,7 +485,7 @@ class ExpressionPattern(Pattern):
         self.leaves = [Pattern.create(leaf) for leaf in expr.leaves]
         self.expr = expr
 
-    def filter_leaves(self, head_name):
+    def filter_elements(self, head_name):
         head_name = ensure_context(head_name)
         return [leaf for leaf in self.leaves if leaf.get_head_name() == head_name]
 
@@ -524,7 +524,7 @@ class ExpressionPattern(Pattern):
         self,
         yield_func,
         leaf,
-        rest_leaves,
+        rest_elements,
         rest_expression,
         vars,
         expression,
@@ -576,7 +576,7 @@ class ExpressionPattern(Pattern):
             flat & attributes and leaf.get_head() == expression.head
         )
 
-        less_first = len(rest_leaves) > 0
+        less_first = len(rest_elements) > 0
 
         if orderless & attributes:
             # we only want leaf_candidates to be a set if we're orderless.
@@ -624,9 +624,9 @@ class ExpressionPattern(Pattern):
                 *set_lengths
             )
 
-        if rest_leaves:
-            next_leaf = rest_leaves[0]
-            next_rest_leaves = rest_leaves[1:]
+        if rest_elements:
+            next_leaf = rest_elements[0]
+            next_rest_elements = rest_elements[1:]
         next_depth = depth + 1
         next_index = leaf_index + 1
 
@@ -656,11 +656,11 @@ class ExpressionPattern(Pattern):
                     )
 
             def match_yield(new_vars, _):
-                if rest_leaves:
+                if rest_elements:
                     self.match_leaf(
                         leaf_yield,
                         next_leaf,
-                        next_rest_leaves,
+                        next_rest_elements,
                         items_rest,
                         new_vars,
                         expression,
