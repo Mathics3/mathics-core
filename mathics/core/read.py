@@ -106,7 +106,7 @@ def read_name_and_stream_from_channel(channel, evaluation):
     if strm is None:
         return None, None, None
 
-    name, n = strm.get_leaves()
+    name, n = strm.get_elements()
 
     stream = stream_manager.lookup_stream(n.get_int_value())
     if stream is None:
@@ -127,7 +127,7 @@ def read_list_from_types(read_types):
 
     # Trun read_types into a list if it isn't already one.
     if read_types.has_form("List", None):
-        read_types = read_types._leaves
+        read_types = read_types._elements
     else:
         read_types = (read_types,)
 

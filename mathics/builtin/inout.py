@@ -622,9 +622,9 @@ class MakeBoxes(Builtin):
 
         precedence = prec.get_int_value()
 
-        leaves = expr.get_leaves()
-        if len(leaves) == 1:
-            leaf = leaves[0]
+        elements = expr.get_elements()
+        if len(elements) == 1:
+            leaf = elements[0]
             leaf_boxes = MakeBoxes(leaf, f)
             leaf = parenthesize(precedence, leaf, leaf_boxes, True)
             if p.get_name() == "System`Postfix":
@@ -658,15 +658,15 @@ class MakeBoxes(Builtin):
         precedence = prec.get_int_value()
         grouping = grouping.get_name()
 
-        leaves = expr.get_leaves()
-        if len(leaves) > 1:
-            if h.has_form("List", len(leaves) - 1):
+        elements = expr.get_elements()
+        if len(elements) > 1:
+            if h.has_form("List", len(elements) - 1):
                 ops = [get_op(op) for op in h.leaves]
             else:
-                ops = [get_op(h)] * (len(leaves) - 1)
-            return make_boxes_infix(leaves, ops, precedence, grouping, f)
-        elif len(leaves) == 1:
-            return MakeBoxes(leaves[0], f)
+                ops = [get_op(h)] * (len(elements) - 1)
+            return make_boxes_infix(elements, ops, precedence, grouping, f)
+        elif len(elements) == 1:
+            return MakeBoxes(elements[0], f)
         else:
             return MakeBoxes(expr, f)
 
@@ -793,7 +793,7 @@ class GridBox(BoxConstruct):
 
     def boxes_to_tex(self, leaves=None, **box_options) -> str:
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
         evaluation = box_options.get("evaluation")
         items, options = self.get_array(leaves, evaluation)
         new_box_options = box_options.copy()
@@ -822,11 +822,11 @@ class GridBox(BoxConstruct):
         result += r"\end{array}"
         return result
 
-    def boxes_to_mathml(self, leaves=None, **box_options) -> str:
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_mathml(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
         evaluation = box_options.get("evaluation")
-        items, options = self.get_array(leaves, evaluation)
+        items, options = self.get_array(elements, evaluation)
         attrs = {}
         column_alignments = options["System`ColumnAlignments"].get_name()
         try:
@@ -850,11 +850,11 @@ class GridBox(BoxConstruct):
         result += "</mtable>"
         return result
 
-    def boxes_to_text(self, leaves=None, **box_options) -> str:
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_text(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
         evaluation = box_options.get("evaluation")
-        items, options = self.get_array(leaves, evaluation)
+        items, options = self.get_array(elements, evaluation)
         result = ""
         if not items:
             return ""
@@ -1329,7 +1329,7 @@ class Message(Builtin):
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
     if expr.has_form("MessageName", 2):
-        symbol, tag = expr.get_leaves()
+        symbol, tag = expr.get_elements()
         if symbol.get_name() and tag.get_string_value():
             return True
     return False

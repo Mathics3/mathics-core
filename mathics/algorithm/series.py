@@ -208,7 +208,7 @@ def series_times_series(series1, series2):
                 data[pos] = Expression(SymbolTimes, c1, c2)
             elif data[pos].get_head() is SymbolPlus:
                 data[pos] = Expression(
-                    SymbolPlus, Expression(SymbolTimes, c1, c2), *(data[pos]._leaves)
+                    SymbolPlus, Expression(SymbolTimes, c1, c2), *(data[pos]._elements)
                 )
             else:
                 data[pos] = Expression(
@@ -319,9 +319,9 @@ def reduce_series_plus(series, terms, x, x0):
             other_terms.append(term)
             continue
         term_head = term.head
-        term_leaves = term.leaves
+        term_elements = term.leaves
         if term_head is SymbolSeriesData:
-            y, y0, data, nummin, nummax, den = term_leaves
+            y, y0, data, nummin, nummax, den = term_elements
             if not x.sameQ(y):
                 data = Expression(SymbolList, *[term])
                 y = x

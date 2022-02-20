@@ -90,7 +90,7 @@ class Clear(Builtin):
         if isinstance(symbols, Symbol):
             symbols = [symbols]
         elif isinstance(symbols, Expression):
-            symbols = symbols.get_leaves()
+            symbols = symbols.get_elements()
         elif isinstance(symbols, String):
             symbols = [symbols]
         else:

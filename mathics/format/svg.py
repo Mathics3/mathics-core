@@ -221,7 +221,7 @@ add_conversion_fn(FilledCurveBox, filled_curve_box)
 def graphics_box(self, leaves=None, **options) -> str:
 
     if not leaves:
-        leaves = self._leaves
+        leaves = self._elements
 
     data = options.get("data", None)
     if data:

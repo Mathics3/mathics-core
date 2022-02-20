@@ -43,7 +43,7 @@ class BaseRule(KeyComparable):
         def yield_match(vars, rest):
             if rest is None:
                 rest = ([], [])
-            if 0 < len(rest[0]) + len(rest[1]) == len(expression.get_leaves()):
+            if 0 < len(rest[0]) + len(rest[1]) == len(expression.get_elements()):
                 # continue
                 return
             options = {}

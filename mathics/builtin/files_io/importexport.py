@@ -1096,23 +1096,23 @@ class RegisterImport(Builtin):
         OptionsPattern[ImportExport`RegisterImport]]"""
 
         if function.has_form("List", None):
-            leaves = function.get_leaves()
+            elements = function.get_elements()
         else:
-            leaves = [function]
+            elements = [function]
 
         if not (
-            len(leaves) >= 1
-            and isinstance(leaves[-1], Symbol)
-            and all(x.has_form("RuleDelayed", None) for x in leaves[:-1])
+            len(elements) >= 1
+            and isinstance(elements[-1], Symbol)
+            and all(x.has_form("RuleDelayed", None) for x in elements[:-1])
         ):
             # TODO: Message
             return SymbolFailed
 
         conditionals = {
             elem.get_string_value(): expr
-            for (elem, expr) in (x.get_leaves() for x in leaves[:-1])
+            for (elem, expr) in (x.get_elements() for x in elements[:-1])
         }
-        default = leaves[-1]
+        default = elements[-1]
         posts = {}
 
         IMPORTERS[formatname.get_string_value()] = (
@@ -1369,7 +1369,7 @@ class Import(Builtin):
         current_predetermined_out = evaluation.predetermined_out
         # Check elements
         if elements.has_form("List", None):
-            elements = elements.get_leaves()
+            elements = elements.get_elements()
         else:
             elements = [elements]
 
@@ -1457,16 +1457,16 @@ class Import(Builtin):
                 # TODO message
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
-            tmp = tmp.get_leaves()
+            tmp = tmp.get_elements()
             if not all(expr.has_form("Rule", None) for expr in tmp):
                 evaluation.predetermined_out = current_predetermined_out
                 return None
 
             # return {a.get_string_value() : b for (a,b) in map(lambda x:
-            # x.get_leaves(), tmp)}
+            # x.get_elements(), tmp)}
             evaluation.predetermined_out = current_predetermined_out
             return dict(
-                (a.get_string_value(), b) for (a, b) in [x.get_leaves() for x in tmp]
+                (a.get_string_value(), b) for (a, b) in [x.get_elements() for x in tmp]
             )
 
         # Perform the import
@@ -1776,11 +1776,11 @@ class Export(Builtin):
             return SymbolFailed
 
         # Process elems {comp* format?, elem1*}
-        leaves = elems.get_leaves()
+        elements = elems.get_elements()
 
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in leaves[::-1]:
+        for leaf in elements[::-1]:
             leaf_str = leaf.get_string_value()
 
             if not found_form and leaf_str in EXPORTERS:
@@ -1915,10 +1915,10 @@ class ExportString(Builtin):
     def apply_elements(self, expr, elems, evaluation, **options):
         "ExportString[expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[ExportString]]"
         # Process elems {comp* format?, elem1*}
-        leaves = elems.get_leaves()
+        elements = elems.get_elements()
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in leaves[::-1]:
+        for leaf in elements[::-1]:
             leaf_str = leaf.get_string_value()
 
             if not found_form and leaf_str in EXPORTERS:
@@ -2172,7 +2172,7 @@ class B64Encode(Builtin):
         if isinstance(expr, String):
             stringtocodify = expr.get_string_value()
         elif expr.get_head_name() == "System`ByteArray":
-            return String(expr._leaves[0].__str__())
+            return String(expr._elements[0].__str__())
         else:
             stringtocodify = (
                 Expression("ToString", expr).evaluate(evaluation).get_string_value()

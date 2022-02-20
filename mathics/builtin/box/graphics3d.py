@@ -342,7 +342,7 @@ class Graphics3DBox(GraphicsBox):
         the caller will do that if it is needed.
         """
         if not leaves:
-            leaves = self._leaves
+            elements = self._elements
 
         (
             elements,
@@ -351,7 +351,7 @@ class Graphics3DBox(GraphicsBox):
             ticks_style,
             calc_dimensions,
             boxscale,
-        ) = self._prepare_elements(leaves, options)
+        ) = self._prepare_elements(elements, options)
 
         js_ticks_style = [s.to_js() for s in ticks_style]
 
@@ -388,16 +388,16 @@ class Graphics3DBox(GraphicsBox):
 
         return json_repr
 
-    def boxes_to_mathml(self, leaves=None, **options) -> str:
+    def boxes_to_mathml(self, elements=None, **options) -> str:
         """Turn the Graphics3DBox into a MathML string"""
-        json_repr = self.boxes_to_json(leaves, **options)
+        json_repr = self.boxes_to_json(elements, **options)
         mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
         mathml = f"<mtable><mtr><mtd>{mathml}</mtd></mtr></mtable>"
         return mathml
 
-    def boxes_to_tex(self, leaves=None, **options):
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_tex(self, elements=None, **options):
+        if not elements:
+            elements = self._elements
 
         (
             elements,
@@ -406,7 +406,7 @@ class Graphics3DBox(GraphicsBox):
             ticks_style,
             calc_dimensions,
             boxscale,
-        ) = self._prepare_elements(leaves, options, max_width=450)
+        ) = self._prepare_elements(elements, options, max_width=450)
 
         elements._apply_boxscaling(boxscale)
 
@@ -600,9 +600,9 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         )
         return tex
 
-    def boxes_to_text(self, leaves=None, **options):
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_text(self, elements=None, **options):
+        if not elements:
+            elements = self._elements
         return "-Graphics3D-"
 
     def create_axes(

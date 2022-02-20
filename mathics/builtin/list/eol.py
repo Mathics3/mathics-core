@@ -81,7 +81,7 @@ class Append(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain(expr.get_leaves(), [item])),
+            list(chain(expr.get_elements(), [item])),
             evaluation,
             deps=(expr, item),
         )
@@ -935,7 +935,7 @@ class Part(Builtin):
                 idx = idx.get_int_value()
                 if idx == 0:
                     return Symbol("System`ByteArray")
-                data = list._leaves[0].value
+                data = list._elements[0].value
                 lendata = len(data)
                 if idx < 0:
                     idx = data - idx
@@ -1042,7 +1042,7 @@ class Prepend(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain([item], expr.get_leaves())),
+            list(chain([item], expr.get_elements())),
             evaluation,
             deps=(expr, item),
         )
@@ -1177,7 +1177,7 @@ class ReplacePart(Builtin):
             position = replacement.leaves[0]
             replace = replacement.leaves[1]
             if position.has_form("List", None):
-                position = position.get_mutable_leaves()
+                position = position.get_mutable_elements()
             else:
                 position = [position]
             for index, pos in enumerate(position):

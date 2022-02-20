@@ -55,7 +55,7 @@ def apply_nvalues(expr, prec, evaluation):
         leaves = expr.leaves
         result = Expression(expr.head)
         newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
-        result._leaves = tuple(
+        result._elements = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
         return result
@@ -81,7 +81,7 @@ def apply_nvalues(expr, prec, evaluation):
     else:
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
-        leaves = expr.get_mutable_leaves()
+        leaves = expr.get_mutable_elements()
         if n_hold_all & attributes:
             eval_range = ()
         elif n_hold_first & attributes:
@@ -103,7 +103,7 @@ def apply_nvalues(expr, prec, evaluation):
                 leaves[index] = newleaf
 
         result = Expression(head)
-        result._leaves = tuple(leaves)
+        result._elements = tuple(leaves)
         return result
 
 

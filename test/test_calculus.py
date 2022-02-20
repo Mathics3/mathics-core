@@ -38,6 +38,7 @@ def test_calculus():
             "{x->1.51213}",
             "Issue #1235",
         ),
+        ("Integrate[Integrate[1,{y,0,E^x}],{x,0,Log[13]}]", "12", "Issue #153"),
         (
             "g/:Integrate[g[u_],u_]:=f[u]; Integrate[g[x],x]",
             "f[x]",

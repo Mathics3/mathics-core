@@ -178,8 +178,8 @@ def apply_D_to_Integral(func, domain, var, evaluation, options, head):
     # if the integration is along several variables, take the integration of the inner
     # variables as func.
     if domain._head is SymbolSequence:
-        func = Expression(head, func, *(domain._leaves[:-1]), *options)
-        domain = domain._leaves[-1]
+        func = Expression(head, func, *(domain._elements[:-1]), *options)
+        domain = domain._elements[-1]
 
     terms = []
     # Evaluates the derivative regarding the integrand:
