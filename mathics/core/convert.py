@@ -68,10 +68,10 @@ class SympyExpression(BasicSympy):
             # called with Mathics argument
             expr = exprs[0]
             sympy_head = expr.head.to_sympy()
-            sympy_leaves = [leaf.to_sympy() for leaf in expr.leaves]
-            if sympy_head is None or None in sympy_leaves:
+            sympy_elements = [leaf.to_sympy() for leaf in expr.leaves]
+            if sympy_head is None or None in sympy_elements:
                 return None
-            obj = BasicSympy.__new__(cls, sympy_head, *sympy_leaves)
+            obj = BasicSympy.__new__(cls, sympy_head, *sympy_elements)
             obj.expr = expr
         else:
             raise TypeError

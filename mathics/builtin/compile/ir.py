@@ -19,10 +19,10 @@ def single_real_arg(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
-        if len(leaves) != 1:
+        elements = expr.get_elements()
+        if len(elements) != 1:
             raise CompileError()
-        arg = self._gen_ir(leaves[0])
+        arg = self._gen_ir(elements[0])
         if arg.type == void_type:
             return arg
         elif arg.type == int_type:
@@ -40,10 +40,10 @@ def int_real_args(minargs):
 
     def wraps(f):
         def wrapped_f(self, expr):
-            leaves = expr.get_leaves()
-            if len(leaves) < minargs:
+            elements = expr.get_elements()
+            if len(elements) < minargs:
                 raise CompileError()
-            args = [self._gen_ir(leaf) for leaf in leaves]
+            args = [self._gen_ir(element) for element in elements]
             for arg in args:
                 if arg.type == void_type:
                     return arg
@@ -70,8 +70,8 @@ def int_args(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
-        args = [self._gen_ir(leaf) for leaf in leaves]
+        elements = expr.get_elements()
+        args = [self._gen_ir(element) for element in elements]
         for arg in args:
             if arg.type == void_type:
                 return arg
@@ -92,8 +92,8 @@ def bool_args(f):
     """
 
     def wrapped_f(self, expr):
-        leaves = expr.get_leaves()
-        args = [self._gen_ir(leaf) for leaf in leaves]
+        elements = expr.get_elements()
+        args = [self._gen_ir(element) for element in elements]
         for arg in args:
             if arg.type == void_type:
                 return arg
@@ -246,7 +246,7 @@ class IRGenerator(object):
             raise CompileError()
 
         builder = self.builder
-        args = expr.get_leaves()
+        args = expr.get_elements()
 
         # condition
         cond = self._gen_ir(args[0])
@@ -306,11 +306,11 @@ class IRGenerator(object):
         return result
 
     def _gen_Return(self, expr):
-        leaves = expr.get_leaves()
-        if len(leaves) != 1:
+        elements = expr.get_elements()
+        if len(elements) != 1:
             raise CompileError()
 
-        arg = self._gen_ir(leaves[0])
+        arg = self._gen_ir(elements[0])
         if arg.type == void_type:
             return arg
 
@@ -346,27 +346,27 @@ class IRGenerator(object):
 
     def _gen_Power(self, expr):
         # TODO (int_type, int_type) power
-        leaves = expr.get_leaves()
-        if len(leaves) != 2:
+        elements = expr.get_elements()
+        if len(elements) != 2:
             raise CompileError()
 
         # convert exponent
-        exponent = self._gen_ir(leaves[1])
+        exponent = self._gen_ir(elements[1])
         if exponent.type == int_type:
             exponent = self.int_to_real(exponent)
         elif exponent.type == void_type:
             return exponent
 
         # E ^ exponent
-        if leaves[0].sameQ(Symbol("E")) and exponent.type == real_type:
+        if elements[0].sameQ(Symbol("E")) and exponent.type == real_type:
             return self.call_fp_intr("llvm.exp", [exponent])
 
         # 2 ^ exponent
-        if leaves[0].get_int_value() == 2 and exponent.type == real_type:
+        if elements[0].get_int_value() == 2 and exponent.type == real_type:
             return self.call_fp_intr("llvm.exp2", [exponent])
 
         # convert base
-        base = self._gen_ir(leaves[0])
+        base = self._gen_ir(elements[0])
         if base.type == int_type:
             base = self.int_to_real(base)
         elif base.type == void_type:

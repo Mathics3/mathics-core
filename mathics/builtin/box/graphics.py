@@ -52,7 +52,7 @@ class _RoundBox(_GraphicsElement):
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
-        if len(item._leaves) not in (1, 2):
+        if len(item._elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(
             _Color, face_element=self.face_element
@@ -657,7 +657,7 @@ class GraphicsBox(BoxConstruct):
         in to something suitable for SVG rendering.
         """
         if not leaves:
-            leaves = self._leaves
+            leaves = self._elements
 
         elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
         xmin, xmax, ymin, ymax, w, h, self.width, self.height = calc_dimensions()
@@ -668,7 +668,7 @@ class GraphicsBox(BoxConstruct):
         svg_body = format_fn(self, leaves, data=data, **options)
         return svg_body
 
-    def boxes_to_tex(self, leaves=None, **options) -> str:
+    def boxes_to_tex(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for LaTeX.  (Yes, the name "tex" is
         perhaps misleading of vague.)
@@ -677,9 +677,9 @@ class GraphicsBox(BoxConstruct):
         that seems to be the package of choice in general for LaTeX.
         """
 
-        if not leaves:
-            leaves = self._leaves
-            fields = self._prepare_elements(leaves, options, max_width=450)
+        if not elements:
+            elements = self._elements
+            fields = self._prepare_elements(elements, options, max_width=450)
             if len(fields) == 2:
                 elements, calc_dimensions = fields
             else:
@@ -740,11 +740,11 @@ clip(%s);
 
         return tex
 
-    def boxes_to_text(self, leaves=None, **options) -> str:
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_text(self, elements=None, **options) -> str:
+        if not elements:
+            elements = self._elements
 
-        self._prepare_elements(leaves, options)  # to test for Box errors
+        self._prepare_elements(elements, options)  # to test for Box errors
         return "-Graphics-"
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):

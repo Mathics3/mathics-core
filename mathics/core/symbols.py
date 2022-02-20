@@ -227,8 +227,11 @@ class BaseExpression(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
-    def get_leaves(self):
+    def get_elements(self):
         return []
+
+    # Compatibily with old code. Deprecated, but remove after a little bit
+    get_leaves = get_elements
 
     def get_int_value(self):
         return None
@@ -279,7 +282,7 @@ class BaseExpression(KeyComparable):
         else:
             return [self]
 
-    def evaluate_leaves(self, evaluation) -> "BaseExpression":
+    def evaluate_elements(self, evaluation) -> "BaseExpression":
         return self
 
     def apply_rules(
@@ -312,7 +315,7 @@ class BaseExpression(KeyComparable):
         try:
             expr = self
             head = self.get_head()
-            leaves = self.get_leaves()
+            leaves = self.get_elements()
             include_form = False
             # If the expression is enclosed by a Format
             # takes the form from the expression and
@@ -395,9 +398,11 @@ class BaseExpression(KeyComparable):
                 and head is not SymbolGraphics3D
             ):
                 # print("Not inside graphics or numberform, and not is atom")
-                new_leaves = [leaf.do_format(evaluation, form) for leaf in expr.leaves]
+                new_elements = [
+                    leaf.do_format(evaluation, form) for leaf in expr.leaves
+                ]
                 expr = self.create_expression(
-                    expr.head.do_format(evaluation, form), *new_leaves
+                    expr.head.do_format(evaluation, form), *new_elements
                 )
 
             if include_form:
@@ -625,7 +630,7 @@ class Monomial(object):
 class Atom(BaseExpression):
     """
     Atoms are the leaves (in the common tree sense, not the Mathics
-    ``_leaves`` sense) and Heads of an Expression or S-Expression.
+    ``_elements`` sense) and Heads of an Expression or S-Expression.
 
     In other words, they are the units of an expression that we cannot
     dig down deeper structurally.  Various object primitives i.e.

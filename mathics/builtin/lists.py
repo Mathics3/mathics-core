@@ -153,7 +153,7 @@ class ByteArray(Builtin):
         if not values.has_form("List", None):
             return
         try:
-            ba = bytearray([b.get_int_value() for b in values._leaves])
+            ba = bytearray([b.get_int_value() for b in values._elements])
         except Exception:
             evaluation.message("ByteArray", "aotd", values)
             return
@@ -376,7 +376,7 @@ class Delete(Builtin):
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
         newexpr = expr
         for position in positions:
-            pos = [p.get_int_value() for p in position.get_leaves()]
+            pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 return evaluation.message(
                     "Delete", "psl", position.leaves[pos.index(None)], expr
@@ -1148,7 +1148,7 @@ class Insert(Builtin):
         "Insert[expr_List, elem_, n_Integer]"
 
         py_n = n.to_python()
-        new_list = list(expr.get_leaves())
+        new_list = list(expr.get_elements())
 
         position = py_n - 1 if py_n > 0 else py_n + 1
         new_list.insert(position, elem)
@@ -1402,7 +1402,7 @@ class RankedMin(Builtin):
         elif py_n > len(leaf.leaves):
             evaluation.message("RankedMin", "rank", py_n, len(leaf.leaves))
         else:
-            return introselect(leaf.get_mutable_leaves(), py_n - 1)
+            return introselect(leaf.get_mutable_elements(), py_n - 1)
 
 
 class RankedMax(Builtin):
@@ -1430,7 +1430,7 @@ class RankedMax(Builtin):
         elif py_n > len(leaf.leaves):
             evaluation.message("RankedMax", "rank", py_n, len(leaf.leaves))
         else:
-            return introselect(leaf.get_mutable_leaves(), len(leaf.leaves) - py_n)
+            return introselect(leaf.get_mutable_elements(), len(leaf.leaves) - py_n)
 
 
 class Quartiles(Builtin):
@@ -1718,21 +1718,21 @@ class _Pad(Builtin):
         leaves = leaf.leaves
         d = n[0] - len(leaves)
         if d < 0:
-            new_leaves = clip(leaves, d, mode)
+            new_elements = clip(leaves, d, mode)
             padding_main = []
         elif d >= 0:
-            new_leaves = leaves
+            new_elements = leaves
             padding_main = padding(d, mode)
 
         if current_m > 0:
             padding_margin = padding(
-                min(current_m, len(new_leaves) + len(padding_main)), -mode
+                min(current_m, len(new_elements) + len(padding_main)), -mode
             )
 
             if len(padding_margin) > len(padding_main):
                 padding_main = []
-                new_leaves = clip(
-                    new_leaves, -(len(padding_margin) - len(padding_main)), mode
+                new_elements = clip(
+                    new_elements, -(len(padding_margin) - len(padding_main)), mode
                 )
             elif len(padding_margin) > 0:
                 padding_main = clip(padding_main, -len(padding_margin), mode)
@@ -1740,14 +1740,14 @@ class _Pad(Builtin):
             padding_margin = []
 
         if len(n) > 1:
-            new_leaves = (
-                _Pad._build(e, n[1:], x, next_m, level + 1, mode) for e in new_leaves
+            new_elements = (
+                _Pad._build(e, n[1:], x, next_m, level + 1, mode) for e in new_elements
             )
 
         if mode < 0:
-            parts = (padding_main, new_leaves, padding_margin)
+            parts = (padding_main, new_elements, padding_margin)
         else:
-            parts = (padding_margin, new_leaves, padding_main)
+            parts = (padding_margin, new_elements, padding_main)
 
         return Expression(leaf.get_head(), *list(chain(*parts)))
 
