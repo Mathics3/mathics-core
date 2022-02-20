@@ -64,7 +64,7 @@ Bugs
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 *  ``Set*``: fixed issue #128.
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
-
+* Fix a bug in `Simplify` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
 
 4.0.1
 -----

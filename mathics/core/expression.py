@@ -717,6 +717,18 @@ class Expression(BaseExpression):
     def flatten(
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Expression":
+        """
+        Flatten leaves in nested expressions
+
+        head: head of the leaves to be flatten
+        callback:  a callback function called each time a leaf is flattened.
+        level:   maximum deep to flatten
+        pattern_only: if True, just apply to leaf that are pattern_sequence (see ExpressionPattern.get_wrappings)
+
+        For example if head=G,
+        F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
+
+        """
         if level is not None and level <= 0:
             return self
         if self._no_symbol(head.get_name()):
@@ -782,25 +794,44 @@ class Expression(BaseExpression):
                 "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
             )
         try:
+            # Evaluation loop:
             while reevaluate:
                 # changed before last evaluated?
+                # This prevents to reevaluate expressions that
+                # have been already evaluated. This uses Expression._cache
                 if not expr.has_changed(definitions):
                     break
 
+                # Here the names of the lookupname of the expression
+                # are stored. This is necesary for the implementation
+                # of the builtin `Return[]`
                 names.add(expr.get_lookup_name())
 
+                # This loads the default options associated
+                # to the expression
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
+                # This calls evaluate_next. This routine implements a single
+                # step in the evaluation, and determines if a fixed point
+                # was reached (reevaluate->False).
+                # Notice that evaluate_next calls ``evaluate``
+                # for the other ``BaseExpression`` subclasses.
                 expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
+
                 if not reevaluate:
                     break
+
+                # Trace evaluation...
                 if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "-> %s" % expr
                     )
                 iteration += 1
-
+                # Check if the iterationlimit was reached.
+                # we need to check on each step, in case that the expression
+                # changes its value. Maybe there is another way, for example,
+                # keeping the index in the Evaluation object.
                 if limit is None:
                     limit = definitions.get_config_value("$IterationLimit")
                     if limit is None:
@@ -820,6 +851,7 @@ class Expression(BaseExpression):
             else:
                 raise ret
         finally:
+            # Restores the state
             evaluation.options = old_options
             evaluation.dec_recursion_depth()
 
@@ -847,10 +879,21 @@ class Expression(BaseExpression):
         """
         from mathics.builtin.base import BoxConstruct
 
+        # Step 1 : evaluates the Head and the leaves according to the
+        # attributes HoldFirst / HoldAll / HoldRest  and the
+        # modifiers Evaluate / Unevaluated
+
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
         leaves = self.get_mutable_elements()
 
+        # The following  is one of the most expensives parts of the routine, because tries to evaluate
+        # each leaf, independently of the kind of leaf (strings and numbers
+        # are tried to be evaluated) as well as symbols already evaluated.
+        # So, F[1,2,3,...] takes more or less the same time that F[a1,a2,a3,..]
+        # and F[a1,a1,a1,a1] independently if a1... have assigned a numerical value
+        # or are not assigned. Here we can get some advantage by "compiling" / "caching"
+        # symbolic values.
         def rest_range(indices):
             if not hold_all_complete & attributes:
                 if self._no_symbol("System`Evaluate"):
@@ -881,15 +924,39 @@ class Expression(BaseExpression):
             eval_range(range(len(leaves)))
             # rest_range(range(0, 0))
 
+        # Step 2: Build a new expression. Notice that leaves are given
+        # after creating the object, to avoid to call `from_python` on each leaf.
         new = Expression(head)
         new._elements = tuple(leaves)
 
+        # Step 3: Now, process the attributes of head
+        # If there are sequence, flatten them if the attributes allow it.
         if not (sequence_hold | hold_all_complete) & attributes:
+            # This step is applied to most of the expressions
+            # and could be heavy for expressions with many leaves (like long lists)
+            # however, most of the times, expressions does not have `Sequence` expressions
+            # inside. Now this is handled by caching the sequences.
             new = new.flatten_sequence(evaluation)
             leaves = new._elements
 
+        # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
+        # The idea is to mark which leaves was marked as "Unevaluated"
+        # Also, this consumes time for long lists, and is useful just for a very unfrequent
+        # expressions, involving `Unevaluated` leaves.
         for leaf in leaves:
             leaf.unevaluated = False
+
+        # If HoldAllComplete is not an attribute,
+        # and the expression has leaves of the form  `Unevaluated[leaf]`
+        # change them to `leaf` and set a flag `unevaluated=True`
+        # If the evaluation fails, use this flag to restore back the initial form
+        # Unevaluated[leaf]
+
+        # comment @mmatera:
+        # what we need here is some way to track which leaves are marked as
+        # Unevaluated, that propagates by flatten, and at the end,
+        # to recover a list of positions that (eventually)
+        # must be marked again as Unevaluated.
 
         if not hold_all_complete & attributes:
             dirty_elements = None
@@ -906,17 +973,30 @@ class Expression(BaseExpression):
                 new._elements = tuple(dirty_elements)
                 leaves = dirty_elements
 
+        # If the attribute Flat is set, calls flatten with a callback
+        # that set leaves as unevaluated too.
         def flatten_callback(new_elements, old):
             for leaf in new_elements:
+
                 leaf.unevaluated = old.unevaluated
 
         if flat & attributes:
             new = new.flatten(new._head, callback=flatten_callback)
+
+        # If the attribute `Orderless` is set, sort the leaves, according to the
+        # `get_sort` criteria.
+        # the most expensive part of this is to build the sort key.
         if orderless & attributes:
             new.sort()
 
+        # Step 4:  Now, rebuilds the ExpressionCache, which tracks which symbols
+        # where involved, the `Sequence`s present,  and when was the last time they had changed.
+
         new._timestamp_cache(evaluation)
 
+        # Step 5:  For `Listable` expressions, calls `Expression.thread`.
+        # i.e. changes F[{a,b,c,...}] to {F[a], F[b], F[c], ...}
+        #
         if listable & attributes:
             done, threaded = new.thread(evaluation)
             if done:
@@ -925,6 +1005,33 @@ class Expression(BaseExpression):
                     return new, False
                 else:
                     return threaded, True
+
+        # Step 6: Now,the next step is to look at the rules associated to
+        # 1. the upvalues of each leaf
+        # 2. the downvalues / subvalues associated to the lookup_name
+        # if the lookup values matches or not the head.
+        # For example for an expression F[a, 1, b,a]
+        #
+        # first look for upvalue rules associated to a.
+        # If it finds it, try to apply the corresponding rule.
+        #    If it success, (the result is not None)
+        #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is not a BoxConstruct.
+        #    If the rule fails, continues with the next leaf.
+        #
+        # The next leaf is a number, so do not have upvalues. Then tries with upvalues from b.
+        # If it does not have  success, tries look at the next leaf. but the next leaf is again a. So, it skip it.
+        # Then, as new.head_name() == new.get_lookup_name(),  (because F is a symbol) tryies with the
+        # downvalues rules. If instead of "F[a, 1, a, c]" we had  "Q[s][a,1,a,c]",
+        # the routine would look for the subvalues of `Q`.
+        #
+        # For `Plus` and `Times`, WMA behaves slightly different when deals with numbers. For example,
+        # ```
+        # Unprotect[Plus];
+        # Plus[2,3]:=fish;
+        # Plus[2,3]
+        # ```
+        # in mathics results in  `fish`, but in WL results in  `5`. This special behaviour suggests
+        # that WMA process in a different way certain symbols.
 
         def rules():
             rules_names = set()
@@ -941,6 +1048,9 @@ class Expression(BaseExpression):
                 for rule in evaluation.definitions.get_downvalues(lookup_name):
                     yield rule
             else:
+                # Subvalues applies for expressions of the form `D[1][f][x]`
+                # For this expression, the `head` would be `D[1][f]`
+                # while its `lookup_name` would be `D`.
                 for rule in evaluation.definitions.get_subvalues(lookup_name):
                     yield rule
 
@@ -955,6 +1065,8 @@ class Expression(BaseExpression):
                 else:
                     return result, True
 
+        # Step 7: If we are here, is because we didn't find any rule that matches with the expression.
+
         dirty_elements = None
 
         # Expression did not change, re-apply Unevaluated
@@ -968,9 +1080,24 @@ class Expression(BaseExpression):
             new = Expression(head)
             new._elements = tuple(dirty_elements)
 
+        # copy the "unformatted" form of the original expression,
         new.unformatted = self.unformatted
+        # Step 8:updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
+
+    #  Now, let's see how much take each step for certain typical expressions:
+    #  (assuming that "F" and "a1", ... "a100" are undefined symbols, and n0->0, n1->1,..., n99->99)
+    #
+    #  Expr1: Expression("F", 1)                       (trivial evaluation to a short expression)
+    #  Expr2: Expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
+    #  Expr3: Expression("F", a0, a2, ...., a99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr4: Expression("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr5: Expression("Plus", 99,..., 0)            (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr6: Expression("Plus", a99,..., a0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr7: Expression("Plus", n99,..., n0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
+    #
 
     def evaluate_elements(self, evaluation) -> "Expression":
         elements = [leaf.evaluate(evaluation) for leaf in self._elements]
@@ -1009,6 +1136,12 @@ class Expression(BaseExpression):
             return False, options
 
     def boxes_to_text(self, **options) -> str:
+        """
+        From a Boxed expression, produces a text representation.
+        """
+        # Idea @mmatera: All the Boxes expressions should be implemented as a different class
+        # which implements these ``boxes_to_*`` methods.
+
         is_style, options = self.process_style_box(options)
         if is_style:
             return self._elements[0].boxes_to_text(**options)
@@ -1241,6 +1374,12 @@ class Expression(BaseExpression):
     def replace_vars(
         self, vars, options=None, in_scoping=True, in_function=True
     ) -> "Expression":
+        """
+        Replace the symbols in the expression by the expressions given in the vars dictionary.
+        in_scoping: if `False`, avoid to replace those symbols that are declared internal to the scope.
+        in_function: if `True`, and the Expression is of the form Function[{args},body], changes the names of the args
+        to avoid replacing them.
+        """
         from mathics.builtin.scoping import get_scoping_vars
 
         if not in_scoping:
@@ -1297,6 +1436,9 @@ class Expression(BaseExpression):
         )
 
     def replace_slots(self, slots, evaluation):
+        """
+        Replaces Slots (#1, ##, etc) by the corresponding values in `slots`
+        """
         if self._head is SymbolSlot:
             if len(self._elements) != 1:
                 evaluation.message_args("Slot", len(self._elements), 1)
@@ -1325,6 +1467,15 @@ class Expression(BaseExpression):
         )
 
     def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
+        """
+        Thread over expressions with head as Head:
+        Thread[F[{a,b},{c,d}, G[z,q]],G] -> newexpr = G[F[{a, b}, {c, d}, z], F[{a, b}, {c, d}, q]]
+
+        By default, head=SymbolList
+
+        If the expression has changes, returns True, newexpr
+        otherwise, return False, self
+        """
         if head is None:
             head = SymbolList
 
@@ -1394,7 +1545,7 @@ class Expression(BaseExpression):
                 # and we don't want to lose exactness in e.g. 1.0+I.
                 # Also, for compatibility with WMA, numerify just the leaves
                 # s.t. ``NumericQ[leaf]==True``
-                if not isinstance(element, Number) and leaf.is_numeric(evaluation):
+                if not isinstance(element, Number) and element.is_numeric(evaluation):
                     n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
@@ -1413,6 +1564,9 @@ class Expression(BaseExpression):
             return self
 
     def get_atoms(self, include_heads=True):
+        """Returns a list of atoms involved in the expression."""
+        # Comment @mmatera: maybe, what we really want here are the Symbol's
+        # involved in the expression, not the atoms.
         if include_heads:
             atoms = self._head.get_atoms()
         else:
