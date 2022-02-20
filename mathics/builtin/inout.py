@@ -39,6 +39,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
+    SymbolRowBox,
     SymbolRule,
 )
 from mathics.core.number import (
@@ -61,7 +62,6 @@ SymbolMessageName = Symbol("MessageName")
 SymbolNumberForm = Symbol("NumberForm")
 SymbolOutputForm = Symbol("OutputForm")
 SymbolRow = Symbol("Row")
-SymbolRowBox = Symbol("RowBox")
 SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
@@ -189,7 +189,8 @@ def parenthesize(precedence, leaf, leaf_boxes, when_equal):
     if precedence is not None and leaf_prec is not None:
         if precedence > leaf_prec or (precedence == leaf_prec and when_equal):
             return Expression(
-                "RowBox", Expression(SymbolList, String("("), leaf_boxes, String(")"))
+                SymbolRowBox,
+                Expression(SymbolList, String("("), leaf_boxes, String(")")),
             )
     return leaf_boxes
 
@@ -211,7 +212,7 @@ def make_boxes_infix(leaves, ops, precedence, grouping, form):
         leaf = parenthesize(precedence, leaf, leaf_boxes, parenthesized)
 
         result.append(leaf)
-    return Expression("RowBox", Expression(SymbolList, *result))
+    return Expression(SymbolRowBox, Expression(SymbolList, *result))
 
 
 def real_to_s_exp(expr, n):
@@ -1062,7 +1063,7 @@ class MatrixForm(TableForm):
         result = super(MatrixForm, self).apply_makeboxes(table, f, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return Expression(
-                "RowBox", Expression(SymbolList, String("("), result, String(")"))
+                SymbolRowBox, Expression(SymbolList, String("("), result, String(")"))
             )
         return result
 

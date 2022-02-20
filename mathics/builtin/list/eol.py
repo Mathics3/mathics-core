@@ -36,6 +36,7 @@ from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMakeBoxes,
+    SymbolRowBox,
     SymbolSequence,
 )
 
@@ -912,7 +913,7 @@ class Part(Builtin):
         else:
             open, close = "\u301a", "\u301b"
         indices = list_boxes(i, f, open, close)
-        result = Expression("RowBox", Expression(SymbolList, list, *indices))
+        result = Expression(RowBox, Expression(SymbolList, list, *indices))
         return result
 
     def apply(self, list, i, evaluation):
