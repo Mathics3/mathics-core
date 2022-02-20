@@ -28,7 +28,6 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolRowBox,
     SymbolRule,
-    SymbolSequence,
 )
 
 from mathics.core.number import (
@@ -145,7 +144,7 @@ class Integer(Number):
         super().__init__()
 
     def get_head_name(self):
-        return "System`Integer"
+        return self.class_head_name
 
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
@@ -446,17 +445,28 @@ class MachineReal(Real):
         return self
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics SameQ for MachineReal.
+
+        If the other comparision value is a MachineReal, the values
+        have to be equal.  If the other value is a PrecisionReal though, then
+        the two values have to be within 1/2 ** (precision) of
+        other-value's precision.  For any other type, sameQ is False.
+        """
         if isinstance(other, MachineReal):
             return self.value == other.value
-        elif isinstance(other, PrecisionReal):
-            return self.to_sympy() == other.value
-        return False
+        if isinstance(other, PrecisionReal):
+            other_value = other.value
+            value = self.value
+            diff = abs(value - other_value)
+            return diff < 0.5 ** (diff._prec)
+        else:
+            return False
 
     def is_machine_precision(self) -> bool:
         return True
 
-    def get_precision(self) -> int:
+    def get_precision(self) -> float:
+        """Returns the default specification for precision in N and other numerical functions."""
         return machine_precision
 
     def get_float_value(self, permit_complex=False) -> float:
@@ -528,13 +538,18 @@ class PrecisionReal(Real):
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         if isinstance(other, PrecisionReal):
-            return self.value == other.value
+            other_value = other.value
         elif isinstance(other, MachineReal):
-            return self.value == other.to_sympy()
-        return False
+            other_value = other.to_sympy()
+        else:
+            return False
+        value = self.value
+        diff = abs(value - other_value)
+        return diff < 0.5 ** (diff._prec)
 
-    def get_precision(self) -> int:
-        return self.value._prec + 1
+    def get_precision(self) -> float:
+        """Returns the default specification for precision in N and other numerical functions."""
+        return self.value._prec + 1.0
 
     def make_boxes(self, form):
         from mathics.builtin.inout import number_form
@@ -674,7 +689,13 @@ class Complex(Number):
         else:
             return None
 
-    def get_precision(self) -> Optional[int]:
+    def get_precision(self) -> Optional[float]:
+        """Returns the default specification for precision in N and other numerical functions.
+        When `None` is be returned no precision is has been defined and this object's value is
+        exact.
+
+        This function is called by method `is_inexact()`.
+        """
         real_prec = self.real.get_precision()
         imag_prec = self.imag.get_precision()
         if imag_prec is None or real_prec is None:

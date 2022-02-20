@@ -68,6 +68,19 @@ class PyMathicsLoadException(Exception):
 
 
 class Definitions(object):
+    """
+    The state of one instance of the Mathics interpreter is stored in this object.
+
+    The state is then stored as ``Definition`` object of the different symbols defined during the runtime.
+
+    In the current implementation, the ``Definitions`` object stores ``Definition`` s in four dictionaries:
+
+    - builtins: stores the defintions of the ``Builtin`` symbols
+    - pymathics: stores the definitions of the ``Builtin`` symbols added from pymathics modules.
+    - user: stores the definitions created during the runtime.
+    - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the same symbol.
+    """
+
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
@@ -433,6 +446,8 @@ class Definitions(object):
 
         candidates = [user] if user else []
         builtin_instance = None
+        is_numeric = False
+
         if pymathics:
             builtin_instance = pymathics
             candidates.append(pymathics)
@@ -443,15 +458,19 @@ class Definitions(object):
 
         definition = candidates[0] if len(candidates) == 1 else None
         if len(candidates) > 0 and not definition:
-            attributes = (
-                user.attributes
-                if user
-                else (
-                    pymathics.core.attributes
-                    if pymathics
-                    else (builtin.attributes if builtin else nothing)
-                )
-            )
+            if user:
+                is_numeric = user.is_numeric
+                attributes = user.attributes
+            elif pymathics:
+                is_numeric = pymathics.is_numeric
+                attributes = pymathics.attributes
+            elif builtin:
+                is_numeric = builtin.is_numeric
+                attributes = builtin.attributes
+            else:
+                is_numeric = False
+                attributes = nothing
+
             options = {}
             formatvalues = {
                 "": [],
@@ -480,6 +499,7 @@ class Definitions(object):
                 nvalues=sum((c.nvalues for c in candidates), []),
                 defaultvalues=sum((c.defaultvalues for c in candidates), []),
                 builtin=builtin_instance,
+                is_numeric=is_numeric,
             )
 
         if definition is not None:
@@ -541,9 +561,15 @@ class Definitions(object):
             builtin = self.builtin.get(name)
             if builtin:
                 attributes = builtin.attributes
+                is_numeric = builtin.is_numeric
             else:
                 attributes = nothing
-            self.user[name] = Definition(name=name, attributes=attributes)
+                is_numeric = False
+            self.user[name] = Definition(
+                name=name,
+                attributes=attributes,
+                is_numeric=is_numeric,
+            )
             self.clear_cache(name)
             return self.user[name]
 
@@ -747,6 +773,13 @@ def insert_rule(values, rule) -> None:
 
 
 class Definition(object):
+    """
+    A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
+
+    The ``Rule``s are internally organized in terms of the context of application in
+    ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
+    """
+
     def __init__(
         self,
         name,
@@ -762,6 +795,7 @@ class Definition(object):
         nvalues=None,
         defaultvalues=None,
         builtin=None,
+        is_numeric=False,
     ) -> None:
 
         super(Definition, self).__init__()
@@ -788,6 +822,7 @@ class Definition(object):
         if messages is None:
             messages = []
 
+        self.is_numeric = is_numeric
         self.ownvalues = ownvalues
         self.downvalues = downvalues
         self.subvalues = subvalues

@@ -1,25 +1,41 @@
 CHANGES
 =======
 
+Enhancements
+============
+
+* ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+
+Documentation
+.............
+
+* "Testing Expressions" section added
+* "Representation of Numbers" section added
+
 New Builtins
 ============
+* Support for ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument. The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+* ``FindRoot`` was improved for supporting numerical derivatives (issue 67), as well as the use of scipy libraries when are available.
+* ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
+* ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
+* ``$Echo`` (Issue #42).
 * Now, ``D`` can act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
+* `NumericFunction`
   
-
 Internals
 =========
-
+* ``Definition`` has a new property `is_numeric`.
+* ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
+* ``NIntegrate`` internal algorithms and interfaces to `scipy` were moved to `mathics.algorithm.integrators` and `mathics.builtin.scipy_utils.integrators` respectively.
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
+* To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * To speed up the lookup of symbols names, `Definitions` object now have two properties: `current_context` and `context_path`. These properties stores the values of the corresponding symbols in the `builtin` definitions.
-* Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
-* Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access. 
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * To numerify expressions, the function ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function
 ``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
-* A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules.
 * A bug comming from a failure in the order in which `mathics.core.definitions` stores the rules was fixed.
 * `any`/`all` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * `BaseExpression.get_head`  now avoids building a symbol and then look for its name. It saves two function calls.
@@ -29,22 +45,26 @@ Internals
 * To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
-* Improved support for ``Series`` Issue #46
-* ``Cylinder`` rendering is implemented in Asymptote
-
+* Improved support for ``Series`` Issue #46.
+* ``Cylinder`` rendering is implemented in Asymptote.
+* `N[_,_,Method->method]` was reworked (Issue #137).
 
 Compatibility
 +++++++++++++
 
 - ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
-
+- ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that `a` must be considered
+  a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
 
 Bugs
 ++++
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
-* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
-  
+* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
+*  ``Set*``: fixed issue #128.
+*  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
+
+
 4.0.1
 -----
 

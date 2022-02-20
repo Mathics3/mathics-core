@@ -13,6 +13,8 @@ import sys
 import mpmath
 from functools import lru_cache
 
+from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import (
     Builtin,
     PostfixOperator,
@@ -20,6 +22,10 @@ from mathics.builtin.base import (
     SympyFunction,
     Test,
 )
+
+from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
+from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.scoping import dynamic_scoping
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -40,11 +46,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.number import min_prec, dps, SpecialValueError
 
-from mathics.builtin.lists import _IterationFunction
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.attributes import (
     hold_all,
@@ -677,95 +679,6 @@ class RealNumberQ(Test):
         return isinstance(expr, (Integer, Rational, Real))
 
 
-class MachineNumberQ(Test):
-    """
-    <dl>
-    <dt>'MachineNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
-    </dl>
-
-     = True
-    >> MachineNumberQ[3.14159265358979324]
-     = False
-    >> MachineNumberQ[1.5 + 2.3 I]
-     = True
-    >> MachineNumberQ[2.71828182845904524 + 3.14159265358979324 I]
-     = False
-    #> MachineNumberQ[1.5 + 3.14159265358979324 I]
-     = True
-    #> MachineNumberQ[1.5 + 5 I]
-     = True
-    """
-
-    def test(self, expr):
-        return expr.is_machine_precision()
-
-
-class ExactNumberQ(Test):
-    """
-    <dl>
-    <dt>'ExactNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an exact number, and 'False' otherwise.
-    </dl>
-
-    >> ExactNumberQ[10]
-     = True
-    >> ExactNumberQ[4.0]
-     = False
-    >> ExactNumberQ[n]
-     = False
-
-    'ExactNumberQ' can be applied to complex numbers:
-    >> ExactNumberQ[1 + I]
-     = True
-    >> ExactNumberQ[1 + 1. I]
-     = False
-    """
-
-    def test(self, expr):
-        return isinstance(expr, Number) and not expr.is_inexact()
-
-
-class InexactNumberQ(Test):
-    """
-    <dl>
-    <dt>'InexactNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is not an exact number, and 'False' otherwise.
-    </dl>
-
-    >> InexactNumberQ[a]
-     = False
-    >> InexactNumberQ[3.0]
-     = True
-    >> InexactNumberQ[2/3]
-     = False
-
-    'InexactNumberQ' can be applied to complex numbers:
-    >> InexactNumberQ[4.0+I]
-     = True
-    """
-
-    def test(self, expr):
-        return isinstance(expr, Number) and expr.is_inexact()
-
-
-class IntegerQ(Test):
-    """
-    <dl>
-    <dt>'IntegerQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
-    </dl>
-
-    >> IntegerQ[3]
-     = True
-    >> IntegerQ[Pi]
-     = False
-    """
-
-    def test(self, expr):
-        return isinstance(expr, Integer)
-
-
 class Integer_(Builtin):
     """
     <dl>
@@ -1145,7 +1058,7 @@ class Sum(_IterationFunction, SympyFunction):
     #> Sum[i / Log[i], {i, 1, Infinity}]
      = Sum[i / Log[i], {i, 1, Infinity}]
     #> Sum[Cos[Pi i], {i, 1, Infinity}]
-     = Sum[Cos[Pi i], {i, 1, Infinity}]
+     = Sum[Cos[i Pi], {i, 1, Infinity}]
     """
 
     # Do not throw warning message for symbolic iteration bounds

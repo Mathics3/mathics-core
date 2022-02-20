@@ -91,8 +91,15 @@ else:
     if not os.environ.get("NO_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
-            "core": ("expression", "symbols", "number", "rules", "pattern"),
-            "builtin": ["arithmetic", "numeric", "patterns", "graphics"],
+            "core": (
+                "evaluators",
+                "expression",
+                "symbols",
+                "number",
+                "rules",
+                "pattern",
+            ),
+            "builtin": ["arithmetic", "patterns", "graphics"],
         }
         EXTENSIONS = [
             Extension(
@@ -147,6 +154,7 @@ setup(
         "mathics.builtin",
         "mathics.builtin.arithfns",
         "mathics.builtin.assignments",
+        "mathics.builtin.atomic",
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.compile",
@@ -161,6 +169,7 @@ setup(
         "mathics.builtin.numpy_utils",
         "mathics.builtin.pymimesniffer",
         "mathics.builtin.pympler",
+        "mathics.builtin.scipy_utils",
         "mathics.builtin.specialfns",
         "mathics.builtin.string",
         "mathics.doc",

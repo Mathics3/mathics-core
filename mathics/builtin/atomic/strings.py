@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Strings and Characters - Miscellaneous
+String Manipulation
 """
 
 import io

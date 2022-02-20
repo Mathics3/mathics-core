@@ -6,7 +6,7 @@ import io
 import os.path as osp
 
 from mathics.builtin.base import MessageException
-from mathics.builtin.strings import to_python_encoding
+from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
 from mathics.core.symbols import Symbol

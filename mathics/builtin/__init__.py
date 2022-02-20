@@ -151,6 +151,7 @@ disable_file_module_names = (
 
 for subdir in (
     "arithfns",
+    "atomic",
     "assignments",
     "box",
     "colors",

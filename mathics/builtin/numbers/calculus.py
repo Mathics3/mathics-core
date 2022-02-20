@@ -6,41 +6,27 @@ Calculus
 Originally called infinitesimal calculus or "the calculus of infinitesimals", is the mathematical study of continuous change, in the same way that geometry is the study of shape and algebra is the study of generalizations of arithmetic operations.
 """
 
+import sympy
+import numpy as np
+from itertools import product
+from typing import Optional
 
+from mathics.core.evaluators import apply_N
+from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
-from mathics.core.expression import Expression
+from mathics.builtin.scoping import dynamic_scoping
+
 from mathics.core.atoms import (
     String,
     Integer,
+    Integer0,
     Integer1,
+    Integer10,
     Number,
     Rational,
     Real,
     from_python,
 )
-
-from mathics.core.symbols import (
-    Symbol,
-    SymbolSequence,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-
-from mathics.core.systemsymbols import (
-    SymbolD,
-    SymbolIndeterminate,
-    SymbolPlus,
-    SymbolPower,
-    SymbolRule,
-    SymbolTimes,
-    SymbolUndefined,
-)
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
-from mathics.core.rules import Pattern
-from mathics.core.number import dps
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.builtin.numeric import apply_N
 
 from mathics.core.attributes import (
     constant,
@@ -51,13 +37,69 @@ from mathics.core.attributes import (
     read_protected,
 )
 
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
+
+from mathics.core.expression import Expression
+from mathics.core.number import dps, machine_epsilon
+from mathics.core.rules import Pattern
+
+from mathics.core.symbols import (
+    BaseExpression,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolTrue,
+)
+
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolD,
+    SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolInfix,
+    SymbolIntegrate,
+    SymbolLeft,
+    SymbolLog,
+    SymbolNIntegrate,
+    SymbolPlus,
+    SymbolPower,
+    SymbolRule,
+    SymbolSequence,
+    SymbolSeries,
+    SymbolSeriesData,
+    SymbolTimes,
+    SymbolUndefined,
+)
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
+from mathics.core.rules import Pattern
+from mathics.core.number import dps
+from mathics.builtin.scoping import dynamic_scoping
+
+from mathics.core.attributes import (
+    constant,
+    hold_all,
+    listable,
+    n_hold_all,
+    protected,
+    read_protected,
+)
+
+from mathics.algorithm.series import (
+    build_series,
+    series_plus_series,
+    series_times_series,
+    series_derivative,
+)
 import sympy
 
+from mathics.algorithm.integrators import (
+    apply_D_to_Integral,
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+)
 
-IntegerZero = Integer(0)
 IntegerMinusOne = Integer(-1)
-
-SymbolIntegrate = Symbol("Integrate")
 
 
 class D(SympyFunction):
@@ -189,7 +231,7 @@ class D(SympyFunction):
         "D[f_, x_?NotListQ]"
         x_pattern = Pattern.create(x)
         if f.is_free(x_pattern, evaluation):
-            return IntegerZero
+            return Integer0
         elif f == x:
             return Integer1
         elif f.is_atom():  # Shouldn't happen
@@ -205,7 +247,7 @@ class D(SympyFunction):
                 if not term.is_free(x_pattern, evaluation)
             ]
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             return Expression(SymbolPlus, *terms)
         elif head is SymbolTimes:
             terms = []
@@ -218,7 +260,7 @@ class D(SympyFunction):
             if len(terms) != 0:
                 return Expression(SymbolPlus, *terms)
             else:
-                return IntegerZero
+                return Integer0
         elif head is SymbolPower and len(f.leaves) == 2:
             base, exp = f.leaves
             terms = []
@@ -249,7 +291,7 @@ class D(SympyFunction):
                     )
 
             if len(terms) == 0:
-                return IntegerZero
+                return Integer0
             elif len(terms) == 1:
                 return terms[0]
             else:
@@ -274,14 +316,14 @@ class D(SympyFunction):
                         Expression(
                             "Derivative",
                             *(
-                                [IntegerZero] * (index)
+                                [Integer0] * (index)
                                 + [Integer1]
-                                + [IntegerZero] * (len(f.leaves) - index - 1)
-                            )
+                                + [Integer0] * (len(f.leaves) - index - 1)
+                            ),
                         ),
                         f.head,
                     ),
-                    *f.leaves
+                    *f.leaves,
                 )
                 if leaf.sameQ(x):
                     return result
@@ -297,7 +339,7 @@ class D(SympyFunction):
             if len(result) == 1:
                 return result[0]
             elif len(result) == 0:
-                return IntegerZero
+                return Integer0
             else:
                 return Expression("Plus", *result)
 
@@ -702,92 +744,11 @@ class Integrate(SympyFunction):
             result = Expression("Simplify", result, assuming)
         return result
 
-    # TODO: The following methods are exactly the same that in NIntegrate. DRY it!
-    @staticmethod
-    def decompose_domain(interval, evaluation):
-        if interval.has_form("System`Sequence", 1, None):
-            intervals = []
-            for leaf in interval.leaves:
-                inner_interval = Integrate.decompose_domain(leaf, evaluation)
-                if inner_interval:
-                    intervals.append(inner_interval)
-                else:
-                    evaluation.message("ilim", leaf)
-                    return None
-            return intervals
-
-        if interval.has_form("System`List", 3, None):
-            intervals = []
-            intvar = interval.leaves[0]
-            if not isinstance(intvar, Symbol):
-                evaluation.message("ilim", interval)
-                return None
-            boundaries = [a for a in interval.leaves[1:]]
-            if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-                intvar = Expression(
-                    "List", intvar, Expression("Blank", Symbol("Complex"))
-                )
-            for i in range(len(boundaries) - 1):
-                intervals.append((boundaries[i], boundaries[i + 1]))
-            if len(intervals) > 0:
-                return (intvar, intervals)
-
-        evaluation.message("ilim", interval)
-        return None
-
     def apply_D(self, func, domain, var, evaluation, options):
         """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
-        options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+        return apply_D_to_Integral(
+            func, domain, var, evaluation, options, SymbolIntegrate
         )
-        # if the integration is along several variables, take the integration of the inner
-        # variables as func.
-        if domain._head is SymbolSequence:
-            func = Expression(
-                Symbol(self.get_name()), func, *(domain._leaves[:-1]), *options
-            )
-            domain = domain._leaves[-1]
-
-        terms = []
-        # Evaluates the derivative regarding the integrand:
-        integrand = Expression(SymbolD, func, var).evaluate(evaluation)
-        if integrand:
-            # TODO: put back options is they are not the default...
-            term = Expression(Symbol("Integrate"), integrand, domain)
-            terms = [term]
-
-        # Run over the intervals, and evaluate the derivative
-        # regarding the integration limits.
-        list_domain = self.decompose_domain(domain, evaluation)
-        if not list_domain:
-            return
-
-        ivar, limits = list_domain
-        for limit in limits:
-            for k, lim in enumerate(limit):
-                jac = Expression(SymbolD, lim, var)
-                ev_jac = jac.evaluate(evaluation)
-                if ev_jac:
-                    jac = ev_jac
-                if isinstance(jac, Number) and jac.is_zero:
-                    continue
-                f = func.replace_vars({ivar.get_name(): lim})
-                if k == 1:
-                    f = Expression(SymbolTimes, f, jac)
-                else:
-                    f = Expression(SymbolTimes, Integer(-1), f, jac)
-                eval_f = f.evaluate(evaluation)
-                if eval_f:
-                    f = eval_f
-                if isinstance(f, Number) and f.is_zero:
-                    continue
-                terms.append(f)
-
-        if len(terms) == 0:
-            return Integer0
-        if len(terms) == 1:
-            return terms[0]
-        return Expression(SymbolPlus, *terms)
 
 
 class Root(SympyFunction):
@@ -863,7 +824,7 @@ class Root(SympyFunction):
                 return None
 
             return sympy.CRootOf(poly, i)
-        except:
+        except Exception:
             return None
 
 
@@ -1115,10 +1076,10 @@ class Solve(Builtin):
                             Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
                             for var, var_sympy in zip(vars, vars_sympy)
                             if var_sympy in sol
-                        )
+                        ),
                     )
                     for sol in result
-                )
+                ),
             )
         except sympy.PolynomialError:
             # raised for e.g. Solve[x^2==1&&z^2==-1,{x,y,z}] when not deleting
@@ -1302,127 +1263,149 @@ class DiscreteLimit(Builtin):
 
         try:
             return from_sympy(sympy.limit_seq(f, n, trials))
-        except:
+        except Exception:
             pass
 
 
-def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
-    region = opts.get("$$Region", None)
-    if not type(region) is list:
-        if x0.is_zero:
-            region = (Real(-1), Real(1))
+class _BaseFinder(Builtin):
+    """
+    This class is the basis class for FindRoot, FindMinimum and FindMaximum.
+    """
+
+    options = {
+        "MaxIterations": "100",
+        "Method": "Automatic",
+        "AccuracyGoal": "Automatic",
+        "PrecisionGoal": "Automatic",
+        "StepMonitor": "None",
+        "EvaluationMonitor": "None",
+        "Jacobian": "Automatic",
+    }
+
+    attributes = hold_all | protected
+
+    messages = {
+        "snum": "Value `1` is not a number.",
+        "nnum": "The function value is not a number at `1` = `2`.",
+        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
+        "bdmthd": "Value option Method->`1` is not `2`",
+        "maxiter": (
+            "The maximum number of iterations was exceeded. "
+            "The result might be inaccurate."
+        ),
+        "fmgz": (
+            "Encountered a gradient that is effectively zero. "
+            "The result returned may not be a `1`; "
+            "it may be a `2` or a saddle point."
+        ),
+    }
+
+    methods = {}
+
+    def apply(self, f, x, x0, evaluation, options):
+        "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
+        # This is needed to get the right messages
+        options["_isfindmaximum"] = self.__class__ is FindMaximum
+        # First, determine x0 and x
+
+        x0 = apply_N(x0, evaluation)
+        # deal with non 1D problems.
+        if isinstance(x0, Expression) and x0._head is SymbolList:
+            options["_x0"] = x0._leaves
+            x0 = x0._leaves[0]
+        if not isinstance(x0, Number):
+            evaluation.message(self.get_name(), "snum", x0)
+            return
+        x_name = x.get_name()
+        if not x_name:
+            evaluation.message(self.get_name(), "sym", x, 2)
+            return
+
+        # Now, get the explicit form of f, depending of x
+        # keeping x without evaluation (Like inside a "Block[{x},f])
+        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+        # If after evaluation, we get an "Equal" expression,
+        # convert it in a function by substracting both
+        # members. Again, ensure the scope in the evaluation
+        if f.get_head_name() == "System`Equal":
+            f = Expression(
+                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
+            )
+            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
+
+        # Determine the method
+        method = options["System`Method"]
+        if isinstance(method, Expression):
+            if method.get_head() is SymbolList:
+                method = method._leaves[0]
+        if isinstance(method, Symbol):
+            method = method.get_name().split("`")[-1]
+        elif isinstance(method, String):
+            method = method.value
+        if not isinstance(method, str):
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+
+        # Determine the "jacobian"s
+        if (
+            method in ("Newton", "Automatic")
+            and options["System`Jacobian"] is SymbolAutomatic
+        ):
+
+            def diff(evaluation):
+                return Expression("D", f, x).evaluate(evaluation)
+
+            d = dynamic_scoping(diff, {x_name: None}, evaluation)
+            options["System`Jacobian"] = d
+
+        method_caller = self.methods.get(method, None)
+        if method_caller is None:
+            evaluation.message(
+                self.get_name(),
+                "bdmthd",
+                method,
+                [String(m) for m in self.methods.keys()],
+            )
+            return
+        x0, success = method_caller(f, x0, x, options, evaluation)
+        if not success:
+            return
+        if isinstance(x0, tuple):
+            return Expression(
+                SymbolList,
+                x0[1],
+                Expression(SymbolList, Expression(SymbolRule, x, x0[0])),
+            )
         else:
-            xmax = 2 * x0.to_python()
-            xmin = -2 * x0.to_python()
-            if xmin > xmax:
-                region = (Real(xmax), Real(xmin))
+            return Expression(SymbolList, Expression(SymbolRule, x, x0))
+
+    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
+        "%(name)s[f_, xtuple_, OptionsPattern[]]"
+        f_val = f.evaluate(evaluation)
+
+        if f_val.has_form("Equal", 2):
+            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+
+        xtuple_value = xtuple.evaluate(evaluation)
+        if xtuple_value.has_form("List", None):
+            nleaves = len(xtuple_value.leaves)
+            if nleaves == 2:
+                x, x0 = xtuple.evaluate(evaluation).leaves
+            elif nleaves == 3:
+                x, x0, x1 = xtuple.evaluate(evaluation).leaves
+                options["$$Region"] = (x0, x1)
             else:
-                region = (Real(xmin), Real(xmax))
-
-    maxit = opts["System`MaxIterations"]
-    x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
-        maxit = 100
-    else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
-
-    x0 = from_python(region[0])
-    x1 = from_python(region[1])
-    f0 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x0}, evaluation)
-    f1 = dynamic_scoping(lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation)
-    if not isinstance(f0, Number):
-        return x0, False
-    if not isinstance(f1, Number):
-        return x0, False
-    f0 = f0.to_python(n_evaluation=True)
-    f1 = f1.to_python(n_evaluation=True)
-    count = 0
-    while count < maxit:
-        if f0 == f1:
-            x1 = Expression(
-                "Plus",
-                x0,
-                Expression(
-                    "Times",
-                    Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
-                ),
-            )
-            x1 = x1.evaluate(evaluation)
-            f1 = dynamic_scoping(
-                lambda ev: f.evaluate(evaluation), {x_name: x1}, evaluation
-            )
-            if not isinstance(f1, Number):
-                return x0, False
-            f1 = f1.to_python(n_evaluation=True)
-            continue
-
-        inv_deltaf = from_python(1.0 / (f1 - f0))
-        num = Expression(
-            "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
-        )
-        x2 = Expression("Times", num, inv_deltaf)
-        x2 = x2.evaluate(evaluation)
-        f2 = dynamic_scoping(
-            lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
-        )
-        if not isinstance(f2, Number):
-            return x0, False
-        f2 = f2.to_python(n_evaluation=True)
-        f1, f0 = f2, f1
-        x1, x0 = x2, x1
-        if x1 == x0 or abs(f2) == 0:
-            break
-        count = count + 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-        return x0, False
-    return x0, True
+                return
+            return self.apply(f, x, x0, evaluation, options)
+        return
 
 
-def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
-    df = opts["System`Jacobian"]
-    maxit = opts["System`MaxIterations"]
-    x_name = x.get_name()
-    if maxit.sameQ(Symbol("Automatic")):
-        maxit = 100
-    else:
-        maxit = maxit.evaluate(evaluation).get_int_value()
-
-    def sub(evaluation):
-        d_value = df.evaluate(evaluation)
-        if d_value == Integer(0):
-            return None
-        return Expression(
-            "Times", f, Expression("Power", d_value, Integer(-1))
-        ).evaluate(evaluation)
-
-    count = 0
-    while count < maxit:
-        minus = dynamic_scoping(sub, {x_name: x0}, evaluation)
-        if minus is None:
-            evaluation.message("FindRoot", "dsing", x, x0)
-            return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
-        if not isinstance(x1, Number):
-            evaluation.message("FindRoot", "nnum", x, x0)
-            return x0, False
-        # TODO: use Precision goal...
-        if x1 == x0:
-            break
-        x0 = apply_N(x1, evaluation)
-        # N required due to bug in sympy arithmetic
-        count += 1
-    else:
-        evaluation.message("FindRoot", "maxiter")
-    return x0, True
-
-
-class FindRoot(Builtin):
+class FindRoot(_BaseFinder):
     r"""
     <dl>
     <dt>'FindRoot[$f$, {$x$, $x0$}]'
@@ -1476,121 +1459,117 @@ class FindRoot(Builtin):
 
     """
 
-    options = {
-        "MaxIterations": "100",
-        "Method": "Automatic",
-        "AccuracyGoal": "Automatic",
-        "PrecisionGoal": "Automatic",
-        "StepMonitor": "None",
-        "Jacobian": "Automatic",
-    }
-    attributes = hold_all | protected
-
-    messages = {
-        "snum": "Value `1` is not a number.",
-        "nnum": "The function value is not a number at `1` = `2`.",
-        "dsing": "Encountered a singular derivative at the point `1` = `2`.",
-        "bdmthd": "Value option Method->`1` is not `2`",
-        "maxiter": (
-            "The maximum number of iterations was exceeded. "
-            "The result might be inaccurate."
-        ),
-    }
-
     rules = {
         "FindRoot[lhs_ == rhs_, {x_, xs_}, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, {x, xs}, opt]",
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
     }
 
-    methods = {
-        "Newton": find_root_newton,
-        "Secant": find_root_secant,
-    }
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_findroot_methods
 
-    def apply(self, f, x, x0, evaluation, options):
-        "FindRoot[f_, {x_, x0_}, OptionsPattern[]]"
-        # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
-        if not isinstance(x0, Number):
-            evaluation.message("FindRoot", "snum", x0)
-            return
-        x_name = x.get_name()
-        if not x_name:
-            evaluation.message("FindRoot", "sym", x, 2)
-            return
+        methods.update(native_findroot_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import (
+            scipy_findroot_methods,
+            update_findroot_messages,
+        )
 
-        # Now, get the explicit form of f, depending of x
-        # keeping x without evaluation (Like inside a "Block[{x},f])
-        f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
-        # If after evaluation, we get an "Equal" expression,
-        # convert it in a function by substracting both
-        # members. Again, ensure the scope in the evaluation
-        if f.get_head_name() == "System`Equal":
-            f = Expression(
-                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
-            )
-            f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
-
-        # Determine the method
-        method = options["System`Method"]
-        if isinstance(method, Symbol):
-            method = method.get_name().split("`")[-1]
-        if method == "Automatic":
-            method = "Newton"
-        elif not isinstance(method, String):
-            method = None
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
-        else:
-            method = method.value
-
-        # Determine the "jacobian"
-        if method in ("Newton",) and options["System`Jacobian"].sameQ(
-            Symbol("Automatic")
-        ):
-
-            def diff(evaluation):
-                return Expression("D", f, x).evaluate(evaluation)
-
-            d = dynamic_scoping(diff, {x_name: None}, evaluation)
-            options["System`Jacobian"] = d
-
-        method = self.methods.get(method, None)
-        if method is None:
-            evaluation.message(
-                "FindRoot", "bdmthd", method, [String(m) for m in self.methods.keys()]
-            )
-            return
-
-        x0, success = method(f, x0, x, options, evaluation)
-        if not success:
-            return
-        return Expression(SymbolList, Expression(SymbolRule, x, x0))
-
-    def apply_with_x_tuple(self, f, xtuple, evaluation, options):
-        "FindRoot[f_, xtuple_, OptionsPattern[]]"
-        f_val = f.evaluate(evaluation)
-
-        if f_val.has_form("Equal", 2):
-            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
-
-        xtuple_value = xtuple.evaluate(evaluation)
-        if xtuple_value.has_form("List", None):
-            nleaves = len(xtuple_value.leaves)
-            if nleaves == 2:
-                x, x0 = xtuple.evaluate(evaluation).leaves
-            elif nleaves == 3:
-                x, x0, x1 = xtuple.evaluate(evaluation).leaves
-                options["$$Region"] = (x0, x1)
-            else:
-                return
-            return self.apply(f, x, x0, evaluation, options)
-        return
+        methods.update(scipy_findroot_methods)
+        messages = _BaseFinder.messages.copy()
+        update_findroot_messages(messages)
+    except Exception:
+        pass
 
 
-class O(Builtin):
+class FindMinimum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+    </dl>
+
+    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+
+
+    >> FindMinimum[(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[Sin[x], {x, 1}]
+     = {-1., {x -> -1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMinimum[phi[x]-x,{x,1.2}]
+     = {-0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+    """
+
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
+
+
+class FindMaximum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    </dl>
+
+    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+
+    >> FindMaximum[-(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[Sin[x], {x, 1}]
+     = {1., {x -> 1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
+    >> FindMaximum[-phi[x]+x,{x,1.2}]
+     = {0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+    """
+
+    methods = {}
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
+
+
+class O_(Builtin):
     """
     <dl>
       <dt>'O[$x$]^n'
@@ -1601,8 +1580,16 @@ class O(Builtin):
     >> Series[1/(1-x),{x,0,2}]
      = 1 + x + x ^ 2 + O[x] ^ 3
 
+    When called alone, a `SeriesData` expression is built:
+    >> O[x] // FullForm
+     = SeriesData[x, 0, {}, 1, 1, 1]
+
     """
 
+    name = "O"
+    rules = {
+        "O[x_Symbol]": "SeriesData[x, 0, {}, 1, 1, 1]",
+    }
     summary_text = "symbolic representation of a higher-order series term"
 
 
@@ -1617,7 +1604,7 @@ class Series(Builtin):
     >> Series[Exp[x], {x,0,2}]
      = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
     >> % // FullForm
-     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 2, 1]
+     = SeriesData[x, 0, {1,1,Rational[1, 2]}, 0, 3, 1]
     Replacing the variable by a value, the series will not be evaluated as
     an expression, but as a 'SeriesData' object:
     >> s = Series[Exp[x^2],{x,0,2}]
@@ -1631,33 +1618,38 @@ class Series(Builtin):
     >> (s // Normal) /. x-> 4
      = 17
     >> Clear[s];
+    We can also expand over multiple variables
+    >> Series[Exp[x-y], {x, 0, 2}, {y, 0, 2}]
+     = (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) + (1 - y + 1 / 2 y ^ 2 + O[y] ^ 3) x + (1 / 2 + (-1 / 2) y + 1 / 4 y ^ 2 + O[y] ^ 3) x ^ 2 + O[x] ^ 3
+
     """
+
+    messages = {
+        "icm": "Series in `1` to be combined have unequal expansion points `2` and `3`.",
+        "serlim": "Series order specification `1` is not a machine-sized integer.",
+        "sspec": "Series specification `1` is not a list with three elements.",
+    }
 
     summary_text = "power series and asymptotic expansions"
 
     def apply_series(self, f, x, x0, n, evaluation):
         """Series[f_, {x_Symbol, x0_, n_Integer}]"""
-        # TODO:
-        # - Asymptotic series
-        # - Series of compositions
-        vars = {
-            x.get_name(): x0,
-        }
+        return build_series(f, x, x0, n, evaluation)
 
-        data = [f.replace_vars(vars)]
-        df = f
-        for i in range(n.get_int_value()):
-            df = Expression("D", df, x).evaluate(evaluation)
-            newcoeff = df.replace_vars(vars)
-            factorial = Expression("Factorial", Integer(i + 1))
-            newcoeff = Expression(
-                SymbolTimes,
-                Expression(SymbolPower, factorial, IntegerMinusOne),
-                newcoeff,
-            ).evaluate(evaluation)
-            data.append(newcoeff)
-        data = Expression(SymbolList, *data).evaluate(evaluation)
-        return Expression(Symbol("SeriesData"), x, x0, data, IntegerZero, n, Integer1)
+    def apply_multivariate_series(self, f, varspec, evaluation):
+        """Series[f_,varspec__List]"""
+        lastvar = varspec._leaves[-1]
+        if not lastvar.has_form("List", 3):
+            return None
+        # inner = build_series(f, *(lastvar._leaves), evaluation)
+        inner = Expression(SymbolSeries, f, lastvar).evaluate(evaluation)
+        if inner:
+            if len(varspec.leaves) == 1:
+                return inner
+            remain_vars = Expression(Symbol("Sequence"), *varspec.leaves[:-1])
+            result = self.apply_multivariate_series(inner, remain_vars, evaluation)
+            return result
+        return None
 
 
 class SeriesData(Builtin):
@@ -1669,22 +1661,285 @@ class SeriesData(Builtin):
 
     TODO:
     - Implement sum, product and composition of series
+
+    Sum of two series:
+    >> Series[Cosh[x],{x,0,2}] + Series[Sinh[x],{x,0,3}]
+     = 1 + x + 1 / 2 x ^ 2 + O[x] ^ 3
+    >> Series[f[x],{x,0,2}] * g[w]
+     = f[0] g[w] + g[w] f'[0] x + g[w] f''[0] / 2 x ^ 2 + O[x] ^ 3
+    The product of two series on the same neighbourhood of the same variable are multiplied
+    >> Series[Exp[-a x],{x,0,2}] * Series[Exp[-b x],{x,0,2}]
+     = 1 + (-a - b) x + (a ^ 2 / 2 + a b + b ^ 2 / 2) x ^ 2 + O[x] ^ 3
+    >> D[Series[Exp[-a x],{x,0,2}],a]
+     = -x + a x ^ 2 + O[x] ^ 3
     """
 
     summary_text = "Mathics representation Power series"
+    precedence = 1000
+
+    def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
+        """SeriesData[x_,x0_,data_,nummin_Integer, nummax_Integer, den_Integer]"""
+        # This method tries to reduce the series expansion in two ways:
+        # if x===x0, evaluates the series
+        if x.sameQ(x0):
+            nummin_val = nummin.get_int_value()
+            if nummin_val > 0:
+                return Integer0
+            if nummin_val < 0:
+                return SymbolInfinity
+            if data.leaves:
+                return data.leaves[0]
+            else:
+                return Integer0
+        # if data has trailing zeros, the method tries to remove them.
+        coeffs = data._leaves
+        len_coeffs = len(coeffs)
+        # If the series is trivial, do not do anything:
+        if len_coeffs == 0:
+            return
+
+        nonzeroidx_left = 0
+        nonzeroidx_right = 0
+        while nonzeroidx_left < len_coeffs and Integer0.sameQ(coeffs[nonzeroidx_left]):
+            nonzeroidx_left = nonzeroidx_left + 1
+
+        len_coeffs = len_coeffs - nonzeroidx_left
+
+        while nonzeroidx_right < len_coeffs and Integer0.sameQ(
+            coeffs[-nonzeroidx_right - 1]
+        ):
+            nonzeroidx_right = nonzeroidx_right + 1
+
+        if nonzeroidx_left == 0 and nonzeroidx_right == 0:
+            return
+        # if the lower order coeffs vanishes, moves xmin and xmax.
+        if nonzeroidx_left:
+            nummin = Integer(nummin.get_int_value() + nonzeroidx_left)
+        if nonzeroidx_right:
+            return Expression(
+                SymbolSeriesData,
+                x,
+                x0,
+                data._leaves[nonzeroidx_left:(-nonzeroidx_right)],
+                nummin,
+                nummax,
+                den,
+            )
+        else:
+            return Expression(
+                SymbolSeriesData,
+                x,
+                x0,
+                data._leaves[nonzeroidx_left:],
+                nummin,
+                nummax,
+                den,
+            )
+
+    def apply_plus(self, x, x0, data, nummin, nummax, den, term, evaluation):
+        """Plus[SeriesData[x_, x0_, data_, nummin_Integer, nummax_Integer, den_Integer], term__]"""
+        # If the series is null, build a series with the remaining terms
+        if all(Integer0.sameQ(leaf) for leaf in data.leaves):
+            if term.get_head() is SymbolSequence:
+                term = Expression(SymbolPlus, *(term.leaves))
+            ret = build_series(
+                term,
+                x,
+                x0,
+                Integer(nummax.get_int_value() / nummax.get_int_value()),
+                evaluation,
+            )
+            return ret
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        if term.get_head() is SymbolSequence:
+            terms = term.leaves
+        else:
+            terms = [term]
+
+        # Tries to convert each term into a series around the same
+        # neighbourhood
+        incompat_series = []
+        max_exponent = Integer(int(series[2] / series[3] + 1))
+        for t in terms:
+            if Integer0.sameQ(t):
+                continue
+            # if t.get_head() is not SymbolSeriesData:
+            if t.get_head() is SymbolSeriesData:
+                y, y0 = t.leaves[0:2]
+                if y.sameQ(x):
+                    if not y0.sameQ(x0):
+                        evaluation.message("Series", "icm", x, x0, y0)
+                        incompat_series.append(t)
+                        continue
+                    else:
+                        data_y, nmin_y, nmax_y, den_y = t.leaves[2:]
+                        nmin_val = nmin_y.get_int_value()
+                        nmax_val = nmax_y.get_int_value()
+                        den_val = den_y.get_int_value()
+                        tseries = (data_y, nmin_val, nmax_val, den_val)
+                        series_new = series_plus_series(series, tseries)
+                        if series_new:
+                            series = series_new
+                            continue
+                        else:
+                            incompat_series.append(t)
+                            continue
+            # If t is not a series or is a series in a different variable,
+            # try to convert it into a series in x around x0:
+            tnew = build_series(t, x, x0, max_exponent, evaluation)
+            tseries = None
+            if tnew.get_head() is SymbolSeriesData:
+                y, y0, data_y, nmin_y, nmax_y, den_y = tnew.leaves
+                if y.sameQ(x) and y0.sameQ(x0):
+                    nmin_val = nmin_y.get_int_value()
+                    nmax_val = nmax_y.get_int_value()
+                    den_val = den_y.get_int_value()
+                    tseries = (data_y, nmin_val, nmax_val, den_val)
+
+            if tseries is None:
+                data_y = Expression(SymbolList, t)
+                tseries = (data_y, 0, max_exponent.get_int_value(), 1)
+            series_new = series_plus_series(series, tseries)
+            if series_new:
+                series = series_new
+            else:
+                incompat_series.append(t)
+
+        series_expr = Expression(
+            SymbolSeriesData, x, x0, series[0], *[Integer(u) for u in series[1:]]
+        )
+        if incompat_series:
+            series_expr = Expression(SymbolPlus, *incompat_series, series_expr)
+        return series_expr
+
+    def apply_times(self, x, x0, data, nummin, nummax, den, coeff, evaluation):
+        """Times[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], coeff__]"""
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        x_pattern = Pattern.create(x)
+        incompat_series = []
+        max_exponent = Integer(int(series[2] / series[3] + 1))
+        if coeff.get_head() is SymbolSequence:
+            factors = coeff.leaves
+        else:
+            factors = [coeff]
+
+        for factor in factors:
+            if Integer0.sameQ(factor):
+                return Integer0
+            if Integer1.sameQ(factor):
+                continue
+            if factor.is_free(x_pattern, evaluation):
+                newdata = Expression(
+                    SymbolList, *[factor * leaf for leaf in data.leaves]
+                )
+                series = (newdata, *series[1:])
+                continue
+            if factor.get_head() is SymbolSeriesData:
+                y, y0 = factor.leaves[0:2]
+                if y.sameQ(x):
+                    if not y0.sameQ(x0):
+                        evaluation.message("Series", "icm", x, x0, y0)
+                        incompat_series.append(factor)
+                        continue
+                    else:
+                        data_y, nmin_y, nmax_y, den_y = factor.leaves[2:]
+                        nmin_val = nmin_y.get_int_value()
+                        nmax_val = nmax_y.get_int_value()
+                        den_val = den_y.get_int_value()
+                        tseries = (data_y, nmin_val, nmax_val, den_val)
+                        series_new = series_times_series(series, tseries)
+                        if series_new:
+                            series = series_new
+                            continue
+                        else:
+                            incompat_series.append(factor)
+                            continue
+
+            # If t is not a series or is a series in a different variable,
+            # try to convert it into a series in x around x0:
+            factor_new = build_series(factor, x, x0, max_exponent, evaluation)
+            fseries = None
+            if factor_new.get_head() is SymbolSeriesData:
+                y, y0, data_y, nmin_y, nmax_y, den_y = factor_new.leaves
+                if y.sameQ(x) and y0.sameQ(x0):
+                    nmin_val = nmin_y.get_int_value()
+                    nmax_val = nmax_y.get_int_value()
+                    den_val = den_y.get_int_value()
+                    fseries = (data_y, nmin_val, nmax_val, den_val)
+
+            if fseries is None:
+                data_y = Expression(SymbolList, factor)
+                fseries = (data_y, 0, max_exponent.get_int_value(), 1)
+            series_new = series_times_series(series, fseries)
+            if series_new:
+                series = series_new
+            else:
+                incompat_series.append(factor)
+
+        series_expr = Expression(
+            SymbolSeriesData, x, x0, series[0], *[Integer(u) for u in series[1:]]
+        )
+        if incompat_series:
+            series_expr = Expression(SymbolTimes, *incompat_series, series_expr)
+        return series_expr
+
+    def apply_derivative(self, x, x0, data, nummin, nummax, den, y, evaluation):
+        """D[SeriesData[x_, x0_, data_, nummin_, nummax_, den_], y_]"""
+        series = (
+            data,
+            nummin.get_int_value(),
+            nummax.get_int_value(),
+            den.get_int_value(),
+        )
+        if isinstance(y, Symbol):
+            order = 1
+        elif y.has_form("List", 2):
+            order = y.leaves[1].get_int_value()
+            y = y.leaves[0]
+        else:
+            return
+        while order:
+            series = series_derivative(series, x, x0, y, evaluation)
+            if series is None:
+                return Integer0
+            order = order - 1
+        result = Expression(
+            SymbolSeriesData,
+            x,
+            x0,
+            series[0],
+            Integer(series[1]),
+            Integer(series[2]),
+            Integer(series[3]),
+        )
+        return result
 
     def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
+        new_data = []
+        for leaf in data.leaves:
+            if leaf.has_form("SeriesData", 6):
+                leaf = self.apply_normal(*(leaf.leaves), evaluation)
+                if leaf is None:
+                    return
+            new_data.extend([leaf])
+        data = new_data
         return Expression(
             SymbolPlus,
-            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data.leaves)]
+            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data)],
         )
 
-    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
-        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        form = form.get_name()
+    def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
         if x0.is_zero:
             variable = x
         else:
@@ -1693,7 +1948,7 @@ class SeriesData(Builtin):
             )
         den = den.get_int_value()
         nmin = nmin.get_int_value()
-        nmax = nmax.get_int_value() + 1
+        nmax = nmax.get_int_value()
         if den != 1:
             powers = [Rational(i, den) for i in range(nmin, nmax)]
             powers = powers + [Rational(nmax, den)]
@@ -1703,7 +1958,9 @@ class SeriesData(Builtin):
 
         expansion = []
         for i, leaf in enumerate(data.leaves):
-            if leaf.is_numeric(evaluation) and leaf.is_zero:
+            if leaf.get_head() is Symbol("SeriesData"):
+                leaf = self.pre_makeboxes(*(leaf.leaves), form, evaluation)
+            elif leaf.is_numeric(evaluation) and leaf.is_zero:
                 continue
             if powers[i].is_zero:
                 expansion.append(leaf)
@@ -1721,9 +1978,319 @@ class SeriesData(Builtin):
                         SymbolTimes, leaf, Expression(SymbolPower, variable, powers[i])
                     )
             expansion.append(term)
-        expansion = expansion + [
-            Expression(SymbolPower, Expression("O", variable), powers[-1])
-        ]
-        # expansion = [ex.format(form) for ex in expansion]
-        expansion = Expression(SymbolPlus, *expansion)
-        return expansion.format(evaluation, form)
+        expansion = Expression(
+            SymbolList,
+            Expression(SymbolPlus, *expansion),
+            Expression(SymbolPower, Expression("O", variable), powers[-1]),
+        )
+        return Expression(SymbolInfix, expansion, "+", 300, SymbolLeft)
+
+    def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
+        """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
+        return expansion.format(evaluation, form.get_name())
+
+
+class NIntegrate(Builtin):
+    """
+    <dl>
+       <dt>'NIntegrate[$expr$, $interval$]'
+       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+
+        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+    </dl>
+
+    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]
+     = 1.
+    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6]
+     = 1.
+    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6]
+     = 2.50663
+
+    >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
+     : The specified method failed to return a number. Falling back into the internal evaluator.
+     = {1., 2., 3., 4., 5., 6., 7.}
+
+    >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
+     : Integration over a complex domain is not implemented yet
+     = NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance -> 0.0001]
+     ## = 6.2832 I
+
+    Integrate singularities with weak divergences:
+    >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.} ]
+     = {1., 2., 3., 4., 5., 6., 7.}
+
+    Mutiple Integrals :
+    >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
+     = 0.25
+
+    """
+
+    messages = {
+        "bdmtd": "The Method option should be a built-in method name.",
+        "inumr": (
+            "The integrand `1` has evaluated to non-numerical "
+            + "values for all sampling points in the region "
+            + "with boundaries `2`"
+        ),
+        "nlim": "`1` = `2` is not a valid limit of integration.",
+        "ilim": "Invalid integration variable or limit(s) in `1`.",
+        "mtdfail": (
+            "The specified method failed to return a "
+            + "number. Falling back into the internal "
+            + "evaluator."
+        ),
+        "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
+    }
+
+    options = {
+        "Method": '"Automatic"',
+        "Tolerance": "1*^-10",
+        "Accuracy": "1*^-10",
+        "MaxRecursion": "10",
+    }
+
+    methods = {
+        "Automatic": (None, False),
+    }
+
+    try:
+        from mathics.algorithm.integrators import (
+            integrator_methods,
+            integrator_messages,
+        )
+
+        methods.update(integrator_methods)
+        messages.update(integrator_messages)
+    except Exception:
+        pass
+
+    try:
+        from mathics.builtin.scipy_utils.integrators import (
+            scipy_nintegrate_methods,
+            scipy_nintegrate_messages,
+        )
+
+        methods.update(scipy_nintegrate_methods)
+        messages.update(scipy_nintegrate_messages)
+    except Exception as e:
+        print(e)
+        print("scipy integrators was not loaded.")
+        pass
+
+    methods.update(
+        {
+            "bdmtd": "The Method option should be a "
+            + "built-in method name in {`"
+            + "`, `".join(list(methods))
+            + "`}. Using `Automatic`"
+        }
+    )
+
+    def apply_with_func_domain(self, func, domain, evaluation, options):
+        "%(name)s[func_, domain__, OptionsPattern[%(name)s]]"
+        if func.is_numeric() and func.is_zero:
+            return Integer0
+        method = options["System`Method"].evaluate(evaluation)
+        method_options = {}
+        if method.has_form("System`List", 2):
+            method = method.leaves[0]
+            method_options.update(method.leaves[1].get_option_values())
+        if isinstance(method, String):
+            method = method.value
+        elif isinstance(method, Symbol):
+            method = method.get_name()
+        else:
+            evaluation.message("NIntegrate", "bdmtd", method)
+            return
+        tolerance = options["System`Tolerance"].evaluate(evaluation)
+        tolerance = float(tolerance.value)
+        accuracy = options["System`Accuracy"].evaluate(evaluation)
+        accuracy = accuracy.value
+        maxrecursion = options["System`MaxRecursion"].evaluate(evaluation)
+        maxrecursion = maxrecursion.value
+        nintegrate_method = self.methods.get(method, None)
+        if nintegrate_method is None:
+            evaluation.message("NIntegrate", "bdmtd", method)
+            nintegrate_method = self.methods.get("Automatic")
+        if type(nintegrate_method) is tuple:
+            nintegrate_method, is_multidimensional = nintegrate_method
+        else:
+            is_multidimensional = False
+
+        domain = decompose_domain(domain, evaluation)
+        if not domain:
+            return
+        if not isinstance(domain, list):
+            domain = [domain]
+
+        coords = [axis[0] for axis in domain]
+        # If any of the points in the integration domain is complex,
+        # stop the evaluation...
+        if any([c.get_head_name() == "System`List" for c in coords]):
+            evaluation.message("NIntegrate", "cmpint")
+            return
+
+        intvars = Expression(SymbolList, *coords)
+        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
+
+        if len(integrand.leaves) >= 3:
+            integrand = integrand.leaves[2].cfunc
+        else:
+            evaluation.message("inumer", func, domain)
+            return
+        results = []
+        for subdomain in product(*[axis[1] for axis in domain]):
+            # On each subdomain, check if the region is bounded.
+            # If not, implement a coordinate map
+            func2 = integrand
+            subdomain2 = []
+            coordtransform = []
+            nulldomain = False
+            for i, r in enumerate(subdomain):
+                a = r[0].evaluate(evaluation)
+                b = r[1].evaluate(evaluation)
+                if a == b:
+                    nulldomain = True
+                    break
+                elif a.get_head_name() == "System`DirectedInfinity":
+                    if b.get_head_name() == "System`DirectedInfinity":
+                        a = a.to_python()
+                        b = b.to_python()
+                        le = 1 - machine_epsilon
+                        if a == b:
+                            nulldomain = True
+                            break
+                        elif a < b:
+                            subdomain2.append([-le, le])
+                        else:
+                            subdomain2.append([le, -le])
+                        coordtransform.append(
+                            (np.arctanh, lambda u: 1.0 / (1.0 - u ** 2))
+                        )
+                    else:
+                        if not b.is_numeric(evaluation):
+                            evaluation.message("nlim", coords[i], b)
+                            return
+                        z = a.leaves[0].value
+                        b = b.value
+                        subdomain2.append([machine_epsilon, 1.0])
+                        coordtransform.append(
+                            (lambda u: b - z + z / u, lambda u: -z * u ** (-2.0))
+                        )
+                elif b.get_head_name() == "System`DirectedInfinity":
+                    if not a.is_numeric(evaluation):
+                        evaluation.message("nlim", coords[i], a)
+                        return
+                    a = a.value
+                    z = b.leaves[0].value
+                    subdomain2.append([machine_epsilon, 1.0])
+                    coordtransform.append(
+                        (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
+                    )
+                elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
+                    a = apply_N(a, evaluation).value
+                    b = apply_N(b, evaluation).value
+                    subdomain2.append([a, b])
+                    coordtransform.append(None)
+                else:
+                    for x in (a, b):
+                        if not x.is_numeric(evaluation):
+                            evaluation.message("nlim", coords[i], x)
+                    return
+
+            if nulldomain:
+                continue
+            if any(coordtransform):
+
+                def func2_(*u):
+                    x_u = (
+                        x[0](u[i]) if x else u[i] for i, x in enumerate(coordtransform)
+                    )
+                    punctual_value = integrand(*x_u)
+                    jac_factors = tuple(
+                        jac[1](u[i]) for i, jac in enumerate(coordtransform) if jac
+                    )
+                    val_jac = np.prod(jac_factors)
+                    return punctual_value * val_jac
+
+                func2 = func2_
+            opts = {
+                "acur": accuracy,
+                "tol": tolerance,
+                "maxrec": maxrecursion,
+            }
+            opts.update(method_options)
+            try:
+                if len(subdomain2) > 1:
+                    if is_multidimensional:
+                        nintegrate_method(func2, subdomain2, **opts)
+                    else:
+                        val = _fubini(
+                            func2, subdomain2, integrator=nintegrate_method, **opts
+                        )
+                else:
+                    val = nintegrate_method(func2, *(subdomain2[0]), **opts)
+            except Exception:
+                val = None
+
+            if val is None:
+                evaluation.message("NIntegrate", "mtdfail")
+                if len(subdomain2) > 1:
+                    val = _fubini(
+                        func2,
+                        subdomain2,
+                        integrator=_internal_adaptative_simpsons_rule,
+                        **opts,
+                    )
+                else:
+                    try:
+                        val = _internal_adaptative_simpsons_rule(
+                            func2, *(subdomain2[0]), **opts
+                        )
+                    except Exception:
+                        return None
+            results.append(val)
+
+        result = sum([r[0] for r in results])
+        # error = sum([r[1] for r in results]) -> use it when accuracy
+        #                                         be implemented...
+        return from_python(result)
+
+    def apply_D(self, func, domain, var, evaluation, options):
+        """D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
+        return apply_D_to_Integral(
+            func, domain, var, evaluation, options, SymbolNIntegrate
+        )
+
+
+# Auxiliary routines. Maybe should be moved to another module.
+
+
+def is_zero(
+    val: BaseExpression,
+    acc_goal: Optional[Real],
+    prec_goal: Optional[Real],
+    evaluation: Evaluation,
+) -> bool:
+    """
+    Check if val is zero upto the precision and accuracy goals
+    """
+    if not isinstance(val, Number):
+        val = apply_N(val, evaluation)
+    if not isinstance(val, Number):
+        return False
+    if val.is_zero:
+        return True
+    if not (acc_goal or prec_goal):
+        return False
+
+    eps_expr: BaseExpression = Integer10 ** (-prec_goal) if prec_goal else Integer0
+    if acc_goal:
+        eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
+    threeshold_expr = Expression(SymbolLog, eps_expr)
+    threeshold: Real = apply_N(threeshold_expr, evaluation)
+    return threeshold.to_python() > 0

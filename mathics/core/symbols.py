@@ -72,10 +72,31 @@ def strip_context(name) -> str:
     return name
 
 
+# FIXME: figure out how to split off KeyComparible, BaseExpression and
+# Atom from Symbol which is really more "variable"-like in the more
+# conventional programming sense of the word.  Also Split off
+# SymbolLiteral (the Lisp notion of Symbol, an immutable object like a
+# Wolfram Character Symbol) which is distinct from Symbol and seems
+# to be intercombined here.
+
+
 class KeyComparable(object):
     """
-    In certain cases, (Base)Expressions needs to be sorted to
-    an standard form. This class implements the basic ordering rules.
+
+    Some Mathics/WL Symbols have an "OrderLess" attribute
+    which is used in the evaluation process to arrange items in a list.
+
+    To do that, we need a way to compare Symbols, and that is what
+    this class is for.
+
+    This class adds the boilerplate Python comparision operators that
+    you expect in Python programs for comparing Python objects.
+
+    This class is not complete in of itself, it is intended to be
+    mixed into other classes.
+
+    Each class should provide a `get_sort_key()` method which
+    is the primative from which all other comparsions are based on.
     """
 
     def get_sort_key(self):
@@ -106,6 +127,15 @@ class KeyComparable(object):
 
 
 class BaseExpression(KeyComparable):
+    """
+    This is the base class from which all other Expressions are derived from.
+
+    This class is not complete in of itself and subclasses should adapt or fill in
+    what is needed
+
+    Some important subclasses: Atom and Expression.
+    """
+
     options: Any
     pattern_sequence: bool
     unformatted: Any
@@ -125,7 +155,8 @@ class BaseExpression(KeyComparable):
         self._cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """
+        Mathics two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -154,16 +185,14 @@ class BaseExpression(KeyComparable):
     def get_attributes(self, definitions):
         return nothing
 
-    def evaluate_next(self, evaluation) -> ("BaseExpression", bool):
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
         """
-        represents one step in the evaluation. Returns the result of the evaluation step and
-        a flag.
-        If the flag is `True`, then the evaluation didn't reach a fixed point.
-        If the flag is `False`, the evaluation reached the fixed point.
-        Notice that this method is only called inside  `Expression.evaluate`.
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
         """
-        # By default, this delegates to self.evaluate (to avoid duplication?)
-        # Overloaded in ``Expression``.
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
@@ -194,6 +223,10 @@ class BaseExpression(KeyComparable):
         "Returns symbol's name if Symbol instance"
 
         return ""
+
+    @property
+    def is_zero(self) -> bool:
+        return False
 
     def is_symbol(self) -> bool:
         """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
@@ -441,7 +474,17 @@ class BaseExpression(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def get_precision(self):
+    def get_precision(self) -> None:
+        """Returns the default specification for precision in N and other
+        numerical functions.  It is expected to be redefined in those
+        classes that provide inexact arithmetic like PrecisionReal.
+
+        Here in the default base implementation, `None` is used to indicate that the
+        precision is either not defined, or it is exact as in the case of Integer. In either case, the
+        values is not "inexact".
+
+        This function is called by method `is_inexact()`.
+        """
         return None
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
@@ -654,9 +697,23 @@ class Monomial(object):
 
 class Atom(BaseExpression):
     """
-    Atomic expressions are those that do not have `Part`s:
-    `Number`s, `String`s, `Symbol`s or `Image`.
+    Atoms are the leaves (in the common tree sense, not the Mathics
+    ``_leaves`` sense) and Heads of an Expression or S-Expression.
+
+    In other words, they are the units of an expression that we cannot
+    dig down deeper structurally.  Various object primitives i.e.
+    ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
+
+    Of note is the fact that the Mathics ``Part[]`` function of an
+    Atom object does not exist.
+
+    Atom is not a directly-mentioned WL entity, although conceptually
+    it very much seems to exist.
     """
+
+    # FIXME: I believe Atom's should have its own custom
+    # evaluate() and rewrite_apply_eval() routine since
+    # rewrite rules generally (or universally) are not relevant here.
 
     _head_name = ""
     _symbol_head = None
@@ -729,6 +786,31 @@ class Atom(BaseExpression):
 
 
 class Symbol(Atom):
+    """
+    Note: Symbol is right now used in a couple of ways which in the
+    future may be separated.
+
+    A Symbol is a kind of Atom that acts as a symbolic variable or
+    symbolic constant.
+
+    All Symbols have a name that can be converted to string form.
+
+    Inside a session, a Symbol can be associated with a ``Definition``
+    that determines its evaluation value.
+
+    We also have Symbols which are immutable or constant; here the
+    definitions are fixed. The predefined Symbols ``True``, ``False``,
+    and ``Null`` are like this.
+
+    Also there are situations where the Symbol acts like Python's
+    intern() built-in function or Lisp's Symbol without its modifyable
+    property list.  Here, the only attribute we care about is the name
+    which is unique across all mentions and uses, and therefore
+    needs it only to be stored as a single object in the system.
+
+    This aspect may or may not be true for the Symbolic Variable use case too.
+    """
+
     name: str
     sympy_dummy: Any
     defined_symbols = {}
@@ -881,18 +963,15 @@ class Symbol(Atom):
         return self is SymbolTrue
 
     def is_numeric(self, evaluation=None) -> bool:
-        return self in system_numeric_constants
+        """
+        Returns True if the symbol is tagged as a numeric constant.
         """
         if evaluation:
-            qexpr = Expression(SymbolNumericQ, self)
-           result = evaluation.definitions.get_value(
-                self.name, "System`UpValues", qexpr, evaluation
-            )
-            if result is not None:
-                if result.is_true():
-                    return True
+            symbol_definition = evaluation.definitions.get_definition(self.name)
+            if symbol_definition is None:
+                return False
+            return symbol_definition.is_numeric
         return False
-        """
 
     def __hash__(self):
         return hash(("Symbol", self.name))  # to distinguish from String
@@ -945,9 +1024,3 @@ SymbolFullForm = Symbol("FullForm")
 SymbolTraditionalForm = Symbol("TraditionalForm")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolMathMLForm = Symbol("MathMLForm")
-
-
-# Used to check if a symbol is `Numeric` without evaluation.
-system_numeric_constants = system_symbols(
-    "Pi", "E", "EulerGamma", "GoldenRatio", "MachinePrecision", "Catalan"
-)

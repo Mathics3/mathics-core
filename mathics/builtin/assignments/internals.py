@@ -5,13 +5,16 @@ from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
+from mathics.core.atoms import Atom
 from mathics.core.symbols import (
     Symbol,
     SymbolN,
+    SymbolTrue,
+    SymbolFalse,
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision
+from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolNull
 
 from mathics.core.attributes import attribute_string_to_number, locked, protected
 
@@ -153,7 +156,7 @@ def find_tag_and_check(lhs, tags, evaluation):
 
 
 def unroll_patterns(lhs, rhs, evaluation):
-    if type(lhs) is Symbol:
+    if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
     lhsleaves = lhs._leaves
@@ -181,6 +184,8 @@ def unroll_conditions(lhs):
     while name == "System`Condition" and len(lhs.leaves) == 2:
         condition.append(lhs_leaves[1])
         lhs = lhs_leaves[0]
+        if isinstance(lhs, Atom):
+            break
         name, lhs_leaves = lhs.get_head_name(), lhs._leaves
     if len(condition) == 0:
         return lhs, None
@@ -359,6 +364,31 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, None)
     evaluation.definitions.set_options(tag, option_values)
     return True
+
+
+def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
+    lhs, condition = unroll_conditions(lhs)
+    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+    defs = evaluation.definitions
+    if rhs not in (SymbolTrue, SymbolFalse):
+        evaluation.message("NumericQ", "set", lhs, rhs)
+        # raise AssignmentException(lhs, rhs)
+        return True
+    leaves = lhs.leaves
+    if len(leaves) > 1:
+        evaluation.message("NumericQ", "argx", Integer(len(leaves)))
+        # raise AssignmentException(lhs, rhs)
+        return True
+    target = leaves[0]
+    if isinstance(target, Symbol):
+        name = target.get_name()
+        definition = evaluation.definitions.get_definition(name)
+        definition.is_numeric = rhs is SymbolTrue
+        return True
+    else:
+        evaluation.message("NumericQ", "set", lhs, rhs)
+        # raise AssignmentException(lhs, rhs)
+        return True
 
 
 def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
@@ -645,6 +675,7 @@ class _SetOperator(object):
         "System`$Context": process_assign_context,
         "System`$ContextPath": process_assign_context_path,
         "System`N": process_assign_n,
+        "System`NumericQ": process_assign_numericq,
         "System`MessageName": process_assign_messagename,
         "System`Default": process_assign_default,
         "System`Format": process_assign_format,

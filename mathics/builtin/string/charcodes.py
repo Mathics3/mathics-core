@@ -16,7 +16,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.symbols import SymbolList
 
-from mathics.builtin.strings import to_python_encoding
+from mathics.builtin.atomic.strings import to_python_encoding
 
 
 def pack_bytes(codes):

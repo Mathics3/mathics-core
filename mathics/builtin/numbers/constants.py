@@ -68,28 +68,19 @@ def sympy_constant(fn, d=None):
 
 
 class _Constant_Common(Predefined):
-
+    is_numeric = True
     attributes = constant | protected | read_protected
     nargs = 0
     options = {"Method": "Automatic"}
 
-    def apply_N(self, precision, evaluation, options={}):
-        "N[%(name)s, precision_?NumericQ, OptionsPattern[%(name)s]]"
-
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference == "Automatic":
-            return self.get_constant(precision, evaluation)
-        else:
-            return self.get_constant(precision, evaluation, preference)
-
-    def apply_N2(self, evaluation, options={}):
-        "N[%(name)s, OptionsPattern[%(name)s]]"
-        return self.apply_N(None, evaluation, options)
+    def apply_N(self, precision, evaluation):
+        "N[%(name)s, precision_?NumericQ]"
+        return self.get_constant(precision, evaluation)
 
     def is_constant(self) -> bool:
         return True
 
-    def get_constant(self, precision, evaluation, preference=None):
+    def get_constant(self, precision, evaluation):
         # first, determine the precision
         machine_d = int(0.30103 * machine_precision)
         d = None
@@ -104,15 +95,20 @@ class _Constant_Common(Predefined):
 
         # If preference not especified, determine it
         # from the precision.
+        preference = None
+        preflist = evaluation._preferred_n_method.copy()
+        while preflist:
+            pref_method = preflist.pop()
+            if pref_method in ("numpy", "mpmath", "sympy"):
+                preference = pref_method
+                break
+
         if preference is None:
             if d <= machine_d:
                 preference = "numpy"
             else:
                 preference = "mpmath"
-        # If preference is not valid, send a message and return.
-        if not (preference in ("sympy", "numpy", "mpmath")):
-            evaluation.message(f'{preference} not in ("sympy", "numpy", "mpmath")')
-            return
+
         # Try to determine the numeric value
         value = None
         if preference == "mpmath" and not hasattr(self, "mpmath_name"):
@@ -207,7 +203,7 @@ class Catalan(_MPMathConstant, _SympyConstant):
     </dl>
 
     >> Catalan // N
-     = 0.915965594177219
+     = 0.915966
 
     >> N[Catalan, 20]
      = 0.91596559417721901505
@@ -286,8 +282,8 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
             # return mpmath.degree
             return numpy.pi / 180
 
-    def apply_N(self, precision, evaluation, options={}):
-        "N[Degree, precision_, OptionsPattern[%(name)s]]"
+    def apply_N(self, precision, evaluation):
+        "N[Degree, precision_]"
         try:
             if precision:
                 d = get_precision(precision, evaluation)
@@ -328,8 +324,8 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     numpy_name = "e"
     sympy_name = "E"
 
-    def apply_N(self, precision, evaluation, options={}):
-        "N[E, precision_, OptionsPattern[%(name)s]]"
+    def apply_N(self, precision, evaluation):
+        "N[E, precision_]"
         return self.get_constant(precision, evaluation)
 
 
@@ -360,7 +356,7 @@ class Glaisher(_MPMathConstant):
     </dl>
 
     >> N[Glaisher]
-     = 1.28242712910062
+     = 1.28243
     >> N[Glaisher, 50]
      = 1.2824271291006226368753425688697917277676889273250
      # 1.2824271291006219541941391071304678916931152343750
@@ -377,7 +373,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
     </dl>
 
     >> GoldenRatio // N
-     = 1.61803398874989
+     = 1.61803
     >> N[GoldenRatio, 40]
      = 1.618033988749894848204586834365638117720
     """
@@ -450,7 +446,7 @@ class Khinchin(_MPMathConstant):
     </dl>
 
     >> N[Khinchin]
-     = 2.68545200106531
+     = 2.68545
     >> N[Khinchin, 50]
      = 2.6854520010653064453097148354817956938203822939945
      # = 2.6854520010653075701156922150403261184692382812500

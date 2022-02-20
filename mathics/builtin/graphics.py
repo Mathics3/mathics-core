@@ -9,12 +9,12 @@ Drawing Graphics
 from math import sqrt
 
 
+from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import (
     Builtin,
     BoxConstructError,
 )
-
-from mathics.builtin.numeric import apply_N
 
 from mathics.builtin.drawing.graphics_internals import (
     _GraphicsElement,

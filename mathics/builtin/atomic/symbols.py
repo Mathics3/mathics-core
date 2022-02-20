@@ -1,25 +1,45 @@
 # -*- coding: utf-8 -*-
 """
-Information about Assignments
+Symbolic Handling
+
+Symbolic data. Every symbol has a unique name, exists in a certain context or namespace, and can have a variety of type of values and attributes.
 """
 
-
-from mathics.builtin.base import Builtin, PrefixOperator
-
-from mathics.core.rules import Rule
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
-
-from mathics.core.atoms import String
+import re
 
 from mathics.builtin.assignments.internals import get_symbol_values
+from mathics.builtin.base import (
+    Builtin,
+    PrefixOperator,
+    Test,
+)
+
+from mathics.builtin.atomic.strings import to_regex
+
+from mathics.core.atoms import (
+    String,
+)
 
 from mathics.core.attributes import (
     attributes_bitset_to_list,
     hold_all,
-    sequence_hold,
+    hold_first,
+    locked,
     protected,
     read_protected,
+    sequence_hold,
+)
+
+from mathics.core.expression import Expression
+from mathics.core.rules import Rule
+
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
 )
 
 
@@ -65,9 +85,57 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
     return None
 
 
-# This could go under Symbol Handling when we get a module for that.
-# It is not strictly in Assignment Information, but on the other hand, this
-# is a reasonable place for it.
+class Context(Builtin):
+    r"""
+    <dl>
+    <dt>'Context[$symbol$]'
+        <dd>yields the name of the context where $symbol$ is defined in.
+    <dt>'Context[]'
+        <dd>returns the value of '$Context'.
+    </dl>
+
+    >> Context[a]
+     = Global`
+    >> Context[b`c]
+     = b`
+
+    >> InputForm[Context[]]
+     = "Global`"
+
+    ## placeholder for general context-related tests
+    #> x === Global`x
+     = True
+    #> `x === Global`x
+     = True
+    #> a`x === Global`x
+     = False
+    #> a`x === a`x
+     = True
+    #> a`x === b`x
+     = False
+    ## awkward parser cases
+    #> FullForm[a`b_]
+     = Pattern[a`b, Blank[]]
+    """
+
+    attributes = hold_first | protected
+
+    rules = {"Context[]": "$Context"}
+
+    summary_text = "gives the name of the context of a symbol"
+
+    def apply(self, symbol, evaluation):
+        "Context[symbol_]"
+
+        name = symbol.get_name()
+        if not name:
+            evaluation.message("Context", "normal")
+            return
+        assert "`" in name
+        context = name[: name.rindex("`") + 1]
+        return String(context)
+
+
 class Definition(Builtin):
     """
     <dl>
@@ -513,6 +581,59 @@ class Information(PrefixOperator):
         return ret
 
 
+class Names(Builtin):
+    """
+    <dl>
+      <dt>'Names["$pattern$"]'
+      <dd>returns the list of names matching $pattern$.
+    </dl>
+
+    >> Names["List"]
+     = {List}
+
+    The wildcard '*' matches any character:
+    >> Names["List*"]
+     = {List, ListLinePlot, ListPlot, ListQ, Listable}
+
+    The wildcard '@' matches only lowercase characters:
+    >> Names["List@"]
+     = {Listable}
+
+    >> x = 5;
+    >> Names["Global`*"]
+     = {x}
+
+    The number of built-in symbols:
+    >> Length[Names["System`*"]]
+     = ...
+
+    #> Length[Names["System`*"]] > 350
+     = True
+    """
+
+    summary_text = "finds a list of symbols with names matching a pattern"
+
+    def apply(self, pattern, evaluation):
+        "Names[pattern_]"
+        headname = pattern.get_head_name()
+        if headname == "System`StringExpression":
+            pattern = re.compile(to_regex(pattern, evaluation))
+        else:
+            pattern = pattern.get_string_value()
+
+        if pattern is None:
+            return
+
+        names = set()
+        for full_name in evaluation.definitions.get_matching_names(pattern):
+            short_name = strip_context(full_name)
+            names.add(short_name if short_name not in names else full_name)
+
+        # TODO: Mathematica ignores contexts when it sorts the list of
+        # names.
+        return Expression(SymbolList, *[String(name) for name in sorted(names)])
+
+
 # In Mathematica 5, this appears under "Types of Values".
 class OwnValues(Builtin):
     """
@@ -546,6 +667,93 @@ class OwnValues(Builtin):
         return get_symbol_values(symbol, "OwnValues", "own", evaluation)
 
 
+class Symbol_(Builtin):
+    """
+    <dl>
+    <dt>'Symbol'
+        <dd>is the head of symbols.
+    </dl>
+
+    >> Head[x]
+     = Symbol
+    You can use 'Symbol' to create symbols from strings:
+    >> Symbol["x"] + Symbol["x"]
+     = 2 x
+
+    #> {\\[Eta], \\[CapitalGamma]\\[Beta], Z\\[Infinity], \\[Angle]XYZ, \\[FilledSquare]r, i\\[Ellipsis]j}
+     = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
+    """
+
+    attributes = locked | protected
+
+    messages = {
+        "symname": (
+            "The string `1` cannot be used for a symbol name. "
+            "A symbol name must start with a letter "
+            "followed by letters and numbers."
+        ),
+    }
+
+    name = "Symbol"
+
+    summary_text = "the head of a symbol; create a symbol from a name"
+
+    def apply(self, string, evaluation):
+        "Symbol[string_String]"
+
+        from mathics.core.parser import is_symbol_name
+
+        text = string.get_string_value()
+        if is_symbol_name(text):
+            return Symbol(evaluation.definitions.lookup_name(string.value))
+        else:
+            evaluation.message("Symbol", "symname", string)
+
+
+class SymbolName(Builtin):
+    """
+    <dl>
+    <dt>'SymbolName[$s$]'
+        <dd>returns the name of the symbol $s$ (without any leading
+        context name).
+    </dl>
+
+    >> SymbolName[x] // InputForm
+     = "x"
+
+    #> SymbolName[a`b`x] // InputForm
+     = "x"
+    """
+
+    summary_text = "gives the name of a symbol as a string"
+
+    def apply(self, symbol, evaluation):
+        "SymbolName[symbol_Symbol]"
+
+        # MMA docs say "SymbolName always gives the short name,
+        # without any context"
+        return String(strip_context(symbol.get_name()))
+
+
+class SymbolQ(Test):
+    """
+    <dl>
+    <dt>'SymbolQ[$x$]'
+        <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+    </dl>
+
+    >> SymbolQ[a]
+     = True
+    >> SymbolQ[1]
+     = False
+    >> SymbolQ[a + b]
+     = False
+    """
+
+    def test(self, expr):
+        return isinstance(expr, Symbol)
+
+
 # In Mathematica 5, this appears under "Types of Values".
 class UpValues(Builtin):
     """
@@ -568,9 +776,37 @@ class UpValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives list of transformation rules corresponding to upvalues defined for a symbol"
+    summary_text = "gives a list of transformation rules corresponding to upvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
         "UpValues[symbol_]"
 
         return get_symbol_values(symbol, "UpValues", "up", evaluation)
+
+
+class ValueQ(Builtin):
+    """
+    <dl>
+    <dt>'ValueQ[$expr$]'
+        <dd>returns 'True' if and only if $expr$ is defined.
+    </dl>
+
+    >> ValueQ[x]
+     = False
+    >> x = 1;
+    >> ValueQ[x]
+     = True
+
+    #> ValueQ[True]
+     = False
+    """
+
+    attributes = hold_first | protected
+    summary_text = "test whether a symbol can be considered to have a value"
+
+    def apply(self, expr, evaluation):
+        "ValueQ[expr_]"
+        evaluated_expr = expr.evaluate(evaluation)
+        if expr.sameQ(evaluated_expr):
+            return SymbolFalse
+        return SymbolTrue
