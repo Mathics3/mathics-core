@@ -1,7 +1,7 @@
 """
 List Functions
 
-S-Expressions make up a core part of Mathics. The parsed and internal representation of an an S-Expression is nothing more than a list with possibliy nested elements.
+Generalized Lists make up a core part of Mathics. In fact, to first approximation Evaluation works on a special kind of List called an M-Expression.
 
-As a result, there about a hundred list functions.
+As a result there about a hundred list functions.
 """

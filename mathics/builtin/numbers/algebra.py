@@ -216,11 +216,11 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             n1 = elements[1].get_int_value()
             if not denom and n1 is not None and n1 < 0:
                 return store_sub_expr(expr)
-            return sympy.Pow(*[convert_sympy(leaf) for leaf in elements])
+            return sympy.Pow(*[convert_sympy(element) for element in elements])
         elif expr.has_form("Times", 2, None):
-            return sympy.Mul(*[convert_sympy(leaf) for leaf in elements])
+            return sympy.Mul(*[convert_sympy(element) for element in elements])
         elif expr.has_form("Plus", 2, None):
-            return sympy.Add(*[convert_sympy(leaf) for leaf in elements])
+            return sympy.Add(*[convert_sympy(element) for element in elements])
         else:
             return store_sub_expr(expr)
 

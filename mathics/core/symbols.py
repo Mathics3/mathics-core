@@ -703,7 +703,7 @@ class Monomial(object):
 class Atom(BaseExpression):
     """
     Atoms are the leaves (in the common tree sense, not the Mathics
-    ``_elements`` sense) and Heads of an Expression or S-Expression.
+    ``_elements`` sense) and Heads of an Expression or M-Expression.
 
     In other words, they are the units of an expression that we cannot
     dig down deeper structurally.  Various object primitives i.e.
