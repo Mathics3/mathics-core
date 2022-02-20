@@ -3,7 +3,7 @@
 Unit tests from builtins ... calculus.py
 """
 
-from .helper import check_evaluation
+from .helper import check_evaluation, session
 
 
 def test_calculus():
@@ -39,5 +39,16 @@ def test_calculus():
             "Issue #1235",
         ),
         ("Integrate[Integrate[1,{y,0,E^x}],{x,0,Log[13]}]", "12", "Issue #153"),
+        (
+            "g/:Integrate[g[u_],u_]:=f[u]; Integrate[g[x],x]",
+            "f[x]",
+            "This should pass after implementing an earlier sympy evaluation.",
+        ),
+        (
+            "h=x;Integrate[Do[h=x*h,{5}]; h,x]",
+            "x^7/7",
+            "another sanity check for a more agressive sympy translation.",
+        ),
     ):
+        session.evaluate("Clear[h]; Clear[g]; Clear[f];")
         check_evaluation(str_expr, str_expected, message)
