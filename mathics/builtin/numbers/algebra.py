@@ -417,7 +417,7 @@ class Simplify(Builtin):
         "Simplify[list_List, assum_]": "Simplify[#1, assum]& /@ list",
         "Simplify[rule_Rule, assum_]": "Simplify[#1, assum]& /@ rule",
         "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0, assum]]",
-        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Simplify[Or[a>0, b!=0],assum]]",
+        "Simplify[b_^a_, assum_]": "ConditionalExpression[b^a,Simplify[Or[a>0, b!=0],assum]]",
     }
 
     def apply_assuming(self, expr, assumptions, evaluation):
