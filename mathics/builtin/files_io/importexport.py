@@ -1776,11 +1776,11 @@ class Export(Builtin):
             return SymbolFailed
 
         # Process elems {comp* format?, elem1*}
-        leaves = elems.get_elements()
+        elements = elems.get_elements()
 
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in leaves[::-1]:
+        for leaf in elements[::-1]:
             leaf_str = leaf.get_string_value()
 
             if not found_form and leaf_str in EXPORTERS:
@@ -1915,10 +1915,10 @@ class ExportString(Builtin):
     def apply_elements(self, expr, elems, evaluation, **options):
         "ExportString[expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[ExportString]]"
         # Process elems {comp* format?, elem1*}
-        leaves = elems.get_elements()
+        elements = elems.get_elements()
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in leaves[::-1]:
+        for leaf in elements[::-1]:
             leaf_str = leaf.get_string_value()
 
             if not found_form and leaf_str in EXPORTERS:

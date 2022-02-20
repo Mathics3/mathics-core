@@ -439,9 +439,9 @@ class Simplify(Builtin):
         if expr.is_atom():
             return expr
         # else, use sympy:
-        leaves = [self.apply(element, evaluation) for element in expr._elements]
+        elements = [self.apply(element, evaluation) for element in expr._elements]
         head = self.apply(expr.get_head(), evaluation)
-        expr = Expression(head, *leaves)
+        expr = Expression(head, *elements)
 
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
