@@ -386,11 +386,11 @@ class StringInsert(Builtin):
         # Check and create list of position
         listpos = []
         if pos.has_form("List", None):
-            leaves = pos.get_elements()
-            if not leaves:
+            elements = pos.get_elements()
+            if not elements:
                 return strsource
             else:
-                for i, posi in enumerate(leaves):
+                for i, posi in enumerate(elements):
                     py_posi = posi.get_int_value()
                     if py_posi is None:
                         return evaluation.message("StringInsert", "psl", pos, exp)

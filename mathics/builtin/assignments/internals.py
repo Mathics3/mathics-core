@@ -100,23 +100,23 @@ def is_protected(tag, defin):
 
 
 def repl_pattern_by_symbol(expr):
-    leaves = expr.get_elements()
-    if len(leaves) == 0:
+    elements = expr.get_elements()
+    if len(elements) == 0:
         return expr
 
     headname = expr.get_head_name()
     if headname == "System`Pattern":
-        return leaves[0]
+        return elements[0]
 
     changed = False
-    newleaves = []
-    for leave in leaves:
+    newelements = []
+    for leave in elements:
         leaf = repl_pattern_by_symbol(leave)
         if not (leaf is leave):
             changed = True
-        newleaves.append(leaf)
+        newelements.append(leaf)
     if changed:
-        return Expression(headname, *newleaves)
+        return Expression(headname, *newelements)
     else:
         return expr
 
@@ -638,20 +638,24 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
             tags.append(name)
     else:
         allowed_names = [focus.get_lookup_name()]
-        for leaf in focus.get_elements():
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`HoldPattern",):
-                leaf = leaf.leaves[0]
-            if not leaf.is_symbol() and leaf.get_head_name() in ("System`Pattern",):
-                leaf = leaf.leaves[1]
-            if not leaf.is_symbol() and leaf.get_head_name() in (
+        for element in focus.get_elements():
+            if not element.is_symbol() and element.get_head_name() in (
+                "System`HoldPattern",
+            ):
+                element = element.leaves[0]
+            if not element.is_symbol() and element.get_head_name() in (
+                "System`Pattern",
+            ):
+                element = element.leaves[1]
+            if not element.is_symbol() and element.get_head_name() in (
                 "System`Blank",
                 "System`BlankSequence",
                 "System`BlankNullSequence",
             ):
-                if len(leaf.leaves) == 1:
-                    leaf = leaf.leaves[0]
+                if len(element.leaves) == 1:
+                    element = element.leaves[0]
 
-            allowed_names.append(leaf.get_lookup_name())
+            allowed_names.append(element.get_lookup_name())
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))

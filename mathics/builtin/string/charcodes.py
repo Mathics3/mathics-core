@@ -240,11 +240,11 @@ class FromCharacterCode(Builtin):
                 # if we're dealing with nested lists.
                 elif n.get_elements()[0].has_form("List", None):
                     list_of_strings = []
-                    for leaf in n.get_elements():
-                        if leaf.has_form("List", None):
-                            stringi = convert_codepoint_list(leaf.get_elements())
+                    for element in n.get_elements():
+                        if element.has_form("List", None):
+                            stringi = convert_codepoint_list(element.get_elements())
                         else:
-                            stringi = convert_codepoint_list([leaf])
+                            stringi = convert_codepoint_list([element])
                         list_of_strings.append(String(stringi))
                     return Expression(SymbolList, *list_of_strings)
                 else:

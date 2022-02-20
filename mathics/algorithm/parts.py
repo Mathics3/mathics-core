@@ -42,14 +42,14 @@ def get_part(varlist, indices):
             if cur.is_atom():
                 raise PartDepthError(rest[0])
             pos = rest[0]
-            leaves = cur.get_elements()
+            elements = cur.get_elements()
             try:
                 if pos > 0:
-                    part = leaves[pos - 1]
+                    part = elements[pos - 1]
                 elif pos == 0:
                     part = cur.get_head()
                 else:
-                    part = leaves[pos]
+                    part = elements[pos]
             except IndexError:
                 raise PartRangeError
             return rec(part, rest[1:])

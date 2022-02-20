@@ -204,7 +204,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
 
     def convert_sympy(expr):
         "converts top-level to sympy"
-        leaves = expr.get_elements()
+        elements = expr.get_elements()
         if isinstance(expr, Integer):
             return sympy.Integer(expr.get_int_value())
         if target_pat is not None and not isinstance(expr, Number):
@@ -213,14 +213,14 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         if expr.has_form("Power", 2):
             # sympy won't expand `(a + b) / x` to `a / x + b / x` if denom is False
             # if denom is False we store negative powers to prevent this.
-            n1 = leaves[1].get_int_value()
+            n1 = elements[1].get_int_value()
             if not denom and n1 is not None and n1 < 0:
                 return store_sub_expr(expr)
-            return sympy.Pow(*[convert_sympy(leaf) for leaf in leaves])
+            return sympy.Pow(*[convert_sympy(leaf) for leaf in elements])
         elif expr.has_form("Times", 2, None):
-            return sympy.Mul(*[convert_sympy(leaf) for leaf in leaves])
+            return sympy.Mul(*[convert_sympy(leaf) for leaf in elements])
         elif expr.has_form("Plus", 2, None):
-            return sympy.Add(*[convert_sympy(leaf) for leaf in leaves])
+            return sympy.Add(*[convert_sympy(leaf) for leaf in elements])
         else:
             return store_sub_expr(expr)
 
@@ -232,7 +232,8 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 return expr
         else:
             return Expression(
-                expr.head, *[unconvert_subexprs(leaf) for leaf in expr.get_elements()]
+                expr.head,
+                *[unconvert_subexprs(element) for element in expr.get_elements()]
             )
 
     sympy_expr = convert_sympy(expr)
@@ -244,32 +245,34 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         ) in enumerate(sub_exprs):
             if not sub_expr.is_atom():
                 head = _expand(sub_expr.head)  # also expand head
-                leaves = sub_expr.get_elements()
+                elements = sub_expr.get_elements()
                 if target_pat:
-                    leaves = [
-                        leaf if leaf.is_free(target_pat, evaluation) else _expand(leaf)
-                        for leaf in leaves
+                    elements = [
+                        element
+                        if element.is_free(target_pat, evaluation)
+                        else _expand(element)
+                        for element in elements
                     ]
                 else:
-                    leaves = [_expand(leaf) for leaf in leaves]
-                sub_exprs[i] = Expression(head, *leaves)
+                    elements = [_expand(element) for element in elements]
+                sub_exprs[i] = Expression(head, *elements)
     else:
         # thread over Lists etc.
         threaded_heads = ("List", "Rule")
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
                 if sub_expr.has_form(head, None):
-                    leaves = sub_expr.get_elements()
+                    elements = sub_expr.get_elements()
                     if target_pat:
-                        leaves = [
-                            leaf
-                            if leaf.is_free(target_pat, evaluation)
-                            else _expand(leaf)
-                            for leaf in leaves
+                        elements = [
+                            element
+                            if element.is_free(target_pat, evaluation)
+                            else _expand(element)
+                            for element in elements
                         ]
                     else:
-                        leaves = [_expand(leaf) for leaf in leaves]
-                    sub_exprs[i] = Expression(head, *leaves)
+                        elements = [_expand(element) for element in elements]
+                    sub_exprs[i] = Expression(head, *elements)
                     break
 
     hints = {
@@ -436,7 +439,7 @@ class Simplify(Builtin):
         if expr.is_atom():
             return expr
         # else, use sympy:
-        leaves = [self.apply(leaf, evaluation) for leaf in expr._elements]
+        leaves = [self.apply(element, evaluation) for element in expr._elements]
         head = self.apply(expr.get_head(), evaluation)
         expr = Expression(head, *leaves)
 

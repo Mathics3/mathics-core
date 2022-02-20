@@ -707,8 +707,8 @@ class Expression(BaseExpression):
         if len(self._elements) != len(other.get_elements()):
             return False
         return all(
-            (id(leaf) == id(oleaf) or leaf.sameQ(oleaf))
-            for leaf, oleaf in zip(self._elements, other.get_elements())
+            (id(element) == id(oelement) or element.sameQ(oelement))
+            for element, oelement in zip(self._elements, other.get_elements())
         )
 
     def flatten(
@@ -720,26 +720,26 @@ class Expression(BaseExpression):
             return self
         sub_level = None if level is None else level - 1
         do_flatten = False
-        for leaf in self._elements:
-            if leaf.get_head().sameQ(head) and (
-                not pattern_only or leaf.pattern_sequence
+        for element in self._elements:
+            if element.get_head().sameQ(head) and (
+                not pattern_only or element.pattern_sequence
             ):
                 do_flatten = True
                 break
         if do_flatten:
             new_elements = []
-            for leaf in self._elements:
-                if leaf.get_head().sameQ(head) and (
-                    not pattern_only or leaf.pattern_sequence
+            for element in self._elements:
+                if element.get_head().sameQ(head) and (
+                    not pattern_only or element.pattern_sequence
                 ):
-                    new_leaf = leaf.flatten(
+                    new_element = element.flatten(
                         head, pattern_only, callback, level=sub_level
                     )
                     if callback is not None:
-                        callback(new_leaf._elements, leaf)
-                    new_elements.extend(new_leaf._elements)
+                        callback(new_element._elements, element)
+                    new_elements.extend(new_element._elements)
                 else:
-                    new_elements.append(leaf)
+                    new_elements.append(element)
             return Expression(self._head, *new_elements)
         else:
             return self

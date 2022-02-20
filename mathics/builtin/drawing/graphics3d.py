@@ -7,6 +7,9 @@ Functions for working with 3D graphics.
 
 
 from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression
+from mathics.core.symbols import SymbolN
+
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
