@@ -72,7 +72,32 @@ def strip_context(name) -> str:
     return name
 
 
+# FIXME: figure out how to split off KeyComparible, BaseExpression and
+# Atom from Symbol which is really more "variable"-like in the more
+# conventional programming sense of the word.  Also Split off
+# SymbolLiteral (the Lisp notion of Symbol, an immutable object like a
+# Wolfram Character Symbol) which is distinct from Symbol and seems
+# to be intercombined here.
+
+
 class KeyComparable(object):
+    """
+    Some Mathics/WL Symbols have an "OrderLess" attribute
+    which is used in the evaluation process to arrange items in a list.
+
+    To do that, we need a way to compare Symbols, and that is what
+    this class is for.
+
+    This class adds the boilerplate Python comparision operators that
+    you expect in Python programs for comparing Python objects.
+
+    This class is not complete in of itself, it is intended to be
+    mixed into other classes.
+
+    Each class should provide a `get_sort_key()` method which
+    is the primative from which all other comparsions are based on.
+    """
+
     def get_sort_key(self):
         raise NotImplementedError
 
@@ -101,6 +126,15 @@ class KeyComparable(object):
 
 
 class BaseExpression(KeyComparable):
+    """
+    This is the base class from which all other Expressions are derived from.
+
+    This class is not complete in of itself and subclasses should adapt or fill in
+    what is needed
+
+    Some important subclasses: Atom and Expression.
+    """
+
     options: Any
     pattern_sequence: bool
     unformatted: Any
@@ -120,7 +154,8 @@ class BaseExpression(KeyComparable):
         self._cache = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
+        """
+        Mathics two-argument Equal (==)
         returns True if self and rhs are identical.
         """
         if self.sameQ(rhs):
@@ -149,7 +184,14 @@ class BaseExpression(KeyComparable):
     def get_attributes(self, definitions):
         return nothing
 
-    def evaluate_next(self, evaluation):
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
+        """
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
@@ -185,8 +227,11 @@ class BaseExpression(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
-    def get_leaves(self):
+    def get_elements(self):
         return []
+
+    # Compatibily with old code. Deprecated, but remove after a little bit
+    get_leaves = get_elements
 
     def get_int_value(self):
         return None
@@ -237,7 +282,7 @@ class BaseExpression(KeyComparable):
         else:
             return [self]
 
-    def evaluate_leaves(self, evaluation) -> "BaseExpression":
+    def evaluate_elements(self, evaluation) -> "BaseExpression":
         return self
 
     def apply_rules(
@@ -270,7 +315,7 @@ class BaseExpression(KeyComparable):
         try:
             expr = self
             head = self.get_head()
-            leaves = self.get_leaves()
+            leaves = self.get_elements()
             include_form = False
             # If the expression is enclosed by a Format
             # takes the form from the expression and
@@ -353,9 +398,11 @@ class BaseExpression(KeyComparable):
                 and head is not SymbolGraphics3D
             ):
                 # print("Not inside graphics or numberform, and not is atom")
-                new_leaves = [leaf.do_format(evaluation, form) for leaf in expr.leaves]
+                new_elements = [
+                    leaf.do_format(evaluation, form) for leaf in expr.leaves
+                ]
                 expr = self.create_expression(
-                    expr.head.do_format(evaluation, form), *new_leaves
+                    expr.head.do_format(evaluation, form), *new_elements
                 )
 
             if include_form:
@@ -581,6 +628,25 @@ class Monomial(object):
 
 
 class Atom(BaseExpression):
+    """
+    Atoms are the leaves (in the common tree sense, not the Mathics
+    ``_elements`` sense) and Heads of an Expression or S-Expression.
+
+    In other words, they are the units of an expression that we cannot
+    dig down deeper structurally.  Various object primitives i.e.
+    ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
+
+    Of note is the fact that the Mathics ``Part[]`` function of an
+    Atom object does not exist.
+
+    Atom is not a directly-mentioned WL entity, although conceptually
+    it very much seems to exist.
+    """
+
+    # FIXME: I believe Atom's should have its own custom
+    # evaluate() and rewrite_apply_eval() routine since
+    # rewrite rules generally (or universally) are not relevant here.
+
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
@@ -650,6 +716,31 @@ class Atom(BaseExpression):
 
 
 class Symbol(Atom):
+    """
+    Note: Symbol is right now used in a couple of ways which in the
+    future may be separated.
+
+    A Symbol is a kind of Atom that acts as a symbolic variable or
+    symbolic constant.
+
+    All Symbols have a name that can be converted to string form.
+
+    Inside a session, a Symbol can be associated with a ``Definition``
+    that determines its evaluation value.
+
+    We also have Symbols which are immutable or constant; here the
+    definitions are fixed. The predefined Symbols ``True``, ``False``,
+    and ``Null`` are like this.
+
+    Also there are situations where the Symbol acts like Python's
+    intern() built-in function or Lisp's Symbol without its modifyable
+    property list.  Here, the only attribute we care about is the name
+    which is unique across all mentions and uses, and therefore
+    needs it only to be stored as a single object in the system.
+
+    This aspect may or may not be true for the Symbolic Variable use case too.
+    """
+
     name: str
     sympy_dummy: Any
     defined_symbols = {}

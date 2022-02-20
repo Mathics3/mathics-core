@@ -73,7 +73,7 @@ def apply_nvalues(
         leaves = expr.leaves
         result = Expression(expr.head)
         newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
-        result._leaves = tuple(
+        result._elements = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
         return result
@@ -112,7 +112,7 @@ def apply_nvalues(
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
-        leaves = expr.get_mutable_leaves()
+        leaves = expr.get_mutable_elements()
         if n_hold_all & attributes:
             eval_range = ()
         elif n_hold_first & attributes:
@@ -134,7 +134,7 @@ def apply_nvalues(
                 leaves[index] = newleaf
 
         result = Expression(head)
-        result._leaves = tuple(leaves)
+        result._elements = tuple(leaves)
         return result
 
 
@@ -142,6 +142,6 @@ def apply_nvalues(
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
-# ``numerify``, ``evaluation``, ``evaluation_next``, ``format`` and ``boxes_to_*`` that in the current implementation
+# ``numerify``, ``evaluation``, ``_rewrite_apply_eval_step``, ``format`` and ``boxes_to_*`` that in the current implementation
 # requires to introduce local imports.
 # This also would make easier to test and profile classes that store Expression-like objects and methods that produce the evaluation.

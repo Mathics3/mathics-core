@@ -386,11 +386,11 @@ class StringInsert(Builtin):
         # Check and create list of position
         listpos = []
         if pos.has_form("List", None):
-            leaves = pos.get_leaves()
-            if not leaves:
+            elements = pos.get_elements()
+            if not elements:
                 return strsource
             else:
-                for i, posi in enumerate(leaves):
+                for i, posi in enumerate(elements):
                     py_posi = posi.get_int_value()
                     if py_posi is None:
                         return evaluation.message("StringInsert", "psl", pos, exp)
@@ -601,7 +601,7 @@ class StringPosition(Builtin):
 
         # convert patterns
         if patt.has_form("List", None):
-            patts = patt.get_leaves()
+            patts = patt.get_elements()
         else:
             patts = [patt]
         re_patts = []
@@ -986,7 +986,9 @@ class StringSplit(Builtin):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":
-            leaves = [self.apply(s, patt, evaluation, options) for s in string._leaves]
+            leaves = [
+                self.apply(s, patt, evaluation, options) for s in string._elements
+            ]
             return Expression(SymbolList, *leaves)
 
         py_string = string.get_string_value()
@@ -997,7 +999,7 @@ class StringSplit(Builtin):
             )
 
         if patt.has_form("List", None):
-            patts = patt.get_leaves()
+            patts = patt.get_elements()
         else:
             patts = [patt]
         re_patts = []

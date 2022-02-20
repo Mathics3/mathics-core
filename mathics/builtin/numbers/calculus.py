@@ -624,8 +624,8 @@ class Integrate(SympyFunction):
                 args.append(leaf.leaves[0])
             else:
                 args.append(leaf)
-        new_leaves = [leaves[0]] + args
-        return Expression(self.get_name(), *new_leaves)
+        new_elements = [leaves[0]] + args
+        return Expression(self.get_name(), *new_elements)
 
     def apply(self, f, xs, evaluation, options):
         "Integrate[f_, xs__, OptionsPattern[]]"
@@ -683,18 +683,18 @@ class Integrate(SympyFunction):
         # use ConditionalExpression.
         # This does not work now because the form sympy returns the values
         if result.get_head_name() == "System`Piecewise":
-            cases = result._leaves[0]._leaves
-            if len(result._leaves) == 1:
-                if cases[-1]._leaves[1].is_true():
-                    default = cases[-1]._leaves[0]
-                    cases = result._leaves[0]._leaves[:-1]
+            cases = result._elements[0]._elements
+            if len(result._elements) == 1:
+                if cases[-1]._elements[1].is_true():
+                    default = cases[-1]._elements[0]
+                    cases = result._elements[0]._elements[:-1]
                 else:
                     default = SymbolUndefined
             else:
-                cases = result._leaves[0]._leaves
-                default = result._leaves[1]
+                cases = result._elements[0]._elements
+                default = result._elements[1]
             if default.has_form("Integrate", None):
-                if default._leaves[0] == f:
+                if default._elements[0] == f:
                     default = SymbolUndefined
 
             simplified_cases = []
@@ -702,28 +702,28 @@ class Integrate(SympyFunction):
                 # TODO: if something like 0^n or 1/expr appears,
                 # put the condition n!=0 or expr!=0 accordingly in the list of
                 # conditions...
-                cond = Expression("Simplify", case._leaves[1], assuming).evaluate(
+                cond = Expression("Simplify", case._elements[1], assuming).evaluate(
                     evaluation
                 )
-                resif = Expression("Simplify", case._leaves[0], assuming).evaluate(
+                resif = Expression("Simplify", case._elements[0], assuming).evaluate(
                     evaluation
                 )
                 if cond.is_true():
                     return resif
                 if resif.has_form("ConditionalExpression", 2):
-                    cond = Expression("And", resif._leaves[1], cond)
+                    cond = Expression("And", resif._elements[1], cond)
                     cond = Expression("Simplify", cond, assuming).evaluate(evaluation)
-                    resif = resif._leaves[0]
+                    resif = resif._elements[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
             if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
-                result = Expression("ConditionalExpression", *(cases._leaves))
+                result = Expression("ConditionalExpression", *(cases._elements))
             else:
                 result = Expression(result._head, cases, default)
         else:
             if result.get_head() is SymbolIntegrate:
-                if result._leaves[0].evaluate(evaluation).sameQ(f):
+                if result._elements[0].evaluate(evaluation).sameQ(f):
                     # Sympy returned the same expression, so it can't be evaluated.
                     return
             result = Expression("Simplify", result, assuming)
@@ -1295,8 +1295,8 @@ class _BaseFinder(Builtin):
         x0 = apply_N(x0, evaluation)
         # deal with non 1D problems.
         if isinstance(x0, Expression) and x0._head is SymbolList:
-            options["_x0"] = x0._leaves
-            x0 = x0._leaves[0]
+            options["_x0"] = x0._elements
+            x0 = x0._elements[0]
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
             return
@@ -1321,7 +1321,7 @@ class _BaseFinder(Builtin):
         method = options["System`Method"]
         if isinstance(method, Expression):
             if method.get_head() is SymbolList:
-                method = method._leaves[0]
+                method = method._elements[0]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
         elif isinstance(method, String):
@@ -1622,10 +1622,10 @@ class Series(Builtin):
 
     def apply_multivariate_series(self, f, varspec, evaluation):
         """Series[f_,varspec__List]"""
-        lastvar = varspec._leaves[-1]
+        lastvar = varspec._elements[-1]
         if not lastvar.has_form("List", 3):
             return None
-        # inner = build_series(f, *(lastvar._leaves), evaluation)
+        # inner = build_series(f, *(lastvar._elements), evaluation)
         inner = Expression(SymbolSeries, f, lastvar).evaluate(evaluation)
         if inner:
             if len(varspec.leaves) == 1:
@@ -1676,7 +1676,7 @@ class SeriesData(Builtin):
             else:
                 return Integer0
         # if data has trailing zeros, the method tries to remove them.
-        coeffs = data._leaves
+        coeffs = data._elements
         len_coeffs = len(coeffs)
         # If the series is trivial, do not do anything:
         if len_coeffs == 0:
@@ -1704,7 +1704,7 @@ class SeriesData(Builtin):
                 SymbolSeriesData,
                 x,
                 x0,
-                data._leaves[nonzeroidx_left:(-nonzeroidx_right)],
+                data._elements[nonzeroidx_left:(-nonzeroidx_right)],
                 nummin,
                 nummax,
                 den,
@@ -1714,7 +1714,7 @@ class SeriesData(Builtin):
                 SymbolSeriesData,
                 x,
                 x0,
-                data._leaves[nonzeroidx_left:],
+                data._elements[nonzeroidx_left:],
                 nummin,
                 nummax,
                 den,

@@ -8,22 +8,22 @@ from mathics.core.attributes import hold_all, protected, read_protected
 class CustomBoxConstruct(BoxConstruct):
     def __init__(self, evaluation):
         super().__init__(evaluation=evaluation)
-        self._leaves = [1, 2, 3]
+        self._elements = [1, 2, 3]
 
     def boxes_to_text(self, leaves=None, **options):
         if not leaves:
-            leaves = self._leaves
-        return "CustomBoxConstruct<<" + self._leaves.__str__() + ">>"
+            leaves = self._elements
+        return "CustomBoxConstruct<<" + self._elements.__str__() + ">>"
 
     def boxes_to_mathml(self, leaves=None, **options):
         if not leaves:
-            leaves = self._leaves
-        return "CustomBoxConstruct<<" + self._leaves.__str__() + ">>"
+            leaves = self._elements
+        return "CustomBoxConstruct<<" + self._elements.__str__() + ">>"
 
     def boxes_to_tex(self, leaves=None, **options):
         if not leaves:
-            leaves = self._leaves
-        return "CustomBoxConstruct<<" + int(self._leaves) + ">>"
+            leaves = self._elements
+        return "CustomBoxConstruct<<" + int(self._elements) + ">>"
 
 
 class CustomAtom(Predefined):
@@ -50,22 +50,30 @@ class CustomGraphicsBox(BoxConstruct):
     def apply_box(self, elems, evaluation, options):
         """System`MakeBoxes[System`Graphics[elems_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
-        instance = CustomGraphicsBox(*(elems._leaves), evaluation=evaluation)
+        instance = CustomGraphicsBox(*(elems._elements), evaluation=evaluation)
         return instance
 
     def boxes_to_text(self, leaves=None, **options):
         if leaves:
-            self._leaves = leaves
-        return "--custom graphics--: I should plot " + self._leaves.__str__() + " items"
+            self._elements = leaves
+        return (
+            "--custom graphics--: I should plot " + self._elements.__str__() + " items"
+        )
 
     def boxes_to_tex(self, leaves=None, **options):
-        return "--custom graphics--: I should plot " + self._leaves.__str__() + " items"
+        return (
+            "--custom graphics--: I should plot " + self._elements.__str__() + " items"
+        )
 
     def boxes_to_mathml(self, leaves=None, **options):
-        return "--custom graphics--: I should plot " + self._leaves.__str__() + " items"
+        return (
+            "--custom graphics--: I should plot " + self._elements.__str__() + " items"
+        )
 
     def boxes_to_svg(self, evaluation):
-        return "--custom graphics--: I should plot " + self._leaves.__str__() + " items"
+        return (
+            "--custom graphics--: I should plot " + self._elements.__str__() + " items"
+        )
 
 
 def test_custom_boxconstruct():

@@ -103,9 +103,9 @@ class _EqualityOperator(_InequalityOperator):
         same_heads = lhs.get_head().sameQ(rhs.get_head())
         if not same_heads:
             return None
-        if len(lhs._leaves) != len(rhs._leaves):
+        if len(lhs._elements) != len(rhs._elements):
             return
-        for l, r in zip(lhs._leaves, rhs._leaves):
+        for l, r in zip(lhs._elements, rhs._elements):
             tst = self.equal2(l, r, max_extra_prec)
             if not tst:
                 return tst
@@ -117,11 +117,11 @@ class _EqualityOperator(_InequalityOperator):
         if not lhs.get_head().sameQ(SymbolDirectedInfinity):
             return None
         if rhs.sameQ(SymbolInfinity) or rhs.sameQ(SymbolComplexInfinity):
-            if len(lhs._leaves) == 0:
+            if len(lhs._elements) == 0:
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs._leaves[0]), Integer1, max_extra_prec
+                    Expression("Sign", lhs._elements[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -129,10 +129,10 @@ class _EqualityOperator(_InequalityOperator):
             return None
         if rhs.get_head().sameQ(lhs.get_head()):
             dir1 = dir2 = Integer1
-            if len(lhs._leaves) == 1:
-                dir1 = lhs._leaves[0]
-            if len(rhs._leaves) == 1:
-                dir2 = rhs._leaves[0]
+            if len(lhs._elements) == 1:
+                dir1 = lhs._elements[0]
+            if len(rhs._elements) == 1:
+                dir2 = rhs._elements[0]
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:

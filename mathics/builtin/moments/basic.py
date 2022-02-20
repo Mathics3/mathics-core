@@ -49,7 +49,7 @@ class Median(_Rectangular):
             except _NotRectangularException:
                 evaluation.message("Median", "rectn", Expression("Median", l))
         elif all(leaf.is_numeric(evaluation) for leaf in l.leaves):
-            v = l.get_mutable_leaves()  # copy needed for introselect
+            v = l.get_mutable_elements()  # copy needed for introselect
             n = len(v)
             if n % 2 == 0:  # even number of elements?
                 i = n // 2
@@ -116,7 +116,7 @@ class Quantile(Builtin):
         """Quantile[l_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
         n = len(l.leaves)
-        partially_sorted = l.get_mutable_leaves()
+        partially_sorted = l.get_mutable_elements()
 
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))

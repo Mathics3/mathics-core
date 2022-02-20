@@ -65,7 +65,7 @@ def compile_fn(f, x, opts, evaluation):
     if opts["_isfindmaximum"]:
         f = -f
     comp_func = Expression("Compile", Expression(SymbolList, x), f).evaluate(evaluation)
-    return comp_func._leaves[2].cfunc
+    return comp_func._elements[2].cfunc
 
 
 def process_result_1d_opt(result, opts, evaluation):

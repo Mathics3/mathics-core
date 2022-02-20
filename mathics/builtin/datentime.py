@@ -606,8 +606,8 @@ class DateObject(_DateFormat):
                 options[args.leaves[0].get_name()] = args.leaves[1]
                 args = Expression("AbsoluteTime").evaluate(evaluation)
             elif args.get_head_name() == "System`DateObject":
-                datelist = args._leaves[0]
-                tz = args._leaves[3]
+                datelist = args._elements[0]
+                tz = args._elements[3]
 
         if datelist is None:
             datelist = self.to_datelist(args, evaluation)

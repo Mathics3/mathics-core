@@ -581,21 +581,21 @@ class SympyFunction(SympyObject):
         except TypeError:
             pass
 
-    def from_sympy(self, sympy_name, leaves):
-        return Expression(self.get_name(), *leaves)
+    def from_sympy(self, sympy_name, elements):
+        return Expression(self.get_name(), *elements)
 
     def prepare_mathics(self, sympy_expr):
         return sympy_expr
 
 
 class BoxConstruct(InstanceableBuiltin):
-    def __new__(cls, *leaves, **kwargs):
-        instance = super().__new__(cls, *leaves, **kwargs)
-        instance._leaves = leaves
+    def __new__(cls, *elements, **kwargs):
+        instance = super().__new__(cls, *elements, **kwargs)
+        instance._elements = elements
         return instance
 
     def evaluate(self, evaluation):
-        # THINK about: Should we evaluate the leaves here?
+        # THINK about: Should we evaluate the elements here?
         return
 
     def get_head_name(self):
@@ -633,7 +633,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @property
     def leaves(self):
-        return self._leaves
+        return self._elements
 
     @leaves.setter
     def leaves(self, value):
@@ -660,7 +660,7 @@ class BoxConstruct(InstanceableBuiltin):
         if not leaf_counts:
             return False
         if leaf_counts and leaf_counts[0] is not None:
-            count = len(self._leaves)
+            count = len(self._elements)
             if count not in leaf_counts:
                 if (
                     len(leaf_counts) == 2

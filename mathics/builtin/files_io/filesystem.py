@@ -1195,7 +1195,7 @@ class FileNames(Builtin):
         # Building a list of forms
         if forms.get_head_name() == "System`List":
             str_forms = []
-            for p in forms._leaves:
+            for p in forms._elements:
                 if self.fmtmaps.get(p, None):
                     str_forms.append(self.fmtmaps[p])
                 else:
@@ -1209,7 +1209,7 @@ class FileNames(Builtin):
             str_paths = [paths.value]
         elif paths.get_head_name() == "System`List":
             str_paths = []
-            for p in paths._leaves:
+            for p in paths._elements:
                 if p.get_head_name() == "System`String":
                     str_paths.append(p.value)
                 else:

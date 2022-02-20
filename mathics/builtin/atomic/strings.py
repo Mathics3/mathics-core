@@ -1037,7 +1037,7 @@ class Transliterate(Builtin):
 def _pattern_search(name, string, patt, evaluation, options, matched):
     # Get the pattern list and check validity for each
     if patt.has_form("List", None):
-        patts = patt.get_leaves()
+        patts = patt.get_elements()
     else:
         patts = [patt]
     re_patts = []

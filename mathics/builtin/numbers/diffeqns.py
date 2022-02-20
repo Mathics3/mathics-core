@@ -120,7 +120,7 @@ class DSolve(Builtin):
         if x.is_symbol():
             syms = [x]
         elif x.has_form("List", 1, None):
-            syms = sorted(x.get_leaves())
+            syms = sorted(x.get_elements())
         else:
             return evaluation.message("DSolve", "dsvar", x)
 
