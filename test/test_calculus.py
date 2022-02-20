@@ -38,5 +38,15 @@ def test_calculus():
             "{x->1.51213}",
             "Issue #1235",
         ),
+        (
+            "g/:Integrate[g[u_],u_]:=f[u]; Integrate[g[x],x]",
+            "f[x]",
+            "This should pass after implementing an earlier sympy evaluation.",
+        ),
+        (
+            "h=x;Integrate[Do[h=x*h,{5}]; h,x]",
+            "x^7/7",
+            "another sanity check for a more agressive sympy translation.",
+        ),
     ):
         check_evaluation(str_expr, str_expected, message)
