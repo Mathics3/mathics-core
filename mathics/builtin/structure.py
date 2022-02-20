@@ -80,8 +80,8 @@ class Sort(Builtin):
         if list.is_atom():
             evaluation.message("Sort", "normal")
         else:
-            new_leaves = sorted(list.leaves)
-            return list.restructure(list.head, new_leaves, evaluation)
+            new_elements = sorted(list.leaves)
+            return list.restructure(list.head, new_elements, evaluation)
 
     def apply_predicate(self, list, p, evaluation):
         "Sort[list_, p_]"
@@ -101,8 +101,8 @@ class Sort(Builtin):
                         .is_true()
                     )
 
-            new_leaves = sorted(list.leaves, key=Key)
-            return list.restructure(list.head, new_leaves, evaluation)
+            new_elements = sorted(list.leaves, key=Key)
+            return list.restructure(list.head, new_elements, evaluation)
 
 
 class SortBy(Builtin):
@@ -171,8 +171,8 @@ class SortBy(Builtin):
 
             # we sort a list of indices. after sorting, we reorder the leaves.
             new_indices = sorted(list(range(len(raw_keys))), key=Key)
-            new_leaves = [raw_keys[i] for i in new_indices]  # reorder leaves
-            return l.restructure(l.head, new_leaves, evaluation)
+            new_elements = [raw_keys[i] for i in new_indices]  # reorder leaves
+            return l.restructure(l.head, new_elements, evaluation)
 
 
 class BinarySearch(Builtin):
@@ -568,30 +568,30 @@ class MapAt(Builtin):
                 j = m + i
             else:
                 raise PartRangeError
-            replace_leaf = new_leaves[j]
+            replace_leaf = new_elements[j]
             if hasattr(replace_leaf, "head") and replace_leaf.head is Symbol(
                 "System`Rule"
             ):
-                new_leaves[j] = Expression(
+                new_elements[j] = Expression(
                     "System`Rule",
                     replace_leaf.leaves[0],
                     Expression(f, replace_leaf.leaves[1]),
                 )
             else:
-                new_leaves[j] = Expression(f, replace_leaf)
-            return new_leaves
+                new_elements[j] = Expression(f, replace_leaf)
+            return new_elements
 
         a = args.to_python()
         if isinstance(a, int):
-            new_leaves = list(expr.leaves)
-            new_leaves = map_at_one(a, new_leaves)
-            return List(*new_leaves)
+            new_elements = list(expr.leaves)
+            new_elements = map_at_one(a, new_elements)
+            return List(*new_elements)
         elif isinstance(a, list):
-            new_leaves = list(expr.leaves)
+            new_elements = list(expr.leaves)
             for l in a:
                 if len(l) == 1 and isinstance(l[0], int):
-                    new_leaves = map_at_one(l[0], new_leaves)
-            return List(*new_leaves)
+                    new_elements = map_at_one(l[0], new_elements)
+            return List(*new_elements)
 
 
 class Scan(Builtin):
@@ -794,7 +794,7 @@ class MapThread(Builtin):
         if not expr.has_form("List", None):
             return evaluation.message("MapThread", "list", 2, full_expr)
 
-        heads = expr.get_leaves()
+        heads = expr.get_elements()
 
         def walk(args, depth=0):
             "walk all trees concurrently and build result"
@@ -1057,24 +1057,24 @@ class Flatten(Builtin):
             # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
             # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
             leading_index = None
-            grouped_leaves = []
+            grouped_elements = []
             for index, leaf in leaves:
                 if index[0] == leading_index:
-                    grouped_leaves[-1].append((index[1:], leaf))
+                    grouped_elements[-1].append((index[1:], leaf))
                 else:
                     leading_index = index[0]
-                    grouped_leaves.append([(index[1:], leaf)])
+                    grouped_elements.append([(index[1:], leaf)])
             # for each group of leaves we either insert them into the current level
             # or make a new level and recurse
-            new_leaves = []
-            for group in grouped_leaves:
+            new_elements = []
+            for group in grouped_elements:
                 if len(group[0][0]) == 0:  # bottom level leaf
                     assert len(group) == 1
-                    new_leaves.append(group[0][1])
+                    new_elements.append(group[0][1])
                 else:
-                    new_leaves.append(Expression(h, *insert_leaf(group)))
+                    new_elements.append(Expression(h, *insert_leaf(group)))
 
-            return new_leaves
+            return new_elements
 
         return Expression(h, *insert_leaf(leaves))
 

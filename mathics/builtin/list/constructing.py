@@ -76,7 +76,7 @@ class Array(Builtin):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
 
         if dimsexpr.has_form("List", None):
-            dims = dimsexpr.get_mutable_leaves()
+            dims = dimsexpr.get_mutable_elements()
         else:
             dims = [dimsexpr]
         for index, dim in enumerate(dims):
@@ -89,7 +89,7 @@ class Array(Builtin):
             if len(origins.leaves) != len(dims):
                 evaluation.message("Array", "plen", dimsexpr, origins)
                 return
-            origins = origins.get_mutable_leaves()
+            origins = origins.get_mutable_elements()
         else:
             origins = [origins] * len(dims)
         for index, origin in enumerate(origins):

@@ -117,13 +117,13 @@ class Compile(Builtin):
             return evaluation.message("Compile", "invars")
         args = []
         names = []
-        for var in vars.get_leaves():
+        for var in vars.get_elements():
             if isinstance(var, Symbol):
                 symb = var
                 name = symb.get_name()
                 typ = real_type
             elif var.has_form("List", 2):
-                symb, typ = var.get_leaves()
+                symb, typ = var.get_elements()
                 if isinstance(symb, Symbol) and typ in permitted_types:
                     name = symb.get_name()
                     typ = permitted_types[typ]
@@ -186,9 +186,9 @@ class CompiledCode(Atom):
             return "-PythonizedCode-"
         return "-CompiledCode-"
 
-    def boxes_to_text(self, leaves=None, **options):
-        if not leaves:
-            leaves = self._leaves
+    def boxes_to_text(self, elements=None, **options):
+        if not elements:
+            elements = self._elements
         return "-CompiledCode-"
 
     def do_copy(self):

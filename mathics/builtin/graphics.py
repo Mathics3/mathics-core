@@ -212,16 +212,16 @@ class Show(Builtin):
                 options[option] = apply_N(options[option], evaluation)
 
         # The below could probably be done with graphics.filter..
-        new_leaves = []
+        new_elements = []
         options_set = set(options.keys())
         for leaf in graphics.leaves:
             leaf_name = leaf.get_head_name()
             if leaf_name == "System`Rule" and str(leaf.leaves[0]) in options_set:
                 continue
-            new_leaves.append(leaf)
+            new_elements.append(leaf)
 
-        new_leaves += options_to_rules(options)
-        graphics = graphics.restructure(graphics.head, new_leaves, evaluation)
+        new_elements += options_to_rules(options)
+        graphics = graphics.restructure(graphics.head, new_elements, evaluation)
 
         return graphics
 
@@ -305,20 +305,20 @@ class Graphics(Builtin):
                         inset = content.leaves[0]
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
-                            # opts = dict(opt._leaves[0].name:opt_leaves[1]   for opt in  inset._leaves[1:])
+                            # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
                             inset = self.apply_makeboxes(
-                                inset._leaves[0], evaluation, opts
+                                inset._elements[0], evaluation, opts
                             )
-                        n_leaves = [inset] + [
+                        n_elements = [inset] + [
                             apply_N(leaf, evaluation) for leaf in content.leaves[1:]
                         ]
                     else:
-                        n_leaves = (
+                        n_elements = (
                             apply_N(leaf, evaluation) for leaf in content.leaves
                         )
                 else:
-                    n_leaves = content.leaves
-                return Expression(head.name + self.box_suffix, *n_leaves)
+                    n_elements = content.leaves
+                return Expression(head.name + self.box_suffix, *n_elements)
             return content
 
         for option in options:
