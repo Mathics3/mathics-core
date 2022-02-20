@@ -60,7 +60,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolDispatch
+from mathics.core.systemsymbols import SymbolDispatch, SymbolRowBox
 from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
 
@@ -1631,7 +1631,7 @@ class Dispatch(Atom):
         self.src = Expression(SymbolList, *rulelist)
         self.rules = [Rule(rule._elements[0], rule._elements[1]) for rule in rulelist]
         self._elements = None
-        self._head = Symbol("Dispatch")
+        self._head = SymbolDispatch
 
     def get_sort_key(self):
         return self.src.get_sort_key()
@@ -1645,7 +1645,7 @@ class Dispatch(Atom):
     def atom_to_boxes(self, f, evaluation):
         leaves = self.src.format(evaluation, f.get_name())
         return Expression(
-            "RowBox",
+            SymbolRowBox,
             Expression(
                 SymbolList, String("Dispatch"), String("["), leaves, String("]")
             ),
