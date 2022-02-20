@@ -267,17 +267,17 @@ class Expression(BaseExpression):
         if not indices:
             return self
 
-        leaves = self._elements
+        elements = self._elements
 
         flattened = []
         extend = flattened.extend
 
         k = 0
         for i in indices:
-            extend(leaves[k:i])
-            extend(sequence(leaves[i]))
+            extend(elements[k:i])
+            extend(sequence(elements[i]))
             k = i + 1
-        extend(leaves[k:])
+        extend(elements[k:])
 
         return self.restructure(self._head, flattened, evaluation)
 
@@ -384,7 +384,7 @@ class Expression(BaseExpression):
         return expr
 
     def shallow_copy(self) -> "Expression":
-        # this is a minimal, shallow copy: head, leaves are shared with
+        # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
         expr = Expression(self._head)
         expr._elements = self._elements
@@ -970,9 +970,9 @@ class Expression(BaseExpression):
         return new, False
 
     def evaluate_elements(self, evaluation) -> "Expression":
-        leaves = [leaf.evaluate(evaluation) for leaf in self._elements]
+        elements = [leaf.evaluate(evaluation) for leaf in self._elements]
         head = self._head.evaluate_elements(evaluation)
-        return Expression(head, *leaves)
+        return Expression(head, *elements)
 
     def __str__(self) -> str:
         return "%s[%s]" % (
@@ -1171,13 +1171,13 @@ class Expression(BaseExpression):
         )
 
     def sort(self, pattern=False):
-        "Sort the leaves according to internal ordering."
-        leaves = list(self._elements)
+        "Sort the elements according to internal ordering."
+        elements = list(self._elements)
         if pattern:
-            leaves.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+            elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
         else:
-            leaves.sort()
-        self.set_reordered_elements(leaves)
+            elements.sort()
+        self.set_reordered_elements(elements)
 
     def filter_elements(self, head_name):
         # TODO: should use sorting
@@ -1257,7 +1257,7 @@ class Expression(BaseExpression):
                     var: value for var, value in vars.items() if var not in scoping_vars
                 }
 
-        leaves = self._elements
+        elements = self._elements
         if in_function:
             if (
                 self._head is SymbolFunction
@@ -1278,7 +1278,7 @@ class Expression(BaseExpression):
                     replacement = {name: Symbol(name + "$") for name in func_params}
                     func_params = [Symbol(name + "$") for name in func_params]
                     body = body.replace_vars(replacement, options, in_scoping)
-                    leaves = chain(
+                    elements = chain(
                         [Expression(SymbolList, *func_params), body], self._elements[2:]
                     )
 
@@ -1289,7 +1289,7 @@ class Expression(BaseExpression):
             self._head.replace_vars(vars, options=options, in_scoping=in_scoping),
             *[
                 element.replace_vars(vars, options=options, in_scoping=in_scoping)
-                for element in leaves
+                for element in elements
             ]
         )
 
@@ -1349,8 +1349,8 @@ class Expression(BaseExpression):
         if dim is None:
             return False, self
         else:
-            leaves = [Expression(self._head, *item) for item in items]
-            return True, Expression(head, *leaves)
+            elements = [Expression(self._head, *item) for item in items]
+            return True, Expression(head, *elements)
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
@@ -1412,8 +1412,8 @@ class Expression(BaseExpression):
         return (self._head, self._elements)
 
 
-def _create_expression(self, head, *leaves):
-    return Expression(head, *leaves)
+def _create_expression(self, head, *elements):
+    return Expression(head, *elements)
 
 
 BaseExpression.create_expression = _create_expression
@@ -1491,9 +1491,9 @@ def _is_neutral_head(head, cache, evaluation):
 
 
 class Structure(object):
-    def __call__(self, leaves):
-        # create an Expression with the given list "leaves" as leaves.
-        # NOTE: the caller guarantees that "leaves" only contains items that are from "origins".
+    def __call__(self, elements):
+        # create an Expression with the given list "elements" as elements.
+        # NOTE: the caller guarantees that "elements" only contains items that are from "origins".
         raise NotImplementedError
 
     def filter(self, expr, cond):

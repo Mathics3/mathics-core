@@ -740,11 +740,11 @@ clip(%s);
 
         return tex
 
-    def boxes_to_text(self, leaves=None, **options) -> str:
-        if not leaves:
-            leaves = self._elements
+    def boxes_to_text(self, elements=None, **options) -> str:
+        if not elements:
+            elements = self._elements
 
-        self._prepare_elements(leaves, options)  # to test for Box errors
+        self._prepare_elements(elements, options)  # to test for Box errors
         return "-Graphics-"
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):

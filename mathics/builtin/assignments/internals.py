@@ -83,7 +83,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
         definition = evaluation.definitions.get_definition(name)
     else:
         definition = evaluation.definitions.get_user_definition(name)
-    leaves = []
+    elements = []
     for rule in definition.get_values_list(position):
         if isinstance(rule, Rule):
             pattern = rule.pattern
@@ -91,8 +91,8 @@ def get_symbol_values(symbol, func_name, position, evaluation):
                 pattern = pattern.expr
             else:
                 pattern = Expression("HoldPattern", pattern.expr)
-            leaves.append(Expression("RuleDelayed", pattern, rule.replace))
-    return Expression("List", *leaves)
+            elements.append(Expression("RuleDelayed", pattern, rule.replace))
+    return Expression("List", *elements)
 
 
 def is_protected(tag, defin):
@@ -109,14 +109,14 @@ def repl_pattern_by_symbol(expr):
         return elements[0]
 
     changed = False
-    newelements = []
-    for leave in elements:
-        leaf = repl_pattern_by_symbol(leave)
-        if not (leaf is leave):
+    new_elements = []
+    for element in elements:
+        element = repl_pattern_by_symbol(element)
+        if not (element is element):
             changed = True
-        newelements.append(leaf)
+        new_elements.append(element)
     if changed:
-        return Expression(headname, *newelements)
+        return Expression(headname, *new_elements)
     else:
         return expr
 
@@ -159,15 +159,15 @@ def unroll_patterns(lhs, rhs, evaluation):
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
-    lhsleaves = lhs._elements
+    lhs_elements = lhs._elements
     if name == "System`Pattern":
-        lhs = lhsleaves[1]
-        rulerepl = (lhsleaves[0], repl_pattern_by_symbol(lhs))
+        lhs = lhs_elements[1]
+        rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
         rhs, status = rhs.apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
 
     if name == "System`HoldPattern":
-        lhs = lhsleaves[0]
+        lhs = lhs_elements[0]
         name = lhs.get_head_name()
     return lhs, rhs
 

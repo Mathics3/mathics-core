@@ -186,9 +186,9 @@ class CompiledCode(Atom):
             return "-PythonizedCode-"
         return "-CompiledCode-"
 
-    def boxes_to_text(self, leaves=None, **options):
-        if not leaves:
-            leaves = self._elements
+    def boxes_to_text(self, elements=None, **options):
+        if not elements:
+            elements = self._elements
         return "-CompiledCode-"
 
     def do_copy(self):

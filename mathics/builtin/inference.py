@@ -173,8 +173,8 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                     new_assumptions_list.append(Expression("Not", leaf))
                 continue
             if sentence.has_form("And", None):
-                leaves = (Expression("Not", leaf) for leaf in sentence._elements)
-                new_assumptions_list.append(Expression("Or", *leaves))
+                elements = (Expression("Not", leaf) for leaf in sentence._elements)
+                new_assumptions_list.append(Expression("Or", *elements))
                 continue
             if sentence.has_form("Implies", 2):
                 changed = True

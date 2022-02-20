@@ -1096,23 +1096,23 @@ class RegisterImport(Builtin):
         OptionsPattern[ImportExport`RegisterImport]]"""
 
         if function.has_form("List", None):
-            leaves = function.get_elements()
+            elements = function.get_elements()
         else:
-            leaves = [function]
+            elements = [function]
 
         if not (
-            len(leaves) >= 1
-            and isinstance(leaves[-1], Symbol)
-            and all(x.has_form("RuleDelayed", None) for x in leaves[:-1])
+            len(elements) >= 1
+            and isinstance(elements[-1], Symbol)
+            and all(x.has_form("RuleDelayed", None) for x in elements[:-1])
         ):
             # TODO: Message
             return SymbolFailed
 
         conditionals = {
             elem.get_string_value(): expr
-            for (elem, expr) in (x.get_elements() for x in leaves[:-1])
+            for (elem, expr) in (x.get_elements() for x in elements[:-1])
         }
-        default = leaves[-1]
+        default = elements[-1]
         posts = {}
 
         IMPORTERS[formatname.get_string_value()] = (
