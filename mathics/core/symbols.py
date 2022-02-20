@@ -230,6 +230,9 @@ class BaseExpression(KeyComparable):
     def get_elements(self):
         return []
 
+    # Compatibily with old code. Deprecated, but remove after a little bit
+    get_leaves = get_elements
+
     def get_int_value(self):
         return None
 

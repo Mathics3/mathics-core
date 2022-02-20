@@ -408,6 +408,9 @@ class Expression(BaseExpression):
     def get_elements(self):
         return self._elements
 
+    # Compatibily with old code. Deprecated, but remove after a little bit
+    get_leaves = get_elements
+
     def get_mutable_elements(self):  # shallow, mutable copy of the leaves array
         return list(self._elements)
 
