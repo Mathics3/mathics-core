@@ -711,7 +711,6 @@ class Integrate(SympyFunction):
             if default.has_form("Integrate", None):
                 if default._leaves[0] == f:
                     default = SymbolUndefined
-
             simplified_cases = []
             for case in cases:
                 # TODO: if something like 0^n or 1/expr appears,
@@ -742,6 +741,7 @@ class Integrate(SympyFunction):
                     # Sympy returned the same expression, so it can't be evaluated.
                     return
             result = Expression("Simplify", result, assuming)
+            result = result.evaluate(evaluation)
         return result
 
     def apply_D(self, func, domain, var, evaluation, options):

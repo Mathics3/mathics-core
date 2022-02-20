@@ -416,8 +416,8 @@ class Simplify(Builtin):
         "Simplify[rule_Rule]": "Simplify /@ rule",
         "Simplify[list_List, assum_]": "Simplify[#1, assum]& /@ list",
         "Simplify[rule_Rule, assum_]": "Simplify[#1, assum]& /@ rule",
-        "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0]]",
-        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Simplify[{Or[a>0, b!=0]}]]",
+        "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0, assum]]",
+        "Simplify[b_^a_, assum_]": "ConditionalExpression[b,Simplify[Or[a>0, b!=0],assum]]",
     }
 
     def apply_assuming(self, expr, assumptions, evaluation):
@@ -432,6 +432,8 @@ class Simplify(Builtin):
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
         # Check first if we are dealing with a logic expression...
+        if expr in (SymbolTrue, SymbolFalse, SymbolList):
+            return expr
         expr = evaluate_predicate(expr, evaluation)
         if expr.is_atom():
             return expr
@@ -439,12 +441,14 @@ class Simplify(Builtin):
         leaves = [self.apply(leaf, evaluation) for leaf in expr._leaves]
         head = self.apply(expr.get_head(), evaluation)
         expr = Expression(head, *leaves)
-
         sympy_expr = expr.to_sympy()
+        # If the expression cannot be handled by Sympy, just return it.
         if sympy_expr is None:
-            return
+            return expr
+        # Tries to apply the rules
         sympy_result = sympy.simplify(sympy_expr)
-        return from_sympy(sympy_result)
+        result = from_sympy(sympy_result).evaluate(evaluation)
+        return result
 
 
 class FullSimplify(Simplify):
