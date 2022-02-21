@@ -445,9 +445,9 @@ class Expression(BaseExpression):
                 return lookup_symbol.get_head().name
             lookup_symbol = lookup_symbol._head
 
-    def has_form(self, heads, *leaf_counts):
+    def has_form(self, heads, *element_counts):
         """
-        leaf_counts:
+        element_counts:
             (,):        no elements allowed
             (None,):    no constraint on number of elements
             (n, None):  leaf count >= n
@@ -461,15 +461,15 @@ class Expression(BaseExpression):
         else:
             if head_name != ensure_context(heads):
                 return False
-        if not leaf_counts:
+        if not element_counts:
             return False
-        if leaf_counts and leaf_counts[0] is not None:
+        if element_counts and element_counts[0] is not None:
             count = len(self._elements)
-            if count not in leaf_counts:
+            if count not in element_counts:
                 if (
-                    len(leaf_counts) == 2
-                    and leaf_counts[1] is None  # noqa
-                    and count >= leaf_counts[0]
+                    len(element_counts) == 2
+                    and element_counts[1] is None  # noqa
+                    and count >= element_counts[0]
                 ):
                     return True
                 else:
