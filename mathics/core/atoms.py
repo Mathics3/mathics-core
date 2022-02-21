@@ -446,7 +446,6 @@ class MachineReal(Real):
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ for MachineReal.
-
         If the other comparision value is a MachineReal, the values
         have to be equal.  If the other value is a PrecisionReal though, then
         the two values have to be within 1/2 ** (precision) of
@@ -456,9 +455,15 @@ class MachineReal(Real):
             return self.value == other.value
         if isinstance(other, PrecisionReal):
             other_value = other.value
-            value = self.value
+            value = self.to_sympy()
+            # If sympy fixes the issue, this comparison would be
+            # enough
+            if value == other_value:
+                return True
+            # this handles the issue...
             diff = abs(value - other_value)
-            return diff < 0.5 ** (diff._prec)
+            prec = min(value._prec, other_value._prec)
+            return diff < 0.5 ** (prec)
         else:
             return False
 
@@ -536,7 +541,7 @@ class PrecisionReal(Real):
             return PrecisionReal(self.value.n(d))
 
     def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
+        """Mathics SameQ for PrecisionReal"""
         if isinstance(other, PrecisionReal):
             other_value = other.value
         elif isinstance(other, MachineReal):
@@ -544,8 +549,15 @@ class PrecisionReal(Real):
         else:
             return False
         value = self.value
+        # If sympy would handle properly
+        # the precision, this wold be enough
+        if value == other_value:
+            return True
+        # in the meantime, let's use this comparison.
+        value = self.value
+        prec = min(value._prec, other_value._prec)
         diff = abs(value - other_value)
-        return diff < 0.5 ** (diff._prec)
+        return diff < 0.5 ** prec
 
     def get_precision(self) -> float:
         """Returns the default specification for precision in N and other numerical functions."""

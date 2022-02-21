@@ -28,10 +28,25 @@ import pytest
         (".2222222222222222`16", "2./9.", "True"),
         # PrecisionReal and PrecisionReal
         (".222222`5", "N[2/9,4]", "True"),
-        ("N[2/9,4]", ".222222`5", "True"),
-        ("N[2/9,10]", ".222222`15", "False"),
-        ("N[2/9,10]", ".222222222`15", "False"),
-        ("N[2/9,3]", ".222222`15", "False"),
+        # SameQ compare Real numbers upto
+        # the smallest accuracy.
+        ("N[2/9]", ".2222222222222222", "True"),
+        ("N[2/9]", ".2222222222222222`16", "True"),
+        # This test gives False because round errors
+        # in the last digit.
+        ("N[2/9]", ".222`3", "False"),
+        # Adding an extra decimal gives True.
+        ("N[2/9]", ".2222`3", "True"),
+        ("N[2/9, 4]", ".222", "False"),
+        ("N[2/9, 4]", ".2222", "False"),
+        ("N[2/9, 4]", ".22222", "True"),
+        ("N[2/9, 4]", ".222`3", "False"),
+        ("N[2/9, 4]", ".2222`3", "True"),
+        ("N[2/9, 4]", ".22222`3", "True"),
+        ("N[2/9, 4]", ".222`5", "False"),
+        ("N[2/9, 4]", ".2222`5", "False"),
+        ("N[2/9, 4]", ".22222`5", "True"),
+        ("N[2/9, 4]", ".222222`5", "True"),
     ],
 )
 def test_sameq(str_lhs, str_rhs, str_expected):

@@ -718,12 +718,12 @@ class Expression(BaseExpression):
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Expression":
         """
-        Flatten leaves in nested expressions
+        Flatten elements in nested expressions
 
         head: head of the leaves to be flatten
-        callback:  a callback function called each time a leaf is flattened.
+        callback:  a callback function called each time a element is flattened.
         level:   maximum deep to flatten
-        pattern_only: if True, just apply to leaf that are pattern_sequence (see ExpressionPattern.get_wrappings)
+        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
 
         For example if head=G,
         F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
@@ -1522,11 +1522,13 @@ class Expression(BaseExpression):
                 element.is_numeric() for element in self._elements
             )
 
-    def numerify(self, evaluation) -> "Expression":
+    def numerify(self, evaluation) -> "BaseExpression":
         """
-        If one leaf in the expression is inexact,
-        returns a new expression with the non exact leaves replaced by
-        its numeric approximation.
+        Produces a new expression equivalent to the original,
+        s.t. inexact numeric elements are reduced to Real numbers with
+        the same precision.
+        This is used in arithmetic evaluations (like `Plus`, `Times`, and `Power` )
+        and in iterators.
         """
         _prec = None
         for element in self._elements:
@@ -1541,13 +1543,23 @@ class Expression(BaseExpression):
                 # Don't "numerify" numbers: they should be numerified
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
-                if not isinstance(element, Number):
-                    # TODO: use apply_N instead ?
+                # Also, for compatibility with WMA, numerify just the elements
+                # s.t. ``NumericQ[element]==True``
+                if not isinstance(element, Number) and element.is_numeric(evaluation):
                     n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
                         new_elements[index] = n_result
-            return Expression(self._head, *new_elements)
+                        continue
+                    # If Nvalues are not available, just tries to do
+                    # a regular evaluation
+                    n_result = element.evaluate(evaluation)
+                    if isinstance(n_result, Number):
+                        new_elements[index] = n_result
+            result = Expression(self._head)
+            result._elements = tuple(new_elements)
+            return result
+
         else:
             return self
 
