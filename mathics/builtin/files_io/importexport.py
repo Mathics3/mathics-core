@@ -1780,16 +1780,16 @@ class Export(Builtin):
 
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in elements[::-1]:
-            leaf_str = leaf.get_string_value()
+        for element in elements[::-1]:
+            element_str = element.get_string_value()
 
-            if not found_form and leaf_str in EXPORTERS:
+            if not found_form and element_str in EXPORTERS:
                 found_form = True
 
             if found_form:
-                format_spec.append(leaf_str)
+                format_spec.append(element_str)
             else:
-                elems_spec.append(leaf)
+                elems_spec.append(element)
 
         # Just to be sure that the following calls do not change the state of this property
         current_predetermined_out = evaluation.predetermined_out
@@ -1918,16 +1918,16 @@ class ExportString(Builtin):
         elements = elems.get_elements()
         format_spec, elems_spec = [], []
         found_form = False
-        for leaf in elements[::-1]:
-            leaf_str = leaf.get_string_value()
+        for element in elements[::-1]:
+            element_str = element.get_string_value()
 
-            if not found_form and leaf_str in EXPORTERS:
+            if not found_form and element_str in EXPORTERS:
                 found_form = True
 
             if found_form:
-                format_spec.append(leaf_str)
+                format_spec.append(element_str)
             else:
-                elems_spec.append(leaf)
+                elems_spec.append(element)
 
         # Just to be sure that the following evaluations do not change the value of this property
         current_predetermined_out = evaluation.predetermined_out

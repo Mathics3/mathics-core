@@ -77,22 +77,22 @@ class Pattern:
         vars,
         evaluation,
         head=None,
-        leaf_index=None,
-        leaf_count=None,
+        element_index=None,
+        element_count=None,
         fully=True,
         wrap_oneid=True,
     ):
         raise NotImplementedError
 
     """def match(self, expression, vars, evaluation,
-              head=None, leaf_index=None, leaf_count=None,
+              head=None, element_index=None, element_count=None,
         fully=True, wrap_oneid=True):
         #raise NotImplementedError
         result = []
         def yield_func(vars, rest):
             result.append(vars, rest)
         self._match(yield_func, expression, vars, evaluation, head,
-                    leaf_index, leaf_count, fully, wrap_oneid)
+                    element_index, element_count, fully, wrap_oneid)
         return result"""
 
     def does_match(self, expression, evaluation, vars=None, fully=True):
@@ -181,8 +181,8 @@ class AtomPattern(Pattern):
         vars,
         evaluation,
         head=None,
-        leaf_index=None,
-        leaf_count=None,
+        element_index=None,
+        element_count=None,
         fully=True,
         wrap_oneid=True,
     ):
@@ -201,8 +201,8 @@ class AtomPattern(Pattern):
         vars,
         evaluation,
         head=None,
-        leaf_index=None,
-        leaf_count=None,
+        element_index=None,
+        element_count=None,
         fully=True,
         wrap_oneid=True,
     ):
@@ -236,8 +236,8 @@ class ExpressionPattern(Pattern):
         vars,
         evaluation,
         head=None,
-        leaf_index=None,
-        leaf_count=None,
+        element_index=None,
+        element_count=None,
         fully=True,
         wrap_oneid=True,
     ):
@@ -306,7 +306,7 @@ class ExpressionPattern(Pattern):
                 # for new_vars, rest in self.match_leaf(    # nopep8
                 #    self.leaves[0], self.leaves[1:], ([], expression.leaves),
                 #    pre_vars, expression, attributes, evaluation, first=True,
-                #    fully=fully, leaf_count=len(self.leaves),
+                #    fully=fully, element_count=len(self.leaves),
                 #    wrap_oneid=expression.get_head_name() != 'System`MakeBoxes'):
                 # def yield_leaf(new_vars, rest):
                 #    yield_func(new_vars, rest)
@@ -321,7 +321,7 @@ class ExpressionPattern(Pattern):
                     evaluation,
                     first=True,
                     fully=fully,
-                    leaf_count=len(self.leaves),
+                    element_count=len(self.leaves),
                     wrap_oneid=expression.get_head_name() != "System`MakeBoxes",
                 )
 
@@ -369,7 +369,7 @@ class ExpressionPattern(Pattern):
             #    self.leaves[0], self.leaves[1:],
             #    ([], [expression]), vars, new_expression, attributes,
             #    evaluation, first=True, fully=fully,
-            #    leaf_count=len(self.leaves), wrap_oneid=True):
+            #    element_count=len(self.leaves), wrap_oneid=True):
             # def yield_leaf(new_vars, rest):
             #    yield_func(new_vars, rest)
             self.match_leaf(
@@ -383,7 +383,7 @@ class ExpressionPattern(Pattern):
                 evaluation,
                 first=True,
                 fully=fully,
-                leaf_count=len(self.leaves),
+                element_count=len(self.leaves),
                 wrap_oneid=True,
             )
 
@@ -533,8 +533,8 @@ class ExpressionPattern(Pattern):
         expression,
         attributes,
         evaluation,
-        leaf_index=1,
-        leaf_count=None,
+        element_index=1,
+        element_count=None,
         first=False,
         fully=True,
         depth=1,
@@ -631,7 +631,7 @@ class ExpressionPattern(Pattern):
             next_leaf = rest_elements[0]
             next_rest_elements = rest_elements[1:]
         next_depth = depth + 1
-        next_index = leaf_index + 1
+        next_index = element_index + 1
 
         for items, items_rest in sets:
             # Include wrappings like Plus[a, b] only if not all items taken
@@ -671,8 +671,8 @@ class ExpressionPattern(Pattern):
                         evaluation,
                         fully=fully,
                         depth=next_depth,
-                        leaf_index=next_index,
-                        leaf_count=leaf_count,
+                        element_index=next_index,
+                        element_count=element_count,
                         wrap_oneid=wrap_oneid,
                     )
                 else:
@@ -687,8 +687,8 @@ class ExpressionPattern(Pattern):
                     evaluation,
                     fully=True,
                     head=expression.head,
-                    leaf_index=leaf_index,
-                    leaf_count=leaf_count,
+                    element_index=element_index,
+                    element_count=element_count,
                     wrap_oneid=wrap_oneid,
                 )
 

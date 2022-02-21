@@ -1096,8 +1096,8 @@ class Optional(BinaryOperator, PatternObject):
         vars,
         evaluation,
         head=None,
-        leaf_index=None,
-        leaf_count=None,
+        element_index=None,
+        element_count=None,
         **kwargs
     ):
         if expression.has_form("Sequence", 0):
@@ -1107,10 +1107,12 @@ class Optional(BinaryOperator, PatternObject):
                 else:
                     name = head.get_name()
                     default = get_default_value(
-                        name, evaluation, leaf_index, leaf_count
+                        name, evaluation, element_index, element_count
                     )
                 if default is None:
-                    evaluation.message("Pattern", "nodef", head, leaf_index, leaf_count)
+                    evaluation.message(
+                        "Pattern", "nodef", head, element_index, element_count
+                    )
                     return
             else:
                 default = self.default

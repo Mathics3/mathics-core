@@ -282,10 +282,10 @@ class BaseExpression(KeyComparable):
         # used by NumericQ and expression ordering
         return False
 
-    def has_form(self, heads, *leaf_counts):
+    def has_form(self, heads, *element_counts):
         """Check if the expression is of the form Head[l1,...,ln]
         with Head.name in `heads` and a number of leaves according to the specification in
-        leaf_counts.
+        element_counts.
         """
         return False
 
@@ -703,7 +703,7 @@ class Monomial(object):
 class Atom(BaseExpression):
     """
     Atoms are the leaves (in the common tree sense, not the Mathics
-    ``_elements`` sense) and Heads of an Expression or S-Expression.
+    ``_elements`` sense) and Heads of an Expression or M-Expression.
 
     In other words, they are the units of an expression that we cannot
     dig down deeper structurally.  Various object primitives i.e.
@@ -737,8 +737,8 @@ class Atom(BaseExpression):
             return None
         return self == rhs
 
-    def has_form(self, heads, *leaf_counts) -> bool:
-        if leaf_counts:
+    def has_form(self, heads, *element_counts) -> bool:
+        if element_counts:
             return False
         name = self.get_atom_name()
         if isinstance(heads, tuple):
