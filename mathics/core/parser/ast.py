@@ -1,8 +1,13 @@
 # -*- coding: utf-8 -*-
+# FIXME: decide on whether we want mathics.core.expression.Atom vs. mathics.core.parser.Atom
+# both having Atom at the end. Or should one subclass the other?
 """
 Classes and Objects that the parser uses to create an initial Expression (an M-Expression).
 
 The parser's AST is an M-Expression.
+
+Note that some of these classes also appear with the same name in the mathics.core.expression module.
+So we have mathics.core.expression.Atom vs. mathics.core.parser.Atom
 """
 
 
