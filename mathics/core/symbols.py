@@ -813,6 +813,8 @@ class Symbol(Atom):
     which is unique across all mentions and uses, and therefore
     needs it only to be stored as a single object in the system.
 
+    Note that the mathics.core.parser.Symbol works exactly this way.
+
     This aspect may or may not be true for the Symbolic Variable use case too.
     """
 

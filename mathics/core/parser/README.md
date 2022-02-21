@@ -2,8 +2,11 @@
 
 ## Introduction
 
-The Mathics parser is an operator precedence parser that implements the
-precedence climbing method.
+The Mathics parser is an operator precedence parser that implements
+the precedence climbing method. The AST (Abstract Syntax
+Tree) produced after parsing is a kind of [M-expression](M-expression
+<https://en.wikipedia.org/wiki/M-expression) which is then used in
+evaluation.
 
 The Wolfram language is surprisingly complex and has quite a few subtleties;
 this document attempts to cover the major ones. The language is documented on

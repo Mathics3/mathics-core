@@ -1,8 +1,23 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# FIXME: decide on whether we want mathics.core.expression.Atom vs. mathics.core.parser.Atom
+# both having Atom at the end. Or should one subclass the other?
+"""
+Classes and Objects that the parser uses to create an initial Expression (an M-Expression).
+
+The parser's AST is an M-Expression.
+
+Note that some of these classes also appear with the same name in the mathics.core.expression module.
+So we have mathics.core.expression.Atom vs. mathics.core.parser.Atom
+"""
 
 
-class Node(object):
+class Node:
+    """
+    The base class for a node or "elements" of an M-Expression.
+    Really there are only two kinds of nodes: Atoms which are the
+    expression's leaves and a non-leaf nodes.
+    """
+
     def __init__(self, head, *children):
         if isinstance(head, Node):
             self.head = head
@@ -43,6 +58,11 @@ class Node(object):
 
 
 class Atom(Node):
+    """
+    Atoms form the leaves of an M-Expression and have no internal structure of
+    their own. You can however compare Atoms for equality.
+    """
+
     def __init__(self, value):
         self.head = Symbol(self.__class__.__name__)
         self.value = value
@@ -56,7 +76,14 @@ class Atom(Node):
         return self.__class__ == other.__class__ and self.value == other.value
 
 
+# What remains below are all of the different kinds of Atoms.
 class Number(Atom):
+    """
+    An Atom with a numeric value. Later on though in evaluation, a Number can get refined into
+    a particular kind of number such as an Integer or a Real. Note that these too
+    are Atoms.
+    """
+
     def __init__(
         self, value: str, sign: int = 1, base: int = 10, suffix=None, exp: int = 0
     ):
@@ -90,6 +117,16 @@ class Number(Atom):
 
 
 class Symbol(Atom):
+    """
+    Symbols are like variables in a programming language.
+
+    But initially in an M-Expression the only properties it has is its name
+    and a representation of its name.
+
+    Devoid of a binding to the Symbol, which is done via a Definition, Symbols
+    are unique as they are say in Lisp, or Python.
+    """
+
     def __init__(self, value: str, context="System"):
         self.context = context
         self.value = value
@@ -105,10 +142,21 @@ class Symbol(Atom):
 
 
 class String(Atom):
+    """
+    A string is is pretty much the same as in any other programming language, a sequence of characters.
+    Having this in a class is useful so that we can distinguish it from Symbols.
+    The display of a String is surrounded by double quotes.
+    """
+
     def __repr__(self):
         return '"' + self.value + '"'
 
 
 class Filename(Atom):
+    """
+    A filename is printed the same way a Symbol prints, in contrast to a String.
+    However, like String, it doesn't have any other properties.
+    """
+
     def __repr__(self):
         return self.value
