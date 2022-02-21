@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from queue import Queue
+import time
+
 
 import os
 import sys
@@ -283,6 +285,7 @@ class Evaluation(object):
         from mathics.core.expression import Expression
         from mathics.core.rules import Rule
 
+        self.start_time = time.time()
         self.recursion_depth = 0
         self.timeout = False
         self.stopped = False

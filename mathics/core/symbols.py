@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sympy
-
+import time
 import typing
 from typing import Any, Optional
 
@@ -949,6 +949,7 @@ class Symbol(Atom):
         recursively.
         """
         if evaluation.definitions.trace_evaluation:
+            evaluation.print_out(time.time() - evaluation.start_time)
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
             )
