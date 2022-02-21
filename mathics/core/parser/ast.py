@@ -152,7 +152,11 @@ class String(Atom):
         return '"' + self.value + '"'
 
 
-# rocky: I really don't get why Filename has to be special, but so be it.
 class Filename(Atom):
+    """
+    A filename is printed the same way a Symbol prints, in contrast to a String.
+    However, like String, it doesn't have any other properties.
+    """
+
     def __repr__(self):
         return self.value
