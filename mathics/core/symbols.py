@@ -949,7 +949,8 @@ class Symbol(Atom):
         recursively.
         """
         if evaluation.definitions.trace_evaluation:
-            evaluation.print_out(time.time() - evaluation.start_time)
+            if evaluation.definitions.timing_trace_evaluation:
+                evaluation.print_out(time.time() - evaluation.start_time)
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "  Evaluating: %s" % self
             )

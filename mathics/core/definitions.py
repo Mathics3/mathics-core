@@ -99,7 +99,7 @@ class Definitions(object):
             "System`",
         )
         self.trace_evaluation = False
-
+        self.timing_trace_evaluation = False
         if add_builtin:
             from mathics.builtin import modules, contribute
             from mathics.settings import ROOT_DIR
