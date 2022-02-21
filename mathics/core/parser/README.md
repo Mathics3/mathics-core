@@ -3,7 +3,8 @@
 ## Introduction
 
 The Mathics parser is an operator precedence parser that implements the
-precedence climbing method.
+precedence climbing method. The goal of this module is to built an Abstract Syntax Tree (AST)
+from a string containing a valid WL expression.
 
 The Wolfram language is surprisingly complex and has quite a few subtleties;
 this document attempts to cover the major ones. The language is documented on
