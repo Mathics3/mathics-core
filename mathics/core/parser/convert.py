@@ -8,19 +8,19 @@ import sympy
 import mathics.core.atoms as maa
 import mathics.core.symbols as mas
 import mathics.core.expression as mae
-from mathics.core.parser.ast import Symbol, String, Number, Filename
+from mathics.core.parser.ast import SymbolNode, StringNode, NumberNode, FilenameNode
 from mathics.core.number import machine_precision, reconstruct_digits
 
 
 class GenericConverter(object):
     def do_convert(self, node):
-        if isinstance(node, Symbol):
+        if isinstance(node, SymbolNode):
             return self.convert_Symbol(node)
-        elif isinstance(node, String):
+        elif isinstance(node, StringNode):
             return self.convert_String(node)
-        elif isinstance(node, Number):
+        elif isinstance(node, NumberNode):
             return self.convert_Number(node)
-        elif isinstance(node, Filename):
+        elif isinstance(node, FilenameNode):
             return self.convert_Filename(node)
         else:
             head = self.do_convert(node.head)
@@ -36,17 +36,17 @@ class GenericConverter(object):
         s = s.replace("\\t", "\t")
         return s
 
-    def convert_Symbol(self, node: Symbol):
+    def convert_Symbol(self, node: SymbolNode):
         if node.context is not None:
             return "Symbol", node.context + "`" + node.value
         else:
             return "Lookup", node.value
 
-    def convert_String(self, node: String):
+    def convert_String(self, node: StringNode):
         value = self.string_escape(node.value)
         return "String", value
 
-    def convert_Filename(self, node: Filename):
+    def convert_Filename(self, node: FilenameNode):
         s = node.value
         if s.startswith('"'):
             assert s.endswith('"')
@@ -55,7 +55,7 @@ class GenericConverter(object):
         s = s.replace("\\", "\\\\")
         return "String", s
 
-    def convert_Number(self, node: Number):
+    def convert_Number(self, node: NumberNode):
         s = node.value
         sign = node.sign
         base = node.base

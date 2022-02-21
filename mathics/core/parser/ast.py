@@ -7,13 +7,13 @@ class Node(object):
         if isinstance(head, Node):
             self.head = head
         else:
-            self.head = Symbol(head)
+            self.head = SymbolNode(head)
         self.value = None
         self.children = list(children)
         self.parenthesised = False
 
     def get_head_name(self):
-        if isinstance(self.head, Symbol):
+        if isinstance(self.head, SymbolNode):
             return self.head.value
         else:
             return ""
@@ -42,9 +42,9 @@ class Node(object):
         return self
 
 
-class Atom(Node):
+class AtomNode(Node):
     def __init__(self, value):
-        self.head = Symbol(self.__class__.__name__)
+        self.head = SymbolNode(self.__class__.__name__[:-4])
         self.value = value
         self.children = []
         self.parenthesised = False
@@ -56,7 +56,7 @@ class Atom(Node):
         return self.__class__ == other.__class__ and self.value == other.value
 
 
-class Number(Atom):
+class NumberNode(AtomNode):
     def __init__(
         self, value: str, sign: int = 1, base: int = 10, suffix=None, exp: int = 0
     ):
@@ -66,7 +66,7 @@ class Number(Atom):
         assert 2 <= base <= 36
         assert isinstance(exp, int)
         assert suffix is None or isinstance(suffix, str)
-        super(Number, self).__init__(None)
+        super(NumberNode, self).__init__(None)
         self.value = value
         self.sign = sign
         self.base = base
@@ -86,10 +86,10 @@ class Number(Atom):
         return result
 
     def __eq__(self, other):
-        return isinstance(other, Number) and repr(self) == repr(other)
+        return isinstance(other, NumberNode) and repr(self) == repr(other)
 
 
-class Symbol(Atom):
+class SymbolNode(AtomNode):
     def __init__(self, value: str, context="System"):
         self.context = context
         self.value = value
@@ -98,17 +98,17 @@ class Symbol(Atom):
     # avoids recursive definition
     @property
     def head(self):
-        return Symbol(self.__class__.__name__)
+        return SymbolNode(self.__class__.__name__[:-4])
 
     def __repr__(self):
         return self.value
 
 
-class String(Atom):
+class StringNode(AtomNode):
     def __repr__(self):
         return '"' + self.value + '"'
 
 
-class Filename(Atom):
+class FilenameNode(AtomNode):
     def __repr__(self):
         return self.value

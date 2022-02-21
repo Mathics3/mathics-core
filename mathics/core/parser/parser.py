@@ -11,7 +11,13 @@ from mathics_scanner import (
     is_symbol_name,
 )
 
-from mathics.core.parser.ast import Node, Number, Symbol, String, Filename
+from mathics.core.parser.ast import (
+    Node,
+    NumberNode,
+    SymbolNode,
+    StringNode,
+    FilenameNode,
+)
 from mathics.core.parser.operators import (
     prefix_ops,
     postfix_ops,
@@ -169,7 +175,7 @@ class Parser(object):
                 self.incomplete(token.pos)
             elif result is None and tag != "END":
                 self.consume()
-                new_result = String(token.text)
+                new_result = StringNode(token.text)
                 if new_result.value == r"\(":
                     new_result = self.p_LeftRowBox(token)
             else:
@@ -179,7 +185,7 @@ class Parser(object):
             else:
                 result = new_result
         if result is None:
-            result = String("")
+            result = StringNode("")
         return result
 
     def parse_seq(self):
@@ -189,12 +195,12 @@ class Parser(object):
             tag = token.tag
             if tag == "RawComma":
                 self.tokeniser.feeder.message("Syntax", "com")
-                result.append(Symbol("Null"))
+                result.append(SymbolNode("Null"))
                 self.consume()
             elif tag in ("RawRightAssociation", "RawRightBrace", "RawRightBracket"):
                 if result:
                     self.tokeniser.feeder.message("Syntax", "com")
-                    result.append(Symbol("Null"))
+                    result.append(SymbolNode("Null"))
                 break
             else:
                 result.append(self.parse_exp(0))
@@ -216,17 +222,17 @@ class Parser(object):
         head = expr1.get_head_name()
         expr2 = self.parse_exp(q + 1)
         if head == "Inequality" and not expr1.parenthesised:
-            expr1.children.append(Symbol(tag))
+            expr1.children.append(SymbolNode(tag))
             expr1.children.append(expr2)
         elif head in inequality_ops and head != tag and not expr1.parenthesised:
             children = []
             first = True
             for child in expr1.children:
                 if not first:
-                    children.append(Symbol(head))
+                    children.append(SymbolNode(head))
                 children.append(child)
                 first = False
-            children.append(Symbol(tag))
+            children.append(SymbolNode(tag))
             children.append(expr2)
             expr1 = Node("Inequality", *children)
         else:
@@ -317,7 +323,7 @@ class Parser(object):
             children.append(newnode)
             token = self.next()
         if len(children) == 0:
-            result = String("")
+            result = StringNode("")
         elif len(children) == 1:
             result = children[0]
         else:
@@ -371,28 +377,28 @@ class Parser(object):
                 self.tokeniser.sntx_message(token.pos)
                 raise InvalidSyntaxError()
 
-        result = Number(s, sign=sign, base=base, suffix=suffix, exp=exp)
+        result = NumberNode(s, sign=sign, base=base, suffix=suffix, exp=exp)
         self.consume()
         return result
 
     def p_String(self, token):
-        result = String(token.text[1:-1])
+        result = StringNode(token.text[1:-1])
         self.consume()
         return result
 
     def p_Symbol(self, token):
         symbol_name = special_symbols.get(token.text, token.text)
-        result = Symbol(symbol_name, context=None)
+        result = SymbolNode(symbol_name, context=None)
         self.consume()
         return result
 
     def p_Filename(self, token):
-        result = Filename(token.text)
+        result = FilenameNode(token.text)
         self.consume()
         return result
 
     def p_Span(self, token):
-        return self.e_Span(Number("1"), token, 0)
+        return self.e_Span(NumberNode("1"), token, 0)
 
     def p_Integral(self, token):
         self.consume()
@@ -410,7 +416,7 @@ class Parser(object):
             if name:
                 return Node(
                     "Optional",
-                    Node("Pattern", Symbol(name, context=None), Node("Blank")),
+                    Node("Pattern", SymbolNode(name, context=None), Node("Blank")),
                 )
             else:
                 return Node("Optional", Node("Blank"))
@@ -423,11 +429,11 @@ class Parser(object):
         elif count == 3:
             name = "BlankNullSequence"
         if pieces[-1]:
-            blank = Node(name, Symbol(pieces[-1], context=None))
+            blank = Node(name, SymbolNode(pieces[-1], context=None))
         else:
             blank = Node(name)
         if pieces[0]:
-            return Node("Pattern", Symbol(pieces[0], context=None), blank)
+            return Node("Pattern", SymbolNode(pieces[0], context=None), blank)
         else:
             return blank
 
@@ -435,11 +441,11 @@ class Parser(object):
         self.consume()
         q = prefix_ops["Minus"]
         expr = self.parse_exp(q)
-        if isinstance(expr, Number) and not expr.value.startswith("-"):
+        if isinstance(expr, NumberNode) and not expr.value.startswith("-"):
             expr.value = "-" + expr.value
             return expr
         else:
-            return Node("Times", Number("1", sign=-1), expr).flatten()
+            return Node("Times", NumberNode("1", sign=-1), expr).flatten()
 
     def p_Plus(self, token):
         self.consume()
@@ -466,19 +472,19 @@ class Parser(object):
             n = str(-len(text))
         else:
             n = text[1:]
-        return Node("Out", Number(n))
+        return Node("Out", NumberNode(n))
 
     def p_Slot(self, token):
         self.consume()
         text = token.text
         if len(text) == 1:
-            n = Number("1")
+            n = NumberNode("1")
         else:
             n = text[1:]
             if n.isdigit():
-                n = Number(n)
+                n = NumberNode(n)
             else:
-                n = String(n)
+                n = StringNode(n)
         return Node("Slot", n)
 
     def p_SlotSequence(self, token):
@@ -488,7 +494,7 @@ class Parser(object):
             n = "1"
         else:
             n = text[2:]
-        return Node("SlotSequence", Number(n))
+        return Node("SlotSequence", NumberNode(n))
 
     def p_Increment(self, token):
         self.consume()
@@ -505,17 +511,21 @@ class Parser(object):
         q = prefix_ops["Definition"]
         child = self.parse_exp(q)
         return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("False"))
+            "Information",
+            child,
+            Node("Rule", SymbolNode("LongForm"), SymbolNode("False")),
         )
 
     def p_Information(self, token):
         self.consume()
         q = prefix_ops["Information"]
         child = self.parse_exp(q)
-        if child.__class__ is not Symbol:
+        if child.__class__ is not SymbolNode:
             raise InvalidSyntaxError()
         return Node(
-            "Information", child, Node("Rule", Symbol("LongForm"), Symbol("True"))
+            "Information",
+            child,
+            Node("Rule", SymbolNode("LongForm"), SymbolNode("True")),
         )
 
     # E methods
@@ -536,17 +546,17 @@ class Parser(object):
         # Span[expr1, expr2]
         token = self.next()
         if token.tag == "Span":
-            expr2 = Symbol("All")
+            expr2 = SymbolNode("All")
         elif token.tag == "END" and self.bracket_depth == 0:
             # So that e.g. 'x = 1 ;;' doesn't wait for newline in the frontend
-            expr2 = Symbol("All")
+            expr2 = SymbolNode("All")
             return Node("Span", expr1, expr2)
         else:
             messages = list(self.feeder.messages)
             try:
                 expr2 = self.parse_exp(q + 1)
             except TranslateError:
-                expr2 = Symbol("All")
+                expr2 = SymbolNode("All")
                 self.backtrack(token.pos)
                 self.feeder.messages = messages
         token = self.next()
@@ -616,7 +626,7 @@ class Parser(object):
             return None
         self.consume()
         expr2 = self.parse_exp(q)
-        expr3 = Node("List", Number("1"))
+        expr3 = Node("List", NumberNode("1"))
         return Node("Apply", expr1, expr2, expr3)
 
     def e_Function(self, expr1, token, p):
@@ -665,7 +675,7 @@ class Parser(object):
         # So that e.g. 'x = 1;' doesn't wait for newline in the frontend
         tag = self.next().tag
         if tag == "END" and self.bracket_depth == 0:
-            expr2 = Symbol("Null")
+            expr2 = SymbolNode("Null")
             return Node("CompoundExpression", expr1, expr2).flatten()
 
         # XXX look for next expr otherwise backtrack
@@ -674,7 +684,7 @@ class Parser(object):
         except TranslateError:
             self.backtrack(pos)
             self.feeder.messages = messages
-            expr2 = Symbol("Null")
+            expr2 = SymbolNode("Null")
         return Node("CompoundExpression", expr1, expr2).flatten()
 
     def e_Minus(self, expr1, token, p):
@@ -683,10 +693,10 @@ class Parser(object):
             return None
         self.consume()
         expr2 = self.parse_exp(q + 1)
-        if isinstance(expr2, Number) and not expr2.value.startswith("-"):
+        if isinstance(expr2, NumberNode) and not expr2.value.startswith("-"):
             expr2.value = "-" + expr2.value
         else:
-            expr2 = Node("Times", Number("1", sign=-1), expr2).flatten()
+            expr2 = Node("Times", NumberNode("1", sign=-1), expr2).flatten()
         return Node("Plus", expr1, expr2).flatten()
 
     def e_TagSet(self, expr1, token, p):
@@ -728,7 +738,7 @@ class Parser(object):
         while self.next().tag == "Derivative":
             self.consume()
             n += 1
-        head = Node("Derivative", Number(str(n)))
+        head = Node("Derivative", NumberNode(str(n)))
         return Node(head, expr1)
 
     def e_Divide(self, expr1, token, p):
@@ -738,7 +748,7 @@ class Parser(object):
         self.consume()
         expr2 = self.parse_exp(q + 1)
         return Node(
-            "Times", expr1, Node("Power", expr2, Number("1", sign=-1))
+            "Times", expr1, Node("Power", expr2, NumberNode("1", sign=-1))
         ).flatten()
 
     def e_Alternatives(self, expr1, token, p):
@@ -755,9 +765,9 @@ class Parser(object):
             self.consume()
             token = self.next()
             if token.tag == "Symbol":
-                # silently convert Symbol to String
+                # silently convert SymbolNode to StringNode
                 self.consume()
-                leaf = String(token.text)
+                leaf = StringNode(token.text)
             elif token.tag == "String":
                 leaf = self.p_String(token)
             else:
@@ -791,7 +801,7 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = StringNode("")
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -806,7 +816,7 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = StringNode("")
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -821,7 +831,7 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = StringNode("")
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
@@ -836,7 +846,7 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = StringNode("")
         self.consume()
         box2 = self.parse_box(q + 1)
         return Node("FractionBox", box1, box2)
@@ -846,11 +856,11 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = Symbol("StandardForm")  # RawForm
+            box1 = SymbolNode("StandardForm")  # RawForm
         elif is_symbol_name(box1.value):
-            box1 = Symbol(box1.value, context=None)
+            box1 = SymbolNode(box1.value, context=None)
         else:
-            box1 = Node("Removed", String("$$Failure"))
+            box1 = Node("Removed", StringNode("$$Failure"))
         self.consume()
         box2 = self.parse_box(q)
         return Node("FormBox", box2, box1)
@@ -860,7 +870,7 @@ class Parser(object):
         if q < p:
             return None
         if box1 is None:
-            box1 = String("")
+            box1 = StringNode("")
         self.consume()
         box2 = self.parse_box(q)
         if self.next().tag == "OtherscriptBox":
