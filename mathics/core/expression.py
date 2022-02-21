@@ -884,21 +884,21 @@ class Expression(BaseExpression):
         """
         from mathics.builtin.base import BoxConstruct
 
-        # Step 1 : evaluates the Head and get its attibutes. These attributes, used later, include
+        # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
         elements = self.get_mutable_elements()
 
-        # The following  is one of the most time-consuming parts of the routine, because tries to evaluate
-        # each element, independently of the kind of element (strings and numbers
-        # are tried to be evaluated) as well as symbols already evaluated.
+        # The rest of the evaluation is very time-consuming.
 
-        # As a result F[1,2,3,...] takes more or less the same time that F[a1,a2,a3,..]
-        # and F[a1,a1,a1,a1] independently if a1... have assigned a numerical value
-        # or are not assigned. Here we can get some advantage by "compiling" / "caching"
-        # symbolic values.
+        # One reason for this is that we evaluate each element,
+        # independently of the kind of element. Strings, numbers, and
+        # symbols are treated the same in evaluation. So F[1,2,3,...]
+        # takes more or less the same time that F[a1,a2,a3,..]  and
+        # F[a1,a1,a1,a1] whether or not a1... have assigned a value.
+        # However there is an expression cache.
 
         # Functions Evaluate[] / Unevaluated[] found in the Expression alter evaluation
         def rest_range(indices):
