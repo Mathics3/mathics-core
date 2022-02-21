@@ -879,40 +879,44 @@ class Expression(BaseExpression):
         like a particular kind of Atom, may decide it does not need to
         do the rule rewriting step. Or that it knows that after
         performing this step no further transformation is needed.
+
+        See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
         """
         from mathics.builtin.base import BoxConstruct
 
-        # Step 1 : evaluates the Head and the elements according to the
-        # attributes HoldFirst / HoldAll / HoldRest  and the
-        # modifiers Evaluate / Unevaluated
+        # Step 1 : evaluates the Head and get its attibutes. These attributes, used later, include
+        # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
         head = self._head.evaluate(evaluation)
         attributes = head.get_attributes(evaluation.definitions)
         elements = self.get_mutable_elements()
 
-        # The following  is one of the most expensives parts of the routine, because tries to evaluate
-        # each leaf, independently of the kind of leaf (strings and numbers
+        # The following  is one of the most time-consuming parts of the routine, because tries to evaluate
+        # each element, independently of the kind of element (strings and numbers
         # are tried to be evaluated) as well as symbols already evaluated.
-        # So, F[1,2,3,...] takes more or less the same time that F[a1,a2,a3,..]
+
+        # As a result F[1,2,3,...] takes more or less the same time that F[a1,a2,a3,..]
         # and F[a1,a1,a1,a1] independently if a1... have assigned a numerical value
         # or are not assigned. Here we can get some advantage by "compiling" / "caching"
         # symbolic values.
+
+        # Functions Evaluate[] / Unevaluated[] found in the Expression alter evaluation
         def rest_range(indices):
             if not hold_all_complete & attributes:
                 if self._no_symbol("System`Evaluate"):
                     return
                 for index in indices:
-                    leaf = elements[index]
-                    if leaf.has_form("Evaluate", 1):
-                        elements[index] = leaf.evaluate(evaluation)
+                    element = elements[index]
+                    if element.has_form("Evaluate", 1):
+                        elements[index] = element.evaluate(evaluation)
 
         def eval_range(indices):
             for index in indices:
-                leaf = elements[index]
-                if not leaf.has_form("Unevaluated", 1):
-                    leaf = leaf.evaluate(evaluation)
-                    if leaf:
-                        elements[index] = leaf
+                element = elements[index]
+                if not element.has_form("Unevaluated", 1):
+                    element = element.evaluate(evaluation)
+                    if element:
+                        elements[index] = element
 
         if (hold_all | hold_all_complete) & attributes:
             # eval_range(range(0, 0))
@@ -928,7 +932,7 @@ class Expression(BaseExpression):
             # rest_range(range(0, 0))
 
         # Step 2: Build a new expression. Notice that elements are given
-        # after creating the object, to avoid to call `from_python` on each leaf.
+        # after creating the object, to avoid to call `from_python` on each element.
         new = Expression(head)
         new._elements = tuple(elements)
 
@@ -946,14 +950,14 @@ class Expression(BaseExpression):
         # The idea is to mark which elements was marked as "Unevaluated"
         # Also, this consumes time for long lists, and is useful just for a very unfrequent
         # expressions, involving `Unevaluated` elements.
-        for leaf in elements:
-            leaf.unevaluated = False
+        for element in elements:
+            element.unevaluated = False
 
         # If HoldAllComplete is not an attribute,
-        # and the expression has elements of the form  `Unevaluated[leaf]`
-        # change them to `leaf` and set a flag `unevaluated=True`
+        # and the expression has elements of the form  `Unevaluated[element]`
+        # change them to `element` and set a flag `unevaluated=True`
         # If the evaluation fails, use this flag to restore back the initial form
-        # Unevaluated[leaf]
+        # Unevaluated[element]
 
         # comment @mmatera:
         # what we need here is some way to track which elements are marked as
@@ -964,11 +968,11 @@ class Expression(BaseExpression):
         if not hold_all_complete & attributes:
             dirty_elements = None
 
-            for index, leaf in enumerate(elements):
-                if leaf.has_form("Unevaluated", 1):
+            for index, element in enumerate(elements):
+                if element.has_form("Unevaluated", 1):
                     if dirty_elements is None:
                         dirty_elements = list(elements)
-                    dirty_elements[index] = leaf._elements[0]
+                    dirty_elements[index] = element._elements[0]
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
@@ -979,9 +983,9 @@ class Expression(BaseExpression):
         # If the attribute Flat is set, calls flatten with a callback
         # that set elements as unevaluated too.
         def flatten_callback(new_elements, old):
-            for leaf in new_elements:
+            for element in new_elements:
 
-                leaf.unevaluated = old.unevaluated
+                element.unevaluated = old.unevaluated
 
         if flat & attributes:
             new = new.flatten(new._head, callback=flatten_callback)
@@ -1010,7 +1014,7 @@ class Expression(BaseExpression):
                     return threaded, True
 
         # Step 6: Now,the next step is to look at the rules associated to
-        # 1. the upvalues of each leaf
+        # 1. the upvalues of each element
         # 2. the downvalues / subvalues associated to the lookup_name
         # if the lookup values matches or not the head.
         # For example for an expression F[a, 1, b,a]
@@ -1019,10 +1023,10 @@ class Expression(BaseExpression):
         # If it finds it, try to apply the corresponding rule.
         #    If it success, (the result is not None)
         #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is not a BoxConstruct.
-        #    If the rule fails, continues with the next leaf.
+        #    If the rule fails, continues with the next element.
         #
-        # The next leaf is a number, so do not have upvalues. Then tries with upvalues from b.
-        # If it does not have  success, tries look at the next leaf. but the next leaf is again a. So, it skip it.
+        # The next element is a number, so do not have upvalues. Then tries with upvalues from b.
+        # If it does not have  success, tries look at the next element. but the next element is again a. So, it skip it.
         # Then, as new.head_name() == new.get_lookup_name(),  (because F is a symbol) tryies with the
         # downvalues rules. If instead of "F[a, 1, a, c]" we had  "Q[s][a,1,a,c]",
         # the routine would look for the subvalues of `Q`.
@@ -1039,8 +1043,8 @@ class Expression(BaseExpression):
         def rules():
             rules_names = set()
             if not hold_all_complete & attributes:
-                for leaf in elements:
-                    name = leaf.get_lookup_name()
+                for element in elements:
+                    name = element.get_lookup_name()
                     if len(name) > 0:  # only lookup rules if this is a symbol
                         if name not in rules_names:
                             rules_names.add(name)
@@ -1073,11 +1077,11 @@ class Expression(BaseExpression):
         dirty_elements = None
 
         # Expression did not change, re-apply Unevaluated
-        for index, leaf in enumerate(new._elements):
-            if leaf.unevaluated:
+        for index, element in enumerate(new._elements):
+            if element.unevaluated:
                 if dirty_elements is None:
                     dirty_elements = list(new._elements)
-                dirty_elements[index] = Expression("Unevaluated", leaf)
+                dirty_elements[index] = Expression("Unevaluated", element)
 
         if dirty_elements:
             new = Expression(head)
@@ -1103,14 +1107,14 @@ class Expression(BaseExpression):
     #
 
     def evaluate_elements(self, evaluation) -> "Expression":
-        elements = [leaf.evaluate(evaluation) for leaf in self._elements]
+        elements = [element.evaluate(evaluation) for element in self._elements]
         head = self._head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
     def __str__(self) -> str:
         return "%s[%s]" % (
             self._head,
-            ", ".join([leaf.__str__() for leaf in self._elements]),
+            ", ".join([element.__str__() for element in self._elements]),
         )
 
     def __repr__(self) -> str:
@@ -1152,15 +1156,20 @@ class Expression(BaseExpression):
             "List", None
         ):
             return "".join(
-                [leaf.boxes_to_text(**options) for leaf in self._elements[0]._elements]
+                [
+                    element.boxes_to_text(**options)
+                    for element in self._elements[0]._elements
+                ]
             )
         elif self.has_form("SuperscriptBox", 2):
-            return "^".join([leaf.boxes_to_text(**options) for leaf in self._elements])
+            return "^".join(
+                [element.boxes_to_text(**options) for element in self._elements]
+            )
         elif self.has_form("FractionBox", 2):
             return "/".join(
                 [
-                    " ( " + leaf.boxes_to_text(**options) + " ) "
-                    for leaf in self._elements
+                    " ( " + element.boxes_to_text(**options) + " ) "
+                    for element in self._elements
                 ]
             )
         else:
@@ -1183,7 +1192,8 @@ class Expression(BaseExpression):
 
             def is_list_interior(content):
                 if content.has_form("List", None) and all(
-                    leaf.get_string_value() == "," for leaf in content._elements[1::2]
+                    element.get_string_value() == ","
+                    for element in content._elements[1::2]
                 ):
                     return True
                 return False
