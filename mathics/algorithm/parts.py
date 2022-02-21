@@ -83,11 +83,11 @@ def set_part(varlist, indices, newval):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    cur.set_leaf(pos - 1, newval)
+                    cur.set_element(pos - 1, newval)
                 elif pos == 0:
                     cur.set_head(newval)
                 else:
-                    cur.set_leaf(pos, newval)
+                    cur.set_element(pos, newval)
             except IndexError:
                 raise PartRangeError
 
