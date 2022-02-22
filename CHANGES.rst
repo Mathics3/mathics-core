@@ -5,6 +5,7 @@ Enhancements
 ============
 
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+* ``TraceEvaluation`` now prints at each step the time (in seconds) since the evaluation started.
 
 Documentation
 .............

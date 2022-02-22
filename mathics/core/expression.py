@@ -3,6 +3,7 @@
 
 import sympy
 import math
+import time
 
 import typing
 from typing import Any, Optional
@@ -803,6 +804,8 @@ class Expression(BaseExpression):
         old_options = evaluation.options
         evaluation.inc_recursion_depth()
         if evaluation.definitions.trace_evaluation:
+            if evaluation.definitions.timing_trace_evaluation:
+                evaluation.print_out(time.time() - evaluation.start_time)
             evaluation.print_out(
                 "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
             )

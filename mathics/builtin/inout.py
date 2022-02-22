@@ -131,16 +131,28 @@ class TraceEvaluation(Builtin):
     >> TraceEvaluation[(x + x)^2]
      | ...
      = ...
+
+    >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
+     | ...
+     = ...
     """
 
     attributes = hold_all | protected
+    options = {
+        "System`ShowTimeBySteps": "False",
+    }
 
-    def apply(self, expr, evaluation):
-        "TraceEvaluation[expr_]"
+    def apply(self, expr, evaluation, options):
+        "TraceEvaluation[expr_, OptionsPattern[]]"
         curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
         evaluation.definitions.trace_evaluation = True
+        evaluation.definitions.timing_trace_evaluation = (
+            options["System`ShowTimeBySteps"] is SymbolTrue
+        )
         result = expr.evaluate(evaluation)
         evaluation.definitions.trace_evaluation = curr_trace_evaluation
+        evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
         return result
 
 
