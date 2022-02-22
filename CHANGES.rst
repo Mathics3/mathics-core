@@ -5,6 +5,9 @@ Enhancements
 ============
 
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+* ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form
+  ``Simplify[0^a]`` (issue #167)
+  
 
 Documentation
 .............
@@ -67,6 +70,7 @@ Bugs
 *  ``Set*``: fixed issue #128.
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 * Fix a bug in `Simplify` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
+
 
 4.0.1
 -----
