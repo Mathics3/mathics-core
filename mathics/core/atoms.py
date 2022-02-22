@@ -75,11 +75,24 @@ def from_mpmath(value, prec=None):
 
 
 class Number(Atom):
+    """
+    Different kinds of Mathics Numbers, the main built-in subclasses
+    being: Integer, Rational, Real, Complex.
+    """
+
     def __str__(self) -> str:
         return str(self.value)
 
     def is_numeric(self, evaluation=None) -> bool:
         return True
+
+    def evaluate(self, evaluation) -> "Number":
+        """Evaluation of a Number is just itself"""
+        # Why bother checking for a time out? If there should be one,
+        # it will probably be caught at a higher level. And
+        # returning `self` is pretty fast anyway.
+        # evaluation.check_stopped()
+        return self
 
 
 def _ExponentFunction(value):
@@ -190,10 +203,6 @@ class Integer(Number):
         """Mathics SameQ"""
         return isinstance(other, Integer) and self.value == other.value
 
-    def evaluate(self, evaluation):
-        evaluation.check_stopped()
-        return self
-
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return super().get_sort_key(True)
@@ -291,10 +300,6 @@ class Rational(Number):
     def default_format(self, evaluation, form) -> str:
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
-    def evaluate(self, evaluation) -> "Rational":
-        evaluation.check_stopped()
-        return self
-
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return super().get_sort_key(True)
@@ -372,10 +377,6 @@ class Real(Number):
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
-
-    def evaluate(self, evaluation) -> "Real":
-        evaluation.check_stopped()
-        return self
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
@@ -677,10 +678,6 @@ class Complex(Number):
             and self.real == other.real
             and self.imag == other.imag
         )
-
-    def evaluate(self, evaluation) -> "Complex":
-        evaluation.check_stopped()
-        return self
 
     def round(self, d=None) -> "Complex":
         real = self.real.round(d)

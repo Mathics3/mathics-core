@@ -182,6 +182,10 @@ class Expression(BaseExpression):
     def leaves(self):
         return self._elements
 
+    @property
+    def elements(self):
+        return self._elements
+
     @leaves.setter
     def leaves(self, value):
         raise ValueError("Expression.leaves is write protected.")
@@ -411,10 +415,16 @@ class Expression(BaseExpression):
     # Compatibily with old code. Deprecated, but remove after a little bit
     get_leaves = get_elements
 
-    def get_mutable_elements(self):  # shallow, mutable copy of the leaves array
+    def get_mutable_elements(self) -> list:
+        """
+        Return a shallow mutable copy of the elements
+        """
         return list(self._elements)
 
-    def set_leaf(self, index, value):  # leaves are removed, added or replaced
+    def set_element(self, index: int, value):
+        """
+        Update element[i] with value
+        """
         elements = list(self._elements)
         elements[index] = value
         self._elements = tuple(elements)
@@ -996,13 +1006,22 @@ class Expression(BaseExpression):
         if orderless & attributes:
             new.sort()
 
-        # Step 4:  Now, rebuilds the ExpressionCache, which tracks which symbols
-        # where involved, the `Sequence`s present,  and when was the last time they had changed.
+        # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
+        # where involved, the Sequence`s present, and the last time they have changed.
 
         new._timestamp_cache(evaluation)
 
-        # Step 5:  For `Listable` expressions, calls `Expression.thread`.
-        # i.e. changes F[{a,b,c,...}] to {F[a], F[b], F[c], ...}
+        # Step 5: Would the operation benefit running in separate threads?
+        #
+        # We allow threading in when head has the ``Listable``
+        # Attribute.  Here ``Expression.thread`` changes:
+        #  ``F[{a,b,c,...}]`` to:
+        #  ``{F[a], F[b], F[c], ...}``.
+
+        # TODO: For a small number of arguments threading is just overhead.
+        # For zero or one argument this is always the case.
+        # For two arguments, note that many listable functions are binary operators
+        # so two arguments is really the same as one argument and threading is overhead.
         #
         if listable & attributes:
             done, threaded = new.thread(evaluation)

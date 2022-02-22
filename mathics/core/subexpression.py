@@ -171,7 +171,6 @@ class ExpressionPointer(object):
             parent = parent.parent
         # At this point, we hit the expression, and we have
         # the path to reach the position
-        root = parent
         i = pos.pop()
         try:
             while pos:
@@ -183,12 +182,12 @@ class ExpressionPointer(object):
         except Exception:
             raise MessageException("Part", "span", pos)
 
-        # Now, we have a pointer to a leaf in a true `Expression`.
+        # Now, we have a pointer to an element in a true `Expression`.
         # Now, set it to the new value.
         if i == 0:
             parent.set_head(new)
         else:
-            parent.set_leaf(i - 1, new)
+            parent.set_element(i - 1, new)
 
 
 class SubExpression(object):
