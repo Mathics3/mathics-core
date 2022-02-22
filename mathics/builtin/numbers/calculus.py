@@ -629,7 +629,6 @@ class Integrate(SympyFunction):
 
     def apply(self, f, xs, evaluation, options):
         "Integrate[f_, xs__, OptionsPattern[]]"
-        assuming = options["System`Assumptions"].evaluate(evaluation)
         f_sympy = f.to_sympy()
         if f_sympy.is_infinite:
             return Expression(SymbolIntegrate, Integer1, xs).evaluate(evaluation) * f
@@ -682,6 +681,17 @@ class Integrate(SympyFunction):
         # If the result is defined as a Piecewise expression,
         # use ConditionalExpression.
         # This does not work now because the form sympy returns the values
+
+        local_assumptions = options.get("System`Assumptions", None)
+        old_assumptions = None
+        if local_assumptions and local_assumptions is not Symbol("$Assumptions"):
+            old_assumptions = evaluation.definitions.get_ownvalues(
+                "System`$Assumptions"
+            )
+            assuming = local_assumptions.evaluate(evaluation)
+            evaluation.definitions.set_ownvalue("System`$Assumptions", assuming)
+        # Set the $Assumptions
+
         if result.get_head_name() == "System`Piecewise":
             cases = result._elements[0]._elements
             if len(result._elements) == 1:
@@ -701,17 +711,17 @@ class Integrate(SympyFunction):
                 # TODO: if something like 0^n or 1/expr appears,
                 # put the condition n!=0 or expr!=0 accordingly in the list of
                 # conditions...
-                cond = Expression("Simplify", case._elements[1], assuming).evaluate(
-                    evaluation
-                )
-                resif = Expression("Simplify", case._elements[0], assuming).evaluate(
-                    evaluation
-                )
+                cond = Expression("Simplify", case._elements[1]).evaluate(evaluation)
+                resif = Expression("Simplify", case._elements[0]).evaluate(evaluation)
                 if cond.is_true():
+                    if old_assumptions:
+                        evaluation.definitions.set_ownvalue(
+                            "System`$Assumptions", old_assumptions
+                        )
                     return resif
                 if resif.has_form("ConditionalExpression", 2):
                     cond = Expression("And", resif._elements[1], cond)
-                    cond = Expression("Simplify", cond, assuming).evaluate(evaluation)
+                    cond = Expression("Simplify", cond).evaluate(evaluation)
                     resif = resif._elements[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
@@ -724,9 +734,16 @@ class Integrate(SympyFunction):
             if result.get_head() is SymbolIntegrate:
                 if result._elements[0].evaluate(evaluation).sameQ(f):
                     # Sympy returned the same expression, so it can't be evaluated.
+                    if old_assumptions:
+                        evaluation.definitions.set_ownvalue(
+                            "System`$Assumptions", old_assumptions
+                        )
                     return
-            result = Expression("Simplify", result, assuming)
+            result = Expression("Simplify", result)
             result = result.evaluate(evaluation)
+
+        if old_assumptions:
+            evaluation.definitions.set_ownvalue("System`$Assumptions", old_assumptions)
         return result
 
     def apply_D(self, func, domain, var, evaluation, options):
