@@ -18,7 +18,6 @@ from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_nvalues
 
 from mathics.core.expression import Expression
-
 from mathics.core.symbols import SymbolMachinePrecision
 from mathics.core.atoms import (
     Complex,
@@ -251,12 +250,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return apply_nvalues(expr, prec, evaluation)
+        return apply_N(expr, prec, evaluation)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
+        return apply_N(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):

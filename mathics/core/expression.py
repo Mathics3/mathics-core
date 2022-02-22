@@ -1578,23 +1578,22 @@ class Expression(BaseExpression):
                 # Don't "numerify" numbers: they should be numerified
                 # automatically by the processing function,
                 # and we don't want to lose exactness in e.g. 1.0+I.
-                # Also, for compatibility with WMA, numerify just the elements
-                # s.t. ``NumericQ[element]==True``
-                if not isinstance(element, Number) and element.is_numeric(evaluation):
-                    n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
+                # Also, for compatibility with WMA, numerify just the leaves
+                # s.t. ``NumericQ[leaf]==True``
+                if not isinstance(leaf, Number) and leaf.is_numeric(evaluation):
+                    n_expr = Expression(SymbolN, leaf, Integer(dps(_prec)))
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
-                        new_elements[index] = n_result
+                        new_leaves[index] = n_result
                         continue
                     # If Nvalues are not available, just tries to do
                     # a regular evaluation
-                    n_result = element.evaluate(evaluation)
+                    n_result = leaf.evaluate(evaluation)
                     if isinstance(n_result, Number):
-                        new_elements[index] = n_result
+                        new_leaves[index] = n_result
             result = Expression(self._head)
-            result._elements = tuple(new_elements)
+            result._leaves = tuple(new_leaves)
             return result
-
         else:
             return self
 

@@ -11,7 +11,7 @@ from typing import Optional, Any
 
 import sympy
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
@@ -34,7 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
     SymbolComplexInfinity,
-    SymbolMaxPrecision,
+    SymbolMaxExtraPrecision,
 )
 from mathics.core.number import dps
 
@@ -78,7 +78,7 @@ class _InequalityOperator(BinaryOperator):
             for item in items:
                 if not isinstance(item, Number):
                     # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    item = apply_N(item, evaluation, SymbolMaxPrecision)
+                    item = eval_N(item, evaluation, SymbolMaxExtraPrecision)
                 n_items.append(item)
             items = n_items
         else:

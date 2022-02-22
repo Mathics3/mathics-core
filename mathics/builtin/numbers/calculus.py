@@ -10,7 +10,7 @@ import numpy as np
 from itertools import product
 from typing import Optional
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
@@ -1292,7 +1292,7 @@ class _BaseFinder(Builtin):
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
         # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         # deal with non 1D problems.
         if isinstance(x0, Expression) and x0._head is SymbolList:
             options["_x0"] = x0._elements
@@ -2176,8 +2176,8 @@ class NIntegrate(Builtin):
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
                 elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = apply_N(a, evaluation).value
-                    b = apply_N(b, evaluation).value
+                    a = eval_N(a, evaluation).value
+                    b = eval_N(b, evaluation).value
                     subdomain2.append([a, b])
                     coordtransform.append(None)
                 else:
