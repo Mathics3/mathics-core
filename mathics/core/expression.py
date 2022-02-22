@@ -1014,18 +1014,20 @@ class Expression(BaseExpression):
 
         new._timestamp_cache(evaluation)
 
-        # Step 5: Would the operation benefit running in separate threads?
+        # Step 5: Must we need to thread-rewrite the expression?
         #
-        # We allow threading in when head has the ``Listable``
-        # Attribute.  Here ``Expression.thread`` changes:
-        #  ``F[{a,b,c,...}]`` to:
+        # Threading is needed when head has the ``Listable``
+        # Attribute.  ``Expression.thread`` rewrites the expression:
+        #  ``F[{a,b,c,...}]`` as:
         #  ``{F[a], F[b], F[c], ...}``.
 
-        # TODO: For a small number of arguments threading is just overhead.
-        # For zero or one argument this is always the case.
-        # For two arguments, note that many listable functions are binary operators
-        # so two arguments is really the same as one argument and threading is overhead.
+        # Note: Threading here is different from Python or OS threads,
+        # even though the intent of this attribute was to allow for
+        # hardware threading to make use of more cores.
         #
+        # Right now, we do not make use of Python thread or hardware
+        # threading.  Still, we need to perform this rewrite to
+        # maintain correct semantic behavior.
         if listable & attributes:
             done, threaded = new.thread(evaluation)
             if done:
