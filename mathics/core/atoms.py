@@ -156,9 +156,6 @@ class Integer(Number):
     def __init__(self, value) -> "Integer":
         super().__init__()
 
-    def get_head_name(self):
-        return self.class_head_name
-
     def boxes_to_text(self, **options) -> str:
         return str(self.value)
 
@@ -244,9 +241,6 @@ class Rational(Number):
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
         return self
-
-    def get_head_name(self):
-        return "System`Rational"
 
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
@@ -363,9 +357,6 @@ class Real(Number):
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
 
-    def get_head_name(self):
-        return "System`Real"
-
     def boxes_to_text(self, **options) -> str:
         return self.make_boxes("System`OutputForm").boxes_to_text(**options)
 
@@ -412,9 +403,6 @@ class Real(Number):
         # ignore last 7 binary digits when hashing
         _prec = self.get_precision()
         update(b"System`Real>" + str(self.to_sympy().n(dps(_prec))).encode("utf8"))
-
-    def get_atom_name(self) -> str:
-        return "Real"
 
 
 class MachineReal(Real):
@@ -614,9 +602,6 @@ class Complex(Number):
         self.imag = imag
         return self
 
-    def get_head_name(self):
-        return "System`Complex"
-
     def atom_to_boxes(self, f, evaluation):
         return self.format(evaluation, f.get_name())
 
@@ -765,9 +750,6 @@ class String(Atom):
 
     def __str__(self) -> str:
         return '"%s"' % self.value
-
-    def get_head_name(self):
-        return "System`String"
 
     def boxes_to_text(self, show_string_characters=False, **options) -> str:
         value = self.value
