@@ -129,7 +129,7 @@ class Byte(Builtin):
 class Character(Builtin):
     """
     <dl>
-    <dt>'Character'
+      <dt>'Character'
       <dd>is a data type for 'Read'.
     </dl>
     """
@@ -138,9 +138,11 @@ class Character(Builtin):
 class Expression_(Builtin):
     """
     <dl>
-    <dt>'Expression'
+      <dt>'Expression'
       <dd>is a data type for 'Read'.
     </dl>
+
+    For information about underlying data structure Expression (a kind of M-expression) that is central in evaluation, see: <url>https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>
     """
 
     name = "Expression"
