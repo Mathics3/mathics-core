@@ -932,7 +932,8 @@ class Solve(Builtin):
 
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
-
+        
+        InequalityOperators={"Less":"<","LessEqual":"<=","Greater":">","GreaterEqual":">="}
         vars_original = vars
         head_name = vars.get_head_name()
         if head_name == "System`List":
@@ -961,7 +962,15 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form("Equal", 2):
-                return evaluation.message("Solve", "eqf", eqs_original)
+                for operator in InequalityOperators:
+                    if eq.has_form(operator,2):
+                        eq=eq.to_sympy()
+                        is_inequality=True
+                        break      
+                try:
+                    is_inequality
+                except NameError:      
+                    return evaluation.message("Solve", "eqf", eqs_original)
             else:
                 left, right = eq.leaves
                 left = left.to_sympy()
@@ -971,9 +980,9 @@ class Solve(Builtin):
                 eq = left - right
                 eq = sympy.together(eq)
                 eq = sympy.cancel(eq)
-                sympy_eqs.append(eq)
                 numer, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
+            sympy_eqs.append(eq)
 
         vars_sympy = [var.to_sympy() for var in vars]
         if None in vars_sympy:
