@@ -161,6 +161,10 @@ class Expression(BaseExpression):
     leaves: typing.List[Any]
     _sequences: Any
 
+    # __new__ seems to be used because BaseExpression does some
+    # questionable stuff using new.
+    # See if there's a way to get rid of this, or ensure that this isn't causing
+    # a garbage collection problem.
     def __new__(cls, head, *leaves, **kwargs) -> "Expression":
         self = super().__new__(cls)
         if isinstance(head, str):
