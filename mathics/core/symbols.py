@@ -156,171 +156,6 @@ class BaseExpression(KeyComparable):
         self._cache = None
         return self
 
-    def clear_cache(self):
-        self._cache = None
-
-    def equal2(self, rhs: Any) -> Optional[bool]:
-        """
-        Mathics two-argument Equal (==)
-        returns True if self and rhs are identical.
-        """
-        if self.sameQ(rhs):
-            return True
-
-        # If the types are the same then we'll use the classes definition of == (or __eq__).
-        # Superclasses which need to specialized this behavior should redefine equal2()
-        #
-        # I would use `is` instead `==` here, to compare classes.
-        if type(self) is type(rhs):
-            return self == rhs
-        return None
-
-    def has_changed(self, definitions):
-        return True
-
-    def sequences(self):
-        return None
-
-    def flatten_sequence(self, evaluation) -> "BaseExpression":
-        return self
-
-    def flatten_pattern_sequence(self, evaluation) -> "BaseExpression":
-        return self
-
-    def get_attributes(self, definitions):
-        return nothing
-
-    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
-        """
-        Performs a since rewrite/apply/eval step used in
-        evaluation.
-
-        Here we specialize evaluation so that any results returned
-        do not need further evaluation.
-        """
-        return self.evaluate(evaluation), False
-
-    def evaluate(self, evaluation) -> "BaseExpression":
-        """Returns the value of the expression. The subclass must implement this"""
-        raise NotImplementedError
-
-    def get_atoms(self, include_heads=True):
-        """
-        Returns a list of atoms that appears in the expression.
-        """
-        # Comment @mmatera:
-        # This function is used just in Graphics.apply_makeboxes
-        # to check if a graphics expression is composed just by
-        # real numbers (or integer) or graphics symbols.
-        # Probably, there is a simpler way to implement it without using
-        # this method.
-        return []
-
-    def get_name(self):
-        "Returns symbol's name if Symbol instance"
-
-        return ""
-
-    @property
-    def is_zero(self) -> bool:
-        return False
-
-    def is_symbol(self) -> bool:
-        """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
-        return False
-
-    def is_machine_precision(self) -> bool:
-        """Check if the number represents a floating point number"""
-        return False
-
-    def get_lookup_name(self):
-        """
-        Returns symbol name of leftmost head. This method is used
-        to determine which definition must be asked for rules
-        to apply in order to do the evaluation.
-        """
-
-        return self.get_name()
-
-    def get_head(self):
-        return None
-
-    def get_head_name(self):
-        raise NotImplementedError
-
-    # Probably, this method shouldn't be here.
-    def get_elements(self):
-        return []
-
-    # Compatibily with old code. Deprecated, but remove after a little bit.
-    get_leaves = get_elements
-
-    def get_int_value(self):
-        return None
-
-    def get_float_value(self, permit_complex=False):
-        return None
-
-    def get_string_value(self):
-        return None
-
-    def is_atom(self) -> bool:
-        """Better use isinstance(self, Atom)"""
-        return False
-
-    def is_true(self) -> bool:
-        """Better use self is SymbolTrue"""
-        return False
-
-    def is_numeric(self, evaluation=None) -> bool:
-        """Check if the expression is a number. If evaluation is given,
-        tries to determine if the expression can be evaluated as a number.
-        """
-        # used by NumericQ and expression ordering
-        return False
-
-    def has_form(self, heads, *element_counts):
-        """Check if the expression is of the form Head[l1,...,ln]
-        with Head.name in `heads` and a number of leaves according to the specification in
-        element_counts.
-        """
-        return False
-
-    def flatten(self, head, pattern_only=False, callback=None) -> "BaseExpression":
-        return self
-
-    def __hash__(self):
-        """
-        To allow usage of expression as dictionary keys,
-        as in Expression.get_pre_choices
-        """
-        raise NotImplementedError
-
-    def user_hash(self, update) -> None:
-        # whereas __hash__ is for internal Mathics purposes like using Expressions as dictionary keys and fast
-        # comparison of elements, user_hash is called for Hash[]. user_hash should strive to give stable results
-        # across versions, whereas __hash__ must not. user_hash should try to hash all the data available, whereas
-        # __hash__ might only hash a sample of the data available.
-        raise NotImplementedError
-
-    def sameQ(self, rhs) -> bool:
-        """Mathics SameQ"""
-        return id(self) == id(rhs)
-
-    def get_sequence(self):
-        """Convert's a WL Sequence into a Python's list of expressions"""
-        if self.get_head() is SymbolSequence:
-            return self.leaves
-        else:
-            return [self]
-
-    def evaluate_elements(self, evaluation) -> "BaseExpression":
-        """
-        Create a new expression by evaluating the head and elements of self.
-        """
-        # comment @mmatera: Just make sense if the Expression has elements...
-        return self
-
     def apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> typing.Tuple["BaseExpression", bool]:
@@ -341,6 +176,9 @@ class BaseExpression(KeyComparable):
             if result is not None:
                 return result, True
         return self, False
+
+    def clear_cache(self):
+        self._cache = None
 
     def do_format(self, evaluation, form):
         """
@@ -453,6 +291,42 @@ class BaseExpression(KeyComparable):
         finally:
             evaluation.dec_recursion_depth()
 
+    def equal2(self, rhs: Any) -> Optional[bool]:
+        """
+        Mathics two-argument Equal (==)
+        returns True if self and rhs are identical.
+        """
+        if self.sameQ(rhs):
+            return True
+
+        # If the types are the same then we'll use the classes definition of == (or __eq__).
+        # Superclasses which need to specialized this behavior should redefine equal2()
+        #
+        # I would use `is` instead `==` here, to compare classes.
+        if type(self) is type(rhs):
+            return self == rhs
+        return None
+
+    def evaluate(self, evaluation) -> "BaseExpression":
+        """Returns the value of the expression. The subclass must implement this"""
+        raise NotImplementedError
+
+    def evaluate_elements(self, evaluation) -> "BaseExpression":
+        """
+        Create a new expression by evaluating the head and elements of self.
+        """
+        # comment @mmatera: Just make sense if the Expression has elements...
+        return self
+
+    def flatten(self, head, pattern_only=False, callback=None) -> "BaseExpression":
+        return self
+
+    def flatten_sequence(self, evaluation) -> "BaseExpression":
+        return self
+
+    def flatten_pattern_sequence(self, evaluation) -> "BaseExpression":
+        return self
+
     def format(self, evaluation, form, **kwargs) -> "BaseExpression":
         """
         Applies formats associated to the expression, and then calls Makeboxes
@@ -465,29 +339,56 @@ class BaseExpression(KeyComparable):
         )
         return result
 
-    def is_free(self, form, evaluation) -> bool:
+    def get_atoms(self, include_heads=True):
         """
-        Check if self has a subexpression of the form `form`.
+        Returns a list of atoms that appears in the expression.
         """
-        from mathics.builtin.patterns import item_is_free
+        # Comment @mmatera:
+        # This function is used just in Graphics.apply_makeboxes
+        # to check if a graphics expression is composed just by
+        # real numbers (or integer) or graphics symbols.
+        # Probably, there is a simpler way to implement it without using
+        # this method.
+        return []
 
-        return item_is_free(self, form, evaluation)
+    def get_attributes(self, definitions):
+        return nothing
 
-    def is_inexact(self) -> bool:
-        return self.get_precision() is not None
+    # Probably, this method shouldn't be here.
+    def get_elements(self):
+        return []
 
-    def get_precision(self) -> None:
-        """Returns the default specification for precision in N and other
-        numerical functions.  It is expected to be redefined in those
-        classes that provide inexact arithmetic like PrecisionReal.
+    def has_changed(self, definitions):
+        return True
 
-        Here in the default base implementation, `None` is used to indicate that the
-        precision is either not defined, or it is exact as in the case of Integer. In either case, the
-        values is not "inexact".
-
-        This function is called by method `is_inexact()`.
-        """
+    def get_head(self):
         return None
+
+    def get_head_name(self):
+        raise NotImplementedError
+
+    # Compatibily with old code. Deprecated, but remove after a little bit.
+    get_leaves = get_elements
+
+    def get_float_value(self, permit_complex=False):
+        return None
+
+    def get_int_value(self):
+        return None
+
+    def get_lookup_name(self):
+        """
+        Returns symbol name of leftmost head. This method is used
+        to determine which definition must be asked for rules
+        to apply in order to do the evaluation.
+        """
+
+        return self.get_name()
+
+    def get_name(self):
+        "Returns symbol's name if Symbol instance"
+
+        return ""
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         """
@@ -531,6 +432,19 @@ class BaseExpression(KeyComparable):
                 option_values[name] = option.leaves[1]
         return option_values
 
+    def get_precision(self) -> None:
+        """Returns the default specification for precision in N and other
+        numerical functions.  It is expected to be redefined in those
+        classes that provide inexact arithmetic like PrecisionReal.
+
+        Here in the default base implementation, `None` is used to indicate that the
+        precision is either not defined, or it is exact as in the case of Integer. In either case, the
+        values is not "inexact".
+
+        This function is called by method `is_inexact()`.
+        """
+        return None
+
     def get_rules_list(self):
         """
         If the expression is of the form {pat1->expr1,... {pat_2,expr2},...}
@@ -555,6 +469,92 @@ class BaseExpression(KeyComparable):
             rule = Rule(item.leaves[0], item.leaves[1])
             rules.append(rule)
         return rules
+
+    def get_sequence(self):
+        """Convert's a WL Sequence into a Python's list of expressions"""
+        if self.get_head() is SymbolSequence:
+            return self.leaves
+        else:
+            return [self]
+
+    def get_string_value(self):
+        return None
+
+    @property
+    def is_zero(self) -> bool:
+        return False
+
+    def is_symbol(self) -> bool:
+        """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
+        return False
+
+    def is_machine_precision(self) -> bool:
+        """Check if the number represents a floating point number"""
+        return False
+
+    def is_atom(self) -> bool:
+        """Better use isinstance(self, Atom)"""
+        return False
+
+    def is_true(self) -> bool:
+        """Better use self is SymbolTrue"""
+        return False
+
+    def is_numeric(self, evaluation=None) -> bool:
+        """Check if the expression is a number. If evaluation is given,
+        tries to determine if the expression can be evaluated as a number.
+        """
+        # used by NumericQ and expression ordering
+        return False
+
+    def has_form(self, heads, *element_counts):
+        """Check if the expression is of the form Head[l1,...,ln]
+        with Head.name in `heads` and a number of leaves according to the specification in
+        element_counts.
+        """
+        return False
+
+    def __hash__(self):
+        """
+        To allow usage of expression as dictionary keys,
+        as in Expression.get_pre_choices
+        """
+        raise NotImplementedError
+
+    def is_free(self, form, evaluation) -> bool:
+        """
+        Check if self has a subexpression of the form `form`.
+        """
+        from mathics.builtin.patterns import item_is_free
+
+        return item_is_free(self, form, evaluation)
+
+    def is_inexact(self) -> bool:
+        return self.get_precision() is not None
+
+    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+        """
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
+        """
+        return self.evaluate(evaluation), False
+
+    def sameQ(self, rhs) -> bool:
+        """Mathics SameQ"""
+        return id(self) == id(rhs)
+
+    def sequences(self):
+        return None
+
+    def user_hash(self, update) -> None:
+        # whereas __hash__ is for internal Mathics purposes like using Expressions as dictionary keys and fast
+        # comparison of elements, user_hash is called for Hash[]. user_hash should strive to give stable results
+        # across versions, whereas __hash__ must not. user_hash should try to hash all the data available, whereas
+        # __hash__ might only hash a sample of the data available.
+        raise NotImplementedError
 
     def to_sympy(self, **kwargs):
         raise NotImplementedError
