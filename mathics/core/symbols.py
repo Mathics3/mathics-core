@@ -736,13 +736,12 @@ class Atom(BaseExpression):
 
     def evaluate(self, evaluation) -> "BaseExpression":
         """Returns the value of the expression.
-        For "inert" expressions (for example, strings and numbers) it just call `check_stopped`, which raise
-        an exception if the evaluation was aborted. Otherwise, returns self.
+
+        The value of an Atom is itself.
         """
         # comment @mmatera:
         # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
         # Overloaded in "Evaluable" ``BaseExpression`` sub-classes: ``Symbol`` and ``Expression``
-        evaluation.check_stopped()
         return self
 
     def has_form(self, heads, *element_counts) -> bool:

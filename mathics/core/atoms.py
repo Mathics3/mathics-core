@@ -86,14 +86,6 @@ class Number(Atom):
     def is_numeric(self, evaluation=None) -> bool:
         return True
 
-    def evaluate(self, evaluation) -> "Number":
-        """Evaluation of a Number is just itself"""
-        # Why bother checking for a time out? If there should be one,
-        # it will probably be caught at a higher level. And
-        # returning `self` is pretty fast anyway.
-        # evaluation.check_stopped()
-        return self
-
 
 def _ExponentFunction(value):
     n = value.get_int_value()
