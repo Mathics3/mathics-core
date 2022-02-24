@@ -354,11 +354,13 @@ class BaseExpression(KeyComparable):
         """Returns the value of the expression. The subclass must implement this"""
         raise NotImplementedError
 
+    # comment @mmatera: This just makes sense if the Expression has elements...
+    # rocky: however it is currently getting called when on Atoms; so more work
+    # is needed to remove this, probably by fixing the callers.
     def evaluate_elements(self, evaluation) -> "BaseExpression":
         """
         Create a new expression by evaluating the head and elements of self.
         """
-        # comment @mmatera: Just make sense if the Expression has elements...
         return self
 
     def flatten(self, head, pattern_only=False, callback=None) -> "BaseExpression":

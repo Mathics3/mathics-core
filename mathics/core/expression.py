@@ -176,101 +176,23 @@ class Expression(BaseExpression, NumericOperators):
         self._format_cache = None
         return self
 
-    @property
-    def head(self):
-        return self._head
+    def __repr__(self) -> str:
+        return "<Expression: %s>" % self
 
-    @head.setter
-    def head(self, value):
-        raise ValueError("Expression.head is write protected.")
+    def __str__(self) -> str:
+        return "%s[%s]" % (
+            self._head,
+            ", ".join([element.__str__() for element in self._elements]),
+        )
 
-    @property
-    def leaves(self):
-        return self._elements
+    def _as_sympy_function(self, **kwargs) -> sympy.Function:
+        sym_args = [leaf.to_sympy(**kwargs) for leaf in self.leaves]
 
-    @property
-    def elements(self):
-        return self._elements
-
-    @leaves.setter
-    def leaves(self, value):
-        raise ValueError("Expression.leaves is write protected.")
-
-    def equal2(self, rhs: Any) -> Optional[bool]:
-        """Mathics two-argument Equal (==)
-        returns True if self and rhs are identical.
-        """
-        if self.sameQ(rhs):
-            return True
-        # if rhs is an Atom, return None
-        elif isinstance(rhs, Atom):
+        if None in sym_args:
             return None
 
-        head = self._head
-        # Here we only need to deal with Expressions.
-        equal_heads = head.equal2(rhs._head)
-        if not equal_heads:
-            return equal_heads
-        # From here, we can assume that both heads are the same
-        if head in (SymbolList, SymbolSequence):
-            if len(self._elements) != len(rhs._elements):
-                return False
-            for item1, item2 in zip(self._elements, rhs._elements):
-                result = item1.equal2(item2)
-                if not result:
-                    return result
-            return True
-        elif head in (SymbolDirectedInfinity,):
-            return self._elements[0].equal2(rhs._elements[0])
-        return None
-
-    def slice(self, head, py_slice, evaluation):
-        # faster equivalent to: Expression(head, *self.leaves[py_slice])
-        return structure(head, self, evaluation).slice(self, py_slice)
-
-    def filter(self, head, cond, evaluation):
-        # faster equivalent to: Expression(head, [element in self.leaves if cond(element)])
-        return structure(head, self, evaluation).filter(self, cond)
-
-    def restructure(self, head, leaves, evaluation, structure_cache=None, deps=None):
-        # faster equivalent to: Expression(head, *leaves)
-
-        # the caller guarantees that _all_ elements in leaves are either from
-        # self.leaves (or its sub trees) or from one of the expression given
-        # in the tuple "deps" (or its sub trees).
-
-        # if this method is called repeatedly, and the caller guarantees
-        # that no definitions change between subsequent calls, then heads_cache
-        # may be passed an initially empty dict to speed up calls.
-
-        if deps is None:
-            deps = self
-        s = structure(head, deps, evaluation, structure_cache=structure_cache)
-        return s(list(leaves))
-
-    def _no_symbol(self, symbol_name):
-        # if this return True, it's safe to say that self.leaves or its
-        # sub leaves contain no Symbol with symbol_name. if this returns
-        # False, such a Symbol might or might not exist.
-
-        cache = self._cache
-        if cache is None:
-            return False
-
-        symbols = cache.symbols
-        if symbols is not None and symbol_name not in symbols:
-            return True
-        else:
-            return False
-
-    def sequences(self):
-        cache = self._cache
-        if cache:
-            seq = cache.sequences
-            if seq is not None:
-                return seq
-
-        return self._rebuild_cache().sequences
+        f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
+        return f(*sym_args)
 
     def _flatten_sequence(self, sequence, evaluation) -> "Expression":
         indices = self.sequences()
@@ -291,27 +213,20 @@ class Expression(BaseExpression, NumericOperators):
 
         return self.restructure(self._head, flattened, evaluation)
 
-    def flatten_sequence(self, evaluation):
-        def sequence(element):
-            if element.get_head_name() == "System`Sequence":
-                return element._elements
-            else:
-                return [element]
+    def _no_symbol(self, symbol_name):
+        # if this return True, it's safe to say that self.leaves or its
+        # sub leaves contain no Symbol with symbol_name. if this returns
+        # False, such a Symbol might or might not exist.
 
-        return self._flatten_sequence(sequence, evaluation)
+        cache = self._cache
+        if cache is None:
+            return False
 
-    def flatten_pattern_sequence(self, evaluation):
-        def sequence(element):
-            flattened = element.flatten_pattern_sequence(evaluation)
-            if element.get_head() is SymbolSequence and element.pattern_sequence:
-                return flattened._elements
-            else:
-                return [flattened]
-
-        expr = self._flatten_sequence(sequence, evaluation)
-        if hasattr(self, "options"):
-            expr.options = self.options
-        return expr
+        symbols = cache.symbols
+        if symbols is not None and symbol_name not in symbols:
+            return True
+        else:
+            return False
 
     def _rebuild_cache(self):
         cache = self._cache
@@ -341,25 +256,6 @@ class Expression(BaseExpression, NumericOperators):
         self._cache = cache
         return cache
 
-    def has_changed(self, definitions):
-        cache = self._cache
-
-        if cache is None:
-            return True
-
-        time = cache.time
-
-        if time is None:
-            return True
-
-        if cache.symbols is None:
-            cache = self._rebuild_cache()
-
-        return definitions.has_changed(time, cache.symbols)
-
-    def _timestamp_cache(self, evaluation):
-        self._cache = ExpressionCache(evaluation.definitions.now, copy=self._cache)
-
     def copy(self, reevaluate=False) -> "Expression":
         expr = Expression(self._head.copy(reevaluate))
         expr._elements = tuple(element.copy(reevaluate) for element in self._elements)
@@ -372,6 +268,9 @@ class Expression(BaseExpression, NumericOperators):
         expr._sequences = self._sequences
         expr._format_cache = self._format_cache
         return expr
+
+    def _timestamp_cache(self, evaluation):
+        self._cache = ExpressionCache(evaluation.definitions.now, copy=self._cache)
 
     def do_format(self, evaluation, form):
         if self._format_cache is None:
@@ -393,55 +292,211 @@ class Expression(BaseExpression, NumericOperators):
         self._format_cache[form] = (evaluation.definitions.now, expr)
         return expr
 
-    def shallow_copy(self) -> "Expression":
-        # this is a minimal, shallow copy: head, elements are shared with
-        # the original, only the Expression instance is new.
-        expr = Expression(self._head)
-        expr._elements = self._elements
-        # rebuilding the cache in self speeds up large operations, e.g.
-        # First[Timing[Fold[#1+#2&, Range[750]]]]
-        expr._cache = self._rebuild_cache()
-        expr.options = self.options
-        # expr.last_evaluated = self.last_evaluated
-        return expr
-
-    def get_head(self):
-        return self._head
-
-    def get_head_name(self):
-        return self._head.name if isinstance(self._head, Symbol) else ""
-
-    def set_head(self, head):
-        self._head = head
-        self._cache = None
-
-    def get_elements(self):
+    @property
+    def elements(self):
         return self._elements
 
-    # Compatibily with old code. Deprecated, but remove after a little bit
-    get_leaves = get_elements
+    def equal2(self, rhs: Any) -> Optional[bool]:
+        """Mathics two-argument Equal (==)
+        returns True if self and rhs are identical.
+        """
+        if self.sameQ(rhs):
+            return True
+        # if rhs is an Atom, return None
+        elif isinstance(rhs, Atom):
+            return None
 
-    def get_mutable_elements(self) -> list:
-        """
-        Return a shallow mutable copy of the elements
-        """
-        return list(self._elements)
+        head = self._head
+        # Here we only need to deal with Expressions.
+        equal_heads = head.equal2(rhs._head)
+        if not equal_heads:
+            return equal_heads
+        # From here, we can assume that both heads are the same
+        if head in (SymbolList, SymbolSequence):
+            if len(self._elements) != len(rhs._elements):
+                return False
+            for item1, item2 in zip(self._elements, rhs._elements):
+                result = item1.equal2(item2)
+                if not result:
+                    return result
+            return True
+        elif head in (SymbolDirectedInfinity,):
+            return self._elements[0].equal2(rhs._elements[0])
+        return None
 
-    def set_element(self, index: int, value):
-        """
-        Update element[i] with value
-        """
-        elements = list(self._elements)
-        elements[index] = value
-        self._elements = tuple(elements)
-        self._cache = None
+    # Note that the return type is some subclass of BaseExpression, it could be
+    # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
+    # the point of evaluation when there is not an error is to produce a concrete result.
+    def evaluate(
+        self,
+        evaluation: Evaluation,
+    ) -> typing.Type["BaseExpression"]:
+        """Apply transformation rules and expression evaluation to `evaluation` via
+        `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
 
-    def set_reordered_elements(
-        self, elements
-    ):  # same elements, but in a different order
-        self._elements = tuple(elements)
-        if self._cache:
-            self._cache = self._cache.reordered()
+        Note that this is a recusive process and
+        `rewrite_apply_eval_step()` may call us recursively.
+
+        Limits are either an evaluation iteration count or a timeout value.
+
+        """
+        if evaluation.timeout:
+            return
+
+        expr = self
+        reevaluate = True
+        limit = None
+        iteration = 1
+        names = set()
+        definitions = evaluation.definitions
+
+        old_options = evaluation.options
+        evaluation.inc_recursion_depth()
+        if evaluation.definitions.trace_evaluation:
+            if evaluation.definitions.timing_trace_evaluation:
+                evaluation.print_out(time.time() - evaluation.start_time)
+            evaluation.print_out(
+                "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
+            )
+        try:
+            # Evaluation loop:
+            while reevaluate:
+                # changed before last evaluated?
+                # This prevents to reevaluate expressions that
+                # have been already evaluated. This uses Expression._cache
+                if not expr.has_changed(definitions):
+                    break
+
+                # Here the names of the lookupname of the expression
+                # are stored. This is necesary for the implementation
+                # of the builtin `Return[]`
+                names.add(expr.get_lookup_name())
+
+                # This loads the default options associated
+                # to the expression
+                if hasattr(expr, "options") and expr.options:
+                    evaluation.options = expr.options
+
+                # This calls evaluate_next. This routine implements a single
+                # step in the evaluation, and determines if a fixed point
+                # was reached (reevaluate->False).
+                # Notice that evaluate_next calls ``evaluate``
+                # for the other ``BaseExpression`` subclasses.
+                expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
+
+                if not reevaluate:
+                    break
+
+                # Trace evaluation...
+                if evaluation.definitions.trace_evaluation:
+                    evaluation.print_out(
+                        "  " * evaluation.recursion_depth + "-> %s" % expr
+                    )
+                iteration += 1
+                # Check if the iterationlimit was reached.
+                # we need to check on each step, in case that the expression
+                # changes its value. Maybe there is another way, for example,
+                # keeping the index in the Evaluation object.
+                if limit is None:
+                    limit = definitions.get_config_value("$IterationLimit")
+                    if limit is None:
+                        limit = "inf"
+                if limit != "inf" and iteration > limit:
+                    evaluation.error("$IterationLimit", "itlim", limit)
+                    return SymbolAborted
+
+        # "Return gets discarded only if it was called from within the r.h.s.
+        # of a user-defined rule."
+        # http://mathematica.stackexchange.com/questions/29353/how-does-return-work
+        # Otherwise it propogates up.
+        #
+        except ReturnInterrupt as ret:
+            if names.intersection(definitions.user.keys()):
+                return ret.expr
+            else:
+                raise ret
+        finally:
+            # Restores the state
+            evaluation.options = old_options
+            evaluation.dec_recursion_depth()
+
+        return expr
+
+    def evaluate_elements(self, evaluation) -> "Expression":
+        elements = [element.evaluate(evaluation) for element in self._elements]
+        head = self._head.evaluate_elements(evaluation)
+        return Expression(head, *elements)
+
+    def filter(self, head, cond, evaluation):
+        # faster equivalent to: Expression(head, [element in self.leaves if cond(element)])
+        return structure(head, self, evaluation).filter(self, cond)
+
+    def flatten(
+        self, head, pattern_only=False, callback=None, level=None
+    ) -> "Expression":
+        """
+        Flatten elements in nested expressions
+
+        head: head of the leaves to be flatten
+        callback:  a callback function called each time a element is flattened.
+        level:   maximum deep to flatten
+        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
+
+        For example if head=G,
+        F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
+
+        """
+        if level is not None and level <= 0:
+            return self
+        if self._no_symbol(head.get_name()):
+            return self
+        sub_level = None if level is None else level - 1
+        do_flatten = False
+        for element in self._elements:
+            if element.get_head().sameQ(head) and (
+                not pattern_only or element.pattern_sequence
+            ):
+                do_flatten = True
+                break
+        if do_flatten:
+            new_elements = []
+            for element in self._elements:
+                if element.get_head().sameQ(head) and (
+                    not pattern_only or element.pattern_sequence
+                ):
+                    new_element = element.flatten(
+                        head, pattern_only, callback, level=sub_level
+                    )
+                    if callback is not None:
+                        callback(new_element._elements, element)
+                    new_elements.extend(new_element._elements)
+                else:
+                    new_elements.append(element)
+            return Expression(self._head, *new_elements)
+        else:
+            return self
+
+    def flatten_pattern_sequence(self, evaluation):
+        def sequence(element):
+            flattened = element.flatten_pattern_sequence(evaluation)
+            if element.get_head() is SymbolSequence and element.pattern_sequence:
+                return flattened._elements
+            else:
+                return [flattened]
+
+        expr = self._flatten_sequence(sequence, evaluation)
+        if hasattr(self, "options"):
+            expr.options = self.options
+        return expr
+
+    def flatten_sequence(self, evaluation):
+        def sequence(element):
+            if element.get_head_name() == "System`Sequence":
+                return element._elements
+            else:
+                return [element]
+
+        return self._flatten_sequence(sequence, evaluation)
 
     def get_attributes(self, definitions):
         if self._head is SymbolFunction and len(self._elements) > 2:
@@ -452,6 +507,18 @@ class Expression(BaseExpression, NumericOperators):
                 return set(str(a) for a in res._elements)
         return nothing
 
+    def get_elements(self):
+        return self._elements
+
+    # Compatibily with old code. Deprecated, but remove after a little bit
+    get_leaves = get_elements
+
+    def get_head(self):
+        return self._head
+
+    def get_head_name(self):
+        return self._head.name if isinstance(self._head, Symbol) else ""
+
     def get_lookup_name(self) -> bool:
         lookup_symbol = self._head
         while True:
@@ -461,130 +528,11 @@ class Expression(BaseExpression, NumericOperators):
                 return lookup_symbol.get_head().name
             lookup_symbol = lookup_symbol._head
 
-    def has_form(self, heads, *element_counts):
+    def get_mutable_elements(self) -> list:
         """
-        element_counts:
-            (,):        no elements allowed
-            (None,):    no constraint on number of elements
-            (n, None):  leaf count >= n
-            (n1, n2, ...):    leaf count in {n1, n2, ...}
+        Return a shallow mutable copy of the elements
         """
-
-        head_name = self._head.get_name()
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
-                return False
-        else:
-            if head_name != ensure_context(heads):
-                return False
-        if not element_counts:
-            return False
-        if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
-            if count not in element_counts:
-                if (
-                    len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
-                    and count >= element_counts[0]
-                ):
-                    return True
-                else:
-                    return False
-        return True
-
-    def has_symbol(self, symbol_name) -> bool:
-        if self._no_symbol(symbol_name):
-            return False
-        return self._head.has_symbol(symbol_name) or any(
-            element.has_symbol(symbol_name) for element in self._elements
-        )
-
-    def _as_sympy_function(self, **kwargs) -> sympy.Function:
-        sym_args = [leaf.to_sympy(**kwargs) for leaf in self.leaves]
-
-        if None in sym_args:
-            return None
-
-        f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
-        return f(*sym_args)
-
-    def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
-
-        if "convert_all_global_functions" in kwargs:
-            if len(self.leaves) > 0 and kwargs["convert_all_global_functions"]:
-                if self.get_head_name().startswith("Global`"):
-                    return self._as_sympy_function(**kwargs)
-
-        if "converted_functions" in kwargs:
-            functions = kwargs["converted_functions"]
-            if len(self._elements) > 0 and self.get_head_name() in functions:
-                sym_args = [element.to_sympy() for element in self._elements]
-                if None in sym_args:
-                    return None
-                func = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))(
-                    *sym_args
-                )
-                return func
-
-        lookup_name = self.get_lookup_name()
-        builtin = mathics_to_sympy.get(lookup_name)
-        if builtin is not None:
-            sympy_expr = builtin.to_sympy(self, **kwargs)
-            if sympy_expr is not None:
-                return sympy_expr
-
-        return SympyExpression(self)
-
-    def to_python(self, *args, **kwargs):
-        """
-        Convert the Expression to a Python object:
-        List[...]  -> Python list
-        DirectedInfinity[1] -> inf
-        DirectedInfinity[-1] -> -inf
-        True/False -> True/False
-        Null       -> None
-        Symbol     -> '...'
-        String     -> '"..."'
-        Function   -> python function
-        numbers    -> Python number
-        If kwarg n_evaluation is given, apply N first to the expression.
-        """
-        from mathics.builtin.base import mathics_to_python
-
-        n_evaluation = kwargs.get("n_evaluation")
-        head = self._head
-        if n_evaluation is not None:
-            if head is SymbolFunction:
-                compiled = Expression(SymbolCompile, *(self._elements))
-                compiled = compiled.evaluate(n_evaluation)
-                if compiled.get_head() is SymbolCompiledFunction:
-                    return compiled.leaves[2].cfunc
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
-
-        if head is SymbolDirectedInfinity and len(self._elements) == 1:
-            direction = self._elements[0].get_int_value()
-            if direction == 1:
-                return math.inf
-            if direction == -1:
-                return -math.inf
-        elif head is SymbolList:
-            return [element.to_python(*args, **kwargs) for element in self._elements]
-
-        head_name = head.get_name()
-        if head_name in mathics_to_python:
-            py_obj = mathics_to_python[head_name]
-            # Start here
-            # if inspect.isfunction(py_obj) or inspect.isbuiltin(py_obj):
-            #     args = [element.to_python(*args, **kwargs) for element in self._elements]
-            #     return ast.Call(
-            #         func=py_obj.__name__,
-            #         args=args,
-            #         keywords=[],
-            #         )
-            return py_obj
-        return self
+        return list(self._elements)
 
     def get_sort_key(self, pattern_sort=False):
 
@@ -718,165 +666,216 @@ class Expression(BaseExpression, NumericOperators):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
-    def sameQ(self, other: BaseExpression) -> bool:
-        """Mathics SameQ"""
-        if not isinstance(other, Expression):
-            return False
-        if self is other:
+    def has_changed(self, definitions):
+        cache = self._cache
+
+        if cache is None:
             return True
-        if not self._head.sameQ(other.get_head()):
+
+        time = cache.time
+
+        if time is None:
+            return True
+
+        if cache.symbols is None:
+            cache = self._rebuild_cache()
+
+        return definitions.has_changed(time, cache.symbols)
+
+    def has_form(self, heads, *element_counts):
+        """
+        element_counts:
+            (,):        no elements allowed
+            (None,):    no constraint on number of elements
+            (n, None):  leaf count >= n
+            (n1, n2, ...):    leaf count in {n1, n2, ...}
+        """
+
+        head_name = self._head.get_name()
+        if isinstance(heads, (tuple, list, set)):
+            if head_name not in [ensure_context(h) for h in heads]:
+                return False
+        else:
+            if head_name != ensure_context(heads):
+                return False
+        if not element_counts:
             return False
-        if len(self._elements) != len(other.get_elements()):
+        if element_counts and element_counts[0] is not None:
+            count = len(self._elements)
+            if count not in element_counts:
+                if (
+                    len(element_counts) == 2
+                    and element_counts[1] is None  # noqa
+                    and count >= element_counts[0]
+                ):
+                    return True
+                else:
+                    return False
+        return True
+
+    def has_symbol(self, symbol_name) -> bool:
+        if self._no_symbol(symbol_name):
             return False
-        return all(
-            (id(element) == id(oelement) or element.sameQ(oelement))
-            for element, oelement in zip(self._elements, other.get_elements())
+        return self._head.has_symbol(symbol_name) or any(
+            element.has_symbol(symbol_name) for element in self._elements
         )
 
-    def flatten(
-        self, head, pattern_only=False, callback=None, level=None
-    ) -> "Expression":
+    @property
+    def head(self):
+        return self._head
+
+    @head.setter
+    def head(self, value):
+        raise ValueError("Expression.head is write protected.")
+
+    # Deprecated - remove eventually
+    @property
+    def leaves(self):
+        return self._elements
+
+    # Deprecated - remove eventually
+    @leaves.setter
+    def leaves(self, value):
+        raise ValueError("Expression.leaves is write protected.")
+
+    def restructure(self, head, leaves, evaluation, structure_cache=None, deps=None):
+        # faster equivalent to: Expression(head, *leaves)
+
+        # the caller guarantees that _all_ elements in leaves are either from
+        # self.leaves (or its sub trees) or from one of the expression given
+        # in the tuple "deps" (or its sub trees).
+
+        # if this method is called repeatedly, and the caller guarantees
+        # that no definitions change between subsequent calls, then heads_cache
+        # may be passed an initially empty dict to speed up calls.
+
+        if deps is None:
+            deps = self
+        s = structure(head, deps, evaluation, structure_cache=structure_cache)
+        return s(list(leaves))
+
+    def sequences(self):
+        cache = self._cache
+        if cache:
+            seq = cache.sequences
+            if seq is not None:
+                return seq
+
+        return self._rebuild_cache().sequences
+
+    def set_head(self, head):
+        self._head = head
+        self._cache = None
+
+    def set_element(self, index: int, value):
         """
-        Flatten elements in nested expressions
-
-        head: head of the leaves to be flatten
-        callback:  a callback function called each time a element is flattened.
-        level:   maximum deep to flatten
-        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
-
-        For example if head=G,
-        F[G[a,G[s,y],t],...]->F[G[a,s,y,t],...]
-
+        Update element[i] with value
         """
-        if level is not None and level <= 0:
-            return self
-        if self._no_symbol(head.get_name()):
-            return self
-        sub_level = None if level is None else level - 1
-        do_flatten = False
-        for element in self._elements:
-            if element.get_head().sameQ(head) and (
-                not pattern_only or element.pattern_sequence
-            ):
-                do_flatten = True
-                break
-        if do_flatten:
-            new_elements = []
-            for element in self._elements:
-                if element.get_head().sameQ(head) and (
-                    not pattern_only or element.pattern_sequence
-                ):
-                    new_element = element.flatten(
-                        head, pattern_only, callback, level=sub_level
-                    )
-                    if callback is not None:
-                        callback(new_element._elements, element)
-                    new_elements.extend(new_element._elements)
-                else:
-                    new_elements.append(element)
-            return Expression(self._head, *new_elements)
-        else:
-            return self
+        elements = list(self._elements)
+        elements[index] = value
+        self._elements = tuple(elements)
+        self._cache = None
 
-    # When we allow 3.9 only, the return type could become type[Expression]
-    # See https://adamj.eu/tech/2021/05/16/python-type-hints-return-class-not-instance/
-    # Note that the return type is some subclass of BaseExpression, it could be
-    # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
-    # the point of evaluation when there is not an error is to produce a concrete result.
-    def evaluate(
-        self,
-        evaluation: Evaluation,
-    ) -> typing.Type["BaseExpression"]:
-        """Apply transformation rules and expression evaluation to `evaluation` via
-        `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
+    def set_reordered_elements(
+        self, elements
+    ):  # same elements, but in a different order
+        self._elements = tuple(elements)
+        if self._cache:
+            self._cache = self._cache.reordered()
 
-        Note that this is a recusive process and
-        `rewrite_apply_eval_step()` may call us recursively.
-
-        Limits are either an evaluation iteration count or a timeout value.
-
-        """
-        if evaluation.timeout:
-            return
-
-        expr = self
-        reevaluate = True
-        limit = None
-        iteration = 1
-        names = set()
-        definitions = evaluation.definitions
-
-        old_options = evaluation.options
-        evaluation.inc_recursion_depth()
-        if evaluation.definitions.trace_evaluation:
-            if evaluation.definitions.timing_trace_evaluation:
-                evaluation.print_out(time.time() - evaluation.start_time)
-            evaluation.print_out(
-                "  " * evaluation.recursion_depth + "Evaluating: %s" % expr
-            )
-        try:
-            # Evaluation loop:
-            while reevaluate:
-                # changed before last evaluated?
-                # This prevents to reevaluate expressions that
-                # have been already evaluated. This uses Expression._cache
-                if not expr.has_changed(definitions):
-                    break
-
-                # Here the names of the lookupname of the expression
-                # are stored. This is necesary for the implementation
-                # of the builtin `Return[]`
-                names.add(expr.get_lookup_name())
-
-                # This loads the default options associated
-                # to the expression
-                if hasattr(expr, "options") and expr.options:
-                    evaluation.options = expr.options
-
-                # This calls evaluate_next. This routine implements a single
-                # step in the evaluation, and determines if a fixed point
-                # was reached (reevaluate->False).
-                # Notice that evaluate_next calls ``evaluate``
-                # for the other ``BaseExpression`` subclasses.
-                expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
-
-                if not reevaluate:
-                    break
-
-                # Trace evaluation...
-                if evaluation.definitions.trace_evaluation:
-                    evaluation.print_out(
-                        "  " * evaluation.recursion_depth + "-> %s" % expr
-                    )
-                iteration += 1
-                # Check if the iterationlimit was reached.
-                # we need to check on each step, in case that the expression
-                # changes its value. Maybe there is another way, for example,
-                # keeping the index in the Evaluation object.
-                if limit is None:
-                    limit = definitions.get_config_value("$IterationLimit")
-                    if limit is None:
-                        limit = "inf"
-                if limit != "inf" and iteration > limit:
-                    evaluation.error("$IterationLimit", "itlim", limit)
-                    return SymbolAborted
-
-        # "Return gets discarded only if it was called from within the r.h.s.
-        # of a user-defined rule."
-        # http://mathematica.stackexchange.com/questions/29353/how-does-return-work
-        # Otherwise it propogates up.
-        #
-        except ReturnInterrupt as ret:
-            if names.intersection(definitions.user.keys()):
-                return ret.expr
-            else:
-                raise ret
-        finally:
-            # Restores the state
-            evaluation.options = old_options
-            evaluation.dec_recursion_depth()
-
+    def shallow_copy(self) -> "Expression":
+        # this is a minimal, shallow copy: head, elements are shared with
+        # the original, only the Expression instance is new.
+        expr = Expression(self._head)
+        expr._elements = self._elements
+        # rebuilding the cache in self speeds up large operations, e.g.
+        # First[Timing[Fold[#1+#2&, Range[750]]]]
+        expr._cache = self._rebuild_cache()
+        expr.options = self.options
+        # expr.last_evaluated = self.last_evaluated
         return expr
+
+    def slice(self, head, py_slice, evaluation):
+        # faster equivalent to: Expression(head, *self.leaves[py_slice])
+        return structure(head, self, evaluation).slice(self, py_slice)
+
+    def to_sympy(self, **kwargs):
+        from mathics.builtin import mathics_to_sympy
+
+        if "convert_all_global_functions" in kwargs:
+            if len(self.leaves) > 0 and kwargs["convert_all_global_functions"]:
+                if self.get_head_name().startswith("Global`"):
+                    return self._as_sympy_function(**kwargs)
+
+        if "converted_functions" in kwargs:
+            functions = kwargs["converted_functions"]
+            if len(self._elements) > 0 and self.get_head_name() in functions:
+                sym_args = [element.to_sympy() for element in self._elements]
+                if None in sym_args:
+                    return None
+                func = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))(
+                    *sym_args
+                )
+                return func
+
+        lookup_name = self.get_lookup_name()
+        builtin = mathics_to_sympy.get(lookup_name)
+        if builtin is not None:
+            sympy_expr = builtin.to_sympy(self, **kwargs)
+            if sympy_expr is not None:
+                return sympy_expr
+
+        return SympyExpression(self)
+
+    def to_python(self, *args, **kwargs):
+        """
+        Convert the Expression to a Python object:
+        List[...]  -> Python list
+        DirectedInfinity[1] -> inf
+        DirectedInfinity[-1] -> -inf
+        True/False -> True/False
+        Null       -> None
+        Symbol     -> '...'
+        String     -> '"..."'
+        Function   -> python function
+        numbers    -> Python number
+        If kwarg n_evaluation is given, apply N first to the expression.
+        """
+        from mathics.builtin.base import mathics_to_python
+
+        n_evaluation = kwargs.get("n_evaluation")
+        head = self._head
+        if n_evaluation is not None:
+            if head is SymbolFunction:
+                compiled = Expression(SymbolCompile, *(self._elements))
+                compiled = compiled.evaluate(n_evaluation)
+                if compiled.get_head() is SymbolCompiledFunction:
+                    return compiled.leaves[2].cfunc
+            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            return value.to_python()
+
+        if head is SymbolDirectedInfinity and len(self._elements) == 1:
+            direction = self._elements[0].get_int_value()
+            if direction == 1:
+                return math.inf
+            if direction == -1:
+                return -math.inf
+        elif head is SymbolList:
+            return [element.to_python(*args, **kwargs) for element in self._elements]
+
+        head_name = head.get_name()
+        if head_name in mathics_to_python:
+            py_obj = mathics_to_python[head_name]
+            # Start here
+            # if inspect.isfunction(py_obj) or inspect.isbuiltin(py_obj):
+            #     args = [element.to_python(*args, **kwargs) for element in self._elements]
+            #     return ast.Call(
+            #         func=py_obj.__name__,
+            #         args=args,
+            #         keywords=[],
+            #         )
+            return py_obj
+        return self
 
     def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
         """Perform a single rewrite/apply/eval step of the bigger
@@ -1135,19 +1134,20 @@ class Expression(BaseExpression, NumericOperators):
     #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
     #
 
-    def evaluate_elements(self, evaluation) -> "Expression":
-        elements = [element.evaluate(evaluation) for element in self._elements]
-        head = self._head.evaluate_elements(evaluation)
-        return Expression(head, *elements)
-
-    def __str__(self) -> str:
-        return "%s[%s]" % (
-            self._head,
-            ", ".join([element.__str__() for element in self._elements]),
+    def sameQ(self, other: BaseExpression) -> bool:
+        """Mathics SameQ"""
+        if not isinstance(other, Expression):
+            return False
+        if self is other:
+            return True
+        if not self._head.sameQ(other.get_head()):
+            return False
+        if len(self._elements) != len(other.get_elements()):
+            return False
+        return all(
+            (id(element) == id(oelement) or element.sameQ(oelement))
+            for element, oelement in zip(self._elements, other.get_elements())
         )
-
-    def __repr__(self) -> str:
-        return "<Expression: %s>" % self
 
     def process_style_box(self, options):
         if self.has_form("StyleBox", 1, None):
