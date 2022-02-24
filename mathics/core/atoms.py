@@ -14,6 +14,7 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
+    NumericOperators,
     Symbol,
     SymbolHoldForm,
     SymbolFalse,
@@ -74,7 +75,7 @@ def from_mpmath(value, prec=None):
         raise TypeError(type(value))
 
 
-class Number(Atom):
+class Number(Atom, NumericOperators):
     """
     Different kinds of Mathics Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.
@@ -85,14 +86,6 @@ class Number(Atom):
 
     def is_numeric(self, evaluation=None) -> bool:
         return True
-
-    def evaluate(self, evaluation) -> "Number":
-        """Evaluation of a Number is just itself"""
-        # Why bother checking for a time out? If there should be one,
-        # it will probably be caught at a higher level. And
-        # returning `self` is pretty fast anyway.
-        # evaluation.check_stopped()
-        return self
 
 
 def _ExponentFunction(value):
@@ -333,7 +326,13 @@ RationalOneHalf = Rational(1, 2)
 class Real(Number):
     class_head_name = "System`Real"
 
+    # __new__ rather than __init__ is used here because the kind of
+    # object created differs based on contents of "value".
     def __new__(cls, value, p=None) -> "Real":
+        """
+        Return either a MachineReal or a PrecisionReal object.
+        Or raise a TypeError
+        """
         if isinstance(value, str):
             value = str(value)
             if p is None:
