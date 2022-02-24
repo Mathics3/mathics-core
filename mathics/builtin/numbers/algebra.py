@@ -480,7 +480,7 @@ class Simplify(Builtin):
         if expr.is_atom():
             return expr
 
-        # Now, try to simplify the leaves.
+        # Now, try to simplify the elements.
         # TODO:  Consider to move this step inside ``evaluate_predicate``.
         # Notice that here we want to pass through the full evaluation process
         # to use all the defined rules...
