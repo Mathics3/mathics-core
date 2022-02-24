@@ -932,7 +932,7 @@ class Solve(Builtin):
 
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
-        
+
         vars_original = vars
         head_name = vars.get_head_name()
         if head_name == "System`List":
@@ -950,20 +950,23 @@ class Solve(Builtin):
                 return
         eqs_original = eqs
         if eqs.get_head_name() in ("System`List", "System`And"):
-            eqs = eqs.leaves
+            eqs = eqs.elements
         else:
             eqs = [eqs]
         sympy_eqs = []
         sympy_denoms = []
         for eq in eqs:
             if eq is SymbolTrue:
-                pass
+                continue
             elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form("Equal", 2):
-                if any(eq.has_form(operator,2) for operator in ["Less","LessEqual","Greater","GreaterEqual"]):
-                    eq=eq.to_sympy()
-                else:     
+                if any(
+                    eq.has_form(operator, 2)
+                    for operator in ["Less", "LessEqual", "Greater", "GreaterEqual"]
+                ):
+                    eq_sympy = eq.to_sympy()
+                else:
                     return evaluation.message("Solve", "eqf", eqs_original)
             else:
                 left, right = eq.leaves
@@ -971,12 +974,12 @@ class Solve(Builtin):
                 right = right.to_sympy()
                 if left is None or right is None:
                     return
-                eq = left - right
-                eq = sympy.together(eq)
-                eq = sympy.cancel(eq)
-                numer, denom = eq.as_numer_denom()
+                eq_sympy = left - right
+                eq_sympy = sympy.together(eq_sympy)
+                eq_sympy = sympy.cancel(eq_sympy)
+                numer, denom = eq_sympy.as_numer_denom()
                 sympy_denoms.append(denom)
-            sympy_eqs.append(eq)
+            sympy_eqs.append(eq_sympy)
 
         vars_sympy = [var.to_sympy() for var in vars]
         if None in vars_sympy:
