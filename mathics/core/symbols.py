@@ -825,7 +825,12 @@ class Symbol(Atom):
     defined_symbols = {}
     class_head_name = "System`Symbol"
 
+    # __new__ instead of __init__ is used here because we want
+    # to return the same object for a given "name" value.
     def __new__(cls, name, sympy_dummy=None):
+        """
+        Allocate an object ensuring that for a given `name` we get back the same object.
+        """
         name = ensure_context(name)
         self = cls.defined_symbols.get(name, None)
         if self is None:

@@ -325,7 +325,13 @@ RationalOneHalf = Rational(1, 2)
 class Real(Number):
     class_head_name = "System`Real"
 
+    # __new__ rather than __init__ is used here because the kind of
+    # object created differs based on contents of "value".
     def __new__(cls, value, p=None) -> "Real":
+        """
+        Return either a MachineReal or a PrecisionReal object.
+        Or raise a TypeError
+        """
         if isinstance(value, str):
             value = str(value)
             if p is None:
