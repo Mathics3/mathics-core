@@ -30,6 +30,8 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolPlus,
     SymbolPower,
+    SymbolRule,
+    SymbolRuleDelayed,
     SymbolSin,
     SymbolTimes,
 )
@@ -403,53 +405,102 @@ class Simplify(Builtin):
     >> Simplify[f[x]]
      = f[x]
 
-    Simplify over conditional expressions uses $Assumptions, or $assump$
+    Simplify over conditional expressions uses $\$Assumptions$, or $assump$
     to evaluate the condition:
-    # TODO: enable this once the logic for conditional expression
-    # be restaured.
-    # >> $Assumptions={a <= 0};
-    # >> Simplify[ConditionalExpression[1, a > 0]]
-    # = Undefined
-    # >> Simplify[ConditionalExpression[1, a > 0], { a > 0 }]
-    # = 1
+    >> $Assumptions={a <= 0};
+    >> Simplify[ConditionalExpression[1, a > 0]]
+     = Undefined
+    The $assump$ option  override $\$Assumption$:
+    >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], { b > 0 }]
+     = ConditionalExpression[1, a > 0]
+    On the other hand, $Assumptions$ option does not override $\$Assumption$, but add to them:
+    >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], Assumptions -> { b > 0 }]
+     = Undefined
+    Passing both options overwrites $Assumptions with the union of $assump$ the option
+    >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], {a>0},Assumptions -> { b > 0 }]
+     = 1
+    >> $Assumptions={};
     """
 
     rules = {
         "Simplify[list_List]": "Simplify /@ list",
         "Simplify[rule_Rule]": "Simplify /@ rule",
-        "Simplify[list_List, assum_]": "Simplify[#1, assum]& /@ list",
-        "Simplify[rule_Rule, assum_]": "Simplify[#1, assum]& /@ rule",
-        "Simplify[0^a_, assum_]": "ConditionalExpression[0,Simplify[a>0, assum]]",
-        "Simplify[b_^a_, assum_]": "ConditionalExpression[b^a,Simplify[Or[a>0, b!=0],assum]]",
+    }
+    options = {
+        "Assumptions": "$Assumptions",
     }
 
-    def apply_assuming(self, expr, assumptions, evaluation):
-        "%(name)s[expr_, assumptions_]"
-        assumptions = assumptions.evaluate(evaluation)
+    def apply_with_assumptions(self, expr, assum, evaluation, options={}):
+        "%(name)s[expr_, assum_, OptionsPattern[]]"
+
+        # If the second argument is a rule, it means that
+        # it should be taken as an option.
+        if assum.get_head() in (SymbolRule, SymbolRuleDelayed):
+            options[assum.elements[0].get_name()] = assum.elements[1]
+            assum = Symbol("$Assumptions")
+
+        # If the option "Assumptions" was passed, then merge with assum:
+        assumptions_list = options.pop("System`Assumptions")
+        if assumptions_list and assumptions_list is not Symbol("$Assumptions"):
+            if assum.get_head() is not SymbolList:
+                assum = Expression(SymbolList, assum)
+            if assumptions_list.get_head() is not SymbolList:
+                assumptions_list = Expression(SymbolList, assumptions_list)
+            assum = Expression(SymbolList, assum, assumptions_list)
+        assumptions = assum.evaluate(evaluation).flatten(SymbolList)
+        # Now, reevaluate the expression with all the assumptions.
+        simplify_expr = Expression(self.get_name(), expr)
         return dynamic_scoping(
-            lambda ev: self.apply(expr, ev),
+            lambda ev: simplify_expr.evaluate(ev),
             {"System`$Assumptions": assumptions},
             evaluation,
         )
+
+    def apply_power_of_zero(self, b, evaluation):
+        "%(name)s[0^b_]"
+        if self.apply(Expression("Less", 0, b), evaluation, options) is SymbolTrue:
+            return Integer0
+        if self.apply(Expression("Less", b, 0), evaluation, options) is SymbolTrue:
+            return Symbol("ComplexInfinity")
+        if self.apply(Expression("Equal", b, 0), evaluation, options) is SymbolTrue:
+            return Symbol("Indeterminate")
+        return Expression("Power", Integer0, b)
 
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
         # Check first if we are dealing with a logic expression...
         if expr in (SymbolTrue, SymbolFalse, SymbolList):
             return expr
+
+        # ``evaluate_predicate`` tries to reduce expr taking into account
+        # the assumptions established in ``$Assumptions``.
         expr = evaluate_predicate(expr, evaluation)
+
+        # If we get an atom, return it.
         if expr.is_atom():
             return expr
-        # else, use sympy:
-        elements = [self.apply(element, evaluation) for element in expr._elements]
-        head = self.apply(expr.get_head(), evaluation)
+
+        # Now, try to simplify the elements.
+        # TODO:  Consider to move this step inside ``evaluate_predicate``.
+        # Notice that here we want to pass through the full evaluation process
+        # to use all the defined rules...
+        name = self.get_name()
+        elements = [
+            Expression(name, element).evaluate(evaluation) for element in expr._elements
+        ]
+        head = Expression(name, expr.get_head()).evaluate(evaluation)
         expr = Expression(head, *elements)
+
+        # At this point, we used all the tools available in Mathics.
+        # If the expression has a sympy form, try to use it.
+        # Now, convert the expression to sympy
         sympy_expr = expr.to_sympy()
         # If the expression cannot be handled by Sympy, just return it.
         if sympy_expr is None:
             return expr
-        # Tries to apply the rules
+        # Now, try to simplify using sympy
         sympy_result = sympy.simplify(sympy_expr)
+        # and bring it back
         result = from_sympy(sympy_result).evaluate(evaluation)
         return result
 
@@ -473,9 +524,6 @@ class FullSimplify(Simplify):
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
         "FullSimplify[eq_Equal]": "FullSimplify /@ eq",
-        "FullSimplify[list_List, assum_]": "FullSimplify[#1, assum]& /@ list",
-        "FullSimplify[rule_Rule, assum_]": "FullSimplify[#1, assum]& /@ rule",
-        "FullSimplify[eq_Equal, assum_]": "FullSimplify[#1, assum]& /@ eq",
     }
 
 
