@@ -128,7 +128,9 @@ class KeyComparable(object):
 
 class BaseExpression(KeyComparable):
     """
-    This is the base class from which all other Expressions are derived from.
+    This is the base class from which all other Expressions are
+    derived from.  If you think of an Expression as tree-like, then a
+    BaseExpression is a node in the tree.
 
     This class is not complete in of itself and subclasses should adapt or fill in
     what is needed
@@ -136,18 +138,21 @@ class BaseExpression(KeyComparable):
     Some important subclasses: Atom and Expression.
     """
 
-    options: Any
-    pattern_sequence: bool
-    unformatted: Any
     last_evaluated: Any
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
+    # __new__ seems to be used because this object references itself.
+    # In particular:
+    #    self.unformatted = self
+    #
+    # See if there's a way to get rid of this, or ensure that this isn't causing
+    # a garbage collection problem.
     def __new__(cls, *args, **kwargs):
         self = object.__new__(cls)
         self.options = None
         self.pattern_sequence = False
-        self.unformatted = self
+        self.unformatted = self  # This may be a garbage-collection nightmare.
         self._cache = None
         return self
 
@@ -196,16 +201,8 @@ class BaseExpression(KeyComparable):
         return self.evaluate(evaluation), False
 
     def evaluate(self, evaluation) -> "BaseExpression":
-        """
-        This method tries to evaluate the expression up to reach a fixed point, or until receive a stop signal.
-        For "inert" expressions (for example, strings and numbers) it just call `check_stopped`, which raise
-        an exception if the evaluation was aborted. Otherwise, returns self.
-        """
-        # comment @mmatera:
-        # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
-        # Overloaded in "Evaluable" ``BaseExpression`` sub-classes: ``Symbol`` and ``Expression``
-        evaluation.check_stopped()
-        return self
+        """Returns the value of the expression. The subclass must implement this"""
+        raise NotImplementedError
 
     def get_atoms(self, include_heads=True):
         """
@@ -321,7 +318,7 @@ class BaseExpression(KeyComparable):
         """
         Create a new expression by evaluating the head and elements of self.
         """
-        #     # comment @mmatera: Just make sense if the Expression has elements...
+        # comment @mmatera: Just make sense if the Expression has elements...
         return self
 
     def apply_rules(
@@ -736,6 +733,17 @@ class Atom(BaseExpression):
         if isinstance(rhs, Symbol) or not isinstance(rhs, Atom):
             return None
         return self == rhs
+
+    def evaluate(self, evaluation) -> "BaseExpression":
+        """Returns the value of the expression.
+        For "inert" expressions (for example, strings and numbers) it just call `check_stopped`, which raise
+        an exception if the evaluation was aborted. Otherwise, returns self.
+        """
+        # comment @mmatera:
+        # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
+        # Overloaded in "Evaluable" ``BaseExpression`` sub-classes: ``Symbol`` and ``Expression``
+        evaluation.check_stopped()
+        return self
 
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
