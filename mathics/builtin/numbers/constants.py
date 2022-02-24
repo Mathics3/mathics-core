@@ -14,6 +14,7 @@ import sympy
 
 from mathics.builtin.base import Predefined, SympyObject
 from mathics.core.symbols import (
+    NumericOperators,
     Symbol,
     strip_context,
 )
@@ -138,7 +139,7 @@ class _Constant_Common(Predefined):
         return
 
 
-class _MPMathConstant(_Constant_Common):
+class _MPMathConstant(_Constant_Common, NumericOperators):
     """Representation of a constant in mpmath, e.g. Pi, E, I, etc."""
 
     # Subclasses should define this.
@@ -158,7 +159,7 @@ class _MPMathConstant(_Constant_Common):
         return getattr(mpmath, self.mpmath_name)
 
 
-class _NumpyConstant(_Constant_Common):
+class _NumpyConstant(_Constant_Common, NumericOperators):
     """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.

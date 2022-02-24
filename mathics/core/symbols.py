@@ -72,6 +72,49 @@ def strip_context(name) -> str:
     return name
 
 
+# FIXME: move to new module element.py
+class NumericOperators:
+    """
+    These methods are were intented to facilite building
+    ``Expression``s in Mathics code using Python syntax. For example,
+    instead of writing:
+        Expression("Abs", -8)
+    write:
+        abs(Integer(-8))
+    """
+
+    def __abs__(self) -> "BaseExpression":
+        return self.create_expression("Abs", self)
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self.create_expression("Times", self, -1)
+
+    def __add__(self, other) -> "BaseExpression":
+        return self.create_expression("Plus", self, other)
+
+    def __sub__(self, other) -> "BaseExpression":
+        return self.create_expression(
+            "Plus", self, self.create_expression("Times", other, -1)
+        )
+
+    def __mul__(self, other) -> "BaseExpression":
+        return self.create_expression("Times", self, other)
+
+    def __truediv__(self, other) -> "BaseExpression":
+        return self.create_expression("Divide", self, other)
+
+    def __floordiv__(self, other) -> "BaseExpression":
+        return self.create_expression(
+            "Floor", self.create_expression("Divide", self, other)
+        )
+
+    def __pow__(self, other) -> "BaseExpression":
+        return self.create_expression("Power", self, other)
+
+
 # FIXME: figure out how to split off KeyComparible, BaseExpression and
 # Atom from Symbol which is really more "variable"-like in the more
 # conventional programming sense of the word.  Also Split off
@@ -583,40 +626,6 @@ class BaseExpression(KeyComparable):
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
 
-    # All these methods are a handy way to build arithmetic ``Expression``s
-    # using python syntax. Is handy but maybe could be misleading.
-
-    def __abs__(self) -> "BaseExpression":
-        return self.create_expression("Abs", self)
-
-    def __pos__(self):
-        return self
-
-    def __neg__(self):
-        return self.create_expression("Times", self, -1)
-
-    def __add__(self, other) -> "BaseExpression":
-        return self.create_expression("Plus", self, other)
-
-    def __sub__(self, other) -> "BaseExpression":
-        return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, -1)
-        )
-
-    def __mul__(self, other) -> "BaseExpression":
-        return self.create_expression("Times", self, other)
-
-    def __truediv__(self, other) -> "BaseExpression":
-        return self.create_expression("Divide", self, other)
-
-    def __floordiv__(self, other) -> "BaseExpression":
-        return self.create_expression(
-            "Floor", self.create_expression("Divide", self, other)
-        )
-
-    def __pow__(self, other) -> "BaseExpression":
-        return self.create_expression("Power", self, other)
-
 
 class Monomial(object):
     """
@@ -792,7 +801,7 @@ class Atom(BaseExpression):
         return self
 
 
-class Symbol(Atom):
+class Symbol(Atom, NumericOperators):
     """
     Note: Symbol is right now used in a couple of ways which in the
     future may be separated.

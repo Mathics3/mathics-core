@@ -43,6 +43,7 @@ from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
     BaseExpression,
+    NumericOperators,
     Symbol,
     SymbolFalse,
     SymbolList,
@@ -1077,7 +1078,7 @@ class Solve(Builtin):
                 evaluation.message("Solve", "ivar", vars_original)
 
 
-class Integers(Builtin):
+class Integers(Builtin, NumericOperators):
     """
     <dl>
     <dt>'Integers'

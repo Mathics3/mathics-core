@@ -14,6 +14,7 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
     BaseExpression,
+    NumericOperators,
     Symbol,
     SymbolHoldForm,
     SymbolFalse,
@@ -74,7 +75,7 @@ def from_mpmath(value, prec=None):
         raise TypeError(type(value))
 
 
-class Number(Atom):
+class Number(Atom, NumericOperators):
     """
     Different kinds of Mathics Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.

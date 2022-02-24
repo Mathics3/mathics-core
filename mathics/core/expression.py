@@ -20,6 +20,7 @@ from mathics.core.symbols import (
     Atom,
     BaseExpression,
     Monomial,
+    NumericOperators,
     Symbol,
     SymbolList,
     SymbolN,
@@ -156,7 +157,7 @@ class ExpressionCache:
         )
 
 
-class Expression(BaseExpression):
+class Expression(BaseExpression, NumericOperators):
     head: "Symbol"
     leaves: typing.List[Any]
     _sequences: Any
