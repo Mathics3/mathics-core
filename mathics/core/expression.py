@@ -18,7 +18,7 @@ from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
-    BaseExpression,
+    BaseElement,
     Monomial,
     NumericOperators,
     Symbol,
@@ -157,12 +157,12 @@ class ExpressionCache:
         )
 
 
-class Expression(BaseExpression, NumericOperators):
+class Expression(BaseElement, NumericOperators):
     head: "Symbol"
     leaves: typing.List[Any]
     _sequences: Any
 
-    # __new__ seems to be used because BaseExpression does some
+    # __new__ seems to be used because BaseElement does some
     # questionable stuff using new.
     # See if there's a way to get rid of this, or ensure that this isn't causing
     # a garbage collection problem.
@@ -324,13 +324,13 @@ class Expression(BaseExpression, NumericOperators):
             return self._elements[0].equal2(rhs._elements[0])
         return None
 
-    # Note that the return type is some subclass of BaseExpression, it could be
-    # a Real, an Expression, etc. It probably will *not* be a BaseExpression since
+    # Note that the return type is some subclass of BaseElement, it could be
+    # a Real, an Expression, etc. It probably will *not* be a BaseElement since
     # the point of evaluation when there is not an error is to produce a concrete result.
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> typing.Type["BaseExpression"]:
+    ) -> typing.Type["BaseElement"]:
         """Apply transformation rules and expression evaluation to `evaluation` via
         `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
 
@@ -381,7 +381,7 @@ class Expression(BaseExpression, NumericOperators):
                 # step in the evaluation, and determines if a fixed point
                 # was reached (reevaluate->False).
                 # Notice that evaluate_next calls ``evaluate``
-                # for the other ``BaseExpression`` subclasses.
+                # for the other ``BaseElement`` subclasses.
                 expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
 
                 if not reevaluate:
@@ -1134,7 +1134,7 @@ class Expression(BaseExpression, NumericOperators):
     #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
     #
 
-    def sameQ(self, other: BaseExpression) -> bool:
+    def sameQ(self, other: BaseElement) -> bool:
         """Mathics SameQ"""
         if not isinstance(other, Expression):
             return False
@@ -1564,7 +1564,7 @@ class Expression(BaseExpression, NumericOperators):
                 element.is_numeric() for element in self._elements
             )
 
-    def numerify(self, evaluation) -> "BaseExpression":
+    def numerify(self, evaluation) -> "BaseElement":
         """
         Produces a new expression equivalent to the original,
         s.t. inexact numeric elements are reduced to Real numbers with
@@ -1633,7 +1633,7 @@ def _create_expression(self, head, *elements):
     return Expression(head, *elements)
 
 
-BaseExpression.create_expression = _create_expression
+BaseElement.create_expression = _create_expression
 
 
 def get_default_value(name, evaluation, k=None, n=None):

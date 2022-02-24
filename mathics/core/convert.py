@@ -3,7 +3,7 @@
 
 """
 Converts expressions from SymPy to Mathics expressions.
-Conversion to SymPy is handled directly in BaseExpression descendants.
+Conversion to SymPy is handled directly in BaseElement descendants.
 """
 
 import sympy

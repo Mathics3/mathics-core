@@ -13,7 +13,7 @@ from functools import lru_cache
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
-    BaseExpression,
+    BaseElement,
     NumericOperators,
     Symbol,
     SymbolHoldForm,
@@ -1021,7 +1021,7 @@ def from_python(arg):
     from mathics.builtin.base import BoxConstruct
     from mathics.core.expression import Expression
 
-    if isinstance(arg, (BaseExpression, BoxConstruct)):
+    if isinstance(arg, (BaseElement, BoxConstruct)):
         return arg
 
     number_type = get_type(arg)

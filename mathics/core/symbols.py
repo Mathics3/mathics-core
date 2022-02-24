@@ -75,7 +75,7 @@ def strip_context(name) -> str:
 # FIXME: move to new module element.py
 class NumericOperators:
     """
-    These methods are were intented to facilite building
+    This is a mixin class that adds methods to the class to facilite building
     ``Expression``s in Mathics code using Python syntax. For example,
     instead of writing:
         Expression("Abs", -8)
@@ -83,7 +83,7 @@ class NumericOperators:
         abs(Integer(-8))
     """
 
-    def __abs__(self) -> "BaseExpression":
+    def __abs__(self) -> "BaseElement":
         return self.create_expression("Abs", self)
 
     def __pos__(self):
@@ -92,30 +92,30 @@ class NumericOperators:
     def __neg__(self):
         return self.create_expression("Times", self, -1)
 
-    def __add__(self, other) -> "BaseExpression":
+    def __add__(self, other) -> "BaseElement":
         return self.create_expression("Plus", self, other)
 
-    def __sub__(self, other) -> "BaseExpression":
+    def __sub__(self, other) -> "BaseElement":
         return self.create_expression(
             "Plus", self, self.create_expression("Times", other, -1)
         )
 
-    def __mul__(self, other) -> "BaseExpression":
+    def __mul__(self, other) -> "BaseElement":
         return self.create_expression("Times", self, other)
 
-    def __truediv__(self, other) -> "BaseExpression":
+    def __truediv__(self, other) -> "BaseElement":
         return self.create_expression("Divide", self, other)
 
-    def __floordiv__(self, other) -> "BaseExpression":
+    def __floordiv__(self, other) -> "BaseElement":
         return self.create_expression(
             "Floor", self.create_expression("Divide", self, other)
         )
 
-    def __pow__(self, other) -> "BaseExpression":
+    def __pow__(self, other) -> "BaseElement":
         return self.create_expression("Power", self, other)
 
 
-# FIXME: figure out how to split off KeyComparible, BaseExpression and
+# FIXME: figure out how to split off KeyComparible, BaseElement and
 # Atom from Symbol which is really more "variable"-like in the more
 # conventional programming sense of the word.  Also Split off
 # SymbolLiteral (the Lisp notion of Symbol, an immutable object like a
@@ -169,11 +169,11 @@ class KeyComparable(object):
         ) or self.get_sort_key() != other.get_sort_key()
 
 
-class BaseExpression(KeyComparable):
+class BaseElement(KeyComparable):
     """
     This is the base class from which all other Expressions are
     derived from.  If you think of an Expression as tree-like, then a
-    BaseExpression is a node in the tree.
+    BaseElement is a node in the tree.
 
     This class is not complete in of itself and subclasses should adapt or fill in
     what is needed
@@ -201,7 +201,7 @@ class BaseExpression(KeyComparable):
 
     def apply_rules(
         self, rules, evaluation, level=0, options=None
-    ) -> typing.Tuple["BaseExpression", bool]:
+    ) -> typing.Tuple["BaseElement", bool]:
         """
         Tries to apply one by one the rules in `rules`.
         If one of the rules matches, returns the result and the flag True.
@@ -350,29 +350,20 @@ class BaseExpression(KeyComparable):
             return self == rhs
         return None
 
-    def evaluate(self, evaluation) -> "BaseExpression":
+    def evaluate(self, evaluation) -> "BaseElement":
         """Returns the value of the expression. The subclass must implement this"""
         raise NotImplementedError
 
     # comment @mmatera: This just makes sense if the Expression has elements...
     # rocky: however it is currently getting called when on Atoms; so more work
     # is needed to remove this, probably by fixing the callers.
-    def evaluate_elements(self, evaluation) -> "BaseExpression":
+    def evaluate_elements(self, evaluation) -> "BaseElement":
         """
         Create a new expression by evaluating the head and elements of self.
         """
         return self
 
-    def flatten(self, head, pattern_only=False, callback=None) -> "BaseExpression":
-        return self
-
-    def flatten_sequence(self, evaluation) -> "BaseExpression":
-        return self
-
-    def flatten_pattern_sequence(self, evaluation) -> "BaseExpression":
-        return self
-
-    def format(self, evaluation, form, **kwargs) -> "BaseExpression":
+    def format(self, evaluation, form, **kwargs) -> "BaseElement":
         """
         Applies formats associated to the expression, and then calls Makeboxes
         """
@@ -443,7 +434,7 @@ class BaseExpression(KeyComparable):
         If self is not an expression,
         """
         # comment @mmatera: The implementation of this is awfull.
-        # This general method (in BaseExpression) should be simpler (Numbers does not have Options).
+        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
         # The implementation should be move to Symbol and Expression classes.
 
         from mathics.core.atoms import String
@@ -708,7 +699,7 @@ class Monomial(object):
         return 0
 
 
-class Atom(BaseExpression):
+class Atom(BaseElement):
     """
     Atoms are the leaves (in the common tree sense, not the Mathics
     ``_elements`` sense) and Heads of an Expression or M-Expression.
@@ -751,7 +742,7 @@ class Atom(BaseExpression):
             return None
         return self == rhs
 
-    def evaluate(self, evaluation) -> "BaseExpression":
+    def evaluate(self, evaluation) -> "BaseElement":
         """Returns the value of the expression.
 
         The value of an Atom is itself.
@@ -759,6 +750,15 @@ class Atom(BaseExpression):
         return self
 
     rewrite_apply_eval = evaluate
+
+    def flatten(self, head, pattern_only=False, callback=None) -> "BaseElement":
+        return self
+
+    def flatten_sequence(self, evaluation) -> "BaseElement":
+        return self
+
+    def flatten_pattern_sequence(self, evaluation) -> "BaseElement":
+        return self
 
     def get_atom_name(self) -> str:
         return self.__class__.__name__

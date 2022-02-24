@@ -470,7 +470,7 @@ class Read(Builtin):
             ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
         )
 
-        from mathics.core.expression import BaseExpression
+        from mathics.core.expression import BaseElement
         from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
         from mathics.core.parser import MathicsMultiLineFeeder, parse
 
@@ -508,7 +508,7 @@ class Read(Builtin):
                             "Read", "readt", tmp, Expression("InputSteam", name, n)
                         )
                         return SymbolFailed
-                    elif isinstance(expr, BaseExpression):
+                    elif isinstance(expr, BaseElement):
                         if typ is Symbol("HoldExpression"):
                             expr = Expression("Hold", expr)
                         result.append(expr)

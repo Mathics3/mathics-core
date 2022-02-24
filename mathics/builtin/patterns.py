@@ -1603,19 +1603,19 @@ class OptionsPattern(PatternObject):
         return [leaf for leaf in leaves if _match(leaf)]
 
 
-class _StopGeneratorBaseExpressionIsFree(StopGenerator):
+class _StopGeneratorBaseElementIsFree(StopGenerator):
     pass
 
 
 def item_is_free(item, form, evaluation):
     # for vars, rest in form.match(self, {}, evaluation, fully=False):
     def yield_match(vars, rest):
-        raise _StopGeneratorBaseExpressionIsFree(False)
+        raise _StopGeneratorBaseElementIsFree(False)
         # return False
 
     try:
         form.match(yield_match, item, {}, evaluation, fully=False)
-    except _StopGeneratorBaseExpressionIsFree as exc:
+    except _StopGeneratorBaseElementIsFree as exc:
         return exc.value
 
     if item.is_atom():

@@ -42,7 +42,7 @@ from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
-    BaseExpression,
+    BaseElement,
     Symbol,
     SymbolFalse,
     SymbolList,
@@ -2272,7 +2272,7 @@ class NIntegrate(Builtin):
 
 
 def is_zero(
-    val: BaseExpression,
+    val: BaseElement,
     acc_goal: Optional[Real],
     prec_goal: Optional[Real],
     evaluation: Evaluation,
@@ -2289,7 +2289,7 @@ def is_zero(
     if not (acc_goal or prec_goal):
         return False
 
-    eps_expr: BaseExpression = Integer10 ** (-prec_goal) if prec_goal else Integer0
+    eps_expr: BaseElement = Integer10 ** (-prec_goal) if prec_goal else Integer0
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
     threeshold_expr = Expression(SymbolLog, eps_expr)
