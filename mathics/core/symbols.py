@@ -713,16 +713,22 @@ class Atom(BaseExpression):
     it very much seems to exist.
     """
 
-    # FIXME: I believe Atom's should have its own custom
-    # evaluate() and rewrite_apply_eval() routine since
-    # rewrite rules generally (or universally) are not relevant here.
-
     _head_name = ""
     _symbol_head = None
     class_head_name = ""
 
-    def is_atom(self) -> bool:
-        return True
+    def __repr__(self) -> str:
+        return "<%s: %s>" % (self.get_atom_name(), self)
+
+    def atom_to_boxes(self, f, evaluation):
+        """Produces a Box expression that represents
+        how the expression should be formatted."""
+        raise NotImplementedError
+
+    def copy(self, reevaluate=False) -> "Atom":
+        result = self.do_copy()
+        result.original = self
+        return result
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
@@ -739,10 +745,27 @@ class Atom(BaseExpression):
 
         The value of an Atom is itself.
         """
-        # comment @mmatera:
-        # probably, it does not make any sense to call  `evaluate` or `evaluate_next` over numbers, strings, and other atoms...
-        # Overloaded in "Evaluable" ``BaseExpression`` sub-classes: ``Symbol`` and ``Expression``
         return self
+
+    rewrite_apply_eval = evaluate
+
+    def get_atom_name(self) -> str:
+        return self.__class__.__name__
+
+    def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
+        return [self]
+
+    def get_head(self) -> "Symbol":
+        return Symbol(self.class_head_name)
+
+    def get_head_name(self) -> "str":
+        return self.class_head_name  # System`" + self.__class__.__name__
+
+    def get_sort_key(self, pattern_sort=False):
+        if pattern_sort:
+            return [0, 0, 1, 1, 0, 0, 0, 1]
+        else:
+            raise NotImplementedError
 
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
@@ -756,45 +779,17 @@ class Atom(BaseExpression):
     def has_symbol(self, symbol_name) -> bool:
         return False
 
-    def get_head(self) -> "Symbol":
-        return Symbol(self.class_head_name)
+    def is_atom(self) -> bool:
+        return True
 
-    def get_head_name(self) -> "str":
-        return self.class_head_name  # System`" + self.__class__.__name__
-
-    def get_atom_name(self) -> str:
-        return self.__class__.__name__
-
-    def __repr__(self) -> str:
-        return "<%s: %s>" % (self.get_atom_name(), self)
+    def numerify(self, evaluation) -> "Atom":
+        return self
 
     def replace_vars(self, vars, options=None, in_scoping=True) -> "Atom":
         return self
 
     def replace_slots(self, slots, evaluation) -> "Atom":
         return self
-
-    def numerify(self, evaluation) -> "Atom":
-        return self
-
-    def copy(self, reevaluate=False) -> "Atom":
-        result = self.do_copy()
-        result.original = self
-        return result
-
-    def get_sort_key(self, pattern_sort=False):
-        if pattern_sort:
-            return [0, 0, 1, 1, 0, 0, 0, 1]
-        else:
-            raise NotImplementedError
-
-    def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
-        return [self]
-
-    def atom_to_boxes(self, f, evaluation):
-        """Produces a Box expression that represents
-        how the expression should be formatted."""
-        raise NotImplementedError
 
 
 class Symbol(Atom):
