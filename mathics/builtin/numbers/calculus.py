@@ -933,7 +933,6 @@ class Solve(Builtin):
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
         
-        InequalityOperators={"Less":"<","LessEqual":"<=","Greater":">","GreaterEqual":">="}
         vars_original = vars
         head_name = vars.get_head_name()
         if head_name == "System`List":
@@ -962,14 +961,9 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form("Equal", 2):
-                for operator in InequalityOperators:
-                    if eq.has_form(operator,2):
-                        eq=eq.to_sympy()
-                        is_inequality=True
-                        break      
-                try:
-                    is_inequality
-                except NameError:      
+                if any(eq.has_form(operator,2) for operator in ["Less","LessEqual","Greater","GreaterEqual"]):
+                    eq=eq.to_sympy()
+                else:     
                     return evaluation.message("Solve", "eqf", eqs_original)
             else:
                 left, right = eq.leaves
