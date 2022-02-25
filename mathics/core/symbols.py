@@ -75,12 +75,20 @@ def strip_context(name) -> str:
 # FIXME: move to new module element.py
 class NumericOperators:
     """
-    This is a mixin class that adds methods to the class to facilite building
-    ``Expression``s in Mathics code using Python syntax. For example,
-    instead of writing:
+    This is a mixin class for Element-like objects that might have numeric values.
+    It adds or "mixes in" numeric functions for these objects like round_to_float().
+
+    It also adds methods to the class to facilite building
+    ``Expression``s in the Mathics Python code using Python syntax.
+
+    So for example, instead of writing in Python:
+
         Expression("Abs", -8)
-    write:
+        Expression("Plus", 1, 2)
+
+    you can instead have:
         abs(Integer(-8))
+        Integer(1) + Integer(2)
     """
 
     def __abs__(self) -> "BaseElement":
@@ -114,6 +122,21 @@ class NumericOperators:
     def __pow__(self, other) -> "BaseElement":
         return self.create_expression("Power", self, other)
 
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None
+
 
 # FIXME: figure out how to split off KeyComparible, BaseElement and
 # Atom from Symbol which is really more "variable"-like in the more
@@ -123,7 +146,7 @@ class NumericOperators:
 # to be intercombined here.
 
 
-class KeyComparable(object):
+class KeyComparable:
     """
 
     Some Mathics/WL Symbols have an "OrderLess" attribute
@@ -578,27 +601,6 @@ class BaseElement(KeyComparable):
 
     def to_mpmath(self):
         return None
-
-    def round_to_float(self, evaluation=None, permit_complex=False):
-        """
-        Try to round to python float. Return None if not possible.
-        """
-        from mathics.core.atoms import Number
-
-        # comment @mmatera: this method should be
-        # specialized on each class. This definition is good for
-        # Symbols and Expressions, but for String does not make sense,
-        # and for Reals is too complicated.
-
-        if evaluation is None:
-            value = self
-        elif isinstance(evaluation, sympy.core.numbers.NaN):
-            return None
-        else:
-            value = self.create_expression(SymbolN, self).evaluate(evaluation)
-        if isinstance(value, Number):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
 
 
 class Monomial(object):

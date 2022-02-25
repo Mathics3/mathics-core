@@ -661,7 +661,16 @@ class ImageRotate(_ImageBuiltin):
 
     def apply(self, image, angle, evaluation):
         "ImageRotate[image_Image, angle_]"
-        py_angle = angle.round_to_float(evaluation)
+
+        # FIXME: this test I suppose is okay in that it checks more or less what is needed.
+        # However there might be a better test like for Real-valued-ness which could be used
+        # instead.
+        py_angle = (
+            angle.round_to_float(evaluation)
+            if hasattr(angle, "round_to_float")
+            else None
+        )
+
         if py_angle is None:
             return evaluation.message("ImageRotate", "imgang", angle)
 
