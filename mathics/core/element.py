@@ -517,4 +517,4 @@ class BaseElement(KeyComparable):
         raise NotImplementedError
 
     def to_mpmath(self):
-        return None
+        raise NotImplementedError
