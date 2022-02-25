@@ -12,7 +12,7 @@ algorithms.
 import sympy
 from typing import Optional
 from mathics.core.atoms import Number
-from mathics.core.symbols import BaseExpression
+from mathics.core.symbols import BaseElement
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.expression import Expression
@@ -27,10 +27,10 @@ from mathics.core.attributes import (
 
 
 def apply_N(
-    expression: BaseExpression,
+    expression: BaseElement,
     evaluation: Evaluation,
-    prec: BaseExpression = SymbolMachinePrecision,
-) -> BaseExpression:
+    prec: BaseElement = SymbolMachinePrecision,
+) -> BaseElement:
     """
     Equivalent to Expression("N", expression).evaluate(evaluation)
     """
@@ -44,8 +44,8 @@ def apply_N(
 
 
 def apply_nvalues(
-    expr: BaseExpression, prec: BaseExpression, evaluation: Evaluation
-) -> Optional[BaseExpression]:
+    expr: BaseElement, prec: BaseElement, evaluation: Evaluation
+) -> Optional[BaseElement]:
     """
     Looks for the numeric value of ```expr`` with precision ``prec`` by appling NValues rules
     stored in ``evaluation.definitions``.

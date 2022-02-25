@@ -62,7 +62,7 @@ def _pspec_span_to_tuple(pspec, expr):
 class ExpressionPointer(object):
     """
     This class represents a reference to a leaf in an expression.
-    Supports a minimal part of the basic interface of `mathics.core.symbols.BaseExpression`.
+    Supports a minimal part of the basic interface of `mathics.core.symbols.BaseElement`.
     """
 
     def __init__(self, expr, pos=None):

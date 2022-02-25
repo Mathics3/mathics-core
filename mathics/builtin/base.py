@@ -19,7 +19,7 @@ from mathics.core.definitions import Definition
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
 from mathics.core.rules import Rule, BuiltinRule, Pattern
 from mathics.core.symbols import (
-    BaseExpression,
+    BaseElement,
     Symbol,
     ensure_context,
     strip_context,
@@ -162,7 +162,7 @@ class Builtin(object):
                 BuiltinRule(name, pattern, function, check_options, system=True)
             )
         for pattern, replace in self.rules.items():
-            if not isinstance(pattern, BaseExpression):
+            if not isinstance(pattern, BaseElement):
                 pattern = pattern % {"name": name}
                 pattern = parse_builtin_rule(pattern, definition_class)
             replace = replace % {"name": name}
@@ -214,7 +214,7 @@ class Builtin(object):
             for form in forms:
                 if form not in formatvalues:
                     formatvalues[form] = []
-                if not isinstance(pattern, BaseExpression):
+                if not isinstance(pattern, BaseElement):
                     pattern = pattern % {"name": name}
                     pattern = parse_builtin_rule(pattern)
                 replace = replace % {"name": name}
