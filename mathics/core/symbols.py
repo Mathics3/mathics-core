@@ -354,15 +354,6 @@ class BaseElement(KeyComparable):
         """Returns the value of the expression. The subclass must implement this"""
         raise NotImplementedError
 
-    # comment @mmatera: This just makes sense if the Expression has elements...
-    # rocky: however it is currently getting called when on Atoms; so more work
-    # is needed to remove this, probably by fixing the callers.
-    def evaluate_elements(self, evaluation) -> "BaseElement":
-        """
-        Create a new expression by evaluating the head and elements of self.
-        """
-        return self
-
     def format(self, evaluation, form, **kwargs) -> "BaseElement":
         """
         Applies formats associated to the expression, and then calls Makeboxes
@@ -390,21 +381,8 @@ class BaseElement(KeyComparable):
     def get_attributes(self, definitions):
         return nothing
 
-    # Probably, this method shouldn't be here.
-    def get_elements(self):
-        return []
-
-    def has_changed(self, definitions):
-        return True
-
-    def get_head(self):
-        return None
-
     def get_head_name(self):
         raise NotImplementedError
-
-    # Compatibily with old code. Deprecated, but remove after a little bit.
-    get_leaves = get_elements
 
     def get_float_value(self, permit_complex=False):
         return None
@@ -515,6 +493,9 @@ class BaseElement(KeyComparable):
 
     def get_string_value(self):
         return None
+
+    def has_changed(self, definitions):
+        return True
 
     @property
     def is_zero(self) -> bool:
@@ -749,15 +730,22 @@ class Atom(BaseElement):
         """
         return self
 
-    rewrite_apply_eval = evaluate
-
-    def flatten(self, head, pattern_only=False, callback=None) -> "BaseElement":
+    # comment @mmatera: This just makes sense if the Expression has elements...
+    # rocky: It is currently getting called when on Atoms; so more work
+    # is needed to remove this, probably by fixing the callers.
+    def evaluate_elements(self, evaluation) -> "Atom":
+        """
+        Create a new expression by evaluating the head and elements of self.
+        """
         return self
 
-    def flatten_sequence(self, evaluation) -> "BaseElement":
+    def flatten(self, head, pattern_only=False, callback=None) -> "Atom":
         return self
 
-    def flatten_pattern_sequence(self, evaluation) -> "BaseElement":
+    def flatten_sequence(self, evaluation) -> "Atom":
+        return self
+
+    def flatten_pattern_sequence(self, evaluation) -> "Atom":
         return self
 
     def get_atom_name(self) -> str:
@@ -765,6 +753,14 @@ class Atom(BaseElement):
 
     def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
         return [self]
+
+    # We seem to need this because the caller doesn't distinguish something with elements
+    # from a single atom.
+    def get_elements(self):
+        return []
+
+    # Compatibility with old code. Deprecated, but remove after a little bit.
+    get_leaves = get_elements
 
     def get_head(self) -> "Symbol":
         return Symbol(self.class_head_name)
