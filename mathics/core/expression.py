@@ -12,8 +12,8 @@ from bisect import bisect_left
 
 from mathics.core.atoms import from_python, Number, Integer
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.element import ensure_context
 from mathics.core.evaluation import Evaluation
-
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
 from mathics.core.symbols import (
@@ -25,7 +25,6 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolN,
     system_symbols,
-    ensure_context,
 )
 from mathics.core.systemsymbols import SymbolSequence
 
