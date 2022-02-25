@@ -812,6 +812,193 @@ class Root(SympyFunction):
         except Exception:
             return None
 
+ class Reduce(Builtin):
+    
+    """
+    <dl>
+       <dt>'Reduce[$eqs$, $vars$]'
+       <dd> Reduces the statements in $eqs$ by solving equations in $vars$ and eliminating quantifiers.
+    </dl>
+    >> Reduce[x y == 0,{x, y}]
+     = x == 0  ||   y == 0 
+    >> Reduce[{x y == 0, y == 4},{x, y}]
+     = y == 4 && x == 0
+    >> Reduce[{x y == 0, y > 4},{x, y}]
+     =  x == 0 && y > 4
+    >> Reduce[x*y>0,{x,y}]
+     = (x < 0 && y < 0) || (x > 0 && y > 0)
+    >> Reduce[{x*y > 0, y>0},{x,y}]
+     =  x > 0 && y > 0
+    
+    >> Reduce[a<b,a]
+     =  b ∈ Reals && a < b
+    """
+    
+    messages = {
+        "eqf": "`1` is not a well-formed equation.",
+        "svars": 'Equations may not give solutions for all "solve" variables.',
+    }
+
+    rules = {
+        "Reduce[eqs_, vars_, Complexes]": "Reduce[eqs, vars]",
+       
+    }
+
+    summary_text = "find generic solutions for variables, in logical expression form"
+    
+    
+    def apply(self, eqs, vars, evaluation):
+        "Reduce[eqs_, vars_]"
+        
+        vars_original = vars
+        head_name = vars.get_head_name()
+        if head_name == "System`List":
+            vars = vars.leaves
+        else:
+            vars = [vars]
+        for var in vars:
+            if (
+                (var.is_atom() and not var.is_symbol())
+                or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
+                or constant & var.get_attributes(evaluation.definitions)
+            ):
+
+                evaluation.message("Solve", "ivar", vars_original)
+                return
+        eqs_original = eqs
+        if eqs.get_head_name() in ("System`List", "System`And"):
+            eqs = eqs.leaves
+        else:
+            eqs = [eqs]
+        sympy_eqs = []
+        sympy_denoms = []
+        for eq in eqs:
+            if eq is SymbolTrue:
+                pass
+            elif eq is SymbolFalse:
+                return Expression(SymbolList)
+            elif not eq.has_form("Equal", 2):
+                if any(eq.has_form(operator,2) for operator in ["Less","LessEqual","Greater","GreaterEqual"]):
+                    eq=eq.to_sympy()
+                else:     
+                    return evaluation.message("Solve", "eqf", eqs_original)
+            else:
+                left, right = eq.leaves
+                left = left.to_sympy()
+                right = right.to_sympy()
+                if left is None or right is None:
+                    return
+                eq = left - right
+                eq = sympy.together(eq)
+                eq = sympy.cancel(eq)
+                numer, denom = eq.as_numer_denom()
+                sympy_denoms.append(denom)
+            sympy_eqs.append(eq)
+
+        vars_sympy = [var.to_sympy() for var in vars]
+        if None in vars_sympy:
+            return
+
+        # delete unused variables to avoid SymPy's
+        # PolynomialError: Not a zero-dimensional system
+        # in e.g. Solve[x^2==1&&z^2==-1,{x,y,z}]
+        all_vars = vars[:]
+        all_vars_sympy = vars_sympy[:]
+        vars = []
+        vars_sympy = []
+        for var, var_sympy in zip(all_vars, all_vars_sympy):
+            pattern = Pattern.create(var)
+            if not eqs_original.is_free(pattern, evaluation):
+                vars.append(var)
+                vars_sympy.append(var_sympy)
+
+        def transform_dict(sols):
+            if not sols:
+                yield sols
+            for var, sol in sols.items():
+                rest = sols.copy()
+                del rest[var]
+                rest = transform_dict(rest)
+                if not isinstance(sol, (tuple, list)):
+                    sol = [sol]
+                if not sol:
+                    for r in rest:
+                        yield r
+                else:
+                    for r in rest:
+                        for item in sol:
+                            new_sols = r.copy()
+                            new_sols[var] = item
+                            yield new_sols
+                break
+
+        def transform_solution(sol):
+            if not isinstance(sol, dict):
+                if not isinstance(sol, (list, tuple)):
+                    sol = [sol]
+                sol = dict(list(zip(vars_sympy, sol)))
+            return transform_dict(sol)
+
+        if not sympy_eqs:
+            sympy_eqs = True
+        elif len(sympy_eqs) == 1:
+            sympy_eqs = sympy_eqs[0]
+        try:
+            if isinstance(sympy_eqs, bool):
+                result = sympy_eqs
+            else:
+                result = sympy.solve(sympy_eqs, vars_sympy)
+            if not isinstance(result, list):
+                result = [result]
+            if isinstance(result, list) and len(result) == 1 and result[0] is True:
+                return Expression(SymbolList, Expression(SymbolList))
+            if result == [None]:
+                return Expression(SymbolList)
+            results = []
+            for sol in result:
+                results.extend(transform_solution(sol))
+            result = results
+            if any(
+                sol and any(var not in sol for var in all_vars_sympy) for sol in result
+            ):
+                evaluation.message("Solve", "svars")
+            
+            # Filter out results for which denominator is 0
+            # (SymPy should actually do that itself, but it doesn't!)
+            result = [
+                sol
+                for sol in result
+                if all(sympy.simplify(denom.subs(sol)) != 0 for denom in sympy_denoms)
+            ]
+            def get_result(var,sol,var_sympy):
+                if any( "System`"+operator in str(from_sympy(sol[var_sympy])) for operator in ["Less","LessEqual","Greater","GreaterEqual"]):
+                    return from_sympy(sol[var_sympy])
+                else:
+                    return Expression("Equal", var, from_sympy(sol[var_sympy]))
+            return Expression(
+                "Or",
+                *(
+                    Expression(
+                        "And",
+                        *(
+                            get_result(var,sol,var_sympy)
+                            
+                            for var, var_sympy in zip(vars, vars_sympy)
+                            if var_sympy in sol
+                        ),
+                    )
+                    for sol in result
+                ),
+            )
+        except sympy.PolynomialError:
+            # raised for e.g. Solve[x^2==1&&z^2==-1,{x,y,z}] when not deleting
+            # unused variables beforehand
+            pass
+        except NotImplementedError:
+            pass
+        except TypeError as exc:
+            if str(exc).startswith("expected Symbol, Function or Derivative"):
+                evaluation.message("Solve", "ivar", vars_original)
 
 class Solve(Builtin):
     """
@@ -929,7 +1116,8 @@ class Solve(Builtin):
     }
 
     summary_text = "find generic solutions for variables"
-
+    
+    
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
         
@@ -961,10 +1149,7 @@ class Solve(Builtin):
             elif eq is SymbolFalse:
                 return Expression(SymbolList)
             elif not eq.has_form("Equal", 2):
-                if any(eq.has_form(operator,2) for operator in ["Less","LessEqual","Greater","GreaterEqual"]):
-                    eq=eq.to_sympy()
-                else:     
-                    return evaluation.message("Solve", "eqf", eqs_original)
+                return evaluation.message("Solve", "eqf", eqs_original)
             else:
                 left, right = eq.leaves
                 left = left.to_sympy()
@@ -976,7 +1161,7 @@ class Solve(Builtin):
                 eq = sympy.cancel(eq)
                 numer, denom = eq.as_numer_denom()
                 sympy_denoms.append(denom)
-            sympy_eqs.append(eq)
+                sympy_eqs.append(eq)
 
         vars_sympy = [var.to_sympy() for var in vars]
         if None in vars_sympy:
@@ -1078,7 +1263,6 @@ class Solve(Builtin):
         except TypeError as exc:
             if str(exc).startswith("expected Symbol, Function or Derivative"):
                 evaluation.message("Solve", "ivar", vars_original)
-
 
 class Integers(Builtin):
     """
