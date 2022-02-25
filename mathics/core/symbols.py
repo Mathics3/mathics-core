@@ -529,10 +529,6 @@ class BaseElement(KeyComparable):
     def is_zero(self) -> bool:
         return False
 
-    def is_symbol(self) -> bool:
-        """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
-        return False
-
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
         return False
@@ -907,9 +903,6 @@ class Symbol(Atom, NumericOperators):
 
     def get_name(self) -> str:
         return self.name
-
-    def is_symbol(self) -> bool:
-        return True
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:

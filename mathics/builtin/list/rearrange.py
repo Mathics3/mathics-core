@@ -23,7 +23,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Atom, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 
 from mathics.core.attributes import flat, one_identity, protected
 
@@ -31,7 +31,7 @@ from mathics.core.attributes import flat, one_identity, protected
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
-    return same_test.is_symbol() and same_test.get_name() == "System`SameQ"
+    return isinstance(same_test, Symbol) and same_test.get_name() == "System`SameQ"
 
 
 class _DeleteDuplicatesBin:

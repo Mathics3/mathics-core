@@ -501,7 +501,7 @@ class Expression(BaseElement, NumericOperators):
     def get_attributes(self, definitions):
         if self._head is SymbolFunction and len(self._elements) > 2:
             res = self._elements[2]
-            if res.is_symbol():
+            if isinstance(res, Symbol):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._elements)

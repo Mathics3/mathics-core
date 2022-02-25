@@ -1370,7 +1370,7 @@ class Assuming(Builtin):
         assumptions = assumptions.evaluate(evaluation)
         if assumptions.is_true():
             cond = []
-        elif assumptions.is_symbol() or not assumptions.has_form("List", None):
+        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
             cond = [assumptions]
         else:
             cond = assumptions._elements

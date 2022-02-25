@@ -1691,7 +1691,7 @@ class DispatchAtom(AtomBuiltin):
         #
         if isinstance(rules, Dispatch):
             return rules
-        if rules.is_symbol():
+        if isinstance(rules, Symbol):
             rules = rules.evaluate(evaluation)
 
         if rules.has_form("List", None):
@@ -1705,7 +1705,7 @@ class DispatchAtom(AtomBuiltin):
             return Expression(SymbolList, *leaves)
         flatten_list = []
         for rule in rules:
-            if rule.is_symbol():
+            if isinstance(rule, Symbol):
                 rule = rule.evaluate(evaluation)
             if rule.has_form("List", None):
                 flatten_list.extend(rule._elements)

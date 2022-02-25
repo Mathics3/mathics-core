@@ -639,15 +639,15 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     else:
         allowed_names = [focus.get_lookup_name()]
         for element in focus.get_elements():
-            if not element.is_symbol() and element.get_head_name() in (
+            if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`HoldPattern",
             ):
                 element = element.leaves[0]
-            if not element.is_symbol() and element.get_head_name() in (
+            if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Pattern",
             ):
                 element = element.leaves[1]
-            if not element.is_symbol() and element.get_head_name() in (
+            if not isinstance(element, Symbol) and element.get_head_name() in (
                 "System`Blank",
                 "System`BlankSequence",
                 "System`BlankNullSequence",

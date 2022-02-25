@@ -12,6 +12,7 @@ from mathics.core.rules import Rule
 from mathics.core.parser.util import SystemDefinitions
 
 from mathics.core.parser import parse_builtin_rule
+from mathics.core.symbols import Symbol
 
 # TODO: Extend these rules?
 
@@ -147,7 +148,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
     new_assumptions_list = []
     changed = False
     for assumption in assumptions_list:
-        if assumption.is_symbol():
+        if isinstance(assumption, Symbol):
             if assumption.is_true():
                 changed = True
                 continue

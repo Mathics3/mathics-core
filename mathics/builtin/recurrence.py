@@ -11,7 +11,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
 from mathics.core.attributes import constant
-from mathics.core.symbols import Atom
+from mathics.core.symbols import Atom, Symbol
 
 
 class RSolve(Builtin):
@@ -69,7 +69,7 @@ class RSolve(Builtin):
                 return
 
         if (
-            (isinstance(n, Atom) and not n.is_symbol())
+            (isinstance(n, Atom) and not isinstance(n, Symbol))
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
             or constant & n.get_attributes(evaluation.definitions)
         ):

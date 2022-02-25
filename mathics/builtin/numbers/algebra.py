@@ -310,7 +310,7 @@ def find_all_vars(expr):
         assert e_sympy is not None
         if e_sympy.is_constant():
             return
-        elif e.is_symbol():
+        elif isinstance(e, Symbol):
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
             for l in e.leaves:
@@ -1561,7 +1561,7 @@ class _CoefficientHandler(Builtin):
             powers = [Integer0 for i, p in enumerate(var_pats)]
             if pf is None:
                 return powers
-            if pf.is_symbol():
+            if isinstance(pf, Symbol):
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
                         powers[i] = Integer(1)
@@ -1599,7 +1599,7 @@ class _CoefficientHandler(Builtin):
             if term.is_free(target_pat, evaluation):
                 coeffs.append(term)
             elif (
-                term.is_symbol()
+                isinstance(term, Symbol)
                 or term.has_form("Power", 2)
                 or term.has_form("Sqrt", 1)
             ):
@@ -1652,7 +1652,7 @@ class _CoefficientHandler(Builtin):
             else:
                 return [(powers_list(None), expr)]
         elif (
-            expr.is_symbol()
+            isinstance(expr, Symbol)
             or match(expr, target_pat, evaluation)
             or expr.has_form("Power", 2)
             or expr.has_form("Sqrt", 1)
@@ -1787,7 +1787,7 @@ class CoefficientArrays(_CoefficientHandler):
         else:
             list_polys = [polys]
 
-        if varlist.is_symbol():
+        if isinstance(varlist, Symbol):
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
             var_exprs = varlist.get_elements()
@@ -1873,18 +1873,18 @@ class Collect(_CoefficientHandler):
     """
 
     rules = {
-        "Collect[expr_, varlst_]": "Collect[expr, varlst, Identity]",
+        "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
     }
 
-    def apply_var_filter(self, expr, varlst, filt, evaluation):
-        """Collect[expr_, varlst_, filt_]"""
+    def apply_var_filter(self, expr, varlist, filt, evaluation):
+        """Collect[expr_, varlist_, filt_]"""
         if filt is Symbol("Identity"):
             filt = None
-        if varlst.is_symbol():
-            var_exprs = [varlst]
-        elif varlst.has_form("List", None):
-            var_exprs = varlst.get_elements()
+        if isinstance(varlist, Symbol):
+            var_exprs = [varlist]
+        elif varlist.has_form("List", None):
+            var_exprs = varlist.get_elements()
         else:
-            var_exprs = [varlst]
+            var_exprs = [varlist]
 
         return self.coeff_power_internal(expr, var_exprs, filt, evaluation, "expr")
