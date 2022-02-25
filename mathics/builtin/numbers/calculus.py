@@ -42,6 +42,7 @@ from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
+    Atom,
     BaseElement,
     Symbol,
     SymbolFalse,
@@ -219,7 +220,7 @@ class D(SympyFunction):
             return Integer0
         elif f == x:
             return Integer1
-        elif f.is_atom():  # Shouldn't happen
+        elif isinstance(f, Atom):  # Shouldn't happen
             1 / 0
             return
         # So, this is not an atom...
@@ -263,7 +264,7 @@ class D(SympyFunction):
                     )
                 )
             if not exp.is_free(x_pattern, evaluation):
-                if base.is_atom() and base.get_name() == "System`E":
+                if isinstance(base, Atom) and base.get_name() == "System`E":
                     terms.append(Expression(SymbolTimes, f, Expression("D", exp, x)))
                 else:
                     terms.append(
@@ -958,7 +959,7 @@ class Solve(Builtin):
             vars = [vars]
         for var in vars:
             if (
-                (var.is_atom() and not var.is_symbol())
+                (isinstance(var, Atom) and not var.is_symbol())
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
                 or constant & var.get_attributes(evaluation.definitions)
             ):

@@ -3,6 +3,7 @@
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
+    Atom,
     SymbolTrue,
     SymbolFalse,
 )
@@ -123,7 +124,7 @@ def get_assumptions_list(evaluation):
     if assumptions is None:
         return None
 
-    if assumptions.is_atom() or not assumptions.has_form("List", None):
+    if isinstance(assumptions, Atom) or not assumptions.has_form("List", None):
         assumptions = (assumptions,)
     else:
         assumptions = assumptions._elements

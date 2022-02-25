@@ -40,7 +40,7 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
@@ -1427,7 +1427,7 @@ class ConditionalExpression(Builtin):
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
-        if not cond.is_atom() and cond._head is SymbolList:
+        if not isinstance(cond, Atom) and cond._head is SymbolList:
             cond = Expression("System`And", *(cond._elements))
         else:
             cond = Expression("System`And", cond)

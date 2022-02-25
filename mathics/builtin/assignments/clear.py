@@ -10,6 +10,7 @@ from mathics.builtin.base import (
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
+    Atom,
     Symbol,
     system_symbols,
 )
@@ -270,7 +271,7 @@ class Unset(PostfixOperator):
             evaluation.message("Unset", "usraw", expr)
             return SymbolFailed
         if not evaluation.definitions.unset(name, expr):
-            if not expr.is_atom():
+            if not isinstance(expr, Atom):
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
         return Symbol("Null")

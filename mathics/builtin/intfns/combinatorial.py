@@ -11,7 +11,7 @@ It is closely related to many other areas of mathematics and has many applicatio
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.core.attributes import listable, numeric_function, orderless, protected
 from itertools import combinations
@@ -395,7 +395,7 @@ class Subsets(Builtin):
 
         return (
             evaluation.message("Subsets", "normal", Expression("Subsets", list))
-            if list.is_atom()
+            if isinstance(list, Atom)
             else self.apply_1(list, Integer(len(list.leaves)), evaluation)
         )
 
@@ -403,7 +403,7 @@ class Subsets(Builtin):
         "Subsets[list_, n_]"
 
         expr = Expression("Subsets", list, n)
-        if list.is_atom():
+        if isinstance(list, Atom):
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
@@ -426,7 +426,7 @@ class Subsets(Builtin):
 
         expr = Expression("Subsets", list, n)
 
-        if list.is_atom():
+        if isinstance(list, Atom):
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head

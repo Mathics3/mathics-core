@@ -27,7 +27,14 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.symbols import Symbol, SymbolList, SymbolTrue, SymbolFalse, SymbolNull
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolList,
+    SymbolTrue,
+    SymbolFalse,
+    SymbolNull,
+)
 
 from mathics.core.atoms import (
     String,
@@ -580,7 +587,7 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
 
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
         else:
             head = expr.head

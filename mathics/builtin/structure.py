@@ -13,6 +13,7 @@ from mathics.builtin.base import (
 from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
+    Atom,
     Symbol,
     SymbolNull,
     SymbolFalse,
@@ -77,7 +78,7 @@ class Sort(Builtin):
     def apply(self, list, evaluation):
         "Sort[list_]"
 
-        if list.is_atom():
+        if isinstance(list, Atom):
             evaluation.message("Sort", "normal")
         else:
             new_elements = sorted(list.leaves)
@@ -86,7 +87,7 @@ class Sort(Builtin):
     def apply_predicate(self, list, p, evaluation):
         "Sort[list_, p_]"
 
-        if list.is_atom():
+        if isinstance(list, Atom):
             evaluation.message("Sort", "normal")
         else:
 
@@ -132,29 +133,29 @@ class SortBy(Builtin):
         "func": "Function expected at position `2` in `1`.",
     }
 
-    def apply(self, l, f, evaluation):
-        "SortBy[l_, f_]"
+    def apply(self, li, f, evaluation):
+        "SortBy[li_, f_]"
 
-        if l.is_atom():
+        if isinstance(li, Atom):
             return evaluation.message("Sort", "normal")
-        elif l.get_head_name() != "System`List":
-            expr = Expression("SortBy", l, f)
+        elif li.get_head_name() != "System`List":
+            expr = Expression("SortBy", li, f)
             return evaluation.message(self.get_name(), "list", expr, 1)
         else:
-            keys_expr = Expression("Map", f, l).evaluate(evaluation)  # precompute:
+            keys_expr = Expression("Map", f, li).evaluate(evaluation)  # precompute:
             # even though our sort function has only (n log n) comparisons, we should
             # compute f no more than n times.
 
             if (
                 keys_expr is None
                 or keys_expr.get_head_name() != "System`List"
-                or len(keys_expr.leaves) != len(l.leaves)
+                or len(keys_expr.leaves) != len(li.leaves)
             ):
-                expr = Expression("SortBy", l, f)
+                expr = Expression("SortBy", li, f)
                 return evaluation.message("SortBy", "func", expr, 2)
 
             keys = keys_expr.leaves
-            raw_keys = l.leaves
+            raw_keys = li.leaves
 
             class Key(object):
                 def __init__(self, index):
@@ -172,7 +173,7 @@ class SortBy(Builtin):
             # we sort a list of indices. after sorting, we reorder the leaves.
             new_indices = sorted(list(range(len(raw_keys))), key=Key)
             new_elements = [raw_keys[i] for i in new_indices]  # reorder leaves
-            return l.restructure(l.head, new_elements, evaluation)
+            return li.restructure(li.head, new_elements, evaluation)
 
 
 class BinarySearch(Builtin):
@@ -446,7 +447,7 @@ class Apply(BinaryOperator):
             return
 
         def callback(level):
-            if level.is_atom():
+            if isinstance(level, Atom):
                 return level
             else:
                 return Expression(f, *level.leaves)
@@ -994,7 +995,9 @@ class Flatten(Builtin):
         max_depth = {"max_depth": max_depth}  # hack to modify max_depth from callback
 
         def callback(expr, pos):
-            if len(pos) < max_depth["max_depth"] and (expr.is_atom() or expr.head != h):
+            if len(pos) < max_depth["max_depth"] and (
+                isinstance(expr, Atom) or expr.head != h
+            ):
                 max_depth["max_depth"] = len(pos)
             return expr
 
@@ -1185,7 +1188,7 @@ class Operate(Builtin):
             # Act like Apply
             return Expression(p, expr)
 
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             return expr
 
         expr = expr.copy()
@@ -1193,7 +1196,7 @@ class Operate(Builtin):
 
         for i in range(1, head_depth):
             e = e.head
-            if e.is_atom():
+            if isinstance(e, Atom):
                 # n is higher than the depth of heads in expr: return
                 # expr unmodified.
                 return expr

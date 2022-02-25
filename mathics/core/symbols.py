@@ -310,7 +310,7 @@ class BaseElement(KeyComparable):
             # If expr is not an atom, looks for formats in its definition
             # and apply them.
             def format_expr(expr):
-                if not (expr.is_atom()) and not (expr.head.is_atom()):
+                if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
                     # expr is of the form f[...][...]
                     return None
                 name = expr.get_lookup_name()
@@ -338,7 +338,7 @@ class BaseElement(KeyComparable):
                 expr = expr.do_format(evaluation, form)
             elif (
                 head is not SymbolNumberForm
-                and not expr.is_atom()
+                and not isinstance(expr, Atom)
                 and head is not SymbolGraphics
                 and head is not SymbolGraphics3D
             ):
@@ -407,6 +407,10 @@ class BaseElement(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
+    # FIXME: this behavior of defining a specific default implementation
+    # that is basically saying it isn't implemented is wrong.
+    # However fixing this means not only removing but fixing up code
+    # in the callers.
     def get_float_value(self, permit_complex=False):
         return None
 
@@ -517,6 +521,7 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
+    # FIXME: see above for comment about default "wrong" implementations
     def has_changed(self, definitions):
         return True
 
@@ -530,10 +535,6 @@ class BaseElement(KeyComparable):
 
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
-        return False
-
-    def is_atom(self) -> bool:
-        """Better use isinstance(self, Atom)"""
         return False
 
     def is_true(self) -> bool:
@@ -787,9 +788,6 @@ class Atom(BaseElement):
 
     def has_symbol(self, symbol_name) -> bool:
         return False
-
-    def is_atom(self) -> bool:
-        return True
 
     def numerify(self, evaluation) -> "Atom":
         return self

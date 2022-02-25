@@ -24,12 +24,11 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
-    Integer,
     Integer0,
     Integer1,
     Number,
 )
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
@@ -125,7 +124,7 @@ class _EqualityOperator(_InequalityOperator):
                 )
         if rhs.is_numeric():
             return False
-        elif rhs.is_atom():
+        elif isinstance(rhs, Atom):
             return None
         if rhs.get_head().sameQ(lhs.get_head()):
             dir1 = dir2 = Integer1

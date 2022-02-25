@@ -6,7 +6,7 @@ Algorithms to access and manipulate elements in nested lists / expressions
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Atom, Symbol
 from mathics.core.atoms import Integer
 from mathics.core.systemsymbols import SymbolInfinity
 from mathics.core.subexpression import SubExpression
@@ -39,7 +39,7 @@ def get_part(varlist, indices):
 
     def rec(cur, rest):
         if rest:
-            if cur.is_atom():
+            if isinstance(cur, Atom):
                 raise PartDepthError(rest[0])
             pos = rest[0]
             elements = cur.get_elements()
@@ -65,7 +65,7 @@ def set_part(varlist, indices, newval):
     def rec(cur, rest):
         if len(rest) > 1:
             pos = rest[0]
-            if cur.is_atom():
+            if isinstance(cur, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
@@ -79,7 +79,7 @@ def set_part(varlist, indices, newval):
             return rec(part, rest[1:])
         elif len(rest) == 1:
             pos = rest[0]
-            if cur.is_atom():
+            if isinstance(cur, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
@@ -103,7 +103,7 @@ def _parts_all_selector():
     step = 1
 
     def select(inner):
-        if inner.is_atom():
+        if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
         py_slice = python_seq(start, stop, step, len(inner.leaves))
         if py_slice is None:
@@ -142,7 +142,7 @@ def _parts_span_selector(pspec):
         raise MessageException("Part", "span", pspec)
 
     def select(inner):
-        if inner.is_atom():
+        if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
         py_slice = python_seq(start, stop, step, len(inner.leaves))
         if py_slice is None:
@@ -166,7 +166,7 @@ def _parts_sequence_selector(pspec):
             raise MessageException("Part", "pspec", pspec)
 
     def select(inner):
-        if inner.is_atom():
+        if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
 
         leaves = inner.leaves
@@ -304,7 +304,7 @@ def walk_levels(
     include_pos=False,
     cur_pos=[],
 ):
-    if expr.is_atom():
+    if isinstance(expr, Atom):
         depth = 0
         new_expr = expr
     else:
@@ -476,7 +476,7 @@ def _drop_take_selector(name, seq, sliced):
 
     def select(inner):
         start, stop, step = seq_tuple
-        if inner.is_atom():
+        if isinstance(inner, Atom):
             py_slice = None
         else:
             py_slice = python_seq(start, stop, step, len(inner.leaves))
@@ -561,7 +561,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue
-        if curr_element.is_atom() or lsmax == len(curr_index):
+        if isinstance(curr_element, Atom) or lsmax == len(curr_index):
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
@@ -609,7 +609,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             curr_index[-1] = curr_index[-1] + 1
             n = n - 1
             continue
-        if curr_element.is_atom() or lsmax == len(curr_index):
+        if isinstance(curr_element, Atom) or lsmax == len(curr_index):
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:

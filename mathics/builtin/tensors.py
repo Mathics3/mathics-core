@@ -19,8 +19,9 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.symbols import (
-    SymbolTrue,
+    Atom,
     SymbolFalse,
+    SymbolTrue,
 )
 from mathics.core.rules import Pattern
 
@@ -62,7 +63,7 @@ def get_default_distance(p):
 
 
 def get_dimensions(expr, head=None):
-    if expr.is_atom():
+    if isinstance(expr, Atom):
         return []
     else:
         if head is not None and not expr.head.sameQ(head):
@@ -419,7 +420,7 @@ class Outer(Builtin):
         lists = lists.get_sequence()
         head = None
         for list in lists:
-            if list.is_atom():
+            if isinstance(list, Atom):
                 evaluation.message("Outer", "normal")
                 return
             if head is None:
@@ -430,7 +431,7 @@ class Outer(Builtin):
 
         def rec(item, rest_lists, current):
             evaluation.check_stopped()
-            if item.is_atom() or not item.head.sameQ(head):
+            if isinstance(item, Atom) or not item.head.sameQ(head):
                 if rest_lists:
                     return rec(rest_lists[0], rest_lists[1:], current + [item])
                 else:

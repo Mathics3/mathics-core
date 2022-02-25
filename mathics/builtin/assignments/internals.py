@@ -630,7 +630,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
         tags = [name]
     elif upset:
         tags = []
-        if focus.is_atom():
+        if isinstance(focus, Atom):
             evaluation.message(self.get_name(), "normal")
             raise AssignmentException(lhs, None)
         for leaf in focus.leaves:

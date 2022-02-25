@@ -1,4 +1,4 @@
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.expression import Expression
 from mathics.core.rules import Pattern
@@ -42,7 +42,7 @@ def to_series_term(series, term, x, x0):
     coeff = None
     power = None
     reminder = None
-    if term.is_atom():
+    if isinstance(term, Atom):
         if term.sameQ(x):
             coeff = Integer1
             power = 1
@@ -80,7 +80,7 @@ def to_series_term(series, term, x, x0):
             for leaf in leaves:
                 if x.sameQ(leaf):
                     coeffs_x.append(x)
-                elif leaf.is_atom():
+                elif isinstance(leaf, Atom):
                     coeffs_free.append(leaf)
                 elif leaf.get_head() is SymbolPower:
                     coeffs_powers.append(leaf)
@@ -315,7 +315,7 @@ def reduce_series_plus(series, terms, x, x0):
     for term in terms:
         if term.is_zero:
             continue
-        if term.is_atom():
+        if isinstance(term, Atom):
             other_terms.append(term)
             continue
         term_head = term.head

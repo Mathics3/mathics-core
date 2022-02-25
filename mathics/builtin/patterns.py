@@ -1618,7 +1618,7 @@ def item_is_free(item, form, evaluation):
     except _StopGeneratorBaseElementIsFree as exc:
         return exc.value
 
-    if item.is_atom():
+    if isinstance(item, Atom):
         return True
     else:
         return item_is_free(item.head, form, evaluation) and all(

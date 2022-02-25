@@ -227,7 +227,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             return store_sub_expr(expr)
 
     def unconvert_subexprs(expr):
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             if isinstance(expr, Symbol):
                 return get_sub_expr(expr)
             else:
@@ -245,7 +245,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             i,
             sub_expr,
         ) in enumerate(sub_exprs):
-            if not sub_expr.is_atom():
+            if not isinstance(sub_expr, Atom):
                 head = _expand(sub_expr.head)  # also expand head
                 elements = sub_expr.get_elements()
                 if target_pat:
@@ -324,7 +324,7 @@ def find_all_vars(expr):
                 return
             if not (a_sympy.is_constant()) and b_sympy.is_rational:
                 find_vars(a, a_sympy)
-        elif not (e.is_atom()):
+        elif not (isinstance(e, Atom)):
             variables.add(e)
 
     exprs = expr.leaves if expr.has_form("List", None) else [expr]
@@ -477,7 +477,7 @@ class Simplify(Builtin):
         expr = evaluate_predicate(expr, evaluation)
 
         # If we get an atom, return it.
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             return expr
 
         # Now, try to simplify the elements.

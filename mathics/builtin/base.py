@@ -611,9 +611,6 @@ class BoxConstruct(InstanceableBuiltin):
         """Mathics SameQ"""
         return expr.sameQ(self)
 
-    def is_atom(self):
-        return False
-
     def do_format(self, evaluation, format):
         return self
 
