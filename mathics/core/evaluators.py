@@ -12,7 +12,7 @@ algorithms.
 import sympy
 from typing import Optional
 from mathics.core.atoms import Number
-from mathics.core.symbols import BaseElement
+from mathics.core.symbols import Atom, BaseElement
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.expression import Expression
@@ -104,7 +104,7 @@ def apply_nvalues(
     # If we are here, is because there are not NValues that matches
     # to the expression. In such a case, if we arrive to an atomic expression,
     # just return it.
-    if expr.is_atom():
+    if isinstance(expr, Atom):
         return expr
     else:
         # Otherwise, look at the attributes, determine over which leaves

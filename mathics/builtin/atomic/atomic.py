@@ -8,6 +8,8 @@ from mathics.builtin.base import (
     Test,
 )
 
+from mathics.core.atoms import Atom
+
 
 class AtomQ(Test):
     """
@@ -56,7 +58,7 @@ class AtomQ(Test):
     summary_text = "tests whether an expression is an atom"
 
     def test(self, expr):
-        return expr.is_atom()
+        return isinstance(expr, Atom)
 
 
 class Head(Builtin):

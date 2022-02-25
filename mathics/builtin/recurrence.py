@@ -11,6 +11,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
 from mathics.core.attributes import constant
+from mathics.core.symbols import Atom, Symbol
 
 
 class RSolve(Builtin):
@@ -68,7 +69,7 @@ class RSolve(Builtin):
                 return
 
         if (
-            (n.is_atom() and not n.is_symbol())
+            (isinstance(n, Atom) and not isinstance(n, Symbol))
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
             or constant & n.get_attributes(evaluation.definitions)
         ):
@@ -85,7 +86,7 @@ class RSolve(Builtin):
             func = Expression(a, n)
             function_form = Expression("List", n)
 
-        if func.is_atom() or len(func.leaves) != 1:
+        if isinstance(func, Atom) or len(func.leaves) != 1:
             evaluation.message("RSolve", "dsfun", a)
 
         if n not in func.leaves:

@@ -75,12 +75,20 @@ def strip_context(name) -> str:
 # FIXME: move to new module element.py
 class NumericOperators:
     """
-    This is a mixin class that adds methods to the class to facilite building
-    ``Expression``s in Mathics code using Python syntax. For example,
-    instead of writing:
+    This is a mixin class for Element-like objects that might have numeric values.
+    It adds or "mixes in" numeric functions for these objects like round_to_float().
+
+    It also adds methods to the class to facilite building
+    ``Expression``s in the Mathics Python code using Python syntax.
+
+    So for example, instead of writing in Python:
+
         Expression("Abs", -8)
-    write:
+        Expression("Plus", 1, 2)
+
+    you can instead have:
         abs(Integer(-8))
+        Integer(1) + Integer(2)
     """
 
     def __abs__(self) -> "BaseElement":
@@ -114,6 +122,21 @@ class NumericOperators:
     def __pow__(self, other) -> "BaseElement":
         return self.create_expression("Power", self, other)
 
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None
+
 
 # FIXME: figure out how to split off KeyComparible, BaseElement and
 # Atom from Symbol which is really more "variable"-like in the more
@@ -123,7 +146,7 @@ class NumericOperators:
 # to be intercombined here.
 
 
-class KeyComparable(object):
+class KeyComparable:
     """
 
     Some Mathics/WL Symbols have an "OrderLess" attribute
@@ -287,7 +310,7 @@ class BaseElement(KeyComparable):
             # If expr is not an atom, looks for formats in its definition
             # and apply them.
             def format_expr(expr):
-                if not (expr.is_atom()) and not (expr.head.is_atom()):
+                if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
                     # expr is of the form f[...][...]
                     return None
                 name = expr.get_lookup_name()
@@ -315,7 +338,7 @@ class BaseElement(KeyComparable):
                 expr = expr.do_format(evaluation, form)
             elif (
                 head is not SymbolNumberForm
-                and not expr.is_atom()
+                and not isinstance(expr, Atom)
                 and head is not SymbolGraphics
                 and head is not SymbolGraphics3D
             ):
@@ -384,6 +407,10 @@ class BaseElement(KeyComparable):
     def get_head_name(self):
         raise NotImplementedError
 
+    # FIXME: this behavior of defining a specific default implementation
+    # that is basically saying it isn't implemented is wrong.
+    # However fixing this means not only removing but fixing up code
+    # in the callers.
     def get_float_value(self, permit_complex=False):
         return None
 
@@ -494,6 +521,7 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
+    # FIXME: see above for comment about default "wrong" implementations
     def has_changed(self, definitions):
         return True
 
@@ -501,16 +529,8 @@ class BaseElement(KeyComparable):
     def is_zero(self) -> bool:
         return False
 
-    def is_symbol(self) -> bool:
-        """Checks if self is a Symbol. Better use isinstance(self, Symbol)"""
-        return False
-
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
-        return False
-
-    def is_atom(self) -> bool:
-        """Better use isinstance(self, Atom)"""
         return False
 
     def is_true(self) -> bool:
@@ -578,27 +598,6 @@ class BaseElement(KeyComparable):
 
     def to_mpmath(self):
         return None
-
-    def round_to_float(self, evaluation=None, permit_complex=False):
-        """
-        Try to round to python float. Return None if not possible.
-        """
-        from mathics.core.atoms import Number
-
-        # comment @mmatera: this method should be
-        # specialized on each class. This definition is good for
-        # Symbols and Expressions, but for String does not make sense,
-        # and for Reals is too complicated.
-
-        if evaluation is None:
-            value = self
-        elif isinstance(evaluation, sympy.core.numbers.NaN):
-            return None
-        else:
-            value = self.create_expression(SymbolN, self).evaluate(evaluation)
-        if isinstance(value, Number):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
 
 
 class Monomial(object):
@@ -786,9 +785,6 @@ class Atom(BaseElement):
     def has_symbol(self, symbol_name) -> bool:
         return False
 
-    def is_atom(self) -> bool:
-        return True
-
     def numerify(self, evaluation) -> "Atom":
         return self
 
@@ -907,9 +903,6 @@ class Symbol(Atom, NumericOperators):
 
     def get_name(self) -> str:
         return self.name
-
-    def is_symbol(self) -> bool:
-        return True
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:

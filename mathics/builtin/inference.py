@@ -3,6 +3,7 @@
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
+    Atom,
     SymbolTrue,
     SymbolFalse,
 )
@@ -11,6 +12,7 @@ from mathics.core.rules import Rule
 from mathics.core.parser.util import SystemDefinitions
 
 from mathics.core.parser import parse_builtin_rule
+from mathics.core.symbols import Symbol
 
 # TODO: Extend these rules?
 
@@ -123,7 +125,7 @@ def get_assumptions_list(evaluation):
     if assumptions is None:
         return None
 
-    if assumptions.is_atom() or not assumptions.has_form("List", None):
+    if isinstance(assumptions, Atom) or not assumptions.has_form("List", None):
         assumptions = (assumptions,)
     else:
         assumptions = assumptions._elements
@@ -146,7 +148,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
     new_assumptions_list = []
     changed = False
     for assumption in assumptions_list:
-        if assumption.is_symbol():
+        if isinstance(assumption, Symbol):
             if assumption.is_true():
                 changed = True
                 continue

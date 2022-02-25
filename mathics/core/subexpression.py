@@ -3,7 +3,7 @@
 
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Atom, Symbol
 from mathics.core.atoms import Integer
 from mathics.builtin.base import MessageException
 
@@ -149,7 +149,7 @@ class ExpressionPointer(object):
                 return parent.head.copy()
         else:
             leaf = self.parent.leaves[p - 1]
-            if leaf.is_atom():
+            if isinstance(leaf, Atom):
                 return leaf
             else:
                 return leaf.copy()

@@ -501,7 +501,7 @@ class Expression(BaseElement, NumericOperators):
     def get_attributes(self, definitions):
         if self._head is SymbolFunction and len(self._elements) > 2:
             res = self._elements[2]
-            if res.is_symbol():
+            if isinstance(res, Symbol):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._elements)
@@ -753,6 +753,23 @@ class Expression(BaseElement, NumericOperators):
             deps = self
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(leaves))
+
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+
+        if evaluation is None:
+            value = self
+        elif isinstance(evaluation, sympy.core.numbers.NaN):
+            return None
+        else:
+            value = self.create_expression(SymbolN, self).evaluate(evaluation)
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None
 
     def sequences(self):
         cache = self._cache

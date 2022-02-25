@@ -23,7 +23,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import Atom, SymbolList
 
 from mathics.core.attributes import hold_first, listable, protected
 
@@ -148,7 +148,7 @@ class Normal(Builtin):
 
     def apply_general(self, expr, evaluation):
         "Normal[expr_]"
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             return
         return Expression(
             expr.get_head(), *[Expression("Normal", leaf) for leaf in expr.leaves]
@@ -470,7 +470,7 @@ class Tuples(Builtin):
     def apply_n(self, expr, n, evaluation):
         "Tuples[expr_, n_Integer]"
 
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             evaluation.message("Tuples", "normal")
             return
         n = n.get_int_value()
@@ -499,7 +499,7 @@ class Tuples(Builtin):
         items = []
         for expr in exprs:
             evaluation.check_stopped()
-            if expr.is_atom():
+            if isinstance(expr, Atom):
                 evaluation.message("Tuples", "normal")
                 return
             items.append(expr.leaves)

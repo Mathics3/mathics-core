@@ -65,6 +65,7 @@ from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.symbols import (
+    Atom,
     Symbol,
     SymbolList,
     strip_context,
@@ -76,7 +77,6 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolMakeBoxes,
-    SymbolRowBox,
     SymbolRule,
     SymbolSequence,
 )
@@ -556,7 +556,7 @@ class List(Builtin):
 
         items = items.get_sequence()
         return Expression(
-            SymbolRowBox, Expression(SymbolList, *list_boxes(items, f, "{", "}"))
+            "RowBox", Expression(SymbolList, *list_boxes(items, f, "{", "}"))
         )
 
 
@@ -607,7 +607,7 @@ def list_boxes(items, f, open=None, close=None):
         sep = ","
     result = riffle(result, String(sep))
     if len(items) > 1:
-        result = Expression(SymbolRowBox, Expression(SymbolList, *result))
+        result = Expression("RowBox", Expression(SymbolList, *result))
     elif items:
         result = result[0]
     if result:
@@ -680,7 +680,7 @@ class Split(Builtin):
 
         expr = Expression("Split", mlist, test)
 
-        if mlist.is_atom():
+        if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
             return
 
@@ -731,7 +731,7 @@ class SplitBy(Builtin):
 
         expr = Expression("Split", mlist, func)
 
-        if mlist.is_atom():
+        if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
             return
 
@@ -755,7 +755,7 @@ class SplitBy(Builtin):
         "SplitBy[mlist_, funcs_List]"
         expr = Expression("Split", mlist, funcs)
 
-        if mlist.is_atom():
+        if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
             return
 
@@ -1117,7 +1117,7 @@ class Join(Builtin):
         sequence = lists.get_sequence()
 
         for list in sequence:
-            if list.is_atom():
+            if isinstance(list, Atom):
                 return
             if head is not None and list.get_head() != head:
                 evaluation.message("Join", "heads", head, list.get_head())
@@ -1211,7 +1211,8 @@ def _test_pair(test, a, b, evaluation, name):
     test_expr = Expression(test, a, b)
     result = test_expr.evaluate(evaluation)
     if not (
-        result.is_symbol() and (result.has_symbol("True") or result.has_symbol("False"))
+        isinstance(result, Symbol)
+        and (result.has_symbol("True") or result.has_symbol("False"))
     ):
         evaluation.message(name, "smtst", test_expr, result)
     return result.is_true()
@@ -2469,7 +2470,7 @@ class SubsetQ(Builtin):
     def apply(self, expr, subset, evaluation):
         "SubsetQ[expr_, subset___]"
 
-        if expr.is_atom():
+        if isinstance(expr, Atom):
             return evaluation.message(
                 "SubsetQ", "normal", Integer(1), Expression("SubsetQ", expr, subset)
             )
@@ -2481,7 +2482,7 @@ class SubsetQ(Builtin):
             return evaluation.message("SubsetQ", "argr")
 
         subset = subset[0]
-        if subset.is_atom():
+        if isinstance(subset, Atom):
             return evaluation.message(
                 "SubsetQ", "normal", Integer(2), Expression("SubsetQ", expr, subset)
             )
@@ -2497,7 +2498,7 @@ class SubsetQ(Builtin):
 
 
 def delete_one(expr, pos):
-    if expr.is_atom():
+    if isinstance(expr, Atom):
         raise PartDepthError(pos)
     leaves = expr.leaves
     if pos == 0:
@@ -2518,7 +2519,7 @@ def delete_rec(expr, pos):
     if len(pos) == 1:
         return delete_one(expr, pos[0])
     truepos = pos[0]
-    if truepos == 0 or expr.is_atom():
+    if truepos == 0 or isinstance(expr, Atom):
         raise PartDepthError(pos[0])
     leaves = expr.leaves
     s = len(leaves)

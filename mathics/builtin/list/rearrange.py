@@ -23,7 +23,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList
 
 from mathics.core.attributes import flat, one_identity, protected
 
@@ -31,7 +31,7 @@ from mathics.core.attributes import flat, one_identity, protected
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
-    return same_test.is_symbol() and same_test.get_name() == "System`SameQ"
+    return isinstance(same_test, Symbol) and same_test.get_name() == "System`SameQ"
 
 
 class _DeleteDuplicatesBin:
@@ -78,7 +78,7 @@ class _GatherOperation(Builtin):
             )
 
     def _check_list(self, values, arg2, evaluation):
-        if values.is_atom():
+        if isinstance(values, Atom):
             expr = Expression(self.get_name(), values, arg2)
             evaluation.message(self.get_name(), "normal", 1, expr)
             return False
@@ -182,7 +182,7 @@ class _SetOperation(Builtin):
         seq = lists.get_sequence()
 
         for pos, e in enumerate(seq):
-            if e.is_atom():
+            if isinstance(e, Atom):
                 return evaluation.message(
                     self.get_name(),
                     "normal",
@@ -445,7 +445,7 @@ class Join(Builtin):
         sequence = lists.get_sequence()
 
         for list in sequence:
-            if list.is_atom():
+            if isinstance(list, Atom):
                 return
             if head is not None and list.get_head() != head:
                 evaluation.message("Join", "heads", head, list.get_head())

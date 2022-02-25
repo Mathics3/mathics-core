@@ -11,7 +11,12 @@ import bisect
 from collections import defaultdict
 
 import typing
-from mathics.core.symbols import fully_qualified_symbol_name, strip_context, Symbol
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    fully_qualified_symbol_name,
+    strip_context,
+)
 from mathics.core.expression import Expression
 from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
@@ -743,7 +748,7 @@ class Definitions(object):
 def get_tag_position(pattern, name) -> typing.Optional[str]:
     if pattern.get_name() == name:
         return "own"
-    elif pattern.is_atom():
+    elif isinstance(pattern, Atom):
         return None
     else:
         head_name = pattern.get_head_name()

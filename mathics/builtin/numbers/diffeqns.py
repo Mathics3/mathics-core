@@ -8,6 +8,7 @@ import sympy
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import from_sympy
+from mathics.core.symbols import Atom, Symbol
 
 
 class DSolve(Builtin):
@@ -117,7 +118,7 @@ class DSolve(Builtin):
             evaluation.message("DSolve", "deqn", eqn)
             return
 
-        if x.is_symbol():
+        if isinstance(x, Symbol):
             syms = [x]
         elif x.has_form("List", 1, None):
             syms = sorted(x.get_elements())
@@ -133,7 +134,7 @@ class DSolve(Builtin):
             func = Expression(y, *syms)
             function_form = Expression("List", *syms)
 
-        if func.is_atom():
+        if isinstance(func, Atom):
             evaluation.message("DSolve", "dsfun", y)
             return
 

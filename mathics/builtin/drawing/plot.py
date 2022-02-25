@@ -381,7 +381,7 @@ class _Plot(Builtin):
     def apply(self, functions, x, start, stop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
-        if functions.is_symbol() and functions.name is not x.get_name():
+        if isinstance(functions, Symbol) and functions.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(functions.name)
             for rule in rules:
                 functions = rule.apply(functions, evaluation, fully=True)
@@ -389,7 +389,7 @@ class _Plot(Builtin):
         if functions.get_head_name() == "List":
             functions_param = self.get_functions_param(functions)
             for index, f in enumerate(functions_param):
-                if f.is_symbol() and f.name is not x.get_name():
+                if isinstance(f, Symbol) and f.name is not x.get_name():
                     rules = evaluation.definitions.get_ownvalues(f.name)
                     for rule in rules:
                         f = rule.apply(f, evaluation, fully=True)
