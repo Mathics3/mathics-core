@@ -2,9 +2,9 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-
+from mathics.core.element import KeyComparable
 from mathics.core.expression import Expression
-from mathics.core.symbols import strip_context, KeyComparable
+from mathics.core.symbols import strip_context
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.util import function_arguments
 

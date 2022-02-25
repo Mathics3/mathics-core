@@ -14,6 +14,8 @@ from typing import Tuple
 from mathics_scanner import TranslateError
 
 from mathics import settings
+
+from mathics.core.element import KeyComparable, ensure_context
 from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
@@ -24,10 +26,8 @@ from mathics.core.interrupt import (
 )
 
 from mathics.core.symbols import (
-    KeyComparable,
     SymbolList,
     SymbolNull,
-    ensure_context,
 )
 
 from mathics.core.systemsymbols import SymbolAborted

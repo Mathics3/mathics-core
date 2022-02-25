@@ -11,16 +11,17 @@ import bisect
 from collections import defaultdict
 
 import typing
+
+from mathics.core.atoms import String
+from mathics.core.attributes import nothing
+from mathics.core.element import fully_qualified_symbol_name
+from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    fully_qualified_symbol_name,
     strip_context,
 )
-from mathics.core.expression import Expression
-from mathics.core.atoms import String
 from mathics_scanner.tokeniser import full_names_pattern
-from mathics.core.attributes import nothing
 
 type_compiled_pattern = type(re.compile("a.a"))
 
