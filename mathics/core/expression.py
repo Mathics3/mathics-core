@@ -613,19 +613,6 @@ class Expression(BaseElement, NumericOperators):
         # faster equivalent to: Expression(head, [element in self.leaves if cond(element)])
         return structure(head, self, evaluation).filter(self, cond)
 
-    # def filter_elements(self, head_name):
-    #     # TODO: should use sorting
-    #     head_name = ensure_context(head_name)
-
-    #     if self._no_symbol(head_name):
-    #         return []
-    #     else:
-    #         return [
-    #             element
-    #             for element in self._elements
-    #             if element.get_head_name() == head_name
-    #         ]
-
     def flatten(
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Expression":
