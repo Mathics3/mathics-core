@@ -1259,13 +1259,6 @@ class Expression(BaseElement, NumericOperators):
         self._elements = tuple(elements)
         self._cache = None
 
-    def set_reordered_elements(
-        self, elements
-    ):  # same elements, but in a different order
-        self._elements = tuple(elements)
-        if self._cache:
-            self._cache = self._cache.reordered()
-
     def shallow_copy(self) -> "Expression":
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
@@ -1386,13 +1379,31 @@ class Expression(BaseElement, NumericOperators):
             return False, options
 
     def sort(self, pattern=False):
-        "Sort the elements according to internal ordering."
+        """
+        Sort the elements using the Python's list-method sort.
+        `get_sort_key() is used for comparison if `pattern` is True.
+        Otherwise use the the default Python 3.x compare function,
+        `__lt__()` that is found in each element.
+
+        `self._cache` is updated if that is not None.
+        """
+        # It is stupid to sort 0 or 1 elements.
+        if len(self._elements) < 2:
+            return
+
+        # There is no in-place sort method on a tuple, because tuples are not
+        # mutable. So we turn into a elments into list and use Python's
+        # list sort method. Another approach would be to use sorted().
         elements = list(self._elements)
         if pattern:
             elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
         else:
             elements.sort()
-        self.set_reordered_elements(elements)
+
+        # update `self._elements` and self._cache with the possible permuted order.
+        self._elements = tuple(elements)
+        if self._cache:
+            self._cache = self._cache.reordered()
 
     def apply_rules(self, rules, evaluation, level=0, options=None):
         """for rule in rules:
