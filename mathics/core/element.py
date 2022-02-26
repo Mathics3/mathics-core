@@ -107,7 +107,6 @@ class BaseElement(KeyComparable):
         self = object.__new__(cls)
         self.options = None
         self.pattern_sequence = False
-        self.unformatted = self  # This may be a garbage-collection nightmare.
         self._cache = None
         return self
 
@@ -178,12 +177,10 @@ class BaseElement(KeyComparable):
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
-            unformatted = expr
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
                     expr = self.create_expression(form, expr)
-                    expr.unformatted = unformatted
                 return expr
 
             # Repeated and RepeatedNull confuse the formatter,
@@ -234,7 +231,6 @@ class BaseElement(KeyComparable):
                 result = formatted.do_format(evaluation, form)
                 if include_form:
                     result = self.create_expression(form, result)
-                result.unformatted = unformatted
                 return result
 
             # If the expression is still enclosed by a Format,
@@ -260,7 +256,6 @@ class BaseElement(KeyComparable):
 
             if include_form:
                 expr = self.create_expression(form, expr)
-            expr.unformatted = unformatted
             return expr
         finally:
             evaluation.dec_recursion_depth()
