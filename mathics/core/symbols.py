@@ -227,6 +227,46 @@ class Atom(BaseElement):
         result.original = self
         return result
 
+    # FIXME the fact that we have to import all of these symbols means
+    # modularity is broken somehwere.
+    def do_format(self, evaluation, form):
+        """
+        Applies formats associated to the expression and removes
+        superfluous enclosing formats.
+        """
+
+        if isinstance(form, str):
+            form = Symbol(form)
+        formats = format_symbols
+
+        evaluation.inc_recursion_depth()
+        try:
+            expr = self
+            head = self.get_head()
+            include_form = False
+            # If form is Fullform, return it without changes
+            if form is SymbolFullForm:
+                return self
+
+            # Repeated and RepeatedNull confuse the formatter,
+            # so we need to hardlink their format rules:
+            if head is SymbolRepeated:
+                return self.create_expression(SymbolHoldForm, expr)
+            elif head is SymbolRepeatedNull:
+                return self.create_expression(SymbolHoldForm, expr)
+
+            # If the expression is still enclosed by a Format,
+            # iterate.
+            # If the expression is not atomic or of certain
+            # specific cases, iterate over the leaves.
+            if head in formats:
+                expr = expr.do_format(evaluation, form)
+            if include_form:
+                expr = self.create_expression(form, expr)
+            return expr
+        finally:
+            evaluation.dec_recursion_depth()
+
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
         returns True if self and rhs are identical.
@@ -261,6 +301,21 @@ class Atom(BaseElement):
 
     def flatten_pattern_sequence(self, evaluation) -> "Atom":
         return self
+
+    # FIXME the fact that we have to import all of these symbols means
+    # modularity is broken somehwere.
+    def format(self, evaluation, form, **kwargs) -> "BaseElement":
+        """
+        Applies formats associated to the expression, and then calls Makeboxes
+        """
+
+        if isinstance(form, str):
+            form = Symbol(form)
+        expr = self.do_format(evaluation, form)
+        result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
+            evaluation
+        )
+        return result
 
     def get_atom_name(self) -> str:
         return self.__class__.__name__

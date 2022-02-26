@@ -454,13 +454,34 @@ class Expression(BaseElement, NumericOperators):
             ),
         )
 
+    # FIXME the fact that we have to import all of these symbols means
+    # modularity is broken somehwere.
     def do_format(self, evaluation, form):
+        """
+        Applies formats associated to the expression and removes
+        superfluous enclosing formats.
+        """
+        from mathics.core.symbols import (
+            Atom,
+            SymbolFullForm,
+            SymbolGraphics,
+            SymbolGraphics3D,
+            SymbolHoldForm,
+            SymbolList,
+            SymbolNumberForm,
+            SymbolOutputForm,
+            SymbolPostfix,
+            SymbolRepeated,
+            SymbolRepeatedNull,
+            SymbolStandardForm,
+            format_symbols,
+        )
+
         if self._format_cache is None:
             self._format_cache = {}
-        if isinstance(form, str):
 
+        if isinstance(form, str):
             raise Exception("Expression.do_format\n", form, " should be a Symbol")
-            form = Symbol(form)
 
         last_evaluated, expr = self._format_cache.get(form, (None, None))
         if last_evaluated is not None and expr is not None:
@@ -470,9 +491,101 @@ class Expression(BaseElement, NumericOperators):
                     last_evaluated, (symbolname,)
                 ):
                     return expr
-        expr = super().do_format(evaluation, form)
-        self._format_cache[form] = (evaluation.definitions.now, expr)
-        return expr
+
+        formats = format_symbols
+
+        evaluation.inc_recursion_depth()
+
+        try:
+            expr = self
+            head = self.get_head()
+            leaves = self.get_elements()
+            include_form = False
+            # If the expression is enclosed by a Format
+            # takes the form from the expression and
+            # removes the format from the expression.
+            if head in formats and len(leaves) == 1:
+                expr = leaves[0]
+                if not (form is SymbolOutputForm and head is SymbolStandardForm):
+                    form = head
+                    include_form = True
+            # If form is Fullform, return it without changes
+            if form is SymbolFullForm:
+                return self
+
+            # Repeated and RepeatedNull confuse the formatter,
+            # so we need to hardlink their format rules:
+            if head is SymbolRepeated:
+                if len(leaves) == 1:
+                    return self.create_expression(
+                        SymbolHoldForm,
+                        self.create_expression(
+                            SymbolPostfix,
+                            self.create_expression(SymbolList, leaves[0]),
+                            "..",
+                            170,
+                        ),
+                    )
+                else:
+                    return self.create_expression(SymbolHoldForm, expr)
+            elif head is SymbolRepeatedNull:
+                if len(leaves) == 1:
+                    return self.create_expression(
+                        SymbolHoldForm,
+                        self.create_expression(
+                            SymbolPostfix,
+                            self.create_expression(SymbolList, leaves[0]),
+                            "...",
+                            170,
+                        ),
+                    )
+                else:
+                    return self.create_expression(SymbolHoldForm, expr)
+
+            # Looks for formats in its definition and apply them.
+            def format_expr(expr):
+                name = expr.get_lookup_name()
+                formats = evaluation.definitions.get_formats(name, form.get_name())
+                for rule in formats:
+                    result = rule.apply(expr, evaluation)
+                    if result is not None and result != expr:
+                        return result.evaluate(evaluation)
+                return None
+
+            formatted = format_expr(expr)
+            if formatted is not None:
+                result = formatted.do_format(evaluation, form)
+                if include_form:
+                    result = self.create_expression(form, result)
+                return result
+
+            # If the expression is still enclosed by a Format,
+            # iterate.
+            # If the expression is not atomic or of certain
+            # specific cases, iterate over the leaves.
+            head = expr.get_head()
+            if head in formats:
+                expr = expr.do_format(evaluation, form)
+            elif (
+                head is not SymbolNumberForm
+                and not isinstance(expr, Atom)
+                and head is not SymbolGraphics
+                and head is not SymbolGraphics3D
+            ):
+                # print("Not inside graphics or numberform, and not is atom")
+                new_elements = [
+                    leaf.do_format(evaluation, form) for leaf in expr.leaves
+                ]
+                expr = self.create_expression(
+                    expr.head.do_format(evaluation, form), *new_elements
+                )
+
+            if include_form:
+                expr = self.create_expression(form, expr)
+            self._format_cache[form] = (evaluation.definitions.now, expr)
+            return expr
+        finally:
+            evaluation.dec_recursion_depth()
 
     @property
     def elements(self):
@@ -679,6 +792,22 @@ class Expression(BaseElement, NumericOperators):
                 return [element]
 
         return self._flatten_sequence(sequence, evaluation)
+
+    # FIXME the fact that we have to import all of these symbols means
+    # modularity is broken somehwere.
+    def format(self, evaluation, form, **kwargs) -> "BaseElement":
+        """
+        Applies formats associated to the expression, and then calls Makeboxes
+        """
+        from mathics.core.symbols import Symbol, SymbolMakeBoxes
+
+        if isinstance(form, str):
+            form = Symbol(form)
+        expr = self.do_format(evaluation, form)
+        result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
+            evaluation
+        )
+        return result
 
     def get_atoms(self, include_heads=True):
         """Returns a list of atoms involved in the expression."""
@@ -1186,8 +1315,6 @@ class Expression(BaseElement, NumericOperators):
             new = Expression(head)
             new._elements = tuple(dirty_elements)
 
-        # copy the "unformatted" form of the original expression,
-        new.unformatted = self.unformatted
         # Step 8:updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
