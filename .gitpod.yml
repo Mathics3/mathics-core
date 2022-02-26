@@ -27,6 +27,8 @@ tasks:
       cd /workspace
       git clone https://github.com/Mathics3/mathics-benchmark
       cd mathics-benchmark
+      sudo apt install python3.8-venv -y
+      PYTHON=python3 ./admin-tools/install-venv.sh
       make
 
       cd /workspace/mathics-core
