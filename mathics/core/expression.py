@@ -1186,8 +1186,6 @@ class Expression(BaseElement, NumericOperators):
             new = Expression(head)
             new._elements = tuple(dirty_elements)
 
-        # copy the "unformatted" form of the original expression,
-        new.unformatted = self.unformatted
         # Step 8:updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
