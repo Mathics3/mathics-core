@@ -97,18 +97,10 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    # __new__ seems to be used because this object references itself.
-    # In particular:
-    #    self.unformatted = self
-    #
-    # See if there's a way to get rid of this, or ensure that this isn't causing
-    # a garbage collection problem.
-    def __new__(cls, *args, **kwargs):
-        self = object.__new__(cls)
+    def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
         self._cache = None
-        return self
 
     def apply_rules(
         self, rules, evaluation, level=0, options=None
