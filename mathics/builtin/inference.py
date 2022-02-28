@@ -106,7 +106,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
     global remove_not_rules
     cc = True
     while cc:
-        pred, cc = pred.do_apply_rules(remove_not_rules, evaluation)
+        pred, cc = pred.apply_rules(remove_not_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
         if pred.is_true() or pred is SymbolFalse:
             return pred
@@ -208,7 +208,7 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
     # First apply standard rules of reduction.
     # These rules are generated the first time that are used.
     for assumption in assumptions_list:
-        assumption, applied = assumption.do_apply_rules(
+        assumption, applied = assumption.apply_rules(
             logical_algebraic_rules, evaluation
         )
         changed = changed or applied
@@ -256,7 +256,7 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
         )
         new_assumptions_list = []
         for assumption in assumptions_list:
-            assumption, applied = assumption.do_apply_rules(
+            assumption, applied = assumption.apply_rules(
                 logical_algebraic_rules, evaluation
             )
             new_assumptions_list.append(assumption)
@@ -364,7 +364,7 @@ def evaluate_predicate(pred, evaluation):
     debug_logical_expr("->  ", pred, evaluation)
     cc = True
     while cc:
-        pred, cc = pred.do_apply_rules(logical_algebraic_rules, evaluation)
+        pred, cc = pred.apply_rules(logical_algebraic_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
         if pred.is_true() or pred is SymbolFalse:
             return pred
@@ -377,7 +377,7 @@ def evaluate_predicate(pred, evaluation):
         debug_logical_expr(" Now, using the assumptions over ", pred, evaluation)
         changed = True
         while changed:
-            pred, changed = pred.do_apply_rules(assumption_rules, evaluation)
+            pred, changed = pred.apply_rules(assumption_rules, evaluation)
             debug_logical_expr(" -> ", pred, evaluation)
 
     pred = remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)
