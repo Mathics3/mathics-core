@@ -824,11 +824,11 @@ class Root(SympyFunction):
     >> Reduce[{x y == 0, y == 4},{x, y}]
      = y == 4 && x == 0
     #>> Reduce[{x y == 0, y > 4},{x, y}]
-     =  x == 0 && y > 4
+     #=  x == 0 && y > 4
     #>> Reduce[x*y>0,{x,y}]
-     = (x < 0 && y < 0) || (x > 0 && y > 0)
+     #= (x < 0 && y < 0) || (x > 0 && y > 0)
     #>> Reduce[{x*y > 0, y>0},{x,y}]
-     =  x > 0 && y > 0
+     #=  x > 0 && y > 0
     
     >> Reduce[a<b,a]
      =  b ∈ Reals && a < b
