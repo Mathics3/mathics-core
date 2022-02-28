@@ -134,6 +134,15 @@ class Builtin(object):
     defaults = {}
 
     def __new__(cls, *args, **kwargs):
+        # comment @mmatera:
+        # The goal of this method is to allow to build expressions
+        # like ``Expression(SymbolList,x,y,z)``
+        # in the handy way  ``List(x,y,z)``.
+        # This is handy, but can be confusing if this is not very
+        # well documented.
+        # Notice that this behavior was used extensively in
+        # mathics.builtin.inout
+
         if kwargs.get("expression", None) is not False:
             return Expression(cls.get_name(), *args)
         else:
