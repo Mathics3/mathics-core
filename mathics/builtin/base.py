@@ -68,6 +68,60 @@ mathics_to_python = {}
 
 
 class Builtin(object):
+    """
+    This class is the base class for Builtin symbol definitions.
+
+    A Builtin class is a structure that holds the information needed to generate
+    a Definition object for a built-in Symbol, like transformation rules, attributes, options,
+    etc.
+    Method with names of the form ``apply*`` are considered replacement rules, for expressions
+    that match the pattern described in their docstrings. For example
+
+    ```
+        def apply(x, evaluation):
+             '''F[x_Real]'''
+             return Expression("G", x*2)
+    ```
+    adds a ``BuilitinRule`` that implements ``F[x_]->G[x*2].
+    If the ``apply*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
+    Notice that the argument names must coincide with the name of the corresponding pattern in the docstring.
+
+    For rules including ``OptionsPattern``
+    ```
+        def apply_with_options(x, evaluation, options):
+             '''F[x_Real, OptionsPattern[]]'''
+             ...
+    ```
+    the options are stored as a dictionary in the last parameter. For example, if the rule is applied to ``F[x, Method->Automatic]``
+    the expression is replaced by the output of ``apply_with_options(x, evaluation, {"System`Method": Symbol("Automatic")})
+
+    The method ``contribute`` stores the definition of the  ``Builtin`` ` `Symbol`` into a set of ``Definitions``. For example,
+
+    ```
+    definitions = Definitions(add_builtin=False)
+    List(expression=False).contribute(definitions)
+    ```
+    produces a ``Definitions`` object with just one definition, for the ``Symbol`` ``System`List``.
+
+    Notice that for creating a Bultinin, we must pass to the constructor the option ``expression=False``. Otherwise,
+    an Expression object is created, with the ``Symbol`` associated to the definition as the ``Head``.
+    For example,
+
+    ```
+    builtinlist = List(expression=False)
+    ```
+    creates the  ``Builtin``  ``List``, associated to the symbol ``System`List``, but
+
+    ```
+    expr_list = List(Integer(1), Integer(2), Integer(3))
+    ```
+    is equivalent to write
+    ```
+    expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
+    ```
+
+    """
+
     name: typing.Optional[str] = None
     context: str = ""
     abstract: bool = False

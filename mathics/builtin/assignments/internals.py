@@ -163,7 +163,7 @@ def unroll_patterns(lhs, rhs, evaluation):
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
-        rhs, status = rhs.apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
 
     if name == "System`HoldPattern":
@@ -573,7 +573,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
             evaluation.message_args("Condition", len(rhs.leaves), 2)
             raise AssignmentException(lhs, None)
         lhs = Expression(
-            "Condition", lhs, rhs.leaves[1].apply_rules([rulopc], evaluation)[0]
+            "Condition", lhs, rhs.leaves[1].do_apply_rules([rulopc], evaluation)[0]
         )
         rhs = rhs.leaves[0]
         rhs_name = rhs.get_head_name()
@@ -583,7 +583,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
         lhs = Expression(
             "Condition",
             lhs,
-            condition.leaves[1].apply_rules([rulopc], evaluation)[0],
+            condition.leaves[1].do_apply_rules([rulopc], evaluation)[0],
         )
     return lhs, rhs
 

@@ -111,7 +111,7 @@ class BaseElement(KeyComparable):
         self._cache = None
         return self
 
-    def apply_rules(
+    def do_apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> Tuple["BaseElement", bool]:
         """
