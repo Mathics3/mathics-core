@@ -1187,6 +1187,15 @@ class Expression(BaseElement, NumericOperators):
         else:
             return False, options
 
+    # comment @mmatera: I think that the methods ``boxes_to_`` does not belong
+    # here but to a specialized class for holding ``Box*`` expressions.
+    # Box expressions shouldn't be evaluated, because are a kind of Literal, describing
+    # a way in which certain expression should be shown.
+    # In this PR (#181) I propose a basic implementation of a ``BoxExpression`` class.
+    # ``BoxExpression``  shouldn't implement many of the methods related to ``evaluation``
+    # and rewritting. Also, BoxExpressions must be build just from other ``BoxExpression``,
+    # ``String`` and ``Lists``.
+
     def boxes_to_text(self, **options) -> str:
         """
         From a Boxed expression, produces a text representation.

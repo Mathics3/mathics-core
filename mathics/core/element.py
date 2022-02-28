@@ -107,6 +107,10 @@ class BaseElement(KeyComparable):
         self = object.__new__(cls)
         self.options = None
         self.pattern_sequence = False
+        # This property would be useful for a BoxExpression
+        # (see comment in mathocs.core.expression.) However,
+        # WL has a way to handle the connection between
+        # an expression and a Box expression ``InterpretationBox``.
         self.unformatted = self  # This may be a garbage-collection nightmare.
         self._cache = None
         return self
