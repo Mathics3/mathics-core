@@ -2822,7 +2822,7 @@ class BaseForm(Builtin):
             x = expr.get_int_value()
             p = 0
         else:
-            return Expression(SymbolMakeBoxes, expr, f)
+            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
 
         try:
             val = convert_base(x, base, p)
@@ -2830,6 +2830,8 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return String("%s_%d" % (val, base))
+            return to_boxes(String("%s_%d" % (val, base)), evaluation)
         else:
-            return Expression(SymbolSubscriptBox, String(val), String(base))
+            return to_boxes(
+                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
+            )
