@@ -12,7 +12,7 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.parser import is_symbol_name
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
+def to_boxes(x, evaluation: Evaluation, options={}) -> BoxConstruct:
     """
     This function takes the expression ``x``
     and tries to reduce it to a ``BoxConstruct``
