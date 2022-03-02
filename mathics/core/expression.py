@@ -1202,7 +1202,6 @@ class Expression(BaseElement, NumericOperators):
         """
         # Idea @mmatera: All the Boxes expressions should be implemented as a different class
         # which implements these ``boxes_to_*`` methods.
-
         is_style, options = self.process_style_box(options)
         if is_style:
             return self._elements[0].boxes_to_text(**options)
@@ -1302,6 +1301,7 @@ class Expression(BaseElement, NumericOperators):
                 return "<msqrt>%s</msqrt>" % (
                     self._elements[0].boxes_to_mathml(**options)
                 )
+            # GraphBox never happens...
             elif name == "System`GraphBox":
                 return "<mi>%s</mi>" % (self._elements[0].boxes_to_mathml(**options))
             else:

@@ -47,6 +47,17 @@ class CustomGraphicsBox(BoxConstruct):
     options = GRAPHICS_OPTIONS
     attributes = hold_all | protected | read_protected
 
+    def init(self, *elems, **options):
+        self._elements = elems
+        self.evaluation = options.pop("evaluation", None)
+        self.box_options = options.copy()
+
+    def to_expression(self):
+        return Expression("CustomGraphicsBox", *self._elements)
+
+    def get_elements(self):
+        return self._elements
+
     def apply_box(self, elems, evaluation, options):
         """System`MakeBoxes[System`Graphics[elems_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""

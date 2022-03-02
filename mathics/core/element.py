@@ -182,7 +182,6 @@ class BaseElement(KeyComparable):
         if isinstance(form, str):
             form = Symbol(form)
         formats = format_symbols
-
         evaluation.inc_recursion_depth()
         try:
             expr = self
@@ -204,7 +203,6 @@ class BaseElement(KeyComparable):
                     expr = self.create_expression(form, expr)
                     expr.unformatted = unformatted
                 return expr
-
             # Repeated and RepeatedNull confuse the formatter,
             # so we need to hardlink their format rules:
             if head is SymbolRepeated:
@@ -276,7 +274,6 @@ class BaseElement(KeyComparable):
                 expr = self.create_expression(
                     expr.head.do_format(evaluation, form), *new_elements
                 )
-
             if include_form:
                 expr = self.create_expression(form, expr)
             expr.unformatted = unformatted

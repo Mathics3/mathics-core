@@ -37,7 +37,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import protected
+from mathics.core.attributes import protected, read_protected
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -652,14 +652,62 @@ class SympyFunction(SympyObject):
 
 
 class BoxConstruct(InstanceableBuiltin):
+    # This is the base class for the "Final form"
+    # of formatted expressions.
+    #
+    # The idea is that this class and their subclasses implement
+    # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
+    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # considered "inert". However, it could happend that an Expression having them as an element
+    # be evaluable, and try to apply rules. For example,
+    # InputForm[ToBoxes[a+b]]
+    # should be evaluated to ``Expression("RowBox", '"a"', '"+"', '"b"')``.
+    #
+    # Changes to do, after the refactor of mathics.core:
+    #
+    # * Change the name of this class: It must be ``FormatExpression``,
+    #   ``BoxExpression`` or ``BoxElement`` or something like that.
+    # * Make this to be a subclass of ``BaseElement``.
+    # * Review the implementation
+
+    attributes = protected | read_protected
+
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
-        instance._elements = elements
+        # the __new__ method from InstanceableBuiltin
+        # calls self.init. It is expected that it set
+        # self._elements. However, if it didn't happens,
+        # we set it with a default value.
+        # There should be a better way to implement this
+        # behaviour...
+        if not hasattr(instance, "_elements"):
+            instance._elements = tuple(elements)
         return instance
+
+    def tex_block(self, tex, only_subsup=False):
+        if len(tex) == 1:
+            return tex
+        else:
+            if not only_subsup or "_" in tex or "^" in tex:
+                return "{%s}" % tex
+            else:
+                return tex
+
+    def to_expression(self):
+        expr = Expression(self.get_name(), self._elements)
+        return expr
+
+    def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
+        expr = self.to_expression()
+        result = expr.replace_vars(vars, options, in_scoping, in_function)
+        return result
 
     def evaluate(self, evaluation):
         # THINK about: Should we evaluate the elements here?
-        return
+        return self
+
+    def get_elements(self):
+        return self._elements
 
     def get_head_name(self):
         return self.get_name()
@@ -678,7 +726,9 @@ class BoxConstruct(InstanceableBuiltin):
         return self
 
     def format(self, evaluation, fmt):
-        return self
+        expr = Expression("HoldForm", self.to_expression())
+        fexpr = expr.format(evaluation, fmt)
+        return fexpr
 
     def get_head(self):
         return Symbol(self.get_name())
@@ -693,7 +743,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @property
     def leaves(self):
-        return self._elements
+        return self.get_elements()
 
     @leaves.setter
     def leaves(self, value):
