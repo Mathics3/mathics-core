@@ -1013,7 +1013,7 @@ class TableForm(Builtin):
         f:StandardForm|TraditionalForm|OutputForm]"""
 
         dims = len(get_dimensions(table, head=SymbolList))
-        depth = self.get_option(options, "TableDepth", evaluation).unformatted
+        depth = self.get_option(options, "TableDepth", evaluation)
         depth = expr_min((Integer(dims), depth))
         depth = depth.get_int_value()
         if depth is None:

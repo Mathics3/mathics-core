@@ -97,14 +97,7 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    # __new__ seems to be used because this object references itself.
-    # In particular:
-    #    self.unformatted = self
-    #
-    # See if there's a way to get rid of this, or ensure that this isn't causing
-    # a garbage collection problem.
-    def __new__(cls, *args, **kwargs):
-        self = object.__new__(cls)
+    def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
         # This property would be useful for a BoxExpression
@@ -113,7 +106,6 @@ class BaseElement(KeyComparable):
         # an expression and a Box expression ``InterpretationBox``.
         self.unformatted = self  # This may be a garbage-collection nightmare.
         self._cache = None
-        return self
 
     # comment @mmatera: The next method have a name that starts with ``apply``.
     # This obstaculizes to define ``InstanceableBuiltin``
@@ -196,12 +188,10 @@ class BaseElement(KeyComparable):
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
-            unformatted = expr
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
                     expr = self.create_expression(form, expr)
-                    expr.unformatted = unformatted
                 return expr
             # Repeated and RepeatedNull confuse the formatter,
             # so we need to hardlink their format rules:
@@ -251,7 +241,6 @@ class BaseElement(KeyComparable):
                 result = formatted.do_format(evaluation, form)
                 if include_form:
                     result = self.create_expression(form, result)
-                result.unformatted = unformatted
                 return result
 
             # If the expression is still enclosed by a Format,
@@ -276,7 +265,6 @@ class BaseElement(KeyComparable):
                 )
             if include_form:
                 expr = self.create_expression(form, expr)
-            expr.unformatted = unformatted
             return expr
         finally:
             evaluation.dec_recursion_depth()
@@ -533,4 +521,4 @@ class BaseElement(KeyComparable):
         raise NotImplementedError
 
     def to_mpmath(self):
-        return None
+        raise NotImplementedError

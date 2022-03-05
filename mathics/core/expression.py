@@ -175,6 +175,12 @@ class Expression(BaseElement, NumericOperators):
         self._format_cache = None
         return self
 
+    def __getnewargs__(self):
+        return (self._head, self._elements)
+
+    def __hash__(self):
+        return hash(("Expression", self._head) + tuple(self._elements))
+
     def __repr__(self) -> str:
         return "<Expression: %s>" % self
 
@@ -255,6 +261,186 @@ class Expression(BaseElement, NumericOperators):
         self._cache = cache
         return cache
 
+    def _timestamp_cache(self, evaluation):
+        self._cache = ExpressionCache(evaluation.definitions.now, copy=self._cache)
+
+    # comment @mmatera: I think that the methods ``boxes_to_`` does not belong
+    # here but to a specialized class for holding ``Box*`` expressions.
+    # Box expressions shouldn't be evaluated, because are a kind of Literal, describing
+    # a way in which certain expression should be shown.
+    # In this PR (#181) I propose a basic implementation of a ``BoxExpression`` class.
+    # ``BoxExpression``  shouldn't implement many of the methods related to ``evaluation``
+    # and rewritting. Also, BoxExpressions must be build just from other ``BoxExpression``,
+    # ``String`` and ``Lists``.
+    def boxes_to_text(self, **options) -> str:
+        """
+        From a Boxed expression, produces a text representation.
+        """
+        # Idea @mmatera: All the Boxes expressions should be implemented as a different class
+        # which implements these ``boxes_to_*`` methods.
+
+        is_style, options = self.process_style_box(options)
+        if is_style:
+            return self._elements[0].boxes_to_text(**options)
+        if self.has_form("RowBox", 1) and self._elements[0].has_form(  # nopep8
+            "List", None
+        ):
+            return "".join(
+                [
+                    element.boxes_to_text(**options)
+                    for element in self._elements[0]._elements
+                ]
+            )
+        elif self.has_form("SuperscriptBox", 2):
+            return "^".join(
+                [element.boxes_to_text(**options) for element in self._elements]
+            )
+        elif self.has_form("FractionBox", 2):
+            return "/".join(
+                [
+                    " ( " + element.boxes_to_text(**options) + " ) "
+                    for element in self._elements
+                ]
+            )
+        else:
+            raise BoxError(self, "text")
+
+    def boxes_to_mathml(self, **options) -> str:
+        is_style, options = self.process_style_box(options)
+        if is_style:
+            return self._elements[0].boxes_to_mathml(**options)
+        name = self._head.get_name()
+        if (
+            name == "System`RowBox"
+            and len(self._elements) == 1
+            and self._elements[0].get_head() is SymbolList  # nopep8
+        ):
+            result = []
+            inside_row = options.get("inside_row")
+            # inside_list = options.get('inside_list')
+            options = options.copy()
+
+            def is_list_interior(content):
+                if content.has_form("List", None) and all(
+                    element.get_string_value() == ","
+                    for element in content._elements[1::2]
+                ):
+                    return True
+                return False
+
+            is_list_row = False
+            if (
+                len(self._elements[0]._elements) == 3
+                and self._elements[0]._elements[0].get_string_value() == "{"  # nopep8
+                and self._elements[0]._elements[2].get_string_value() == "}"
+                and self._elements[0]._elements[1].has_form("RowBox", 1)
+            ):
+                content = self._elements[0]._elements[1]._elements[0]
+                if is_list_interior(content):
+                    is_list_row = True
+
+            if not inside_row and is_list_interior(self._elements[0]):
+                is_list_row = True
+
+            if is_list_row:
+                options["inside_list"] = True
+            else:
+                options["inside_row"] = True
+
+            for element in self._elements[0].get_elements():
+                result.append(element.boxes_to_mathml(**options))
+            return "<mrow>%s</mrow>" % " ".join(result)
+        else:
+            options = options.copy()
+            options["inside_row"] = True
+            if name == "System`SuperscriptBox" and len(self._elements) == 2:
+                return "<msup>%s %s</msup>" % (
+                    self._elements[0].boxes_to_mathml(**options),
+                    self._elements[1].boxes_to_mathml(**options),
+                )
+            if name == "System`SubscriptBox" and len(self._elements) == 2:
+                return "<msub>%s %s</msub>" % (
+                    self._elements[0].boxes_to_mathml(**options),
+                    self._elements[1].boxes_to_mathml(**options),
+                )
+            if name == "System`SubsuperscriptBox" and len(self._elements) == 3:
+                return "<msubsup>%s %s %s</msubsup>" % (
+                    self._elements[0].boxes_to_mathml(**options),
+                    self._elements[1].boxes_to_mathml(**options),
+                    self._elements[2].boxes_to_mathml(**options),
+                )
+            elif name == "System`FractionBox" and len(self._elements) == 2:
+                return "<mfrac>%s %s</mfrac>" % (
+                    self._elements[0].boxes_to_mathml(**options),
+                    self._elements[1].boxes_to_mathml(**options),
+                )
+            elif name == "System`SqrtBox" and len(self._elements) == 1:
+                return "<msqrt>%s</msqrt>" % (
+                    self._elements[0].boxes_to_mathml(**options)
+                )
+            elif name == "System`GraphBox":
+                return "<mi>%s</mi>" % (self._elements[0].boxes_to_mathml(**options))
+            else:
+                raise BoxError(self, "xml")
+
+    def boxes_to_tex(self, **options) -> str:
+        def block(tex, only_subsup=False):
+            if len(tex) == 1:
+                return tex
+            else:
+                if not only_subsup or "_" in tex or "^" in tex:
+                    return "{%s}" % tex
+                else:
+                    return tex
+
+        is_style, options = self.process_style_box(options)
+        if is_style:
+            return self._elements[0].boxes_to_tex(**options)
+        name = self._head.get_name()
+        if (
+            name == "System`RowBox"
+            and len(self._elements) == 1
+            and self._elements[0].get_head_name() == "System`List"  # nopep8
+        ):
+            return "".join(
+                [
+                    element.boxes_to_tex(**options)
+                    for element in self._elements[0].get_elements()
+                ]
+            )
+        elif name == "System`SuperscriptBox" and len(self._elements) == 2:
+            tex1 = self._elements[0].boxes_to_tex(**options)
+            sup_string = self._elements[1].get_string_value()
+            if sup_string == "\u2032":
+                return "%s'" % tex1
+            elif sup_string == "\u2032\u2032":
+                return "%s''" % tex1
+            else:
+                return "%s^%s" % (
+                    block(tex1, True),
+                    block(self._elements[1].boxes_to_tex(**options)),
+                )
+        elif name == "System`SubscriptBox" and len(self._elements) == 2:
+            return "%s_%s" % (
+                block(self._elements[0].boxes_to_tex(**options), True),
+                block(self._elements[1].boxes_to_tex(**options)),
+            )
+        elif name == "System`SubsuperscriptBox" and len(self._elements) == 3:
+            return "%s_%s^%s" % (
+                block(self._elements[0].boxes_to_tex(**options), True),
+                block(self._elements[1].boxes_to_tex(**options)),
+                block(self._elements[2].boxes_to_tex(**options)),
+            )
+        elif name == "System`FractionBox" and len(self._elements) == 2:
+            return "\\frac{%s}{%s}" % (
+                self._elements[0].boxes_to_tex(**options),
+                self._elements[1].boxes_to_tex(**options),
+            )
+        elif name == "System`SqrtBox" and len(self._elements) == 1:
+            return "\\sqrt{%s}" % self._elements[0].boxes_to_tex(**options)
+        else:
+            raise BoxError(self, "tex")
+
     def copy(self, reevaluate=False) -> "Expression":
         expr = Expression(self._head.copy(reevaluate))
         expr._elements = tuple(element.copy(reevaluate) for element in self._elements)
@@ -268,8 +454,13 @@ class Expression(BaseElement, NumericOperators):
         expr._format_cache = self._format_cache
         return expr
 
-    def _timestamp_cache(self, evaluation):
-        self._cache = ExpressionCache(evaluation.definitions.now, copy=self._cache)
+    def default_format(self, evaluation, form) -> str:
+        return "%s[%s]" % (
+            self._head.default_format(evaluation, form),
+            ", ".join(
+                [element.default_format(evaluation, form) for element in self._elements]
+            ),
+        )
 
     def do_format(self, evaluation, form):
         if self._format_cache is None:
@@ -496,6 +687,18 @@ class Expression(BaseElement, NumericOperators):
                 return [element]
 
         return self._flatten_sequence(sequence, evaluation)
+
+    def get_atoms(self, include_heads=True):
+        """Returns a list of atoms involved in the expression."""
+        # Comment @mmatera: maybe, what we really want here are the Symbol's
+        # involved in the expression, not the atoms.
+        if include_heads:
+            atoms = self._head.get_atoms()
+        else:
+            atoms = []
+        for element in self._elements:
+            atoms.extend(element.get_atoms())
+        return atoms
 
     def get_attributes(self, definitions):
         if self._head is SymbolFunction and len(self._elements) > 2:
@@ -753,146 +956,6 @@ class Expression(BaseElement, NumericOperators):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(leaves))
 
-    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
-        """
-        Round to a Python float. Return None if rounding is not possible.
-        This can happen if self or evaluation is NaN.
-        """
-
-        if evaluation is None:
-            value = self
-        elif isinstance(evaluation, sympy.core.numbers.NaN):
-            return None
-        else:
-            value = self.create_expression(SymbolN, self).evaluate(evaluation)
-        if hasattr(value, "round") and hasattr(value, "get_float_value"):
-            value = value.round()
-            return value.get_float_value(permit_complex=permit_complex)
-        return None
-
-    def sequences(self):
-        cache = self._cache
-        if cache:
-            seq = cache.sequences
-            if seq is not None:
-                return seq
-
-        return self._rebuild_cache().sequences
-
-    def set_head(self, head):
-        self._head = head
-        self._cache = None
-
-    def set_element(self, index: int, value):
-        """
-        Update element[i] with value
-        """
-        elements = list(self._elements)
-        elements[index] = value
-        self._elements = tuple(elements)
-        self._cache = None
-
-    def set_reordered_elements(
-        self, elements
-    ):  # same elements, but in a different order
-        self._elements = tuple(elements)
-        if self._cache:
-            self._cache = self._cache.reordered()
-
-    def shallow_copy(self) -> "Expression":
-        # this is a minimal, shallow copy: head, elements are shared with
-        # the original, only the Expression instance is new.
-        expr = Expression(self._head)
-        expr._elements = self._elements
-        # rebuilding the cache in self speeds up large operations, e.g.
-        # First[Timing[Fold[#1+#2&, Range[750]]]]
-        expr._cache = self._rebuild_cache()
-        expr.options = self.options
-        # expr.last_evaluated = self.last_evaluated
-        return expr
-
-    def slice(self, head, py_slice, evaluation):
-        # faster equivalent to: Expression(head, *self.leaves[py_slice])
-        return structure(head, self, evaluation).slice(self, py_slice)
-
-    def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
-
-        if "convert_all_global_functions" in kwargs:
-            if len(self.leaves) > 0 and kwargs["convert_all_global_functions"]:
-                if self.get_head_name().startswith("Global`"):
-                    return self._as_sympy_function(**kwargs)
-
-        if "converted_functions" in kwargs:
-            functions = kwargs["converted_functions"]
-            if len(self._elements) > 0 and self.get_head_name() in functions:
-                sym_args = [element.to_sympy() for element in self._elements]
-                if None in sym_args:
-                    return None
-                func = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))(
-                    *sym_args
-                )
-                return func
-
-        lookup_name = self.get_lookup_name()
-        builtin = mathics_to_sympy.get(lookup_name)
-        if builtin is not None:
-            sympy_expr = builtin.to_sympy(self, **kwargs)
-            if sympy_expr is not None:
-                return sympy_expr
-
-        return SympyExpression(self)
-
-    def to_python(self, *args, **kwargs):
-        """
-        Convert the Expression to a Python object:
-        List[...]  -> Python list
-        DirectedInfinity[1] -> inf
-        DirectedInfinity[-1] -> -inf
-        True/False -> True/False
-        Null       -> None
-        Symbol     -> '...'
-        String     -> '"..."'
-        Function   -> python function
-        numbers    -> Python number
-        If kwarg n_evaluation is given, apply N first to the expression.
-        """
-        from mathics.builtin.base import mathics_to_python
-
-        n_evaluation = kwargs.get("n_evaluation")
-        head = self._head
-        if n_evaluation is not None:
-            if head is SymbolFunction:
-                compiled = Expression(SymbolCompile, *(self._elements))
-                compiled = compiled.evaluate(n_evaluation)
-                if compiled.get_head() is SymbolCompiledFunction:
-                    return compiled.leaves[2].cfunc
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
-
-        if head is SymbolDirectedInfinity and len(self._elements) == 1:
-            direction = self._elements[0].get_int_value()
-            if direction == 1:
-                return math.inf
-            if direction == -1:
-                return -math.inf
-        elif head is SymbolList:
-            return [element.to_python(*args, **kwargs) for element in self._elements]
-
-        head_name = head.get_name()
-        if head_name in mathics_to_python:
-            py_obj = mathics_to_python[head_name]
-            # Start here
-            # if inspect.isfunction(py_obj) or inspect.isbuiltin(py_obj):
-            #     args = [element.to_python(*args, **kwargs) for element in self._elements]
-            #     return ast.Call(
-            #         func=py_obj.__name__,
-            #         args=args,
-            #         keywords=[],
-            #         )
-            return py_obj
-        return self
-
     def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
         """Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
@@ -1131,8 +1194,6 @@ class Expression(BaseElement, NumericOperators):
             new = Expression(head)
             new._elements = tuple(dirty_elements)
 
-        # copy the "unformatted" form of the original expression,
-        new.unformatted = self.unformatted
         # Step 8:updates the cache and returns the new form, with the reevaluate flag to false.
         new._timestamp_cache(evaluation)
         return new, False
@@ -1150,6 +1211,23 @@ class Expression(BaseElement, NumericOperators):
     #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
     #
 
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+
+        if evaluation is None:
+            value = self
+        elif isinstance(evaluation, sympy.core.numbers.NaN):
+            return None
+        else:
+            value = self.create_expression(SymbolN, self).evaluate(evaluation)
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None
+
     def sameQ(self, other: BaseElement) -> bool:
         """Mathics SameQ"""
         if not isinstance(other, Expression):
@@ -1164,6 +1242,125 @@ class Expression(BaseElement, NumericOperators):
             (id(element) == id(oelement) or element.sameQ(oelement))
             for element, oelement in zip(self._elements, other.get_elements())
         )
+
+    def sequences(self):
+        cache = self._cache
+        if cache:
+            seq = cache.sequences
+            if seq is not None:
+                return seq
+
+        return self._rebuild_cache().sequences
+
+    def set_head(self, head):
+        self._head = head
+        self._cache = None
+
+    def set_element(self, index: int, value):
+        """
+        Update element[i] with value
+        """
+        elements = list(self._elements)
+        elements[index] = value
+        self._elements = tuple(elements)
+        self._cache = None
+
+    def shallow_copy(self) -> "Expression":
+        # this is a minimal, shallow copy: head, elements are shared with
+        # the original, only the Expression instance is new.
+        expr = Expression(self._head)
+        expr._elements = self._elements
+        # rebuilding the cache in self speeds up large operations, e.g.
+        # First[Timing[Fold[#1+#2&, Range[750]]]]
+        expr._cache = self._rebuild_cache()
+        expr.options = self.options
+        # expr.last_evaluated = self.last_evaluated
+        return expr
+
+    def slice(self, head, py_slice, evaluation):
+        # faster equivalent to: Expression(head, *self.leaves[py_slice])
+        return structure(head, self, evaluation).slice(self, py_slice)
+
+    def to_mpmath(self):
+        return None
+
+    def to_python(self, *args, **kwargs):
+        """
+        Convert the Expression to a Python object:
+        List[...]  -> Python list
+        DirectedInfinity[1] -> inf
+        DirectedInfinity[-1] -> -inf
+        True/False -> True/False
+        Null       -> None
+        Symbol     -> '...'
+        String     -> '"..."'
+        Function   -> python function
+        numbers    -> Python number
+        If kwarg n_evaluation is given, apply N first to the expression.
+        """
+        from mathics.builtin.base import mathics_to_python
+
+        n_evaluation = kwargs.get("n_evaluation")
+        head = self._head
+        if n_evaluation is not None:
+            if head is SymbolFunction:
+                compiled = Expression(SymbolCompile, *(self._elements))
+                compiled = compiled.evaluate(n_evaluation)
+                if compiled.get_head() is SymbolCompiledFunction:
+                    return compiled.leaves[2].cfunc
+            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            return value.to_python()
+
+        if head is SymbolDirectedInfinity and len(self._elements) == 1:
+            direction = self._elements[0].get_int_value()
+            if direction == 1:
+                return math.inf
+            if direction == -1:
+                return -math.inf
+        elif head is SymbolList:
+            return [element.to_python(*args, **kwargs) for element in self._elements]
+
+        head_name = head.get_name()
+        if head_name in mathics_to_python:
+            py_obj = mathics_to_python[head_name]
+            # Start here
+            # if inspect.isfunction(py_obj) or inspect.isbuiltin(py_obj):
+            #     args = [element.to_python(*args, **kwargs) for element in self._elements]
+            #     return ast.Call(
+            #         func=py_obj.__name__,
+            #         args=args,
+            #         keywords=[],
+            #         )
+            return py_obj
+        return self
+
+    def to_sympy(self, **kwargs):
+        from mathics.builtin import mathics_to_sympy
+
+        if "convert_all_global_functions" in kwargs:
+            if len(self.leaves) > 0 and kwargs["convert_all_global_functions"]:
+                if self.get_head_name().startswith("Global`"):
+                    return self._as_sympy_function(**kwargs)
+
+        if "converted_functions" in kwargs:
+            functions = kwargs["converted_functions"]
+            if len(self._elements) > 0 and self.get_head_name() in functions:
+                sym_args = [element.to_sympy() for element in self._elements]
+                if None in sym_args:
+                    return None
+                func = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))(
+                    *sym_args
+                )
+                return func
+
+        lookup_name = self.get_lookup_name()
+        builtin = mathics_to_sympy.get(lookup_name)
+        if builtin is not None:
+            sympy_expr = builtin.to_sympy(self, **kwargs)
+            if sympy_expr is not None:
+                return sympy_expr
+
+        return SympyExpression(self)
 
     def process_style_box(self, options):
         if self.has_form("StyleBox", 1, None):
@@ -1187,213 +1384,32 @@ class Expression(BaseElement, NumericOperators):
         else:
             return False, options
 
-    # comment @mmatera: I think that the methods ``boxes_to_`` does not belong
-    # here but to a specialized class for holding ``Box*`` expressions.
-    # Box expressions shouldn't be evaluated, because are a kind of Literal, describing
-    # a way in which certain expression should be shown.
-    # In this PR (#181) I propose a basic implementation of a ``BoxExpression`` class.
-    # ``BoxExpression``  shouldn't implement many of the methods related to ``evaluation``
-    # and rewritting. Also, BoxExpressions must be build just from other ``BoxExpression``,
-    # ``String`` and ``Lists``.
-
-    def boxes_to_text(self, **options) -> str:
-        """
-        From a Boxed expression, produces a text representation.
-        """
-        # Idea @mmatera: All the Boxes expressions should be implemented as a different class
-        # which implements these ``boxes_to_*`` methods.
-        is_style, options = self.process_style_box(options)
-        if is_style:
-            return self._elements[0].boxes_to_text(**options)
-        if self.has_form("RowBox", 1) and self._elements[0].has_form(  # nopep8
-            "List", None
-        ):
-            return "".join(
-                [
-                    element.boxes_to_text(**options)
-                    for element in self._elements[0]._elements
-                ]
-            )
-        elif self.has_form("SuperscriptBox", 2):
-            return "^".join(
-                [element.boxes_to_text(**options) for element in self._elements]
-            )
-        elif self.has_form("FractionBox", 2):
-            return "/".join(
-                [
-                    " ( " + element.boxes_to_text(**options) + " ) "
-                    for element in self._elements
-                ]
-            )
-        else:
-            raise BoxError(self, "text")
-
-    def boxes_to_mathml(self, **options) -> str:
-        is_style, options = self.process_style_box(options)
-        if is_style:
-            return self._elements[0].boxes_to_mathml(**options)
-        name = self._head.get_name()
-        if (
-            name == "System`RowBox"
-            and len(self._elements) == 1
-            and self._elements[0].get_head() is SymbolList  # nopep8
-        ):
-            result = []
-            inside_row = options.get("inside_row")
-            # inside_list = options.get('inside_list')
-            options = options.copy()
-
-            def is_list_interior(content):
-                if content.has_form("List", None) and all(
-                    element.get_string_value() == ","
-                    for element in content._elements[1::2]
-                ):
-                    return True
-                return False
-
-            is_list_row = False
-            if (
-                len(self._elements[0]._elements) == 3
-                and self._elements[0]._elements[0].get_string_value() == "{"  # nopep8
-                and self._elements[0]._elements[2].get_string_value() == "}"
-                and self._elements[0]._elements[1].has_form("RowBox", 1)
-            ):
-                content = self._elements[0]._elements[1]._elements[0]
-                if is_list_interior(content):
-                    is_list_row = True
-
-            if not inside_row and is_list_interior(self._elements[0]):
-                is_list_row = True
-
-            if is_list_row:
-                options["inside_list"] = True
-            else:
-                options["inside_row"] = True
-
-            for element in self._elements[0].get_elements():
-                result.append(element.boxes_to_mathml(**options))
-            return "<mrow>%s</mrow>" % " ".join(result)
-        else:
-            options = options.copy()
-            options["inside_row"] = True
-            if name == "System`SuperscriptBox" and len(self._elements) == 2:
-                return "<msup>%s %s</msup>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
-                )
-            if name == "System`SubscriptBox" and len(self._elements) == 2:
-                return "<msub>%s %s</msub>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
-                )
-            if name == "System`SubsuperscriptBox" and len(self._elements) == 3:
-                return "<msubsup>%s %s %s</msubsup>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
-                    self._elements[2].boxes_to_mathml(**options),
-                )
-            elif name == "System`FractionBox" and len(self._elements) == 2:
-                return "<mfrac>%s %s</mfrac>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
-                )
-            elif name == "System`SqrtBox" and len(self._elements) == 1:
-                return "<msqrt>%s</msqrt>" % (
-                    self._elements[0].boxes_to_mathml(**options)
-                )
-            # GraphBox never happens...
-            elif name == "System`GraphBox":
-                return "<mi>%s</mi>" % (self._elements[0].boxes_to_mathml(**options))
-            else:
-                raise BoxError(self, "xml")
-
-    def boxes_to_tex(self, **options) -> str:
-        def block(tex, only_subsup=False):
-            if len(tex) == 1:
-                return tex
-            else:
-                if not only_subsup or "_" in tex or "^" in tex:
-                    return "{%s}" % tex
-                else:
-                    return tex
-
-        is_style, options = self.process_style_box(options)
-        if is_style:
-            return self._elements[0].boxes_to_tex(**options)
-        name = self._head.get_name()
-        if (
-            name == "System`RowBox"
-            and len(self._elements) == 1
-            and self._elements[0].get_head_name() == "System`List"  # nopep8
-        ):
-            return "".join(
-                [
-                    element.boxes_to_tex(**options)
-                    for element in self._elements[0].get_elements()
-                ]
-            )
-        elif name == "System`SuperscriptBox" and len(self._elements) == 2:
-            tex1 = self._elements[0].boxes_to_tex(**options)
-            sup_string = self._elements[1].get_string_value()
-            if sup_string == "\u2032":
-                return "%s'" % tex1
-            elif sup_string == "\u2032\u2032":
-                return "%s''" % tex1
-            else:
-                return "%s^%s" % (
-                    block(tex1, True),
-                    block(self._elements[1].boxes_to_tex(**options)),
-                )
-        elif name == "System`SubscriptBox" and len(self._elements) == 2:
-            return "%s_%s" % (
-                block(self._elements[0].boxes_to_tex(**options), True),
-                block(self._elements[1].boxes_to_tex(**options)),
-            )
-        elif name == "System`SubsuperscriptBox" and len(self._elements) == 3:
-            return "%s_%s^%s" % (
-                block(self._elements[0].boxes_to_tex(**options), True),
-                block(self._elements[1].boxes_to_tex(**options)),
-                block(self._elements[2].boxes_to_tex(**options)),
-            )
-        elif name == "System`FractionBox" and len(self._elements) == 2:
-            return "\\frac{%s}{%s}" % (
-                self._elements[0].boxes_to_tex(**options),
-                self._elements[1].boxes_to_tex(**options),
-            )
-        elif name == "System`SqrtBox" and len(self._elements) == 1:
-            return "\\sqrt{%s}" % self._elements[0].boxes_to_tex(**options)
-        else:
-            raise BoxError(self, "tex")
-
-    def default_format(self, evaluation, form) -> str:
-        return "%s[%s]" % (
-            self._head.default_format(evaluation, form),
-            ", ".join(
-                [element.default_format(evaluation, form) for element in self._elements]
-            ),
-        )
-
     def sort(self, pattern=False):
-        "Sort the elements according to internal ordering."
+        """
+        Sort the elements using the Python's list-method sort.
+        `get_sort_key() is used for comparison if `pattern` is True.
+        Otherwise use the the default Python 3.x compare function,
+        `__lt__()` that is found in each element.
+
+        `self._cache` is updated if that is not None.
+        """
+        # It is stupid to sort 0 or 1 elements.
+        if len(self._elements) < 2:
+            return
+
+        # There is no in-place sort method on a tuple, because tuples are not
+        # mutable. So we turn into a elments into list and use Python's
+        # list sort method. Another approach would be to use sorted().
         elements = list(self._elements)
         if pattern:
             elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
         else:
             elements.sort()
-        self.set_reordered_elements(elements)
 
-    def filter_elements(self, head_name):
-        # TODO: should use sorting
-        head_name = ensure_context(head_name)
-
-        if self._no_symbol(head_name):
-            return []
-        else:
-            return [
-                element
-                for element in self._elements
-                if element.get_head_name() == head_name
-            ]
+        # update `self._elements` and self._cache with the possible permuted order.
+        self._elements = tuple(elements)
+        if self._cache:
+            self._cache = self._cache.reordered()
 
     def apply_rules(self, rules, evaluation, level=0, options=None):
         """for rule in rules:
@@ -1630,28 +1646,10 @@ class Expression(BaseElement, NumericOperators):
         else:
             return self
 
-    def get_atoms(self, include_heads=True):
-        """Returns a list of atoms involved in the expression."""
-        # Comment @mmatera: maybe, what we really want here are the Symbol's
-        # involved in the expression, not the atoms.
-        if include_heads:
-            atoms = self._head.get_atoms()
-        else:
-            atoms = []
-        for element in self._elements:
-            atoms.extend(element.get_atoms())
-        return atoms
-
-    def __hash__(self):
-        return hash(("Expression", self._head) + tuple(self._elements))
-
     def user_hash(self, update):
         update(("%s>%d>" % (self.get_head_name(), len(self._elements))).encode("utf8"))
         for element in self._elements:
             element.user_hash(update)
-
-    def __getnewargs__(self):
-        return (self._head, self._elements)
 
 
 def _create_expression(self, head, *elements):
