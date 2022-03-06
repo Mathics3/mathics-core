@@ -216,6 +216,7 @@ def get_submodule_names(object) -> list:
     if hasattr(object, "__path__"):
         for importer, modname, ispkg in pkgutil.iter_modules(object.__path__):
             modpkgs.append(modname)
+            print("adding modname", modname)
         modpkgs.sort()
     return modpkgs
 

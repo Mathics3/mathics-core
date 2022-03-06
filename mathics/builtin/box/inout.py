@@ -192,6 +192,13 @@ class InterpretationBox(BoxConstruct):
         <dd> is a low-level box construct that displays as
     boxes but is interpreted on input as expr.
     </dl>
+
+    >> A = InterpretationBox["Pepe", 4]
+     = InterpretationBox["Four", 4]
+    >> DisplayForm[A]
+     = Four
+    >> ToExpression[A] + 4
+     = 8
     """
 
     attributes = hold_all_complete | protected | read_protected
@@ -211,6 +218,11 @@ class SubscriptBox(BoxConstruct):
     <dt>'SubscriptBox[$a$, $b$]'
         <dd>is a box construct that represents $a_b$.
     </dl>
+
+    >> MakeBoxes[x_{3}]
+     = Subscript[x, 3]
+    >> ToBoxes[%]
+     = SubscriptBox[x, 3]
     """
 
     #    attributes =  Protected | ReadProtected
