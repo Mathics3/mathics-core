@@ -428,7 +428,11 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
-    def has_changed(self, definitions):
+    def has_changed(self, definitions) -> bool:
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression. Each subclass should decide what is right here.
+        """
         raise NotImplementedError
 
     @property

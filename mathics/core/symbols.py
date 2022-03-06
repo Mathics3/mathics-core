@@ -365,11 +365,20 @@ class Symbol(Atom, NumericOperators):
             cls.defined_symbols[name] = self
         return self
 
+    def __eq__(self, other) -> bool:
+        return self is other
+
+    def __getnewargs__(self):
+        return (self.name, self.sympy_dummy)
+
+    def __hash__(self):
+        return hash(("Symbol", self.name))  # to distinguish from String
+
+    def __ne__(self, other) -> bool:
+        return self is not other
+
     def __str__(self) -> str:
         return self.name
-
-    def do_copy(self) -> "Symbol":
-        return Symbol(self.name)
 
     def atom_to_boxes(self, f, evaluation) -> "String":
         from mathics.core.atoms import String
@@ -379,72 +388,8 @@ class Symbol(Atom, NumericOperators):
     def boxes_to_text(self, **options) -> str:
         return str(self.name)
 
-    def get_head(self) -> "Symbol":
-        return Symbol("Symbol")
-
-    def get_head_name(self):
-        return "System`Symbol"
-
-    def has_changed(self, definitions):
-        """
-        Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression.
-        """
-        return True
-
-    def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
-
-        if self.sympy_dummy is not None:
-            return self.sympy_dummy
-
-        builtin = mathics_to_sympy.get(self.name)
-        if (
-            builtin is None
-            or not builtin.sympy_name
-            or not builtin.is_constant()  # nopep8
-        ):
-            return sympy.Symbol(sympy_symbol_prefix + self.name)
-        return builtin.to_sympy(self, **kwargs)
-
-    def to_python(self, *args, **kwargs):
-        if self is SymbolTrue:
-            return True
-        if self is SymbolFalse:
-            return False
-        if self is SymbolNull:
-            return None
-        n_evaluation = kwargs.get("n_evaluation")
-        if n_evaluation is not None:
-            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
-
-        if kwargs.get("python_form", False):
-            return self.to_sympy(**kwargs)
-        else:
-            return self.name
-
-    def default_format(self, evaluation, form) -> str:
-        return self.name
-
-    def get_attributes(self, definitions):
-        return definitions.get_attributes(self.name)
-
-    def get_name(self) -> str:
-        return self.name
-
-    def get_sort_key(self, pattern_sort=False):
-        if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
-        else:
-            return [
-                1 if self.is_numeric() else 2,
-                2,
-                Monomial({self.name: 1}),
-                0,
-                self.name,
-                1,
-            ]
+    def do_copy(self) -> "Symbol":
+        return Symbol(self.name)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)"""
@@ -459,27 +404,6 @@ class Symbol(Atom, NumericOperators):
         if self in (SymbolTrue, SymbolFalse) and rhs in (SymbolTrue, SymbolFalse):
             return self == rhs
         return None
-
-    def sameQ(self, rhs: Any) -> bool:
-        """Mathics SameQ"""
-        return self is rhs
-
-    def __eq__(self, other) -> bool:
-        return self is other
-
-    def __ne__(self, other) -> bool:
-        return self is not other
-
-    def replace_vars(self, vars, options={}, in_scoping=True):
-        assert all(fully_qualified_symbol_name(v) for v in vars)
-        var = vars.get(self.name, None)
-        if var is None:
-            return self
-        else:
-            return var
-
-    def has_symbol(self, symbol_name) -> bool:
-        return self.name == ensure_context(symbol_name)
 
     def evaluate(self, evaluation):
         """
@@ -504,8 +428,21 @@ class Symbol(Atom, NumericOperators):
                 return result.evaluate(evaluation)
         return self
 
-    def is_true(self) -> bool:
-        return self is SymbolTrue
+    def get_head(self) -> "Symbol":
+        return Symbol("Symbol")
+
+    def get_head_name(self):
+        return "System`Symbol"
+
+    def has_changed(self, definitions):
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression.
+        """
+        return True
+
+    def has_symbol(self, symbol_name) -> bool:
+        return self.name == ensure_context(symbol_name)
 
     def is_numeric(self, evaluation=None) -> bool:
         """
@@ -518,14 +455,77 @@ class Symbol(Atom, NumericOperators):
             return symbol_definition.is_numeric
         return False
 
-    def __hash__(self):
-        return hash(("Symbol", self.name))  # to distinguish from String
+    def default_format(self, evaluation, form) -> str:
+        return self.name
+
+    def get_attributes(self, definitions):
+        return definitions.get_attributes(self.name)
+
+    def get_name(self) -> str:
+        return self.name
+
+    def get_sort_key(self, pattern_sort=False):
+        if pattern_sort:
+            return super(Symbol, self).get_sort_key(True)
+        else:
+            return [
+                1 if self.is_numeric() else 2,
+                2,
+                Monomial({self.name: 1}),
+                0,
+                self.name,
+                1,
+            ]
+
+    def is_true(self) -> bool:
+        return self is SymbolTrue
 
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
 
-    def __getnewargs__(self):
-        return (self.name, self.sympy_dummy)
+    def replace_vars(self, vars, options={}, in_scoping=True):
+        assert all(fully_qualified_symbol_name(v) for v in vars)
+        var = vars.get(self.name, None)
+        if var is None:
+            return self
+        else:
+            return var
+
+    def sameQ(self, rhs: Any) -> bool:
+        """Mathics SameQ"""
+        return self is rhs
+
+    def to_python(self, *args, **kwargs):
+        if self is SymbolTrue:
+            return True
+        if self is SymbolFalse:
+            return False
+        if self is SymbolNull:
+            return None
+        n_evaluation = kwargs.get("n_evaluation")
+        if n_evaluation is not None:
+            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
+            return value.to_python()
+
+        if kwargs.get("python_form", False):
+            return self.to_sympy(**kwargs)
+        else:
+            return self.name
+
+    def to_sympy(self, **kwargs):
+        from mathics.builtin import mathics_to_sympy
+
+        if self.sympy_dummy is not None:
+            return self.sympy_dummy
+
+        builtin = mathics_to_sympy.get(self.name)
+        if (
+            builtin is None
+            or not builtin.sympy_name
+            or not builtin.is_constant()  # nopep8
+        ):
+            return sympy.Symbol(sympy_symbol_prefix + self.name)
+        return builtin.to_sympy(self, **kwargs)
 
 
 # Symbols used in this module.
