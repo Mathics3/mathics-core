@@ -898,9 +898,6 @@ class Expression(BaseElement, NumericOperators):
             (n1, n2, ...):    leaf count in {n1, n2, ...}
         """
 
-        # Note: self._head can be not just a symbol, but some arbitrary expression.
-        # This is what makes expressions in Mathics be M-expressions rather than
-        # S-expressions.
         head_name = self._head.get_name()
 
         if isinstance(heads, (tuple, list, set)):
@@ -992,7 +989,11 @@ class Expression(BaseElement, NumericOperators):
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
+        # Note: self._head can be not just a symbol, but some arbitrary expression.
+        # This is what makes expressions in Mathics be M-expressions rather than
+        # S-expressions.
         head = self._head.evaluate(evaluation)
+
         attributes = head.get_attributes(evaluation.definitions)
         elements = self.get_mutable_elements()
 
