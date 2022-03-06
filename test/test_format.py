@@ -1,4 +1,7 @@
-from .helper import session
+# from .helper import session
+from mathics.session import MathicsSession
+
+session = MathicsSession()
 
 # from mathics.builtin.base import BoxConstruct, Predefined
 
