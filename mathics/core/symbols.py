@@ -291,8 +291,10 @@ class Atom(BaseElement):
     def has_changed(self, definitions) -> bool:
         """
         Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression. Numbers never change.
+        an expression.
         """
+        # It would be nice to make the default "False" here and have Symbols
+        # and other special-cases override to True when needed.
         return True
 
     def has_form(self, heads, *element_counts) -> bool:
