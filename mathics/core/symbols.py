@@ -288,6 +288,13 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
+    def has_changed(self, definitions) -> bool:
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression. Numbers never change.
+        """
+        return True
+
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
             return False
@@ -364,19 +371,26 @@ class Symbol(Atom, NumericOperators):
     def do_copy(self) -> "Symbol":
         return Symbol(self.name)
 
+    def atom_to_boxes(self, f, evaluation) -> "String":
+        from mathics.core.atoms import String
+
+        return String(evaluation.definitions.shorten_name(self.name))
+
+    def boxes_to_text(self, **options) -> str:
+        return str(self.name)
+
     def get_head(self) -> "Symbol":
         return Symbol("Symbol")
 
     def get_head_name(self):
         return "System`Symbol"
 
-    def boxes_to_text(self, **options) -> str:
-        return str(self.name)
-
-    def atom_to_boxes(self, f, evaluation) -> "String":
-        from mathics.core.atoms import String
-
-        return String(evaluation.definitions.shorten_name(self.name))
+    def has_changed(self, definitions):
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression.
+        """
+        return True
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy

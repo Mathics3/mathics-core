@@ -146,7 +146,7 @@ class ExpressionCache:
         definitions = evaluation.definitions
 
         for expr in expressions:
-            if expr.has_changed(definitions) or not hasattr(expr, "_cache"):
+            if not hasattr(expr, "_cache") or expr.has_changed(definitions):
                 return None
 
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
