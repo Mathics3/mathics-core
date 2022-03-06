@@ -428,9 +428,12 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
-    # FIXME: see above for comment about default "wrong" implementations
-    def has_changed(self, definitions):
-        return True
+    def has_changed(self, definitions) -> bool:
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression. Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
 
     @property
     def is_zero(self) -> bool:

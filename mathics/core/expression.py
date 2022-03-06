@@ -142,11 +142,11 @@ class ExpressionCache:
         return ExpressionCache(None, self.symbols, sequences)
 
     @staticmethod
-    def union(expressions, evaluation):
+    def union(expressions, evaluation) -> Optional["ExpressionCache"]:
         definitions = evaluation.definitions
 
         for expr in expressions:
-            if expr.has_changed(definitions):
+            if not hasattr(expr, "_cache") or expr.has_changed(definitions):
                 return None
 
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
@@ -432,6 +432,9 @@ class Expression(BaseElement, NumericOperators):
             return "\\sqrt{%s}" % self._elements[0].boxes_to_tex(**options)
         else:
             raise BoxError(self, "tex")
+
+    def clear_cache(self):
+        self._cache = None
 
     def copy(self, reevaluate=False) -> "Expression":
         expr = Expression(self._head.copy(reevaluate))
@@ -860,9 +863,19 @@ class Expression(BaseElement, NumericOperators):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
-    def has_changed(self, definitions):
+    def has_changed(self, definitions) -> bool:
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression.
+        """
+
+        # Some Atoms just don't have a cache.
+        if not hasattr(self, "_cache"):
+            return False
+
         cache = self._cache
 
+        # FIXME: why do we return True when no cache is found? Explain.
         if cache is None:
             return True
 
@@ -886,6 +899,7 @@ class Expression(BaseElement, NumericOperators):
         """
 
         head_name = self._head.get_name()
+
         if isinstance(heads, (tuple, list, set)):
             if head_name not in [ensure_context(h) for h in heads]:
                 return False
@@ -975,7 +989,11 @@ class Expression(BaseElement, NumericOperators):
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
+        # Note: self._head can be not just a symbol, but some arbitrary expression.
+        # This is what makes expressions in Mathics be M-expressions rather than
+        # S-expressions.
         head = self._head.evaluate(evaluation)
+
         attributes = head.get_attributes(evaluation.definitions)
         elements = self.get_mutable_elements()
 
@@ -1799,7 +1817,7 @@ class LinkedStructure(Structure):
 
 def structure(head, origins, evaluation, structure_cache=None):
     # creates a Structure for building Expressions with head "head" and elements
-    # originating (exlusively) from "origins" (elements are passed into the functions
+    # originating (exclusively) from "origins" (elements are passed into the functions
     # of Structure further down).
 
     # "origins" may either be an Expression (i.e. all elements must originate from that
