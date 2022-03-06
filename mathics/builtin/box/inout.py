@@ -429,7 +429,7 @@ class SuperscriptBox(BoxConstruct):
         else:
             return "%s^%s" % (
                 self.tex_block(tex1, True),
-                self.tex_block(self.superindex.boxes_to_text(**options), True),
+                self.tex_block(self.superindex.boxes_to_tex(**options), True),
             )
 
 
@@ -770,7 +770,7 @@ class SqrtBox(BoxConstruct):
         options = _options
         if self.index:
             return "\\sqrt[%s]{%s}" % (
-                self.index.boxes_to_text(**options),
-                self.radicand.boxes_to_text(**options),
+                self.index.boxes_to_tex(**options),
+                self.radicand.boxes_to_tex(**options),
             )
-        return "\\sqrt{%s}" % (self.radicand.boxes_to_text(**options))
+        return "\\sqrt{%s}" % (self.radicand.boxes_to_tex(**options))
