@@ -6,6 +6,61 @@ from .helper import session
 import pytest
 
 
+# Text StandardForm
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4"', "4", None),
+        ("4", "4", None),
+        ('"Hola!"', "Hola!", None),
+        ("a", "a", None),
+        ("Pi", "Pi", None),
+        ("a^4", "a^4", None),
+        ("Subscript[a, 4]", "Subscript[a, 4]", None),
+        ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
+        (
+            "Integrate[F[x],{x,a,g[b]}]",
+            "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
+            None,
+        ),
+        # This seems to be wrong...
+        ("a^(b/c)", "a^ ( b ) / ( c ) ", None),
+        ("1/(1+1/(1+1/a))", " ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ", None),
+        (
+            "Sqrt[1/(1+1/(1+1/a))]",
+            "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
+            None,
+        ),
+        ("Graphics[{}]", "-Graphics-", None),
+        # These tests requires ``evaluation`` as a parameter.
+        ("Grid[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
+        ("TableForm[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
+        ("MatrixForm[{{a,b},{c,d}}]", "(a   b\n\nc   d\n)", None),
+        ("Graphics[{Text[a^b,{0,0}]}]", "-Graphics-", None),
+        (
+            "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]",
+            ("-Graphics-\n\n-Graphics-\n"),
+            None,
+        ),
+    ],
+)
+def test_makeboxes_standardform_text(
+    str_expr: str, str_expected: str, msg: str, message=""
+):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`StandardForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    #    assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        str_format = format_result.boxes_to_text(evaluation=session.evaluation)
+        assert str_format == str_expected
+
+
+# Text OutputForm
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
@@ -51,6 +106,7 @@ def test_makeboxes_outputform_text(
         )
 
 
+# TeX StandardForm
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
@@ -117,11 +173,98 @@ def test_makeboxes_outputform_text(
         ),
     ],
 )
-def test_makeboxes_outputform_tex(
-    str_expr: str, str_expected: str, msg: str, message=""
-):
+def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, message=""):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, "System`StandardForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    # assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+        assert strresult == str_expected
+
+
+# TeX OutputForm
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4"', "\\text{4}", None),
+        ("4", "4", None),
+        ('"Hola!"', "\\text{Hola!}", None),
+        ("Pi", "\\text{Pi}", None),
+        ("a", "a", None),
+        ("a^4", "a\\text{ ${}^{\\wedge}$ }4", None),
+        ("Subscript[a, 4]", "\\text{Subscript}\\left[a, 4\\right]", None),
+        (
+            "Subsuperscript[a, p, q]",
+            "\\text{Subsuperscript}\\left[a, p, q\\right]",
+            None,
+        ),
+        (
+            "Integrate[F[x],{x,a,g[b]}]",
+            "\\text{Integrate}\\left[F\\left[x\\right], \\left\\{x, a, g\\left[b\\right]\\right\\}\\right]",
+            None,
+        ),
+        ("a^(b/c)", "a\\text{ ${}^{\\wedge}$ }\\left(b\\text{ / }c\\right)", None),
+        (
+            "1/(1+1/(1+1/a))",
+            "1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)",
+            None,
+        ),
+        (
+            "Sqrt[1/(1+1/(1+1/a))]",
+            "\\text{Sqrt}\\left[1\\text{ / }\\left(1\\text{ + }1\\text{ / }\\left(1\\text{ + }1\\text{ / }a\\right)\\right)\\right]",
+            None,
+        ),
+        (
+            "Graphics[{}]",
+            (
+                """\n\\begin{asy}\nusepackage("amsmath");"""
+                """\nsize(5.8333cm, 5.8333cm);\n\n\n"""
+                """clip(box((-1,-1), (1,1)));\n\n\\end{asy}\n"""
+            ),
+            None,
+        ),
+        # These tests requires ``evaluation`` as a parameter.
+        ("Grid[{{a,b},{c,d}}]", "\\begin{array}{cc} a & b\\\\ c & d\\end{array}", None),
+        (
+            "TableForm[{{a,b},{c,d}}]",
+            "\\begin{array}{cc} a & b\\\\ c & d\\end{array}",
+            None,
+        ),
+        (
+            "MatrixForm[{{a,b},{c,d}}]",
+            "\\begin{array}{cc} a & b\\\\ c & d\\end{array}",
+            None,
+        ),
+        (
+            "Graphics[{Text[a^b,{0,0}]}]",
+            (
+                '\n\\begin{asy}\nusepackage("amsmath");\nsize(4.9cm, 5.8333cm);\n\n'
+                '// InsetBox\nlabel("$a^b$", (147.0,175.0), (0,0), rgb(0, 0, 0));\n\n'
+                "clip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}\n"
+            ),
+            None,
+        ),
+        (
+            "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]",
+            (
+                '\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n'
+                '// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0));\n\nclip(box((63,75), (84,100)));\n\n'
+                '\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\n'
+                'size(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0));\n\n'
+                "clip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+            ),
+            None,
+        ),
+    ],
+)
+def test_makeboxes_output_tex(str_expr: str, str_expected: str, msg: str, message=""):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`OutputForm")
     # Atoms are not still correctly processed as BoxConstruct
     # assert isinstance(format_result,  BoxConstruct)
     if msg:
