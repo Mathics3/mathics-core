@@ -20,8 +20,10 @@ import pytest
         ("Subscript[a, 4]", "Subscript[a, 4]", None),
         ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
         ("Integrate[F[x],{x,a,g[b]}]", "Integrate[F[x], {x, a, g[b]}]", None),
+        ("a^(b/c)", "a ^ (b / c)", None),
         ("1/(1+1/(1+1/a))", "1 / (1 + 1 / (1 + 1 / a))", None),
         ("Sqrt[1/(1+1/(1+1/a))]", "Sqrt[1 / (1 + 1 / (1 + 1 / a))]", None),
+        ("Graphics[{}]", "-Graphics-", None),
     ],
 )
 def test_makeboxes_outputform_text(
@@ -60,6 +62,20 @@ def test_makeboxes_outputform_text(
             "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
             None,
         ),
+        (
+            "Graphics[{}]",
+            """
+\\begin{asy}
+usepackage("amsmath");
+size(5.8333cm, 5.8333cm);
+
+
+clip(box((-1,-1), (1,1)));
+
+\\end{asy}
+""",
+            None,
+        ),
     ],
 )
 def test_makeboxes_outputform_tex(
@@ -72,6 +88,4 @@ def test_makeboxes_outputform_tex(
     if msg:
         assert format_result.boxes_to_tex() == str_expected, msg
     else:
-        print("<<", format_result.boxes_to_tex(), ">>")
-        print("<<", str_expected, ">>")
         assert format_result.boxes_to_tex() == str_expected
