@@ -863,14 +863,19 @@ class Expression(BaseElement, NumericOperators):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
-    def has_changed(self, definitions):
+    def has_changed(self, definitions) -> bool:
+        """
+        Used in Expression.evaluate() to determine if we need to reevaluation
+        an expression.
+        """
 
         # Some Atoms just don't have a cache.
         if not hasattr(self, "_cache"):
-            return
+            return False
 
         cache = self._cache
 
+        # FIXME: why do we return True when no cache is found? Explain.
         if cache is None:
             return True
 
