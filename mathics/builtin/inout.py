@@ -809,6 +809,9 @@ class GridBox(BoxConstruct):
 
     options = {"ColumnAlignments": "Center"}
 
+    # TODO: elements in the GridBox should be stored as an array with
+    # elements in its evaluated form.
+
     def get_array(self, leaves, evaluation):
         options = self.get_option_values(leaves=leaves[1:], evaluation=evaluation)
         if not leaves:

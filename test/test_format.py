@@ -1,8 +1,6 @@
-from .helper import evaluate, session
+from .helper import session
 
-from mathics.builtin.base import BoxConstruct, Predefined
-from mathics.builtin.graphics import GRAPHICS_OPTIONS
-from mathics.core.attributes import hold_all, protected, read_protected
+# from mathics.builtin.base import BoxConstruct, Predefined
 
 
 import pytest
@@ -24,6 +22,16 @@ import pytest
         ("1/(1+1/(1+1/a))", "1 / (1 + 1 / (1 + 1 / a))", None),
         ("Sqrt[1/(1+1/(1+1/a))]", "Sqrt[1 / (1 + 1 / (1 + 1 / a))]", None),
         ("Graphics[{}]", "-Graphics-", None),
+        # These tests requires ``evaluation`` as a parameter.
+        ("Grid[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
+        ("TableForm[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
+        ("MatrixForm[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
+        ("Graphics[{Text[a^b,{0,0}]}]", "-Graphics-", None),
+        (
+            "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]",
+            ("-Graphics-\n\n-Graphics-\n"),
+            None,
+        ),
     ],
 )
 def test_makeboxes_outputform_text(
@@ -34,9 +42,13 @@ def test_makeboxes_outputform_text(
     # Atoms are not still correctly processed as BoxConstruct
     #    assert isinstance(format_result,  BoxConstruct)
     if msg:
-        assert format_result.boxes_to_text() == str_expected, msg
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
     else:
-        assert format_result.boxes_to_text() == str_expected
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        )
 
 
 @pytest.mark.parametrize(
@@ -64,16 +76,43 @@ def test_makeboxes_outputform_text(
         ),
         (
             "Graphics[{}]",
-            """
-\\begin{asy}
-usepackage("amsmath");
-size(5.8333cm, 5.8333cm);
-
-
-clip(box((-1,-1), (1,1)));
-
-\\end{asy}
-""",
+            (
+                """\n\\begin{asy}\nusepackage("amsmath");"""
+                """\nsize(5.8333cm, 5.8333cm);\n\n\n"""
+                """clip(box((-1,-1), (1,1)));\n\n\\end{asy}\n"""
+            ),
+            None,
+        ),
+        # These tests requires ``evaluation`` as a parameter.
+        ("Grid[{{a,b},{c,d}}]", "\\begin{array}{cc} a & b\\\\ c & d\\end{array}", None),
+        (
+            "TableForm[{{a,b},{c,d}}]",
+            "\\begin{array}{cc} a & b\\\\ c & d\\end{array}",
+            None,
+        ),
+        (
+            "MatrixForm[{{a,b},{c,d}}]",
+            "\\left(\\begin{array}{cc} a & b\\\\ c & d\\end{array}\\right)",
+            None,
+        ),
+        (
+            "Graphics[{Text[a^b,{0,0}]}]",
+            (
+                '\n\\begin{asy}\nusepackage("amsmath");\nsize(4.9cm, 5.8333cm);\n\n'
+                '// InsetBox\nlabel("$a^b$", (147.0,175.0), (0,0), rgb(0, 0, 0));\n\n'
+                "clip(box((136.5,162.5), (157.5,187.5)));\n\n\\end{asy}\n"
+            ),
+            None,
+        ),
+        (
+            "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]",
+            (
+                '\\begin{array}{c} \n\\begin{asy}\nusepackage("amsmath");\nsize(2.45cm, 2.9167cm);\n\n'
+                '// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0));\n\nclip(box((63,75), (84,100)));\n\n'
+                '\\end{asy}\n\\\\ \n\\begin{asy}\nusepackage("amsmath");\n'
+                'size(2.45cm, 2.9167cm);\n\n// InsetBox\nlabel("$a^b$", (73.5,87.5), (0,0), rgb(0, 0, 0));\n\n'
+                "clip(box((63,75), (84,100)));\n\n\\end{asy}\n\\end{array}"
+            ),
             None,
         ),
     ],
@@ -86,6 +125,9 @@ def test_makeboxes_outputform_tex(
     # Atoms are not still correctly processed as BoxConstruct
     # assert isinstance(format_result,  BoxConstruct)
     if msg:
-        assert format_result.boxes_to_tex() == str_expected, msg
+        assert (
+            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
+        ), msg
     else:
-        assert format_result.boxes_to_tex() == str_expected
+        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
+        assert strresult == str_expected
