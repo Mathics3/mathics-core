@@ -401,7 +401,13 @@ class SuperscriptBox(BoxConstruct):
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
-        return "%s^%s" % (
+        if isinstance(self.superindex, (Atom, _BoxedString)):
+            return "%s^%s" % (
+                self.base.boxes_to_text(**options),
+                self.superindex.boxes_to_text(**options),
+            )
+
+        return "%s^(%s)" % (
             self.base.boxes_to_text(**options),
             self.superindex.boxes_to_text(**options),
         )
