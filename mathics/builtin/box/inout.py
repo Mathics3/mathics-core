@@ -346,8 +346,8 @@ class SubsuperscriptBox(BoxConstruct):
         options["inside_row"] = True
         return "<msubsup>%s %s %s</msubsup>" % (
             self.base.boxes_to_mathml(**options),
-            self.subscript.boxes_to_mathml(**options),
-            self.superscript.boxes_to_mathml(**options),
+            self.subindex.boxes_to_mathml(**options),
+            self.superindex.boxes_to_mathml(**options),
         )
 
     def boxes_to_tex(self, **options):

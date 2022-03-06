@@ -12,6 +12,8 @@ import pytest
     [
         ('"4"', "4", None),
         ("4", "4", None),
+        ('"4.32"', "4.32", None),
+        ('"4.32313213213`2"', "4.32313213213`2", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
@@ -66,6 +68,8 @@ def test_makeboxes_standardform_text(
     [
         ('"4"', "4", None),
         ("4", "4", None),
+        ('"4.32"', "4.32", None),
+        ('"4.32313213213`2"', "4.32313213213`2", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
@@ -112,6 +116,9 @@ def test_makeboxes_outputform_text(
     [
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
+        ('"4.32"', "\\text{4.32}", None),
+        # This is wrong: it should return 4.32`2
+        ('"4.32313213213`2"', "\\text{4.32313213213`2}", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),
@@ -193,6 +200,8 @@ def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, mess
     [
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
+        ('"4.32"', "\\text{4.32}", None),
+        ('"4.32313213213`2"', "\\text{4.32313213213`2}", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),
