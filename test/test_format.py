@@ -9,108 +9,127 @@ session = MathicsSession()
 import pytest
 
 
-# MathML StandardForm
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
-        ('"4"', "<mtext>4</mtext>", None),
-        # The following seems wrong: they should be formatted as numbers
-        ("4", "<mn>4</mn>", None),
-        ('"4.32"', "<mtext>4.32</mtext>", None),
-        ('"4.32313213213`2"', "<mtext>4.32313213213`2</mtext>", None),
-        ('"Hola!"', "<mtext>Hola!</mtext>", None),
-        ("a", "<mi>a</mi>", None),
-        ("Pi", "<mi>Pi</mi>", None),
-        ("a^4", "<msup><mi>a</mi> <mn>4</mn></msup>", None),
-        ("Subscript[a, 4]", "<msub><mi>a</mi> <mn>4</mn></msub>", None),
-        (
-            "Subsuperscript[a, p, q]",
-            "<msubsup><mi>a</mi> <mi>p</mi> <mi>q</mi></msubsup>",
-            None,
-        ),
-        (
-            "Integrate[F[x],{x,a,g[b]}]",
-            '<mrow><msubsup><mo>∫</mo> <mi>a</mi> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></msubsup> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mrow><mtext></mtext> <mi>x</mi></mrow></mrow>',
-            None,
-        ),
-        # This seems to be wrong...
-        (
-            "a^(b/c)",
-            "<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>",
-            None,
-        ),
-        (
-            "1/(1+1/(1+1/a))",
-            "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
-            None,
-        ),
-        (
-            "Sqrt[1/(1+1/(1+1/a))]",
-            "<msqrt><mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac></msqrt>",
-            None,
-        ),
-        (
-            "Graphics[{}]",
-            (
-                '<mglyph width="350px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMnB4IiBoZWlnaHQ9IjJweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9Ii0xLjAwMDAwMCAtMS4wMDAwMDAgMi4wMDAwMDAgMi4wMDAwMDAiPgogICAgICAgICAgICAgICAgPCEtLUdyYXBoaWNzRWxlbWVudHMtLT4KPC9zdmc+Cg=="/>'
-            ),
-            None,
-        ),
-        # These tests requires ``evaluation`` as a parameter.
-        (
-            "Grid[{{a,b},{c,d}}]",
-            (
-                '<mtable columnalign="center">\n'
-                '<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>\n'
-                '<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>\n'
-                "</mtable>"
-            ),
-            None,
-        ),
-        (
-            "TableForm[{{a,b},{c,d}}]",
-            (
-                '<mtable columnalign="center">\n'
-                '<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>\n'
-                '<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>\n'
-                "</mtable>"
-            ),
-            None,
-        ),
-        (
-            "MatrixForm[{{a,b},{c,d}}]",
-            (
-                '<mrow><mo>(</mo> <mtable columnalign="center">\n'
-                '<mtr><mtd columnalign="center"><mi>a</mi></mtd><mtd columnalign="center"><mi>b</mi></mtd></mtr>\n'
-                '<mtr><mtd columnalign="center"><mi>c</mi></mtd><mtd columnalign="center"><mi>d</mi></mtd></mtr>\n'
-                "</mtable> <mo>)</mo></mrow>"
-            ),
-            None,
-        ),
-        (
-            "Graphics[{Text[a^b,{0,0}]}]",
-            (
-                '<mglyph width="294px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjEzNi41MDAwMDAgMTYyLjUwMDAwMCAyMS4wMDAwMDAgMjUuMDAwMDAwIj4KICAgICAgICAgICAgICAgIDwhLS1HcmFwaGljc0VsZW1lbnRzLS0+Cjx0ZXh0IHg9IjE0Ny4wIiB5PSIxNzUuMCIgb3g9IjAiIG95PSIwIiBmb250LXNpemU9IjEwcHgiIHN0eWxlPSJ0ZXh0LWFuY2hvcjplbmQ7IGRvbWluYW50LWJhc2VsaW5lOmhhbmdpbmc7IHN0cm9rZTogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBzdHJva2Utb3BhY2l0eTogMTsgZmlsbDogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBmaWxsLW9wYWNpdHk6IDE7IGNvbG9yOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IG9wYWNpdHk6IDEuMCI+YV5iPC90ZXh0Pgo8L3N2Zz4K"/>'
-            ),
-            None,
-        ),
-        (
-            "TableForm[{Graphics[{Text[a^b,{0,0}]}], Graphics[{Text[a^b,{0,0}]}]}]",
-            (
-                '<mtable columnalign="center">\n'
-                '<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n'
-                '<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n'
-                "</mtable>"
-            ),
-            None,
-        ),
+        ('"4.32313213213`2"', "\\text{4.32`2}", None),
     ],
 )
-def test_makeboxes_standardform_mathml(
+@pytest.mark.xfail
+def test_makeboxes_standardform_tex_failing(
     str_expr: str, str_expected: str, msg: str, message=""
 ):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, "System`StandardForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    #    assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        str_format = format_result.boxes_to_text(evaluation=session.evaluation)
+        assert str_format == str_expected
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4.32313213213`2"', "\\text{4.32`2}", None),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_outputform_tex_failing(
+    str_expr: str, str_expected: str, msg: str, message=""
+):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`OutputForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    #    assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        str_format = format_result.boxes_to_text(evaluation=session.evaluation)
+        assert str_format == str_expected
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4.32313213213`2"', "4.32`2", None),
+        # Boxerror
+        ("Subscript[a, 4]", "Subscript[a, 4]", None),
+        ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
+        (
+            "Integrate[F[x],{x,a,g[b]}]",
+            "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
+            None,
+        ),
+        # This seems to be wrong...
+        ("a^(b/c)", "a^( ( b ) / ( c ) )", None),
+        # Boxerror
+        (
+            "Sqrt[1/(1+1/(1+1/a))]",
+            "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
+            None,
+        ),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_standardform_text_failing(
+    str_expr: str, str_expected: str, msg: str, message=""
+):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`StandardForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    #    assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        str_format = format_result.boxes_to_text(evaluation=session.evaluation)
+        assert str_format == str_expected
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4.32313213213`2"', "4.32`2", None),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_outputform_text_tofix(
+    str_expr: str, str_expected: str, msg: str, message=""
+):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`OutputForm")
+    # Atoms are not still correctly processed as BoxConstruct
+    #    assert isinstance(format_result,  BoxConstruct)
+    if msg:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        ), msg
+    else:
+        assert (
+            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+        )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
+        ('"4.32313213213`2"', "<mtext>4.32`2</mtext>", None),
+    ],
+)
+@pytest.mark.xfail
+def test_makeboxes_outputform_mathml_failing(
+    str_expr: str, str_expected: str, msg: str, message=""
+):
+    result = session.evaluate(str_expr)
+    format_result = result.format(session.evaluation, "System`OutputForm")
     # Atoms are not still correctly processed as BoxConstruct
     #    assert isinstance(format_result,  BoxConstruct)
     if msg:
@@ -124,7 +143,7 @@ def test_makeboxes_standardform_mathml(
         assert str_format == str_expected
 
 
-# MathML OutputForm
+# MathML StandardForm
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
@@ -132,7 +151,6 @@ def test_makeboxes_standardform_mathml(
         # The following seems wrong: they should be formatted as numbers
         ("4", "<mn>4</mn>", None),
         ('"4.32"', "<mtext>4.32</mtext>", None),
-        ('"4.32313213213`2"', "<mtext>4.32313213213`2</mtext>", None),
         ('"Hola!"', "<mtext>Hola!</mtext>", None),
         ("a", "<mi>a</mi>", None),
         ("Pi", "<mi>Pi</mi>", None),
@@ -229,6 +247,7 @@ def test_makeboxes_standardform_mathml(
         ),
     ],
 )
+# @pytest.mark.xfail
 def test_makeboxes_outputform_mathml(
     str_expr: str, str_expected: str, msg: str, message=""
 ):
@@ -254,28 +273,11 @@ def test_makeboxes_outputform_mathml(
         ('"4"', "4", None),
         ("4", "4", None),
         ('"4.32"', "4.32", None),
-        ('"4.32313213213`2"', "4.32313213213`2", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
         ("a^4", "a^4", None),
-        # Boxerror
-        #        ("Subscript[a, 4]", "Subscript[a, 4]", None),
-        #        ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
-        #        (
-        #            "Integrate[F[x],{x,a,g[b]}]",
-        #            "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
-        #            None,
-        #        ),
-        # This seems to be wrong...
-        ("a^(b/c)", "a^ ( b ) / ( c ) ", None),
         ("1/(1+1/(1+1/a))", " ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ", None),
-        # Boxerror
-        #        (
-        #            "Sqrt[1/(1+1/(1+1/a))]",
-        #            "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
-        #            None,
-        #        ),
         ("Graphics[{}]", "-Graphics-", None),
         # These tests requires ``evaluation`` as a parameter.
         ("Grid[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
@@ -289,6 +291,7 @@ def test_makeboxes_outputform_mathml(
         ),
     ],
 )
+# @pytest.mark.xfail
 def test_makeboxes_standardform_text(
     str_expr: str, str_expected: str, msg: str, message=""
 ):
@@ -312,7 +315,6 @@ def test_makeboxes_standardform_text(
         ('"4"', "4", None),
         ("4", "4", None),
         ('"4.32"', "4.32", None),
-        ('"4.32313213213`2"', "4.32313213213`2", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
@@ -336,6 +338,7 @@ def test_makeboxes_standardform_text(
         ),
     ],
 )
+# @pytest.mark.xfail
 def test_makeboxes_outputform_text(
     str_expr: str, str_expected: str, msg: str, message=""
 ):
@@ -360,8 +363,6 @@ def test_makeboxes_outputform_text(
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
         ('"4.32"', "\\text{4.32}", None),
-        # This is wrong: it should return 4.32`2
-        ('"4.32313213213`2"', "\\text{4.32313213213`2}", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),
@@ -423,6 +424,7 @@ def test_makeboxes_outputform_text(
         ),
     ],
 )
+# @pytest.mark.xfail
 def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, message=""):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, "System`StandardForm")
@@ -444,7 +446,6 @@ def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, mess
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
         ('"4.32"', "\\text{4.32}", None),
-        ('"4.32313213213`2"', "\\text{4.32313213213`2}", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),
@@ -514,6 +515,7 @@ def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, mess
         ),
     ],
 )
+# @pytest.mark.xfail
 def test_makeboxes_output_tex(str_expr: str, str_expected: str, msg: str, message=""):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, "System`OutputForm")
