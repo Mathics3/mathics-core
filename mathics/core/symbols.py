@@ -291,11 +291,10 @@ class Atom(BaseElement):
     def has_changed(self, definitions) -> bool:
         """
         Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression.
+        an expression. No Atoms need reevaluation. And  if this is wrong they
+        should override this method.
         """
-        # It would be nice to make the default "False" here and have Symbols
-        # and other special-cases override to True when needed.
-        return True
+        return False
 
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
@@ -441,6 +440,11 @@ class Symbol(Atom, NumericOperators):
         Used in Expression.evaluate() to determine if we need to reevaluation
         an expression.
         """
+        # FIXME:
+        # The test:
+        #    InputForm[Context[]] == "Global`"
+        # is a test that fails when we return False.
+        # Understand what's up here.
         return True
 
     def has_symbol(self, symbol_name) -> bool:

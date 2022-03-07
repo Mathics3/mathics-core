@@ -149,7 +149,7 @@ class ExpressionCache:
             if not hasattr(expr, "_cache") or expr.has_changed(definitions):
                 return None
 
-        # FIXME: this is workaround that some like String have a cache
+        # FIXME: this is workaround that some Atoms, like String, have a cache
         # even though they don't need it, by virtue of this getting set up
         # in BaseElement.__init__. Removing the self._cache in there the causes Boxing
         # to mess up. Untangle this mess.
