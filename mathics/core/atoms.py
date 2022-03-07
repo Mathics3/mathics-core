@@ -84,13 +84,6 @@ class Number(Atom, NumericOperators):
     def __str__(self) -> str:
         return str(self.value)
 
-    def has_changed(self, definitions) -> bool:
-        """
-        Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression. Numbers never change.
-        """
-        return False
-
     def is_numeric(self, evaluation=None) -> bool:
         return True
 
@@ -896,14 +889,6 @@ class String(Atom):
             return super().get_sort_key(True)
         else:
             return [0, 1, self.value, 0, 1]
-
-    def has_changed(self, definitions) -> bool:
-        """
-        Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression.
-        """
-        # Should be false - investigate why we need to set this True.
-        return True
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
