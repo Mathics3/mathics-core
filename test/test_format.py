@@ -33,7 +33,6 @@ import pytest
             '<mrow><msubsup><mo>∫</mo> <mi>a</mi> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></msubsup> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mo form="prefix" lspace="0" rspace="0.2em">⁢</mo> <mrow><mtext></mtext> <mi>x</mi></mrow></mrow>',
             None,
         ),
-        # This seems to be wrong...
         (
             "a^(b/c)",
             "<msup><mi>a</mi> <mfrac><mi>b</mi> <mi>c</mi></mfrac></msup>",
@@ -46,7 +45,7 @@ import pytest
         ),
         (
             "Sqrt[1/(1+1/(1+1/a))]",
-            "<msqrt><mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac></msqrt>",
+            "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
             None,
         ),
         (
@@ -156,7 +155,6 @@ def test_makeboxes_standardform_mathml(
             "<mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>",
             None,
         ),
-        # This seems to be wrong...
         (
             "a^(b/c)",
             "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mi>b</mi> <mtext>&nbsp;/&nbsp;</mtext> <mi>c</mi></mrow> <mo>)</mo></mrow></mrow>",
@@ -259,23 +257,20 @@ def test_makeboxes_outputform_mathml(
         ("a", "a", None),
         ("Pi", "Pi", None),
         ("a^4", "a^4", None),
-        # Boxerror
-        #        ("Subscript[a, 4]", "Subscript[a, 4]", None),
-        #        ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
-        #        (
-        #            "Integrate[F[x],{x,a,g[b]}]",
-        #            "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
-        #            None,
-        #        ),
-        # This seems to be wrong...
-        ("a^(b/c)", "a^ ( b ) / ( c ) ", None),
+        ("Subscript[a, 4]", "Subscript[a, 4]", None),
+        ("Subsuperscript[a, p, q]", "Subsuperscript[a, p, q]", None),
+        (
+            "Integrate[F[x],{x,a,g[b]}]",
+            "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
+            None,
+        ),
+        ("a^(b/c)", "a^( ( b ) / ( c ) )", None),
         ("1/(1+1/(1+1/a))", " ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ", None),
-        # Boxerror
-        #        (
-        #            "Sqrt[1/(1+1/(1+1/a))]",
-        #            "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
-        #            None,
-        #        ),
+        (
+            "Sqrt[1/(1+1/(1+1/a))]",
+            "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
+            None,
+        ),
         ("Graphics[{}]", "-Graphics-", None),
         # These tests requires ``evaluation`` as a parameter.
         ("Grid[{{a,b},{c,d}}]", "a   b\n\nc   d\n", None),
@@ -302,6 +297,8 @@ def test_makeboxes_standardform_text(
         ), msg
     else:
         str_format = format_result.boxes_to_text(evaluation=session.evaluation)
+        print(f"<<{str_format}>>")
+        print(f"<<{str_expected}>>")
         assert str_format == str_expected
 
 
@@ -373,7 +370,7 @@ def test_makeboxes_outputform_text(
             "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \uf74cx",
             None,
         ),
-        ("a^(b/c)", "a^{\\frac{b}{c}}", None),
+        ("a^(b/c)", "a^\\frac{b}{c}", None),
         ("1/(1+1/(1+1/a))", "\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}", None),
         (
             "Sqrt[1/(1+1/(1+1/a))]",
