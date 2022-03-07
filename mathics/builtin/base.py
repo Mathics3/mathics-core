@@ -115,7 +115,7 @@ class Builtin(object):
     ```
     expr_list = List(Integer(1), Integer(2), Integer(3))
     ```
-    is equivalent to write
+    is equivalent to:
     ```
     expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
     ```
