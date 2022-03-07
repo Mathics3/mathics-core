@@ -101,7 +101,7 @@ class BaseElement(KeyComparable):
         self.options = None
         self.pattern_sequence = False
         # FIXME: this should be removed
-        self._cache = None
+        # self._cache = None
 
     def apply_rules(
         self, rules, evaluation, level=0, options=None
@@ -125,8 +125,8 @@ class BaseElement(KeyComparable):
         return self, False
 
     # FIXME: this should be removed
-    def clear_cache(self):
-        self._cache = None
+    #    def clear_cache(self):
+    #         self._cache = None
 
     # FIXME the fact that we have to import all of these symbols means
     # modularity is broken somehwere.

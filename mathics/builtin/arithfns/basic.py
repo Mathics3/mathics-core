@@ -845,7 +845,7 @@ class Times(BinaryOperator, SympyFunction):
     def apply(self, items, evaluation):
         "Times[items___]"
         items = items.numerify(evaluation).get_sequence()
-        leaves = []
+        elements = []
         numbers = []
         infinity_factor = False
 
@@ -856,51 +856,51 @@ class Times(BinaryOperator, SympyFunction):
         for item in items:
             if isinstance(item, Number):
                 numbers.append(item)
-            elif leaves and item == leaves[-1]:
-                leaves[-1] = Expression(SymbolPower, leaves[-1], Integer(2))
+            elif elements and item == elements[-1]:
+                elements[-1] = Expression(SymbolPower, elements[-1], Integer(2))
             elif (
-                leaves
+                elements
                 and item.has_form("Power", 2)
-                and leaves[-1].has_form("Power", 2)
-                and item.leaves[0].sameQ(leaves[-1].leaves[0])
+                and elements[-1].has_form("Power", 2)
+                and item.elements[0].sameQ(elements[-1].elements[0])
             ):
-                leaves[-1] = Expression(
+                elements[-1] = Expression(
                     SymbolPower,
-                    leaves[-1].leaves[0],
-                    Expression(SymbolPlus, item.leaves[1], leaves[-1].leaves[1]),
+                    elements[-1].elements[0],
+                    Expression(SymbolPlus, item.elements[1], elements[-1].elements[1]),
                 )
             elif (
-                leaves
+                elements
                 and item.has_form("Power", 2)
-                and item.leaves[0].sameQ(leaves[-1])
+                and item.elements[0].sameQ(elements[-1])
             ):
-                leaves[-1] = Expression(
+                elements[-1] = Expression(
                     SymbolPower,
-                    leaves[-1],
-                    Expression(SymbolPlus, item.leaves[1], Integer1),
+                    elements[-1],
+                    Expression(SymbolPlus, item.elements[1], Integer1),
                 )
             elif (
-                leaves
-                and leaves[-1].has_form("Power", 2)
-                and leaves[-1].leaves[0].sameQ(item)
+                elements
+                and elements[-1].has_form("Power", 2)
+                and elements[-1].elements[0].sameQ(item)
             ):
-                leaves[-1] = Expression(
+                elements[-1] = Expression(
                     SymbolPower,
                     item,
-                    Expression(SymbolPlus, Integer1, leaves[-1].leaves[1]),
+                    Expression(SymbolPlus, Integer1, elements[-1].elements[1]),
                 )
             elif item.get_head().sameQ(SymbolDirectedInfinity):
                 infinity_factor = True
-                if len(item.leaves) > 1:
-                    direction = item.leaves[0]
+                if len(item.elements) > 1:
+                    direction = item.elements[0]
                     if isinstance(direction, Number):
                         numbers.append(direction)
                     else:
-                        leaves.append(direction)
+                        elements.append(direction)
             elif item.sameQ(SymbolInfinity) or item.sameQ(SymbolComplexInfinity):
                 infinity_factor = True
             else:
-                leaves.append(item)
+                elements.append(item)
 
         if numbers:
             if prec is not None:
@@ -925,31 +925,36 @@ class Times(BinaryOperator, SympyFunction):
             if infinity_factor:
                 return SymbolIndeterminate
             return number
-        elif number.sameQ(Integer(-1)) and leaves and leaves[0].has_form("Plus", None):
-            leaves[0] = Expression(
-                leaves[0].get_head(),
+        elif (
+            number.sameQ(Integer(-1))
+            and elements
+            and elements[0].has_form("Plus", None)
+        ):
+            elements[0] = Expression(
+                elements[0].get_head(),
                 *[
                     Expression(SymbolTimes, Integer(-1), leaf)
-                    for leaf in leaves[0].leaves
+                    for leaf in elements[0].elements
                 ],
             )
             number = None
 
-        for leaf in leaves:
-            leaf.clear_cache()
+        for element in elements:
+            if hasattr(element, "_cache"):
+                element.clear_cache()
 
         if number is not None:
-            leaves.insert(0, number)
+            elements.insert(0, number)
 
-        if not leaves:
+        if not elements:
             if infinity_factor:
                 return SymbolComplexInfinity
             return Integer1
 
-        if len(leaves) == 1:
-            ret = leaves[0]
+        if len(elements) == 1:
+            ret = elements[0]
         else:
-            ret = Expression(SymbolTimes, *leaves)
+            ret = Expression(SymbolTimes, *elements)
         if infinity_factor:
             return Expression(SymbolDirectedInfinity, ret)
         else:

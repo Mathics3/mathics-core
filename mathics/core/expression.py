@@ -181,6 +181,7 @@ class Expression(BaseElement, NumericOperators):
         self._elements = tuple(from_python(element) for element in leaves)
         self._sequences = None
         self._format_cache = None
+        self._cache = None
         return self
 
     def __getnewargs__(self):

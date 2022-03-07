@@ -273,7 +273,9 @@ def walk_parts(list_of_list, indices, evaluation, assign_rhs=None):
         except MessageException as e:
             e.message(evaluation)
             return False
-        result.clear_cache()
+
+        # if hasattr(result, "_cache"):
+        #    result.clear_cache()
         return result
     else:
         try:
