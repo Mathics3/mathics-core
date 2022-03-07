@@ -290,9 +290,9 @@ class Atom(BaseElement):
 
     def has_changed(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluation
-        an expression. No Atoms need reevaluation. And  if this is wrong they
-        should override this method.
+        Used in Expression.evaluate() to determine if we need to reevaluate
+        an expression. No Atoms need reevaluation. And if this is wrong for a
+        subclass, the subclass should override this method.
         """
         return False
 
@@ -435,9 +435,9 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
-    def has_changed(self, definitions):
+    def has_changed(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluation
+        Used in Expression.evaluate() to determine if we need to reevaluate
         an expression.
         """
         # FIXME:

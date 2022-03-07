@@ -432,7 +432,7 @@ class BaseElement(KeyComparable):
 
     def has_changed(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluation
+        Used in Expression.evaluate() to determine if we need to reevaluate
         an expression. Each subclass should decide what is right here.
         """
         raise NotImplementedError
