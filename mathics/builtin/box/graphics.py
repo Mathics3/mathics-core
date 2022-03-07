@@ -364,7 +364,14 @@ class GraphicsBox(BoxConstruct):
     def __new__(cls, *leaves, **kwargs):
         instance = super().__new__(cls, *leaves, **kwargs)
         instance.evaluation = kwargs.get("evaluation", None)
+        instance._elements = leaves
         return instance
+
+    def to_expression(self):
+        return self
+
+    def get_elements(self):
+        return self._elements
 
     def _get_image_size(self, options, graphics_options, max_width):
         inside_row = options.pop("inside_row", False)
