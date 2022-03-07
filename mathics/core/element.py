@@ -100,6 +100,7 @@ class BaseElement(KeyComparable):
     def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
+        # FIXME: this should be removed
         self._cache = None
 
     def apply_rules(
@@ -123,6 +124,7 @@ class BaseElement(KeyComparable):
                 return result, True
         return self, False
 
+    # FIXME: this should be removed
     def clear_cache(self):
         self._cache = None
 

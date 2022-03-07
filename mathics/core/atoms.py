@@ -902,8 +902,7 @@ class String(Atom):
         Used in Expression.evaluate() to determine if we need to reevaluation
         an expression.
         """
-        # Should be false - investigate why we need to set this True.
-        return True
+        return False
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
