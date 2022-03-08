@@ -149,6 +149,14 @@ class ExpressionCache:
             if not hasattr(expr, "_cache") or expr.has_changed(definitions):
                 return None
 
+        # FIXME: this is workaround the current situtation that some
+        # Atoms, like String, have a cache even though they don't need
+        # it, by virtue of this getting set up in
+        # BaseElement.__init__. Removing the self._cache in there the
+        # causes Boxing to mess up. Untangle this mess.
+        if expr._cache is None:
+            return None
+
         symbols = set.union(*[expr._cache.symbols for expr in expressions])
 
         return ExpressionCache(
@@ -876,7 +884,7 @@ class Expression(BaseElement, NumericOperators):
 
     def has_changed(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluation
+        Used in Expression.evaluate() to determine if we need to reevaluate
         an expression.
         """
 

@@ -143,6 +143,7 @@ class BaseElement(KeyComparable):
                 return result, True
         return self, False
 
+    # FIXME: this should be removed
     def clear_cache(self):
         self._cache = None
 
@@ -447,7 +448,7 @@ class BaseElement(KeyComparable):
 
     def has_changed(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluation
+        Used in Expression.evaluate() to determine if we need to reevaluate
         an expression. Each subclass should decide what is right here.
         """
         raise NotImplementedError
