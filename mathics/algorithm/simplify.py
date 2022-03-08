@@ -17,7 +17,7 @@ def default_complexity_function(expr: Expression) -> int:
     # TODO: write this in an iterative form instead a recursive one.
     if isinstance(expr, Number):
         # This can be improved in several ways...
-        return 1 + int(len(str(expr)) / 2)
+        return int(len(str(expr).strip())) + 1
     elif isinstance(expr, Expression):
         return default_complexity_function(expr.get_head()) + +sum(
             default_complexity_function(e) for e in expr.elements

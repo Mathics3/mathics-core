@@ -70,11 +70,7 @@ SymbolCoth = Symbol("Coth")
 def sympy_factor(expr_sympy):
     try:
         result = sympy.together(expr_sympy)
-        numer, denom = result.as_numer_denom()
-        if denom == 1:
-            result = sympy.factor(expr_sympy)
-        else:
-            result = sympy.factor(numer) / sympy.factor(denom)
+        result = sympy.factor(result)
     except sympy.PolynomialError:
         return expr_sympy
     return result
@@ -1408,15 +1404,9 @@ class Factor(Builtin):
             return None
 
         try:
-            result = sympy.together(expr_sympy)
-            numer, denom = result.as_numer_denom()
-            if denom == 1:
-                result = sympy.factor(expr_sympy)
-            else:
-                result = sympy.factor(numer) / sympy.factor(denom)
+            return from_sympy(sympy_factor(expr_sympy))
         except sympy.PolynomialError:
             return expr
-        return from_sympy(result)
 
 
 class FactorTermsList(Builtin):
@@ -1598,7 +1588,9 @@ class Simplify(Builtin):
             if assumptions_list.get_head() is not SymbolList:
                 assumptions_list = Expression(SymbolList, assumptions_list)
             assum = Expression(SymbolList, assum, assumptions_list)
-        assumptions = assum.evaluate(evaluation).flatten(SymbolList)
+        assumptions = assum.evaluate(evaluation).flatten_with_respect_to_head(
+            SymbolList
+        )
         # Now, reevaluate the expression with all the assumptions.
         simplify_expr = Expression(self.get_name(), expr, *options_to_rules(options))
         return dynamic_scoping(
