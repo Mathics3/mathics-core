@@ -37,7 +37,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.attributes import protected
+from mathics.core.attributes import protected, read_protected
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -68,6 +68,60 @@ mathics_to_python = {}
 
 
 class Builtin(object):
+    """
+    This class is the base class for Builtin symbol definitions.
+
+    A Builtin class is a structure that holds the information needed to generate
+    a Definition object for a built-in Symbol, like transformation rules, attributes, options,
+    etc.
+    Method with names of the form ``apply*`` are considered replacement rules, for expressions
+    that match the pattern described in their docstrings. For example
+
+    ```
+        def apply(x, evaluation):
+             '''F[x_Real]'''
+             return Expression("G", x*2)
+    ```
+    adds a ``BuilitinRule`` that implements ``F[x_]->G[x*2].
+    If the ``apply*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
+    Notice that the argument names must coincide with the name of the corresponding pattern in the docstring.
+
+    For rules including ``OptionsPattern``
+    ```
+        def apply_with_options(x, evaluation, options):
+             '''F[x_Real, OptionsPattern[]]'''
+             ...
+    ```
+    the options are stored as a dictionary in the last parameter. For example, if the rule is applied to ``F[x, Method->Automatic]``
+    the expression is replaced by the output of ``apply_with_options(x, evaluation, {"System`Method": Symbol("Automatic")})
+
+    The method ``contribute`` stores the definition of the  ``Builtin`` ` `Symbol`` into a set of ``Definitions``. For example,
+
+    ```
+    definitions = Definitions(add_builtin=False)
+    List(expression=False).contribute(definitions)
+    ```
+    produces a ``Definitions`` object with just one definition, for the ``Symbol`` ``System`List``.
+
+    Notice that for creating a Bultinin, we must pass to the constructor the option ``expression=False``. Otherwise,
+    an Expression object is created, with the ``Symbol`` associated to the definition as the ``Head``.
+    For example,
+
+    ```
+    builtinlist = List(expression=False)
+    ```
+    creates the  ``Builtin``  ``List``, associated to the symbol ``System`List``, but
+
+    ```
+    expr_list = List(Integer(1), Integer(2), Integer(3))
+    ```
+    is equivalent to:
+    ```
+    expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
+    ```
+
+    """
+
     name: typing.Optional[str] = None
     context: str = ""
     abstract: bool = False
@@ -80,6 +134,15 @@ class Builtin(object):
     defaults = {}
 
     def __new__(cls, *args, **kwargs):
+        # comment @mmatera:
+        # The goal of this method is to allow to build expressions
+        # like ``Expression(SymbolList,x,y,z)``
+        # in the handy way  ``List(x,y,z)``.
+        # This is handy, but can be confusing if this is not very
+        # well documented.
+        # Notice that this behavior was used extensively in
+        # mathics.builtin.inout
+
         if kwargs.get("expression", None) is not False:
             return Expression(cls.get_name(), *args)
         else:
@@ -589,14 +652,62 @@ class SympyFunction(SympyObject):
 
 
 class BoxConstruct(InstanceableBuiltin):
+    # This is the base class for the "Final form"
+    # of formatted expressions.
+    #
+    # The idea is that this class and their subclasses implement
+    # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
+    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # considered "inert". However, it could happend that an Expression having them as an element
+    # be evaluable, and try to apply rules. For example,
+    # InputForm[ToBoxes[a+b]]
+    # should be evaluated to ``Expression("RowBox", '"a"', '"+"', '"b"')``.
+    #
+    # Changes to do, after the refactor of mathics.core:
+    #
+    # * Change the name of this class: It must be ``FormatExpression``,
+    #   ``BoxExpression`` or ``BoxElement`` or something like that.
+    # * Make this to be a subclass of ``BaseElement``.
+    # * Review the implementation
+
+    attributes = protected | read_protected
+
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
-        instance._elements = elements
+        # the __new__ method from InstanceableBuiltin
+        # calls self.init. It is expected that it set
+        # self._elements. However, if it didn't happens,
+        # we set it with a default value.
+        # There should be a better way to implement this
+        # behaviour...
+        if not hasattr(instance, "_elements"):
+            instance._elements = tuple(elements)
         return instance
+
+    def tex_block(self, tex, only_subsup=False):
+        if len(tex) == 1:
+            return tex
+        else:
+            if not only_subsup or "_" in tex or "^" in tex:
+                return "{%s}" % tex
+            else:
+                return tex
+
+    def to_expression(self):
+        expr = Expression(self.get_name(), self._elements)
+        return expr
+
+    def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
+        expr = self.to_expression()
+        result = expr.replace_vars(vars, options, in_scoping, in_function)
+        return result
 
     def evaluate(self, evaluation):
         # THINK about: Should we evaluate the elements here?
-        return
+        return self
+
+    def get_elements(self):
+        return self._elements
 
     def get_head_name(self):
         return self.get_name()
@@ -615,7 +726,9 @@ class BoxConstruct(InstanceableBuiltin):
         return self
 
     def format(self, evaluation, fmt):
-        return self
+        expr = Expression("HoldForm", self.to_expression())
+        fexpr = expr.format(evaluation, fmt)
+        return fexpr
 
     def get_head(self):
         return Symbol(self.get_name())
@@ -630,7 +743,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @property
     def leaves(self):
-        return self._elements
+        return self.get_elements()
 
     @leaves.setter
     def leaves(self, value):

@@ -438,6 +438,8 @@ class Evaluation(object):
             raise ValueError
 
         try:
+            # With the new implementation, if result is not a ``BoxConstruct``
+            # then we should raise a BoxError here.
             boxes = result.boxes_to_text(evaluation=self)
         except BoxError:
             self.message(

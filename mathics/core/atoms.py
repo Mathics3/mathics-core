@@ -754,7 +754,6 @@ class String(Atom):
 
     def boxes_to_text(self, show_string_characters=False, **options) -> str:
         value = self.value
-
         if (
             not show_string_characters
             and value.startswith('"')  # nopep8
@@ -768,6 +767,10 @@ class String(Atom):
         from mathics.core.parser import is_symbol_name
         from mathics.builtin import builtins_by_module
 
+        # comment @mmatera:  This piece of code loads all the operators
+        # in all the modules.
+        # Maybe it should be build and stored once in mathics.builtin object.
+        #
         operators = set()
         for modname, builtins in builtins_by_module.items():
             for builtin in builtins:

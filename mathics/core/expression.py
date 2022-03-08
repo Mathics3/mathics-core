@@ -180,6 +180,8 @@ class Expression(BaseElement, NumericOperators):
         self._head = head
         self._elements = tuple(from_python(element) for element in leaves)
         self._sequences = None
+        # comment @mmatera: this cache should be useful in BoxConstruct, but not
+        # here...
         self._format_cache = None
         return self
 
@@ -271,6 +273,15 @@ class Expression(BaseElement, NumericOperators):
 
     def _timestamp_cache(self, evaluation):
         self._cache = ExpressionCache(evaluation.definitions.now, copy=self._cache)
+
+    # comment @mmatera: I think that the methods ``boxes_to_`` does not belong
+    # here but to a specialized class for holding ``Box*`` expressions.
+    # Box expressions shouldn't be evaluated, because are a kind of Literal, describing
+    # a way in which certain expression should be shown.
+    # In this PR (#181) I propose a basic implementation of a ``BoxExpression`` class.
+    # ``BoxExpression``  shouldn't implement many of the methods related to ``evaluation``
+    # and rewritting. Also, BoxExpressions must be build just from other ``BoxExpression``,
+    # ``String`` and ``Lists``.
 
     def boxes_to_text(self, **options) -> str:
         """

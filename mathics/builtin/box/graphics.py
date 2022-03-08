@@ -57,14 +57,14 @@ class _RoundBox(_GraphicsElement):
         self.edge_color, self.face_color = style.get_style(
             _Color, face_element=self.face_element
         )
-        self.c = Coords(graphics, item.leaves[0])
-        if len(item.leaves) == 1:
+        self.c = Coords(graphics, item.elements[0])
+        if len(item.elements) == 1:
             rx = ry = 1
-        elif len(item.leaves) == 2:
-            r = item.leaves[1]
+        elif len(item.elements) == 2:
+            r = item.elements[1]
             if r.has_form("List", 2):
-                rx = r.leaves[0].round_to_float()
-                ry = r.leaves[1].round_to_float()
+                rx = r.elements[0].round_to_float()
+                ry = r.elements[1].round_to_float()
             else:
                 rx = ry = r.round_to_float()
         self.r = self.c.add(rx, ry)
@@ -86,11 +86,11 @@ class _RoundBox(_GraphicsElement):
 
 class _ArcBox(_RoundBox):
     def init(self, graphics, style, item):
-        if len(item.leaves) == 3:
-            arc_expr = item.leaves[2]
+        if len(item.elements) == 3:
+            arc_expr = item.elements[2]
             if arc_expr.get_head_name() != "System`List":
                 raise BoxConstructError
-            arc = arc_expr.leaves
+            arc = arc_expr.elements
             pi2 = 2 * pi
 
             start_angle = arc[0].round_to_float()
@@ -106,7 +106,7 @@ class _ArcBox(_RoundBox):
                 else:
                     self.arc = (start_angle, end_angle)
 
-            item = Expression(item.get_head_name(), *item.leaves[:2])
+            item = Expression(item.get_head_name(), *item.elements[:2])
         else:
             self.arc = None
         super(_ArcBox, self).init(graphics, style, item)
@@ -141,29 +141,29 @@ class ArrowBox(_Polyline):
 
         super(ArrowBox, self).init(graphics, item, style)
 
-        leaves = item.leaves
-        if len(leaves) == 2:
-            setback = self._setback_spec(leaves[1])
-        elif len(leaves) == 1:
+        elements = item.elements
+        if len(elements) == 2:
+            setback = self._setback_spec(elements[1])
+        elif len(elements) == 1:
             setback = (0, 0)
         else:
             raise BoxConstructError
 
-        curve = leaves[0]
+        curve = elements[0]
 
         curve_head_name = curve.get_head_name()
         if curve_head_name == "System`List":
             curve_points = curve
             self.curve = _Line()
         elif curve_head_name == "System`Line":
-            if len(curve.leaves) != 1:
+            if len(curve.elements) != 1:
                 raise BoxConstructError
-            curve_points = curve.leaves[0]
+            curve_points = curve.elements[0]
             self.curve = _Line()
         elif curve_head_name == "System`BezierCurve":
-            if len(curve.leaves) != 1:
+            if len(curve.elements) != 1:
                 raise BoxConstructError
-            curve_points = curve.leaves[0]
+            curve_points = curve.elements[0]
             self.curve = _BezierCurve()
         else:
             raise BoxConstructError
@@ -177,10 +177,10 @@ class ArrowBox(_Polyline):
     @staticmethod
     def _setback_spec(expr):
         if expr.get_head_name() == "System`List":
-            leaves = expr.leaves
-            if len(leaves) != 2:
+            elements = expr.elements
+            if len(elements) != 2:
                 raise BoxConstructError
-            return tuple(max(_to_float(l), 0.0) for l in leaves)
+            return tuple(max(_to_float(l), 0.0) for l in elements)
         else:
             s = max(_to_float(expr), 0.0)
             return s, s
@@ -329,10 +329,10 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
-        if len(item.leaves) != 1 or item.leaves[0].get_head_name() != "System`List":
+        if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
             raise BoxConstructError
         self.edge_color, _ = style.get_style(_Color, face_element=False)
-        points = item.leaves[0]
+        points = item.elements[0]
         self.do_init(graphics, points)
         spline_degree = options.get("System`SplineDegree")
         if not isinstance(spline_degree, Integer):
@@ -361,10 +361,17 @@ class GraphicsBox(BoxConstruct):
 
     attributes = hold_all | protected | read_protected
 
-    def __new__(cls, *leaves, **kwargs):
-        instance = super().__new__(cls, *leaves, **kwargs)
+    def __new__(cls, *elements, **kwargs):
+        instance = super().__new__(cls, *elements, **kwargs)
         instance.evaluation = kwargs.get("evaluation", None)
+        instance._elements = elements
         return instance
+
+    def to_expression(self):
+        return self
+
+    def get_elements(self):
+        return self._elements
 
     def _get_image_size(self, options, graphics_options, max_width):
         inside_row = options.pop("inside_row", False)
@@ -387,7 +394,7 @@ class GraphicsBox(BoxConstruct):
             base_height = None  # will be computed later in calc_dimensions
         elif image_size.has_form("System`List", 2):
             base_width, base_height = (
-                [x.round_to_float() for x in image_size.leaves] + [0, 0]
+                [x.round_to_float() for x in image_size.elements] + [0, 0]
             )[:2]
             if base_width is None or base_height is None:
                 raise BoxConstructError
@@ -415,10 +422,10 @@ class GraphicsBox(BoxConstruct):
 
         return base_width, base_height, multi, aspect
 
-    def _prepare_elements(self, leaves, options, neg_y=False, max_width=None):
-        if not leaves:
+    def _prepare_elements(self, elements, options, neg_y=False, max_width=None):
+        if not elements:
             raise BoxConstructError
-        self.graphics_options = self.get_option_values(leaves[1:], **options)
+        self.graphics_options = self.get_option_values(elements[1:], **options)
         background = self.graphics_options["System`Background"]
         if (
             isinstance(background, Symbol)
@@ -442,7 +449,7 @@ class GraphicsBox(BoxConstruct):
         evaluation = options.get("evaluation", None)
         if evaluation is None:
             evaluation = self.evaluation
-        elements = GraphicsElements(leaves[0], evaluation, neg_y)
+        elements = GraphicsElements(elements[0], evaluation, neg_y)
         axes = []  # to be filled further down
 
         def calc_dimensions(final_pass=True):
@@ -630,11 +637,11 @@ class GraphicsBox(BoxConstruct):
 
         return ticks, ticks_small, origin_x
 
-    def boxes_to_mathml(self, leaves=None, **options) -> str:
+    def boxes_to_mathml(self, elements=None, **options) -> str:
 
         # FIXME: SVG is the only thing we can convert MathML into.
         # Handle other graphics formats.
-        svg_body = self.boxes_to_svg(leaves, **options)
+        svg_body = self.boxes_to_svg(elements, **options)
 
         # mglyph, which is what we have been using, is bad because MathML standard changed.
         # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.
@@ -652,20 +659,22 @@ class GraphicsBox(BoxConstruct):
         # print("boxes_to_mathml", mathml)
         return mathml
 
-    def boxes_to_svg(self, leaves=None, **options) -> str:
+    def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
         """
-        if not leaves:
-            leaves = self._elements
+        if not elements:
+            elements = self._elements
 
-        elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
+        elements, calc_dimensions = self._prepare_elements(
+            elements, options, neg_y=True
+        )
         xmin, xmax, ymin, ymax, w, h, self.width, self.height = calc_dimensions()
         data = (elements, xmin, xmax, ymin, ymax, w, h, self.width, self.height)
         elements.view_width = w
 
         format_fn = lookup_method(self, "svg")
-        svg_body = format_fn(self, leaves, data=data, **options)
+        svg_body = format_fn(self, elements, data=data, **options)
         return svg_body
 
     def boxes_to_tex(self, elements=None, **options) -> str:
@@ -752,18 +761,18 @@ clip(%s);
         if axes.is_true():
             axes = (True, True)
         elif axes.has_form("List", 2):
-            axes = (axes.leaves[0].is_true(), axes.leaves[1].is_true())
+            axes = (axes.elements[0].is_true(), axes.elements[1].is_true())
         else:
             axes = (False, False)
         ticks_style = graphics_options.get("System`TicksStyle")
         axes_style = graphics_options.get("System`AxesStyle")
         label_style = graphics_options.get("System`LabelStyle")
         if ticks_style.has_form("List", 2):
-            ticks_style = ticks_style.leaves
+            ticks_style = ticks_style.elements
         else:
             ticks_style = [ticks_style] * 2
         if axes_style.has_form("List", 2):
-            axes_style = axes_style.leaves
+            axes_style = axes_style.elements
         else:
             axes_style = [axes_style] * 2
 
@@ -905,10 +914,14 @@ class FilledCurveBox(_GraphicsElement):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
-        if item is not None and item.leaves and item.leaves[0].has_form("List", None):
-            if len(item.leaves) != 1:
+        if (
+            item is not None
+            and item.elements
+            and item.elements[0].has_form("List", None)
+        ):
+            if len(item.elements) != 1:
                 raise BoxConstructError
-            leaves = item.leaves[0].leaves
+            elements = item.elements[0].elements
 
             def parse_component(segments):
                 for segment in segments:
@@ -916,16 +929,16 @@ class FilledCurveBox(_GraphicsElement):
 
                     if head == "System`Line":
                         k = 1
-                        parts = segment.leaves
+                        parts = segment.elements
                     elif head == "System`BezierCurve":
-                        parts, options = _data_and_options(segment.leaves, {})
+                        parts, options = _data_and_options(segment.elements, {})
                         spline_degree = options.get("SplineDegree", Integer(3))
                         if not isinstance(spline_degree, Integer):
                             raise BoxConstructError
                         k = spline_degree.get_int_value()
                     elif head == "System`BSplineCurve":
                         raise NotImplementedError  # FIXME convert bspline to bezier here
-                        # parts = segment.leaves
+                        # parts = segment.elements
                     else:
                         raise BoxConstructError
 
@@ -935,15 +948,15 @@ class FilledCurveBox(_GraphicsElement):
                         if part.get_head_name() != "System`List":
                             raise BoxConstructError
                         coords.extend(
-                            [graphics.coords(graphics, xy) for xy in part.leaves]
+                            [graphics.coords(graphics, xy) for xy in part.elements]
                         )
 
                     yield k, coords
 
-            if all(x.get_head_name() == "System`List" for x in leaves):
-                self.components = [list(parse_component(x)) for x in leaves]
+            if all(x.get_head_name() == "System`List" for x in elements):
+                self.components = [list(parse_component(x)) for x in elements]
             else:
-                self.components = [list(parse_component(leaves))]
+                self.components = [list(parse_component(elements))]
         else:
             raise BoxConstructError
 
@@ -979,16 +992,16 @@ class InsetBox(_GraphicsElement):
         self.opacity = opacity
 
         if item is not None:
-            if len(item.leaves) not in (1, 2, 3):
+            if len(item.elements) not in (1, 2, 3):
                 raise BoxConstructError
-            content = item.leaves[0]
+            content = item.elements[0]
             self.content = content.format(graphics.evaluation, "TraditionalForm")
-            if len(item.leaves) > 1:
-                self.pos = Coords(graphics, item.leaves[1])
+            if len(item.elements) > 1:
+                self.pos = Coords(graphics, item.elements[1])
             else:
                 self.pos = Coords(graphics, pos=(0, 0))
-            if len(item.leaves) > 2:
-                self.opos = coords(item.leaves[2])
+            if len(item.elements) > 2:
+                self.opos = coords(item.elements[2])
             else:
                 self.opos = (0, 0)
         else:
@@ -1018,9 +1031,9 @@ class LineBox(_Polyline):
         super(LineBox, self).init(graphics, item, style)
         self.edge_color, _ = style.get_style(_Color, face_element=False)
         if item is not None:
-            if len(item.leaves) != 1:
+            if len(item.elements) != 1:
                 raise BoxConstructError
-            points = item.leaves[0]
+            points = item.elements[0]
             self.do_init(graphics, points)
         elif lines is not None:
             self.lines = lines
@@ -1052,11 +1065,11 @@ class PointBox(_Polyline):
         self.point_radius = image_width * point_size.value
 
         if item is not None:
-            if len(item.leaves) != 1:
+            if len(item.elements) != 1:
                 raise BoxConstructError
-            points = item.leaves[0]
-            if points.has_form("List", None) and len(points.leaves) != 0:
-                if all(not leaf.has_form("List", None) for leaf in points.leaves):
+            points = item.elements[0]
+            if points.has_form("List", None) and len(points.elements) != 0:
+                if all(not leaf.has_form("List", None) for leaf in points.elements):
                     points = Expression(SymbolList, points)
             self.do_init(graphics, points)
         else:
@@ -1080,16 +1093,16 @@ class PolygonBox(_Polyline):
         super(PolygonBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
         if item is not None:
-            if len(item.leaves) not in (1, 2):
+            if len(item.elements) not in (1, 2):
                 raise BoxConstructError
-            points = item.leaves[0]
+            points = item.elements[0]
             self.do_init(graphics, points)
             self.vertex_colors = None
-            for leaf in item.leaves[1:]:
+            for leaf in item.elements[1:]:
                 if not leaf.has_form("Rule", 2):
                     raise BoxConstructError
-                name = leaf.leaves[0].get_name()
-                self.process_option(name, leaf.leaves[1])
+                name = leaf.elements[0].get_name()
+                self.process_option(name, leaf.elements[1])
         else:
             raise BoxConstructError
 
@@ -1099,7 +1112,7 @@ class PolygonBox(_Polyline):
                 raise BoxConstructError
             black = RGBColor(components=[0, 0, 0, 1])
             self.vertex_colors = [[black] * len(line) for line in self.lines]
-            colors = value.leaves
+            colors = value.elements
             if not self.multi_parts:
                 colors = [Expression(SymbolList, *colors)]
             for line_index, line in enumerate(self.lines):
@@ -1108,7 +1121,7 @@ class PolygonBox(_Polyline):
                 line_colors = colors[line_index]
                 if not line_colors.has_form("List", None):
                     continue
-                for index, color in enumerate(line_colors.leaves):
+                for index, color in enumerate(line_colors.elements):
                     if index >= len(self.vertex_colors[line_index]):
                         break
                     try:
@@ -1122,14 +1135,14 @@ class PolygonBox(_Polyline):
 class RectangleBox(_GraphicsElement):
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
-        if len(item.leaves) not in (1, 2):
+        if len(item.elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
-        self.p1 = Coords(graphics, item.leaves[0])
-        if len(item.leaves) == 1:
+        self.p1 = Coords(graphics, item.elements[0])
+        if len(item.elements) == 1:
             self.p2 = self.p1.add(1, 1)
-        elif len(item.leaves) == 2:
-            self.p2 = Coords(graphics, item.leaves[1])
+        elif len(item.elements) == 2:
+            self.p2 = Coords(graphics, item.elements[1])
 
     def extent(self):
         l = self.style.get_line_width(face_element=True) / 2
@@ -1144,30 +1157,30 @@ class RectangleBox(_GraphicsElement):
 
 class RegularPolygonBox(PolygonBox):
     def init(self, graphics, style, item):
-        if len(item.leaves) in (1, 2, 3) and isinstance(item.leaves[-1], Integer):
+        if len(item.elements) in (1, 2, 3) and isinstance(item.elements[-1], Integer):
             r = 1.0
             phi0 = None
 
-            if len(item.leaves) >= 2:
-                rspec = item.leaves[-2]
+            if len(item.elements) >= 2:
+                rspec = item.elements[-2]
                 if rspec.get_head_name() == "System`List":
-                    if len(rspec.leaves) != 2:
+                    if len(rspec.elements) != 2:
                         raise BoxConstructError
-                    r = rspec.leaves[0].round_to_float()
-                    phi0 = rspec.leaves[1].round_to_float()
+                    r = rspec.elements[0].round_to_float()
+                    phi0 = rspec.elements[1].round_to_float()
                 else:
                     r = rspec.round_to_float()
 
             x = 0.0
             y = 0.0
-            if len(item.leaves) == 3:
-                pos = item.leaves[0]
+            if len(item.elements) == 3:
+                pos = item.elements[0]
                 if not pos.has_form("List", 2):
                     raise BoxConstructError
-                x = pos.leaves[0].round_to_float()
-                y = pos.leaves[1].round_to_float()
+                x = pos.elements[0].round_to_float()
+                y = pos.elements[1].round_to_float()
 
-            n = item.leaves[-1].get_int_value()
+            n = item.elements[-1].get_int_value()
 
             if any(t is None for t in (x, y, r)) or n < 0:
                 raise BoxConstructError

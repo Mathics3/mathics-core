@@ -100,8 +100,27 @@ class BaseElement(KeyComparable):
     def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
-        # FIXME: this should be removed
+        # This property would be useful for a BoxExpression
+        # (see comment in mathocs.core.expression.) However,
+        # WL has a way to handle the connection between
+        # an expression and a Box expression ``InterpretationBox``.
+        self.unformatted = self  # This may be a garbage-collection nightmare.
         self._cache = None
+
+    # comment @mmatera: The next method have a name that starts with ``apply``.
+    # This obstaculizes to define ``InstanceableBuiltin``
+    # with ``Element`` as an ancestor class. I would like to have this
+    # to reimplement  ``mathics.builtin.BoxConstruct`` in a way that do not
+    # require to redefine several of the methods of this class.
+    # I propose then to change the name to ``do_apply_rules``.
+    # This change implies to change just an small number of lines
+    # in the code of ``mathics.core`` and ``mathics.builtin``. In particular
+    # the afected files apart from this would be:
+    #
+    # mathics/core/expression.py
+    # mathics/builtin/inference.py
+    # mathics/builtin/patterns.py
+    # mathics/builtin/assignments/internals.py
 
     def apply_rules(
         self, rules, evaluation, level=0, options=None
@@ -156,7 +175,6 @@ class BaseElement(KeyComparable):
         if isinstance(form, str):
             form = Symbol(form)
         formats = format_symbols
-
         evaluation.inc_recursion_depth()
         try:
             expr = self
@@ -176,7 +194,6 @@ class BaseElement(KeyComparable):
                 if include_form:
                     expr = self.create_expression(form, expr)
                 return expr
-
             # Repeated and RepeatedNull confuse the formatter,
             # so we need to hardlink their format rules:
             if head is SymbolRepeated:
@@ -247,7 +264,6 @@ class BaseElement(KeyComparable):
                 expr = self.create_expression(
                     expr.head.do_format(evaluation, form), *new_elements
                 )
-
             if include_form:
                 expr = self.create_expression(form, expr)
             return expr
