@@ -35,7 +35,9 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
     SymbolAlternatives,
+    Symbol_Assumptions,
     SymbolCos,
     SymbolDirectedInfinity,
     SymbolPlus,
@@ -46,10 +48,12 @@ from mathics.core.systemsymbols import (
     SymbolTimes,
 )
 
+from mathics.algorithm.simplify import default_complexity_function
 from mathics.core.convert import from_sympy, sympy_symbol_prefix
 from mathics.core.rules import Pattern
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
+from mathics.builtin.options import options_to_rules
 
 from mathics.core.attributes import listable, protected
 
@@ -66,7 +70,11 @@ SymbolCoth = Symbol("Coth")
 def sympy_factor(expr_sympy):
     try:
         result = sympy.together(expr_sympy)
-        result = sympy.factor(result)
+        numer, denom = result.as_numer_denom()
+        if denom == 1:
+            result = sympy.factor(expr_sympy)
+        else:
+            result = sympy.factor(numer) / sympy.factor(denom)
     except sympy.PolynomialError:
         return expr_sympy
     return result
@@ -1383,6 +1391,10 @@ class Factor(Builtin):
     You can use Factor to find when a polynomial is zero:
     >> x^2 - x == 0 // Factor
      = x (-1 + x) == 0
+
+    ## Issue659
+    #> Factor[{x+x^2}]
+     = {x (1 + x)}
     """
 
     summary_text = "factor sums into product and powers"
@@ -1396,9 +1408,15 @@ class Factor(Builtin):
             return None
 
         try:
-            return from_sympy(sympy_factor(expr_sympy))
+            result = sympy.together(expr_sympy)
+            numer, denom = result.as_numer_denom()
+            if denom == 1:
+                result = sympy.factor(expr_sympy)
+            else:
+                result = sympy.factor(numer) / sympy.factor(denom)
         except sympy.PolynomialError:
             return expr
+        return from_sympy(result)
 
 
 class FactorTermsList(Builtin):
@@ -1537,11 +1555,20 @@ class Simplify(Builtin):
      = ConditionalExpression[1, a > 0]
     On the other hand, $Assumptions$ option does not override $\$Assumption$, but add to them:
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], Assumptions -> { b > 0 }]
-     = Undefined
+     = ConditionalExpression[1, a > 0]
     Passing both options overwrites $Assumptions with the union of $assump$ the option
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], {a>0},Assumptions -> { b > 0 }]
      = 1
     >> $Assumptions={};
+
+    The option $ComplexityFunction$ allows to control the way in which the evaluator decides if one
+    expression is simpler than another. For example, by default, 'Simplify' tries to avoid
+    expressions involving numbers with many digits:
+    >> Simplify[20 Log[2]]
+     = 20 Log[2]
+    This behaviour can be modified by setting 'LeafCount' as the 'ComplexityFunction'
+    >> Simplify[20 Log[2], ComplexityFunction->LeafCount]
+     = Log[1048576]
     """
 
     summary_text = "apply transformations to simplify an expression"
@@ -1551,6 +1578,7 @@ class Simplify(Builtin):
     }
     options = {
         "Assumptions": "$Assumptions",
+        "ComplexityFunction": "Automatic",
     }
 
     def apply_with_assumptions(self, expr, assum, evaluation, options={}):
@@ -1560,28 +1588,26 @@ class Simplify(Builtin):
         # it should be taken as an option.
         if assum.get_head() in (SymbolRule, SymbolRuleDelayed):
             options[assum.elements[0].get_name()] = assum.elements[1]
-            assum = Symbol("$Assumptions")
+            return self.apply(expr, evaluation, options)
 
         # If the option "Assumptions" was passed, then merge with assum:
         assumptions_list = options.pop("System`Assumptions")
-        if assumptions_list and assumptions_list is not Symbol("$Assumptions"):
+        if assumptions_list and assumptions_list is not Symbol_Assumptions:
             if assum.get_head() is not SymbolList:
                 assum = Expression(SymbolList, assum)
             if assumptions_list.get_head() is not SymbolList:
                 assumptions_list = Expression(SymbolList, assumptions_list)
             assum = Expression(SymbolList, assum, assumptions_list)
-        assumptions = assum.evaluate(evaluation).flatten_with_respect_to_head(
-            SymbolList
-        )
+        assumptions = assum.evaluate(evaluation).flatten(SymbolList)
         # Now, reevaluate the expression with all the assumptions.
-        simplify_expr = Expression(self.get_name(), expr)
+        simplify_expr = Expression(self.get_name(), expr, *options_to_rules(options))
         return dynamic_scoping(
             lambda ev: simplify_expr.evaluate(ev),
             {"System`$Assumptions": assumptions},
             evaluation,
         )
 
-    def apply_power_of_zero(self, b, evaluation, options):
+    def apply_power_of_zero(self, b, evaluation):
         "%(name)s[0^b_]"
         if self.apply(Expression("Less", 0, b), evaluation, options) is SymbolTrue:
             return Integer0
@@ -1591,8 +1617,24 @@ class Simplify(Builtin):
             return Symbol("Indeterminate")
         return Expression("Power", Integer0, b)
 
-    def apply(self, expr, evaluation):
-        "%(name)s[expr_]"
+    def apply(self, expr, evaluation, options={}):
+        "%(name)s[expr_, OptionsPattern[]]"
+        # If System`Assumptions is in the options,
+        # rebuild the expression without this option, and evaluate it
+        # inside a scope with $Assumptions set accordingly.
+        assumptions = options.pop("System`Assumptions", None)
+        if assumptions not in (None, Symbol_Assumptions):
+            simplify_expr = Expression(
+                self.get_name(), expr, *options_to_rules(options)
+            )
+            return dynamic_scoping(
+                lambda ev: simplify_expr.evaluate(ev),
+                {"System`$Assumptions": assumptions},
+                evaluation,
+            )
+        return self.do_apply(expr, evaluation, options)
+
+    def do_apply(self, expr, evaluation, options={}):
         # Check first if we are dealing with a logic expression...
         if expr in (SymbolTrue, SymbolFalse, SymbolList):
             return expr
@@ -1611,7 +1653,7 @@ class Simplify(Builtin):
         # to use all the defined rules...
         name = self.get_name()
         elements = [
-            Expression(name, element).evaluate(evaluation) for element in expr.elements
+            Expression(name, element).evaluate(evaluation) for element in expr._elements
         ]
         head = Expression(name, expr.get_head()).evaluate(evaluation)
         expr = Expression(head, *elements)
@@ -1624,10 +1666,22 @@ class Simplify(Builtin):
         if sympy_expr is None:
             return expr
         # Now, try to simplify using sympy
-        try:
-            sympy_result = sympy.simplify(sympy_expr)
-        except Exception:
-            return expr
+        complexity_function = options.get("System`ComplexityFunction", None)
+        if complexity_function is None or complexity_function is SymbolAutomatic:
+            complexity_function = lambda x: default_complexity_function(from_sympy(x))
+        else:
+            if isinstance(complexity_function, (Expression, Symbol)):
+                _complexity_function = complexity_function
+                complexity_function = (
+                    lambda x: Expression(_complexity_function, from_sympy(x))
+                    .evaluate(evaluation)
+                    .to_python()
+                )
+
+        # At this point, ``complexity_function`` is a function that takes a
+        # sympy expression and returns an integer.
+        sympy_result = sympy.simplify(sympy_expr, measure=complexity_function)
+
         # and bring it back
         result = from_sympy(sympy_result).evaluate(evaluation)
         return result
@@ -1907,8 +1961,8 @@ class Variables(Builtin):
      = {a, b, c, x, y}
     >> Variables[x + Sin[y]]
      = {x, Sin[y]}
-    This behaviour is weird, but is the same than in WMA.
-    >> Variables[E^x]
+    ## failing test case from MMA docs
+    #> Variables[E^x]
      = {}
     """
     summary_text = "list of variables in a polynomial"
@@ -1921,3 +1975,10 @@ class Variables(Builtin):
         variables = Expression(SymbolList, *variables)
         variables.sort()  # MMA doesn't do this
         return variables
+
+
+class UpTo(Builtin):
+    messages = {
+        "innf": "Expected non-negative integer or infinity at position 1 in ``.",
+        "argx": "UpTo expects 1 argument, `1` arguments were given.",
+    }

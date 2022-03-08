@@ -277,6 +277,14 @@ def test_simplify():
             "Simplify[a*x^2+b*x^2]",
             "x ^ 2 (a + b)",
         ),
+        (
+            "Simplify[2 Log[2]]",
+            "Log[4]",
+        ),
+        (
+            "Simplify[18 Log[2]]",
+            "18 Log[2]",
+        ),
         # triggers TypeError in sympy.simplify
         (
             "Clear[f]; x f[{y}] // Simplify",
