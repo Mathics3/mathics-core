@@ -1,26 +1,26 @@
 # -*- coding: utf-8 -*-
 
 """
-Algorithms for simplifying expressions.
+Algorithms for simplifying expressions and evaluate complexity.
 """
 
-from mathics.core.symbols import Atom
 from mathics.core.atoms import Number
 from mathics.core.expression import Expression
 
 
-def default_complexity_function(x) -> int:
+def default_complexity_function(expr: Expression) -> int:
     """
     Evaluates the complexity of an expression. Each atom
     counts 1, except for numbers that counts 1 each 5 characters
     in its decimal expansion.
     """
-    if isinstance(x, Number):
-        result = 1 + int(len(str(x)) / 2)
-    elif isinstance(x, Expression):
-        result = default_complexity_function(x.get_head())
-        result = result + sum(default_complexity_function(e) for e in x.elements)
+    # TODO: write this in an iterative form instead a recursive one.
+    if isinstance(expr, Number):
+        # This can be improved in several ways...
+        return 1 + int(len(str(expr)) / 2)
+    elif isinstance(expr, Expression):
+        return default_complexity_function(expr.get_head()) + +sum(
+            default_complexity_function(e) for e in expr.elements
+        )
     else:
-        result = 1
-    #    print(x, result)
-    return result
+        return 1
