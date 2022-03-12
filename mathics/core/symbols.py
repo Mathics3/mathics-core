@@ -288,6 +288,18 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
+    def has_form(self, heads, *element_counts) -> bool:
+        if element_counts:
+            return False
+        name = self.get_atom_name()
+        if isinstance(heads, tuple):
+            return name in heads
+        else:
+            return heads == name
+
+    def has_symbol(self, symbol_name) -> bool:
+        return False
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we may need to
@@ -299,18 +311,6 @@ class Atom(BaseElement):
         this then needs to override this method.
 
         """
-        return False
-
-    def has_form(self, heads, *element_counts) -> bool:
-        if element_counts:
-            return False
-        name = self.get_atom_name()
-        if isinstance(heads, tuple):
-            return name in heads
-        else:
-            return heads == name
-
-    def has_symbol(self, symbol_name) -> bool:
         return False
 
     def numerify(self, evaluation) -> "Atom":
