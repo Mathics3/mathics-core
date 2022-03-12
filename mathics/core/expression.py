@@ -491,7 +491,7 @@ class Expression(BaseElement, NumericOperators):
             symbolname = expr.get_name()
             if symbolname != "":
                 if not evaluation.definitions.uncertain_final_value(
-                    last_evaluated_time, (symbolname,)
+                    last_evaluated_time, set((symbolname,))
                 ):
                     return expr
         expr = super().do_format(evaluation, form)
