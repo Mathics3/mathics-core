@@ -288,19 +288,6 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
-    def uncertain_final_definitions(self, definitions) -> bool:
-        """
-        Used in Expression.do_format() to determine if we may need to
-        (re)evaluate an expression.
-
-        Most Atoms, e.g. Numbers and Strings, need do not need
-        evaluation or reevaluation. However some kinds of Atoms like
-        Symbols sometimes do. The Symbol class or any other class like
-        this then needs to override this method.
-
-        """
-        return False
-
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
             return False
@@ -311,6 +298,19 @@ class Atom(BaseElement):
             return heads == name
 
     def has_symbol(self, symbol_name) -> bool:
+        return False
+
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we may need to
+        (re)evaluate an expression.
+
+        Most Atoms, e.g. Numbers and Strings, do not need
+        evaluation or reevaluation. However some kinds of Atoms like
+        Symbols sometimes do. The Symbol class or any other class like
+        this then needs to override this method.
+
+        """
         return False
 
     def numerify(self, evaluation) -> "Atom":
@@ -440,26 +440,6 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
-    def uncertain_final_definitions(self, definitions) -> bool:
-        """
-        Used in Expression.do_format to determine if we need to
-        (re)evaluate an expression.
-
-        Here, we have to be pessimistic and return True.
-
-           InputForm[Context[]] == "Global`"
-
-        is an example where we need to evaluate "Global`" and it doesn't start out as a
-        final value.
-        """
-
-        # FIXME: can we arrange things so that a string like "Global`"
-        # starts out as an evaluated symbol?
-
-        # FIXME: revise Class structure for *constant* Symbols like True, False, and Null.
-        # They would have an uncertain_final_value() class that returns False.
-        return True
-
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
 
@@ -474,8 +454,21 @@ class Symbol(Atom, NumericOperators):
             return symbol_definition.is_numeric
         return False
 
-    def default_format(self, evaluation, form) -> str:
-        return self.name
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we need to
+        (re)evaluate an expression.
+
+        Here, we have to be pessimistic and return True. For example,
+        in:
+
+           Context[]
+
+        this routine will get called where "self" is $System`Context. We
+        can't stop here, but must continue evaluation to get the function's value,
+        such as "Global`".
+        """
+        return True
 
     def get_attributes(self, definitions):
         return definitions.get_attributes(self.name)
