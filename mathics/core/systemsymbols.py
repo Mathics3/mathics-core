@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import PredefinedSymbol, Symbol
 
 # Some other common Symbols. This list is sorted in alphabetic order.
-SymbolAborted = Symbol("$Aborted")
+SymbolAborted = PredefinedSymbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
 SymbolAssociation = Symbol("Association")
 SymbolAutomatic = Symbol("Automatic")
@@ -49,7 +49,6 @@ SymbolRowBox = Symbol("RowBox")
 SymbolRowBox = Symbol("RowBox")
 SymbolRule = Symbol("Rule")
 SymbolRuleDelayed = Symbol("RuleDelayed")
-SymbolSequence = Symbol("Sequence")
 SymbolSequence = Symbol("Sequence")
 SymbolSeries = Symbol("Series")
 SymbolSeriesData = Symbol("SeriesData")

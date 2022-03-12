@@ -548,7 +548,7 @@ class PredefinedSymbol(Symbol):
     A Predefined Symbol of the Mathics system.
 
     A Symbol which is defined because it is used somewhere in the
-    Mathics system as a built-in name, Attribute, Property, option
+    Mathics system as a built-in name, Attribute, Property, Option,
     or a Symbolic Constant.
 
     In contrast to Symbol where the name might not have been added to
@@ -571,22 +571,35 @@ class PredefinedSymbol(Symbol):
 
 # Symbols used in this module.
 
+# Note, below we are only setting PredefinedSymbol for Symbols which
+# are both predefined and have the Locked attribute.
+
+# An experiment using PredefinedSymbol("Pi") in the Pythoin code and
+# running:
+#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
+# show that this does not change the output in any way.
+#
+# That said, for now we will proceed very conservatively and
+# cautiously. However we may decide in the future to
+# more of the below and in systemsymbols
+# PredefineSymbol.
+
 SymbolFalse = PredefinedSymbol("System`False")
-SymbolGraphics = PredefinedSymbol("System`Graphics")
-SymbolGraphics3D = PredefinedSymbol("System`Graphics3D")
-SymbolHoldForm = PredefinedSymbol("System`HoldForm")
+SymbolGraphics = Symbol("System`Graphics")
+SymbolGraphics3D = Symbol("System`Graphics3D")
+SymbolHoldForm = Symbol("System`HoldForm")
 SymbolList = PredefinedSymbol("System`List")
-SymbolMachinePrecision = PredefinedSymbol("MachinePrecision")
-SymbolMakeBoxes = PredefinedSymbol("System`MakeBoxes")
-SymbolMaxPrecision = PredefinedSymbol("$MaxPrecision")
-SymbolMinPrecision = PredefinedSymbol("$MinPrecision")
-SymbolN = PredefinedSymbol("System`N")
-SymbolNull = PredefinedSymbol("System`Null")
-SymbolNumberForm = PredefinedSymbol("System`NumberForm")
-SymbolPostfix = PredefinedSymbol("System`Postfix")
-SymbolRepeated = PredefinedSymbol("System`Repeated")
-SymbolRepeatedNull = PredefinedSymbol("System`RepeatedNull")
-SymbolSequence = PredefinedSymbol("System`Sequence")
+SymbolMachinePrecision = Symbol("MachinePrecision")
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
+SymbolMaxPrecision = Symbol("$MaxPrecision")
+SymbolMinPrecision = Symbol("$MinPrecision")
+SymbolN = Symbol("System`N")
+SymbolNull = Symbol("System`Null")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolPostfix = Symbol("System`Postfix")
+SymbolRepeated = Symbol("System`Repeated")
+SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolSequence = Symbol("System`Sequence")
 SymbolTrue = PredefinedSymbol("System`True")
 
 
@@ -603,10 +616,10 @@ format_symbols = system_symbols(
 )
 
 
-SymbolInputForm = PredefinedSymbol("InputForm")
-SymbolOutputForm = PredefinedSymbol("OutputForm")
-SymbolStandardForm = PredefinedSymbol("StandardForm")
-SymbolFullForm = PredefinedSymbol("FullForm")
-SymbolTraditionalForm = PredefinedSymbol("TraditionalForm")
-SymbolTeXForm = PredefinedSymbol("TeXForm")
-SymbolMathMLForm = PredefinedSymbol("MathMLForm")
+SymbolInputForm = Symbol("InputForm")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolStandardForm = Symbol("StandardForm")
+SymbolFullForm = Symbol("FullForm")
+SymbolTraditionalForm = Symbol("TraditionalForm")
+SymbolTeXForm = Symbol("TeXForm")
+SymbolMathMLForm = Symbol("MathMLForm")
