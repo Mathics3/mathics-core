@@ -143,7 +143,7 @@ class ExpressionPointer(object):
         parent = self.parent
         p = self.position
         if p == 0:
-            if type(parent) is Symbol:
+            if isinstance(parent, Symbol):
                 return parent
             else:
                 return parent.head.copy()
@@ -219,7 +219,7 @@ class SubExpression(object):
         if type(pos) is Integer:
             pos = pos.get_int_value()
         # pos == `System`All`
-        elif type(pos) is Symbol and pos.get_name() == "System`All":
+        elif isinstance(pos, Symbol) and pos.get_name() == "System`All":
             pos = None
         elif type(pos) is Expression:
             if pos.has_form("System`List", None):

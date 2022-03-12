@@ -35,7 +35,7 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
             new_def = var.leaves[1]
             if evaluation:
                 new_def = new_def.evaluate(evaluation)
-        elif var.has_form("Symbol"):
+        elif isinstance(var, Symbol):
             var_name = var.get_name()
             new_def = None
         if not var_name:

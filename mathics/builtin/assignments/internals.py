@@ -174,7 +174,7 @@ def unroll_patterns(lhs, rhs, evaluation):
 
 def unroll_conditions(lhs):
     condition = None
-    if type(lhs) is Symbol:
+    if isinstance(lhs, Symbol):
         return lhs, None
     else:
         name, lhs_elements = lhs.get_head_name(), lhs._elements
@@ -686,7 +686,7 @@ class _SetOperator(object):
     }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
-        if type(lhs) is Symbol:
+        if isinstance(lhs, Symbol):
             name = lhs.name
         else:
             name = lhs.get_head_name()

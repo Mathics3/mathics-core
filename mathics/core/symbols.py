@@ -394,6 +394,9 @@ class Symbol(Atom, NumericOperators):
     def boxes_to_text(self, **options) -> str:
         return str(self.name)
 
+    def default_format(self, evaluation, form) -> str:
+        return self.name
+
     def do_copy(self) -> "Symbol":
         return Symbol(self.name)
 
@@ -440,6 +443,20 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
+    def has_symbol(self, symbol_name) -> bool:
+        return self.name == ensure_context(symbol_name)
+
+    def is_numeric(self, evaluation=None) -> bool:
+        """
+        Returns True if the symbol is tagged as a numeric constant.
+        """
+        if evaluation:
+            symbol_definition = evaluation.definitions.get_definition(self.name)
+            if symbol_definition is None:
+                return False
+            return symbol_definition.is_numeric
+        return False
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we need to
@@ -455,27 +472,7 @@ class Symbol(Atom, NumericOperators):
 
         # FIXME: can we arrange things so that a string like "Global`"
         # starts out as an evaluated symbol?
-
-        # FIXME: revise Class structure for *constant* Symbols like True, False, and Null.
-        # They would have an is_uncertain_final_value() class that returns False.
         return True
-
-    def has_symbol(self, symbol_name) -> bool:
-        return self.name == ensure_context(symbol_name)
-
-    def is_numeric(self, evaluation=None) -> bool:
-        """
-        Returns True if the symbol is tagged as a numeric constant.
-        """
-        if evaluation:
-            symbol_definition = evaluation.definitions.get_definition(self.name)
-            if symbol_definition is None:
-                return False
-            return symbol_definition.is_numeric
-        return False
-
-    def default_format(self, evaluation, form) -> str:
-        return self.name
 
     def get_attributes(self, definitions):
         return definitions.get_attributes(self.name)
@@ -547,25 +544,51 @@ class Symbol(Atom, NumericOperators):
         return builtin.to_sympy(self, **kwargs)
 
 
+class PredefinedSymbol(Symbol):
+    """
+    A Predefined Symbol of the Mathics system.
+
+    A Symbol which is defined because it is used somewhere in the
+    Mathics system as a built-in name, Attribute, Property, option
+    or a Symbolic Constant.
+
+    In contrast to Symbol where the name might not have been added to
+    a list of known Symbol names or where the name might get deleted,
+    this never occurs here.
+    """
+
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we need to
+        (re)evaluate an expression.
+
+
+        We know that we won't need to reevaluate because these
+        kinds of Symbols have already been created, and can't get
+        removed.
+        """
+        return False
+
+
 # Symbols used in this module.
 
-SymbolFalse = Symbol("System`False")
-SymbolGraphics = Symbol("System`Graphics")
-SymbolGraphics3D = Symbol("System`Graphics3D")
-SymbolHoldForm = Symbol("System`HoldForm")
-SymbolList = Symbol("System`List")
-SymbolMachinePrecision = Symbol("MachinePrecision")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
-SymbolMaxPrecision = Symbol("$MaxPrecision")
-SymbolMinPrecision = Symbol("$MinPrecision")
-SymbolN = Symbol("System`N")
-SymbolNull = Symbol("System`Null")
-SymbolNumberForm = Symbol("System`NumberForm")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolRepeated = Symbol("System`Repeated")
-SymbolRepeatedNull = Symbol("System`RepeatedNull")
-SymbolSequence = Symbol("System`Sequence")
-SymbolTrue = Symbol("System`True")
+SymbolFalse = PredefinedSymbol("System`False")
+SymbolGraphics = PredefinedSymbol("System`Graphics")
+SymbolGraphics3D = PredefinedSymbol("System`Graphics3D")
+SymbolHoldForm = PredefinedSymbol("System`HoldForm")
+SymbolList = PredefinedSymbol("System`List")
+SymbolMachinePrecision = PredefinedSymbol("MachinePrecision")
+SymbolMakeBoxes = PredefinedSymbol("System`MakeBoxes")
+SymbolMaxPrecision = PredefinedSymbol("$MaxPrecision")
+SymbolMinPrecision = PredefinedSymbol("$MinPrecision")
+SymbolN = PredefinedSymbol("System`N")
+SymbolNull = PredefinedSymbol("System`Null")
+SymbolNumberForm = PredefinedSymbol("System`NumberForm")
+SymbolPostfix = PredefinedSymbol("System`Postfix")
+SymbolRepeated = PredefinedSymbol("System`Repeated")
+SymbolRepeatedNull = PredefinedSymbol("System`RepeatedNull")
+SymbolSequence = PredefinedSymbol("System`Sequence")
+SymbolTrue = PredefinedSymbol("System`True")
 
 
 # The available formats.
@@ -581,10 +604,10 @@ format_symbols = system_symbols(
 )
 
 
-SymbolInputForm = Symbol("InputForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolStandardForm = Symbol("StandardForm")
-SymbolFullForm = Symbol("FullForm")
-SymbolTraditionalForm = Symbol("TraditionalForm")
-SymbolTeXForm = Symbol("TeXForm")
-SymbolMathMLForm = Symbol("MathMLForm")
+SymbolInputForm = PredefinedSymbol("InputForm")
+SymbolOutputForm = PredefinedSymbol("OutputForm")
+SymbolStandardForm = PredefinedSymbol("StandardForm")
+SymbolFullForm = PredefinedSymbol("FullForm")
+SymbolTraditionalForm = PredefinedSymbol("TraditionalForm")
+SymbolTeXForm = PredefinedSymbol("TeXForm")
+SymbolMathMLForm = PredefinedSymbol("MathMLForm")
