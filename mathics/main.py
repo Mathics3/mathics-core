@@ -18,7 +18,7 @@ from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import strip_context, SymbolNull
 
 from mathics.core.read import channel_to_stream
 from mathics.core.streams import stream_manager
@@ -410,7 +410,7 @@ Please contribute to Mathics!""",
             shell.print_result(
                 result, no_out_prompt=True, strict_wl_output=args.strict_wl_output
             )
-            if evaluation.exc_result is Symbol("Null"):
+            if evaluation.exc_result is SymbolNull:
                 exit_rc = 0
             elif evaluation.exc_result is Symbol("$Aborted"):
                 exit_rc = -1

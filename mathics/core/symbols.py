@@ -394,6 +394,9 @@ class Symbol(Atom, NumericOperators):
     def boxes_to_text(self, **options) -> str:
         return str(self.name)
 
+    def default_format(self, evaluation, form) -> str:
+        return self.name
+
     def do_copy(self) -> "Symbol":
         return Symbol(self.name)
 
@@ -540,13 +543,52 @@ class Symbol(Atom, NumericOperators):
         return builtin.to_sympy(self, **kwargs)
 
 
+class PredefinedSymbol(Symbol):
+    """
+    A Predefined Symbol of the Mathics system.
+
+    A Symbol which is defined because it is used somewhere in the
+    Mathics system as a built-in name, Attribute, Property, Option,
+    or a Symbolic Constant.
+
+    In contrast to Symbol where the name might not have been added to
+    a list of known Symbol names or where the name might get deleted,
+    this never occurs here.
+    """
+
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we need to
+        (re)evaluate an expression.
+
+
+        We know that we won't need to reevaluate because these
+        kinds of Symbols have already been created, and can't get
+        removed.
+        """
+        return False
+
+
 # Symbols used in this module.
 
-SymbolFalse = Symbol("System`False")
+# Note, below we are only setting PredefinedSymbol for Symbols which
+# are both predefined and have the Locked attribute.
+
+# An experiment using PredefinedSymbol("Pi") in the Pythoin code and
+# running:
+#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
+# show that this does not change the output in any way.
+#
+# That said, for now we will proceed very conservatively and
+# cautiously. However we may decide in the future to
+# more of the below and in systemsymbols
+# PredefineSymbol.
+
+SymbolFalse = PredefinedSymbol("System`False")
 SymbolGraphics = Symbol("System`Graphics")
 SymbolGraphics3D = Symbol("System`Graphics3D")
 SymbolHoldForm = Symbol("System`HoldForm")
-SymbolList = Symbol("System`List")
+SymbolList = PredefinedSymbol("System`List")
 SymbolMachinePrecision = Symbol("MachinePrecision")
 SymbolMakeBoxes = Symbol("System`MakeBoxes")
 SymbolMaxPrecision = Symbol("$MaxPrecision")
@@ -558,7 +600,7 @@ SymbolPostfix = Symbol("System`Postfix")
 SymbolRepeated = Symbol("System`Repeated")
 SymbolRepeatedNull = Symbol("System`RepeatedNull")
 SymbolSequence = Symbol("System`Sequence")
-SymbolTrue = Symbol("System`True")
+SymbolTrue = PredefinedSymbol("System`True")
 
 
 # The available formats.
