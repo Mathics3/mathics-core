@@ -259,7 +259,7 @@ class Definitions(object):
     def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
         """
         Used in Evaluate_do_format() to
-        determine if we should to (re)evaluate an expression.
+        determine if we should (re)evaluate an expression.
 
         Here, for a definitions object, we check if any symbol in the
         symbols has changed. `last_evaluated_time` indicates when the

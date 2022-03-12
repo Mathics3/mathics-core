@@ -305,11 +305,11 @@ class Atom(BaseElement):
         Used in Expression.do_format() to determine if we may need to
         (re)evaluate an expression.
 
-        Most Atoms, e.g. Numbers and Strings, do not need
-        evaluation or reevaluation. However some kinds of Atoms like
-        Symbols sometimes do. The Symbol class or any other class like
-        this then needs to override this method.
-
+        Most Atoms, like Numbers and Strings, do not need evaluation
+        or reevaluation. However some kinds of Atoms like Symbols
+        sometimes do. The Symbol class or any other class like this
+        that is subclassed from Atom then needs to override this
+        method.
         """
         return False
 
@@ -442,22 +442,6 @@ class Symbol(Atom, NumericOperators):
 
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
-
-    def is_uncertain_final_definitions(self, definitions) -> bool:
-        """
-        Used in Expression.do_format() to determine if we need to
-        (re)evaluate an expression.
-
-        Here, we have to be pessimistic and return True. For example,
-        in:
-
-           Context[]
-
-        this routine will get called where "self" is $System`Context. We
-        can't stop here, but must continue evaluation to get the function's value,
-        such as "Global`".
-        """
-        return True
 
     def is_numeric(self, evaluation=None) -> bool:
         """
