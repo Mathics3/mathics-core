@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import pickle
@@ -10,7 +9,7 @@ import bisect
 
 from collections import defaultdict
 
-import typing
+from typing import List, Optional
 
 from mathics.core.atoms import String
 from mathics.core.attributes import nothing
@@ -257,19 +256,30 @@ class Definitions(object):
         for k in self.proxy.pop(tail, []):
             definitions_cache.pop(k, None)
 
-    def has_changed(self, maximum, symbols):
-        # timestamp for the most recently changed part of a given expression.
+    def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
+        """
+        Used in Evaluate_do_format() to
+        determine if we should (re)evaluate an expression.
+
+        Here, for a definitions object, we check if any symbol in the
+        symbols has changed. `last_evaluated_time` indicates when the
+        evaluation started. If a symbol has a time greater than
+        that, then things have changed since the evaluation started
+        and evaluation may lead to a different result.
+        """
         for name in symbols:
-            symb = self.get_definition(name, only_if_exists=True)
-            if symb is None:
-                # symbol doesn't exist so it was never changed
+            symbol = self.get_definition(name, only_if_exists=True)
+            if symbol is None:
+                # "symbol" doesn't exist, so it was never changed.
                 pass
             else:
-                changed = getattr(symb, "changed", None)
-                if changed is None:
-                    # must be system symbol
-                    symb.changed = 0
-                elif changed > maximum:
+                # Get timestamp for the most-recently changed part of the given expression.
+                symbol_change_time = getattr(symbol, "changed", None)
+                if symbol_change_time is None:
+                    # Must be a system symbol that never changes.
+                    # FIXME: couldn't this initially start out 0 so no test is needed?
+                    symbol.change_timestamp = 0
+                elif symbol_change_time > last_evaluated_time:
                     return True
 
         return False
@@ -318,7 +328,7 @@ class Definitions(object):
         accessible_ctxts.add(self.current_context)
         return accessible_ctxts
 
-    def get_matching_names(self, pattern) -> typing.List[str]:
+    def get_matching_names(self, pattern) -> List[str]:
         """
         Return a list of the symbol names matching a string pattern.
 
@@ -412,7 +422,7 @@ class Definitions(object):
                 return n
         return with_context
 
-    def get_package_names(self) -> typing.List[str]:
+    def get_package_names(self) -> List[str]:
         packages = self.get_ownvalue("System`$Packages")
         packages = packages.replace
         assert packages.has_form("System`List", None)
@@ -555,7 +565,7 @@ class Definitions(object):
             if result is not None:
                 return result
 
-    def get_user_definition(self, name, create=True) -> typing.Optional["Definition"]:
+    def get_user_definition(self, name, create=True) -> Optional["Definition"]:
         assert not isinstance(name, Symbol)
 
         existing = self.user.get(name)
@@ -746,7 +756,7 @@ class Definitions(object):
         return history_length
 
 
-def get_tag_position(pattern, name) -> typing.Optional[str]:
+def get_tag_position(pattern, name) -> Optional[str]:
     if pattern.get_name() == name:
         return "own"
     elif isinstance(pattern, Atom):

@@ -446,9 +446,9 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
-    def has_changed(self, definitions) -> bool:
+    def is_uncertain_final_definitions(self, definitions) -> bool:
         """
-        Used in Expression.evaluate() to determine if we need to reevaluate
+        Used in Expression.do_format() to determine if we should (re)evaluate
         an expression. Each subclass should decide what is right here.
         """
         raise NotImplementedError

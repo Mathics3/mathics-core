@@ -288,14 +288,6 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
-    def has_changed(self, definitions) -> bool:
-        """
-        Used in Expression.evaluate() to determine if we need to reevaluate
-        an expression. No Atoms need reevaluation. And if this is wrong for a
-        subclass, the subclass should override this method.
-        """
-        return False
-
     def has_form(self, heads, *element_counts) -> bool:
         if element_counts:
             return False
@@ -306,6 +298,19 @@ class Atom(BaseElement):
             return heads == name
 
     def has_symbol(self, symbol_name) -> bool:
+        return False
+
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we may need to
+        (re)evaluate an expression.
+
+        Most Atoms, like Numbers and Strings, do not need evaluation
+        or reevaluation. However some kinds of Atoms like Symbols
+        sometimes do. The Symbol class or any other class like this
+        that is subclassed from Atom then needs to override this
+        method.
+        """
         return False
 
     def numerify(self, evaluation) -> "Atom":
@@ -435,18 +440,6 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
-    def has_changed(self, definitions) -> bool:
-        """
-        Used in Expression.evaluate() to determine if we need to reevaluate
-        an expression.
-        """
-        # FIXME:
-        # The test:
-        #    InputForm[Context[]] == "Global`"
-        # is a test that fails when we return False.
-        # Understand what's up here.
-        return True
-
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
 
@@ -461,8 +454,21 @@ class Symbol(Atom, NumericOperators):
             return symbol_definition.is_numeric
         return False
 
-    def default_format(self, evaluation, form) -> str:
-        return self.name
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we need to
+        (re)evaluate an expression.
+
+        Here, we have to be pessimistic and return True. For example,
+        in:
+
+           Context[]
+
+        this routine will get called where "self" is $System`Context. We
+        can't stop here, but must continue evaluation to get the function's value,
+        such as "Global`".
+        """
+        return True
 
     def get_attributes(self, definitions):
         return definitions.get_attributes(self.name)
