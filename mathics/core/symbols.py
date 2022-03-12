@@ -462,16 +462,15 @@ class Symbol(Atom, NumericOperators):
         Used in Expression.do_format() to determine if we need to
         (re)evaluate an expression.
 
-        Here, we have to be pessimistic and return True.
+        Here, we have to be pessimistic and return True. For example,
+        in:
 
-           InputForm[Context[]] == "Global`"
+           Context[]
 
-        is an example where we need to evaluate "Global`" and it doesn't start out as a
-        final value.
+        this routine will get called where "self" is $System`Context. We
+        can't stop here, but must continue evaluation to get the function's value,
+        such as "Global`".
         """
-
-        # FIXME: can we arrange things so that a string like "Global`"
-        # starts out as an evaluated symbol?
         return True
 
     def get_attributes(self, definitions):
