@@ -288,12 +288,12 @@ class Atom(BaseElement):
         else:
             raise NotImplementedError
 
-    def uncertain_final_definitions(self, definitions) -> bool:
+    def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we may need to
         (re)evaluate an expression.
 
-        Most Atoms, e.g. Numbers and Strings, need do not need
+        Most Atoms, e.g. Numbers and Strings, do not need
         evaluation or reevaluation. However some kinds of Atoms like
         Symbols sometimes do. The Symbol class or any other class like
         this then needs to override this method.
@@ -440,9 +440,9 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
-    def uncertain_final_definitions(self, definitions) -> bool:
+    def is_uncertain_final_definitions(self, definitions) -> bool:
         """
-        Used in Expression.do_format to determine if we need to
+        Used in Expression.do_format() to determine if we need to
         (re)evaluate an expression.
 
         Here, we have to be pessimistic and return True.
@@ -457,7 +457,7 @@ class Symbol(Atom, NumericOperators):
         # starts out as an evaluated symbol?
 
         # FIXME: revise Class structure for *constant* Symbols like True, False, and Null.
-        # They would have an uncertain_final_value() class that returns False.
+        # They would have an is_uncertain_final_value() class that returns False.
         return True
 
     def has_symbol(self, symbol_name) -> bool:

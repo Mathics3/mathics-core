@@ -446,7 +446,7 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
-    def uncertain_final_definitions(self, definitions) -> bool:
+    def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we should to (re)evaluate
         an expression. Each subclass should decide what is right here.

@@ -256,7 +256,7 @@ class Definitions(object):
         for k in self.proxy.pop(tail, []):
             definitions_cache.pop(k, None)
 
-    def uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
+    def is_uncertain_final_value(self, last_evaluated_time: int, symbols: set) -> bool:
         """
         Used in Evaluate_do_format() to
         determine if we should to (re)evaluate an expression.
