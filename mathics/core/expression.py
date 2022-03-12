@@ -146,7 +146,7 @@ class ExpressionCache:
         definitions = evaluation.definitions
 
         for expr in expressions:
-            if not hasattr(expr, "_cache") or expr.uncertain_final_definitions(
+            if not hasattr(expr, "_cache") or expr.is_uncertain_final_definitions(
                 definitions
             ):
                 return None
@@ -490,7 +490,7 @@ class Expression(BaseElement, NumericOperators):
         if last_evaluated_time is not None and expr is not None:
             symbolname = expr.get_name()
             if symbolname != "":
-                if not evaluation.definitions.uncertain_final_value(
+                if not evaluation.definitions.is_uncertain_final_value(
                     last_evaluated_time, set((symbolname,))
                 ):
                     return expr
@@ -570,7 +570,7 @@ class Expression(BaseElement, NumericOperators):
                 # changed before last evaluated?
                 # This prevents to reevaluate expressions that
                 # have been already evaluated. This uses Expression._cache
-                if not expr.uncertain_final_definitions(definitions):
+                if not expr.is_uncertain_final_definitions(definitions):
                     break
 
                 # Here the names of the lookupname of the expression
@@ -884,7 +884,7 @@ class Expression(BaseElement, NumericOperators):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
-    def uncertain_final_definitions(self, definitions) -> bool:
+    def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.evaluate() to determine if we need to reevaluate
         an expression.
@@ -908,7 +908,7 @@ class Expression(BaseElement, NumericOperators):
         if cache.symbols is None:
             cache = self._rebuild_cache()
 
-        return definitions.uncertain_final_value(time, cache.symbols)
+        return definitions.is_uncertain_final_value(time, cache.symbols)
 
     def has_form(self, heads, *element_counts):
         """

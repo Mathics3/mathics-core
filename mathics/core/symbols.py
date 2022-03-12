@@ -443,6 +443,22 @@ class Symbol(Atom, NumericOperators):
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
 
+    def is_uncertain_final_definitions(self, definitions) -> bool:
+        """
+        Used in Expression.do_format() to determine if we need to
+        (re)evaluate an expression.
+
+        Here, we have to be pessimistic and return True. For example,
+        in:
+
+           Context[]
+
+        this routine will get called where "self" is $System`Context. We
+        can't stop here, but must continue evaluation to get the function's value,
+        such as "Global`".
+        """
+        return True
+
     def is_numeric(self, evaluation=None) -> bool:
         """
         Returns True if the symbol is tagged as a numeric constant.
