@@ -97,7 +97,7 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *arg):
         self.options = None
         self.pattern_sequence = False
         # This property would be useful for a BoxExpression
@@ -453,16 +453,8 @@ class BaseElement(KeyComparable):
         """
         raise NotImplementedError
 
-    @property
-    def is_zero(self) -> bool:
-        return False
-
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
-        return False
-
-    def is_true(self) -> bool:
-        """Better use self is SymbolTrue"""
         return False
 
     def is_numeric(self, evaluation=None) -> bool:
@@ -477,6 +469,15 @@ class BaseElement(KeyComparable):
         with Head.name in `heads` and a number of leaves according to the specification in
         element_counts.
         """
+        return False
+
+    # Warning - this is going away
+    def is_true(self) -> bool:
+        """Better use self is SymbolTrue"""
+        return False
+
+    @property
+    def is_zero(self) -> bool:
         return False
 
     def __hash__(self):
