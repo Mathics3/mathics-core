@@ -117,7 +117,7 @@ def test_atomic_numericq(str_expr, str_expected):
 )
 def test_expression_numericq(str_expr, str_expected):
     check_evaluation(f"NumericQ[{str_expr}]", str_expected)
-    session.evaluate("ClearAll[a, F]")
+    session.evaluate("ClearAll[a];ClearAll[F]")
     session.evaluate("NumericQ[a]=False;NumericQ[b]=False; NumericQ[Pi]=True;")
 
 
@@ -170,4 +170,8 @@ def test_expression_numericq(str_expr, str_expected):
 def test_assign_numericq(str_expr, str_expected):
     check_evaluation(str_expr, str_expected)
     session.evaluate("ClearAll[a, F, g]")
+    print(session.evaluation.definitions.get_definition("Global`F"))
+    print(session.evaluation.definitions.get_definition("Global`a"))
+    print(session.evaluation.definitions.get_definition("System`F"))
+    print(session.evaluation.definitions.get_definition("System`a"))
     session.evaluate("NumericQ[a]=False;NumericQ[b]=False; NumericQ[Pi]=True;")
