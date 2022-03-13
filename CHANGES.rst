@@ -70,7 +70,7 @@ Bugs
 *  ``Set*``: fixed issue #128.
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 * Fix a bug in `Simplify` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
-
+* Fix bug in ``Clear``  and ``ClearAll`` (#194).
 
 4.0.1
 -----
