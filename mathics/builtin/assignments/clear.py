@@ -117,6 +117,8 @@ class Clear(Builtin):
                 if not self.allow_locked and locked & attributes:
                     evaluation.message("Clear", "locked", Symbol(name))
                     continue
+                # remove the cache for the definition first.
+                evaluation.definitions.clear_cache(name)
                 definition = evaluation.definitions.get_user_definition(name)
                 self.do_clear(definition)
 
