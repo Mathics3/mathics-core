@@ -175,6 +175,7 @@ class Expression(BaseElement, NumericOperators):
     # questionable stuff using new.
     # See if there's a way to get rid of this, or ensure that this isn't causing
     # a garbage collection problem.
+
     def __new__(cls, head, *elts, **kwargs) -> "Expression":
         self = super().__new__(cls)
         if isinstance(head, str):
@@ -638,51 +639,6 @@ class Expression(BaseElement, NumericOperators):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
         return structure(head, self, evaluation).filter(self, cond)
 
-    def flatten(
-        self, head, pattern_only=False, callback=None, level=None
-    ) -> "Expression":
-        """
-        Flatten elements in nested expressions which have `head` in them.
-
-        head: head of the elements to be flatten
-        callback:  a callback function called each time a element is flattened.
-        level:   maximum deep to flatten
-        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
-
-        For example if head=G,
-        F[G[a,G[s,y],t],...] -> F[G[a,s,y,t],...]
-
-        """
-        if level is not None and level <= 0:
-            return self
-        if self._no_symbol(head.get_name()):
-            return self
-        sub_level = None if level is None else level - 1
-        do_flatten = False
-        for element in self._elements:
-            if element.get_head().sameQ(head) and (
-                not pattern_only or element.pattern_sequence
-            ):
-                do_flatten = True
-                break
-        if do_flatten:
-            new_elements = []
-            for element in self._elements:
-                if element.get_head().sameQ(head) and (
-                    not pattern_only or element.pattern_sequence
-                ):
-                    new_element = element.flatten(
-                        head, pattern_only, callback, level=sub_level
-                    )
-                    if callback is not None:
-                        callback(new_element._elements, element)
-                    new_elements.extend(new_element._elements)
-                else:
-                    new_elements.append(element)
-            return Expression(self._head, *new_elements)
-        else:
-            return self
-
     def flatten_pattern_sequence(self, evaluation):
         def sequence(element):
             flattened = element.flatten_pattern_sequence(evaluation)
@@ -704,6 +660,70 @@ class Expression(BaseElement, NumericOperators):
                 return [element]
 
         return self._flatten_sequence(sequence, evaluation)
+
+    def flatten_with_respect_to_head(
+        self, head, pattern_only=False, callback=None, level=100
+    ) -> "Expression":
+        """
+        Flatten elements in self which have `head` in them.
+
+        The idea is that in an expression like:
+
+           Expression(Plus, 1, Expression(Plus, 2, 3), 4)
+
+        when "Plus" is specified as the head, this expression should get changed to:
+
+           Expression(Plus, 1, 2, 3, 4)
+
+        In other words, all of the Plus operands are collected to together into one operation.
+        This is more efficiently evaluated. Note that we only flatten Plus functions, not other functions,
+        whether or not they contain Plus.
+
+        So in:
+           Expression(Plus, Times(1, 2, Plus(3, 4)))
+
+        the expression is unchanged.
+
+        head: head element to be consdier flattening on. Only expressions with this will be flattened.
+              This is always the head element or the next head element of the expression that the
+              elements are drawn from
+
+
+        callback:  a callback function called each time a element is flattened.
+        level:   maximum depth to flatten. This often isn't used and seems to have been put in
+                 as a potential safety measure possibly for the future. If you don't want a limit
+                 on flattening pass a negative number.
+        pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
+        """
+        if level == 0:
+            return self
+        if self._no_symbol(head.get_name()):
+            return self
+        sub_level = level - 1
+        do_flatten = False
+        for element in self._elements:
+            if element.get_head().sameQ(head) and (
+                not pattern_only or element.pattern_sequence
+            ):
+                do_flatten = True
+                break
+        if do_flatten:
+            new_elements = []
+            for element in self._elements:
+                if element.get_head().sameQ(head) and (
+                    not pattern_only or element.pattern_sequence
+                ):
+                    new_element = element.flatten_with_respect_to_head(
+                        head, pattern_only, callback, level=sub_level
+                    )
+                    if callback is not None:
+                        callback(new_element._elements, element)
+                    new_elements.extend(new_element._elements)
+                else:
+                    new_elements.append(element)
+            return Expression(self._head, *new_elements)
+        else:
+            return self
 
     def get_atoms(self, include_heads=True):
         """Returns a list of atoms involved in the expression."""
@@ -1115,7 +1135,7 @@ class Expression(BaseElement, NumericOperators):
                 element.unevaluated = old.unevaluated
 
         if flat & attributes:
-            new = new.flatten(new._head, callback=flatten_callback)
+            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
 
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.

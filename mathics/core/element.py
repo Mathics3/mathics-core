@@ -368,7 +368,7 @@ class BaseElement(KeyComparable):
 
         options = self
         if options.has_form("List", None):
-            options = options.flatten(SymbolList)
+            options = options.flatten_with_respect_to_head(SymbolList)
             values = options.leaves
         else:
             values = [options]
@@ -420,7 +420,7 @@ class BaseElement(KeyComparable):
         # have at most a trivial implementation here, and specialize it
         # in the `Expression` class.
 
-        list_expr = self.flatten(SymbolList)
+        list_expr = self.flatten_with_respect_to_head(SymbolList)
         list = []
         if list_expr.has_form("List", None):
             list.extend(list_expr.leaves)

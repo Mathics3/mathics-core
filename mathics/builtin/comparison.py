@@ -28,7 +28,7 @@ from mathics.core.atoms import (
     Integer1,
     Number,
 )
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInfinity,
@@ -938,7 +938,7 @@ class _MinMax(Builtin):
     def apply(self, items, evaluation):
         "%(name)s[items___]"
 
-        items = items.flatten(Symbol("List")).get_sequence()
+        items = items.flatten_with_respect_to_head(SymbolList).get_sequence()
         results = []
         best = None
 
