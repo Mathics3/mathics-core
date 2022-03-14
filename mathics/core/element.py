@@ -97,7 +97,10 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    def __init__(self, *arg):
+    # FIXME: kwargs seems to be is needed because Real.__new_() takes a parameter
+    # and magically that gets turned into kwargs here.
+    # Figure out how to address this.
+    def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
         # This property would be useful for a BoxExpression
