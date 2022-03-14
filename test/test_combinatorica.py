@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
-from .helper import evaluate, check_evaluation
+from .helper import evaluate, check_evaluation, reset_session
 
-evaluate(
-    """
-    Needs["DiscreteMath`CombinatoricaV0.9`"]
-    """
-)
+
+def test_00_initialize():
+    reset_session()
+    evaluate(
+        """
+        Needs["DiscreteMath`CombinatoricaV0.9`"]
+        """
+    )
+
 
 # A number of examples from:
 #  * Implementing Discrete Mathematics by Steven Skiena and

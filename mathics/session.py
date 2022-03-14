@@ -54,11 +54,17 @@ class MathicsSession:
     """
 
     def __init__(self, add_builtin=True, catch_interrupt=False, form="InputForm"):
+        self.form = form
+        self.reset(add_builtin, catch_interrupt)
+
+    def reset(self, add_builtin=True, catch_interrupt=False):
+        """
+        reset the definitions and the evaluation objects.
+        """
         self.definitions = Definitions(add_builtin)
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt
         )
-        self.form = form
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):

@@ -2,7 +2,12 @@
 import time
 from mathics.session import MathicsSession
 
-session = MathicsSession(add_builtin=True, catch_interrupt=False)
+session = MathicsSession()
+
+
+def reset_session(add_builtin=True, catch_interrupt=False):
+    global session
+    session.reset()
 
 
 def evaluate_value(str_expr: str):
