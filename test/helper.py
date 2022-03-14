@@ -6,6 +6,9 @@ session = MathicsSession()
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):
+    """
+    Reset the session cleaning all the definitions.
+    """
     global session
     session.reset()
 

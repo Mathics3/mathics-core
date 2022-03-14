@@ -1,14 +1,24 @@
 # -*- coding: utf-8 -*-
 from .helper import evaluate, check_evaluation, reset_session
+import pytest
+
+# This variable is set to initialize the module just once,
+# and just before running the tests.
+_initialized: bool = False
 
 
-def test_00_initialize():
-    reset_session()
-    evaluate(
-        """
+@pytest.fixture(autouse=True)
+def reset_and_load_package():
+    global _initialized
+    if not _initialized:
+        reset_session()
+        evaluate(
+            """
         Needs["DiscreteMath`CombinatoricaV0.9`"]
         """
-    )
+        )
+        _initialized = True
+    yield
 
 
 # A number of examples from:
