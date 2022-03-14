@@ -25,6 +25,7 @@ def check_evaluation(
     to_string_expr=True,
     to_string_expected=True,
     to_python_expected=False,
+    msgs=None,
 ):
     """Helper function to test Mathics expression against
     its results"""
@@ -33,6 +34,7 @@ def check_evaluation(
         result = evaluate_value(str_expr)
     else:
         result = evaluate(str_expr)
+    outs = [out.text for out in session.evaluation.out]
 
     if to_string_expected:
         str_expected = f"ToString[{str_expected}]"
@@ -42,6 +44,10 @@ def check_evaluation(
         if to_python_expected:
             expected = expected.to_python(string_quotes=False)
 
+    if msgs:
+        if isinstance(msgs, str):
+            msgs = [msgs]
+
     print(time.asctime())
     if message:
         print((result, expected))
@@ -49,3 +55,9 @@ def check_evaluation(
     else:
         print((result, expected))
         assert result == expected
+
+    if msgs:
+        msgs = list(msgs)
+        assert len(outs) == len(msgs), "outs are not the same."
+        for (out, msg) in zip(outs, msgs):
+            assert out == msg

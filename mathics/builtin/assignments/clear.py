@@ -16,6 +16,8 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    Symbol_Context,
+    Symbol_ContextPath,
     SymbolFailed,
 )
 
@@ -75,6 +77,7 @@ class Clear(Builtin):
     attributes = hold_all | protected
     messages = {
         "ssym": "`1` is not a symbol or a string.",
+        "spsym": "Special symbol `1` cannot be cleared.",
     }
     summary_text = "clear all values associated with the LHS or symbol"
 
@@ -99,11 +102,15 @@ class Clear(Builtin):
 
         for symbol in symbols:
             if isinstance(symbol, Symbol):
-                names = [symbol.get_name()]
+                symbol_name = symbol.get_name()
+                if symbol in (Symbol_Context, Symbol_ContextPath):
+                    evaluation.message(self.get_name(), "spsym", symbol)
+                    continue
+                names = [symbol_name]
             else:
                 pattern = symbol.get_string_value()
                 if not pattern:
-                    evaluation.message("Clear", "ssym", symbol)
+                    evaluation.message(self.get_name(), "ssym", symbol)
                     continue
                 if pattern[0] == "`":
                     pattern = evaluation.definitions.get_current_context() + pattern[1:]
@@ -112,10 +119,10 @@ class Clear(Builtin):
             for name in names:
                 attributes = evaluation.definitions.get_attributes(name)
                 if is_protected(name, evaluation.definitions):
-                    evaluation.message("Clear", "wrsym", Symbol(name))
+                    evaluation.message(self.get_name(), "wrsym", Symbol(name))
                     continue
                 if not self.allow_locked and locked & attributes:
-                    evaluation.message("Clear", "locked", Symbol(name))
+                    evaluation.message(self.get_name(), "locked", Symbol(name))
                     continue
                 # remove the cache for the definition first.
                 evaluation.definitions.clear_cache(name)
@@ -123,12 +130,6 @@ class Clear(Builtin):
                 self.do_clear(definition)
 
         return Symbol("Null")
-
-    def apply_all(self, evaluation):
-        "Clear[System`All]"
-        evaluation.definitions.set_user_definitions({})
-        evaluation.definitions.clear_pymathics_modules()
-        return
 
 
 class ClearAll(Clear):
@@ -163,12 +164,6 @@ class ClearAll(Clear):
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []
-
-    def apply_all(self, evaluation):
-        "ClearAll[System`All]"
-        evaluation.definitions.set_user_definitions({})
-        evaluation.definitions.clear_pymathics_modules()
-        return
 
 
 class Unset(PostfixOperator):

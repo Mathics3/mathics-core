@@ -3,6 +3,8 @@
 from mathics.core.symbols import PredefinedSymbol, Symbol
 
 # Some other common Symbols. This list is sorted in alphabetic order.
+Symbol_Context = Symbol("$Context")
+Symbol_ContextPath = Symbol("$ContextPath")
 SymbolAborted = PredefinedSymbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
 SymbolAssociation = Symbol("Association")
