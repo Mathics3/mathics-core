@@ -40,6 +40,27 @@ def test_setdelayed_oneidentity():
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        ("Attributes[Pi]", "{Constant, Protected, ReadProtected}", None),
+        ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi]; Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi]; ClearAll[Pi]; Attributes[Pi]", "{}", None),
+        ("Options[Expand]", "{Modulus :> 0, Trig :> False}", None),
+        (
+            "Unprotect[Expand]; Expand=.; Options[Expand]",
+            "{Modulus :> 0, Trig :> False}",
+            None,
+        ),
+        (
+            "Unprotect[Expand]; Clear[Expand]; Options[Expand]",
+            "{Modulus :> 0, Trig :> False}",
+            None,
+        ),
+        (
+            "Unprotect[Expand]; ClearAll[Expand]; Options[Expand]",
+            "{Modulus :> 0, Trig :> False}",
+            None,
+        ),
+        (None, None, None),
         # Check over a builtin symbol
         (
             "{Pi,  Unprotect[Pi];Pi=3;Pi, Clear[Pi];Pi}",
@@ -138,11 +159,8 @@ def test_setdelayed_oneidentity():
 )
 def test_set_and_clear(str_expr, str_expected, msg):
     if str_expr is None:
-        print("Reset session")
         reset_session()
         return
-    session.evaluate("ClearAll[{H, Pi, F, Q, Plus}]")
-    print(session.evaluate("G[a,b]", ""))
     result = session.evaluate(str_expr, "")
     check_evaluation(
         str_expr,
