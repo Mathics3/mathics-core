@@ -1085,14 +1085,16 @@ class Flatten(Builtin):
         "Flatten[expr_, n_, h_]"
 
         if n == Expression("DirectedInfinity", 1):
-            n = None
+            n = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
+            # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
+            # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
                 return evaluation.message("Flatten", "flpi", n)
             n = n_int
 
-        return expr.flatten(h, level=n)
+        return expr.flatten_with_respect_to_head(h, level=n)
 
 
 class Null(Predefined):

@@ -97,6 +97,9 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
+    # FIXME: kwargs seems to be is needed because Real.__new_() takes a parameter
+    # and magically that gets turned into kwargs here.
+    # Figure out how to address this.
     def __init__(self, *args, **kwargs):
         self.options = None
         self.pattern_sequence = False
@@ -368,7 +371,7 @@ class BaseElement(KeyComparable):
 
         options = self
         if options.has_form("List", None):
-            options = options.flatten(SymbolList)
+            options = options.flatten_with_respect_to_head(SymbolList)
             values = options.leaves
         else:
             values = [options]
@@ -420,7 +423,7 @@ class BaseElement(KeyComparable):
         # have at most a trivial implementation here, and specialize it
         # in the `Expression` class.
 
-        list_expr = self.flatten(SymbolList)
+        list_expr = self.flatten_with_respect_to_head(SymbolList)
         list = []
         if list_expr.has_form("List", None):
             list.extend(list_expr.leaves)
@@ -453,16 +456,8 @@ class BaseElement(KeyComparable):
         """
         raise NotImplementedError
 
-    @property
-    def is_zero(self) -> bool:
-        return False
-
     def is_machine_precision(self) -> bool:
         """Check if the number represents a floating point number"""
-        return False
-
-    def is_true(self) -> bool:
-        """Better use self is SymbolTrue"""
         return False
 
     def is_numeric(self, evaluation=None) -> bool:
@@ -477,6 +472,15 @@ class BaseElement(KeyComparable):
         with Head.name in `heads` and a number of leaves according to the specification in
         element_counts.
         """
+        return False
+
+    # Warning - this is going away
+    def is_true(self) -> bool:
+        """Better use self is SymbolTrue"""
+        return False
+
+    @property
+    def is_zero(self) -> bool:
         return False
 
     def __hash__(self):
