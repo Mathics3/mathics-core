@@ -50,7 +50,7 @@ import pytest
         ),
         # and also untagged as Numeric
         # (notice that as in WMA, `Protect` do not prevent the assignment):
-        ("NumericQ[Pi]=False; Pi", False),
+        ("NumericQ[Pi]=False; Pi", "False"),
         # General builtin symbols are not numeric.
         (
             "Print",

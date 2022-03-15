@@ -23,6 +23,10 @@ SUNFIndex /: MakeBoxes[SUNFIndex[p_], TraditionalForm]:=ToBoxes[p, TraditionalFo
 
 
 def test_setdelayed_oneidentity():
+    """
+    This test checks the behavior of DelayedSet over
+    symbols with the attribute OneIdentity.
+    """
     expr = ""
     for line in str_test_set_with_oneidentity.split("\n"):
         if line in ("", "\n"):
@@ -89,16 +93,6 @@ def test_setdelayed_oneidentity():
             None,
         ),
         (
-            "F[a,b]",
-            "F[a,b]",
-            None,
-        ),
-        (
-            "G[a,b]=1",
-            "1",
-            None,
-        ),
-        (
             "{F[a, b],  F[x__]:=H[x]; F[a,b], F=.; F[a,b]}",
             "{F[a, b], H[a, b], H[a, b]}",
             None,
@@ -137,10 +131,17 @@ def test_setdelayed_oneidentity():
     ],
 )
 def test_set_and_clear(str_expr, str_expected, msg):
+    """
+    Test calls to Set, Clear and ClearAll. If
+    str_expr is None, the session is reset,
+    in a way that the next test run over a fresh
+    environment.
+    """
     if str_expr is None:
         reset_session()
         return
-    result = session.evaluate(str_expr, "")
+    print(session.definitions)
+    print(str_expr, str_expected)
     check_evaluation(
         str_expr,
         str_expected,

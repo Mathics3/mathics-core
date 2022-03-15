@@ -30,12 +30,12 @@ def test_calculus():
         ),
         (
             "v1 := Exp[x] - 3x; v2 = {x, 1.5}; FindRoot[v1, v2]",
-            "{x->1.51213}",
+            "{x -> 1.51213}",
             "Issue #1235",
         ),
         (
             "v1 := Exp[x] - 3x; v2 = {x, 2}; FindRoot[v1, v2]",
-            "{x->1.51213}",
+            "{x -> 1.51213}",
             "Issue #1235",
         ),
         ("Integrate[Integrate[1,{y,0,E^x}],{x,0,Log[13]}]", "12", "Issue #153"),
@@ -46,7 +46,7 @@ def test_calculus():
         ),
         (
             "h=x;Integrate[Do[h=x*h,{5}]; h,x]",
-            "x^7/7",
+            "x ^ 7 / 7",
             "another sanity check for a more agressive sympy translation.",
         ),
     ):

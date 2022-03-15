@@ -30,13 +30,16 @@ def check_evaluation(
     its results"""
     if to_string_expr:
         str_expr = f"ToString[{str_expr}]"
+        print("  str_expr=", str_expr)
         result = evaluate_value(str_expr)
+        print("result:", result)
     else:
         result = evaluate(str_expr)
 
     if to_string_expected:
-        str_expected = f"ToString[{str_expected}]"
-        expected = evaluate_value(str_expected)
+        expected = str_expected
+    #        str_expected = f"ToString[{str_expected}]"
+    #        expected = evaluate_value(str_expected)
     else:
         expected = evaluate(str_expr)
         if to_python_expected:

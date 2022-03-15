@@ -1,5 +1,15 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, evaluate
+from .helper import check_evaluation, evaluate, reset_session, session
+import pytest
+
+# This variable is set to initialize the module just once,
+# and just before running the tests.
+
+
+@pytest.fixture(autouse=True)
+def reset_and_load_package():
+    reset_session()
+    yield
 
 
 def test_catch():
@@ -69,8 +79,8 @@ def test_condition():
     evaluate(
         """
         (* Define a function that can "throw an exception": *)
-
-         f[x_] := ppp[x]/; x>0
+        
+        ClearAll[f]; f[x_] := ppp[x] /; x>0
         """
     )
     for str_expr, str_expected, message in (

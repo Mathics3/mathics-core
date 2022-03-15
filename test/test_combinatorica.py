@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .helper import evaluate, check_evaluation, reset_session
+from .helper import evaluate, evaluate_value, check_evaluation, reset_session
 import pytest
 
 # This variable is set to initialize the module just once,
@@ -121,6 +121,9 @@ def test_permutations_1_1():
             "Sort to total order subsets, Page 15",
         ),
     ):
+        if str_expected == "":
+            print(str_expr, "->", None)
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
 
 
@@ -139,7 +142,7 @@ def test_permutations_groups_1_2():
         ),
         (
             "p = {3, 1, 2, 4}; InversePermutation[p][[4]]",
-            "p[[4]]",
+            "4",  # p[[4]]
             "InversePermutation: fixed points. 1.2 Page 18",
         ),
         (
@@ -178,7 +181,7 @@ def test_permutations_groups_1_2():
         ),
         (
             "ToCycles[r = RotateLeft[Range[10],1]]",
-            "{r}",
+            "{RotateLeft[Range[10],1]}",
             "ToCycles with rotation by 1",
         ),
         (
@@ -293,6 +296,7 @@ def test_permutations_groups_1_2():
             "Factor example in Polya polynomial 1.2.6, Page 26",
         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message, to_string_expr=True)
 
 
@@ -311,7 +315,11 @@ def test_inversions_and_inversion_vectors_1_3():
         ),
         (
             "h = InversePermutation[p]; "
-            "g = MakeGraph[Range[Length[p]], ((#1<#2 && h[[#1]]>h[[#2]]) || (#1>#2 && h[[#1]]<h[[#2]]))&]; "
+            "g = MakeGraph[Range[Length[p]], ((#1<#2 && h[[#1]]>h[[#2]]) || (#1>#2 && h[[#1]]<h[[#2]]))&];",
+            "Null",
+            "set g for the next test",
+        ),
+        (
             "Inversions[p]",
             "M[g]",
             "Edges equals # of inversions 1.3.1, Page 28",
@@ -331,8 +339,9 @@ def test_inversions_and_inversion_vectors_1_3():
             "Range[0, 6]",
             "Every one is realizable as ... 1.3.2, Page 29",
         ),
+        ("p = RandomPermutation[6];", "Null", "set p"),
         (
-            "p = RandomPermutation[6]; Inversions[p] + Inversions[Reverse[p]]",
+            "Inversions[p] + Inversions[Reverse[p]]",
             "Binomial[Length[p], 2]",
             "A neat proof that ... 1.3.2, Page 29",
         ),
@@ -355,6 +364,7 @@ def test_inversions_and_inversion_vectors_1_3():
             "Eulerian from [Knu73b], 1.3.4 Page 31",
         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
 
 
@@ -410,6 +420,7 @@ def test_special_classes_of_permutations_1_4():
             "Heapsort test 2; 1.4.4, Page 38",
         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
 
 
@@ -488,6 +499,7 @@ def test_combinations_1_5():
             "KSubsets[l, k] == Length(l)",
         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
 
 
@@ -526,6 +538,7 @@ def test_2_1_to_2_3():
         #             "Young Tableau 2.3, Page 63",
         #         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
 
 
@@ -584,4 +597,5 @@ def test_combinatorica_rest():
             "TransposePartition",
         ),
     ):
+        str_expected = evaluate_value(f"ToString[{str_expected}]")
         check_evaluation(str_expr, str_expected, message)
