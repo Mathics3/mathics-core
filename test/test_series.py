@@ -3,45 +3,30 @@
 Unit tests from builtin ... calculus.py specific for Series
 """
 
-from .helper import check_evaluation, reset_session
+from .helper import check_evaluation
 import pytest
-
-
-# This variable is set to initialize the module just once,
-# and just before running the tests.
-_initialized: bool = False
-
-
-@pytest.fixture(autouse=True)
-def reset_and_load_package():
-    global _initialized
-    if not _initialized:
-        reset_session()
-        _initialized = True
-    yield
 
 
 def test_seriesdata_product():
     for str_expr, str_expected, message in (
         (
             "3 * Series[F[x],{x,a,2}]//FullForm",
-            "SeriesData[x, a, {Times[3, F[a]],Times[3, Derivative[1][F][a]],Times[Rational[3, 2], Derivative[2][F][a]]}, 0, 3, 1]",
+            "SeriesData[x, a, {3* F[a], 3* F'[a],3/2 F''[a]}, 0, 3,1]//FullForm",
             "Product of a series with a number",
         ),
         (
             "g[u] Series[F[x],{x,a,2}]//FullForm",
-            "SeriesData[x, a, {Times[F[a], g[u]],Times[g[u], Derivative[1][F][a]],Times[Rational[1, 2], g[u], Derivative[2][F][a]]}, 0, 3, 1]",
-            # "SeriesData[x, a, {g[u]* F[a], g[u]* F'[a], g[u]/2 F''[a]}, 0, 3,1]",
+            "SeriesData[x, a, {g[u]* F[a], g[u]* F'[a], g[u]/2 F''[a]}, 0, 3,1]//FullForm",
             "Product of an expression free of x",
         ),
         (
             "Series[Exp[x], {x, 0, 5}] * Series[Exp[-x], {x, 0, 3}]//FullForm",
-            "SeriesData[x, 0, {1}, 0, 4, 1]",
+            "SeriesData[x, 0, {1}, 0, 4, 1]//FullForm",
             "product of series in the same variable, around the same neighbourhood",
         ),
         (
             "Series[Exp[x],{x,0,2}]*Series[Exp[y],{y,0,2}]//Normal//ExpandAll",
-            "1 + x + x ^ 2 / 2 + y + x y + x ^ 2 y / 2 + y ^ 2 / 2 + x y ^ 2 / 2 + x ^ 2 y ^ 2 / 4",
+            "1 + y + y^2/2 + x^2*(1/2 + y/2 + y^2/4) + x*(1 + y + y^2/2)//ExpandAll",
             "product of series in different variables",
         ),
     ):
@@ -62,7 +47,7 @@ def test_seriesdata_operations_normal():
         ),
         (
             "Series[Exp[y],{y,0,2}]-Series[Exp[x],{x,0,3}]//Normal",
-            "-x - x ^ 2 / 2 - x ^ 3 / 6 + y + y ^ 2 / 2",
+            "-x - x^2/2 - x^3/6 + y + y^2/2",
             "Difference of series in different variables",
         ),
         (
@@ -78,7 +63,7 @@ def test_derivatives():
     for str_expr, str_expected, message in (
         (
             "D[Series[F[x], {x, 0, 2}], x]//FullForm",
-            "SeriesData[x, 0, {Derivative[1][F][0],Derivative[2][F][0]}, 0, 2, 1]",
+            "SeriesData[x, 0, List[Derivative[1][F][0], Derivative[2][F][0]], 0, 2, 1]//FullForm",
             "Derivative regarding x of a series in x around 0",
         ),
         (
@@ -88,7 +73,7 @@ def test_derivatives():
         ),
         (
             "D[Series[F[x],{x, g[y], 2}], y]//FullForm",
-            "SeriesData[x, g[y], {}, 2, 2, 1]",
+            "SeriesData[x, g[y], {}, 2, 2, 1]//FullForm",
             "Derivative regarding x of a series in x around g[y].",
         ),
     ):
@@ -99,22 +84,22 @@ def test_series_show():
     for str_expr, str_expected, message in (
         (
             "Series[Exp[x],{x,0,2}]",
-            "1 + x + 1 / 2 x ^ 2 + O[x] ^ 3",
+            '"1 + x + 1 / 2 x ^ 2 + O[x] ^ 3"',
             "Series in one variable, around 0",
         ),
         (
             "Series[Exp[x],{x, 1, 2}]",
-            "E + E (x - 1) + E / 2 (x - 1) ^ 2 + O[x - 1] ^ 3",
+            '"E + E (x - 1) + E / 2 (x - 1) ^ 2 + O[x - 1] ^ 3"',
             "Series in one variable, around 1",
         ),
         (
             "Series[Exp[x],{x, a, 2}]",
-            "E ^ a + E ^ a (x - a) + E ^ a / 2 (x - a) ^ 2 + O[x - a] ^ 3",
+            '"E ^ a + E ^ a (x - a) + E ^ a / 2 (x - a) ^ 2 + O[x - a] ^ 3"',
             "Series in one variable, around a",
         ),
         (
             "Series[F[x, y],{x, b, 2},{y, a, 1}]//FullForm",
-            "SeriesData[x, b, {SeriesData[y, a, {F[b, a],Derivative[0, 1][F][b, a]}, 0, 2, 1],SeriesData[y, a, {Derivative[1, 0][F][b, a],Derivative[1, 1][F][b, a]}, 0, 2, 1],SeriesData[y, a, {Times[Rational[1, 2], Derivative[2, 0][F][b, a]],Times[Rational[1, 2], Derivative[2, 1][F][b, a]]}, 0, 2, 1]}, 0, 3, 1]",
+            "SeriesData[x, b, {SeriesData[y, a, {F[b, a], Derivative[0, 1][F][b, a]}, 0, 2, 1], SeriesData[y, a, {Derivative[1, 0][F][b, a], Derivative[1, 1][F][b, a]}, 0, 2, 1], SeriesData[y, a, {Derivative[2, 0][F][b, a]/2, Derivative[2, 1][F][b, a]/2}, 0, 2, 1]}, 0, 3, 1]//FullForm",
             "Series in two variable, around a",
         ),
     ):
@@ -125,7 +110,7 @@ def test_seriesdata_operations():
     for str_expr, str_expected, message in (
         (
             "Series[Exp[y],{y,0,2}]-Series[Exp[x],{x,0,3}]//FullForm",
-            "SeriesData[x, 0, {SeriesData[y, 0, {1,Rational[1, 2]}, 1, 3, 1],-1,Rational[-1, 2],Rational[-1, 6]}, 0, 4, 1]",
+            "SeriesData[x, 0, {SeriesData[y, 0, {1, 1/2}, 1, 3, 1], -1, -1/2, -1/6}, 0, 4, 1]//FullForm",
             "Sum and difference of series",
         ),
     ):

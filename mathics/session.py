@@ -68,6 +68,7 @@ class MathicsSession:
         self.last_result = None
 
     def evaluate(self, str_expression, timeout=None, form=None):
+        self.evaluation.out.clear()
         expr = parse(self.definitions, MathicsSingleLineFeeder(str_expression))
         if form is None:
             form = self.form

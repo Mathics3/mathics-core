@@ -27,10 +27,7 @@ if sys.platform not in ("win32",):
         temp_filename = evaluate('$TemporaryDirectory<>"/testfile"').to_python()
         temp_filename_strip = temp_filename[1:-1]
         check_evaluation(f"40! >> {temp_filename_strip}", "Null")
-        check_evaluation(
-            f"<< {temp_filename_strip}",
-            "815915283247897734345611269596115894272000000000",
-        )
+        check_evaluation(f"<< {temp_filename_strip}", "40!")
         check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
     def test_get_path_search():

@@ -15,5 +15,7 @@ limited_characterset = (
 if limited_characterset:
 
     def test_non_win32_print():
-        for str_expr, str_expected, message in (('Print["\\[Mu]"]', "Null", "μ"),):
+        for str_expr, str_expected, message in (
+            ('Print["\\[Mu]"]', "System`Null", "μ"),
+        ):
             check_evaluation(str_expr, str_expected, message)

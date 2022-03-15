@@ -147,5 +147,6 @@ def test_set_and_clear(str_expr, str_expected, msg):
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
+        hold_expected=True,
         message=msg,
     )
