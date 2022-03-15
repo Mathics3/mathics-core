@@ -143,7 +143,7 @@ def test_set_and_clear(str_expr, str_expected, msg):
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,
-        message=msg,
+        failure_message=msg,
     )
 
 
@@ -168,6 +168,6 @@ def test_messages(str_expr, str_expected, message, msgs):
         to_string_expr=True,
         to_string_expected=True,
         hold_expected=True,
-        message=message,
-        msgs=msgs,
+        failure_message=message,
+        expected_messages=msgs,
     )
