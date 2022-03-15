@@ -51,7 +51,7 @@ def test_string_split():
         ('StringSplit["a-b:c-d:e-f-g", ":" | "-"]', "{a, b, c, d, e, f, g}"),
         (
             'StringSplit[{"a:b:c:d", "listable:element"}, ":"]',
-            "{{a, b, c, d}, {listable, element}})",
+            "{{a, b, c, d}, {listable, element}}",
         ),
         (
             'StringSplit["cat Cat hat CAT", "c", IgnoreCase -> True]',
@@ -68,5 +68,9 @@ def test_string_split():
         # ('StringSplit[":a:b:c:", ":", All]', '{"", "a", "b", "c", ""}'),
     ):
         check_evaluation(
-            str_expr, str_expected, to_string_expr=False, to_string_expected=False
+            str_expr,
+            str_expected,
+            to_string_expr=True,
+            hold_expected=True,
+            to_string_expected=True,
         )

@@ -68,6 +68,4 @@ def test_datestring():
         ('DateString[{"5/19"}]', "5/19"),
         ('DateString["2000-12-1", "Year"]', "2000"),
     ):
-        check_evaluation(
-            str_expr, str_expected, to_string_expected=False, to_python_expected=True
-        )
+        check_evaluation(str_expr, str_expected, hold_expected=True)
