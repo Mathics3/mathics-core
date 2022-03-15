@@ -3,6 +3,11 @@ from .helper import check_evaluation, session
 import pytest
 
 
+def test_compare_many_members():
+    result = session.evaluate("ToString[g[2]==g[3]]").value
+    assert result == "g[2] == g[3]", "Issue #200"
+
+
 # SameQ test
 @pytest.mark.parametrize(
     ("str_lhs", "str_rhs", "str_expected"),

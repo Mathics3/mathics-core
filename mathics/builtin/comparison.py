@@ -106,7 +106,7 @@ class _EqualityOperator(_InequalityOperator):
             return
         for l, r in zip(lhs._elements, rhs._elements):
             tst = self.equal2(l, r, max_extra_prec)
-            if not tst:
+            if tst is False or tst is None:
                 return tst
         return True
 
@@ -489,7 +489,10 @@ def do_cplx_equal(x, y) -> Optional[int]:
                 return False
             else:
                 return True
-    return do_cmp(x, y) == 0
+    c = do_cmp(x, y)
+    if c is None:
+        return None
+    return c == 0
 
 
 def do_cmp(x1, x2) -> Optional[int]:
