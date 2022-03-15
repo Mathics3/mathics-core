@@ -230,5 +230,5 @@ def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
         to_string_expected=True,
         hold_expected=True,
         failure_message=message,
-        expected_messages=msgs,
+        expected_messages=out_msgs,
     )
