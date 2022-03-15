@@ -21,12 +21,12 @@ def evaluate(str_expr: str):
 def check_evaluation(
     str_expr: str,
     str_expected: str,
-    message: str = "",
+    failure_message: str = "",
     hold_expected: bool = False,
     to_string_expr: bool = True,
     to_string_expected: bool = True,
     to_python_expected: bool = False,
-    msgs=None,
+    expected_messages=None,
 ):
     """
     Helper function to test Mathics expression against
@@ -39,6 +39,7 @@ def check_evaluation(
                     into a Python string. Otherwise, the expression is kept as an Expression
                     object. If this argument is set to ``None``, the session is reset.
 
+    failure_message (str): message shown in case of failure
     hold_expected (bool): If ``False`` (default value) the ``str_expected`` is evaluated. Otherwise,
                           the expression is considered literally.
 
@@ -50,7 +51,7 @@ def check_evaluation(
                     is compared against the result of the evaluation of ``str_expected``, converted into a
                     Python object.
 
-    msgs (``tuple`` or ``None``): If a tuple of strings are passed into this parameter, messages and prints raised during
+    expected_messages (``tuple`` or ``None``): If a tuple of strings are passed into this parameter, messages and prints raised during
                     the evaluation of ``str_expr`` are compared with the elements of the list. If ``None``, this comparison
                     is ommited.
     """
@@ -84,19 +85,16 @@ def check_evaluation(
     outs = [out.text for out in session.evaluation.out]
 
     print(time.asctime())
-    if message:
+    if failure_message:
         print((result, expected))
-        assert result == expected, message
+        assert result == expected, failure_message
     else:
         print((result, expected))
         assert result == expected
 
-    if msgs:
-        msgs = list(msgs)
-        if len(msgs) != len(outs):
-            print("         outs:", outs)
-            print("expected msgs:", msgs)
-            assert False, "outs are not the same"
+    if expected_messages:
+        msgs = list(expected_messages)
+        assert len(msgs) == len(outs), "outs are not the same"
         for (out, msg) in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
