@@ -137,11 +137,6 @@ def test_set_and_clear(str_expr, str_expected, msg):
     in a way that the next test run over a fresh
     environment.
     """
-    if str_expr is None:
-        reset_session()
-        return
-    print(session.definitions)
-    print(str_expr, str_expected)
     check_evaluation(
         str_expr,
         str_expected,
@@ -149,4 +144,30 @@ def test_set_and_clear(str_expr, str_expected, msg):
         to_string_expected=True,
         hold_expected=True,
         message=msg,
+    )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message", "msgs"),
+    [
+        (None, None, None, None),
+        ("Pi=4", "4", "Trying to set a protected symbol", ("Symbol Pi is Protected.",)),
+        (
+            "Clear[Pi]",
+            "Null",
+            "Trying to clear a protected symbol",
+            ("Symbol Pi is Protected.",),
+        ),
+        #        ("Unprotect[$ContextPath];Clear[$ContextPath]", "Null", "Trying clear $Context", ("-",)),
+    ],
+)
+def test_messages(str_expr, str_expected, message, msgs):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        message=message,
+        msgs=msgs,
     )
