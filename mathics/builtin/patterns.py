@@ -1152,6 +1152,9 @@ class _Blank(PatternObject):
         if expr.leaves:
             self.head = expr.leaves[0]
         else:
+            # FIXME: elswhere, some code wants to
+            # get the attributes of head.
+            # So is this really the best thing to do here?
             self.head = None
 
 

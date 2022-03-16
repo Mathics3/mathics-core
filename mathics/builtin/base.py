@@ -844,25 +844,33 @@ class PatternObject(InstanceableBuiltin, Pattern):
     def error_args(self, count, *expected):
         raise PatternArgumentError(self.get_name(), count, *expected)
 
-    def get_lookup_name(self) -> str:
-        return self.get_name()
+    def get_attributes(self, definitions) -> int:
+        """
+        If self has a head, return head's attributes (an attribute bitmask).
+        Otherwise return an indication that no attributes have been set.
+        """
+        if self.head is None:
+            # FIXME: _Blank in builtin/patterns.py sets head to None.
+            # Figure out if this is the best thing to do and explain why.
+            return nothing
+        return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:
         return self.get_name()
 
-    def get_sort_key(self, pattern_sort=False):
-        return self.expr.get_sort_key(pattern_sort=pattern_sort)
+    def get_lookup_name(self) -> str:
+        return self.get_name()
+
+    def get_match_candidates(
+        self, elements, expression, attributes, evaluation, vars={}
+    ):
+        return elements
 
     def get_match_count(self, vars={}):
         return (1, 1)
 
-    def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
-        return leaves
-
-    def get_attributes(self, definitions):
-        if self.head is None:
-            return nothing
-        return self.head.get_attributes(definitions)
+    def get_sort_key(self, pattern_sort=False):
+        return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
 
 class NegativeIntegerException(Exception):
