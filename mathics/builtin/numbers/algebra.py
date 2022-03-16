@@ -447,7 +447,9 @@ class Simplify(Builtin):
             if assumptions_list.get_head() is not SymbolList:
                 assumptions_list = Expression(SymbolList, assumptions_list)
             assum = Expression(SymbolList, assum, assumptions_list)
-        assumptions = assum.evaluate(evaluation).flatten(SymbolList)
+        assumptions = assum.evaluate(evaluation).flatten_with_respect_to_head(
+            SymbolList
+        )
         # Now, reevaluate the expression with all the assumptions.
         simplify_expr = Expression(self.get_name(), expr)
         return dynamic_scoping(
@@ -456,7 +458,7 @@ class Simplify(Builtin):
             evaluation,
         )
 
-    def apply_power_of_zero(self, b, evaluation):
+    def apply_power_of_zero(self, b, evaluation, options):
         "%(name)s[0^b_]"
         if self.apply(Expression("Less", 0, b), evaluation, options) is SymbolTrue:
             return Integer0

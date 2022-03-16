@@ -9,9 +9,6 @@ ports:
 
 tasks:
   - init: |
-      make
-      make install
-
       cd /workspace
       git clone https://github.com/Mathics3/mathicsscript
       cd mathicsscript
@@ -32,5 +29,7 @@ tasks:
       make
 
       cd /workspace/mathics-core
+      make
+      make install
 
     command: mathics

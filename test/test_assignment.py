@@ -44,6 +44,32 @@ def test_setdelayed_oneidentity():
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        (
+            None,
+            None,
+            None,
+        ),
+        ("Attributes[Pi]", "{Constant, Protected, ReadProtected}", None),
+        ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi];ClearAll[Pi]; Attributes[Pi]", "{}", None),
+        ("Options[Expand]", "{Modulus :> 0, Trig :> False}", None),
+        (
+            "Unprotect[Expand]; Expand=.; Options[Expand]",
+            "{Modulus :> 0, Trig :> False}",
+            None,
+        ),
+        (
+            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption:>Automatic}]; Options[Expand]",
+            "{MyOption :> Automatic, Modulus :> 0, Trig :> False}",
+            "Mathics stores options in a dictionary. This is why ``MyOption`` appears first.",
+        ),
+        # (
+        #    "ClearAll[Expand]; Options[Expand]",
+        #    "{}",
+        #    "In WMA, options are erased, including the builtin options",
+        # ),
+        (None, None, None),
         # Check over a builtin symbol
         (
             "{Pi,  Unprotect[Pi];Pi=3;Pi, Clear[Pi];Pi}",
@@ -148,9 +174,8 @@ def test_set_and_clear(str_expr, str_expected, msg):
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "message", "msgs"),
+    ("str_expr", "str_expected", "message", "out_msgs"),
     [
-        (None, None, None, None),
         ("Pi=4", "4", "Trying to set a protected symbol", ("Symbol Pi is Protected.",)),
         (
             "Clear[Pi]",
@@ -158,10 +183,46 @@ def test_set_and_clear(str_expr, str_expected, msg):
             "Trying to clear a protected symbol",
             ("Symbol Pi is Protected.",),
         ),
-        #        ("Unprotect[$ContextPath];Clear[$ContextPath]", "Null", "Trying clear $Context", ("-",)),
+        (
+            "Unprotect[$ContextPath];Clear[$Context]",
+            "Null",
+            "Trying clear $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "Unprotect[$ContextPath];Clear[$ContextPath]",
+            "Null",
+            "Trying clear $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; Clear[A, $Context, B];{A,$Context,B}",
+            "{A, Global`, B}",
+            "This clears A and B, but not $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $Context, B];{A,$Context,B}",
+            "{A, Global`, B}",
+            "This clears A and B, but not $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
+            "{A, {Global`, System`}, B}",
+            "This clears A and B, but not $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
+            "{A, {Global`, System`}, B}",
+            "This clears A and B, but not $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
     ],
 )
-def test_messages(str_expr, str_expected, message, msgs):
+def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
+    session.evaluate("ClearAll[a, b, A, B, F, H, Q]")
     check_evaluation(
         str_expr,
         str_expected,
@@ -169,5 +230,5 @@ def test_messages(str_expr, str_expected, message, msgs):
         to_string_expected=True,
         hold_expected=True,
         failure_message=message,
-        expected_messages=msgs,
+        expected_messages=out_msgs,
     )

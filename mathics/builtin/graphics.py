@@ -1130,17 +1130,17 @@ class Style(object):
         return edge_style.get_thickness()
 
 
-def _flatten(leaves):
-    for leaf in leaves:
-        if leaf.get_head() is SymbolList:
-            flattened = leaf.flatten(SymbolList)
+def _flatten(elements):
+    for element in elements:
+        if element.get_head() is SymbolList:
+            flattened = element.flatten_with_respect_to_head(SymbolList)
             if flattened.get_head() is SymbolList:
-                for x in flattened.leaves:
+                for x in flattened.elements:
                     yield x
             else:
                 yield flattened
         else:
-            yield leaf
+            yield element
 
 
 class _GraphicsElements(object):

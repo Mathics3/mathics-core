@@ -86,15 +86,19 @@ def check_evaluation(
     outs = [out.text for out in session.evaluation.out]
 
     print(time.asctime())
-    if failure_message is not None:
+    if failure_message:
         print((result, expected))
         assert result == expected, failure_message
     else:
         print((result, expected))
         assert result == expected
 
-    if expected_messages:
+    if expected_messages is not None:
         msgs = list(expected_messages)
         assert len(msgs) == len(outs), "outs are not the same"
         for (out, msg) in zip(outs, msgs):
-            assert out == msg, f"<<{out}>> and <<{msg}>> do not match."
+            if out != msg:
+                print(f"out:<<{out}>>")
+                print(" and ")
+                print(f"expected=<<{msg}>>")
+                assert False, " do not match."

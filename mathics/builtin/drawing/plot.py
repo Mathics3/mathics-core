@@ -394,7 +394,7 @@ class _Plot(Builtin):
                     for rule in rules:
                         f = rule.apply(f, evaluation, fully=True)
                 functions_param[index] = f
-            functions = functions.flatten(Symbol("List"))
+            functions = functions.flatten_with_respect_to_head(SymbolList)
 
         expr_limits = Expression(SymbolList, x, start, stop)
         expr = Expression(
