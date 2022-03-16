@@ -106,8 +106,11 @@ class _EqualityOperator(_InequalityOperator):
             return
         for l, r in zip(lhs._elements, rhs._elements):
             tst = self.equal2(l, r, max_extra_prec)
-            if tst is False or tst is None:
-                return tst
+            # If the there are a pair of corresponding elements
+            # that are not equals, then we are not able to decide
+            # about the equality.
+            if not tst:
+                return None
         return True
 
     def infty_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
@@ -192,7 +195,6 @@ class _EqualityOperator(_InequalityOperator):
         # Still we didn't have a result. Try with the following
         # tests
         other_tests = (self.infty_equal, self.expr_equal, self.sympy_equal)
-
         for test in other_tests:
             c = test(lhs, rhs, max_extra_prec)
             if c is not None:
