@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import time
 from mathics.session import MathicsSession
+from typing import Optional
 
 session = MathicsSession()
 
@@ -26,7 +27,7 @@ def check_evaluation(
     to_string_expr: bool = True,
     to_string_expected: bool = True,
     to_python_expected: bool = False,
-    expected_messages=None,
+    expected_messages: Optional[tuple[str]] = None,
 ):
     """
     Helper function to test Mathics expression against
@@ -51,7 +52,7 @@ def check_evaluation(
                     is compared against the result of the evaluation of ``str_expected``, converted into a
                     Python object.
 
-    expected_messages (``tuple`` or ``None``): If a tuple of strings are passed into this parameter, messages and prints raised during
+    expected_messages ``Optional[tuple[str]]``: If a tuple of strings are passed into this parameter, messages and prints raised during
                     the evaluation of ``str_expr`` are compared with the elements of the list. If ``None``, this comparison
                     is ommited.
     """
