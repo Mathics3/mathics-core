@@ -93,7 +93,7 @@ def check_evaluation(
         print((result, expected))
         assert result == expected
 
-    if expected_messages:
+    if expected_messages is not None:
         msgs = list(expected_messages)
         assert len(msgs) == len(outs), "outs are not the same"
         for (out, msg) in zip(outs, msgs):
