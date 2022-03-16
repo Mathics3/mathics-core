@@ -108,5 +108,5 @@ def test_full_form():
         ("FullForm[Hold[a ; ;]]", "Hold[CompoundExpression[a, Null, Null]]"),
     ):
         check_evaluation(
-            str_expr, str_expected, to_string_expected=False, to_python_expected=True
+            str_expr, str_expected, to_string_expr=True, hold_expected=True
         )

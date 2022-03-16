@@ -494,6 +494,11 @@ class Definitions(object):
             # Merge definitions
             its = [c for c in candidates]
             while its:
+                # This behaviour for options is wrong:
+                # because of this, ``Unprotect[Expand]; ClearAll[Expand]; Options[Expand]``
+                # returns the builtin options of ``Expand`` instead of an empty list, like
+                # in WMA. This suggest that this idea of keeping differnt dicts for builtin
+                # and user definitions is pointless.
                 curr = its.pop()
                 options.update(curr.options)
                 for form, rules in curr.formatvalues.items():

@@ -1,5 +1,17 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
+from .helper import check_evaluation, reset_session
+import pytest
+
+_initialized = False
+
+
+@pytest.fixture(autouse=True)
+def reset_and_load_package():
+    global _initialized
+    if not _initialized:
+        reset_session()
+        _initialized = True
+    yield
 
 
 def test_flatten():
@@ -55,9 +67,7 @@ def test_operate():
         ("Operate[p, f]", "f"),
         ("Operate[p, f, 0]", "p[f]"),
     ):
-        check_evaluation(
-            str_expr, str_expected, to_string_expected=False, to_python_expected=True
-        )
+        check_evaluation(str_expr, str_expected)
 
 
 def test_sort():
@@ -74,9 +84,7 @@ def test_sort():
             "1 + Pi + Pi ^ 2 + Sqrt[2] / 2 + x + x ^ 2 + Sin[x + x ^ 2]",
         ),
     ):
-        check_evaluation(
-            str_expr, str_expected, to_string_expected=False, to_python_expected=True
-        )
+        check_evaluation(str_expr, str_expected)
 
 
 def test_through():
@@ -86,6 +94,4 @@ def test_through():
         ("Through[p[f, g]]", "Through[p[f, g]]"),
         ("Through[f[][x]]", "f[]"),
     ):
-        check_evaluation(
-            str_expr, str_expected, to_string_expected=False, to_python_expected=True
-        )
+        check_evaluation(str_expr, str_expected)

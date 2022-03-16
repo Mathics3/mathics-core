@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-
+from .helper import check_evaluation, reset_session, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
 
@@ -23,6 +23,10 @@ SUNFIndex /: MakeBoxes[SUNFIndex[p_], TraditionalForm]:=ToBoxes[p, TraditionalFo
 
 
 def test_setdelayed_oneidentity():
+    """
+    This test checks the behavior of DelayedSet over
+    symbols with the attribute OneIdentity.
+    """
     expr = ""
     for line in str_test_set_with_oneidentity.split("\n"):
         if line in ("", "\n"):
@@ -40,6 +44,32 @@ def test_setdelayed_oneidentity():
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
+        (
+            None,
+            None,
+            None,
+        ),
+        ("Attributes[Pi]", "{Constant, Protected, ReadProtected}", None),
+        ("Unprotect[Pi]; Pi=.; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi];Clear[Pi]; Attributes[Pi]", "{Constant, ReadProtected}", None),
+        ("Unprotect[Pi];ClearAll[Pi]; Attributes[Pi]", "{}", None),
+        ("Options[Expand]", "{Modulus :> 0, Trig :> False}", None),
+        (
+            "Unprotect[Expand]; Expand=.; Options[Expand]",
+            "{Modulus :> 0, Trig :> False}",
+            None,
+        ),
+        (
+            "Clear[Expand];Options[Expand]=Join[Options[Expand], {MyOption:>Automatic}]; Options[Expand]",
+            "{MyOption :> Automatic, Modulus :> 0, Trig :> False}",
+            "Mathics stores options in a dictionary. This is why ``MyOption`` appears first.",
+        ),
+        # (
+        #    "ClearAll[Expand]; Options[Expand]",
+        #    "{}",
+        #    "In WMA, options are erased, including the builtin options",
+        # ),
+        (None, None, None),
         # Check over a builtin symbol
         (
             "{Pi,  Unprotect[Pi];Pi=3;Pi, Clear[Pi];Pi}",
@@ -84,8 +114,18 @@ def test_setdelayed_oneidentity():
             None,
         ),
         (
+            None,
+            None,
+            None,
+        ),
+        (
             "{F[a, b],  F[x__]:=H[x]; F[a,b], F=.; F[a,b]}",
             "{F[a, b], H[a, b], H[a, b]}",
+            None,
+        ),
+        (
+            None,
+            None,
             None,
         ),
         (
@@ -94,6 +134,11 @@ def test_setdelayed_oneidentity():
             None,
         ),
         # Check over a builtin operator
+        (
+            "{a+b, Unprotect[Plus]; Plus=Q; a+b, Plus=.; a+b}",
+            "{a + b, Q[a, b], a + b}",
+            None,
+        ),
         (
             "{a+b, Unprotect[Plus]; Plus=Q; a+b, Clear[Plus]; a+b}",
             "{a + b, Q[a, b], a + b}",
@@ -105,76 +150,85 @@ def test_setdelayed_oneidentity():
             None,
         ),
         (
-            "{a+b, Unprotect[Plus]; Plus=Q; a+b, Plus=.; a+b}",
-            "{a + b, Q[a, b], a + b}",
+            None,
+            None,
             None,
         ),
     ],
 )
 def test_set_and_clear(str_expr, str_expected, msg):
-    session.evaluate("ClearAll[{H, Pi, F, Q, Plus}]")
-    result = session.evaluate(str_expr, "")
+    """
+    Test calls to Set, Clear and ClearAll. If
+    str_expr is None, the session is reset,
+    in a way that the next test run over a fresh
+    environment.
+    """
     check_evaluation(
         str_expr,
         str_expected,
         to_string_expr=True,
         to_string_expected=True,
-        message=msg,
+        hold_expected=True,
+        failure_message=msg,
     )
-    session.evaluate("ClearAll[a]")
-    session.evaluate("ClearAll[b]")
-    session.evaluate("ClearAll[F]")
-    session.evaluate("ClearAll[H]")
-    session.evaluate("ClearAll[Q]")
-    session.evaluate("ClearAll[Plus]")
-    session.evaluate("ClearAll[Pi]")
 
 
-# For some reason, using helper.check_evaluation leaves some
-# garbage that affects other tests.
-
-import time
-from mathics.session import MathicsSession
-
-session = MathicsSession(add_builtin=True, catch_interrupt=False)
-
-
-def evaluate_value(str_expr: str):
-    return session.evaluate(str_expr).value
-
-
-def evaluate(str_expr: str):
-    return session.evaluate(str_expr)
-
-
-def check_evaluation(
-    str_expr: str,
-    str_expected: str,
-    message="",
-    to_string_expr=True,
-    to_string_expected=True,
-    to_python_expected=False,
-):
-    """Helper function to test Mathics expression against
-    its results"""
-    if to_string_expr:
-        str_expr = f"ToString[{str_expr}]"
-        result = evaluate_value(str_expr)
-    else:
-        result = evaluate(str_expr)
-
-    if to_string_expected:
-        str_expected = f"ToString[{str_expected}]"
-        expected = evaluate_value(str_expected)
-    else:
-        expected = evaluate(str_expr)
-        if to_python_expected:
-            expected = expected.to_python(string_quotes=False)
-
-    print(time.asctime())
-    if message:
-        print((result, expected))
-        assert result == expected, message
-    else:
-        print((result, expected))
-        assert result == expected
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message", "out_msgs"),
+    [
+        ("Pi=4", "4", "Trying to set a protected symbol", ("Symbol Pi is Protected.",)),
+        (
+            "Clear[Pi]",
+            "Null",
+            "Trying to clear a protected symbol",
+            ("Symbol Pi is Protected.",),
+        ),
+        (
+            "Unprotect[$ContextPath];Clear[$Context]",
+            "Null",
+            "Trying clear $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "Unprotect[$ContextPath];Clear[$ContextPath]",
+            "Null",
+            "Trying clear $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; Clear[A, $Context, B];{A,$Context,B}",
+            "{A, Global`, B}",
+            "This clears A and B, but not $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $Context, B];{A,$Context,B}",
+            "{A, Global`, B}",
+            "This clears A and B, but not $Context",
+            ("Special symbol $Context cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
+            "{A, {Global`, System`}, B}",
+            "This clears A and B, but not $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
+        (
+            "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
+            "{A, {Global`, System`}, B}",
+            "This clears A and B, but not $ContextPath",
+            ("Special symbol $ContextPath cannot be cleared.",),
+        ),
+    ],
+)
+def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
+    session.evaluate("ClearAll[a, b, A, B, F, H, Q]")
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=message,
+        expected_messages=out_msgs,
+    )
