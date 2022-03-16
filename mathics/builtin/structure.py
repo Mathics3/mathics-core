@@ -291,24 +291,26 @@ class PatternsOrderedQ(Builtin):
 class OrderedQ(Builtin):
     """
     <dl>
-    <dt>'OrderedQ[$a$, $b$]'
+    <dt>'OrderedQ[{$a$, $b$}]'
         <dd>is 'True' if $a$ sorts before $b$ according to canonical
         ordering.
     </dl>
 
-    >> OrderedQ[a, b]
+    >> OrderedQ[{a, b}]
      = True
-    >> OrderedQ[b, a]
+    >> OrderedQ[{b, a}]
      = False
     """
 
-    def apply(self, e1, e2, evaluation):
-        "OrderedQ[e1_, e2_]"
+    def apply(self, expr, evaluation):
+        "OrderedQ[expr_]"
 
-        if e1 <= e2:
-            return SymbolTrue
-        else:
-            return SymbolFalse
+        for index, value in enumerate(expr.leaves[:-1]):
+            if expr.leaves[index] <= expr.leaves[index + 1]:
+                continue
+            else:
+                return SymbolFalse
+        return SymbolTrue
 
 
 class Order(Builtin):
