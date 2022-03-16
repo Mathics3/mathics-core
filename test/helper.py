@@ -86,7 +86,7 @@ def check_evaluation(
     outs = [out.text for out in session.evaluation.out]
 
     print(time.asctime())
-    if failure_message:
+    if failure_message is not None:
         print((result, expected))
         assert result == expected, failure_message
     else:
