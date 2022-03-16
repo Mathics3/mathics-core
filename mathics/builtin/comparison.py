@@ -563,6 +563,8 @@ class Equal(_EqualityOperator, SympyComparison):
         For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
 
         For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
+      <dt>'$x$ == $y$ == $z$ == $\ldots$'
+      <dd> express a chain of equalities.
     </dl>
 
 
@@ -633,6 +635,21 @@ class Equal(_EqualityOperator, SympyComparison):
      = True
     >> Pi == 3.14
      = False
+
+    For chains of equalities, the comparison is done amongs all the pairs. The evaluation is successful
+    only if the equality is satisfied over all the pairs:
+
+    >> g[1] == g[1] == g[1]
+     = True
+    >> g[1] == g[1] == g[r]
+     = g[1] == g[1] == g[r]
+
+    Equality can also be combined with other inequality expressions, like
+    >> g[1] == g[2] != g[3]
+     = g[1] == g[2] && g[2] != g[3]
+
+    >> g[1] == g[2] <= g[3]
+     = g[1] == g[2] && g[2] <= g[3]
 
     #> Pi ^ E == E ^ Pi
      = False

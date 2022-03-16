@@ -40,6 +40,23 @@ import pytest
         ("g[a]<g[b]", "g[a] < g[b]", "not comparable expressions"),
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
+        (
+            "g[1]==g[1]==g[2]",
+            "g[1] == g[1] == g[2]",
+            "WMA does not reduce these expressions.",
+        ),
+        (
+            "g[1]==g[2]==g[1]",
+            "g[1] == g[2] == g[1]",
+            "WMA does not reduce these expressions.",
+        ),
+        ("g[1]==g[1]==g[1]", "True", "Equal works over several elements"),
+        (
+            "g[1]==g[2]!=g[1]",
+            "g[1] == g[2] && g[2] != g[1]",
+            "Equal mixed with unequality splits",
+        ),
+        ("g[1]!=g[1]==g[2]", "False", "This evaluates first the inequality"),
     ],
 )
 def test_compare_many_members(str_expr: str, str_expected: str, fail_msg: str):
