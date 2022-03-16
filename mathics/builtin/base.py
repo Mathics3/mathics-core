@@ -14,6 +14,7 @@ from mathics.builtin.exceptions import (
     BoxConstructError,
     MessageException,
 )
+from mathics.core.attributes import nothing
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
@@ -859,6 +860,8 @@ class PatternObject(InstanceableBuiltin, Pattern):
         return leaves
 
     def get_attributes(self, definitions):
+        if self.head is None:
+            return nothing
         return self.head.get_attributes(definitions)
 
 

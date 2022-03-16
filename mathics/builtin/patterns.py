@@ -42,11 +42,6 @@ from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
 
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolList,
-)
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
@@ -56,6 +51,8 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.symbols import (
+    Atom,
+    Symbol,
     SymbolFalse,
     SymbolList,
     SymbolTrue,
