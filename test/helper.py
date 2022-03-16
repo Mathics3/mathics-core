@@ -27,7 +27,7 @@ def check_evaluation(
     to_string_expr: bool = True,
     to_string_expected: bool = True,
     to_python_expected: bool = False,
-    expected_messages: Optional[tuple[str]] = None,
+    expected_messages: Optional[tuple] = None,
 ):
     """
     Helper function to test Mathics expression against
