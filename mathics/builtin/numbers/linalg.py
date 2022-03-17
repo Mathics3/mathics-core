@@ -198,7 +198,7 @@ class Inverse(Builtin):
 
     messages = {
         "sing": "The matrix `1` is singular.",
-        "matsq": ("Argument `1` at position 1 is not " "a non-empty square matrix."),
+        "matsq": "Argument `1` at position 1 is not " "a non-empty square matrix.",
     }
 
     def apply(self, m, evaluation):
