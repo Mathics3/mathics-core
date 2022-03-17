@@ -6,13 +6,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
-        #        (None, None, None,),
         # Equal (==)
-        (
-            "ClearAll[g,a,b];",
-            "Null",
-            None,
-        ),
         ("g[2]==g[3]", "g[2] == g[3]", "not comparable expressions, Issue #200"),
         ("g[a]==g[3]", "g[a] == g[3]", "not comparable expressions"),
         ("g[2]==g[a]", "g[2] == g[a]", "not comparable expressions"),
