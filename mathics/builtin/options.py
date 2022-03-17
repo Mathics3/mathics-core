@@ -8,6 +8,7 @@ Options and Default Arguments
 from mathics.builtin.base import Builtin, Test, get_option
 from mathics.core.symbols import (
     Symbol,
+    SymbolList,
     ensure_context,
     strip_context,
 )
@@ -308,7 +309,7 @@ class OptionQ(Test):
     """
 
     def test(self, expr):
-        expr = expr.flatten(Symbol("List"))
+        expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]
         else:
@@ -338,7 +339,7 @@ class NotOptionQ(Test):
     """
 
     def test(self, expr):
-        expr = expr.flatten(Symbol("List"))
+        expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]
         else:

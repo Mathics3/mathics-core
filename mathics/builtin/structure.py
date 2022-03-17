@@ -291,24 +291,26 @@ class PatternsOrderedQ(Builtin):
 class OrderedQ(Builtin):
     """
     <dl>
-    <dt>'OrderedQ[$a$, $b$]'
+    <dt>'OrderedQ[{$a$, $b$}]'
         <dd>is 'True' if $a$ sorts before $b$ according to canonical
         ordering.
     </dl>
 
-    >> OrderedQ[a, b]
+    >> OrderedQ[{a, b}]
      = True
-    >> OrderedQ[b, a]
+    >> OrderedQ[{b, a}]
      = False
     """
 
-    def apply(self, e1, e2, evaluation):
-        "OrderedQ[e1_, e2_]"
+    def apply(self, expr, evaluation):
+        "OrderedQ[expr_]"
 
-        if e1 <= e2:
-            return SymbolTrue
-        else:
-            return SymbolFalse
+        for index, value in enumerate(expr.leaves[:-1]):
+            if expr.leaves[index] <= expr.leaves[index + 1]:
+                continue
+            else:
+                return SymbolFalse
+        return SymbolTrue
 
 
 class Order(Builtin):
@@ -1085,14 +1087,16 @@ class Flatten(Builtin):
         "Flatten[expr_, n_, h_]"
 
         if n == Expression("DirectedInfinity", 1):
-            n = None
+            n = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
+            # Here we test for negative since in Mathics Flatten[] as opposed to flatten_with_respect_to_head()
+            # negative numbers (and None) are not allowed.
             if n_int is None or n_int < 0:
                 return evaluation.message("Flatten", "flpi", n)
             n = n_int
 
-        return expr.flatten(h, level=n)
+        return expr.flatten_with_respect_to_head(h, level=n)
 
 
 class Null(Predefined):
