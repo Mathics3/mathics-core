@@ -32,3 +32,14 @@ def test_blank():
         ),
     ):
         check_evaluation(str_expr, str_expected, message)
+
+
+def test_complex_rule():
+    for str_expr, str_expected, message in (
+        (
+            "a == d b + d c /. a_ x_ + a_ y_ -> a (x + y)",
+            "a == (b + c) d",
+            "Issue #212",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected, message)
