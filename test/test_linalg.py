@@ -72,6 +72,12 @@ import pytest
                 "is not a non-empty square matrix.",
             ),
         ),
+        (
+            "Inverse[{{1, 0, 0}, {0, Sqrt[3]/2, 1/2}, {0,-1 / 2, Sqrt[3]/2}}]",
+            "{{1, 0, 0}, {0, Sqrt[3] / 2, -1 / 2}, {0, 1 / 2, Sqrt[3] / 2}}",
+            None,
+            None,
+        ),
     ],
 )
 def test_inverse(str_expr, str_expected, fail_msg, warnings):
