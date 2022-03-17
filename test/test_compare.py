@@ -6,8 +6,7 @@ import pytest
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "fail_msg"),
     [
-        #        (None, None, None,),
-        # Equality
+        # Equal (==)
         (
             "ClearAll[g,a,b];",
             "Null",
@@ -19,7 +18,31 @@ import pytest
         ("g[a]==g[b]", "g[a] == g[b]", "not comparable expressions"),
         ("g[a]==g[a]", "True", "identical expressions"),
         ("g[1]==g[1]", "True", "identical expressions"),
-        # Inequalities
+        ("a == a == a", "True", "simple chained compare"),
+        (
+            "E == N[E]",
+            "True",
+            "compare exact numeric expression with its approximate number",
+        ),
+        (
+            "0.1 ^ 10000 == 0.1 ^ 10000 + 0.1 ^ 10013",
+            "True",
+            "difference out of precision ignored",
+        ),
+        (
+            "0.1111111111111111 == 0.1111111111111126",
+            "True",
+            "difference out of precision ignored",
+        ),
+        (
+            "0.1111111111111111 == 0.1111111111111127",
+            "False",
+            "difference in lower precision detected",
+        ),
+        ("Equal[Equal[0, 0], True] == True", "True", "Issue260"),
+        ("Equal[0, 0] == True", "True", "Issue260"),
+        #
+        # Unequal (!=)
         ("g[2]!=g[3]", "g[2] != g[3]", "not comparable expressions, Issue #200"),
         ("g[a]!=g[3]", "g[a] != g[3]", "not comparable expressions"),
         ("g[2]!=g[a]", "g[2] != g[a]", "not comparable expressions"),
@@ -27,6 +50,7 @@ import pytest
         ("g[a]!=g[a]", "False", "identical expressions"),
         ("g[1]!=g[1]", "False", "identical expressions"),
         #
+        # LessEqual (<=)
         ("g[2]<=g[3]", "g[2] <= g[3]", "not comparable expressions, Issue #200"),
         ("g[a]<=g[3]", "g[a] <= g[3]", "not comparable expressions"),
         ("g[2]<=g[a]", "g[2] <= g[a]", "not comparable expressions"),
@@ -34,12 +58,18 @@ import pytest
         ("g[a]<=g[a]", "g[a] <= g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<=g[1]", "g[1] <= g[1]", "not comparable expressions (like in WMA)"),
         #
+        # Less (<)
+        ("{1, 2, 3} < {1, 2, 3}", "{1, 2, 3} < {1, 2, 3}", "Less on a list"),
         ("g[2]<g[3]", "g[2] < g[3]", "not comparable expressions, Issue #200"),
         ("g[a]<g[3]", "g[a] < g[3]", "not comparable expressions"),
         ("g[2]<g[a]", "g[2] < g[a]", "not comparable expressions"),
         ("g[a]<g[b]", "g[a] < g[b]", "not comparable expressions"),
         ("g[a]<g[a]", "g[a] < g[a]", "not comparable expressions (like in WMA)"),
         ("g[1]<g[1]", "g[1] < g[1]", "not comparable expressions (like in WMA)"),
+        #
+        # chained compare
+        ("a != a != b", "False", "Strange MMA behavior"),
+        ("a != b != a", "a != b != a", "incomparable values should be unchanged"),
         (
             "g[1]==g[1]==g[2]",
             "g[1] == g[1] == g[2]",
