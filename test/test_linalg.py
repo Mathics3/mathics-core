@@ -14,8 +14,31 @@ import pytest
             tuple(),
         ),
         (
+            "Inverse[{{0, 2.},{2, 0}}]",
+            "{{0, .5},{.5, 0}}",
+            "",
+            tuple(),
+        ),
+        (
+            "Inverse[{{0, 2., 0},{2, 0, 0}, {0, 0, a}}]",
+            "{{0, .5, 0},{.5, 0, 0},{0, 0, 1. / a}}",
+            "",
+            tuple(),
+        ),
+        # Multiplying a symbolic matrix by its inverse does not
+        # produces the identity in general
+        (
+            "Inverse[{{a, b},{c, d}}].{{a, b},{c, d}}",
+            (
+                "{{a d / (a d - b c) - b c / (a d - b c), 0}, "
+                "{0, a d / (a d - b c) - b c / (a d - b c)}}"
+            ),
+            "2x2 general inverse",
+            tuple(),
+        ),
+        (
             "Inverse[{{a, b},{c, d}}].{{a, b},{c, d}}//Simplify",
-            ("{{1, 0},{0, 1}}"),
+            "{{1, 0},{0, 1}}",
             "2x2 general inverse",
             tuple(),
         ),
