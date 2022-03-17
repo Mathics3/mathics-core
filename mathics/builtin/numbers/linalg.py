@@ -13,7 +13,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Real, from_mpmath
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 
 
 def matrix_data(m):
@@ -194,21 +194,33 @@ class Inverse(Builtin):
      : The matrix {{1, 0}, {0, 0}} is singular.
      = Inverse[{{1, 0}, {0, 0}}]
 
-    >> Inverse[{{1, 0, 0}, {0, Sqrt[3]/2, 1/2}, {0,-1 / 2, Sqrt[3]/2}}]
-    = {{1, 0, 0}, {0, Sqrt[3] / 2, -1 / 2}, {0, 1 / 2, Sqrt[3] / 2}}
     """
 
-    messages = {"sing": "The matrix `1` is singular."}
+    messages = {
+        "sing": "The matrix `1` is singular.",
+        "matsq": ("Argument `1` at position 1 is not " "a non-empty square matrix."),
+    }
 
     def apply(self, m, evaluation):
-        "Inverse[m_]"
+        "Inverse[m_List]"
+        rows = m.elements
+        nrows = len(rows)
+        for row in rows:
+            if row.get_head() is not SymbolList:
+                evaluation.message("Inverse", "matsq", m)
+                return None
+            if len(row.elements) != nrows:
+                evaluation.message("Inverse", "matsq", m)
+                return None
+            if any(e.get_head() is SymbolList for e in row.elements):
+                evaluation.message("Inverse", "matsq", m)
+                return None
 
         matrix = to_sympy_matrix(m)
-        if matrix is None or matrix.cols != matrix.rows or matrix.cols == 0:
-            return evaluation.message("Inverse", "matsq", m)
-        if matrix.det() == 0:
+        det = matrix.det()
+        if det == 0:
             return evaluation.message("Inverse", "sing", m)
-        inv = matrix.inv()
+        inv = matrix.adjugate() / det
         return from_sympy(inv)
 
 
