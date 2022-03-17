@@ -106,8 +106,11 @@ class _EqualityOperator(_InequalityOperator):
             return
         for l, r in zip(lhs._elements, rhs._elements):
             tst = self.equal2(l, r, max_extra_prec)
+            # If the there are a pair of corresponding elements
+            # that are not equals, then we are not able to decide
+            # about the equality.
             if not tst:
-                return tst
+                return None
         return True
 
     def infty_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
@@ -192,7 +195,6 @@ class _EqualityOperator(_InequalityOperator):
         # Still we didn't have a result. Try with the following
         # tests
         other_tests = (self.infty_equal, self.expr_equal, self.sympy_equal)
-
         for test in other_tests:
             c = test(lhs, rhs, max_extra_prec)
             if c is not None:
@@ -489,7 +491,10 @@ def do_cplx_equal(x, y) -> Optional[int]:
                 return False
             else:
                 return True
-    return do_cmp(x, y) == 0
+    c = do_cmp(x, y)
+    if c is None:
+        return None
+    return c == 0
 
 
 def do_cmp(x1, x2) -> Optional[int]:
@@ -558,6 +563,8 @@ class Equal(_EqualityOperator, SympyComparison):
         For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
 
         For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
+      <dt>'$x$ == $y$ == $z$ == $\ldots$'
+      <dd> express a chain of equalities.
     </dl>
 
 
@@ -628,6 +635,21 @@ class Equal(_EqualityOperator, SympyComparison):
      = True
     >> Pi == 3.14
      = False
+
+    For chains of equalities, the comparison is done amongs all the pairs. The evaluation is successful
+    only if the equality is satisfied over all the pairs:
+
+    >> g[1] == g[1] == g[1]
+     = True
+    >> g[1] == g[1] == g[r]
+     = g[1] == g[1] == g[r]
+
+    Equality can also be combined with other inequality expressions, like
+    >> g[1] == g[2] != g[3]
+     = g[1] == g[2] && g[2] != g[3]
+
+    >> g[1] == g[2] <= g[3]
+     = g[1] == g[2] && g[2] <= g[3]
 
     #> Pi ^ E == E ^ Pi
      = False
