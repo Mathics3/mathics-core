@@ -395,6 +395,9 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
+    # If we try to set `N=4`, (issue #210) just deal with it as with a generic expression:
+    if lhs is SymbolN:
+        return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
 
     if len(lhs.leaves) not in (1, 2):
         evaluation.message_args("N", len(lhs.leaves), 1, 2)
