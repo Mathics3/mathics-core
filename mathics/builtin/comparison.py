@@ -563,15 +563,56 @@ class Equal(_EqualityOperator, SympyComparison):
         For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
 
         For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
-      <dt>'$x$ == $y$ == $z$ == $\ldots$'
+      <dt>'$x$ == $y$ == $z$ == ...'
       <dd> express a chain of equalities.
     </dl>
 
+    Numerical Equalities:
 
     >> 1 == 1.
      = True
 
-    Strings are allowed:
+    >> 5/3 == 3/2
+     = False
+
+    Comparisons are done using the lower precision:
+    >> N[E, 100] == N[E, 150]
+     = True
+
+    Compare an exact numeric expression and its corresponding approximate number:
+    >> Pi == N[Pi, 20]
+     = True
+
+    Symbolic constants are compared numerically:
+    >> Pi == 3.14
+     = False
+
+    Compare two exact numeric expressions; a numeric test may suffice to disprove equality:
+    >> Pi ^ E == E ^ Pi
+     = False
+
+    ## TODO needs better precision tracking
+    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000001111111
+    ##  = True
+    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000010000000
+    ##  = False
+
+    Real values are considered equal if they only differ in their last digits:
+    >> 0.739085133215160642 == 0.739085133215160641
+     = True
+    >> 0.73908513321516064200000000 == 0.73908513321516064100000000
+     = False
+
+    ## TODO Needs power precision tracking
+    ## >> 0.1 ^ 10000 == 0.1 ^ 10000 + 0.1 ^ 10012
+    ##  = False
+
+    Numeric evaluation using Equal:
+
+    >> {Mod[6, 2] == 0, Mod[6, 4] == 0}
+     = {True, False}
+
+    String equalities:
 
     >> Equal["11", "11"]
      = True
@@ -602,40 +643,6 @@ class Equal(_EqualityOperator, SympyComparison):
     >> {1, 2} == {1, 2, 3}
      = False
 
-    Real values are considered equal if they only differ in their last digits:
-    >> 0.739085133215160642 == 0.739085133215160641
-     = True
-    >> 0.73908513321516064200000000 == 0.73908513321516064100000000
-     = False
-
-    ## TODO Needs power precision tracking
-    ## >> 0.1 ^ 10000 == 0.1 ^ 10000 + 0.1 ^ 10012
-    ##  = False
-
-    #> 0.1 ^ 10000 == 0.1 ^ 10000 + 0.1 ^ 10013
-      = True
-
-    #> 0.1111111111111111 ==  0.1111111111111126
-     = True
-    #> 0.1111111111111111 ==  0.1111111111111127
-     = False
-
-    ## TODO needs better precision tracking
-    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000001111111
-    ##  = True
-    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000010000000
-    ##  = False
-
-    Comparisons are done using the lower precision:
-    >> N[E, 100] == N[E, 150]
-     = True
-
-    Symbolic constants are compared numerically:
-    >> E > 1
-     = True
-    >> Pi == 3.14
-     = False
-
     For chains of equalities, the comparison is done amongs all the pairs. The evaluation is successful
     only if the equality is satisfied over all the pairs:
 
@@ -644,36 +651,23 @@ class Equal(_EqualityOperator, SympyComparison):
     >> g[1] == g[1] == g[r]
      = g[1] == g[1] == g[r]
 
-    Equality can also be combined with other inequality expressions, like
+    Equality can also be combined with other inequality expressions, like:
     >> g[1] == g[2] != g[3]
      = g[1] == g[2] && g[2] != g[3]
 
     >> g[1] == g[2] <= g[3]
      = g[1] == g[2] && g[2] <= g[3]
 
-    #> Pi ^ E == E ^ Pi
-     = False
-
-    #> N[E, 3] == N[E]
+    'Equal' with no parameter or an empty list is 'True':
+    >> Equal[] == True
      = True
 
-    #> {1, 2, 3} < {1, 2, 3}
-     = {1, 2, 3} < {1, 2, 3}
+    'Equal' on one parameter or list element is also 'True'
+    >> {Equal[x], Equal[1], Equal["a"]}
+    = {True, True, True}
 
-    #> E == N[E]
-     = True
-
-    ## Issue260
-    #> {Equal[Equal[0, 0], True], Equal[0, 0] == True}
-     = {True, True}
-    #> {Mod[6, 2] == 0, Mod[6, 4] == 0, (Mod[6, 2] == 0) == (Mod[6, 4] == 0), (Mod[6, 2] == 0) != (Mod[6, 4] == 0)}
-     = {True, False, False, True}
-
-    #> a == a == a
-     = True
-
-    #> {Equal[], Equal[x], Equal[1]}
-     = {True, True, True}
+    This degenerate behavior is the same for 'Unequal';
+    empty or single-element lists are both 'Equal' and 'Unequal'.
     """
 
     operator = "=="
@@ -746,12 +740,12 @@ class Unequal(_EqualityOperator, SympyComparison):
      = False
 
     ## Reproduce strange MMA behaviour
-    #> a != a != b
-     = False
     #> a != b != a
      = a != b != a
 
-    #> {Unequal[], Unequal[x], Unequal[1]}
+    'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
+
+    >> {Unequal[], Unequal[x], Unequal[1]}
      = {True, True, True}
     """
 
@@ -771,13 +765,14 @@ class Less(_ComparisonOperator, SympyComparison):
       <dd>yields 'True' if $x$ is known to be less than $y$.
     </dl>
 
+    >> 1 < 0
+     = False
+
     LessEqual operator can be chained:
-    >> LessEqual[1, 3, 3, 2]
-     = False
+    >> 2/18 < 1/5 < Pi/10
+     = True
 
-    >> 1 < 3 < 3
-     = False
-
+    Using less on an undfined symbol value:
     >> 1 < 3 < x < 2
      = 1 < 3 < x < 2
     """
@@ -812,6 +807,10 @@ class Greater(_ComparisonOperator, SympyComparison):
       <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
       <dd>yields 'True' if $x$ is known to be greater than $y$.
     </dl>
+
+    Symbolic constants are compared numerically:
+    >> E > 1
+     = True
 
     Greater operator can be chained:
     >> a > b > c //FullForm
