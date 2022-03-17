@@ -598,7 +598,7 @@ class ExpressionPattern(Pattern):
                         needed = existing.leaves
                     else:
                         needed = [existing]
-                    available = candidates[:]
+                    available = list(candidates)
                     for needed_leaf in needed:
                         if (
                             needed_leaf in available
