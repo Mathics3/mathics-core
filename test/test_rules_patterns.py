@@ -2,7 +2,7 @@
 from .helper import check_evaluation
 
 
-def test_calculus():
+def test_downvalues():
     for str_expr, str_expected, message in (
         (
             "DownValues[foo]={x_^2:>y}",
@@ -18,6 +18,17 @@ def test_calculus():
             "DownValues[foo]={x_^3:>y}",
             "{x_ ^ 3 :> y}",
             "Issue #1251 part 3",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected, message)
+
+
+def test_blank():
+    for str_expr, str_expected, message in (
+        (
+            "g[i] /. _[i] :> a",
+            "a",
+            "Issue #203",
         ),
     ):
         check_evaluation(str_expr, str_expected, message)
