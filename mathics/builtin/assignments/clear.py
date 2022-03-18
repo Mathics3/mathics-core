@@ -30,7 +30,7 @@ from mathics.core.attributes import (
     hold_first,
     listable,
     locked,
-    nothing,
+    no_attributes,
     protected,
     read_protected,
 )
@@ -160,7 +160,7 @@ class ClearAll(Clear):
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
-        definition.attributes = nothing
+        definition.attributes = no_attributes
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []

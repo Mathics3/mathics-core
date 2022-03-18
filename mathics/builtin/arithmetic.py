@@ -52,7 +52,7 @@ from mathics.core.attributes import (
     hold_all,
     hold_rest,
     listable,
-    nothing,
+    no_attributes,
     numeric_function,
     protected,
 )
@@ -1336,7 +1336,7 @@ class Assumptions(Predefined):
     """
 
     name = "$Assumptions"
-    attributes = nothing
+    attributes = no_attributes
     rules = {
         "$Assumptions": "True",
     }

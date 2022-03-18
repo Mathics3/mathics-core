@@ -5,7 +5,7 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
-from mathics.core.attributes import nothing
+from mathics.core.attributes import no_attributes
 from typing import Any, Optional, Tuple
 
 
@@ -321,7 +321,7 @@ class BaseElement(KeyComparable):
         return []
 
     def get_attributes(self, definitions):
-        return nothing
+        return no_attributes
 
     def get_head_name(self):
         raise NotImplementedError

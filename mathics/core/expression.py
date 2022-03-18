@@ -35,7 +35,7 @@ from mathics.core.attributes import (
     hold_first,
     hold_rest,
     listable,
-    nothing,
+    no_attributes,
     numeric_function,
     orderless,
     sequence_hold,
@@ -744,7 +744,7 @@ class Expression(BaseElement, NumericOperators):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._elements)
-        return nothing
+        return no_attributes
 
     def get_elements(self):
         return self._elements
