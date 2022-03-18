@@ -160,6 +160,7 @@ for subdir in (
     "files_io",
     "intfns",
     "list",
+    "matrices",
     "moments",
     "numbers",
     "specialfns",

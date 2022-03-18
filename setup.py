@@ -164,6 +164,7 @@ setup(
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
         "mathics.builtin.intfns",
+        "mathics.builtin.matrices",
         "mathics.builtin.moments",
         "mathics.builtin.numbers",
         "mathics.builtin.numpy_utils",
