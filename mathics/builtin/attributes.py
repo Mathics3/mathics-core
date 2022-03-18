@@ -80,8 +80,7 @@ class Attributes(Builtin):
         attributes = attributes_bitset_to_list(
             evaluation.definitions.get_attributes(name)
         )
-        attributes_symbols = [Symbol(attribute) for attribute in attributes]
-        return Expression("List", *attributes_symbols)
+        return Expression("List", *attributes)
 
 
 class SetAttributes(Builtin):
