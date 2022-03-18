@@ -6,6 +6,7 @@ from mathics.core.symbols import PredefinedSymbol, Symbol
 Symbol_Context = Symbol("$Context")
 Symbol_ContextPath = Symbol("$ContextPath")
 SymbolAborted = PredefinedSymbol("$Aborted")
+SymbolAll = Symbol("All")
 SymbolAlternatives = Symbol("Alternatives")
 SymbolAssociation = Symbol("Association")
 SymbolAutomatic = Symbol("Automatic")
