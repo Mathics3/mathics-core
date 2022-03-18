@@ -183,7 +183,7 @@ class Expression(BaseElement, NumericOperators):
         self._head = head
         self._elements = tuple(from_python(element) for element in elts)
         self._sequences = None
-
+        self._cache = None
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
         # here...
         self._format_cache = None
