@@ -107,8 +107,7 @@ class BaseElement(KeyComparable):
         # (see comment in mathocs.core.expression.) However,
         # WL has a way to handle the connection between
         # an expression and a Box expression ``InterpretationBox``.
-        self.unformatted = self  # This may be a garbage-collection nightmare.
-        self._cache = None
+        # self.unformatted = self  # This may be a garbage-collection nightmare.
 
     # comment @mmatera: The next method have a name that starts with ``apply``.
     # This obstaculizes to define ``InstanceableBuiltin``
@@ -145,10 +144,6 @@ class BaseElement(KeyComparable):
             if result is not None:
                 return result, True
         return self, False
-
-    # FIXME: this should be removed
-    def clear_cache(self):
-        self._cache = None
 
     # FIXME the fact that we have to import all of these symbols means
     # modularity is broken somehwere.
