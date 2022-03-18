@@ -14,7 +14,7 @@ from mathics.builtin.exceptions import (
     BoxConstructError,
     MessageException,
 )
-from mathics.core.attributes import nothing
+from mathics.core.attributes import no_attributes
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
@@ -852,7 +852,7 @@ class PatternObject(InstanceableBuiltin, Pattern):
         if self.head is None:
             # FIXME: _Blank in builtin/patterns.py sets head to None.
             # Figure out if this is the best thing to do and explain why.
-            return nothing
+            return no_attributes
         return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:

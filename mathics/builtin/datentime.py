@@ -17,7 +17,7 @@ import dateutil.parser
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String, from_python
-from mathics.core.attributes import hold_all, nothing, protected, read_protected
+from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList
@@ -1151,7 +1151,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = nothing
+    attributes = no_attributes
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 

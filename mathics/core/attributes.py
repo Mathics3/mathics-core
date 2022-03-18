@@ -20,28 +20,25 @@
 from typing import Dict, List
 
 # fmt: off
-nothing           = 0b0000000000000000 #  it is used when there're no attributes
+no_attributes     = 0b0000000000000000
 
-locked            = 0b0000000000000001
-protected         = 0b0000000000000010
-read_protected    = 0b0000000000000100
-
-constant          = 0b0000000000001000
-flat              = 0b0000000000010000
-listable          = 0b0000000000100000
-numeric_function  = 0b0000000001000000
-one_identity      = 0b0000000010000000
-orderless         = 0b0000000100000000
-
-hold_first        = 0b0000001000000000
-hold_rest         = 0b0000010000000000
-hold_all          = 0b0000100000000000
-hold_all_complete = 0b0001000000000000
-
-n_hold_first      = 0b0010000000000000
-n_hold_rest       = 0b0100000000000000
-n_hold_all        = 0b1000000000000000
-
+# alphabetical order
+constant          = 0b00000000000000001
+flat              = 0b00000000000000010
+hold_all          = 0b00000000000000100
+hold_all_complete = 0b00000000000001000
+hold_first        = 0b00000000000010000
+hold_rest         = 0b00000000000100000
+listable          = 0b00000000001000000
+locked            = 0b00000000010000000
+n_hold_all        = 0b00000000100000000
+n_hold_first      = 0b00000001000000000
+n_hold_rest       = 0b00000010000000000
+numeric_function  = 0b00000100000000000
+one_identity      = 0b00001000000000000
+orderless         = 0b00010000000000000
+protected         = 0b00100000000000000
+read_protected    = 0b01000000000000000
 sequence_hold     = 0b10000000000000000
 # fmt: on
 
@@ -87,17 +84,16 @@ attribute_string_to_number: Dict[str, int] = {
 
 
 def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
-    attributes_list = []
-    # bin(number) returns a string "0b...", we iterate over all characters
-    # except "0b".
-    # We revert the string because we want to iterate from the right to the
-    # left, otherwise, e.g. 0b10000000 would be treated as 1, not 64.
-    for position, bit in enumerate(bin(attributes_bitset)[:1:-1]):
-        # Append only if the bit is 1.
-        if bit == "1":
+    bit = 1
+
+    while attributes_bitset >= bit:
+        # Bitwise AND.
+        # e.g.: 0b1000101 & 0b0000100 = 0b0000100
+        # e.g.: 0b0100110 & 0b0011000 = 0b0000000
+        if attributes_bitset & bit:
             # Convert the attribute to a string.
-            attributes_list.append(attribute_number_to_string[int(bit) << position])
+            yield attribute_number_to_string[attributes_bitset & bit]
 
-    attributes_list.sort()
-
-    return attributes_list
+        # Go to the next attribute by doubling "bit".
+        # e.g.: 0b010 (2) -> 0b100 (4)
+        bit <<= 1

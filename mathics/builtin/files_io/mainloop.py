@@ -23,7 +23,7 @@ Similarly, if you assign a function to global variable '$Pre', it will be applie
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.attributes import listable, nothing, protected
+from mathics.core.attributes import listable, no_attributes, protected
 
 
 class HistoryLength(Builtin):
@@ -104,7 +104,7 @@ class IOHookPreRead(Builtin):
     """
 
     name = "$PreRead"
-    attributes = nothing
+    attributes = no_attributes
 
 
 class IOHookPre(Builtin):
@@ -136,7 +136,7 @@ class IOHookPre(Builtin):
     """
 
     name = "$Pre"
-    attributes = nothing
+    attributes = no_attributes
 
 
 class IOHookPost(Builtin):
@@ -149,7 +149,7 @@ class IOHookPost(Builtin):
     """
 
     name = "$Post"
-    attributes = nothing
+    attributes = no_attributes
 
 
 class IOHookPrePrint(Builtin):
@@ -162,7 +162,7 @@ class IOHookPrePrint(Builtin):
     """
 
     name = "$PrePrint"
-    attributes = nothing
+    attributes = no_attributes
 
 
 class IOHookSyntaxHandler(Builtin):
@@ -176,7 +176,7 @@ class IOHookSyntaxHandler(Builtin):
     """
 
     name = "$SyntaxHandler"
-    attributes = nothing
+    attributes = no_attributes
 
 
 class Line(Builtin):
