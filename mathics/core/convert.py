@@ -84,16 +84,6 @@ class SympyExpression(BasicSympy):
             *(from_sympy(arg) for arg in args[1:]))
         return SympyExpression(expr)"""
 
-    @property
-    def func(self):
-        class SympyExpressionFunc(object):
-            def __new__(cls, *args):
-                return SympyExpression(self.expr)
-                # return SympyExpression(expression.Expression(self.expr.head,
-                # *(from_sympy(arg) for arg in args[1:])))
-
-        return SympyExpressionFunc
-
     def has_any_symbols(self, *syms) -> bool:
         result = any(arg.has_any_symbols(*syms) for arg in self.args)
         return result
@@ -117,9 +107,6 @@ class SympyExpression(BasicSympy):
             return True
         else:
             return False
-
-    def __str__(self) -> str:
-        return "%s[%s]" % (super(SympyExpression, self).__str__(), self.expr)
 
 
 class SympyPrime(sympy.Function):
@@ -250,9 +237,6 @@ def from_sympy(expr):
     elif expr.is_Equality:
         return Expression(SymbolEqual, *[from_sympy(arg) for arg in expr.args])
 
-    elif isinstance(expr, SympyExpression):
-        return expr.expr
-
     elif isinstance(expr, sympy.Piecewise):
         args = expr.args
         return Expression(
@@ -333,7 +317,7 @@ def from_sympy(expr):
         elif isinstance(expr, sympy.sign):
             name = "Sign"
         else:
-            name = expr.func.__name__
+            name = expr.__class__.__name__
             if is_Cn_expr(name):
                 return Expression(
                     Expression("C", int(name[1:])),
@@ -367,7 +351,7 @@ def from_sympy(expr):
         return Expression(SymbolEqual, *[from_sympy(arg) for arg in expr.args])
 
     elif isinstance(expr, sympy.O):
-        if expr.args[0].func == sympy.core.power.Pow:
+        if isistance(expr.args[0], sympy.core.power.Pow):
             [var, power] = [from_sympy(arg) for arg in expr.args[0].args]
             o = Expression("O", var)
             return Expression(SymbolPower, o, power)
