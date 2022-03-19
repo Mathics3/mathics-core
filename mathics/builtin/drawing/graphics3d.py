@@ -199,6 +199,7 @@ class Sphere(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "is a sphere of radius 1 centered at the point {$x$, $y$, $z$}..."
     rules = {
         "Sphere[]": "Sphere[{0, 0, 0}, 1]",
         "Sphere[positions_]": "Sphere[positions, 1]",
@@ -225,6 +226,7 @@ class Cone(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "represents a cone of radius 1..."
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -321,6 +323,7 @@ class Cylinder(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "represents a cylinder of radius 1..."
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -362,6 +365,7 @@ class Tube(Builtin):
     = -Graphics3D-
     """
 
+    summary_text = "represents a tube passing through $p1$, $p2$, ... with radius 1..."
     rules = {
         "Tube[]": "Tube[{{0, 0, 0}, {1, 1, 1}}, 1]",
         "Tube[positions_]": "Tube[positions, 1]",

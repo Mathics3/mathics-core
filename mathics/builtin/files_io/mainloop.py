@@ -50,6 +50,7 @@ class HistoryLength(Builtin):
 
     name = "$HistoryLength"
 
+    summary_text = "specifies the maximum number of 'in' and 'out' entries"
     rules = {
         "$HistoryLength": "100",
     }
@@ -88,6 +89,7 @@ class In(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the $k$th line of input"
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
     }
@@ -103,6 +105,8 @@ class IOHookPreRead(Builtin):
     </dl>
     """
 
+    summary_text = "IOHookPreRead summary still not available"
+    summary_text = "IOHookPreRead summary still not available"
     name = "$PreRead"
     attributes = no_attributes
 
@@ -135,6 +139,8 @@ class IOHookPre(Builtin):
      = 4
     """
 
+    summary_text = "IOHookPre summary still not available"
+    summary_text = "IOHookPre summary still not available"
     name = "$Pre"
     attributes = no_attributes
 
@@ -148,6 +154,8 @@ class IOHookPost(Builtin):
     </dl>
     """
 
+    summary_text = "IOHookPost summary still not available"
+    summary_text = "IOHookPost summary still not available"
     name = "$Post"
     attributes = no_attributes
 
@@ -161,6 +169,8 @@ class IOHookPrePrint(Builtin):
     </dl>
     """
 
+    summary_text = "IOHookPrePrint summary still not available"
+    summary_text = "IOHookPrePrint summary still not available"
     name = "$PrePrint"
     attributes = no_attributes
 
@@ -175,6 +185,8 @@ class IOHookSyntaxHandler(Builtin):
     </dl>
     """
 
+    summary_text = "IOHookSyntaxHandler summary still not available"
+    summary_text = "IOHookSyntaxHandler summary still not available"
     name = "$SyntaxHandler"
     attributes = no_attributes
 
@@ -198,6 +210,8 @@ class Line(Builtin):
      : Non-negative integer expected.
     """
 
+    summary_text = "holds the current input line number"
+    summary_text = "holds the current input line number"
     name = "$Line"
 
 
@@ -241,6 +255,7 @@ class Out(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the result of the $k$th input line..."
     rules = {
         "Out[k_Integer?Negative]": "Out[$Line + k]",
         "Out[]": "Out[$Line - 1]",

@@ -37,6 +37,7 @@ class Median(_Rectangular):
      = {99 / 2, 1, 4, 26}
     """
 
+    summary_text = "Median summary still not available"
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
 
     def apply(self, l, evaluation):

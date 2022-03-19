@@ -240,6 +240,7 @@ class DirectedInfinity(SympyFunction):
      = Infinity
     """
 
+    summary_text = "represents an infinite multiple of the complex number $z$..."
     rules = {
         "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
@@ -319,6 +320,8 @@ class Re(SympyFunction):
     attributes = listable | numeric_function | protected
     sympy_name = "re"
 
+    summary_text = "returns the real component of the complex number $z$"
+
     def apply_complex(self, number, evaluation):
         "Re[number_Complex]"
 
@@ -355,6 +358,8 @@ class Im(SympyFunction):
     """
 
     attributes = listable | numeric_function | protected
+
+    summary_text = "returns the imaginary component of the complex number $z$"
 
     def apply_complex(self, number, evaluation):
         "Im[number_Complex]"
@@ -399,6 +404,7 @@ class Conjugate(_MPMathFunction):
      = 1.5 - 2.5 I
     """
 
+    summary_text = "Complex conjugate value"
     mpmath_name = "conj"
 
 
@@ -428,6 +434,7 @@ class Abs(_MPMathFunction):
      = Sqrt[3]
     """
 
+    summary_text = "Absolute value"
     sympy_name = "Abs"
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
 
@@ -435,19 +442,17 @@ class Abs(_MPMathFunction):
 class Arg(_MPMathFunction):
     """
      <dl>
-       <dt>'Arg'[$z$, $method_option$]</dt>
-       <dd>returns the argument of a complex value $z$.</dd>
-
-       <ul>
-         <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
-         <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
-         <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
-         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
-         <li>'Arg'[0] is 0.
-      </ul>
+       <dt>'Arg'[$z$]
+       <dd> returns the argument of a complex value $z$.
      </dl>
 
-     >> Arg[-3]
+
+    'Arg'[$z$] gives the phase angle of $z$ in radians. The result from 'Arg'[$z$] is always between -Pi and +Pi.
+    'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
+    'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
+    'Arg'[0] is 0.
+
+    >> Arg[-3]
       = Pi
 
      Same as above using sympy's method:
@@ -468,6 +473,7 @@ class Arg(_MPMathFunction):
      = 0
     """
 
+    summary_text = "is the argument of a complex value $z$"
     rules = {
         "Arg[0]": "0",
         "Arg[DirectedInfinity[]]": "1",
@@ -532,6 +538,9 @@ class Sign(SympyFunction):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = (
+        "return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive"
+    )
     messages = {
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
     }
@@ -567,6 +576,8 @@ class I(Predefined):
 
     python_equivalent = 1j
 
+    summary_text = "represents the imaginary number 'sqrt[-1]'"
+
     def evaluate(self, evaluation):
         return Complex(Integer0, Integer1)
 
@@ -585,6 +596,10 @@ class NumberQ(Test):
     >> NumberQ[Pi]
      = False
     """
+
+    summary_text = (
+        "returns 'true' if $expr$ is an explicit number, and 'false' otherwise"
+    )
 
     def test(self, expr):
         return isinstance(expr, Number)
@@ -629,6 +644,8 @@ class PossibleZeroQ(SympyFunction):
     attributes = listable | numeric_function | protected
 
     sympy_name = "_iszero"
+
+    summary_text = "returns 'true' if basic symbolic and numerical methods suggest that expr has value zero, and 'false' otherwise"
 
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
@@ -675,6 +692,10 @@ class RealNumberQ(Test):
      = True
     """
 
+    summary_text = (
+        "returns 'true' if $expr$ is an explicit number with no imaginary component"
+    )
+
     def test(self, expr):
         return isinstance(expr, (Integer, Rational, Real))
 
@@ -694,6 +715,7 @@ class Integer_(Builtin):
      = {False, True, True}
     """
 
+    summary_text = "is the head of integers"
     name = "Integer"
 
 
@@ -767,6 +789,7 @@ class Real_(Builtin):
      : Expression cannot begin with "37^^3" (line 1 of "<test>").
     """
 
+    summary_text = "is the head of real (inexact) numbers"
     name = "Real"
 
 
@@ -790,6 +813,8 @@ class Rational_(Builtin):
     """
 
     name = "Rational"
+
+    summary_text = "is the head of rational numbers.</dd>..."
 
     def apply(self, n, m, evaluation):
         "%(name)s[n_Integer, m_Integer]"
@@ -858,6 +883,8 @@ class Complex_(Builtin):
 
     name = "Complex"
 
+    summary_text = "is the head of complex numbers..."
+
     def apply(self, r, i, evaluation):
         "%(name)s[r_?NumberQ, i_?NumberQ]"
 
@@ -897,6 +924,7 @@ class Factorial(PostfixOperator, _MPMathFunction):
      = 1
     """
 
+    summary_text = "computes the factorial of $n$"
     attributes = numeric_function | protected
 
     operator = "!"
@@ -933,6 +961,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
     precedence = 610
     mpmath_name = "fac2"
     sympy_name = "factorial2"
+    summary_text = "computes the double factorial of $n$"
     messages = {
         "ndf": "`1` evaluation error: `2`.",
         "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
@@ -1066,6 +1095,7 @@ class Sum(_IterationFunction, SympyFunction):
 
     sympy_name = "Sum"
 
+    summary_text = "Sum summary still not available"
     rules = _IterationFunction.rules.copy()
     rules.update(
         {
@@ -1178,6 +1208,7 @@ class Product(_IterationFunction, SympyFunction):
 
     sympy_name = "Product"
 
+    summary_text = "Product summary still not available"
     rules = _IterationFunction.rules.copy()
     rules.update(
         {
@@ -1245,6 +1276,8 @@ class Piecewise(SympyFunction):
     sympy_name = "Piecewise"
 
     attributes = hold_all | protected
+
+    summary_text = "represents a piecewise function..."
 
     def apply(self, items, evaluation):
         "%(name)s[items__]"
@@ -1317,6 +1350,8 @@ class Boole(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 1 if expr is true and 0 if expr is false"
+
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
         if expr is SymbolTrue:
@@ -1337,6 +1372,7 @@ class Assumptions(Predefined):
 
     name = "$Assumptions"
     attributes = no_attributes
+    summary_text = "is the default setting for the assumptions option used in such functions as simplify, refine, and integrate"
     rules = {
         "$Assumptions": "True",
     }
@@ -1364,6 +1400,8 @@ class Assuming(Builtin):
     """
 
     attributes = hold_rest | protected
+
+    summary_text = "evaluates $expr$ assuming the conditions $cond$"
 
     def apply_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"
@@ -1412,6 +1450,7 @@ class ConditionalExpression(Builtin):
 
     sympy_name = "Piecewise"
 
+    summary_text = "returns $expr$ if $cond$ evaluates to $true$, $undefined$ if $cond$ evaluates to $false$"
     rules = {
         "ConditionalExpression[expr_, True]": "expr",
         "ConditionalExpression[expr_, False]": "Undefined",

@@ -31,6 +31,7 @@ class UniformPolyhedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "UniformPolyhedron summary still not available"
     messages = {
         "argtype": f"Argument `1` is not one of: {uniform_polyhedra_names}",
     }
@@ -59,6 +60,7 @@ class Dodecahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a regular dodecahedron centered at the origin with unit edge length"
     rules = {
         "Dodecahedron[]": """UniformPolyhedron["dodecahedron"]""",
         "Dodecahedron[l_?NumberQ]": """UniformPolyhedron["dodecahedron", {{0, 0, 0}}, l]""",
@@ -77,6 +79,7 @@ class Icosahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a regular icosahedron centered at the origin with unit edge length"
     rules = {
         "Icosahedron[]": """UniformPolyhedron["icosahedron"]""",
         "Icosahedron[l_?NumberQ]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, l]""",
@@ -95,6 +98,7 @@ class Octahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a regular octahedron centered at the origin with unit edge length"
     rules = {
         "Octahedron[]": """UniformPolyhedron["octahedron"]""",
         "Octahedron[l_?NumberQ]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",
@@ -113,6 +117,7 @@ class Tetrahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a regular tetrahedron centered at the origin with unit edge length"
     rules = {
         "Tetrahedron[]": """UniformPolyhedron["tetrahedron"]""",
         "Tetrahedron[l_?NumberQ]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, l]""",

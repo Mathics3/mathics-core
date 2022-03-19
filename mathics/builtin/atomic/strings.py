@@ -310,6 +310,7 @@ class SystemCharacterEncoding(Predefined):
 
     name = "$SystemCharacterEncoding"
 
+    summary_text = "SystemCharacterEncoding summary still not available"
     rules = {
         "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
     }
@@ -327,6 +328,7 @@ class CharacterEncoding(Predefined):
     name = "$CharacterEncoding"
     value = '"UTF-8"'
 
+    summary_text = "specifies the default character encoding to use if no other encoding is specified"
     rules = {
         "$CharacterEncoding": value,
     }
@@ -385,6 +387,7 @@ class CharacterEncodings(Predefined):
     name = "$CharacterEncodings"
     value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
 
+    summary_text = "CharacterEncodings summary still not available"
     rules = {
         "$CharacterEncodings": value,
     }
@@ -407,6 +410,9 @@ class NumberString(Builtin):
      = False
     """
 
+    summary_text = "represents the characters in a number"
+    pass
+
 
 class Whitespace(Builtin):
     r"""
@@ -424,6 +430,8 @@ class Whitespace(Builtin):
     >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
      = "this has leading and trailing whitespace removed"
     """
+    summary_text = "represents a sequence of whitespace characters"
+    pass
 
 
 # FIXME: Generalize string.lower() and ord()
@@ -450,6 +458,7 @@ class Alphabet(Builtin):
 
     """
 
+    summary_text = "gives the list of lowercase letters a-z in the english alphabet ..."
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
     }
@@ -516,6 +525,9 @@ class LetterNumber(Builtin):
     #  = 2
 
     """
+    summary_text = (
+        "returns the position of the character $c$ in the english alphabet..."
+    )
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
         "nas": ("The argument `1` is not a string."),
@@ -595,6 +607,9 @@ class HexidecimalCharacter(Builtin):
     >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
      = {True, True, True, False, False, False, False}
     """
+
+    summary_text = "represents the characters 0-9, a-f and a-f"
+    pass
 
 
 class _StringFind(Builtin):
@@ -704,6 +719,7 @@ class StringRepeat(Builtin):
      = StringRepeat[x, 0]
     """
 
+    summary_text = "gives $string$ repeated $n$ times..."
     messages = {
         "intp": "A positive integer is expected at position `1` in `2`.",
     }
@@ -753,6 +769,8 @@ class String_(Builtin):
      = Plus[2, "abc"]
     """
 
+    summary_text = "is the head of strings"
+    summary_text = "is the head of strings"
     name = "String"
 
 
@@ -782,6 +800,7 @@ class ToString(Builtin):
 
     """
 
+    summary_text = "returns a string representation of $expr$..."
     options = {
         "CharacterEncoding": '"Unicode"',
         "FormatType": "OutputForm",
@@ -820,6 +839,8 @@ class InterpretedBox(PrefixOperator):
 
     operator = "\\!"
     precedence = 670
+
+    summary_text = "is the ad hoc fullform for \! $box$. just for internal use... >> \! \(2+2\) = 4"
 
     def apply_dummy(self, boxes, evaluation):
         """InterpretedBox[boxes_]"""
@@ -881,6 +902,7 @@ class ToExpression(Builtin):
     """
     attributes = listable | protected
 
+    summary_text = "inteprets a given string as mathics input..."
     messages = {
         "argb": (
             "`1` called with `2` arguments; "
@@ -973,6 +995,8 @@ class StringQ(Test):
      = {12, yz}
     """
 
+    summary_text = "returns 'true' if $expr$ is a 'string', or 'false' otherwise"
+
     def test(self, expr):
         return isinstance(expr, String)
 
@@ -990,6 +1014,8 @@ class RemoveDiacritics(Builtin):
     >> RemoveDiacritics["piñata"]
      = pinata
     """
+
+    summary_text = "returns a version of $s$ with all diacritics removed"
 
     def apply(self, s, evaluation):
         "RemoveDiacritics[s_String]"
@@ -1026,6 +1052,8 @@ class Transliterate(Builtin):
     # = meter gar te me phesi thea Thetis arguropeza
 
     requires = ("unidecode",)
+
+    summary_text = "transliterates a text in some script into an ascii string"
 
     def apply(self, s, evaluation):
         "Transliterate[s_String]"
@@ -1151,6 +1179,7 @@ class StringContainsQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
+    summary_text = "returns true if any part of $string$ matches $patt$, and returns false otherwise..."
     options = {
         "IgnoreCase": "False",
     }

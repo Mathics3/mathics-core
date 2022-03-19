@@ -160,6 +160,7 @@ class RandomState(Builtin):
 
     name = "$RandomState"
 
+    summary_text = "is a long number representing the internal state of the pseudorandom number generator"
     messages = {
         "rndst": "It is not possible to change the random state.",
         # "`1` is not a valid random state.",
@@ -209,6 +210,7 @@ class SeedRandom(Builtin):
      = SeedRandom[x]
     """
 
+    summary_text = "resets the pseudorandom generator with seed $n$..."
     messages = {
         "seed": "Argument `1` should be an integer or string.",
     }
@@ -301,6 +303,9 @@ class RandomInteger(Builtin):
      = True
     """
 
+    summary_text = (
+        "yields a pseudorandom integer in the range from $min$ to $max$ inclusive..."
+    )
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -373,6 +378,9 @@ class RandomReal(Builtin):
      = RandomReal[{0, 1}, {1, -1}]
     """
 
+    summary_text = (
+        "yields a pseudorandom real number in the range from $min$ to $max$..."
+    )
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -470,6 +478,7 @@ class RandomComplex(Builtin):
      = Complex[..., ...]
     """
 
+    summary_text = "yields a pseudorandom complex number in the rectangle with complex corners $z_min$ and $z_max$..."
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -657,6 +666,7 @@ class RandomChoice(_RandomSelection):
      = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
     """
 
+    summary_text = "Pick a random item from a list"
     _replace = True
 
 
@@ -702,14 +712,27 @@ class RandomSample(_RandomSelection):
      = {62, 98, 86, 78, 40}
     """
 
+    summary_text = "Pick a random items from a list"
     _replace = False
 
 
 class Random(Builtin):
     """
+    <dl>
+    <dt>'Random[]'
+    <dd> gives an uniformly distributed pseudorandom Real in the range 0. to 1.
+    <dt>'Random[$field$]'
+    <dd> gives an uniformly distributed pseudorandom number in the field $field$. If $field$ is Integer or 'Real',
+         the number is in the range 0. to 1. If $field$ is 'Complex', returns a number with real and imaginary parts from 0 to 1.
+    <dt>'Random[$field$, {min, max}]'
+    <dd> the return value is in the range from min to max.
+    </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
     """
 
+    summary_text = (
+        " gives an uniformly distributed pseudorandom Real in the range 0. to 1."
+    )
     rules = {
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",

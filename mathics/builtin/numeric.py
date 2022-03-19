@@ -402,6 +402,7 @@ class RealValuedNumericQ(Builtin):
     # to add something to the docs.
     context = "Internal`"
 
+    summary_text = "RealValuedNumericQ summary still not available"
     rules = {
         "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
     }
@@ -413,6 +414,7 @@ class RealValuedNumberQ(Builtin):
     # to add something to the docs.
     context = "Internal`"
 
+    summary_text = "RealValuedNumberQ summary still not available"
     rules = {
         "Internal`RealValuedNumberQ[x_Real]": "True",
         "Internal`RealValuedNumberQ[x_Integer]": "True",

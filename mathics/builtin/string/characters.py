@@ -38,6 +38,8 @@ class Characters(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns a list of the characters in $string$"
+
     def apply(self, string, evaluation):
         "Characters[string_String]"
 
@@ -60,6 +62,7 @@ class CharacterRange(Builtin):
 
     attributes = protected | read_protected
 
+    summary_text = "returns a list of the unicode characters from $a$ to $b$ inclusive"
     messages = {
         "argtype": "Arguments `1` and `2` are not both strings of length 1.",
     }
@@ -98,6 +101,7 @@ class DigitQ(Builtin):
 
     """
 
+    summary_text = "DigitQ summary still not available"
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
@@ -131,6 +135,7 @@ class LetterQ(Builtin):
      = True
     """
 
+    summary_text = "LetterQ summary still not available"
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
@@ -153,6 +158,8 @@ class LowerCaseQ(Test):
      = True
     """
 
+    summary_text = "returns true if $s$ consists wholly of lower case characters"
+
     def test(self, s):
         return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
 
@@ -169,6 +176,8 @@ class ToLowerCase(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "returns $s$ in all lower case"
 
     def apply(self, s, evaluation):
         "ToLowerCase[s_String]"
@@ -187,6 +196,8 @@ class ToUpperCase(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "returns $s$ in all upper case"
 
     def apply(self, s, evaluation):
         "ToUpperCase[s_String]"
@@ -207,6 +218,8 @@ class UpperCaseQ(Test):
     >> UpperCaseQ[""]
      = True
     """
+
+    summary_text = "returns true if $s$ consists wholly of upper case characters"
 
     def test(self, s):
         return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())

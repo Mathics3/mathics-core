@@ -80,6 +80,7 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
 
 
 class ColorDataFunction(Builtin):
+    summary_text = "ColorDataFunction summary still not available"
     pass
 
 
@@ -144,6 +145,7 @@ class ColorData(Builtin):
     #                RGBColor[0.941176, 0.906538, 0.834043]}, #1] &]"""),
     # }
 
+    summary_text = "returns a color function with the given $name$"
     messages = {
         "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
     }
@@ -255,7 +257,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
                     result = cfunc(*args)
                     if not (isnan(result) or isinf(result)):
                         return result
-                except:
+                except Exception:
                     pass
                 return None
 
@@ -890,6 +892,7 @@ class PieChart(_Chart):
      = -Graphics-
     """
 
+    summary_text = "PieChart summary still not available"
     options = _Chart.options.copy()
     options.update(
         {
@@ -1065,6 +1068,7 @@ class BarChart(_Chart):
      = -Graphics-
     """
 
+    summary_text = "BarChart summary still not available"
     options = _Chart.options.copy()
     options.update(
         {
@@ -1180,6 +1184,7 @@ class Histogram(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = "plots a histogram using the values $x1$, $x2$, ...."
     options = Graphics.options.copy()
     options.update(
         {
@@ -2104,6 +2109,8 @@ class Plot(_Plot):
      = -Graphics-
     """
 
+    summary_text = "Plot summary still not available"
+
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
             functions = functions.leaves
@@ -2160,6 +2167,8 @@ class ParametricPlot(_Plot):
     """
 
     expect_list = True
+
+    summary_text = "ParametricPlot summary still not available"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", 2) and not (
@@ -2230,6 +2239,7 @@ class PolarPlot(_Plot):
      = -Graphics-
     """
 
+    summary_text = "PolarPlot summary still not available"
     options = _Plot.options.copy()
     options.update(
         {
@@ -2287,6 +2297,7 @@ class ListPlot(_ListPlot):
 
     attributes = hold_all | protected
 
+    summary_text = "ListPlot summary still not available"
     options = Graphics.options.copy()
     options.update(
         {
@@ -2325,6 +2336,7 @@ class ListLinePlot(_ListPlot):
 
     attributes = hold_all | protected
 
+    summary_text = "ListLinePlot summary still not available"
     options = Graphics.options.copy()
     options.update(
         {
@@ -2403,6 +2415,7 @@ class Plot3D(_Plot3D):
 
     attributes = hold_all | protected
 
+    summary_text = "Plot3D summary still not available"
     options = Graphics.options.copy()
     options.update(
         {
@@ -2485,6 +2498,7 @@ class DensityPlot(_Plot3D):
 
     attributes = hold_all | protected
 
+    summary_text = "DensityPlot summary still not available"
     options = Graphics.options.copy()
     options.update(
         {

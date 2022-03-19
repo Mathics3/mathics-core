@@ -39,6 +39,7 @@ class Fibonacci(_MPMathFunction):
     """
 
     nargs = 1
+    summary_text = "the $n$-esim Fibonacci number"
     attributes = listable | numeric_function | protected | read_protected
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
@@ -61,6 +62,7 @@ class HarmonicNumber(_MPMathFunction):
      = 0.613706
     """
 
+    summary_text = "the $n$th harmonic number"
     rules = {
         "HarmonicNumber[-1]": "ComplexInfinity",
     }
@@ -90,6 +92,8 @@ class StirlingS1(Builtin):
     sympy_name = "functions.combinatorial.stirling"
     mpmath_name = "stirling1"
 
+    summary_text = "gives the stirling number of the first kind $ _n^m$"
+
     def apply(self, n, m, evaluation):
         "%(name)s[n_Integer, m_Integer]"
         n_value = n.get_int_value()
@@ -115,6 +119,8 @@ class StirlingS2(Builtin):
     sympy_name = "functions.combinatorial.numbers.stirling"
     mpmath_name = "stirling2"
     nargs = 2
+
+    summary_text = "gives the stirling number of the second kind _n^m"
 
     def apply(self, m, n, evaluation):
         "%(name)s[n_Integer, m_Integer]"

@@ -52,6 +52,10 @@ class ContinuedFraction(SympyFunction):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = (
+        "generate the first $n$ terms in the continued fraction reprentation of $x$..."
+    )
+
     def apply_1(self, x, evaluation):
         "%(name)s[x_]"
         return super().apply(x, evaluation)
@@ -91,6 +95,8 @@ class Divisors(Builtin):
     # e.g. Divisors[2, GaussianIntegers -> True]
 
     attributes = listable | protected
+
+    summary_text = "returns a list of the integers that divide $n$"
 
     def apply(self, n, evaluation):
         "Divisors[n_Integer]"
@@ -161,6 +167,8 @@ class FactorInteger(Builtin):
 
     # TODO: GausianIntegers option
     # e.g. FactorInteger[5, GaussianIntegers -> True]
+
+    summary_text = "returns the factorization of $n$ as a list of factors and exponents"
 
     def apply(self, n, evaluation):
         "FactorInteger[n_]"
@@ -236,6 +244,8 @@ class FractionalPart(Builtin):
 
     attributes = listable | numeric_function | read_protected | protected
 
+    summary_text = "finds the fractional part of $n$"
+
     def apply(self, n, evaluation):
         "FractionalPart[n_]"
         expr = Expression("FractionalPart", n)
@@ -273,6 +283,8 @@ class FromContinuedFraction(SympyFunction):
     sympy_name = "continued_fraction_reduce"
 
     attributes = numeric_function | protected
+
+    summary_text = "reconstructs a number from the list of its continued fraction terms"
 
     def apply_1(self, expr, evaluation):
         "%(name)s[expr_List]"
@@ -346,6 +358,9 @@ class MantissaExponent(Builtin):
 
     attributes = listable | protected
 
+    summary_text = (
+        "finds a list containing the mantissa and exponent of a given number $n$..."
+    )
     rules = {
         "MantissaExponent[0]": "{0, 0}",
         "MantissaExponent[0, n_]": "{0, 0}",
@@ -438,6 +453,7 @@ class NextPrime(Builtin):
      = NextPrime[5, 10.5]
     """
 
+    summary_text = "gives the next prime after $n$..."
     rules = {
         "NextPrime[n_]": "NextPrime[n, 1]",
     }
@@ -476,6 +492,10 @@ class PartitionsP(SympyFunction):
     attributes = listable | numeric_function | orderless | protected
     sympy_name = "npartitions"
 
+    summary_text = (
+        "return the number $p$($n$) of unrestricted partitions of the integer $n$"
+    )
+
     def apply(self, n, evaluation):
         "PartitionsP[n_Integer]"
         return super().apply(n, evaluation)
@@ -511,6 +531,8 @@ class Prime(SympyFunction):
     """
 
     attributes = listable | numeric_function | protected
+
+    summary_text = "returns the $n$th prime number where $n$ is an positive integer"
 
     def apply(self, n, evaluation):
         "Prime[n_]"
@@ -552,6 +574,8 @@ class PrimePi(SympyFunction):
 
     # TODO: Traditional Form
 
+    summary_text = "gives the number of primes less than or equal to $x$"
+
     def apply(self, n, evaluation):
         "PrimePi[n_?NumericQ]"
         result = sympy.ntheory.primepi(n.to_python(n_evaluation=evaluation))
@@ -581,6 +605,7 @@ class PrimePowerQ(Builtin):
      = False
     """
 
+    summary_text = "returns 'true' if $n$ is a power of a prime number"
     rules = {
         "PrimePowerQ[1]": "False",
     }
@@ -649,6 +674,7 @@ class RandomPrime(Builtin):
      = {{2, 2}, {2, 2}, {2, 2}}
     """
 
+    summary_text = "gives a random prime between $imin$ and $imax$..."
     messages = {
         "posdim": (
             "The dimensions parameter `1` is expected to be a positive "

@@ -31,6 +31,9 @@ class Automatic(Builtin):
      = {Background :> Automatic, Exclusions :> Automatic, ImageSize :> Automatic, MaxRecursion :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic}
     """
 
+    summary_text = "is used to specify an automatically computed option value"
+    pass
+
 
 class Axes(Builtin):
     """
@@ -49,6 +52,9 @@ class Axes(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is an option for charting and graphics functions that specifies whether axes should be drawn"
+    pass
+
 
 class Axis(Builtin):
     """
@@ -60,6 +66,9 @@ class Axis(Builtin):
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis]
      = -Graphics-
     """
+
+    summary_text = "is a possible value for the 'filling' option"
+    pass
 
 
 class Bottom(Builtin):
@@ -73,6 +82,9 @@ class Bottom(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is a possible value for the 'filling' option"
+    pass
+
 
 class ChartLabels(Builtin):
     """
@@ -85,6 +97,9 @@ class ChartLabels(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is a charting option that specifies what labels should be used for chart elements"
+    pass
+
 
 class ChartLegends(Builtin):
     """
@@ -93,6 +108,9 @@ class ChartLegends(Builtin):
       <dd>is a charting option.
     </dl>
     """
+
+    summary_text = "is a charting option"
+    pass
 
 
 class Filling(Builtin):
@@ -106,6 +124,9 @@ class Filling(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is a an option to plot to specify what filling to add under point, curves, and surfaces"
+    pass
+
 
 class Full(Builtin):
     """
@@ -114,6 +135,9 @@ class Full(Builtin):
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
     </dl>
     """
+
+    summary_text = "is a possible value for the 'mesh' and 'plotrange' options"
+    pass
 
 
 class ImageSize(Builtin):
@@ -136,6 +160,9 @@ class ImageSize(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is an option that specifies the overall size of an image to display"
+    pass
+
 
 class Joined(Builtin):
     """
@@ -148,6 +175,11 @@ class Joined(Builtin):
      = -Graphics-
     """
 
+    summary_text = (
+        "is an option for 'plot' that gives whether to join points to make lines"
+    )
+    pass
+
 
 class MaxRecursion(Builtin):
     """
@@ -159,6 +191,9 @@ class MaxRecursion(Builtin):
     >> NIntegrate[Exp[-10^8 x^2], {x, -1, 1}, MaxRecursion -> 10]
      =  1.97519*^-207
     """
+
+    summary_text = "is an option for functions like nintegrate and plot that specifies how many recursive subdivisions can be made"
+    pass
 
 
 class Mesh(Builtin):
@@ -181,9 +216,11 @@ class Mesh(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "is a charting option, such as for 'plot', 'barchart', 'piechart', etc. that specifies the mesh to be drawn. the default is 'mesh->none'"
     messages = {
         "ilevels": "`1` is not a valid mesh specification.",
     }
+    pass
 
 
 class PlotPoints(Builtin):
@@ -196,6 +233,9 @@ class PlotPoints(Builtin):
     >> Plot[Sin[Cos[x^2]],{x,-4,4}, PlotPoints->22]
      = -Graphics-
     """
+
+    summary_text = "a number specifies how many initial sample points to use"
+    pass
 
 
 class PlotRange(Builtin):
@@ -219,6 +259,9 @@ class PlotRange(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is a charting option, such as for 'plot', 'barchart', 'piechart', etc. that gives the range of coordinates to include in a plot"
+    pass
+
 
 class TicksStyle(Builtin):
     """
@@ -237,6 +280,9 @@ class TicksStyle(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is an option for graphics functions which specifies how ticks should be rendered"
+    pass
+
 
 class Top(Builtin):
     """
@@ -248,3 +294,6 @@ class Top(Builtin):
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis|Top|Bottom]
      = -Graphics-
     """
+
+    summary_text = "is a possible value for the 'filling' option"
+    pass

@@ -176,6 +176,8 @@ class DamerauLevenshteinDistance(_StringDistance):
      = 1
     """
 
+    summary_text = "DamerauLevenshteinDistance summary still not available"
+
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _damerau_levenshtein)
 
@@ -213,6 +215,8 @@ class EditDistance(_StringDistance):
      = 2
     """
 
+    summary_text = "EditDistance summary still not available"
+
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _levenshtein)
 
@@ -235,6 +239,7 @@ class HammingDistance(Builtin):
     = 1
     """
 
+    summary_text = "returns the hamming distance between $u$ and $v$, i.e. the number of different elements. $u$ and $v$ may be lists or strings"
     messages = {
         "idim": "`1` and `2` must be of same length.",
     }

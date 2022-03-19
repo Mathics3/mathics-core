@@ -28,6 +28,8 @@ class LerchPhi(_MPMathFunction):
     mpmath_name = "lerchphi"
     sympy_name = "lerchphi"
 
+    summary_text = "The Lerch Phi function"
+
     def apply(self, z, s, a, evaluation):
         "%(name)s[z_, s_, a_]"
 
@@ -36,7 +38,7 @@ class LerchPhi(_MPMathFunction):
         py_a = a.to_python()
         try:
             return from_mpmath(mpmath.lerchphi(py_z, py_s, py_a))
-        except:
+        except Exception:
             pass
             # return sympy.expand_func(sympy.lerchphi(py_z, py_s, py_a))
 
@@ -55,5 +57,6 @@ class Zeta(_MPMathFunction):
      = 0.0235936 + 0.0014078 I
     """
 
+    summary_text = "The Riemann's Zeta function"
     sympy_name = "zeta"
     mpmath_name = "zeta"

@@ -942,6 +942,8 @@ class ImportFormats(Predefined):
 
     name = "$ImportFormats"
 
+    summary_text = "returns a list of file formats supported by import"
+
     def evaluate(self, evaluation):
         return Expression(SymbolList, *sorted(IMPORTERS.keys()))
 
@@ -959,6 +961,8 @@ class ExportFormats(Predefined):
 
     name = "$ExportFormats"
 
+    summary_text = "returns a list of file formats supported by export"
+
     def evaluate(self, evaluation):
         return Expression(SymbolList, *sorted(EXPORTERS.keys()))
 
@@ -975,6 +979,10 @@ class ConverterDumpsExtensionMappings(Predefined):
     name = "$extensionMappings"
     attributes = no_attributes
 
+    summary_text = (
+        "returns a list of associations between file extensions and file types"
+    )
+
     def evaluate(self, evaluation):
         return from_python(EXTENSIONMAPPINGS)
 
@@ -990,6 +998,10 @@ class ConverterDumpsFormatMappings(Predefined):
     context = "System`ConvertersDump`"
     name = "$formatMappings"
     attributes = no_attributes
+
+    summary_text = (
+        "returns a list of associations between file extensions and file types"
+    )
 
     def evaluate(self, evaluation):
         return from_python(FORMATMAPPINGS)
@@ -1073,6 +1085,7 @@ class RegisterImport(Builtin):
     attributes = protected | read_protected
 
     # XXX OptionsIssue
+    summary_text = "register '$defaultfunction$' as the default function used when importing from a file of type \$format$\"..."
     options = {
         "Path": "Automatic",
         "FunctionChannels": '{"FileNames"}',
@@ -1159,6 +1172,7 @@ class RegisterExport(Builtin):
 
     context = "ImportExport`"
 
+    summary_text = "register '$func$' as the default function used when exporting from a file of type \"$format$'"
     options = {
         "Path": "Automatic",
         "FunctionChannels": '{"FileNames"}',
@@ -1196,6 +1210,7 @@ class URLFetch(Builtin):
     # = ...
     """
 
+    summary_text = "returns the content of $url$ as a string"
     messages = {
         "httperr": "`1` could not be retrieved; `2`.",
     }
@@ -1309,6 +1324,7 @@ class Import(Builtin):
      = {accidental, alter, arpeggiate, ..., words}
     """
 
+    summary_text = "imports data from a file..."
     messages = {
         "nffil": "File not found during Import.",
         "chtype": (
@@ -1586,6 +1602,7 @@ class ImportString(Import):
      = ...
     """
 
+    summary_text = "ImportString summary still not available"
     messages = {
         "string": "First argument `1` is not a string.",
         "noelem": ("The Import element `1` is not present when importing as `2`."),
@@ -1706,6 +1723,9 @@ class Export(Builtin):
 
     """
 
+    summary_text = (
+        "exports $expr$ to a file, using the extension $ext$ to determine the format..."
+    )
     messages = {
         "chtype": "First argument `1` is not a valid file specification.",
         "infer": "Cannot infer format of file `1`.",
@@ -1893,6 +1913,7 @@ class ExportString(Builtin):
      = String
     """
 
+    summary_text = "exports $expr$ to a string, in the format $form$..."
     options = {
         "$OptionSyntax": "System`Ignore",
     }
@@ -2093,6 +2114,9 @@ class FileFormat(Builtin):
      = XML
     """
 
+    summary_text = (
+        "attempts to determine what format 'import' should use to import specified file"
+    )
     messages = {
         "nffil": "File not found during `1`.",
     }
@@ -2167,6 +2191,8 @@ class B64Encode(Builtin):
     context = "System`Convert`B64Dump`"
     name = "B64Encode"
 
+    summary_text = "encodes $expr$ in base64 coding"
+
     def apply(self, expr, evaluation):
         "System`Convert`B64Dump`B64Encode[expr_]"
         if isinstance(expr, String):
@@ -2197,6 +2223,7 @@ class B64Decode(Builtin):
     context = "System`Convert`B64Dump`"
     name = "B64Decode"
 
+    summary_text = "decode $string$ in base64 coding to an expression"
     messages = {
         "b64invalidstr": 'String "`1`" is not a valid b64 encoded string.',
     }
@@ -2224,6 +2251,7 @@ class ConvertCommonDumpRemoveLinearSyntax(Builtin):
     </dl>
     """
 
+    summary_text = "keine anung... undocumented in wma"
     options = {
         "System`Convert`CommonDump`ConvertRecursive": "False",
     }

@@ -254,6 +254,7 @@ class LoadModule(Builtin):
     """
 
     name = "LoadModule"
+    summary_text = "'load mathics definitions from the python module $module$</dd>"
     messages = {
         "notfound": "Python module `1` does not exist.",
         "notmathicslib": "Python module `1` is not a pymathics module.",

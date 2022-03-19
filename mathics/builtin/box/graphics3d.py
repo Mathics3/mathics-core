@@ -31,9 +31,11 @@ from mathics.format.asy_fns import asy_create_pens, asy_number
 
 
 class Graphics3DBox(GraphicsBox):
-    """Routines which get called when Boxing (adding formatting and bounding-box information)
-    a Graphics3D object.
-    """
+    # """Routines which get called when Boxing (adding formatting and bounding-box information)
+    # a Graphics3D object.
+    # """
+
+    summary_text = " is the graphic representation of a 3d graphic"
 
     def _prepare_elements(self, leaves, options, max_width=None):
         if not leaves:
@@ -691,6 +693,8 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
 
 class Arrow3DBox(ArrowBox):
+    summary_text = " is the graphic representation of a 3d arrow"
+
     def init(self, *args, **kwargs):
         super(Arrow3DBox, self).init(*args, **kwargs)
 
@@ -708,9 +712,10 @@ class Arrow3DBox(ArrowBox):
 
 
 class Cone3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cone' object.
-    """
+    # """
+    # Internal Python class used when Boxing a 'Cone' object.
+    # """
+    summary_text = " is the graphic representation of a cone"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -752,9 +757,10 @@ class Cone3DBox(InstanceableBuiltin):
 
 
 class Cuboid3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cuboid' object.
-    """
+    # """
+    # Internal Python class used when Boxing a 'Cuboid' object.
+    # """
+    summary_text = " is the graphic representation of a cuboid"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -780,9 +786,10 @@ class Cuboid3DBox(InstanceableBuiltin):
 
 
 class Cylinder3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cylinder' object.
-    """
+    # """
+    # Internal Python class used when Boxing a 'Cylinder' object.
+    # """
+    summary_text = " is the graphic representation of a cylinder"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -824,6 +831,8 @@ class Cylinder3DBox(InstanceableBuiltin):
 
 
 class Line3DBox(LineBox):
+    summary_text = " is the graphic representation of a 3d straight line"
+
     def init(self, *args, **kwargs):
         super(Line3DBox, self).init(*args, **kwargs)
 
@@ -841,6 +850,8 @@ class Line3DBox(LineBox):
 
 
 class Point3DBox(PointBox):
+    summary_text = " is the graphic representation of a 3d point"
+
     def get_default_face_color(self):
         return RGBColor(components=(0, 0, 0, 1))
 
@@ -867,6 +878,8 @@ class Point3DBox(PointBox):
 
 
 class Polygon3DBox(PolygonBox):
+    summary_text = " is the graphic representation of a 3d polygon"
+
     def init(self, *args, **kwargs):
         self.vertex_normals = None
         super(Polygon3DBox, self).init(*args, **kwargs)
@@ -889,6 +902,8 @@ class Polygon3DBox(PolygonBox):
 
 
 class Sphere3DBox(InstanceableBuiltin):
+    summary_text = " is the graphic representation of a sphere"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
         if len(item.leaves) != 2:
@@ -928,6 +943,8 @@ class Sphere3DBox(InstanceableBuiltin):
 
 
 class Tube3DBox(InstanceableBuiltin):
+    summary_text = " is the graphic representation of a tube"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 

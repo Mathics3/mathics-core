@@ -376,6 +376,7 @@ class TrueQ(Builtin):
      = False
     """
 
+    summary_text = "returns 'true' if and only if $expr$ is 'true'"
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
@@ -407,6 +408,7 @@ class BooleanQ(Builtin):
      = False
     """
 
+    summary_text = "returns 'true' if $expr$ is either 'true' or 'false'"
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
@@ -433,6 +435,7 @@ class Inequality(Builtin):
      = False
     """
 
+    summary_text = "is the head of expressions involving different inequality operators (at least temporarily). thus, it is possible to write chains of inequalities"
     messages = {
         "ineq": (
             "Inequality called with `` arguments; the number of "
@@ -534,6 +537,8 @@ def do_cmp(x1, x2) -> Optional[int]:
 
 
 class SympyComparison(SympyFunction):
+    summary_text = "SympyComparison summary still not available"
+
     def to_sympy(self, expr, **kwargs):
         to_sympy = super(SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
@@ -864,6 +869,7 @@ class Positive(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a positive real number"
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
     }
@@ -893,6 +899,7 @@ class Negative(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a negative real number"
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
     }
@@ -911,6 +918,7 @@ class NonNegative(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a positive real number or zero"
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
     }
@@ -929,6 +937,7 @@ class NonPositive(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a negative real number or zero"
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
     }
@@ -1024,6 +1033,7 @@ class Max(_MinMax):
      = x
     """
 
+    summary_text = "The smallest argument or the largest element of a list"
     sense = 1
 
 
@@ -1058,4 +1068,5 @@ class Min(_MinMax):
      = x
     """
 
+    summary_text = "The largest argument or the largest element of a list"
     sense = -1

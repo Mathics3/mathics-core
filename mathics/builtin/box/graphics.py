@@ -46,6 +46,7 @@ from mathics.core.symbols import SymbolList
 
 from mathics.core.attributes import hold_all, protected, read_protected
 
+
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):
     face_element = None
@@ -135,11 +136,13 @@ class _ArcBox(_RoundBox):
 
 
 class ArrowBox(_Polyline):
+    summary_text = " is a box representation of an arrow"
+
     def init(self, graphics, style, item=None):
         if not item:
             raise BoxConstructError
-
         super(ArrowBox, self).init(graphics, item, style)
+        # super(ArrowBox, self).__init__(graphics, style=style, item=item)
 
         elements = item.elements
         if len(elements) == 2:
@@ -327,6 +330,8 @@ class ArrowBox(_Polyline):
 
 
 class BezierCurveBox(_Polyline):
+    summary_text = " is a box representation of a Bezier curve"
+
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
         if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
@@ -341,22 +346,23 @@ class BezierCurveBox(_Polyline):
 
 
 class CircleBox(_ArcBox):
-    """Boxing class attribute for a Circle."""
-
+    # """Boxing class attribute for a Circle."""
+    summary_text = " is a box representation of a circle"
     face_element = False
 
 
 class DiskBox(_ArcBox):
-    """Boxing class attribute for a Disk."""
-
+    # """Boxing class attribute for a Disk."""
+    summary_text = " is a box representation of a disk"
     face_element = True
 
 
 class GraphicsBox(BoxConstruct):
-    """Boxing method which get called when Boxing (adding formatting and bounding-box information)
-    Graphics.
-    """
+    # """Boxing method which get called when Boxing (adding formatting and bounding-box information)
+    # Graphics.
+    # """
 
+    summary_text = " is a box construction representing graphical objects"
     options = Graphics.options
 
     attributes = hold_all | protected | read_protected
@@ -648,7 +654,7 @@ class GraphicsBox(BoxConstruct):
         # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
         template = (
             '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
-            #'<mglyph  src="data:image/svg+xml;base64,%s"/>'
+            # '<mglyph  src="data:image/svg+xml;base64,%s"/>'
         )
         # print(svg_body)
         mathml = template % (
@@ -910,6 +916,8 @@ clip(%s);
 
 
 class FilledCurveBox(_GraphicsElement):
+    summary_text = "is a box representation of a filled curve"
+
     def init(self, graphics, style, item=None):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -974,6 +982,8 @@ class FilledCurveBox(_GraphicsElement):
 
 
 class InsetBox(_GraphicsElement):
+    summary_text = "is a box representation of an inset inside a graphic"
+
     def init(
         self,
         graphics,
@@ -1023,9 +1033,11 @@ class InsetBox(_GraphicsElement):
 
 
 class LineBox(_Polyline):
-    """
-    Boxing methods for a list of Line.
-    """
+    # """
+    # Boxing methods for a list of Line.
+    # """
+
+    summary_text = "is a box representation of a straight line"
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1042,13 +1054,15 @@ class LineBox(_Polyline):
 
 
 class PointBox(_Polyline):
-    """
-    Boxing methods for a list of Point.
+    # """
+    # Boxing methods for a list of Point.
+    #
+    # object attributes:
+    # edge_color: _Color
+    # point_radius: radius of each point
+    # """
 
-    object attributes:
-    edge_color: _Color
-    point_radius: radius of each point
-    """
+    summary_text = "is a box representation of a point"
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
@@ -1089,6 +1103,8 @@ class PointBox(_Polyline):
 
 
 class PolygonBox(_Polyline):
+    summary_text = "is a box representation of a polygon"
+
     def init(self, graphics, style, item=None):
         super(PolygonBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -1133,6 +1149,8 @@ class PolygonBox(_Polyline):
 
 
 class RectangleBox(_GraphicsElement):
+    summary_text = "is a box representation of a rectangle"
+
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
@@ -1156,6 +1174,8 @@ class RectangleBox(_GraphicsElement):
 
 
 class RegularPolygonBox(PolygonBox):
+    summary_text = "is a box representation of a regular polygon"
+
     def init(self, graphics, style, item):
         if len(item.elements) in (1, 2, 3) and isinstance(item.elements[-1], Integer):
             r = 1.0

@@ -67,6 +67,7 @@ class Function(PostfixOperator):
     precedence = 90
     attributes = hold_all | protected
 
+    summary_text = "represents a pure function with parameters '#1', '#2', etc..."
     messages = {
         "slot": "`1` should contain a positive integer.",
         "slotn": "Slot number `1` cannot be filled.",
@@ -103,7 +104,7 @@ class Function(PostfixOperator):
             vars = dict(list(zip(var_names, args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
     # Not sure if DRY is possible here...
@@ -121,7 +122,7 @@ class Function(PostfixOperator):
             vars = dict(list(zip((var.get_name() for var in vars), args[: len(vars)])))
             try:
                 return body.replace_vars(vars)
-            except:
+            except Exception:
                 return
 
 
@@ -156,6 +157,7 @@ class Slot(Builtin):
 
     attributes = n_hold_all | protected
 
+    summary_text = "represents the $n$th argument to a pure function..."
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -188,6 +190,7 @@ class SlotSequence(Builtin):
 
     attributes = n_hold_all | protected
 
+    summary_text = "is the sequence of arguments supplied to a pure function..."
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
         "MakeBoxes[SlotSequence[n_Integer?Positive],"
@@ -218,6 +221,7 @@ class Composition(Builtin):
 
     attributes = flat | one_identity | protected
 
+    summary_text = "returns the composition of two functions $f$ and $g$"
     rules = {
         "Composition[]": "Identity",
     }
@@ -245,6 +249,7 @@ class Identity(Builtin):
      = Identity[x, y]
     """
 
+    summary_text = "is the identity function, which returns $x$ unchanged"
     rules = {
         "Identity[x_]": "x",
     }

@@ -1133,7 +1133,7 @@ if sys.platform != "win32" and ("Pyston" not in sys.version):
             except TimeoutInterrupt:
                 evaluation.timeout_queue.pop()
                 return failexpr.evaluate(evaluation)
-            except:
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()

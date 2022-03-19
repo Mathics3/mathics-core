@@ -218,10 +218,12 @@ def parse_xml(parse, text, evaluation):
 
 
 class XMLObject(Builtin):
+    summary_text = "XMLObject summary still not available"
     pass
 
 
 class XMLElement(Builtin):
+    summary_text = "XMLElement summary still not available"
     pass
 
 
@@ -242,6 +244,8 @@ class _Get(Builtin):
 
 
 class XMLGet(_Get):
+    summary_text = "XMLGet summary still not available"
+
     def _parse(self, text):
         return parse_xml_file(text)
 
@@ -255,6 +259,8 @@ class XMLGetString(_Get):
      = $Failed
      : Extra content at the end of the document, line 1, column 8.
     """
+
+    summary_text = "XMLGetString summary still not available"
 
     def _parse(self, text):
         with BytesIO() as f:
@@ -270,6 +276,8 @@ class PlaintextImport(Builtin):
     """
 
     context = "XML`"
+
+    summary_text = "PlaintextImport summary still not available"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
@@ -294,6 +302,7 @@ class TagsImport(Builtin):
     """
 
     context = "XML`"
+    summary_text = "TagsImport summary still not available"
 
     @staticmethod
     def _tags(root):
@@ -325,6 +334,8 @@ class XMLObjectImport(Builtin):
     """
 
     context = "XML`"
+
+    summary_text = "XMLObjectImport summary still not available"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""

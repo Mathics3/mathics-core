@@ -4,9 +4,13 @@ from mathics.builtin.base import BoxConstruct
 
 
 class CompiledCodeBox(BoxConstruct):
-    """Routines which get called when Boxing (adding formatting and bounding-box information)
-    to CompiledCode.
-    """
+    # """
+    # Routines which get called when Boxing
+    # (adding formatting and bounding-box information)
+    # to CompiledCode.
+    # """
+
+    summary_text = "is a box representing a block of compiled code"
 
     def boxes_to_text(self, elements=None, **options):
         if elements is None:

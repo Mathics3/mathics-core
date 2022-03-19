@@ -84,6 +84,8 @@ class Input(Predefined):
     attributes = protected | read_protected
     name = "$Input"
 
+    summary_text = "is the name of the stream from which input is currently being read"
+
     def evaluate(self, evaluation):
         global INPUT_VAR
         return String(INPUT_VAR)
@@ -102,6 +104,8 @@ class InputFileName(Predefined):
 
     name = "$InputFileName"
 
+    summary_text = "is the name of the file from which input is currently being read"
+
     def evaluate(self, evaluation):
         global INPUTFILE_VAR
         return String(INPUTFILE_VAR)
@@ -115,6 +119,9 @@ class EndOfFile(Builtin):
     </dl>
     """
 
+    summary_text = "is returned by 'read' when the end of an input stream is reached"
+    pass
+
 
 # TODO: Improve docs for these Read[] arguments.
 class Byte(Builtin):
@@ -125,6 +132,9 @@ class Byte(Builtin):
     </dl>
     """
 
+    summary_text = "is a data type for 'read'"
+    pass
+
 
 class Character(Builtin):
     """
@@ -133,6 +143,9 @@ class Character(Builtin):
       <dd>is a data type for 'Read'.
     </dl>
     """
+
+    summary_text = "is a data type for 'read'"
+    pass
 
 
 class Expression_(Builtin):
@@ -145,6 +158,7 @@ class Expression_(Builtin):
     For information about underlying data structure Expression (a kind of M-expression) that is central in evaluation, see: <url>https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>
     """
 
+    summary_text = "is a data type for 'read'"
     name = "Expression"
 
 
@@ -156,6 +170,7 @@ class Number_(Builtin):
     </dl>
     """
 
+    summary_text = "is a data type for 'read'"
     name = "Number"
 
 
@@ -167,6 +182,9 @@ class Record(Builtin):
     </dl>
     """
 
+    summary_text = "is a data type for 'read'"
+    pass
+
 
 class Word(Builtin):
     """
@@ -175,6 +193,9 @@ class Word(Builtin):
       <dd>is a data type for 'Read'.
     </dl>
     """
+
+    summary_text = "is a data type for 'read'"
+    pass
 
 
 class Read(Builtin):
@@ -331,6 +352,7 @@ class Read(Builtin):
 
     """
 
+    summary_text = "reads the input stream and returns one expression..."
     messages = {
         "openx": "`1` is not open.",
         "readf": "`1` is not a valid format specification.",
@@ -587,6 +609,8 @@ class Write(Builtin):
      = {10 x + 15 y ^ 2, 3 Sin[z]}
     #> Close[stream];
     """
+
+    summary_text = "writes the expressions to the output channel followed by a newline"
 
     def apply(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
@@ -1170,6 +1194,7 @@ class BinaryWrite(Builtin):
      = {148, 135, 230, 22, 136, 141, 234, 99}
     """
 
+    summary_text = "writes a single byte given as an integer from 0 to 255..."
     messages = {
         "writex": "`1`.",
     }
@@ -1535,6 +1560,7 @@ class BinaryRead(Builtin):
 
     readers = _BinaryFormat.get_readers()
 
+    summary_text = "reads one byte from the stream as an integer from 0 to 255..."
     messages = {
         "format": "`1` is not a recognized binary format.",
         "openw": "`1` is open for output.",
@@ -1638,6 +1664,7 @@ class WriteString(Builtin):
 
     """
 
+    summary_text = "writes the strings to the output stream"
     messages = {
         "strml": ("`1` is not a string, stream, " "or list of strings and streams."),
         "writex": "`1`.",
@@ -1793,6 +1820,7 @@ class OpenRead(_OpenAction):
     #> Close[%];
     """
 
+    summary_text = "Open a file in read-only mode"
     mode = "r"
     stream_type = "InputStream"
 
@@ -1813,6 +1841,7 @@ class OpenWrite(_OpenAction):
     #> Close[%];
     """
 
+    summary_text = "Open a file in read-write mode"
     mode = "w"
     stream_type = "OutputStream"
 
@@ -1836,6 +1865,7 @@ class OpenAppend(_OpenAction):
     #> DeleteFile["MathicsNonExampleFile"]
     """
 
+    summary_text = "Open a file for append"
     mode = "a"
     stream_type = "OutputStream"
 
@@ -1878,6 +1908,9 @@ class Get(PrefixOperator):
 
     operator = "<<"
     precedence = 720
+    summary_text = (
+        "reads a file and evaluates each expression, returning only the last one..."
+    )
     options = {
         "Trace": "False",
     }
@@ -1995,6 +2028,8 @@ class Put(BinaryOperator):
     operator = ">>"
     precedence = 30
 
+    summary_text = "write $expr$ to a file..."
+
     def apply(self, exprs, filename, evaluation):
         "Put[exprs___, filename_String]"
         instream = Expression("OpenWrite", filename).evaluate(evaluation)
@@ -2084,6 +2119,8 @@ class PutAppend(BinaryOperator):
     operator = ">>>"
     precedence = 30
 
+    summary_text = "append $expr$ to a file..."
+
     def apply(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
         instream = Expression("OpenAppend", filename).evaluate(evaluation)
@@ -2172,6 +2209,7 @@ class ReadList(Read):
      = {123, abc}
     """
 
+    summary_text = "ReadList summary still not available"
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -2264,6 +2302,7 @@ class FilePrint(Builtin):
      = FilePrint[]
     """
 
+    summary_text = "prints the raw contents of $file$"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -2352,6 +2391,7 @@ class Close(Builtin):
      = Close[OutputStream[...]]
     """
 
+    summary_text = "closes an input or output stream"
     messages = {
         "closex": "`1`.",
     }
@@ -2391,6 +2431,8 @@ class StreamPosition(Builtin):
     >> StreamPosition[stream]
      = 7
     """
+
+    summary_text = "returns the current position in a stream as an integer"
 
     def apply_input(self, name, n, evaluation):
         "StreamPosition[InputStream[name_, n_]]"
@@ -2442,6 +2484,7 @@ class SetStreamPosition(Builtin):
      = ERROR_MESSAGE_HERE
     """
 
+    summary_text = "sets the current position in a stream"
     messages = {
         "int": "Integer expected at position 2 in `1`.",
         "stmrng": (
@@ -2520,6 +2563,7 @@ class Skip(Read):
     #> Close[stream];
     """
 
+    summary_text = "Skip summary still not available"
     rules = {
         "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
     }
@@ -2589,6 +2633,7 @@ class Find(Read):
      = ...
     """
 
+    summary_text = "Find summary still not available"
     options = {
         "AnchoredSearch": "False",
         "IgnoreCase": "False",
@@ -2652,6 +2697,9 @@ class InputStream(Builtin):
      = String
     """
 
+    summary_text = "represents an input stream"
+    pass
+
 
 class OutputStream(Builtin):
     """
@@ -2665,6 +2713,9 @@ class OutputStream(Builtin):
     >> Close[%]
      = ...
     """
+
+    summary_text = "represents an output stream"
+    pass
 
 
 class StringToStream(Builtin):
@@ -2686,6 +2737,8 @@ class StringToStream(Builtin):
     #> Close[strm]
      = String
     """
+
+    summary_text = "converts a $string$ to an open input stream"
 
     def apply(self, string, evaluation):
         "StringToStream[string_]"
@@ -2718,6 +2771,8 @@ class Streams(Builtin):
     #> Streams["some_nonexistant_name"]
      = {}
     """
+
+    summary_text = "returns a list of all open streams"
 
     def apply(self, evaluation):
         "Streams[]"

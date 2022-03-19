@@ -38,6 +38,10 @@ class Minimize(Builtin):
 
     attributes = protected | read_protected
 
+    summary_text = (
+        "compute the minimum of $f$ respect $x$ that change between $a$ and $b$"
+    )
+
     def apply_onevariable(self, f, x, evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
 
@@ -365,6 +369,10 @@ class Maximize(Builtin):
     """
 
     attributes = protected | read_protected
+
+    summary_text = (
+        "compute the maximum of $f$ respect $x$ that change between $a$ and $b$"
+    )
 
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"

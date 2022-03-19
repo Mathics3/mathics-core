@@ -383,6 +383,8 @@ class Cancel(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "cancels out common factors in numerators and denominators"
+
     def apply(self, expr, evaluation):
         "Cancel[expr_]"
 
@@ -405,23 +407,24 @@ class Simplify(Builtin):
     >> Simplify[f[x]]
      = f[x]
 
-    Simplify over conditional expressions uses $\$Assumptions$, or $assump$
+    Simplify over conditional expressions uses '$Assumptions', or 'assump'
     to evaluate the condition:
     >> $Assumptions={a <= 0};
     >> Simplify[ConditionalExpression[1, a > 0]]
      = Undefined
-    The $assump$ option  override $\$Assumption$:
+    The 'assump' option  override '$Assumption':
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], { b > 0 }]
      = ConditionalExpression[1, a > 0]
-    On the other hand, $Assumptions$ option does not override $\$Assumption$, but add to them:
+    On the other hand, '$Assumptions option does not override '$Assumption', but add to them:
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], Assumptions -> { b > 0 }]
      = Undefined
-    Passing both options overwrites $Assumptions with the union of $assump$ the option
+    Passing both options overwrites '$Assumptions' with the union of 'assump' the option
     >> Simplify[ConditionalExpression[1, a > 0] ConditionalExpression[1, b > 0], {a>0},Assumptions -> { b > 0 }]
      = 1
     >> $Assumptions={};
     """
 
+    summary_text = "simplifies $expr$..."
     rules = {
         "Simplify[list_List]": "Simplify /@ list",
         "Simplify[rule_Rule]": "Simplify /@ rule",
@@ -522,6 +525,7 @@ class FullSimplify(Simplify):
 
     """
 
+    summary_text = "FullSimplify summary still not available"
     rules = {
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
@@ -550,6 +554,8 @@ class Together(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "writes sums of fractions in $expr$ together"
 
     def apply(self, expr, evaluation):
         "Together[expr_]"
@@ -582,6 +588,8 @@ class Factor(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "factors the polynomial expression $expr$"
 
     def apply(self, expr, evaluation):
         "Factor[expr_]"
@@ -632,6 +640,7 @@ class FactorTermsList(Builtin):
      = {-3, 1 - a - y + a y, -1 + 2 x}
     """
 
+    summary_text = "returns a list of 2 elements. the first element is the numerical factor in $poly$. the second one is the remaining of the polynomial with numerical factor removed..."
     rules = {
         "FactorTermsList[expr_]": "FactorTermsList[expr, {}]",
         "FactorTermsList[expr_, var_]": "FactorTermsList[expr, {var}]",
@@ -744,6 +753,7 @@ class Apart(Builtin):
     """
 
     attributes = listable | protected
+    summary_text = "writes $expr$ as a sum of individual fractions..."
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"
@@ -866,6 +876,8 @@ class Expand(_Expand):
      = 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3
     """
 
+    summary_text = "Expand summary still not available"
+
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
@@ -913,6 +925,8 @@ class ExpandDenominator(_Expand):
      = 2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)
     """
 
+    summary_text = "ExpandDenominator summary still not available"
+
     def apply(self, expr, evaluation, options):
         "ExpandDenominator[expr_, OptionsPattern[ExpandDenominator]]"
 
@@ -953,6 +967,8 @@ class ExpandAll(_Expand):
      = (1 + 2 a ^ 3 + a ^ 6) / (x ^ 3 + y ^ 3)
 
     """
+
+    summary_text = "ExpandAll summary still not available"
 
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
@@ -996,6 +1012,7 @@ class PowerExpand(Builtin):
      = x
     """
 
+    summary_text = "expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$"
     rules = {
         "PowerExpand[(x_ ^ y_) ^ z_]": "x ^ (y * z)",
         "PowerExpand[(x_ * y_) ^ z_]": "x ^ z * y ^ z",
@@ -1026,6 +1043,8 @@ class Numerator(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the numerator in $expr$"
+
     def apply(self, expr, evaluation):
         "Numerator[expr_]"
 
@@ -1052,6 +1071,8 @@ class Denominator(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "gives the denominator in $expr$"
 
     def apply(self, expr, evaluation):
         "Denominator[expr_]"
@@ -1086,6 +1107,8 @@ class Variables(Builtin):
      = {}
     """
 
+    summary_text = "gives a list of the variables that appear in the polynomial $expr$"
+
     def apply(self, expr, evaluation):
         "Variables[expr_]"
 
@@ -1097,6 +1120,7 @@ class Variables(Builtin):
 
 
 class UpTo(Builtin):
+    summary_text = "UpTo summary still not available"
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
@@ -1133,6 +1157,7 @@ class MinimalPolynomial(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the minimal polynomial in $x$ for which the algebraic number $s$ is a root"
     messages = {
         "nalg": "`1` is not an explicit algebraic number.",
     }
@@ -1213,6 +1238,7 @@ class PolynomialQ(Builtin):
     ##  = False
     """
 
+    summary_text = "returns true if $expr$ is a polynomial in $var$, and returns false otherwise..."
     messages = {
         "argt": "PolynomialQ called with `1` arguments; 1 or 2 arguments are expected.",
         "novar": "No variable is not supported in PolynomialQ.",
@@ -1330,6 +1356,7 @@ class Coefficient(Builtin):
     ##  = {2, 1, 7}
     """
 
+    summary_text = "returns the coefficient of $form$ in the polynomial $expr$..."
     messages = {
         "argtu": "Coefficient called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
@@ -1387,6 +1414,7 @@ class CoefficientList(Builtin):
      = CoefficientList[x / y, {x, y}]
     """
 
+    summary_text = "returns a list of coefficients of powers of $var$ in $poly$, starting with power 0..."
     messages = {
         "argtu": "CoefficientList called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
@@ -1509,6 +1537,7 @@ class Exponent(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns the maximum power with which $form$ appears in the expanded form of $expr$..."
     messages = {
         "argtu": "Exponent called with `1` argument; 2 or 3 arguments are expected.",
     }
@@ -1773,6 +1802,7 @@ class CoefficientArrays(_CoefficientHandler):
      = CoefficientArrays[(x + y + Sin[z]) ^ 3, {x, z}]
     """
 
+    summary_text = "CoefficientArrays summary still not available"
     options = {
         "Symmetric": "False",
     }
@@ -1874,6 +1904,7 @@ class Collect(_CoefficientHandler):
      = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
     """
 
+    summary_text = "Collect summary still not available"
     rules = {
         "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
     }

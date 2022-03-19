@@ -150,6 +150,8 @@ class _Get(_HTMLBuiltin):
 
 
 class HTMLGet(_Get):
+    summary_text = "HTMLGet summary still not available"
+
     def _parse(self, text):
         return parse_html_file(text)
 
@@ -162,6 +164,8 @@ class HTMLGetString(_Get):
     #> Head[HTML`Parser`HTMLGetString["<a><b></a>"]]
      = XMLObject[Document]
     """
+
+    summary_text = "HTMLGetString summary still not available"
 
     def _parse(self, text):
         with BytesIO() as f:
@@ -248,6 +252,10 @@ class _DataImport(_TagImport):
 
 class DataImport(_DataImport):
     """
+    <dl>
+    <dt>'DataImport[...]'
+    <dd> is a data structure that holds data imported from an html file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Data"][[1, 1, 2, 3]]
      = {Washington, D.C., 77...03′56.07″ W (1897) or 77...04′02.24″ W (NAD 27) or 77...04′01.16″ W (NAD 83), New Naval Observatory meridian}
 
@@ -255,6 +263,7 @@ class DataImport(_DataImport):
      = 3
     """
 
+    summary_text = "Contains the data imported from an HTML"
     full_data = False
     tag_name = "Data"
 
@@ -262,6 +271,7 @@ class DataImport(_DataImport):
 class FullDataImport(_DataImport):
     full_data = True
     tag_name = "FullData"
+    summary_text = "Contains the totality of the data imported from an HTML"
 
 
 class _LinksImport(_TagImport):
@@ -274,11 +284,19 @@ class _LinksImport(_TagImport):
 
 class HyperlinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'HyperlinksImport[...]'
+    <dd> is a data structure that holds the hyperlinks imported from an html file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Hyperlinks"][[1]]
      = /wiki/Prime_meridian_(Greenwich)
     """
 
     tag_name = "Hyperlinks"
+
+    summary_text = (
+        "is a data structure that holds all the links appearing in a html file"
+    )
 
     def _links(self, tree):
         for link in tree.xpath("//a"):
@@ -289,11 +307,18 @@ class HyperlinksImport(_LinksImport):
 
 class ImageLinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'ImageLinksImport[...]'
+    <dd> is a data structure that holds the hyperlinks to images included into a html file.
+    </dl>
+
     >> Import["ExampleData/PrimeMeridian.html", "ImageLinks"][[6]]
      = //upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Prime_meridian.jpg/180px-Prime_meridian.jpg
     """
 
     tag_name = "ImageLinks"
+
+    summary_text = " are the links to the images contained in a html file"
 
     def _links(self, tree):
         for link in tree.xpath("//img"):
@@ -304,11 +329,17 @@ class ImageLinksImport(_LinksImport):
 
 class PlaintextImport(_TagImport):
     """
+    <dl>
+    <dt>'PlaintextImport[...]'
+    <dd> is a data structure that holds the plane text imported from a html file.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html"], RegularExpression["Wiki[a-z]+"]]]
      = {Wikipedia, Wikidata, Wikibase, Wikimedia}
     """
 
     tag_name = "Plaintext"
+
+    summary_text = " is the plain text included in a html file"
 
     def _import(self, tree):
         def lines():
@@ -322,9 +353,15 @@ class PlaintextImport(_TagImport):
 
 class SourceImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'SourceImport[...]'
+    <dd> is a data structure that holds the source of the html imported.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html", "Source"], RegularExpression["<t[a-z]+>"]]]
      = {<title>, <tr>, <th>, <td>}
     """
+
+    summary_text = " is the source of the html imported."
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
@@ -340,11 +377,17 @@ class SourceImport(_HTMLBuiltin):
 
 class TitleImport(_TagImport):
     """
+    <dl>
+    <dt>'TitleImport[...]'
+    <dd> is the title of the html file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Title"]
      = Prime meridian - Wikipedia
     """
 
     tag_name = "Title"
+
+    summary_text = "is the title of the imported html file"
 
     def _import(self, tree):
         for node in tree.xpath("//title"):
@@ -354,9 +397,15 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'XMLObjectImport[...]'
+    <dd> is the data structure containing the XML objects imported from a html file.
+    </dl>
     >> Part[Import["ExampleData/PrimeMeridian.html", "XMLObject"], 2, 3, 1, 3, 2]
      = XMLElement[title, {}, {Prime meridian - Wikipedia}]
     """
+
+    summary_text = " are the xml objects imported from a html file"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
