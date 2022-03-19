@@ -778,7 +778,7 @@ class Root(SympyFunction):
     }
 
     sympy_name = "CRootOf"
-    summary_text = "the i-esim root of a polinomial."
+    summary_text = "the i-th root of a polynomial."
 
     def apply(self, f, i, evaluation):
         "Root[f_, i_]"
@@ -1099,8 +1099,8 @@ class Solve(Builtin):
 class Integers(Builtin):
     """
     <dl>
-    <dt>'Integers'
-        <dd>is the set of integer numbers.
+      <dt>'Integers'
+      <dd>the domain of integer numbers, as in $x$ in Integers.
     </dl>
 
     Limit a solution to integer numbers:
@@ -1110,14 +1110,14 @@ class Integers(Builtin):
      = {}
     """
 
-    summary_text = "The set of the Integer numbers"
+    summary_text = "the domain integers numbers"
 
 
 class Reals(Builtin):
     """
     <dl>
     <dt>'Reals'
-        <dd>is the set of real numbers.
+        <dd>is the domain real numbers, as in $x$ in Reals.
     </dl>
 
     Limit a solution to real numbers:
@@ -1125,18 +1125,18 @@ class Reals(Builtin):
      = {{x -> 1}}
     """
 
-    summary_text = "The set of the Real numbers"
+    summary_text = "the domain of the Real numbers"
 
 
 class Complexes(Builtin):
     """
     <dl>
     <dt>'Complexes'
-        <dd>is the set of complex numbers.
+        <dd>the domain of complex numbers, as in $x$ in Complexes.
     </dl>
     """
 
-    summary_text = "The set of the complex numbers"
+    summary_text = "the domain complex numbers"
 
 
 class Limit(Builtin):
@@ -1526,7 +1526,7 @@ class FindMinimum(_BaseFinder):
     """
 
     methods = {}
-    summary_text = "Looks for a local minimum."
+    summary_text = "local minimum optimization"
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
 
@@ -1569,7 +1569,7 @@ class FindMaximum(_BaseFinder):
     """
 
     methods = {}
-    summary_text = "Looks for a local maximum."
+    summary_text = "local maximum optimization"
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
 
@@ -1689,7 +1689,7 @@ class SeriesData(Builtin):
      = -x + a x ^ 2 + O[x] ^ 3
     """
 
-    summary_text = "Mathics representation Power series"
+    summary_text = "power series of a variable about a point"
     precedence = 1000
 
     def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
@@ -2071,7 +2071,7 @@ class NIntegrate(Builtin):
     methods = {
         "Automatic": (None, False),
     }
-    summary_text = "Numerical integration"
+    summary_text = "numerical integration"
     try:
         from mathics.algorithm.integrators import (
             integrator_methods,

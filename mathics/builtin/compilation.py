@@ -173,7 +173,7 @@ class Compile(Builtin):
 
 class CompiledCode(Atom):
     class_head_name = "System`CompiledCode"
-    summary_text = "An atom containing compiled code."
+    summary_text = "A CompiledCode object."
 
     def __init__(self, cfunc, args, **kwargs):
         super(CompiledCode, self).__init__(**kwargs)
@@ -239,7 +239,7 @@ class CompiledFunction(Builtin):
     """
 
     messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
-    summary_text = "The result of compiling an expression."
+    summary_text = "A CompiledFunction object."
 
     def apply(self, argnames, expr, code, args, evaluation):
         "CompiledFunction[argnames_, expr_, code_CompiledCode][args__]"
