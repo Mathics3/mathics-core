@@ -29,3 +29,4 @@ class RegularExpression(Builtin):
      : Element RegularExpression[2] is not a valid string or pattern element in RegularExpression[2].
      = StringSplit[ab23c, RegularExpression[2]]
     """
+    summary_text = "string to regular expression."

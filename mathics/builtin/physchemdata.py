@@ -101,6 +101,8 @@ class ElementData(Builtin):
         'ElementData["Properties"]': 'ElementData[All, "Properties"]',
     }
 
+    summary_text = "Data about chemical elements"
+
     messages = {
         "noent": (
             "`1` is not a known entity, class, or tag for ElementData. "
