@@ -283,7 +283,7 @@ class Definition(Builtin):
                         Expression("Attributes", symbol),
                         Expression(
                             "List",
-                            *attributes_list
+                            *(Symbol(attribute) for attribute in attributes_list)
                         ),
                     ),
                 )
@@ -520,7 +520,7 @@ class Information(PrefixOperator):
                         Expression("Attributes", symbol),
                         Expression(
                             "List",
-                            *attributes_list
+                            *(Symbol(attribute) for attribute in attributes_list)
                         ),
                     ),
                 )

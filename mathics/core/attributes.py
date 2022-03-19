@@ -18,8 +18,6 @@
 # attributes = ~ATTRIBUTE_NAME & attributes
 
 from typing import Dict, List
-from mathics.core.symbols import Symbol
-
 
 # fmt: off
 no_attributes     = 0b0000000000000000
@@ -44,24 +42,24 @@ read_protected    = 0b01000000000000000
 sequence_hold     = 0b10000000000000000
 # fmt: on
 
-attribute_number_to_symbol: Dict[int, Symbol] = {
-    constant: Symbol("System`Constant"),
-    flat: Symbol("System`Flat"),
-    hold_all: Symbol("System`HoldAll"),
-    hold_all_complete: Symbol("System`HoldAllComplete"),
-    hold_first: Symbol("System`HoldFirst"),
-    hold_rest: Symbol("System`HoldRest"),
-    listable: Symbol("System`Listable"),
-    locked: Symbol("System`Locked"),
-    n_hold_all: Symbol("System`NHoldAll"),
-    n_hold_first: Symbol("System`NHoldFirst"),
-    n_hold_rest: Symbol("System`NHoldRest"),
-    numeric_function: Symbol("System`NumericFunction"),
-    one_identity: Symbol("System`OneIdentity"),
-    orderless: Symbol("System`Orderless"),
-    protected: Symbol("System`Protected"),
-    read_protected: Symbol("System`ReadProtected"),
-    sequence_hold: Symbol("System`SequenceHold"),
+attribute_number_to_string: Dict[int, str] = {
+    constant: "System`Constant",
+    flat: "System`Flat",
+    hold_all: "System`HoldAll",
+    hold_all_complete: "System`HoldAllComplete",
+    hold_first: "System`HoldFirst",
+    hold_rest: "System`HoldRest",
+    listable: "System`Listable",
+    locked: "System`Locked",
+    n_hold_all: "System`NHoldAll",
+    n_hold_first: "System`NHoldFirst",
+    n_hold_rest: "System`NHoldRest",
+    numeric_function: "System`NumericFunction",
+    one_identity: "System`OneIdentity",
+    orderless: "System`Orderless",
+    protected: "System`Protected",
+    read_protected: "System`ReadProtected",
+    sequence_hold: "System`SequenceHold",
 }
 
 attribute_string_to_number: Dict[str, int] = {
