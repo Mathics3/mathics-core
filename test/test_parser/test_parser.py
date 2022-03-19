@@ -93,9 +93,18 @@ class AtomTests(ParserTests):
     def testSpecialSymbol(self):
         self.check("\\[Pi]", "Pi")
         self.check("\\[Degree]", "Degree")
-        self.check("\\[ExponentialE]", "E")
-        self.check("\\[ImaginaryI]", "I")
-        self.check("\\[ImaginaryJ]", "I")
+
+        # For now, the way we'll test for Unicode is simply to see
+        # if E gets turned into a unicode symbol
+        if "\\[ExponentialE]" == "E":
+            self.check("\\[ExponentialE]", "E")
+            self.check("\\[ImaginaryJ]", "I")
+            self.check("\\[ImaginaryI]", "I")
+        else:
+            # Unicode is bleeding through, so check the unicode symbols instead.
+            self.check("\\[ExponentialE]", "\u2147")
+            self.check("\\[ImaginaryJ]", "\u2149")
+            self.check("\\[ImaginaryI]", "\u2148")
         self.check("\\[Infinity]", "Infinity")
 
     def testNumber(self):
