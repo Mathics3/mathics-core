@@ -1109,6 +1109,8 @@ class Integers(Builtin):
      = {}
     """
 
+    summary_text = "The set of the Integer numbers"
+
 
 class Reals(Builtin):
     """
@@ -1122,6 +1124,8 @@ class Reals(Builtin):
      = {{x -> 1}}
     """
 
+    summary_text = "The set of the Real numbers"
+
 
 class Complexes(Builtin):
     """
@@ -1130,6 +1134,8 @@ class Complexes(Builtin):
         <dd>is the set of complex numbers.
     </dl>
     """
+
+    summary_text = "The set of the complex numbers"
 
 
 class Limit(Builtin):
@@ -1467,6 +1473,10 @@ class FindRoot(_BaseFinder):
     }
 
     methods = {}
+    summary_text = (
+        "Looks for a root of an equation or a zero of a numerical expression."
+    )
+
     try:
         from mathics.algorithm.optimizers import native_findroot_methods
 
@@ -1557,6 +1567,7 @@ class FindMaximum(_BaseFinder):
     """
 
     methods = {}
+    summary_text = "Looks for a local maximum"
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
 
@@ -2058,7 +2069,7 @@ class NIntegrate(Builtin):
     methods = {
         "Automatic": (None, False),
     }
-
+    summary_text = "Numerical integration"
     try:
         from mathics.algorithm.integrators import (
             integrator_methods,
