@@ -81,6 +81,11 @@ class AssocTests(ParserTests):
 
 
 class AtomTests(ParserTests):
+    def has_unicode_setup_in_scanner(self) -> bool:
+        """Return True if the Mathics scanner is set up to
+        return standard Unicode symbols for various custom WL characters"""
+        return repr(self.parse("\\[ExponentialE]")) != "E"
+
     def check_number(self, s):
         self.assertEqual(self.parse(s), Number(s))
 
@@ -93,9 +98,18 @@ class AtomTests(ParserTests):
     def testSpecialSymbol(self):
         self.check("\\[Pi]", "Pi")
         self.check("\\[Degree]", "Degree")
-        self.check("\\[ExponentialE]", "E")
-        self.check("\\[ImaginaryI]", "I")
-        self.check("\\[ImaginaryJ]", "I")
+
+        # For now, the way we'll test for Unicode is simply to see
+        # if E gets turned into a unicode symbol
+        if self.has_unicode_setup_in_scanner():
+            # Unicode is bleeding through, so check the unicode symbols instead.
+            self.check("\\[ExponentialE]", "\u2147")
+            self.check("\\[ImaginaryJ]", "\u2149")
+            self.check("\\[ImaginaryI]", "\u2148")
+        else:
+            self.check("\\[ExponentialE]", "E")
+            self.check("\\[ImaginaryJ]", "I")
+            self.check("\\[ImaginaryI]", "I")
         self.check("\\[Infinity]", "Infinity")
 
     def testNumber(self):
