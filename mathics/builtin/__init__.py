@@ -15,6 +15,13 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from typing import List
 
+# Set this to True to print all the builtins that do not have
+# a summary_text. In the future, we can set this to True
+# and raise an error if a new builtin is added without
+# this property or if do not fulfills some other conditions.
+CHECK_SUMMARY_TEXTS = False
+
+
 # Get a list of files in this directory. We'll exclude from the start
 # files with leading characters we don't want like __init__ with its leading underscore.
 __py_files__ = [
@@ -199,6 +206,13 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
+                if CHECK_SUMMARY_TEXTS:
+                    if not hasattr(var, "summary_text"):
+                        print(
+                            "module.__name__",
+                            var.__name__,
+                            " does not have a summary_text.",
+                        )
                 _builtins.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
