@@ -35,6 +35,8 @@ class KnownUnitQ(Test):
      = False
     """
 
+    summary_text = "Checks if its argument is a canonical unit."
+
     def test(self, expr):
         def validate(unit):
             try:
@@ -82,6 +84,7 @@ class UnitConvert(Builtin):
     messages = {
         "argrx": "UnitConvert called with `1` arguments; 2 arguments are expected"
     }
+    summary_text = "Conversion between units."
 
     def apply(self, expr, toUnit, evaluation):
         "UnitConvert[expr_, toUnit_]"
@@ -185,6 +188,7 @@ class Quantity(Builtin):
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",
     }
+    summary_text = "Quantity with units."
 
     def validate(self, unit, evaluation):
         if KnownUnitQ(unit).evaluate(evaluation) is Symbol("False"):
@@ -251,6 +255,8 @@ class QuantityQ(Test):
      = False
     """
 
+    summary_text = "Checks if the argument is a quantity."
+
     def test(self, expr):
         def validate_unit(unit):
             try:
@@ -300,6 +306,8 @@ class QuantityUnit(Builtin):
      : Unable to interpret unit specification aaa.
      = QuantityUnit[Quantity[10,aaa]]
     """
+
+    summary_text = "The unit associated to a quantity."
 
     def apply(self, expr, evaluation):
         "QuantityUnit[expr_]"
@@ -358,6 +366,8 @@ class QuantityMagnitude(Builtin):
      : Unable to interpret unit specification mater.
      = QuantityMagnitude[Quantity[3,mater]]
     """
+
+    summary_text = "The magnitude associated to a quantity."
 
     def apply(self, expr, evaluation):
         "QuantityMagnitude[expr_]"

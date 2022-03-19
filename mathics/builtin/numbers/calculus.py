@@ -778,6 +778,7 @@ class Root(SympyFunction):
     }
 
     sympy_name = "CRootOf"
+    summary_text = "the i-esim root of a polinomial."
 
     def apply(self, f, i, evaluation):
         "Root[f_, i_]"
@@ -1525,6 +1526,7 @@ class FindMinimum(_BaseFinder):
     """
 
     methods = {}
+    summary_text = "Looks for a local minimum."
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
 
@@ -1567,7 +1569,7 @@ class FindMaximum(_BaseFinder):
     """
 
     methods = {}
-    summary_text = "Looks for a local maximum"
+    summary_text = "Looks for a local maximum."
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
 
