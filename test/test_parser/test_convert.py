@@ -87,6 +87,7 @@ class ConvertTests(unittest.TestCase):
         self.incomplete_error(r'"abc')
         self.check(r'"abc(*def*)"', String("abc(*def*)"))
         self.check(r'"a\"b\\c"', String(r'a"b\c'))
+        self.check(r'"a\\nb"', String(r"a\nb"))
         self.incomplete_error(r'"\"')
         self.invalid_error(r'\""')
 
