@@ -4,6 +4,7 @@ CHANGES
 Enhancements
 ============
 
+* ``D`` can now act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
 * ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form
   ``Simplify[0^a]`` (issue #167)
@@ -17,7 +18,7 @@ Documentation
 
 New Builtins
 ============
-* ``D`` can now act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
+* ``Diagonal`` (Issue #115)
 * ``$Echo`` (Issue #42).
 * ``FindRoot`` was improved for supporting numerical derivatives (issue 67), as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.

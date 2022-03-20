@@ -5,7 +5,7 @@ Tracing Built-in Functions
 
 Built-in Function Tracing provides one high-level way understand what is getting evaluated and where the time is spent in evaluation.
 
-With this, it may be possible for both users and implementers to follow how Mathics arrives at its results, or guid how to speed up expression evaluation.
+With this, it may be possible for both users and implementers to follow how Mathics arrives at its results, or guide how to speed up expression evaluation.
 """
 
 
