@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+"""
+Constructing Matrices
+
+Methods for constructing Matrices.
+"""
+
 
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
