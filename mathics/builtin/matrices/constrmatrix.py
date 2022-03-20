@@ -20,9 +20,6 @@ class DiagonalMatrix(Builtin):
      . 0   2   0
      .
      . 0   0   3
-
-    #> DiagonalMatrix[a + b]
-     = DiagonalMatrix[a + b]
     """
 
     summary_text = "gives a diagonal matrix with the elements of a given list"
@@ -42,8 +39,8 @@ class DiagonalMatrix(Builtin):
 class IdentityMatrix(Builtin):
     """
     <dl>
-    <dt>'IdentityMatrix[$n$]'
-        <dd>gives the identity matrix with $n$ rows and columns.
+      <dt>'IdentityMatrix[$n$]'
+      <dd>gives the identity matrix with $n$ rows and columns.
     </dl>
 
     >> IdentityMatrix[3]
