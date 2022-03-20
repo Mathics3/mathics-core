@@ -1,4 +1,4 @@
-from .helper import check_evaluation, session
+from .helper import session
 import pytest
 
 
@@ -8,7 +8,7 @@ import pytest
         (
             "DiagonalMatrix[a + b]",
             "DiagonalMatrix[a + b]",
-            "Leaves unchanged? Adapted from #> code that was in tensor.py",
+            "argument needs to be a list",
         ),
     ],
 )
