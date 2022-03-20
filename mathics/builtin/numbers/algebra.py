@@ -592,14 +592,9 @@ class Factor(Builtin):
 
         try:
             result = sympy.together(expr_sympy)
-            numer, denom = result.as_numer_denom()
-            if denom == 1:
-                result = sympy.factor(expr_sympy)
-            else:
-                result = sympy.factor(numer) / sympy.factor(denom)
+            return from_sympy(sympy.factor(result))
         except sympy.PolynomialError:
             return expr
-        return from_sympy(result)
 
 
 class FactorTermsList(Builtin):
