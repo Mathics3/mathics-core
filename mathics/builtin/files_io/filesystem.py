@@ -646,7 +646,7 @@ class ExpandFileName(Builtin):
 
 
 class File(Builtin):
-    summary_text = "File summary still not available"
+    summary_text = "a file in the filesystem"
     pass
 
 

@@ -31,7 +31,7 @@ class UniformPolyhedron(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "UniformPolyhedron summary still not available"
+    summary_text = "is a box construction representing a uniform polyhedron"
     messages = {
         "argtype": f"Argument `1` is not one of: {uniform_polyhedra_names}",
     }

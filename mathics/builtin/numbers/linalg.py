@@ -489,7 +489,7 @@ class LinearSolve(Builtin):
 
 
 class FittedModel(Builtin):
-    summary_text = "FittedModel summary still not available"
+    summary_text = "is the result of fitting a mathematical model to a set of data"
     rules = {
         "FittedModel[x_List][s_String]": "s /. x",
         "FittedModel[x_List][y_]": '("Function" /. x)[y]',

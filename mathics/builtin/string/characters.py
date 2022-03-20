@@ -101,7 +101,7 @@ class DigitQ(Builtin):
 
     """
 
-    summary_text = "DigitQ summary still not available"
+    summary_text = "tests if all the characters in a string are digits"
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
@@ -135,7 +135,7 @@ class LetterQ(Builtin):
      = True
     """
 
-    summary_text = "LetterQ summary still not available"
+    summary_text = "tests if all the characters in the $string$ are letters"
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"

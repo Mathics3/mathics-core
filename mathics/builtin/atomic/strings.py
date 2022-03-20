@@ -310,7 +310,7 @@ class SystemCharacterEncoding(Predefined):
 
     name = "$SystemCharacterEncoding"
 
-    summary_text = "SystemCharacterEncoding summary still not available"
+    summary_text = "is the system character encoding"
     rules = {
         "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
     }
@@ -387,7 +387,9 @@ class CharacterEncodings(Predefined):
     name = "$CharacterEncodings"
     value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
 
-    summary_text = "CharacterEncodings summary still not available"
+    summary_text = (
+        "is a list of the available character encodings available in the system"
+    )
     rules = {
         "$CharacterEncodings": value,
     }
