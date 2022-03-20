@@ -340,9 +340,18 @@ add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
 def graphics_elements(self, **options) -> str:
+    """
+    Asymptote formatting on a list of graphics elements.
+    """
     result = []
     for element in self.elements:
-        format_fn = lookup_method(element, "asy")
+        try:
+            format_fn = lookup_method(element, "asy")
+        except:
+            # Note error and continue
+            result.append(f"""unhandled {element}""")
+            continue
+
         if format_fn is None:
             result.append(element.to_asy(**options))
         else:
@@ -359,6 +368,7 @@ add_conversion_fn(Graphics3DElements)
 
 
 def insetbox(self, **options) -> str:
+    """Asymptote formatting for boxing an Inset in a graphic."""
     x, y = self.pos.pos()
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
     pen = asy_create_pens(edge_color=self.color)

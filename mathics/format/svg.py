@@ -292,11 +292,17 @@ add_conversion_fn(GraphicsBox, graphics_box)
 
 def graphics_elements(self, **options) -> str:
     """
-    SVG Formatting for a list of graphics elements.
+    SVG formatting on a list of graphics elements.
     """
     result = ["<!--GraphicsElements-->"]
     for element in self.elements:
-        format_fn = lookup_method(element, "svg")
+        try:
+            format_fn = lookup_method(element, "svg")
+        except:
+            # Note error and continue
+            result.append(f"""unhandled {element}""")
+            continue
+
         if format_fn is None:
             result.append(element.to_svg(**options))
         else:
@@ -315,7 +321,7 @@ add_conversion_fn(Graphics3DElements)
 
 def inset_box(self, **options) -> str:
     """
-    SVG Formatting for boxing an Inset in a graphic.
+    SVG formatting for boxing an Inset in a graphic.
     """
     x, y = self.pos.pos()
     offset = options.get("offset", None)
