@@ -219,7 +219,9 @@ class ColorNegate(_ImageBuiltin):
     </dl>
     """
 
-    summary_text = "ColorNegate summary still not available"
+    summary_text = (
+        "returns the negative of $image$ in which colors have been negated..."
+    )
 
     def apply_for_color(self, color, evaluation):
         "ColorNegate[color_RGBColor]"
@@ -306,7 +308,7 @@ class DominantColors(_ImageBuiltin):
      = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
     """
 
-    summary_text = "DominantColors summary still not available"
+    summary_text = "gives a list of colors which are dominant in the given image..."
     rules = {
         "DominantColors[image_Image, n_Integer, options___]": 'DominantColors[image, n, "Color", options]',
         "DominantColors[image_Image, options___]": 'DominantColors[image, 256, "Color", options]',

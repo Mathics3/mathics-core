@@ -43,7 +43,7 @@ class Erf(_MPMathMultiFunction):
         2: "erf2",
     }
 
-    summary_text = "Erf summary still not available"
+    summary_text = "is the Erf function"
     rules = {
         "Derivative[1][Erf]": "2 Exp[-#^2] / Sqrt[Pi] &",
     }

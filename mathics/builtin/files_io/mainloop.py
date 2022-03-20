@@ -105,8 +105,10 @@ class IOHookPreRead(Builtin):
     </dl>
     """
 
-    summary_text = "IOHookPreRead summary still not available"
-    summary_text = "IOHookPreRead summary still not available"
+    summary_text = (
+        "is applied to the text or box form of every input "
+        "expression before it is fed to the parser"
+    )
     name = "$PreRead"
     attributes = no_attributes
 
@@ -139,8 +141,7 @@ class IOHookPre(Builtin):
      = 4
     """
 
-    summary_text = "IOHookPre summary still not available"
-    summary_text = "IOHookPre summary still not available"
+    summary_text = "is applied to every input expression"
     name = "$Pre"
     attributes = no_attributes
 
@@ -154,8 +155,7 @@ class IOHookPost(Builtin):
     </dl>
     """
 
-    summary_text = "IOHookPost summary still not available"
-    summary_text = "IOHookPost summary still not available"
+    summary_text = "is applied to every output expression"
     name = "$Post"
     attributes = no_attributes
 
@@ -169,8 +169,7 @@ class IOHookPrePrint(Builtin):
     </dl>
     """
 
-    summary_text = "IOHookPrePrint summary still not available"
-    summary_text = "IOHookPrePrint summary still not available"
+    summary_text = "is applied to every output expression before it is printed"
     name = "$PrePrint"
     attributes = no_attributes
 
@@ -185,8 +184,9 @@ class IOHookSyntaxHandler(Builtin):
     </dl>
     """
 
-    summary_text = "IOHookSyntaxHandler summary still not available"
-    summary_text = "IOHookSyntaxHandler summary still not available"
+    summary_text = (
+        "is applied to  any input string that is " "found to contain a syntax error"
+    )
     name = "$SyntaxHandler"
     attributes = no_attributes
 

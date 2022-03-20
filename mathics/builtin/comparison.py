@@ -782,6 +782,7 @@ class Less(_ComparisonOperator, SympyComparison):
      = 1 < 3 < x < 2
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are strictly in ascending ordered"
     operator = "<"
     sympy_name = "StrictLessThan"
 
@@ -801,7 +802,7 @@ class LessEqual(_ComparisonOperator, SympyComparison):
      = True
 
     """
-
+    summary_text = "compares several numerical expressions and yields $True$ if they are in ascending ordered"
     operator = "<="
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
@@ -825,6 +826,7 @@ class Greater(_ComparisonOperator, SympyComparison):
      = True
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are strictly in descending ordered"
     operator = ">"
     sympy_name = "StrictGreaterThan"
 
@@ -839,6 +841,7 @@ class GreaterEqual(_ComparisonOperator, SympyComparison):
     </dl>
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are in ascending ordered"
     operator = ">="
     sympy_name = "GreaterThan"
 

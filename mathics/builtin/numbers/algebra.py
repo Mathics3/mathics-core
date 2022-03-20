@@ -525,7 +525,7 @@ class FullSimplify(Simplify):
 
     """
 
-    summary_text = "FullSimplify summary still not available"
+    summary_text = "simplifies using an extended set of simplification rules"
     rules = {
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
@@ -876,7 +876,10 @@ class Expand(_Expand):
      = 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3
     """
 
-    summary_text = "Expand summary still not available"
+    summary_text = (
+        "expands out positive integer powers and products "
+        "of sums and trigonometric identities"
+    )
 
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
@@ -925,7 +928,7 @@ class ExpandDenominator(_Expand):
      = 2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)
     """
 
-    summary_text = "ExpandDenominator summary still not available"
+    summary_text = "expands out negative integer powers and products of sums"
 
     def apply(self, expr, evaluation, options):
         "ExpandDenominator[expr_, OptionsPattern[ExpandDenominator]]"
@@ -968,7 +971,7 @@ class ExpandAll(_Expand):
 
     """
 
-    summary_text = "ExpandAll summary still not available"
+    summary_text = "expands out negative integer powers and products of sums"
 
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
@@ -1120,7 +1123,9 @@ class Variables(Builtin):
 
 
 class UpTo(Builtin):
-    summary_text = "UpTo summary still not available"
+    summary_text = (
+        "is a symbolic specification that represents up to $n$ objects or positions"
+    )
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
@@ -1802,7 +1807,10 @@ class CoefficientArrays(_CoefficientHandler):
      = CoefficientArrays[(x + y + Sin[z]) ^ 3, {x, z}]
     """
 
-    summary_text = "CoefficientArrays summary still not available"
+    summary_text = (
+        "a list of arrays of coefficients of the "
+        "variables $vars$ in the polynomial  $poly$"
+    )
     options = {
         "Symmetric": "False",
     }
@@ -1904,7 +1912,9 @@ class Collect(_CoefficientHandler):
      = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
     """
 
-    summary_text = "Collect summary still not available"
+    summary_text = (
+        "expands $expr$ and collect together terms having " "the same power of $x$"
+    )
     rules = {
         "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
     }

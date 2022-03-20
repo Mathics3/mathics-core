@@ -809,7 +809,9 @@ class GridBox(BoxConstruct):
     #  = ...
     """
 
-    summary_text = "GridBox summary still not available"
+    summary_text = (
+        "is a box construct that represents a sequence of boxes arranged in a grid"
+    )
     options = {"ColumnAlignments": "Center"}
 
     def get_array(self, leaves, evaluation):
@@ -1091,7 +1093,7 @@ class MatrixForm(TableForm):
      . 0     0
     """
 
-    summary_text = "MatrixForm summary still not available"
+    summary_text = "displays a matrix $m$, hiding the underlying list structure"
 
     def apply_makeboxes_matrix(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
@@ -2700,7 +2702,7 @@ class NumberForm(_NumberForm):
      = 142.3
     """
 
-    summary_text = "NumberForm summary still not available"
+    summary_text = "prints a real number $expr$ with $n$-digits of precision..."
     options = {
         "DigitBlock": "Infinity",
         "ExponentFunction": "Automatic",

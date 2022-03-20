@@ -1211,7 +1211,7 @@ class Blank(_Blank):
      = xxxxxxxxxxxx
     """
 
-    summary_text = "Blank summary still not available"
+    summary_text = "represents any single expression in a pattern"
     rules = {
         "MakeBoxes[Verbatim[Blank][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"_"',
         "MakeBoxes[Verbatim[Blank][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"_" <> MakeBoxes[head, f]',
@@ -1265,7 +1265,7 @@ class BlankSequence(_Blank):
      = {ab, ax, ax}
     """
 
-    summary_text = "BlankSequence summary still not available"
+    summary_text = "represents any non-empty sequence of expression leaves in a pattern"
     rules = {
         "MakeBoxes[Verbatim[BlankSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__"',
         "MakeBoxes[Verbatim[BlankSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__" <> MakeBoxes[head, f]',
@@ -1320,7 +1320,7 @@ class BlankNullSequence(_Blank):
      = {ax, ax, ax}
     """
 
-    summary_text = "BlankNullSequence summary still not available"
+    summary_text = "represents any sequence of expression leaves in a pattern, including an empty sequence."
     rules = {
         "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
         "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
@@ -1454,7 +1454,7 @@ class RepeatedNull(Repeated):
     operator = "..."
     precedence = 170
 
-    summary_text = "RepeatedNull summary still not available"
+    summary_text = "matches zero or more occurrences of $pattern$"
 
     def init(self, expr):
         super(RepeatedNull, self).init(expr, min=0)
@@ -1728,7 +1728,7 @@ class DispatchAtom(AtomBuiltin):
      = 4
     """
 
-    summary_text = "DispatchAtom summary still not available"
+    summary_text = "a list of precompiled rules"
     messages = {
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
