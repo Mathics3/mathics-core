@@ -292,11 +292,6 @@ def test_permutations_groups_1_2():
             "m (1 + m) (4 - 2 m + 2 m ^ 2 + 3 m ^ 3 + m ^ 4 - m ^ 5 + m ^ 6) / 16",
             "Factor example in Polya polynomial 1.2.6, Page 26",
         ),
-        (
-            "Factor[a == d b + d c]",
-            "a == (b + c) d",
-            "Factor works with equations",
-        ),
     ):
         check_evaluation(str_expr, str_expected, message, to_string_expr=True)
 

@@ -284,3 +284,14 @@ def test_simplify():
         ),
     ):
         check_evaluation(str_expr, str_expected)
+
+
+def test_factor():
+    for str_expr, str_expected in (
+        (
+            "Factor[a == d b + d c]",
+            "a == (b + c) d",
+            "Factor works with equations",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected)
