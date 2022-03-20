@@ -31,7 +31,7 @@ class Diagonal(Builtin):
         "Diagonal[expr_]": "Diagonal[expr, 0]",
     }
 
-    summary_text = "Return a list with the diagonal elements of a given matrix"
+    summary_text = "gives a list with the diagonal elements of a given matrix"
 
     def apply(self, expr, diag, evaluation):
         "Diagonal[expr_List, diag_Integer]"
@@ -66,6 +66,4 @@ class MatrixQ(Builtin):
         "MatrixQ[expr_, test_]": "ArrayQ[expr, 2, test]",
     }
 
-    summary_text = (
-        "Return 'True' if the given argument is a list of equal-length lists."
-    )
+    summary_text = "gives 'True' if the given argument is a list of equal-length lists."
