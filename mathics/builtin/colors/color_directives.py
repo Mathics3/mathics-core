@@ -464,7 +464,7 @@ class Hue(_Color):
     components_sizes = [1, 2, 3, 4]
     default_components = [0, 1, 1, 1]
 
-    summary_text = "Hue summary still not available"
+    summary_text = "represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$..."
 
     def hsl_to_rgba(self):
         h, s, l = self.components[:3]

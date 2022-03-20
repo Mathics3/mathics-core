@@ -538,7 +538,7 @@ def do_cmp(x1, x2) -> Optional[int]:
 
 class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
-        to_sympy = super(SympyComparison, self).to_sympy
+        to_sympy = super(_SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
 
             def pairs(items):

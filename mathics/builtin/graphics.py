@@ -370,7 +370,9 @@ class AbsoluteThickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "AbsoluteThickness summary still not available"
+    summary_text = (
+        "sets the line thickness for subsequent graphics primitives to $p$ points"
+    )
 
     def get_thickness(self):
         return self.graphics.translate_absolute((self.value, 0))[0]
@@ -388,7 +390,7 @@ class Thickness(_Thickness):
      = -Graphics-
     """
 
-    summary_text = "Thickness summary still not available"
+    summary_text = "sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area"
 
     def get_thickness(self):
         return self.graphics.translate_relative(self.value)
@@ -433,7 +435,9 @@ class PointSize(_Size):
     = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
     """
 
-    summary_text = "PointSize summary still not available"
+    summary_text = (
+        "sets the diameter of points to $t$, which is relative to the overall width"
+    )
 
     def get_absolute_size(self):
         if self.graphics.view_width is None:
@@ -856,7 +860,7 @@ class Arrowheads(_GraphicsElement):
         "System`Large": 18,
     }
 
-    summary_text = "Arrowheads summary still not available"
+    summary_text = "specifies that arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0..."
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)

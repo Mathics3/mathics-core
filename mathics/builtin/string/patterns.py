@@ -209,7 +209,7 @@ class StringCases(_StringFind):
      = {a, ä}
     """
 
-    summary_text = "StringCases summary still not available"
+    summary_text = "gives all occurences of $pattern$ in $string$..."
     rules = {
         "StringCases[rule_][string_]": "StringCases[string, rule]",
     }

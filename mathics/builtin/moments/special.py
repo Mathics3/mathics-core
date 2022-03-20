@@ -144,7 +144,7 @@ class StandardDeviation(_Rectangular):
      = {Sqrt[2], 5 Sqrt[2]}
     """
 
-    summary_text = "StandardDeviation summary still not available"
+    summary_text = "computes the standard deviation of $list"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "rectt": "Expected a rectangular array at position 1 in ``.",
@@ -190,7 +190,7 @@ class Variance(_Rectangular):
      = {9 / 2, 49 / 2, 9025 / 2}
     """
 
-    summary_text = "Variance summary still not available"
+    summary_text = "computes the variance of $list"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "rectt": "Expected a rectangular array at position 1 in ``.",

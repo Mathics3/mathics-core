@@ -267,7 +267,9 @@ class IntegerDigits(_IntBaseBuiltin):
      = {12, 6, 18, 5}
     """
 
-    summary_text = "IntegerDigits summary still not available"
+    summary_text = (
+        "returns the decimal representation of integer $x$ as list of digits..."
+    )
     rules = {
         "IntegerDigits[n_Integer]": "IntegerDigits[n, 10]",
     }
@@ -332,7 +334,7 @@ class DigitCount(_IntBaseBuiltin):
      = 9
     """
 
-    summary_text = "DigitCount summary still not available"
+    summary_text = "returns the number of times digit $d$ occurs in the base $b$ representation of $n$..."
     rules = {
         "DigitCount[n_Integer]": "DigitCount[n, 10]",
     }
@@ -380,7 +382,7 @@ class IntegerReverse(_IntBaseBuiltin):
      = 321
     """
 
-    summary_text = "IntegerReverse summary still not available"
+    summary_text = "returns the integer that has the reverse decimal representation of $x$ without sign..."
     rules = {
         "IntegerReverse[n_Integer]": "IntegerReverse[n, 10]",
     }

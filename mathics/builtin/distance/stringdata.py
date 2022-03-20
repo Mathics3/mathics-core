@@ -176,7 +176,7 @@ class DamerauLevenshteinDistance(_StringDistance):
      = 1
     """
 
-    summary_text = "DamerauLevenshteinDistance summary still not available"
+    summary_text = "returns the damerau-levenshtein distance of $a$ and $b$, which is defined as the minimum number of transpositions, insertions, deletions and substitutions needed to transform one into the other"
 
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _damerau_levenshtein)
@@ -215,7 +215,7 @@ class EditDistance(_StringDistance):
      = 2
     """
 
-    summary_text = "EditDistance summary still not available"
+    summary_text = "returns the levenshtein distance of $a$ and $b$, which is defined as the minimum number of insertions, deletions and substitutions on the constituents of $a$ and $b$ needed to transform one into the other"
 
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _levenshtein)

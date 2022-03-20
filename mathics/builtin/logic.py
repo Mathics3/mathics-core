@@ -430,7 +430,7 @@ class NoneTrue(_ManyTrue):
      = True
     """
 
-    summary_text = "NoneTrue summary still not available"
+    summary_text = "returns true if no application of $test$ to $expr1$, $expr2$, ..."
 
     def _short_circuit(self, what):
         if what:
@@ -461,7 +461,7 @@ class AnyTrue(_ManyTrue):
      = False
     """
 
-    summary_text = "AnyTrue summary still not available"
+    summary_text = "returns true if any application of $test$ to $expr1$, $expr2$, ..."
 
     def _short_circuit(self, what):
         if what:
@@ -492,7 +492,7 @@ class AllTrue(_ManyTrue):
      = True
     """
 
-    summary_text = "AllTrue summary still not available"
+    summary_text = "returns true if all applications of $test$ to $expr1$, $expr2$, ..."
 
     def _short_circuit(self, what):
         if not what:

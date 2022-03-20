@@ -1602,7 +1602,7 @@ class ImportString(Import):
      = ...
     """
 
-    summary_text = "ImportString summary still not available"
+    summary_text = "imports data in the specified format from a string..."
     messages = {
         "string": "First argument `1` is not a string.",
         "noelem": ("The Import element `1` is not present when importing as `2`."),

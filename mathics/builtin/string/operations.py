@@ -745,7 +745,7 @@ class StringReplace(_StringFind):
      = A x B
     """
 
-    summary_text = "StringReplace summary still not available"
+    summary_text = "replaces each occurrence of $old$ with $new$ in $string$..."
     rules = {
         "StringReplace[rule_][string_]": "StringReplace[string, rule]",
     }

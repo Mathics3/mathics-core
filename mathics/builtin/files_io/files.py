@@ -2209,7 +2209,7 @@ class ReadList(Read):
      = {123, abc}
     """
 
-    summary_text = "ReadList summary still not available"
+    summary_text = "reads all the expressions until the end of file..."
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -2563,7 +2563,9 @@ class Skip(Read):
     #> Close[stream];
     """
 
-    summary_text = "Skip summary still not available"
+    summary_text = (
+        "skips ahead in an input steream by one object of the specified $type$..."
+    )
     rules = {
         "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
     }
@@ -2633,7 +2635,7 @@ class Find(Read):
      = ...
     """
 
-    summary_text = "Find summary still not available"
+    summary_text = "find the first line in $stream$ that contains $text$"
     options = {
         "AnchoredSearch": "False",
         "IgnoreCase": "False",

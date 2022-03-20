@@ -2109,7 +2109,7 @@ class Plot(_Plot):
      = -Graphics-
     """
 
-    summary_text = "Plot summary still not available"
+    summary_text = "plots $f$ with $x$ ranging from $xmin$ to $xmax$..."
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):

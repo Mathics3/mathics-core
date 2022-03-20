@@ -146,7 +146,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
      = 4 / 7
     """
 
-    summary_text = "MatchingDissimilarity summary still not available"
+    summary_text = "returns the matching dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as (c_tf + c_ft) / n, where n is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, n)
@@ -165,7 +165,7 @@ class JaccardDissimilarity(_BooleanDissimilarity):
      = 2 / 3
     """
 
-    summary_text = "JaccardDissimilarity summary still not available"
+    summary_text = "returns the jaccard-needham dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where n is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, c_tt + c_ft + c_tf)
@@ -184,7 +184,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
      = 1 / 2
     """
 
-    summary_text = "DiceDissimilarity summary still not available"
+    summary_text = "returns the dice dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where n is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
@@ -203,7 +203,7 @@ class YuleDissimilarity(_BooleanDissimilarity):
      = 6 / 5
     """
 
-    summary_text = "YuleDissimilarity summary still not available"
+    summary_text = "returns the yule dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as r / (c_tt * c_ff + r / 2) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and r = 2 * c_tf * c_ft"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r_half = c_tf * c_ft
@@ -223,7 +223,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
      = 4 / 5
     """
 
-    summary_text = "SokalSneathDissimilarity summary still not available"
+    summary_text = "returns the sokal-sneath dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as r / (c_tt + r) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and r = 2 * (c_tf + c_ft)"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
@@ -243,7 +243,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
      = 5 / 7
     """
 
-    summary_text = "RussellRaoDissimilarity summary still not available"
+    summary_text = "returns the russell-rao dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as (n - c_tt) / c_tt where n is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", n - c_tt, n)
@@ -262,7 +262,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
      = 8 / 11
     """
 
-    summary_text = "RogersTanimotoDissimilarity summary still not available"
+    summary_text = "returns the rogers-tanimoto dissimilarity between the two boolean 1-d lists $u$ and $v$, which is defined as r / (c_tt + c_ff + r) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and r = 2 * (c_tf + c_ft)"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)

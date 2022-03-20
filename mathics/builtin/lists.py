@@ -1619,7 +1619,7 @@ class TakeLargest(_RankedTakeLargest):
      = {Missing[abc], 150}
     """
 
-    summary_text = "TakeLargest summary still not available"
+    summary_text = "returns the a sorted list of the $n$ largest items in $list$"
 
     def apply(self, leaf, n, evaluation, options):
         "TakeLargest[leaf_List, n_, OptionsPattern[TakeLargest]]"
@@ -1643,7 +1643,7 @@ class TakeLargestBy(_RankedTakeLargest):
      = {abc}
     """
 
-    summary_text = "TakeLargestBy summary still not available"
+    summary_text = "returns the a sorted list of the $n$ largest items in $list$ using $f$ to retrieve the items' keys to compare them"
 
     def apply(self, leaf, f, n, evaluation, options):
         "TakeLargestBy[leaf_List, f_, n_, OptionsPattern[TakeLargestBy]]"
@@ -1663,7 +1663,7 @@ class TakeSmallest(_RankedTakeSmallest):
      = {-1, 10}
     """
 
-    summary_text = "TakeSmallest summary still not available"
+    summary_text = "returns the a sorted list of the $n$ smallest items in $list$"
 
     def apply(self, leaf, n, evaluation, options):
         "TakeSmallest[leaf_List, n_, OptionsPattern[TakeSmallest]]"
@@ -1687,7 +1687,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
      = {x}
     """
 
-    summary_text = "TakeSmallestBy summary still not available"
+    summary_text = "returns the a sorted list of the $n$ smallest items in $list$ using $f$ to retrieve the items' keys to compare them"
 
     def apply(self, leaf, f, n, evaluation, options):
         "TakeSmallestBy[leaf_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
@@ -2257,7 +2257,7 @@ class FindClusters(_Cluster):
     Optimize builds the clustering from top down, and uses random sampling.
     """
 
-    summary_text = "FindClusters summary still not available"
+    summary_text = "returns a list of clusters formed from the elements of $list$..."
 
     def apply(self, p, evaluation, options):
         "FindClusters[p_, OptionsPattern[%(name)s]]"
@@ -2304,7 +2304,7 @@ class ClusteringComponents(_Cluster):
      = {1, 0, 1}
     """
 
-    summary_text = "ClusteringComponents summary still not available"
+    summary_text = "forms clusters from $list$ and returns a list of cluster indices, in which each element shows the index of the cluster in which the corresponding element in $list$ ended up..."
 
     def apply(self, p, evaluation, options):
         "ClusteringComponents[p_, OptionsPattern[%(name)s]]"

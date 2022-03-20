@@ -1095,7 +1095,9 @@ class Sum(_IterationFunction, SympyFunction):
 
     sympy_name = "Sum"
 
-    summary_text = "Sum summary still not available"
+    summary_text = (
+        "evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$..."
+    )
     rules = _IterationFunction.rules.copy()
     rules.update(
         {
@@ -1208,7 +1210,7 @@ class Product(_IterationFunction, SympyFunction):
 
     sympy_name = "Product"
 
-    summary_text = "Product summary still not available"
+    summary_text = "evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$..."
     rules = _IterationFunction.rules.copy()
     rules.update(
         {
