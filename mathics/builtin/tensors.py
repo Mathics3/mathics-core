@@ -445,26 +445,6 @@ class Outer(Builtin):
         return rec(lists[0], lists[1:], [])
 
 
-class MatrixQ(Builtin):
-    """
-    <dl>
-    <dt>'MatrixQ[$m$]'
-        <dd>returns 'True' if $m$ is a list of equal-length lists.
-    <dt>'MatrixQ[$m$, $f$]'
-        <dd>only returns 'True' if '$f$[$x$]' returns 'True' for each
-        element $x$ of the matrix $m$.
-    </dl>
-
-    >> MatrixQ[{{1, 3}, {4.0, 3/2}}, NumberQ]
-     = True
-    """
-
-    rules = {
-        "MatrixQ[expr_]": "ArrayQ[expr, 2]",
-        "MatrixQ[expr_, test_]": "ArrayQ[expr, 2, test]",
-    }
-
-
 class RotationTransform(Builtin):
     """
     <dl>
