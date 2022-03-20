@@ -1744,7 +1744,7 @@ class Export(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    def apply(self, filename, expr, evaluation, **options):
+    def apply(self, filename, expr, evaluation, options={}):
         "Export[filename_, expr_, OptionsPattern[Export]]"
 
         # Check filename
