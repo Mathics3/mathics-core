@@ -536,9 +536,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     return None
 
 
-class SympyComparison(SympyFunction):
-    summary_text = "SympyComparison summary still not available"
-
+class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
         to_sympy = super(SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
@@ -554,7 +552,7 @@ class SympyComparison(SympyFunction):
         return to_sympy(expr, **kwargs)
 
 
-class Equal(_EqualityOperator, SympyComparison):
+class Equal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Equal[$x$, $y$]'
@@ -690,7 +688,7 @@ class Equal(_EqualityOperator, SympyComparison):
         return x
 
 
-class Unequal(_EqualityOperator, SympyComparison):
+class Unequal(_EqualityOperator, _SympyComparison):
     u"""
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
@@ -763,7 +761,7 @@ class Unequal(_EqualityOperator, SympyComparison):
         return not x
 
 
-class Less(_ComparisonOperator, SympyComparison):
+class Less(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Less[$x$, $y$]' or $x$ < $y$
@@ -787,7 +785,7 @@ class Less(_ComparisonOperator, SympyComparison):
     sympy_name = "StrictLessThan"
 
 
-class LessEqual(_ComparisonOperator, SympyComparison):
+class LessEqual(_ComparisonOperator, _SympyComparison):
     u"""
      <dl>
        <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
@@ -807,7 +805,7 @@ class LessEqual(_ComparisonOperator, SympyComparison):
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
 
-class Greater(_ComparisonOperator, SympyComparison):
+class Greater(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
@@ -831,7 +829,7 @@ class Greater(_ComparisonOperator, SympyComparison):
     sympy_name = "StrictGreaterThan"
 
 
-class GreaterEqual(_ComparisonOperator, SympyComparison):
+class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
