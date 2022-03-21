@@ -778,7 +778,7 @@ class Root(SympyFunction):
     }
 
     sympy_name = "CRootOf"
-    summary_text = "the i-th root of a polynomial."
+    summary_text = "the i-th root of a polynomial"
 
     def apply(self, f, i, evaluation):
         "Root[f_, i_]"
@@ -1474,9 +1474,7 @@ class FindRoot(_BaseFinder):
     }
 
     methods = {}
-    summary_text = (
-        "Looks for a root of an equation or a zero of a numerical expression."
-    )
+    summary_text = "looks for a root of an equation or a zero of a numerical expression"
 
     try:
         from mathics.algorithm.optimizers import native_findroot_methods

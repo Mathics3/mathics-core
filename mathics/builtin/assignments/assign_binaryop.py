@@ -219,7 +219,7 @@ class SubtractFrom(BinaryOperator):
     rules = {
         "x_ -= dx_": "x = x - dx",
     }
-    summary_text = "subtracts a value and assins that returning the new value"
+    summary_text = "subtracts a value and assigns that returning the new value"
 
 
 class TimesBy(BinaryOperator):

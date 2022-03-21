@@ -90,4 +90,4 @@ class MatrixQ(Builtin):
         "MatrixQ[expr_, test_]": "ArrayQ[expr, 2, test]",
     }
 
-    summary_text = "gives 'True' if the given argument is a list of equal-length lists."
+    summary_text = "gives 'True' if the given argument is a list of equal-length lists"

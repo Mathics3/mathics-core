@@ -104,7 +104,7 @@ class DSolve(Builtin):
         "symmua": "SymPy can't handle functions of multiple variables.",
         "sym11669": "Hit sympy bug #11669.",
     }
-    summary_text = "Differential equation analytical solver."
+    summary_text = "differential equation analytical solver"
 
     def apply(self, eqn, y, x, evaluation):
         "DSolve[eqn_, y_, x_]"
@@ -218,5 +218,5 @@ class C(Builtin):
     """
 
     summary_text = (
-        "n-th intertermined constant in the solution of a differential equation."
+        "n-th indetermined constant in the solution of a differential equation"
     )

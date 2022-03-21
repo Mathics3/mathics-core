@@ -74,7 +74,7 @@ class Gamma(_MPMathMultiFunction):
         1: "gamma",  # one argument
         2: "uppergamma",
     }
-    summary_text = "The gamma and gamma incomplete functions."
+    summary_text = "represents the gamma and gamma incomplete functions"
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
@@ -112,7 +112,7 @@ class Pochhammer(SympyFunction):
     attributes = listable | numeric_function | protected
 
     sympy_name = "RisingFactorial"
-    summary_text = "The Pochhammer symbol."
+    summary_text = "The Pochhammer symbol"
     rules = {
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",

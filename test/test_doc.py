@@ -17,6 +17,26 @@ mathics_builtins_path = mathics_path + "/builtins"
 CHECK_GRAMMAR = True
 
 
+local_vocabulary = (
+    "Chebyshev",
+    "Pochhammer",
+    "Hankel",
+    "Glaiser",
+    "kth",
+    "Struvel",
+    "Polygamma",
+    "Stieltjes",
+    "Gegenbauer",
+    "Bessel",
+    "Laguerre",
+    "Airy",
+    "ker",
+    "kei",
+    "ber",
+    "bei",
+)
+
+
 if CHECK_GRAMMAR:
     try:
         import language_tool_python
@@ -44,7 +64,6 @@ module_subdirs = (
     "fileformats",
 )
 
-print("directory:", mathics_builtins_path)
 __py_files__ = [
     osp.basename(f[0:-3])
     for f in glob.glob(osp.join(mathics_builtins_path, "[a-z]*.py"))
@@ -60,7 +79,6 @@ def is_builtin(var):
 
 
 def import_module(module_name: str):
-    print("importing module ", module_name)
     try:
         module = importlib.import_module("mathics.builtin." + module_name)
     except Exception as e:
@@ -109,7 +127,6 @@ def test_summary_text_available(module_name):
         ):  # nopep8
             instance = var(expression=False)
             if isinstance(instance, Builtin):
-                print(name, instance)
                 if not hasattr(instance, "summary_text"):
                     continue
 
@@ -120,7 +137,20 @@ def test_summary_text_available(module_name):
                 if language_tool and CHECK_GRAMMAR:
                     s = "The expression " + instance.summary_text.strip()
                     matches = language_tool.check(s)
+                    filtered_matches = []
                     if matches:
-                        assert False, [
-                            (m.sentence, m.replacements, m.message) for m in matches
-                        ]
+                        for m in matches:
+                            if m.message == "Possible spelling mistake found.":
+                                offset = m.offsetInContext
+                                sentence = m.sentence
+                                word = sentence[offset:].split(" ")[0]
+                                if word in local_vocabulary:
+                                    continue
+                                print("<<", word, ">> misspelled?")
+                            # filtered_matches.append(m)
+                        if filtered_matches:
+                            assert False, [
+                                (m.sentence, m.replacements, m.message)
+                                for m in filtered_matches
+                            ]
+    assert False

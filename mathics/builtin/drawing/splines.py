@@ -35,7 +35,7 @@ class BernsteinBasis(Builtin):
         "BernsteinBasis[d_, n_, x_]": "Piecewise[{{Binomial[d, n] * x ^ n * (1 - x) ^ (d - n), 0 < x < 1}}, 0]"
     }
 
-    summary_text = "The basis of a Bernstein polynomial used in Bézier curves."
+    summary_text = "The basis of a Bernstein polynomial used in Bézier curves"
 
 
 class BezierFunction(Builtin):
