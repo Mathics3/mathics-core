@@ -144,7 +144,7 @@ def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> 
     data was read.
 
     Here, we compensate for this by looking up the test by its chapter and section name
-    portion stored in `full_test_key` along with the and the test expresion data
+    portion stored in `full_test_key` along with the and the test expression data
     stored in `test_expr`.
 
     This new key is looked up in `test_result_map` its value is returned.

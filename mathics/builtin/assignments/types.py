@@ -68,7 +68,7 @@ class Messages(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives the list the messages associated with a particular symbol"
+    summary_text = "gives the list of messages associated with a particular symbol"
 
     def apply(self, symbol, evaluation):
         "Messages[symbol_]"

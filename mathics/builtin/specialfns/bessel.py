@@ -53,7 +53,7 @@ class AiryAi(_MPMathFunction):
     }
 
     mpmath_name = "airyai"
-    summary_text = "Airy function Ai"
+    summary_text = "is the Airy function Ai"
     sympy_name = "airyai"
 
 
@@ -79,7 +79,7 @@ class AiryAiPrime(_MPMathFunction):
         "Derivative[1][AiryAiPrime]": "(#1 AiryAi[#1])&",
     }
 
-    summary_text = "Derivative of the Airy function Ai"
+    summary_text = "represents the derivative of the Airy function Ai"
     sympy_name = "airyaiprime"
 
     def get_mpmath_function(self, args):
@@ -117,7 +117,7 @@ class AiryAiZero(Builtin):
         "AiryAi[AiryAiZero[k_]]": "0",
     }
 
-    summary_text = "Get kth zero of an Airy function Ai"
+    summary_text = "represents the kth zero of an Airy function Ai"
 
     def apply_N(self, k, precision, evaluation):
         "N[AiryAiZero[k_Integer], precision_]"
@@ -166,7 +166,7 @@ class AiryBi(_MPMathFunction):
         "Derivative[1][AiryBi]": "AiryBiPrime",
     }
 
-    summary_text = "Airy function Bi"
+    summary_text = "the Airy function Bi"
     sympy_name = "airybi"
 
 
@@ -194,7 +194,7 @@ class AiryBiPrime(_MPMathFunction):
         "Derivative[1][AiryBiPrime]": "(#1 AiryBi[#1])&",
     }
 
-    summary_text = "Derivative of the Airy function Bi"
+    summary_text = "represents the derivative of the Airy function Bi"
 
     def get_mpmath_function(self, args):
         return lambda x: mpmath.airybi(x, derivative=1)
@@ -231,7 +231,7 @@ class AiryBiZero(Builtin):
         "AiryBi[AiryBiZero[z_]]": "0",
     }
 
-    summary_text = "Get kth zero of an Airy function Bi"
+    summary_text = "represents the kth zero of an Airy function Bi"
 
     def apply_N(self, k, precision, evaluation):
         "N[AiryBiZero[k_Integer], precision_]"
@@ -270,7 +270,7 @@ class AngerJ(_Bessel):
     # TODO: Associated Anger function AngerJ[v, u, z]
 
     mpmath_name = "angerj"
-    summary_text = "Anger function J"
+    summary_text = "is the Anger's function J"
     sympy_name = ""
 
 
@@ -300,7 +300,7 @@ class BesselI(_Bessel):
 
     mpmath_name = "besseli"
     sympy_name = "besseli"
-    summary_text = "Bessel function of the second kind"
+    summary_text = "is the Bessel's function of the second kind"
 
 
 class BesselJ(_Bessel):
@@ -339,7 +339,7 @@ class BesselJ(_Bessel):
         "Derivative[0,1][BesselJ]": "(BesselJ[#1- 1, #2] / 2 - BesselJ[#1 + 1, #2] / 2)&",
     }
 
-    summary_text = "Bessel function of the first kind"
+    summary_text = "is the Bessel's function of the first kind"
     sympy_name = "besselj"
 
 
@@ -365,7 +365,7 @@ class BesselK(_Bessel):
         "Derivative[0, 1][BesselK]": "((-BesselK[-1 + #1, #2] - BesselK[1 + #1, #2])/2)&",
     }
 
-    summary_text = "Modified Bessel function of the second kind"
+    summary_text = "is the modified Bessel's function of the second kind"
     sympy_name = "besselk"
 
 
@@ -397,7 +397,7 @@ class BesselY(_Bessel):
     }
 
     mpmath_name = "bessely"
-    summary_text = "function of the second kind"
+    summary_text = "is the Bessel's function of the second kind"
     sympy_name = "bessely"
 
 
@@ -416,7 +416,7 @@ class BesselJZero(_Bessel):
     """
 
     mpmath_name = "besseljzero"
-    summary_text = "Get kth zero of an BesselJ function"
+    summary_text = "represents the kth zero of the Bessel's function of first kind"
     sympy_name = ""
 
 
@@ -435,7 +435,7 @@ class BesselYZero(_Bessel):
     """
 
     mpmath_name = "besselyzero"
-    summary_text = "Get kth zero of an BesselY function"
+    summary_text = "represents the kth zero of a Bessel's function of second kind"
     sympy_name = ""
 
 
@@ -458,7 +458,7 @@ class HankelH1(_Bessel):
     rules = {
         "Derivative[0, 1][HankelH1]": "((HankelH1[-1 + #1, #2] - HankelH1[1 + #1, #2])/2)&",
     }
-    summary_text = "Hankel function zero of the first kind"
+    summary_text = "represents the kth zero of the Hankel's function of the first kind"
     sympy_name = "hankel1"
 
 
@@ -466,7 +466,7 @@ class HankelH2(_Bessel):
     """
     <dl>
       <dt>'HankelH2[$n$, $z$]'
-      <dd>returns the Hankel function of the second kind H_$n$^2 ($z$).
+      <dd>returns the Hankel's function of the second kind H_$n$^2 ($z$).
     </dl>
 
     >> HankelH2[1.5, 4]
@@ -478,7 +478,7 @@ class HankelH2(_Bessel):
         "Derivative[0, 1][HankelH2]": "((HankelH2[-1 + #1, #2] - HankelH2[1 + #1, #2])/2)&",
     }
 
-    summary_text = "Hankel function zero of the second kind"
+    summary_text = "represents the kth zero of the Hankel's function of the second kind"
     sympy_name = "hankel2"
 
 
@@ -514,7 +514,7 @@ class KelvinBei(_Bessel):
         "Derivative[1][KelvinBei]": "((2*KelvinBei[1, #1] - 2*KelvinBer[1, #1])/(2*Sqrt[2]))&",
     }
 
-    summary_text = "Kelvin function bei"
+    summary_text = "is the Kelvin's function bei"
     sympy_name = ""
 
 
@@ -547,7 +547,7 @@ class KelvinBer(_Bessel):
         "Derivative[1][KelvinBer]": "((2*KelvinBei[1, #1] + 2*KelvinBer[1, #1])/(2*Sqrt[2]))&",
     }
 
-    summary_text = "Kelvin function ber"
+    summary_text = "is the Kelvin's function ber"
     sympy_name = ""
 
 
@@ -610,7 +610,7 @@ class KelvinKer(_Bessel):
     rules = {
         "KelvinKer[z_]": "KelvinKer[0, z]",
     }
-    summary_text = "Kelvin function ker"
+    summary_text = "is th Kelvin's function ker"
     sympy_name = ""
 
 
