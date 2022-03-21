@@ -125,7 +125,7 @@ else:
 # General Requirements
 INSTALL_REQUIRES += [
     "Mathics_Scanner>=1.2.1,<1.3.0",
-    "sympy>=1.8, <= 1.10",
+    "sympy>=1.8, < 1.11",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",

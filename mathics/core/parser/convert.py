@@ -29,12 +29,7 @@ class GenericConverter(object):
 
     @staticmethod
     def string_escape(s):
-        s = s.replace("\\\\", "\\").replace('\\"', '"')
-        s = s.replace("\\r\\n", "\r\n")
-        s = s.replace("\\r", "\r")
-        s = s.replace("\\n", "\n")
-        s = s.replace("\\t", "\t")
-        return s
+        return s.encode("raw_unicode_escape").decode("unicode_escape")
 
     def convert_Symbol(self, node: Symbol):
         if node.context is not None:

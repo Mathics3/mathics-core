@@ -20,6 +20,7 @@ from itertools import chain
 
 from mathics_scanner import TranslateError
 from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core import read
 from mathics.core.read import (
     channel_to_stream,
     MathicsOpen,
@@ -61,7 +62,6 @@ INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
 
 INPUT_VAR = ""
-INPUTFILE_VAR = ""
 
 TMP_DIR = tempfile.gettempdir()
 SymbolPath = Symbol("$Path")
@@ -107,8 +107,7 @@ class InputFileName(Predefined):
     summary_text = "is the name of the file from which input is currently being read"
 
     def evaluate(self, evaluation):
-        global INPUTFILE_VAR
-        return String(INPUTFILE_VAR)
+        return String(read.INPUTFILE_VAR)
 
 
 class EndOfFile(Builtin):
