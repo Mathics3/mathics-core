@@ -131,7 +131,7 @@ class ArrayQ(Builtin):
         "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
     }
 
-    summary_text = "test whether an object is a tensor of a given rank"
+    summary_text = "tests whether an object is a tensor of a given rank"
 
     def apply(self, expr, pattern, test, evaluation):
         "ArrayQ[expr_, pattern_, test_]"
@@ -601,4 +601,4 @@ class VectorQ(Builtin):
         "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
     }
 
-    summary_text = "test whether an object is a vector"
+    summary_text = "tests whether an object is a vector"

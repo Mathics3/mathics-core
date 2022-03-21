@@ -804,7 +804,7 @@ class ValueQ(Builtin):
     """
 
     attributes = hold_first | protected
-    summary_text = "test whether a symbol can be considered to have a value"
+    summary_text = "tests whether a symbol can be considered to have a value"
 
     def apply(self, expr, evaluation):
         "ValueQ[expr_]"

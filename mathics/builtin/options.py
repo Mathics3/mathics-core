@@ -233,7 +233,7 @@ class Default(Builtin):
     """
     <dl>
     <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted paramter of $f$.
+        <dd>gives the default value for an omitted parameter of $f$.
     <dt>'Default[$f$, $k$]'
         <dd>gives the default value for a parameter on the $k$th position.
     <dt>'Default[$f$, $k$, $n$]'
@@ -259,7 +259,7 @@ class Default(Builtin):
      = {{3, 5}, {4, 5}}
     """
 
-    summary_text = "gives the default value for an omitted paramter of $f$..."
+    summary_text = "gives the default value for an omitted parameter of $f$..."
 
     def apply(self, f, i, evaluation):
         "Default[f_, i___]"

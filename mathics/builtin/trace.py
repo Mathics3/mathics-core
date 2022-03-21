@@ -56,7 +56,7 @@ class ClearTrace(Builtin):
     """
     <dl>
       <dt>'ClearTrace[]'
-      <dd>Clear the statistics collected for Built-in Functions
+      <dd>Clears the statistics collected for Built-in Functions
     </dl>
 
     First, set up Builtin-function tracing:
@@ -72,7 +72,7 @@ class ClearTrace(Builtin):
     = False
     """
 
-    summary_text = "clear any statistics collected for Built-in functions"
+    summary_text = "clears any statistics collected for Built-in functions"
 
     def apply(self, evaluation):
         "%(name)s[]"

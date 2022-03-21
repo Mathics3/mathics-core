@@ -466,7 +466,7 @@ class Orderless(Predefined):
 
     """
 
-    summary_text = "Attribute for functions with results that does not depends on the order of their arguments."
+    summary_text = "Attribute for functions with results that does not depend on the order of their arguments."
 
 
 class OneIdentity(Predefined):

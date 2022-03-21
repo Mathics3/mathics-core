@@ -1603,7 +1603,7 @@ class TakeLargest(_RankedTakeLargest):
     """
     <dl>
     <dt>'TakeLargest[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ largest items in $list$.
+        <dd>returns the sorted list of the $n$ largest items in $list$.
     </dl>
 
     >> TakeLargest[{100, -1, 50, 10}, 2]
@@ -1619,7 +1619,7 @@ class TakeLargest(_RankedTakeLargest):
      = {Missing[abc], 150}
     """
 
-    summary_text = "returns the a sorted list of the $n$ largest items in $list$"
+    summary_text = "returns the sorted list of the $n$ largest items in $list$"
 
     def apply(self, leaf, n, evaluation, options):
         "TakeLargest[leaf_List, n_, OptionsPattern[TakeLargest]]"
@@ -1630,7 +1630,7 @@ class TakeLargestBy(_RankedTakeLargest):
     """
     <dl>
     <dt>'TakeLargestBy[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ largest items in $list$
+        <dd>returns the sorted list of the $n$ largest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>
 
@@ -1643,7 +1643,7 @@ class TakeLargestBy(_RankedTakeLargest):
      = {abc}
     """
 
-    summary_text = "returns the a sorted list of the $n$ largest items in $list$ using $f$ to retrieve the items' keys to compare them"
+    summary_text = "returns the sorted list of the $n$ largest items in $list$ using $f$ to retrieve the items' keys to compare them"
 
     def apply(self, leaf, f, n, evaluation, options):
         "TakeLargestBy[leaf_List, f_, n_, OptionsPattern[TakeLargestBy]]"
@@ -1654,7 +1654,7 @@ class TakeSmallest(_RankedTakeSmallest):
     """
     <dl>
     <dt>'TakeSmallest[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ smallest items in $list$.
+        <dd>returns the sorted list of the $n$ smallest items in $list$.
     </dl>
 
     For details on how to use the ExcludedForms option, see TakeLargest[].
@@ -1663,7 +1663,7 @@ class TakeSmallest(_RankedTakeSmallest):
      = {-1, 10}
     """
 
-    summary_text = "returns the a sorted list of the $n$ smallest items in $list$"
+    summary_text = "returns the sorted list of the $n$ smallest items in $list$"
 
     def apply(self, leaf, n, evaluation, options):
         "TakeSmallest[leaf_List, n_, OptionsPattern[TakeSmallest]]"
@@ -1674,7 +1674,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
     """
     <dl>
     <dt>'TakeSmallestBy[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ smallest items in $list$
+        <dd>returns the sorted list of the $n$ smallest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>
 
@@ -1687,7 +1687,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
      = {x}
     """
 
-    summary_text = "returns the a sorted list of the $n$ smallest items in $list$ using $f$ to retrieve the items' keys to compare them"
+    summary_text = "returns the sorted list of the $n$ smallest items in $list$ using $f$ to retrieve the items' keys to compare them"
 
     def apply(self, leaf, f, n, evaluation, options):
         "TakeSmallestBy[leaf_List, f_, n_, OptionsPattern[TakeSmallestBy]]"

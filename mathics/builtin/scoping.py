@@ -258,7 +258,7 @@ class Module(Builtin):
 
     attributes = hold_all | protected
 
-    summary_text = "localizes variables by giving them a temporary name of the form 'name$number', where number is the current value of '$modulenumber'. each time a module is evaluated, '$modulenumber' is incremented"
+    summary_text = "localizes variables by giving them a temporary name of the form 'name$number', where number is the current value of '$modulenumber'"
     messages = {
         "lvsym": (
             "Local variable specification contains `1`, "

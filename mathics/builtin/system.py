@@ -314,7 +314,7 @@ class ScriptCommandLine(Predefined):
     name = "$ScriptCommandLine"
 
     summary_text = (
-        "is a list of string arguments when running the kernel is script mode"
+        "is a list of string arguments when running the kernel in script mode"
     )
 
     def evaluate(self, evaluation):
@@ -598,7 +598,7 @@ class Share(Builtin):
      = ...
     """
 
-    summary_text = "tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions. now it just do nothing..."
+    summary_text = "tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions"
 
     def apply_0(self, evaluation) -> Integer:
         """Share[]"""

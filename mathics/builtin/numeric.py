@@ -306,7 +306,7 @@ class Rationalize(Builtin):
         "Rationalize[z_Complex, dx_?Internal`RealValuedNumberQ]/;dx >= 0": "Rationalize[Re[z], dx] + I Rationalize[Im[z], dx]",
     }
 
-    summary_text = "find a rational approximation"
+    summary_text = "finds a rational approximation"
 
     def apply(self, x, evaluation):
         "Rationalize[x_]"
