@@ -288,6 +288,8 @@ class Builtin(object):
         for form, formatrules in formatvalues.items():
             formatrules.sort()
 
+        if hasattr(self, "summary_text"):
+            self.messages["usage"] = self.summary_text
         messages = [
             Rule(
                 Expression("MessageName", Symbol(name), String(msg)),
