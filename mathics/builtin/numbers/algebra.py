@@ -640,7 +640,7 @@ class FactorTermsList(Builtin):
      = {-3, 1 - a - y + a y, -1 + 2 x}
     """
 
-    summary_text = "returns a list of 2 elements. the first element is the numerical factor in $poly$. the second one is the remaining of the polynomial with numerical factor removed..."
+    summary_text = "factorizes a numerical constant from a polynomial"
     rules = {
         "FactorTermsList[expr_]": "FactorTermsList[expr, {}]",
         "FactorTermsList[expr_, var_]": "FactorTermsList[expr, {var}]",

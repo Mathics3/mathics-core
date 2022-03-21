@@ -1101,7 +1101,7 @@ class FaceForm(Builtin):
     </dl>
     """
 
-    summary_text = "is a graphics directive specificatio for faces of polygons"
+    summary_text = "is a graphics directive specification for faces of polygons"
     pass
 
 

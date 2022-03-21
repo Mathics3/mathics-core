@@ -239,7 +239,7 @@ class HammingDistance(Builtin):
     = 1
     """
 
-    summary_text = "returns the hamming distance between $u$ and $v$, i.e. the number of different elements. $u$ and $v$ may be lists or strings"
+    summary_text = "returns the hamming distance between $u$ and $v$"
     messages = {
         "idim": "`1` and `2` must be of same length.",
     }

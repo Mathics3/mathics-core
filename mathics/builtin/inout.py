@@ -145,7 +145,7 @@ class TraceEvaluation(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "evaluate $expr$ and print each step of the evaluation"
+    summary_text = "evaluates $expr$ and print each step of the evaluation"
     options = {
         "System`ShowTimeBySteps": "False",
     }

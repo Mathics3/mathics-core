@@ -160,7 +160,7 @@ class Nand(Builtin):
     """
 
     operator = "\u22BC"
-    summary_text = "implements the logical nand function. the same as 'not[and['$expr1$, $expr2$, ...']]'"
+    summary_text = "implements the logical nand function"
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
@@ -178,7 +178,7 @@ class Nor(Builtin):
     """
 
     operator = "\u22BD"
-    summary_text = "implements the logical nor function. the same as 'not[or['$expr1$, $expr2$, ...']]'"
+    summary_text = "implements the logical nor function"
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }

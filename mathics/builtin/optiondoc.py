@@ -117,14 +117,14 @@ class Filling(Builtin):
     """
     <dl>
       <dt>'Filling Top |Bottom|Axis'
-      <dd>is a an option to Plot to specify what filling to add under point, curves, and surfaces
+      <dd>is an option to Plot to specify what filling to add under point, curves, and surfaces
     </dl>
 
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis]
      = -Graphics-
     """
 
-    summary_text = "is a an option to plot to specify what filling to add under point, curves, and surfaces"
+    summary_text = "is an option to plot to specify what filling to add under point, curves, and surfaces"
     pass
 
 
@@ -216,7 +216,7 @@ class Mesh(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "is a charting option, such as for 'plot', 'barchart', 'piechart', etc. that specifies the mesh to be drawn. the default is 'mesh->none'"
+    summary_text = "is a charting option, such as for 'plot', 'barchart', 'piechart', etc. that specifies the mesh to be drawn"
     messages = {
         "ilevels": "`1` is not a valid mesh specification.",
     }
