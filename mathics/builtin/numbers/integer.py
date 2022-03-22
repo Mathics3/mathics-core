@@ -55,6 +55,7 @@ class Floor(SympyFunction):
     attributes = listable | numeric_function | protected
 
     sympy_name = "floor"
+    summary_text = "gives the smallest integer less than or equal to $x$..."
     rules = {"Floor[x_, a_]": "Floor[x / a] * a"}
 
     def apply_real(self, x, evaluation):
@@ -83,6 +84,7 @@ class Ceiling(SympyFunction):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = "gives the first integer greater than $x$"
     rules = {"Ceiling[x_, a_]": "Ceiling[x / a] * a"}
 
     def apply(self, x, evaluation):
@@ -111,6 +113,8 @@ class BitLength(Builtin):
     """
 
     attributes = listable | protected
+
+    summary_text = "gives the number of bits needed to represent the integer $x$. $x$'s sign is ignored"
 
     def apply(self, n, evaluation):
         "BitLength[n_Integer]"
@@ -177,6 +181,7 @@ class IntegerString(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns the decimal representation of integer $x$ as string. $x$'s sign is ignored..."
     rules = {
         "IntegerString[n_Integer]": "IntegerString[n, 10]",
     }
@@ -262,6 +267,9 @@ class IntegerDigits(_IntBaseBuiltin):
      = {12, 6, 18, 5}
     """
 
+    summary_text = (
+        "returns the decimal representation of integer $x$ as list of digits..."
+    )
     rules = {
         "IntegerDigits[n_Integer]": "IntegerDigits[n, 10]",
     }
@@ -326,6 +334,7 @@ class DigitCount(_IntBaseBuiltin):
      = 9
     """
 
+    summary_text = "returns the number of times digit $d$ occurs in the base $b$ representation of $n$..."
     rules = {
         "DigitCount[n_Integer]": "DigitCount[n, 10]",
     }
@@ -373,6 +382,7 @@ class IntegerReverse(_IntBaseBuiltin):
      = 321
     """
 
+    summary_text = "returns the integer that has the reverse decimal representation of $x$ without sign..."
     rules = {
         "IntegerReverse[n_Integer]": "IntegerReverse[n, 10]",
     }
@@ -427,6 +437,7 @@ class FromDigits(Builtin):
      = FromDigits[x, 10]
     """
 
+    summary_text = "returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of digits or a string..."
     rules = {"FromDigits[l_]": "FromDigits[l, 10]"}
 
     messages = {"nlst": "The input must be a string of digits or a list."}

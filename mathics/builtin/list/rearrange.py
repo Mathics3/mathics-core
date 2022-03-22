@@ -239,6 +239,7 @@ class Catenate(Builtin):
      = {1, 2, 3, 4, 5}
     """
 
+    summary_text = "concatenates the lists $l1$, $l2$, ..."
     messages = {"invrp": "`1` is not a list."}
 
     def apply(self, lists, evaluation):
@@ -302,6 +303,8 @@ class Complement(_SetOperation):
 
     _operation = "difference"
 
+    summary_text = "returns an expression containing the elements in the set $all$ that are not in any of $e1$, $e2$, etc..."
+
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
         for ea in a:
             if not any(sameQ(eb, ea) for eb in b):
@@ -333,6 +336,7 @@ class DeleteDuplicates(_GatherOperation):
      = {}
     """
 
+    summary_text = "Delete duplicated elements of a list"
     _bin = _DeleteDuplicatesBin
 
 
@@ -355,6 +359,7 @@ class Gather(_GatherOperation):
      = {{1 / 3, 1 / 3}, {1 / 9}}
     """
 
+    summary_text = "Gather equivalent elements in a list"
     _bin = _GatherBin
 
 
@@ -381,6 +386,7 @@ class GatherBy(_GatherOperation):
      = {{{{1, 2}, {2, 1}}}, {{{3, 5}}}, {{{5, 1}}, {{2, 2, 2}}}}
     """
 
+    summary_text = "gathers leaves of $list$ into sub lists of items whose image under $f identical..."
     rules = {
         "GatherBy[l_]": "GatherBy[l, Identity]",
         "GatherBy[l_, {r__, f_}]": "Map[GatherBy[#, f]&, GatherBy[l, {r}], {Length[{r}]}]",
@@ -437,6 +443,8 @@ class Join(Builtin):
 
     attributes = flat | one_identity | protected
 
+    summary_text = "concatenates the lists $l1$ and $l2$"
+
     def apply(self, lists, evaluation):
         "Join[lists___]"
 
@@ -485,6 +493,7 @@ class Partition(Builtin):
      = {{{{11, 12}, {21, 22}}, {{12, 13}, {22, 23}}}, {{{21, 22}, {31, 32}}, {{22, 23}, {32, 33}}}}
     """
 
+    summary_text = "partitions $list$ into sublists of length $n$..."
     rules = {
         "Parition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
     }
@@ -546,6 +555,7 @@ class Reverse(Builtin):
      = {{4, 3}, {2, 1}}
     """
 
+    summary_text = "reverses the order of $expr$'s items (on the top level)..."
     messages = {
         "ilsmp": "Positive integer or list of positive integers expected at position 2 of ``."
     }
@@ -653,6 +663,8 @@ class Riffle(Builtin):
      = {}
     """
 
+    summary_text = "inserts a copy of $x$ between each element of $list$..."
+
     def apply(self, list, sep, evaluation):
         "Riffle[list_List, sep_]"
 
@@ -687,6 +699,7 @@ class RotateLeft(_Rotate):
      = {{f, d, e}, {i, g, h}, {c, a, b}}
     """
 
+    summary_text = "Rotate the elements of a list to the left"
     _sign = 1
 
 
@@ -713,6 +726,7 @@ class RotateRight(_Rotate):
      = {{h, i, g}, {b, c, a}, {e, f, d}}
     """
 
+    summary_text = "Rotate the elements of a list to the right"
     _sign = -1
 
 
@@ -734,6 +748,7 @@ class Tally(_GatherOperation):
      = {{b, 2}, {a, 3}, {d, 4}, {c, 1}}
     """
 
+    summary_text = "Count the number of ocurrences of elements in a list"
     _bin = _TallyBin
 
 
@@ -764,6 +779,8 @@ class Union(_SetOperation):
     """
 
     _operation = "union"
+
+    summary_text = "gives the union of the given set or sets"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
         for eb in b:
@@ -797,6 +814,8 @@ class Intersection(_SetOperation):
     """
 
     _operation = "intersection"
+
+    summary_text = "gives the intersection of the sets"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
         for ea in a:

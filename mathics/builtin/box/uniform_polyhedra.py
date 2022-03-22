@@ -9,6 +9,8 @@ from mathics.core.symbols import Symbol
 
 
 class UniformPolyhedron3DBox(InstanceableBuiltin):
+    summary_text = "is a box construct representing a uniform polyhedron"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 

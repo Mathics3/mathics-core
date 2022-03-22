@@ -53,6 +53,9 @@ class DigitCharacter(Builtin):
      = False
     """
 
+    summary_text = "represents the digits 0-9"
+    pass
+
 
 class EndOfLine(Builtin):
     r"""
@@ -72,6 +75,8 @@ class EndOfLine(Builtin):
      . def,
      . hij}
     """
+    summary_text = "represents the end of a line in a string"
+    pass
 
 
 class EndOfString(Builtin):
@@ -89,6 +94,8 @@ class EndOfString(Builtin):
      = aab
      . abc
     """
+    summary_text = "represents the end of a string"
+    pass
 
 
 class LetterCharacter(Builtin):
@@ -105,6 +112,9 @@ class LetterCharacter(Builtin):
     >> StringMatchQ["\\[Lambda]", LetterCharacter]
      = True
     """
+
+    summary_text = "represents letters"
+    pass
 
 
 class StartOfLine(Builtin):
@@ -125,6 +135,8 @@ class StartOfLine(Builtin):
      . , def
      . , hij}
     """
+    summary_text = "represents the start of a line in a string"
+    pass
 
 
 class StartOfString(Builtin):
@@ -142,6 +154,8 @@ class StartOfString(Builtin):
      = cba
      . abb
     """
+    summary_text = "represents the start of a string"
+    pass
 
 
 class StringCases(_StringFind):
@@ -195,6 +209,7 @@ class StringCases(_StringFind):
      = {a, ä}
     """
 
+    summary_text = "gives all occurences of $pattern$ in $string$..."
     rules = {
         "StringCases[rule_][string_]": "StringCases[string, rule]",
     }
@@ -236,6 +251,7 @@ class StringExpression(BinaryOperator):
     precedence = 135
     attributes = flat | one_identity | protected
 
+    summary_text = "represents a sequence of strings and symbolic string objects $s_i$"
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
         "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurences of `1`.",
@@ -327,6 +343,7 @@ class StringFreeQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
+    summary_text = "returns true if no substring in $string$ matches the string expression $patt$, and returns false otherwise..."
     options = {
         "IgnoreCase": "False",
     }
@@ -348,6 +365,11 @@ class StringFreeQ(Builtin):
 
 class StringMatchQ(Builtin):
     r"""
+    <dl>
+    <dt>'StringMatchQ["string", $patt$]'
+    <dd> test if "string" matches $patt$
+    </dl>
+
     >> StringMatchQ["abc", "abc"]
      = True
 
@@ -402,6 +424,7 @@ class StringMatchQ(Builtin):
 
     attributes = listable | protected
 
+    summary_text = 'test if "string" matches $patt$'
     options = {
         "IgnoreCase": "False",
         "SpellingCorrections": "None",
@@ -463,6 +486,8 @@ class WhitespaceCharacter(Builtin):
     >> StringMatchQ[" \n", Whitespace]
      = True
     """
+    summary_text = "represents a single whitespace character"
+    pass
 
 
 # strings.to_regex() seems to have the implementation here.
@@ -476,6 +501,9 @@ class WordBoundary(Builtin):
     >> StringReplace["apple banana orange artichoke", "e" ~~ WordBoundary -> "E"]
      = applE banana orangE artichokE
     """
+
+    summary_text = "represents the boundary between words"
+    pass
 
 
 class WordCharacter(Builtin):
@@ -494,3 +522,5 @@ class WordCharacter(Builtin):
     >> StringMatchQ["$b;123", WordCharacter..]
      = False
     """
+    summary_text = "represents a single letter or digit character"
+    pass

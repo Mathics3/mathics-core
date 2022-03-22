@@ -21,7 +21,7 @@ class _ColorObject(Builtin):
         doc = """
             <dl>
             <dt>'%(name)s'
-            <dd>represents the color %(text_name)s in graphics.
+            <dd>represents the color %(text_name)s in graphics and style directives.
             </dl>
 
             >> Graphics[{EdgeForm[Black], %(name)s, Disk[]}, ImageSize->Small]
@@ -33,6 +33,7 @@ class _ColorObject(Builtin):
             "name": strip_context(self.get_name()),
             "text_name": text_name,
         }
+        self.summary_text = f" is the {text_name}"
         if self.__doc__ is None:
             self.__doc__ = doc
         else:
@@ -41,6 +42,10 @@ class _ColorObject(Builtin):
 
 class Black(_ColorObject):
     """
+    <dl>
+    <dt>'Black'
+    <dd> represents the color black in graphics and style directives.
+    </dl>
     >> Black
      = RGBColor[0, 0, 0]
     """
@@ -50,6 +55,10 @@ class Black(_ColorObject):
 
 class Blue(_ColorObject):
     """
+    <dl>
+    <dt>'Blue'
+    <dd> represents the color blue in graphics and style directives.
+    </dl>
     >> Blue
      = RGBColor[0, 0, 1]
     """
@@ -59,6 +68,10 @@ class Blue(_ColorObject):
 
 class Brown(_ColorObject):
     """
+    <dl>
+    <dt>'Brown'
+    <dd> represents the color brown in graphics and style directives.
+    </dl>
     >> Brown
      = RGBColor[0.6, 0.4, 0.2]
     """
@@ -68,6 +81,10 @@ class Brown(_ColorObject):
 
 class Cyan(_ColorObject):
     """
+    <dl>
+    <dt>'Cyan'
+    <dd> represents the color cyan in graphics and style directives.
+    </dl>
     >> Cyan
      = RGBColor[0, 1, 1]
     """
@@ -77,6 +94,10 @@ class Cyan(_ColorObject):
 
 class Gray(_ColorObject):
     """
+    <dl>
+    <dt>'Gray'
+    <dd> represents the color gray (50%) in graphics and style directives.
+    </dl>
     >> Gray
      = GrayLevel[0.5]
     """
@@ -86,6 +107,10 @@ class Gray(_ColorObject):
 
 class Green(_ColorObject):
     """
+    <dl>
+    <dt>'Green'
+    <dd> represents the color green in graphics and style directives.
+    </dl>
     >> Green
      = RGBColor[0, 1, 0]
     """
@@ -95,6 +120,11 @@ class Green(_ColorObject):
 
 class Magenta(_ColorObject):
     """
+    <dl>
+    <dt>'Magenta'
+    <dd> represents the color magenta blue in graphics and style directives.
+    </dl>
+
     >> Magenta
      = RGBColor[1, 0, 1]
     """
@@ -104,6 +134,11 @@ class Magenta(_ColorObject):
 
 class LightBlue(_ColorObject):
     """
+    <dl>
+    <dt>'LightBlue'
+    <dd> represents the color light blue in graphics and style directives.
+    </dl>
+
     >> Graphics[{LightBlue, EdgeForm[Black], Disk[]}]
      = -Graphics-
 
@@ -117,7 +152,6 @@ class LightBlue(_ColorObject):
 
 class LightBrown(_ColorObject):
     text_name = "light brown"
-
     rules = {"LightBrown": "Lighter[Brown, 0.85]"}
 
 
@@ -143,12 +177,12 @@ class LightMagenta(_ColorObject):
 
 class LightOrange(_ColorObject):
     text_name = "light orange"
+    summary_text = "LightOrange summary still not available"
     rules = {"LightOrange": "RGBColor[1, 0.9, 0.8]"}
 
 
 class LightPink(_ColorObject):
     text_name = "light pink"
-
     rules = {"LightPink": "Lighter[Pink, 0.85]"}
 
 
@@ -181,6 +215,11 @@ class Orange(_ColorObject):
 
 class Red(_ColorObject):
     """
+    <dl>
+    <dt>'Red'
+    <dd> represents the color red in graphics and style directives.
+    </dl>
+
     >> Red
      = RGBColor[1, 0, 0]
     """
@@ -190,6 +229,11 @@ class Red(_ColorObject):
 
 class Yellow(_ColorObject):
     """
+    <dl>
+    <dt>'Yellow'
+    <dd> represents the color yellow in graphics and style directives.
+    </dl>
+
     >> Yellow
      = RGBColor[1, 1, 0]
     """
@@ -199,6 +243,11 @@ class Yellow(_ColorObject):
 
 class White(_ColorObject):
     """
+    <dl>
+    <dt>'White'
+    <dd> represents the color white in graphics and style directives.
+    </dl>
+
     >> White
      = GrayLevel[1]
     """

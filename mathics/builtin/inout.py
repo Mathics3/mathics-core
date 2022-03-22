@@ -145,6 +145,7 @@ class TraceEvaluation(Builtin):
     """
 
     attributes = hold_all | protected
+    summary_text = "evaluates $expr$ and print each step of the evaluation"
     options = {
         "System`ShowTimeBySteps": "False",
     }
@@ -191,6 +192,7 @@ class Format(Builtin):
      : Tag f not found or too deep for an assigned rule.
     """
 
+    summary_text = "holds values specifying how $expr$ should be printed"
     messages = {"fttp": "Format type `1` is not a symbol."}
 
 
@@ -566,6 +568,7 @@ class MakeBoxes(Builtin):
 
     attributes = hold_all_complete
 
+    summary_text = "is a low-level formatting primitive that converts $expr$ to box form, without evaluating it..."
     rules = {
         "MakeBoxes[Infix[head_[leaves___]], "
         "    f:StandardForm|TraditionalForm|OutputForm|InputForm]": (
@@ -708,6 +711,8 @@ class ToBoxes(Builtin):
      = SuperscriptBox["a", "b"]
     """
 
+    summary_text = "evaluates $expr$ and converts the result to box form"
+
     def apply(self, expr, form, evaluation):
         "ToBoxes[expr_, form_:StandardForm]"
 
@@ -727,6 +732,9 @@ class BoxData(Builtin):
     </dl>
     """
 
+    summary_text = "is a low-level representation of the contents of a typesetting cell"
+    pass
+
 
 class TextData(Builtin):
     """
@@ -737,6 +745,9 @@ class TextData(Builtin):
     </dl>
     """
 
+    summary_text = "is a low-level representation of the contents of a textual cell"
+    pass
+
 
 class Row(Builtin):
     """
@@ -745,6 +756,8 @@ class Row(Builtin):
         <dd>formats several expressions inside a 'RowBox'.
     </dl>
     """
+
+    summary_text = "formats several expressions inside a 'rowbox'"
 
     def apply_makeboxes(self, items, sep, f, evaluation):
         """MakeBoxes[Row[{items___}, sep_:""],
@@ -796,6 +809,9 @@ class GridBox(BoxConstruct):
     #  = ...
     """
 
+    summary_text = (
+        "is a box construct that represents a sequence of boxes arranged in a grid"
+    )
     options = {"ColumnAlignments": "Center"}
 
     def get_array(self, leaves, evaluation):
@@ -931,6 +947,7 @@ class Grid(Builtin):
      . c   d
     """
 
+    summary_text = "formats several expressions inside a 'gridbox'"
     options = GridBox.options
 
     def apply_makeboxes(self, array, f, evaluation, options) -> Expression:
@@ -995,6 +1012,7 @@ class TableForm(Builtin):
      = #<--#
     """
 
+    summary_text = "displays $expr$ as a table"
     options = {"TableDepth": "Infinity"}
 
     def apply_makeboxes(self, table, f, evaluation, options):
@@ -1075,6 +1093,8 @@ class MatrixForm(TableForm):
      . 0     0
     """
 
+    summary_text = "displays a matrix $m$, hiding the underlying list structure"
+
     def apply_makeboxes_matrix(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         f:StandardForm|TraditionalForm]"""
@@ -1098,6 +1118,7 @@ class Superscript(Builtin):
      = x^3
     """
 
+    summary_text = "displays as $x$^$y$"
     rules = {
         "MakeBoxes[Superscript[x_, y_], f:StandardForm|TraditionalForm]": (
             "SuperscriptBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
@@ -1115,6 +1136,8 @@ class Subscript(Builtin):
     >> Subscript[x,1,2,3] // TeXForm
      = x_{1,2,3}
     """
+
+    summary_text = "displays as $a_i$"
 
     def apply_makeboxes(self, x, y, f, evaluation) -> Expression:
         "MakeBoxes[Subscript[x_, y__], f:StandardForm|TraditionalForm]"
@@ -1136,6 +1159,7 @@ class Subsuperscript(Builtin):
      = a_b^c
     """
 
+    summary_text = "displays as $a_b^c$"
     rules = {
         "MakeBoxes[Subsuperscript[x_, y_, z_], "
         "f:StandardForm|TraditionalForm]": (
@@ -1161,6 +1185,7 @@ class Postfix(BinaryOperator):
      = Hold[f[e[d[c[b[a[x]]]]]]]
     """
 
+    summary_text = "Postfix operator"
     operator = "//"
     operator_display = None
     precedence = 70
@@ -1194,6 +1219,7 @@ class Prefix(BinaryOperator):
      = Hold[a[b[c[d[e[f[x]]]]]]]
     """
 
+    summary_text = "Prefix operator"
     operator = "@"
     operator_display = None
     precedence = 640
@@ -1234,6 +1260,9 @@ class Infix(Builtin):
      = ab
     """
 
+    summary_text = "displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$"
+    pass
+
 
 class NonAssociative(Builtin):
     """
@@ -1243,6 +1272,9 @@ class NonAssociative(Builtin):
         non-associative operator.
     </dl>
     """
+
+    summary_text = "is used with operator formatting constructs to specify a non-associative operator"
+    pass
 
 
 class Left(Builtin):
@@ -1254,6 +1286,9 @@ class Left(Builtin):
     </dl>
     """
 
+    summary_text = "is used with operator formatting constructs to specify a left-associative operator"
+    pass
+
 
 class Right(Builtin):
     """
@@ -1264,6 +1299,9 @@ class Right(Builtin):
     </dl>
     """
 
+    summary_text = "is used with operator formatting constructs to specify a right-associative operator"
+    pass
+
 
 class Center(Builtin):
     """
@@ -1273,6 +1311,9 @@ class Center(Builtin):
         'TableForm' to specify a centered column.
     </dl>
     """
+
+    summary_text = "is used with the 'columnalignments' option to 'grid' or 'tableform' to specify a centered column"
+    pass
 
 
 class StringForm(Builtin):
@@ -1286,6 +1327,8 @@ class StringForm(Builtin):
     >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
      = a bla b blub c bla b
     """
+
+    summary_text = "displays the string $str$, replacing placeholders in $str$ with the corresponding expressions"
 
     def apply_makeboxes(self, s, args, f, evaluation):
         """MakeBoxes[StringForm[s_String, args___],
@@ -1334,6 +1377,7 @@ class Message(Builtin):
 
     attributes = hold_first | protected
 
+    summary_text = "displays the specified message, replacing placeholders in the message text with the corresponding expressions"
     messages = {
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language."
     }
@@ -1428,6 +1472,7 @@ class Check(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = "evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned..."
     messages = {
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
@@ -1529,6 +1574,9 @@ class Quiet(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = (
+        "evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed..."
+    )
     messages = {
         "anmlist": (
             "Argument `1` of `2` should be All, None, a message name, "
@@ -1637,6 +1685,8 @@ class Off(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = "turns a message off so it is no longer printed"
+
     def apply(self, expr, evaluation):
         "Off[expr___]"
 
@@ -1683,6 +1733,8 @@ class On(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = "turns a message on for printing"
+
     def apply(self, expr, evaluation):
         "On[expr___]"
 
@@ -1723,6 +1775,7 @@ class MessageName(BinaryOperator):
      = MessageName[a, "b"]
     """
 
+    summary_text = "identifies a message"
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
 
     operator = "::"
@@ -1840,6 +1893,7 @@ class Syntax(Builtin):
     """
 
     # Extension: MMA does not provide lineno and filename in its error messages
+    summary_text = "is a symbol to which all syntax messages are assigned"
     messages = {
         "snthex": r"4 hexadecimal digits are required after \: to construct a 16-bit character (line `4` of `5`).",
         "sntoct1": r"3 octal digits are required after \ to construct an 8-bit character (line `4` of `5`).",
@@ -1868,6 +1922,7 @@ class General(Builtin):
      : Rule called with 1 argument; 2 arguments are expected.
     """
 
+    summary_text = "is a symbol to which all general-purpose messages are assigned"
     messages = {
         "argb": (
             "`1` called with `2` arguments; "
@@ -1960,6 +2015,7 @@ class Echo_(Predefined):
 
     attributes = 0
     name = "$Echo"
+    summary_text = "gives a list of files and pipes to which all input is echoed"
     rules = {"$Echo": "{}"}
 
 
@@ -1979,6 +2035,8 @@ class Print(Builtin):
      | -Hola
      . -Qué tal?
     """
+
+    summary_text = "prints each $expr$ in string form"
 
     def apply(self, expr, evaluation):
         "Print[expr__]"
@@ -2004,6 +2062,9 @@ class FullForm(Builtin):
      = "A string"
     """
 
+    summary_text = "displays the underlying form of $expr$"
+    pass
+
 
 class StandardForm(Builtin):
     """
@@ -2022,6 +2083,9 @@ class StandardForm(Builtin):
     >> f'[x]
      = f'[x]
     """
+
+    summary_text = "displays $expr$ in the default form"
+    pass
 
 
 class InputForm(Builtin):
@@ -2044,6 +2108,8 @@ class InputForm(Builtin):
     #> InputForm["\$"]
      = "\\$"
     """
+    summary_text = "displays $expr$ in an unambiguous form suitable for input"
+    pass
 
 
 class OutputForm(Builtin):
@@ -2062,6 +2128,9 @@ class OutputForm(Builtin):
     >> OutputForm[Graphics[Rectangle[]]]
      = -Graphics-
     """
+
+    summary_text = "displays $expr$ in a plain-text form"
+    pass
 
 
 class MathMLForm(Builtin):
@@ -2086,6 +2155,8 @@ class MathMLForm(Builtin):
     ## MathMLForm[MatrixForm[{{2*a, 0},{0,0}}]]
     = ...
     """
+
+    summary_text = "displays $expr$ as a mathml expression"
 
     def apply_mathml(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, MathMLForm]"
@@ -2135,13 +2206,15 @@ class PythonForm(Builtin):
     # >> PythonForm[HoldForm[Sqrt[a^3]]]
     #  = sympy.sqrt{a**3} # or something like this
 
+    summary_text = "returns an approximate equivalent of $expr$ in python, when that is possible. we assume that python has sympy imported. no explicit import will be include in the result"
+
     def apply_python(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, PythonForm]"
 
         try:
             # from trepan.api import debug; debug()
             python_equivalent = expr.to_python(python_form=True)
-        except:
+        except Exception:
             return
         return StringFromPython(python_equivalent)
 
@@ -2164,13 +2237,15 @@ class SympyForm(Builtin):
     = exp(2) + 3*E
     """
 
+    summary_text = "returns an sympy $expr$ in python. sympy is used internally to implement a number of mathics functions, like simplify"
+
     def apply_sympy(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, SympyForm]"
 
         try:
             # from trepan.api import debug; debug()
             sympy_equivalent = expr.to_sympy()
-        except:
+        except Exception:
             return
         return StringFromPython(sympy_equivalent)
 
@@ -2198,6 +2273,8 @@ class TeXForm(Builtin):
      = a\text{ + }b*c
     """
 
+    summary_text = "displays $expr$ using tex math mode commands"
+
     def apply_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
 
@@ -2220,6 +2297,16 @@ class TeXForm(Builtin):
 
 
 class Style(Builtin):
+    """
+    <dl>
+    <dt>'Style[$expr$, $op$]'
+        <dd>displays with $expr$ formatted using the specified option settings.
+    <dt>'Style[$expr$, "style"]'
+        <dd>Uses the option settings for the specified style in the current notebook.
+    </dl>
+    """
+
+    summary_text = "Set the style to show an expression"
     options = {"ImageSizeMultipliers": "Automatic"}
 
     rules = {
@@ -2249,6 +2336,8 @@ class Precedence(Builtin):
     >> Precedence[a + b]
      = 1000.
     """
+
+    summary_text = "returns the precedence of the built-in operator $op$"
 
     def apply(self, expr, evaluation) -> Real:
         "Precedence[expr_]"
@@ -2613,6 +2702,7 @@ class NumberForm(_NumberForm):
      = 142.3
     """
 
+    summary_text = "prints a real number $expr$ with $n$-digits of precision..."
     options = {
         "DigitBlock": "Infinity",
         "ExponentFunction": "Automatic",
@@ -2782,6 +2872,7 @@ class BaseForm(Builtin):
      = 3.243f6a8885a308d313198a2e_16
     """
 
+    summary_text = "prints numbers in $expr$ in base $n$"
     messages = {
         "intpm": (
             "Positive machine-sized integer expected at position 2 in "

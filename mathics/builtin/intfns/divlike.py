@@ -59,6 +59,8 @@ class CoprimeQ(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "tests whether $x$ and $y$ are coprime by computing their greatest common divisor"
+
     def apply(self, args, evaluation):
         "CoprimeQ[args__]"
 
@@ -89,6 +91,8 @@ class EvenQ(Test):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is even, and 'false' otherwise"
+
     def test(self, n):
         value = n.get_int_value()
         return value is not None and value % 2 == 0
@@ -114,6 +118,8 @@ class GCD(Builtin):
     """
 
     attributes = flat | listable | one_identity | orderless | protected
+
+    summary_text = "computes the greatest common divisor of the given integers"
 
     def apply(self, ns, evaluation):
         "GCD[ns___Integer]"
@@ -142,6 +148,8 @@ class LCM(Builtin):
     """
 
     attributes = flat | listable | one_identity | orderless | protected
+
+    summary_text = "computes the least common multiple of the given integers"
 
     def apply(self, ns, evaluation):
         "LCM[ns___Integer]"
@@ -176,6 +184,8 @@ class Mod(Builtin):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = "returns $x$ modulo $m$"
+
     def apply(self, n, m, evaluation):
         "Mod[n_Integer, m_Integer]"
 
@@ -200,6 +210,8 @@ class OddQ(Test):
     """
 
     attributes = listable | protected
+
+    summary_text = "returns 'true' if $x$ is odd, and 'false' otherwise"
 
     def test(self, n):
         value = n.get_int_value()
@@ -229,6 +241,7 @@ class PowerMod(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "computes $x$^$y$ modulo $m$"
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
     }
@@ -290,6 +303,8 @@ class PrimeQ(SympyFunction):
 
     sympy_name = "isprime"
 
+    summary_text = "returns 'true' if $n$ is a prime number"
+
     def apply(self, n, evaluation):
         "PrimeQ[n_]"
 
@@ -327,6 +342,7 @@ class Quotient(Builtin):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = "computes the integer quotient of $m$ and $n$"
     messages = {
         "infy": "Infinite expression `1` encountered.",
     }
@@ -372,6 +388,9 @@ class QuotientRemainder(Builtin):
 
     attributes = listable | numeric_function | protected
 
+    summary_text = (
+        "computes a list of the quotient and remainder from division of $m$ by $n$"
+    )
     messages = {
         "divz": "The argument 0 in `1` should be nonzero.",
     }

@@ -423,7 +423,7 @@ class IntegerQ(Test):
      = False
     """
 
-    summary_text = "test whether an expression is an integer"
+    summary_text = "tests whether an expression is an integer"
 
     def test(self, expr):
         return isinstance(expr, Integer)
@@ -935,7 +935,8 @@ class NumericQ(Builtin):
         "argx": "NumericQ called with `1` arguments; 1 argument is expected.",
         "set": "Cannot set `1` to `2`; the lhs argument must be a symbol and the rhs must be True or False.",
     }
-    summary_text = "test whether an expression is a number"
+
+    summary_text = "tests whether an exprssion is a number"
 
     def apply(self, expr, evaluation):
         "NumericQ[expr_]"

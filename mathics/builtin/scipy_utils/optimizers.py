@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.atoms import Number, Real
 from mathics.core.symbols import SymbolList, Symbol

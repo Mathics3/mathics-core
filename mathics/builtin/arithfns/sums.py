@@ -20,6 +20,7 @@ class Accumulate(Builtin):
      = {1, 3, 6}
     """
 
+    summary_text = "accumulates the values of $list$, returning a new list"
     rules = {"Accumulate[head_]": "FoldList[Plus, head]"}
 
 
@@ -40,6 +41,7 @@ class Mean(Builtin):
      = (a + b) / 2
     """
 
+    summary_text = "returns the statistical mean of $list$"
     rules = {
         "Mean[list_]": "Total[list] / Length[list]",
     }
@@ -72,6 +74,7 @@ class Total(Builtin):
      = {6, 15, 24}
     """
 
+    summary_text = "adds all values in $list$..."
     rules = {
         "Total[head_]": "Apply[Plus, head]",
         "Total[head_, n_]": "Apply[Plus, Flatten[head, n]]",

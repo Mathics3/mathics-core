@@ -101,7 +101,7 @@ class ElementData(Builtin):
         'ElementData["Properties"]': 'ElementData[All, "Properties"]',
     }
 
-    summary_text = "Data about chemical elements"
+    summary_text = "retrieves data about chemical elements"
 
     messages = {
         "noent": (

@@ -74,6 +74,8 @@ class Append(Builtin):
      = Append[a, b]
     """
 
+    summary_text = "returns $expr$ with $elem$ appended"
+
     def apply(self, expr, item, evaluation):
         "Append[expr_, item_]"
 
@@ -119,6 +121,7 @@ class AppendTo(Builtin):
 
     attributes = hold_first | protected
 
+    summary_text = "append $item$ to value of $s$ and sets $s$ to the result"
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
     }
@@ -185,6 +188,7 @@ class Cases(Builtin):
      = {y}
     """
 
+    summary_text = "returns the elements of $list$ that match $pattern$..."
     rules = {
         "Cases[pattern_][list_]": "Cases[list, pattern]",
     }
@@ -258,6 +262,7 @@ class Count(Builtin):
      = 5
     """
 
+    summary_text = "returns the number of times $pattern$ appears in $list$..."
     rules = {
         "Count[pattern_][list_]": "Count[list, pattern]",
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
@@ -288,6 +293,7 @@ class DeleteCases(Builtin):
      = {1}
     """
 
+    summary_text = "returns the elements of $list$ that do not match $pattern$..."
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
         "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
@@ -391,6 +397,7 @@ class Drop(Builtin):
      = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
+    summary_text = "returns $expr$ with the first $n$ leaves removed"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
@@ -433,6 +440,7 @@ class First(Builtin):
      = First[{}]
     """
 
+    summary_text = "returns the first element in $expr$"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nofirst": "`1` has zero length and no first element.",
@@ -473,6 +481,7 @@ class FirstCase(Builtin):
     """
 
     attributes = hold_rest | protected
+    summary_text = 'gives the first $ei$ to match $pattern$, or $missing["notfound"]$ if none matching pattern is found...'
     options = Cases.options
     rules = {
         'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
@@ -500,6 +509,7 @@ class Extract(Builtin):
 
     attributes = n_hold_rest | protected
 
+    summary_text = "extracts parts of $expr$ specified by $list$..."
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
         "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
@@ -576,6 +586,7 @@ class FirstPosition(Builtin):
 
     """
 
+    summary_text = 'gives the position of the first element in $expr$ that matches $pattern$, or missing["notfound"] if no such element is found...'
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
     }
@@ -679,6 +690,7 @@ class Last(Builtin):
      = Last[{}]
     """
 
+    summary_text = "returns the last element in $expr$"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nolast": "`1` has zero length and no last element.",
@@ -726,6 +738,8 @@ class Length(Builtin):
      = Rational[1, 3]
     """
 
+    summary_text = "returns the number of leaves in $expr$"
+
     def apply(self, expr, evaluation):
         "Length[expr_]"
 
@@ -752,6 +766,7 @@ class MemberQ(Builtin):
      = True
     """
 
+    summary_text = "returns 'true' if $pattern$ matches any element of $list$, or 'false' otherwise"
     rules = {
         "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
         "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
@@ -780,6 +795,8 @@ class Most(Builtin):
      = 7
     #> ClearAll[A];
     """
+
+    summary_text = "returns $expr$ with the last element removed"
 
     def apply(self, expr, evaluation):
         "Most[expr_]"
@@ -902,6 +919,8 @@ class Part(Builtin):
 
     attributes = n_hold_rest | protected | read_protected
 
+    summary_text = "returns part $i$ of $expr$"
+
     def apply_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
@@ -981,6 +1000,8 @@ class Pick(Builtin):
      = {a, b, d}
     """
 
+    summary_text = "returns those items in $list$ that are true in $sel$..."
+
     def _do(self, items0, sel0, match, evaluation):
         def pick(items, sel):
             for x, s in zip(items, sel):
@@ -1034,6 +1055,8 @@ class Prepend(Builtin):
      : Nonatomic expression expected.
      = Prepend[a, b]
     """
+
+    summary_text = "returns $expr$ with $item$ prepended to its leaves..."
 
     def apply(self, expr, item, evaluation):
         "Prepend[expr_, item_]"
@@ -1091,6 +1114,7 @@ class PrependTo(Builtin):
 
     attributes = hold_first | protected
 
+    summary_text = "prepends $item$ to value of $s$ and sets $s$ to the result"
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
@@ -1148,6 +1172,7 @@ class ReplacePart(Builtin):
      = {a, b, t}
     """
 
+    summary_text = "replaces part $i$ in $expr$ with $new$..."
     messages = {
         "reps": "`1` is not a list of replacement rules.",
     }
@@ -1223,6 +1248,7 @@ class Rest(Builtin):
      = Rest[{}]
     """
 
+    summary_text = "returns $expr$ with the first element removed"
     messages = {
         "normal": "Nonatomic expression expected.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
@@ -1284,6 +1310,7 @@ class Span(BinaryOperator):
      = (1 ;; d) (a ;; b ;; c)
     """
 
+    summary_text = "span ranges"
     operator = ";;"
     precedence = 305
 
@@ -1340,6 +1367,7 @@ class Take(Builtin):
      = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
     """
 
+    summary_text = "returns $expr$ with all but the first $n$ leaves removed"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
@@ -1384,6 +1412,10 @@ class Select(Builtin):
      = 31415
     #> ClearAll[A];
     """
+
+    summary_text = (
+        "returns a list of the elements $ei$ for which $f$[$ei$] returns 'true'"
+    )
 
     def apply(self, items, expr, evaluation):
         "Select[items_, expr_]"

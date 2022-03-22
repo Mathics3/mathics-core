@@ -48,6 +48,8 @@ class Or(BinaryOperator):
     #        "Or[a_, a_]": "a",
     #        "Or[pred1___, a_, pred2___, a_, pred3___]": "Or[pred1, a, pred2, pred3]",
     #    }
+    summary_text = "evaluates each expression in turn, returning 'true' as soon as an expression evaluates to 'true'"
+
     def apply(self, args, evaluation):
         "Or[args___]"
 
@@ -97,6 +99,8 @@ class And(BinaryOperator):
     #        "And[pred1___, a_, pred2___, a_, pred3___]": "And[pred1, a, pred2, pred3]",
     #    }
 
+    summary_text = "evaluates each expression in turn, returning 'false' as soon as an expression evaluates to 'false'"
+
     def apply(self, args, evaluation):
         "And[args___]"
 
@@ -136,6 +140,7 @@ class Not(PrefixOperator):
     operator = "!"
     precedence = 230
 
+    summary_text = "negates the logical expression $expr$"
     rules = {
         "Not[True]": "False",
         "Not[False]": "True",
@@ -155,6 +160,7 @@ class Nand(Builtin):
     """
 
     operator = "\u22BC"
+    summary_text = "implements the logical nand function"
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
@@ -172,6 +178,7 @@ class Nor(Builtin):
     """
 
     operator = "\u22BD"
+    summary_text = "implements the logical nor function"
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }
@@ -202,6 +209,8 @@ class Implies(BinaryOperator):
     operator = "\u21D2"
     precedence = 200
     grouping = "Right"
+
+    summary_text = "evaluates each expression in turn, returning 'true' as soon as the first expression evaluates to 'false'"
 
     def apply(self, x, y, evaluation):
         "Implies[x_, y_]"
@@ -244,6 +253,8 @@ class Equivalent(BinaryOperator):
     operator = "\u29E6"
     precedence = 205
     attributes = orderless | protected
+
+    summary_text = "is equivalent to ($expr1$ && $expr2$ && "
 
     def apply(self, args, evaluation):
         "Equivalent[args___]"
@@ -304,6 +315,8 @@ class Xor(BinaryOperator):
     precedence = 215
     attributes = flat | one_identity | orderless | protected
 
+    summary_text = "evaluates each expression in turn, returning 'true' as soon as not all expressions evaluate to the same value"
+
     def apply(self, args, evaluation):
         "Xor[args___]"
 
@@ -338,6 +351,8 @@ class True_(Predefined):
     </dl>
     """
 
+    summary_text = "represents the boolean true value"
+    summary_text = "represents the boolean true value"
     attributes = locked | protected
     name = "True"
 
@@ -350,6 +365,8 @@ class False_(Predefined):
     </dl>
     """
 
+    summary_text = "represents the boolean false value"
+    summary_text = "represents the boolean false value"
     attributes = locked | protected
     name = "False"
 
@@ -413,6 +430,8 @@ class NoneTrue(_ManyTrue):
      = True
     """
 
+    summary_text = "returns true if no application of $test$ to $expr1$, $expr2$, ..."
+
     def _short_circuit(self, what):
         if what:
             raise _ShortCircuit(SymbolFalse)
@@ -442,6 +461,8 @@ class AnyTrue(_ManyTrue):
      = False
     """
 
+    summary_text = "returns true if any application of $test$ to $expr1$, $expr2$, ..."
+
     def _short_circuit(self, what):
         if what:
             raise _ShortCircuit(SymbolTrue)
@@ -470,6 +491,8 @@ class AllTrue(_ManyTrue):
     #> AllTrue[{}, EvenQ]
      = True
     """
+
+    summary_text = "returns true if all applications of $test$ to $expr1$, $expr2$, ..."
 
     def _short_circuit(self, what):
         if not what:

@@ -43,6 +43,7 @@ class Erf(_MPMathMultiFunction):
         2: "erf2",
     }
 
+    summary_text = "is the Erf function"
     rules = {
         "Derivative[1][Erf]": "2 Exp[-#^2] / Sqrt[Pi] &",
     }
@@ -67,6 +68,7 @@ class Erfc(_MPMathFunction):
 
     mpmath_name = "erfc"
 
+    summary_text = "the complementary error function of $z$"
     rules = {
         "Derivative[1][Erfc]": "-2 Exp[-#^2] / Sqrt[Pi] &",
     }
@@ -87,6 +89,7 @@ class FresnelC(_MPMathFunction):
      = FresnelC[z]
     """
 
+    summary_text = "resnel c integral $c$($z$)"
     rules = {
         "Derivative[1][FresnelC]": "Cos[(Pi*#1^2)/2]&",
     }
@@ -108,6 +111,7 @@ class FresnelS(_MPMathFunction):
      = FresnelS[z]
     """
 
+    summary_text = "resnel s integral $s$($z$)"
     rules = {
         "Derivative[1][FresnelS]": "Sin[(Pi*#1^2)/2]&",
     }
@@ -137,6 +141,7 @@ class InverseErf(_MPMathFunction):
     sympy_name = "erfinv"
     mpmath_name = "erfinv"
 
+    summary_text = "the inverse error function of $z$"
     rules = {
         "Derivative[1][InverseErf]": "Sqrt[Pi] Exp[InverseErf[#]^2] / 2 &",
     }
@@ -168,6 +173,7 @@ class InverseErfc(_MPMathFunction):
     attributes = listable | protected
     sympy_name = "erfcinv"
 
+    summary_text = "the inverse complementary error function of $z$"
     rules = {
         "Derivative[1][InverseErfc]": "-Sqrt[Pi] Exp[InverseErfc[#]^2] / 2 &",
     }

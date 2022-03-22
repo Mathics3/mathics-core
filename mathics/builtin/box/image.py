@@ -4,9 +4,10 @@ from mathics.builtin.base import BoxConstruct
 
 
 class ImageBox(BoxConstruct):
-    """Routines which get called when Boxing (adding formatting and bounding-box information)
-    an Image object.
-    """
+    # """Routines which get called when Boxing (adding formatting and bounding-box information)
+    # an Image object.
+    # """
+    summary_text = " is the graphic representation of an image"
 
     def boxes_to_text(self, elements=None, **options):
         return "-Image-"

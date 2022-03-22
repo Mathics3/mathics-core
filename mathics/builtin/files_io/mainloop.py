@@ -50,6 +50,7 @@ class HistoryLength(Builtin):
 
     name = "$HistoryLength"
 
+    summary_text = "specifies the maximum number of 'in' and 'out' entries"
     rules = {
         "$HistoryLength": "100",
     }
@@ -88,6 +89,7 @@ class In(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the $k$th line of input"
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
     }
@@ -103,6 +105,10 @@ class IOHookPreRead(Builtin):
     </dl>
     """
 
+    summary_text = (
+        "is applied to the text or box form of every input "
+        "expression before it is fed to the parser"
+    )
     name = "$PreRead"
     attributes = no_attributes
 
@@ -135,6 +141,7 @@ class IOHookPre(Builtin):
      = 4
     """
 
+    summary_text = "is applied to every input expression"
     name = "$Pre"
     attributes = no_attributes
 
@@ -148,6 +155,7 @@ class IOHookPost(Builtin):
     </dl>
     """
 
+    summary_text = "is applied to every output expression"
     name = "$Post"
     attributes = no_attributes
 
@@ -161,6 +169,7 @@ class IOHookPrePrint(Builtin):
     </dl>
     """
 
+    summary_text = "is applied to every output expression before it is printed"
     name = "$PrePrint"
     attributes = no_attributes
 
@@ -175,6 +184,9 @@ class IOHookSyntaxHandler(Builtin):
     </dl>
     """
 
+    summary_text = (
+        "is applied to  any input string that is " "found to contain a syntax error"
+    )
     name = "$SyntaxHandler"
     attributes = no_attributes
 
@@ -198,6 +210,8 @@ class Line(Builtin):
      : Non-negative integer expected.
     """
 
+    summary_text = "holds the current input line number"
+    summary_text = "holds the current input line number"
     name = "$Line"
 
 
@@ -241,6 +255,7 @@ class Out(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "gives the result of the $k$th input line..."
     rules = {
         "Out[k_Integer?Negative]": "Out[$Line + k]",
         "Out[]": "Out[$Line - 1]",

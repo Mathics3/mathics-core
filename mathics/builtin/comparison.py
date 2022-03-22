@@ -376,6 +376,7 @@ class TrueQ(Builtin):
      = False
     """
 
+    summary_text = "returns 'true' if and only if $expr$ is 'true'"
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
@@ -407,6 +408,7 @@ class BooleanQ(Builtin):
      = False
     """
 
+    summary_text = "returns 'true' if $expr$ is either 'true' or 'false'"
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
@@ -433,6 +435,7 @@ class Inequality(Builtin):
      = False
     """
 
+    summary_text = "is the head of expressions involving different inequality operators (at least temporarily). thus, it is possible to write chains of inequalities"
     messages = {
         "ineq": (
             "Inequality called with `` arguments; the number of "
@@ -533,9 +536,9 @@ def do_cmp(x1, x2) -> Optional[int]:
     return None
 
 
-class SympyComparison(SympyFunction):
+class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
-        to_sympy = super(SympyComparison, self).to_sympy
+        to_sympy = super(_SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
 
             def pairs(items):
@@ -549,7 +552,7 @@ class SympyComparison(SympyFunction):
         return to_sympy(expr, **kwargs)
 
 
-class Equal(_EqualityOperator, SympyComparison):
+class Equal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Equal[$x$, $y$]'
@@ -685,7 +688,7 @@ class Equal(_EqualityOperator, SympyComparison):
         return x
 
 
-class Unequal(_EqualityOperator, SympyComparison):
+class Unequal(_EqualityOperator, _SympyComparison):
     u"""
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
@@ -758,7 +761,7 @@ class Unequal(_EqualityOperator, SympyComparison):
         return not x
 
 
-class Less(_ComparisonOperator, SympyComparison):
+class Less(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Less[$x$, $y$]' or $x$ < $y$
@@ -777,11 +780,12 @@ class Less(_ComparisonOperator, SympyComparison):
      = 1 < 3 < x < 2
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are strictly in ascending ordered"
     operator = "<"
     sympy_name = "StrictLessThan"
 
 
-class LessEqual(_ComparisonOperator, SympyComparison):
+class LessEqual(_ComparisonOperator, _SympyComparison):
     u"""
      <dl>
        <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
@@ -796,12 +800,12 @@ class LessEqual(_ComparisonOperator, SympyComparison):
      = True
 
     """
-
+    summary_text = "compares several numerical expressions and yields $True$ if they are in ascending ordered"
     operator = "<="
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
 
-class Greater(_ComparisonOperator, SympyComparison):
+class Greater(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
@@ -820,11 +824,12 @@ class Greater(_ComparisonOperator, SympyComparison):
      = True
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are strictly in descending ordered"
     operator = ">"
     sympy_name = "StrictGreaterThan"
 
 
-class GreaterEqual(_ComparisonOperator, SympyComparison):
+class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
@@ -834,6 +839,7 @@ class GreaterEqual(_ComparisonOperator, SympyComparison):
     </dl>
     """
 
+    summary_text = "compares several numerical expressions and yields $True$ if they are in ascending ordered"
     operator = ">="
     sympy_name = "GreaterThan"
 
@@ -864,6 +870,7 @@ class Positive(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a positive real number"
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
     }
@@ -893,6 +900,7 @@ class Negative(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a negative real number"
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
     }
@@ -911,6 +919,7 @@ class NonNegative(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a positive real number or zero"
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
     }
@@ -929,6 +938,7 @@ class NonPositive(Builtin):
 
     attributes = listable | protected
 
+    summary_text = "returns 'true' if $x$ is a negative real number or zero"
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
     }
@@ -1024,6 +1034,7 @@ class Max(_MinMax):
      = x
     """
 
+    summary_text = "The smallest argument or the largest element of a list"
     sense = 1
 
 
@@ -1058,4 +1069,5 @@ class Min(_MinMax):
      = x
     """
 
+    summary_text = "The largest argument or the largest element of a list"
     sense = -1

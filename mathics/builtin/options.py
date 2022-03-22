@@ -82,6 +82,8 @@ class Options(Builtin):
      = a /; True
     """
 
+    summary_text = "gives a list of optional arguments to $f$ and their default values"
+
     def apply(self, f, evaluation):
         "Options[f_]"
 
@@ -135,6 +137,7 @@ class OptionValue(Builtin):
      = {5}
     """
 
+    summary_text = "gives the value of the option $name$ as specified in a call to a function with 'optionspattern'..."
     messages = {
         "optnf": "Option name `1` not found.",
     }
@@ -230,7 +233,7 @@ class Default(Builtin):
     """
     <dl>
     <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted paramter of $f$.
+        <dd>gives the default value for an omitted parameter of $f$.
     <dt>'Default[$f$, $k$]'
         <dd>gives the default value for a parameter on the $k$th position.
     <dt>'Default[$f$, $k$, $n$]'
@@ -255,6 +258,8 @@ class Default(Builtin):
     >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
      = {{3, 5}, {4, 5}}
     """
+
+    summary_text = "gives the default value for an omitted parameter of $f$..."
 
     def apply(self, f, i, evaluation):
         "Default[f_, i___]"
@@ -308,6 +313,10 @@ class OptionQ(Test):
      = False
     """
 
+    summary_text = (
+        "returns 'true' if $expr$ has the form of a valid option specification"
+    )
+
     def test(self, expr):
         expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -338,6 +347,8 @@ class NotOptionQ(Test):
      = False
     """
 
+    summary_text = "returns 'true' if $expr$ does not have the form of a valid option specification"
+
     def test(self, expr):
         expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -365,6 +376,7 @@ class FilterRules(Builtin):
      = {x -> 100, z -> 10000}
     """
 
+    summary_text = "gives those $rules$ that have a left side that matches $pattern$..."
     rules = {
         "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
     }

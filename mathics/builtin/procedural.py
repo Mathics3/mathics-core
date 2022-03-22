@@ -46,7 +46,7 @@ class Abort(Builtin):
      = $Aborted
     """
 
-    summary_text = "generate an abort"
+    summary_text = "aborts the current evaluation"
 
     def apply(self, evaluation):
         "Abort[]"
@@ -70,7 +70,7 @@ class Break(Builtin):
         "nofwd": "No enclosing For, While, or Do found for Break[].",
     }
 
-    summary_text = "exit a 'For', 'While', or 'Do' loop"
+    summary_text = "exits from a a 'For', 'While', or 'Do' loop"
 
     def apply(self, evaluation):
         "Break[]"
@@ -187,7 +187,7 @@ class CompoundExpression(BinaryOperator):
     operator = ";"
     precedence = 10
 
-    summary_text = "execute expressions in sequence"
+    summary_text = "executes expressions in sequence"
 
     def apply(self, expr, evaluation):
         "CompoundExpression[expr___]"

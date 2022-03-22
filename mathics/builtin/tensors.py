@@ -130,7 +130,7 @@ class ArrayQ(Builtin):
         "ArrayQ[expr_, pattern_]": "ArrayQ[expr, pattern, True&]",
     }
 
-    summary_text = "test whether an object is a tensor of a given rank"
+    summary_text = "tests whether an object is a tensor of a given rank"
 
     def apply(self, expr, pattern, test, evaluation):
         "ArrayQ[expr_, pattern_, test_]"
@@ -407,6 +407,7 @@ class RotationTransform(Builtin):
     </dl>
     """
 
+    summary_text = "gives a rotation by $phi$..."
     rules = {
         "RotationTransform[phi_]": "TransformationFunction[{{Cos[phi], -Sin[phi], 0}, {Sin[phi], Cos[phi], 0}, {0, 0, 1}}]",
         "RotationTransform[phi_, p_]": "TranslationTransform[p] . RotationTransform[phi] . TranslationTransform[-p]",
@@ -424,6 +425,9 @@ class ScalingTransform(Builtin):
     </dl>
     """
 
+    summary_text = (
+        "gives a scaling transform of $v$. $v$ may be a scalar or a vector..."
+    )
     rules = {
         "ScalingTransform[v_]": "TransformationFunction[DiagonalMatrix[Join[v, {1}]]]",
         "ScalingTransform[v_, p_]": "TranslationTransform[p] . ScalingTransform[v] . TranslationTransform[-p]",
@@ -442,6 +446,7 @@ class ShearingTransform(Builtin):
     </dl>
     """
 
+    summary_text = "gives a horizontal shear by the angle $phi$..."
     rules = {
         "ShearingTransform[phi_, {1, 0}, {0, 1}]": "TransformationFunction[{{1, Tan[phi], 0}, {0, 1, 0}, {0, 0, 1}}]",
         "ShearingTransform[phi_, {0, 1}, {1, 0}]": "TransformationFunction[{{1, 0, 0}, {Tan[phi], 1, 0}, {0, 0, 1}}]",
@@ -463,6 +468,7 @@ class TransformationFunction(Builtin):
      = TransformationFunction[{{-1, 0, 1}, {0, -1, -1}, {0, 0, 1}}]
     """
 
+    summary_text = "represents a transformation"
     rules = {
         "Dot[TransformationFunction[a_], TransformationFunction[b_]]": "TransformationFunction[a . b]",
         "TransformationFunction[m_][v_]": "Take[m . Join[v, {1}], Length[v]]",
@@ -480,6 +486,7 @@ class TranslationTransform(Builtin):
      = TransformationFunction[{{1, 0, 1}, {0, 1, 2}, {0, 0, 1}}]
     """
 
+    summary_text = "gives the translation by the vector $v$"
     rules = {
         "TranslationTransform[v_]": "TransformationFunction[IdentityMatrix[Length[v] + 1] + "
         "(Join[ConstantArray[0, Length[v]], {#}]& /@ Join[v, {0}])]",
@@ -540,4 +547,4 @@ class VectorQ(Builtin):
         "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
     }
 
-    summary_text = "test whether an object is a vector"
+    summary_text = "tests whether an object is a vector"

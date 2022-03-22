@@ -60,6 +60,7 @@ class RecursionLimit(Predefined):
 
     set_python_recursion_limit(value)
 
+    summary_text = "specifies the maximum allowable recursion depth after which a calculation is terminated"
     rules = {
         "$RecursionLimit": str(value),
     }
@@ -122,6 +123,7 @@ class IterationLimit(Predefined):
     name = "$IterationLimit"
     value = 1000
 
+    summary_text = "specifies the maximum number of times a reevaluation of an expression may happen"
     rules = {
         "$IterationLimit": str(value),
     }
@@ -152,6 +154,7 @@ class Hold(Builtin):
      = {HoldAll, Protected}
     """
 
+    summary_text = "prevents $expr$ from being evaluated"
     attributes = hold_all | protected
 
 
@@ -166,6 +169,7 @@ class HoldComplete(Builtin):
      = {HoldAllComplete, Protected}
     """
 
+    summary_text = "prevents $expr$ from being evaluated, and also prevents 'sequence' objects from being spliced into argument lists"
     attributes = hold_all_complete | protected
 
 
@@ -186,6 +190,7 @@ class HoldForm(Builtin):
 
     attributes = hold_all | protected
 
+    summary_text = "is equivalent to 'hold[$expr$]', but prints as $expr$"
     rules = {
         "MakeBoxes[HoldForm[expr_], f_]": "MakeBoxes[expr, f]",
     }
@@ -217,6 +222,7 @@ class Evaluate(Builtin):
      = Sequence[1, 2]
     """
 
+    summary_text = "forces evaluation of $expr$, even if it occurs inside a held argument or a 'hold' form"
     rules = {
         "Evaluate[Unevaluated[x_]]": "Unevaluated[x]",
         "Evaluate[x___]": "x",
@@ -261,6 +267,7 @@ class Unevaluated(Builtin):
      = 15
     """
 
+    summary_text = "temporarily leaves $expr$ in an unevaluated form when it appears as a function argument"
     attributes = hold_all_complete | protected
 
 
@@ -280,6 +287,7 @@ class ReleaseHold(Builtin):
      = y
     """
 
+    summary_text = "removes any 'hold', 'holdform', 'holdpattern' or 'holdcomplete' head from $expr$"
     rules = {
         "ReleaseHold[(Hold|HoldForm|HoldPattern|HoldComplete)[expr_]]": "expr",
         "ReleaseHold[other_]": "other",
@@ -317,6 +325,9 @@ class Sequence(Builtin):
      = Hold[{a, Sequence[b, c], d}]
     """
 
+    summary_text = "represents a sequence of arguments to a function"
+    pass
+
 
 class Quit(Builtin):
     """
@@ -336,6 +347,7 @@ class Quit(Builtin):
 
     """
 
+    summary_text = "terminates the mathics session..."
     rules = {
         "Exit[n___]": "Quit[n]",
     }

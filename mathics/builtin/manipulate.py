@@ -66,11 +66,17 @@ class JupyterWidgetError(Exception):
         self.err = err
 
 
-class ManipulateParameter(
-    Builtin
-):  # parses one Manipulate[] parameter spec, e.g. {x, 1, 2}, see _WidgetInstantiator
+class ManipulateParameter(Builtin):  #
+    # """
+    # <dl>
+    # <dt> 'ManipulateParameter[{$s$, $range$}]'
+    # <dd> parses one Manipulate[] parameter spec, e.g. {x, 1, 2},
+    #     see _WidgetInstantiator
+    # </dl>
+    # """
     context = "System`Private`"
 
+    summary_text = "ManipulateParameter summary still not available"
     rules = {
         # detect x and {x, default} and {x, default, label}.
         "System`Private`ManipulateParameter[{s_Symbol, r__}]": "System`Private`ManipulateParameter[{Symbol -> s, Label -> s}, {r}]",
@@ -280,6 +286,7 @@ class Manipulate(Builtin):
         hold_all | protected
     )  # we'll call ReleaseHold at the time of evaluation below
 
+    summary_text = "interactively compute and display an expression with different values of $u$..."
     messages = {
         "jupyter": "Manipulate[] only works inside a Jupyter notebook.",
         "imathics": "Your IMathics kernel does not seem to support all necessary operations. "

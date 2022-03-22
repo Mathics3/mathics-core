@@ -92,6 +92,8 @@ class Rule_(BinaryOperator):
      = a
     """
 
+    summary_text = "represents a rule replacing $x$ with $y$"
+    summary_text = "represents a rule replacing $x$ with $y$"
     name = "Rule"
     operator = "->"
     precedence = 120
@@ -117,6 +119,7 @@ class RuleDelayed(BinaryOperator):
     precedence = 120
     attributes = sequence_hold | hold_rest | protected
     needs_verbatim = True
+    summary_text = "represents a rule replacing $x$ with $y$, with $y$ held unevaluated"
 
 
 def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
@@ -226,6 +229,7 @@ class Replace(Builtin):
      = 11
     """
 
+    summary_text = "yields the result of replacing $expr$ with $y$ if it matches the pattern $x$..."
     messages = {
         "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
@@ -306,6 +310,7 @@ class ReplaceAll(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
 
+    summary_text = "yields the result of replacing all subexpressions of $expr$ matching the pattern $x$ with $y$..."
     messages = {
         "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
@@ -356,6 +361,7 @@ class ReplaceRepeated(BinaryOperator):
     grouping = "Left"
     needs_verbatim = True
 
+    summary_text = "repeatedly applies the rule '$x$ -> $y$' to $expr$ until the result no longer changes"
     messages = {
         "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
@@ -434,6 +440,9 @@ class ReplaceList(Builtin):
      = {{a, b + c}, {b, a + c}, {c, a + b}, {a + b, c}, {a + c, b}, {b + c, a}}
     """
 
+    summary_text = (
+        "returns a list of all possible results of applying $rules$ to $expr$"
+    )
     messages = {
         "reps": "`1` is not a valid replacement rule.",
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
@@ -490,6 +499,8 @@ class PatternTest(BinaryOperator, PatternObject):
     precedence = 680
 
     arg_counts = [2]
+
+    summary_text = "constrains $pattern$ to match $expr$ only if the evaluation of '$test$[$expr$]' yields 'true'"
 
     def init(self, expr):
         super(PatternTest, self).init(expr)
@@ -707,6 +718,8 @@ class Alternatives(BinaryOperator, PatternObject):
 
     arg_counts = None
 
+    summary_text = "is a pattern that matches any of the patterns '$p1$, $p2$, "
+
     def init(self, expr):
         super(Alternatives, self).init(expr)
         self.alternatives = [Pattern.create(leaf) for leaf in expr.leaves]
@@ -760,6 +773,8 @@ class Except(PatternObject):
     """
 
     arg_counts = [1, 2]
+
+    summary_text = "represents a pattern object that matches any expression except those matching $c$..."
 
     def init(self, expr):
         super(Except, self).init(expr)
@@ -825,6 +840,7 @@ class MatchQ(Builtin):
      = False
     """
 
+    summary_text = "tests whether $expr$ matches $form$"
     rules = {"MatchQ[form_][expr_]": "MatchQ[expr, form]"}
 
     def apply(self, expr, form, evaluation):
@@ -860,6 +876,8 @@ class Verbatim(PatternObject):
 
     arg_counts = [1, 2]
 
+    summary_text = "prevents pattern constructs in $expr$ from taking effect, allowing them to match themselves"
+
     def init(self, expr):
         super(Verbatim, self).init(expr)
         self.content = expr.leaves[0]
@@ -890,6 +908,8 @@ class HoldPattern(PatternObject):
     attributes = hold_all | protected
 
     arg_counts = [1]
+
+    summary_text = "is equivalent to $expr$ for pattern matching, but maintains it in an unevaluated form"
 
     def init(self, expr):
         super(HoldPattern, self).init(expr)
@@ -948,6 +968,7 @@ class Pattern_(PatternObject):
 
     attributes = hold_first | protected
 
+    summary_text = "assigns the name $symb$ to the pattern $patt$..."
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
         "nodef": (
@@ -1067,6 +1088,7 @@ class Optional(BinaryOperator, PatternObject):
 
     default_formats = False
 
+    summary_text = "is a pattern which matches $patt$, which if omitted should be replaced by $default$"
     rules = {
         "MakeBoxes[Verbatim[Optional][Verbatim[Pattern][symbol_Symbol, Verbatim[_]]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": 'MakeBoxes[symbol, f] <> "_."',
         "MakeBoxes[Verbatim[Optional][Verbatim[_]], f:StandardForm|TraditionalForm|InputForm|OutputForm]": '"_."',
@@ -1189,6 +1211,7 @@ class Blank(_Blank):
      = xxxxxxxxxxxx
     """
 
+    summary_text = "represents any single expression in a pattern"
     rules = {
         "MakeBoxes[Verbatim[Blank][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"_"',
         "MakeBoxes[Verbatim[Blank][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"_" <> MakeBoxes[head, f]',
@@ -1242,6 +1265,7 @@ class BlankSequence(_Blank):
      = {ab, ax, ax}
     """
 
+    summary_text = "represents any non-empty sequence of expression leaves in a pattern"
     rules = {
         "MakeBoxes[Verbatim[BlankSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__"',
         "MakeBoxes[Verbatim[BlankSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"__" <> MakeBoxes[head, f]',
@@ -1296,6 +1320,7 @@ class BlankNullSequence(_Blank):
      = {ax, ax, ax}
     """
 
+    summary_text = "represents any sequence of expression leaves in a pattern, including an empty sequence."
     rules = {
         "MakeBoxes[Verbatim[BlankNullSequence][], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___"',
         "MakeBoxes[Verbatim[BlankNullSequence][head_Symbol], f:StandardForm|TraditionalForm|OutputForm|InputForm]": '"___" <> MakeBoxes[head, f]',
@@ -1345,6 +1370,7 @@ class Repeated(PostfixOperator, PatternObject):
      = {False, True, True}
     """
 
+    summary_text = "matches one or more occurrences of $pattern$"
     messages = {
         "range": (
             "Range specification in integers (max or {min, max}) "
@@ -1428,16 +1454,39 @@ class RepeatedNull(Repeated):
     operator = "..."
     precedence = 170
 
+    summary_text = "matches zero or more occurrences of $pattern$"
+
     def init(self, expr):
         super(RepeatedNull, self).init(expr, min=0)
 
 
 class Shortest(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'Shortest[$p$]'
+    <dd> is a pattern that matches the shortest sequence
+         consistent with the string pattern $p$.
+    </dl>
+    >> StringCases["aabaaab", Shortest["a" ~~ __ ~~ "b"]]
+     = {aab, aaab}
+
+    >> StringCases["aabaaab", Shortest[RegularExpression["a+b"]]]
+     = {aab, aaab}
+    """
+
+    summary_text = (
+        "is a pattern that matches the shortest sequence "
+        "consistent with the string pattern"
+    )
 
 
 class Longest(Builtin):
     """
+    <dl>
+    <dt>'Longest[$p$]'
+    <dd> is a pattern that matches the longest sequence
+         consistent with the string pattern $p$.
+    </dl>
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
 
@@ -1445,6 +1494,10 @@ class Longest(Builtin):
      = {aab, aaab}
     """
 
+    summary_text = (
+        "is a pattern that matches the longest sequence "
+        "consistent with the string pattern"
+    )
     pass
 
 
@@ -1479,6 +1532,8 @@ class Condition(BinaryOperator, PatternObject):
     attributes = hold_rest | protected
 
     arg_counts = [2]
+
+    summary_text = "places an additional constraint on $pattern$ that only allows it to match if $expr$ evaluates to 'true'"
 
     def init(self, expr):
         super(Condition, self).init(expr)
@@ -1558,6 +1613,8 @@ class OptionsPattern(PatternObject):
     """
 
     arg_counts = [0, 1]
+
+    summary_text = "is a pattern that stands for a sequence of options given to a function, with default values taken from 'options[$f$]'..."
 
     def init(self, expr):
         super(OptionsPattern, self).init(expr)
@@ -1671,6 +1728,7 @@ class DispatchAtom(AtomBuiltin):
      = 4
     """
 
+    summary_text = "a list of precompiled rules"
     messages = {
         "invrpl": "`1` is not a valid rule or list of rules.",
     }
@@ -1720,7 +1778,7 @@ class DispatchAtom(AtomBuiltin):
                 return
         try:
             return Dispatch(flatten_list, evaluation)
-        except:
+        except Exception:
             return
 
     def apply_normal(self, dispatch, evaluation):

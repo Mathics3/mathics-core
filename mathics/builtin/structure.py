@@ -75,6 +75,8 @@ class Sort(Builtin):
      = {x_, y_}
     """
 
+    summary_text = "sorts $list$ (or the leaves of any other expression) according to canonical ordering..."
+
     def apply(self, list, evaluation):
         "Sort[list_]"
 
@@ -124,6 +126,7 @@ class SortBy(Builtin):
     = {{10, -9}, {5, 1}}
     """
 
+    summary_text = "sorts $list$ (or the leaves of any other expression) according to canonical ordering of the keys that are extracted from the $list$'s elements using $f. chunks of leaves that appear the same under $f are sorted according to their natural order (without applying $f)..."
     rules = {
         "SortBy[f_]": "SortBy[#, f]&",
     }
@@ -211,6 +214,7 @@ class BinarySearch(Builtin):
 
     context = "CombinatoricaOld`"
 
+    summary_text = "searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. if $k$ does not exist in $l$, 'binarysearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have to be inserted in order to maintain the sorting order in $l$. please note that $k$ and the elements in $l$ need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/total_order)..."
     rules = {
         "CombinatoricaOld`BinarySearch[l_List, k_] /; Length[l] > 0": "CombinatoricaOld`BinarySearch[l, k, Identity]"
     }
@@ -279,6 +283,8 @@ class PatternsOrderedQ(Builtin):
      = True
     """
 
+    summary_text = "returns 'true' if pattern $patt1$ would be applied before $patt2$ according to canonical pattern ordering"
+
     def apply(self, p1, p2, evaluation):
         "PatternsOrderedQ[p1_, p2_]"
 
@@ -301,6 +307,8 @@ class OrderedQ(Builtin):
     >> OrderedQ[{b, a}]
      = False
     """
+
+    summary_text = "is 'true' if $a$ sorts before $b$ according to canonical ordering"
 
     def apply(self, expr, evaluation):
         "OrderedQ[expr_]"
@@ -334,6 +342,8 @@ class Order(Builtin):
      = 0
     """
 
+    summary_text = "returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$, -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. uses the same order as 'sort'"
+
     def apply(self, x, y, evaluation):
         "Order[x_, y_]"
         if x < y:
@@ -359,6 +369,8 @@ class Head(Builtin):
      = Symbol
     """
 
+    summary_text = "returns the head of the expression or atom $expr$"
+
     def apply(self, expr, evaluation):
         "Head[expr_]"
 
@@ -381,6 +393,7 @@ class ApplyLevel(BinaryOperator):
     precedence = 620
     grouping = "Right"
 
+    summary_text = "is equivalent to 'apply[$f$, $expr$, {1}]'"
     rules = {
         "ApplyLevel[f_, expr_]": "Apply[f, expr, {1}]",
     }
@@ -429,6 +442,7 @@ class Apply(BinaryOperator):
     precedence = 620
     grouping = "Right"
 
+    summary_text = "replaces the head of $expr$ with $f$..."
     options = {
         "Heads": "False",
     }
@@ -491,6 +505,7 @@ class Map(BinaryOperator):
     precedence = 620
     grouping = "Right"
 
+    summary_text = "applies $f$ to each part on the first level of $expr$..."
     options = {
         "Heads": "False",
     }
@@ -555,6 +570,7 @@ class MapAt(Builtin):
      = {f[a], b, c, d}
     """
 
+    summary_text = "applies $f$ to the element at position $n$ in $expr$. if $n$ is negative, the position is counted from the end..."
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
@@ -623,6 +639,7 @@ class Scan(Builtin):
      = 1
     """
 
+    summary_text = "applies $f$ to each element of $expr$ and returns 'null'..."
     options = {
         "Heads": "False",
     }
@@ -696,6 +713,7 @@ class MapIndexed(Builtin):
      = MapIndexed[f, {1, 2}, a + b]
     """
 
+    summary_text = "applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$..."
     options = {
         "Heads": "False",
     }
@@ -767,6 +785,7 @@ class MapThread(Builtin):
      = {{f[a, d], f[b, e]}, {f[c, f]}}
     """
 
+    summary_text = "returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'..."
     messages = {
         "intnm": "Non-negative machine-sized integer expected at position `2` in `1`.",
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
@@ -857,6 +876,7 @@ class Thread(Builtin):
      = {a + d + g, b + e + g, c + f + g}
     """
 
+    summary_text = "threads $f$ over any lists that appear in $args$..."
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",
     }
@@ -896,6 +916,7 @@ class FreeQ(Builtin):
      = True
     """
 
+    summary_text = "returns 'true' if $expr$ does not contain the expression $x$"
     rules = {
         "FreeQ[form_][expr_]": "FreeQ[expr, form]",
     }
@@ -971,6 +992,7 @@ class Flatten(Builtin):
      = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
     """
 
+    summary_text = "flattens out nested lists in $expr$..."
     rules = {
         "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
         "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
@@ -1116,6 +1138,8 @@ class Null(Predefined):
      = #<--#
     """
 
+    summary_text = "The implicit result of expressions that do not yield a result"
+
 
 class Depth(Builtin):
     """
@@ -1143,6 +1167,8 @@ class Depth(Builtin):
     >> Depth[f[a, b][c]]
      = 2
     """
+
+    summary_text = "gives the depth of $expr$"
 
     def apply(self, expr, evaluation):
         "Depth[expr_]"
@@ -1175,6 +1201,7 @@ class Operate(Builtin):
      = Operate[p, f, -1]
     """
 
+    summary_text = "applies $p$ to the head of $expr$..."
     messages = {
         "intnn": "Non-negative integer expected at position `2` in `1`.",
     }
@@ -1226,6 +1253,8 @@ class Through(Builtin):
      = p[f[x], g[x]]
     """
 
+    summary_text = "gives $p$[$f$[$x$]]"
+
     def apply(self, p, args, x, evaluation):
         "Through[p_[args___][x___]]"
 
@@ -1244,6 +1273,8 @@ class ByteCount(Builtin):
 
     The results may heavily depend on the Python implementation in use.
     """
+
+    summary_text = "gives the internal memory space used by $expr$, in bytes"
 
     def apply(self, expression, evaluation):
         "ByteCount[expression_]"

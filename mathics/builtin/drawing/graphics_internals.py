@@ -3,7 +3,7 @@
 # No external builtins appear here.
 # Also no docstring which may confuse the doc system
 
-
+from mathics.core.symbols import strip_context
 from mathics.builtin.base import (
     InstanceableBuiltin,
     BoxConstructError,

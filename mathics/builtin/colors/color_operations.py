@@ -67,6 +67,7 @@ class Blend(Builtin):
      = Blend[{RGBColor[1, 0, 0], RGBColor[0, 1, 0], RGBColor[0, 0, 1]}, {1, 0.5}]
     """
 
+    summary_text = "represents the color between $c1$ and $c2$..."
     messages = {
         "arg": (
             "`1` is not a valid list of color or gray-level directives, "
@@ -169,6 +170,7 @@ class ColorConvert(Builtin):
     XYZ: convert to XYZColor
     """
 
+    summary_text = "returns the representation of $c$ in the color space $colspace$. $c$ may be a color or an image"
     messages = {
         "ccvinput": "`` should be a color.",
         "imgcstype": "`` is not a valid color space.",
@@ -217,6 +219,10 @@ class ColorNegate(_ImageBuiltin):
     </dl>
     """
 
+    summary_text = (
+        "returns the negative of $image$ in which colors have been negated..."
+    )
+
     def apply_for_color(self, color, evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
@@ -250,6 +256,7 @@ class Darker(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is equivalent to 'blend[{$c$, black}, $f$]'..."
     rules = {"Darker[c_, f_]": "Blend[{c, Black}, f]", "Darker[c_]": "Darker[c, 1/3]"}
 
 
@@ -301,6 +308,7 @@ class DominantColors(_ImageBuiltin):
      = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
     """
 
+    summary_text = "gives a list of colors which are dominant in the given image..."
     rules = {
         "DominantColors[image_Image, n_Integer, options___]": 'DominantColors[image, n, "Color", options]',
         "DominantColors[image_Image, options___]": 'DominantColors[image, 256, "Color", options]',
@@ -436,6 +444,7 @@ class Lighter(Builtin):
      = -Graphics-
     """
 
+    summary_text = "is equivalent to 'blend[{$c$, white}, $f$]'..."
     rules = {
         "Lighter[c_, f_]": "Blend[{c, White}, f]",
         "Lighter[c_]": "Lighter[c, 1/3]",

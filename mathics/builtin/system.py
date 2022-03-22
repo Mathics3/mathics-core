@@ -31,7 +31,7 @@ from mathics import version_string
 
 try:
     import psutil
-except:
+except ImportError:
     have_psutil = False
 else:
     have_psutil = True
@@ -44,6 +44,8 @@ class Aborted(Predefined):
         <dd>is returned by a calculation that has been aborted.
     </dl>
     """
+
+    summary_text = "Value returned when an evaluation is aborted."
 
     name = "$Aborted"
 
@@ -64,6 +66,10 @@ class ByteOrdering(Predefined):
 
     name = "$ByteOrdering"
 
+    summary_text = (
+        "returns the native ordering of bytes in binary data on your computer system"
+    )
+
     def evaluate(self, evaluation) -> Integer:
         return Integer(1 if sys.byteorder == "big" else -1)
 
@@ -80,6 +86,10 @@ class CommandLine(Predefined):
 
     name = "$CommandLine"
 
+    summary_text = (
+        "is a list of strings passed on the command line to launch the mathics session"
+    )
+
     def evaluate(self, evaluation) -> Expression:
         return Expression(SymbolList, *(String(arg) for arg in sys.argv))
 
@@ -93,6 +103,8 @@ class Environment(Builtin):
     X> Environment["HOME"]
      = ...
     """
+
+    summary_text = "gives the value of an operating system environment variable"
 
     def apply(self, var, evaluation):
         "Environment[var_String]"
@@ -115,6 +127,7 @@ class Failed(Predefined):
      = $Failed
     """
 
+    summary_text = "Value returned when an evaluation fails."
     name = "$Failed"
 
 
@@ -128,6 +141,8 @@ class GetEnvironment(Builtin):
     X> GetEnvironment["HOME"]
     = ...
     """
+
+    summary_text = 'gives the setting corresponding to the variable "var" in the operating system environment'
 
     def apply(self, var, evaluation):
         "GetEnvironment[var___]"
@@ -163,6 +178,8 @@ class Machine(Predefined):
 
     name = "$Machine"
 
+    summary_text = "returns a string describing the type of computer system on which the mathics is being run"
+
     def evaluate(self, evaluation) -> String:
         return String(sys.platform)
 
@@ -179,6 +196,8 @@ class MachineName(Predefined):
 
     name = "$MachineName"
 
+    summary_text = "is a string that gives the assigned name of the computer on which mathics is being run, if such a name is defined"
+
     def evaluate(self, evaluation) -> String:
         return String(platform.uname().node)
 
@@ -193,6 +212,8 @@ class MathicsVersion(Predefined):
     >> MathicsVersion
     = ...
     """
+
+    summary_text = "this string is the version of mathics we are running"
 
     def evaluate(self, evaluation) -> String:
         return String(__version__)
@@ -212,6 +233,7 @@ class Packages(Predefined):
     """
 
     name = "$Packages"
+    summary_text = "returns a list of the contexts corresponding to all packages which have been loaded into mathics"
     rules = {
         "$Packages": '{"ImportExport`",  "XML`","Internal`", "System`", "Global`"}'
     }
@@ -233,6 +255,8 @@ class ParentProcessID(Predefined):
 
     name = "$ParentProcessID"
 
+    summary_text = "gives the id assigned to the process which invokes the \mathics by the operating system under which it is run"
+
     def evaluate(self, evaluation) -> Integer:
         return Integer(os.getppid())
 
@@ -253,6 +277,8 @@ class ProcessID(Predefined):
 
     name = "$ProcessID"
 
+    summary_text = "gives the id assigned to the \mathics process by the operating system under which it is run"
+
     def evaluate(self, evaluation) -> Integer:
         return Integer(os.getpid())
 
@@ -269,6 +295,8 @@ class ProcessorType(Predefined):
 
     name = "$ProcessorType"
 
+    summary_text = "gives a string giving the architecture of the processor on which the \mathics is being run"
+
     def evaluate(self, evaluation):
         return String(platform.machine())
 
@@ -284,6 +312,10 @@ class ScriptCommandLine(Predefined):
     """
 
     name = "$ScriptCommandLine"
+
+    summary_text = (
+        "is a list of string arguments when running the kernel in script mode"
+    )
 
     def evaluate(self, evaluation):
         try:
@@ -306,6 +338,8 @@ class Run(Builtin):
      = ...
     """
 
+    summary_text = "runs command as an external operating system command, returning the exit code obtained"
+
     def apply(self, command, evaluation):
         "Run[command_String]"
         command_str = command.to_python()
@@ -323,6 +357,8 @@ class SystemID(Predefined):
     """
 
     name = "$SystemID"
+
+    summary_text = "is a short string that identifies the type of computer system on which the \mathics is being run"
 
     def evaluate(self, evaluation) -> String:
         return String(sys.platform)
@@ -342,6 +378,8 @@ class SystemWordLength(Predefined):
     """
 
     name = "$SystemWordLength"
+
+    summary_text = "gives the effective number of bits in raw machine words on the computer system where \mathics is running"
 
     def evaluate(self, evaluation) -> Integer:
         # https://docs.python.org/3/library/platform.html#module-platform
@@ -367,10 +405,12 @@ class UserName(Predefined):
 
     name = "$UserName"
 
+    summary_text = "returns a string describing the type of computer system on which \mathics is being run"
+
     def evaluate(self, evaluation) -> String:
         try:
             user = os.getlogin()
-        except:
+        except Exception:
             import pwd
 
             user = pwd.getpwuid(os.getuid())[0]
@@ -390,6 +430,8 @@ class Version(Predefined):
 
     name = "$Version"
 
+    summary_text = "returns a string with the current mathics version and the versions of relevant libraries"
+
     def evaluate(self, evaluation) -> String:
         return String(version_string.replace("\n", " "))
 
@@ -407,6 +449,8 @@ class VersionNumber(Predefined):
 
     name = "$VersionNumber"
     value = 10.0
+
+    summary_text = "is a real number which gives the current wolfram language version that \mathics tries to be compatible with"
 
     def evaluate(self, evaluation) -> Real:
         # Make this be whatever the latest Mathematica release is,
@@ -427,6 +471,7 @@ if have_psutil:
          = ...
         """
 
+        summary_text = "is a real number which gives the current wolfram language version that \mathics tries to be compatible with"
         name = "$SystemMemory"
 
         def evaluate(self, evaluation) -> Integer:
@@ -447,6 +492,8 @@ if have_psutil:
         >> $SystemMemory > MemoryAvailable[] > MemoryInUse[]
          = True
         """
+
+        summary_text = "is a real number which gives the current wolfram language version that \mathics tries to be compatible with"
 
         def apply(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
@@ -469,6 +516,7 @@ else:
         """
 
         name = "$SystemMemory"
+        summary_text = "is a real number which gives the current wolfram language version that \mathics tries to be compatible with"
 
         def evaluate(self, evaluation) -> Integer:
             return Integer(-1)
@@ -485,6 +533,8 @@ else:
          = -1
         """
 
+        summary_text = "is a real number which gives the current wolfram language version that \mathics tries to be compatible with"
+
         def apply(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             return Integer(-1)
@@ -500,6 +550,8 @@ class MemoryInUse(Builtin):
     >> MemoryInUse[]
      = ...
     """
+
+    summary_text = "The amount of memory used by the definitions object."
 
     def apply_0(self, evaluation) -> Integer:
         """MemoryInUse[]"""
@@ -545,6 +597,8 @@ class Share(Builtin):
     >> Share[]
      = ...
     """
+
+    summary_text = "tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions"
 
     def apply_0(self, evaluation) -> Integer:
         """Share[]"""

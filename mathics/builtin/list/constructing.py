@@ -316,6 +316,7 @@ class Reap(Builtin):
 
     attributes = hold_first | protected
 
+    summary_text = "gives the result of evaluating $expr$, together with all values sown during this evaluation. values sown with different tags are given in different lists..."
     rules = {
         "Reap[expr_, pattern_, f_]": (
             "{#[[1]], #[[2, 1]]}& [Reap[expr, {pattern}, f]]"
@@ -371,6 +372,7 @@ class Sow(Builtin):
     </dl>
     """
 
+    summary_text = "sends the value $e$ to the innermost 'reap'..."
     rules = {
         "Sow[e_]": "Sow[e, {Null}]",
         "Sow[e_, tag_]": "Sow[e, {tag}]",

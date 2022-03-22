@@ -76,6 +76,9 @@ class ToCharacterCode(Builtin):
      = {}
     """
 
+    summary_text = (
+        "converts the string to a list of character codes (unicode codepoints)..."
+    )
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
     }
@@ -193,6 +196,7 @@ class FromCharacterCode(Builtin):
      = FromCharacterCode[{{97, 98, x}, {100, 101, x}}]
     """
 
+    summary_text = "returns the character corresponding to unicode codepoint $n$..."
     messages = {
         "notunicode": (
             "A character code, which should be a non-negative integer less "

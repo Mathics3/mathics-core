@@ -458,7 +458,7 @@ class DateDifference(Builtin):
 
     attributes = read_protected | protected
 
-    summary_text = "find the difference in days, weeks, etc. between two dates"
+    summary_text = "finds the difference in days, weeks, etc. between two dates"
 
     def apply(self, date1, date2, units, evaluation):
         "DateDifference[date1_, date2_, units_]"
@@ -716,7 +716,7 @@ class DatePlus(Builtin):
 
     rules = {"DatePlus[n_]": "DatePlus[Take[DateList[], 3], n]"}
 
-    summary_text = "add or subtract days, weeks, etc. in a date list or string"
+    summary_text = "adds or subtracts days, weeks, etc. in a date list or string"
 
     def apply(self, date, off, evaluation):
         "DatePlus[date_, off_]"
@@ -904,7 +904,9 @@ class DateString(_DateFormat):
         "DateString[epochtime_]": "DateString[epochtime, $DateStringFormat]",
     }
 
-    summary_text = "current or specified date as a string in many possible formats"
+    summary_text = (
+        "gives the current or an specified date as a string in several possible formats"
+    )
 
     def apply(self, epochtime, form, evaluation):
         "DateString[epochtime_, form_]"
@@ -981,7 +983,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
      = {2030, 4, 21}
     """
 
-    summary_text = "Find the date of Easter Sunday for a given year"
+    summary_text = "finds the date of Easter Sunday for a given year"
 
     def apply(self, year, evaluation):
         "EasterSunday[year_Integer]"
@@ -1066,7 +1068,7 @@ class Now(Predefined):
      = ...
     """
 
-    summary_text = "current date and time"
+    summary_text = "is the current date and time"
 
     def evaluate(self, evaluation):
         return Expression("DateObject").evaluate(evaluation)
@@ -1113,7 +1115,7 @@ if sys.platform != "win32" and ("Pyston" not in sys.version):
             "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
         }
 
-        summary_text = "run a command for at most a specified time"
+        summary_text = "runs a command for at most a specified time"
 
         def apply_2(self, expr, t, evaluation):
             "TimeConstrained[expr_, t_]"
@@ -1133,7 +1135,7 @@ if sys.platform != "win32" and ("Pyston" not in sys.version):
             except TimeoutInterrupt:
                 evaluation.timeout_queue.pop()
                 return failexpr.evaluate(evaluation)
-            except:
+            except Exception:
                 evaluation.timeout_queue.pop()
                 raise
             evaluation.timeout_queue.pop()

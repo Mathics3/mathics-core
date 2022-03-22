@@ -308,6 +308,7 @@ class Lookup(Builtin):
 
 
 class Missing(Builtin):
+    summary_text = "a missing entry"
     pass
 
 
