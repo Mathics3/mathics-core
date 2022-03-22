@@ -191,29 +191,27 @@ class TestDetector(unittest.TestCase):
             self.detector = MagicDetector(loader.mimetypes)
 
     def testMagicNumber(self):
-        self.assertEquals(
-            ["application/zip"], self.detector.match("test.zip", "PKtest")
-        )
-        self.assertEquals([], self.detector.match("test.zip", "_PKtest"))
-        self.assertEquals([], self.detector.match("test.zip1", "PKtest"))
+        self.assertEqual(["application/zip"], self.detector.match("test.zip", "PKtest"))
+        self.assertEqual([], self.detector.match("test.zip", "_PKtest"))
+        self.assertEqual([], self.detector.match("test.zip1", "PKtest"))
 
-        self.assertEquals(
+        self.assertEqual(
             ["application/gzip"], self.detector.match("test.gz", "\x1f\x8b\x08test")
         )
-        self.assertEquals(
+        self.assertEqual(
             ["application/gzip"], self.detector.match("test.tgz", "\x1f\x8b\x08test")
         )
-        self.assertEquals([], self.detector.match("test.gz1", "\x1f\x8b\x08test"))
-        self.assertEquals([], self.detector.match("test.gz", "\x1f \x8b\x08test"))
+        self.assertEqual([], self.detector.match("test.gz1", "\x1f\x8b\x08test"))
+        self.assertEqual([], self.detector.match("test.gz", "\x1f \x8b\x08test"))
 
         padding = "".join([" " for _ in range(257)])
 
-        self.assertEquals(
+        self.assertEqual(
             ["application/x-tar"],
             self.detector.match("test.tar", padding + "ustartest"),
         )
-        self.assertEquals([], self.detector.match("test.tar1", padding + "ustartest"))
-        self.assertEquals([], self.detector.match("test.tar", padding + "ust artest"))
+        self.assertEqual([], self.detector.match("test.tar1", padding + "ustartest"))
+        self.assertEqual([], self.detector.match("test.tar", padding + "ust artest"))
 
 
 class TestLoader(unittest.TestCase):
