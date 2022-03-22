@@ -243,7 +243,7 @@ class Unset(PostfixOperator):
         "usraw": "Cannot unset raw object `1`.",
     }
     precedence = 670
-    summary_text = "unset a value of the LHS"
+    summary_text = "unsets a value of the LHS"
 
     def apply(self, expr, evaluation):
         "Unset[expr_]"

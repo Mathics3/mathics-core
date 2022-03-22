@@ -218,5 +218,5 @@ class C(Builtin):
     """
 
     summary_text = (
-        "n-th indetermined constant in the solution of a differential equation"
+        "n-th indeterminate constant in the solution of a differential equation"
     )

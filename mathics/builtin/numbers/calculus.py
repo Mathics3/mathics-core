@@ -1110,7 +1110,7 @@ class Integers(Builtin):
      = {}
     """
 
-    summary_text = "the domain integers numbers"
+    summary_text = "represents the domain integers numbers"
 
 
 class Reals(Builtin):
@@ -1125,7 +1125,7 @@ class Reals(Builtin):
      = {{x -> 1}}
     """
 
-    summary_text = "the domain of the Real numbers"
+    summary_text = "represents the domain of the Real numbers"
 
 
 class Complexes(Builtin):
@@ -1136,7 +1136,7 @@ class Complexes(Builtin):
     </dl>
     """
 
-    summary_text = "the domain complex numbers"
+    summary_text = "represents the domain complex numbers"
 
 
 class Limit(Builtin):

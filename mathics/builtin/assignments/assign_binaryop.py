@@ -46,7 +46,7 @@ class AddTo(BinaryOperator):
     rules = {
         "x_ += dx_": "x = x + dx",
     }
-    summary_text = "adds a value and assignes that returning the new value"
+    summary_text = "increases the value assigned to a variable, and returns the result"
 
 
 class Decrement(PostfixOperator):
@@ -73,9 +73,7 @@ class Decrement(PostfixOperator):
         "x_--": "Module[{t=x}, x = x - 1; t]",
     }
 
-    summary_text = (
-        "decreases the value by one and assigns that returning the original value"
-    )
+    summary_text = "decreases the value by one and returns the previous value"
 
 
 class DivideBy(BinaryOperator):
@@ -102,7 +100,7 @@ class DivideBy(BinaryOperator):
     rules = {
         "x_ /= dx_": "x = x / dx",
     }
-    summary_text = "divides a value and assigns that returning the new value"
+    summary_text = "divides the value of a variable, assigns the result as its new value, and returns the result"
 
 
 class Increment(PostfixOperator):
@@ -137,9 +135,7 @@ class Increment(PostfixOperator):
         ),
     }
 
-    summary_text = (
-        "increases the value by one and assigns that returning the original value"
-    )
+    summary_text = "increases the value by one and returns the previous value"
 
 
 class PreIncrement(PrefixOperator):
@@ -166,7 +162,7 @@ class PreIncrement(PrefixOperator):
         "++x_": "x = x + 1",
     }
 
-    summary_text = "increases the value by one and assigns that returning the new value"
+    summary_text = "increases the value by one and returns the new value"
 
 
 class PreDecrement(PrefixOperator):
@@ -193,7 +189,7 @@ class PreDecrement(PrefixOperator):
     rules = {
         "--x_": "x = x - 1",
     }
-    summary_text = "decreases the value by one and assigns that returning the new value"
+    summary_text = "decreases the value by one and returns the new value"
 
 
 class SubtractFrom(BinaryOperator):
@@ -219,7 +215,7 @@ class SubtractFrom(BinaryOperator):
     rules = {
         "x_ -= dx_": "x = x - dx",
     }
-    summary_text = "subtracts a value and assigns that returning the new value"
+    summary_text = "sets the value of a variable as its difference with by a given value, and returns the new value"
 
 
 class TimesBy(BinaryOperator):
@@ -246,4 +242,4 @@ class TimesBy(BinaryOperator):
     rules = {
         "x_ *= dx_": "x = x * dx",
     }
-    summary_text = "multiplies a value and assigns that returning the new value"
+    summary_text = "sets the value of a variable as its product by a given value, and returns the new value"

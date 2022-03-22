@@ -153,7 +153,7 @@ class SetDelayed(Set):
     operator = ":="
     attributes = hold_all | protected | sequence_hold
 
-    summary_text = "test a delayed value; used in defining functions"
+    summary_text = "tests a delayed value; used in defining functions"
 
     def apply(self, lhs, rhs, evaluation):
         "lhs_ := rhs_"
@@ -196,7 +196,9 @@ class TagSet(Builtin, _SetOperator):
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
-    summary_text = "assigns a value to an expression, associating the corresponding assignment with the a symbol"
+    summary_text = (
+        "assigns a value to an expression, and associates the assignment with a symbol"
+    )
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
@@ -222,7 +224,7 @@ class TagSetDelayed(TagSet):
     """
 
     attributes = hold_all | protected | sequence_hold
-    summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with the a symbol"
+    summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"

@@ -112,7 +112,7 @@ class Pochhammer(SympyFunction):
     attributes = listable | numeric_function | protected
 
     sympy_name = "RisingFactorial"
-    summary_text = "The Pochhammer symbol"
+    summary_text = "is the Pochhammer symbol"
     rules = {
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
@@ -144,7 +144,7 @@ class PolyGamma(_MPMathMultiFunction):
         2: "psi",
     }
 
-    summary_text = "PolyGamma function"
+    summary_text = "is the polygamma function"
 
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 

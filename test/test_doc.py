@@ -30,10 +30,22 @@ local_vocabulary = (
     "Bessel",
     "Laguerre",
     "Airy",
+    "polygamma",
     "ker",
     "kei",
     "ber",
     "bei",
+    "n-th",
+    "i-th",
+    "q-th",
+    "th",
+    "downvalues",
+    "upvalues",
+    "ownvalue",
+    "subvalues",
+    "machine-precision",
+    "ExactNumberQ",
+    "quantile",
 )
 
 
@@ -42,6 +54,7 @@ if CHECK_GRAMMAR:
         import language_tool_python
 
         language_tool = language_tool_python.LanguageToolPublicAPI("en-US")
+        # , config={ 'cacheSize': 1000, 'pipelineCaching': True })
     except Exception:
         language_tool = None
         assert False, "language-tool-python not available"
@@ -112,7 +125,7 @@ def test_summary_text_available(module_name):
     """
     Checks that each Builtin has its summary_text property.
     """
-
+    pass_grammar_check = True
     module = modules[module_name]
     vars = dir(module)
     for name in vars:
@@ -141,16 +154,29 @@ def test_summary_text_available(module_name):
                     if matches:
                         for m in matches:
                             if m.message == "Possible spelling mistake found.":
-                                offset = m.offsetInContext
+                                offset = m.offset
                                 sentence = m.sentence
-                                word = sentence[offset:].split(" ")[0]
+                                length = m.errorLength
+                                word = sentence[offset : offset + length]
                                 if word in local_vocabulary:
                                     continue
-                                print("<<", word, ">> misspelled?")
-                            # filtered_matches.append(m)
+                                print(
+                                    f"<<{word}>> misspelled? not in {local_vocabulary}"
+                                )
+                            filtered_matches.append(m)
                         if filtered_matches:
-                            assert False, [
-                                (m.sentence, m.replacements, m.message)
-                                for m in filtered_matches
-                            ]
-    assert False
+                            pass_grammar_check = False
+                            print(
+                                [
+                                    (
+                                        module_name,
+                                        name,
+                                        m.sentence,
+                                        m.replacements,
+                                        m.message,
+                                        m.offset,
+                                    )
+                                    for m in filtered_matches
+                                ]
+                            )
+    assert pass_grammar_check

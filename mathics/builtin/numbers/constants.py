@@ -213,7 +213,7 @@ class Catalan(_MPMathConstant, _SympyConstant):
     mpmath_name = "catalan"
     # numpy_name = "catalan"  ## This is not defined in numpy
     sympy_name = "Catalan"
-    summary_text = "Catalan's constant"
+    summary_text = "represents the Catalan's constant"
 
 
 class ComplexInfinity(_SympyConstant):
@@ -239,7 +239,7 @@ class ComplexInfinity(_SympyConstant):
      = Indeterminate
     """
 
-    summary_text = "infinite complex quantity of undertermined direction"
+    summary_text = "represents an infinite complex quantity of undetermined direction"
     sympy_name = "zoo"
 
     rules = {
@@ -273,7 +273,9 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 0.0174532925199432957692369076849
     """
 
-    summary_text = "conversion factor from radians to sexagesimal degrees"
+    summary_text = (
+        "represents the conversion factor from radians to sexagesimal degrees"
+    )
     mpmath_name = "degree"
 
     def to_sympy(self, expr=None, **kwargs):
@@ -324,7 +326,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 13.5914
     """
 
-    summary_text = "the base of the natural logarithm"
+    summary_text = "is the base of the natural logarithm"
     mpmath_name = "e"
     numpy_name = "e"
     sympy_name = "E"
@@ -348,7 +350,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 0.5772156649015328606065120900824024310422
     """
 
-    summary_text = "Euler`s constant"
+    summary_text = "represents the Euler's constant"
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
@@ -368,7 +370,7 @@ class Glaisher(_MPMathConstant):
      # 1.2824271291006219541941391071304678916931152343750
     """
 
-    summary_text = "Glaiser`s constant"
+    summary_text = "represents the Glaiser's constant"
     mpmath_name = "glaisher"
 
 
@@ -385,7 +387,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
      = 1.618033988749894848204586834365638117720
     """
 
-    summary_text = "golden ration constant"
+    summary_text = "represents the golden ration constant"
     sympy_name = "GoldenRatio"
     mpmath_name = "phi"
 
@@ -405,7 +407,7 @@ class Indeterminate(_SympyConstant):
      = Indeterminate
     """
 
-    summary_text = "an indeterminate value"
+    summary_text = "represents an indeterminate value"
     sympy_name = "nan"
 
 
@@ -440,7 +442,7 @@ class Infinity(_SympyConstant):
     numpy_name = "Inf"
     mpmath_name = "inf"
     python_equivalent = math.inf
-    summary_text = "an infinite real quantity"
+    summary_text = "represents an infinite real quantity"
     rules = {
         "Infinity": "DirectedInfinity[1]",
         "MakeBoxes[Infinity, f:StandardForm|TraditionalForm]": ('"\\[Infinity]"'),
@@ -461,7 +463,7 @@ class Khinchin(_MPMathConstant):
      # = 2.6854520010653075701156922150403261184692382812500
     """
 
-    summary_text = "Khinchin's constant"
+    summary_text = "represents the Khinchin's constant"
     mpmath_name = "khinchin"
 
 
@@ -494,4 +496,4 @@ class Pi(_MPMathConstant, _SympyConstant):
     sympy_name = "pi"
     mpmath_name = "pi"
     numpy_name = "pi"
-    summary_text = "the constant \u03c0"
+    summary_text = "represents the constant \u03c0"

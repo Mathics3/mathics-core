@@ -70,7 +70,7 @@ class Array(Builtin):
         "plen": "`1` and `2` should have the same length.",
     }
 
-    summary_text = "form an array by applying a function to successive indices"
+    summary_text = "forms an array by applying a function to successive indices"
 
     def apply(self, f, dimsexpr, origins, head, evaluation):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
@@ -133,7 +133,7 @@ class ConstantArray(Builtin):
         "ConstantArray[c_, n_Integer]": "ConstantArray[c, {n}]",
     }
 
-    summary_text = "form a constant array"
+    summary_text = "forms a constant array"
 
 
 class Normal(Builtin):
@@ -180,7 +180,7 @@ class Range(Builtin):
 
     attributes = listable | protected
 
-    summary_text = "form a list from a range of numbers or other objects"
+    summary_text = "forms a list from a range of numbers or other objects"
 
     def apply(self, imin, imax, di, evaluation):
         "Range[imin_?RealNumberQ, imax_?RealNumberQ, di_?RealNumberQ]"
@@ -431,7 +431,7 @@ class Table(_IterationFunction):
         "Table[expr_, n_Integer]": "Table[expr, {n}]",
     }
 
-    summary_text = "form a Mathematical Table from expressions or lists"
+    summary_text = "forms a Mathematical Table from expressions or lists"
 
     def get_result(self, items):
         return Expression(SymbolList, *items)

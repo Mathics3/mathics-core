@@ -136,7 +136,7 @@ class Graphics3D(Graphics):
         "        OutputForm]": '"-Graphics3D-"'
     }
 
-    summary_text = "a three-dimensional graphics image wrapper"
+    summary_text = "is a three-dimensional graphics image wrapper"
 
 
 def total_extent_3d(extents):

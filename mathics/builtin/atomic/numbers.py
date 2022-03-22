@@ -449,7 +449,7 @@ class MachineNumberQ(Test):
      = True
     """
 
-    summary_text = "tests if expression is a machine‐precision real or complex number"
+    summary_text = "tests if the expression is a machine-precision number"
 
     def test(self, expr):
         return expr.is_machine_precision()
@@ -786,7 +786,7 @@ class MachineEpsilon_(Predefined):
     is_numeric = True
     name = "$MachineEpsilon"
 
-    summary_text = "the difference between 1.0 and the next-nearest number representable as a machine-precision number"
+    summary_text = "represents the difference between 1.0 and the next-nearest number, which is representable as a machine-precision number"
 
     def evaluate(self, evaluation):
         return MachineReal(machine_epsilon)
@@ -838,7 +838,7 @@ class MachinePrecision(Predefined):
         "N[MachinePrecision, prec_]": ("N[Log[10, 2] * %i, prec]" % machine_precision),
     }
 
-    summary_text = "symbol used to indicate machine‐number precision"
+    summary_text = "is the symbol used to indicate machine-precision number"
 
 
 class MinPrecision(Builtin):
