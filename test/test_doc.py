@@ -1,7 +1,6 @@
 import pytest
 
 
-from mathics import __file__ as mathics_initfile_path
 import glob
 import importlib
 import pkgutil
@@ -11,13 +10,17 @@ from mathics.version import __version__  # noqa used in loading to check consist
 
 from mathics.builtin.base import Builtin
 
+from mathics import __file__ as mathics_initfile_path
+
 mathics_path = mathics_initfile_path[:-12]
-mathics_builtins_path = mathics_path + "/builtins"
+mathics_builtins_path = mathics_path + "/builtin"
 
 CHECK_GRAMMAR = True
 
 
 local_vocabulary = (
+    "Mathics",
+    "$Aborted",
     "Chebyshev",
     "Pochhammer",
     "Hankel",
@@ -44,6 +47,8 @@ local_vocabulary = (
     "ownvalue",
     "subvalues",
     "machine-precision",
+    "CompiledFunction",
+    "CompiledObject",
     "ExactNumberQ",
     "quantile",
 )
@@ -57,7 +62,6 @@ if CHECK_GRAMMAR:
         # , config={ 'cacheSize': 1000, 'pipelineCaching': True })
     except Exception:
         language_tool = None
-        assert False, "language-tool-python not available"
 
 module_subdirs = (
     "arithfns",
@@ -115,6 +119,8 @@ for subdir in module_subdirs:
 modules = dict()
 for module_name in module_names:
     import_module(module_name)
+
+# modules = {"compilation": modules["compilation"],}
 
 
 @pytest.mark.parametrize(

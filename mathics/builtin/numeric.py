@@ -220,7 +220,7 @@ class N(Builtin):
         ),
     }
 
-    summary_text = "numerical evaluation to specified precision and accuracy"
+    summary_text = "gives a numerical evaluation to specified precision and accuracy"
 
     def apply_with_prec(self, expr, prec, evaluation, options=None):
         "N[expr_, prec_, OptionsPattern[%(name)s]]"
@@ -306,7 +306,7 @@ class Rationalize(Builtin):
         "Rationalize[z_Complex, dx_?Internal`RealValuedNumberQ]/;dx >= 0": "Rationalize[Re[z], dx] + I Rationalize[Im[z], dx]",
     }
 
-    summary_text = "find a rational approximation"
+    summary_text = "finds a rational approximation"
 
     def apply(self, x, evaluation):
         "Rationalize[x_]"
@@ -476,7 +476,7 @@ class Round(Builtin):
         ),
     }
 
-    summary_text = "find closest integer or multiple of"
+    summary_text = "finds the closest integer or multiple of"
 
     def apply(self, expr, k, evaluation):
         "Round[expr_?NumericQ, k_?NumericQ]"

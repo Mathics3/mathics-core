@@ -83,7 +83,7 @@ class Compile(Builtin):
      =  CompiledFunction[{a, b}, a, -PythonizedCode-]
     """
 
-    summary_text = "Compile an expression"
+    summary_text = "compiles an expression"
     requires = ("llvmlite",)
 
     attributes = hold_all | protected
@@ -173,7 +173,7 @@ class Compile(Builtin):
 
 class CompiledCode(Atom):
     class_head_name = "System`CompiledCode"
-    summary_text = "A CompiledCode object"
+    summary_text = " is a CompiledCode object"
 
     def __init__(self, cfunc, args, **kwargs):
         super(CompiledCode, self).__init__(**kwargs)
@@ -239,7 +239,7 @@ class CompiledFunction(Builtin):
     """
 
     messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
-    summary_text = "A CompiledFunction object"
+    summary_text = "is a CompiledFunction object"
 
     def apply(self, argnames, expr, code, args, evaluation):
         "CompiledFunction[argnames_, expr_, code_CompiledCode][args__]"
