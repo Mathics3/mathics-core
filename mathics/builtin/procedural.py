@@ -276,7 +276,7 @@ class Do(_IterationFunction):
     """
 
     allow_loopcontrol = True
-    summary_text = "evaluate an expression looping over a variable"
+    summary_text = "evaluates an expression looping over a variable"
 
     def get_result(self, items):
         return Symbol("Null")
@@ -314,7 +314,7 @@ class For(Builtin):
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
-    summary_text = "a 'For' loop"
+    summary_text = "is a 'For' loop"
 
     def apply(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
@@ -363,7 +363,7 @@ class If(Builtin):
     """
 
     attributes = hold_rest | protected
-    summary_text = "test if a condition is true, false, or of unknown truth value"
+    summary_text = "tests if a condition is true, false, or of unknown truth value"
 
     def apply_2(self, condition, t, evaluation):
         "If[condition_, t_]"
@@ -422,7 +422,9 @@ class FixedPoint(Builtin):
         "SameTest": "Automatic",
     }
 
-    summary_text = "nest until a fixed point is reached returning the last expression"
+    summary_text = (
+        "nests until it reaches a fixed point, and returns the last expression"
+    )
 
     def apply(self, f, expr, n, evaluation, options):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
@@ -501,7 +503,7 @@ class FixedPointList(Builtin):
      = 0.739085
     """
 
-    summary_text = "nest until a fixed point is reached return a list "
+    summary_text = "nests until it reaches a fixed point. Returns a list of the intermediate values"
 
     def apply(self, f, expr, n, evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
@@ -543,7 +545,7 @@ class Interrupt(Builtin):
      = $Aborted
     """
 
-    summary_text = "interrupt evaluation and return '$Aborted'"
+    summary_text = "interrupts the evaluation and returns '$Aborted'"
 
     def apply(self, evaluation):
         "Interrupt[]"
@@ -564,7 +566,7 @@ class Nest(Builtin):
      = (1 + (1 + x) ^ 2) ^ 2
     """
 
-    summary_text = "give the result of nesting a function"
+    summary_text = "gives the result of nesting a function"
 
     def apply(self, f, expr, n, evaluation):
         "Nest[f_, expr_, n_Integer]"
@@ -598,7 +600,7 @@ class NestList(Builtin):
      = -Graphics-
     """
 
-    summary_text = "successively nest a function"
+    summary_text = "successively nests a function"
 
     def apply(self, f, expr, n, evaluation):
         "NestList[f_, expr_, n_Integer]"
@@ -639,7 +641,7 @@ class NestWhile(Builtin):
         "NestWhile[f_, expr_, test_]": "NestWhile[f, expr, test, 1]",
     }
 
-    summary_text = "nest while a condition is satisfied returning the last expression"
+    summary_text = "nests while a condition is satisfied returning the last expression"
 
     def apply(self, f, expr, test, m, evaluation):
         "NestWhile[f_, expr_, test_, Pattern[m,_Integer|All]]"
@@ -699,7 +701,7 @@ class Return(Builtin):
         "Return[]": "Return[Null]",
     }
 
-    summary_text = "return from a function"
+    summary_text = "returns from a function"
 
     def apply(self, expr, evaluation):
         "Return[expr_]"
@@ -744,7 +746,7 @@ class Switch(Builtin):
         ),
     }
 
-    summary_text = "switch based on a value, with patterns allowed"
+    summary_text = "switches based on a value, with patterns allowed"
 
     def apply(self, expr, rules, evaluation):
         "Switch[expr_, rules___]"
@@ -791,7 +793,7 @@ class Which(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "test which of a sequence of conditions are true"
+    summary_text = "tests which of a sequence of conditions are true"
 
     def apply(self, items, evaluation):
         "Which[items___]"
@@ -842,7 +844,7 @@ class While(Builtin):
         "While[test_]": "While[test, Null]",
     }
 
-    summary_text = "evaluate an expression while a criterion is true"
+    summary_text = "evaluates an expression while a criterion is true"
 
     def apply(self, test, body, evaluation):
         "While[test_, body_]"
@@ -885,7 +887,7 @@ class Throw(Builtin):
         "nocatch": "Uncaught `1` returned to top level.",
     }
 
-    summary_text = "throw an expression to be caught by a surrounding 'Catch'"
+    summary_text = "throws an expression to be caught by a surrounding 'Catch'"
 
     def apply1(self, value, evaluation):
         "Throw[value_]"

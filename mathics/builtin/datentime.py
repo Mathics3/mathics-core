@@ -1159,6 +1159,7 @@ class TimeZone(Predefined):
         "$TimeZone": str(value),
     }
 
+    # summary_text = "the default time zone"
     summary_text = "resettable default time zone"
 
     def apply(self, lhs, rhs, evaluation):
