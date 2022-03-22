@@ -191,9 +191,7 @@ class TestDetector(unittest.TestCase):
             self.detector = MagicDetector(loader.mimetypes)
 
     def testMagicNumber(self):
-        self.assertEqual(
-            ["application/zip"], self.detector.match("test.zip", "PKtest")
-        )
+        self.assertEqual(["application/zip"], self.detector.match("test.zip", "PKtest"))
         self.assertEqual([], self.detector.match("test.zip", "_PKtest"))
         self.assertEqual([], self.detector.match("test.zip1", "PKtest"))
 
