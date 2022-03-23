@@ -504,9 +504,6 @@ class Simplify(Builtin):
         try:
             sympy_result = sympy.simplify(sympy_expr)
         except Exception:
-            # This handles the exception reported in 214.
-            # However, it seems that the crash is due to a
-            # problem in the implentation of the class SympyExpression
             return expr
         # and bring it back
         result = from_sympy(sympy_result).evaluate(evaluation)
