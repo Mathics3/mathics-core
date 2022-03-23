@@ -239,7 +239,7 @@ class ComplexInfinity(_SympyConstant):
      = Indeterminate
     """
 
-    summary_text = "represents an infinite complex quantity of undetermined direction"
+    summary_text = "infinite complex quantity of undetermined direction"
     sympy_name = "zoo"
 
     rules = {
@@ -385,7 +385,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
      = 1.618033988749894848204586834365638117720
     """
 
-    summary_text = "golden ration φ ≃ 1.618"
+    summary_text = "golden ratio φ ≃ 1.618"
     sympy_name = "GoldenRatio"
     mpmath_name = "phi"
 
@@ -440,7 +440,7 @@ class Infinity(_SympyConstant):
     numpy_name = "Inf"
     mpmath_name = "inf"
     python_equivalent = math.inf
-    summary_text = "represents an infinite real quantity"
+    summary_text = "infinite real quantity"
     rules = {
         "Infinity": "DirectedInfinity[1]",
         "MakeBoxes[Infinity, f:StandardForm|TraditionalForm]": ('"\\[Infinity]"'),
