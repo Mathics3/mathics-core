@@ -213,7 +213,7 @@ class Catalan(_MPMathConstant, _SympyConstant):
     mpmath_name = "catalan"
     # numpy_name = "catalan"  ## This is not defined in numpy
     sympy_name = "Catalan"
-    summary_text = "Catalan's constant $C\approx 0.916$"
+    summary_text = "Catalan's constant C≃ 0.916"
 
 
 class ComplexInfinity(_SympyConstant):
@@ -324,7 +324,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 13.5914
     """
 
-    summary_text = "exponential constant E ≃ 2.718"
+    summary_text = "exponential constant E ≃ 2.7182"
     mpmath_name = "e"
     numpy_name = "e"
     sympy_name = "E"
@@ -348,7 +348,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 0.5772156649015328606065120900824024310422
     """
 
-    summary_text = "Euler's constant γ ≃ 0.577"
+    summary_text = "Euler's constant γ ≃ 0.5772"
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
@@ -385,7 +385,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
      = 1.618033988749894848204586834365638117720
     """
 
-    summary_text = "golden ratio φ ≃ 1.618"
+    summary_text = "golden ratio φ ≃ 1.6180"
     sympy_name = "GoldenRatio"
     mpmath_name = "phi"
 
@@ -461,7 +461,7 @@ class Khinchin(_MPMathConstant):
      # = 2.6854520010653075701156922150403261184692382812500
     """
 
-    summary_text = "Khinchin's constant K ≃ 2.685"
+    summary_text = "Khinchin's constant K ≃ 2.6854"
     mpmath_name = "khinchin"
 
 
