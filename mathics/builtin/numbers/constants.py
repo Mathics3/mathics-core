@@ -213,7 +213,7 @@ class Catalan(_MPMathConstant, _SympyConstant):
     mpmath_name = "catalan"
     # numpy_name = "catalan"  ## This is not defined in numpy
     sympy_name = "Catalan"
-    summary_text = "Catalan's constant C≃ 0.916"
+    summary_text = "Catalan's constant C ≃ 0.916"
 
 
 class ComplexInfinity(_SympyConstant):
