@@ -74,7 +74,7 @@ class Gamma(_MPMathMultiFunction):
         1: "gamma",  # one argument
         2: "uppergamma",
     }
-    summary_text = "gamma and gamma incomplete functions"
+    summary_text = "complete and incomplete gamma functions"
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
