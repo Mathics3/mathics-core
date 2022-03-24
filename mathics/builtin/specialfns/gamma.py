@@ -372,7 +372,6 @@ class LogGamma(_MPMathMultiFunction):
     }
 
     def get_sympy_names(self):
-        print("get_sympy_names loggamma")
         return ["loggamma"]
 
 
