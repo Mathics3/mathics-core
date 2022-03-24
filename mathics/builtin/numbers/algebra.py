@@ -501,7 +501,10 @@ class Simplify(Builtin):
         if sympy_expr is None:
             return expr
         # Now, try to simplify using sympy
-        sympy_result = sympy.simplify(sympy_expr)
+        try:
+            sympy_result = sympy.simplify(sympy_expr)
+        except Exception:
+            return expr
         # and bring it back
         result = from_sympy(sympy_result).evaluate(evaluation)
         return result
