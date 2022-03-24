@@ -63,7 +63,7 @@ class ProductLog(_MPMathFunction):
      = -Graphics-
     """
 
-    summary_text = "Lambter's W function"
+    summary_text = "Lambert's W function"
     sympy_name = "LambertW"  # function called LambertW in SymPy
     mpmath_name = "lambertw"
 
