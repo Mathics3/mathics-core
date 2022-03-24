@@ -365,7 +365,7 @@ class BesselK(_Bessel):
         "Derivative[0, 1][BesselK]": "((-BesselK[-1 + #1, #2] - BesselK[1 + #1, #2])/2)&",
     }
 
-    summary_text = "Modified Bessel's function of the second kind"
+    summary_text = "modified Bessel's function of the second kind"
     sympy_name = "besselk"
 
 
