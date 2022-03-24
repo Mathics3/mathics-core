@@ -79,7 +79,7 @@ class AiryAiPrime(_MPMathFunction):
         "Derivative[1][AiryAiPrime]": "(#1 AiryAi[#1])&",
     }
 
-    summary_text = "Derivative of the Airy's function Ai"
+    summary_text = "derivative of the Airy's function Ai"
     sympy_name = "airyaiprime"
 
     def get_mpmath_function(self, args):
@@ -194,7 +194,7 @@ class AiryBiPrime(_MPMathFunction):
         "Derivative[1][AiryBiPrime]": "(#1 AiryBi[#1])&",
     }
 
-    summary_text = "Derivative of the Airy's function Bi"
+    summary_text = "derivative of the Airy's function Bi"
 
     def get_mpmath_function(self, args):
         return lambda x: mpmath.airybi(x, derivative=1)
