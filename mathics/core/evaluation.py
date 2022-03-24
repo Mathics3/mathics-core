@@ -364,9 +364,10 @@ class Evaluation(object):
                 else:
                     self.exc_result = Expression("Hold", Expression("Throw", ti.value))
                 self.message("Throw", "nocatch", self.exc_result)
-            except OverflowError:
-                self.message("General", "ovfl")
-                self.exc_result = Expression("Overflow")
+            #            except OverflowError:
+            #                print("Catch the overflow")
+            #                self.message("General", "ovfl")
+            #                self.exc_result = Expression("Overflow")
             except BreakInterrupt:
                 self.message("Break", "nofdw")
                 self.exc_result = Expression("Hold", Expression("Break"))

@@ -123,6 +123,7 @@ class _MPMathFunction(SympyFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
+
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
                     result = Symbol("ComplexInfinity")
@@ -133,7 +134,11 @@ class _MPMathFunction(SympyFunction):
                 elif mpmath.isnan(result):
                     result = Symbol("Indeterminate")
                 else:
-                    result = from_mpmath(result)
+                    try:
+                        result = from_mpmath(result)
+                    except OverflowError:
+                        evaluation.message("General", "ovfl")
+                        result = Expression("Overflow")
         else:
             prec = min_prec(*args)
             d = dps(prec)
