@@ -19,6 +19,7 @@ class ExpIntegralE(_MPMathFunction):
      = 0.0375343
     """
 
+    summary_text = "exponential integral function of order n"
     nargs = 2
     sympy_name = "expint"
     mpmath_name = "expint"
@@ -35,6 +36,7 @@ class ExpIntegralEi(_MPMathFunction):
      = 4.95423
     """
 
+    summary_text = "exponential integral function"
     sympy_name = "Ei"
     mpmath_name = "ei"
 
@@ -61,6 +63,7 @@ class ProductLog(_MPMathFunction):
      = -Graphics-
     """
 
+    summary_text = "Lambert's W function"
     sympy_name = "LambertW"  # function called LambertW in SymPy
     mpmath_name = "lambertw"
 
