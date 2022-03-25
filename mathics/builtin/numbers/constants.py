@@ -478,6 +478,8 @@ class Overflow(Builtin):
     >> Table[Exp[10.^k],{k, 3}]
      : Overflow occurred in computation.
      = {22026.5, 2.68812*^43, Overflow[]}
+    >> 1 / Underflow[]
+     = Overflow[]
     """
 
     rules = {
@@ -495,6 +497,16 @@ class Underflow(Builtin):
 
     >> 1 / Overflow[]
      = Underflow[]
+    >> 5 * Underflow[]
+     = 5 Underflow[]
+    >> % // N
+     = 0.
+    Underflow[] is kept symbolic in operations against integer numbers,
+    but taken as 0. in numeric evaluations:
+    >> 1 - Underflow[]
+     = 1 - Underflow[]
+    >> % // N
+     = 1.
     #
     # TODO: handle this kind of expressions where precision may be
     # lost:
