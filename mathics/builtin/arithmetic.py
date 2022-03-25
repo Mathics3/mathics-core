@@ -137,6 +137,11 @@ class _MPMathFunction(SympyFunction):
                 elif mpmath.isnan(result):
                     result = Symbol("Indeterminate")
                 else:
+                    # FIXME: replace try/except as a context manager
+                    # like "with evaluation.from_mpmath()...
+                    # which can be instrumented for
+                    # or mpmath tracing and benchmarking on demand.
+                    # Then use it on other places where mpmath appears.
                     try:
                         result = from_mpmath(result)
                     except OverflowError:
