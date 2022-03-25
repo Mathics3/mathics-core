@@ -14,7 +14,13 @@ from mathics.builtin.base import SympyFunction, PostfixOperator
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.evaluators import apply_N
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import SymbolSequence
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+)
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -89,7 +95,7 @@ class Beta(_MPMathMultiFunction):
             return
 
         args = (
-            Expression("Sequence", a, b, Integer0, z)
+            Expression(SymbolSequence, a, b, Integer0, z)
             .numerify(evaluation)
             .get_sequence()
         )
@@ -106,13 +112,13 @@ class Beta(_MPMathMultiFunction):
             result = call_mpmath(mpmath_function, tuple(float_args))
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = Symbol("ComplexInfinity")
+                    result = SymbolComplexInfinity
                 elif mpmath.isinf(result) and result > 0:
-                    result = Expression("DirectedInfinity", Integer1)
+                    result = Expression(SymbolDirectedInfinity, Integer1)
                 elif mpmath.isinf(result) and result < 0:
-                    result = Expression("DirectedInfinity", Integer(-1))
+                    result = Expression(SymbolDirectedInfinity, Integer(-1))
                 elif mpmath.isnan(result):
-                    result = Symbol("Indeterminate")
+                    result = SymbolIndeterminate
                 else:
                     result = from_mpmath(result)
         else:
@@ -219,7 +225,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
 
         pref_expr = self.get_option(options, "Method", evaluation)
         is_automatic = False
-        if pref_expr is Symbol("System`Automatic"):
+        if pref_expr is SymbolAutomatic:
             is_automatic = True
             preference = "mpmath"
         else:
