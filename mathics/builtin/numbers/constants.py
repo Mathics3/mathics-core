@@ -508,7 +508,7 @@ class Underflow(Builtin):
         "x_Real + Underflow[]": "x",
         "Underflow[] * x_Real": "0.",
     }
-    summary_text = "overflow in numeric evaluation"
+    summary_text = "underflow in numeric evaluation"
 
 
 class Pi(_MPMathConstant, _SympyConstant):
