@@ -134,6 +134,7 @@ class _MPMathFunction(SympyFunction):
                 elif mpmath.isnan(result):
                     result = Symbol("Indeterminate")
                 else:
+                    # Maybe it would be better using a context manager...
                     try:
                         result = from_mpmath(result)
                     except OverflowError:
