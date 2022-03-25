@@ -137,7 +137,11 @@ class _MPMathFunction(SympyFunction):
                 elif mpmath.isnan(result):
                     result = Symbol("Indeterminate")
                 else:
-                    result = from_mpmath(result)
+                    try:
+                        result = from_mpmath(result)
+                    except OverflowError:
+                        evaluation.message("General", "ovfl")
+                        result = Expression("Overflow")
         else:
             prec = min_prec(*args)
             d = dps(prec)
