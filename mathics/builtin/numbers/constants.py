@@ -481,7 +481,7 @@ class Overflow(Builtin):
     """
 
     rules = {
-        "1 / Overflow[]": "Underflow[]",
+        "Power[Overflow[], -1]": "Underflow[]",
     }
     summary_text = "overflow in numeric evaluation"
 
@@ -504,7 +504,7 @@ class Underflow(Builtin):
     """
 
     rules = {
-        "1 / Underflow[]": "Overflow[]",
+        "Power[Underflow[], -1]": "Overflow[]",
         "x_Real + Underflow[]": "x",
         "Underflow[] * x_Real": "0.",
     }
