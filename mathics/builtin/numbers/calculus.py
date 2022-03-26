@@ -172,7 +172,7 @@ class D(SympyFunction):
     >> D[2x, 2x]
      = 0
     """
-
+    summary_text = "partial derivatives of scalar or vector functions"
     sympy_name = "Derivative"
 
     messages = {
@@ -210,8 +210,6 @@ class D(SympyFunction):
             "Nest[Function[{t}, D[t, x]], expr, n]"
         ),
     }
-
-    summary_text = "partial derivatives of scalar or vector functions"
 
     def apply(self, f, x, evaluation):
         "D[f_, x_?NotListQ]"
@@ -395,6 +393,7 @@ class Derivative(PostfixOperator, SympyFunction):
      = Hold[Derivative[1][Derivative[x][4]]]
     """
 
+    summary_text = "symbolic and numerical derivative functions"
     operator = "'"
     precedence = 670
     attributes = n_hold_all
@@ -444,8 +443,6 @@ class Derivative(PostfixOperator, SympyFunction):
                 Function::slotn],
             Sequence @@ Table[{Slot[i], {n}[[i]]}, {i, 1, Length[{n}]}]]]&""",
     }
-
-    summary_text = "symbolic and numerical derivative functions"
 
     default_formats = False
 
@@ -932,6 +929,7 @@ class Solve(Builtin):
 
     """
 
+    summary_text = "find generic solutions for variables"
     messages = {
         "eqf": "`1` is not a well-formed equation.",
         "svars": 'Equations may not give solutions for all "solve" variables.',
@@ -946,8 +944,6 @@ class Solve(Builtin):
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
         ),
     }
-
-    summary_text = "find generic solutions for variables"
 
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
@@ -1171,7 +1167,7 @@ class Limit(Builtin):
      #> Limit[(1 + cos[x]) / x, x -> 0]
      = Limit[(1 + cos[x]) / x, x -> 0]
     """
-
+    summary_text = "directed and undirected limits"
     attributes = listable | protected
 
     options = {
@@ -1181,8 +1177,6 @@ class Limit(Builtin):
     messages = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
     }
-
-    summary_text = "directed and undirected limits"
 
     def apply(self, expr, x, x0, evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
@@ -1239,7 +1233,7 @@ class DiscreteLimit(Builtin):
     >> DiscreteLimit[(n/(n + 2)) E^(-m/(m + 1)), {m -> Infinity, n -> Infinity}]
      = 1 / E
     """
-
+    summary_text = "limits of sequences including recurrence and number theory"
     attributes = listable | protected
 
     options = {
@@ -1249,8 +1243,6 @@ class DiscreteLimit(Builtin):
     messages = {
         "dltrials": "The value of Trials should be a positive integer",
     }
-
-    summary_text = "limits of sequences including recurrence and number theory"
 
     def apply(self, f, n, n0, evaluation, options={}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
@@ -2044,6 +2036,7 @@ class NIntegrate(Builtin):
 
     """
 
+    summary_text = "numerical integration in one or several variables"
     messages = {
         "bdmtd": "The Method option should be a built-in method name.",
         "inumr": (
@@ -2071,7 +2064,6 @@ class NIntegrate(Builtin):
     methods = {
         "Automatic": (None, False),
     }
-    summary_text = "numerical integration"
     try:
         from mathics.algorithm.integrators import (
             integrator_methods,
