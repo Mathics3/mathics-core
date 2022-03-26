@@ -381,6 +381,7 @@ class Cancel(Builtin):
      = 2 f[x] / x
     """
 
+    summary_text = "cancels common factors in rational expressions"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -422,6 +423,7 @@ class Simplify(Builtin):
     >> $Assumptions={};
     """
 
+    summary_text = "apply transformations to simplify the expression"
     rules = {
         "Simplify[list_List]": "Simplify /@ list",
         "Simplify[rule_Rule]": "Simplify /@ rule",
@@ -525,6 +527,7 @@ class FullSimplify(Simplify):
 
     """
 
+    summary_text = "apply a full set of transformations to simplify the expression"
     rules = {
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
@@ -552,6 +555,7 @@ class Together(Builtin):
      = f[x] (1 + x) / x ^ 2
     """
 
+    summary_text = "put over a common denominator"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -596,6 +600,7 @@ class Factor(Builtin):
      = x (-1 + x) == 0
     """
 
+    summary_text = "factor sums into product and powers"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -642,6 +647,7 @@ class FactorTermsList(Builtin):
      = {-3, 1 - a - y + a y, -1 + 2 x}
     """
 
+    summary_text = "a polynomial as a list of factors"
     rules = {
         "FactorTermsList[expr_]": "FactorTermsList[expr, {}]",
         "FactorTermsList[expr_, var_]": "FactorTermsList[expr, {var}]",
@@ -753,6 +759,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
+    summary_text = "decompose into partial fractions"
     attributes = listable | protected
     rules = {
         "Apart[expr_]": (
@@ -876,6 +883,8 @@ class Expand(_Expand):
      = 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3
     """
 
+    summary_text = "expand out product and powers"
+
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
@@ -923,6 +932,8 @@ class ExpandDenominator(_Expand):
      = 2 (3 + 2 x) ^ 2 / (125 + 225 x + 210 x ^ 2 + 117 x ^ 3 + 42 x ^ 4 + 9 x ^ 5 + x ^ 6)
     """
 
+    summary_text = "expands just the denominator of a rational expression"
+
     def apply(self, expr, evaluation, options):
         "ExpandDenominator[expr_, OptionsPattern[ExpandDenominator]]"
 
@@ -963,6 +974,8 @@ class ExpandAll(_Expand):
      = (1 + 2 a ^ 3 + a ^ 6) / (x ^ 3 + y ^ 3)
 
     """
+
+    summary_text = "expands products and powers, including negative integer powers"
 
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
@@ -1006,6 +1019,7 @@ class PowerExpand(Builtin):
      = x
     """
 
+    summary_text = "expand out powers"
     rules = {
         "PowerExpand[(x_ ^ y_) ^ z_]": "x ^ (y * z)",
         "PowerExpand[(x_ * y_) ^ z_]": "x ^ z * y ^ z",
@@ -1034,6 +1048,7 @@ class Numerator(Builtin):
      = a + b
     """
 
+    summary_text = "numerator of an expression"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -1061,6 +1076,7 @@ class Denominator(Builtin):
      = 1
     """
 
+    summary_text = "denominator of an expression"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -1088,13 +1104,11 @@ class Variables(Builtin):
      = {a, b, c, x, y}
     >> Variables[x + Sin[y]]
      = {x, Sin[y]}
-    """
-
-    """
-    ## failing test case from MMA docs
-    #> Variables[E^x]
+    This behaviour is weird, but is the same than in WMA.
+    >> Variables[E^x]
      = {}
     """
+    summary_text = "list of variables in a polynomial"
 
     def apply(self, expr, evaluation):
         "Variables[expr_]"
@@ -1106,7 +1120,16 @@ class Variables(Builtin):
         return variables
 
 
+# This Builtin belongs to mathics.builtin.list.eol
 class UpTo(Builtin):
+    """
+    <dl>
+    <dd> 'Upto'[$n$]
+    <dt> is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
+    </dl>
+    """
+
+    summary_text = "a certain number of elements, or as many as are available"
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
@@ -1141,6 +1164,7 @@ class MinimalPolynomial(Builtin):
      = 1 - 4 #1 ^ 2 + #1 ^ 4
     """
 
+    summary_text = "minimal polynomial for a general algebraic number"
     attributes = listable | protected
 
     messages = {
@@ -1223,6 +1247,7 @@ class PolynomialQ(Builtin):
     ##  = False
     """
 
+    summary_text = "tests if the expression is a polynomial in a variable"
     messages = {
         "argt": "PolynomialQ called with `1` arguments; 1 or 2 arguments are expected.",
         "novar": "No variable is not supported in PolynomialQ.",
@@ -1340,6 +1365,7 @@ class Coefficient(Builtin):
     ##  = {2, 1, 7}
     """
 
+    summary_text = "coefficient of a monomial in a polynomial expression"
     messages = {
         "argtu": "Coefficient called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
@@ -1397,6 +1423,7 @@ class CoefficientList(Builtin):
      = CoefficientList[x / y, {x, y}]
     """
 
+    summary_text = "list of coefficients defining a polynomial"
     messages = {
         "argtu": "CoefficientList called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
@@ -1517,6 +1544,7 @@ class Exponent(Builtin):
      = Exponent[x ^ 2]
     """
 
+    summary_text = "maximum power in which a form appears in a polynomial"
     attributes = listable | protected
 
     messages = {
@@ -1783,6 +1811,9 @@ class CoefficientArrays(_CoefficientHandler):
      = CoefficientArrays[(x + y + Sin[z]) ^ 3, {x, z}]
     """
 
+    summary_text = (
+        "array of coefficients associated with a polynomial in many variables"
+    )
     options = {
         "Symmetric": "False",
     }
@@ -1884,6 +1915,7 @@ class Collect(_CoefficientHandler):
      = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
     """
 
+    summary_text = "collect terms with a variable at the same power"
     rules = {
         "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
     }
