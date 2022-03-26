@@ -21,10 +21,10 @@ class Floor(SympyFunction):
     """
     <dl>
       <dt>'Floor[$x$]'
-      <dd>gives the smallest integer less than or equal to $x$.
+      <dd>gives the greatest integer less than or equal to $x$.
 
       <dt>'Floor[$x$, $a$]'
-      <dd>gives the smallest multiple of $a$ less than or equal to $x$.
+      <dd>gives the greatest multiple of $a$ less than or equal to $x$.
     </dl>
 
     >> Floor[10.4]
@@ -52,6 +52,7 @@ class Floor(SympyFunction):
      = -10
     """
 
+    summary_text = "closest smaller integer"
     attributes = listable | numeric_function | protected
 
     sympy_name = "floor"
@@ -68,7 +69,7 @@ class Ceiling(SympyFunction):
     """
     <dl>
        <dt>'Ceiling[$x$]'
-       <dd>gives the first integer greater than $x$.
+       <dd>gives the smallest integer greater than or equal to $x$.
     </dl>
 
     >> Ceiling[1.2]
@@ -81,6 +82,7 @@ class Ceiling(SympyFunction):
      = 2 + I
     """
 
+    summary_text = "closest larger integer"
     attributes = listable | numeric_function | protected
 
     rules = {"Ceiling[x_, a_]": "Ceiling[x / a] * a"}
@@ -110,6 +112,7 @@ class BitLength(Builtin):
      = 0
     """
 
+    summary_text = "length of the binary representation"
     attributes = listable | protected
 
     def apply(self, n, evaluation):
@@ -175,6 +178,7 @@ class IntegerString(Builtin):
      = c6i5
     """
 
+    summary_text = "decimal representation of a number as a string"
     attributes = listable | protected
 
     rules = {
@@ -262,6 +266,7 @@ class IntegerDigits(_IntBaseBuiltin):
      = {12, 6, 18, 5}
     """
 
+    summary_text = "list of digits of a number"
     rules = {
         "IntegerDigits[n_Integer]": "IntegerDigits[n, 10]",
     }
@@ -326,6 +331,9 @@ class DigitCount(_IntBaseBuiltin):
      = 9
     """
 
+    summary_text = (
+        "number of occurrences of a digit in the base-b representation of a number"
+    )
     rules = {
         "DigitCount[n_Integer]": "DigitCount[n, 10]",
     }
@@ -373,6 +381,7 @@ class IntegerReverse(_IntBaseBuiltin):
      = 321
     """
 
+    summary_text = "number with digits in the inverse order"
     rules = {
         "IntegerReverse[n_Integer]": "IntegerReverse[n, 10]",
     }
@@ -427,6 +436,7 @@ class FromDigits(Builtin):
      = FromDigits[x, 10]
     """
 
+    summary_text = "integer from a list of digits"
     rules = {"FromDigits[l_]": "FromDigits[l, 10]"}
 
     messages = {"nlst": "The input must be a string of digits or a list."}
