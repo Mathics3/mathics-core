@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Unit tests from mathics.builtins.numbers.linalg
+"""
 from test.helper import check_evaluation
 import pytest
 
