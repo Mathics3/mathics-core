@@ -423,7 +423,7 @@ class Simplify(Builtin):
     >> $Assumptions={};
     """
 
-    summary_text = "apply transformations to simplify the expression"
+    summary_text = "applies transformations to simplify the expression"
     rules = {
         "Simplify[list_List]": "Simplify /@ list",
         "Simplify[rule_Rule]": "Simplify /@ rule",
@@ -527,7 +527,7 @@ class FullSimplify(Simplify):
 
     """
 
-    summary_text = "apply a full set of transformations to simplify the expression"
+    summary_text = "applies a full set of transformations to simplify the expression"
     rules = {
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
@@ -555,7 +555,7 @@ class Together(Builtin):
      = f[x] (1 + x) / x ^ 2
     """
 
-    summary_text = "put over a common denominator"
+    summary_text = "common denominator"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -600,7 +600,7 @@ class Factor(Builtin):
      = x (-1 + x) == 0
     """
 
-    summary_text = "factor sums into product and powers"
+    summary_text = "factors sums into product and powers"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -759,7 +759,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    summary_text = "decompose into partial fractions"
+    summary_text = "partial fraction decomposition"
     attributes = listable | protected
     rules = {
         "Apart[expr_]": (
@@ -883,7 +883,7 @@ class Expand(_Expand):
      = 24 x / (5 + 3 x + x ^ 2) ^ 3 + 8 x ^ 2 / (5 + 3 x + x ^ 2) ^ 3 + 18 / (5 + 3 x + x ^ 2) ^ 3
     """
 
-    summary_text = "expand out product and powers"
+    summary_text = "expands out products and powers"
 
     def apply_patt(self, expr, target, evaluation, options):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
@@ -1019,7 +1019,7 @@ class PowerExpand(Builtin):
      = x
     """
 
-    summary_text = "expand out powers"
+    summary_text = "expands out powers"
     rules = {
         "PowerExpand[(x_ ^ y_) ^ z_]": "x ^ (y * z)",
         "PowerExpand[(x_ * y_) ^ z_]": "x ^ z * y ^ z",
