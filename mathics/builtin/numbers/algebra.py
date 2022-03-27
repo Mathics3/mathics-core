@@ -1230,7 +1230,7 @@ class ExpandAll(_Expand):
 
     """
 
-    summary_text = "expands products and powers, including negative integer powers"
+    summary_text = "expand products and powers, including negative integer powers"
 
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
