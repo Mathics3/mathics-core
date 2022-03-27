@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, session
+from test.helper import check_evaluation
 import pytest
 
 
