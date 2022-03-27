@@ -1241,11 +1241,50 @@ class Rest(Builtin):
         return expr.slice(expr.head, slice(1, len(expr.leaves)), evaluation)
 
 
+class Select(Builtin):
+    """
+    <dl>
+      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
+      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+    </dl>
+
+    Find numbers greater than zero:
+    >> Select[{-3, 0, 1, 3, a}, #>0&]
+     = {1, 3}
+
+    'Select' works on an expression with any head:
+    >> Select[f[a, 2, 3], NumberQ]
+     = f[2, 3]
+
+    >> Select[a, True]
+     : Nonatomic expression expected.
+     = Select[a, True]
+
+    #> A[x__] := 31415 /; Length[{x}] == 3;
+    #> Select[A[5, 2, 7, 1], OddQ]
+     = 31415
+    #> ClearAll[A];
+    """
+
+    def apply(self, items, expr, evaluation):
+        "Select[items_, expr_]"
+
+        if isinstance(items, Atom):
+            evaluation.message("Select", "normal")
+            return
+
+        def cond(leaf):
+            test = Expression(expr, leaf)
+            return test.evaluate(evaluation).is_true()
+
+        return items.filter(items.head, cond, evaluation)
+
+
 class Span(BinaryOperator):
     """
     <dl>
-    <dt>'Span'
-        <dd>is the head of span ranges like '1;;3'.
+      <dt>'Span'
+      <dd>is the head of span ranges like '1;;3'.
     </dl>
 
     >> ;; // FullForm
@@ -1291,8 +1330,8 @@ class Span(BinaryOperator):
 class Take(Builtin):
     """
     <dl>
-    <dt>'Take[$expr$, $n$]'
-        <dd>returns $expr$ with all but the first $n$ leaves removed.
+      <dt>'Take[$expr$, $n$]'
+      <dd>returns $expr$ with all but the first $n$ leaves removed.
     </dl>
 
     >> Take[{a, b, c, d}, 3]
@@ -1360,40 +1399,16 @@ class Take(Builtin):
             e.message(evaluation)
 
 
-class Select(Builtin):
+class UpTo(Builtin):
     """
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
-      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+      <dd> 'Upto'[$n$]
+      <dt> is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
     </dl>
-
-    Find numbers greater than zero:
-    >> Select[{-3, 0, 1, 3, a}, #>0&]
-     = {1, 3}
-
-    'Select' works on an expression with any head:
-    >> Select[f[a, 2, 3], NumberQ]
-     = f[2, 3]
-
-    >> Select[a, True]
-     : Nonatomic expression expected.
-     = Select[a, True]
-
-    #> A[x__] := 31415 /; Length[{x}] == 3;
-    #> Select[A[5, 2, 7, 1], OddQ]
-     = 31415
-    #> ClearAll[A];
     """
 
-    def apply(self, items, expr, evaluation):
-        "Select[items_, expr_]"
-
-        if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
-            return
-
-        def cond(leaf):
-            test = Expression(expr, leaf)
-            return test.evaluate(evaluation).is_true()
-
-        return items.filter(items.head, cond, evaluation)
+    summary_text = "a certain number of elements, or as many as are available"
+    messages = {
+        "innf": "Expected non-negative integer or infinity at position 1 in ``.",
+        "argx": "UpTo expects 1 argument, `1` arguments were given.",
+    }
