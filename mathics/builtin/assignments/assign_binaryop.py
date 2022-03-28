@@ -46,7 +46,7 @@ class AddTo(BinaryOperator):
     rules = {
         "x_ += dx_": "x = x + dx",
     }
-    summary_text = "adds a value and assignes that returning the new value"
+    summary_text = "add a value and assignes that returning the new value"
 
 
 class Decrement(PostfixOperator):
@@ -102,7 +102,7 @@ class DivideBy(BinaryOperator):
     rules = {
         "x_ /= dx_": "x = x / dx",
     }
-    summary_text = "divides a value and assigns that returning the new value"
+    summary_text = "divide a value and assigns that returning the new value"
 
 
 class Increment(PostfixOperator):
@@ -166,7 +166,7 @@ class PreIncrement(PrefixOperator):
         "++x_": "x = x + 1",
     }
 
-    summary_text = "increases the value by one and assigns that returning the new value"
+    summary_text = "increase the value by one and assigns that returning the new value"
 
 
 class PreDecrement(PrefixOperator):
@@ -193,7 +193,7 @@ class PreDecrement(PrefixOperator):
     rules = {
         "--x_": "x = x - 1",
     }
-    summary_text = "decreases the value by one and assigns that returning the new value"
+    summary_text = "decrease the value by one and assigns that returning the new value"
 
 
 class SubtractFrom(BinaryOperator):
@@ -219,7 +219,7 @@ class SubtractFrom(BinaryOperator):
     rules = {
         "x_ -= dx_": "x = x - dx",
     }
-    summary_text = "subtracts a value and assins that returning the new value"
+    summary_text = "subtract a value and assins that returning the new value"
 
 
 class TimesBy(BinaryOperator):
@@ -246,4 +246,4 @@ class TimesBy(BinaryOperator):
     rules = {
         "x_ *= dx_": "x = x * dx",
     }
-    summary_text = "multiplies a value and assigns that returning the new value"
+    summary_text = "multiply a value and assigns that returning the new value"

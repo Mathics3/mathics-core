@@ -1,6 +1,16 @@
 # -*- coding: utf-8 -*-
 """
-Algebraic Manipulation
+Algebraic Transformations
+
+There are a number of built-in functions that perform:
+
+<ul>
+<li>Structural Operations on Polynomials
+<li>Finding the Structure of a Polynomial
+<li>Structural Operations on Rational Expressions
+<li>Polynomials over Algebraic Number Fields
+<li>Simplification with or without Assumptions
+</ul>
 """
 
 
@@ -1839,7 +1849,7 @@ class PowerExpand(Builtin):
      = x
     """
 
-    summary_text = "expands out powers"
+    summary_text = "expand out powers"
     rules = {
         "PowerExpand[(x_ ^ y_) ^ z_]": "x ^ (y * z)",
         "PowerExpand[(x_ * y_) ^ z_]": "x ^ z * y ^ z",

@@ -162,7 +162,7 @@ class ExactNumberQ(Test):
      = False
     """
 
-    summary_text = "tests if an expression is an exact real or complex number"
+    summary_text = "test if an expression is an exact real or complex number"
 
     def test(self, expr):
         return isinstance(expr, Number) and not expr.is_inexact()
@@ -449,7 +449,7 @@ class MachineNumberQ(Test):
      = True
     """
 
-    summary_text = "tests if expresion is a machine‐precision real or complex number"
+    summary_text = "test if expression is a machine‐precision real or complex number"
 
     def test(self, expr):
         return expr.is_machine_precision()

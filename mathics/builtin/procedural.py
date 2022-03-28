@@ -109,7 +109,7 @@ class Catch(Builtin):
 
     attributes = hold_all | protected
 
-    summary_text = "Handles an exception raised by a 'Throw'"
+    summary_text = "handle an exception raised by a 'Throw'"
 
     def apply_expr(self, expr, evaluation):
         "Catch[expr_]"
@@ -224,7 +224,7 @@ class Continue(Builtin):
         "nofwd": "No enclosing For, While, or Do found for Continue[].",
     }
 
-    summary_text = "continues with the next iteration in a 'For', 'While' or 'Do' loop"
+    summary_text = "continue with the next iteration in a 'For', 'While' or 'Do' loop"
 
     def apply(self, evaluation):
         "Continue[]"
