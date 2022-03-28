@@ -432,18 +432,6 @@ class Builtin:
                     return s.get_name()[len(prefix) :], s
         return None, s
 
-    @property
-    def is_literal(self) -> bool:
-        """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
-        """
-        # FIXME: figure out what the right thing to do here is.
-        # For now we will be pessimistic.
-        return False
-
 
 class InstanceableBuiltin(Builtin):
     def __new__(cls, *args, **kwargs):
@@ -467,6 +455,18 @@ class InstanceableBuiltin(Builtin):
 
     def init(self, *args, **kwargs):
         pass
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+        """
+        # FIXME: figure out what the right thing to do here is.
+        # For now we will be pessimistic.
+        return False
 
 
 class AtomBuiltin(Builtin):

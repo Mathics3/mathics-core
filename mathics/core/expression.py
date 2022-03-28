@@ -265,7 +265,6 @@ class Expression(BaseElement, NumericOperators):
         last_element = None
         for element in elements:
             converted_elt = from_python(element)
-            last_element = converted_elt
 
             # Test for the three properties mentioned above.
             if not converted_elt.is_literal:
@@ -278,6 +277,7 @@ class Expression(BaseElement, NumericOperators):
                 and last_element != converted_elt
             ):
                 self._is_sorted = False
+            last_element = converted_elt
 
             result.append(converted_elt)
 
