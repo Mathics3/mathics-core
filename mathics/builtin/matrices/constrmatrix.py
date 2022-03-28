@@ -28,7 +28,7 @@ class DiagonalMatrix(Builtin):
      . 0   0   3
     """
 
-    summary_text = "gives a diagonal matrix with the elements of a given list"
+    summary_text = "give a diagonal matrix with the elements of a given list"
 
     def apply(self, list, evaluation):
         "DiagonalMatrix[list_List]"
@@ -57,4 +57,4 @@ class IdentityMatrix(Builtin):
         "IdentityMatrix[n_Integer]": "DiagonalMatrix[Table[1, {n}]]",
     }
 
-    summary_text = "gives the identity matrix with a given dimension"
+    summary_text = "give the identity matrix with a given dimension"

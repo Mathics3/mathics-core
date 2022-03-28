@@ -40,7 +40,7 @@ class DefaultValues(Builtin):
 
     attributes = hold_all | protected
     summary_text = (
-        "gives default values for the arguments associated with a function symbol"
+        "give default values for the arguments associated with a function symbol"
     )
 
     def apply(self, symbol, evaluation):
@@ -68,7 +68,7 @@ class Messages(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives the list the messages associated with a particular symbol"
+    summary_text = "give the list the messages associated with a particular symbol"
 
     def apply(self, symbol, evaluation):
         "Messages[symbol_]"
@@ -111,7 +111,7 @@ class NValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives the list of numerical values associated with a symbol"
+    summary_text = "give the list of numerical values associated with a symbol"
 
     def apply(self, symbol, evaluation):
         "NValues[symbol_]"
@@ -139,7 +139,7 @@ class SubValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives the list of subvalues associated with a symbol"
+    summary_text = "give the list of subvalues associated with a symbol"
 
     def apply(self, symbol, evaluation):
         "SubValues[symbol_]"

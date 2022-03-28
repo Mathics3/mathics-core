@@ -144,7 +144,7 @@ class Normal(Builtin):
     </dl>
     """
 
-    summary_text = "converts objects to normal expressions"
+    summary_text = "convert objects to normal expressions"
 
     def apply_general(self, expr, evaluation):
         "Normal[expr_]"
@@ -230,7 +230,7 @@ class Permutations(Builtin):
         "nninfseq": "The number specified at position 2 of `` must be a non-negative integer, All, or Infinity.",
     }
 
-    summary_text = "forms permutations of a list"
+    summary_text = "form permutations of a list"
 
     def apply_argt(self, evaluation):
         "Permutations[]"

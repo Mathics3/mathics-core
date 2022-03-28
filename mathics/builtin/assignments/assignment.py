@@ -196,7 +196,7 @@ class TagSet(Builtin, _SetOperator):
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
-    summary_text = "assigns a value to an expression, associating the corresponding assignment with the a symbol."
+    summary_text = "assign a value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
@@ -222,7 +222,7 @@ class TagSetDelayed(TagSet):
     """
 
     attributes = hold_all | protected | sequence_hold
-    summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with the a symbol."
+    summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"

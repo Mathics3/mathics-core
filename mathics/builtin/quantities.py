@@ -35,7 +35,7 @@ class KnownUnitQ(Test):
      = False
     """
 
-    summary_text = "Checks if its argument is a canonical unit."
+    summary_text = "check if its argument is a canonical unit."
 
     def test(self, expr):
         def validate(unit):
@@ -188,7 +188,7 @@ class Quantity(Builtin):
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",
     }
-    summary_text = "Quantity with units."
+    summary_text = "quantity with units"
 
     def validate(self, unit, evaluation):
         if KnownUnitQ(unit).evaluate(evaluation) is Symbol("False"):
@@ -255,7 +255,7 @@ class QuantityQ(Test):
      = False
     """
 
-    summary_text = "Checks if the argument is a quantity."
+    summary_text = "checks if the argument is a quantity"
 
     def test(self, expr):
         def validate_unit(unit):
@@ -307,7 +307,7 @@ class QuantityUnit(Builtin):
      = QuantityUnit[Quantity[10,aaa]]
     """
 
-    summary_text = "The unit associated to a quantity."
+    summary_text = "the unit associated to a quantity"
 
     def apply(self, expr, evaluation):
         "QuantityUnit[expr_]"

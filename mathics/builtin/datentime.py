@@ -981,7 +981,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
      = {2030, 4, 21}
     """
 
-    summary_text = "Find the date of Easter Sunday for a given year"
+    summary_text = "find the date of Easter Sunday for a given year"
 
     def apply(self, year, evaluation):
         "EasterSunday[year_Integer]"
@@ -1022,7 +1022,7 @@ class Pause(Builtin):
         ),
     }
 
-    summary_text = "pauses for a number of seconds"
+    summary_text = "pause for a number of seconds"
 
     def apply(self, n, evaluation):
         "Pause[n_]"
