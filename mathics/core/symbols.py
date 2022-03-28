@@ -308,6 +308,22 @@ class Atom(BaseElement):
     def has_symbol(self, symbol_name) -> bool:
         return False
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Most Atoms, like Numbers and Strings, do not need evaluation
+        or reevaluation. However some kinds of Atoms like Symbols
+        sometimes do. The Symbol class or any other class like this
+        that is subclassed from Atom then needs to override this
+        method, when the Atom might not be literal.
+        """
+        return True
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we may need to
@@ -454,6 +470,18 @@ class Symbol(Atom, NumericOperators):
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Here, we have to be pessimistic and return True.
+        """
+        return False
+
     def is_numeric(self, evaluation=None) -> bool:
         """
         Returns True if the symbol is tagged as a numeric constant.
@@ -563,6 +591,26 @@ class PredefinedSymbol(Symbol):
     a list of known Symbol names or where the name might get deleted,
     this never occurs here.
     """
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Predefined symbols are set once, and the name never changes.
+
+        Furthermore, is_literal() is used for (non-head) elements in a
+        compound expression, and never for the head element. If a
+        predefined symbol appears a symbol there (rather than as a
+        subexpression or compound expression), it acts like a constant.
+
+        Don't confuse this use with its use where the symbol is the
+        head (or function name) element.
+        """
+        return False
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """

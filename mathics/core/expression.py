@@ -6,7 +6,7 @@ import math
 import time
 
 import typing
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 from itertools import chain
 from bisect import bisect_left
 
@@ -176,12 +176,19 @@ class Expression(BaseElement, NumericOperators):
     # See if there's a way to get rid of this, or ensure that this isn't causing
     # a garbage collection problem.
 
-    def __new__(cls, head, *elts, **kwargs) -> "Expression":
+    def __new__(cls, head, *elements, **kwargs) -> "Expression":
         self = super().__new__(cls)
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head
-        self._elements = tuple(from_python(element) for element in elts)
+
+        # Set some properties on elements that help us speed up evaluation.
+        # These are set in self._build_elements(elements)
+        #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
+
+        self._elements = self._build_elements(elements)
+
+        # self._elements = tuple(from_python(element) for element in elts)
         self._sequences = None
         self._cache = None
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
@@ -231,6 +238,49 @@ class Expression(BaseElement, NumericOperators):
         extend(elements[k:])
 
         return self.restructure(self._head, flattened, evaluation)
+
+    def _build_elements(self, elements: Iterable) -> tuple:
+        """
+        Build a tuple of Elements converted from the Python-like items in `elements`.
+        We also note useful properties such as whether the collection of elements is
+        sorted, flat, or fully evaluated.
+
+        Note: we add or set the following fields:
+          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+        """
+        # All of the properties start out optimistic (True) and are reset when that proves wrong.
+
+        # _elements_fully_evaluated is True if all elements have been fully evaluated.
+        # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
+        self._elements_fully_evaluated = True
+
+        # _is_flat is True if all elements are atoms/leaves.
+        self._is_flat = True
+
+        # _is_sorted is True if elements do not need sorting
+        # elements with less than 2 items or all have the same value are sorted.
+        self._is_sorted = True
+
+        result = []
+        last_element = None
+        for element in elements:
+            converted_elt = from_python(element)
+            if (
+                self._is_sorted
+                and last_element is not None
+                and last_element != converted_elt
+            ):
+                self._is_sorted = False
+            last_element = converted_elt
+            if isinstance(converted_elt, Expression):
+                self._is_flat = False
+                if not converted_elt.is_literal:
+                    self._elements_fully_evaluated = False
+            elif not converted_elt.is_literal:
+                self._elements_fully_evaluated = False
+            result.append(converted_elt)
+
+        return tuple(result)
 
     def _no_symbol(self, symbol_name):
         # if this return True, it's safe to say that self.elements or its
@@ -905,6 +955,20 @@ class Expression(BaseElement, NumericOperators):
             else:
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+        """
+        # Right now we are pessimisitic. We might consider changing this for
+        # Lists. Lists definitions can't be changed right?
+        return False
+        # If we have a List we may do something like:
+        # return self._elements_fully_evaluated
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.evaluate() to determine if we need to reevaluate
@@ -1449,7 +1513,7 @@ class Expression(BaseElement, NumericOperators):
             return
 
         # There is no in-place sort method on a tuple, because tuples are not
-        # mutable. So we turn into a elments into list and use Python's
+        # mutable. So we turn into a elements into list and use Python's
         # list sort method. Another approach would be to use sorted().
         elements = list(self._elements)
         if pattern:
