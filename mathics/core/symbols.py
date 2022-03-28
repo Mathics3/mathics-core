@@ -601,15 +601,10 @@ class PredefinedSymbol(Symbol):
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
 
-        Predefined symbols are set once, and the name never changes.
-
-        Furthermore, is_literal() is used for (non-head) elements in a
-        compound expression, and never for the head element. If a
-        predefined symbol appears as a symbol there (rather than as a
-        subexpression or compound expression), it acts like a constant.
-
-        Don't confuse this use with its use where the symbol is the
-        head (or function name) element.
+        We have to be pessimistic here. There may be certain situations though
+        where the above context changes this. For example, `If`
+        has the property HoldRest. That kind of thing though is detected
+        at the higher level in handling the expression setup for `If`, not here.
         """
         return False
 
