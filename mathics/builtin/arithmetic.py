@@ -9,7 +9,6 @@ Basic arithmetic functions, including complex number arithmetic.
 
 
 import sympy
-import sys
 import mpmath
 from functools import lru_cache
 
@@ -17,7 +16,6 @@ from mathics.core.evaluators import apply_N
 
 from mathics.builtin.base import (
     Builtin,
-    PostfixOperator,
     Predefined,
     SympyFunction,
     Test,
@@ -41,9 +39,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolUndefined,
-)
+from mathics.core.systemsymbols import SymbolUndefined
 from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
@@ -127,6 +123,7 @@ class _MPMathFunction(SympyFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
+
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
                     result = Symbol("ComplexInfinity")
@@ -875,125 +872,6 @@ class Complex_(Builtin):
             r, i = sym_form.simplify().as_real_imag()
             r, i = from_sympy(r), from_sympy(i)
         return Complex(r, i)
-
-
-class Factorial(PostfixOperator, _MPMathFunction):
-    """
-    <dl>
-    <dt>'Factorial[$n$]'
-    <dt>'$n$!'
-        <dd>computes the factorial of $n$.
-    </dl>
-
-    >> 20!
-     = 2432902008176640000
-
-    'Factorial' handles numeric (real and complex) values using the gamma function:
-    >> 10.5!
-     = 1.18994*^7
-    >> (-3.0+1.5*I)!
-     = 0.0427943 - 0.00461565 I
-
-    However, the value at poles is 'ComplexInfinity':
-    >> (-1.)!
-     = ComplexInfinity
-
-    'Factorial' has the same operator ('!') as 'Not', but with higher precedence:
-    >> !a! //FullForm
-     = Not[Factorial[a]]
-
-    #> 0!
-     = 1
-    """
-
-    attributes = numeric_function | protected
-
-    operator = "!"
-    precedence = 610
-    mpmath_name = "factorial"
-
-
-class Factorial2(PostfixOperator, _MPMathFunction):
-    """
-    <dl>
-      <dt>'Factorial2[$n$]'
-      <dt>'$n$!!'
-      <dd>computes the double factorial of $n$.
-    </dl>
-    The double factorial or semifactorial of a number $n$, is the product of all the integers from 1 up to n that have the same parity (odd or even) as $n$.
-
-    >> 5!!
-     = 15.
-
-    >> Factorial2[-3]
-     = -1.
-
-    'Factorial2' accepts Integers, Rationals, Reals, or Complex Numbers:
-    >> I!! + 1
-     = 3.71713 + 0.279527 I
-
-    Irrationals can be handled by using numeric approximation:
-    >> N[Pi!!, 6]
-     = 3.35237
-    """
-
-    attributes = numeric_function | protected
-    operator = "!!"
-    precedence = 610
-    mpmath_name = "fac2"
-    sympy_name = "factorial2"
-    messages = {
-        "ndf": "`1` evaluation error: `2`.",
-        "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
-    }
-
-    options = {"Method": "Automatic"}
-
-    def apply(self, number, evaluation, options={}):
-        "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
-
-        try:
-            import scipy.special as sp
-            from numpy import pi
-
-            # From https://stackoverflow.com/a/36779406/546218
-            def fact2_generic(x):
-                n = (x + 1.0) / 2.0
-                return 2.0 ** n * sp.gamma(n + 0.5) / (pi ** (0.5))
-
-        except ImportError:
-            fact2_generic = None
-
-        pref_expr = self.get_option(options, "Method", evaluation)
-        is_automatic = False
-        if pref_expr is Symbol("System`Automatic"):
-            is_automatic = True
-            preference = "mpmath"
-        else:
-            preference = pref_expr.get_string_value()
-
-        if preference in ("mpmath", "Automatic"):
-            number_arg = number.to_mpmath()
-            convert_from_fn = from_mpmath
-            fact2_fn = getattr(mpmath, self.mpmath_name)
-        elif preference == "sympy":
-            number_arg = number.to_sympy()
-            convert_from_fn = from_sympy
-            fact2_fn = getattr(sympy, self.sympy_name)
-        else:
-            return evaluation.message("Factorial2", "unknownp", preference)
-
-        try:
-            result = fact2_fn(number_arg)
-        except:  # noqa
-            number_arg = number.to_python()
-            # Maybe an even negative number? Try generic routine
-            if is_automatic and fact2_generic:
-                return from_python(fact2_generic(number_arg))
-            return evaluation.message(
-                "Factorial2", "ndf", preference, str(sys.exc_info()[1])
-            )
-        return convert_from_fn(result)
 
 
 class Sum(_IterationFunction, SympyFunction):

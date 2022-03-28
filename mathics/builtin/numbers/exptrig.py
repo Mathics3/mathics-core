@@ -955,6 +955,7 @@ class Log(_MPMathFunction):
     rules = {
         "Log[0.]": "Indeterminate",
         "Log[0]": "DirectedInfinity[-1]",
+        "Log[Overflow[]]": "Overflow[]",
         "Log[1]": "0",
         "Log[E]": "1",
         "Log[E^x_Integer]": "x",
