@@ -363,6 +363,7 @@ class ArcCos(_MPMathFunction):
      = Pi
     """
 
+    summary_text = "inverse cosine function"
     sympy_name = "acos"
     mpmath_name = "acos"
 
@@ -391,6 +392,7 @@ class ArcCosh(_MPMathFunction):
      = 0.867015
     """
 
+    summary_text = "inverse hyperbolic cosine function"
     sympy_name = "acosh"
     mpmath_name = "acosh"
 
@@ -412,6 +414,7 @@ class ArcCot(_MPMathFunction):
      = Pi / 4
     """
 
+    summary_text = "inverse cotangent function"
     sympy_name = "acot"
     mpmath_name = "acot"
 
@@ -442,6 +445,7 @@ class ArcCoth(_MPMathFunction):
      = 1.57079632679489661923132169163975144210 I
     """
 
+    summary_text = "inverse hyperbolic cotangent function"
     sympy_name = "acoth"
     mpmath_name = "acoth"
 
@@ -464,6 +468,7 @@ class ArcCsc(_MPMathFunction):
      = -Pi / 2
     """
 
+    summary_text = "inverse cosecant function"
     sympy_name = ""
     mpmath_name = "acsc"
 
@@ -493,6 +498,7 @@ class ArcCsch(_MPMathFunction):
      = 0.881374
     """
 
+    summary_text = "inverse hyperbolic cosecant function"
     sympy_name = ""
     mpmath_name = "acsch"
 
@@ -522,6 +528,7 @@ class ArcSec(_MPMathFunction):
      = Pi
     """
 
+    summary_text = "inverse secant function"
     sympy_name = ""
     mpmath_name = "asec"
 
@@ -553,6 +560,7 @@ class ArcSech(_MPMathFunction):
      = 1.31696
     """
 
+    summary_text = "inverse hyperbolic secant function"
     sympy_name = ""
     mpmath_name = "asech"
 
@@ -582,6 +590,7 @@ class ArcSin(_MPMathFunction):
      = Pi / 2
     """
 
+    summary_text = "inverse sine function"
     sympy_name = "asin"
     mpmath_name = "asin"
 
@@ -607,6 +616,7 @@ class ArcSinh(_MPMathFunction):
      = 0.881374
     """
 
+    summary_text = "inverse hyperbolic sine function"
     sympy_name = "asinh"
     mpmath_name = "asinh"
 
@@ -648,6 +658,7 @@ class ArcTan(_MPMathFunction):
      = -Pi / 2
     """
 
+    summary_text = "inverse tangent function"
     sympy_name = "atan"
     mpmath_name = "atan"
 
@@ -679,6 +690,7 @@ class ArcTanh(_MPMathFunction):
      = ArcTanh[2 + I]
     """
 
+    summary_text = "inverse hyperbolic tangent function"
     sympy_name = "atanh"
     mpmath_name = "atanh"
     numpy_name = "arctanh"
@@ -702,6 +714,7 @@ class Cos(_MPMathFunction):
      = -1.83697*^-16
     """
 
+    summary_text = "cosine function"
     mpmath_name = "cos"
 
     rules = {
@@ -724,6 +737,7 @@ class Cosh(_MPMathFunction):
      = 1
     """
 
+    summary_text = "hyperbolic cosine function"
     mpmath_name = "cosh"
 
     rules = {
@@ -744,6 +758,7 @@ class Cot(_MPMathFunction):
      = 0.642093
     """
 
+    summary_text = "cotangent function"
     mpmath_name = "cot"
 
     rules = {
@@ -763,6 +778,7 @@ class Coth(_MPMathFunction):
      = ComplexInfinity
     """
 
+    summary_text = "hyperbolic cotangent function"
     mpmath_name = "coth"
 
     rules = {
@@ -787,6 +803,7 @@ class Csc(_MPMathFunction):
      = 1.1884
     """
 
+    summary_text = "cosecant function"
     mpmath_name = "csc"
 
     rules = {
@@ -812,6 +829,7 @@ class Csch(_MPMathFunction):
      = ComplexInfinity
     """
 
+    summary_text = "hyperbolic cosecant function"
     sympy_name = ""
     mpmath_name = "csch"
 
@@ -849,6 +867,7 @@ class Exp(_MPMathFunction):
      = Overflow[]
     """
 
+    summary_text = "exponential function"
     rules = {
         "Exp[x_]": "E ^ x",
         "Derivative[1][Exp]": "Exp",
@@ -872,6 +891,7 @@ class Haversine(_MPMathFunction):
      = -1.15082 + 0.869405 I
     """
 
+    summary_text = "haversine function"
     rules = {"Haversine[z_]": "Power[Sin[z/2], 2]"}
 
 
@@ -893,6 +913,7 @@ class InverseHaversine(_MPMathFunction):
      = 1.76459 + 2.33097 I
     """
 
+    summary_text = "inverse haversine function"
     rules = {"InverseHaversine[z_]": "2 * ArcSin[Sqrt[z]]"}
 
 
@@ -926,6 +947,7 @@ class Log(_MPMathFunction):
      = 2.30258509299404568401799145468
     """
 
+    summary_text = "logarithm function"
     nargs = 2
     mpmath_name = "log"
     sympy_name = "log"
@@ -964,6 +986,7 @@ class Log2(Builtin):
      = 2 / Log[2]
     """
 
+    summary_text = "base-2 logarithm function"
     attributes = listable | numeric_function | protected
 
     rules = {
@@ -986,6 +1009,7 @@ class Log10(Builtin):
      = 3 / Log[10]
     """
 
+    summary_text = "base-10 logarithm function"
     attributes = listable | numeric_function | protected
 
     rules = {
@@ -1013,42 +1037,10 @@ class LogisticSigmoid(Builtin):
      = LogisticSigmoid[I Pi]
     """
 
+    summary_text = "logistic function"
     attributes = listable | numeric_function | protected
 
     rules = {"LogisticSigmoid[z_?NumberQ]": "1 / (1 + Exp[-z])"}
-
-
-# Look over and add
-# class PolyGamma(_MPMathFunction):
-#     """
-#     <dl>
-#       <dt>'Polygama[$z$]'
-#       <dd>returns the digamma function .
-
-#       <dt>'Polygama[$n$, $z$]'
-#       <dd>gives the n^(th) derivative of the digamma function .
-#     </dl>
-
-#     >> PolyGamma[5]
-
-#     >> PolyGamma[3, 5]
-#     """
-
-#     sympy_name = "polygamma"
-#     mpmath_name = "polygamma"
-
-#     def apply_N(self, precision, evaluation):
-#         "N[PolyGamma, precision_]"
-
-#         try:
-#             d = get_precision(precision, evaluation)
-#         except PrecisionValueError:
-#             return
-
-#         if d is None:
-#             return MachineReal(mpmath.polygamma)
-#         else:
-#             return PrecisionReal(sympy.polygamma.n(d))
 
 
 class Sec(_MPMathFunction):
@@ -1066,6 +1058,7 @@ class Sec(_MPMathFunction):
      = 1.85082
     """
 
+    summary_text = "secant function"
     mpmath_name = "sec"
 
     rules = {
@@ -1091,6 +1084,7 @@ class Sech(_MPMathFunction):
      = 1
     """
 
+    summary_text = "hyperbolic secant function"
     sympy_name = ""
     mpmath_name = "sech"
 
@@ -1128,6 +1122,7 @@ class Sin(_MPMathFunction):
      = 0.8414709848078965066525023216302989996226
     """
 
+    summary_text = "sine function"
     mpmath_name = "sin"
 
     rules = {
@@ -1150,6 +1145,7 @@ class Sinh(_MPMathFunction):
      = 0
     """
 
+    summary_text = "hyperbolic sine function"
     mpmath_name = "sinh"
 
     rules = {
@@ -1173,6 +1169,7 @@ class Tan(_MPMathFunction):
      = 1.63312*^16
     """
 
+    summary_text = "tangent function"
     mpmath_name = "tan"
 
     rules = {
@@ -1193,6 +1190,7 @@ class Tanh(_MPMathFunction):
      = 0
     """
 
+    summary_text = "hyperbolic tangent function"
     mpmath_name = "tanh"
 
     rules = {

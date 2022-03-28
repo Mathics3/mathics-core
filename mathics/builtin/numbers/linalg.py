@@ -76,6 +76,8 @@ class Tr(Builtin):
      = a + e + i
     """
 
+    summary_text = "trace of a matrix"
+
     messages = {"matsq": "The matrix `1` is not square."}
 
     # TODO: generalize to vectors and higher-rank tensors, and allow function arguments for application
@@ -105,6 +107,8 @@ class Det(Builtin):
      = a e i - a f h - b d i + b f g + c d h - c e g
     """
 
+    summary_text = "determinant of a matrix"
+
     def apply(self, m, evaluation):
         "Det[m_]"
 
@@ -133,6 +137,7 @@ class Cross(Builtin):
      = Cross[{1, 2}, {3, 4, 5}]
     """
 
+    summary_text = "vector cross product"
     rules = {"Cross[{x_, y_}]": "{-y, x}"}
 
     messages = {
@@ -178,6 +183,7 @@ class VectorAngle(Builtin):
      = 0
     """
 
+    summary_text = "angle between vectors"
     rules = {"VectorAngle[u_, v_]": "ArcCos[u.v / (Norm[u] Norm[v])]"}
 
 
@@ -196,6 +202,7 @@ class Inverse(Builtin):
 
     """
 
+    summary_text = "inverse matrix"
     messages = {
         "sing": "The matrix `1` is singular.",
         "matsq": "Argument `1` at position 1 is not " "a non-empty square matrix.",
@@ -255,7 +262,7 @@ class SingularValueDecomposition(Builtin):
     >> SingularValueDecomposition[{{1, 2, 0}, {2, 3, 0}, {3, 4, 1}}]
      = {{-3, 2, 0}, {2, -1, 0}, {1, -2, 1}}
     """
-
+    summary_text = "singular value decomposition"
     messages = {
         "nosymb": "Symbolic SVD is not implemented, performing numerically.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
@@ -295,6 +302,7 @@ class QRDecomposition(Builtin):
      = QRDecomposition[{1, {2}}]
     """
 
+    summary_text = "qr decomposition"
     messages = {
         "sympy": "Sympy is unable to perform the QR decomposition.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
@@ -336,6 +344,7 @@ class PseudoInverse(Builtin):
     = PseudoInverse[{1, {2}}]
     """
 
+    summary_text = "Moore-Penrose pseudoinverse"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
@@ -381,6 +390,7 @@ class LeastSquares(Builtin):
      = LeastSquares[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
+    summary_text = "least square solver for linear problems"
     messages = {
         "underdetermined": "Solving for underdetermined system not implemented.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
@@ -434,6 +444,7 @@ class LinearSolve(Builtin):
      = LinearSolve[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
+    summary_text = "solves linear systems in matrix form"
     messages = {
         "lslc": (
             "Coefficient matrix and target vector(s) or matrix "
@@ -478,6 +489,14 @@ class LinearSolve(Builtin):
 
 
 class FittedModel(Builtin):
+    """
+    <dl>
+    <dd>'FittedModel[...]'
+    <dt> Result of a linear fit
+    </dl>
+    """
+
+    summary_text = "fitted model"
     rules = {
         "FittedModel[x_List][s_String]": "s /. x",
         "FittedModel[x_List][y_]": '("Function" /. x)[y]',
@@ -493,7 +512,7 @@ class DesignMatrix(Builtin):
     """
     <dl>
     <dt>'DesignMatrix[$m$, $f$, $x$]'
-        <dd>returns the design matrix.
+        <dd>returns the design matrix for a linear model $f$ in the variables $x$.
     </dl>
 
     >> DesignMatrix[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x]
@@ -503,6 +522,7 @@ class DesignMatrix(Builtin):
      = {{1, f[2]}, {1, f[3]}, {1, f[5]}, {1, f[7]}}
     """
 
+    summary_text = "design matrix for a linear model"
     rules = {
         "DesignMatrix[m_, f_List, x_?AtomQ]": "DesignMatrix[m, {f}, ConstantArray[x, Length[f]]]",
         "DesignMatrix[m_, f_, x_?AtomQ]": "DesignMatrix[m, {f}, {x}]",
@@ -514,7 +534,7 @@ class LinearModelFit(Builtin):
     """
     <dl>
     <dt>'LinearModelFit[$m$, $f$, $x$]'
-        <dd>returns the design matrix.
+        <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
     </dl>
 
     >> m = LinearModelFit[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x];
@@ -554,6 +574,7 @@ class LinearModelFit(Builtin):
      = {-0.142857, 0.214286, -0.0714286}
     """
 
+    summary_text = "fit a linear model to a dataset"
     # see the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
     # summary of the math behind this
 
@@ -609,6 +630,7 @@ class NullSpace(Builtin):
      = NullSpace[{1, {2}}]
     """
 
+    summary_text = "generators for the null space of a matrix"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
@@ -648,6 +670,7 @@ class RowReduce(Builtin):
      = RowReduce[{{1, 0}, {0}}]
     """
 
+    summary_text = "matrix reduced row-echelon form"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
@@ -681,6 +704,7 @@ class MatrixRank(Builtin):
      = MatrixRank[{{1, 0}, {0}}]
     """
 
+    summary_text = "rank of a matrix"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
@@ -724,6 +748,7 @@ class Eigenvalues(Builtin):
      = Eigenvalues[{{1, 0}, {0}}]
     """
 
+    summary_text = "eigenvalues of a matrix"
     sympy_name = "eigenvalues"
     mpmath_name = "eig"
 
@@ -801,6 +826,7 @@ class Eigensystem(Builtin):
      = {{2, -1, 1}, {{1, 1, 1}, {1, -2, 1}, {-1, 0, 1}}}
     """
 
+    summary_text = "eigenvalues and corresponding eigenvectors of a matrix"
     rules = {"Eigensystem[m_]": "{Eigenvalues[m], Eigenvectors[m]}"}
 
 
@@ -825,6 +851,7 @@ class MatrixPower(Builtin):
      = MatrixPower[{{1, 0}, {0}}, 2]
     """
 
+    summary_text = "power of a matrix"
     messages = {
         "matrixpowernotimplemented": "Matrix power not implemented for matrix `1`.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
@@ -877,6 +904,7 @@ class MatrixExp(Builtin):
     }
 
     # TODO fix precision
+    summary_text = "matrix exponentiation"
 
     def apply(self, m, evaluation):
         "MatrixExp[m_]"
@@ -940,6 +968,7 @@ class Norm(Builtin):
      = 0
     """
 
+    summary_text = "norm of a vector or matrix"
     rules = {
         "Norm[m_?NumberQ]": "Abs[m]",
         "Norm[m_?VectorQ, DirectedInfinity[1]]": "Max[Abs[m]]",
@@ -1012,6 +1041,7 @@ class Normalize(Builtin):
      = {}
     """
 
+    summary_text = "normalizes a vector"
     rules = {"Normalize[v_]": "Module[{norm = Norm[v]}, If[norm == 0, v, v / norm, v]]"}
 
 
@@ -1040,6 +1070,7 @@ class Eigenvectors(Builtin):
      = {{1, 7, 3}, {1, 1, 0}, {0, 0, 0}}
     """
 
+    summary_text = "list of matrix eigenvectors"
     messages = {
         "eigenvecnotimplemented": (
             "Eigenvectors is not yet implemented for the matrix `1`."
@@ -1089,6 +1120,9 @@ class Eigenvectors(Builtin):
         return Expression("List", *result)
 
 
+# These distance functions deserves a different module
+
+
 def _norm_calc(head, u, v, evaluation):
     expr = Expression(head, u, v)
     old_quiet_all = evaluation.quiet_all
@@ -1121,6 +1155,8 @@ class EuclideanDistance(Builtin):
      = Sqrt[Abs[a - c] ^ 2 + Abs[b - d] ^ 2]
     """
 
+    summary_text = "euclidean distance"
+
     def apply(self, u, v, evaluation):
         "EuclideanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
@@ -1141,6 +1177,8 @@ class SquaredEuclideanDistance(Builtin):
     >> SquaredEuclideanDistance[{-1, -1}, {1, 1}]
      = 8
     """
+
+    summary_text = "square of the euclidean distance"
 
     def apply(self, u, v, evaluation):
         "SquaredEuclideanDistance[u_, v_]"
@@ -1164,6 +1202,8 @@ class ManhattanDistance(Builtin):
      = 4
     """
 
+    summary_text = "Manhattan distance"
+
     def apply(self, u, v, evaluation):
         "ManhattanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
@@ -1185,6 +1225,8 @@ class ChessboardDistance(Builtin):
     >> ChessboardDistance[{-1, -1}, {1, 1}]
      = 2
     """
+
+    summary_text = "chessboard distance"
 
     def apply(self, u, v, evaluation):
         "ChessboardDistance[u_, v_]"
@@ -1208,6 +1250,8 @@ class CanberraDistance(Builtin):
      = 2
     """
 
+    summary_text = "Canberra distance"
+
     def apply(self, u, v, evaluation):
         "CanberraDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
@@ -1226,15 +1270,17 @@ class BrayCurtisDistance(Builtin):
     """
     <dl>
     <dt>'BrayCurtisDistance[$u$, $v$]'
-        <dd>returns the Bray Curtis distance between $u$ and $v$.
+        <dd>returns the Bray-Curtis distance between $u$ and $v$.
     </dl>
-
+    The Bray-Curtis distance is equivalent to Total[Abs[u-v]]/Total[Abs[u+v]].
     >> BrayCurtisDistance[-7, 5]
      = 6
 
     >> BrayCurtisDistance[{-1, -1}, {10, 10}]
      = 11 / 9
     """
+
+    summary_text = "Bray-Curtis distance"
 
     def apply(self, u, v, evaluation):
         "BrayCurtisDistance[u_, v_]"
@@ -1253,6 +1299,8 @@ class CosineDistance(Builtin):
     <dt>'CosineDistance[$u$, $v$]'
       <dd>returns the cosine distance between $u$ and $v$.
     </dl>
+    The cosine distance is given by $1 - u\cdot v/(Norm[u] Norm[v])=2\sin(\phi/2)^2$ with $\phi$
+    the angle between both vectors.
 
     >> N[CosineDistance[{7, 9}, {71, 89}]]
      = 0.0000759646
@@ -1260,6 +1308,8 @@ class CosineDistance(Builtin):
     >> CosineDistance[{a, b}, {c, d}]
      = 1 + (-a c - b d) / (Sqrt[Abs[a] ^ 2 + Abs[b] ^ 2] Sqrt[Abs[c] ^ 2 + Abs[d] ^ 2])
     """
+
+    summary_text = "cosine distance"
 
     def apply(self, u, v, evaluation):
         "CosineDistance[u_, v_]"

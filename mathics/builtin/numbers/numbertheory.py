@@ -48,6 +48,7 @@ class ContinuedFraction(SympyFunction):
      = {8, {2, 1, 2, 1, 2, 16}}
     """
 
+    summary_text = "continued fraction expansion"
     sympy_name = "continued_fraction"
 
     attributes = listable | numeric_function | protected
@@ -89,7 +90,7 @@ class Divisors(Builtin):
 
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
-
+    summary_text = "integer divisors"
     attributes = listable | protected
 
     def apply(self, n, evaluation):
@@ -157,6 +158,7 @@ class FactorInteger(Builtin):
      = {{2, 1}, {3, 1}, {5, 1}, {67, 1}, {2011, -1}}
     """
 
+    summary_text = "list of prime factors and exponents"
     attributes = listable | protected
 
     # TODO: GausianIntegers option
@@ -234,6 +236,7 @@ class FractionalPart(Builtin):
      = -8769956796 + Pi ^ 20
     """
 
+    summary_text = "fractional part of a number"
     attributes = listable | numeric_function | read_protected | protected
 
     def apply(self, n, evaluation):
@@ -270,6 +273,7 @@ class FromContinuedFraction(SympyFunction):
      = 225 / 157
     """
 
+    summary_text = "reconstructs a number from its continued fraction representation"
     sympy_name = "continued_fraction_reduce"
 
     attributes = numeric_function | protected
@@ -344,6 +348,7 @@ class MantissaExponent(Builtin):
      = {0, 0}
     """
 
+    summary_text = "decomposes numbers as mantissa and exponent"
     attributes = listable | protected
 
     rules = {
@@ -438,6 +443,7 @@ class NextPrime(Builtin):
      = NextPrime[5, 10.5]
     """
 
+    summary_text = "closest, smallest prime number"
     rules = {
         "NextPrime[n_]": "NextPrime[n, 1]",
     }
@@ -473,6 +479,7 @@ class PartitionsP(SympyFunction):
      = {0, 0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77}
     """
 
+    summary_text = "number of unrestricted partitions"
     attributes = listable | numeric_function | orderless | protected
     sympy_name = "npartitions"
 
@@ -510,6 +517,7 @@ class Prime(SympyFunction):
      = {Prime[0], 2, Prime[1.2], 5}
     """
 
+    summary_text = "n-esim prime number"
     attributes = listable | numeric_function | protected
 
     def apply(self, n, evaluation):
@@ -545,6 +553,7 @@ class PrimePi(SympyFunction):
      = 1
     """
 
+    summary_text = "amount of prime numbers less than or equal"
     sympy_name = "ntheory.primepi"
     mpmath_name = "primepi"
 
@@ -584,7 +593,7 @@ class PrimePowerQ(Builtin):
     rules = {
         "PrimePowerQ[1]": "False",
     }
-
+    summary_text = "test if a number is a power of a prime number"
     attributes = listable | protected | read_protected
 
     # TODO: GaussianIntegers option
@@ -649,6 +658,7 @@ class RandomPrime(Builtin):
      = {{2, 2}, {2, 2}, {2, 2}}
     """
 
+    summary_text = "picks a random prime in an interval"
     messages = {
         "posdim": (
             "The dimensions parameter `1` is expected to be a positive "
