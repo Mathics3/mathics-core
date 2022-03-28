@@ -479,7 +479,7 @@ class Symbol(Atom, NumericOperators):
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
 
-        Here, we have to be pessimistic and return True.
+        Here, we have to be pessimistic and return False.
         """
         return False
 
