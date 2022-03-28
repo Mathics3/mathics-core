@@ -317,10 +317,11 @@ class Atom(BaseElement):
         parameter.
 
         Most Atoms, like Numbers and Strings, do not need evaluation
-        or reevaluation. However some kinds of Atoms like Symbols
-        sometimes do. The Symbol class or any other class like this
-        that is subclassed from Atom then needs to override this
-        method, when the Atom might not be literal.
+        or reevaluation. However some kinds of Atoms like Symbols do
+        in general. The Symbol class or any other class that is
+        subclassed from here (Atom) then needs to override this method, when
+        it might is literal in general.
+
         """
         return True
 
@@ -604,7 +605,7 @@ class PredefinedSymbol(Symbol):
 
         Furthermore, is_literal() is used for (non-head) elements in a
         compound expression, and never for the head element. If a
-        predefined symbol appears a symbol there (rather than as a
+        predefined symbol appears as a symbol there (rather than as a
         subexpression or compound expression), it acts like a constant.
 
         Don't confuse this use with its use where the symbol is the

@@ -265,19 +265,20 @@ class Expression(BaseElement, NumericOperators):
         last_element = None
         for element in elements:
             converted_elt = from_python(element)
+            last_element = converted_elt
+
+            # Test for the three properties mentioned above.
+            if not converted_elt.is_literal:
+                self._elements_fully_evaluated = False
+            if isinstance(converted_elt, Expression):
+                self._is_flat = False
             if (
                 self._is_sorted
                 and last_element is not None
                 and last_element != converted_elt
             ):
                 self._is_sorted = False
-            last_element = converted_elt
-            if isinstance(converted_elt, Expression):
-                self._is_flat = False
-                if not converted_elt.is_literal:
-                    self._elements_fully_evaluated = False
-            elif not converted_elt.is_literal:
-                self._elements_fully_evaluated = False
+
             result.append(converted_elt)
 
         return tuple(result)
