@@ -12,7 +12,7 @@ import numpy
 import sympy
 
 
-from mathics.builtin.base import Predefined, SympyObject
+from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -463,6 +463,64 @@ class Khinchin(_MPMathConstant):
 
     summary_text = "Khinchin's constant K ≃ 2.6854"
     mpmath_name = "khinchin"
+
+
+class Overflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'</dt>
+      <dd>represents a number too large to be represented by Mathics.
+    </dl>
+
+    >> Exp[10.*^20]
+     : Overflow occurred in computation.
+     = Overflow[]
+    >> Table[Exp[10.^k],{k, 3}]
+     : Overflow occurred in computation.
+     = {22026.5, 2.68812*^43, Overflow[]}
+    >> 1 / Underflow[]
+     = Overflow[]
+    """
+
+    rules = {
+        "Power[Overflow[], -1]": "Underflow[]",
+    }
+    summary_text = "overflow in numeric evaluation"
+
+
+class Underflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'</dt>
+      <dd>represents a number too small to be represented by Mathics.
+    </dl>
+
+    >> 1 / Overflow[]
+     = Underflow[]
+    >> 5 * Underflow[]
+     = 5 Underflow[]
+    >> % // N
+     = 0.
+    Underflow[] is kept symbolic in operations against integer numbers,
+    but taken as 0. in numeric evaluations:
+    >> 1 - Underflow[]
+     = 1 - Underflow[]
+    >> % // N
+     = 1.
+    #
+    # TODO: handle this kind of expressions where precision may be
+    # lost:
+    # >> Exp[-1000.]
+    #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
+    #  = Underflow[]
+    """
+
+    rules = {
+        "Power[Underflow[], -1]": "Overflow[]",
+        "x_Real + Underflow[]": "x",
+        "Underflow[] * x_Real": "0.",
+    }
+    summary_text = "underflow in numeric evaluation"
 
 
 class Pi(_MPMathConstant, _SympyConstant):
