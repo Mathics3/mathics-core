@@ -308,7 +308,7 @@ class Lookup(Builtin):
 
 
 class Missing(Builtin):
-    pass
+    summary_text = "default value if a key is not found"
 
 
 class Values(Builtin):

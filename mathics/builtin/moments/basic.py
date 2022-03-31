@@ -18,6 +18,23 @@ from mathics.core.expression import (
 )
 
 
+class CentralMoment(Builtin):  # see https://en.wikipedia.org/wiki/Central_moment
+    """
+    <dl>
+    <dt>'CentralMoment[$list$, $r$]'
+      <dd>gives the the $r$th central moment (i.e. the $r$th moment about the mean) of $list$.
+    </dl>
+
+    >> CentralMoment[{1.1, 1.2, 1.4, 2.1, 2.4}, 4]
+     = 0.100845
+    """
+
+    summary_text = "central moments of distributions and data"
+    rules = {
+        "CentralMoment[list_List, r_]": "Total[(list - Mean[list]) ^ r] / Length[list]",
+    }
+
+
 class Median(_Rectangular):
     """
     <dl>
@@ -101,6 +118,8 @@ class Quantile(Builtin):
          = {2, 6}
     """
 
+    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
+
     messages = {
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
@@ -109,8 +128,6 @@ class Quantile(Builtin):
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
-
-    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
     def apply(self, l, qs, a, b, c, d, evaluation):
         """Quantile[l_List, qs_List, {{a_, b_}, {c_, d_}}]"""
@@ -176,3 +193,20 @@ class Quantile(Builtin):
             return results[0]
         else:
             return Expression(SymbolList, *results)
+
+
+class Quartiles(Builtin):
+    """
+    <dl>
+    <dt>'Quartiles[$list$]'
+      <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
+    </dl>
+
+    >> Quartiles[Range[25]]
+     = {27 / 4, 13, 77 / 4}
+    """
+
+    summary_text = "list of quartiles"
+    rules = {
+        "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
+    }

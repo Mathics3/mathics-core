@@ -128,12 +128,11 @@ class ConstantArray(Builtin):
      = {{a, a, a}, {a, a, a}}
     """
 
+    summary_text = "form a constant array"
     rules = {
         "ConstantArray[c_, dims_]": "Apply[Table[c, ##]&, List /@ dims]",
         "ConstantArray[c_, n_Integer]": "ConstantArray[c, {n}]",
     }
-
-    summary_text = "form a constant array"
 
 
 class Normal(Builtin):
@@ -173,6 +172,7 @@ class Range(Builtin):
      = {0, 1 / 3, 2 / 3, 1, 4 / 3, 5 / 3, 2}
     """
 
+    summary_text = "generate a list of equispaced, consecutive numbers"
     rules = {
         "Range[imax_?RealNumberQ]": "Range[1, imax, 1]",
         "Range[imin_?RealNumberQ, imax_?RealNumberQ]": "Range[imin, imax, 1]",
@@ -431,7 +431,7 @@ class Table(_IterationFunction):
         "Table[expr_, n_Integer]": "Table[expr, {n}]",
     }
 
-    summary_text = "form a Mathematical Table from expressions or lists"
+    summary_text = "make a table of values of an expression"
 
     def get_result(self, items):
         return Expression(SymbolList, *items)

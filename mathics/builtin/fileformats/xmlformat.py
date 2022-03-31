@@ -218,11 +218,25 @@ def parse_xml(parse, text, evaluation):
 
 
 class XMLObject(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'XMLObject["type"]'
+    <dd> represents the head of an XML object in symbolic XML.
+    </dl>
+    """
+
+    summary_text = "the head of an xml object"
 
 
 class XMLElement(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
+    <dd>   represents an element in symbolic XML.
+    </dl>
+    """
+
+    summary_text = "an xml element"
 
 
 class _Get(Builtin):
@@ -242,6 +256,15 @@ class _Get(Builtin):
 
 
 class XMLGet(_Get):
+    """
+    <dl>
+    <dt>'XMLGet[...]'
+    <dd> Internal. Document me.
+    </dl>
+    """
+
+    summary_text = ""
+
     def _parse(self, text):
         return parse_xml_file(text)
 
@@ -256,6 +279,8 @@ class XMLGetString(_Get):
      : Extra content at the end of the document, line 1, column 8.
     """
 
+    summary_text = "parses a xml object"
+
     def _parse(self, text):
         with BytesIO() as f:
             f.write(text.encode("utf8"))
@@ -269,6 +294,7 @@ class PlaintextImport(Builtin):
      = MuseScore 1.2/2012-09-12/5.7/40
     """
 
+    summary_text = "import plain text from xml"
     context = "XML`"
 
     def apply(self, text, evaluation):
@@ -293,6 +319,7 @@ class TagsImport(Builtin):
      = {accidental, alter, arpeggiate, articulations, attributes, backup, bar-style, barline, beam, beat-type}
     """
 
+    summary_text = "import tags text from xml"
     context = "XML`"
 
     @staticmethod
@@ -324,6 +351,7 @@ class XMLObjectImport(Builtin):
      = XMLElement[book, {{http://www.w3.org/2000/xmlns/, xmlns} -> urn:loc.gov:books}, {XMLElement[title, {}, {Cheaper by the Dozen}], XMLElement[{urn:ISBN:0-395-36341-6, number}, {}, {1568491379}], XMLElement[notes, {}, {XMLElement[p, {{http://www.w3.org/2000/xmlns/, xmlns} -> http://www.w3.org/1999/xhtml}, {This is a, XMLElement[i, {}, {funny, book!}]}]}]}]
     """
 
+    summary_text = "import elements from xml"
     context = "XML`"
 
     def apply(self, text, evaluation):

@@ -150,6 +150,15 @@ class _Get(_HTMLBuiltin):
 
 
 class HTMLGet(_Get):
+    """
+    <dl>
+    <dd>HTMLGet['str']
+    <dt>Parses 'str' as HTML code.
+    </dl>
+    """
+
+    summary_text = "parse HTML code"
+
     def _parse(self, text):
         return parse_html_file(text)
 
@@ -162,6 +171,8 @@ class HTMLGetString(_Get):
     #> Head[HTML`Parser`HTMLGetString["<a><b></a>"]]
      = XMLObject[Document]
     """
+
+    summary_text = "parse HTML code"
 
     def _parse(self, text):
         with BytesIO() as f:
@@ -255,11 +266,13 @@ class DataImport(_DataImport):
      = 3
     """
 
+    summary_text = "import data from a HTML file"
     full_data = False
     tag_name = "Data"
 
 
 class FullDataImport(_DataImport):
+    summary_text = "import data from a HTML file"
     full_data = True
     tag_name = "FullData"
 
@@ -278,6 +291,7 @@ class HyperlinksImport(_LinksImport):
      = /wiki/Prime_meridian_(Greenwich)
     """
 
+    summary_text = "import hyperlinks from a HTML file"
     tag_name = "Hyperlinks"
 
     def _links(self, tree):
@@ -293,6 +307,7 @@ class ImageLinksImport(_LinksImport):
      = //upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Prime_meridian.jpg/180px-Prime_meridian.jpg
     """
 
+    summary_text = "import images from a HTML file"
     tag_name = "ImageLinks"
 
     def _links(self, tree):
@@ -308,6 +323,7 @@ class PlaintextImport(_TagImport):
      = {Wikipedia, Wikidata, Wikibase, Wikimedia}
     """
 
+    summary_text = "import plane text from a HTML file"
     tag_name = "Plaintext"
 
     def _import(self, tree):
@@ -325,6 +341,8 @@ class SourceImport(_HTMLBuiltin):
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html", "Source"], RegularExpression["<t[a-z]+>"]]]
      = {<title>, <tr>, <th>, <td>}
     """
+
+    summary_text = "import source code from a HTML file"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
@@ -344,6 +362,7 @@ class TitleImport(_TagImport):
      = Prime meridian - Wikipedia
     """
 
+    summary_text = "import title string from a HTML file"
     tag_name = "Title"
 
     def _import(self, tree):
@@ -357,6 +376,8 @@ class XMLObjectImport(_HTMLBuiltin):
     >> Part[Import["ExampleData/PrimeMeridian.html", "XMLObject"], 2, 3, 1, 3, 2]
      = XMLElement[title, {}, {Prime meridian - Wikipedia}]
     """
+
+    summary_text = "import XML objects from a HTML file"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
