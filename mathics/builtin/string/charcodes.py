@@ -213,23 +213,23 @@ class FromCharacterCode(Builtin):
             evaluation.message("General", "charcode", encoding)
             return
 
-        def convert_codepoint_list(l):
+        def convert_codepoint_list(li):
             if encoding == "Unicode":
                 s = ""
-                for i, ni in enumerate(l):
+                for i, ni in enumerate(li):
                     pyni = ni.get_int_value()
                     if not (pyni is not None and 0 <= pyni <= 0xFFFF):
                         evaluation.message(
                             "FromCharacterCode",
                             "notunicode",
-                            Expression(SymbolList, *l),
+                            Expression(SymbolList, *li),
                             Integer(i + 1),
                         )
                         raise _InvalidCodepointError
                     s += chr(pyni)
                 return s
             else:
-                codes = [x.get_int_value() & 0xFF for x in l]
+                codes = [x.get_int_value() & 0xFF for x in li]
                 return pack_bytes(codes).decode(py_encoding)
 
         try:

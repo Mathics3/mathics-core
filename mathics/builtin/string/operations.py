@@ -129,7 +129,7 @@ class Hash(Builtin):
         if py_format == "DecimalString":
             return String(str(res))
         elif py_format == "ByteArray":
-            return Expression(SymbolByteArray, ByteArrayAtom(arg))
+            return Expression(SymbolByteArray, ByteArrayAtom(res))
         return Integer(res)
 
     def apply(self, expr, hashtype, outformat, evaluation):
