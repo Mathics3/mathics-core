@@ -66,11 +66,7 @@ SymbolCoth = Symbol("Coth")
 def sympy_factor(expr_sympy):
     try:
         result = sympy.together(expr_sympy)
-        numer, denom = result.as_numer_denom()
-        if denom == 1:
-            result = sympy.factor(expr_sympy)
-        else:
-            result = sympy.factor(numer) / sympy.factor(denom)
+        result = sympy.factor(result)
     except sympy.PolynomialError:
         return expr_sympy
     return result
@@ -1400,8 +1396,7 @@ class Factor(Builtin):
             return None
 
         try:
-            result = sympy.together(expr_sympy)
-            return from_sympy(sympy.factor(result))
+            return from_sympy(sympy_factor(expr_sympy))
         except sympy.PolynomialError:
             return expr
 
