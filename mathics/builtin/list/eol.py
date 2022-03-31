@@ -74,6 +74,8 @@ class Append(Builtin):
      = Append[a, b]
     """
 
+    summary_text = "add an element at the end of an expression"
+
     def apply(self, expr, item, evaluation):
         "Append[expr_, item_]"
 
@@ -117,6 +119,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
+    summary_text = "add an element at the end of an stored list"
     attributes = hold_first | protected
 
     messages = {
@@ -184,7 +187,7 @@ class Cases(Builtin):
     #> z = f[x, y]; x = 1; Cases[z, _Symbol, Infinity]
      = {y}
     """
-
+    summary_text = ""
     rules = {
         "Cases[pattern_][list_]": "Cases[list, pattern]",
     }

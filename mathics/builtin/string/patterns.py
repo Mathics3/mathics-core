@@ -53,6 +53,8 @@ class DigitCharacter(Builtin):
      = False
     """
 
+    summary_text = "digit 0-9"
+
 
 class EndOfLine(Builtin):
     r"""
@@ -72,6 +74,7 @@ class EndOfLine(Builtin):
      . def,
      . hij}
     """
+    summary_text = "a string pattern matching EOF"
 
 
 class EndOfString(Builtin):
@@ -89,6 +92,7 @@ class EndOfString(Builtin):
      = aab
      . abc
     """
+    summary_text = "end of the whole string"
 
 
 class LetterCharacter(Builtin):
@@ -105,6 +109,8 @@ class LetterCharacter(Builtin):
     >> StringMatchQ["\\[Lambda]", LetterCharacter]
      = True
     """
+
+    summary_text = "letter"
 
 
 class StartOfLine(Builtin):
@@ -125,6 +131,7 @@ class StartOfLine(Builtin):
      . , def
      . , hij}
     """
+    summary_text = "start of a line"
 
 
 class StartOfString(Builtin):
@@ -142,6 +149,7 @@ class StartOfString(Builtin):
      = cba
      . abb
     """
+    summary_text = "start of a whole string"
 
 
 class StringCases(_StringFind):
@@ -195,6 +203,7 @@ class StringCases(_StringFind):
      = {a, ä}
     """
 
+    summary_text = "occurrences of string patterns in a string"
     rules = {
         "StringCases[rule_][string_]": "StringCases[string, rule]",
     }
@@ -232,6 +241,7 @@ class StringExpression(BinaryOperator):
      = a ~~ b
     """
 
+    summary_text = "an arbitrary string expression"
     operator = "~~"
     precedence = 135
     attributes = flat | one_identity | protected
@@ -327,6 +337,7 @@ class StringFreeQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
+    summary_text = "test whether a string is free of substrings matching a pattern"
     options = {
         "IgnoreCase": "False",
     }
@@ -399,7 +410,7 @@ class StringMatchQ(Builtin):
     #> StringMatchQ["ae", "a@e"]
      = False
     """
-
+    summary_text = "test whether a string matches a pattern"
     attributes = listable | protected
 
     options = {
@@ -463,6 +474,7 @@ class WhitespaceCharacter(Builtin):
     >> StringMatchQ[" \n", Whitespace]
      = True
     """
+    summary_text = "space, newline, tab, or other whitespace character"
 
 
 # strings.to_regex() seems to have the implementation here.
@@ -476,6 +488,8 @@ class WordBoundary(Builtin):
     >> StringReplace["apple banana orange artichoke", "e" ~~ WordBoundary -> "E"]
      = applE banana orangE artichokE
     """
+
+    summary_text = "boundary between word characters and others"
 
 
 class WordCharacter(Builtin):
@@ -494,3 +508,4 @@ class WordCharacter(Builtin):
     >> StringMatchQ["$b;123", WordCharacter..]
      = False
     """
+    summary_text = "letter or digit"

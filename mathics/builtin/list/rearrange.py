@@ -7,6 +7,7 @@ These functions reorder and rearrange lists.
 
 import functools
 
+from collections import defaultdict
 from itertools import chain
 from typing import Callable
 
@@ -15,8 +16,6 @@ from mathics.builtin.base import (
     Builtin,
     MessageException,
 )
-
-from mathics.builtin.lists import _FastEquivalence, _SlowEquivalence, _test_pair
 
 from mathics.core.expression import (
     Expression,
@@ -28,10 +27,69 @@ from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.attributes import flat, one_identity, protected
 
 
+def _test_pair(test, a, b, evaluation, name):
+    test_expr = Expression(test, a, b)
+    result = test_expr.evaluate(evaluation)
+    if not (
+        isinstance(result, Symbol)
+        and (result.has_symbol("True") or result.has_symbol("False"))
+    ):
+        evaluation.message(name, "smtst", test_expr, result)
+    return result.is_true()
+
+
 def _is_sameq(same_test):
     # System`SameQ is protected, so nobody should ever be able to change
     # it (see Set::wrsym). We just check for its name here thus.
     return isinstance(same_test, Symbol) and same_test.get_name() == "System`SameQ"
+
+
+class _FastEquivalence:
+    # models an equivalence relation through SameQ. for n distinct elements (each
+    # in its own bin), we expect to make O(n) comparisons (if the hash function
+    # does not fail us by distributing items very unevenly).
+
+    # IMPORTANT NOTE ON ATOM'S HASH FUNCTIONS / this code relies on this assumption:
+    #
+    # if SameQ[a, b] == true then hash(a) == hash(b)
+    #
+    # more specifically, this code bins items based on their hash code, and only if
+    # the hash code matches, is SameQ evoked.
+    #
+    # this assumption has been checked for these types: Integer, Real, Complex,
+    # String, Rational (*), Expression, Image; new atoms need proper hash functions
+    #
+    # (*) Rational values are sympy Rationals which are always held in reduced form
+    # and thus are hashed correctly (see sympy/core/number.py:Rational.__eq__()).
+
+    def __init__(self):
+        self._hashes = defaultdict(list)
+
+    def select(self, elem):
+        return self._hashes[hash(elem)]
+
+    def sameQ(self, a, b) -> bool:
+        """Mathics SameQ"""
+        return a.sameQ(b)
+
+
+class _SlowEquivalence:
+    # models an equivalence relation through a user defined test function. for n
+    # distinct elements (each in its own bin), we need sum(1, .., n - 1) = O(n^2)
+    # comparisons.
+
+    def __init__(self, test, evaluation, name):
+        self._groups = []
+        self._test = test
+        self._evaluation = evaluation
+        self._name = name
+
+    def select(self, elem):
+        return self._groups
+
+    def sameQ(self, a, b) -> bool:
+        """Mathics SameQ"""
+        return _test_pair(self._test, a, b, self._evaluation, self._name)
 
 
 class _DeleteDuplicatesBin:

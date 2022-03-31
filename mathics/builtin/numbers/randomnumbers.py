@@ -158,6 +158,7 @@ class RandomState(Builtin):
      : It is not possible to change the random state.
     """
 
+    summary_text = "internal state of the (pseudo)random number generator"
     name = "$RandomState"
 
     messages = {
@@ -209,6 +210,7 @@ class SeedRandom(Builtin):
      = SeedRandom[x]
     """
 
+    summary_text = "set the seed of the (pseudo)random number generator"
     messages = {
         "seed": "Argument `1` should be an integer or string.",
     }
@@ -301,6 +303,7 @@ class RandomInteger(Builtin):
      = True
     """
 
+    summary_text = "pick an integer number at random from a range"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -373,6 +376,7 @@ class RandomReal(Builtin):
      = RandomReal[{0, 1}, {1, -1}]
     """
 
+    summary_text = "pick a real number at random from an interval"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -470,6 +474,7 @@ class RandomComplex(Builtin):
      = Complex[..., ...]
     """
 
+    summary_text = "pick a complex number at random from a rectangular region"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -540,6 +545,30 @@ class RandomComplex(Builtin):
             return instantiate_elements(
                 stack(real, imag), lambda c: Complex(Real(c[0]), Real(c[1])), d=2
             )
+
+
+class Random(Builtin):
+    """
+    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+    """
+
+    summary_text = "a random number"
+    rules = {
+        "Random[Integer]": "RandomInteger[]",
+        "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
+        "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
+        "Random[Real]": "RandomReal[]",
+        "Random[Real,  zmax_?NumberQ]": "RandomReal[zmax]",
+        "Random[Real, {zmin_Real, zmax_Real}]": "RandomReal[{zmin, zmax}]",
+        "Random[Complex]": "RandomComplex[]",
+        "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
+        "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
+    }
+
+
+# If numpy is not in the system, the following classes are going to be redefined as None. flake8 complains about this.
+# What should happen here is that, or the classes be defined just if numpy is there, or to use a fallback native
+# implementation.
 
 
 class _RandomSelection(_RandomBase):
@@ -657,6 +686,7 @@ class RandomChoice(_RandomSelection):
      = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
     """
 
+    summary_text = "choice items at random from a list"
     _replace = True
 
 
@@ -702,25 +732,8 @@ class RandomSample(_RandomSelection):
      = {62, 98, 86, 78, 40}
     """
 
+    summary_text = "pick a sample at random from a list"
     _replace = False
-
-
-class Random(Builtin):
-    """
-    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
-    """
-
-    rules = {
-        "Random[Integer]": "RandomInteger[]",
-        "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
-        "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
-        "Random[Real]": "RandomReal[]",
-        "Random[Real,  zmax_?NumberQ]": "RandomReal[zmax]",
-        "Random[Real, {zmin_Real, zmax_Real}]": "RandomReal[{zmin, zmax}]",
-        "Random[Complex]": "RandomComplex[]",
-        "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
-        "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
-    }
 
 
 if not _numpy:  # hide symbols from non-numpy envs

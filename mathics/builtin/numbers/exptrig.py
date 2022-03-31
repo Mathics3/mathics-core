@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Real,
     Integer,
     Integer0,
+    from_python,
 )
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolCos, SymbolSin
@@ -168,13 +169,13 @@ class AnglePath(Builtin):
         the turns given by angles $phi1$, $phi2$, ... and using distance 1 for each step.
     <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
         <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for the respective steps.
-    <dt>'AngleVector[$phi0$, {$phi1$, $phi2$, ...}]'
-        <dd>returns the points on a path formed by a turtle starting with direction $phi0$ instead of 0.
-    <dt>'AngleVector[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
-        <dd>returns the points on a path formed by a turtle starting at {$x, $y} instead of {0, 0}.
-    <dt>'AngleVector[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
+    <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
+        <dd>starts with direction $phi0$ instead of 0.
+    <dt>'AnglePath[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
+        <dd>starts at {$x, $y} instead of {0, 0}.
+    <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
         <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
-    <dt>'AngleVector[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
+    <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
         <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the
         initial direction of the turtle.
     </dl>
@@ -198,6 +199,7 @@ class AnglePath(Builtin):
      = -Graphics-
     """
 
+    summary_text = 'form a path from a sequence of "turtle-like" turns and motions'
     messages = {"steps": "`1` is not a valid description of steps."}
 
     @staticmethod
@@ -340,6 +342,7 @@ class AngleVector(Builtin):
      = {1 + Cos[a], 10 + Sin[a]}
     """
 
+    summary_text = "create a vector at a specified angle"
     rules = {
         "AngleVector[phi_]": "{Cos[phi], Sin[phi]}",
         "AngleVector[{r_, phi_}]": "{r * Cos[phi], r * Sin[phi]}",
