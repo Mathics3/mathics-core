@@ -54,6 +54,7 @@ class Median(_Rectangular):
      = {99 / 2, 1, 4, 26}
     """
 
+    summary_text = "central value of a dataset"
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
 
     def apply(self, data, evaluation):

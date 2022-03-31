@@ -314,6 +314,7 @@ class Reap(Builtin):
      = {x, {}}
     """
 
+    summary_text = 'create lists of elements "sown" inside programs'
     attributes = hold_first | protected
 
     rules = {
@@ -371,6 +372,7 @@ class Sow(Builtin):
     </dl>
     """
 
+    summary_text = "send an expression to the innermost Row"
     rules = {
         "Sow[e_]": "Sow[e, {Null}]",
         "Sow[e_, tag_]": "Sow[e, {tag}]",

@@ -119,7 +119,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
-    summary_text = "add an element at the end of an stored list"
+    summary_text = "add an element at the end of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
@@ -261,6 +261,7 @@ class Count(Builtin):
      = 5
     """
 
+    summary_text = "count the number of occurrences of a pattern"
     rules = {
         "Count[pattern_][list_]": "Count[list, pattern]",
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
@@ -291,6 +292,7 @@ class DeleteCases(Builtin):
      = {1}
     """
 
+    summary_text = "delete all occurrences of a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
         "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
@@ -394,6 +396,7 @@ class Drop(Builtin):
      = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
+    summary_text = "remove a number of elements from a list"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
@@ -436,6 +439,7 @@ class First(Builtin):
      = First[{}]
     """
 
+    summary_text = "first element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nofirst": "`1` has zero length and no first element.",
@@ -475,6 +479,7 @@ class FirstCase(Builtin):
 
     """
 
+    summary_text = "first element that matches a pattern"
     attributes = hold_rest | protected
     options = Cases.options
     rules = {
@@ -501,6 +506,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
+    summary_text = "extract elements that appear at a list of positions"
     attributes = n_hold_rest | protected
 
     rules = {
@@ -579,6 +585,7 @@ class FirstPosition(Builtin):
 
     """
 
+    summary_text = "position of the first element matching a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
     }
@@ -682,6 +689,7 @@ class Last(Builtin):
      = Last[{}]
     """
 
+    summary_text = "last element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nolast": "`1` has zero length and no last element.",
@@ -704,7 +712,7 @@ class Length(Builtin):
     """
     <dl>
       <dt>'Length[$expr$]'
-      <dd>returns the number of leaves in $expr$.
+      <dd>returns the number of elements in $expr$.
     </dl>
 
     Length of a list:
@@ -728,6 +736,8 @@ class Length(Builtin):
     >> FullForm[1/3]
      = Rational[1, 3]
     """
+
+    summary_text = "number of elements in a list or expression"
 
     def apply(self, expr, evaluation):
         "Length[expr_]"
@@ -755,6 +765,7 @@ class MemberQ(Builtin):
      = True
     """
 
+    summary_text = "test whether an element is a member of a list"
     rules = {
         "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
         "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
@@ -783,6 +794,8 @@ class Most(Builtin):
      = 7
     #> ClearAll[A];
     """
+
+    summary_text = "remove the last element"
 
     def apply(self, expr, evaluation):
         "Most[expr_]"
@@ -903,6 +916,7 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
+    summary_text = "get/set any part of an expression"
     attributes = n_hold_rest | protected | read_protected
 
     def apply_makeboxes(self, list, i, f, evaluation):
@@ -984,6 +998,8 @@ class Pick(Builtin):
      = {a, b, d}
     """
 
+    summary_text = "pick out elements according to a boolean mask"
+
     def _do(self, items0, sel0, match, evaluation):
         def pick(items, sel):
             for x, s in zip(items, sel):
@@ -1037,6 +1053,8 @@ class Prepend(Builtin):
      : Nonatomic expression expected.
      = Prepend[a, b]
     """
+
+    summary_text = "add an element at the beginning"
 
     def apply(self, expr, item, evaluation):
         "Prepend[expr_, item_]"
@@ -1092,6 +1110,7 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
+    summary_text = "add an element at the beginning of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
@@ -1151,6 +1170,7 @@ class ReplacePart(Builtin):
      = {a, b, t}
     """
 
+    summary_text = "replace elements at given positions"
     messages = {
         "reps": "`1` is not a list of replacement rules.",
     }
@@ -1226,6 +1246,7 @@ class Rest(Builtin):
      = Rest[{}]
     """
 
+    summary_text = "remove the first element"
     messages = {
         "normal": "Nonatomic expression expected.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
@@ -1268,6 +1289,8 @@ class Select(Builtin):
      = 31415
     #> ClearAll[A];
     """
+
+    summary_text = "pick elements according to a criterion"
 
     def apply(self, items, expr, evaluation):
         "Select[items_, expr_]"
@@ -1326,6 +1349,7 @@ class Span(BinaryOperator):
      = (1 ;; d) (a ;; b ;; c)
     """
 
+    summary_text = "general specification for spans or blocks of elements"
     operator = ";;"
     precedence = 305
 
@@ -1382,6 +1406,7 @@ class Take(Builtin):
      = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
     """
 
+    summary_text = "pick a range of elements"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
