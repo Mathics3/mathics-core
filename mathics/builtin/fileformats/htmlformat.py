@@ -187,35 +187,35 @@ class _DataImport(_TagImport):
 
         if full_data:
 
-            def add_data(l, x):
-                l.append(x)
-                return l
+            def add_data(data_list, x):
+                data_list.append(x)
+                return data_list
 
         else:
 
-            def add_data(l, x):
+            def add_data(data_list, x):
                 if x is None:
-                    return l
-                if l is None:
+                    return data_list
+                if data_list is None:
                     return [x]
                 elif len(x) == 1:
-                    l.extend(x)
+                    data_list.extend(x)
                 elif x:
-                    l.append(Expression("List", *x))
-                return l
+                    data_list.append(Expression("List", *x))
+                return data_list
 
         newline = re.compile(r"\s+")
 
-        def add_text(l, node):
+        def add_text(data_list, node):
             deep_data = traverse(node)
             if deep_data:  # if there's data, we ignore any text
-                add_data(l, deep_data)
+                add_data(data_list, deep_data)
             else:
                 t = []
                 for s in node.xpath(".//text()"):
                     t.append(s)
                 if t or full_data:
-                    l.append(String(newline.sub(" ", " ".join(t))))
+                    data_list.append(String(newline.sub(" ", " ".join(t))))
 
         def traverse(parent):
             if full_data:

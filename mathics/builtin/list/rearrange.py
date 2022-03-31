@@ -7,6 +7,7 @@ These functions reorder and rearrange lists.
 
 import functools
 
+from collections import defaultdict
 from itertools import chain
 from typing import Callable
 

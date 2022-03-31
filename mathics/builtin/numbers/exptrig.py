@@ -21,6 +21,7 @@ from mathics.core.atoms import (
     Real,
     Integer,
     Integer0,
+    from_python,
 )
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolCos, SymbolSin

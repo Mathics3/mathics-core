@@ -279,7 +279,7 @@ class XMLGetString(_Get):
      : Extra content at the end of the document, line 1, column 8.
     """
 
-    summary_text = "parses a xml object"
+    summary_text = "parse a xml object"
 
     def _parse(self, text):
         with BytesIO() as f:

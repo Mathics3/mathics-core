@@ -56,17 +56,17 @@ class Median(_Rectangular):
 
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
 
-    def apply(self, l, evaluation):
-        "Median[l_List]"
-        if not l.leaves:
+    def apply(self, data, evaluation):
+        "Median[data_List]"
+        if not data.elements:
             return
-        if all(leaf.get_head_name() == "System`List" for leaf in l.leaves):
+        if all(element.get_head_name() == "System`List" for element in data.elements):
             try:
-                return self.rect(l)
+                return self.rect(data)
             except _NotRectangularException:
-                evaluation.message("Median", "rectn", Expression("Median", l))
-        elif all(leaf.is_numeric(evaluation) for leaf in l.leaves):
-            v = l.get_mutable_elements()  # copy needed for introselect
+                evaluation.message("Median", "rectn", Expression("Median", data))
+        elif all(element.is_numeric(evaluation) for element in data.elements):
+            v = data.get_mutable_elements()  # copy needed for introselect
             n = len(v)
             if n % 2 == 0:  # even number of elements?
                 i = n // 2
@@ -77,7 +77,7 @@ class Median(_Rectangular):
                 i = n // 2
                 return introselect(v, i)
         else:
-            evaluation.message("Median", "rectn", Expression("Median", l))
+            evaluation.message("Median", "rectn", Expression("Median", data))
 
 
 class Quantile(Builtin):
@@ -129,11 +129,11 @@ class Quantile(Builtin):
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
 
-    def apply(self, l, qs, a, b, c, d, evaluation):
-        """Quantile[l_List, qs_List, {{a_, b_}, {c_, d_}}]"""
+    def apply(self, data, qs, a, b, c, d, evaluation):
+        """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
-        n = len(l.leaves)
-        partially_sorted = l.get_mutable_elements()
+        n = len(data.leaves)
+        partially_sorted = data.get_mutable_elements()
 
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
@@ -141,7 +141,7 @@ class Quantile(Builtin):
         numeric_qs = qs.evaluate(evaluation).numerify(evaluation)
         results = []
 
-        for q in numeric_qs.leaves:
+        for q in numeric_qs.elements:
             py_q = q.to_mpmath()
 
             if py_q is None or not 0.0 <= py_q <= 1.0:

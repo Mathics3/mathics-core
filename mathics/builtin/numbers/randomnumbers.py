@@ -547,6 +547,30 @@ class RandomComplex(Builtin):
             )
 
 
+class Random(Builtin):
+    """
+    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+    """
+
+    summary_text = "a random number"
+    rules = {
+        "Random[Integer]": "RandomInteger[]",
+        "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
+        "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
+        "Random[Real]": "RandomReal[]",
+        "Random[Real,  zmax_?NumberQ]": "RandomReal[zmax]",
+        "Random[Real, {zmin_Real, zmax_Real}]": "RandomReal[{zmin, zmax}]",
+        "Random[Complex]": "RandomComplex[]",
+        "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
+        "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
+    }
+
+
+# If numpy is not in the system, the following classes are going to be redefined as None. flake8 complains about this.
+# What should happen here is that, or the classes be defined just if numpy is there, or to use a fallback native
+# implementation.
+
+
 class _RandomSelection(_RandomBase):
     # implementation note: weights are clipped to numpy floats. this might be different from MMA
     # where weights might be handled with full dynamic precision support through the whole computation.
@@ -710,25 +734,6 @@ class RandomSample(_RandomSelection):
 
     summary_text = "pick a sample at random from a list"
     _replace = False
-
-
-class Random(Builtin):
-    """
-    Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
-    """
-
-    summary_text = "a random number"
-    rules = {
-        "Random[Integer]": "RandomInteger[]",
-        "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
-        "Random[Integer, {zmin_Integer, zmax_Integer}]": "RandomInteger[{zmin, zmax}]",
-        "Random[Real]": "RandomReal[]",
-        "Random[Real,  zmax_?NumberQ]": "RandomReal[zmax]",
-        "Random[Real, {zmin_Real, zmax_Real}]": "RandomReal[{zmin, zmax}]",
-        "Random[Complex]": "RandomComplex[]",
-        "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
-        "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
-    }
 
 
 if not _numpy:  # hide symbols from non-numpy envs

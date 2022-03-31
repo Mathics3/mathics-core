@@ -6,7 +6,6 @@ List Functions - Miscellaneous
 import heapq
 import sympy
 
-from collections import defaultdict
 from itertools import chain
 
 
