@@ -324,7 +324,7 @@ class PlaintextImport(Builtin):
 class TagsImport(Builtin):
     """
     <dl>
-    <dt>'TagsImport["string"]'
+    <dt>'XML`TagsImport["string"]'
     <dd>parses "string" as XML code, and returns a list with the tags found.
     </dl>
     >> Take[Import["ExampleData/InventionNo1.xml", "Tags"], 10]
@@ -357,7 +357,7 @@ class TagsImport(Builtin):
 class XMLObjectImport(Builtin):
     """
     <dl>
-    <dt>'XMLObjectImport["string"]'
+    <dt>'XML`XMLObjectImport["string"]'
     <dd>parses "string" as XML code, and returns a list of XMLObjects found.
     </dl>
 

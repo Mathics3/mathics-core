@@ -391,7 +391,7 @@ class SourceImport(_HTMLBuiltin):
 class TitleImport(_TagImport):
     """
     <dl>
-    <dt>'HTML`SourceImport["filename"]'
+    <dt>'HTML`TitleImport["filename"]'
     <dd> imports the title string from a HTML file.
     </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Title"]
@@ -410,7 +410,7 @@ class TitleImport(_TagImport):
 class XMLObjectImport(_HTMLBuiltin):
     """
     <dl>
-    <dt>'HTML`SourceImport["filename"]'
+    <dt>'HTML`XMLObjectImport["filename"]'
     <dd> imports XML objects from a HTML file.
     </dl>
     >> Part[Import["ExampleData/PrimeMeridian.html", "XMLObject"], 2, 3, 1, 3, 2]
