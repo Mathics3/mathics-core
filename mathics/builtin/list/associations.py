@@ -308,6 +308,13 @@ class Lookup(Builtin):
 
 
 class Missing(Builtin):
+    """
+    <dl>
+    <dd>'Missing[]'
+    <dt> represents a data that is misssing.
+    </dl>
+    """
+
     summary_text = "default value if a key is not found"
 
 
