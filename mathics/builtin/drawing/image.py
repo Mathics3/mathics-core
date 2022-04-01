@@ -602,8 +602,11 @@ class ImageReflect(_ImageBuiltin):
             specs = [orig.get_name(), dest.get_name()]
             specs.sort()  # `Top -> Bottom` is the same as `Bottom -> Top`
 
-        anti_transpose = lambda i: numpy.flipud(numpy.transpose(numpy.flipud(i)))
-        no_op = lambda i: i
+        def anti_transpose(i):
+            return numpy.flipud(numpy.transpose(numpy.flipud(i)))
+
+        def no_op(i):
+            return i
 
         method = {
             ("System`Bottom", "System`Top"): numpy.flipud,
