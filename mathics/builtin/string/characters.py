@@ -83,7 +83,8 @@ class DigitQ(Builtin):
     """
     <dl>
     <dt>'DigitQ[$string$]'
-        yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+    <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+
     </dl>
 
     >> DigitQ["9"]
@@ -112,7 +113,7 @@ class LetterQ(Builtin):
     """
     <dl>
     <dt>'LetterQ[$string$]'
-        yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
+    <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
     </dl>
 
     >> LetterQ["m"]

@@ -68,11 +68,11 @@ class Hash(Builtin):
       <dd>returns an integer hash for the given $expr$.
 
       <dt>'Hash[$expr$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $expr$.</dd>
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".</dd>
+      <dd>returns an integer hash of the specified $type$ for the given $expr$.
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
 
       <dt>'Hash[$expr$, $type$, $format$]'
-      <dd>Returns the hash in the specified format.</dd>
+      <dd>Returns the hash in the specified format.
     </dl>
 
     > Hash["The Adventures of Huckleberry Finn"]

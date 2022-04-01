@@ -359,6 +359,10 @@ class StringFreeQ(Builtin):
 
 class StringMatchQ(Builtin):
     r"""
+    <dl>
+    <dt>'StringMatchQ["string", $patern$]'
+    <dd> checks  is "string" matches $pattern$
+    </dl>
     >> StringMatchQ["abc", "abc"]
      = True
 
