@@ -677,6 +677,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
+        instance.summary_text = "box construct"
         # the __new__ method from InstanceableBuiltin
         # calls self.init. It is expected that it set
         # self._elements. However, if it didn't happens,

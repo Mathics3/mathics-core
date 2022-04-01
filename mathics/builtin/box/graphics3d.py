@@ -712,6 +712,8 @@ class Cone3DBox(InstanceableBuiltin):
     Internal Python class used when Boxing a 'Cone' object.
     """
 
+    summary_text = "box representation for Cone"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
@@ -756,6 +758,8 @@ class Cuboid3DBox(InstanceableBuiltin):
     Internal Python class used when Boxing a 'Cuboid' object.
     """
 
+    summary_text = "box representation for a cuboid"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 
@@ -783,6 +787,8 @@ class Cylinder3DBox(InstanceableBuiltin):
     """
     Internal Python class used when Boxing a 'Cylinder' object.
     """
+
+    summary_text = "box representation for cylinder"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -824,6 +830,8 @@ class Cylinder3DBox(InstanceableBuiltin):
 
 
 class Line3DBox(LineBox):
+    summary_text = "box representation for a 3D line"
+
     def init(self, *args, **kwargs):
         super(Line3DBox, self).init(*args, **kwargs)
 
@@ -841,6 +849,8 @@ class Line3DBox(LineBox):
 
 
 class Point3DBox(PointBox):
+    summary_text = "box representation for a 3D point"
+
     def get_default_face_color(self):
         return RGBColor(components=(0, 0, 0, 1))
 
@@ -867,6 +877,8 @@ class Point3DBox(PointBox):
 
 
 class Polygon3DBox(PolygonBox):
+    summary_text = "box representation for a 3D polygon"
+
     def init(self, *args, **kwargs):
         self.vertex_normals = None
         super(Polygon3DBox, self).init(*args, **kwargs)
@@ -889,6 +901,8 @@ class Polygon3DBox(PolygonBox):
 
 
 class Sphere3DBox(InstanceableBuiltin):
+    summary_text = "box representation for a sphere"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
         if len(item.leaves) != 2:
@@ -928,6 +942,8 @@ class Sphere3DBox(InstanceableBuiltin):
 
 
 class Tube3DBox(InstanceableBuiltin):
+    summary_text = "box representation for a tube"
+
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
 

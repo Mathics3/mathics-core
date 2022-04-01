@@ -8,6 +8,8 @@ class CompiledCodeBox(BoxConstruct):
     to CompiledCode.
     """
 
+    summary_text = "box representation of a compiled code"
+
     def boxes_to_text(self, elements=None, **options):
         if elements is None:
             elements = self._elements

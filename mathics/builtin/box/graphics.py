@@ -46,6 +46,7 @@ from mathics.core.symbols import SymbolList
 
 from mathics.core.attributes import hold_all, protected, read_protected
 
+
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):
     face_element = None
@@ -74,13 +75,13 @@ class _RoundBox(_GraphicsElement):
         Compute the bounding box for _RoundBox. Note that
         We handle ellipses here too.
         """
-        l = self.style.get_line_width(face_element=self.face_element) / 2
+        line_width = self.style.get_line_width(face_element=self.face_element) / 2
         x, y = self.c.pos()
         rx, ry = self.r.pos()
         rx -= x
         ry = y - ry
-        rx += l
-        ry += l
+        rx += line_width
+        ry += line_width
         return [(x - rx, y - ry), (x - rx, y + ry), (x + rx, y - ry), (x + rx, y + ry)]
 
 
@@ -180,7 +181,7 @@ class ArrowBox(_Polyline):
             elements = expr.elements
             if len(elements) != 2:
                 raise BoxConstructError
-            return tuple(max(_to_float(l), 0.0) for l in elements)
+            return tuple(max(_to_float(w), 0.0) for w in elements)
         else:
             s = max(_to_float(expr), 0.0)
             return s, s
@@ -648,7 +649,7 @@ class GraphicsBox(BoxConstruct):
         # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
         template = (
             '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
-            #'<mglyph  src="data:image/svg+xml;base64,%s"/>'
+            # '<mglyph  src="data:image/svg+xml;base64,%s"/>'
         )
         # print(svg_body)
         mathml = template % (
@@ -961,14 +962,19 @@ class FilledCurveBox(_GraphicsElement):
             raise BoxConstructError
 
     def extent(self):
-        l = self.style.get_line_width(face_element=False)
+        lw = self.style.get_line_width(face_element=False)
         result = []
         for component in self.components:
             for _, points in component:
                 for p in points:
                     x, y = p.pos()
                     result.extend(
-                        [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                        [
+                            (x - lw, y - lw),
+                            (x - lw, y + lw),
+                            (x + lw, y - lw),
+                            (x + lw, y + lw),
+                        ]
                     )
         return result
 
@@ -1077,13 +1083,18 @@ class PointBox(_Polyline):
 
     def extent(self):
         """Returns a list of bounding-box coordinates each point in the PointBox"""
-        l = self.point_radius
+        rad = self.point_radius
         result = []
         for line in self.lines:
             for c in line:
                 x, y = c.pos()
                 result.extend(
-                    [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                    [
+                        (x - rad, y - rad),
+                        (x - rad, y + rad),
+                        (x + rad, y - rad),
+                        (x + rad, y + rad),
+                    ]
                 )
         return result
 
@@ -1145,12 +1156,17 @@ class RectangleBox(_GraphicsElement):
             self.p2 = Coords(graphics, item.elements[1])
 
     def extent(self):
-        l = self.style.get_line_width(face_element=True) / 2
+        hlw = self.style.get_line_width(face_element=True) / 2
         result = []
         for p in [self.p1, self.p2]:
             x, y = p.pos()
             result.extend(
-                [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                [
+                    (x - hlw, y - hlw),
+                    (x - hlw, y + hlw),
+                    (x + hlw, y - hlw),
+                    (x + hlw, y + hlw),
+                ]
             )
         return result
 
