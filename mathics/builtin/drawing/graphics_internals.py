@@ -15,8 +15,24 @@ no_doc = True
 from mathics.core.symbols import system_symbols_dict, Symbol
 
 
+# Check if  _GraphicsElement shouldn't be a BoxConstruct instead of an InstanceableBuiltin
 class _GraphicsElement(InstanceableBuiltin):
-    summary_text = "boxes for graphic element"
+    def __new__(cls, *args, **kwargs):
+        instance = super().__new__(cls, *args, **kwargs)
+        if not hasattr(instance, "summary_text"):
+            clsname = cls.get_name()
+            if clsname[0] in ("A", "E", "I", "O", "U"):
+                instance.summary_text = f"boxes for an '{cls.get_name()}' element"
+            else:
+                instance.summary_text = f"boxes for a '{cls.get_name()}' element"
+        if not instance.__doc__:
+            instance.__doc__ = f"""
+                <dl>
+                <dt>'{cls.get_name()}[...]'
+                <dd>box structure for {cls.get_name().lower()[:-3]}
+                </dl>
+                """
+        return instance
 
     def init(self, graphics, item=None, style=None, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):

@@ -136,6 +136,13 @@ class _ArcBox(_RoundBox):
 
 
 class ArrowBox(_Polyline):
+    """
+    <dl>
+    <dt>'ArrowBox[...]'
+    <dd>is a box structure for 'Arrow' elements.
+    </dl>
+    """
+
     def init(self, graphics, style, item=None):
         if not item:
             raise BoxConstructError
@@ -328,6 +335,13 @@ class ArrowBox(_Polyline):
 
 
 class BezierCurveBox(_Polyline):
+    """
+    <dl>
+    <dt>BezierCurveBox[...]
+    <dd>is a box structure for a 'BezierCurve' element.
+    </dl>
+    """
+
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
         if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
@@ -342,19 +356,37 @@ class BezierCurveBox(_Polyline):
 
 
 class CircleBox(_ArcBox):
-    """Boxing class attribute for a Circle."""
+    """
+    <dl>
+    <dt>CircleBox[...]
+    <dd>box structure for a 'Circle' element.
+    </dl>
+    """
 
+    summary_text = "internal box representation for 'Circle' elements"
     face_element = False
 
 
 class DiskBox(_ArcBox):
-    """Boxing class attribute for a Disk."""
+    """
+    <dl>
+    <dt>DiskBox[...]
+    <dd>box structure for a 'Disk' element.
+    </dl>
+    """
 
+    summary_text = "internal box representation for 'Disk' elements"
     face_element = True
 
 
 class GraphicsBox(BoxConstruct):
-    """Boxing method which get called when Boxing (adding formatting and bounding-box information)
+    """
+    <dl>
+    <dt>GraphicsBox[...]
+    <dd>box structure holding a 'Graphics' object.
+    </dl>
+
+    Boxing method which get called when Boxing (adding formatting and bounding-box information)
     Graphics.
     """
 
@@ -911,6 +943,13 @@ clip(%s);
 
 
 class FilledCurveBox(_GraphicsElement):
+    """
+    <dl>
+    <dt>'FilledCurveBox[...]'
+    <dd>is a box structure for 'FilledCurve' elements.
+    </dl>
+    """
+
     def init(self, graphics, style, item=None):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -1029,9 +1068,7 @@ class InsetBox(_GraphicsElement):
 
 
 class LineBox(_Polyline):
-    """
-    Boxing methods for a list of Line.
-    """
+    # Boxing methods for a list of Line.
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1048,13 +1085,13 @@ class LineBox(_Polyline):
 
 
 class PointBox(_Polyline):
-    """
-    Boxing methods for a list of Point.
-
-    object attributes:
-    edge_color: _Color
-    point_radius: radius of each point
-    """
+    # """
+    # Boxing methods for a list of Point.
+    #
+    # object attributes:
+    # edge_color: _Color
+    # point_radius: radius of each point
+    # """
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)

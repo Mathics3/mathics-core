@@ -31,6 +31,7 @@ class UniformPolyhedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "platonic polyhedra by name"
     messages = {
         "argtype": f"Argument `1` is not one of: {uniform_polyhedra_names}",
     }
@@ -59,6 +60,7 @@ class Dodecahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a dodecahedron"
     rules = {
         "Dodecahedron[]": """UniformPolyhedron["dodecahedron"]""",
         "Dodecahedron[l_?NumberQ]": """UniformPolyhedron["dodecahedron", {{0, 0, 0}}, l]""",
@@ -77,6 +79,7 @@ class Icosahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "an icosahedron"
     rules = {
         "Icosahedron[]": """UniformPolyhedron["icosahedron"]""",
         "Icosahedron[l_?NumberQ]": """UniformPolyhedron["icosahedron", {{0, 0, 0}}, l]""",
@@ -95,6 +98,7 @@ class Octahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a octahedron"
     rules = {
         "Octahedron[]": """UniformPolyhedron["octahedron"]""",
         "Octahedron[l_?NumberQ]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",
@@ -113,6 +117,7 @@ class Tetrahedron(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a tetrahedron"
     rules = {
         "Tetrahedron[]": """UniformPolyhedron["tetrahedron"]""",
         "Tetrahedron[l_?NumberQ]": """UniformPolyhedron["tetrahedron", {{0, 0, 0}}, l]""",

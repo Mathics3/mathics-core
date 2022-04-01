@@ -32,16 +32,36 @@ class InterpretationBox(Builtin):
 
 
 class SubscriptBox(Builtin):
+    """
+    <dl>
+    <dt>'SubscriptBox["symb", "subscript"]'
+    <dd>box structure for an expression with a subscript
+    </dl>
+    """
+
     summary_text = "box format for subscript"
-    pass
 
 
 class SubsuperscriptBox(Builtin):
+    """
+    <dl>
+    <dt>'SubsuperscriptBox["symb", "subscript", "superscript"]'
+    <dd>box structure for an expression with a subscript and a superscript
+    </dl>
+    """
+
     summary_text = "box format for sub and super script"
     pass
 
 
 class SuperscriptBox(Builtin):
+    """
+    <dl>
+    <dt>'SuperscriptBox["symb", "superscript"]'
+    <dd>box structure for an expression with a superscript
+    </dl>
+    """
+
     summary_text = "box format for superscript"
     pass
 

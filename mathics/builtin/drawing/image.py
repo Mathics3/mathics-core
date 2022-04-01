@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
+__doc__ = """
 Image[] and image related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
-
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
@@ -121,6 +120,11 @@ class _Exif:
 
 class ImageImport(_ImageBuiltin):
     """
+    <dl>
+    <dt> 'ImageImport["path"]'
+    <dd> import an image from the file "path".
+    </dl>
+
     ## Image
     >> Import["ExampleData/Einstein.jpg"]
      = -Image-
@@ -154,6 +158,13 @@ class ImageImport(_ImageBuiltin):
 
 
 class ImageExport(_ImageBuiltin):
+    """
+    <dl>
+    <dt> 'ImageExport["path", $image$]'
+    <dd> export $image$ as file in "path".
+    </dl>
+    """
+
     messages = {"noimage": "only an Image[] can be exported into an image file"}
 
     def apply(self, path, expr, opts, evaluation):
@@ -243,6 +254,8 @@ class ImageAdd(_ImageArithmetic):
      = -Image-
     """
 
+    summary_text = "build an image adding pixel values of another image "
+
 
 class ImageSubtract(_ImageArithmetic):
     """
@@ -266,6 +279,8 @@ class ImageSubtract(_ImageArithmetic):
      : Expecting a number, image, or graphics instead of x.
      = ImageSubtract[-Image-, x]
     """
+
+    summary_text = "build an image substracting pixel values of another image "
 
 
 class ImageMultiply(_ImageArithmetic):
@@ -296,6 +311,8 @@ class ImageMultiply(_ImageArithmetic):
      = -Image-
     """
 
+    summary_text = "build an image multiplying the pixel values of another image "
+
 
 class RandomImage(_ImageBuiltin):
     """
@@ -324,6 +341,7 @@ class RandomImage(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "build an image with random pixels"
     options = {"ColorSpace": "Automatic"}
 
     rules = {
@@ -423,6 +441,7 @@ class ImageResize(_ImageBuiltin):
      = ImageResize[-Image-, x]
     """
 
+    summary_text = "resize an image"
     options = {"Resampling": "Automatic"}
 
     messages = {
@@ -882,6 +901,14 @@ class GaussianFilter(_ImageBuiltin):
 
 
 class PillowImageFilter(_ImageBuiltin):
+    """
+    <dl>
+    <dt>'PillowImageFilter[$image$, "filtername"]'
+    <dd> applies an image filter "filtername" from the pillow library.
+    </dl>
+    TODO: test cases?
+    """
+
     summary_text = "apply a pillow filter to an image"
 
     def compute(self, image, f):
@@ -1179,6 +1206,8 @@ class Closing(_MorphologyFilter):
     >> Closing[ein, 2.5]
      = -Image-
     """
+
+    summary_text = "morphological closing regarding a kernel"
 
 
 class MorphologicalComponents(_SkimageBuiltin):
@@ -2060,6 +2089,11 @@ class Image(Atom):
 
 class ImageAtom(AtomBuiltin):
     """
+    <dl>
+    <dt>'Image[...]'
+    <dd> produces the internal representation of an image from an array
+    of values for the pixels.
+    </dl>
     #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
      = -Image-
 
