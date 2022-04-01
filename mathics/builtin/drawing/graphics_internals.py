@@ -18,6 +18,8 @@ from mathics.core.symbols import system_symbols_dict, Symbol
 # Check if  _GraphicsElement shouldn't be a BoxConstruct instead of an InstanceableBuiltin
 class _GraphicsElement(InstanceableBuiltin):
     def __new__(cls, *args, **kwargs):
+        # This ensures that all the graphics elements have a well formatted docstring
+        # and a summary_text
         instance = super().__new__(cls, *args, **kwargs)
         if not hasattr(instance, "summary_text"):
             clsname = cls.get_name()
