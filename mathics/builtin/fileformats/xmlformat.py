@@ -271,6 +271,10 @@ class XMLGet(_Get):
 
 class XMLGetString(_Get):
     """
+    <dl>
+    <dt>'XML`Parser`XMLGetString["string"]'
+    <dd>parses "string" as XML code, and returns an XMLObject.
+    </dl>
     >> Head[XML`Parser`XMLGetString["<a></a>"]]
      = XMLObject[Document]
 
@@ -290,6 +294,10 @@ class XMLGetString(_Get):
 
 class PlaintextImport(Builtin):
     """
+    <dl>
+    <dt>'XML`PlaintextImport["string"]'
+    <dd>parses "string" as XML code, and returns it as plain text.
+    </dl>
     >> StringReplace[StringTake[Import["ExampleData/InventionNo1.xml", "Plaintext"],31],FromCharacterCode[10]->"/"]
      = MuseScore 1.2/2012-09-12/5.7/40
     """
@@ -315,6 +323,10 @@ class PlaintextImport(Builtin):
 
 class TagsImport(Builtin):
     """
+    <dl>
+    <dt>'TagsImport["string"]'
+    <dd>parses "string" as XML code, and returns a list with the tags found.
+    </dl>
     >> Take[Import["ExampleData/InventionNo1.xml", "Tags"], 10]
      = {accidental, alter, arpeggiate, articulations, attributes, backup, bar-style, barline, beam, beat-type}
     """
@@ -344,6 +356,11 @@ class TagsImport(Builtin):
 
 class XMLObjectImport(Builtin):
     """
+    <dl>
+    <dt>'XMLObjectImport["string"]'
+    <dd>parses "string" as XML code, and returns a list of XMLObjects found.
+    </dl>
+
     >> Part[Import["ExampleData/InventionNo1.xml", "XMLObject"], 2, 3, 1]
      = XMLElement[identification, {}, {XMLElement[encoding, {}, {XMLElement[software, {}, {MuseScore 1.2}], XMLElement[encoding-date, {}, {2012-09-12}]}]}]
 

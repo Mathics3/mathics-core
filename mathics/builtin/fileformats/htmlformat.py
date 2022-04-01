@@ -165,6 +165,10 @@ class HTMLGet(_Get):
 
 class HTMLGetString(_Get):
     """
+    <dl>
+    <dt>'HTML`Parser`HTMLGetString["string"]'
+    <dd> parses HTML code contained in "string".
+    </dl>
     #> Head[HTML`Parser`HTMLGetString["<a></a>"]]
      = XMLObject[Document]
 
@@ -259,6 +263,10 @@ class _DataImport(_TagImport):
 
 class DataImport(_DataImport):
     """
+    <dl>
+    <dt>'HTML`DataImport["filename"]'
+    <dd> imports data from a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Data"][[1, 1, 2, 3]]
      = {Washington, D.C., 77...03′56.07″ W (1897) or 77...04′02.24″ W (NAD 27) or 77...04′01.16″ W (NAD 83), New Naval Observatory meridian}
 
@@ -272,6 +280,13 @@ class DataImport(_DataImport):
 
 
 class FullDataImport(_DataImport):
+    """
+    <dl>
+    <dt>'HTML`FullDataImport["filename"]'
+    <dd> imports data from a HTML file.
+    </dl>
+    """
+
     summary_text = "import data from a HTML file"
     full_data = True
     tag_name = "FullData"
@@ -287,6 +302,11 @@ class _LinksImport(_TagImport):
 
 class HyperlinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'HTML`HyperlinksImport["filename"]'
+    <dd> imports hyperlinks from a HTML file.
+    </dl>
+
     >> Import["ExampleData/PrimeMeridian.html", "Hyperlinks"][[1]]
      = /wiki/Prime_meridian_(Greenwich)
     """
@@ -303,6 +323,10 @@ class HyperlinksImport(_LinksImport):
 
 class ImageLinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'HTML`ImageLinksImport["filename"]'
+    <dd> imports links to the images included in a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "ImageLinks"][[6]]
      = //upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Prime_meridian.jpg/180px-Prime_meridian.jpg
     """
@@ -319,6 +343,10 @@ class ImageLinksImport(_LinksImport):
 
 class PlaintextImport(_TagImport):
     """
+    <dl>
+    <dt>'HTML`PlaintextImport["filename"]'
+    <dd> imports plane text from a HTML file.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html"], RegularExpression["Wiki[a-z]+"]]]
      = {Wikipedia, Wikidata, Wikibase, Wikimedia}
     """
@@ -338,6 +366,10 @@ class PlaintextImport(_TagImport):
 
 class SourceImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'HTML`SourceImport["filename"]'
+    <dd> imports source code from a HTML file.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html", "Source"], RegularExpression["<t[a-z]+>"]]]
      = {<title>, <tr>, <th>, <td>}
     """
@@ -358,6 +390,10 @@ class SourceImport(_HTMLBuiltin):
 
 class TitleImport(_TagImport):
     """
+    <dl>
+    <dt>'HTML`SourceImport["filename"]'
+    <dd> imports the title string from a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Title"]
      = Prime meridian - Wikipedia
     """
@@ -373,6 +409,10 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'HTML`SourceImport["filename"]'
+    <dd> imports XML objects from a HTML file.
+    </dl>
     >> Part[Import["ExampleData/PrimeMeridian.html", "XMLObject"], 2, 3, 1, 3, 2]
      = XMLElement[title, {}, {Prime meridian - Wikipedia}]
     """
