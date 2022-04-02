@@ -304,10 +304,11 @@ class SystemCharacterEncoding(Predefined):
     """
     <dl>
     <dt>$SystemCharacterEncoding
-
+    <dd>gives the default character encoding of the system.
     </dl>
     """
 
+    summary_text = "system's character enconding"
     name = "$SystemCharacterEncoding"
 
     rules = {
@@ -382,9 +383,16 @@ def to_python_encoding(encoding):
 
 
 class CharacterEncodings(Predefined):
+    """
+    <dl>
+    <dt>'$CharacterEncodings'
+    <dd>stores the list of available character encodings.
+    </dl>
+    """
+
     name = "$CharacterEncodings"
     value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
-
+    summary_text = "avaliable character encodings"
     rules = {
         "$CharacterEncodings": value,
     }
@@ -407,6 +415,8 @@ class NumberString(Builtin):
      = False
     """
 
+    summary_text = "characters in string representation of a number"
+
 
 class Whitespace(Builtin):
     r"""
@@ -424,6 +434,7 @@ class Whitespace(Builtin):
     >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
      = "this has leading and trailing whitespace removed"
     """
+    summary_text = "sequence of whitespace characters"
 
 
 # FIXME: Generalize string.lower() and ord()

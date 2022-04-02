@@ -1709,8 +1709,8 @@ class On(Builtin):
 class MessageName(BinaryOperator):
     """
     <dl>
-    <dt>'MessageName[$symbol$, $tag$]'</dt>
-    <dt>'$symbol$::$tag$'</dt>
+    <dt>'MessageName[$symbol$, $tag$]'
+    <dt>'$symbol$::$tag$'
         <dd>identifies a message.
     </dl>
 
@@ -2220,6 +2220,32 @@ class TeXForm(Builtin):
 
 
 class Style(Builtin):
+    """
+    <dl>
+    <dt>'Style[$expr$, options]'
+    <dd>displays $expr$ formatted using the specified option settings.
+    <dt>'Style[$expr$, "style"]'
+    <dd> uses the option settings for the specified style in the current notebook.
+    <dt>'Style[$expr$, $color$]'
+    <dd>displays using the specified color.
+    <dt>'Style[$expr$, $Bold$]'
+    <dd>displays with fonts made bold.
+    <dt>'Style[$expr$, $Italic$]'
+    <dd>displays with fonts made italic.
+    <dt>'Style[$expr$, $Underlined$]'
+    <dd>displays with fonts underlined.
+    <dt>'Style[$expr$, $Larger$]
+    <dd>displays with fonts made larger.
+    <dt>'Style[$expr$, $Smaller$]'
+    <dd>displays with fonts made smaller.
+    <dt>'Style[$expr$, $n$]'
+    <dd>displays with font size n.
+    <dt>'Style[$expr$, $Tiny$]'
+    <dt>'Style[$expr$, $Small$]', etc.
+    <dd>display with fonts that are tiny, small, etc.
+    </dl>
+    """
+
     options = {"ImageSizeMultipliers": "Automatic"}
 
     rules = {

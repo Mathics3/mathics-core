@@ -216,10 +216,10 @@ def create_infix(items, operator, prec, grouping):
 class DirectedInfinity(SympyFunction):
     """
     <dl>
-    <dt>'DirectedInfinity[$z$]'</dt>
+    <dt>'DirectedInfinity[$z$]'
         <dd>represents an infinite multiple of the complex number $z$.
-    <dt>'DirectedInfinity[]'</dt>
-        <dd>is the same as 'ComplexInfinity'.</dd>
+    <dt>'DirectedInfinity[]'
+        <dd>is the same as 'ComplexInfinity'.
     </dl>
 
     >> DirectedInfinity[1]
@@ -441,17 +441,17 @@ class Abs(_MPMathFunction):
 class Arg(_MPMathFunction):
     """
      <dl>
-       <dt>'Arg'[$z$, $method_option$]</dt>
-       <dd>returns the argument of a complex value $z$.</dd>
+       <dt>'Arg'[$z$, $method_option$]
+       <dd>returns the argument of a complex value $z$.
+     </dl>
 
-       <ul>
+    <ul>
          <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
          <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
          <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
          <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
          <li>'Arg'[0] is 0.
-      </ul>
-     </dl>
+    </ul>
 
      >> Arg[-3]
       = Pi
@@ -779,10 +779,10 @@ class Real_(Builtin):
 class Rational_(Builtin):
     """
     <dl>
-    <dt>'Rational'</dt>
-        <dd>is the head of rational numbers.</dd>
-    <dt>'Rational[$a$, $b$]'</dt>
-        <dd>constructs the rational number $a$ / $b$.</dd>
+    <dt>'Rational'
+        <dd>is the head of rational numbers.
+    <dt>'Rational[$a$, $b$]'
+        <dd>constructs the rational number $a$ / $b$.
     </dl>
 
     >> Head[1/2]

@@ -97,9 +97,9 @@ class IOHookPreRead(Builtin):
     """
     <dl>
     <dt>$PreRead
-    <dt> is a global variable whose value, if set, is applied to the \
+    <dd> is a global variable whose value, if set, is applied to the \
     text or box form of every input expression before it is fed to the parser.
-    <dt>(Not implemented yet)
+    (Not implemented yet)
     </dl>
     """
 
@@ -111,7 +111,7 @@ class IOHookPre(Builtin):
     """
     <dl>
     <dt>$Pre
-    <dt>is a global variable whose value, if set,
+    <dd>is a global variable whose value, if set,
     is applied to every input expression.
     </dl>
 
@@ -143,7 +143,7 @@ class IOHookPost(Builtin):
     """
     <dl>
     <dt>$Post
-    <dt>is a global variable whose value, if set,
+    <dd>is a global variable whose value, if set,
     is applied to every output expression.
     </dl>
     """
@@ -156,7 +156,7 @@ class IOHookPrePrint(Builtin):
     """
     <dl>
     <dt>$PrePrint
-    <dt>is a global variable whose value, if set,
+    <dd>is a global variable whose value, if set,
     is applied to every output expression before it is printed.
     </dl>
     """
@@ -169,9 +169,9 @@ class IOHookSyntaxHandler(Builtin):
     """
     <dl>
     <dt>$SyntaxHandler
-    <dt>is a global variable whose value, if set,
+    <dd>is a global variable whose value, if set,
     is applied to  any input string that is found to contain a syntax error.
-    <dt>(Not implemented yet)
+    (Not implemented yet)
     </dl>
     """
 

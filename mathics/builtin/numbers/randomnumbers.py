@@ -549,7 +549,14 @@ class RandomComplex(Builtin):
 
 class Random(Builtin):
     """
+    <dl>
+    <dt>'Random[]'
+    <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
+    <dt>'Random[$type$, $range$]'
+    <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
+    </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+
     """
 
     summary_text = "a random number"
