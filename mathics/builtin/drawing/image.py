@@ -138,6 +138,8 @@ class ImageImport(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "import an image from a file"
+
     def apply(self, path, evaluation):
         """ImageImport[path_String]"""
         pillow = PIL.Image.open(path.get_string_value())
@@ -165,6 +167,7 @@ class ImageExport(_ImageBuiltin):
     </dl>
     """
 
+    summary_text = "export an image to a file"
     messages = {"noimage": "only an Image[] can be exported into an image file"}
 
     def apply(self, path, expr, opts, evaluation):
@@ -607,6 +610,7 @@ class ImageReflect(_ImageBuiltin):
      = ImageReflect[-Image-, x -> Top]
     """
 
+    summary_text = "reflect an image"
     rules = {
         "ImageReflect[image_Image]": "ImageReflect[image, Top -> Bottom]",
         "ImageReflect[image_Image, Top|Bottom]": "ImageReflect[image, Top -> Bottom]",
@@ -673,6 +677,7 @@ class ImageRotate(_ImageBuiltin):
      = ImageRotate[-Image-, -Image-]
     """
 
+    summary_text = "rotate an image"
     rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
 
     messages = {
@@ -734,6 +739,7 @@ class ImagePartition(_ImageBuiltin):
      = ImagePartition[-Image-, {0, 300}]
     """
 
+    summary_text = "divide an image in an array of sub-images"
     rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
@@ -780,6 +786,7 @@ class ImageAdjust(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "adjust levels, brightness, contrast, gamma, etc"
     rules = {
         "ImageAdjust[image_Image, c_?RealNumberQ]": "ImageAdjust[image, {c, 0, 1}]",
         "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ}]": "ImageAdjust[image, {c, b, 1}]",
@@ -1194,6 +1201,8 @@ class Opening(_MorphologyFilter):
      = -Image-
     """
 
+    summary_text = "morphological opening regarding a kernel"
+
 
 class Closing(_MorphologyFilter):
     """
@@ -1317,6 +1326,7 @@ class Threshold(_SkimageBuiltin):
      = 0.504726
     """
 
+    summary_text = "estimate a threshold value for binarize an image"
     options = {"Method": '"Cluster"'}
 
     messages = {

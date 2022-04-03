@@ -677,7 +677,14 @@ class BoxConstruct(InstanceableBuiltin):
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
-        instance.summary_text = "box construct"
+        article = (
+            "an "
+            if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
+            else "a "
+        )
+        instance.summary_text = (
+            "box representation for " + article + instance.get_name()[:-3].lower()
+        )
         if not instance.__doc__:
             instance.__doc__ = rf"""
             <dl>

@@ -22,11 +22,19 @@ class _GraphicsElement(InstanceableBuiltin):
         # and a summary_text
         instance = super().__new__(cls, *args, **kwargs)
         if not hasattr(instance, "summary_text"):
-            clsname = cls.get_name()
-            if clsname[0] in ("A", "E", "I", "O", "U"):
-                instance.summary_text = f"boxes for an '{cls.get_name()}' element"
-            else:
-                instance.summary_text = f"boxes for a '{cls.get_name()}' element"
+            article = (
+                "an "
+                if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
+                else "a "
+            )
+            instance.summary_text = (
+                "box representation for " + article + instance.get_name()[:-3].lower()
+            )
+        #            clsname = cls.get_name()
+        #            if clsname[0] in ("A", "E", "I", "O", "U"):
+        #                instance.summary_text = f"boxes for an '{cls.get_name()}' element"
+        #            else:
+        #                instance.summary_text = f"boxes for a '{cls.get_name()}' element"
         if not instance.__doc__:
             instance.__doc__ = f"""
                 <dl>
