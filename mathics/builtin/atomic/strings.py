@@ -325,6 +325,7 @@ class CharacterEncoding(Predefined):
     </dl>
     """
 
+    summary_text = "default character encoding"
     name = "$CharacterEncoding"
     value = '"UTF-8"'
 
@@ -461,6 +462,7 @@ class Alphabet(Builtin):
 
     """
 
+    summary_text = "lowercase letters in an alphabet"
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
     }
@@ -527,6 +529,7 @@ class LetterNumber(Builtin):
     #  = 2
 
     """
+    summary_text = "position of a letter in an alphabet"
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
         "nas": ("The argument `1` is not a string."),
@@ -606,6 +609,8 @@ class HexidecimalCharacter(Builtin):
     >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
      = {True, True, True, False, False, False, False}
     """
+
+    summary_text = "hexadecimal digits"
 
 
 class _StringFind(Builtin):
@@ -715,6 +720,7 @@ class StringRepeat(Builtin):
      = StringRepeat[x, 0]
     """
 
+    summary_text = "build a string by concatenating repetitions"
     messages = {
         "intp": "A positive integer is expected at position `1` in `2`.",
     }
@@ -764,6 +770,7 @@ class String_(Builtin):
      = Plus[2, "abc"]
     """
 
+    summary_text = "head for strings"
     name = "String"
 
 
@@ -793,6 +800,7 @@ class ToString(Builtin):
 
     """
 
+    summary_text = "format an expression and produce a string"
     options = {
         "CharacterEncoding": '"Unicode"',
         "FormatType": "OutputForm",
@@ -823,12 +831,11 @@ class InterpretedBox(PrefixOperator):
       <dt>'InterpretedBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just
           for internal use...
-
+    </dl>
     >> \! \(2+2\)
      = 4
-    </dl>
     """
-
+    summary_text = "interpret boxes as an expression"
     operator = "\\!"
     precedence = 670
 
@@ -890,6 +897,7 @@ class ToExpression(Builtin):
     #> ToExpression["log(x)", StandardForm]
      = log x
     """
+    summary_text = "build an expression from formatted text"
     attributes = listable | protected
 
     messages = {
@@ -984,6 +992,8 @@ class StringQ(Test):
      = {12, yz}
     """
 
+    summary_text = "test whether an expression is a string"
+
     def test(self, expr):
         return isinstance(expr, String)
 
@@ -1001,6 +1011,8 @@ class RemoveDiacritics(Builtin):
     >> RemoveDiacritics["piñata"]
      = pinata
     """
+
+    summary_text = "remove diacritics"
 
     def apply(self, s, evaluation):
         "RemoveDiacritics[s_String]"
@@ -1026,6 +1038,7 @@ class Transliterate(Builtin):
     </ul>
     """
 
+    summary_text = "transliterate an UTF string in different alphabets to ASCII"
     # Causes XeTeX to barf. Put this inside a unit test.
     # >> Transliterate["つかう"]
     #  = tsukau
@@ -1162,6 +1175,7 @@ class StringContainsQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
+    summary_text = "test whether a pattern matches with a substring"
     options = {
         "IgnoreCase": "False",
     }
