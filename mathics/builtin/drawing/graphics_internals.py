@@ -7,6 +7,7 @@
 from mathics.builtin.base import (
     InstanceableBuiltin,
     BoxConstructError,
+    split_name,
 )
 
 # Signals to Mathics doc processing not to include this module in its documentation.
@@ -28,7 +29,9 @@ class _GraphicsElement(InstanceableBuiltin):
                 else "a "
             )
             instance.summary_text = (
-                "box representation for " + article + instance.get_name()[:-3].lower()
+                "box representation for "
+                + article
+                + split_name(cls.get_name(short=True)[:-3])
             )
         #            clsname = cls.get_name()
         #            if clsname[0] in ("A", "E", "I", "O", "U"):

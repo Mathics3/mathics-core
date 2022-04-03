@@ -15,7 +15,7 @@ class CompiledCodeBox(BoxConstruct):
 
     """
 
-    summary_text = "box representation of a compiled code"
+    # summary_text = "box representation of a compiled code"
 
     def boxes_to_text(self, elements=None, **options):
         if elements is None:

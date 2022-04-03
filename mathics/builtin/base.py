@@ -65,6 +65,28 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
+def split_name(name: str) -> str:
+    """
+    insert spaces in front of upper case letters
+    and numbers. For instance,
+    ``split_name("BezierCurve3D")`` results in
+    ``"bezier curve 3D"``
+
+    """
+    if name == "":
+        return ""
+    result = name[0]
+    for i in range(1, len(name)):
+        if name[i].isupper():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        elif name[i].isdigit():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        result = result + name[i]
+    return result.lower()
+
+
 mathics_to_python = {}
 
 
@@ -682,8 +704,11 @@ class BoxConstruct(InstanceableBuiltin):
             if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
             else "a "
         )
+
         instance.summary_text = (
-            "box representation for " + article + instance.get_name()[:-3].lower()
+            "box representation for "
+            + article
+            + split_name(cls.get_name(short=True)[:-3])
         )
         if not instance.__doc__:
             instance.__doc__ = rf"""
