@@ -275,7 +275,7 @@ class Manipulate(Builtin):
      : 'Illegal variable range or step parameters for `x`.
      = Manipulate[x, {x, 1, 0}]
     """
-
+    summary_text = "interactively manipulate any expression, graphic, or other object"
     attributes = (
         hold_all | protected
     )  # we'll call ReleaseHold at the time of evaluation below

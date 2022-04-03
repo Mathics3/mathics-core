@@ -105,6 +105,7 @@ class With(Builtin):
 
     """
 
+    summary_text = "replace variables by some constant values"
     attributes = hold_all | protected
 
     messages = {
@@ -163,6 +164,8 @@ class Block(Builtin):
      = x
     """
 
+    summary_text = "evaluate an expression using local values for some given symbols"
+
     attributes = hold_all | protected
 
     messages = {
@@ -199,6 +202,8 @@ class ModuleNumber(Predefined):
     >> $ModuleNumber = x;
      : Cannot set $ModuleNumber to x; value must be a positive integer.
     """
+
+    summary_text = "serial number of the current local module"
 
     name = "$ModuleNumber"
 
@@ -251,6 +256,7 @@ class Module(Builtin):
 
     """
 
+    summary_text = "generates symbols with names of the form x$nnn to represent each local variable."
     attributes = hold_all | protected
 
     messages = {
@@ -356,6 +362,7 @@ class Unique(Predefined):
      = {Flat}
     """
 
+    summary_text = "generate a new symbols with a unique name"
     seq_number = 1
 
     messages = {
@@ -444,6 +451,8 @@ class Contexts(Builtin):
     X> Contexts[] // InputForm
     """
 
+    summary_text = "list all the defined contexts"
+
     def apply(self, evaluation):
         "Contexts[]"
 
@@ -474,6 +483,7 @@ class Context_(Predefined):
      = True
     """
 
+    summary_text = "the current context"
     name = "$Context"
 
     messages = {"cxset": "`1` is not a valid context name ending in `."}
@@ -502,6 +512,7 @@ class ContextPath(Predefined):
     #> $ContextPath = {"Global`", "System`"};
     """
 
+    summary_text = "the current context search path"
     name = "$ContextPath"
 
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
@@ -537,6 +548,7 @@ class Begin(Builtin):
      = Global`test`
     """
 
+    summary_text = "temporarily set the current context"
     rules = {
         "Begin[context_String]": """
              Unprotect[System`Private`$ContextStack];
@@ -556,6 +568,7 @@ class End(Builtin):
     </dl>
     """
 
+    summary_text = "revert to the context previous to the nearest 'Begin' statement"
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -590,6 +603,7 @@ class BeginPackage(Builtin):
      = test`
     """
 
+    summary_text = "temporarily set the context and clean the context path"
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
 
     rules = {
@@ -620,6 +634,7 @@ class EndPackage(Builtin):
     package\'s context prepended to $ContextPath.
     """
 
+    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
     messages = {
         "noctx": "No previous context defined.",
     }
