@@ -11,6 +11,18 @@ from itertools import chain
 from bisect import bisect_left
 
 from mathics.core.atoms import from_python, Number, Integer
+from mathics.core.attributes import (
+    flat,
+    hold_all,
+    hold_all_complete,
+    hold_first,
+    hold_rest,
+    listable,
+    no_attributes,
+    numeric_function,
+    orderless,
+    sequence_hold,
+)
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
 from mathics.core.element import ensure_context
 from mathics.core.evaluation import Evaluation
@@ -27,20 +39,7 @@ from mathics.core.symbols import (
     system_symbols,
 )
 from mathics.core.systemsymbols import SymbolSequence
-
-from mathics.core.attributes import (
-    flat,
-    hold_all,
-    hold_all_complete,
-    hold_first,
-    hold_rest,
-    listable,
-    no_attributes,
-    numeric_function,
-    orderless,
-    sequence_hold,
-)
-
+from mathics.core.util import timeit
 
 SymbolAborted = Symbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
@@ -176,8 +175,8 @@ class Expression(BaseElement, NumericOperators):
     # See if there's a way to get rid of this, or ensure that this isn't causing
     # a garbage collection problem.
 
-    def __new__(cls, head, *elements, **kwargs) -> "Expression":
-        self = super().__new__(cls)
+    def __init__(self, head, *elements, **kwargs):
+        super().__init__(self)
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head
@@ -194,7 +193,6 @@ class Expression(BaseElement, NumericOperators):
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
         # here...
         self._format_cache = None
-        return self
 
     def __getnewargs__(self):
         return (self._head, self._elements)
@@ -701,6 +699,8 @@ class Expression(BaseElement, NumericOperators):
         expr = self._flatten_sequence(sequence, evaluation)
         if hasattr(self, "options"):
             expr.options = self.options
+        assert hasattr(expr, "_is_flat")
+        expr._is_flat = True
         return expr
 
     def flatten_sequence(self, evaluation):
@@ -1053,21 +1053,22 @@ class Expression(BaseElement, NumericOperators):
     def leaves(self, value):
         raise ValueError("Expression.leaves is write protected.")
 
-    def restructure(self, head, leaves, evaluation, structure_cache=None, deps=None):
-        # faster equivalent to: Expression(head, *leaves)
+    def restructure(self, head, elements, evaluation, structure_cache=None, deps=None):
+        """Faster equivalent of: Expression(head, *elements)
 
-        # the caller guarantees that _all_ elements in leaves are either from
-        # self.leaves (or its sub trees) or from one of the expression given
-        # in the tuple "deps" (or its sub trees).
+        The caller guarantees that _all_ elements are either from
+        self.elements (or its subtrees) or from one of the expression given
+        in the tuple "deps" (or its subtrees).
 
-        # if this method is called repeatedly, and the caller guarantees
-        # that no definitions change between subsequent calls, then heads_cache
-        # may be passed an initially empty dict to speed up calls.
+        If this method is called repeatedly, and the caller guarantees
+        that no definitions change between subsequent calls, then heads_cache
+        may be passed an initially empty dict to speed up calls.
+        """
 
         if deps is None:
             deps = self
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
-        return s(list(leaves))
+        return s(list(elements))
 
     def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
         """Perform a single rewrite/apply/eval step of the bigger
@@ -1102,52 +1103,55 @@ class Expression(BaseElement, NumericOperators):
         head = self._head.evaluate(evaluation)
 
         attributes = head.get_attributes(evaluation.definitions)
-        elements = self.get_mutable_elements()
 
-        # The rest of the evaluation is very time-consuming.
+        # @timeit
+        def eval_elements():
+            def rest_range(indices):
+                if not hold_all_complete & attributes:
+                    if self._no_symbol("System`Evaluate"):
+                        return
+                    for index in indices:
+                        element = elements[index]
+                        if element.has_form("Evaluate", 1):
+                            elements[index] = element.evaluate(evaluation)
 
-        # One reason for this is that we evaluate each element,
-        # independently of the kind of element. Strings, numbers, and
-        # symbols are treated the same in evaluation. So F[1,2,3,...]
-        # takes more or less the same time that F[a1,a2,a3,..]  and
-        # F[a1,a1,a1,a1] whether or not a1... have assigned a value.
-        # However there is an expression cache.
-
-        # Functions Evaluate[] / Unevaluated[] found in the Expression alter evaluation
-        def rest_range(indices):
-            if not hold_all_complete & attributes:
-                if self._no_symbol("System`Evaluate"):
-                    return
+            def eval_range(indices):
                 for index in indices:
                     element = elements[index]
-                    if element.has_form("Evaluate", 1):
-                        elements[index] = element.evaluate(evaluation)
+                    if not element.has_form("Unevaluated", 1):
+                        element = element.evaluate(evaluation)
+                        if element:
+                            elements[index] = element
 
-        def eval_range(indices):
-            for index in indices:
-                element = elements[index]
-                if not element.has_form("Unevaluated", 1):
-                    element = element.evaluate(evaluation)
-                    if element:
-                        elements[index] = element
+            if (hold_all | hold_all_complete) & attributes:
+                # eval_range(range(0, 0))
+                rest_range(range(len(elements)))
+            elif hold_first & attributes:
+                rest_range(range(0, min(1, len(elements))))
+                eval_range(range(1, len(elements)))
+            elif hold_rest & attributes:
+                eval_range(range(0, min(1, len(elements))))
+                rest_range(range(1, len(elements)))
+            else:
+                eval_range(range(len(elements)))
+                # rest_range(range(0, 0))
 
-        if (hold_all | hold_all_complete) & attributes:
-            # eval_range(range(0, 0))
-            rest_range(range(len(elements)))
-        elif hold_first & attributes:
-            rest_range(range(0, min(1, len(elements))))
-            eval_range(range(1, len(elements)))
-        elif hold_rest & attributes:
-            eval_range(range(0, min(1, len(elements))))
-            rest_range(range(1, len(elements)))
+        # FIXME: figure out why we can't use this.
+        if False and self._elements_fully_evaluated:
+            elements = self._elements
         else:
-            eval_range(range(len(elements)))
-            # rest_range(range(0, 0))
+            elements = self.get_mutable_elements()
+            eval_elements()
 
         # Step 2: Build a new expression. Notice that elements are given
         # after creating the object, to avoid to call `from_python` on each element.
+
+        # FIXME: put this in a method
         new = Expression(head)
         new._elements = tuple(elements)
+        new._elements_fully_evaluated = self._elements_fully_evaluated
+        new._is_flat = self._is_flat
+        new._is_sorted = self._is_sorted
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
@@ -1839,14 +1843,15 @@ def _is_neutral_head(head, cache, evaluation):
     return _is_neutral_symbol(head.get_name(), cache, evaluation)
 
 
-# Structure helps implementations make the ExpressionCache not invalidate across simple commands
-# such as Take[], Most[], etc. without this, constant reevaluation of lists happens, which results
-# in quadratic runtimes for command like Fold[#1+#2&, Range[x]].
+class Structure:
+    """
+    Structure helps implementations make the ExpressionCache not invalidate across simple commands
+    such as Take[], Most[], etc. without this, constant reevaluation of lists happens, which results
+    in quadratic runtimes for command like Fold[#1+#2&, Range[x]].
 
-# A good performance test case for Structure: x = Range[50000]; First[Timing[Partition[x, 15, 1]]]
+    A good performance test case for Structure: x = Range[50000]; First[Timing[Partition[x, 15, 1]]]
+    """
 
-
-class Structure(object):
     def __call__(self, elements):
         # create an Expression with the given list "elements" as elements.
         # NOTE: the caller guarantees that "elements" only contains items that are from "origins".
@@ -1863,19 +1868,59 @@ class Structure(object):
         raise NotImplementedError
 
 
-# UnlinkedStructure produces Expressions that are not linked to "origins" in terms of cache.
-# This produces the same thing as doing Expression(head, *elements).
-
-
 class UnlinkedStructure(Structure):
+    """
+    UnlinkedStructure produces Expressions that are not linked to "origins" in terms of cache.
+    This produces the same thing as doing Expression(head, *elements).
+    """
+
     def __init__(self, head):
         self._head = head
         self._cache = None
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = tuple(elements)
+        expr._elements = self._build_elements(elements)
         return expr
+
+    def _build_elements(self, elements: Iterable) -> tuple:
+        """
+        Build a tuple of Elements converted from the Python-like items in `elements`.
+        We also note useful properties such as whether the collection of elements is
+        sorted, flat, or fully evaluated.
+
+        Note: we add or set the following fields:
+          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+        """
+
+        # All of the properties start out optimistic (True) and are reset when that proves wrong.
+
+        # _elements_fully_evaluated is True if all elements have been fully evaluated.
+        # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
+        self._elements_fully_evaluated = True
+
+        # _is_flat is True if all elements are atoms/leaves.
+        self._is_flat = True
+
+        # _is_sorted is True if elements do not need sorting
+        # elements with less than 2 items or all have the same value are sorted.
+        self._is_sorted = True
+
+        result = []
+        last_element = None
+        for element in elements:
+            # Test for the three properties mentioned above.
+            if not element.is_literal:
+                self._elements_fully_evaluated = False
+            if isinstance(element, Expression):
+                self._is_flat = False
+            if self._is_sorted and last_element is not None and last_element != element:
+                self._is_sorted = False
+            last_element = element
+
+            result.append(element)
+
+        return tuple(result)
 
     def filter(self, expr, cond):
         return self([element for element in expr._elements if cond(element)])
@@ -1888,12 +1933,13 @@ class UnlinkedStructure(Structure):
         return self(elements[lower:upper])
 
 
-# LinkedStructure produces Expressions that are linked to "origins" in terms of cache. This
-# carries over information from the cache of the originating Expressions into the Expressions
-# that are newly created.
-
-
 class LinkedStructure(Structure):
+    """
+    LinkedStructure produces Expressions that are linked to "origins" in terms of cache. This
+    carries over information from the cache of the originating Expressions into the Expressions
+    that are newly created.
+    """
+
     def __init__(self, head, cache):
         self._head = head
         self._cache = cache
@@ -1922,14 +1968,16 @@ class LinkedStructure(Structure):
 
 
 def structure(head, origins, evaluation, structure_cache=None):
-    # creates a Structure for building Expressions with head "head" and elements
-    # originating (exclusively) from "origins" (elements are passed into the functions
-    # of Structure further down).
+    """
+    Creates a Structure for building Expressions with head "head" and elements
+    originating (exclusively) from "origins" (elements are passed into the functions
+    of Structure further down).
 
-    # "origins" may either be an Expression (i.e. all elements must originate from that
-    # expression), a Structure (all elements passed in this "self" Structure must be
-    # manufactured using that Structure), or a list of Expressions (i.e. all elements
-    # must originate from one of the listed Expressions).
+    "origins" may either be an Expression (i.e. all elements must originate from that
+    expression), a Structure (all elements passed in this "self" Structure must be
+    manufactured using that Structure), or a list of Expressions (i.e. all elements
+    must originate from one of the listed Expressions).
+    """
 
     if isinstance(head, (str,)):
         head = Symbol(head)
