@@ -313,9 +313,11 @@ class Missing(Builtin):
     <dd>'Missing[]'
     <dt> represents a data that is misssing.
     </dl>
+    >> ElementData["Meitnerium","MeltingPoint"]
+     = Missing[NotAvailable]
     """
 
-    summary_text = "default value if a key is not found"
+    summary_text = "symbolic representation of missing data"
 
 
 class Values(Builtin):

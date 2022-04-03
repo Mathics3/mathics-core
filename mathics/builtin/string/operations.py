@@ -777,7 +777,7 @@ class StringReverse(Builtin):
        = evil
     """
 
-    summary_text = "revert the order of the characters"
+    summary_text = "reverses the order of the characters in a string"
     attributes = listable | protected
 
     def apply(self, string, evaluation):

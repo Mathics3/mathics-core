@@ -372,7 +372,7 @@ class Sow(Builtin):
     </dl>
     """
 
-    summary_text = "send an expression to the innermost Row"
+    summary_text = "send an expression to the nearest enclosing Reap"
     rules = {
         "Sow[e_]": "Sow[e, {Null}]",
         "Sow[e_, tag_]": "Sow[e, {tag}]",
