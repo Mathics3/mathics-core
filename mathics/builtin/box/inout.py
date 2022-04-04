@@ -14,8 +14,8 @@ class ButtonBox(Builtin):
     </dl>
     """
 
-    summary_text = "box construct for buttons"
     attributes = protected | read_protected
+    summary_text = "box construct for buttons"
 
 
 class InterpretationBox(Builtin):
@@ -27,8 +27,8 @@ class InterpretationBox(Builtin):
     </dl>
     """
 
-    summary_text = "box associated to an input expression"
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box associated to an input expression"
 
 
 class SubscriptBox(Builtin):
@@ -51,7 +51,6 @@ class SubsuperscriptBox(Builtin):
     """
 
     summary_text = "box format for sub and super script"
-    pass
 
 
 class SuperscriptBox(Builtin):
@@ -63,7 +62,6 @@ class SuperscriptBox(Builtin):
     """
 
     summary_text = "box format for superscript"
-    pass
 
 
 class RowBox(Builtin):
@@ -90,8 +88,8 @@ class StyleBox(Builtin):
     </dl>
     """
 
-    summary_text = "associates boxes with styles"
     attributes = protected | read_protected
+    summary_text = "associate boxes with styles"
 
 
 class TagBox(Builtin):
@@ -103,8 +101,8 @@ class TagBox(Builtin):
     </dl>
     """
 
-    summary_text = "box tag with a head"
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box tag with a head"
 
 
 class TemplateBox(Builtin):
@@ -115,8 +113,8 @@ class TemplateBox(Builtin):
     </dl>
     """
 
-    summary_text = "parametrized box"
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "parametrized box"
 
 
 class TooltipBox(Builtin):
