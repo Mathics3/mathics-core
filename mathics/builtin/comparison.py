@@ -379,6 +379,7 @@ class TrueQ(Builtin):
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
+    summary_text = "test whether the expression evaluates to True"
 
 
 class BooleanQ(Builtin):
@@ -410,6 +411,7 @@ class BooleanQ(Builtin):
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
+    summary_text = "test whether the expression evaluates to a boolean constant"
 
 
 class Inequality(Builtin):
@@ -439,6 +441,7 @@ class Inequality(Builtin):
             "arguments is expected to be an odd number >= 3."
         ),
     }
+    summary_text = "chain of inequalities"
 
     def apply(self, items, evaluation):
         "Inequality[items___]"
@@ -778,6 +781,7 @@ class Less(_ComparisonOperator, SympyComparison):
     """
 
     operator = "<"
+    summary_text = "less than"
     sympy_name = "StrictLessThan"
 
 
@@ -798,6 +802,7 @@ class LessEqual(_ComparisonOperator, SympyComparison):
     """
 
     operator = "<="
+    summary_text = "less than or equal to"
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
 
@@ -821,6 +826,7 @@ class Greater(_ComparisonOperator, SympyComparison):
     """
 
     operator = ">"
+    summary_text = "greater than"
     sympy_name = "StrictGreaterThan"
 
 
@@ -835,6 +841,7 @@ class GreaterEqual(_ComparisonOperator, SympyComparison):
     """
 
     operator = ">="
+    summary_text = "greater than or equal to"
     sympy_name = "GreaterThan"
 
 
@@ -867,6 +874,7 @@ class Positive(Builtin):
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
     }
+    summary_text = "test wheter an expression is a positive number"
 
 
 class Negative(Builtin):
@@ -896,6 +904,7 @@ class Negative(Builtin):
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
     }
+    summary_text = "test wheter an expression is a negative number"
 
 
 class NonNegative(Builtin):
@@ -914,6 +923,7 @@ class NonNegative(Builtin):
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
     }
+    summary_text = "test wheter an expression is a non-negative number"
 
 
 class NonPositive(Builtin):
@@ -932,6 +942,7 @@ class NonPositive(Builtin):
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
     }
+    summary_text = "test wheter an expression is a non-positive number"
 
 
 def expr_max(items):
@@ -1024,6 +1035,7 @@ class Max(_MinMax):
      = x
     """
 
+    summary_text = "maximum value in a list"
     sense = 1
 
 
@@ -1059,3 +1071,4 @@ class Min(_MinMax):
     """
 
     sense = -1
+    summary_text = "minimum value in a list"
