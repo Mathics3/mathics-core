@@ -12,7 +12,7 @@ from bisect import bisect_left
 
 from mathics.core.atoms import from_python, Number, Integer
 from mathics.core.attributes import (
-    flat,
+    flat as FLAT,
     hold_all,
     hold_all_complete,
     hold_first,
@@ -20,7 +20,7 @@ from mathics.core.attributes import (
     listable,
     no_attributes,
     numeric_function,
-    orderless,
+    orderless as ORDERLESS,
     sequence_hold,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
@@ -39,7 +39,8 @@ from mathics.core.symbols import (
     system_symbols,
 )
 from mathics.core.systemsymbols import SymbolSequence
-from mathics.core.util import timeit
+
+# from mathics.core.util import timeit
 
 SymbolAborted = Symbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
@@ -1155,6 +1156,7 @@ class Expression(BaseElement, NumericOperators):
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
+        # if not new._is_flat and not (sequence_hold | hold_all_complete) & attributes:
         if not (sequence_hold | hold_all_complete) & attributes:
             # This step is applied to most of the expressions
             # and could be heavy for expressions with many elements (like long lists)
@@ -1197,19 +1199,20 @@ class Expression(BaseElement, NumericOperators):
                 new._elements = tuple(dirty_elements)
                 elements = dirty_elements
 
-        # If the attribute Flat is set, calls flatten with a callback
+        # If the attribute FLAT is set, calls flatten with a callback
         # that set elements as unevaluated too.
         def flatten_callback(new_elements, old):
             for element in new_elements:
                 element.unevaluated = old.unevaluated
 
-        if flat & attributes:
+        if not new._is_flat and (FLAT & attributes):
             new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            new._is_sorted = len(new._elements) <= 1
 
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if orderless & attributes:
+        if ORDERLESS & attributes:
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
