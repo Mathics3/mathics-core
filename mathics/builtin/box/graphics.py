@@ -363,8 +363,8 @@ class CircleBox(_ArcBox):
     </dl>
     """
 
-    summary_text = "internal box representation for 'Circle' elements"
     face_element = False
+    summary_text = "internal box representation for 'Circle' elements"
 
 
 class DiskBox(_ArcBox):
@@ -375,8 +375,8 @@ class DiskBox(_ArcBox):
     </dl>
     """
 
-    summary_text = "internal box representation for 'Disk' elements"
     face_element = True
+    summary_text = "internal box representation for 'Disk' elements"
 
 
 class GraphicsBox(BoxConstruct):
@@ -390,9 +390,8 @@ class GraphicsBox(BoxConstruct):
     Graphics.
     """
 
-    options = Graphics.options
-
     attributes = hold_all | protected | read_protected
+    options = Graphics.options
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -1088,11 +1087,19 @@ class LineBox(_Polyline):
 
 class PointBox(_Polyline):
     """
-    Boxing methods for a list of Point.
-
-    object attributes:
-    edge_color: _ColorObject
-    point_radius: radius of each point
+    <dl>
+    <dt>'PointBox'[{$x$, $y$}]
+    <dd> a box construction representing a point in a Graphic.
+    <dt>'PointBox'[{$x$, $y$, $z$}]
+    <dd> represents a point in a Graphic3D.
+    <dt>'PointBox'[{$p_1$, $p_2$,...}]
+    <dd> represents a set of points.
+    </dl>
+    # Boxing methods for a list of Point.
+    #
+    # object attributes:
+    # edge_color: _ColorObject
+    # point_radius: radius of each point
     """
 
     def init(self, graphics, style, item=None):

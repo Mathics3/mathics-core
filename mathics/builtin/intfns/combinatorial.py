@@ -47,6 +47,7 @@ class Binomial(_MPMathFunction):
     nargs = 2
     sympy_name = "binomial"
     mpmath_name = "binomial"
+    summary_text = "binomial coefficients"
 
 
 class Multinomial(Builtin):
@@ -69,6 +70,7 @@ class Multinomial(Builtin):
     """
 
     attributes = listable | numeric_function | orderless | protected
+    summary_text = "multinomial coefficients"
 
     def apply(self, values, evaluation):
         "Multinomial[values___]"
@@ -141,6 +143,8 @@ class MatchingDissimilarity(_BooleanDissimilarity):
      = 4 / 7
     """
 
+    summary_text = "simple matching dissimilarity"
+
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, n)
 
@@ -157,6 +161,8 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
      = 2 / 3
     """
+
+    summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, c_tt + c_ft + c_tf)
@@ -175,6 +181,8 @@ class DiceDissimilarity(_BooleanDissimilarity):
      = 1 / 2
     """
 
+    summary_text = "Dice dissimilarity"
+
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
 
@@ -191,6 +199,8 @@ class YuleDissimilarity(_BooleanDissimilarity):
     >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
      = 6 / 5
     """
+
+    summary_text = "Yule dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r_half = c_tf * c_ft
@@ -210,6 +220,8 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
      = 4 / 5
     """
 
+    summary_text = "Sokal-Sneat dissimilarity"
+
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
         return Expression("Divide", r, c_tt + r)
@@ -228,6 +240,8 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
      = 5 / 7
     """
 
+    summary_text = "Russell-Rao dissimilarity"
+
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         return Expression("Divide", n - c_tt, n)
 
@@ -244,6 +258,8 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
      = 8 / 11
     """
+
+    summary_text = "Rogers-Tanimoto dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
@@ -381,14 +397,16 @@ class Subsets(Builtin):
      = {}
     """
 
-    rules = {
-        "Subsets[list_ , Pattern[n,_List|All|DirectedInfinity[1]], spec_]": "Take[Subsets[list, n], spec]",
-    }
-
     messages = {
         "nninfseq": "Position 2 of `1` must be All, Infinity, a non-negative integer, or a List whose first element (required) is a non-negative integer, second element (optional) is a non-negative integer or Infinity, and third element (optional) is a nonzero integer",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
+
+    rules = {
+        "Subsets[list_ , Pattern[n,_List|All|DirectedInfinity[1]], spec_]": "Take[Subsets[list, n], spec]",
+    }
+
+    summary_text = "list all the subsets"
 
     def apply(self, list, evaluation):
         "Subsets[list_]"
