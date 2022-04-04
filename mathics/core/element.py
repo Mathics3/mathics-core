@@ -444,6 +444,18 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()`, we don't need a `definitions`
+        parameter.
+
+        Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we should (re)evaluate
