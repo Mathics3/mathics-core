@@ -33,7 +33,7 @@ from mathics.format.asy_fns import asy_create_pens, asy_number
 class Graphics3DBox(GraphicsBox):
     """
     <dl>
-    <dt>Graphics3DBox[...]
+    <dt>'Graphics3DBox[{...}]'
     <dd>a box structure for Graphics3D elements.
     </dl>
     Routines which get called when Boxing (adding formatting and bounding-box information)
@@ -760,8 +760,6 @@ class Cuboid3DBox(_GraphicsElement):
     # """
     # Internal Python class used when Boxing a 'Cuboid' object.
     # """
-    #
-    # summary_text = "box representation for a cuboid"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -790,7 +788,6 @@ class Cylinder3DBox(_GraphicsElement):
     # """
     # Internal Python class used when Boxing a 'Cylinder' object.
     # """
-    # summary_text = "box representation for cylinder"
 
     def init(self, graphics, style, item):
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)

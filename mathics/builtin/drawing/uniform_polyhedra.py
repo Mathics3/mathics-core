@@ -98,7 +98,7 @@ class Octahedron(Builtin):
      = -Graphics3D-
     """
 
-    summary_text = "a octahedron"
+    summary_text = "an octahedron"
     rules = {
         "Octahedron[]": """UniformPolyhedron["octahedron"]""",
         "Octahedron[l_?NumberQ]": """UniformPolyhedron["octahedron", {{0, 0, 0}}, l]""",

@@ -337,7 +337,7 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     """
     <dl>
-    <dt>BezierCurveBox[...]
+    <dt>'BezierCurveBox[...]'
     <dd>is a box structure for a 'BezierCurve' element.
     </dl>
     """
@@ -358,7 +358,7 @@ class BezierCurveBox(_Polyline):
 class CircleBox(_ArcBox):
     """
     <dl>
-    <dt>CircleBox[...]
+    <dt>'CircleBox[...]'
     <dd>box structure for a 'Circle' element.
     </dl>
     """
@@ -370,7 +370,7 @@ class CircleBox(_ArcBox):
 class DiskBox(_ArcBox):
     """
     <dl>
-    <dt>DiskBox[...]
+    <dt>'DiskBox[...]'
     <dd>box structure for a 'Disk' element.
     </dl>
     """
@@ -382,7 +382,7 @@ class DiskBox(_ArcBox):
 class GraphicsBox(BoxConstruct):
     """
     <dl>
-    <dt>GraphicsBox[...]
+    <dt>'GraphicsBox[...]'
     <dd>box structure holding a 'Graphics' object.
     </dl>
 
