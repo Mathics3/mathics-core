@@ -92,22 +92,35 @@ mathics_to_python = {}
 
 class Builtin:
     """
-    This class is the base class for Builtin symbol definitions.
+    A base class for a Built-in function symbols, like Integer, or variables like $SystemID,
+    and Built-in Objects like DateTimeObject
 
-    A Builtin class is a structure that holds the information needed to generate
-    a Definition object for a built-in Symbol, like transformation rules, attributes, options,
-    etc.
-    Method with names of the form ``apply*`` are considered replacement rules, for expressions
-    that match the pattern described in their docstrings. For example
+    Some of the class variables of the Builtin object are used to
+    create a definition object that built-in Symbol.  In particular,
+    there are (transformation) rules, attributes, (error) messages,
+    options, and other things.
+
+    Function application pattern matching
+    -------------------------------------
+
+    Method names of a builtin-class that start with the word ``apply`` are evaluation methods that
+    will get called when the docstring of that method matches the expression to be evaluated.
 
     ```
         def apply(x, evaluation):
-             '''F[x_Real]'''
+             "F[x_Real]"
              return Expression("G", x*2)
     ```
-    adds a ``BuilitinRule`` that implements ``F[x_]->G[x*2].
+
+    adds a ``BuiltinRule`` to the symbol's definition object that implements ``F[x_]->G[x*2]``.
+
+    As shown in the example above, leading argument names of the
+    function are the arguments mentioned in the names given up to the
+    first underscore ``_``.  So the single parameter in the above is
+    ``x``. The method must also have an evaluation parameter, and may
+    have an optional `options` parameter.
+
     If the ``apply*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
-    Notice that the argument names must coincide with the name of the corresponding pattern in the docstring.
 
     For rules including ``OptionsPattern``
     ```
@@ -142,7 +155,6 @@ class Builtin:
     ```
     expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
     ```
-
     """
 
     name: typing.Optional[str] = None
@@ -454,6 +466,18 @@ class Builtin:
                     return s.get_name()[len(prefix) :], s
         return None, s
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+        """
+        # FIXME: figure out what the right thing to do here is.
+        # For now we will be pessimistic.
+        return False
+
 
 class InstanceableBuiltin(Builtin):
     def __new__(cls, *args, **kwargs):
@@ -478,20 +502,13 @@ class InstanceableBuiltin(Builtin):
     def init(self, *args, **kwargs):
         pass
 
-    @property
-    def is_literal(self) -> bool:
-        """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
-        """
-        # FIXME: figure out what the right thing to do here is.
-        # For now we will be pessimistic.
-        return False
-
 
 class AtomBuiltin(Builtin):
+    """
+    This class is used to define Atoms other than those ones in core, but also
+    have the Builtin function/variable/object properties.
+    """
+
     # allows us to define apply functions, rules, messages, etc. for Atoms
     # which are by default not in the definitions' contribution pipeline.
     # see Image[] for an example of this.

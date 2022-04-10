@@ -14,6 +14,7 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
     BaseElement,
+    ImmutableValueMixin,
     NumericOperators,
     Symbol,
     SymbolHoldForm,
@@ -75,7 +76,7 @@ def from_mpmath(value, prec=None):
         raise TypeError(type(value))
 
 
-class Number(Atom, NumericOperators):
+class Number(Atom, ImmutableValueMixin, NumericOperators):
     """
     Different kinds of Mathics Numbers, the main built-in subclasses
     being: Integer, Rational, Real, Complex.
@@ -739,7 +740,7 @@ class Complex(Number):
         return real_zero and imag_zero
 
 
-class String(Atom):
+class String(Atom, ImmutableValueMixin):
     value: str
     class_head_name = "System`String"
 
@@ -921,7 +922,7 @@ class String(Atom):
         return (self.value,)
 
 
-class ByteArrayAtom(Atom):
+class ByteArrayAtom(Atom, ImmutableValueMixin):
     value: str
     class_head_name = "System`ByteArrayAtom"
 

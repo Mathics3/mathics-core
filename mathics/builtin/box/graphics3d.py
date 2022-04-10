@@ -7,7 +7,7 @@ import html
 import json
 import numbers
 
-from mathics.builtin.base import BoxConstructError, InstanceableBuiltin
+from mathics.builtin.base import BoxConstructError
 from mathics.builtin.box.graphics import (
     GraphicsBox,
     ArrowBox,
@@ -16,7 +16,7 @@ from mathics.builtin.box.graphics import (
     PolygonBox,
 )
 
-from mathics.builtin.colors.color_directives import _Color, RGBColor
+from mathics.builtin.colors.color_directives import _ColorObject, RGBColor
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElement
 from mathics.builtin.drawing.graphics3d import (
     Coords3D,
@@ -53,7 +53,7 @@ class Graphics3DBox(GraphicsBox):
         ):
             self.background_color = None
         else:
-            self.background_color = _Color.create(background)
+            self.background_color = _ColorObject.create(background)
 
         evaluation = options["evaluation"]
 
@@ -639,7 +639,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
         # FIXME: Not quite right. We only handle color
         ticks_style = [
-            elements.create_style(s).get_style(_Color, face_element=False)[0]
+            elements.create_style(s).get_style(_ColorObject, face_element=False)[0]
             for s in ticks_style
         ]
 
@@ -718,7 +718,9 @@ class Cone3DBox(_GraphicsElement):
     # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         if len(item.leaves) != 2:
             raise BoxConstructError
@@ -762,7 +764,9 @@ class Cuboid3DBox(_GraphicsElement):
     # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         if len(item.leaves) != 1:
             raise BoxConstructError
@@ -790,7 +794,9 @@ class Cylinder3DBox(_GraphicsElement):
     # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         if len(item.leaves) != 2:
             raise BoxConstructError
@@ -903,7 +909,9 @@ class Sphere3DBox(_GraphicsElement):
     # summary_text = "box representation for a sphere"
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
         if len(item.leaves) != 2:
             raise BoxConstructError
 
@@ -944,7 +952,9 @@ class Tube3DBox(_GraphicsElement):
     # summary_text = "box representation for a tube"
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         points = item.leaves[0].to_python()
         if not all(

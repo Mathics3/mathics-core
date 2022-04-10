@@ -22,7 +22,7 @@ from mathics.builtin.drawing.graphics_internals import (
     get_class,
 )
 from mathics.builtin.colors.color_directives import (
-    _Color,
+    _ColorObject,
     CMYKColor,
     GrayLevel,
     Hue,
@@ -1089,7 +1089,7 @@ class Style(object):
         if face_element is not None:
             default_to_faces = consider_forms = face_element
         edge_style = face_style = None
-        if style_class == _Color:
+        if style_class == _ColorObject:
             if default_to_faces:
                 face_style = self.get_default_face_color()
             else:
