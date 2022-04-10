@@ -65,10 +65,32 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
+def split_name(name: str) -> str:
+    """
+    insert spaces in front of upper case letters
+    and numbers. For instance,
+    ``split_name("BezierCurve3D")`` results in
+    ``"bezier curve 3D"``
+
+    """
+    if name == "":
+        return ""
+    result = name[0]
+    for i in range(1, len(name)):
+        if name[i].isupper():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        elif name[i].isdigit():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        result = result + name[i]
+    return result.lower()
+
+
 mathics_to_python = {}
 
 
-class Builtin(object):
+class Builtin:
     """
     This class is the base class for Builtin symbol definitions.
 
@@ -104,7 +126,7 @@ class Builtin(object):
     ```
     produces a ``Definitions`` object with just one definition, for the ``Symbol`` ``System`List``.
 
-    Notice that for creating a Bultinin, we must pass to the constructor the option ``expression=False``. Otherwise,
+    Notice that for creating a Builtin, we must pass to the constructor the option ``expression=False``. Otherwise,
     an Expression object is created, with the ``Symbol`` associated to the definition as the ``Head``.
     For example,
 
@@ -456,6 +478,18 @@ class InstanceableBuiltin(Builtin):
     def init(self, *args, **kwargs):
         pass
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+        """
+        # FIXME: figure out what the right thing to do here is.
+        # For now we will be pessimistic.
+        return False
+
 
 class AtomBuiltin(Builtin):
     # allows us to define apply functions, rules, messages, etc. for Atoms
@@ -677,6 +711,25 @@ class BoxConstruct(InstanceableBuiltin):
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
+        article = (
+            "an "
+            if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
+            else "a "
+        )
+
+        instance.summary_text = (
+            "box representation for "
+            + article
+            + split_name(cls.get_name(short=True)[:-3])
+        )
+        if not instance.__doc__:
+            instance.__doc__ = rf"""
+            <dl>
+            <dt>'{instance.get_name()}'
+            <dd> box structure.
+            </dl>
+            """
+
         # the __new__ method from InstanceableBuiltin
         # calls self.init. It is expected that it set
         # self._elements. However, if it didn't happens,

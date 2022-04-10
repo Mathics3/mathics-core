@@ -308,7 +308,16 @@ class Lookup(Builtin):
 
 
 class Missing(Builtin):
-    summary_text = "default value if a key is not found"
+    """
+    <dl>
+    <dd>'Missing[]'
+    <dt> represents a data that is misssing.
+    </dl>
+    >> ElementData["Meitnerium","MeltingPoint"]
+     = Missing[NotAvailable]
+    """
+
+    summary_text = "symbolic representation of missing data"
 
 
 class Values(Builtin):

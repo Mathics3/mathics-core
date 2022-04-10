@@ -297,6 +297,7 @@ class Catenate(Builtin):
      = {1, 2, 3, 4, 5}
     """
 
+    summary_text = "catenate elements from a list of lists"
     messages = {"invrp": "`1` is not a list."}
 
     def apply(self, lists, evaluation):
@@ -358,6 +359,7 @@ class Complement(_SetOperation):
      = {a, b, c}
     """
 
+    summary_text = "find the complement with respect to a universal set"
     _operation = "difference"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
@@ -391,6 +393,7 @@ class DeleteDuplicates(_GatherOperation):
      = {}
     """
 
+    summary_text = "delete duplicate elements in a list"
     _bin = _DeleteDuplicatesBin
 
 
@@ -413,6 +416,7 @@ class Gather(_GatherOperation):
      = {{1 / 3, 1 / 3}, {1 / 9}}
     """
 
+    summary_text = "gather sublists of identical elements"
     _bin = _GatherBin
 
 
@@ -444,7 +448,7 @@ class GatherBy(_GatherOperation):
         "GatherBy[l_, {r__, f_}]": "Map[GatherBy[#, f]&, GatherBy[l, {r}], {Length[{r}]}]",
         "GatherBy[l_, {f_}]": "GatherBy[l, f]",
     }
-
+    summary_text = "gather based on values of a function applied to elements"
     _bin = _GatherBin
 
     def apply(self, values, func, evaluation):
@@ -493,6 +497,7 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
+    summary_text = "join lists together at any level"
     attributes = flat | one_identity | protected
 
     def apply(self, lists, evaluation):
@@ -542,7 +547,7 @@ class Partition(Builtin):
     >> Partition[{{11, 12, 13}, {21, 22, 23}, {31, 32, 33}}, {2, 2}, 1]
      = {{{{11, 12}, {21, 22}}, {{12, 13}, {22, 23}}}, {{{21, 22}, {31, 32}}, {{22, 23}, {32, 33}}}}
     """
-
+    summary_text = "partition a list into sublists of a given length"
     rules = {
         "Parition[list_, n_, d_, k]": "Partition[list, n, d, {k, k}]",
     }
@@ -604,6 +609,7 @@ class Reverse(Builtin):
      = {{4, 3}, {2, 1}}
     """
 
+    summary_text = "reverse a list at any level"
     messages = {
         "ilsmp": "Positive integer or list of positive integers expected at position 2 of ``."
     }
@@ -711,6 +717,8 @@ class Riffle(Builtin):
      = {}
     """
 
+    summary_text = "intersperse additional elements"
+
     def apply(self, list, sep, evaluation):
         "Riffle[list_List, sep_]"
 
@@ -745,6 +753,7 @@ class RotateLeft(_Rotate):
      = {{f, d, e}, {i, g, h}, {c, a, b}}
     """
 
+    summary_text = "cyclically rotate lists to the left, at any depth"
     _sign = 1
 
 
@@ -771,6 +780,7 @@ class RotateRight(_Rotate):
      = {{h, i, g}, {b, c, a}, {e, f, d}}
     """
 
+    summary_text = "cyclically rotate lists to the right, at any depth"
     _sign = -1
 
 
@@ -792,6 +802,7 @@ class Tally(_GatherOperation):
      = {{b, 2}, {a, 3}, {d, 4}, {c, 1}}
     """
 
+    summary_text = "tally all distinct elements in a list"
     _bin = _TallyBin
 
 
@@ -821,6 +832,7 @@ class Union(_SetOperation):
      = {-2, 1, 3}
     """
 
+    summary_text = "enumerate all distinct elements in a list"
     _operation = "union"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):
@@ -854,6 +866,7 @@ class Intersection(_SetOperation):
      = {-3, -2, 1}
     """
 
+    summary_text = "enumerate common elements"
     _operation = "intersection"
 
     def _elementwise(self, a, b, sameQ: Callable[..., bool]):

@@ -36,6 +36,7 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
+    summary_text = "list the characters in a string"
     attributes = listable | protected
 
     def apply(self, string, evaluation):
@@ -58,6 +59,7 @@ class CharacterRange(Builtin):
      = {}
     """
 
+    summary_text = "range of characters with successive character codes"
     attributes = protected | read_protected
 
     messages = {
@@ -81,7 +83,8 @@ class DigitQ(Builtin):
     """
     <dl>
     <dt>'DigitQ[$string$]'
-        yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+    <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+
     </dl>
 
     >> DigitQ["9"]
@@ -98,6 +101,7 @@ class DigitQ(Builtin):
 
     """
 
+    summary_text = "test whether all the characters are digits"
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
@@ -109,7 +113,7 @@ class LetterQ(Builtin):
     """
     <dl>
     <dt>'LetterQ[$string$]'
-        yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
+    <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
     </dl>
 
     >> LetterQ["m"]
@@ -131,6 +135,7 @@ class LetterQ(Builtin):
      = True
     """
 
+    summary_text = "test whether all the characters are letters"
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
@@ -153,6 +158,8 @@ class LowerCaseQ(Test):
      = True
     """
 
+    summary_text = "test wether all the characters are lower-case letters"
+
     def test(self, s):
         return isinstance(s, String) and all(c.islower() for c in s.get_string_value())
 
@@ -168,6 +175,7 @@ class ToLowerCase(Builtin):
      = new york
     """
 
+    summary_text = "turn all the letters into lower case"
     attributes = listable | protected
 
     def apply(self, s, evaluation):
@@ -186,6 +194,7 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
+    summary_text = "turn all the letters into upper case"
     attributes = listable | protected
 
     def apply(self, s, evaluation):
@@ -207,6 +216,8 @@ class UpperCaseQ(Test):
     >> UpperCaseQ[""]
      = True
     """
+
+    summary_text = "test wether all the characters are upper-case letters"
 
     def test(self, s):
         return isinstance(s, String) and all(c.isupper() for c in s.get_string_value())

@@ -436,7 +436,7 @@ class Level(Builtin):
     """
     <dl>
     <dt>'Level[$expr$, $levelspec$]'
-        <dd>gives a list of all subexpressions of $expr$ at the
+    <dd>gives a list of all subexpressions of $expr$ at the
         level(s) specified by $levelspec$.
     </dl>
 
