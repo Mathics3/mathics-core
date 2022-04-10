@@ -1972,7 +1972,10 @@ class ExportString(Builtin):
             import tempfile
 
             tmpfile = tempfile.NamedTemporaryFile(
-                dir=tempfile.gettempdir(), suffix="." + format_spec[0].lower()
+                dir=tempfile.gettempdir(),
+                prefix="Mathics3-ExportString",
+                suffix="." + format_spec[0].lower(),
+                delete=True,
             )
             filename = String(tmpfile.name)
             tmpfile.close()
