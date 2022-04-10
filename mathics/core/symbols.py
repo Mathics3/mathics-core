@@ -199,8 +199,8 @@ class Atom(BaseElement):
     """
     Atoms are the (some) leaves and the Heads of an S-Expression or an M-Expression.
 
-    In other words, they are the some of units of an expression that we cannot
-    dig down deeper structurally.
+    In other words, they are the expression's elements (leaves of the
+    expression) which we cannot dig down deeper structurally.
 
     Of note is the fact that the Mathics ``Part[]`` function of an
     Atom object does not exist.
@@ -208,7 +208,7 @@ class Atom(BaseElement):
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
 
-    There are kind of leaf note is the Builtin, i.e. `ByteArray``, `CompiledCode`` or ``Image``.
+    The other kinds expression leaf is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
     """
 
     _head_name = ""
