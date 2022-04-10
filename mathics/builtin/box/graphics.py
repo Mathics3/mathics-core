@@ -46,6 +46,7 @@ from mathics.core.symbols import SymbolList
 
 from mathics.core.attributes import hold_all, protected, read_protected
 
+
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElement):
     face_element = None
@@ -74,13 +75,13 @@ class _RoundBox(_GraphicsElement):
         Compute the bounding box for _RoundBox. Note that
         We handle ellipses here too.
         """
-        l = self.style.get_line_width(face_element=self.face_element) / 2
+        line_width = self.style.get_line_width(face_element=self.face_element) / 2
         x, y = self.c.pos()
         rx, ry = self.r.pos()
         rx -= x
         ry = y - ry
-        rx += l
-        ry += l
+        rx += line_width
+        ry += line_width
         return [(x - rx, y - ry), (x - rx, y + ry), (x + rx, y - ry), (x + rx, y + ry)]
 
 
@@ -135,6 +136,13 @@ class _ArcBox(_RoundBox):
 
 
 class ArrowBox(_Polyline):
+    """
+    <dl>
+    <dt>'ArrowBox[...]'
+    <dd>is a box structure for 'Arrow' elements.
+    </dl>
+    """
+
     def init(self, graphics, style, item=None):
         if not item:
             raise BoxConstructError
@@ -180,7 +188,7 @@ class ArrowBox(_Polyline):
             elements = expr.elements
             if len(elements) != 2:
                 raise BoxConstructError
-            return tuple(max(_to_float(l), 0.0) for l in elements)
+            return tuple(max(_to_float(w), 0.0) for w in elements)
         else:
             s = max(_to_float(expr), 0.0)
             return s, s
@@ -327,6 +335,13 @@ class ArrowBox(_Polyline):
 
 
 class BezierCurveBox(_Polyline):
+    """
+    <dl>
+    <dt>'BezierCurveBox[...]'
+    <dd>is a box structure for a 'BezierCurve' element.
+    </dl>
+    """
+
     def init(self, graphics, style, item, options):
         super(BezierCurveBox, self).init(graphics, item, style)
         if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
@@ -341,19 +356,37 @@ class BezierCurveBox(_Polyline):
 
 
 class CircleBox(_ArcBox):
-    """Boxing class attribute for a Circle."""
+    """
+    <dl>
+    <dt>'CircleBox[...]'
+    <dd>box structure for a 'Circle' element.
+    </dl>
+    """
 
+    summary_text = "internal box representation for 'Circle' elements"
     face_element = False
 
 
 class DiskBox(_ArcBox):
-    """Boxing class attribute for a Disk."""
+    """
+    <dl>
+    <dt>'DiskBox[...]'
+    <dd>box structure for a 'Disk' element.
+    </dl>
+    """
 
+    summary_text = "internal box representation for 'Disk' elements"
     face_element = True
 
 
 class GraphicsBox(BoxConstruct):
-    """Boxing method which get called when Boxing (adding formatting and bounding-box information)
+    """
+    <dl>
+    <dt>'GraphicsBox[...]'
+    <dd>box structure holding a 'Graphics' object.
+    </dl>
+
+    Boxing method which get called when Boxing (adding formatting and bounding-box information)
     Graphics.
     """
 
@@ -648,7 +681,7 @@ class GraphicsBox(BoxConstruct):
         # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
         template = (
             '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
-            #'<mglyph  src="data:image/svg+xml;base64,%s"/>'
+            # '<mglyph  src="data:image/svg+xml;base64,%s"/>'
         )
         # print(svg_body)
         mathml = template % (
@@ -910,6 +943,13 @@ clip(%s);
 
 
 class FilledCurveBox(_GraphicsElement):
+    """
+    <dl>
+    <dt>'FilledCurveBox[...]'
+    <dd>is a box structure for 'FilledCurve' elements.
+    </dl>
+    """
+
     def init(self, graphics, style, item=None):
         super(FilledCurveBox, self).init(graphics, item, style)
         self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
@@ -961,14 +1001,19 @@ class FilledCurveBox(_GraphicsElement):
             raise BoxConstructError
 
     def extent(self):
-        l = self.style.get_line_width(face_element=False)
+        lw = self.style.get_line_width(face_element=False)
         result = []
         for component in self.components:
             for _, points in component:
                 for p in points:
                     x, y = p.pos()
                     result.extend(
-                        [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                        [
+                            (x - lw, y - lw),
+                            (x - lw, y + lw),
+                            (x + lw, y - lw),
+                            (x + lw, y + lw),
+                        ]
                     )
         return result
 
@@ -1023,9 +1068,7 @@ class InsetBox(_GraphicsElement):
 
 
 class LineBox(_Polyline):
-    """
-    Boxing methods for a list of Line.
-    """
+    # Boxing methods for a list of Line.
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
@@ -1042,13 +1085,13 @@ class LineBox(_Polyline):
 
 
 class PointBox(_Polyline):
-    """
-    Boxing methods for a list of Point.
-
-    object attributes:
-    edge_color: _Color
-    point_radius: radius of each point
-    """
+    # """
+    # Boxing methods for a list of Point.
+    #
+    # object attributes:
+    # edge_color: _Color
+    # point_radius: radius of each point
+    # """
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
@@ -1077,13 +1120,18 @@ class PointBox(_Polyline):
 
     def extent(self):
         """Returns a list of bounding-box coordinates each point in the PointBox"""
-        l = self.point_radius
+        rad = self.point_radius
         result = []
         for line in self.lines:
             for c in line:
                 x, y = c.pos()
                 result.extend(
-                    [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                    [
+                        (x - rad, y - rad),
+                        (x - rad, y + rad),
+                        (x + rad, y - rad),
+                        (x + rad, y + rad),
+                    ]
                 )
         return result
 
@@ -1145,12 +1193,17 @@ class RectangleBox(_GraphicsElement):
             self.p2 = Coords(graphics, item.elements[1])
 
     def extent(self):
-        l = self.style.get_line_width(face_element=True) / 2
+        hlw = self.style.get_line_width(face_element=True) / 2
         result = []
         for p in [self.p1, self.p2]:
             x, y = p.pos()
             result.extend(
-                [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
+                [
+                    (x - hlw, y - hlw),
+                    (x - hlw, y + hlw),
+                    (x + hlw, y - hlw),
+                    (x + hlw, y + hlw),
+                ]
             )
         return result
 

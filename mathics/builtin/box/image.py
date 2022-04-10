@@ -4,7 +4,12 @@ from mathics.builtin.base import BoxConstruct
 
 
 class ImageBox(BoxConstruct):
-    """Routines which get called when Boxing (adding formatting and bounding-box information)
+    """
+    <dl>
+    <dt>'ImageBox[...]'
+    <dd>is a box structure for an image element.
+    </dl>
+    Routines which get called when Boxing (adding formatting and bounding-box information)
     an Image object.
     """
 

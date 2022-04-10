@@ -31,9 +31,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN
-from mathics.core.systemsymbols import (
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolRule
 
 
 try:
@@ -80,6 +78,14 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
 
 
 class ColorDataFunction(Builtin):
+    """
+    <dl>
+    <dt>'ColorDataFunction[range, ...]'
+    <dd> is a function that represents a color scheme.
+    </dl>
+    """
+
+    summary_text = "color scheme object"
     pass
 
 
@@ -143,7 +149,7 @@ class ColorData(Builtin):
     #                RGBColor[0.762631, 0.846998, 0.914031],
     #                RGBColor[0.941176, 0.906538, 0.834043]}, #1] &]"""),
     # }
-
+    summary_text = "named color gradients and collections"
     messages = {
         "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
     }
@@ -255,7 +261,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
                     result = cfunc(*args)
                     if not (isnan(result) or isinf(result)):
                         return result
-                except:
+                except Exception:
                     pass
                 return None
 
@@ -579,19 +585,20 @@ class _Plot(Builtin):
 
             def find_excl(excl):
                 # Find which line the exclusion is in
-                for l in range(len(xvalues)):  # TODO: Binary Search faster?
-                    if xvalues[l][0] <= excl and xvalues[l][-1] >= excl:
+                for line in range(len(xvalues)):  # TODO: Binary Search faster?
+                    if xvalues[line][0] <= excl and xvalues[line][-1] >= excl:
                         break
                     if (
-                        xvalues[l][-1] <= excl
-                        and xvalues[min(l + 1, len(xvalues) - 1)][0] >= excl  # nopep8
+                        xvalues[line][-1] <= excl
+                        and xvalues[min(line + 1, len(xvalues) - 1)][0]
+                        >= excl  # nopep8
                     ):
-                        return min(l + 1, len(xvalues) - 1), 0, False
+                        return min(line + 1, len(xvalues) - 1), 0, False
                 xi = 0
-                for xi in range(len(xvalues[l]) - 1):
-                    if xvalues[l][xi] <= excl and xvalues[l][xi + 1] >= excl:
-                        return l, xi + 1, True
-                return l, xi + 1, False
+                for xi in range(len(xvalues[line]) - 1):
+                    if xvalues[line][xi] <= excl and xvalues[line][xi + 1] >= excl:
+                        return line, xi + 1, True
+                return line, xi + 1, False
 
             if exclusions != "System`None":
                 for excl in exclusions:
@@ -890,6 +897,7 @@ class PieChart(_Chart):
      = -Graphics-
     """
 
+    summary_text = "draw a pie chart"
     options = _Chart.options.copy()
     options.update(
         {
@@ -1065,6 +1073,7 @@ class BarChart(_Chart):
      = -Graphics-
     """
 
+    summary_text = "draw a bar chart"
     options = _Chart.options.copy()
     options.update(
         {
@@ -1178,6 +1187,7 @@ class Histogram(Builtin):
      = -Graphics-
     """
 
+    summary_text = "draw a histogram"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -1209,8 +1219,8 @@ class Histogram(Builtin):
         else:
             input = [points]
 
-        def to_numbers(l):
-            for x in l:
+        def to_numbers(li):
+            for x in li:
                 y = x.to_mpmath()
                 if y is not None:
                     yield y
@@ -1522,17 +1532,17 @@ class _ListPlot(Builtin):
 
         # Split into segments at missing data
         all_points = [[line] for line in all_points]
-        for l, line in enumerate(all_points):
+        for lidx, line in enumerate(all_points):
             i = 0
-            while i < len(all_points[l]):
+            while i < len(all_points[lidx]):
                 seg = line[i]
                 for j, point in enumerate(seg):
                     if not (
                         isinstance(point[0], (int, float))
                         and isinstance(point[1], (int, float))
                     ):
-                        all_points[l].insert(i, seg[:j])
-                        all_points[l][i + 1] = seg[j + 1 :]
+                        all_points[lidx].insert(i, seg[:j])
+                        all_points[lidx][i + 1] = seg[j + 1 :]
                         i -= 1
                         break
 
@@ -2104,6 +2114,8 @@ class Plot(_Plot):
      = -Graphics-
     """
 
+    summary_text = "curves of one or more functions"
+
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
             functions = functions.leaves
@@ -2159,6 +2171,7 @@ class ParametricPlot(_Plot):
     = -Graphics-
     """
 
+    summary_text = "2D parametric curves or regions"
     expect_list = True
 
     def get_functions_param(self, functions):
@@ -2229,7 +2242,7 @@ class PolarPlot(_Plot):
     >> PolarPlot[Sqrt[t], {t, 0, 16 Pi}]
      = -Graphics-
     """
-
+    summary_text = "draw a polar plot"
     options = _Plot.options.copy()
     options.update(
         {
@@ -2285,6 +2298,7 @@ class ListPlot(_ListPlot):
      = -Graphics-
     """
 
+    summary_text = "plot lists of points"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2323,6 +2337,7 @@ class ListLinePlot(_ListPlot):
      = -Graphics-
     """
 
+    summary_text = "plot lines through lists of points"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2400,7 +2415,7 @@ class Plot3D(_Plot3D):
     """
     #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
     """
-
+    summary_text = "3D surfaces of one or more functions"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2483,6 +2498,7 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
+    summary_text = "density plot for a function"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()

@@ -258,6 +258,7 @@ class ColorDistance(Builtin):
 
     """
 
+    summary_text = "distance between two colors"
     options = {"DistanceFunction": "Automatic"}
 
     requires = ("numpy",)
