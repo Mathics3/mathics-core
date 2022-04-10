@@ -327,14 +327,12 @@ class CharacterEncoding(Predefined):
     """
 
     name = "$CharacterEncoding"
-
+    value = '"UTF-8"'
     rules = {
         "$CharacterEncoding": value,
     }
 
     summary_text = "default character encoding"
-
-    value = '"UTF-8"'
 
 
 _encodings = {
