@@ -9,7 +9,7 @@ import itertools
 from math import floor
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
-    _Color,
+    _ColorObject,
     ColorError,
     RGBColor,
 )
@@ -110,7 +110,7 @@ class Blend(Builtin):
 
         colors_orig = colors
         try:
-            colors = [_Color.create(color) for color in colors.get_sequence()]
+            colors = [_ColorObject.create(color) for color in colors.get_sequence()]
             if not colors:
                 raise ColorError
         except ColorError:

@@ -11,7 +11,7 @@ from mathics.builtin.base import (
     BoxConstructError,
 )
 
-from mathics.builtin.colors.color_directives import _Color, ColorError, RGBColor
+from mathics.builtin.colors.color_directives import _ColorObject, ColorError, RGBColor
 from mathics.builtin.drawing.graphics_internals import _GraphicsElement, GLOBALS
 
 from mathics.builtin.graphics import (
@@ -56,7 +56,7 @@ class _RoundBox(_GraphicsElement):
         if len(item._elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(
-            _Color, face_element=self.face_element
+            _ColorObject, face_element=self.face_element
         )
         self.c = Coords(graphics, item.elements[0])
         if len(item.elements) == 1:
@@ -179,7 +179,7 @@ class ArrowBox(_Polyline):
         self.setback = setback
         self.do_init(graphics, curve_points)
         self.graphics = graphics
-        self.edge_color, _ = style.get_style(_Color, face_element=False)
+        self.edge_color, _ = style.get_style(_ColorObject, face_element=False)
         self.heads, _ = style.get_style(Arrowheads, face_element=False)
 
     @staticmethod
@@ -346,7 +346,7 @@ class BezierCurveBox(_Polyline):
         super(BezierCurveBox, self).init(graphics, item, style)
         if len(item.elements) != 1 or item.elements[0].get_head_name() != "System`List":
             raise BoxConstructError
-        self.edge_color, _ = style.get_style(_Color, face_element=False)
+        self.edge_color, _ = style.get_style(_ColorObject, face_element=False)
         points = item.elements[0]
         self.do_init(graphics, points)
         spline_degree = options.get("System`SplineDegree")
@@ -466,7 +466,7 @@ class GraphicsBox(BoxConstruct):
         ):
             self.background_color = None
         else:
-            self.background_color = _Color.create(background)
+            self.background_color = _ColorObject.create(background)
 
         base_width, base_height, size_multiplier, size_aspect = self._get_image_size(
             options, self.graphics_options, max_width
@@ -952,7 +952,9 @@ class FilledCurveBox(_GraphicsElement):
 
     def init(self, graphics, style, item=None):
         super(FilledCurveBox, self).init(graphics, item, style)
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         if (
             item is not None
@@ -1033,7 +1035,7 @@ class InsetBox(_GraphicsElement):
 
         self.color = self.style.get_option("System`FontColor")
         if self.color is None:
-            self.color, _ = style.get_style(_Color, face_element=False)
+            self.color, _ = style.get_style(_ColorObject, face_element=False)
         self.opacity = opacity
 
         if item is not None:
@@ -1072,7 +1074,7 @@ class LineBox(_Polyline):
 
     def init(self, graphics, style, item=None, lines=None):
         super(LineBox, self).init(graphics, item, style)
-        self.edge_color, _ = style.get_style(_Color, face_element=False)
+        self.edge_color, _ = style.get_style(_ColorObject, face_element=False)
         if item is not None:
             if len(item.elements) != 1:
                 raise BoxConstructError
@@ -1085,17 +1087,19 @@ class LineBox(_Polyline):
 
 
 class PointBox(_Polyline):
-    # """
-    # Boxing methods for a list of Point.
-    #
-    # object attributes:
-    # edge_color: _Color
-    # point_radius: radius of each point
-    # """
+    """
+    Boxing methods for a list of Point.
+
+    object attributes:
+    edge_color: _ColorObject
+    point_radius: radius of each point
+    """
 
     def init(self, graphics, style, item=None):
         super(PointBox, self).init(graphics, item, style)
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
 
         # Handle PointSize in a hacky way for now.
         point_size, _ = style.get_style(PointSize, face_element=False)
@@ -1139,7 +1143,9 @@ class PointBox(_Polyline):
 class PolygonBox(_Polyline):
     def init(self, graphics, style, item=None):
         super(PolygonBox, self).init(graphics, item, style)
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
         if item is not None:
             if len(item.elements) not in (1, 2):
                 raise BoxConstructError
@@ -1173,7 +1179,9 @@ class PolygonBox(_Polyline):
                     if index >= len(self.vertex_colors[line_index]):
                         break
                     try:
-                        self.vertex_colors[line_index][index] = _Color.create(color)
+                        self.vertex_colors[line_index][index] = _ColorObject.create(
+                            color
+                        )
                     except ColorError:
                         continue
         else:
@@ -1185,7 +1193,9 @@ class RectangleBox(_GraphicsElement):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
             raise BoxConstructError
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
         self.p1 = Coords(graphics, item.elements[0])
         if len(item.elements) == 1:
             self.p2 = self.p1.add(1, 1)

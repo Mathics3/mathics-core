@@ -18,7 +18,7 @@ HOME_DIR = osp.expanduser("~")
 PATH_VAR = [".", HOME_DIR, osp.join(ROOT_DIR, "data"), osp.join(ROOT_DIR, "packages")]
 
 
-def create_temporary_file(suffix=None, delete=False):
+def create_temporary_file(prefix="Mathics3-", suffix=None, delete=True):
     if suffix == "":
         suffix = None
 
@@ -38,7 +38,7 @@ def urlsave_tmp(url, location=None, **kwargs):
         try:
             r = requests.get(url, allow_redirects=True)
             if location is None:
-                location = create_temporary_file(suffix=suffix)
+                location = create_temporary_file(prefix="Mathics3-url-", suffix=suffix)
             with open(location, "wb") as fp:
                 fp.write(r.content)
                 result = fp.name
