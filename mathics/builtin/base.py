@@ -92,11 +92,11 @@ mathics_to_python = {}
 
 class Builtin:
     """
-    A base class for a Built-in function symbols, like Integer, or variables like $SystemID,
-    and Built-in Objects like DateTimeObject
+    A base class for a Built-in function symbols, like List, or variables, like $SystemID,
+    and Built-in Objects, like DateTimeObject.
 
     Some of the class variables of the Builtin object are used to
-    create a definition object that built-in Symbol.  In particular,
+    create a definition object for that built-in symbol.  In particular,
     there are (transformation) rules, attributes, (error) messages,
     options, and other things.
 
@@ -105,6 +105,8 @@ class Builtin:
 
     Method names of a builtin-class that start with the word ``apply`` are evaluation methods that
     will get called when the docstring of that method matches the expression to be evaluated.
+
+    For example:
 
     ```
         def apply(x, evaluation):
@@ -473,10 +475,10 @@ class Builtin:
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
+
+        Each subclass should decide what is right here.
         """
-        # FIXME: figure out what the right thing to do here is.
-        # For now we will be pessimistic.
-        return False
+        raise NotImplementedError
 
 
 class InstanceableBuiltin(Builtin):
