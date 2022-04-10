@@ -362,6 +362,8 @@ class If(Builtin):
     >> If[a, (*then*) b, (*else*) c];
     """
 
+    summary_text = "if-then-else conditional expression"
+    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
     attributes = hold_rest | protected
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
@@ -635,11 +637,11 @@ class NestWhile(Builtin):
      = 625 / 2
     """
 
+    summary_text = "nest while a condition is satisfied returning the last expression"
+
     rules = {
         "NestWhile[f_, expr_, test_]": "NestWhile[f, expr, test, 1]",
     }
-
-    summary_text = "nest while a condition is satisfied returning the last expression"
 
     def apply(self, f, expr, test, m, evaluation):
         "NestWhile[f_, expr_, test_, Pattern[m,_Integer|All]]"
@@ -735,6 +737,7 @@ class Switch(Builtin):
      = Switch[b, b]
     """
 
+    summary_text = "switch based on a value, with patterns allowed"
     attributes = hold_rest | protected
 
     messages = {
@@ -837,12 +840,11 @@ class While(Builtin):
      = 12
     """
 
+    summary_text = "evaluate an expression while a criterion is true"
     attributes = hold_all | protected
     rules = {
         "While[test_]": "While[test, Null]",
     }
-
-    summary_text = "evaluate an expression while a criterion is true"
 
     def apply(self, test, body, evaluation):
         "While[test_, body_]"

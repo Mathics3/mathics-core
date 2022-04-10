@@ -311,7 +311,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-    <dt>'E'</dt>
+    <dt>'E'
         <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
@@ -337,7 +337,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-      <dt>'EulerGamma'</dt>
+      <dt>'EulerGamma'
       <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
     </dl>
 
@@ -357,7 +357,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class Glaisher(_MPMathConstant):
     """
     <dl>
-      <dt>'Glaisher'</dt>
+      <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
     </dl>
 
@@ -393,7 +393,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 class Indeterminate(_SympyConstant):
     """
     <dl>
-    <dt>'Indeterminate'</dt>
+    <dt>'Indeterminate'
         <dd>represents an indeterminate result.
     </dl>
 
@@ -450,7 +450,7 @@ class Infinity(_SympyConstant):
 class Khinchin(_MPMathConstant):
     """
     <dl>
-      <dt>'Khinchin'</dt>
+      <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
     </dl>
 
@@ -468,7 +468,7 @@ class Khinchin(_MPMathConstant):
 class Overflow(Builtin):
     """
     <dl>
-      <dt>'Overflow[]'</dt>
+      <dt>'Overflow[]'
       <dd>represents a number too large to be represented by Mathics.
     </dl>
 
@@ -491,7 +491,7 @@ class Overflow(Builtin):
 class Underflow(Builtin):
     """
     <dl>
-      <dt>'Overflow[]'</dt>
+      <dt>'Overflow[]'
       <dd>represents a number too small to be represented by Mathics.
     </dl>
 
@@ -526,7 +526,7 @@ class Underflow(Builtin):
 class Pi(_MPMathConstant, _SympyConstant):
     """
      <dl>
-       <dt>'Pi'</dt>
+       <dt>'Pi'
        <dd>is the constant \u03c0.
      </dl>
 

@@ -750,6 +750,8 @@ class SymbolQ(Test):
      = False
     """
 
+    summary_text = "test whether is a symbol"
+
     def test(self, expr):
         return isinstance(expr, Symbol)
 
