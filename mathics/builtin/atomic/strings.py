@@ -308,12 +308,13 @@ class SystemCharacterEncoding(Predefined):
     </dl>
     """
 
-    summary_text = "system's character enconding"
     name = "$SystemCharacterEncoding"
 
     rules = {
         "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
     }
+
+    summary_text = "system's character enconding"
 
 
 class CharacterEncoding(Predefined):
@@ -325,13 +326,15 @@ class CharacterEncoding(Predefined):
     </dl>
     """
 
-    summary_text = "default character encoding"
     name = "$CharacterEncoding"
-    value = '"UTF-8"'
 
     rules = {
         "$CharacterEncoding": value,
     }
+
+    summary_text = "default character encoding"
+
+    value = '"UTF-8"'
 
 
 _encodings = {
@@ -393,10 +396,10 @@ class CharacterEncodings(Predefined):
 
     name = "$CharacterEncodings"
     value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
-    summary_text = "avaliable character encodings"
     rules = {
         "$CharacterEncodings": value,
     }
+    summary_text = "available character encodings"
 
 
 class NumberString(Builtin):
@@ -462,7 +465,6 @@ class Alphabet(Builtin):
 
     """
 
-    summary_text = "lowercase letters in an alphabet"
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
     }
@@ -470,6 +472,8 @@ class Alphabet(Builtin):
     rules = {
         "Alphabet[]": """Alphabet["English"]""",
     }
+
+    summary_text = "lowercase letters in an alphabet"
 
     def apply(self, alpha, evaluation):
         """Alphabet[alpha_String]"""
@@ -529,11 +533,13 @@ class LetterNumber(Builtin):
     #  = 2
 
     """
-    summary_text = "position of a letter in an alphabet"
+
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
         "nas": ("The argument `1` is not a string."),
     }
+
+    summary_text = "position of a letter in an alphabet"
 
     def apply_alpha_str(self, chars: List[Any], alpha: String, evaluation):
         "LetterNumber[chars_, alpha_String]"
@@ -720,10 +726,11 @@ class StringRepeat(Builtin):
      = StringRepeat[x, 0]
     """
 
-    summary_text = "build a string by concatenating repetitions"
     messages = {
         "intp": "A positive integer is expected at position `1` in `2`.",
     }
+
+    summary_text = "build a string by concatenating repetitions"
 
     def apply(self, s, n, expression, evaluation):
         "StringRepeat[s_String, n_]"
@@ -770,8 +777,8 @@ class String_(Builtin):
      = Plus[2, "abc"]
     """
 
-    summary_text = "head for strings"
     name = "String"
+    summary_text = "head for strings"
 
 
 class ToString(Builtin):
@@ -800,7 +807,6 @@ class ToString(Builtin):
 
     """
 
-    summary_text = "format an expression and produce a string"
     options = {
         "CharacterEncoding": '"Unicode"',
         "FormatType": "OutputForm",
@@ -810,6 +816,8 @@ class ToString(Builtin):
         "TotalHeight": "Infinity",
         "TotalWidth": "Infinity",
     }
+
+    summary_text = "format an expression and produce a string"
 
     def apply_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
@@ -835,9 +843,10 @@ class InterpretedBox(PrefixOperator):
     >> \! \(2+2\)
      = 4
     """
-    summary_text = "interpret boxes as an expression"
+
     operator = "\\!"
     precedence = 670
+    summary_text = "interpret boxes as an expression"
 
     def apply_dummy(self, boxes, evaluation):
         """InterpretedBox[boxes_]"""
@@ -897,7 +906,6 @@ class ToExpression(Builtin):
     #> ToExpression["log(x)", StandardForm]
      = log x
     """
-    summary_text = "build an expression from formatted text"
     attributes = listable | protected
 
     messages = {
@@ -912,6 +920,7 @@ class ToExpression(Builtin):
         ),
         "notstr": "The format type `1` is valid only for string input.",
     }
+    summary_text = "build an expression from formatted text"
 
     def apply(self, seq, evaluation):
         "ToExpression[seq__]"
@@ -1038,7 +1047,6 @@ class Transliterate(Builtin):
     </ul>
     """
 
-    summary_text = "transliterate an UTF string in different alphabets to ASCII"
     # Causes XeTeX to barf. Put this inside a unit test.
     # >> Transliterate["つかう"]
     #  = tsukau
@@ -1050,6 +1058,7 @@ class Transliterate(Builtin):
     # = meter gar te me phesi thea Thetis arguropeza
 
     requires = ("unidecode",)
+    summary_text = "transliterate an UTF string in different alphabets to ASCII"
 
     def apply(self, s, evaluation):
         "Transliterate[s_String]"
@@ -1175,7 +1184,6 @@ class StringContainsQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
-    summary_text = "test whether a pattern matches with a substring"
     options = {
         "IgnoreCase": "False",
     }
@@ -1187,6 +1195,8 @@ class StringContainsQ(Builtin):
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
     }
+
+    summary_text = "test whether a pattern matches with a substring"
 
     def apply(self, string, patt, evaluation, options):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"

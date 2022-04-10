@@ -144,11 +144,11 @@ class TraceEvaluation(Builtin):
      = ...
     """
 
-    summary_text = "trace the succesive evaluations"
     attributes = hold_all | protected
     options = {
         "System`ShowTimeBySteps": "False",
     }
+    summary_text = "trace the succesive evaluations"
 
     def apply(self, expr, evaluation, options):
         "TraceEvaluation[expr_, OptionsPattern[]]"
@@ -192,10 +192,10 @@ class Format(Builtin):
      : Tag f not found or too deep for an assigned rule.
     """
 
+    messages = {"fttp": "Format type `1` is not a symbol."}
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
-    messages = {"fttp": "Format type `1` is not a symbol."}
 
 
 def parenthesize(precedence, leaf, leaf_boxes, when_equal):
@@ -567,7 +567,6 @@ class MakeBoxes(Builtin):
     >> \\( a, b \\)
      = RowBox[{a, ,, b}]
     """
-    summary_text = "settable low-level translator from expression to display boxes"
     attributes = hold_all_complete
 
     rules = {
@@ -586,6 +585,7 @@ class MakeBoxes(Builtin):
             "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
         ),
     }
+    summary_text = "settable low-level translator from expression to display boxes"
 
     def apply_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
@@ -807,8 +807,8 @@ class GridBox(BoxConstruct):
     # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
     #  = ...
     """
-    summary_text = "low-level representation of an arbitrary 2D layout"
     options = {"ColumnAlignments": "Center"}
+    summary_text = "low-level representation of an arbitrary 2D layout"
 
     def get_array(self, leaves, evaluation):
         options = self.get_option_values(leaves=leaves[1:], evaluation=evaluation)
@@ -943,8 +943,8 @@ class Grid(Builtin):
      . c   d
     """
 
-    summary_text = " 2D layout containing arbitrary objects"
     options = GridBox.options
+    summary_text = " 2D layout containing arbitrary objects"
 
     def apply_makeboxes(self, array, f, evaluation, options) -> Expression:
         """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
@@ -1008,8 +1008,8 @@ class TableForm(Builtin):
      = #<--#
     """
 
-    summary_text = "format as a table"
     options = {"TableDepth": "Infinity"}
+    summary_text = "format as a table"
 
     def apply_makeboxes(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
@@ -1155,13 +1155,13 @@ class Subsuperscript(Builtin):
      = a_b^c
     """
 
-    summary_text = "format an expression with a subscript and a superscript"
     rules = {
         "MakeBoxes[Subsuperscript[x_, y_, z_], "
         "f:StandardForm|TraditionalForm]": (
             "SubsuperscriptBox[MakeBoxes[x, f], MakeBoxes[y, f], " "MakeBoxes[z, f]]"
         )
     }
+    summary_text = "format an expression with a subscript and a superscript"
 
 
 class Postfix(BinaryOperator):
@@ -1181,11 +1181,11 @@ class Postfix(BinaryOperator):
      = Hold[f[e[d[c[b[a[x]]]]]]]
     """
 
-    summary_text = "postfix form"
+    grouping = "Left"
     operator = "//"
     operator_display = None
     precedence = 70
-    grouping = "Left"
+    summary_text = "postfix form"
 
 
 class Prefix(BinaryOperator):
@@ -1215,11 +1215,11 @@ class Prefix(BinaryOperator):
      = Hold[a[b[c[d[e[f[x]]]]]]]
     """
 
-    summary_text = "prefix form"
+    grouping = "Right"
     operator = "@"
     operator_display = None
     precedence = 640
-    grouping = "Right"
+    summary_text = "prefix form"
 
 
 class Infix(Builtin):
@@ -1366,12 +1366,12 @@ class Message(Builtin):
      : Hello you, Mr 007!
     """
 
-    summary_text = "display a message"
     attributes = hold_first | protected
 
     messages = {
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language."
     }
+    summary_text = "display a message"
 
     def apply(self, symbol, tag, params, evaluation):
         "Message[MessageName[symbol_Symbol, tag_String], params___]"
@@ -1461,13 +1461,13 @@ class Check(Builtin):
      = err
     """
 
-    summary_text = "discard the result if the evaluation produced messages"
     attributes = hold_all | protected
 
     messages = {
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language.",
     }
+    summary_text = "discard the result if the evaluation produced messages"
 
     def apply_1_argument(self, expr, evaluation):
         "Check[expr_]"
@@ -1563,7 +1563,6 @@ class Quiet(Builtin):
      = Quiet[x + x, {a::b}, {a::b}]
     """
 
-    summary_text = "evaluate without showing messages"
     attributes = hold_all | protected
 
     messages = {
@@ -1582,6 +1581,7 @@ class Quiet(Builtin):
         "Quiet[expr_]": "Quiet[expr, All]",
         "Quiet[expr_, moff_]": "Quiet[expr, moff, None]",
     }
+    summary_text = "evaluate without showing messages"
 
     def apply(self, expr, moff, mon, evaluation):
         "Quiet[expr_, moff_, mon_]"
@@ -1672,8 +1672,8 @@ class Off(Builtin):
     #> On[Power::infy, Power::indet, Syntax::com]
     """
 
-    summary_text = "turn off a message for printing"
     attributes = hold_all | protected
+    summary_text = "turn off a message for printing"
 
     def apply(self, expr, evaluation):
         "Off[expr___]"
@@ -1718,8 +1718,8 @@ class On(Builtin):
     #> On[f::x]
      : Message f::x not found.
     """
-    summary_text = "turn on a message for printing"
     attributes = hold_all | protected
+    summary_text = "turn on a message for printing"
 
     def apply(self, expr, evaluation):
         "On[expr___]"
@@ -1761,17 +1761,13 @@ class MessageName(BinaryOperator):
      = MessageName[a, "b"]
     """
 
-    summary_text = "message identifyier"
+    attributes = hold_first | protected
+    default_formats = False
+    formats: typing.Dict[str, Any] = {}
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
-
+    summary_text = "message identifyier"
     operator = "::"
     precedence = 750
-    attributes = hold_first | protected
-
-    default_formats = False
-
-    formats: typing.Dict[str, Any] = {}
-
     rules = {
         "MakeBoxes[MessageName[symbol_Symbol, tag_String], "
         "f:StandardForm|TraditionalForm|OutputForm]": (
@@ -1877,7 +1873,6 @@ class Syntax(Builtin):
      : Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line 1 of "<test>").
      = {Null, Null, Null}
     """
-    summary_text = "syntax messages"
 
     # Extension: MMA does not provide lineno and filename in its error messages
     messages = {
@@ -1893,6 +1888,7 @@ class Syntax(Builtin):
         "sntufn": "Unknown unicode longname `1` (line `4` of `5`).",
         "com": "Warning: comma encountered with no adjacent expression. The expression will be treated as Null (line `4` of `5`).",
     }
+    summary_text = "syntax messages"
 
 
 class General(Builtin):
@@ -1908,7 +1904,6 @@ class General(Builtin):
      : Rule called with 1 argument; 2 arguments are expected.
     """
 
-    summary_text = "general-purpose messages"
     messages = {
         "argb": (
             "`1` called with `2` arguments; "
@@ -1988,6 +1983,7 @@ class General(Builtin):
         "notboxes": "`1` is not a valid box structure.",
         "pyimport": '`1`[] is not available. Python module "`2`" is not installed.',
     }
+    summary_text = "general-purpose messages"
 
 
 class Echo_(Predefined):
@@ -1999,10 +1995,10 @@ class Echo_(Predefined):
     </dl>
     """
 
-    summary_text = "files and pipes that echoes the input"
     attributes = 0
     name = "$Echo"
     rules = {"$Echo": "{}"}
+    summary_text = "files and pipes that echoes the input"
 
 
 class Print(Builtin):
@@ -2172,7 +2168,7 @@ class PythonForm(Builtin):
     <dl>
       <dt>'PythonForm[$expr$]'
       <dd>returns an approximate equivalent of $expr$ in Python, when that is possible. We assume
-      that Python has sympy imported. No explicit import will be include in the result.
+      that Python has SymPy imported. No explicit import will be include in the result.
     </dl>
 
     >> PythonForm[Infinity]
@@ -2218,7 +2214,7 @@ class SympyForm(Builtin):
     = exp(2) + 3*E
     """
 
-    summary_text = "translate expressions to sympy"
+    summary_text = "translate expressions to SymPy"
 
     def apply_sympy(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, SympyForm]"
