@@ -33,16 +33,9 @@ $mathics -e 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
 ## Output Given
 
 <!--
-Steps to reproduce the behavior.
-
-For Django:
-1. Go to ...
-2. Enter ....
-2. Click on ....
-3. Scroll down to '....'
-4. See error
-
+Please include not just the error message but all output leading to the message which includes echoing input and messages up to the error.
 For a command-line environment include command invocation and all the output produced.
+
 If this is too long, then try narrowing the problem to something short.
 -->
 
