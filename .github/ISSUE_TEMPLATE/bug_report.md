@@ -7,21 +7,48 @@ assignees: ''
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+## Description
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
+<!-- Add a clear and concise description of the bug. -->
+
+## How to Reproduce
+
+<!--
+Steps to reproduce the behavior.
+
+For Django:
+1. Go to ...
+2. Enter ....
+2. Click on ....
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+For a command-line environment:
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+$mathics -e 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
+
+-->
+
+## Output
+
+<!--
+Steps to reproduce the behavior.
+
+For Django:
+1. Go to ...
+2. Enter ....
+2. Click on ....
+3. Scroll down to '....'
+4. See error
+
+For a command-line environment include command invocation and all the output produced.
+If this is too long, then try narrowing the problem to something short.
+-->
+
+
+## Environment
+
+<!-- _This section sometimes is optional but helpful to us._
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
@@ -34,5 +61,21 @@ If applicable, add screenshots to help explain your problem.
  - Browser [e.g. stock browser, safari]
  - Version [e.g. 22]
 
-**Additional context**
+If you are using a command-line interface the relevant information is posted when you enter the mathics or mathicsscript.
+
+If you are using Django http://localhost/about provides this information which you can cut and paste.
+ -->
+
+## Workarounds
+
+<!-- If there is a workaround for the problem describe that here. -->
+
+## Priority
+
+<!-- If this is blocking some important activity let us know what activity it blocks. -->
+
+## Additional context
+
+<!--
 Add any other context about the problem here.
+-->
