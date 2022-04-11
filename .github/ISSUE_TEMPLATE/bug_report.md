@@ -40,6 +40,10 @@ If this is too long, then try narrowing the problem to something short.
 -->
 
 
+## Expected behavior
+
+<!-- Add a clear and concise description of what you expected to happen. -->
+
 ## Your Environment
 
 <!-- _This information can be helpful..
@@ -73,5 +77,5 @@ If you are using Django http://localhost/about provides this information which y
 ## Additional context
 
 <!--
-This is optional. Pleaes add any other context about the problem here.
+This is optional. Please add any other context about the problem here or special environment setup.
 -->
