@@ -6,10 +6,11 @@ labels: ''
 assignees: ''
 
 ---
+<!-- Feel free to remove sections marked optional if they are not relevant. The other sections please fill out. See also https://github.com/Mathics3/mathics-core/blob/master/REPORTING-BUGS.md -->
 
 ## Description
 
-<!-- Add a clear and concise description of the bug. -->
+<!-- Please add a clear and concise description of the bug. -->
 
 ## How to Reproduce
 
@@ -29,7 +30,7 @@ $mathics -e 'E ^ (Pi I)'  # adjust expression E ^ (Pi I) for the specific bug
 
 -->
 
-## Output
+## Output Given
 
 <!--
 Steps to reproduce the behavior.
@@ -46,20 +47,22 @@ If this is too long, then try narrowing the problem to something short.
 -->
 
 
-## Environment
+## Your Environment
 
-<!-- _This section sometimes is optional but helpful to us._
+<!-- _This information can be helpful..
+
+**All: Mathics version, Installed Python Python packages.
+
+In addition
 
 **Desktop (please complete the following information):**
  - OS: [e.g. iOS]
  - Browser [e.g. chrome, safari]
- - Version [e.g. 22]
 
 **Smartphone (please complete the following information):**
  - Device: [e.g. iPhone6]
  - OS: [e.g. iOS8.1]
  - Browser [e.g. stock browser, safari]
- - Version [e.g. 22]
 
 If you are using a command-line interface the relevant information is posted when you enter the mathics or mathicsscript.
 
@@ -68,7 +71,7 @@ If you are using Django http://localhost/about provides this information which y
 
 ## Workarounds
 
-<!-- If there is a workaround for the problem describe that here. -->
+<!-- If there is a workaround for the problem, describe that here. -->
 
 ## Priority
 
@@ -77,5 +80,5 @@ If you are using Django http://localhost/about provides this information which y
 ## Additional context
 
 <!--
-Add any other context about the problem here.
+This is optional. Pleaes add any other context about the problem here.
 -->

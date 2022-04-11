@@ -89,7 +89,7 @@ This kind of thing is too long and complex or us to handle.
 
 Many people will use the issue tracker as a means to solicit help for a problem that they have, or to get help on how to set up Mathics. Judgement should be used here.
 
-If the problem is of a more general nature consider other channels like [StackOverflow](https://stackoverflow.com/) or [Mathematica & Wolfram Language](https://mathematica.stackexchange.com/).
+If the problem is of a more general nature consider other channels like [StackOverflow](https://stackoverflow.com/) or [Mathematica & Wolfram Language](https://mathematica.stackexchange.com/) or one of the groups or channels listed in see https://mathics.org/#support.
 
 # Karma
 
