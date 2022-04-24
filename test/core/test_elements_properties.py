@@ -18,26 +18,30 @@ def test_elements_properties():
 
     for str_expression, full_eval, is_flat, is_sorted in [
         # fmt: off
-     # expr          fully evaluated?  flat?  sorted?
-     ("Plus[1, 1, 1]",          True,  True,  True),
-     ("List[]",                 True,  True,  True),
-     ('List["a", "a", "a"]',    True,  True,  True),
-     ('List["a", 2, 3]',        True,  True,  False),
-     ("Plus[1, 2, 3]",          True,  True,  False),
-     ("Plus[x]",                False, True,  True),
-     ("Plus[x, y]",             False, True,  False),
-     ("Plus[Plus[x], Plus[x]]", False, False, True),
-     ('Plus["x", Plus["x"]]',   False, False, False),
+        # expr          fully evaluated?  flat?  sorted?
+        ("Plus[1, 1, 1]",          True,  True,  True),
+        ("List[]",                 True,  True,  True),
+        ('List["a", "a", "a"]',    True,  True,  True),
+        ('List["a", 2, 3]',        True,  True,  False),
+        ("Plus[1, 2, 3]",          True,  True,  False),
+        ("Plus[x]",                False, True,  True),
+        ("Plus[x, y]",             False, True,  False),
+
+        # Note: sorted could start out True here, but
+        # we would need a more sophisticated convert routine.
+        ("Plus[Plus[x], Plus[x]]", False, False, False),
+
+        ('Plus["x", Plus["x"]]',   False, False, False),
     ]:
         # fmt: on
         session.evaluation.out.clear()
         feeder = MathicsSingleLineFeeder(str_expression)
         ast = parser.parse(feeder)
-        # print("XXX", str_expression)
 
         # convert() creates the initial Expression. In that various properties should
         # be set.
         expr = convert(ast, session.definitions)
+        # print("XXX", str_expression, expr)
         assert expr._elements_fully_evaluated == full_eval, str_expression
         assert expr._is_sorted == is_sorted, str_expression
         assert expr._is_flat == is_flat, str_expression
