@@ -636,14 +636,12 @@ class Expression(BaseElement, NumericOperators):
         self,
         evaluation: Evaluation,
     ) -> typing.Type["BaseElement"]:
-        """Apply transformation rules and expression evaluation to `evaluation` via
-        `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
+        """
+        Apply transformation rules and expression evaluation to ``evaluation`` via
+        ``rewrite_apply_eval_step()`` until that method tells us to stop,
+        or unti we hit an $IterationLimit or TimeConstrained limit.
 
-        Note that this is a recusive process and
-        `rewrite_apply_eval_step()` may call us recursively.
-
-        Limits are either an evaluation iteration count or a timeout value.
-
+        Evaluation is a recusive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
             return
@@ -666,9 +664,8 @@ class Expression(BaseElement, NumericOperators):
         try:
             # Evaluation loop:
             while reevaluate:
-                # changed before last evaluated?
-                # This prevents to reevaluate expressions that
-                # have been already evaluated. This uses Expression._cache
+                # If definitions have not changed in the last evaluation,
+                # then evaluating again will produce the same result
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
 
@@ -682,26 +679,25 @@ class Expression(BaseElement, NumericOperators):
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
-                # This calls evaluate_next. This routine implements a single
-                # step in the evaluation, and determines if a fixed point
-                # was reached (reevaluate->False).
-                # Notice that evaluate_next calls ``evaluate``
-                # for the other ``BaseElement`` subclasses.
+                # ``rewrite_apply_eval_step()`` makes a pass at
+                # evaluating the expression. If we know that a further
+                # evaluation will not be needed, ``reevaluate`` is set
+                # False.  Note that ``rewrite_apply_eval_step()`` can
+                # perform further ``evaluate`` and we will recurse
+                # back into this routine.
                 expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
 
                 if not reevaluate:
                     break
 
-                # Trace evaluation...
+                # TraceEvaluation[] logging.
                 if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "-> %s" % expr
                     )
                 iteration += 1
-                # Check if the iterationlimit was reached.
-                # we need to check on each step, in case that the expression
-                # changes its value. Maybe there is another way, for example,
-                # keeping the index in the Evaluation object.
+                # Check whether we have hit $Iterationlimit: is the number of times
+                # ``reevaluate`` came back False in this loop.
                 if limit is None:
                     limit = definitions.get_config_value("$IterationLimit")
                     if limit is None:
