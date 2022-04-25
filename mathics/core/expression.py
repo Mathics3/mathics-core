@@ -109,7 +109,7 @@ def build_elements_with_properties(self, elements: Iterable) -> tuple:
             self._elements_fully_evaluated = False
         if isinstance(element, Expression):
             self._is_flat = False
-            self._is_sorted = False
+            self._is_sorted = last_element is None  # sorted if have 1 element
             self._elements_fully_evaluated = False
         elif self._is_sorted and last_element is not None and last_element != element:
             self._is_sorted = False
@@ -294,8 +294,10 @@ class Expression(BaseElement, NumericOperators):
                 self._elements_fully_evaluated = False
             if isinstance(converted_elt, Expression):
                 self._is_flat = False
-                self._is_sorted = False
                 self._elements_fully_evaluated = False
+                # We will say the elements are sorted if have less than
+                # 2 elements which we determine via last_element.
+                self._is_sorted = last_element is None
             elif (
                 self._is_sorted
                 and last_element is not None

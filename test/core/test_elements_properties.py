@@ -1,5 +1,4 @@
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+# -*- coding: utf-8 -*-
 
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.core.parser.convert import convert
@@ -25,6 +24,7 @@ def test_elements_properties():
         ('List["a", 2, 3]',        True,  True,  False),
         ("Plus[1, 2, 3]",          True,  True,  False),
         ("Plus[x]",                False, True,  True),
+        ("Plus[Plus[x]]",          False, False,  True),
         ("Plus[x, y]",             False, True,  False),
 
         # Note: sorted could start out True here, but
