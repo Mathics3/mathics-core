@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 

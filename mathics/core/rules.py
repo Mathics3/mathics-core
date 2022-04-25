@@ -84,9 +84,8 @@ class BaseRule(KeyComparable):
             # FIXME: expr is sometimes a list - why the changing types
             if hasattr(expr, "_elements_fully_evaluated"):
                 expr._elements_fully_evaluated = False
-                # I think these are automatically updated.
-                #   expr._is_flat = False # I think this is fully updated
-                #   expr._is_sorted = False
+                expr._is_flat = False  # I think this is fully updated
+                expr._is_sorted = False
             return expr
 
         if return_list:
