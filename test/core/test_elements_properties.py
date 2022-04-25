@@ -21,6 +21,7 @@ def test_elements_properties():
         ("Plus[1, 1, 1]",          True,  True,  True),
         ("List[]",                 True,  True,  True),
         ('List["a", "a", "a"]',    True,  True,  True),
+
         ('List["a", 2, 3]',        True,  True,  False),
         ("Plus[1, 2, 3]",          True,  True,  False),
         ("Plus[x]",                False, True,  True),
@@ -30,6 +31,9 @@ def test_elements_properties():
         # Note: sorted could start out True here, but
         # we would need a more sophisticated convert routine.
         ("Plus[Plus[x], Plus[x]]", False, False, False),
+
+        # Is sorted is true here since we have the same symbol repeated
+        ('List[a, a, a]',          False,  True,  True),
 
         ('Plus["x", Plus["x"]]',   False, False, False),
     ]:
