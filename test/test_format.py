@@ -143,7 +143,7 @@ def test_makeboxes_outputform_mathml_failing(
         assert str_format == str_expected
 
 
-# MathML StandardForm
+# MathML OutputForm
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),
     [
@@ -151,6 +151,7 @@ def test_makeboxes_outputform_mathml_failing(
         # The following seems wrong: they should be formatted as numbers
         ("4", "<mn>4</mn>", None),
         ('"4.32"', "<mtext>4.32</mtext>", None),
+        ('"1.6*^-19"', "<mtext>1.6*^-19</mtext>", None),
         ('"Hola!"', "<mtext>Hola!</mtext>", None),
         ("a", "<mi>a</mi>", None),
         ("Pi", "<mi>Pi</mi>", None),
@@ -273,6 +274,7 @@ def test_makeboxes_outputform_mathml(
         ('"4"', "4", None),
         ("4", "4", None),
         ('"4.32"', "4.32", None),
+        ("1.6*^-19", "1.6*^-19", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
@@ -315,6 +317,7 @@ def test_makeboxes_standardform_text(
         ('"4"', "4", None),
         ("4", "4", None),
         ('"4.32"', "4.32", None),
+        ("1.6*^-19", "1.6×10^-19", None),
         ('"Hola!"', "Hola!", None),
         ("a", "a", None),
         ("Pi", "Pi", None),
@@ -363,6 +366,7 @@ def test_makeboxes_outputform_text(
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
         ('"4.32"', "\\text{4.32}", None),
+        ("1.6*^-19", "1.6\\text{*${}^{\\wedge}$}-19", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),
@@ -446,6 +450,7 @@ def test_makeboxes_standard_tex(str_expr: str, str_expected: str, msg: str, mess
         ('"4"', "\\text{4}", None),
         ("4", "4", None),
         ('"4.32"', "\\text{4.32}", None),
+        ("1.6*^-19", "1.6\\times 10^{-19}", None),
         ('"Hola!"', "\\text{Hola!}", None),
         ("Pi", "\\text{Pi}", None),
         ("a", "a", None),

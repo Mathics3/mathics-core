@@ -148,7 +148,7 @@ class Factorial(PostfixOperator, _MPMathFunction):
 
     'Factorial' handles numeric (real and complex) values using the gamma function:
     >> 10.5!
-     = 1.18994*^7
+     = 1.18994×10^7
     >> (-3.0+1.5*I)!
      = 0.0427943 - 0.00461565 I
 
@@ -284,7 +284,7 @@ class Gamma(_MPMathMultiFunction):
 
     Numeric arguments:
     >> Gamma[123.78]
-     = 4.21078*^204
+     = 4.21078×10^204
     >> Gamma[1. + I]
      = 0.498016 - 0.15495 I
 
@@ -357,7 +357,7 @@ class LogGamma(_MPMathMultiFunction):
      = -6.77652 + 1.71439 I
     LogGamma also can be evaluated for large arguments, for which Gamma produces Overflow:
     >>  LogGamma[1.*^20]
-     = 4.50517*^21
+     = 4.50517×10^21
     >>  Log[Gamma[1.*^20]]
      : Overflow occurred in computation.
      = Overflow[]

@@ -714,7 +714,7 @@ class Cos(_MPMathFunction):
      = -1
 
     #> Cos[1.5 Pi]
-     = -1.83697*^-16
+     = -1.83697×10^-16
     """
 
     summary_text = "cosine function"
@@ -1170,7 +1170,7 @@ class Tan(_MPMathFunction):
      = ComplexInfinity
 
     #> Tan[0.5 Pi]
-     = 1.63312*^16
+     = 1.63312×10^16
     """
 
     summary_text = "tangent function"

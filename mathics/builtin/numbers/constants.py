@@ -477,7 +477,7 @@ class Overflow(Builtin):
      = Overflow[]
     >> Table[Exp[10.^k],{k, 3}]
      : Overflow occurred in computation.
-     = {22026.5, 2.68812*^43, Overflow[]}
+     = {22026.5, 2.68812×10^43, Overflow[]}
     >> 1 / Underflow[]
      = Overflow[]
     """
