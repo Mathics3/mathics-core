@@ -551,7 +551,7 @@ class Expression(BaseElement, NumericOperators):
         elif name == "System`SqrtBox" and len(self._elements) == 1:
             return "\\sqrt{%s}" % self._elements[0].boxes_to_tex(**options)
         else:
-            raise BoxError(self, "tex")
+            raise BoxError(self, "TeX")
 
     def clear_cache(self):
         self._cache = None
@@ -1187,8 +1187,11 @@ class Expression(BaseElement, NumericOperators):
                 eval_range(range(len(elements)))
                 # rest_range(range(0, 0))
 
-        elements = self.get_mutable_elements()
-        eval_elements()
+        if self._elements_fully_evaluated:
+            elements = self._elements
+        else:
+            elements = self.get_mutable_elements()
+            eval_elements()
 
         # Step 2: Build a new expression. Notice that elements are given
         # after creating the object, to avoid to call `from_python` on each element.
