@@ -157,7 +157,7 @@ class MaxRecursion(Builtin):
     </dl>
 
     >> NIntegrate[Exp[-10^8 x^2], {x, -1, 1}, MaxRecursion -> 10]
-     =  1.97519*^-207
+     =  1.97519×10^-207
     """
 
 

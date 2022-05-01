@@ -776,11 +776,11 @@ class MachineEpsilon_(Predefined):
     </dl>
 
     >> $MachineEpsilon
-     = 2.22045*^-16
+     = 2.22045×10^-16
 
     >> x = 1.0 + {0.4, 0.5, 0.6} $MachineEpsilon;
     >> x - 1
-     = {0., 0., 2.22045*^-16}
+     = {0., 0., 2.22045×10^-16}
     """
 
     is_numeric = True
