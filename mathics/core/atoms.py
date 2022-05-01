@@ -117,7 +117,7 @@ def _NumberFormat(man, base, exp, options):
                     SymbolList,
                     man,
                     String(options["NumberMultiplier"]),
-                    Expression("SuperscriptBox", base, exp),
+                    Expression(SymbolSuperscriptBox, base, exp),
                 ),
             )
     else:
