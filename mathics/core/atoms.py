@@ -29,6 +29,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolRowBox,
+    SymbolSuperscriptBox,
     SymbolRule,
 )
 
@@ -103,7 +104,7 @@ def _NumberFormat(man, base, exp, options):
     if exp.get_string_value():
         if options["_Form"] in (
             "System`InputForm",
-            "System`OutputForm",
+            "System`StandardForm",
             "System`FullForm",
         ):
             return Expression(
