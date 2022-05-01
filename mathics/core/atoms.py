@@ -10,11 +10,11 @@ import typing
 from typing import Any, Optional
 from functools import lru_cache
 
+from mathics.core.element import ImmutableValueMixin
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
     Atom,
     BaseElement,
-    ImmutableValueMixin,
     NumericOperators,
     Symbol,
     SymbolHoldForm,
