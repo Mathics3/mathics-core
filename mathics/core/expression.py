@@ -78,48 +78,6 @@ symbols_arithmetic_operations = system_symbols(
 )
 
 
-def build_elements_with_properties(self, elements: Iterable) -> tuple:
-    """Build a tuple of Elements noting useful properties such as
-    whether the collection of elements is sorted, flat, or fully
-    evaluated.
-
-    Note: we add or set the following fields:
-      self._elements_fully_evaluated, self._is_flat, and self._is_sorted
-
-    """
-
-    # All of the properties start out optimistic (True) and are reset when that proves wrong.
-
-    # _elements_fully_evaluated is True if all elements have been fully evaluated.
-    # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
-    self._elements_fully_evaluated = True
-
-    # _is_flat is True if all elements are atoms/leaves.
-    self._is_flat = True
-
-    # _is_sorted is True if elements do not need sorting
-    # elements with less than 2 items or all have the same value are sorted.
-    self._is_sorted = True
-
-    result = []
-    last_element = None
-    for element in elements:
-        # Test for the three properties mentioned above.
-        if not element.is_literal:
-            self._elements_fully_evaluated = False
-        if isinstance(element, Expression):
-            self._is_flat = False
-            self._is_sorted = last_element is None  # sorted if have 1 element
-            self._elements_fully_evaluated = False
-        elif self._is_sorted and last_element is not None and last_element != element:
-            self._is_sorted = False
-        last_element = element
-
-        result.append(element)
-
-    return tuple(result)
-
-
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -230,7 +188,7 @@ class Expression(BaseElement, NumericOperators):
         # These are set in self._build_elements(elements)
         #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
 
-        self._elements = self._build_elements(elements)
+        self.__elements = self._build_elements(elements)
 
         self._sequences = None
         self._cache = None
@@ -599,7 +557,19 @@ class Expression(BaseElement, NumericOperators):
 
     @property
     def elements(self):
-        return self._elements
+        return self.__elements
+
+    @elements.setter
+    def elements(self, values):
+        self.__elements = self._build_elements(values)
+
+    @property
+    def _elements(self):
+        return self.__elements
+
+    @elements.setter
+    def _elements(self, values):
+        self.__elements = self._build_elements(values)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
@@ -866,7 +836,7 @@ class Expression(BaseElement, NumericOperators):
         """
         Return a shallow mutable copy of the elements
         """
-        return list(self._elements)
+        return list(self.__elements)
 
     def get_sort_key(self, pattern_sort=False):
 
@@ -1248,7 +1218,7 @@ class Expression(BaseElement, NumericOperators):
 
             if dirty_elements:
                 new = Expression(head)
-                new._elements = build_elements_with_properties(self, dirty_elements)
+                new._elements = new._build_elements(dirty_elements)
                 elements = dirty_elements
 
         # If the attribute FLAT is set, calls flatten with a callback
@@ -1366,7 +1336,7 @@ class Expression(BaseElement, NumericOperators):
 
         if dirty_elements:
             new = Expression(head)
-            new._elements = build_elements_with_properties(self, tuple(dirty_elements))
+            new._elements = new._build_elements(tuple(dirty_elements))
 
         # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
@@ -1931,7 +1901,7 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = build_elements_with_properties(self, elements)
+        expr._elements = expr._build_elements(elements)
         return expr
 
     def filter(self, expr, cond):
