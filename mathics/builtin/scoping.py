@@ -105,7 +105,6 @@ class With(Builtin):
 
     """
 
-    summary_text = "replace variables by some constant values"
     attributes = hold_all | protected
 
     messages = {
@@ -118,6 +117,7 @@ class With(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "replace variables by some constant values"
 
     def apply(self, vars, expr, evaluation):
         "With[vars_, expr_]"
@@ -164,8 +164,6 @@ class Block(Builtin):
      = x
     """
 
-    summary_text = "evaluate an expression using local values for some given symbols"
-
     attributes = hold_all | protected
 
     messages = {
@@ -178,6 +176,7 @@ class Block(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "evaluate an expression using local values for some given symbols"
 
     def apply(self, vars, expr, evaluation):
         "Block[vars_, expr_]"
@@ -203,8 +202,6 @@ class ModuleNumber(Predefined):
      : Cannot set $ModuleNumber to x; value must be a positive integer.
     """
 
-    summary_text = "serial number of the current local module"
-
     name = "$ModuleNumber"
 
     messages = {
@@ -216,6 +213,7 @@ class ModuleNumber(Predefined):
     rules = {
         "$ModuleNumber": "1",
     }
+    summary_text = "serial number of the current local module"
 
 
 class Module(Builtin):
@@ -256,7 +254,6 @@ class Module(Builtin):
 
     """
 
-    summary_text = "generates symbols with names of the form x$nnn to represent each local variable."
     attributes = hold_all | protected
 
     messages = {
@@ -269,6 +266,7 @@ class Module(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "generates symbols with names of the form x$nnn to represent each local variable."
 
     def apply(self, vars, expr, evaluation):
         "Module[vars_, expr_]"
@@ -362,20 +360,18 @@ class Unique(Predefined):
      = {Flat}
     """
 
-    summary_text = "generate a new symbols with a unique name"
-    seq_number = 1
-
+    attributes = protected
     messages = {
         "usym": "`1` is not a symbol or a valid symbol name.",
         "argrx": "Unique called with `1` arguments; 0 or 1 argument are expected.",
         "attnf": "`1` is not a known attribute.",
     }
 
-    attributes = protected
-
     rules = {
         "Unique[x_Symbol]": "Module[{x}, x]",
     }
+    seq_number = 1
+    summary_text = "generate a new symbols with a unique name"
 
     def apply(self, evaluation):
         "Unique[]"
@@ -483,14 +479,12 @@ class Context_(Predefined):
      = True
     """
 
-    summary_text = "the current context"
-    name = "$Context"
-
     messages = {"cxset": "`1` is not a valid context name ending in `."}
-
+    name = "$Context"
     rules = {
         "$Context": '"Global`"',
     }
+    summary_text = "the current context"
 
 
 class ContextPath(Predefined):
@@ -512,14 +506,12 @@ class ContextPath(Predefined):
     #> $ContextPath = {"Global`", "System`"};
     """
 
-    summary_text = "the current context search path"
-    name = "$ContextPath"
-
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
-
+    name = "$ContextPath"
     rules = {
         "$ContextPath": '{"Global`", "System`"}',
     }
+    summary_text = "the current context search path"
 
 
 class Begin(Builtin):
@@ -548,7 +540,6 @@ class Begin(Builtin):
      = Global`test`
     """
 
-    summary_text = "temporarily set the current context"
     rules = {
         "Begin[context_String]": """
              Unprotect[System`Private`$ContextStack];
@@ -558,6 +549,7 @@ class Begin(Builtin):
              $Context
         """,
     }
+    summary_text = "temporarily set the current context"
 
 
 class End(Builtin):
@@ -568,7 +560,6 @@ class End(Builtin):
     </dl>
     """
 
-    summary_text = "revert to the context previous to the nearest 'Begin' statement"
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -586,6 +577,7 @@ class End(Builtin):
                                 System`Private`old]]
         """,
     }
+    summary_text = "revert to the context previous to the nearest 'Begin' statement"
 
 
 class BeginPackage(Builtin):
@@ -603,7 +595,6 @@ class BeginPackage(Builtin):
      = test`
     """
 
-    summary_text = "temporarily set the context and clean the context path"
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
 
     rules = {
@@ -620,6 +611,7 @@ class BeginPackage(Builtin):
              context
         """,
     }
+    summary_text = "temporarily set the context and clean the context path"
 
 
 class EndPackage(Builtin):
@@ -634,7 +626,6 @@ class EndPackage(Builtin):
     package\'s context prepended to $ContextPath.
     """
 
-    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
     messages = {
         "noctx": "No previous context defined.",
     }
@@ -653,6 +644,7 @@ class EndPackage(Builtin):
                                  Null]]
         """,
     }
+    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
 
 
 class ContextStack(Builtin):

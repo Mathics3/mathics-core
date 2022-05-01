@@ -20,11 +20,10 @@ class Compress(Builtin):
 
     """
 
-    summary_text = "compress an expression"
-
     options = {
         "Method": "{}",
     }
+    summary_text = "compress an expression"
 
     def apply(self, expr, evaluation, options):
         "Compress[expr_, OptionsPattern[Compress]]"

@@ -136,7 +136,7 @@ class OptionValue(Builtin):
     >> f[a->5] /. f[OptionsPattern[{}]] -> {OptionValue[Symbol["a"]]}
      = {5}
     """
-    summary_text = "retrieve values of options while executing a function"
+
     messages = {
         "optnf": "Option name `1` not found.",
     }
@@ -146,6 +146,7 @@ class OptionValue(Builtin):
         "OptionValue[f_, optnames_List]": "OptionValue[f,#1]&/@optnames",
         "OptionValue[f_, opts_, optnames_List]": "OptionValue[f,opts, #1]&/@optnames",
     }
+    summary_text = "retrieve values of options while executing a function"
 
     def apply_1(self, optname, evaluation):
         "OptionValue[optname_]"
@@ -375,12 +376,12 @@ class FilterRules(Builtin):
      = {x -> 100, z -> 10000}
     """
 
-    summary_text = (
-        "select rules such that the pattern matches some other given patterns"
-    )
     rules = {
         "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
     }
+    summary_text = (
+        "select rules such that the pattern matches some other given patterns"
+    )
 
     def apply(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
