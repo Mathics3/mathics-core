@@ -82,6 +82,8 @@ class Options(Builtin):
      = a /; True
     """
 
+    summary_text = "the list of optional arguments and their default values"
+
     def apply(self, f, evaluation):
         "Options[f_]"
 
@@ -144,6 +146,7 @@ class OptionValue(Builtin):
         "OptionValue[f_, optnames_List]": "OptionValue[f,#1]&/@optnames",
         "OptionValue[f_, opts_, optnames_List]": "OptionValue[f,opts, #1]&/@optnames",
     }
+    summary_text = "retrieve values of options while executing a function"
 
     def apply_1(self, optname, evaluation):
         "OptionValue[optname_]"
@@ -230,7 +233,7 @@ class Default(Builtin):
     """
     <dl>
     <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted paramter of $f$.
+        <dd>gives the default value for an omitted parameter of $f$.
     <dt>'Default[$f$, $k$]'
         <dd>gives the default value for a parameter on the $k$th position.
     <dt>'Default[$f$, $k$, $n$]'
@@ -255,6 +258,8 @@ class Default(Builtin):
     >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
      = {{3, 5}, {4, 5}}
     """
+
+    summary_text = "predefined default arguments for a function"
 
     def apply(self, f, i, evaluation):
         "Default[f_, i___]"
@@ -308,6 +313,10 @@ class OptionQ(Test):
      = False
     """
 
+    summary_text = (
+        "test whether an expression matches the form of a valid option specification"
+    )
+
     def test(self, expr):
         expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
@@ -337,6 +346,8 @@ class NotOptionQ(Test):
     >> NotOptionQ[a -> True]
      = False
     """
+
+    summary_text = "test whether an expression does not match the form of a valid option specification"
 
     def test(self, expr):
         expr = expr.flatten_with_respect_to_head(SymbolList)
@@ -368,6 +379,9 @@ class FilterRules(Builtin):
     rules = {
         "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
     }
+    summary_text = (
+        "select rules such that the pattern matches some other given patterns"
+    )
 
     def apply(self, rules, pattern, evaluation):
         "FilterRules[rules_List, pattern_]"
