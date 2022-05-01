@@ -5,7 +5,7 @@ from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
-from mathics.core.atoms import Atom
+from mathics.core.atoms import Atom, Integer
 from mathics.core.symbols import (
     Symbol,
     SymbolN,
@@ -14,7 +14,7 @@ from mathics.core.symbols import (
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolNull
+from mathics.core.systemsymbols import SymbolMachinePrecision
 
 from mathics.core.attributes import attribute_string_to_number, locked, protected
 
@@ -369,17 +369,16 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
 def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
-    defs = evaluation.definitions
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
         # raise AssignmentException(lhs, rhs)
         return True
-    leaves = lhs.leaves
-    if len(leaves) > 1:
-        evaluation.message("NumericQ", "argx", Integer(len(leaves)))
+    elements = lhs.elements
+    if len(elements) > 1:
+        evaluation.message("NumericQ", "argx", Integer(len(elements)))
         # raise AssignmentException(lhs, rhs)
         return True
-    target = leaves[0]
+    target = elements[0]
     if isinstance(target, Symbol):
         name = target.get_name()
         definition = evaluation.definitions.get_definition(name)
