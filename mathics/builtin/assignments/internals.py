@@ -177,7 +177,7 @@ def unroll_conditions(lhs):
     if isinstance(lhs, Symbol):
         return lhs, None
     else:
-        name, lhs_elements = lhs.get_head_name(), lhs._elements
+        name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     condition = []
     # This handle the case of many sucesive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]

@@ -95,7 +95,9 @@ def check_evaluation(
 
     if expected_messages is not None:
         msgs = list(expected_messages)
-        assert len(msgs) == len(outs), "outs are not the same"
+        expected_len = len(msgs)
+        got_len = len(outs)
+        assert expected_len == got_len, f"expected {expected_len}; got {got_len}"
         for (out, msg) in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
