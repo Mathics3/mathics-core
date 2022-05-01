@@ -624,7 +624,14 @@ class ExpandFileName(Builtin):
 
 
 class File(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'File["$file$"]'
+      <dd>is a symbolic representation of an element in the local file system.
+    </dl>
+    """
+
+    summary_text = "element of the local filesystem"
 
 
 class FileBaseName(Builtin):
@@ -873,10 +880,10 @@ class FileHash(Builtin):
     <dt>'FileHash[$file$]'
       <dd>returns an integer hash for the given $file$.
     <dt>'FileHash[$file$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $file$.</dd>
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".</dd>
+      <dd>returns an integer hash of the specified $type$ for the given $file$.
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
     <dt>'FileHash[$file$, $type$, $format$]'
-      <dd>gives a hash code in the specified format.</dd>
+      <dd>gives a hash code in the specified format.
     </dl>
 
     >> FileHash["ExampleData/sunflowers.jpg"]

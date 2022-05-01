@@ -158,13 +158,12 @@ class RandomState(Builtin):
      : It is not possible to change the random state.
     """
 
-    summary_text = "internal state of the (pseudo)random number generator"
     name = "$RandomState"
-
     messages = {
         "rndst": "It is not possible to change the random state.",
         # "`1` is not a valid random state.",
     }
+    summary_text = "internal state of the (pseudo)random number generator"
 
     def apply(self, evaluation):
         "$RandomState"
@@ -210,10 +209,10 @@ class SeedRandom(Builtin):
      = SeedRandom[x]
     """
 
-    summary_text = "set the seed of the (pseudo)random number generator"
     messages = {
         "seed": "Argument `1` should be an integer or string.",
     }
+    summary_text = "set the seed of the (pseudo)random number generator"
 
     def apply(self, x, evaluation):
         "SeedRandom[x_]"
@@ -240,17 +239,16 @@ class SeedRandom(Builtin):
 
 
 class _RandomBase(Builtin):
-    rules = {
-        "%(name)s[spec_]": "%(name)s[spec, {1}]",
-        "%(name)s[spec_, n_Integer]": "%(name)s[spec, {n}]",
-    }
-
     messages = {
         "array": (
             "The array dimensions `1` given in position 2 of `2` should be a "
             "list of non-negative machine-sized integers giving the "
             "dimensions for the result."
         ),
+    }
+    rules = {
+        "%(name)s[spec_]": "%(name)s[spec, {1}]",
+        "%(name)s[spec_, n_Integer]": "%(name)s[spec, {n}]",
     }
 
     def _size_to_python(self, domain, size, evaluation):
@@ -303,7 +301,6 @@ class RandomInteger(Builtin):
      = True
     """
 
-    summary_text = "pick an integer number at random from a range"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -317,6 +314,7 @@ class RandomInteger(Builtin):
         "RandomInteger[max_Integer, ns_]": "RandomInteger[{0, max}, ns]",
         "RandomInteger[spec_, n_Integer]": "RandomInteger[spec, {n}]",
     }
+    summary_text = "pick an integer number at random from a range"
 
     def apply(self, rmin, rmax, evaluation):
         "RandomInteger[{rmin_, rmax_}]"
@@ -376,7 +374,6 @@ class RandomReal(Builtin):
      = RandomReal[{0, 1}, {1, -1}]
     """
 
-    summary_text = "pick a real number at random from an interval"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -395,6 +392,7 @@ class RandomReal(Builtin):
         "RandomReal[max_?NumberQ, ns_]": "RandomReal[{0, max}, ns]",
         "RandomReal[spec_, n_Integer]": "RandomReal[spec, {n}]",
     }
+    summary_text = "pick a real number at random from an interval"
 
     def apply(self, xmin, xmax, evaluation):
         "RandomReal[{xmin_, xmax_}]"
@@ -474,7 +472,6 @@ class RandomComplex(Builtin):
      = Complex[..., ...]
     """
 
-    summary_text = "pick a complex number at random from a rectangular region"
     messages = {
         "unifr": (
             "The endpoints specified by `1` for the endpoints of the "
@@ -492,6 +489,7 @@ class RandomComplex(Builtin):
         "RandomComplex[zmax_?NumberQ]": "RandomComplex[{0, zmax}]",
         "RandomComplex[zmax_?NumberQ, ns_]": "RandomComplex[{0, zmax}, ns]",
     }
+    summary_text = "pick a complex number at random from a rectangular region"
 
     @staticmethod
     def to_complex(value, evaluation):
@@ -549,10 +547,16 @@ class RandomComplex(Builtin):
 
 class Random(Builtin):
     """
+    <dl>
+    <dt>'Random[]'
+    <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
+    <dt>'Random[$type$, $range$]'
+    <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
+    </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
+
     """
 
-    summary_text = "a random number"
     rules = {
         "Random[Integer]": "RandomInteger[]",
         "Random[Integer,  zmax_Integer]": "RandomInteger[zmax]",
@@ -564,6 +568,7 @@ class Random(Builtin):
         "Random[Complex,  zmax_Complex]": "RandomComplex[zmax]",
         "Random[Complex, {zmin_?NumberQ, zmax_?NumberQ}]": "RandomComplex[{zmin, zmax}]",
     }
+    summary_text = "a random number"
 
 
 # If numpy is not in the system, the following classes are going to be redefined as None. flake8 complains about this.
@@ -686,8 +691,8 @@ class RandomChoice(_RandomSelection):
      = {b, b, b, b, b, b, b, b, b, b, b, c, b, b, b, b, b, b, b, b}
     """
 
-    summary_text = "choice items at random from a list"
     _replace = True
+    summary_text = "choice items at random from a list"
 
 
 class RandomSample(_RandomSelection):
@@ -732,8 +737,8 @@ class RandomSample(_RandomSelection):
      = {62, 98, 86, 78, 40}
     """
 
-    summary_text = "pick a sample at random from a list"
     _replace = False
+    summary_text = "pick a sample at random from a list"
 
 
 if not _numpy:  # hide symbols from non-numpy envs

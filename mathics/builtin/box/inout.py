@@ -15,6 +15,7 @@ class ButtonBox(Builtin):
     """
 
     attributes = protected | read_protected
+    summary_text = "box construct for buttons"
 
 
 class InterpretationBox(Builtin):
@@ -27,18 +28,40 @@ class InterpretationBox(Builtin):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box associated to an input expression"
 
 
 class SubscriptBox(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'SubscriptBox["symb", "subscript"]'
+    <dd>box structure for an expression with a subscript
+    </dl>
+    """
+
+    summary_text = "box format for subscript"
 
 
 class SubsuperscriptBox(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'SubsuperscriptBox["symb", "subscript", "superscript"]'
+    <dd>box structure for an expression with a subscript and a superscript
+    </dl>
+    """
+
+    summary_text = "box format for sub and super script"
 
 
 class SuperscriptBox(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'SuperscriptBox["symb", "superscript"]'
+    <dd>box structure for an expression with a superscript
+    </dl>
+    """
+
+    summary_text = "box format for superscript"
 
 
 class RowBox(Builtin):
@@ -49,6 +72,8 @@ class RowBox(Builtin):
         arranged in a horizontal row.
     </dl>
     """
+
+    summary_text = "horizontal arrange of boxes"
 
 
 class StyleBox(Builtin):
@@ -64,6 +89,7 @@ class StyleBox(Builtin):
     """
 
     attributes = protected | read_protected
+    summary_text = "associate boxes with styles"
 
 
 class TagBox(Builtin):
@@ -76,6 +102,7 @@ class TagBox(Builtin):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box tag with a head"
 
 
 class TemplateBox(Builtin):
@@ -87,6 +114,7 @@ class TemplateBox(Builtin):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "parametrized box"
 
 
 class TooltipBox(Builtin):
@@ -96,3 +124,5 @@ class TooltipBox(Builtin):
         <dd>undocumented...
     </dl>
     """
+
+    summary_text = "box for showing tooltips"

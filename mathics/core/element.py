@@ -35,6 +35,15 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
+class ImmutableValueMixin:
+    @property
+    def is_literal(self) -> bool:
+        """
+        The value value can't change once it is set.
+        """
+        return True
+
+
 class KeyComparable:
     """
 

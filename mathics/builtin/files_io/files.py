@@ -1704,7 +1704,7 @@ class _OpenAction(Builtin):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
-            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR)
+            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=True)
             path = String(tmpf.name)
             tmpf.close()
             return self.apply_path(path, evaluation, options)

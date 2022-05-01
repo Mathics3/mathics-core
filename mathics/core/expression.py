@@ -78,6 +78,48 @@ symbols_arithmetic_operations = system_symbols(
 )
 
 
+def build_elements_with_properties(self, elements: Iterable) -> tuple:
+    """Build a tuple of Elements noting useful properties such as
+    whether the collection of elements is sorted, flat, or fully
+    evaluated.
+
+    Note: we add or set the following fields:
+      self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+
+    """
+
+    # All of the properties start out optimistic (True) and are reset when that proves wrong.
+
+    # _elements_fully_evaluated is True if all elements have been fully evaluated.
+    # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
+    self._elements_fully_evaluated = True
+
+    # _is_flat is True if all elements are atoms/leaves.
+    self._is_flat = True
+
+    # _is_sorted is True if elements do not need sorting
+    # elements with less than 2 items or all have the same value are sorted.
+    self._is_sorted = True
+
+    result = []
+    last_element = None
+    for element in elements:
+        # Test for the three properties mentioned above.
+        if not element.is_literal:
+            self._elements_fully_evaluated = False
+        if isinstance(element, Expression):
+            self._is_flat = False
+            self._is_sorted = last_element is None  # sorted if have 1 element
+            self._elements_fully_evaluated = False
+        elif self._is_sorted and last_element is not None and last_element != element:
+            self._is_sorted = False
+        last_element = element
+
+        result.append(element)
+
+    return tuple(result)
+
+
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -183,7 +225,13 @@ class Expression(BaseElement, NumericOperators):
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head
-        self._elements = tuple(from_python(element) for element in elements)
+
+        # Set some properties on elements that help us speed up evaluation.
+        # These are set in self._build_elements(elements)
+        #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
+
+        self._elements = self._build_elements(elements)
+
         self._sequences = None
         self._cache = None
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
@@ -213,6 +261,54 @@ class Expression(BaseElement, NumericOperators):
 
         f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
         return f(*sym_args)
+
+    def _build_elements(self, elements: Iterable) -> tuple:
+        """
+        Build a tuple of Elements converted from the Python-like items in `elements`.
+        We also note useful properties such as whether the collection of elements is
+        sorted, flat, or fully evaluated.
+
+        Note: we add or set the following fields:
+          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+        """
+        # All of the properties start out optimistic (True) and are reset when that proves wrong.
+
+        # _elements_fully_evaluated is True if all elements have been fully evaluated.
+        # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
+        self._elements_fully_evaluated = True
+
+        # _is_flat is True if all elements are atoms/leaves.
+        self._is_flat = True
+
+        # _is_sorted is True if elements do not need sorting
+        # elements with less than 2 items or all have the same value are sorted.
+        self._is_sorted = True
+
+        result = []
+        last_element = None
+        for element in elements:
+            converted_elt = from_python(element)
+
+            # Test for the three properties mentioned above.
+            if not converted_elt.is_literal:
+                self._elements_fully_evaluated = False
+            if isinstance(converted_elt, Expression):
+                self._is_flat = False
+                self._elements_fully_evaluated = False
+                # We will say the elements are sorted if have less than
+                # 2 elements which we determine via last_element.
+                self._is_sorted = last_element is None
+            elif (
+                self._is_sorted
+                and last_element is not None
+                and last_element != converted_elt
+            ):
+                self._is_sorted = False
+            last_element = converted_elt
+
+            result.append(converted_elt)
+
+        return tuple(result)
 
     def _flatten_sequence(self, sequence, evaluation) -> "Expression":
         indices = self.sequences()
@@ -540,14 +636,12 @@ class Expression(BaseElement, NumericOperators):
         self,
         evaluation: Evaluation,
     ) -> typing.Type["BaseElement"]:
-        """Apply transformation rules and expression evaluation to `evaluation` via
-        `rewrite_apply_eval_step()` until it tells us to stop or we hit some limit.
+        """
+        Apply transformation rules and expression evaluation to ``evaluation`` via
+        ``rewrite_apply_eval_step()`` until that method tells us to stop,
+        or unti we hit an $IterationLimit or TimeConstrained limit.
 
-        Note that this is a recusive process and
-        `rewrite_apply_eval_step()` may call us recursively.
-
-        Limits are either an evaluation iteration count or a timeout value.
-
+        Evaluation is a recusive:``rewrite_apply_eval_step()`` may call us.
         """
         if evaluation.timeout:
             return
@@ -570,9 +664,8 @@ class Expression(BaseElement, NumericOperators):
         try:
             # Evaluation loop:
             while reevaluate:
-                # changed before last evaluated?
-                # This prevents to reevaluate expressions that
-                # have been already evaluated. This uses Expression._cache
+                # If definitions have not changed in the last evaluation,
+                # then evaluating again will produce the same result
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
 
@@ -586,26 +679,25 @@ class Expression(BaseElement, NumericOperators):
                 if hasattr(expr, "options") and expr.options:
                     evaluation.options = expr.options
 
-                # This calls evaluate_next. This routine implements a single
-                # step in the evaluation, and determines if a fixed point
-                # was reached (reevaluate->False).
-                # Notice that evaluate_next calls ``evaluate``
-                # for the other ``BaseElement`` subclasses.
+                # ``rewrite_apply_eval_step()`` makes a pass at
+                # evaluating the expression. If we know that a further
+                # evaluation will not be needed, ``reevaluate`` is set
+                # False.  Note that ``rewrite_apply_eval_step()`` can
+                # perform further ``evaluate`` and we will recurse
+                # back into this routine.
                 expr, reevaluate = expr.rewrite_apply_eval_step(evaluation)
 
                 if not reevaluate:
                     break
 
-                # Trace evaluation...
+                # TraceEvaluation[] logging.
                 if evaluation.definitions.trace_evaluation:
                     evaluation.print_out(
                         "  " * evaluation.recursion_depth + "-> %s" % expr
                     )
                 iteration += 1
-                # Check if the iterationlimit was reached.
-                # we need to check on each step, in case that the expression
-                # changes its value. Maybe there is another way, for example,
-                # keeping the index in the Evaluation object.
+                # Check whether we have hit $Iterationlimit: is the number of times
+                # ``reevaluate`` came back False in this loop.
                 if limit is None:
                     limit = definitions.get_config_value("$IterationLimit")
                     if limit is None:
@@ -651,6 +743,8 @@ class Expression(BaseElement, NumericOperators):
         expr = self._flatten_sequence(sequence, evaluation)
         if hasattr(self, "options"):
             expr.options = self.options
+        assert hasattr(expr, "_is_flat")
+        expr._is_flat = True
         return expr
 
     def flatten_sequence(self, evaluation):
@@ -1064,6 +1158,9 @@ class Expression(BaseElement, NumericOperators):
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
                             elements[index] = element.evaluate(evaluation)
+                            self._is_sorted = False
+                            self._elements_fully_evaluated = False
+                            self._is_flat = False
 
             def eval_range(indices):
                 for index in indices:
@@ -1071,6 +1168,10 @@ class Expression(BaseElement, NumericOperators):
                     if not element.has_form("Unevaluated", 1):
                         element = element.evaluate(evaluation)
                         if element:
+                            if elements[index] != element:
+                                self._is_sorted = False
+                                self._elements_fully_evaluated = False
+                                self._is_flat = False
                             elements[index] = element
 
             if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
@@ -1092,8 +1193,10 @@ class Expression(BaseElement, NumericOperators):
         # Step 2: Build a new expression. Notice that elements are given
         # after creating the object, to avoid to call `from_python` on each element.
 
+        # FIXME: put this in a method
         new = Expression(head)
         new._elements = tuple(elements)
+        new._is_flat = self._is_flat
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
@@ -1105,6 +1208,11 @@ class Expression(BaseElement, NumericOperators):
             # inside. Now this is handled by caching the sequences.
             new = new.flatten_sequence(evaluation)
             elements = new._elements
+
+        # This has to be done *after*  flatten sequence above which can set
+        # self._is_sorted
+        new._elements_fully_evaluated = self._elements_fully_evaluated
+        new._is_sorted = self._is_sorted
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
         # The idea is to mark which elements was marked as "Unevaluated"
@@ -1137,7 +1245,7 @@ class Expression(BaseElement, NumericOperators):
 
             if dirty_elements:
                 new = Expression(head)
-                new._elements = tuple(dirty_elements)
+                new._elements = build_elements_with_properties(self, dirty_elements)
                 elements = dirty_elements
 
         # If the attribute FLAT is set, calls flatten with a callback
@@ -1152,7 +1260,7 @@ class Expression(BaseElement, NumericOperators):
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if ORDERLESS & attributes:
+        if not self._is_sorted and (ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1255,7 +1363,7 @@ class Expression(BaseElement, NumericOperators):
 
         if dirty_elements:
             new = Expression(head)
-            new._elements = tuple(dirty_elements)
+            new._elements = build_elements_with_properties(self, tuple(dirty_elements))
 
         # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
@@ -1456,10 +1564,6 @@ class Expression(BaseElement, NumericOperators):
 
         `self._cache` is updated if that is not None.
         """
-        # It is stupid to sort 0 or 1 elements.
-        if len(self._elements) < 2:
-            return
-
         # There is no in-place sort method on a tuple, because tuples are not
         # mutable. So we turn into a elements into list and use Python's
         # list sort method. Another approach would be to use sorted().
@@ -1471,6 +1575,7 @@ class Expression(BaseElement, NumericOperators):
 
         # update `self._elements` and self._cache with the possible permuted order.
         self._elements = tuple(elements)
+        self._is_sorted = True
         if self._cache:
             self._cache = self._cache.reordered()
 
@@ -1823,47 +1928,8 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = self._build_elements(elements)
+        expr._elements = build_elements_with_properties(self, elements)
         return expr
-
-    def _build_elements(self, elements: Iterable) -> tuple:
-        """
-        Build a tuple of Elements converted from the Python-like items in `elements`.
-        We also note useful properties such as whether the collection of elements is
-        sorted, flat, or fully evaluated.
-
-        Note: we add or set the following fields:
-          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
-        """
-
-        # All of the properties start out optimistic (True) and are reset when that proves wrong.
-
-        # _elements_fully_evaluated is True if all elements have been fully evaluated.
-        # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
-        self._elements_fully_evaluated = True
-
-        # _is_flat is True if all elements are atoms/leaves.
-        self._is_flat = True
-
-        # _is_sorted is True if elements do not need sorting
-        # elements with less than 2 items or all have the same value are sorted.
-        self._is_sorted = True
-
-        result = []
-        last_element = None
-        for element in elements:
-            # Test for the three properties mentioned above.
-            if not element.is_literal:
-                self._elements_fully_evaluated = False
-            if isinstance(element, Expression):
-                self._is_flat = False
-            if self._is_sorted and last_element is not None and last_element != element:
-                self._is_sorted = False
-            last_element = element
-
-            result.append(element)
-
-        return tuple(result)
 
     def filter(self, expr, cond):
         return self([element for element in expr._elements if cond(element)])

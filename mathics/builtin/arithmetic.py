@@ -216,10 +216,10 @@ def create_infix(items, operator, prec, grouping):
 class DirectedInfinity(SympyFunction):
     """
     <dl>
-    <dt>'DirectedInfinity[$z$]'</dt>
+    <dt>'DirectedInfinity[$z$]'
         <dd>represents an infinite multiple of the complex number $z$.
-    <dt>'DirectedInfinity[]'</dt>
-        <dd>is the same as 'ComplexInfinity'.</dd>
+    <dt>'DirectedInfinity[]'
+        <dd>is the same as 'ComplexInfinity'.
     </dl>
 
     >> DirectedInfinity[1]
@@ -246,6 +246,7 @@ class DirectedInfinity(SympyFunction):
      = Infinity
     """
 
+    summary_text = "infinite quantity with a defined direction in the complex plane"
     rules = {
         "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
@@ -322,6 +323,7 @@ class Re(SympyFunction):
      = MachinePrecision
     """
 
+    summary_text = "real part"
     attributes = listable | numeric_function | protected
     sympy_name = "re"
 
@@ -360,6 +362,7 @@ class Im(SympyFunction):
      = MachinePrecision
     """
 
+    summary_text = "imaginary part"
     attributes = listable | numeric_function | protected
 
     def apply_complex(self, number, evaluation):
@@ -405,6 +408,7 @@ class Conjugate(_MPMathFunction):
      = 1.5 - 2.5 I
     """
 
+    summary_text = "complex conjugation"
     mpmath_name = "conj"
 
 
@@ -434,6 +438,7 @@ class Abs(_MPMathFunction):
      = Sqrt[3]
     """
 
+    summary_text = "absolute value of a number"
     sympy_name = "Abs"
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
 
@@ -441,17 +446,17 @@ class Abs(_MPMathFunction):
 class Arg(_MPMathFunction):
     """
      <dl>
-       <dt>'Arg'[$z$, $method_option$]</dt>
-       <dd>returns the argument of a complex value $z$.</dd>
+       <dt>'Arg'[$z$, $method_option$]
+       <dd>returns the argument of a complex value $z$.
+     </dl>
 
-       <ul>
+    <ul>
          <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
          <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
          <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
          <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
          <li>'Arg'[0] is 0.
-      </ul>
-     </dl>
+    </ul>
 
      >> Arg[-3]
       = Pi
@@ -474,6 +479,7 @@ class Arg(_MPMathFunction):
      = 0
     """
 
+    summary_text = "phase of a complex number"
     rules = {
         "Arg[0]": "0",
         "Arg[DirectedInfinity[]]": "1",
@@ -533,6 +539,7 @@ class Sign(SympyFunction):
      = Sign[20]
     """
 
+    summary_text = "complex sign of a number"
     sympy_name = "sign"
     # mpmath_name = 'sign'
 
@@ -571,6 +578,7 @@ class I(Predefined):
      = 10
     """
 
+    summary_text = "imaginary unit"
     python_equivalent = 1j
 
     def evaluate(self, evaluation):
@@ -591,6 +599,8 @@ class NumberQ(Test):
     >> NumberQ[Pi]
      = False
     """
+
+    summary_text = "test whether an expression is a number"
 
     def test(self, expr):
         return isinstance(expr, Number)
@@ -632,6 +642,7 @@ class PossibleZeroQ(SympyFunction):
      = False
     """
 
+    summary_text = "test whether an expression is estimated to be zero"
     attributes = listable | numeric_function | protected
 
     sympy_name = "_iszero"
@@ -681,6 +692,8 @@ class RealNumberQ(Test):
      = True
     """
 
+    summary_text = "test whether an expression is a real number"
+
     def test(self, expr):
         return isinstance(expr, (Integer, Rational, Real))
 
@@ -700,6 +713,7 @@ class Integer_(Builtin):
      = {False, True, True}
     """
 
+    summary_text = "head for integer numbers"
     name = "Integer"
 
 
@@ -773,16 +787,17 @@ class Real_(Builtin):
      : Expression cannot begin with "37^^3" (line 1 of "<test>").
     """
 
+    summary_text = "head for real numbers"
     name = "Real"
 
 
 class Rational_(Builtin):
     """
     <dl>
-    <dt>'Rational'</dt>
-        <dd>is the head of rational numbers.</dd>
-    <dt>'Rational[$a$, $b$]'</dt>
-        <dd>constructs the rational number $a$ / $b$.</dd>
+    <dt>'Rational'
+        <dd>is the head of rational numbers.
+    <dt>'Rational[$a$, $b$]'
+        <dd>constructs the rational number $a$ / $b$.
     </dl>
 
     >> Head[1/2]
@@ -795,6 +810,7 @@ class Rational_(Builtin):
      = -2 / 3
     """
 
+    summary_text = "head for rational numbers"
     name = "Rational"
 
     def apply(self, n, m, evaluation):
@@ -862,6 +878,7 @@ class Complex_(Builtin):
      = I
     """
 
+    summary_text = "head for complex numbers"
     name = "Complex"
 
     def apply(self, r, i, evaluation):
@@ -948,6 +965,7 @@ class Sum(_IterationFunction, SympyFunction):
      = Sum[Cos[i Pi], {i, 1, Infinity}]
     """
 
+    summary_text = "discrete sum"
     # Do not throw warning message for symbolic iteration bounds
     throw_iterb = False
 
@@ -1061,6 +1079,7 @@ class Product(_IterationFunction, SympyFunction):
     ##  = 1 / ((-I)! I!)
     """
 
+    summary_text = "discrete product"
     throw_iterb = False
 
     sympy_name = "Product"
@@ -1129,6 +1148,7 @@ class Piecewise(SympyFunction):
      = -1
     """
 
+    summary_text = "an arbitrary piecewise function"
     sympy_name = "Piecewise"
 
     attributes = hold_all | protected
@@ -1202,6 +1222,7 @@ class Boole(Builtin):
      = Boole[a == 7]
     """
 
+    summary_text = "translate 'True' to 1, and 'False' to 0"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -1222,6 +1243,7 @@ class Assumptions(Predefined):
      </dl>
     """
 
+    summary_text = "assumptions used to simplify expressions"
     name = "$Assumptions"
     attributes = no_attributes
     rules = {
@@ -1250,6 +1272,7 @@ class Assuming(Builtin):
      = ConditionalExpression[x ^ 2 y, y > 0]
     """
 
+    summary_text = "set assumptions during the evaluation"
     attributes = hold_rest | protected
 
     def apply_assuming(self, assumptions, expr, evaluation):
@@ -1297,6 +1320,7 @@ class ConditionalExpression(Builtin):
     # = ConditionalExpression[s, And[x>a, x<b]]
     """
 
+    summary_text = "expression defined under condition"
     sympy_name = "Piecewise"
 
     rules = {

@@ -304,7 +304,7 @@ class SystemCharacterEncoding(Predefined):
     """
     <dl>
     <dt>$SystemCharacterEncoding
-
+    <dd>gives the default character encoding of the system.
     </dl>
     """
 
@@ -313,6 +313,8 @@ class SystemCharacterEncoding(Predefined):
     rules = {
         "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
     }
+
+    summary_text = "system's character enconding"
 
 
 class CharacterEncoding(Predefined):
@@ -326,10 +328,11 @@ class CharacterEncoding(Predefined):
 
     name = "$CharacterEncoding"
     value = '"UTF-8"'
-
     rules = {
         "$CharacterEncoding": value,
     }
+
+    summary_text = "default character encoding"
 
 
 _encodings = {
@@ -382,12 +385,19 @@ def to_python_encoding(encoding):
 
 
 class CharacterEncodings(Predefined):
+    """
+    <dl>
+    <dt>'$CharacterEncodings'
+    <dd>stores the list of available character encodings.
+    </dl>
+    """
+
     name = "$CharacterEncodings"
     value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
-
     rules = {
         "$CharacterEncodings": value,
     }
+    summary_text = "available character encodings"
 
 
 class NumberString(Builtin):
@@ -407,6 +417,8 @@ class NumberString(Builtin):
      = False
     """
 
+    summary_text = "characters in string representation of a number"
+
 
 class Whitespace(Builtin):
     r"""
@@ -424,6 +436,7 @@ class Whitespace(Builtin):
     >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
      = "this has leading and trailing whitespace removed"
     """
+    summary_text = "sequence of whitespace characters"
 
 
 # FIXME: Generalize string.lower() and ord()
@@ -457,6 +470,8 @@ class Alphabet(Builtin):
     rules = {
         "Alphabet[]": """Alphabet["English"]""",
     }
+
+    summary_text = "lowercase letters in an alphabet"
 
     def apply(self, alpha, evaluation):
         """Alphabet[alpha_String]"""
@@ -516,10 +531,13 @@ class LetterNumber(Builtin):
     #  = 2
 
     """
+
     messages = {
         "nalph": "The alphabet `` is not known or not available.",
         "nas": ("The argument `1` is not a string."),
     }
+
+    summary_text = "position of a letter in an alphabet"
 
     def apply_alpha_str(self, chars: List[Any], alpha: String, evaluation):
         "LetterNumber[chars_, alpha_String]"
@@ -595,6 +613,8 @@ class HexidecimalCharacter(Builtin):
     >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
      = {True, True, True, False, False, False, False}
     """
+
+    summary_text = "hexadecimal digits"
 
 
 class _StringFind(Builtin):
@@ -708,6 +728,8 @@ class StringRepeat(Builtin):
         "intp": "A positive integer is expected at position `1` in `2`.",
     }
 
+    summary_text = "build a string by concatenating repetitions"
+
     def apply(self, s, n, expression, evaluation):
         "StringRepeat[s_String, n_]"
         py_n = n.get_int_value() if isinstance(n, Integer) else 0
@@ -754,6 +776,7 @@ class String_(Builtin):
     """
 
     name = "String"
+    summary_text = "head for strings"
 
 
 class ToString(Builtin):
@@ -792,6 +815,8 @@ class ToString(Builtin):
         "TotalWidth": "Infinity",
     }
 
+    summary_text = "format an expression and produce a string"
+
     def apply_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
         return self.apply_form(value, SymbolOutputForm, evaluation, options)
@@ -812,14 +837,14 @@ class InterpretedBox(PrefixOperator):
       <dt>'InterpretedBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just
           for internal use...
-
+    </dl>
     >> \! \(2+2\)
      = 4
-    </dl>
     """
 
     operator = "\\!"
     precedence = 670
+    summary_text = "interpret boxes as an expression"
 
     def apply_dummy(self, boxes, evaluation):
         """InterpretedBox[boxes_]"""
@@ -893,6 +918,7 @@ class ToExpression(Builtin):
         ),
         "notstr": "The format type `1` is valid only for string input.",
     }
+    summary_text = "build an expression from formatted text"
 
     def apply(self, seq, evaluation):
         "ToExpression[seq__]"
@@ -973,6 +999,8 @@ class StringQ(Test):
      = {12, yz}
     """
 
+    summary_text = "test whether an expression is a string"
+
     def test(self, expr):
         return isinstance(expr, String)
 
@@ -990,6 +1018,8 @@ class RemoveDiacritics(Builtin):
     >> RemoveDiacritics["piñata"]
      = pinata
     """
+
+    summary_text = "remove diacritics"
 
     def apply(self, s, evaluation):
         "RemoveDiacritics[s_String]"
@@ -1026,6 +1056,7 @@ class Transliterate(Builtin):
     # = meter gar te me phesi thea Thetis arguropeza
 
     requires = ("unidecode",)
+    summary_text = "transliterate an UTF string in different alphabets to ASCII"
 
     def apply(self, s, evaluation):
         "Transliterate[s_String]"
@@ -1162,6 +1193,8 @@ class StringContainsQ(Builtin):
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
     }
+
+    summary_text = "test whether a pattern matches with a substring"
 
     def apply(self, string, patt, evaluation, options):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"
