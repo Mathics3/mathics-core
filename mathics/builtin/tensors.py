@@ -407,11 +407,11 @@ class RotationTransform(Builtin):
     </dl>
     """
 
-    summary_text = "symbolic representation of a rotation in 3D"
     rules = {
         "RotationTransform[phi_]": "TransformationFunction[{{Cos[phi], -Sin[phi], 0}, {Sin[phi], Cos[phi], 0}, {0, 0, 1}}]",
         "RotationTransform[phi_, p_]": "TranslationTransform[p] . RotationTransform[phi] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a rotation in 3D"
 
 
 class ScalingTransform(Builtin):
@@ -425,11 +425,11 @@ class ScalingTransform(Builtin):
     </dl>
     """
 
-    summary_text = "symbolic representation of a scale transformation"
     rules = {
         "ScalingTransform[v_]": "TransformationFunction[DiagonalMatrix[Join[v, {1}]]]",
         "ScalingTransform[v_, p_]": "TranslationTransform[p] . ScalingTransform[v] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a scale transformation"
 
 
 class ShearingTransform(Builtin):
@@ -444,12 +444,12 @@ class ShearingTransform(Builtin):
     </dl>
     """
 
-    summary_text = "symbolic representation of a shearing transformation"
     rules = {
         "ShearingTransform[phi_, {1, 0}, {0, 1}]": "TransformationFunction[{{1, Tan[phi], 0}, {0, 1, 0}, {0, 0, 1}}]",
         "ShearingTransform[phi_, {0, 1}, {1, 0}]": "TransformationFunction[{{1, 0, 0}, {Tan[phi], 1, 0}, {0, 0, 1}}]",
         "ShearingTransform[phi_, u_, v_, p_]": "TranslationTransform[p] . ShearingTransform[phi, u, v] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a shearing transformation"
 
 
 class TransformationFunction(Builtin):
@@ -466,11 +466,11 @@ class TransformationFunction(Builtin):
      = TransformationFunction[{{-1, 0, 1}, {0, -1, -1}, {0, 0, 1}}]
     """
 
-    summary_text = "general symbolic representation of transformation"
     rules = {
         "Dot[TransformationFunction[a_], TransformationFunction[b_]]": "TransformationFunction[a . b]",
         "TransformationFunction[m_][v_]": "Take[m . Join[v, {1}], Length[v]]",
     }
+    summary_text = "general symbolic representation of transformation"
 
 
 class TranslationTransform(Builtin):
@@ -484,11 +484,11 @@ class TranslationTransform(Builtin):
      = TransformationFunction[{{1, 0, 1}, {0, 1, 2}, {0, 0, 1}}]
     """
 
-    summary_text = "symbolic representation of translation"
     rules = {
         "TranslationTransform[v_]": "TransformationFunction[IdentityMatrix[Length[v] + 1] + "
         "(Join[ConstantArray[0, Length[v]], {#}]& /@ Join[v, {0}])]",
     }
+    summary_text = "symbolic representation of translation"
 
 
 class Transpose(Builtin):
@@ -540,8 +540,8 @@ class VectorQ(Builtin):
      = True
     """
 
-    summary_text = "test whether an object is a vector"
     rules = {
         "VectorQ[expr_]": "ArrayQ[expr, 1]",
         "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
     }
+    summary_text = "test whether an object is a vector"
