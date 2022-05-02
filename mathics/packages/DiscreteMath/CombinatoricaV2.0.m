@@ -89,7 +89,7 @@ Undirected::usage = "Undirected is an option to inform certain functions that th
 
 Edge::usage = "Edge is an option to inform certain functions to work with edges instead of vertices."
 
-Combinatorica2`All::usage = "All is an option to inform certain functions to return all solutions, instead of just the first one."
+All::usage = "All is an option to inform certain functions to return all solutions, instead of just the first one."
 
 AcyclicQ::usage = "AcyclicQ[g] returns True if graph g is acyclic. AcyclicQ[g,Directed] returns True if g is a directed acyclic graph."
 
@@ -519,7 +519,7 @@ Strings::usage = "Strings[l,n] constructs all possible strings of length n from 
 
 StronglyConnectedComponents::usage = "StronglyConnectedComponents[g] returns the strongly connected components of directed graph g."
 
-Combinatorica2`Subsets::usage = "Subsets[l] returns all subsets of set l."
+Subsets::usage = "Subsets[l] returns all subsets of set l."
 
 TableauClasses::usage = "TableauClasses[p] partitions the elements of permutation p into classes according to their initial columns during Young tableaux construction."
 
@@ -1263,7 +1263,7 @@ FirstLexicographicTableau[s_List] :=
 NextTableau[t_?TableauQ] :=
 	Module[{s,y,row,j,count=0,tj,i,n=Max[t]},
 		y = TableauToYVector[t];
-		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, Null];
+		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, ];
 		If [y[[j]] >= y[[j-1]],
 			Return[ FirstLexicographicTableau[ ShapeOfTableau[t] ] ]
 		];
@@ -2127,7 +2127,7 @@ RealizeDegreeSequence[d_List] :=
 						(# - 1)&,
 						Map[First,seq],
 						set = RandomKSubset[Table[{i},{i,n-j}],k]
-					] ], Null
+					] ],
 				];
 				e = Map[(Prepend[seq[[#,2]],v])&,set];
 				seq = Reverse[ Sort[
