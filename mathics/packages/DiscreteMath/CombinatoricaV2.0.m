@@ -1263,7 +1263,7 @@ FirstLexicographicTableau[s_List] :=
 NextTableau[t_?TableauQ] :=
 	Module[{s,y,row,j,count=0,tj,i,n=Max[t]},
 		y = TableauToYVector[t];
-		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, ];
+		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, Null];
 		If [y[[j]] >= y[[j-1]],
 			Return[ FirstLexicographicTableau[ ShapeOfTableau[t] ] ]
 		];
@@ -2127,7 +2127,7 @@ RealizeDegreeSequence[d_List] :=
 						(# - 1)&,
 						Map[First,seq],
 						set = RandomKSubset[Table[{i},{i,n-j}],k]
-					] ],
+					] ], Null
 				];
 				e = Map[(Prepend[seq[[#,2]],v])&,set];
 				seq = Reverse[ Sort[
