@@ -1,8 +1,8 @@
 
-(* :Title: Combinatorica 
+(* :Title: Combinatorica
 *)
 (* :Author:
-	Steven S. Skiena 
+	Steven S. Skiena
 *)
 (* :Summary:
 
@@ -32,7 +32,7 @@ mailing list should be forwarded to:
 
 	(516)-632-9026 / 8470
 *)
-(* :Context: DiscreteMath`Combinatorica` 
+(* :Context: DiscreteMath`Combinatorica`
 *)
 (* :Package Version: .91	(3/23/95 Beta Release)
 *)
@@ -54,7 +54,7 @@ incidental, or consequential damages.
 (* :History:
         Version .9 by Steven S. Skiena, February 1992.
 	Version .8 by Steven S. Skiena, July 1991.
-	Version .7 by Steven S. Skiena, January 1991. 
+	Version .7 by Steven S. Skiena, January 1991.
 	Version .6 by Steven S. Skiena, June 1990.
 *)
 (* :Keywords:
@@ -73,13 +73,13 @@ incidental, or consequential damages.
 *)
 (* :Source:
 	Steven Skiena: "Implementing Discrete Mathematics: Combinatorics
-			and Graph Theory with Mathematica", 
+			and Graph Theory with Mathematica",
 			Addison-Wesley Publishing Co.
 *)
 (* :Mathematica Version: 2.3
 *)
 
-BeginPackage["DiscreteMath`Combinatorica`"]
+BeginPackage["DiscreteMath`Combinatorica2`"]
 
 Graph::usage = "Graph[g,v] is the header for a graph object where g is an adjacency matrix and v is a list of vertices."
 
@@ -89,7 +89,7 @@ Undirected::usage = "Undirected is an option to inform certain functions that th
 
 Edge::usage = "Edge is an option to inform certain functions to work with edges instead of vertices."
 
-All::usage = "All is an option to inform certain functions to return all solutions, instead of just the first one."
+Combinatorica2`All::usage = "All is an option to inform certain functions to return all solutions, instead of just the first one."
 
 AcyclicQ::usage = "AcyclicQ[g] returns True if graph g is acyclic. AcyclicQ[g,Directed] returns True if g is a directed acyclic graph."
 
@@ -519,7 +519,7 @@ Strings::usage = "Strings[l,n] constructs all possible strings of length n from 
 
 StronglyConnectedComponents::usage = "StronglyConnectedComponents[g] returns the strongly connected components of directed graph g."
 
-Subsets::usage = "Subsets[l] returns all subsets of set l."
+Combinatorica2`Subsets::usage = "Subsets[l] returns all subsets of set l."
 
 TableauClasses::usage = "TableauClasses[p] partitions the elements of permutation p into classes according to their initial columns during Young tableaux construction."
 
@@ -589,9 +589,9 @@ WriteGraph::usage = "WriteGraph[g,f] writes graph g to file f using an edge list
 
 Begin["`private`"]
 PermutationQ[p_List] := (Sort[p] == Range[Length[p]])
- 
+
 Permute[l_List,p_?PermutationQ] := l [[ p ]]
- 
+
 LexicographicPermutations[{}] := {{}}
 
 LexicographicPermutations[{l_}] := {{l}}
@@ -602,7 +602,7 @@ LexicographicPermutations[l_List] :=
 	Module[{i,n=Length[l]},
 		Apply[
 			Join,
-			Table[ 
+			Table[
 				Map[
 					(Prepend[#,l[[i]]])&,
 					LexicographicPermutations[
@@ -613,7 +613,7 @@ LexicographicPermutations[l_List] :=
 			]
 		]
 	]
- 
+
 RankPermutation[{1}] = 0
 
 RankPermutation[p_?PermutationQ] := (p[[1]]-1) (Length[Rest[p]]!) +
@@ -632,7 +632,7 @@ NthPermutation[n1_Integer,l_List] :=
 
 NextPermutation[p_?PermutationQ] :=
 	NthPermutation[ RankPermutation[p]+1, Sort[p] ]
- 
+
 RandomPermutation1[n_Integer?Positive] :=
 	Map[ Last, Sort[ Map[({Random[],#})&,Range[n]] ] ]
 
@@ -647,7 +647,7 @@ RandomPermutation2[n_Integer?Positive] :=
 	]
 
 RandomPermutation[n_Integer?Positive] := RandomPermutation1[n]
- 
+
 MinimumChangePermutations[l_List] :=
 	Module[{i=1,c,p=l,n=Length[l],k},
 		c = Table[1,{n}];
@@ -664,7 +664,7 @@ MinimumChangePermutations[l_List] :=
 			]
 		]
 	]
- 
+
 Backtrack[space_List,partialQ_,solutionQ_,flag_:One] :=
 	Module[{n=Length[space],all={},done,index,v=2,solution},
 		index=Prepend[ Table[0,{n-1}],1];
@@ -691,7 +691,7 @@ Backtrack[space_List,partialQ_,solutionQ_,flag_:One] :=
 
 Solution[space_List,index_List,count_Integer] :=
 	Module[{i}, Table[space[[ i,index[[i]] ]], {i,count}] ]
- 
+
 DistinctPermutations[s_List] := Permutations[s] /; (Length[s] == 1)
 
 DistinctPermutations[s_List] :=
@@ -707,7 +707,7 @@ DistinctPermutations[s_List] :=
 			]
 		]
 	]
- 
+
 MinOp[l_List,f_] :=
 	Module[{min=First[l]},
 		Scan[ (If[ Apply[f,{#,min}], min = #])&, l];
@@ -724,10 +724,10 @@ SelectionSort[l_List,f_] :=
 			{Length[l]}
 		]
 	]
- 
+
 BinarySearch[l_List,k_Integer] := BinarySearch[l,k,1,Length[l],Identity]
 BinarySearch[l_List,k_Integer,f_] := BinarySearch[l,k,1,Length[l],f]
-	
+
 BinarySearch[l_List,k_Integer,low_Integer,high_Integer,f_] :=
 	Module[{mid = Floor[ (low + high)/2 ]},
 		If [low > high, Return[low - 1/2]];
@@ -737,7 +737,7 @@ BinarySearch[l_List,k_Integer,low_Integer,high_Integer,f_] :=
 			BinarySearch[l,k,mid+1,high,f]
 		]
 	]
- 
+
 MultiplicationTable[elems_List,op_] :=
 	Module[{i,j,n=Length[elems],p},
 		Table[
@@ -746,13 +746,13 @@ MultiplicationTable[elems_List,op_] :=
 			{i,n},{j,n}
 		]
 	]
- 
+
 InversePermutation[p_?PermutationQ] :=
 	Module[{inverse=p, i},
 		Do[ inverse[[ p[[i]] ]] = i, {i,Length[p]} ];
 		inverse
 	]
- 
+
 EquivalenceRelationQ[r_?SquareMatrixQ] :=
 	ReflexiveQ[r] && SymmetricQ[r] && TransitiveQ[r]
 EquivalenceRelationQ[g_Graph] := EquivalenceRelationQ[ Edges[g] ]
@@ -760,7 +760,7 @@ EquivalenceRelationQ[g_Graph] := EquivalenceRelationQ[ Edges[g] ]
 SquareMatrixQ[{}] = True
 SquareMatrixQ[r_] := MatrixQ[r] && (Length[r] == Length[r[[1]]])
 
-ReflexiveQ[r_?SquareMatrixQ] := 
+ReflexiveQ[r_?SquareMatrixQ] :=
 	Module[{i}, Apply[And, Table[(r[[i,i]]!=0),{i,Length[r]}] ] ]
 
 TransitiveQ[r_?SquareMatrixQ] := TransitiveQ[ Graph[r,RandomVertices[Length[r]]] ]
@@ -771,7 +771,7 @@ SymmetricQ[r_?SquareMatrixQ] := (r === Transpose[r])
 EquivalenceClasses[r_List?EquivalenceRelationQ] :=
 	ConnectedComponents[ Graph[r,RandomVertices[Length[r]]] ]
 EquivalenceClasses[g_Graph?EquivalenceRelationQ] := ConnectedComponents[g]
- 
+
 PermutationGroupQ[perms_List] :=
 	FreeQ[ MultiplicationTable[perms,Permute], 0] &&
 		EquivalenceRelationQ[SamenessRelation[perms]]
@@ -783,7 +783,7 @@ SamenessRelation[perms_List] :=
 			{i,n}, {j,n}
 		]
 	] /; perms != {}
- 
+
 ToCycles[p1_?PermutationQ] :=
 	Module[{p=p1,m,n,cycle,i},
 		Select[
@@ -793,7 +793,7 @@ ToCycles[p1_?PermutationQ] :=
 				While[ p[[n]] != 0,
 					AppendTo[cycle,m=n];
 					n = p[[n]];
-					p[[m]] = 0 
+					p[[m]] = 0
 				];
 				cycle,
 				{i,Length[p]}
@@ -801,8 +801,8 @@ ToCycles[p1_?PermutationQ] :=
 			(# =!= {})&
 		]
 	]
- 
-FromCycles[cyc_List] := 
+
+FromCycles[cyc_List] :=
 	Module[{p=Table[0,{Length[Flatten[cyc]]}], pos},
 		Scan[
 			(pos = Last[#];
@@ -811,15 +811,15 @@ FromCycles[cyc_List] :=
 		];
 		p
 	]
- 
-HideCycles[c_List] := 
+
+HideCycles[c_List] :=
 	Flatten[
 		Sort[
 			Map[(RotateLeft[#,Position[#,Min[#]] [[1,1]] - 1])&, c],
 			(#1[[1]] > #2[[1]])&
 		]
 	]
- 
+
 RevealCycles[p_?PermutationQ] :=
 	Module[{start=end=1, cycles={}},
 		While [end <= Length[p],
@@ -831,12 +831,12 @@ RevealCycles[p_?PermutationQ] :=
 		];
 		Append[cycles,Take[p,{start,end-1}]]
 	]
- 
+
 NumberOfPermutationsByCycles[n_Integer,m_Integer] := (-1)^(n-m) StirlingS1[n,m]
 
 StirlingFirst[n_Integer,m_Integer] := StirlingFirst1[n,m]
 
-StirlingFirst1[n_Integer,0] := If [n == 0, 1, 0] 
+StirlingFirst1[n_Integer,0] := If [n == 0, 1, 0]
 StirlingFirst1[0,m_Integer] := If [m == 0, 1, 0]
 
 StirlingFirst1[n_Integer,m_Integer] := StirlingFirst1[n,m] =
@@ -849,11 +849,11 @@ StirlingSecond1[0,m_Integer] := If [m == 0, 1, 0]
 
 StirlingSecond1[n_Integer,m_Integer] := StirlingSecond1[n,m] =
 	m StirlingSecond1[n-1,m] + StirlingSecond1[n-1,m-1]
- 
+
 SignaturePermutation[p_?PermutationQ] := (-1) ^ (Length[p]-Length[ToCycles[p]])
- 
+
 Polya[g_List,m_] := Apply[ Plus, Map[(m^Length[ToCycles[#]])&,g] ] / Length[g]
- 
+
 ToInversionVector[p_?PermutationQ] :=
 	Module[{i,inverse=InversePermutation[p]},
 		Table[
@@ -861,7 +861,7 @@ ToInversionVector[p_?PermutationQ] :=
 			{i,Length[p]-1}
 		]
 	]
- 
+
 FromInversionVector[vec_List] :=
 	Module[{n=Length[vec]+1,i,p},
 		p={n};
@@ -871,14 +871,14 @@ FromInversionVector[vec_List] :=
 		];
 		p
 	]
- 
+
 Inversions[p_?PermutationQ] := Apply[Plus,ToInversionVector[p]]
- 
+
 Index[p_?PermutationQ]:=
 	Module[{i},
 		Sum[ If [p[[i]] > p[[i+1]], i, 0], {i,Length[p]-1} ]
 	]
- 
+
 Runs[p_?PermutationQ] :=
 	Map[
 		(Apply[Take,{p,{#[[1]]+1,#[[2]]}}])&,
@@ -898,14 +898,14 @@ Eulerian[n_Integer,k_Integer] := Eulerian1[n,k]
 Eulerian1[0,k_Integer] := If [k==1, 1, 0]
 Eulerian1[n_Integer,k_Integer] := Eulerian1[n,k] =
 	k Eulerian1[n-1,k] + (n-k+1) Eulerian1[n-1,k-1]
- 
+
 InvolutionQ[p_?PermutationQ] := p[[p]] == Range[Length[p]]
- 
+
 NumberOfInvolutions[n_Integer] :=
 	Module[{k},
 		n! Sum[1/((n - 2k)! 2^k k!), {k, 0, Quotient[n, 2]}]
 	]
- 
+
 DerangementQ[p_?PermutationQ] :=
 	!(Apply[ Or, Map[( # == p[[#]] )&, Range[Length[p]]] ])
 
@@ -914,7 +914,7 @@ NumberOfDerangements[n_] := n * NumberOfDerangements[n-1] + (-1)^n
 
 Derangements[n_Integer] := Derangements[Range[n]]
 Derangements[p_?PermutationQ] := Select[ Permutations[p], DerangementQ ]
- 
+
 Josephus[n_Integer,m_Integer] :=
 	Module[{live=Range[n],next},
 		InversePermutation[
@@ -926,7 +926,7 @@ Josephus[n_Integer,m_Integer] :=
 			]
 		]
 	]
- 
+
 Heapify[p_List] :=
 	Module[{j,heap=p},
 		Do [
@@ -950,7 +950,7 @@ Heapify[p_List, k_Integer] :=
 	]
 
 RandomHeap[n_Integer] := Heapify[RandomPermutation[n]]
- 
+
 HeapSort[p_List] :=
 	Module[{heap=Heapify[p],min},
 		Append[
@@ -964,14 +964,14 @@ HeapSort[p_List] :=
 			Max[heap]
 		]
 	]
- 
+
 Strings[l_List,0] := { {} }
 
 Strings[l_List,k_Integer?Positive] :=
 	Module[{oneless = Strings[l,k-1],i,n=Length[l]},
 		Apply[Join, Table[ Map[(Prepend[#,l[[i]]])&, oneless], {i,n}] ]
 	]
- 
+
 NthSubset[n_Integer,m_Integer] := NthSubset[n,Range[m]]
 NthSubset[n_Integer,l_List] :=
 	l[[ Flatten[ Position[Reverse[IntegerDigits[ Mod[n,2^Length[l]],2]],1] ] ]]
@@ -987,9 +987,9 @@ RankSubset[set_List,subset_List] :=
 	Module[{i,n=Length[set]},
 		Sum[ 2^(i-1) * If[ MemberQ[subset,set[[i]]], 1, 0], {i,n}]
 	]
- 
+
 RandomSubset[set_List] := NthSubset[Random[Integer,2^(Length[set])-1],set]
- 
+
 GrayCode[l_List] := GrayCode[l,{{}}]
 
 GrayCode[{},prev_List] := prev
@@ -1000,9 +1000,9 @@ GrayCode[l_List,prev_List] :=
 		Join[ prev, Map[(Append[#,First[l]])&,Reverse[prev]] ]
 	]
 
-Subsets[l_List] := GrayCode[l]
-Subsets[n_Integer] := GrayCode[Range[n]]
- 
+Combinatorica`Subsets[l_List] := GrayCode[l]
+Combinatorica`Subsets[n_Integer] := GrayCode[Range[n]]
+
 LexicographicSubsets[l_List] := LexicographicSubsets[l,{{}}]
 
 LexicographicSubsets[{},s_List] := s
@@ -1015,7 +1015,7 @@ LexicographicSubsets[l_List,subsets_List] :=
 			Map[(Prepend[#,First[l]])&,LexicographicSubsets[Rest[l],{{}}] ]
 		]
 	]
- 
+
 KSubsets[l_List,0] := { {} }
 KSubsets[l_List,1] := Partition[l,1]
 KSubsets[l_List,k_Integer?Positive] := {l} /; (k == Length[l])
@@ -1026,7 +1026,7 @@ KSubsets[l_List,k_Integer?Positive] :=
 		Map[(Prepend[#,First[l]])&, KSubsets[Rest[l],k-1]],
 		KSubsets[Rest[l],k]
 	]
- 
+
 NextKSubset[set_List,subset_List] :=
 	Take[set,Length[subset]] /; (Take[set,-Length[subset]] === subset)
 
@@ -1036,10 +1036,10 @@ NextKSubset[set_List,subset_List] :=
 		While [set[[x]] =!= subset[[-h]], x++];
 		Join[ Drop[subset,-h], Take[set, {x+1,x+h}] ]
 	]
- 
+
 RandomKSubset[n_Integer,k_Integer] := RandomKSubset[Range[n],k]
 
-RandomKSubset[set_List,k_Integer] := 
+RandomKSubset[set_List,k_Integer] :=
 	Module[{s=Range[Length[set]],i,n=Length[set],x},
 		set [[
 			Sort[
@@ -1052,9 +1052,9 @@ RandomKSubset[set_List,k_Integer] :=
 			]
 		]]
 	] /; (k <= Length[set])
- 
+
 PartitionQ[p_List] := (Min[p]>0) && Apply[And, Map[IntegerQ,p]]
- 
+
 Partitions[n_Integer] := Partitions[n,n]
 
 Partitions[n_Integer,_] := {} /; (n<0)
@@ -1067,7 +1067,7 @@ Partitions[n_Integer,maxpart_Integer] :=
 		Map[(Prepend[#,maxpart])&, Partitions[n-maxpart,maxpart]],
 		Partitions[n,maxpart-1]
 	]
- 
+
 NextPartition[p_List] := Join[Drop[p,-1],{Last[p]-1,1}]  /; (Last[p] > 1)
 
 NextPartition[p_List] := {Apply[Plus,p]}  /; (Max[p] == 1)
@@ -1083,7 +1083,7 @@ NextPartition[p_List] :=
 			If [Mod[m,k] == 0, {}, {Mod[m,k]}]
 		]
 	]
- 
+
 FerrersDiagram[p1_List] :=
 	Module[{i,j,n=Length[p1],p=Sort[p1]},
 		Show[
@@ -1096,7 +1096,7 @@ FerrersDiagram[p1_List] :=
 			]
 		]
 	]
- 
+
 TransposePartition[{}] := {}
 
 TransposePartition[p_List] :=
@@ -1109,7 +1109,7 @@ TransposePartition[p_List] :=
 			{i,First[s]}
 		]
 	]
- 
+
 DurfeeSquare[s_List] :=
 	Module[{i,max=1},
 		Do [
@@ -1120,7 +1120,7 @@ DurfeeSquare[s_List] :=
 	]
 
 DurfeeSquare[{}] := 0
- 
+
 NumberOfPartitions[n_Integer] := NumberOfPartitions1[n]
 
 NumberOfPartitions1[n_Integer] := 0  /; (n < 0)
@@ -1133,7 +1133,7 @@ NumberOfPartitions1[n_Integer] := NumberOfPartitions1[n] =
 			{m, Ceiling[ (1+Sqrt[1.0 + 24n])/6 ], 1, -1}
 		]
 	]
- 
+
 (from Paul Chase)
 
 RandomPartition[n_Integer?Positive] :=
@@ -1151,22 +1151,22 @@ RandomPartition[n_Integer?Positive] :=
     ];
     Reverse[Flatten[Table[Table[j, {mult[[j]]}], {j, Length[mult]}]]]
   ]
- 
+
 NumberOfCompositions[n_,k_] := Binomial[ n+k-1, n ]
- 
+
 RandomComposition[n_Integer,k_Integer] :=
 	Map[
 		(#[[2]] - #[[1]] - 1)&,
 		Partition[Join[{0},RandomKSubset[Range[n+k-1],k-1],{n+k}], 2, 1]
 	]
- 
+
 Compositions[n_Integer,k_Integer] :=
 	Map[
 		(Map[(#[[2]]-#[[1]]-1)&, Partition[Join[{0},#,{n+k}],2,1] ])&,
 		KSubsets[Range[n+k-1],k-1]
 	]
- 
-NextComposition[l_List] := 
+
+NextComposition[l_List] :=
 	Module[{c=l, h=1, t},
 		While[c[[h]] == 0, h++];
 		{t,c[[h]]} = {c[[h]],0};
@@ -1177,7 +1177,7 @@ NextComposition[l_List] :=
 
 NextComposition[l_List] :=
 	Join[{Apply[Plus,l]},Table[0,{Length[l]-1}]] /; Last[l]==Apply[Plus,l]
- 
+
 TableauQ[{}] = True
 TableauQ[t_List] :=
 	And [
@@ -1198,7 +1198,7 @@ TransposeTableau[tb_List] :=
 	]
 
 ShapeOfTableau[t_List] := Map[Length,t]
- 
+
 InsertIntoTableau[e_Integer,{}] := { {e} }
 
 InsertIntoTableau[e_Integer, t1_?TableauQ] :=
@@ -1214,14 +1214,14 @@ InsertIntoTableau[e_Integer, t1_?TableauQ] :=
 		];
 		Append[t, {item}]
 	]
- 
+
 ConstructTableau[p_List] := ConstructTableau[p,{}]
 
 ConstructTableau[{},t_List] := t
 
 ConstructTableau[p_List,t_List] :=
 	ConstructTableau[Rest[p], InsertIntoTableau[First[p],t]]
- 
+
 DeleteFromTableau[t1_?TableauQ,r_Integer]:=
 	Module [{t=t1, col, row, item=Last[t1[[r]]]},
 		col = Length[t[[r]]];
@@ -1234,7 +1234,7 @@ DeleteFromTableau[t1_?TableauQ,r_Integer]:=
 		];
 		t
 	]
- 
+
 TableauxToPermutation[p1_?TableauQ,q1_?TableauQ] :=
 	Module[{p=p1, q=q1, row, firstrow},
 		Reverse[
@@ -1251,7 +1251,7 @@ TableauxToPermutation[p1_?TableauQ,q1_?TableauQ] :=
 			]
 		]
 	] /; ShapeOfTableau[p1] === ShapeOfTableau[q1]
- 
+
 LastLexicographicTableau[s_List] :=
 	Module[{c=0},
 		Map[(c+=#; Range[c-#+1,c])&, s]
@@ -1259,11 +1259,11 @@ LastLexicographicTableau[s_List] :=
 
 FirstLexicographicTableau[s_List] :=
 	TransposeTableau[ LastLexicographicTableau[ TransposePartition[s] ] ]
- 
+
 NextTableau[t_?TableauQ] :=
 	Module[{s,y,row,j,count=0,tj,i,n=Max[t]},
 		y = TableauToYVector[t];
-		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, ];
+		For [j=2, (j<n)  && (y[[j]]>=y[[j-1]]), j++, Null];
 		If [y[[j]] >= y[[j-1]],
 			Return[ FirstLexicographicTableau[ ShapeOfTableau[t] ] ]
 		];
@@ -1290,7 +1290,7 @@ Tableaux[s_List] :=
 	]
 
 Tableaux[n_Integer?Positive] := Apply[ Join, Map[ Tableaux, Partitions[n] ] ]
- 
+
 YVectorToTableau[y_List] :=
 	Module[{k},
 		Table[ Flatten[Position[y,k]], {k,Length[Union[y]]}]
@@ -1301,9 +1301,9 @@ TableauToYVector[t_?TableauQ] :=
 		Do [ Scan[ (y[[#]]=i)&, t[[i]] ], {i,2,Length[t]} ];
 		y
 	]
- 
+
 NumberOfTableaux[{}] := 1
-NumberOfTableaux[s_List] := 
+NumberOfTableaux[s_List] :=
 	Module[{row,col,transpose=TransposePartition[s]},
 		(Apply[Plus,s])! /
 		Product [
@@ -1313,9 +1313,9 @@ NumberOfTableaux[s_List] :=
 	]
 
 NumberOfTableaux[n_Integer] := Apply[Plus, Map[NumberOfTableaux, Partitions[n]]]
- 
+
 CatalanNumber[n_] := Binomial[2n,n]/(n+1)	/; (n>=0)
- 
+
 RandomTableau[shape_List] :=
 	Module[{i=j=n=Apply[Plus,shape],done,l,m,h=1,k,y,p=shape},
 		y= Join[TransposePartition[shape],Table[0,{n - Max[shape]}]];
@@ -1340,13 +1340,13 @@ RandomTableau[shape_List] :=
 
 RandomSquare[y_List,p_List] :=
 	Module[{i=Random[Integer,{1,First[y]}], j=Random[Integer,{1,First[p]}]},
-		While[(i > y[[j]]) || (j > p[[i]]), 
+		While[(i > y[[j]]) || (j > p[[i]]),
 			i = Random[Integer,{1,First[y]}];
 			j = Random[Integer,{1,First[p]}]
 		];
 		{i,j}
 	]
- 
+
 TableauClasses[p_?PermutationQ] :=
 	Module[{classes=Table[{},{Length[p]}],t={}},
 		Scan [
@@ -1356,7 +1356,7 @@ TableauClasses[p_?PermutationQ] :=
 		];
 		Select[classes, (# != {})&]
 	]
- 
+
 LongestIncreasingSubsequence[p_?PermutationQ] :=
 	Module[{c,x,xlast},
 		c = TableauClasses[p];
@@ -1374,7 +1374,7 @@ LongestIncreasingSubsequence[p_?PermutationQ] :=
 	]
 
 LongestIncreasingSubsequence[{}] := {}
- 
+
 AddToEncroachingLists[k_Integer,{}] := {{k}}
 
 AddToEncroachingLists[k_Integer,l_List] :=
@@ -1390,13 +1390,13 @@ AddToEncroachingLists[k_Integer,l1_List] :=
 		];
 		l
 	]
- 
+
 EncroachingListSet[l_List] := EncroachingListSet[l,{}]
 EncroachingListSet[{},e_List] := e
 
 EncroachingListSet[l_List,e_List] :=
 	EncroachingListSet[Rest[l], AddToEncroachingLists[First[l],e] ]
- 
+
 Edges[Graph[e_,_]] := e
 
 Vertices[Graph[_,v_]] := v
@@ -1409,7 +1409,7 @@ M[Graph[g_,_],Directed] := Apply[Plus, Map[(Apply[Plus,#])&,g] ]
 ChangeVertices[g_Graph,v_List] := Graph[ Edges[g], v ]
 
 ChangeEdges[g_Graph,e_List] := Graph[ e, Vertices[g] ]
- 
+
 AddEdge[Graph[g_,v_],{x_,y_},Directed] :=
 	Module[ {gnew=g},
 		gnew[[x,y]] ++;
@@ -1427,13 +1427,13 @@ DeleteEdge[Graph[g_,v_],{x_,y_},Directed] :=
 
 DeleteEdge[g_Graph,{x_,y_},flag_:Undirected] :=
 	DeleteEdge[ DeleteEdge[g, {x,y}, Directed], {y,x}, Directed]
- 
+
 AddVertex[g_Graph] := GraphUnion[g, K[1]]
 
 DeleteVertex[g_Graph,v_Integer] := InduceSubgraph[g,Complement[Range[V[g]],{v}]]
- 
+
 Spectrum[Graph[g_,_]] := Eigenvalues[g]
- 
+
 ToAdjacencyLists[Graph[g_,_]] :=
 	Map[ (Flatten[ Position[ #, _?(Function[n, n!=0])] ])&, g ]
 
@@ -1446,12 +1446,12 @@ FromAdjacencyLists[e_List] :=
 	]
 
 FromAdjacencyLists[e_List,v_List] := ChangeVertices[FromAdjacencyLists[e], v]
- 
+
 ToOrderedPairs[g_Graph] := Position[ Edges[g], _?(Function[n,n != 0]) ]
 
 ToUnorderedPairs[g_Graph] := Select[ ToOrderedPairs[g], (#[[1]] < #[[2]])& ]
 
-FromOrderedPairs[l_List] := 
+FromOrderedPairs[l_List] :=
 	Module[{n=Max[l]},
 		Graph[
 			MapAt[1&, Table[0,{n},{n}],l],
@@ -1459,12 +1459,12 @@ FromOrderedPairs[l_List] :=
 		]
 	]
 FromOrderedPairs[{}] := Graph[{},{}]
-FromOrderedPairs[l_List,v_List] := 
+FromOrderedPairs[l_List,v_List] :=
 	Graph[ MapAt[1&, Table[0,{Length[v]},{Length[v]}], l], v]
 
 FromUnorderedPairs[l_List] := MakeUndirected[ FromOrderedPairs[l] ]
 FromUnorderedPairs[l_List,v_List] := MakeUndirected[ FromOrderedPairs[l,v] ]
- 
+
 PseudographQ[Graph[g_,_]] :=
 	Module[{i},
 		Apply[Or, Table[ g[[i,i]]!=0, {i,Length[g]} ]]
@@ -1478,17 +1478,17 @@ RemoveSelfLoops[g_Graph] :=
 	Module[{i,e=Edges[g]},
 		Do [ e[[i,i]]=0, {i,V[g]} ];
 		Graph[e, Vertices[g]]
-	]	
+	]
 
 EmptyQ[g_Graph] := Edges[g] == Table[0, {V[g]}, {V[g]}]
 
 CompleteQ[g_Graph] := Edges[RemoveSelfLoops[g]] == Edges[ K[V[g]] ]
- 
+
 InduceSubgraph[g_Graph,{}] := Graph[{},{}]
 
 InduceSubgraph[Graph[g_,v_],s_List] :=
 	Graph[Transpose[Transpose[g[[s]]] [[s]] ],v[[s]]] /; (Length[s]<=Length[g])
- 
+
 Contract[g_Graph,{u_Integer,v_Integer}] :=
 	Module[{o,e,i,n=V[g],newg,range=Complement[Range[V[g]],{u,v}]},
 		newg = InduceSubgraph[g,range];
@@ -1511,10 +1511,10 @@ Contract[g_Graph,{u_Integer,v_Integer}] :=
 	] /; V[g] > 2
 
 Contract[g_Graph,_] := K[1]	/; V[g] == 2
- 
+
 GraphComplement[Graph[g_,v_]] :=
 	RemoveSelfLoops[ Graph[ Map[ (Map[ (If [#==0,1,0])&, #])&, g], v ] ]
- 
+
 MakeUndirected[Graph[g_,v_]] :=
 	Module[{i,j,n=Length[g]},
 		Graph[ Table[If [g[[i,j]]!=0 || g[[j,i]]!=0,1,0],{i,n},{j,n}], v ]
@@ -1523,7 +1523,7 @@ MakeUndirected[Graph[g_,v_]] :=
 UndirectedQ[Graph[g_,_]] := (Apply[Plus,Apply[Plus,Abs[g-Transpose[g]]]] == 0)
 
 MakeSimple[g_Graph] := MakeUndirected[RemoveSelfLoops[g]]
- 
+
 BFS[g_Graph,start_Integer] :=
 	Module[{e,bfi=Table[0,{V[g]}],cnt=1,edges={},queue={start}},
 		e = ToAdjacencyLists[g];
@@ -1541,11 +1541,11 @@ BFS[g_Graph,start_Integer] :=
 		];
 		{edges,bfi}
 	]
-				
+
 BreadthFirstTraversal[g_Graph,s_Integer,Edge] := First[BFS[g,s]]
 
 BreadthFirstTraversal[g_Graph,s_Integer,___] := InversePermutation[Last[BFS[g,s]]]
- 
+
 DFS[v_Integer] :=
 	( dfi[[v]] = cnt++;
 	  AppendTo[visit,v];
@@ -1556,7 +1556,7 @@ DepthFirstTraversal[g_Graph,start_Integer,flag_:Vertex] :=
 		DFS[start];
 		If[ flag===Edge, edges, visit]
 	]
- 
+
 ShowGraph[g1_Graph,type_:Undirected] :=
 	Module[{g=NormalizeVertices[g1]},
 		Show[
@@ -1565,14 +1565,14 @@ ShowGraph[g1_Graph,type_:Undirected] :=
 					PointsAndLines[g],
 					If[SameQ[type,Directed],Arrows[g],{}]
 				]
-			], 
+			],
 			{AspectRatio->1, PlotRange->FindPlotRange[Vertices[g]]}
 		]
 	]
 
 MinimumEdgeLength[v_List,pairs_List] :=
 	Max[ Select[
-		Chop[ Map[(Sqrt[ N[(v[[#[[1]]]]-v[[#[[2]]]]) . 
+		Chop[ Map[(Sqrt[ N[(v[[#[[1]]]]-v[[#[[2]]]]) .
 			(v[[#[[1]]]]-v[[#[[2]]]])] ])&,pairs] ],
 		(# > 0)&
 	], 0.001 ]
@@ -1610,7 +1610,7 @@ Arrows[Graph[e_,v_]] :=
 			pairs
 		]
 	]
- 
+
 ShowLabeledGraph[g_Graph] := ShowLabeledGraph[g,Range[V[g]]]
 ShowLabeledGraph[g1_Graph,labels_List] :=
 	Module[{pairs=ToOrderedPairs[g1], g=NormalizeVertices[g1], v},
@@ -1623,7 +1623,7 @@ ShowLabeledGraph[g1_Graph,labels_List] :=
 					GraphLabels[v,labels]
 				]
 			],
-			{AspectRatio->1, PlotRange->FindPlotRange[v]} 
+			{AspectRatio->1, PlotRange->FindPlotRange[v]}
 		]
 	]
 
@@ -1631,7 +1631,7 @@ GraphLabels[v_List,l_List] :=
 	Module[{i},
 		Table[ Text[ l[[i]],v[[i]]-{0.03,0.03},{0,1} ],{i,Length[v]}]
 	]
- 
+
 CircularVertices[0] := {}
 
 CircularVertices[n_Integer] :=
@@ -1640,7 +1640,7 @@ CircularVertices[n_Integer] :=
 	]
 
 CircularVertices[Graph[g_,_]] := Graph[ g, CircularVertices[ Length[g] ] ]
- 
+
 RankGraph[g_Graph, start_List] :=
 	Module[ {rank = Table[0,{V[g]}],edges = ToAdjacencyLists[g],v,queue,new},
 		Scan[ (rank[[#]] = 1)&, start];
@@ -1653,7 +1653,7 @@ RankGraph[g_Graph, start_List] :=
 		];
 		rank
 	]
- 
+
 RankedEmbedding[g_Graph,start_List] := Graph[ Edges[g],RankedVertices[g,start] ]
 
 RankedVertices[g_Graph,start_List] :=
@@ -1669,7 +1669,7 @@ RankedVertices[g_Graph,start_List] :=
 
 Distribution[l_List] := Distribution[l, Union[l]]
 Distribution[l_List, set_List] := Map[(Count[l,#])&, set]
- 
+
 Eccentricity[g_Graph] := Map[ Max, AllPairsShortestPath[g] ]
 Eccentricity[g_Graph,start_Integer] := Map[ Max, Last[Dijkstra[g,start]] ]
 
@@ -1677,11 +1677,11 @@ Diameter[g_Graph] := Max[ Eccentricity[g] ]
 
 Radius[g_Graph] := Min[ Eccentricity[g] ]
 
-GraphCenter[g_Graph] := 
+GraphCenter[g_Graph] :=
 	Module[{eccentricity = Eccentricity[g]},
 		Flatten[ Position[eccentricity, Min[eccentricity]] ]
 	]
- 
+
 RadialEmbedding[g_Graph,ct_Integer] :=
 	Module[{center=ct,ang,i,da,theta,n,v,positioned,done,next,e=ToAdjacencyLists[g]},
 		ang = Table[{0,2 Pi},{n=V[g]}];
@@ -1707,7 +1707,7 @@ RadialEmbedding[g_Graph,ct_Integer] :=
 	]
 
 RadialEmbedding[g_Graph] := RadialEmbedding[g,First[GraphCenter[g]]];
- 
+
 RootedEmbedding[g_Graph,rt_Integer] :=
 	Module[{root=rt,pos,i,x,dx,new,n=V[g],v,done,next,e=ToAdjacencyLists[g]},
 		pos = Table[{-Ceiling[Sqrt[n]],Ceiling[Sqrt[n]]},{n}];
@@ -1729,14 +1729,14 @@ RootedEmbedding[g_Graph,rt_Integer] :=
 		];
 		Graph[Edges[g],N[v]]
 	]
- 
+
 TranslateVertices[v_List,{x_,y_}] := Map[ (# + {x,y})&, v ]
 TranslateVertices[Graph[g_,v_],{x_,y_}] := Graph[g, TranslateVertices[v,{x,y}] ]
 
 DilateVertices[v_List,d_] := (d * v)
 DilateVertices[Graph[e_,v_],d_] := Graph[e, DilateVertices[v,d]]
 
-RotateVertices[v_List,t_] := 
+RotateVertices[v_List,t_] :=
 	Module[{d,theta},
 		Map[
 			(If[# == {0,0}, {0,0},
@@ -1753,19 +1753,19 @@ Arctan[{x_,y_}] := Arctan1[Chop[{x,y}]]
 Arctan1[{0,0}] := 0
 Arctan1[{x_,y_}] := ArcTan[x,y]
 
-NormalizeVertices[v_List] := 
+NormalizeVertices[v_List] :=
 	Module[{v1},
 		v1 = TranslateVertices[v,{-Min[v],-Min[v]}];
 		DilateVertices[v1, 1/Max[v1,0.01]]
 	]
 
 NormalizeVertices[Graph[g_,v_]] := Graph[g, NormalizeVertices[v]]
- 
+
 ShakeGraph[Graph[e_List,v_List], fract_:0.1] :=
 	Module[{i,d,a},
 		Graph[
 			e,
-			Table[ 
+			Table[
 				d = Random[Real,{0,fract}];
 				a = Random[Real,{0, 2 N[Pi]}];
 				{N[v[[i,1]] + d Cos[a]], N[v[[i,2]] + d Sin[a]]},
@@ -1773,7 +1773,7 @@ ShakeGraph[Graph[e_List,v_List], fract_:0.1] :=
 			]
 		]
 	]
- 
+
 CalculateForce[u_Integer,g_Graph,em_List] :=
 	Module[{n=V[g],stc=0.25,gr=10.0,e=Edges[g],f={0.0,0.0},spl=1.0,v,dsquared},
 		Do [
@@ -1797,7 +1797,7 @@ SpringEmbedding[g_Graph,step_:10,inc_:0.15] :=
 		];
 		Graph[Edges[g],new]
 	]
- 
+
 (*	Rewritten for Version 2.0	*)
 
 ReadGraph[file_] :=
@@ -1815,10 +1815,10 @@ ReadGraph[file_] :=
 
 Toascii[s_String] := First[ ToCharacterCode[s] ]
 
-Convert[l_List] := 
+Convert[l_List] :=
 	Module[{ch,num,edge={},i=1},
 		While[i <= Length[l],
-			If[ DigitQ[ l[[i]] ], 
+			If[ DigitQ[ l[[i]] ],
 				num = 0;
 				While[ ((i <= Length[l]) && (DigitQ[l[[i]]])),
 					num = 10 num + Toascii[l[[i++]]] - Toascii["0"]
@@ -1829,8 +1829,8 @@ Convert[l_List] :=
 		];
 		edge
 	]
- 
-WriteGraph[g_Graph,file_] := 
+
+WriteGraph[g_Graph,file_] :=
 	Module[{edges=ToAdjacencyLists[g],v=N[NormalizeVertices[Vertices[g]]],i,x,y},
 		OpenWrite[file];
 		Do[
@@ -1846,7 +1846,7 @@ WriteGraph[g_Graph,file_] :=
 		];
 		Close[file];
 	]
- 
+
 GraphUnion[g_Graph,h_Graph] :=
 	Module[{maxg=Max[ Map[First,Vertices[g]] ], minh=Min[ Map[First,Vertices[h]] ]},
 		FromOrderedPairs[
@@ -1860,19 +1860,19 @@ GraphUnion[0,g_Graph] := EmptyGraph[0];
 GraphUnion[k_Integer,g_Graph] := GraphUnion[ GraphUnion[k-1,g], g]
 
 ExpandGraph[g_Graph,n_] := GraphUnion[ g, EmptyGraph[n - V[g]] ] /; V[g] <= n
- 
+
 GraphIntersection[g_Graph,h_Graph] :=
 	FromOrderedPairs[
 		Intersection[ToOrderedPairs[g],ToOrderedPairs[h]],
 		Vertices[g]
 	] /; (V[g] == V[h])
- 
+
 GraphDifference[g1_Graph,g2_Graph] :=
 	Graph[Edges[g1] - Edges[g2], Vertices[g1]] /; V[g1]==V[g2]
 
 GraphSum[g1_Graph,g2_Graph] :=
 	Graph[Edges[g1] + Edges[g2], Vertices[g1]] /; V[g1]==V[g2]
- 
+
 GraphJoin[g_Graph,h_Graph] :=
 	Module[{maxg=Max[ Abs[ Map[First,Vertices[g]] ] ]},
 		FromUnorderedPairs[
@@ -1889,7 +1889,7 @@ CartesianProduct[a_List,b_List] :=
 	Module[{i,j},
 		Flatten[ Table[{a[[i]],b[[j]]},{i,Length[a]},{j,Length[b]}], 1]
 	]
- 
+
 GraphProduct[g_Graph,h_Graph] :=
 	Module[{k,eg=ToOrderedPairs[g],eh=ToOrderedPairs[h],leng=V[g],lenh=V[h]},
 		FromOrderedPairs[
@@ -1919,7 +1919,7 @@ ProductVertices[vg_,vh_] :=
 		],
 		1
 	]
- 
+
 IncidenceMatrix[g_Graph] :=
 	Map[
 		( Join[
@@ -1929,7 +1929,7 @@ IncidenceMatrix[g_Graph] :=
 		] )&,
 		ToUnorderedPairs[g]
 	]
- 
+
 LineGraph[g_Graph] :=
 	Module[{b=IncidenceMatrix[g], edges=ToUnorderedPairs[g], v=Vertices[g]},
 		Graph[
@@ -1937,7 +1937,7 @@ LineGraph[g_Graph] :=
 			Map[ ( (v[[ #[[1]] ]] + v[[ #[[2]] ]]) / 2 )&, edges]
 		]
 	]
- 
+
 K[0] := Graph[{},{}]
 K[1] := Graph[{{0}},{{0,0}}]
 
@@ -1953,7 +1953,7 @@ EmptyGraph[n_Integer?Positive] :=
 	Module[{i},
 		Graph[ Table[0,{n},{n}], Table[{0,i},{i,(1-n)/2,(n-1)/2}] ]
 	]
- 
+
 K[l__] :=
 	Module[{ll=List[l],t,i,x,row,stages=Length[List[l]]},
 		t = FoldList[Plus,0,ll];
@@ -1969,7 +1969,7 @@ K[l__] :=
 					Table[row, {ll[[i-1]]}],
 					{i,2,stages+1}
 				]
-			
+
 			],
 			Apply [
 				Join,
@@ -1980,15 +1980,15 @@ K[l__] :=
 			]
 		]
 	] /; TrueQ[Apply[And, Map[Positive,List[l]]]] && (Length[List[l]]>1)
- 
+
 Turan[n_Integer,p_Integer] :=
 	Module[{k = Floor[ n / (p-1) ], r},
 		r = n - k (p-1);
 		Apply[K, Join[ Table[k,{p-1-r}], Table[k+1,{r}] ] ]
 	] /; (n > 0 && p > 1)
- 
+
 Cycle[n_Integer] := CirculantGraph[n,{1}]  /; n>=3
- 
+
 Star[n_Integer?Positive] :=
 	Module[{g},
 		g = Append [ Table[0,{n-1},{n}], Append[ Table[1,{n-1}], 0] ];
@@ -1997,7 +1997,7 @@ Star[n_Integer?Positive] :=
 			Append[ CircularVertices[n-1], {0,0}]
 		]
 	]
- 
+
 Wheel[n_Integer] :=
 	Module[{i,row = Join[{0,1}, Table[0,{n-4}], {1}]},
 		Graph[
@@ -2008,7 +2008,7 @@ Wheel[n_Integer] :=
 			Append[ CircularVertices[n-1], {0,0} ]
 		]
 	] /; n >= 3
- 
+
 Path[1] := K[1]
 Path[n_Integer?Positive] :=
 	FromUnorderedPairs[ Partition[Range[n],2,1], Map[({#,0})&,Range[n]] ]
@@ -2018,7 +2018,7 @@ GridGraph[n_Integer?Positive,m_Integer?Positive] :=
 		ChangeVertices[Path[n], Map[({Max[n,m]*#,0})&,Range[n]]],
 		Path[m]
 	]
- 
+
 Hypercube[n_Integer] := Hypercube1[n]
 
 Hypercube1[0] := K[1]
@@ -2030,7 +2030,7 @@ Hypercube1[n_Integer] := Hypercube1[n] =
 		RotateVertices[ Hypercube1[Floor[n/2]], 2Pi/5],
 		Hypercube1[Ceiling[n/2]]
 	]
- 
+
 LabeledTreeToCode[g_Graph] :=
 	Module[{e=ToAdjacencyLists[g],i,code},
 		Table [
@@ -2042,7 +2042,7 @@ LabeledTreeToCode[g_Graph] :=
 			{V[g]-2}
 		]
 	]
- 
+
 CodeToLabeledTree[l_List] :=
 	Module[{m=Range[Length[l]+2],x,i},
 		FromUnorderedPairs[
@@ -2060,15 +2060,15 @@ CodeToLabeledTree[l_List] :=
 
 RandomTree[n_Integer?Positive] :=
 	RadialEmbedding[CodeToLabeledTree[ Table[Random[Integer,{1,n}],{n-2}] ], 1]
- 
+
 RandomGraph[n_Integer,p_] := RandomGraph[n,p,{1,1}]
 
 RandomGraph[n_Integer,p_,range_List] :=
 	Module[{i,g},
-		g = Table[ 
+		g = Table[
 			Join[
 				Table[0,{i}],
-				Table[ 
+				Table[
 					If[Random[Real]<p, Random[Integer,range], 0],
 					{n-i}
 				]
@@ -2077,7 +2077,7 @@ RandomGraph[n_Integer,p_,range_List] :=
 		];
 		Graph[ g + Transpose[g], CircularVertices[n] ]
 	]
- 
+
 ExactRandomGraph[n_Integer,e_Integer] :=
 	FromUnorderedPairs[
 		Map[ NthPair, Take[ RandomPermutation[n(n-1)/2], e] ],
@@ -2093,7 +2093,7 @@ NthPair[n_Integer] :=
 
 RandomVertices[n_Integer] := Table[{Random[], Random[]}, {n}]
 RandomVertices[g_Graph] := Graph[ Edges[g], RandomVertices[V[g]] ]
- 
+
 RandomGraph[n_Integer,p_,range_List,Directed] :=
 	RemoveSelfLoops[
 		Graph[
@@ -2103,7 +2103,7 @@ RandomGraph[n_Integer,p_,range_List,Directed] :=
 	]
 
 RandomGraph[n_Integer,p_,Directed] := RandomGraph[n,p,{1,1},Directed]
- 
+
 DegreeSequence[g_Graph] := Reverse[ Sort[ Degrees[g] ] ]
 
 Degrees[Graph[g_,_]] := Map[(Apply[Plus,#])&, g]
@@ -2115,7 +2115,7 @@ GraphicQ[s_List] :=
 		m = First[sorted];
 		GraphicQ[ Join[ Take[sorted,{2,m+1}]-1, Drop[sorted,m+1] ] ]
 	]
- 
+
 RealizeDegreeSequence[d_List] :=
 	Module[{i,j,v,set,seq,n=Length[d],e},
 		seq = Reverse[ Sort[ Table[{d[[i]],i},{i,n}]] ];
@@ -2126,8 +2126,8 @@ RealizeDegreeSequence[d_List] :=
 					MapAt[
 						(# - 1)&,
 						Map[First,seq],
-						set = RandomKSubset[Table[{i},{i,n-j}],k] 
-					] ],
+						set = RandomKSubset[Table[{i},{i,n-j}],k]
+					] ], Null
 				];
 				e = Map[(Prepend[seq[[#,2]],v])&,set];
 				seq = Reverse[ Sort[
@@ -2142,11 +2142,11 @@ RealizeDegreeSequence[d_List] :=
 
 RealizeDegreeSequence[d_List,seed_Integer] :=
 	(SeedRandom[seed]; RealizeDegreeSequence[d])
- 
+
 RegularQ[Graph[g_,_]] := Apply[ Equal, Map[(Apply[Plus,#])& , g] ]
 
 RegularGraph[k_Integer,n_Integer] := RealizeDegreeSequence[Table[k,{n}]]
- 
+
 MakeGraph[v_List,f_] :=
 	Module[{n=Length[v],i,j},
 		Graph [
@@ -2154,14 +2154,14 @@ MakeGraph[v_List,f_] :=
 			CircularVertices[n]
 		]
 	]
- 
+
 IntervalGraph[l_List] :=
 	MakeGraph[
 		l,
 		( ((First[#1] <= First[#2]) && (Last[#1] >= First[#2])) ||
 		  ((First[#2] <= First[#1]) && (Last[#2] >= First[#1])) )&
 	]
- 
+
 FunctionalGraph[f_,n_] :=
 	Module[{i,x},
 		FromOrderedPairs[
@@ -2169,7 +2169,7 @@ FunctionalGraph[f_,n_] :=
 			CircularVertices[n]
 		]
 	]
- 
+
 ConnectedComponents[g_Graph] :=
 	Module[{untraversed=Range[V[g]],traversed,comps={}},
 		While[untraversed != {},
@@ -2181,11 +2181,11 @@ ConnectedComponents[g_Graph] :=
 	]
 
 ConnectedQ[g_Graph] := Length[ DepthFirstTraversal[g,1] ] == V[g]
- 
+
 WeaklyConnectedComponents[g_Graph] := ConnectedComponents[ MakeUndirected[g] ]
 
 ConnectedQ[g_Graph,Undirected] := Length[ WeaklyConnectedComponents[g] ] == 1
- 
+
 StronglyConnectedComponents[g_Graph] :=
 	Block[{e=ToAdjacencyLists[g],s,c=1,i,cur={},low=dfs=Table[0,{V[g]}],scc={}},
 		While[(s=Select[Range[V[g]],(dfs[[#]]==0)&]) != {},
@@ -2216,7 +2216,7 @@ SearchStrongComp[v_Integer] :=
 	]
 
 ConnectedQ[g_Graph,Directed] := Length[ StronglyConnectedComponents[g] ] == 1
- 
+
 OrientGraph[g_Graph] :=
 	Module[{pairs,newg,rest,cc,c,i,e},
 		pairs = Flatten[Map[(Partition[#,2,1])&,ExtractCycles[g]],1];
@@ -2237,11 +2237,11 @@ OrientGraph[g_Graph] :=
 			Vertices[g]
 		]
 	] /; SameQ[Bridges[g],{}]
- 
+
 FindBiconnectedComponents[g_Graph] :=
 	Block[{e=ToAdjacencyLists[g],n=V[g],par,c=0,act={},back,dfs,ap=bcc={}},
 		back=dfs=Table[0,{n}];
-		par = Table[n+1,{n}]; 
+		par = Table[n+1,{n}];
 		Map[(SearchBiConComp[First[#]])&, ConnectedComponents[g]];
 		{bcc,Drop[ap, -1]}
 	]
@@ -2250,7 +2250,7 @@ SearchBiConComp[v_Integer] :=
 	Block[{r},
 		back[[v]]=dfs[[v]]=++c;
 		Scan[
-			(If[ dfs[[#]] == 0, 
+			(If[ dfs[[#]] == 0,
 				If[!MemberQ[act,{v,#}], PrependTo[act,{v,#}]];
 				par[[#]] = v;
 				SearchBiConComp[#];
@@ -2266,7 +2266,7 @@ SearchBiConComp[v_Integer] :=
 			e[[v]]
 		];
 	]
- 
+
 ArticulationVertices[g_Graph]  := Union[Last[FindBiconnectedComponents[g]]];
 
 Bridges[g_Graph] := Select[BiconnectedComponents[g],(Length[#] == 2)&]
@@ -2274,12 +2274,12 @@ Bridges[g_Graph] := Select[BiconnectedComponents[g],(Length[#] == 2)&]
 BiconnectedComponents[g_Graph] := First[FindBiconnectedComponents[g]];
 
 BiconnectedQ[g_Graph] := Length[ BiconnectedComponents[g] ] == 1
- 
+
 EdgeConnectivity[g_Graph] :=
 	Module[{i},
 		Apply[Min, Table[NetworkFlow[g,1,i], {i,2,V[g]}]]
 	]
- 
+
 VertexConnectivityGraph[g_Graph] :=
 	Module[{n=V[g],e},
 		e=Table[0,{2 n},{2 n}];
@@ -2305,7 +2305,7 @@ VertexConnectivity[g_Graph] :=
 		];
 		k
 	]
- 
+
 Harary[k_?EvenQ, n_Integer] := CirculantGraph[n,Range[k/2]]
 
 Harary[k_?OddQ, n_?EvenQ] := CirculantGraph[n,Append[Range[k/2],n/2]]
@@ -2321,15 +2321,15 @@ Harary[k_?OddQ, n_?OddQ] :=
 			Vertices[g]
 		]
 	]
- 
+
 IdenticalQ[g_Graph,h_Graph] := Edges[g] === Edges[h]
 
 IsomorphismQ[g_Graph,h_Graph,p_List] := False	/;
 		(V[g]!=V[h]) || !PermutationQ[p] || (Length[p] != V[g])
 
 IsomorphismQ[g_Graph,h_Graph,p_List] := IdenticalQ[g, InduceSubgraph[h,p] ]
- 
-Isomorphism[g_Graph,h_Graph,flag_:One] := {}	/; (V[g] != V[h]) 
+
+Isomorphism[g_Graph,h_Graph,flag_:One] := {}	/; (V[g] != V[h])
 
 Isomorphism[g_Graph,h_Graph,flag_:One] :=
 	Module[{eg=Edges[g],eh=Edges[h],equiv=Equivalences[g,h]},
@@ -2359,7 +2359,7 @@ Equivalences[g_List,h_List] :=
 			{i,Length[dg]}
 		]
 	] /; Length[g] == Length[h]
- 
+
 Automorphisms[g_Graph,flag_:All] :=
 	Module[{s=AllPairsShortestPath[g]},
 		Backtrack[
@@ -2371,9 +2371,9 @@ Automorphisms[g_Graph,flag_:All] :=
 			flag
 		]
 	]
- 
+
 SelfComplementaryQ[g_Graph] := IsomorphicQ[g, GraphComplement[g]]
- 
+
 FindCycle[g_Graph,flag_:Undirected] :=
      Module[{edge,n=V[g],x,queue,v,seen,parent},
        edge=ToAdjacencyLists[g];
@@ -2407,12 +2407,12 @@ FromParent[parent_List,s_Integer] :=
 		PrependTo[lst,i];
 		Take[lst, Flatten[Position[lst,i]]]
 	]
- 
+
 AcyclicQ[g_Graph,flag_:Undirected] := SameQ[FindCycle[g,flag],{}]
 
 TreeQ[g_Graph] := ConnectedQ[g] && (M[g] == V[g]-1)
 
-ExtractCycles[gi_Graph,flag_:Undirected] := 
+ExtractCycles[gi_Graph,flag_:Undirected] :=
 	Module[{g=gi,cycles={},c},
 		While[!SameQ[{}, c=FindCycle[g,flag]],
 			PrependTo[cycles,c];
@@ -2426,8 +2426,8 @@ DeleteCycle[g_Graph,cycle_List,flag_:Undirected] :=
 		Scan[(newg=DeleteEdge[newg,#,flag])&, Partition[cycle,2,1] ];
 		newg
 	]
- 
-Girth[g_Graph] := 
+
+Girth[g_Graph] :=
 	Module[{v,dist,queue,n=V[g],girth=Infinity,parent,e=ToAdjacencyLists[g],x},
 		Do [
 			dist = parent = Table[Infinity, {n}];
@@ -2452,11 +2452,11 @@ Girth[g_Graph] :=
 		];
 		girth
 	] /; SimpleQ[g]
- 
+
 EulerianQ[g_Graph,Directed] :=
 	ConnectedQ[g,Undirected] && (InDegree[g] === OutDegree[g])
 
-EulerianQ[g_Graph,flag_:Undirected] := ConnectedQ[g,Undirected] && 
+EulerianQ[g_Graph,flag_:Undirected] := ConnectedQ[g,Undirected] &&
 	UndirectedQ[g] && Apply[And,Map[EvenQ,DegreeSequence[g]]]
 
 OutDegree[Graph[e_List,_],n_Integer] := Length[ Select[ e[[n]], (# != 0)& ] ]
@@ -2466,7 +2466,7 @@ InDegree[g_Graph,n_Integer] := OutDegree[ TransposeGraph[g], n ];
 InDegree[g_Graph] := Map[ (InDegree[g,#])&, Range[V[g]] ]
 
 TransposeGraph[Graph[g_List,v_List]] := Graph[ Transpose[g], v ]
- 
+
 EulerianCycle[g_Graph,flag_:Undirected] :=
 	Module[{euler,c,cycles,v},
 		cycles = Map[(Drop[#,-1])&, ExtractCycles[g,flag]];
@@ -2483,7 +2483,7 @@ EulerianCycle[g_Graph,flag_:Undirected] :=
 		];
 		Append[euler, First[euler]]
 	] /; EulerianQ[g,flag]
- 
+
 DeBruijnSequence[alph_List,n_Integer] :=
         Module[{states = Strings[alph,n-1]},
                 Rest[ Map[
@@ -2507,7 +2507,7 @@ DeBruijnSequence[alph_List,n_Integer] :=
         ] /; n>=2
 
 DeBruijnSequence[alph_List,n_Integer] := alph /; n==1
- 
+
 HamiltonianQ[g_Graph] := False /; !BiconnectedQ[g]
 HamiltonianQ[g_Graph] := HamiltonianCycle[g] != {}
 
@@ -2534,7 +2534,7 @@ HamiltonianCycle[g_Graph,flag_:One] :=
 		];
 		all
 	]
- 
+
 TravelingSalesman[g_Graph] :=
 	Module[{v,s={1},sol={},done,cost,g1,e=ToAdjacencyLists[g],x,ind,best,n=V[g]},
 		ind=Table[1,{n}];
@@ -2561,7 +2561,7 @@ TravelingSalesman[g_Graph] :=
 CostOfPath[Graph[g_,_],p_List] := Apply[Plus, Map[(Element[g,#])&,Partition[p,2,1]] ]
 
 Element[a_List,{index___}] := a[[ index ]]
- 
+
 TriangleInequalityQ[e_?SquareMatrixQ] :=
 	Module[{i,j,k,n=Length[e],flag=True},
 		Do [
@@ -2577,28 +2577,28 @@ TriangleInequalityQ[e_?SquareMatrixQ] :=
 	]
 
 TriangleInequalityQ[g_Graph] := TriangleInequalityQ[Edges[g]]
- 
+
 TravelingSalesmanBounds[g_Graph] := {LowerBoundTSP[g], UpperBoundTSP[g]}
 
 UpperBoundTSP[g_Graph] :=
 	CostOfPath[g, Append[DepthFirstTraversal[MinimumSpanningTree[g],1],1]]
 
 LowerBoundTSP[g_Graph] := Apply[Plus, Map[Min,ReplaceAll[Edges[g],0->Infinity]]]
- 
+
 PartialOrderQ[g_Graph] := ReflexiveQ[g] && AntiSymmetricQ[g] && TransitiveQ[g]
 
 TransitiveQ[g_Graph] := IdenticalQ[g,TransitiveClosure[g]]
 
-ReflexiveQ[Graph[g_List,_]] := 
+ReflexiveQ[Graph[g_List,_]] :=
 	Module[{i},
 		Apply[And, Table[(g[[i,i]]!=0),{i,Length[g]}] ]
 	]
 
-AntiSymmetricQ[g_Graph] := 
+AntiSymmetricQ[g_Graph] :=
 	Module[{e = Edges[g], g1 = RemoveSelfLoops[g]},
 		Apply[And, Map[(Element[e,Reverse[#]]==0)&,ToOrderedPairs[g1]] ]
 	]
- 
+
 TransitiveClosure[g_Graph] :=
 	Module[{i,j,k,e=Edges[g],n=V[g]},
 		Do [
@@ -2612,7 +2612,7 @@ TransitiveClosure[g_Graph] :=
 		];
 		Graph[e,Vertices[g]]
 	]
- 
+
 TransitiveReduction[g_Graph] :=
 	Module[{closure=reduction=Edges[g],i,j,k,n=V[g]},
 		Do[
@@ -2623,7 +2623,7 @@ TransitiveReduction[g_Graph] :=
 			{i,n},{j,n},{k,n}
 		];
 		Graph[reduction,Vertices[g]]
-	] /; AcyclicQ[RemoveSelfLoops[g],Directed] 
+	] /; AcyclicQ[RemoveSelfLoops[g],Directed]
 
 TransitiveReduction[g_Graph] :=
 	Module[{reduction=Edges[g],i,j,k,n=V[g]},
@@ -2635,20 +2635,20 @@ TransitiveReduction[g_Graph] :=
 			{i,n},{j,n},{k,n}
 		];
 		Graph[reduction,Vertices[g]]
-	] 
- 
+	]
+
 (*thanks Christoph Strnadl*)
 
 HasseDiagram[g_,fak_:1] :=
-	Module[{r, rank, m, stages, freq=Table[0,{V[g]}], 
+	Module[{r, rank, m, stages, freq=Table[0,{V[g]}],
              adjm, first},
 		r = TransitiveReduction[ RemoveSelfLoops[g]  ];
             adjm = ToAdjacencyLists[r];
-            rank = Table[ 0,{ V[g]} ];                              
+            rank = Table[ 0,{ V[g]} ];
             first = Select[ Range[ V[g]], InDegree[r,#]==0& ];
-            rank = MakeLevel[ first, 1, adjm, rank];          
+            rank = MakeLevel[ first, 1, adjm, rank];
             first = Max[rank];
-            stages = Distribution[ rank ];                       
+            stages = Distribution[ rank ];
             Graph[
 		Edges[r],
 		Table[
@@ -2665,7 +2665,7 @@ HasseDiagram[g_,fak_:1] :=
  * list rank to the level lvl, if the old entry at that position
  * is less than level.
  *)
-SetLevel[l_List,lvl_,rank_List] :=  
+SetLevel[l_List,lvl_,rank_List] :=
     Module[ {r=rank},
             If[ r[[#]] < lvl, r[[#]] = lvl ] & /@ l;
             r
@@ -2674,31 +2674,31 @@ SetLevel[l_List,lvl_,rank_List] :=
 (*
  * MakeLevel[l,level,adjm,rank] constructs recursively the ranks of
  * each vertex according to the adjacency matrix adjm of the graph.
- * rank is the current ranking, level the new level to assign and 
+ * rank is the current ranking, level the new level to assign and
  * l = {v1,v2,..} the list of vertices to be set to level.
  *)
 MakeLevel[{},_,_,rank_] := rank
 
 MakeLevel[l_List,lvl_,adjm_List,r_List] :=
-  Module[ {rank=r, v, lst=l }, 
+  Module[ {rank=r, v, lst=l },
           rank = SetLevel[lst,lvl,rank];  (* make this level ready *)
           While[ lst != {},
                  v = First[lst];
-                 rank = MakeLevel[adjm[[v]], lvl+1,adjm,rank]; 
+                 rank = MakeLevel[adjm[[v]], lvl+1,adjm,rank];
                  lst = Rest[lst];
-          ];                            
+          ];
           rank
   ]
 
 (*
  * HasseDiagram[g] renders a graph corresponding to the HasseDiagram of
- * the partial order induced by the directed graph g. 
+ * the partial order induced by the directed graph g.
  * HasseDiagram[g,fac] renders the HasseDiagram in which each vertex'
  * position is stretched by factor fac. In each stage that factor
  * is taken to the power of the distance to the 1 element.
- *)                                 
+ *)
 
- 
+
 TopologicalSort[g_Graph] :=
 	Module[{g1 = RemoveSelfLoops[g],e,indeg,zeros,v},
 		e=ToAdjacencyLists[g1];
@@ -2715,7 +2715,7 @@ TopologicalSort[g_Graph] :=
 			{V[g]}
 		]
 	] /; AcyclicQ[RemoveSelfLoops[g],Directed]
- 
+
 ChromaticPolynomial[g_Graph,z_] := 0 /; Identical[g,K[0]]
 
 ChromaticPolynomial[g_Graph,z_] :=
@@ -2744,7 +2744,7 @@ ChromaticDense[g_Graph,z_] :=
 		ChromaticDense[ AddEdge[g,{i,v}], z ] +
 			ChromaticDense[ Contract[g,{i,v}], z ]
 	]
- 
+
 ChromaticNumber[g_Graph] :=
 	Block[{ways, z},
 		ways[z_] = ChromaticPolynomial[g,z];
@@ -2752,8 +2752,8 @@ ChromaticNumber[g_Graph] :=
 			If [ways[z] > 0, Return[z]]
 		]
 	]
- 
-TwoColoring[g_Graph] := 
+
+TwoColoring[g_Graph] :=
 	Module[{queue,elem,edges,col,flag=True,colored=Table[0,{V[g]}]},
 		edges = ToAdjacencyLists[g];
 		While[ MemberQ[colored,0],
@@ -2778,7 +2778,7 @@ TwoColoring[g_Graph] :=
 	]
 
 BipartiteQ[g_Graph] := ! MemberQ[ TwoColoring[g], 0 ]
- 
+
 VertexColoring[g_Graph] :=
 	Module[{v,l,n=V[g],e=ToAdjacencyLists[g],x,color=Table[0,{V[g]}]},
 		v = Map[(Apply[Plus,#])&, Edges[g]];
@@ -2797,17 +2797,17 @@ VertexColoring[g_Graph] :=
 MaximumColorDegreeVertices[e_List,color_List] :=
 	Module[{n=Length[color],l,i,x},
 		l = Table[ Count[e[[i]], _?(Function[x,color[[x]]!=0])], {i,n}];
-		Do [ 
+		Do [
 			If [color[[i]]!=0, l[[i]] = -1],
 			{i,n}
 		];
 		Flatten[ Position[ l, Max[l] ] ]
 	]
- 
+
 EdgeColoring[g_Graph] := VertexColoring[ LineGraph[g] ]
 
 EdgeChromaticNumber[g_Graph] := ChromaticNumber[ LineGraph[g] ]
- 
+
 CliqueQ[g_Graph,clique_List] :=
 	IdenticalQ[ K[Length[clique]], InduceSubgraph[g,clique] ] /; SimpleQ[g]
 
@@ -2828,25 +2828,25 @@ MaximumClique[g_Graph] :=
 	]
 
 FirstExample[list_List, predicate_] := Scan[(If [predicate[#],Return[#]])&,list]
- 
+
 VertexCoverQ[g_Graph,vc_List] :=
 	CliqueQ[ GraphComplement[g], Complement[Range[V[g]], vc] ]
 
 MinimumVertexCover[g_Graph] :=
 	Complement[ Range[V[g]], MaximumClique[ GraphComplement[g] ] ]
- 
+
 IndependentSetQ[g_Graph,indep_List] :=
 	VertexCoverQ[ g, Complement[ Range[V[g]], indep] ]
 
 MaximumIndependentSet[g_Graph] := Complement[Range[V[g]], MinimumVertexCover[g]]
- 
+
 PerfectQ[g_Graph] :=
 	Apply[
 		And,
 		Map[(ChromaticNumber[#] == Length[MaximumClique[#]])&,
 			Map[(InduceSubgraph[g,#])&, Subsets[Range[V[g]]] ] ]
 	]
- 
+
 Dijkstra[g_Graph,start_Integer] := First[ Dijkstra[g,{start}] ]
 
 Dijkstra[g_Graph, l_List] :=
@@ -2873,7 +2873,7 @@ Dijkstra[g_Graph, l_List] :=
 		]
 	]
 
-ShortestPath[g_Graph,s_Integer,e_Integer] := 
+ShortestPath[g_Graph,s_Integer,e_Integer] :=
 	Module[{parent=First[Dijkstra[g,s]],i=e,lst={e}},
 		While[ (i != s) && (i != parent[[i]]),
 			PrependTo[lst,parent[[i]]];
@@ -2889,7 +2889,7 @@ ShortestPathSpanningTree[g_Graph,s_Integer] :=
 			Vertices[g]
 		]
 	]
- 
+
 AllPairsShortestPath[g_Graph] :=
 	Module[{p=Edges[ PathConditionGraph[g] ],i,j,k,n=V[g]},
 		Do [
@@ -2902,7 +2902,7 @@ AllPairsShortestPath[g_Graph] :=
 AllPairsShortestPath[g_Graph] := Map[ Last, Dijkstra[g, Range[V[g]]]]
 
 PathConditionGraph[Graph[e_,v_]] := RemoveSelfLoops[Graph[ReplaceAll[e,0->Infinity],v]]
- 
+
 GraphPower[g_Graph,1] := g
 
 GraphPower[g_Graph,n_Integer] :=
@@ -2914,7 +2914,7 @@ GraphPower[g_Graph,n_Integer] :=
 		];
 		Graph[power, Vertices[g]]
 	]
- 
+
 InitializeUnionFind[n_Integer] := Module[{i}, Table[{i,1},{i,n}] ]
 
 FindSet[n_Integer,s_List] := If [n == s[[n,1]], n, FindSet[s[[n,1]],s] ]
@@ -2926,7 +2926,7 @@ UnionSet[a_Integer,b_Integer,s_List] :=
 		set[[sb]] = {sa, set[[sb,2]]};
 		set
 	]
- 
+
 MinimumSpanningTree[g_Graph] :=
 	Module[{edges=Edges[g],set=InitializeUnionFind[V[g]]},
 		FromUnorderedPairs[
@@ -2945,13 +2945,13 @@ MinimumSpanningTree[g_Graph] :=
 	] /; UndirectedQ[g]
 
 MaximumSpanningTree[g_Graph] := MinimumSpanningTree[Graph[-Edges[g],Vertices[g]]]
- 
+
 Cofactor[m_List,{i_Integer,j_Integer}] :=
 	(-1)^(i+j) * Det[ Drop[ Transpose[ Drop[Transpose[m],{j,j}] ], {i,i}] ]
- 
+
 NumberOfSpanningTrees[Graph[g_List,_]] :=
 	Cofactor[ DiagonalMatrix[Map[(Apply[Plus,#])&,g]] - g, {1,1}]
- 
+
 NetworkFlow[g_Graph,source_Integer,sink_Integer] :=
 	Block[{flow=NetworkFlowEdges[g,source,sink], i},
 		Sum[flow[[i,sink]], {i,V[g]}]
@@ -2961,10 +2961,10 @@ NetworkFlow[g_Graph,source_Integer,sink_Integer] :=
 NetworkFlowEdges[g_Graph,source_Integer,sink_Integer] :=
 	Block[{e=Edges[g], x, y, flow=Table[0,{V[g]},{V[g]}], p, m},
 		While[ !SameQ[p=AugmentingPath[g,source,sink], {}],
-			m = Min[Map[({x,y}=#[[1]]; 
+			m = Min[Map[({x,y}=#[[1]];
 				 If[SameQ[#[[2]],f],e[[x,y]]-flow[[x,y]],
 					flow[[x,y]]])&,p]];
-			Scan[	
+			Scan[
 				({x,y}=#[[1]];
 				 If[ SameQ[#[[2]],f],
 					flow[[x,y]]+=m,flow[[x,y]]-=m])&,
@@ -3003,7 +3003,7 @@ FindPath[l_List,v1_Integer,v2_Integer] :=
 		];
 		lst
 	]
- 
+
 BipartiteMatching[g_Graph] :=
 	Module[{p,v1,v2,coloring=TwoColoring[g],n=V[g]},
 		v1 = Flatten[Position[coloring,1]];
@@ -3015,7 +3015,7 @@ BipartiteMatching[g_Graph] :=
 
 BipartiteMatchingFlowGraph[g_Graph,v1_List,v2_List] :=
 	Module[{edges = Table[0,{V[g]+2},{V[g]+2}],i,e=ToAdjacencyLists[g]},
-		Do[ 
+		Do[
 	    		Scan[ (edges[[v1[[i]],#]] = 1)&, e[[ v1[[i]] ]] ],
 			{i,Length[v1]}
 		];
@@ -3023,7 +3023,7 @@ BipartiteMatchingFlowGraph[g_Graph,v1_List,v2_List] :=
 		Scan[(edges[[#, V[g] + 2]] = 1)&, v2];
 		Graph[edges,RandomVertices[V[g] + 2] ]
 	]
- 
+
 MinimumChainPartition[g_Graph] :=
 	ConnectedComponents[
 		FromUnorderedPairs[
@@ -3041,7 +3041,7 @@ DilworthGraph[g_Graph] :=
 			ToOrderedPairs[RemoveSelfLoops[TransitiveReduction[g]]]
 		]
 	]
- 
+
 MaximalMatching[g_Graph] :=
 	Module[{match={}},
 		Scan[
@@ -3050,7 +3050,7 @@ MaximalMatching[g_Graph] :=
 		];
 		Partition[match,2]
 	]
- 
+
 StableMarriage[mpref_List,fpref_List] :=
 	Module[{n=Length[mpref],freemen,cur,i,w,husband},
 		freemen = Range[n];
@@ -3059,7 +3059,7 @@ StableMarriage[mpref_List,fpref_List] :=
 		While[ freemen != {},
 			{i,freemen}={First[freemen],Rest[freemen]};
 			w = mpref[[ i,cur[[i]] ]];
-			If[BeforeQ[ fpref[[w]], i, husband[[w]] ], 
+			If[BeforeQ[ fpref[[w]], i, husband[[w]] ],
 				If[husband[[w]] != n+1,
 					AppendTo[freemen,husband[[w]] ]
 				];
@@ -3073,7 +3073,7 @@ StableMarriage[mpref_List,fpref_List] :=
 
 BeforeQ[l_List,a_,b_] :=
 	If [First[l]==a, True, If [First[l]==b, False, BeforeQ[Rest[l],a,b] ] ]
- 
+
 PlanarQ[g_Graph] :=
 	Apply[
 		And,
@@ -3104,7 +3104,7 @@ JoinCycle[g1_Graph, cycle_List] :=
 		Scan[(g = AddEdge[g,#])&, Partition[cycle,2,1] ];
 		AddEdge[g,{First[cycle],Last[cycle]}]
 	]
- 
+
 FindBridge[g_Graph, cycle_List] :=
     Module[{rg = RemoveCycleEdges[g, cycle], b, bridge, j},
 	b = Map[
@@ -3140,7 +3140,7 @@ IsolateSubgraph[g_Graph,orig_Graph,cycle_List,cc_List] :=
 			Vertices[g]
 		]
 	]
- 
+
 InterlockQ[ bl_List, c_List ] :=
 	Module[{in = out = {}, code, jp, bridgelist = bl },
 		While [ bridgelist != {},
@@ -3165,7 +3165,7 @@ Lock1Q[a_List,b_List] :=
 		aj = Min[ Select[a, (# > bk)&] ];
 		(aj < Max[b])
 	]
- 
+
 End[]
 
 Protect[
@@ -3420,4 +3420,3 @@ WriteGraph,
 DilworthGraph ]
 
 EndPackage[ ]
-
