@@ -53,7 +53,7 @@ class _RoundBox(_GraphicsElement):
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
-        if len(item._elements) not in (1, 2):
+        if len(item.elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=self.face_element
@@ -397,11 +397,20 @@ class GraphicsBox(BoxConstruct):
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
         instance.evaluation = kwargs.get("evaluation", None)
-        instance._elements = elements
+        instance.elements = elements
         return instance
 
     def to_expression(self):
         return self
+
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, value):
+        self._elements = value
+        return self._elements
 
     def get_elements(self):
         return self._elements

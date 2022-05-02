@@ -208,7 +208,7 @@ def series_times_series(series1, series2):
                 data[pos] = Expression(SymbolTimes, c1, c2)
             elif data[pos].get_head() is SymbolPlus:
                 data[pos] = Expression(
-                    SymbolPlus, Expression(SymbolTimes, c1, c2), *(data[pos]._elements)
+                    SymbolPlus, Expression(SymbolTimes, c1, c2), *(data[pos].elements)
                 )
             else:
                 data[pos] = Expression(

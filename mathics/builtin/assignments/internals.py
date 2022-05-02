@@ -159,7 +159,7 @@ def unroll_patterns(lhs, rhs, evaluation):
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
-    lhs_elements = lhs._elements
+    lhs_elements = lhs.elements
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
@@ -186,7 +186,7 @@ def unroll_conditions(lhs):
         lhs = lhs_elements[0]
         if isinstance(lhs, Atom):
             break
-        name, lhs_elements = lhs.get_head_name(), lhs._elements
+        name, lhs_elements = lhs.get_head_name(), lhs.elements
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:

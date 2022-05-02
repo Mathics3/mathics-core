@@ -953,7 +953,7 @@ class Part(Builtin):
                 idx = idx.get_int_value()
                 if idx == 0:
                     return Symbol("System`ByteArray")
-                data = list._elements[0].value
+                data = list.elements[0].value
                 lendata = len(data)
                 if idx < 0:
                     idx = data - idx

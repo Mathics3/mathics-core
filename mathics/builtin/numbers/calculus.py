@@ -227,7 +227,7 @@ class D(SympyFunction):
         if head is SymbolPlus:
             terms = [
                 Expression("D", term, x)
-                for term in f.leaves
+                for term in f.elements
                 if not term.is_free(x_pattern, evaluation)
             ]
             if len(terms) == 0:
@@ -235,18 +235,18 @@ class D(SympyFunction):
             return Expression(SymbolPlus, *terms)
         elif head is SymbolTimes:
             terms = []
-            for i, factor in enumerate(f.leaves):
+            for i, factor in enumerate(f.elements):
                 if factor.is_free(x_pattern, evaluation):
                     continue
-                factors = [leaf for j, leaf in enumerate(f.leaves) if j != i]
+                factors = [leaf for j, leaf in enumerate(f.elements) if j != i]
                 factors.append(Expression("D", factor, x))
                 terms.append(Expression(SymbolTimes, *factors))
             if len(terms) != 0:
                 return Expression(SymbolPlus, *terms)
             else:
                 return Integer0
-        elif head is SymbolPower and len(f.leaves) == 2:
-            base, exp = f.leaves
+        elif head is SymbolPower and len(f.elements) == 2:
+            base, exp = f.elements
             terms = []
             if not base.is_free(x_pattern, evaluation):
                 terms.append(
@@ -280,13 +280,13 @@ class D(SympyFunction):
                 return terms[0]
             else:
                 return Expression(SymbolPlus, *terms)
-        elif len(f.leaves) == 1:
-            if f.leaves[0] == x:
+        elif len(f.elements) == 1:
+            if f.elements[0] == x:
                 return Expression(
                     Expression(Expression("Derivative", Integer(1)), f.head), x
                 )
             else:
-                g = f.leaves[0]
+                g = f.elements[0]
                 return Expression(
                     SymbolTimes,
                     Expression("D", Expression(f.head, g), g),
@@ -302,12 +302,12 @@ class D(SympyFunction):
                             *(
                                 [Integer0] * (index)
                                 + [Integer1]
-                                + [Integer0] * (len(f.leaves) - index - 1)
+                                + [Integer0] * (len(f.elements) - index - 1)
                             ),
                         ),
                         f.head,
                     ),
-                    *f.leaves,
+                    *f.elements,
                 )
                 if leaf.sameQ(x):
                     return result
@@ -316,7 +316,7 @@ class D(SympyFunction):
 
             result = [
                 summand(leaf, index)
-                for index, leaf in enumerate(f.leaves)
+                for index, leaf in enumerate(f.elements)
                 if not leaf.is_free(x_pattern, evaluation)
             ]
 
@@ -459,20 +459,20 @@ class Derivative(PostfixOperator, SympyFunction):
         except AttributeError:
             pass
 
-        if len(exprs) != 4 or not all(len(exp.leaves) >= 1 for exp in exprs[:3]):
+        if len(exprs) != 4 or not all(len(exp.elements) >= 1 for exp in exprs[:3]):
             return
 
-        if len(exprs[0].leaves) != len(exprs[2].leaves):
+        if len(exprs[0].elements) != len(exprs[2].elements):
             return
 
-        sym_args = [leaf.to_sympy() for leaf in exprs[0].leaves]
+        sym_args = [leaf.to_sympy() for leaf in exprs[0].elements]
         if None in sym_args:
             return
 
-        func = exprs[1].leaves[0]
+        func = exprs[1].elements[0]
         sym_func = sympy.Function(str(sympy_symbol_prefix + func.__str__()))(*sym_args)
 
-        counts = [leaf.get_int_value() for leaf in exprs[2].leaves]
+        counts = [leaf.get_int_value() for leaf in exprs[2].elements]
         if None in counts:
             return
 
@@ -611,7 +611,7 @@ class Integrate(SympyFunction):
         if len(leaves) == 2:
             x = leaves[1]
             if x.has_form("List", 3):
-                return [leaves[0]] + x.leaves
+                return [leaves[0]] + x.elements
         return leaves
 
     def from_sympy(self, sympy_name, leaves):
@@ -619,7 +619,7 @@ class Integrate(SympyFunction):
         for leaf in leaves[1:]:
             if leaf.has_form("List", 1):
                 # {x} -> x
-                args.append(leaf.leaves[0])
+                args.append(leaf.elements[0])
             else:
                 args.append(leaf)
         new_elements = [leaves[0]] + args
@@ -637,7 +637,7 @@ class Integrate(SympyFunction):
         prec = None
         for x in xs:
             if x.has_form("List", 3):
-                x, a, b = x.leaves
+                x, a, b = x.elements
                 prec_a = a.get_precision()
                 prec_b = b.get_precision()
                 if prec_a is not None and prec_b is not None:
@@ -691,26 +691,26 @@ class Integrate(SympyFunction):
         # Set the $Assumptions
 
         if result.get_head_name() == "System`Piecewise":
-            cases = result._elements[0]._elements
-            if len(result._elements) == 1:
-                if cases[-1]._elements[1].is_true():
-                    default = cases[-1]._elements[0]
-                    cases = result._elements[0]._elements[:-1]
+            cases = result.elements[0].elements
+            if len(result.elements) == 1:
+                if cases[-1].elements[1].is_true():
+                    default = cases[-1].elements[0]
+                    cases = result.elements[0].elements[:-1]
                 else:
                     default = SymbolUndefined
             else:
-                cases = result._elements[0]._elements
-                default = result._elements[1]
+                cases = result.elements[0].elements
+                default = result.elements[1]
             if default.has_form("Integrate", None):
-                if default._elements[0] == f:
+                if default.elements[0] == f:
                     default = SymbolUndefined
             simplified_cases = []
             for case in cases:
                 # TODO: if something like 0^n or 1/expr appears,
                 # put the condition n!=0 or expr!=0 accordingly in the list of
                 # conditions...
-                cond = Expression("Simplify", case._elements[1]).evaluate(evaluation)
-                resif = Expression("Simplify", case._elements[0]).evaluate(evaluation)
+                cond = Expression("Simplify", case.elements[1]).evaluate(evaluation)
+                resif = Expression("Simplify", case.elements[0]).evaluate(evaluation)
                 if cond.is_true():
                     if old_assumptions:
                         evaluation.definitions.set_ownvalue(
@@ -718,19 +718,19 @@ class Integrate(SympyFunction):
                         )
                     return resif
                 if resif.has_form("ConditionalExpression", 2):
-                    cond = Expression("And", resif._elements[1], cond)
+                    cond = Expression("And", resif.elements[1], cond)
                     cond = Expression("Simplify", cond).evaluate(evaluation)
-                    resif = resif._elements[0]
+                    resif = resif.elements[0]
                 simplified_cases.append(Expression(SymbolList, resif, cond))
             cases = simplified_cases
             if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
-                result = Expression("ConditionalExpression", *(cases._elements))
+                result = Expression("ConditionalExpression", *(cases.elements))
             else:
                 result = Expression(result._head, cases, default)
         else:
             if result.get_head() is SymbolIntegrate:
-                if result._elements[0].evaluate(evaluation).sameQ(f):
+                if result.elements[0].evaluate(evaluation).sameQ(f):
                     # Sympy returned the same expression, so it can't be evaluated.
                     if old_assumptions:
                         evaluation.definitions.set_ownvalue(
@@ -784,7 +784,7 @@ class Root(SympyFunction):
             if not f.has_form("Function", 1):
                 raise sympy.PolynomialError
 
-            body = f.leaves[0]
+            body = f.elements[0]
             poly = body.replace_slots([f, Symbol("_1")], evaluation)
             idx = i.to_sympy() - 1
 
@@ -811,15 +811,15 @@ class Root(SympyFunction):
             if not expr.has_form("Root", 2):
                 return None
 
-            f = expr.leaves[0]
+            f = expr.elements[0]
 
             if not f.has_form("Function", 1):
                 return None
 
-            body = f.leaves[0].replace_slots([f, Symbol("_1")], None)
+            body = f.elements[0].replace_slots([f, Symbol("_1")], None)
             poly = body.to_sympy(**kwargs)
 
-            i = expr.leaves[1].get_int_value(**kwargs) - 1
+            i = expr.elements[1].get_int_value(**kwargs) - 1
 
             if i is None:
                 return None
@@ -951,7 +951,7 @@ class Solve(Builtin):
         vars_original = vars
         head_name = vars.get_head_name()
         if head_name == "System`List":
-            vars = vars.leaves
+            vars = vars.elements
         else:
             vars = [vars]
         for var in vars:
@@ -965,7 +965,7 @@ class Solve(Builtin):
                 return
         eqs_original = eqs
         if eqs.get_head_name() in ("System`List", "System`And"):
-            eqs = eqs.leaves
+            eqs = eqs.elements
         else:
             eqs = [eqs]
         sympy_eqs = []
@@ -978,7 +978,7 @@ class Solve(Builtin):
             elif not eq.has_form("Equal", 2):
                 return evaluation.message("Solve", "eqf", eqs_original)
             else:
-                left, right = eq.leaves
+                left, right = eq.elements
                 left = left.to_sympy()
                 right = right.to_sympy()
                 if left is None or right is None:
@@ -1312,8 +1312,8 @@ class _BaseFinder(Builtin):
         x0 = apply_N(x0, evaluation)
         # deal with non 1D problems.
         if isinstance(x0, Expression) and x0._head is SymbolList:
-            options["_x0"] = x0._elements
-            x0 = x0._elements[0]
+            options["_x0"] = x0.elements
+            x0 = x0.elements[0]
         if not isinstance(x0, Number):
             evaluation.message(self.get_name(), "snum", x0)
             return
@@ -1330,7 +1330,7 @@ class _BaseFinder(Builtin):
         # members. Again, ensure the scope in the evaluation
         if f.get_head_name() == "System`Equal":
             f = Expression(
-                "Plus", f.leaves[0], Expression("Times", Integer(-1), f.leaves[1])
+                "Plus", f.elements[0], Expression("Times", Integer(-1), f.elements[1])
             )
             f = dynamic_scoping(lambda ev: f.evaluate(ev), {x_name: None}, evaluation)
 
@@ -1338,7 +1338,7 @@ class _BaseFinder(Builtin):
         method = options["System`Method"]
         if isinstance(method, Expression):
             if method.get_head() is SymbolList:
-                method = method._elements[0]
+                method = method.elements[0]
         if isinstance(method, Symbol):
             method = method.get_name().split("`")[-1]
         elif isinstance(method, String):
@@ -1390,15 +1390,15 @@ class _BaseFinder(Builtin):
         f_val = f.evaluate(evaluation)
 
         if f_val.has_form("Equal", 2):
-            f = Expression("Plus", f_val.leaves[0], f_val.leaves[1])
+            f = Expression("Plus", f_val.elements[0], f_val.elements[1])
 
         xtuple_value = xtuple.evaluate(evaluation)
         if xtuple_value.has_form("List", None):
-            nleaves = len(xtuple_value.leaves)
+            nleaves = len(xtuple_value.elements)
             if nleaves == 2:
-                x, x0 = xtuple.evaluate(evaluation).leaves
+                x, x0 = xtuple.evaluate(evaluation).elements
             elif nleaves == 3:
-                x, x0, x1 = xtuple.evaluate(evaluation).leaves
+                x, x0, x1 = xtuple.evaluate(evaluation).elements
                 options["$$Region"] = (x0, x1)
             else:
                 return
@@ -1645,15 +1645,15 @@ class Series(Builtin):
 
     def apply_multivariate_series(self, f, varspec, evaluation):
         """Series[f_,varspec__List]"""
-        lastvar = varspec._elements[-1]
+        lastvar = varspec.elements[-1]
         if not lastvar.has_form("List", 3):
             return None
-        # inner = build_series(f, *(lastvar._elements), evaluation)
+        # inner = build_series(f, *(lastvar.elements), evaluation)
         inner = Expression(SymbolSeries, f, lastvar).evaluate(evaluation)
         if inner:
-            if len(varspec.leaves) == 1:
+            if len(varspec.elements) == 1:
                 return inner
-            remain_vars = Expression(Symbol("Sequence"), *varspec.leaves[:-1])
+            remain_vars = Expression(Symbol("Sequence"), *varspec.elements[:-1])
             result = self.apply_multivariate_series(inner, remain_vars, evaluation)
             return result
         return None
@@ -1694,12 +1694,12 @@ class SeriesData(Builtin):
                 return Integer0
             if nummin_val < 0:
                 return SymbolInfinity
-            if data.leaves:
-                return data.leaves[0]
+            if data.elements:
+                return data.elements[0]
             else:
                 return Integer0
         # if data has trailing zeros, the method tries to remove them.
-        coeffs = data._elements
+        coeffs = data.elements
         len_coeffs = len(coeffs)
         # If the series is trivial, do not do anything:
         if len_coeffs == 0:
@@ -1727,7 +1727,7 @@ class SeriesData(Builtin):
                 SymbolSeriesData,
                 x,
                 x0,
-                data._elements[nonzeroidx_left:(-nonzeroidx_right)],
+                data.elements[nonzeroidx_left:(-nonzeroidx_right)],
                 nummin,
                 nummax,
                 den,
@@ -1737,7 +1737,7 @@ class SeriesData(Builtin):
                 SymbolSeriesData,
                 x,
                 x0,
-                data._elements[nonzeroidx_left:],
+                data.elements[nonzeroidx_left:],
                 nummin,
                 nummax,
                 den,
@@ -1746,9 +1746,9 @@ class SeriesData(Builtin):
     def apply_plus(self, x, x0, data, nummin, nummax, den, term, evaluation):
         """Plus[SeriesData[x_, x0_, data_, nummin_Integer, nummax_Integer, den_Integer], term__]"""
         # If the series is null, build a series with the remaining terms
-        if all(Integer0.sameQ(leaf) for leaf in data.leaves):
+        if all(Integer0.sameQ(leaf) for leaf in data.elements):
             if term.get_head() is SymbolSequence:
-                term = Expression(SymbolPlus, *(term.leaves))
+                term = Expression(SymbolPlus, *(term.elements))
             ret = build_series(
                 term,
                 x,
@@ -1764,7 +1764,7 @@ class SeriesData(Builtin):
             den.get_int_value(),
         )
         if term.get_head() is SymbolSequence:
-            terms = term.leaves
+            terms = term.elements
         else:
             terms = [term]
 
@@ -1777,14 +1777,14 @@ class SeriesData(Builtin):
                 continue
             # if t.get_head() is not SymbolSeriesData:
             if t.get_head() is SymbolSeriesData:
-                y, y0 = t.leaves[0:2]
+                y, y0 = t.elements[0:2]
                 if y.sameQ(x):
                     if not y0.sameQ(x0):
                         evaluation.message("Series", "icm", x, x0, y0)
                         incompat_series.append(t)
                         continue
                     else:
-                        data_y, nmin_y, nmax_y, den_y = t.leaves[2:]
+                        data_y, nmin_y, nmax_y, den_y = t.elements[2:]
                         nmin_val = nmin_y.get_int_value()
                         nmax_val = nmax_y.get_int_value()
                         den_val = den_y.get_int_value()
@@ -1801,7 +1801,7 @@ class SeriesData(Builtin):
             tnew = build_series(t, x, x0, max_exponent, evaluation)
             tseries = None
             if tnew.get_head() is SymbolSeriesData:
-                y, y0, data_y, nmin_y, nmax_y, den_y = tnew.leaves
+                y, y0, data_y, nmin_y, nmax_y, den_y = tnew.elements
                 if y.sameQ(x) and y0.sameQ(x0):
                     nmin_val = nmin_y.get_int_value()
                     nmax_val = nmax_y.get_int_value()
@@ -1836,7 +1836,7 @@ class SeriesData(Builtin):
         incompat_series = []
         max_exponent = Integer(int(series[2] / series[3] + 1))
         if coeff.get_head() is SymbolSequence:
-            factors = coeff.leaves
+            factors = coeff.elements
         else:
             factors = [coeff]
 
@@ -1847,19 +1847,19 @@ class SeriesData(Builtin):
                 continue
             if factor.is_free(x_pattern, evaluation):
                 newdata = Expression(
-                    SymbolList, *[factor * leaf for leaf in data.leaves]
+                    SymbolList, *[factor * leaf for leaf in data.elements]
                 )
                 series = (newdata, *series[1:])
                 continue
             if factor.get_head() is SymbolSeriesData:
-                y, y0 = factor.leaves[0:2]
+                y, y0 = factor.elements[0:2]
                 if y.sameQ(x):
                     if not y0.sameQ(x0):
                         evaluation.message("Series", "icm", x, x0, y0)
                         incompat_series.append(factor)
                         continue
                     else:
-                        data_y, nmin_y, nmax_y, den_y = factor.leaves[2:]
+                        data_y, nmin_y, nmax_y, den_y = factor.elements[2:]
                         nmin_val = nmin_y.get_int_value()
                         nmax_val = nmax_y.get_int_value()
                         den_val = den_y.get_int_value()
@@ -1877,7 +1877,7 @@ class SeriesData(Builtin):
             factor_new = build_series(factor, x, x0, max_exponent, evaluation)
             fseries = None
             if factor_new.get_head() is SymbolSeriesData:
-                y, y0, data_y, nmin_y, nmax_y, den_y = factor_new.leaves
+                y, y0, data_y, nmin_y, nmax_y, den_y = factor_new.elements
                 if y.sameQ(x) and y0.sameQ(x0):
                     nmin_val = nmin_y.get_int_value()
                     nmax_val = nmax_y.get_int_value()
@@ -1911,8 +1911,8 @@ class SeriesData(Builtin):
         if isinstance(y, Symbol):
             order = 1
         elif y.has_form("List", 2):
-            order = y.leaves[1].get_int_value()
-            y = y.leaves[0]
+            order = y.elements[1].get_int_value()
+            y = y.elements[0]
         else:
             return
         while order:
@@ -1934,9 +1934,9 @@ class SeriesData(Builtin):
     def apply_normal(self, x, x0, data, nummin, nummax, den, evaluation):
         """Normal[SeriesData[x_, x0_, data_, nummin_, nummax_, den_]]"""
         new_data = []
-        for leaf in data.leaves:
+        for leaf in data.elements:
             if leaf.has_form("SeriesData", 6):
-                leaf = self.apply_normal(*(leaf.leaves), evaluation)
+                leaf = self.apply_normal(*(leaf.elements), evaluation)
                 if leaf is None:
                     return
             new_data.extend([leaf])
@@ -1964,9 +1964,9 @@ class SeriesData(Builtin):
             powers = powers + [Integer(nmax)]
 
         expansion = []
-        for i, leaf in enumerate(data.leaves):
+        for i, leaf in enumerate(data.elements):
             if leaf.get_head() is Symbol("SeriesData"):
-                leaf = self.pre_makeboxes(*(leaf.leaves), form, evaluation)
+                leaf = self.pre_makeboxes(*(leaf.elements), form, evaluation)
             elif leaf.is_numeric(evaluation) and leaf.is_zero:
                 continue
             if powers[i].is_zero:
@@ -2104,8 +2104,8 @@ class NIntegrate(Builtin):
         method = options["System`Method"].evaluate(evaluation)
         method_options = {}
         if method.has_form("System`List", 2):
-            method = method.leaves[0]
-            method_options.update(method.leaves[1].get_option_values())
+            method = method.elements[0]
+            method_options.update(method.elements[1].get_option_values())
         if isinstance(method, String):
             method = method.value
         elif isinstance(method, Symbol):
@@ -2144,8 +2144,8 @@ class NIntegrate(Builtin):
         intvars = Expression(SymbolList, *coords)
         integrand = Expression("Compile", intvars, func).evaluate(evaluation)
 
-        if len(integrand.leaves) >= 3:
-            integrand = integrand.leaves[2].cfunc
+        if len(integrand.elements) >= 3:
+            integrand = integrand.elements[2].cfunc
         else:
             evaluation.message("inumer", func, domain)
             return
@@ -2182,7 +2182,7 @@ class NIntegrate(Builtin):
                         if not b.is_numeric(evaluation):
                             evaluation.message("nlim", coords[i], b)
                             return
-                        z = a.leaves[0].value
+                        z = a.elements[0].value
                         b = b.value
                         subdomain2.append([machine_epsilon, 1.0])
                         coordtransform.append(
@@ -2193,7 +2193,7 @@ class NIntegrate(Builtin):
                         evaluation.message("nlim", coords[i], a)
                         return
                     a = a.value
-                    z = b.leaves[0].value
+                    z = b.elements[0].value
                     subdomain2.append([machine_epsilon, 1.0])
                     coordtransform.append(
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
