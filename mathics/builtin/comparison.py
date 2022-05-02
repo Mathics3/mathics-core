@@ -874,7 +874,7 @@ class Positive(Builtin):
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
     }
-    summary_text = "test wheter an expression is a positive number"
+    summary_text = "test whether an expression is a positive number"
 
 
 class Negative(Builtin):
@@ -904,7 +904,7 @@ class Negative(Builtin):
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
     }
-    summary_text = "test wheter an expression is a negative number"
+    summary_text = "test whether an expression is a negative number"
 
 
 class NonNegative(Builtin):
@@ -923,7 +923,7 @@ class NonNegative(Builtin):
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
     }
-    summary_text = "test wheter an expression is a non-negative number"
+    summary_text = "test whether an expression is a non-negative number"
 
 
 class NonPositive(Builtin):
@@ -942,7 +942,7 @@ class NonPositive(Builtin):
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
     }
-    summary_text = "test wheter an expression is a non-positive number"
+    summary_text = "test whether an expression is a non-positive number"
 
 
 def expr_max(items):
