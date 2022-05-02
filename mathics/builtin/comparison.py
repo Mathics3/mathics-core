@@ -27,6 +27,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Number,
+    String,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -249,8 +250,12 @@ class _ComparisonOperator(_InequalityOperator):
             return SymbolTrue
         items = self.numerify_args(items, evaluation)
         wanted = operators[self.get_name()]
+        if isinstance(items[-1], String):
+            return None
         for i in range(len(items) - 1):
             x = items[i]
+            if isinstance(x, String):
+                return None
             y = items[i + 1]
             c = do_cmp(x, y)
             if c is None:
@@ -976,21 +981,24 @@ class _MinMax(Builtin):
 
         for item in items:
             if item.has_form("List", None):
-                leaves = item.leaves
+                elements = item.elements
             else:
-                leaves = [item]
-            for leaf in leaves:
+                elements = [item]
+            for element in elements:
+                if isinstance(element, String):
+                    results.append(element)
+                    continue
                 if best is None:
-                    best = leaf
+                    best = element
                     results.append(best)
                     continue
-                c = do_cmp(leaf, best)
+                c = do_cmp(element, best)
                 if c is None:
-                    results.append(leaf)
+                    results.append(element)
                 elif (self.sense == 1 and c > 0) or (self.sense == -1 and c < 0):
                     results.remove(best)
-                    best = leaf
-                    results.append(leaf)
+                    best = element
+                    results.append(element)
 
         if not results:
             return Expression("DirectedInfinity", -self.sense)
@@ -1031,11 +1039,14 @@ class Max(_MinMax):
     >> Max[]
      = -Infinity
 
+    'Max' does not compare strings or symbols:
+    >> Max[-1.37, 2, "a", b]
+     = Max[2, a, b]
     #> Max[x]
      = x
     """
 
-    summary_text = "maximum value in a list"
+    summary_text = "the maximum value"
     sense = 1
 
 
@@ -1071,4 +1082,4 @@ class Min(_MinMax):
     """
 
     sense = -1
-    summary_text = "minimum value in a list"
+    summary_text = "the minimum value"
