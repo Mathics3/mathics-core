@@ -73,6 +73,7 @@ class Function(PostfixOperator):
         "fpct": "Too many parameters to be filled.",
         "iassoc": "Invalid association item `1`",
     }
+    summary_text = "define an anonymous (pure) function"
 
     def apply_slots(self, body, args, evaluation):
         "Function[body_][args___]"
@@ -155,7 +156,6 @@ class Slot(Builtin):
     """
 
     attributes = n_hold_all | protected
-
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -163,6 +163,7 @@ class Slot(Builtin):
             '"#" <> ToString[n]'
         ),
     }
+    summary_text = "one argument of a pure function"
 
 
 class SlotSequence(Builtin):
@@ -193,6 +194,7 @@ class SlotSequence(Builtin):
         "MakeBoxes[SlotSequence[n_Integer?Positive],"
         "f:StandardForm|TraditionalForm|InputForm|OutputForm]": ('"##" <> ToString[n]'),
     }
+    summary_text = "the full sequence of arguments of a pure function"
 
 
 class Composition(Builtin):
@@ -221,6 +223,7 @@ class Composition(Builtin):
     rules = {
         "Composition[]": "Identity",
     }
+    summary_text = "the composition of two or more functions"
 
     def apply(self, functions, args, evaluation):
         "Composition[functions__][args___]"
@@ -248,3 +251,4 @@ class Identity(Builtin):
     rules = {
         "Identity[x_]": "x",
     }
+    summary_text = "the identity function"
