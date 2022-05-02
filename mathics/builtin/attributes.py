@@ -69,6 +69,7 @@ class Attributes(Builtin):
     """
 
     attributes = hold_all | listable | protected
+    summary_text = "find the attributes of a symbol"
 
     def apply(self, expr, evaluation):
         "Attributes[expr_]"
@@ -106,6 +107,7 @@ class SetAttributes(Builtin):
     messages = {
         "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
     }
+    summary_text = "set attributes for a symbol"
 
     def apply(self, symbols, attributes, evaluation):
         "SetAttributes[symbols_, attributes_]"
@@ -154,6 +156,7 @@ class ClearAttributes(Builtin):
     """
 
     attributes = hold_first | protected
+    summary_text = "clear the attributes of a symbol"
 
     def apply(self, symbols, attributes, evaluation):
         "ClearAttributes[symbols_, attributes_]"
@@ -202,6 +205,7 @@ class Protect(Builtin):
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
+    summary_text = "protect a symbol against redefinitions"
 
     def apply(self, symbols, evaluation):
         "Protect[symbols___]"
@@ -257,6 +261,7 @@ class Unprotect(Builtin):
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
+    summary_text = "remove protection against redefinitions"
 
     def apply(self, symbols, evaluation):
         "Unprotect[symbols___]"
@@ -334,6 +339,8 @@ class Protected(Predefined):
      : Symbol p is locked.
     """
 
+    summary_text = "attribute of protected symbols"
+
 
 class ReadProtected(Predefined):
     """
@@ -353,6 +360,8 @@ class ReadProtected(Predefined):
     >> Definition[p]
      = Attributes[p] = {ReadProtected}
     """
+
+    summary_text = "attribute of symbols with hidden definitions"
 
 
 class Locked(Predefined):
@@ -379,6 +388,8 @@ class Locked(Predefined):
     >> lock = 3
      = 3
     """
+
+    summary_text = "keep all attributes locked (settable but not clearable)"
 
 
 class Flat(Predefined):
@@ -423,6 +434,8 @@ class Flat(Predefined):
      = $Aborted
     """
 
+    summary_text = "attribute for associative symbols"
+
 
 class Orderless(Predefined):
     """<dl>
@@ -451,6 +464,8 @@ class Orderless(Predefined):
 
     """
 
+    summary_text = "attribute for commutative symbols"
+
 
 class OneIdentity(Predefined):
     """
@@ -468,6 +483,8 @@ class OneIdentity(Predefined):
     >> f[a]
      = f[a]
     """
+
+    summary_text = "attribute for idempotent symbols"
 
 
 class SequenceHold(Predefined):
@@ -494,6 +511,8 @@ class SequenceHold(Predefined):
      = a + b
     """
 
+    summary_text = "attribute for symbols that do not expand sequences"
+
 
 class HoldFirst(Predefined):
     """
@@ -506,6 +525,8 @@ class HoldFirst(Predefined):
     >> Attributes[Set]
      = {HoldFirst, Protected, SequenceHold}
     """
+
+    summary_text = "attribute for symbols that keep unevaluated their first element"
 
 
 class HoldRest(Predefined):
@@ -520,6 +541,10 @@ class HoldRest(Predefined):
      = {HoldRest, Protected}
     """
 
+    summary_text = (
+        "attribute for symbols that keep unevaluated all but their first element"
+    )
+
 
 class HoldAll(Predefined):
     """
@@ -532,6 +557,8 @@ class HoldAll(Predefined):
     >> Attributes[Function]
      = {HoldAll, Protected}
     """
+
+    summary_text = "attribute for symbols that keep unevaluated all their elements"
 
 
 class HoldAllComplete(Predefined):
@@ -553,6 +580,8 @@ class HoldAllComplete(Predefined):
      = f[Sequence[a, b]]
     """
 
+    summary_text = "attribute for symbols that keep unevaluated all their elements, and discards upvalues"
+
 
 class NHoldAll(Predefined):
     """
@@ -569,6 +598,8 @@ class NHoldAll(Predefined):
      = f[2, 3]
     """
 
+    summary_text = "prevent numerical evaluation of elements"
+
 
 class NHoldFirst(Predefined):
     """
@@ -579,6 +610,8 @@ class NHoldFirst(Predefined):
     </dl>
     """
 
+    summary_text = "prevent numerical evaluation of the first element"
+
 
 class NHoldRest(Predefined):
     """
@@ -588,6 +621,8 @@ class NHoldRest(Predefined):
         of a function from numeric evaluation.
     </dl>
     """
+
+    summary_text = "prevent numerical evaluation of all but the first element"
 
 
 class Listable(Predefined):
@@ -607,6 +642,8 @@ class Listable(Predefined):
      = {{6, 7}, {9, 10}}
     """
 
+    summary_text = "automatically thread over lists appearing in arguments"
+
 
 class Constant(Predefined):
     """
@@ -625,6 +662,8 @@ class Constant(Predefined):
      : E is not a valid variable.
      = Solve[x + E == 0, E]
     """
+
+    summary_text = "treat as a constant in differentiation, etc"
 
 
 class NumericFunction(Predefined):
@@ -647,3 +686,5 @@ class NumericFunction(Predefined):
     >> NumericQ[a]=False; NumericQ[Sqrt[a]]
      = False
     """
+
+    summary_text = "treat as a numeric function"
