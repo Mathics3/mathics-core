@@ -426,7 +426,7 @@ class Read(Builtin):
 
         # Wrap types in a list (if it isn't already one)
         if types.has_form("List", None):
-            types = types._elements
+            types = types.elements
         else:
             types = (types,)
 

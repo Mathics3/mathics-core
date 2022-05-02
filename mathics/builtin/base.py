@@ -771,6 +771,15 @@ class BoxConstruct(InstanceableBuiltin):
         """
         return True
 
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, value):
+        self._elements = value
+        return self._elements
+
     def tex_block(self, tex, only_subsup=False):
         if len(tex) == 1:
             return tex

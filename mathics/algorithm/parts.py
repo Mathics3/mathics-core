@@ -69,11 +69,11 @@ def set_part(varlist, indices, newval):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = cur._elements[pos - 1]
+                    part = cur.elements[pos - 1]
                 elif pos == 0:
                     part = cur.get_head()
                 else:
-                    part = cur._elements[pos]
+                    part = cur.elements[pos]
             except IndexError:
                 raise PartRangeError
             return rec(part, rest[1:])
