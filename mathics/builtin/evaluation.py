@@ -77,6 +77,7 @@ class RecursionLimit(Predefined):
     rules = {
         "$RecursionLimit": str(value),
     }
+    summary_text = "maximum recursion depth"
 
     def evaluate(self, evaluation) -> Integer:
         return Integer(self.value)
@@ -137,6 +138,7 @@ class IterationLimit(Predefined):
     rules = {
         "$IterationLimit": str(value),
     }
+    summary_text = "maximum number of iterations"
 
     def evaluate(self, evaluation):
         return Integer(self.value)
@@ -153,6 +155,7 @@ class Hold(Builtin):
     """
 
     attributes = hold_all | protected
+    summary_text = "prevent the evaluation"
 
 
 class HoldComplete(Builtin):
@@ -167,6 +170,7 @@ class HoldComplete(Builtin):
     """
 
     attributes = hold_all_complete | protected
+    summary_text = "prevents the evaluation, including the upvalues"
 
 
 class HoldForm(Builtin):
@@ -189,6 +193,7 @@ class HoldForm(Builtin):
     rules = {
         "MakeBoxes[HoldForm[expr_], f_]": "MakeBoxes[expr, f]",
     }
+    summary_text = "prevents the evaluation, prints just the expression"
 
 
 class Evaluate(Builtin):
@@ -221,6 +226,7 @@ class Evaluate(Builtin):
         "Evaluate[Unevaluated[x_]]": "Unevaluated[x]",
         "Evaluate[x___]": "x",
     }
+    summary_text = "evaluate the element, disregarding Hold attributes"
 
 
 class Unevaluated(Builtin):
@@ -262,6 +268,7 @@ class Unevaluated(Builtin):
     """
 
     attributes = hold_all_complete | protected
+    summary_text = "keep the element unevaluated, disregarding Hold attributes"
 
 
 class ReleaseHold(Builtin):
@@ -284,6 +291,7 @@ class ReleaseHold(Builtin):
         "ReleaseHold[(Hold|HoldForm|HoldPattern|HoldComplete)[expr_]]": "expr",
         "ReleaseHold[other_]": "other",
     }
+    summary_text = "replace a Hold expression by its argument"
 
 
 class Sequence(Builtin):
@@ -317,6 +325,10 @@ class Sequence(Builtin):
      = Hold[{a, Sequence[b, c], d}]
     """
 
+    summary_text = (
+        "a sequence of arguments that will automatically be spliced into any function"
+    )
+
 
 class Quit(Builtin):
     """
@@ -339,6 +351,7 @@ class Quit(Builtin):
     rules = {
         "Exit[n___]": "Quit[n]",
     }
+    summary_text = "terminate the session"
 
     def apply(self, evaluation, n):
         "%(name)s[n___]"
