@@ -154,7 +154,7 @@ class Expression_(Builtin):
     For information about underlying data structure Expression (a kind of M-expression) that is central in evaluation, see: <url>https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>
     """
 
-    summary_text = "complete WL expression"
+    summary_text = "WL expression"
     name = "Expression"
 
 
@@ -604,7 +604,7 @@ class Write(Builtin):
     #> Close[stream];
     """
 
-    summary_text = " write a sequence of expressions to a stream, ending the output with a newline (line feed)"
+    summary_text = "write a sequence of expressions to a stream, ending the output with a newline (line feed)"
 
     def apply(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
@@ -1658,9 +1658,7 @@ class WriteString(Builtin):
 
     """
 
-    summary_text = (
-        "write a sequence of character strings to a stream, with no extra newlines"
-    )
+    summary_text = "write a sequence of strings to a stream, with no extra newlines"
     messages = {
         "strml": ("`1` is not a string, stream, " "or list of strings and streams."),
         "writex": "`1`.",
@@ -1838,7 +1836,7 @@ class OpenWrite(_OpenAction):
     """
 
     summary_text = (
-        "open an output stream to a file, wiping out the previous contents of the file"
+        "send an output stream to a file, wiping out the previous contents of the file"
     )
     mode = "w"
     stream_type = "OutputStream"
@@ -2477,7 +2475,6 @@ class SetStreamPosition(Builtin):
     #> SetStreamPosition[stream, 40]
      = ERROR_MESSAGE_HERE
     """
-    summary_text = "set the position of the current point in an open stream"
     messages = {
         "int": "Integer expected at position 2 in `1`.",
         "stmrng": (
@@ -2486,6 +2483,7 @@ class SetStreamPosition(Builtin):
         ),
         "seek": "Invalid I/O Seek.",
     }
+    summary_text = "set the position of the current point in an open stream"
 
     def apply_input(self, name, n, m, evaluation):
         "SetStreamPosition[InputStream[name_, n_], m_]"
@@ -2556,11 +2554,6 @@ class Skip(Read):
     #> Close[stream];
     """
 
-    summary_text = "skip over an object of the specified type in an input stream"
-    rules = {
-        "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
-    }
-
     messages = {
         "intm": "Non-negative machine-sized integer expected at position 3 in `1`",
     }
@@ -2572,6 +2565,11 @@ class Skip(Read):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+
+    rules = {
+        "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
+    }
+    summary_text = "skip over an object of the specified type in an input stream"
 
     def apply(self, name, n, types, m, evaluation, options):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
@@ -2626,7 +2624,6 @@ class Find(Read):
      = ...
     """
 
-    summary_text = "find the next occurrence of a text"
     options = {
         "AnchoredSearch": "False",
         "IgnoreCase": "False",
@@ -2634,6 +2631,7 @@ class Find(Read):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "find the next occurrence of a string"
 
     def apply(self, name, n, text, evaluation, options):
         "Find[InputStream[name_, n_], text_, OptionsPattern[Find]]"
