@@ -13,7 +13,7 @@ from mathics.builtin.base import (
     Builtin,
     BoxConstructError,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElement, get_class
+from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -124,7 +124,7 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
-class _ColorObject(_GraphicsElement, ImmutableValueMixin):
+class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
         # diminish in size when they appear in lists or rows. we only want the display of colors this

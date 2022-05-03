@@ -12,7 +12,7 @@ from mathics.builtin.base import (
 )
 
 from mathics.builtin.colors.color_directives import _ColorObject, ColorError, RGBColor
-from mathics.builtin.drawing.graphics_internals import _GraphicsElement, GLOBALS
+from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
 
 from mathics.builtin.graphics import (
     Arrowheads,
@@ -48,7 +48,7 @@ from mathics.core.attributes import hold_all, protected, read_protected
 
 
 # Note: has to come before _ArcBox
-class _RoundBox(_GraphicsElement):
+class _RoundBox(_GraphicsElementBox):
     face_element = None
 
     def init(self, graphics, style, item):
@@ -942,7 +942,7 @@ clip(%s);
             add_element(LineBox(elements, axes_style[1], lines=ticks))"""
 
 
-class FilledCurveBox(_GraphicsElement):
+class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
     <dt>'FilledCurveBox[...]'
@@ -1020,7 +1020,7 @@ class FilledCurveBox(_GraphicsElement):
         return result
 
 
-class InsetBox(_GraphicsElement):
+class InsetBox(_GraphicsElementBox):
     def init(
         self,
         graphics,
@@ -1188,7 +1188,7 @@ class PolygonBox(_Polyline):
             raise BoxConstructError
 
 
-class RectangleBox(_GraphicsElement):
+class RectangleBox(_GraphicsElementBox):
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):
