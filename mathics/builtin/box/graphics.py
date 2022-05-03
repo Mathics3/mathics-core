@@ -1095,11 +1095,11 @@ class PointBox(_Polyline):
     <dt>'PointBox'[{$p_1$, $p_2$,...}]
     <dd> represents a set of points.
     </dl>
-    # Boxing methods for a list of Point.
-    #
-    # object attributes:
-    # edge_color: _ColorObject
-    # point_radius: radius of each point
+    ## Boxing methods for a list of Point.
+    ##
+    ## object attributes:
+    ## edge_color: _ColorObject
+    ## point_radius: radius of each point
     """
 
     def init(self, graphics, style, item=None):
@@ -1120,6 +1120,7 @@ class PointBox(_Polyline):
 
         if item is not None:
             if len(item.elements) != 1:
+                print("item:", item)
                 raise BoxConstructError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
