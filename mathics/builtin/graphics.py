@@ -23,6 +23,7 @@ from mathics.builtin.drawing.graphics_internals import (
 )
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
+    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
@@ -1113,7 +1114,6 @@ class Style(object):
                         _, face_style = item.get_style(
                             style_class, default_to_faces=True, consider_forms=False
                         )
-
         return edge_style, face_style
 
     def get_option(self, name):
@@ -1381,6 +1381,7 @@ styles = system_symbols_dict(
         "Thin": Thin,
         "PointSize": PointSize,
         "Arrowheads": Arrowheads,
+        "Opacity": Opacity,
     }
 )
 

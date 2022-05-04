@@ -124,6 +124,34 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
+class Opacity(_GraphicsElement):
+    """
+    <dl>
+    <dt>'Opacity[$level$]'
+    <dd> is a graphics directive that sets the opacity to $level$.
+    </dl>
+    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
+     = -Graphics-
+    """
+
+    # TODO: Implement me at the level of the formatters for 3D and asy.
+    def init(self, item=None, *args, **kwargs):
+        super(Opacity, self).init(None, item)
+        self.opacity = item.leaves[0].to_python()
+
+    def to_css(self):
+        try:
+            if 0.0 <= self.opacity <= 1.0:
+                return self.opacity
+        except:
+            pass
+        return None
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(item)
+
+
 class _ColorObject(_GraphicsElement, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
@@ -181,7 +209,7 @@ class _ColorObject(_GraphicsElement, ImmutableValueMixin):
 
     def to_css(self):
         rgba = self.to_rgba()
-        alpha = rgba[3] if len(rgba) > 3 else 1.0
+        alpha = rgba[3] if len(rgba) > 3 else None
         return (
             r"rgb(%f%%, %f%%, %f%%)" % (rgba[0] * 100, rgba[1] * 100, rgba[2] * 100),
             alpha,
