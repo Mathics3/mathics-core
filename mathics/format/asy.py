@@ -36,6 +36,8 @@ from mathics.builtin.graphics import (
     RGBColor,
 )
 
+from mathics.builtin.box.uniform_polyhedra import UniformPolyhedron3DBox
+
 INVERSE_POINT_FACTOR = 1 / DEFAULT_POINT_FACTOR
 
 
@@ -177,6 +179,18 @@ def arrow_box(self, **options) -> str:
 add_conversion_fn(ArrowBox, arrow_box)
 
 
+def build_3d_pen_color(color, opacity=None):
+    if len(color) == 4:
+        opacity_value = color[3]
+        color = color[:3]
+    else:
+        opacity_value = opacity.opacity if opacity else None
+    color_str = "rgb({0},{1},{2})".format(*color)
+    if opacity_value:
+        color_str = color_str + f"+opacity({opacity_value})"
+    return color_str
+
+
 def arrow3dbox(self, **options) -> str:
     """
     Aymptote 3D formatter for Arrow3DBox
@@ -237,11 +251,12 @@ add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
 def cone3dbox(self, **options) -> str:
-    face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
 
     # FIXME: currently always drawing around the axis X+Y
     axes_point = (1, 1, 0)
-    rgb = "rgb({0},{1},{1})".format(*face_color[:3])
 
     asy = "// Cone3DBox\n"
     i = 0
@@ -258,7 +273,7 @@ def cone3dbox(self, **options) -> str:
             ) ** 0.5
 
             asy += (
-                f"draw(surface(cone({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {rgb});"
+                f"draw(surface(cone({tuple(point1)}, {self.radius}, {distance}, {axes_point})), {color_str});"
                 + "\n"
             )
         except:  # noqa
@@ -274,10 +289,9 @@ add_conversion_fn(Cone3DBox)
 
 
 def cuboid3dbox(self, **options) -> str:
-    face_color = self.face_color.to_js()
-
-    rgb = "rgb({0},{1},{1})".format(*face_color[:3])
-
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
     asy = "// Cuboid3DBox\n"
 
     i = 0
@@ -291,7 +305,7 @@ def cuboid3dbox(self, **options) -> str:
                     {point2[0] - point1[0]},
                     {point2[1] - point1[1]},
                     {point2[2] - point1[2]}
-                ) * unitcube, {rgb});
+                ) * unitcube, {color_str});
             """
 
         except:  # noqa
@@ -307,9 +321,9 @@ add_conversion_fn(Cuboid3DBox)
 
 
 def cylinder3dbox(self, **options) -> str:
-    face_color = self.face_color.to_js()
-
-    pen = "rgb({0},{1},{1})".format(*face_color[:3])
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
 
     asy = "// Cylinder3DBox\n"
     # asy += "currentprojection=orthographic(3,1,4,center=true,zoom=.9);\n"
@@ -322,11 +336,11 @@ def cylinder3dbox(self, **options) -> str:
             asy += f"triple A={tuple(point1)}, B={tuple(point2)};\n"
             asy += "real h=abs(A-B);\n"
             asy += "revolution cyl=cylinder(A,r,h,B-A);\n"
-            asy += f"draw(surface(cyl),{pen});\n"
+            asy += f"draw(surface(cyl),{color_str});\n"
 
             # The above is an open cylinder. Draw the ends.
-            asy += f"draw(surface(circle(A,r,normal=B-A)),{pen});\n"
-            asy += f"draw(surface(circle(B,r,normal=B-A)),{pen});\n"
+            asy += f"draw(surface(circle(A,r,normal=B-A)),{color_str});\n"
+            asy += f"draw(surface(circle(B,r,normal=B-A)),{color_str});\n"
         except:  # noqa
             pass
 
@@ -453,6 +467,7 @@ def point3dbox(self, **options) -> str:
     """
     Aymptote 3D formatter for Point3DBox
     """
+
     face_color = self.face_color
     face_opacity_value = face_color.to_rgba()[3]
     if face_opacity_value is None:
@@ -666,11 +681,13 @@ add_conversion_fn(_RoundBox)
 def sphere3dbox(self, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
-    face_color = self.face_color.to_js()
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
 
     return "// Sphere3DBox\n" + "\n".join(
-        "draw(surface(sphere({0}, {1})), rgb({2},{3},{4}));".format(
-            tuple(coord.pos()[0]), self.radius, *face_color[:3]
+        "draw(surface(sphere({0}, {1})), {2});".format(
+            tuple(coord.pos()[0]), self.radius, color_str
         )
         for coord in self.points
     )
@@ -680,17 +697,48 @@ add_conversion_fn(Sphere3DBox)
 
 
 def tube3dbox(self, **options) -> str:
-    if self.face_color is None:
-        face_color = (1, 1, 1)
-    else:
-        face_color = self.face_color.to_js()
+    if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
 
-    asy = "// Tube3DBox\n draw(tube({0}, {1}), rgb({2},{3},{4}));".format(
-        "--".join("({0},{1},{2})".format(*coords.pos()[0]) for coords in self.points),
-        self.radius,
-        *face_color[:3],
+        self.graphics.tube_import_added = True
+        asy_head = "import tube;\n\n"
+    else:
+        asy_head = ""
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
+
+    asy = (
+        asy_head
+        + "// Tube3DBox\n draw(tube({0}, scale({1})*unitcircle), {2});".format(
+            "--".join(
+                "({0},{1},{2})".format(*coords.pos()[0]) for coords in self.points
+            ),
+            self.radius,
+            color_str,
+        )
     )
     return asy
 
 
 add_conversion_fn(Tube3DBox)
+
+
+def uniformpolyhedron3dbox(self, **options) -> str:
+    # l = self.style.get_line_width(face_element=True)
+
+    face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
+    opacity = self.face_opacity
+    color_str = build_3d_pen_color(face_color, opacity)
+
+    return (
+        "// UniformPolyhedron3DBox\n // Still not really implemented. Draw a sphere instead\n"
+        + "\n".join(
+            "draw(surface(sphere({0}, {1})), {2});".format(
+                tuple(coord.pos()[0]), self.edge_length, color_str
+            )
+            for coord in self.points
+        )
+    )
+
+
+add_conversion_fn(UniformPolyhedron3DBox)
