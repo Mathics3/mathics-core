@@ -127,9 +127,14 @@ def arcbox(self, **options) -> str:
         return arc_path
 
     l = self.style.get_line_width(face_element=self.face_element)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
+
     pen = asy_create_pens(
         edge_color=self.edge_color,
         face_color=self.face_color,
+        edge_opacity=edge_opacity_value,
+        face_opacity=face_opacity_value,
         stroke_width=l,
         is_face_element=self.face_element,
     )
@@ -146,10 +151,15 @@ add_conversion_fn(_ArcBox, arcbox)
 
 def arrow_box(self, **options) -> str:
     width = self.style.get_line_width(face_element=False)
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=width)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color, stroke_width=width, edge_opacity=edge_opacity_value
+    )
     polyline = self.curve.make_draw_asy(pen)
 
-    arrow_pen = asy_create_pens(face_color=self.edge_color, stroke_width=width)
+    arrow_pen = asy_create_pens(
+        face_color=self.edge_color, stroke_width=width, face_opacity=edge_opacity_value
+    )
 
     def polygon(points):
         yield "filldraw("
@@ -173,7 +183,10 @@ def arrow3dbox(self, **options) -> str:
     """
 
     # Set style parameters.
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=1)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
+    )
 
     # Draw lines between all points except the last.
     lines_str = "--".join(
@@ -199,7 +212,12 @@ def bezier_curve_box(self, **options) -> str:
     Asymptote formatter for BezerCurveBox.
     """
     line_width = self.style.get_line_width(face_element=False)
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=line_width)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color,
+        stroke_width=line_width,
+        edge_opacity=edge_opacity_value,
+    )
 
     asy = "// BezierCurveBox\n"
     asy += asy_add_graph_import(self)
@@ -323,7 +341,12 @@ add_conversion_fn(Cylinder3DBox)
 
 def filled_curve_box(self, **options) -> str:
     line_width = self.style.get_line_width(face_element=False)
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=line_width)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color,
+        stroke_width=line_width,
+        edge_opacity=edge_opacity_value,
+    )
 
     if not pen:
         pen = "currentpen"
@@ -370,8 +393,9 @@ add_conversion_fn(Graphics3DElements)
 def insetbox(self, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
     x, y = self.pos.pos()
+    opacity_value = self.opacity.opacity if self.opacity else None
     content = self.content.boxes_to_tex(evaluation=self.graphics.evaluation)
-    pen = asy_create_pens(edge_color=self.color)
+    pen = asy_create_pens(edge_color=self.color, edge_opacity=opacity_value)
     asy = """// InsetBox
 label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
         content,
@@ -389,7 +413,10 @@ add_conversion_fn(InsetBox)
 
 def line3dbox(self, **options) -> str:
     # l = self.style.get_line_width(face_element=False)
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=1)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color, stroke_width=1, edge_opacity=edge_opacity_value
+    )
 
     return "".join(
         "// Line3DBox draw({0}, {1});".format(
@@ -405,7 +432,12 @@ add_conversion_fn(Line3DBox)
 
 def linebox(self) -> str:
     line_width = self.style.get_line_width(face_element=False)
-    pen = asy_create_pens(edge_color=self.edge_color, stroke_width=line_width)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    pen = asy_create_pens(
+        edge_color=self.edge_color,
+        stroke_width=line_width,
+        edge_opacity=edge_opacity_value,
+    )
     asy = "// LineBox\n"
     for line in self.lines:
         path = "--".join(["(%.5g,%5g)" % coords.pos() for coords in line])
@@ -422,12 +454,17 @@ def point3dbox(self, **options) -> str:
     Aymptote 3D formatter for Point3DBox
     """
     face_color = self.face_color
+    face_opacity_value = face_color.to_rgba()[3]
+    if face_opacity_value is None:
+        face_opacity_value = self.face_opacity.opacity
 
     # Tempoary bug fix: default Point color should be black not white
     if list(face_color.to_rgba()[:3]) == [1, 1, 1]:
-        face_color = RGBColor(components=(0, 0, 0, face_color.to_rgba()[3]))
+        face_color = RGBColor(components=(0, 0, 0))
 
-    pen = asy_create_pens(face_color=face_color, is_face_element=False)
+    pen = asy_create_pens(
+        face_color=face_color, is_face_element=False, face_opacity=face_opacity_value
+    )
     points = []
     for line in self.lines:
         point_coords = "--".join(
@@ -453,8 +490,12 @@ def pointbox(self, **options) -> str:
     # We'll use the heuristic that the default line width is 1 should correspond
     # to the DEFAULT_POINT_FACTOR
     dotfactor = INVERSE_POINT_FACTOR * point_size.value
+    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     pen = asy_create_pens(
-        face_color=self.face_color, is_face_element=False, dotfactor=dotfactor
+        face_color=self.face_color,
+        is_face_element=False,
+        dotfactor=dotfactor,
+        face_opacity=face_opacity_value,
     )
 
     asy = "// PointBox\n"
@@ -473,11 +514,17 @@ def polygon3dbox(self, **options) -> str:
     l = self.style.get_line_width(face_element=True)
     if self.vertex_colors is None:
         face_color = self.face_color
+        face_opacity_value = self.face_opacity.opacity
     else:
         face_color = None
+        face_opacity_value = None
+
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
     pen = asy_create_pens(
         edge_color=self.edge_color,
         face_color=face_color,
+        edge_opacity=edge_opacity_value,
+        face_opacity=face_opacity_value,
         stroke_width=l,
         is_face_element=True,
     )
@@ -502,11 +549,17 @@ def polygonbox(self, **options) -> str:
     line_width = self.style.get_line_width(face_element=True)
     if self.vertex_colors is None:
         face_color = self.face_color
+        face_opacity_value = self.face_opacity.opacity
     else:
         face_color = None
+        face_opacity_value = None
+
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
     pens = asy_create_pens(
         edge_color=self.edge_color,
         face_color=face_color,
+        edge_opacity=edge_opacity_value,
+        face_opacity=face_opacity_value,
         stroke_width=line_width,
         is_face_element=True,
     )
@@ -550,8 +603,15 @@ def rectanglebox(self, **options) -> str:
     line_width = self.style.get_line_width(face_element=True)
     x1, y1 = self.p1.pos()
     x2, y2 = self.p2.pos()
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     pens = asy_create_pens(
-        self.edge_color, self.face_color, line_width, is_face_element=True
+        self.edge_color,
+        self.face_color,
+        line_width,
+        is_face_element=True,
+        edge_opacity=edge_opacity_value,
+        face_opacity=face_opacity_value,
     )
     x1, x2, y1, y2 = asy_number(x1), asy_number(x2), asy_number(y1), asy_number(y2)
     asy = "// RectangleBox\n"
@@ -579,9 +639,13 @@ def _roundbox(self):
     rx -= x
     ry -= y
     line_width = self.style.get_line_width(face_element=self.face_element)
+    edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
+    face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     pen = asy_create_pens(
         edge_color=self.edge_color,
         face_color=self.face_color,
+        edge_opacity=edge_opacity_value,
+        face_opacity=face_opacity_value,
         stroke_width=line_width,
         is_face_element=self.face_element,
     )

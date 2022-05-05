@@ -1041,13 +1041,18 @@ class InsetBox(_GraphicsElement):
         content=None,
         pos=None,
         opos=(0, 0),
-        opacity=1.0,
+        opacity=None,
     ):
         super(InsetBox, self).init(graphics, item, style)
 
         self.color = self.style.get_option("System`FontColor")
         if self.color is None:
             self.color, _ = style.get_style(_ColorObject, face_element=False)
+
+        if opacity is None:
+            opacity, _ = style.get_style(Opacity, face_element=False)
+        if opacity is None:
+            opacity = Opacity(1.0)
         self.opacity = opacity
 
         if item is not None:

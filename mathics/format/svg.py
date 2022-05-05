@@ -362,7 +362,6 @@ def inset_box(self, **options) -> str:
     if offset is not None:
         x = x + offset[0]
         y = y + offset[1]
-
     if hasattr(self.content, "to_svg"):
         content = self.content.to_svg(noheader=True, offset=(x, y))
         svg = "\n" + content + "\n"
@@ -371,7 +370,7 @@ def inset_box(self, **options) -> str:
             font_color=self.color,
             edge_color=self.color,
             face_color=self.color,
-            opacity=self.opacity,
+            opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
