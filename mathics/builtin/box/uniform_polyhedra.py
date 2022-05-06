@@ -1,14 +1,15 @@
 from mathics.builtin.box.graphics3d import Coords3D
 
 from mathics.builtin.base import BoxConstructError
+
 from mathics.builtin.colors.color_directives import _ColorObject, Opacity
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElement
+from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
 
 import numbers
 from mathics.core.symbols import Symbol
 
 
-class UniformPolyhedron3DBox(_GraphicsElement):
+class UniformPolyhedron3DBox(_GraphicsElementBox):
     """
     <dl>
     <dt>'UniformPolyedron3DBox[]'

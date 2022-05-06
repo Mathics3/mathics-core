@@ -73,7 +73,7 @@ def apply_nvalues(
         leaves = expr.leaves
         result = Expression(expr.head)
         newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
-        result._elements = tuple(
+        result.elements = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
         return result
@@ -134,7 +134,7 @@ def apply_nvalues(
                 leaves[index] = newleaf
 
         result = Expression(head)
-        result._elements = tuple(leaves)
+        result.elements = tuple(leaves)
         return result
 
 

@@ -598,17 +598,17 @@ class _CoefficientHandler(Builtin):
                         return powers
             if pf.has_form("Sqrt", 1):
                 for i, pat in enumerate(var_pats):
-                    if match(pf._elements[0], pat, evaluation):
+                    if match(pf.elements[0], pat, evaluation):
                         powers[i] = RationalOneHalf
                         return powers
             if pf.has_form("Power", 2):
                 for i, pat in enumerate(var_pats):
-                    matchval = match(pf._elements[0], pat, evaluation)
+                    matchval = match(pf.elements[0], pat, evaluation)
                     if matchval:
-                        powers[i] = pf._elements[1]
+                        powers[i] = pf.elements[1]
                         return powers
             if pf.has_form("Times", None):
-                contrib = [powers_list(factor) for factor in pf._elements]
+                contrib = [powers_list(factor) for factor in pf.elements]
                 for i in range(len(var_pats)):
                     powers[i] = Expression(
                         SymbolPlus, *[c[i] for c in contrib]
@@ -642,7 +642,7 @@ class _CoefficientHandler(Builtin):
                         powers.append(factor)
                     elif (
                         factor.has_form("Power", 2) or factor.has_form("Sqrt", 1)
-                    ) and match(factor._elements[0], target_pat, evaluation):
+                    ) and match(factor.elements[0], target_pat, evaluation):
                         powers.append(factor)
                     else:
                         coeffs.append(factor)
@@ -724,7 +724,7 @@ class _CoefficientHandler(Builtin):
             coeff_dict = {}
             powers_dict = {}
             powers_order = {}
-            for term in expr._elements:
+            for term in expr.elements:
                 coeff, powers = split_coeff_pow(term)
                 if (
                     form != "expr"
@@ -1611,7 +1611,7 @@ class Simplify(Builtin):
         # to use all the defined rules...
         name = self.get_name()
         elements = [
-            Expression(name, element).evaluate(evaluation) for element in expr._elements
+            Expression(name, element).evaluate(evaluation) for element in expr.elements
         ]
         head = Expression(name, expr.get_head()).evaluate(evaluation)
         expr = Expression(head, *elements)

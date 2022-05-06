@@ -13,7 +13,7 @@ from mathics.builtin.base import (
     Builtin,
     BoxConstructError,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElement, get_class
+from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
@@ -125,8 +125,7 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
-# This must be a _GraphicsDirective
-class Opacity(_GraphicsElement):
+class Opacity(_GraphicsDirective):
     """
     <dl>
     <dt>'Opacity[$level$]'
@@ -141,7 +140,6 @@ class Opacity(_GraphicsElement):
      = -Graphics-
     """
 
-    # TODO: Implement me at the level of the formatters for 3D and asy.
     def init(self, item=None, *args, **kwargs):
         if isinstance(item, (int, float)):
             item = Expression("Opacity", MachineReal(item))
@@ -161,7 +159,7 @@ class Opacity(_GraphicsElement):
         return klass(item)
 
 
-class _ColorObject(_GraphicsElement, ImmutableValueMixin):
+class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
         # diminish in size when they appear in lists or rows. we only want the display of colors this

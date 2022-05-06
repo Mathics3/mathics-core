@@ -17,7 +17,7 @@ from mathics.builtin.colors.color_directives import (
     Opacity,
     RGBColor,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElement, GLOBALS
+from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
 
 from mathics.builtin.graphics import (
     Arrowheads,
@@ -53,12 +53,12 @@ from mathics.core.attributes import hold_all, protected, read_protected
 
 
 # Note: has to come before _ArcBox
-class _RoundBox(_GraphicsElement):
+class _RoundBox(_GraphicsElementBox):
     face_element = None
 
     def init(self, graphics, style, item):
         super(_RoundBox, self).init(graphics, item, style)
-        if len(item._elements) not in (1, 2):
+        if len(item.elements) not in (1, 2):
             raise BoxConstructError
         self.edge_color, self.face_color = style.get_style(
             _ColorObject, face_element=self.face_element
@@ -373,8 +373,8 @@ class CircleBox(_ArcBox):
     </dl>
     """
 
-    summary_text = "internal box representation for 'Circle' elements"
     face_element = False
+    summary_text = "internal box representation for 'Circle' elements"
 
 
 class DiskBox(_ArcBox):
@@ -385,8 +385,8 @@ class DiskBox(_ArcBox):
     </dl>
     """
 
-    summary_text = "internal box representation for 'Disk' elements"
     face_element = True
+    summary_text = "internal box representation for 'Disk' elements"
 
 
 class GraphicsBox(BoxConstruct):
@@ -400,18 +400,26 @@ class GraphicsBox(BoxConstruct):
     Graphics.
     """
 
-    options = Graphics.options
-
     attributes = hold_all | protected | read_protected
+    options = Graphics.options
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
         instance.evaluation = kwargs.get("evaluation", None)
-        instance._elements = elements
+        instance.elements = elements
         return instance
 
     def to_expression(self):
         return self
+
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, value):
+        self._elements = value
+        return self._elements
 
     def get_elements(self):
         return self._elements
@@ -952,7 +960,7 @@ clip(%s);
             add_element(LineBox(elements, axes_style[1], lines=ticks))"""
 
 
-class FilledCurveBox(_GraphicsElement):
+class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
     <dt>'FilledCurveBox[...]'
@@ -1032,7 +1040,7 @@ class FilledCurveBox(_GraphicsElement):
         return result
 
 
-class InsetBox(_GraphicsElement):
+class InsetBox(_GraphicsElementBox):
     def init(
         self,
         graphics,
@@ -1110,11 +1118,19 @@ class LineBox(_Polyline):
 
 class PointBox(_Polyline):
     """
-    Boxing methods for a list of Point.
-
-    object attributes:
-    edge_color: _ColorObject
-    point_radius: radius of each point
+    <dl>
+    <dt>'PointBox'[{$x$, $y$}]
+    <dd> a box construction representing a point in a Graphic.
+    <dt>'PointBox'[{$x$, $y$, $z$}]
+    <dd> represents a point in a Graphic3D.
+    <dt>'PointBox'[{$p_1$, $p_2$,...}]
+    <dd> represents a set of points.
+    </dl>
+    ## Boxing methods for a list of Point.
+    ##
+    ## object attributes:
+    ## edge_color: _ColorObject
+    ## point_radius: radius of each point
     """
 
     def init(self, graphics, style, item=None):
@@ -1137,6 +1153,7 @@ class PointBox(_Polyline):
 
         if item is not None:
             if len(item.elements) != 1:
+                print("item:", item)
                 raise BoxConstructError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
@@ -1215,7 +1232,7 @@ class PolygonBox(_Polyline):
             raise BoxConstructError
 
 
-class RectangleBox(_GraphicsElement):
+class RectangleBox(_GraphicsElementBox):
     def init(self, graphics, style, item):
         super(RectangleBox, self).init(graphics, item, style)
         if len(item.elements) not in (1, 2):

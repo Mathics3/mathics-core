@@ -125,7 +125,7 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
     if isinstance(rules_expr, Dispatch):
         return rules_expr.rules, False
     elif rules_expr.has_form("Dispatch", None):
-        return Dispatch(rules_expr._elements, evaluation)
+        return Dispatch(rules_expr.elements, evaluation)
 
     if rules_expr.has_form("List", None):
         rules = rules_expr.leaves
@@ -1662,7 +1662,7 @@ class Dispatch(Atom):
 
     def __init__(self, rulelist, evaluation):
         self.src = Expression(SymbolList, *rulelist)
-        self.rules = [Rule(rule._elements[0], rule._elements[1]) for rule in rulelist]
+        self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
         self._head = SymbolDispatch
 
@@ -1727,7 +1727,7 @@ class DispatchAtom(AtomBuiltin):
             rules = rules.evaluate(evaluation)
 
         if rules.has_form("List", None):
-            rules = rules._elements
+            rules = rules.elements
         else:
             rules = [rules]
 
@@ -1740,11 +1740,11 @@ class DispatchAtom(AtomBuiltin):
             if isinstance(rule, Symbol):
                 rule = rule.evaluate(evaluation)
             if rule.has_form("List", None):
-                flatten_list.extend(rule._elements)
+                flatten_list.extend(rule.elements)
             elif rule.has_form(("Rule", "RuleDelayed"), 2):
                 flatten_list.append(rule)
             elif isinstance(rule, Dispatch):
-                flatten_list.extend(rule.src._elements)
+                flatten_list.extend(rule.src.elements)
             else:
                 # WMA does not raise this message: just leave it unevaluated,
                 # and raise an error when the dispatch rule is used.
@@ -1760,4 +1760,4 @@ class DispatchAtom(AtomBuiltin):
         if isinstance(dispatch, Dispatch):
             return dispatch.src
         else:
-            return dispatch._elements[0]
+            return dispatch.elements[0]

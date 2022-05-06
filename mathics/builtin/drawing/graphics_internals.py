@@ -6,6 +6,7 @@
 
 from mathics.builtin.base import (
     InstanceableBuiltin,
+    BoxConstruct,
     BoxConstructError,
     split_name,
 )
@@ -16,10 +17,9 @@ no_doc = True
 from mathics.core.symbols import system_symbols_dict, Symbol
 
 
-# Check if  _GraphicsElement shouldn't be a BoxConstruct instead of an InstanceableBuiltin
-class _GraphicsElement(InstanceableBuiltin):
+class _GraphicsDirective(InstanceableBuiltin):
     def __new__(cls, *args, **kwargs):
-        # This ensures that all the graphics elements have a well formatted docstring
+        # This ensures that all the graphics directive have a well formatted docstring
         # and a summary_text
         instance = super().__new__(cls, *args, **kwargs)
         if not hasattr(instance, "summary_text"):
@@ -29,24 +29,30 @@ class _GraphicsElement(InstanceableBuiltin):
                 else "a "
             )
             instance.summary_text = (
-                "box representation for "
+                "graphics directive setting "
                 + article
                 + split_name(cls.get_name(short=True)[:-3])
             )
-        #            clsname = cls.get_name()
-        #            if clsname[0] in ("A", "E", "I", "O", "U"):
-        #                instance.summary_text = f"boxes for an '{cls.get_name()}' element"
-        #            else:
-        #                instance.summary_text = f"boxes for a '{cls.get_name()}' element"
         if not instance.__doc__:
             instance.__doc__ = f"""
                 <dl>
                 <dt>'{cls.get_name()}[...]'
-                <dd>box structure for {cls.get_name().lower()[:-3]}
+                <dd>is a graphics directive that sets {cls.get_name().lower()[:3]}
                 </dl>
                 """
         return instance
 
+    def init(self, graphics, item=None):
+        if item is not None and not item.has_form(self.get_name(), None):
+            raise BoxConstructError
+        self.graphics = graphics
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(graphics, item)
+
+
+class _GraphicsElementBox(BoxConstruct):
     def init(self, graphics, item=None, style=None, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxConstructError
@@ -54,10 +60,6 @@ class _GraphicsElement(InstanceableBuiltin):
         self.style = style
         self.opacity = opacity
         self.is_completely_visible = False  # True for axis elements
-
-    @staticmethod
-    def create_as_style(klass, graphics, item):
-        return klass(graphics, item)
 
 
 def get_class(symbol: Symbol):

@@ -103,9 +103,9 @@ class _EqualityOperator(_InequalityOperator):
         same_heads = lhs.get_head().sameQ(rhs.get_head())
         if not same_heads:
             return None
-        if len(lhs._elements) != len(rhs._elements):
+        if len(lhs.elements) != len(rhs.elements):
             return
-        for l, r in zip(lhs._elements, rhs._elements):
+        for l, r in zip(lhs.elements, rhs.elements):
             tst = self.equal2(l, r, max_extra_prec)
             # If the there are a pair of corresponding elements
             # that are not equals, then we are not able to decide
@@ -120,11 +120,11 @@ class _EqualityOperator(_InequalityOperator):
         if not lhs.get_head().sameQ(SymbolDirectedInfinity):
             return None
         if rhs.sameQ(SymbolInfinity) or rhs.sameQ(SymbolComplexInfinity):
-            if len(lhs._elements) == 0:
+            if len(lhs.elements) == 0:
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs._elements[0]), Integer1, max_extra_prec
+                    Expression("Sign", lhs.elements[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -132,10 +132,10 @@ class _EqualityOperator(_InequalityOperator):
             return None
         if rhs.get_head().sameQ(lhs.get_head()):
             dir1 = dir2 = Integer1
-            if len(lhs._elements) == 1:
-                dir1 = lhs._elements[0]
-            if len(rhs._elements) == 1:
-                dir2 = rhs._elements[0]
+            if len(lhs.elements) == 1:
+                dir1 = lhs.elements[0]
+            if len(rhs.elements) == 1:
+                dir2 = rhs.elements[0]
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:

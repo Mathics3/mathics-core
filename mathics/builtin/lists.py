@@ -153,7 +153,7 @@ class ByteArray(Builtin):
         if not values.has_form("List", None):
             return
         try:
-            ba = bytearray([b.get_int_value() for b in values._elements])
+            ba = bytearray([b.get_int_value() for b in values.elements])
         except Exception:
             evaluation.message("ByteArray", "aotd", values)
             return

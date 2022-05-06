@@ -78,48 +78,6 @@ symbols_arithmetic_operations = system_symbols(
 )
 
 
-def build_elements_with_properties(self, elements: Iterable) -> tuple:
-    """Build a tuple of Elements noting useful properties such as
-    whether the collection of elements is sorted, flat, or fully
-    evaluated.
-
-    Note: we add or set the following fields:
-      self._elements_fully_evaluated, self._is_flat, and self._is_sorted
-
-    """
-
-    # All of the properties start out optimistic (True) and are reset when that proves wrong.
-
-    # _elements_fully_evaluated is True if all elements have been fully evaluated.
-    # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
-    self._elements_fully_evaluated = True
-
-    # _is_flat is True if all elements are atoms/leaves.
-    self._is_flat = True
-
-    # _is_sorted is True if elements do not need sorting
-    # elements with less than 2 items or all have the same value are sorted.
-    self._is_sorted = True
-
-    result = []
-    last_element = None
-    for element in elements:
-        # Test for the three properties mentioned above.
-        if not element.is_literal:
-            self._elements_fully_evaluated = False
-        if isinstance(element, Expression):
-            self._is_flat = False
-            self._is_sorted = last_element is None  # sorted if have 1 element
-            self._elements_fully_evaluated = False
-        elif self._is_sorted and last_element is not None and last_element != element:
-            self._is_sorted = False
-        last_element = element
-
-        result.append(element)
-
-    return tuple(result)
-
-
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -230,7 +188,7 @@ class Expression(BaseElement, NumericOperators):
         # These are set in self._build_elements(elements)
         #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
 
-        self._elements = self._build_elements(elements)
+        self.elements = elements
 
         self._sequences = None
         self._cache = None
@@ -250,7 +208,7 @@ class Expression(BaseElement, NumericOperators):
     def __str__(self) -> str:
         return "%s[%s]" % (
             self._head,
-            ", ".join([element.__str__() for element in self._elements]),
+            ", ".join([element.__str__() for element in self.elements]),
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
@@ -393,25 +351,25 @@ class Expression(BaseElement, NumericOperators):
 
         is_style, options = self.process_style_box(options)
         if is_style:
-            return self._elements[0].boxes_to_text(**options)
-        if self.has_form("RowBox", 1) and self._elements[0].has_form(  # nopep8
+            return self.elements[0].boxes_to_text(**options)
+        if self.has_form("RowBox", 1) and self.elements[0].has_form(  # nopep8
             "List", None
         ):
             return "".join(
                 [
                     element.boxes_to_text(**options)
-                    for element in self._elements[0]._elements
+                    for element in self.elements[0].elements
                 ]
             )
         elif self.has_form("SuperscriptBox", 2):
             return "^".join(
-                [element.boxes_to_text(**options) for element in self._elements]
+                [element.boxes_to_text(**options) for element in self.elements]
             )
         elif self.has_form("FractionBox", 2):
             return "/".join(
                 [
                     " ( " + element.boxes_to_text(**options) + " ) "
-                    for element in self._elements
+                    for element in self.elements
                 ]
             )
         else:
@@ -420,12 +378,12 @@ class Expression(BaseElement, NumericOperators):
     def boxes_to_mathml(self, **options) -> str:
         is_style, options = self.process_style_box(options)
         if is_style:
-            return self._elements[0].boxes_to_mathml(**options)
+            return self.elements[0].boxes_to_mathml(**options)
         name = self._head.get_name()
         if (
             name == "System`RowBox"
-            and len(self._elements) == 1
-            and self._elements[0].get_head() is SymbolList  # nopep8
+            and len(self.elements) == 1
+            and self.elements[0].get_head() is SymbolList  # nopep8
         ):
             result = []
             inside_row = options.get("inside_row")
@@ -435,23 +393,23 @@ class Expression(BaseElement, NumericOperators):
             def is_list_interior(content):
                 if content.has_form("List", None) and all(
                     element.get_string_value() == ","
-                    for element in content._elements[1::2]
+                    for element in content.elements[1::2]
                 ):
                     return True
                 return False
 
             is_list_row = False
             if (
-                len(self._elements[0]._elements) == 3
-                and self._elements[0]._elements[0].get_string_value() == "{"  # nopep8
-                and self._elements[0]._elements[2].get_string_value() == "}"
-                and self._elements[0]._elements[1].has_form("RowBox", 1)
+                len(self.elements[0].elements) == 3
+                and self.elements[0].elements[0].get_string_value() == "{"  # nopep8
+                and self.elements[0].elements[2].get_string_value() == "}"
+                and self.elements[0].elements[1].has_form("RowBox", 1)
             ):
-                content = self._elements[0]._elements[1]._elements[0]
+                content = self.elements[0].elements[1].elements[0]
                 if is_list_interior(content):
                     is_list_row = True
 
-            if not inside_row and is_list_interior(self._elements[0]):
+            if not inside_row and is_list_interior(self.elements[0]):
                 is_list_row = True
 
             if is_list_row:
@@ -467,31 +425,31 @@ class Expression(BaseElement, NumericOperators):
             options["inside_row"] = True
             if name == "System`SuperscriptBox" and len(self._elements) == 2:
                 return "<msup>%s %s</msup>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
+                    self.elements[0].boxes_to_mathml(**options),
+                    self.elements[1].boxes_to_mathml(**options),
                 )
             if name == "System`SubscriptBox" and len(self._elements) == 2:
                 return "<msub>%s %s</msub>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
+                    self.elements[0].boxes_to_mathml(**options),
+                    self.elements[1].boxes_to_mathml(**options),
                 )
             if name == "System`SubsuperscriptBox" and len(self._elements) == 3:
                 return "<msubsup>%s %s %s</msubsup>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
-                    self._elements[2].boxes_to_mathml(**options),
+                    self.elements[0].boxes_to_mathml(**options),
+                    self.elements[1].boxes_to_mathml(**options),
+                    self.elements[2].boxes_to_mathml(**options),
                 )
             elif name == "System`FractionBox" and len(self._elements) == 2:
                 return "<mfrac>%s %s</mfrac>" % (
-                    self._elements[0].boxes_to_mathml(**options),
-                    self._elements[1].boxes_to_mathml(**options),
+                    self.elements[0].boxes_to_mathml(**options),
+                    self.elements[1].boxes_to_mathml(**options),
                 )
             elif name == "System`SqrtBox" and len(self._elements) == 1:
                 return "<msqrt>%s</msqrt>" % (
-                    self._elements[0].boxes_to_mathml(**options)
+                    self.elements[0].boxes_to_mathml(**options)
                 )
             elif name == "System`GraphBox":
-                return "<mi>%s</mi>" % (self._elements[0].boxes_to_mathml(**options))
+                return "<mi>%s</mi>" % (self.elements[0].boxes_to_mathml(**options))
             else:
                 raise BoxError(self, "xml")
 
@@ -507,22 +465,22 @@ class Expression(BaseElement, NumericOperators):
 
         is_style, options = self.process_style_box(options)
         if is_style:
-            return self._elements[0].boxes_to_tex(**options)
+            return self.elements[0].boxes_to_tex(**options)
         name = self._head.get_name()
         if (
             name == "System`RowBox"
-            and len(self._elements) == 1
-            and self._elements[0].get_head_name() == "System`List"  # nopep8
+            and len(self.elements) == 1
+            and self.elements[0].get_head_name() == "System`List"  # nopep8
         ):
             return "".join(
                 [
                     element.boxes_to_tex(**options)
-                    for element in self._elements[0].get_elements()
+                    for element in self.elements[0].elements
                 ]
             )
-        elif name == "System`SuperscriptBox" and len(self._elements) == 2:
-            tex1 = self._elements[0].boxes_to_tex(**options)
-            sup_string = self._elements[1].get_string_value()
+        elif name == "System`SuperscriptBox" and len(self.elements) == 2:
+            tex1 = self.elements[0].boxes_to_tex(**options)
+            sup_string = self.elements[1].get_string_value()
             if sup_string == "\u2032":
                 return "%s'" % tex1
             elif sup_string == "\u2032\u2032":
@@ -530,12 +488,12 @@ class Expression(BaseElement, NumericOperators):
             else:
                 return "%s^%s" % (
                     block(tex1, True),
-                    block(self._elements[1].boxes_to_tex(**options)),
+                    block(self.elements[1].boxes_to_tex(**options)),
                 )
-        elif name == "System`SubscriptBox" and len(self._elements) == 2:
+        elif name == "System`SubscriptBox" and len(self.elements) == 2:
             return "%s_%s" % (
-                block(self._elements[0].boxes_to_tex(**options), True),
-                block(self._elements[1].boxes_to_tex(**options)),
+                block(self.elements[0].boxes_to_tex(**options), True),
+                block(self.elements[1].boxes_to_tex(**options)),
             )
         elif name == "System`SubsuperscriptBox" and len(self._elements) == 3:
             return "%s_%s^%s" % (
@@ -551,14 +509,14 @@ class Expression(BaseElement, NumericOperators):
         elif name == "System`SqrtBox" and len(self._elements) == 1:
             return "\\sqrt{%s}" % self._elements[0].boxes_to_tex(**options)
         else:
-            raise BoxError(self, "tex")
+            raise BoxError(self, "TeX")
 
     def clear_cache(self):
         self._cache = None
 
     def copy(self, reevaluate=False) -> "Expression":
         expr = Expression(self._head.copy(reevaluate))
-        expr._elements = tuple(element.copy(reevaluate) for element in self._elements)
+        expr.elements = tuple(element.copy(reevaluate) for element in self._elements)
         if not reevaluate:
             # rebuilding the cache in self speeds up large operations, e.g.
             # First[Timing[Fold[#1+#2&, Range[750]]]]
@@ -601,6 +559,10 @@ class Expression(BaseElement, NumericOperators):
     def elements(self):
         return self._elements
 
+    @elements.setter
+    def elements(self, values):
+        self._elements = self._build_elements(values)
+
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
         returns True if self and rhs are identical.
@@ -618,15 +580,15 @@ class Expression(BaseElement, NumericOperators):
             return equal_heads
         # From here, we can assume that both heads are the same
         if head in (SymbolList, SymbolSequence):
-            if len(self._elements) != len(rhs._elements):
+            if len(self.elements) != len(rhs.elements):
                 return False
-            for item1, item2 in zip(self._elements, rhs._elements):
+            for item1, item2 in zip(self.elements, rhs.elements):
                 result = item1.equal2(item2)
                 if not result:
                     return result
             return True
         elif head in (SymbolDirectedInfinity,):
-            return self._elements[0].equal2(rhs._elements[0])
+            return self.elements[0].equal2(rhs.elements[0])
         return None
 
     # Note that the return type is some subclass of BaseElement, it could be
@@ -842,6 +804,7 @@ class Expression(BaseElement, NumericOperators):
         return NO_ATTRIBUTES
 
     def get_elements(self):
+        # print("Use of get_elements is deprecated. Use elements instead.")
         return self._elements
 
     # Compatibily with old code. Deprecated, but remove after a little bit
@@ -1187,16 +1150,20 @@ class Expression(BaseElement, NumericOperators):
                 eval_range(range(len(elements)))
                 # rest_range(range(0, 0))
 
-        elements = self.get_mutable_elements()
-        eval_elements()
+        if self._elements_fully_evaluated:
+            elements = self._elements
+        else:
+            elements = self.get_mutable_elements()
+            eval_elements()
 
         # Step 2: Build a new expression. Notice that elements are given
         # after creating the object, to avoid to call `from_python` on each element.
 
         # FIXME: put this in a method
         new = Expression(head)
-        new._elements = tuple(elements)
-        new._is_flat = self._is_flat
+        new.elements = elements
+        # the setter in new.elements calls _build_elements, and it sets new._is_flat
+        # new._is_flat = self._is_flat
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
@@ -1245,7 +1212,7 @@ class Expression(BaseElement, NumericOperators):
 
             if dirty_elements:
                 new = Expression(head)
-                new._elements = build_elements_with_properties(self, dirty_elements)
+                new.elements = dirty_elements
                 elements = dirty_elements
 
         # If the attribute FLAT is set, calls flatten with a callback
@@ -1363,7 +1330,7 @@ class Expression(BaseElement, NumericOperators):
 
         if dirty_elements:
             new = Expression(head)
-            new._elements = build_elements_with_properties(self, tuple(dirty_elements))
+            new.elements = dirty_elements
 
         # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
@@ -1433,14 +1400,14 @@ class Expression(BaseElement, NumericOperators):
         """
         elements = list(self._elements)
         elements[index] = value
-        self._elements = tuple(elements)
+        self.elements = tuple(elements)
         self._cache = None
 
     def shallow_copy(self) -> "Expression":
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
         expr = Expression(self._head)
-        expr._elements = self._elements
+        expr.elements = self._elements
         # rebuilding the cache in self speeds up large operations, e.g.
         # First[Timing[Fold[#1+#2&, Range[750]]]]
         expr._cache = self._rebuild_cache()
@@ -1567,14 +1534,14 @@ class Expression(BaseElement, NumericOperators):
         # There is no in-place sort method on a tuple, because tuples are not
         # mutable. So we turn into a elements into list and use Python's
         # list sort method. Another approach would be to use sorted().
-        elements = list(self._elements)
+        elements = self.get_mutable_elements()
         if pattern:
             elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
         else:
             elements.sort()
 
         # update `self._elements` and self._cache with the possible permuted order.
-        self._elements = tuple(elements)
+        self.elements = elements
         self._is_sorted = True
         if self._cache:
             self._cache = self._cache.reordered()
@@ -1808,7 +1775,7 @@ class Expression(BaseElement, NumericOperators):
                     if isinstance(n_result, Number):
                         new_elements[index] = n_result
             result = Expression(self._head)
-            result._elements = tuple(new_elements)
+            result.elements = new_elements
             return result
 
         else:
@@ -1928,14 +1895,14 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = build_elements_with_properties(self, elements)
+        expr.elements = tuple(elements)
         return expr
 
     def filter(self, expr, cond):
-        return self([element for element in expr._elements if cond(element)])
+        return self([element for element in expr.elements if cond(element)])
 
     def slice(self, expr, py_slice):
-        elements = expr._elements
+        elements = expr.elements
         lower, upper, step = py_slice.indices(len(elements))
         if step != 1:
             raise ValueError("Structure.slice only supports slice steps of 1")
@@ -1955,21 +1922,21 @@ class LinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = tuple(elements)
+        expr.elements = tuple(elements)
         expr._cache = self._cache.reordered()
         return expr
 
     def filter(self, expr, cond):
-        return self([element for element in expr._elements if cond(element)])
+        return self([element for element in expr.elements if cond(element)])
 
     def slice(self, expr, py_slice):
-        elements = expr._elements
+        elements = expr.elements
         lower, upper, step = py_slice.indices(len(elements))
         if step != 1:
             raise ValueError("Structure.slice only supports slice steps of 1")
 
         new = Expression(self._head)
-        new._elements = tuple(elements[lower:upper])
+        new.elements = tuple(elements[lower:upper])
         if expr._cache:
             new._cache = expr._cache.sliced(lower, upper)
 
@@ -2036,7 +2003,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
         def construct(elements):
             expr = Expression(head)
-            expr._elements = list(elements)
+            expr.elements = list(elements)
             sym = set(chain([head.get_name()], full_atom_names))
             expr._cache = ExpressionCache(evaluation.definitions.now, sym, None)
             return expr
@@ -2045,7 +2012,7 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
         def construct(elements):
             expr = Expression(head)
-            expr._elements = list(elements)
+            expr.elements = list(elements)
             return expr
 
     return construct
