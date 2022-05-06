@@ -987,9 +987,7 @@ class StringSplit(Builtin):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":
-            leaves = [
-                self.apply(s, patt, evaluation, options) for s in string._elements
-            ]
+            leaves = [self.apply(s, patt, evaluation, options) for s in string.elements]
             return Expression(SymbolList, *leaves)
 
         py_string = string.get_string_value()

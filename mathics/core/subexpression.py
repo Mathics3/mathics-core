@@ -177,7 +177,7 @@ class ExpressionPointer(object):
                 if i == 0:
                     parent = parent._head
                 else:
-                    parent = parent._elements[i - 1]
+                    parent = parent.elements[i - 1]
                 i = pos.pop()
         except Exception:
             raise MessageException("Part", "span", pos)
@@ -269,6 +269,14 @@ class SubExpression(object):
 
     def get_head_name(self):
         return self._headp.parent.get_head_name()
+
+    @property
+    def elements(self):
+        return self._elementsp
+
+    @elements.setter
+    def elements(self, value):
+        raise ValueError("SubExpression.leaves is write protected.")
 
     @property
     def leaves(self):

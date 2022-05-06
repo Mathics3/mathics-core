@@ -96,7 +96,7 @@ class Association(Builtin):
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
                     pass
                 elif expr.has_form(("List", "Association"), None):
-                    if not validate(expr._elements):
+                    if not validate(expr.elements):
                         return False
                 else:
                     return False
@@ -126,11 +126,12 @@ class Association(Builtin):
         def make_flatten(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
-                    key = expr._elements[0].evaluate(evaluation)
-                    value = expr._elements[1].evaluate(evaluation)
+                    elements = expr.elements
+                    key = elements[0].evaluate(evaluation)
+                    value = elements[1].evaluate(evaluation)
                     rules_dictionary[key] = Expression(expr.get_head(), key, value)
                 elif expr.has_form(("List", "Association"), None):
-                    make_flatten(expr._elements, rules_dictionary)
+                    make_flatten(expr.elements, rules_dictionary)
                 else:
                     raise TypeError
             return rules_dictionary.values()
@@ -146,10 +147,10 @@ class Association(Builtin):
         def find_key(exprs, rules_dictionary: dict = {}):
             for expr in exprs:
                 if expr.has_form(("Rule", "RuleDelayed"), 2):
-                    if expr._elements[0] == key:
-                        rules_dictionary[key] = expr._elements[1]
+                    if expr.elements[0] == key:
+                        rules_dictionary[key] = expr.elements[1]
                 elif expr.has_form(("List", "Association"), None):
-                    find_key(expr._elements)
+                    find_key(expr.elements)
                 else:
                     raise TypeError
             return rules_dictionary
