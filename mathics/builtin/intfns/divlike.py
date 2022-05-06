@@ -58,6 +58,7 @@ class CoprimeQ(Builtin):
     """
 
     attributes = listable | protected
+    summary_text = "test whether elements are coprime"
 
     def apply(self, args, evaluation):
         "CoprimeQ[args__]"
@@ -88,6 +89,7 @@ class EvenQ(Test):
     """
 
     attributes = listable | protected
+    summary_text = "test whether elements are even numbers"
 
     def test(self, n):
         value = n.get_int_value()
@@ -114,6 +116,7 @@ class GCD(Builtin):
     """
 
     attributes = flat | listable | one_identity | orderless | protected
+    summary_text = "greatest common divisor"
 
     def apply(self, ns, evaluation):
         "GCD[ns___Integer]"
@@ -142,6 +145,7 @@ class LCM(Builtin):
     """
 
     attributes = flat | listable | one_identity | orderless | protected
+    summary_text = "least common multiple"
 
     def apply(self, ns, evaluation):
         "LCM[ns___Integer]"
@@ -175,6 +179,7 @@ class Mod(Builtin):
     """
 
     attributes = listable | numeric_function | protected
+    summary_text = "the remainder in an integer division"
 
     def apply(self, n, m, evaluation):
         "Mod[n_Integer, m_Integer]"
@@ -200,6 +205,7 @@ class OddQ(Test):
     """
 
     attributes = listable | protected
+    summary_text = "test whether elements are odd numbers"
 
     def test(self, n):
         value = n.get_int_value()
@@ -232,6 +238,7 @@ class PowerMod(Builtin):
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
     }
+    summary_text = "modular powers and roots"
 
     def apply(self, a, b, m, evaluation):
         "PowerMod[a_Integer, b_Integer, m_Integer]"
@@ -287,8 +294,8 @@ class PrimeQ(SympyFunction):
     """
 
     attributes = listable | numeric_function | protected
-
     sympy_name = "isprime"
+    summary_text = "test whether elements are prime numbers"
 
     def apply(self, n, evaluation):
         "PrimeQ[n_]"
@@ -330,6 +337,7 @@ class Quotient(Builtin):
     messages = {
         "infy": "Infinite expression `1` encountered.",
     }
+    summary_text = "integer quotient"
 
     def apply(self, m, n, evaluation):
         "Quotient[m_Integer, n_Integer]"
@@ -375,6 +383,7 @@ class QuotientRemainder(Builtin):
     messages = {
         "divz": "The argument 0 in `1` should be nonzero.",
     }
+    summary_text = "integer quotient and remainder"
 
     def apply(self, m, n, evaluation):
         "QuotientRemainder[m_, n_]"
