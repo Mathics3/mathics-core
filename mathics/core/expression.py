@@ -169,6 +169,29 @@ class ExpressionCache:
 
 
 class Expression(BaseElement, NumericOperators):
+    """
+    A Mathics M-Expression.
+
+    A Mathics M-Expression is a list where the head is a function designator.
+    (In the more common S-Expression the head is an a Symbol. In Mathics this can be
+    an expression that acts as a function.
+
+    positional Arguments:
+        - head -- The head of the M-Expression
+        - *elements - optional: the remainin elements
+
+    Keyword Arguments:
+
+        - element_properties -- optional: a dictionary describing properties
+                                of the colletion of elements.
+          Properties include:
+             _is_flat: bool   -- True inone of the elements is an Expression
+             _is_sorted: bool -- True if all of the elements are sorted. Of course this is true,
+                                 if there are less than 2 elements.
+             _fully_evaluated: bool
+                              -- True if none of the elements needs to be evaluated
+    """
+
     head: "Symbol"
     leaves: typing.List[Any]
     _sequences: Any
@@ -188,7 +211,14 @@ class Expression(BaseElement, NumericOperators):
         # These are set in self._build_elements(elements)
         #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
 
-        self.elements = elements
+        element_properties = kwargs.pop("element_properties", None)
+        if element_properties is not None:
+            self._elements = elements
+            for field in ("_elements_fully_evaluated", "_is_flat", "_is_sorted"):
+                setattr(self, field, element_properties.get(field, False))
+        else:
+            # The self.elements setter method sets the elements collection properties.
+            self.elements = elements
 
         self._sequences = None
         self._cache = None
@@ -1150,25 +1180,30 @@ class Expression(BaseElement, NumericOperators):
                 eval_range(range(len(elements)))
                 # rest_range(range(0, 0))
 
+        # Step 2: Build a new expression. We take care not
+        # to evaluate elements, run to_python() on them in
+        # Expression construction, or convert Expresions elements from a tuple to a list
+        # and back if that can be avoided.
+
         if self._elements_fully_evaluated:
-            elements = self._elements
+            new = Expression(
+                head,
+                *self._elements,
+                element_properties={
+                    "_is_flat": self._is_flat,
+                    "_is_sorted": self._is_sorted,
+                    "_elements_fully_evaluated": self._elements_fully_evaluated,
+                }
+            )
+            elements = self.elements
         else:
             elements = self.get_mutable_elements()
             eval_elements()
-
-        # Step 2: Build a new expression. Notice that elements are given
-        # after creating the object, to avoid to call `from_python` on each element.
-
-        # FIXME: put this in a method
-        new = Expression(head)
-        new.elements = elements
-        # the setter in new.elements calls _build_elements, and it sets new._is_flat
-        # new._is_flat = self._is_flat
+            new = Expression(head, *elements)
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
-        # if not new._is_flat and not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes:
-        if not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes:
+        if not new._is_flat and not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes:
             # This step is applied to most of the expressions
             # and could be heavy for expressions with many elements (like long lists)
             # however, most of the times, expressions does not have `Sequence` expressions
