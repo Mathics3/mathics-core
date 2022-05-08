@@ -190,6 +190,8 @@ class Expression(BaseElement, NumericOperators):
                                  if there are less than 2 elements.
              _fully_evaluated: bool
                               -- True if none of the elements needs to be evaluated
+             _ensure_native_elements   -- if True, check if the elements are not native Mathics elements and call
+                                 from_python accordingly
     """
 
     head: "Symbol"
@@ -212,10 +214,16 @@ class Expression(BaseElement, NumericOperators):
         #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
 
         element_properties = kwargs.pop("element_properties", None)
+
         if element_properties is not None:
-            self._elements = tuple(
-                e if isinstance(e, BaseElement) else from_python(e) for e in elements
-            )
+            if element_properties.get("_ensure_native_elements", True):
+                self.elements = (
+                    e if isinstance(e, BaseElement) else from_python(e)
+                    for e in elements
+                )
+            else:
+                self._elements = elements
+
             for field in ("_elements_fully_evaluated", "_is_flat", "_is_sorted"):
                 setattr(self, field, element_properties.get(field, False))
         else:
@@ -1194,6 +1202,7 @@ class Expression(BaseElement, NumericOperators):
                     "_is_flat": self._is_flat,
                     "_is_sorted": self._is_sorted,
                     "_elements_fully_evaluated": self._elements_fully_evaluated,
+                    "_ensure_native_elements": False,
                 }
             )
             elements = new.elements
