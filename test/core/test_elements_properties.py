@@ -15,7 +15,7 @@ def test_elements_properties():
     coming out of initial conversion are set accurately.
     """
 
-    for str_expression, full_eval, is_flat, is_sorted in [
+    for str_expression, full_eval, is_flat, is_ordered in [
         # fmt: off
         # expr          fully evaluated?  flat?  sorted?
         ("Plus[1, 1, 1]",          True,  True,  True),
@@ -47,5 +47,5 @@ def test_elements_properties():
         expr = convert(ast, session.definitions)
         # print("XXX", str_expression, expr)
         assert expr._elements_fully_evaluated == full_eval, str_expression
-        assert expr._is_sorted == is_sorted, str_expression
+        assert expr._is_ordered == is_ordered, str_expression
         assert expr._is_flat == is_flat, str_expression

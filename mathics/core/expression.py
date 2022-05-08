@@ -6,7 +6,7 @@ import math
 import time
 
 import typing
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 from itertools import chain
 from bisect import bisect_left
 
@@ -185,11 +185,12 @@ class Expression(BaseElement, NumericOperators):
         - element_properties -- optional: a dictionary describing properties
                                 of the colletion of elements.
           Properties include:
-             _is_flat: bool   -- True inone of the elements is an Expression
-             _is_sorted: bool -- True if all of the elements are sorted. Of course this is true,
-                                 if there are less than 2 elements.
+             _is_flat: bool    -- True inone of the elements is an Expression
+             _is_ordered: bool -- True if all of the elements are ordered. Of course this is true,
+                                  if there are less than 2 elements. (Ordered is an Attribute of
+                                  a function)
              _fully_evaluated: bool
-                              -- True if none of the elements needs to be evaluated
+                               -- True if none of the elements needs to be evaluated
     """
 
     head: "Symbol"
@@ -209,16 +210,25 @@ class Expression(BaseElement, NumericOperators):
 
         # Set some properties on elements that help us speed up evaluation.
         # These are set in self._build_elements(elements)
-        #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
+        #    self._elements_fully_evaluated, self._is_flat, self._is_ordered
 
+        conversion_fn = kwargs.pop("element_conversion_fn", from_python)
         element_properties = kwargs.pop("element_properties", None)
+
+        # Note: We don't allow specifying "_is_ordered"
+        # when "_elements_fully_evaluated" is False. And I suppose this
+        # might be right since we can't really know ordering if we things
+        # are not fully evaluated.
         if element_properties is not None:
-            self._elements = elements
-            for field in ("_elements_fully_evaluated", "_is_flat", "_is_sorted"):
+            for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
                 setattr(self, field, element_properties.get(field, False))
+            self._elements = (
+                elements
+                if self._elements_fully_evaluated
+                else (conversion_fn(element) for element in elements)
+            )
         else:
-            # The self.elements setter method sets the elements collection properties.
-            self.elements = elements
+            self._elements = self._build_elements(elements, conversion_fn)
 
         self._sequences = None
         self._cache = None
@@ -250,14 +260,16 @@ class Expression(BaseElement, NumericOperators):
         f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
         return f(*sym_args)
 
-    def _build_elements(self, elements: Iterable) -> tuple:
+    def _build_elements(
+        self, elements: Iterable, conversion_fn: Callable = from_python
+    ) -> tuple:
         """
         Build a tuple of Elements converted from the Python-like items in `elements`.
         We also note useful properties such as whether the collection of elements is
-        sorted, flat, or fully evaluated.
+        ordered, flat, or fully evaluated.
 
         Note: we add or set the following fields:
-          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+          self._elements_fully_evaluated, self._is_flat, and self._is_ordered
         """
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
 
@@ -268,14 +280,15 @@ class Expression(BaseElement, NumericOperators):
         # _is_flat is True if all elements are atoms/leaves.
         self._is_flat = True
 
-        # _is_sorted is True if elements do not need sorting
-        # elements with less than 2 items or all have the same value are sorted.
-        self._is_sorted = True
+        # _is_ordered is True if elements do not need ordering
+        # elements with less than 2 items or all have the same value are ordered.
+        # Ordering is a Attribute of some functions.
+        self._is_ordered = True
 
         result = []
         last_element = None
         for element in elements:
-            converted_elt = from_python(element)
+            converted_elt = conversion_fn(element)
 
             # Test for the three properties mentioned above.
             if not converted_elt.is_literal:
@@ -283,15 +296,15 @@ class Expression(BaseElement, NumericOperators):
             if isinstance(converted_elt, Expression):
                 self._is_flat = False
                 self._elements_fully_evaluated = False
-                # We will say the elements are sorted if have less than
+                # We will say the elements are ordered if have less than
                 # 2 elements which we determine via last_element.
-                self._is_sorted = last_element is None
+                self._is_ordered = last_element is None
             elif (
-                self._is_sorted
+                self._is_ordered
                 and last_element is not None
                 and last_element != converted_elt
             ):
-                self._is_sorted = False
+                self._is_ordered = False
             last_element = converted_elt
 
             result.append(converted_elt)
@@ -590,8 +603,8 @@ class Expression(BaseElement, NumericOperators):
         return self._elements
 
     @elements.setter
-    def elements(self, values):
-        self._elements = self._build_elements(values)
+    def elements(self, values: list, **kwargs: Optional[dict]):
+        self._elements = self._build_elements(values, **kwargs)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
@@ -1151,7 +1164,7 @@ class Expression(BaseElement, NumericOperators):
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
                             elements[index] = element.evaluate(evaluation)
-                            self._is_sorted = False
+                            self._is_ordered = False
                             self._elements_fully_evaluated = False
                             self._is_flat = False
 
@@ -1162,7 +1175,7 @@ class Expression(BaseElement, NumericOperators):
                         element = element.evaluate(evaluation)
                         if element:
                             if elements[index] != element:
-                                self._is_sorted = False
+                                self._is_ordered = False
                                 self._elements_fully_evaluated = False
                                 self._is_flat = False
                             elements[index] = element
@@ -1191,7 +1204,7 @@ class Expression(BaseElement, NumericOperators):
                 *self._elements,
                 element_properties={
                     "_is_flat": self._is_flat,
-                    "_is_sorted": self._is_sorted,
+                    "_is_ordered": self._is_ordered,
                     "_elements_fully_evaluated": self._elements_fully_evaluated,
                 }
             )
@@ -1212,9 +1225,9 @@ class Expression(BaseElement, NumericOperators):
             elements = new._elements
 
         # This has to be done *after*  flatten sequence above which can set
-        # self._is_sorted
+        # self._is_ordered
         new._elements_fully_evaluated = self._elements_fully_evaluated
-        new._is_sorted = self._is_sorted
+        new._is_ordered = self._is_ordered
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
         # The idea is to mark which elements was marked as "Unevaluated"
@@ -1262,7 +1275,7 @@ class Expression(BaseElement, NumericOperators):
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if not self._is_sorted and (ORDERLESS & attributes):
+        if not self._is_ordered and (ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1441,8 +1454,13 @@ class Expression(BaseElement, NumericOperators):
     def shallow_copy(self) -> "Expression":
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
+
+        # FIXME: this should be encapulated in the constructor better.
         expr = Expression(self._head)
-        expr.elements = self._elements
+        expr._elements = self._elements
+        for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
+            setattr(expr, field, getattr(self, field, False))
+
         # rebuilding the cache in self speeds up large operations, e.g.
         # First[Timing[Fold[#1+#2&, Range[750]]]]
         expr._cache = self._rebuild_cache()
@@ -1577,7 +1595,7 @@ class Expression(BaseElement, NumericOperators):
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements
-        self._is_sorted = True
+        self._is_ordered = True
         if self._cache:
             self._cache = self._cache.reordered()
 
@@ -1930,7 +1948,7 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr.elements = tuple(elements)
+        expr._elements = tuple(elements)
         return expr
 
     def filter(self, expr, cond):
