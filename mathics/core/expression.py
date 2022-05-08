@@ -207,6 +207,10 @@ class Expression(BaseElement, NumericOperators):
             head = Symbol(head)
         self._head = head
 
+        # Set some properties on elements that help us speed up evaluation.
+        # These are set in self._build_elements(elements)
+        #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
+
         element_properties = kwargs.pop("element_properties", None)
         if element_properties is not None:
             self._elements = tuple(
