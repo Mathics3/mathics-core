@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
+from .helper import check_evaluation, reset_session
 from mathics_scanner.errors import IncompleteSyntaxError
 
 
@@ -64,6 +64,18 @@ def test_context2():
     nomessage = tuple([])
     for expr, expected, lst_messages, msg in [
         (
+            """globalvarY = 37;""",
+            None,
+            nomessage,
+            "set the value of a global symbol",
+        ),
+        (
+            """globalvarZ = 37;""",
+            None,
+            nomessage,
+            "set the value of a global symbol",
+        ),
+        (
             """BeginPackage["apackage`"];""",
             None,
             nomessage,
@@ -97,12 +109,42 @@ def test_context2():
             nomessage,
             "set the usage string for a package variable",
         ),
+        (
+            """globalvarZ::usage = "a global variable";""",
+            None,
+            nomessage,
+            "set the usage string for a global symbol",
+        ),
+        (
+            """globalvarZ = 57;""",
+            None,
+            nomessage,
+            "reset the value of a global symbol",
+        ),
         ("""B = 6;""", None, nomessage, "Set a symbol value in the package context"),
         (
             """Begin["`implementation`"];""",
             None,
             nomessage,
             "Start a context. Do not add it to the context path",
+        ),
+        (
+            """{Context[A], Context[B], Context[X], Context[globalvarY], Context[globalvarZ]}""",
+            """{"apackage`implementation`", "apackage`", "apackage`", "apackage`implementation`", "apackage`"}""",
+            nomessage,
+            None,  # "context of the variables"
+        ),
+        (
+            """globalvarY::usage = "a global variable";""",
+            None,
+            nomessage,
+            "set the usage string for a global symbol",
+        ),
+        (
+            """globalvarY = 97;""",
+            None,
+            nomessage,
+            "reset the value of a global symbol",
         ),
         (
             """Plus = PP;""",
@@ -130,13 +172,53 @@ def test_context2():
         ("""X = 9;""", None, nomessage, "set the value of the package variable"),
         ("""End[];""", None, nomessage, "go back to the previous context"),
         (
+            """{Context[A], Context[B], Context[X], Context[globalvarY], Context[globalvarZ]}""",
+            """{"apackage`", "apackage`", "apackage`", "apackage`", "apackage`"}""",
+            nomessage,
+            None,  # "context of the variables in the package"
+        ),
+        (
             """EndPackage[];""",
             None,
             nomessage,
             "go back to the previous context. Keep the context in the contextpath",
         ),
+        (
+            """{Context[A], Context[B], Context[X], Context[globalvarY], Context[globalvarZ]}""",
+            """{"apackage`", "apackage`", "apackage`", "apackage`", "apackage`"}""",
+            nomessage,
+            None,  # "context of the variables at global level"
+        ),
         ("""A""", "A", nomessage, "A is not in any context of the context path. "),
         ("""B""", "6", nomessage, "B is in a context of the context path"),
+        ("""Global`globalvarY""", "37", nomessage, ""),
+        (
+            """Global`globalvarY::usage""",
+            "Global`globalvarY::usage",
+            nomessage,
+            "In WMA, the value would be set in the package",
+        ),
+        ("""Global`globalvarZ""", "37", nomessage, "the value set inside the package"),
+        (
+            """Global`globalvarZ::usage""",
+            "Global`globalvarZ::usage",
+            nomessage,
+            "not affected by the package",
+        ),
+        ("""globalvarY""", "apackage`globalvarY", nomessage, ""),
+        (
+            """globalvarY::usage""",
+            "apackage`globalvarY::usage",
+            nomessage,
+            "In WMA, the value would be set in the package",
+        ),
+        ("""globalvarZ""", "57", nomessage, "the value set inside the package"),
+        (
+            """globalvarZ::usage""",
+            '"a global variable"',
+            nomessage,
+            "not affected by the package",
+        ),
         ("""X""", "9", nomessage, "X is in a context of the context path"),
         (
             """X::usage""",
@@ -188,3 +270,4 @@ def test_context2():
             expected_messages=lst_messages,
             hold_expected=True,
         )
+    reset_session()
