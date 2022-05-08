@@ -375,7 +375,7 @@ def test_makeboxes_outputform_text(
         ("Subsuperscript[a, p, q]", "a_p^q", None),
         (
             "Integrate[F[x],{x,a,g[b]}]",
-            "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \uf74cx",
+            "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \\, dx",
             None,
         ),
         ("a^(b/c)", "a^{\\frac{b}{c}}", None),
