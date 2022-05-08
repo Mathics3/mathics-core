@@ -231,7 +231,6 @@ class Expression(BaseElement, NumericOperators):
             self.elements = (
                 e if isinstance(e, BaseElement) else from_python(e) for e in elements
             )
-
         self._sequences = None
         self._cache = None
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
