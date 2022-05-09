@@ -8,9 +8,9 @@ Enhancements
 * numeric overflows now do not affect the full evaluation, but just the element
   which produce it.
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
-* ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form
-  ``Simplify[0^a]`` (issue #167)
-
+* ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form ``Simplify[0^a]`` (issue #167)
+* The order of the context name resolution (and `$ContextPath`) follows now the standard in WMA, with ``"System`"`` coming before ``"Global`"`.
+* In assignment to messages associated to symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA.
 
 Documentation
 .............
