@@ -603,7 +603,7 @@ class Expression(BaseElement, NumericOperators):
         return self._elements
 
     @elements.setter
-    def elements(self, values: list, **kwargs: Optional[dict]):
+    def elements(self, values: Iterable, **kwargs: Optional[dict]):
         self._elements = self._build_elements(values, **kwargs)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
@@ -1948,7 +1948,7 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr._elements = tuple(elements)
+        expr.elements = elements
         return expr
 
     def filter(self, expr, cond):
@@ -1989,7 +1989,7 @@ class LinkedStructure(Structure):
             raise ValueError("Structure.slice only supports slice steps of 1")
 
         new = Expression(self._head)
-        new.elements = tuple(elements[lower:upper])
+        new.elements = elements[lower:upper]
         if expr._cache:
             new._cache = expr._cache.sliced(lower, upper)
 
