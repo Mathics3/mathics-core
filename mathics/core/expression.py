@@ -1208,7 +1208,7 @@ class Expression(BaseElement, NumericOperators):
                     "_elements_fully_evaluated": self._elements_fully_evaluated,
                 }
             )
-            elements = self.elements
+            elements = new.elements
         else:
             elements = self.get_mutable_elements()
             eval_elements()
