@@ -210,6 +210,9 @@ class Expression(BaseElement, NumericOperators):
         conversion_fn = kwargs.pop("element_conversion_fn", from_python)
         element_properties = kwargs.pop("element_properties", None)
 
+        if conversion_fn:
+            elements = e if isinstance(e, BaseElement) else conversion_fn(e)
+
         # Note: We don't allow specifying "_is_ordered"
         # when "_elements_fully_evaluated" is False. And I suppose this
         # might be right since we can't really know ordering if we things
@@ -218,20 +221,11 @@ class Expression(BaseElement, NumericOperators):
             for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
                 setattr(self, field, element_properties.get(field, False))
 
-            # here we need a tuple, because we bypass the setter
-            self._elements = (
-                elements
-                if conversion_fn is None
-                else tuple(conversion_fn(e) for e in elements)
-            )
-
+            # here we need to ensure we have a tuple, because we bypass the setter
+            self._elements = tuple(elements)
         else:
             # implicit call to _build_elements_tuple. If conversions are needed, pass an iterator.
-            self.elements = (
-                elements
-                if conversion_fn is None
-                else (conversion_fn(e) for e in elements)
-            )
+            self.elements = elements
 
         self._sequences = None
         self._cache = None
