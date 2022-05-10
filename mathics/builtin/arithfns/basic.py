@@ -311,20 +311,15 @@ class Plus(BinaryOperator, SympyFunction):
                             return neg
                         else:
                             return Expression(
-                                SymbolTimes,
-                                *sorted(item.leaves[1:]),
-                                element_convert_fn=None
+                                SymbolTimes, *item.leaves[1:], element_convert_fn=None
                             )
                     else:
                         return Expression(
-                            SymbolTimes,
-                            neg,
-                            *sorted(item.leaves[1:]),
-                            element_convert_fn=None
+                            SymbolTimes, neg, *item.leaves[1:], element_convert_fn=None
                         )
                 else:
                     return Expression(
-                        SymbolTimes, -1, *sorted(item.leaves), element_convert_fn=None
+                        SymbolTimes, -1, *item.leaves, element_convert_fn=None
                     )
             elif isinstance(item, Number):
                 return -item.to_sympy()
@@ -449,7 +444,7 @@ class Plus(BinaryOperator, SympyFunction):
             return elements[0]
         else:
             elements.sort()
-            return Expression(SymbolPlus, *sorted(elements), element_conversion_fn=None)
+            return Expression(SymbolPlus, *elements, element_conversion_fn=None)
 
 
 class Power(BinaryOperator, _MPMathFunction):
@@ -969,7 +964,7 @@ class Times(BinaryOperator, SympyFunction):
         if len(elements) == 1:
             ret = elements[0]
         else:
-            ret = Expression(SymbolTimes, *sorted(elements), element_convert_fn=None)
+            ret = Expression(SymbolTimes, *elements, element_convert_fn=None)
         if infinity_factor:
             return Expression(SymbolDirectedInfinity, ret)
         else:

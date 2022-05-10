@@ -260,13 +260,13 @@ def from_sympy(expr):
     elif expr.is_Add:
         return Expression(
             SymbolPlus,
-            *[from_sympy(arg) for arg in expr.args],
+            *sorted([from_sympy(arg) for arg in expr.args]),
             element_conversion_function=None
         )
     elif expr.is_Mul:
         return Expression(
             SymbolTimes,
-            *[from_sympy(arg) for arg in expr.args],
+            *sorted([from_sympy(arg) for arg in expr.args]),
             element_conversion_function=None
         )
     elif expr.is_Pow:
