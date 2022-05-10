@@ -1063,10 +1063,14 @@ def from_python(arg):
             )
             for key in arg
         ]
-        return Expression(SymbolList, *entries)
+        return Expression(SymbolList, *entries, element_conversion_fn=None)
     elif isinstance(arg, list) or isinstance(arg, tuple):
-        return Expression(SymbolList, *[from_python(leaf) for leaf in arg])
+        return Expression(
+            SymbolList, *[from_python(leaf) for leaf in arg], element_conversion_fn=None
+        )
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
-        return Expression(SymbolByteArray, ByteArrayAtom(arg))
+        return Expression(
+            SymbolByteArray, ByteArrayAtom(arg), element_conversion_fn=None
+        )
     else:
         raise NotImplementedError

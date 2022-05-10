@@ -6,7 +6,7 @@ import math
 import time
 
 import typing
-from typing import Any, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional
 from itertools import chain
 from bisect import bisect_left
 
@@ -185,23 +185,17 @@ class Expression(BaseElement, NumericOperators):
         - element_properties -- optional: a dictionary describing properties
                                 of the colletion of elements.
           Properties include:
-             _is_flat: bool   -- True inone of the elements is an Expression
-             _is_sorted: bool -- True if all of the elements are sorted. Of course this is true,
-                                 if there are less than 2 elements.
+             _is_flat: bool    -- True inone of the elements is an Expression
+             _is_ordered: bool -- True if all of the elements are ordered. Of course this is true,
+                                  if there are less than 2 elements. (Ordered is an Attribute of
+                                  a function)
              _fully_evaluated: bool
-                              -- True if none of the elements needs to be evaluated
-             _ensure_native_elements   -- if True, check if the elements are not native Mathics elements and call
-                                 from_python accordingly
+                               -- True if none of the elements needs to be evaluated
     """
 
     head: "Symbol"
     leaves: typing.List[Any]
     _sequences: Any
-
-    # __new__ seems to be used because BaseElement does some
-    # questionable stuff using new.
-    # See if there's a way to get rid of this, or ensure that this isn't causing
-    # a garbage collection problem.
 
     def __init__(self, head, *elements, **kwargs):
         super().__init__(self)
@@ -210,27 +204,35 @@ class Expression(BaseElement, NumericOperators):
         self._head = head
 
         # Set some properties on elements that help us speed up evaluation.
-        # These are set in self._build_elements(elements)
-        #    self._elements_fully_evaluated, self._is_flat, self._is_sorted
+        # These are set in self._build_elements_tuple(elements)
+        #    self._elements_fully_evaluated, self._is_flat, self._is_ordered
 
+        conversion_fn = kwargs.pop("element_conversion_fn", from_python)
         element_properties = kwargs.pop("element_properties", None)
 
+        # Note: We don't allow specifying "_is_ordered"
+        # when "_elements_fully_evaluated" is False. And I suppose this
+        # might be right since we can't really know ordering if we things
+        # are not fully evaluated.
         if element_properties is not None:
-            if element_properties.get("_ensure_native_elements", True):
-                self.elements = (
-                    e if isinstance(e, BaseElement) else from_python(e)
-                    for e in elements
-                )
-            else:
-                self._elements = elements
-
-            for field in ("_elements_fully_evaluated", "_is_flat", "_is_sorted"):
+            for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
                 setattr(self, field, element_properties.get(field, False))
-        else:
-            # The self.elements setter method sets the elements collection properties.
-            self.elements = (
-                e if isinstance(e, BaseElement) else from_python(e) for e in elements
+
+            # here we need a tuple, because we bypass the setter
+            self._elements = (
+                elements
+                if conversion_fn is None
+                else tuple(conversion_fn(e) for e in elements)
             )
+
+        else:
+            # implicit call to _build_elements_tuple. If conversions are needed, pass an iterator.
+            self.elements = (
+                elements
+                if conversion_fn is None
+                else (conversion_fn(e) for e in elements)
+            )
+
         self._sequences = None
         self._cache = None
         # comment @mmatera: this cache should be useful in BoxConstruct, but not
@@ -261,14 +263,18 @@ class Expression(BaseElement, NumericOperators):
         f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
         return f(*sym_args)
 
-    def _build_elements(self, elements: Iterable) -> tuple:
+    # comment @mmatera: my feeling is that this function should't "build" elements,
+    # but just a tuple with the elements, and stores certain properties of that
+    # tuple of elements in the Expression object. For that reason, a conversion_function
+    # would not be needed
+    def _build_elements_tuple(self, elements: Iterable) -> tuple:
         """
-        Build a tuple of Elements converted from the Python-like items in `elements`.
+        Build a tuple of Elements with the items in `elements`.
         We also note useful properties such as whether the collection of elements is
-        sorted, flat, or fully evaluated.
+        ordered, flat, or fully evaluated.
 
         Note: we add or set the following fields:
-          self._elements_fully_evaluated, self._is_flat, and self._is_sorted
+          self._elements_fully_evaluated, self._is_flat, and self._is_ordered
         """
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
 
@@ -279,9 +285,10 @@ class Expression(BaseElement, NumericOperators):
         # _is_flat is True if all elements are atoms/leaves.
         self._is_flat = True
 
-        # _is_sorted is True if elements do not need sorting
-        # elements with less than 2 items or all have the same value are sorted.
-        self._is_sorted = True
+        # _is_ordered is True if elements do not need ordering
+        # elements with less than 2 items or all have the same value are ordered.
+        # Ordering is a Attribute of some functions.
+        self._is_ordered = True
 
         result = []
         last_element = None
@@ -293,13 +300,15 @@ class Expression(BaseElement, NumericOperators):
             if isinstance(element, Expression):
                 self._is_flat = False
                 self._elements_fully_evaluated = False
-                # We will say the elements are sorted if have less than
+                # We will say the elements are ordered if have less than
                 # 2 elements which we determine via last_element.
-                self._is_sorted = last_element is None
+                self._is_ordered = last_element is None
             elif (
-                self._is_sorted and last_element is not None and last_element != element
+                self._is_ordered
+                and last_element is not None
+                and last_element != element
             ):
-                self._is_sorted = False
+                self._is_ordered = False
             last_element = element
 
             result.append(element)
@@ -598,8 +607,8 @@ class Expression(BaseElement, NumericOperators):
         return self._elements
 
     @elements.setter
-    def elements(self, values):
-        self._elements = self._build_elements(values)
+    def elements(self, values: Iterable):
+        self._elements = self._build_elements_tuple(values)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
@@ -726,7 +735,7 @@ class Expression(BaseElement, NumericOperators):
     def evaluate_elements(self, evaluation) -> "Expression":
         elements = [element.evaluate(evaluation) for element in self._elements]
         head = self._head.evaluate_elements(evaluation)
-        return Expression(head, *elements)
+        return Expression(head, *elements, element_conversion_fn=None)
 
     def filter(self, head, cond, evaluation):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
@@ -816,7 +825,7 @@ class Expression(BaseElement, NumericOperators):
                     new_elements.extend(new_element._elements)
                 else:
                     new_elements.append(element)
-            return Expression(self._head, *new_elements)
+            return Expression(self._head, *new_elements, element_conversion_fn=None)
         else:
             return self
 
@@ -1159,7 +1168,7 @@ class Expression(BaseElement, NumericOperators):
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
                             elements[index] = element.evaluate(evaluation)
-                            self._is_sorted = False
+                            self._is_ordered = False
                             self._elements_fully_evaluated = False
                             self._is_flat = False
 
@@ -1170,7 +1179,7 @@ class Expression(BaseElement, NumericOperators):
                         element = element.evaluate(evaluation)
                         if element:
                             if elements[index] != element:
-                                self._is_sorted = False
+                                self._is_ordered = False
                                 self._elements_fully_evaluated = False
                                 self._is_flat = False
                             elements[index] = element
@@ -1199,16 +1208,16 @@ class Expression(BaseElement, NumericOperators):
                 *self._elements,
                 element_properties={
                     "_is_flat": self._is_flat,
-                    "_is_sorted": self._is_sorted,
+                    "_is_ordered": self._is_ordered,
                     "_elements_fully_evaluated": self._elements_fully_evaluated,
-                    "_ensure_native_elements": False,
-                }
+                },
+                element_conversion_fn=None,
             )
             elements = new.elements
         else:
             elements = self.get_mutable_elements()
             eval_elements()
-            new = Expression(head, *elements)
+            new = Expression(head, *elements, element_conversion_fn=None)
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
@@ -1221,9 +1230,9 @@ class Expression(BaseElement, NumericOperators):
             elements = new._elements
 
         # This has to be done *after*  flatten sequence above which can set
-        # self._is_sorted
+        # self._is_ordered
         new._elements_fully_evaluated = self._elements_fully_evaluated
-        new._is_sorted = self._is_sorted
+        new._is_ordered = self._is_ordered
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
         # The idea is to mark which elements was marked as "Unevaluated"
@@ -1271,7 +1280,7 @@ class Expression(BaseElement, NumericOperators):
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if not self._is_sorted and (ORDERLESS & attributes):
+        if not self._is_ordered and (ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1450,8 +1459,13 @@ class Expression(BaseElement, NumericOperators):
     def shallow_copy(self) -> "Expression":
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
+
+        # FIXME: this should be encapulated in the constructor better.
         expr = Expression(self._head)
-        expr.elements = self._elements
+        expr._elements = self._elements
+        for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
+            setattr(expr, field, getattr(self, field, False))
+
         # rebuilding the cache in self speeds up large operations, e.g.
         # First[Timing[Fold[#1+#2&, Range[750]]]]
         expr._cache = self._rebuild_cache()
@@ -1486,11 +1500,15 @@ class Expression(BaseElement, NumericOperators):
         head = self._head
         if n_evaluation is not None:
             if head is SymbolFunction:
-                compiled = Expression(SymbolCompile, *(self._elements))
+                compiled = Expression(
+                    SymbolCompile, *(self._elements), element_conversion_fn=None
+                )
                 compiled = compiled.evaluate(n_evaluation)
                 if compiled.get_head() is SymbolCompiledFunction:
                     return compiled.leaves[2].cfunc
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            value = Expression(SymbolN, self, element_conversion_fn=None).evaluate(
+                n_evaluation
+            )
             return value.to_python()
 
         if head is SymbolDirectedInfinity and len(self._elements) == 1:
@@ -1586,7 +1604,7 @@ class Expression(BaseElement, NumericOperators):
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements
-        self._is_sorted = True
+        self._is_ordered = True
         if self._cache:
             self._cache = self._cache.reordered()
 
@@ -1608,7 +1626,9 @@ class Expression(BaseElement, NumericOperators):
 
         def descend(expr):
             return Expression(
-                expr._head, *[apply_element(element) for element in expr._elements]
+                expr._head,
+                *[apply_element(element) for element in expr._elements],
+                element_conversion_fn=None,
             )
 
         if options is None:  # default ReplaceAll mode; replace breadth first
@@ -1617,7 +1637,10 @@ class Expression(BaseElement, NumericOperators):
                 return result, True
             head, applied = self._head.apply_rules(rules, evaluation, level, options)
             new_applied[0] = applied
-            return descend(Expression(head, *self._elements)), new_applied[0]
+            return (
+                descend(Expression(head, *self._elements, element_conversion_fn=None)),
+                new_applied[0],
+            )
         else:  # Replace mode; replace depth first
             expr = descend(self)
             expr, applied = super(Expression, expr).apply_rules(
@@ -1630,7 +1653,7 @@ class Expression(BaseElement, NumericOperators):
                     rules, evaluation, level + 1, options
                 )
                 new_applied[0] = new_applied[0] or applied
-                expr = Expression(head, *expr._elements)
+                expr = Expression(head, *expr._elements, element_conversion_fn=None)
             return expr, new_applied[0]
 
     def replace_vars(
@@ -1683,7 +1706,13 @@ class Expression(BaseElement, NumericOperators):
                     func_params = [Symbol(name + "$") for name in func_params]
                     body = body.replace_vars(replacement, options, in_scoping)
                     elements = chain(
-                        [Expression(SymbolList, *func_params), body], self._elements[2:]
+                        [
+                            Expression(
+                                SymbolList, *func_params, element_conversion_fn=None
+                            ),
+                            body,
+                        ],
+                        self._elements[2:],
                     )
 
         if not vars:  # might just be a symbol set via Set[] we looked up here
@@ -1694,7 +1723,8 @@ class Expression(BaseElement, NumericOperators):
             *[
                 element.replace_vars(vars, options=options, in_scoping=in_scoping)
                 for element in elements
-            ]
+            ],
+            element_conversion_fn=None,
         )
 
     def replace_slots(self, slots, evaluation):
@@ -1719,13 +1749,14 @@ class Expression(BaseElement, NumericOperators):
                 slot = self._elements[0].get_int_value()
                 if slot is None or slot < 1:
                     evaluation.error("Function", "slot", self._elements[0])
-            return Expression(SymbolSequence, *slots[slot:])
+            return Expression(SymbolSequence, *slots[slot:], element_conversion_fn=None)
         elif self._head is SymbolFunction and len(self._elements) == 1:
             # do not replace Slots in nested Functions
             return self
         return Expression(
             self._head.replace_slots(slots, evaluation),
-            *[element.replace_slots(slots, evaluation) for element in self._elements]
+            *[element.replace_slots(slots, evaluation) for element in self._elements],
+            element_conversion_fn=None,
         )
 
     def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
@@ -1766,7 +1797,7 @@ class Expression(BaseElement, NumericOperators):
             return False, self
         else:
             elements = [Expression(self._head, *item) for item in items]
-            return True, Expression(head, *elements)
+            return True, Expression(head, *elements, element_conversion_fn=None)
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
@@ -1808,7 +1839,12 @@ class Expression(BaseElement, NumericOperators):
                 # Also, for compatibility with WMA, numerify just the elements
                 # s.t. ``NumericQ[element]==True``
                 if not isinstance(element, Number) and element.is_numeric(evaluation):
-                    n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
+                    n_expr = Expression(
+                        SymbolN,
+                        element,
+                        Integer(dps(_prec)),
+                        element_conversion_fn=None,
+                    )
                     n_result = n_expr.evaluate(evaluation)
                     if isinstance(n_result, Number):
                         new_elements[index] = n_result
@@ -1831,8 +1867,8 @@ class Expression(BaseElement, NumericOperators):
             element.user_hash(update)
 
 
-def _create_expression(self, head, *elements):
-    return Expression(head, *elements)
+def _create_expression(self, head, *elements, **kwargs):
+    return Expression(head, *elements, **kwargs)
 
 
 BaseElement.create_expression = _create_expression
@@ -1847,7 +1883,10 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(list(range(len(pos) + 1))):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault,
+            Symbol(name),
+            *[Integer(index) for index in pos[:pos_len]],
+            element_conversion_fn=None,
         )
         result = evaluation.definitions.get_value(
             name, "System`DefaultValues", defaultexpr, evaluation
@@ -1939,7 +1978,7 @@ class UnlinkedStructure(Structure):
 
     def __call__(self, elements):
         expr = Expression(self._head)
-        expr.elements = tuple(elements)
+        expr.elements = elements
         return expr
 
     def filter(self, expr, cond):
@@ -1980,7 +2019,7 @@ class LinkedStructure(Structure):
             raise ValueError("Structure.slice only supports slice steps of 1")
 
         new = Expression(self._head)
-        new.elements = tuple(elements[lower:upper])
+        new.elements = elements[lower:upper]
         if expr._cache:
             new._cache = expr._cache.sliced(lower, upper)
 
