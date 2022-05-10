@@ -211,7 +211,9 @@ class Expression(BaseElement, NumericOperators):
         element_properties = kwargs.pop("element_properties", None)
 
         if conversion_fn:
-            elements = e if isinstance(e, BaseElement) else conversion_fn(e)
+            elements = (
+                e if isinstance(e, BaseElement) else conversion_fn(e) for e in elements
+            )
 
         # Note: We don't allow specifying "_is_ordered"
         # when "_elements_fully_evaluated" is False. And I suppose this

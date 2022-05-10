@@ -115,7 +115,7 @@ class CubeRoot(Builtin):
         "CubeRoot[n_Complex]"
 
         evaluation.message("CubeRoot", "preal", n)
-        return Expression(SymbolPower, n, Expression(SymbolDivide, 1, 3))
+        return Expression(SymbolPower, n, Rational(1, 3), element_convert_fn=None)
 
 
 class Divide(BinaryOperator):
@@ -310,11 +310,22 @@ class Plus(BinaryOperator, SympyFunction):
                         if len(item.leaves) == 1:
                             return neg
                         else:
-                            return Expression(SymbolTimes, *item.leaves[1:])
+                            return Expression(
+                                SymbolTimes,
+                                *sorted(item.leaves[1:]),
+                                element_convert_fn=None
+                            )
                     else:
-                        return Expression(SymbolTimes, neg, *item.leaves[1:])
+                        return Expression(
+                            SymbolTimes,
+                            neg,
+                            *sorted(item.leaves[1:]),
+                            element_convert_fn=None
+                        )
                 else:
-                    return Expression(SymbolTimes, -1, *item.leaves)
+                    return Expression(
+                        SymbolTimes, -1, *sorted(item.leaves), element_convert_fn=None
+                    )
             elif isinstance(item, Number):
                 return -item.to_sympy()
             else:
@@ -354,7 +365,7 @@ class Plus(BinaryOperator, SympyFunction):
         "Plus[items___]"
 
         items = items.numerify(evaluation).get_sequence()
-        leaves = []
+        elements = []
         last_item = last_count = None
 
         prec = min_prec(*items)
@@ -364,17 +375,25 @@ class Plus(BinaryOperator, SympyFunction):
         def append_last():
             if last_item is not None:
                 if last_count == 1:
-                    leaves.append(last_item)
+                    elements.append(last_item)
                 else:
                     if last_item.has_form("Times", None):
-                        leaves.append(
+                        elements.append(
                             Expression(
-                                SymbolTimes, from_sympy(last_count), *last_item.leaves
+                                SymbolTimes,
+                                from_sympy(last_count),
+                                *last_item.elements,
+                                element_convert_fn=None
                             )
                         )
                     else:
-                        leaves.append(
-                            Expression(SymbolTimes, from_sympy(last_count), last_item)
+                        elements.append(
+                            Expression(
+                                SymbolTimes,
+                                from_sympy(last_count),
+                                last_item,
+                                element_convert_fn=None,
+                            )
                         )
 
         for item in items:
@@ -383,7 +402,7 @@ class Plus(BinaryOperator, SympyFunction):
             else:
                 count = rest = None
                 if item.has_form("Times", None):
-                    for leaf in item.leaves:
+                    for leaf in item.elements:
                         if isinstance(leaf, Number):
                             count = leaf.to_sympy()
                             rest = item.get_mutable_elements()
@@ -422,15 +441,15 @@ class Plus(BinaryOperator, SympyFunction):
             number = Integer0
 
         if not number.sameQ(Integer0):
-            leaves.insert(0, number)
+            elements.insert(0, number)
 
-        if not leaves:
+        if not elements:
             return Integer0
-        elif len(leaves) == 1:
-            return leaves[0]
+        elif len(elements) == 1:
+            return elements[0]
         else:
-            leaves.sort()
-            return Expression(SymbolPlus, *leaves)
+            elements.sort()
+            return Expression(SymbolPlus, *sorted(elements), element_conversion_fn=None)
 
 
 class Power(BinaryOperator, _MPMathFunction):
@@ -775,13 +794,13 @@ class Times(BinaryOperator, SympyFunction):
 
         def inverse(item):
             if item.has_form("Power", 2) and isinstance(  # noqa
-                item.leaves[1], (Integer, Rational, Real)
+                item.elements[1], (Integer, Rational, Real)
             ):
-                neg = -item.leaves[1]
+                neg = -item.elements[1]
                 if neg.sameQ(Integer1):
-                    return item.leaves[0]
+                    return item.elements[0]
                 else:
-                    return Expression(SymbolPower, item.leaves[0], neg)
+                    return Expression(SymbolPower, item.elements[0], neg)
             else:
                 return item
 
@@ -791,8 +810,8 @@ class Times(BinaryOperator, SympyFunction):
         for item in items:
             if (
                 item.has_form("Power", 2)
-                and isinstance(item.leaves[1], (Integer, Rational, Real))
-                and item.leaves[1].to_sympy() < 0
+                and isinstance(item.elements[1], (Integer, Rational, Real))
+                and item.elements[1].to_sympy() < 0
             ):  # nopep8
 
                 negative.append(inverse(item))
@@ -935,7 +954,7 @@ class Times(BinaryOperator, SympyFunction):
                 *[
                     Expression(SymbolTimes, Integer(-1), element)
                     for element in elements[0].elements
-                ],
+                ]
             )
             number = None
 
@@ -950,7 +969,7 @@ class Times(BinaryOperator, SympyFunction):
         if len(elements) == 1:
             ret = elements[0]
         else:
-            ret = Expression(SymbolTimes, *elements)
+            ret = Expression(SymbolTimes, *sorted(elements), element_convert_fn=None)
         if infinity_factor:
             return Expression(SymbolDirectedInfinity, ret)
         else:
