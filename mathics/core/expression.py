@@ -78,6 +78,10 @@ symbols_arithmetic_operations = system_symbols(
 )
 
 
+def identity_fn(arg: Any) -> Any:
+    return arg
+
+
 class BoxError(Exception):
     def __init__(self, box, form) -> None:
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
@@ -1236,7 +1240,7 @@ class Expression(BaseElement, NumericOperators):
         for element in elements:
             element.unevaluated = False
 
-        # If HoldAllComplete is not an attribute,
+        # If HoldAllComplete Attribute (flag ``HOLD_ALL_COMPLETE``) is not set,
         # and the expression has elements of the form  `Unevaluated[element]`
         # change them to `element` and set a flag `unevaluated=True`
         # If the evaluation fails, use this flag to restore back the initial form
@@ -1263,8 +1267,9 @@ class Expression(BaseElement, NumericOperators):
                 new.elements = dirty_elements
                 elements = dirty_elements
 
-        # If the attribute FLAT is set, calls flatten with a callback
-        # that set elements as unevaluated too.
+        # If the Attribute ``Flat`` (flag ``FLAT``) is set, calls
+        # flatten with a callback that set elements as unevaluated
+        # too.
         def flatten_callback(new_elements, old):
             for element in new_elements:
                 element.unevaluated = old.unevaluated
@@ -1285,8 +1290,9 @@ class Expression(BaseElement, NumericOperators):
 
         # Step 5: Must we need to thread-rewrite the expression?
         #
-        # Threading is needed when head has the ``LISTABLE``
-        # Attribute.  ``Expression.thread`` rewrites the expression:
+        # Threading is needed when head has the ``Listable``
+        # Attribute (or flag ``LISTABLE``).
+        # ``Expression.thread`` rewrites the expression:
         #  ``F[{a,b,c,...}]`` as:
         #  ``{F[a], F[b], F[c], ...}``.
 

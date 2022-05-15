@@ -20,6 +20,7 @@ from mathics.core.convert import from_sympy
 
 from mathics.core.expression import (
     Expression,
+    identity_fn,
     structure,
 )
 from mathics.core.atoms import Integer
@@ -110,7 +111,7 @@ class Array(Builtin):
                     level.append(rec(rest_dims[1:], current + [index]))
                 return Expression(head, *level)
             else:
-                return Expression(f, *(Integer(index) for index in current))
+                return Expression(f, *current, element_conversion_fn=Integer)
 
         return rec(dims, [])
 
@@ -172,13 +173,12 @@ class Range(Builtin):
      = {0, 1 / 3, 2 / 3, 1, 4 / 3, 5 / 3, 2}
     """
 
-    summary_text = "generate a list of equispaced, consecutive numbers"
+    attributes = listable | protected
+
     rules = {
         "Range[imax_?RealNumberQ]": "Range[1, imax, 1]",
         "Range[imin_?RealNumberQ, imax_?RealNumberQ]": "Range[imin, imax, 1]",
     }
-
-    attributes = listable | protected
 
     summary_text = "form a list from a range of numbers or other objects"
 
@@ -194,7 +194,7 @@ class Range(Builtin):
             evaluation.check_stopped()
             result.append(from_sympy(index))
             index += di
-        return Expression(SymbolList, *result)
+        return Expression(SymbolList, *result, element_conversion_fn=identity_fn)
 
 
 class Permutations(Builtin):
@@ -239,10 +239,10 @@ class Permutations(Builtin):
     def apply(self, li, evaluation):
         "Permutations[li_List]"
         return Expression(
-            "List",
+            SymbolList,
             *[
                 Expression(SymbolList, *p)
-                for p in permutations(li.leaves, len(li.leaves))
+                for p in permutations(li.elements, len(li.elements))
             ],
         )
 
@@ -491,7 +491,7 @@ class Tuples(Builtin):
                         yield [item] + rest
 
         return Expression(
-            "List", *(Expression(expr.head, *leaves) for leaves in iterate(n))
+            SymbolList, *(Expression(expr.head, *leaves) for leaves in iterate(n))
         )
 
     def apply_lists(self, exprs, evaluation):
@@ -507,5 +507,6 @@ class Tuples(Builtin):
             items.append(expr.leaves)
 
         return Expression(
-            "List", *(Expression(SymbolList, *leaves) for leaves in get_tuples(items))
+            SymbolList,
+            *(Expression(SymbolList, *leaves) for leaves in get_tuples(items)),
         )
