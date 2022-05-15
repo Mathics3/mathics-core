@@ -191,6 +191,9 @@ class Integer(Number):
             else super().__ne__(other)
         )
 
+    def abs(self) -> "Integer":
+        return -self if self < Integer0 else self
+
     @lru_cache()
     def __init__(self, value) -> "Integer":
         super().__init__()
