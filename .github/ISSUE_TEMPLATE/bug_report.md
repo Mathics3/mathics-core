@@ -10,7 +10,12 @@ assignees: ''
 
 ## Description
 
-<!-- Please add a clear and concise description of the bug. -->
+<!-- Please add a clear and concise description of the bug. Try to reduce the bug to the minimum expression that exhibits the bug.
+     For example, if an an expression occurs with several terms, can these be removed and the bug still appears? If so
+	 we would like the reduced, simpler expression.
+
+	 If the expression can be written in SymPy, does SymPy also exhibit the problem?
+-->
 
 ## How to Reproduce
 
