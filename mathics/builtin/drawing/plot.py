@@ -337,6 +337,10 @@ class _ListPlot(Builtin):
             evaluation.message(plot_name, "joind", joined_option, expr)
             joined = False
 
+        # Hack until we separate DiscretePlot
+        discrete_plot_option = self.get_option(options, "Discrete", evaluation)
+        discrete_plot = discrete_plot_option.to_python()
+
         if isinstance(all_points, list) and len(all_points) != 0:
             if all(not isinstance(point, list) for point in all_points):
                 # Only y values given
@@ -427,6 +431,18 @@ class _ListPlot(Builtin):
                         fill_area.append([segment[0][0], filling])
                         graphics.append(
                             Expression(SymbolPolygon, from_python(fill_area))
+                        )
+                elif discrete_plot:
+                    graphics.append(Expression(SymbolPoint, mathics_segment))
+                    for mathics_point in mathics_segment:
+                        graphics.append(
+                            Expression(
+                                SymbolLine,
+                                ListExpression(
+                                    ListExpression(mathics_point[0], Integer0),
+                                    mathics_point,
+                                ),
+                            )
                         )
                 else:
                     graphics.append(Expression(SymbolPoint, from_python(segment)))
