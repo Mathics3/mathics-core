@@ -209,13 +209,13 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (
             "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
-            "{A, {Global`, System`}, B}",
+            "{A, {System`, Global`}, B}",
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
         (
             "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
-            "{A, {Global`, System`}, B}",
+            "{A, {System`, Global`}, B}",
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),

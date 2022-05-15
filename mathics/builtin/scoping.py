@@ -503,13 +503,13 @@ class ContextPath(Predefined):
      = 1
     #> System`$ContextPath
      = {x`}
-    #> $ContextPath = {"Global`", "System`"};
+    #> $ContextPath = {"System`", "Global`"};
     """
 
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
     name = "$ContextPath"
     rules = {
-        "$ContextPath": '{"Global`", "System`"}',
+        "$ContextPath": '{"System`", "Global`"}',
     }
     summary_text = "the current context search path"
 

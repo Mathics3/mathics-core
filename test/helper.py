@@ -66,6 +66,8 @@ def check_evaluation(
     else:
         result = evaluate(str_expr)
 
+    outs = [out.text for out in session.evaluation.out]
+
     if to_string_expected:
         if hold_expected:
             expected = str_expected
@@ -82,8 +84,6 @@ def check_evaluation(
             expected = evaluate(str_expected)
             if to_python_expected:
                 expected = expected.to_python(string_quotes=False)
-
-    outs = [out.text for out in session.evaluation.out]
 
     print(time.asctime())
     if failure_message:
