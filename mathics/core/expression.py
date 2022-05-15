@@ -603,8 +603,8 @@ class Expression(BaseElement, NumericOperators):
         return self._elements
 
     @elements.setter
-    def elements(self, values: Iterable, **kwargs: Optional[dict]):
-        self._elements = self._build_elements(values, **kwargs)
+    def elements(self, values: Iterable):
+        self._elements = self._build_elements(values)
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
