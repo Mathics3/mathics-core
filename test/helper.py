@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-import time
 from mathics.session import MathicsSession
 from typing import Optional
 
@@ -85,12 +84,12 @@ def check_evaluation(
             if to_python_expected:
                 expected = expected.to_python(string_quotes=False)
 
-    print(time.asctime())
+    # print(time.asctime())
     if failure_message:
-        print((result, expected))
+        # print((result, expected))
         assert result == expected, failure_message
     else:
-        print((result, expected))
+        # print((result, expected))
         assert result == expected
 
     if expected_messages is not None:
