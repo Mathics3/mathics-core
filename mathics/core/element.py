@@ -66,23 +66,23 @@ class KeyComparable:
     def get_sort_key(self):
         raise NotImplementedError
 
-    def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
-
-    def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
-
-    def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
-
-    def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
-
     def __eq__(self, other) -> bool:
         return (
             hasattr(other, "get_sort_key")
             and self.get_sort_key() == other.get_sort_key()
         )
+
+    def __gt__(self, other) -> bool:
+        return self.get_sort_key() > other.get_sort_key()
+
+    def __ge__(self, other) -> bool:
+        return self.get_sort_key() >= other.get_sort_key()
+
+    def __le__(self, other) -> bool:
+        return self.get_sort_key() <= other.get_sort_key()
+
+    def __lt__(self, other) -> bool:
+        return self.get_sort_key() < other.get_sort_key()
 
     def __ne__(self, other) -> bool:
         return (

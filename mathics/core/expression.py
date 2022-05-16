@@ -284,13 +284,18 @@ class Expression(BaseElement, NumericOperators):
         # _is_flat is True if all elements are atoms/leaves.
         self._is_flat = True
 
-        # _is_ordered is True if elements do not need ordering
-        # elements with less than 2 items or all have the same value are ordered.
-        # Ordering is a Attribute of some functions.
+        # _is_ordered is True if elements do not need ordering.
+        # Elements with less than 2 items or are ordered.
+        # Otherwise we'll try to use "==" to check for orderedness and if that fails
+        # we'll say the elements are not ordered.
+
+        # Note that *checking* a list is O(n) while sorting is O(n log n).
+        # Ordering is a Attribute is defined for some Mathics functions.
         self._is_ordered = True
 
         result = []
-        last_element = None
+
+        last_converted_elt = None
         for element in elements:
             converted_elt = conversion_fn(element)
 
@@ -299,18 +304,17 @@ class Expression(BaseElement, NumericOperators):
                 self._elements_fully_evaluated = False
             if isinstance(converted_elt, Expression):
                 self._is_flat = False
-                self._elements_fully_evaluated = False
-                # We will say the elements are ordered if have less than
-                # 2 elements which we determine via last_element.
-                self._is_ordered = last_element is None
-            elif (
-                self._is_ordered
-                and last_element is not None
-                and last_element != converted_elt
-            ):
-                self._is_ordered = False
-            last_element = converted_elt
+                if self._elements_fully_evaluated:
+                    self._elements_fully_evaluated = (
+                        converted_elt._elements_fully_evaluated
+                    )
 
+            if self._is_ordered and last_converted_elt is not None:
+                try:
+                    self._is_ordered = last_converted_elt <= converted_elt
+                except Exception:
+                    self._is_ordered = False
+            last_converted_elt = converted_elt
             result.append(converted_elt)
 
         return tuple(result)
@@ -1280,7 +1284,7 @@ class Expression(BaseElement, NumericOperators):
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if not self._is_ordered and (ORDERLESS & attributes):
+        if not new._is_ordered and (ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols

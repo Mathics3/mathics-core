@@ -17,25 +17,26 @@ def test_elements_properties():
 
     for str_expression, full_eval, is_flat, is_ordered in [
         # fmt: off
-        # expr          fully evaluated?  flat?  sorted?
+        # expr          fully evaluated?  flat?  ordered?
         ("Plus[1, 1, 1]",          True,  True,  True),
         ("List[]",                 True,  True,  True),
-        ('List["a", "a", "a"]',    True,  True,  True),
+        ('List["a", "a", "b"]',    True,  True,  True),
+        ('List["b", "a", "a"]',    True,  True,  False),
 
         ('List["a", 2, 3]',        True,  True,  False),
-        ("Plus[1, 2, 3]",          True,  True,  False),
+        ("Plus[1, 2, 3]",          True,  True,  True),
         ("Plus[x]",                False, True,  True),
-        ("Plus[Plus[x]]",          False, False,  True),
-        ("Plus[x, y]",             False, True,  False),
+        ("Plus[Plus[x]]",          False, False, True),
+        ("Plus[x, y]",             False, True,  True),
 
-        # Note: sorted could start out True here, but
-        # we would need a more sophisticated convert routine.
-        ("Plus[Plus[x], Plus[x]]", False, False, False),
+        ("Plus[Plus[x], Plus[x]]", False, False, True),
+
+        ("Plus[Plus[y], Plus[x]]", False, False, False),
 
         # Is sorted is true here since we have the same symbol repeated
         ('List[a, a, a]',          False,  True,  True),
 
-        ('Plus["x", Plus["x"]]',   False, False, False),
+        ('Plus["x", Plus["x"]]',   False, False, True),
     ]:
         # fmt: on
         session.evaluation.out.clear()
