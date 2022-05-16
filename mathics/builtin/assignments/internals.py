@@ -559,8 +559,9 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
-        if rejected_because_protected(self, lhs, tag, evaluation):
-            continue
+        # Messages can be assigned even if the symbol is protected...
+        # if rejected_because_protected(self, lhs, tag, evaluation):
+        #    continue
         count += 1
         defs.add_message(tag, rule)
     return count > 0

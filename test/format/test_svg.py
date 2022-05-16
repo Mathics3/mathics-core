@@ -39,15 +39,15 @@ def get_svg(expression):
 
     # Would be nice to DRY this boilerplate from boxes_to_mathml
 
-    leaves = boxes.get_elements()
+    elements = boxes._elements
     elements, calc_dimensions = boxes._prepare_elements(
-        leaves, options=options, neg_y=True
+        elements, options=options, neg_y=True
     )
     xmin, xmax, ymin, ymax, w, h, width, height = calc_dimensions()
     data = (elements, xmin, xmax, ymin, ymax, w, h, width, height)
 
     format_fn = lookup_method(boxes, "svg")
-    return format_fn(boxes, leaves, data=data, options=options)
+    return format_fn(boxes, elements, data=data, options=options)
 
 
 def test_svg_circle():

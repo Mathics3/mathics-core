@@ -149,6 +149,48 @@ class Integer(Number):
         self.value = n
         return self
 
+    def __eq__(self, other) -> bool:
+        return (
+            self.value == other.value
+            if isinstance(other, Integer)
+            else super().__eq__(other)
+        )
+
+    def __le__(self, other) -> bool:
+        return (
+            self.value <= other.value
+            if isinstance(other, Integer)
+            else super().__le__(other)
+        )
+
+    def __lt__(self, other) -> bool:
+        return (
+            self.value < other.value
+            if isinstance(other, Integer)
+            else super().__lt__(other)
+        )
+
+    def __ge__(self, other) -> bool:
+        return (
+            self.value >= other.value
+            if isinstance(other, Integer)
+            else super().__ge__(other)
+        )
+
+    def __gt__(self, other) -> bool:
+        return (
+            self.value > other.value
+            if isinstance(other, Integer)
+            else super().__gt__(other)
+        )
+
+    def __ne__(self, other) -> bool:
+        return (
+            self.value != other.value
+            if isinstance(other, Integer)
+            else super().__ne__(other)
+        )
+
     @lru_cache()
     def __init__(self, value) -> "Integer":
         super().__init__()
@@ -360,6 +402,23 @@ class Real(Number):
         else:
             return PrecisionReal.__new__(PrecisionReal, value)
 
+    def __eq__(self, other) -> bool:
+        if isinstance(other, Real):
+            # MMA Docs: "Approximate numbers that differ in their last seven
+            # binary digits are considered equal"
+            _prec = min_prec(self, other)
+            with mpmath.workprec(_prec):
+                rel_eps = 0.5 ** (_prec - 7)
+                return mpmath.almosteq(
+                    self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
+                )
+        else:
+            return self.get_sort_key() == other.get_sort_key()
+
+    def __ne__(self, other) -> bool:
+        # Real is a total order
+        return not (self == other)
+
     def boxes_to_text(self, **options) -> str:
         return self.make_boxes("System`OutputForm").boxes_to_text(**options)
 
@@ -379,23 +438,6 @@ class Real(Number):
 
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, Real):
-            # MMA Docs: "Approximate numbers that differ in their last seven
-            # binary digits are considered equal"
-            _prec = min_prec(self, other)
-            with mpmath.workprec(_prec):
-                rel_eps = 0.5 ** (_prec - 7)
-                return mpmath.almosteq(
-                    self.to_mpmath(), other.to_mpmath(), abs_eps=0, rel_eps=rel_eps
-                )
-        else:
-            return self.get_sort_key() == other.get_sort_key()
-
-    def __ne__(self, other) -> bool:
-        # Real is a total order
-        return not (self == other)
 
     def __hash__(self):
         # ignore last 7 binary digits when hashing

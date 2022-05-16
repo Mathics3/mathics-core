@@ -100,8 +100,8 @@ class Definitions(object):
         self._packages = []
         self.current_context = "Global`"
         self.context_path = (
-            "Global`",
             "System`",
+            "Global`",
         )
         self.trace_evaluation = False
         self.timing_trace_evaluation = False

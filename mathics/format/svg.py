@@ -52,16 +52,28 @@ class _SVGTransform:
 
 
 def create_css(
-    edge_color=None, face_color=None, stroke_width=None, font_color=None, opacity=1.0
+    edge_color=None,
+    face_color=None,
+    stroke_width=None,
+    font_color=None,
+    edge_opacity=None,
+    face_opacity=None,
+    opacity=1.0,
 ) -> str:
     """
     Return a string suitable for CSS inclusion setting the various parameters passed.
     """
     css = []
+    edge_opacity_level = edge_opacity.to_css() if edge_opacity else None
+    face_opacity_level = face_opacity.to_css() if face_opacity else None
+
     if edge_color is not None:
         color, stroke_opacity = edge_color.to_css()
         css.append(f"stroke: {color}")
-        css.append(f"stroke-opacity: {stroke_opacity}")
+        if stroke_opacity:
+            css.append(f"stroke-opacity: {stroke_opacity}")
+        elif edge_opacity:
+            css.append(f"stroke-opacity: {edge_opacity_level}")
     else:
         css.append("stroke: none")
     if stroke_width is not None:
@@ -69,13 +81,17 @@ def create_css(
     if face_color is not None:
         color, fill_opacity = face_color.to_css()
         css.append(f"fill: {color}")
-        css.append(f"fill-opacity: {fill_opacity}")
+        if fill_opacity:
+            css.append(f"fill-opacity: {fill_opacity}")
+        elif face_opacity:
+            css.append(f"fill-opacity: {face_opacity_level}")
     else:
         css.append("fill: none")
     if font_color is not None:
         color, _ = font_color.to_css()
         css.append(f"color: {color}")
-    css.append(f"opacity: {opacity}")
+    if edge_opacity is None:
+        css.append(f"opacity: {opacity}")
     return "; ".join(css)
 
 
@@ -103,7 +119,13 @@ def arcbox(self, **options) -> str:
             yield "Z"
 
     l = self.style.get_line_width(face_element=self.face_element)
-    style = create_css(self.edge_color, self.face_color, stroke_width=l)
+    style = create_css(
+        self.edge_color,
+        self.face_color,
+        stroke_width=l,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.face_opacity,
+    )
     svg = '<path d="%s" style="%s" />' % (" ".join(path(self.face_element)), style)
     # print("_Arcbox: ", svg)
     return svg
@@ -114,7 +136,9 @@ add_conversion_fn(_ArcBox, arcbox)
 
 def arrow_box(self, **options) -> str:
     width = self.style.get_line_width(face_element=False)
-    style = create_css(edge_color=self.edge_color, stroke_width=width)
+    style = create_css(
+        self.edge_color, stroke_width=width, edge_opacity=self.edge_opacity
+    )
     polyline = self.curve.make_draw_svg(style)
 
     arrow_style = create_css(face_color=self.edge_color, stroke_width=width)
@@ -140,8 +164,11 @@ def bezier_curve_box(self, **options) -> str:
     Asymptote formatter for BezerCurveBox.
     """
     line_width = self.style.get_line_width(face_element=False)
-    style = create_css(edge_color=self.edge_color, stroke_width=line_width)
-
+    style = create_css(
+        edge_color=self.edge_color,
+        stroke_width=line_width,
+        edge_opacity=self.edge_opacity,
+    )
     svg = "<!--BezierCurveBox-->\n"
     for line in self.lines:
         s = "\n".join(_svg_bezier((self.spline_degree, [xy.pos() for xy in line])))
@@ -201,6 +228,13 @@ def filled_curve_box(self, **options):
     line_width = self.style.get_line_width(face_element=False)
     style = create_css(
         edge_color=self.edge_color, face_color=self.face_color, stroke_width=line_width
+    )
+    style = create_css(
+        edge_color=self.edge_color,
+        face_color=self.face_color,
+        stroke_width=line_width,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.edge_opacity,
     )
 
     def components():
@@ -328,7 +362,6 @@ def inset_box(self, **options) -> str:
     if offset is not None:
         x = x + offset[0]
         y = y + offset[1]
-
     if hasattr(self.content, "to_svg"):
         content = self.content.to_svg(noheader=True, offset=(x, y))
         svg = "\n" + content + "\n"
@@ -337,7 +370,7 @@ def inset_box(self, **options) -> str:
             font_color=self.color,
             edge_color=self.color,
             face_color=self.color,
-            opacity=self.opacity,
+            opacity=self.opacity.opacity,
         )
         text_pos_opts = f'x="{x}" y="{y}" ox="{self.opos[0]}" oy="{self.opos[1]}"'
         # FIXME: don't hard code text_style_opts, but allow these to be adjustable.
@@ -361,7 +394,11 @@ add_conversion_fn(InsetBox, inset_box)
 
 def line_box(self, **options) -> str:
     line_width = self.style.get_line_width(face_element=False)
-    style = create_css(edge_color=self.edge_color, stroke_width=line_width)
+    style = create_css(
+        edge_color=self.edge_color,
+        stroke_width=line_width,
+        edge_opacity=self.edge_opacity,
+    )
     svg = "<!--LineBox-->\n"
     for line in self.lines:
         svg += '<polyline points="%s" style="%s" />' % (
@@ -382,7 +419,11 @@ def pointbox(self, **options) -> str:
     size = point_size.get_absolute_size()
 
     style = create_css(
-        edge_color=self.edge_color, stroke_width=0, face_color=self.face_color
+        edge_color=self.edge_color,
+        stroke_width=0,
+        face_color=self.face_color,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.face_opacity,
     )
     svg = "<!--PointBox-->"
     for line in self.lines:
@@ -410,7 +451,11 @@ def polygonbox(self, **options):
         return density_plot_box(self, **options)
 
     style = create_css(
-        edge_color=self.edge_color, face_color=self.face_color, stroke_width=line_width
+        edge_color=self.edge_color,
+        face_color=self.face_color,
+        stroke_width=line_width,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.face_opacity,
     )
 
     svg = "<!--PolygonBox-->\n"
@@ -445,7 +490,13 @@ def rectanglebox(self, **options):
     if offset is not None:
         x1, x2 = x1 + offset[0], x2 + offset[0]
         y1, y2 = y1 + offset[1], y2 + offset[1]
-    style = create_css(self.edge_color, self.face_color, line_width)
+    style = create_css(
+        self.edge_color,
+        self.face_color,
+        line_width,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.face_opacity,
+    )
     svg = '<rect x="%f" y="%f" width="%f" height="%f" style="%s" />' % (
         xmin,
         ymin,
@@ -466,7 +517,13 @@ def _roundbox(self):
     rx -= x
     ry = y - ry
     line_width = self.style.get_line_width(face_element=self.face_element)
-    style = create_css(self.edge_color, self.face_color, stroke_width=line_width)
+    style = create_css(
+        self.edge_color,
+        self.face_color,
+        stroke_width=line_width,
+        edge_opacity=self.edge_opacity,
+        face_opacity=self.face_opacity,
+    )
     svg = '<ellipse cx="%f" cy="%f" rx="%f" ry="%f" style="%s" />' % (
         x,
         y,

@@ -40,14 +40,14 @@ class NumericOperators:
     def __abs__(self) -> BaseElement:
         return self.create_expression("Abs", self)
 
+    def __add__(self, other) -> BaseElement:
+        return self.create_expression("Plus", self, other)
+
     def __pos__(self):
         return self
 
     def __neg__(self):
         return self.create_expression("Times", self, -1)
-
-    def __add__(self, other) -> BaseElement:
-        return self.create_expression("Plus", self, other)
 
     def __sub__(self, other) -> BaseElement:
         return self.create_expression(
@@ -124,24 +124,6 @@ class Monomial(object):
     def __init__(self, exps_dict):
         self.exps = exps_dict
 
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
-
     def __cmp(self, other) -> int:
         self_exps = self.exps.copy()
         other_exps = other.exps.copy()
@@ -192,6 +174,24 @@ class Monomial(object):
                         return -1
             index += 1
         return 0
+
+    def __eq__(self, other) -> bool:
+        return self.__cmp(other) == 0
+
+    def __le__(self, other) -> bool:
+        return self.__cmp(other) <= 0
+
+    def __lt__(self, other) -> bool:
+        return self.__cmp(other) < 0
+
+    def __ge__(self, other) -> bool:
+        return self.__cmp(other) >= 0
+
+    def __gt__(self, other) -> bool:
+        return self.__cmp(other) > 0
+
+    def __ne__(self, other) -> bool:
+        return self.__cmp(other) != 0
 
 
 class Atom(BaseElement):
