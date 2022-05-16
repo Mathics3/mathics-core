@@ -19,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Real,
+    MachineReal,
     String,
     from_python,
 )
@@ -124,6 +125,40 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
+class Opacity(_GraphicsDirective):
+    """
+    <dl>
+    <dt>'Opacity[$level$]'
+    <dd> is a graphics directive that sets the opacity to $level$.
+    </dl>
+    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
+     = -Graphics-
+    >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
+     = -Graphics3D-
+    Notice that 'Opacity' does not overwrite the value of the alpha channel if it is set in a color directive:
+    >> Graphics[{Blue, Disk[], RGBColor[1,0,0,1],Opacity[.2], Rectangle[{0,0},{1,1}]}]
+     = -Graphics-
+    """
+
+    def init(self, item=None, *args, **kwargs):
+        if isinstance(item, (int, float)):
+            item = Expression("Opacity", MachineReal(item))
+            super(Opacity, self).init(None, item)
+        self.opacity = item.leaves[0].to_python()
+
+    def to_css(self):
+        try:
+            if 0.0 <= self.opacity <= 1.0:
+                return self.opacity
+        except:
+            pass
+        return None
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(item)
+
+
 class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
@@ -181,7 +216,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
     def to_css(self):
         rgba = self.to_rgba()
-        alpha = rgba[3] if len(rgba) > 3 else 1.0
+        alpha = rgba[3] if len(rgba) > 3 else None
         return (
             r"rgb(%f%%, %f%%, %f%%)" % (rgba[0] * 100, rgba[1] * 100, rgba[2] * 100),
             alpha,

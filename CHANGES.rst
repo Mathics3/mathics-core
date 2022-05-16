@@ -28,10 +28,12 @@ New Builtins
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
 * ``LogGamma`` function.
 * ``NumericFunction``
+* Partial support for ``Opacity``.
 * ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
    -  Pass option ``ShowTimeBySteps``, to show accumulated time before each setp
    - The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+
 
 Internals
 =========

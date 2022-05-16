@@ -24,6 +24,7 @@ from mathics.builtin.drawing.graphics_internals import (
 )
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
+    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
@@ -1114,7 +1115,6 @@ class Style(object):
                         _, face_style = item.get_style(
                             style_class, default_to_faces=True, consider_forms=False
                         )
-
         return edge_style, face_style
 
     def get_option(self, name):
@@ -1213,6 +1213,7 @@ class _GraphicsElements(object):
                     for element in convert(item, style):
                         yield element
                 else:
+                    print(item, " of type ", type(item), " is not a box.")
                     raise BoxConstructError
 
         self.elements = list(convert(content, self.style_class(self)))
@@ -1382,6 +1383,7 @@ styles = system_symbols_dict(
         "Thin": Thin,
         "PointSize": PointSize,
         "Arrowheads": Arrowheads,
+        "Opacity": Opacity,
     }
 )
 
