@@ -22,6 +22,7 @@ New Builtins
 ============
 * Euler's ``Beta`` function.
 * ``Diagonal`` (Issue #115)
+* ``EulerPhi``
 * ``$Echo`` (Issue #42).
 * ``FindRoot`` was improved for supporting numerical derivatives (issue 67), as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.

@@ -15,6 +15,8 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Rational,
+    SymbolDivide,
+    SymbolList,
     from_python,
 )
 from mathics.core.convert import from_sympy, SympyPrime
@@ -90,15 +92,15 @@ class Divisors(Builtin):
 
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
-    summary_text = "integer divisors"
     attributes = listable | protected
+    summary_text = "integer divisors"
 
     def apply(self, n, evaluation):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
         return Expression(
-            "List", *[from_sympy(i) for i in sympy.divisors(n.to_sympy())]
+            SymbolList, *sympy.divisors(n.to_sympy()), element_conversion_fn=from_sympy
         )
 
 
@@ -141,11 +143,54 @@ class Divisors(Builtin):
 #                'List', *(Integer(c) for c in coeff)))
 
 
+class EulerPhi(SympyFunction):
+    """
+        <dl>
+          <dt>'EulerPhi[$n$]'
+          <dd>returns the Euler totient function .
+        </dl>
+
+    EulerPhi is also known as the Euler totient function or phi function.
+    It is typically used in cryptography and in many applications in elementary number theory.
+
+    EulerPhi[n] counts positive integers up to n that are relatively prime to n.
+
+        Compute the Euler totient function:
+        >> EulerPhi[9]
+        = 6
+
+        'EulerPhi' of a negative integer is same as its positive counterpart:
+        >> EulerPhi[-11] == EulerPhi[11]
+        = True
+
+        Large arguments are computed quickly:
+        >> EulerPhi[40!]
+        = 121343746763281707274905415180804423680000000000
+
+        'EulerPhi' threads over lists:
+        >> EulerPhi[Range[1, 17, 2]]
+        = {1, 2, 4, 6, 6, 10, 12, 8, 16}
+        Above, we get consecutive even numbers when the input is prime.
+
+        Compare the results above with:
+        >> EulerPhi[Range[1, 17]]
+        = {1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16}
+    """
+
+    attributes = listable | numeric_function | protected
+    summary_text = "Euler totient function"
+    sympy_name = "totient"
+
+    def apply(self, n, evaluation):
+        "EulerPhi[n_Integer]"
+        return super().apply(abs(n), evaluation)
+
+
 class FactorInteger(Builtin):
     """
     <dl>
-    <dt>'FactorInteger[$n$]'
-        <dd>returns the factorization of $n$ as a list of factors and exponents.
+      <dt>'FactorInteger[$n$]'
+      <dd>returns the factorization of $n$ as a list of factors and exponents.
     </dl>
 
     >> factors = FactorInteger[2010]
@@ -171,7 +216,8 @@ class FactorInteger(Builtin):
             factors = sympy.factorint(n.value)
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
 
         elif isinstance(n, Rational):
@@ -182,7 +228,8 @@ class FactorInteger(Builtin):
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
             return Expression(
-                "List", *(Expression("List", factor, exp) for factor, exp in factors)
+                SymbolList,
+                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -273,10 +320,10 @@ class FromContinuedFraction(SympyFunction):
      = 225 / 157
     """
 
+    attributes = numeric_function | protected
+
     summary_text = "reconstructs a number from its continued fraction representation"
     sympy_name = "continued_fraction_reduce"
-
-    attributes = numeric_function | protected
 
     def apply_1(self, expr, evaluation):
         "%(name)s[expr_List]"
@@ -392,7 +439,7 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, b ** exp), exp)
+        return Expression(SymbolList, Expression(SymbolDivide, n, b ** exp), exp)
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -412,7 +459,7 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression("List", Expression("Divide", n, (10 ** exp)), exp)
+        return Expression(SymbolList, Expression(SymbolDivide, n, (10 ** exp)), exp)
 
 
 class NextPrime(Builtin):
