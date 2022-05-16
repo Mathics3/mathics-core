@@ -92,15 +92,15 @@ class Divisors(Builtin):
 
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
-    summary_text = "integer divisors"
     attributes = listable | protected
+    summary_text = "integer divisors"
 
     def apply(self, n, evaluation):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
         return Expression(
-            SymbolList, *[from_sympy(i) for i in sympy.divisors(n.to_sympy())]
+            SymbolList, *sympy.divisors(n.to_sympy()), element_conversion_fn=from_sympy
         )
 
 
