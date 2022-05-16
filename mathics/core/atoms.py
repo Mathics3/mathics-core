@@ -197,9 +197,9 @@ class Integer(Number):
         """Mathics SameQ"""
         return isinstance(other, Integer) and self.value == other.value
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         else:
             return [0, 0, self.value, 0, 1]
 
@@ -291,9 +291,9 @@ class Rational(Number):
     def default_format(self, evaluation, form) -> str:
         return "Rational[%s, %s]" % self.value.as_numer_denom()
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         else:
             # HACK: otherwise "Bus error" when comparing 1==1.
             return [0, 0, sympy.Float(self.value), 0, 1]
@@ -372,9 +372,9 @@ class Real(Number):
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         return [0, 0, self.value, 0, 1]
 
     def is_nan(self, d=None) -> bool:
@@ -653,9 +653,9 @@ class Complex(Number):
             self.imag.default_format(evaluation, form),
         )
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         else:
             return [0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1]
 
@@ -889,9 +889,9 @@ class String(Atom, ImmutableValueMixin):
         value = self.value.replace("\\", "\\\\").replace('"', '\\"')
         return '"%s"' % value
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         else:
             return [0, 1, self.value, 0, 1]
 
@@ -964,9 +964,9 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         value = self.value
         return '"' + value.__str__() + '"'
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super().get_sort_key(True)
+            return super()._get_sort_key(True)
         else:
             return [0, 1, self.value, 0, 1]
 

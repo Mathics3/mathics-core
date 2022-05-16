@@ -290,7 +290,7 @@ class Atom(BaseElement):
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return [0, 0, 1, 1, 0, 0, 0, 1]
         else:
@@ -516,9 +516,9 @@ class Symbol(Atom, NumericOperators):
     def get_name(self) -> str:
         return self.name
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
         if pattern_sort:
-            return super(Symbol, self).get_sort_key(True)
+            return super(Symbol, self)._get_sort_key(True)
         else:
             return [
                 1 if self.is_numeric() else 2,

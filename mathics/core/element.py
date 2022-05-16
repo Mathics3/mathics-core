@@ -63,7 +63,21 @@ class KeyComparable:
     is the primative from which all other comparsions are based on.
     """
 
-    def get_sort_key(self):
+    def get_sort_key(self, pattern_sort=False):
+        if pattern_sort:
+            key = getattr(self, "_sort_key_cache_pat", None)
+            if key is None:
+                key = self._get_sort_key(True)
+                self._sort_key_cache_pat = key
+            return key
+        else:
+            key = getattr(self, "_sort_key_cache", None)
+            if key is None:
+                key = self._get_sort_key(False)
+                self._sort_key_cache = key
+            return key
+
+    def _get_sort_key(self, pattern_sort=False):
         raise NotImplementedError
 
     def __lt__(self, other) -> bool:

@@ -831,7 +831,7 @@ class Expression(BaseElement, NumericOperators):
         """
         return list(self._elements)
 
-    def get_sort_key(self, pattern_sort=False):
+    def _get_sort_key(self, pattern_sort=False):
 
         if pattern_sort:
             """
