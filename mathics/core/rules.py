@@ -85,7 +85,7 @@ class BaseRule(KeyComparable):
             if hasattr(expr, "_elements_fully_evaluated"):
                 expr._elements_fully_evaluated = False
                 expr._is_flat = False  # I think this is fully updated
-                expr._is_sorted = False
+                expr._is_ordered = False
             return expr
 
         if return_list:
