@@ -583,9 +583,11 @@ class Share(Builtin):
     <dl>
       <dt>'Share[]'
       <dd>Tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
-          Now it just do nothing.
+          By now, it just tries to release memory forcing Python to do garbage collection.
+          If psutil is available, returns the amount of released memory. Otherwise always returns $0$.
       <dt>'Share[Symbol]'
       <dd>Tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+
     </dl>
 
     >> Share[]
@@ -596,20 +598,28 @@ class Share(Builtin):
 
     def apply_0(self, evaluation) -> Integer:
         """Share[]"""
-        totalmem = psutil.virtual_memory().available
-        gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer(totalmem - psutil.virtual_memory().available)
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0
 
     def apply_1(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
-        totalmem = psutil.virtual_memory().available
-        gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer(totalmem - psutil.virtual_memory().available)
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0
