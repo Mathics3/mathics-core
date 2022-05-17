@@ -15,8 +15,6 @@ from mathics.core.parser import parse, MathicsSingleLineFeeder
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 
-import gc
-
 
 def load_default_settings_files(
     definitions: Definitions, load_cli_settings: bool = True
@@ -75,7 +73,6 @@ class MathicsSession:
         if form is None:
             form = self.form
         self.last_result = expr.evaluate(self.evaluation)
-        gc.collect()
         return self.last_result
 
     def format_result(self, str_expression=None, timeout=None, form=None):
@@ -85,6 +82,4 @@ class MathicsSession:
         res = self.last_result
         if form is None:
             form = self.form
-        res.do_format(self.evaluation, form)
-        gc.collect()
-        return result
+        return res.do_format(self.evaluation, form)
