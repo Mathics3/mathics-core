@@ -201,11 +201,6 @@ class Expression(BaseElement, NumericOperators):
     leaves: typing.List[Any]
     _sequences: Any
 
-    # __new__ seems to be used because BaseElement does some
-    # questionable stuff using new.
-    # See if there's a way to get rid of this, or ensure that this isn't causing
-    # a garbage collection problem.
-
     def __init__(self, head, *elements, **kwargs):
         super().__init__(self)
         if isinstance(head, str):
@@ -299,9 +294,11 @@ class Expression(BaseElement, NumericOperators):
 
         last_converted_elt = None
         for element in elements:
-            # FIXME: we should have isinstance(element(BaseElement, Builtin))
-            # but that leads to a circular import.
-            # BaseElement should be cleaned up and Builtin should subclass it.
+            # FIXME: the below code is a workaround for the
+            # fact that Expression() is getting called from
+            # many places which already have expressions that don't need
+            # conversion. Expression() needs to be written in such a way
+            # to accomodate this.
             converted_elt = (
                 element if isinstance(element, BaseElement) else conversion_fn(element)
             )
@@ -1208,10 +1205,11 @@ class Expression(BaseElement, NumericOperators):
                 eval_range(range(len(elements)))
                 # rest_range(range(0, 0))
 
-        # Step 2: Build a new expression. We take care not
-        # to evaluate elements, run to_python() on them in
-        # Expression construction, or convert Expresions elements from a tuple to a list
-        # and back if that can be avoided.
+        # Step 2: Build a new expression. If it can be avoided, we take care not
+        # to:
+        # * evaluate elements,
+        # * run to_python() on them in Expression construction, or
+        # * convert Expression elements from a tuple to a list and back
 
         if self._elements_fully_evaluated:
             new = Expression(

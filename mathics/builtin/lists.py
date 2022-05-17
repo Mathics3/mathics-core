@@ -957,18 +957,24 @@ class _IterationFunction(Builtin):
     def apply_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
-        index = 0
-        imax = imax.evaluate(evaluation)
-        imax = imax.numerify(evaluation)
-        if isinstance(imax, Number):
-            imax = imax.round()
-        imax = imax.get_float_value()
-        if imax is None:
-            if self.throw_iterb:
-                evaluation.message(self.get_name(), "iterb")
-            return
+        # Even though `imax` should be an integeral value, its type does not
+        # have to be an Integer.
+        if isinstance(imax, Integer):
+            py_max = imax.get_int_value()
+        else:
+            imax = imax.evaluate(evaluation)
+            imax = imax.numerify(evaluation)
+            if isinstance(imax, Number):
+                imax = imax.round()
+            py_max = imax.get_float_value()
+            if py_max is None:
+                if self.throw_iterb:
+                    evaluation.message(self.get_name(), "iterb")
+                return
+
         result = []
-        while index < imax:
+        index = 0
+        while index < py_max:
             evaluation.check_stopped()
             try:
                 result.append(expr.evaluate(evaluation))

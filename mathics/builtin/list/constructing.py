@@ -20,7 +20,6 @@ from mathics.core.convert import from_sympy
 
 from mathics.core.expression import (
     Expression,
-    identity_fn,
     structure,
 )
 from mathics.core.atoms import Integer
@@ -195,7 +194,7 @@ class Range(Builtin):
             evaluation.check_stopped()
             result.append(from_sympy(index))
             index += di
-        return Expression(SymbolList, *result, element_conversion_fn=identity_fn)
+        return Expression(SymbolList, *result)
 
 
 class Permutations(Builtin):
@@ -437,7 +436,9 @@ class Table(_IterationFunction):
     summary_text = "make a table of values of an expression"
 
     def get_result(self, items):
-        return Expression(SymbolList, *items)
+        return Expression(
+            SymbolList, *items, element_properties={"_elements_fully_evaluated": True}
+        )
 
 
 class Tuples(Builtin):
