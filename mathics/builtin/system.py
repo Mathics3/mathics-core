@@ -596,6 +596,9 @@ class Share(Builtin):
 
     def apply_0(self, evaluation) -> Integer:
         """Share[]"""
+        import gc
+
+        gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
@@ -604,6 +607,9 @@ class Share(Builtin):
 
     def apply_1(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
+        import gc
+
+        gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
