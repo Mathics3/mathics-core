@@ -106,15 +106,13 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    # comment @mmatera: The next method have a name that starts with ``apply``.
-    # This obstaculizes to define ``InstanceableBuiltin``
-    # with ``Element`` as an ancestor class. I would like to have this
-    # to reimplement  ``mathics.builtin.BoxConstruct`` in a way that do not
-    # require to redefine several of the methods of this class.
+    # comment @mmatera:
+    # The next method has a name that starts with ``apply``. This impeds to define ``InstanceableBuiltin``with ``Element`` as an ancestor class. I would like to change this to reimplement ``mathics.builtin.BoxConstruct`` in a way that does not
+    # require redefining several of the methods of this class.
     # I propose then to change the name to ``do_apply_rules``.
-    # This change implies to change just an small number of lines
-    # in the code of ``mathics.core`` and ``mathics.builtin``. In particular
-    # the afected files apart from this would be:
+    # This change implies changing just a small number of lines
+    # in the code of ``mathics.core`` and ``mathics.builtin``. privately
+    # the affected files apart from this would be:
     #
     # mathics/core/expression.py
     # mathics/builtin/inference.py
