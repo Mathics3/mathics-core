@@ -3,7 +3,7 @@
 
 from queue import Queue
 import time
-
+import gc
 
 import os
 import sys
@@ -395,14 +395,15 @@ class Evaluation(object):
             self.stop()
 
         history_length = self.definitions.get_history_length()
-
-        line = line_no - history_length
-        while line > 0:
-            unset_in = self.definitions.unset("In", Expression("In", line))
-            unset_out = self.definitions.unset("Out", Expression("Out", line))
-            if not (unset_in or unset_out):
-                break
-            line -= 1
+        if history_length > 0:
+            line = line_no - history_length
+            while line > 0:
+                unset_in = self.definitions.unset("In", Expression("In", line))
+                unset_out = self.definitions.unset("Out", Expression("Out", line))
+                if not (unset_in or unset_out):
+                    break
+                line -= 1
+        gc.collect()
         return result
 
     def get_stored_result(self, eval_result):

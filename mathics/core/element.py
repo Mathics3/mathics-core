@@ -109,14 +109,15 @@ class BaseElement(KeyComparable):
     # FIXME: kwargs seems to be is needed because Real.__new_() takes a parameter
     # and magically that gets turned into kwargs here.
     # Figure out how to address this.
-    def __init__(self, *args, **kwargs):
-        self.options = None
-        self.pattern_sequence = False
-        # This property would be useful for a BoxExpression
-        # (see comment in mathocs.core.expression.) However,
-        # WL has a way to handle the connection between
-        # an expression and a Box expression ``InterpretationBox``.
-        # self.unformatted = self  # This may be a garbage-collection nightmare.
+
+    #    def __init__(self, *args, **kwargs):
+    #        self.options = None
+    #        self.pattern_sequence = False
+    # This property would be useful for a BoxExpression
+    # (see comment in mathocs.core.expression.) However,
+    # WL has a way to handle the connection between
+    # an expression and a Box expression ``InterpretationBox``.
+    # self.unformatted = self  # This may be a garbage-collection nightmare.
 
     # comment @mmatera: The next method have a name that starts with ``apply``.
     # This obstaculizes to define ``InstanceableBuiltin``

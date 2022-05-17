@@ -207,7 +207,8 @@ class Expression(BaseElement, NumericOperators):
     # a garbage collection problem.
 
     def __init__(self, head, *elements, **kwargs):
-        super().__init__(self)
+        self.options = None
+        self.pattern_sequence = False
         if isinstance(head, str):
             head = Symbol(head)
         self._head = head
