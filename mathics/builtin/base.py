@@ -707,7 +707,7 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin):
+class BoxConstruct(InstanceableBuiltin, BaseElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
@@ -810,6 +810,9 @@ class BoxConstruct(InstanceableBuiltin):
 
     def get_lookup_name(self):
         return self.get_name()
+
+    def get_sort_key(self):
+        return self.to_expression().get_sort_key()
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"

@@ -247,7 +247,7 @@ class Replace(Builtin):
 
             heads = self.get_option(options, "Heads", evaluation).is_true()
 
-            result, applied = expr.apply_rules(
+            result, applied = expr.do_apply_rules(
                 rules,
                 evaluation,
                 level=0,
@@ -323,7 +323,7 @@ class ReplaceAll(BinaryOperator):
             rules, ret = create_rules(rules, expr, "ReplaceAll", evaluation)
             if ret:
                 return rules
-            result, applied = expr.apply_rules(rules, evaluation)
+            result, applied = expr.do_apply_rules(rules, evaluation)
             return result
         except PatternError:
             evaluation.message("Replace", "reps", rules)
@@ -396,7 +396,7 @@ class ReplaceRepeated(BinaryOperator):
             if maxit == 0:
                 break
             maxit -= 1
-            result, applied = expr.apply_rules(rules, evaluation)
+            result, applied = expr.do_apply_rules(rules, evaluation)
             if applied:
                 result = result.evaluate(evaluation)
             if applied and not result.sameQ(expr):
