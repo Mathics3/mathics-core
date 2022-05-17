@@ -264,6 +264,7 @@ class Expression(BaseElement, NumericOperators):
         f = sympy.Function(str(sympy_symbol_prefix + self.get_head_name()))
         return f(*sym_args)
 
+    # Note: this function is called a *lot* so it needs to be fast.
     def _build_elements(
         self, elements: Iterable, conversion_fn: Callable = from_python
     ) -> tuple:
@@ -275,6 +276,7 @@ class Expression(BaseElement, NumericOperators):
         Note: we add or set the following fields:
           self._elements_fully_evaluated, self._is_flat, and self._is_ordered
         """
+
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
 
         # _elements_fully_evaluated is True if all elements have been fully evaluated.
@@ -297,7 +299,12 @@ class Expression(BaseElement, NumericOperators):
 
         last_converted_elt = None
         for element in elements:
-            converted_elt = conversion_fn(element)
+            # FIXME: we should have isinstance(element(BaseElement, Builtin))
+            # but that leads to a circular import.
+            # BaseElement should be cleaned up and Builtin should subclass it.
+            converted_elt = (
+                element if isinstance(element, BaseElement) else conversion_fn(element)
+            )
 
             # Test for the three properties mentioned above.
             if not converted_elt.is_literal:
