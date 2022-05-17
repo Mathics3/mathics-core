@@ -5,7 +5,7 @@
 Global System Information
 """
 
-
+import gc
 import os
 import platform
 import sys
@@ -596,22 +596,20 @@ class Share(Builtin):
 
     def apply_0(self, evaluation) -> Integer:
         """Share[]"""
-        import gc
-
+        totalmem = psutil.virtual_memory().available
         gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        return Integer(totalmem - psutil.virtual_memory().available)
 
     def apply_1(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
-        import gc
-
+        totalmem = psutil.virtual_memory().available
         gc.collect()
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        return Integer(totalmem - psutil.virtual_memory().available)

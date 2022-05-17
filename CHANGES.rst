@@ -11,7 +11,9 @@ Enhancements
 * ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form ``Simplify[0^a]`` (issue #167)
 * The order of the context name resolution (and `$ContextPath`) follows now the standard in WMA, with ``"System`"`` coming before ``"Global`"`.
 * In assignment to messages associated to symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA.
+* ``Share[]`` now performs an explicit call to the Python garbage collection.
 
+  
 Documentation
 .............
 
