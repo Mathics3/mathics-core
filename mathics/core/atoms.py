@@ -1072,10 +1072,9 @@ def from_python(arg):
     convert backtick (context) symbols into some Python identifier
     symbol like underscore.
     """
-    from mathics.builtin.base import BoxConstruct
     from mathics.core.expression import Expression
 
-    if isinstance(arg, (BaseElement, BoxConstruct)):
+    if isinstance(arg, BaseElement):
         return arg
 
     number_type = get_type(arg)
