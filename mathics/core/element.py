@@ -106,7 +106,6 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-
     def do_apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> Tuple["BaseElement", bool]:
