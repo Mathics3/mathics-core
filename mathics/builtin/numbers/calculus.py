@@ -693,7 +693,7 @@ class Integrate(SympyFunction):
         if result.get_head_name() == "System`Piecewise":
             cases = result.elements[0].elements
             if len(result.elements) == 1:
-                if cases[-1].elements[1].is_true():
+                if cases[-1].elements[1] is SymbolTrue:
                     default = cases[-1].elements[0]
                     cases = result.elements[0].elements[:-1]
                 else:
@@ -711,7 +711,7 @@ class Integrate(SympyFunction):
                 # conditions...
                 cond = Expression("Simplify", case.elements[1]).evaluate(evaluation)
                 resif = Expression("Simplify", case.elements[0]).evaluate(evaluation)
-                if cond.is_true():
+                if cond is SymbolTrue:
                     if old_assumptions:
                         evaluation.definitions.set_ownvalue(
                             "System`$Assumptions", old_assumptions

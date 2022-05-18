@@ -12,7 +12,7 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.symbols import Symbol, SymbolFalse
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 
 from mathics.core.definitions import Definitions
 import sys
@@ -22,7 +22,7 @@ definitions = Definitions(add_builtin=True)
 
 
 def _symbol_truth_value(x):
-    if x.is_true():
+    if x is SymbolTrue:
         return True
     elif isinstance(x, Symbol) and x is SymbolFalse:
         return False

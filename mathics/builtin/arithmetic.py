@@ -1278,7 +1278,7 @@ class Assuming(Builtin):
     def apply_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"
         assumptions = assumptions.evaluate(evaluation)
-        if assumptions.is_true():
+        if assumptions is SymbolTrue:
             cond = []
         elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
             cond = [assumptions]
@@ -1344,7 +1344,7 @@ class ConditionalExpression(Builtin):
             cond = Expression("System`And", cond)
         if cond is None:
             return
-        if cond.is_true():
+        if cond is SymbolTrue:
             return expr
         if cond is SymbolFalse:
             return SymbolUndefined

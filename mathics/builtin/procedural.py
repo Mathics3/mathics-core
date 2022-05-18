@@ -127,7 +127,7 @@ class Catch(Builtin):
             # TODO: check that form match tag.
             # otherwise, re-raise the exception
             match = Expression("MatchQ", e.tag, form).evaluate(evaluation)
-            if match.is_true():
+            if match is SymbolTrue:
                 return Expression(f, e.value)
             else:
                 # A plain raise hide, this path and preserves the traceback
@@ -318,7 +318,7 @@ class For(Builtin):
 
     def apply(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
             try:
                 try:
@@ -454,7 +454,7 @@ class FixedPoint(Builtin):
             new_result = Expression(f, result).evaluate(evaluation)
             if sametest:
                 same = Expression(sametest, result, new_result).evaluate(evaluation)
-                same = same.is_true()
+                same = same is SymbolTrue
                 if same:
                     break
             else:
@@ -654,7 +654,7 @@ class NestWhile(Builtin):
                 test_elements = results[-m.value :]
             test_expr = Expression(test, *test_elements)
             test_result = test_expr.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 next = Expression(f, results[-1])
                 results.append(next.evaluate(evaluation))
             else:
@@ -810,7 +810,7 @@ class Which(Builtin):
         while items:
             test, item = items[0], items[1]
             test_result = test.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 return item.evaluate(evaluation)
             elif test_result != SymbolFalse:
                 if len(items) == nr_items:
@@ -849,7 +849,7 @@ class While(Builtin):
     def apply(self, test, body, evaluation):
         "While[test_, body_]"
 
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             try:
                 evaluation.check_stopped()
                 body.evaluate(evaluation)
