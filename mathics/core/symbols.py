@@ -8,7 +8,7 @@ from typing import Any, Optional
 
 from mathics.core.element import (
     BaseElement,
-    Evaluable,
+    EvalMixin,
     ensure_context,
     fully_qualified_symbol_name,
 )
@@ -360,7 +360,7 @@ class Atom(BaseElement):
         return self
 
 
-class Symbol(Atom, NumericOperators, Evaluable):
+class Symbol(Atom, NumericOperators, EvalMixin):
     """
     Note: Symbol is right now used in a couple of ways which in the
     future may be separated.

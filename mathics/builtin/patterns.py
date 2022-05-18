@@ -42,7 +42,7 @@ from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
 
-from mathics.core.element import Evaluable
+from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
@@ -1614,14 +1614,14 @@ class OptionsPattern(PatternObject):
             defaults.get_option_values(
                 evaluation, allow_symbols=True, stop_on_error=False
             )
-            if isinstance(defaults, Evaluable)
+            if isinstance(defaults, EvalMixin)
             else {}
         )
         sequence = expression.get_sequence()
         for options in sequence:
             option_values = (
                 options.get_option_values(evaluation)
-                if isinstance(options, Evaluable)
+                if isinstance(options, EvalMixin)
                 else None
             )
             if option_values is None:
