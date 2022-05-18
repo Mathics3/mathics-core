@@ -140,6 +140,9 @@ class Opacity(_GraphicsDirective):
      = -Graphics-
     """
 
+    def to_expression(self):
+        return Expression("Opacity", MachineReal(self.opacity))
+
     def init(self, item=None, *args, **kwargs):
         if isinstance(item, (int, float)):
             item = Expression("Opacity", MachineReal(item))
@@ -175,6 +178,9 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
     components_sizes = []
     default_components = []
+
+    def to_expression(self):
+        return Expression("RGBColor", *self.to_rgba())
 
     def init(self, item=None, components=None):
         super(_ColorObject, self).init(None, item)

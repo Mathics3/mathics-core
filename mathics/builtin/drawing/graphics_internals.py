@@ -4,8 +4,9 @@
 # Also no docstring which may confuse the doc system
 
 
+from mathics.core.expression import Expression
 from mathics.builtin.base import (
-    InstanceableBuiltin,
+    BuiltinElement,
     BoxConstruct,
     BoxConstructError,
     split_name,
@@ -17,7 +18,7 @@ no_doc = True
 from mathics.core.symbols import system_symbols_dict, Symbol
 
 
-class _GraphicsDirective(InstanceableBuiltin):
+class _GraphicsDirective(BuiltinElement):
     def __new__(cls, *args, **kwargs):
         # This ensures that all the graphics directive have a well formatted docstring
         # and a summary_text
