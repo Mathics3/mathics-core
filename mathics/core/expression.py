@@ -892,17 +892,14 @@ class Expression(BaseElement, NumericOperators, Evaluable):
         """
         return list(self._elements)
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    def get_option_values(
+        self, evaluation, allow_symbols=False, stop_on_error=True
+    ) -> dict:
         """
         Build a dictionary of options from an expression.
         For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
         will return a list of options associated to the definition of the symbol "Integrate".
-        If self is not an expression,
         """
-        # comment @mmatera: The implementation of this is awfull.
-        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
-        # The implementation should be move to Symbol and Expression classes.
-
         options = self
         if options.has_form("List", None):
             options = options.flatten_with_respect_to_head(SymbolList)

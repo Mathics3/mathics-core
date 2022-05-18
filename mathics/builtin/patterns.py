@@ -1609,12 +1609,21 @@ class OptionsPattern(PatternObject):
                 # f[x:OptionsPattern[]] := x; f["Test" -> 1]
                 # set self.defaults to an empty List, so we don't crash.
                 self.defaults = Expression(SymbolList)
-        values = self.defaults.get_option_values(
-            evaluation, allow_symbols=True, stop_on_error=False
+        defaults = self.defaults
+        values = (
+            defaults.get_option_values(
+                evaluation, allow_symbols=True, stop_on_error=False
+            )
+            if isinstance(defaults, Evaluable)
+            else {}
         )
         sequence = expression.get_sequence()
         for options in sequence:
-            option_values = options.get_option_values(evaluation)
+            option_values = (
+                options.get_option_values(evaluation)
+                if isinstance(options, Evaluable)
+                else None
+            )
             if option_values is None:
                 return
             values.update(option_values)

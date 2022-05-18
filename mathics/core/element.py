@@ -472,49 +472,6 @@ class Evaluable:
     Class associated to evaluable elements
     """
 
-    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
-        """
-        Build a dictionary of options from an expression.
-        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
-        will return a list of options associated to the definition of the symbol "Integrate".
-        If self is not an expression,
-        """
-        # comment @mmatera: The implementation of this is awfull.
-        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
-        # The implementation should be move to Symbol and Expression classes.
-
-        from mathics.core.atoms import String
-        from mathics.core.symbols import SymbolList
-
-        options = self
-        if options.has_form("List", None):
-            options = options.flatten_with_respect_to_head(SymbolList)
-            values = options.leaves
-        else:
-            values = [options]
-        option_values = {}
-        for option in values:
-            symbol_name = option.get_name()
-            if allow_symbols and symbol_name:
-                options = evaluation.definitions.get_options(symbol_name)
-                option_values.update(options)
-            else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                name = option.leaves[0].get_name()
-                if not name and isinstance(option.leaves[0], String):
-                    name = ensure_context(option.leaves[0].get_string_value())
-                if not name:
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                option_values[name] = option.leaves[1]
-        return option_values
-
     def evaluate(self, evaluation):
         pass
 
