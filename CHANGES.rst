@@ -59,7 +59,8 @@ Internals
 * Improved support for ``Series`` Issue #46.
 * ``Cylinder`` rendering is implemented in Asymptote.
 * ``N[_,_,Method->method]`` was reworked (Issue #137).
-
+* the method ``Element.is_true()`` was removed in favor of `is SymbolTrue`
+  
 
 Package update
 ++++++++++++++
