@@ -13,7 +13,7 @@ from typing import List, Optional
 
 from mathics.core.atoms import String
 from mathics.core.attributes import no_attributes
-from mathics.core.element import fully_qualified_symbol_name
+from mathics.core.element import Evaluable, fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,

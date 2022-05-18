@@ -42,6 +42,7 @@ from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
 
+from mathics.core.element import Evaluable
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,

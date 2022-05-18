@@ -33,6 +33,7 @@ from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     BaseElement,
+    Evaluable,
     Monomial,
     NumericOperators,
     Symbol,
@@ -41,6 +42,7 @@ from mathics.core.symbols import (
     system_symbols,
 )
 from mathics.core.systemsymbols import SymbolSequence
+from mathics.core.atoms import String
 
 # from mathics.core.util import timeit
 
@@ -172,7 +174,7 @@ class ExpressionCache:
         )
 
 
-class Expression(BaseElement, NumericOperators):
+class Expression(BaseElement, NumericOperators, Evaluable):
     """
     A Mathics M-Expression.
 
@@ -742,7 +744,10 @@ class Expression(BaseElement, NumericOperators):
         return expr
 
     def evaluate_elements(self, evaluation) -> "Expression":
-        elements = [element.evaluate(evaluation) for element in self._elements]
+        elements = [
+            element.evaluate(evaluation) if isinstance(element, Evaluable) else element
+            for element in self._elements
+        ]
         head = self._head.evaluate_elements(evaluation)
         return Expression(head, *elements)
 
@@ -886,6 +891,46 @@ class Expression(BaseElement, NumericOperators):
         Return a shallow mutable copy of the elements
         """
         return list(self._elements)
+
+    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+        """
+        Build a dictionary of options from an expression.
+        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        will return a list of options associated to the definition of the symbol "Integrate".
+        If self is not an expression,
+        """
+        # comment @mmatera: The implementation of this is awfull.
+        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
+        # The implementation should be move to Symbol and Expression classes.
+
+        options = self
+        if options.has_form("List", None):
+            options = options.flatten_with_respect_to_head(SymbolList)
+            values = options.elements
+        else:
+            values = [options]
+        option_values = {}
+        for option in values:
+            symbol_name = option.get_name()
+            if allow_symbols and symbol_name:
+                options = evaluation.definitions.get_options(symbol_name)
+                option_values.update(options)
+            else:
+                if not option.has_form(("Rule", "RuleDelayed"), 2):
+                    if stop_on_error:
+                        return None
+                    else:
+                        continue
+                name = option.leaves[0].get_name()
+                if not name and isinstance(option.leaves[0], String):
+                    name = ensure_context(option.leaves[0].get_string_value())
+                if not name:
+                    if stop_on_error:
+                        return None
+                    else:
+                        continue
+                option_values[name] = option.leaves[1]
+        return option_values
 
     def get_sort_key(self, pattern_sort=False):
 
@@ -1155,7 +1200,6 @@ class Expression(BaseElement, NumericOperators):
 
         See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
         """
-        from mathics.builtin.base import BoxConstruct
 
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
@@ -1176,7 +1220,11 @@ class Expression(BaseElement, NumericOperators):
                     for index in indices:
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
-                            elements[index] = element.evaluate(evaluation)
+                            elements[index] = (
+                                element.evaluate(evaluation)
+                                if isinstance(element, Evaluable)
+                                else element
+                            )
                             self._is_ordered = False
                             self._elements_fully_evaluated = False
                             self._is_flat = False
@@ -1185,7 +1233,11 @@ class Expression(BaseElement, NumericOperators):
                 for index in indices:
                     element = elements[index]
                     if not element.has_form("Unevaluated", 1):
-                        element = element.evaluate(evaluation)
+                        element = (
+                            element.evaluate(evaluation)
+                            if isinstance(element, Evaluable)
+                            else element
+                        )
                         if element:
                             if elements[index] != element:
                                 self._is_ordered = False
@@ -1331,7 +1383,7 @@ class Expression(BaseElement, NumericOperators):
         # first look for upvalue rules associated to a.
         # If it finds it, try to apply the corresponding rule.
         #    If it success, (the result is not None)
-        #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is not a BoxConstruct.
+        #      returns  result, reevaluate. reevaluate is True if the result is a different expression, and is Evaluable.
         #    If the rule fails, continues with the next element.
         #
         # The next element is a number, so do not have upvalues. Then tries with upvalues from b.
@@ -1353,6 +1405,8 @@ class Expression(BaseElement, NumericOperators):
             rules_names = set()
             if not HOLD_ALL_COMPLETE & attributes:
                 for element in elements:
+                    if not isinstance(element, Evaluable):
+                        continue
                     name = element.get_lookup_name()
                     if len(name) > 0:  # only lookup rules if this is a symbol
                         if name not in rules_names:
@@ -1373,7 +1427,7 @@ class Expression(BaseElement, NumericOperators):
         for rule in rules():
             result = rule.apply(new, evaluation, fully=False)
             if result is not None:
-                if isinstance(result, BoxConstruct):
+                if not isinstance(result, Evaluable):
                     return result, False
                 if result.sameQ(new):
                     new._timestamp_cache(evaluation)
@@ -1834,13 +1888,21 @@ class Expression(BaseElement, NumericOperators):
                 # s.t. ``NumericQ[element]==True``
                 if not isinstance(element, Number) and element.is_numeric(evaluation):
                     n_expr = Expression(SymbolN, element, Integer(dps(_prec)))
-                    n_result = n_expr.evaluate(evaluation)
+                    n_result = (
+                        n_expr.evaluate(evaluation)
+                        if isinstance(n_expr, Evaluable)
+                        else n_expr
+                    )
                     if isinstance(n_result, Number):
                         new_elements[index] = n_result
                         continue
                     # If Nvalues are not available, just tries to do
                     # a regular evaluation
-                    n_result = element.evaluate(evaluation)
+                    n_result = (
+                        element.evaluate(evaluation)
+                        if isinstance(element, Evaluable)
+                        else element
+                    )
                     if isinstance(n_result, Number):
                         new_elements[index] = n_result
             result = Expression(self._head)
@@ -1878,7 +1940,7 @@ def get_default_value(name, evaluation, k=None, n=None):
             name, "System`DefaultValues", defaultexpr, evaluation
         )
         if result is not None:
-            if result.sameQ(defaultexpr):
+            if result.sameQ(defaultexpr) and isinstance(result, Evaluable):
                 result = result.evaluate(evaluation)
             return result
     return None
