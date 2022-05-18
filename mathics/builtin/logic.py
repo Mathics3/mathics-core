@@ -56,7 +56,7 @@ class Or(BinaryOperator):
         leaves = []
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 return SymbolTrue
             elif result != SymbolFalse:
                 leaves.append(result)
@@ -107,7 +107,7 @@ class And(BinaryOperator):
             result = arg.evaluate(evaluation)
             if result is SymbolFalse:
                 return SymbolFalse
-            elif not result.is_true():
+            elif not result is SymbolTrue:
                 leaves.append(result)
         if leaves:
             if len(leaves) == 1:
@@ -214,7 +214,7 @@ class Implies(BinaryOperator):
         result0 = x.evaluate(evaluation)
         if result0 is SymbolFalse:
             return SymbolTrue
-        elif result0.is_true():
+        elif result0 is SymbolTrue:
             return y.evaluate(evaluation)
         else:
             return Expression("Implies", result0, y.evaluate(evaluation))
@@ -261,7 +261,7 @@ class Equivalent(BinaryOperator):
         flag = False
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result is SymbolFalse or result.is_true():
+            if result is SymbolFalse or result is SymbolTrue:
                 flag = not flag
                 break
         if flag:
@@ -319,7 +319,7 @@ class Xor(BinaryOperator):
         flag = True
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 flag = not flag
             elif result != SymbolFalse:
                 leaves.append(result)
@@ -390,7 +390,9 @@ class _ManyTrue(Builtin):
             return
 
         def callback(node):
-            self._short_circuit(Expression(test, node).evaluate(evaluation).is_true())
+            self._short_circuit(
+                Expression(test, node).evaluate(evaluation) is SymbolTrue
+            )
             return node
 
         try:

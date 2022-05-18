@@ -41,7 +41,7 @@ from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_color, asy_number
 
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.atoms import (
     Integer,
     Real,
@@ -809,10 +809,10 @@ clip(%s);
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
         axes = graphics_options.get("System`Axes")
-        if axes.is_true():
+        if axes is SymbolTrue:
             axes = (True, True)
         elif axes.has_form("List", 2):
-            axes = (axes.elements[0].is_true(), axes.elements[1].is_true())
+            axes = (axes.elements[0] is SymbolTrue, axes.elements[1] is SymbolTrue)
         else:
             axes = (False, False)
         ticks_style = graphics_options.get("System`TicksStyle")

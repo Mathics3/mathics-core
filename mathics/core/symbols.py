@@ -529,9 +529,6 @@ class Symbol(Atom, NumericOperators):
                 1,
             ]
 
-    def is_true(self) -> bool:
-        return self is SymbolTrue
-
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
 
