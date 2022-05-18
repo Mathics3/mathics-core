@@ -125,7 +125,7 @@ else:
 # General Requirements
 INSTALL_REQUIRES += [
     "Mathics_Scanner>=1.2.1,<1.3.0",
-    "sympy>=1.8, <= 1.9",
+    "sympy>=1.8, < 1.11",
     "mpmath>=1.2.0",
     "numpy",
     "palettable",
@@ -164,6 +164,7 @@ setup(
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
         "mathics.builtin.intfns",
+        "mathics.builtin.matrices",
         "mathics.builtin.moments",
         "mathics.builtin.numbers",
         "mathics.builtin.numpy_utils",

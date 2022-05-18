@@ -6,6 +6,7 @@ import pytest
 import sys
 from .helper import check_evaluation, session
 
+from mathics.builtin.atomic.strings import to_python_encoding
 
 # def test_import():
 #     eaccent = "\xe9"
@@ -21,9 +22,9 @@ from .helper import check_evaluation, session
 
 def run_export(temp_dirname: str, short_name: str, file_data: str, character_encoding):
     file_path = osp.join(temp_dirname, short_name)
-    expr = fr'Export["{file_path}", {file_data}'
+    expr = rf'Export["{file_path}", {file_data}'
     expr += (
-        ', CharacterEncoding -> f"{character_encoding}"' if character_encoding else ""
+        rf', CharacterEncoding -> "{character_encoding}"' if character_encoding else ""
     )
     expr += "]"
     result = session.evaluate(expr)
@@ -39,11 +40,14 @@ def check_data(
     expected_data=None,
 ):
     file_path = run_export(
-        temp_dirname, short_name, fr'"{file_data}"', character_encoding
+        temp_dirname, short_name, rf'"{file_data}"', character_encoding
     )
     if expected_data is None:
         expected_data = file_data
-    assert open(file_path, "r").read() == expected_data
+    assert (
+        open(file_path, "r", encoding=to_python_encoding(character_encoding)).read()
+        == expected_data
+    )
 
 
 # Github Action Windows CI servers have problems with releasing files using

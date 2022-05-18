@@ -5,7 +5,7 @@
 Here we have the base class and related function for element inside an Expression.
 """
 
-from mathics.core.attributes import nothing
+from mathics.core.attributes import no_attributes
 from typing import Any, Optional, Tuple
 
 
@@ -35,6 +35,15 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
+class ImmutableValueMixin:
+    @property
+    def is_literal(self) -> bool:
+        """
+        The value value can't change once it is set.
+        """
+        return True
+
+
 class KeyComparable:
     """
 
@@ -57,23 +66,23 @@ class KeyComparable:
     def get_sort_key(self):
         raise NotImplementedError
 
-    def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
-
-    def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
-
-    def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
-
-    def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
-
     def __eq__(self, other) -> bool:
         return (
             hasattr(other, "get_sort_key")
             and self.get_sort_key() == other.get_sort_key()
         )
+
+    def __gt__(self, other) -> bool:
+        return self.get_sort_key() > other.get_sort_key()
+
+    def __ge__(self, other) -> bool:
+        return self.get_sort_key() >= other.get_sort_key()
+
+    def __le__(self, other) -> bool:
+        return self.get_sort_key() <= other.get_sort_key()
+
+    def __lt__(self, other) -> bool:
+        return self.get_sort_key() < other.get_sort_key()
 
     def __ne__(self, other) -> bool:
         return (
@@ -97,34 +106,7 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    # FIXME: kwargs seems to be is needed because Real.__new_() takes a parameter
-    # and magically that gets turned into kwargs here.
-    # Figure out how to address this.
-    def __init__(self, *args, **kwargs):
-        self.options = None
-        self.pattern_sequence = False
-        # This property would be useful for a BoxExpression
-        # (see comment in mathocs.core.expression.) However,
-        # WL has a way to handle the connection between
-        # an expression and a Box expression ``InterpretationBox``.
-        # self.unformatted = self  # This may be a garbage-collection nightmare.
-
-    # comment @mmatera: The next method have a name that starts with ``apply``.
-    # This obstaculizes to define ``InstanceableBuiltin``
-    # with ``Element`` as an ancestor class. I would like to have this
-    # to reimplement  ``mathics.builtin.BoxConstruct`` in a way that do not
-    # require to redefine several of the methods of this class.
-    # I propose then to change the name to ``do_apply_rules``.
-    # This change implies to change just an small number of lines
-    # in the code of ``mathics.core`` and ``mathics.builtin``. In particular
-    # the afected files apart from this would be:
-    #
-    # mathics/core/expression.py
-    # mathics/builtin/inference.py
-    # mathics/builtin/patterns.py
-    # mathics/builtin/assignments/internals.py
-
-    def apply_rules(
+    def do_apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> Tuple["BaseElement", bool]:
         """
@@ -321,7 +303,7 @@ class BaseElement(KeyComparable):
         return []
 
     def get_attributes(self, definitions):
-        return nothing
+        return no_attributes
 
     def get_head_name(self):
         raise NotImplementedError
@@ -443,6 +425,18 @@ class BaseElement(KeyComparable):
 
     def get_string_value(self):
         return None
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()`, we don't need a `definitions`
+        parameter.
+
+        Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """

@@ -7,7 +7,7 @@ import html
 import json
 import numbers
 
-from mathics.builtin.base import BoxConstructError, InstanceableBuiltin
+from mathics.builtin.base import BoxConstructError
 from mathics.builtin.box.graphics import (
     GraphicsBox,
     ArrowBox,
@@ -16,8 +16,9 @@ from mathics.builtin.box.graphics import (
     PolygonBox,
 )
 
-from mathics.builtin.colors.color_directives import _Color, RGBColor
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D
+from mathics.builtin.colors.color_directives import _ColorObject, Opacity, RGBColor
+from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
+
 from mathics.builtin.drawing.graphics3d import (
     Coords3D,
     Graphics3DElements,
@@ -31,7 +32,12 @@ from mathics.format.asy_fns import asy_create_pens, asy_number
 
 
 class Graphics3DBox(GraphicsBox):
-    """Routines which get called when Boxing (adding formatting and bounding-box information)
+    """
+    <dl>
+    <dt>'Graphics3DBox[{...}]'
+    <dd>a box structure for Graphics3D elements.
+    </dl>
+    Routines which get called when Boxing (adding formatting and bounding-box information)
     a Graphics3D object.
     """
 
@@ -48,7 +54,7 @@ class Graphics3DBox(GraphicsBox):
         ):
             self.background_color = None
         else:
-            self.background_color = _Color.create(background)
+            self.background_color = _ColorObject.create(background)
 
         evaluation = options["evaluation"]
 
@@ -634,7 +640,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
         # FIXME: Not quite right. We only handle color
         ticks_style = [
-            elements.create_style(s).get_style(_Color, face_element=False)[0]
+            elements.create_style(s).get_style(_ColorObject, face_element=False)[0]
             for s in ticks_style
         ]
 
@@ -707,14 +713,18 @@ class Arrow3DBox(ArrowBox):
                 coords.scale(boxscale)
 
 
-class Cone3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cone' object.
-    """
+class Cone3DBox(_GraphicsElementBox):
+    # """
+    # Internal Python class used when Boxing a 'Cone' object.
+    # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
-
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
+        self.edge_opacity, self.face_opacity = style.get_style(
+            Opacity, face_element=True
+        )
         if len(item.leaves) != 2:
             raise BoxConstructError
 
@@ -751,14 +761,18 @@ class Cone3DBox(InstanceableBuiltin):
         pass
 
 
-class Cuboid3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cuboid' object.
-    """
+class Cuboid3DBox(_GraphicsElementBox):
+    # """
+    # Internal Python class used when Boxing a 'Cuboid' object.
+    # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
-
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
+        self.edge_opacity, self.face_opacity = style.get_style(
+            Opacity, face_element=True
+        )
         if len(item.leaves) != 1:
             raise BoxConstructError
 
@@ -779,14 +793,18 @@ class Cuboid3DBox(InstanceableBuiltin):
         pass
 
 
-class Cylinder3DBox(InstanceableBuiltin):
-    """
-    Internal Python class used when Boxing a 'Cylinder' object.
-    """
+class Cylinder3DBox(_GraphicsElementBox):
+    # """
+    # Internal Python class used when Boxing a 'Cylinder' object.
+    # """
 
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
-
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
+        self.edge_opacity, self.face_opacity = style.get_style(
+            Opacity, face_element=True
+        )
         if len(item.leaves) != 2:
             raise BoxConstructError
 
@@ -824,6 +842,8 @@ class Cylinder3DBox(InstanceableBuiltin):
 
 
 class Line3DBox(LineBox):
+    # summary_text = "box representation for a 3D line"
+
     def init(self, *args, **kwargs):
         super(Line3DBox, self).init(*args, **kwargs)
 
@@ -841,6 +861,8 @@ class Line3DBox(LineBox):
 
 
 class Point3DBox(PointBox):
+    # summary_text = "box representation for a 3D point"
+
     def get_default_face_color(self):
         return RGBColor(components=(0, 0, 0, 1))
 
@@ -867,6 +889,8 @@ class Point3DBox(PointBox):
 
 
 class Polygon3DBox(PolygonBox):
+    # summary_text = "box representation for a 3D polygon"
+
     def init(self, *args, **kwargs):
         self.vertex_normals = None
         super(Polygon3DBox, self).init(*args, **kwargs)
@@ -888,9 +912,16 @@ class Polygon3DBox(PolygonBox):
                 coords.scale(boxscale)
 
 
-class Sphere3DBox(InstanceableBuiltin):
+class Sphere3DBox(_GraphicsElementBox):
+    # summary_text = "box representation for a sphere"
+
     def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
+        self.edge_opacity, self.face_opacity = style.get_style(
+            Opacity, face_element=True
+        )
         if len(item.leaves) != 2:
             raise BoxConstructError
 
@@ -927,10 +958,17 @@ class Sphere3DBox(InstanceableBuiltin):
         pass
 
 
-class Tube3DBox(InstanceableBuiltin):
-    def init(self, graphics, style, item):
-        self.edge_color, self.face_color = style.get_style(_Color, face_element=True)
+class Tube3DBox(_GraphicsElementBox):
+    # summary_text = "box representation for a tube"
 
+    def init(self, graphics, style, item):
+        self.graphics = graphics
+        self.edge_color, self.face_color = style.get_style(
+            _ColorObject, face_element=True
+        )
+        self.edge_opacity, self.face_opacity = style.get_style(
+            Opacity, face_element=True
+        )
         points = item.leaves[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)

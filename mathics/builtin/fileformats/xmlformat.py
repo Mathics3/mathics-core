@@ -218,11 +218,25 @@ def parse_xml(parse, text, evaluation):
 
 
 class XMLObject(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'XMLObject["type"]'
+    <dd> represents the head of an XML object in symbolic XML.
+    </dl>
+    """
+
+    summary_text = "the head of an xml object"
 
 
 class XMLElement(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
+    <dd>   represents an element in symbolic XML.
+    </dl>
+    """
+
+    summary_text = "an xml element"
 
 
 class _Get(Builtin):
@@ -242,12 +256,25 @@ class _Get(Builtin):
 
 
 class XMLGet(_Get):
+    """
+    <dl>
+    <dt>'XMLGet[...]'
+    <dd> Internal. Document me.
+    </dl>
+    """
+
+    summary_text = ""
+
     def _parse(self, text):
         return parse_xml_file(text)
 
 
 class XMLGetString(_Get):
     """
+    <dl>
+    <dt>'XML`Parser`XMLGetString["string"]'
+    <dd>parses "string" as XML code, and returns an XMLObject.
+    </dl>
     >> Head[XML`Parser`XMLGetString["<a></a>"]]
      = XMLObject[Document]
 
@@ -255,6 +282,8 @@ class XMLGetString(_Get):
      = $Failed
      : Extra content at the end of the document, line 1, column 8.
     """
+
+    summary_text = "parse a xml object"
 
     def _parse(self, text):
         with BytesIO() as f:
@@ -265,10 +294,15 @@ class XMLGetString(_Get):
 
 class PlaintextImport(Builtin):
     """
+    <dl>
+    <dt>'XML`PlaintextImport["string"]'
+    <dd>parses "string" as XML code, and returns it as plain text.
+    </dl>
     >> StringReplace[StringTake[Import["ExampleData/InventionNo1.xml", "Plaintext"],31],FromCharacterCode[10]->"/"]
      = MuseScore 1.2/2012-09-12/5.7/40
     """
 
+    summary_text = "import plain text from xml"
     context = "XML`"
 
     def apply(self, text, evaluation):
@@ -289,10 +323,15 @@ class PlaintextImport(Builtin):
 
 class TagsImport(Builtin):
     """
+    <dl>
+    <dt>'XML`TagsImport["string"]'
+    <dd>parses "string" as XML code, and returns a list with the tags found.
+    </dl>
     >> Take[Import["ExampleData/InventionNo1.xml", "Tags"], 10]
      = {accidental, alter, arpeggiate, articulations, attributes, backup, bar-style, barline, beam, beat-type}
     """
 
+    summary_text = "import tags text from xml"
     context = "XML`"
 
     @staticmethod
@@ -317,6 +356,11 @@ class TagsImport(Builtin):
 
 class XMLObjectImport(Builtin):
     """
+    <dl>
+    <dt>'XML`XMLObjectImport["string"]'
+    <dd>parses "string" as XML code, and returns a list of XMLObjects found.
+    </dl>
+
     >> Part[Import["ExampleData/InventionNo1.xml", "XMLObject"], 2, 3, 1]
      = XMLElement[identification, {}, {XMLElement[encoding, {}, {XMLElement[software, {}, {MuseScore 1.2}], XMLElement[encoding-date, {}, {2012-09-12}]}]}]
 
@@ -324,6 +368,7 @@ class XMLObjectImport(Builtin):
      = XMLElement[book, {{http://www.w3.org/2000/xmlns/, xmlns} -> urn:loc.gov:books}, {XMLElement[title, {}, {Cheaper by the Dozen}], XMLElement[{urn:ISBN:0-395-36341-6, number}, {}, {1568491379}], XMLElement[notes, {}, {XMLElement[p, {{http://www.w3.org/2000/xmlns/, xmlns} -> http://www.w3.org/1999/xhtml}, {This is a, XMLElement[i, {}, {funny, book!}]}]}]}]
     """
 
+    summary_text = "import elements from xml"
     context = "XML`"
 
     def apply(self, text, evaluation):

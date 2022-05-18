@@ -121,8 +121,8 @@ class CubeRoot(Builtin):
 class Divide(BinaryOperator):
     """
     <dl>
-    <dt>'Divide[$a$, $b$]'</dt>
-    <dt>'$a$ / $b$'</dt>
+    <dt>'Divide[$a$, $b$]'
+    <dt>'$a$ / $b$'
         <dd>represents the division of $a$ by $b$.
     </dl>
     >> 30 / 5
@@ -229,8 +229,8 @@ class Minus(PrefixOperator):
 class Plus(BinaryOperator, SympyFunction):
     """
     <dl>
-    <dt>'Plus[$a$, $b$, ...]'</dt>
-    <dt>$a$ + $b$ + ...</dt>
+    <dt>'Plus[$a$, $b$, ...]'
+    <dt>$a$ + $b$ + ...
         <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
 
@@ -436,8 +436,8 @@ class Plus(BinaryOperator, SympyFunction):
 class Power(BinaryOperator, _MPMathFunction):
     """
     <dl>
-    <dt>'Power[$a$, $b$]'</dt>
-    <dt>'$a$ ^ $b$'</dt>
+    <dt>'Power[$a$, $b$]'
+    <dt>'$a$ ^ $b$'
         <dd>represents $a$ raised to the power of $b$.
     </dl>
 
@@ -641,9 +641,9 @@ class Sqrt(SympyFunction):
 class Subtract(BinaryOperator):
     """
     <dl>
-    <dt>'Subtract[$a$, $b$]'</dt>
-    <dt>$a$ - $b$</dt>
-        <dd>represents the subtraction of $b$ from $a$.</dd>
+    <dt>'Subtract[$a$, $b$]'
+    <dt>$a$ - $b$
+        <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
     >> 5 - 3
@@ -672,9 +672,9 @@ class Subtract(BinaryOperator):
 class Times(BinaryOperator, SympyFunction):
     """
     <dl>
-    <dt>'Times[$a$, $b$, ...]'</dt>
-    <dt>'$a$ * $b$ * ...'</dt>
-    <dt>'$a$ $b$ ...'</dt>
+    <dt>'Times[$a$, $b$, ...]'
+    <dt>'$a$ * $b$ * ...'
+    <dt>'$a$ $b$ ...'
         <dd>represents the product of the terms $a$, $b$, ...
     </dl>
     >> 10 * 2

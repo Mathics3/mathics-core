@@ -27,7 +27,7 @@ from mathics.builtin.base import (
 
 from mathics.builtin.pymimesniffer import magic
 
-from mathics.core.attributes import nothing, protected, read_protected
+from mathics.core.attributes import no_attributes, protected, read_protected
 
 import mimetypes
 import sys
@@ -940,6 +940,7 @@ class ImportFormats(Predefined):
      = {...CSV,...JSON,...Text...}
     """
 
+    summary_text = "list supported import formats"
     name = "$ImportFormats"
 
     def evaluate(self, evaluation):
@@ -957,6 +958,7 @@ class ExportFormats(Predefined):
      = {...CSV,...SVG,...Text...}
     """
 
+    summary_text = "list supported export formats"
     name = "$ExportFormats"
 
     def evaluate(self, evaluation):
@@ -971,9 +973,10 @@ class ConverterDumpsExtensionMappings(Predefined):
     </dl>
     """
 
+    summary_text = "associations between file extensions and file types"
     context = "System`ConvertersDump`"
     name = "$extensionMappings"
-    attributes = nothing
+    attributes = no_attributes
 
     def evaluate(self, evaluation):
         return from_python(EXTENSIONMAPPINGS)
@@ -987,9 +990,10 @@ class ConverterDumpsFormatMappings(Predefined):
     </dl>
     """
 
+    summary_text = "associations between file extensions and file types"
     context = "System`ConvertersDump`"
     name = "$formatMappings"
-    attributes = nothing
+    attributes = no_attributes
 
     def evaluate(self, evaluation):
         return from_python(FORMATMAPPINGS)
@@ -1068,6 +1072,7 @@ class RegisterImport(Builtin):
 
     """
 
+    summary_text = "Register an importer for a file format"
     context = "ImportExport`"
 
     attributes = protected | read_protected
@@ -1157,6 +1162,7 @@ class RegisterExport(Builtin):
     #> DeleteFile["sample.txt"]
     """
 
+    summary_text = "Register an exporter for a file format"
     context = "ImportExport`"
 
     options = {
@@ -1196,6 +1202,7 @@ class URLFetch(Builtin):
     # = ...
     """
 
+    summary_text = "fetch data form an URL"
     messages = {
         "httperr": "`1` could not be retrieved; `2`.",
     }
@@ -1309,6 +1316,7 @@ class Import(Builtin):
      = {accidental, alter, arpeggiate, ..., words}
     """
 
+    summary_text = "import elements from a file"
     messages = {
         "nffil": "File not found during Import.",
         "chtype": (
@@ -1586,6 +1594,7 @@ class ImportString(Import):
      = ...
     """
 
+    summary_text = "import elements from a string"
     messages = {
         "string": "First argument `1` is not a string.",
         "noelem": ("The Import element `1` is not present when importing as `2`."),
@@ -1706,6 +1715,7 @@ class Export(Builtin):
 
     """
 
+    summary_text = "export elements to a file"
     messages = {
         "chtype": "First argument `1` is not a valid file specification.",
         "infer": "Cannot infer format of file `1`.",
@@ -1744,7 +1754,7 @@ class Export(Builtin):
         "$OptionSyntax": "System`Ignore",
     }
 
-    def apply(self, filename, expr, evaluation, **options):
+    def apply(self, filename, expr, evaluation, options={}):
         "Export[filename_, expr_, OptionsPattern[Export]]"
 
         # Check filename
@@ -1893,6 +1903,7 @@ class ExportString(Builtin):
      = String
     """
 
+    summary_text = "export elements to a string"
     options = {
         "$OptionSyntax": "System`Ignore",
     }
@@ -1972,7 +1983,10 @@ class ExportString(Builtin):
             import tempfile
 
             tmpfile = tempfile.NamedTemporaryFile(
-                dir=tempfile.gettempdir(), suffix="." + format_spec[0].lower()
+                dir=tempfile.gettempdir(),
+                prefix="Mathics3-ExportString",
+                suffix="." + format_spec[0].lower(),
+                delete=True,
             )
             filename = String(tmpfile.name)
             tmpfile.close()
@@ -2093,6 +2107,7 @@ class FileFormat(Builtin):
      = XML
     """
 
+    summary_text = "determine the file format of a file"
     messages = {
         "nffil": "File not found during `1`.",
     }
@@ -2164,6 +2179,7 @@ class B64Encode(Builtin):
      = Integrate[f[x], {x, 0, 2}]
     """
 
+    summary_text = "encode an element as a base64 string"
     context = "System`Convert`B64Dump`"
     name = "B64Encode"
 
@@ -2194,6 +2210,7 @@ class B64Decode(Builtin):
      = $Failed
     """
 
+    summary_text = "decode a base64 string"
     context = "System`Convert`B64Dump`"
     name = "B64Decode"
 
@@ -2224,6 +2241,7 @@ class ConvertCommonDumpRemoveLinearSyntax(Builtin):
     </dl>
     """
 
+    summary_text = "document me..."
     options = {
         "System`Convert`CommonDump`ConvertRecursive": "False",
     }

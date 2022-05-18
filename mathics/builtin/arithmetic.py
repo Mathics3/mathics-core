@@ -9,7 +9,6 @@ Basic arithmetic functions, including complex number arithmetic.
 
 
 import sympy
-import sys
 import mpmath
 from functools import lru_cache
 
@@ -17,7 +16,6 @@ from mathics.core.evaluators import apply_N
 
 from mathics.builtin.base import (
     Builtin,
-    PostfixOperator,
     Predefined,
     SympyFunction,
     Test,
@@ -41,9 +39,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolUndefined,
-)
+from mathics.core.systemsymbols import SymbolUndefined
 from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
@@ -52,7 +48,7 @@ from mathics.core.attributes import (
     hold_all,
     hold_rest,
     listable,
-    nothing,
+    no_attributes,
     numeric_function,
     protected,
 )
@@ -127,6 +123,7 @@ class _MPMathFunction(SympyFunction):
                 return
 
             result = call_mpmath(mpmath_function, tuple(float_args))
+
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
                     result = Symbol("ComplexInfinity")
@@ -137,7 +134,16 @@ class _MPMathFunction(SympyFunction):
                 elif mpmath.isnan(result):
                     result = Symbol("Indeterminate")
                 else:
-                    result = from_mpmath(result)
+                    # FIXME: replace try/except as a context manager
+                    # like "with evaluation.from_mpmath()...
+                    # which can be instrumented for
+                    # or mpmath tracing and benchmarking on demand.
+                    # Then use it on other places where mpmath appears.
+                    try:
+                        result = from_mpmath(result)
+                    except OverflowError:
+                        evaluation.message("General", "ovfl")
+                        result = Expression("Overflow")
         else:
             prec = min_prec(*args)
             d = dps(prec)
@@ -210,10 +216,10 @@ def create_infix(items, operator, prec, grouping):
 class DirectedInfinity(SympyFunction):
     """
     <dl>
-    <dt>'DirectedInfinity[$z$]'</dt>
+    <dt>'DirectedInfinity[$z$]'
         <dd>represents an infinite multiple of the complex number $z$.
-    <dt>'DirectedInfinity[]'</dt>
-        <dd>is the same as 'ComplexInfinity'.</dd>
+    <dt>'DirectedInfinity[]'
+        <dd>is the same as 'ComplexInfinity'.
     </dl>
 
     >> DirectedInfinity[1]
@@ -240,6 +246,7 @@ class DirectedInfinity(SympyFunction):
      = Infinity
     """
 
+    summary_text = "infinite quantity with a defined direction in the complex plane"
     rules = {
         "DirectedInfinity[Indeterminate]": "Indeterminate",
         "DirectedInfinity[args___] ^ -1": "0",
@@ -285,14 +292,14 @@ class DirectedInfinity(SympyFunction):
     }
 
     def to_sympy(self, expr, **kwargs):
-        if len(expr._elements) == 1:
+        if len(expr.elements) == 1:
             dir = expr.leaves[0].get_int_value()
             if dir == 1:
                 return sympy.oo
             elif dir == -1:
                 return -sympy.oo
             else:
-                return sympy.Mul((expr._elements[0].to_sympy()), sympy.zoo)
+                return sympy.Mul((expr.elements[0].to_sympy()), sympy.zoo)
         else:
             return sympy.zoo
 
@@ -316,6 +323,7 @@ class Re(SympyFunction):
      = MachinePrecision
     """
 
+    summary_text = "real part"
     attributes = listable | numeric_function | protected
     sympy_name = "re"
 
@@ -354,6 +362,7 @@ class Im(SympyFunction):
      = MachinePrecision
     """
 
+    summary_text = "imaginary part"
     attributes = listable | numeric_function | protected
 
     def apply_complex(self, number, evaluation):
@@ -399,6 +408,7 @@ class Conjugate(_MPMathFunction):
      = 1.5 - 2.5 I
     """
 
+    summary_text = "complex conjugation"
     mpmath_name = "conj"
 
 
@@ -428,6 +438,7 @@ class Abs(_MPMathFunction):
      = Sqrt[3]
     """
 
+    summary_text = "absolute value of a number"
     sympy_name = "Abs"
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
 
@@ -435,17 +446,17 @@ class Abs(_MPMathFunction):
 class Arg(_MPMathFunction):
     """
      <dl>
-       <dt>'Arg'[$z$, $method_option$]</dt>
-       <dd>returns the argument of a complex value $z$.</dd>
+       <dt>'Arg'[$z$, $method_option$]
+       <dd>returns the argument of a complex value $z$.
+     </dl>
 
-       <ul>
+    <ul>
          <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
          <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
          <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
          <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
          <li>'Arg'[0] is 0.
-      </ul>
-     </dl>
+    </ul>
 
      >> Arg[-3]
       = Pi
@@ -468,6 +479,7 @@ class Arg(_MPMathFunction):
      = 0
     """
 
+    summary_text = "phase of a complex number"
     rules = {
         "Arg[0]": "0",
         "Arg[DirectedInfinity[]]": "1",
@@ -527,6 +539,7 @@ class Sign(SympyFunction):
      = Sign[20]
     """
 
+    summary_text = "complex sign of a number"
     sympy_name = "sign"
     # mpmath_name = 'sign'
 
@@ -565,6 +578,7 @@ class I(Predefined):
      = 10
     """
 
+    summary_text = "imaginary unit"
     python_equivalent = 1j
 
     def evaluate(self, evaluation):
@@ -585,6 +599,8 @@ class NumberQ(Test):
     >> NumberQ[Pi]
      = False
     """
+
+    summary_text = "test whether an expression is a number"
 
     def test(self, expr):
         return isinstance(expr, Number)
@@ -626,6 +642,7 @@ class PossibleZeroQ(SympyFunction):
      = False
     """
 
+    summary_text = "test whether an expression is estimated to be zero"
     attributes = listable | numeric_function | protected
 
     sympy_name = "_iszero"
@@ -675,6 +692,8 @@ class RealNumberQ(Test):
      = True
     """
 
+    summary_text = "test whether an expression is a real number"
+
     def test(self, expr):
         return isinstance(expr, (Integer, Rational, Real))
 
@@ -694,6 +713,7 @@ class Integer_(Builtin):
      = {False, True, True}
     """
 
+    summary_text = "head for integer numbers"
     name = "Integer"
 
 
@@ -712,19 +732,19 @@ class Real_(Builtin):
 
     ## Formatting tests
     #> 1. * 10^6
-     = 1.*^6
+     = 1.×10^6
     #> 1. * 10^5
      = 100000.
     #> -1. * 10^6
-     = -1.*^6
+     = -1.×10^6
     #> -1. * 10^5
      = -100000.
     #> 1. * 10^-6
-     = 1.*^-6
+     = 1.×10^-6
     #> 1. * 10^-5
      = 0.00001
     #> -1. * 10^-6
-     = -1.*^-6
+     = -1.×10^-6
     #> -1. * 10^-5
      = -0.00001
 
@@ -732,15 +752,15 @@ class Real_(Builtin):
     #> 0.0000000000000
      = 0.
     #> 0.0000000000000000000000000000
-     = 0.*^-28
+     = 0.×10^-28
 
     ## Parse *^ Notation
-    #> 1.5*^24
-     = 1.5*^24
+    #> 1.5×10^24
+     = 1.5×10^24
     #> 1.5*^+24
-     = 1.5*^24
+     = 1.5×10^24
     #> 1.5*^-24
-     = 1.5*^-24
+     = 1.5×10^-24
 
     ## Don't accept *^ with spaces
     #> 1.5 *^10
@@ -767,16 +787,17 @@ class Real_(Builtin):
      : Expression cannot begin with "37^^3" (line 1 of "<test>").
     """
 
+    summary_text = "head for real numbers"
     name = "Real"
 
 
 class Rational_(Builtin):
     """
     <dl>
-    <dt>'Rational'</dt>
-        <dd>is the head of rational numbers.</dd>
-    <dt>'Rational[$a$, $b$]'</dt>
-        <dd>constructs the rational number $a$ / $b$.</dd>
+    <dt>'Rational'
+        <dd>is the head of rational numbers.
+    <dt>'Rational[$a$, $b$]'
+        <dd>constructs the rational number $a$ / $b$.
     </dl>
 
     >> Head[1/2]
@@ -789,6 +810,7 @@ class Rational_(Builtin):
      = -2 / 3
     """
 
+    summary_text = "head for rational numbers"
     name = "Rational"
 
     def apply(self, n, m, evaluation):
@@ -817,7 +839,7 @@ class Complex_(Builtin):
      = 5
 
     #> OutputForm[Complex[2.0 ^ 40, 3]]
-     = 1.09951*^12 + 3. I
+     = 1.09951×10^12 + 3. I
     #> InputForm[Complex[2.0 ^ 40, 3]]
      = 1.099511627776*^12 + 3.*I
 
@@ -856,6 +878,7 @@ class Complex_(Builtin):
      = I
     """
 
+    summary_text = "head for complex numbers"
     name = "Complex"
 
     def apply(self, r, i, evaluation):
@@ -866,125 +889,6 @@ class Complex_(Builtin):
             r, i = sym_form.simplify().as_real_imag()
             r, i = from_sympy(r), from_sympy(i)
         return Complex(r, i)
-
-
-class Factorial(PostfixOperator, _MPMathFunction):
-    """
-    <dl>
-    <dt>'Factorial[$n$]'
-    <dt>'$n$!'
-        <dd>computes the factorial of $n$.
-    </dl>
-
-    >> 20!
-     = 2432902008176640000
-
-    'Factorial' handles numeric (real and complex) values using the gamma function:
-    >> 10.5!
-     = 1.18994*^7
-    >> (-3.0+1.5*I)!
-     = 0.0427943 - 0.00461565 I
-
-    However, the value at poles is 'ComplexInfinity':
-    >> (-1.)!
-     = ComplexInfinity
-
-    'Factorial' has the same operator ('!') as 'Not', but with higher precedence:
-    >> !a! //FullForm
-     = Not[Factorial[a]]
-
-    #> 0!
-     = 1
-    """
-
-    attributes = numeric_function | protected
-
-    operator = "!"
-    precedence = 610
-    mpmath_name = "factorial"
-
-
-class Factorial2(PostfixOperator, _MPMathFunction):
-    """
-    <dl>
-      <dt>'Factorial2[$n$]'
-      <dt>'$n$!!'
-      <dd>computes the double factorial of $n$.
-    </dl>
-    The double factorial or semifactorial of a number $n$, is the product of all the integers from 1 up to n that have the same parity (odd or even) as $n$.
-
-    >> 5!!
-     = 15.
-
-    >> Factorial2[-3]
-     = -1.
-
-    'Factorial2' accepts Integers, Rationals, Reals, or Complex Numbers:
-    >> I!! + 1
-     = 3.71713 + 0.279527 I
-
-    Irrationals can be handled by using numeric approximation:
-    >> N[Pi!!, 6]
-     = 3.35237
-    """
-
-    attributes = numeric_function | protected
-    operator = "!!"
-    precedence = 610
-    mpmath_name = "fac2"
-    sympy_name = "factorial2"
-    messages = {
-        "ndf": "`1` evaluation error: `2`.",
-        "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
-    }
-
-    options = {"Method": "Automatic"}
-
-    def apply(self, number, evaluation, options={}):
-        "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
-
-        try:
-            import scipy.special as sp
-            from numpy import pi
-
-            # From https://stackoverflow.com/a/36779406/546218
-            def fact2_generic(x):
-                n = (x + 1.0) / 2.0
-                return 2.0 ** n * sp.gamma(n + 0.5) / (pi ** (0.5))
-
-        except ImportError:
-            fact2_generic = None
-
-        pref_expr = self.get_option(options, "Method", evaluation)
-        is_automatic = False
-        if pref_expr is Symbol("System`Automatic"):
-            is_automatic = True
-            preference = "mpmath"
-        else:
-            preference = pref_expr.get_string_value()
-
-        if preference in ("mpmath", "Automatic"):
-            number_arg = number.to_mpmath()
-            convert_from_fn = from_mpmath
-            fact2_fn = getattr(mpmath, self.mpmath_name)
-        elif preference == "sympy":
-            number_arg = number.to_sympy()
-            convert_from_fn = from_sympy
-            fact2_fn = getattr(sympy, self.sympy_name)
-        else:
-            return evaluation.message("Factorial2", "unknownp", preference)
-
-        try:
-            result = fact2_fn(number_arg)
-        except:  # noqa
-            number_arg = number.to_python()
-            # Maybe an even negative number? Try generic routine
-            if is_automatic and fact2_generic:
-                return from_python(fact2_generic(number_arg))
-            return evaluation.message(
-                "Factorial2", "ndf", preference, str(sys.exc_info()[1])
-            )
-        return convert_from_fn(result)
 
 
 class Sum(_IterationFunction, SympyFunction):
@@ -1061,6 +965,7 @@ class Sum(_IterationFunction, SympyFunction):
      = Sum[Cos[i Pi], {i, 1, Infinity}]
     """
 
+    summary_text = "discrete sum"
     # Do not throw warning message for symbolic iteration bounds
     throw_iterb = False
 
@@ -1174,6 +1079,7 @@ class Product(_IterationFunction, SympyFunction):
     ##  = 1 / ((-I)! I!)
     """
 
+    summary_text = "discrete product"
     throw_iterb = False
 
     sympy_name = "Product"
@@ -1242,6 +1148,7 @@ class Piecewise(SympyFunction):
      = -1
     """
 
+    summary_text = "an arbitrary piecewise function"
     sympy_name = "Piecewise"
 
     attributes = hold_all | protected
@@ -1315,6 +1222,7 @@ class Boole(Builtin):
      = Boole[a == 7]
     """
 
+    summary_text = "translate 'True' to 1, and 'False' to 0"
     attributes = listable | protected
 
     def apply(self, expr, evaluation):
@@ -1335,8 +1243,9 @@ class Assumptions(Predefined):
      </dl>
     """
 
+    summary_text = "assumptions used to simplify expressions"
     name = "$Assumptions"
-    attributes = nothing
+    attributes = no_attributes
     rules = {
         "$Assumptions": "True",
     }
@@ -1363,6 +1272,7 @@ class Assuming(Builtin):
      = ConditionalExpression[x ^ 2 y, y > 0]
     """
 
+    summary_text = "set assumptions during the evaluation"
     attributes = hold_rest | protected
 
     def apply_assuming(self, assumptions, expr, evaluation):
@@ -1373,7 +1283,7 @@ class Assuming(Builtin):
         elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
             cond = [assumptions]
         else:
-            cond = assumptions._elements
+            cond = assumptions.elements
         cond = tuple(cond) + get_assumptions_list(evaluation)
         list_cond = Expression("List", *cond)
         # TODO: reduce the list of predicates
@@ -1410,6 +1320,7 @@ class ConditionalExpression(Builtin):
     # = ConditionalExpression[s, And[x>a, x<b]]
     """
 
+    summary_text = "expression defined under condition"
     sympy_name = "Piecewise"
 
     rules = {
@@ -1428,7 +1339,7 @@ class ConditionalExpression(Builtin):
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
         if not isinstance(cond, Atom) and cond._head is SymbolList:
-            cond = Expression("System`And", *(cond._elements))
+            cond = Expression("System`And", *(cond.elements))
         else:
             cond = Expression("System`And", cond)
         if cond is None:

@@ -6,6 +6,7 @@ Regular Expressions
 
 from mathics.builtin.base import Builtin
 
+
 # builtin.strings.atomic.to_regex seems to have the implementation.
 class RegularExpression(Builtin):
     r"""
@@ -29,3 +30,4 @@ class RegularExpression(Builtin):
      : Element RegularExpression[2] is not a valid string or pattern element in RegularExpression[2].
      = StringSplit[ab23c, RegularExpression[2]]
     """
+    summary_text = "string to regular expression."

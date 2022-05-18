@@ -17,12 +17,14 @@ from mathics.builtin.base import (
 )
 
 from mathics.builtin.drawing.graphics_internals import (
-    _GraphicsElement,
+    _GraphicsDirective,
+    _GraphicsElementBox,
     GLOBALS,
     get_class,
 )
 from mathics.builtin.colors.color_directives import (
-    _Color,
+    _ColorObject,
+    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
@@ -339,7 +341,7 @@ class Graphics(Builtin):
             )
 
 
-class _Size(_GraphicsElement):
+class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
@@ -546,7 +548,7 @@ class Text(Inset):
     """
 
 
-class _Polyline(_GraphicsElement):
+class _Polyline(_GraphicsElementBox):
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
             raise BoxConstructError
@@ -765,7 +767,7 @@ class Arrow(Builtin):
     pass
 
 
-class Arrowheads(_GraphicsElement):
+class Arrowheads(_GraphicsDirective):
     """
     <dl>
     <dt>'Arrowheads[$s$]'
@@ -1089,7 +1091,7 @@ class Style(object):
         if face_element is not None:
             default_to_faces = consider_forms = face_element
         edge_style = face_style = None
-        if style_class == _Color:
+        if style_class == _ColorObject:
             if default_to_faces:
                 face_style = self.get_default_face_color()
             else:
@@ -1113,7 +1115,6 @@ class Style(object):
                         _, face_style = item.get_style(
                             style_class, default_to_faces=True, consider_forms=False
                         )
-
         return edge_style, face_style
 
     def get_option(self, name):
@@ -1212,6 +1213,7 @@ class _GraphicsElements(object):
                     for element in convert(item, style):
                         yield element
                 else:
+                    print(item, " of type ", type(item), " is not a box.")
                     raise BoxConstructError
 
         self.elements = list(convert(content, self.style_class(self)))
@@ -1381,6 +1383,7 @@ styles = system_symbols_dict(
         "Thin": Thin,
         "PointSize": PointSize,
         "Arrowheads": Arrowheads,
+        "Opacity": Opacity,
     }
 )
 

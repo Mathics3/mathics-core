@@ -74,6 +74,8 @@ class Append(Builtin):
      = Append[a, b]
     """
 
+    summary_text = "add an element at the end of an expression"
+
     def apply(self, expr, item, evaluation):
         "Append[expr_, item_]"
 
@@ -117,6 +119,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
+    summary_text = "add an element at the end of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
@@ -184,7 +187,7 @@ class Cases(Builtin):
     #> z = f[x, y]; x = 1; Cases[z, _Symbol, Infinity]
      = {y}
     """
-
+    summary_text = ""
     rules = {
         "Cases[pattern_][list_]": "Cases[list, pattern]",
     }
@@ -258,6 +261,7 @@ class Count(Builtin):
      = 5
     """
 
+    summary_text = "count the number of occurrences of a pattern"
     rules = {
         "Count[pattern_][list_]": "Count[list, pattern]",
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
@@ -288,6 +292,7 @@ class DeleteCases(Builtin):
      = {1}
     """
 
+    summary_text = "delete all occurrences of a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
         "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
@@ -391,6 +396,7 @@ class Drop(Builtin):
      = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
+    summary_text = "remove a number of elements from a list"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
@@ -433,6 +439,7 @@ class First(Builtin):
      = First[{}]
     """
 
+    summary_text = "first element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nofirst": "`1` has zero length and no first element.",
@@ -472,6 +479,7 @@ class FirstCase(Builtin):
 
     """
 
+    summary_text = "first element that matches a pattern"
     attributes = hold_rest | protected
     options = Cases.options
     rules = {
@@ -498,6 +506,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
+    summary_text = "extract elements that appear at a list of positions"
     attributes = n_hold_rest | protected
 
     rules = {
@@ -576,6 +585,7 @@ class FirstPosition(Builtin):
 
     """
 
+    summary_text = "position of the first element matching a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
     }
@@ -679,6 +689,7 @@ class Last(Builtin):
      = Last[{}]
     """
 
+    summary_text = "last element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nolast": "`1` has zero length and no last element.",
@@ -701,7 +712,7 @@ class Length(Builtin):
     """
     <dl>
       <dt>'Length[$expr$]'
-      <dd>returns the number of leaves in $expr$.
+      <dd>returns the number of elements in $expr$.
     </dl>
 
     Length of a list:
@@ -725,6 +736,8 @@ class Length(Builtin):
     >> FullForm[1/3]
      = Rational[1, 3]
     """
+
+    summary_text = "number of elements in a list or expression"
 
     def apply(self, expr, evaluation):
         "Length[expr_]"
@@ -752,6 +765,7 @@ class MemberQ(Builtin):
      = True
     """
 
+    summary_text = "test whether an element is a member of a list"
     rules = {
         "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
         "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
@@ -780,6 +794,8 @@ class Most(Builtin):
      = 7
     #> ClearAll[A];
     """
+
+    summary_text = "remove the last element"
 
     def apply(self, expr, evaluation):
         "Most[expr_]"
@@ -900,6 +916,7 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
+    summary_text = "get/set any part of an expression"
     attributes = n_hold_rest | protected | read_protected
 
     def apply_makeboxes(self, list, i, f, evaluation):
@@ -936,7 +953,7 @@ class Part(Builtin):
                 idx = idx.get_int_value()
                 if idx == 0:
                     return Symbol("System`ByteArray")
-                data = list._elements[0].value
+                data = list.elements[0].value
                 lendata = len(data)
                 if idx < 0:
                     idx = data - idx
@@ -980,6 +997,8 @@ class Pick(Builtin):
     >> Pick[{a, b, c, d, e}, {1, 2, 3.5, 4, 5.5}, _Integer]
      = {a, b, d}
     """
+
+    summary_text = "pick out elements according to a boolean mask"
 
     def _do(self, items0, sel0, match, evaluation):
         def pick(items, sel):
@@ -1035,6 +1054,8 @@ class Prepend(Builtin):
      = Prepend[a, b]
     """
 
+    summary_text = "add an element at the beginning"
+
     def apply(self, expr, item, evaluation):
         "Prepend[expr_, item_]"
 
@@ -1089,6 +1110,7 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
+    summary_text = "add an element at the beginning of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
@@ -1148,6 +1170,7 @@ class ReplacePart(Builtin):
      = {a, b, t}
     """
 
+    summary_text = "replace elements at given positions"
     messages = {
         "reps": "`1` is not a list of replacement rules.",
     }
@@ -1223,6 +1246,7 @@ class Rest(Builtin):
      = Rest[{}]
     """
 
+    summary_text = "remove the first element"
     messages = {
         "normal": "Nonatomic expression expected.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
@@ -1241,11 +1265,52 @@ class Rest(Builtin):
         return expr.slice(expr.head, slice(1, len(expr.leaves)), evaluation)
 
 
+class Select(Builtin):
+    """
+    <dl>
+      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
+      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+    </dl>
+
+    Find numbers greater than zero:
+    >> Select[{-3, 0, 1, 3, a}, #>0&]
+     = {1, 3}
+
+    'Select' works on an expression with any head:
+    >> Select[f[a, 2, 3], NumberQ]
+     = f[2, 3]
+
+    >> Select[a, True]
+     : Nonatomic expression expected.
+     = Select[a, True]
+
+    #> A[x__] := 31415 /; Length[{x}] == 3;
+    #> Select[A[5, 2, 7, 1], OddQ]
+     = 31415
+    #> ClearAll[A];
+    """
+
+    summary_text = "pick elements according to a criterion"
+
+    def apply(self, items, expr, evaluation):
+        "Select[items_, expr_]"
+
+        if isinstance(items, Atom):
+            evaluation.message("Select", "normal")
+            return
+
+        def cond(leaf):
+            test = Expression(expr, leaf)
+            return test.evaluate(evaluation).is_true()
+
+        return items.filter(items.head, cond, evaluation)
+
+
 class Span(BinaryOperator):
     """
     <dl>
-    <dt>'Span'
-        <dd>is the head of span ranges like '1;;3'.
+      <dt>'Span'
+      <dd>is the head of span ranges like '1;;3'.
     </dl>
 
     >> ;; // FullForm
@@ -1284,6 +1349,7 @@ class Span(BinaryOperator):
      = (1 ;; d) (a ;; b ;; c)
     """
 
+    summary_text = "general specification for spans or blocks of elements"
     operator = ";;"
     precedence = 305
 
@@ -1291,8 +1357,8 @@ class Span(BinaryOperator):
 class Take(Builtin):
     """
     <dl>
-    <dt>'Take[$expr$, $n$]'
-        <dd>returns $expr$ with all but the first $n$ leaves removed.
+      <dt>'Take[$expr$, $n$]'
+      <dd>returns $expr$ with all but the first $n$ leaves removed.
     </dl>
 
     >> Take[{a, b, c, d}, 3]
@@ -1340,6 +1406,7 @@ class Take(Builtin):
      = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
     """
 
+    summary_text = "pick a range of elements"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
@@ -1360,40 +1427,16 @@ class Take(Builtin):
             e.message(evaluation)
 
 
-class Select(Builtin):
+class UpTo(Builtin):
     """
     <dl>
-      <dt>'Select[{$e1$, $e2$, ...}, $f$]'
-      <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
+      <dd> 'Upto'[$n$]
+      <dt> is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
     </dl>
-
-    Find numbers greater than zero:
-    >> Select[{-3, 0, 1, 3, a}, #>0&]
-     = {1, 3}
-
-    'Select' works on an expression with any head:
-    >> Select[f[a, 2, 3], NumberQ]
-     = f[2, 3]
-
-    >> Select[a, True]
-     : Nonatomic expression expected.
-     = Select[a, True]
-
-    #> A[x__] := 31415 /; Length[{x}] == 3;
-    #> Select[A[5, 2, 7, 1], OddQ]
-     = 31415
-    #> ClearAll[A];
     """
 
-    def apply(self, items, expr, evaluation):
-        "Select[items_, expr_]"
-
-        if isinstance(items, Atom):
-            evaluation.message("Select", "normal")
-            return
-
-        def cond(leaf):
-            test = Expression(expr, leaf)
-            return test.evaluate(evaluation).is_true()
-
-        return items.filter(items.head, cond, evaluation)
+    summary_text = "a certain number of elements, or as many as are available"
+    messages = {
+        "innf": "Expected non-negative integer or infinity at position 1 in ``.",
+        "argx": "UpTo expects 1 argument, `1` arguments were given.",
+    }

@@ -41,6 +41,7 @@ class SparseArray(Builtin):
         "rect": "Rectangular array or list of rules is expected at position 1 in SparseArray[``1``]",
         "exdims": "The dimensions cannot be determined from the positions `1`",
     }
+    summary_text = "an array by the values of the non-zero elements"
 
     def list_to_sparse(self, array, evaluation):
         # TODO: Simplify and modularize this method.

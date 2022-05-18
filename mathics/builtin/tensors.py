@@ -15,7 +15,6 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
-    Integer0,
     String,
 )
 from mathics.core.symbols import (
@@ -111,7 +110,7 @@ class ArrayQ(Builtin):
       <dt>'ArrayQ[$expr$, $pattern$]'
       <dd>also tests whether the array depth of $expr$ matches $pattern$.
 
-      <dt>'ArrayQ[$expr$, $pattern$, $test$]'</dt>
+      <dt>'ArrayQ[$expr$, $pattern$, $test$]'
       <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$.
         'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
     </dl>
@@ -167,38 +166,6 @@ class ArrayQ(Builtin):
         if not pattern.does_match(Integer(depth), evaluation):
             return SymbolFalse
         return SymbolTrue
-
-
-class DiagonalMatrix(Builtin):
-    """
-    <dl>
-      <dt>'DiagonalMatrix[$list$]'
-      <dd>gives a matrix with the values in $list$ on its diagonal and zeroes elsewhere.
-    </dl>
-
-    >> DiagonalMatrix[{1, 2, 3}]
-     = {{1, 0, 0}, {0, 2, 0}, {0, 0, 3}}
-    >> MatrixForm[%]
-     = 1   0   0
-     .
-     . 0   2   0
-     .
-     . 0   0   3
-
-    #> DiagonalMatrix[a + b]
-     = DiagonalMatrix[a + b]
-    """
-
-    def apply(self, list, evaluation):
-        "DiagonalMatrix[list_List]"
-
-        result = []
-        n = len(list.leaves)
-        for index, item in enumerate(list.leaves):
-            row = [Integer0] * n
-            row[index] = item
-            result.append(Expression("List", *row))
-        return Expression("List", *result)
 
 
 class Dimensions(Builtin):
@@ -268,22 +235,6 @@ class Dot(BinaryOperator):
     }
 
     summary_text = "dot product"
-
-
-class IdentityMatrix(Builtin):
-    """
-    <dl>
-    <dt>'IdentityMatrix[$n$]'
-        <dd>gives the identity matrix with $n$ rows and columns.
-    </dl>
-
-    >> IdentityMatrix[3]
-     = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}
-    """
-
-    rules = {
-        "IdentityMatrix[n_Integer]": "DiagonalMatrix[Table[1, {n}]]",
-    }
 
 
 class Inner(Builtin):
@@ -445,26 +396,6 @@ class Outer(Builtin):
         return rec(lists[0], lists[1:], [])
 
 
-class MatrixQ(Builtin):
-    """
-    <dl>
-    <dt>'MatrixQ[$m$]'
-        <dd>returns 'True' if $m$ is a list of equal-length lists.
-    <dt>'MatrixQ[$m$, $f$]'
-        <dd>only returns 'True' if '$f$[$x$]' returns 'True' for each
-        element $x$ of the matrix $m$.
-    </dl>
-
-    >> MatrixQ[{{1, 3}, {4.0, 3/2}}, NumberQ]
-     = True
-    """
-
-    rules = {
-        "MatrixQ[expr_]": "ArrayQ[expr, 2]",
-        "MatrixQ[expr_, test_]": "ArrayQ[expr, 2, test]",
-    }
-
-
 class RotationTransform(Builtin):
     """
     <dl>
@@ -480,6 +411,7 @@ class RotationTransform(Builtin):
         "RotationTransform[phi_]": "TransformationFunction[{{Cos[phi], -Sin[phi], 0}, {Sin[phi], Cos[phi], 0}, {0, 0, 1}}]",
         "RotationTransform[phi_, p_]": "TranslationTransform[p] . RotationTransform[phi] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a rotation in 3D"
 
 
 class ScalingTransform(Builtin):
@@ -497,6 +429,7 @@ class ScalingTransform(Builtin):
         "ScalingTransform[v_]": "TransformationFunction[DiagonalMatrix[Join[v, {1}]]]",
         "ScalingTransform[v_, p_]": "TranslationTransform[p] . ScalingTransform[v] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a scale transformation"
 
 
 class ShearingTransform(Builtin):
@@ -516,6 +449,7 @@ class ShearingTransform(Builtin):
         "ShearingTransform[phi_, {0, 1}, {1, 0}]": "TransformationFunction[{{1, 0, 0}, {Tan[phi], 1, 0}, {0, 0, 1}}]",
         "ShearingTransform[phi_, u_, v_, p_]": "TranslationTransform[p] . ShearingTransform[phi, u, v] . TranslationTransform[-p]",
     }
+    summary_text = "symbolic representation of a shearing transformation"
 
 
 class TransformationFunction(Builtin):
@@ -536,6 +470,7 @@ class TransformationFunction(Builtin):
         "Dot[TransformationFunction[a_], TransformationFunction[b_]]": "TransformationFunction[a . b]",
         "TransformationFunction[m_][v_]": "Take[m . Join[v, {1}], Length[v]]",
     }
+    summary_text = "general symbolic representation of transformation"
 
 
 class TranslationTransform(Builtin):
@@ -553,6 +488,7 @@ class TranslationTransform(Builtin):
         "TranslationTransform[v_]": "TransformationFunction[IdentityMatrix[Length[v] + 1] + "
         "(Join[ConstantArray[0, Length[v]], {#}]& /@ Join[v, {0}])]",
     }
+    summary_text = "symbolic representation of translation"
 
 
 class Transpose(Builtin):
@@ -608,5 +544,4 @@ class VectorQ(Builtin):
         "VectorQ[expr_]": "ArrayQ[expr, 1]",
         "VectorQ[expr_, test_]": "ArrayQ[expr, 1, test]",
     }
-
     summary_text = "test whether an object is a vector"

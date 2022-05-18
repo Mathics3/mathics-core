@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import pytest
-from .helper import check_evaluation, reset_session, session
+from test.helper import check_evaluation, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
 
@@ -209,13 +209,13 @@ def test_set_and_clear(str_expr, str_expected, msg):
         ),
         (
             "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
-            "{A, {Global`, System`}, B}",
+            "{A, {System`, Global`}, B}",
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
         (
             "A=1; B=2; ClearAll[A, $ContextPath, B];{A,$ContextPath,B}",
-            "{A, {Global`, System`}, B}",
+            "{A, {System`, Global`}, B}",
             "This clears A and B, but not $ContextPath",
             ("Special symbol $ContextPath cannot be cleared.",),
         ),
@@ -231,4 +231,10 @@ def test_set_and_clear_messages(str_expr, str_expected, message, out_msgs):
         hold_expected=True,
         failure_message=message,
         expected_messages=out_msgs,
+    )
+
+
+def test_predecrement():
+    check_evaluation(
+        "--5", "4", failure_message="Set::setraw: Cannot assign to raw object 5."
     )

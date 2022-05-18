@@ -52,6 +52,7 @@ class RSolve(Builtin):
         "dsfun": "`1` cannot be used as a function.",
         "dsvar": "`1` cannot be used as a variable.",
     }
+    summary_text = "recurrence equations solver"
 
     def apply(self, eqns, a, n, evaluation):
         "RSolve[eqns_, a_, n_]"

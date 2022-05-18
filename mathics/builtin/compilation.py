@@ -13,6 +13,7 @@ import ctypes
 from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
+from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
@@ -83,6 +84,7 @@ class Compile(Builtin):
      =  CompiledFunction[{a, b}, a, -PythonizedCode-]
     """
 
+    summary_text = "compile an expression"
     requires = ("llvmlite",)
 
     attributes = hold_all | protected
@@ -170,14 +172,17 @@ class Compile(Builtin):
         return Expression("CompiledFunction", arg_names, expr, code)
 
 
-class CompiledCode(Atom):
+class CompiledCode(Atom, ImmutableValueMixin):
     class_head_name = "System`CompiledCode"
+    summary_text = "CompiledCode object"
 
     def __init__(self, cfunc, args, **kwargs):
         super(CompiledCode, self).__init__(**kwargs)
         self.cfunc = cfunc
         self.args = args
 
+    # FIXME: is this right? We don't check that the actual code is the same?
+    # just that we hhave some sort of compiled code?
     def equal2(self, rhs):
         return isinstance(rhs, CompiledCode)
 
@@ -237,6 +242,7 @@ class CompiledFunction(Builtin):
     """
 
     messages = {"argerr": "Invalid argument `1` should be Integer, Real or boolean."}
+    summary_text = "A CompiledFunction object."
 
     def apply(self, argnames, expr, code, args, evaluation):
         "CompiledFunction[argnames_, expr_, code_CompiledCode][args__]"

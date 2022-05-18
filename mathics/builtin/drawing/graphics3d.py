@@ -82,7 +82,7 @@ class Graphics3D(Graphics):
      . currentprojection=perspective(2.6,-4.8,4.0);
      . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
      . // Sphere3DBox
-     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1));
+     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
      . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
      . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
      . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
@@ -121,7 +121,7 @@ class Graphics3D(Graphics):
      . draw(((0.99452,1,-1)--(0.99452,1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
      . \end{asy}
     """
-
+    summary_text = "a three-dimensional graphics image wrapper"
     options = Graphics.options.copy()
     options.update(
         {"BoxRatios": "Automatic", "Lighting": "Automatic", "ViewPoint": "{1.3,-2.4,2}"}
@@ -135,8 +135,6 @@ class Graphics3D(Graphics):
         "MakeBoxes[Graphics3D[content_, OptionsPattern[Graphics3D]], "
         "        OutputForm]": '"-Graphics3D-"'
     }
-
-    summary_text = "a three-dimensional graphics image wrapper"
 
 
 def total_extent_3d(extents):
@@ -199,6 +197,7 @@ class Sphere(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a sphere"
     rules = {
         "Sphere[]": "Sphere[{0, 0, 0}, 1]",
         "Sphere[positions_]": "Sphere[positions, 1]",
@@ -225,6 +224,7 @@ class Cone(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a cone"
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -321,6 +321,7 @@ class Cylinder(Builtin):
      = -Graphics3D-
     """
 
+    summary_text = "a cylinder"
     messages = {
         "oddn": "The number of points must be even.",
         "nrr": "The radius must be a real number",
@@ -362,6 +363,7 @@ class Tube(Builtin):
     = -Graphics3D-
     """
 
+    summary_text = "a tube"
     rules = {
         "Tube[]": "Tube[{{0, 0, 0}, {1, 1, 1}}, 1]",
         "Tube[positions_]": "Tube[positions, 1]",

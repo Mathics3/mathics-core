@@ -12,7 +12,7 @@ import numpy
 import sympy
 
 
-from mathics.builtin.base import Predefined, SympyObject
+from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -213,6 +213,7 @@ class Catalan(_MPMathConstant, _SympyConstant):
     mpmath_name = "catalan"
     # numpy_name = "catalan"  ## This is not defined in numpy
     sympy_name = "Catalan"
+    summary_text = "Catalan's constant C ≃ 0.916"
 
 
 class ComplexInfinity(_SympyConstant):
@@ -238,6 +239,7 @@ class ComplexInfinity(_SympyConstant):
      = Indeterminate
     """
 
+    summary_text = "infinite complex quantity of undetermined direction"
     sympy_name = "zoo"
 
     rules = {
@@ -271,6 +273,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 0.0174532925199432957692369076849
     """
 
+    summary_text = "conversion factor from radians to degrees"
     mpmath_name = "degree"
 
     def to_sympy(self, expr=None, **kwargs):
@@ -308,7 +311,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-    <dt>'E'</dt>
+    <dt>'E'
         <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
@@ -321,6 +324,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 13.5914
     """
 
+    summary_text = "exponential constant E ≃ 2.7182"
     mpmath_name = "e"
     numpy_name = "e"
     sympy_name = "E"
@@ -333,7 +337,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-      <dt>'EulerGamma'</dt>
+      <dt>'EulerGamma'
       <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
     </dl>
 
@@ -344,6 +348,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
      = 0.5772156649015328606065120900824024310422
     """
 
+    summary_text = "Euler's constant γ ≃ 0.5772"
     mpmath_name = "euler"
     numpy_name = "euler_gamma"
     sympy_name = "EulerGamma"
@@ -352,7 +357,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class Glaisher(_MPMathConstant):
     """
     <dl>
-      <dt>'Glaisher'</dt>
+      <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
     </dl>
 
@@ -363,6 +368,7 @@ class Glaisher(_MPMathConstant):
      # 1.2824271291006219541941391071304678916931152343750
     """
 
+    summary_text = "Glaiser's constant A ≃ 1.282"
     mpmath_name = "glaisher"
 
 
@@ -379,6 +385,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
      = 1.618033988749894848204586834365638117720
     """
 
+    summary_text = "golden ratio φ ≃ 1.6180"
     sympy_name = "GoldenRatio"
     mpmath_name = "phi"
 
@@ -386,7 +393,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 class Indeterminate(_SympyConstant):
     """
     <dl>
-    <dt>'Indeterminate'</dt>
+    <dt>'Indeterminate'
         <dd>represents an indeterminate result.
     </dl>
 
@@ -398,6 +405,7 @@ class Indeterminate(_SympyConstant):
      = Indeterminate
     """
 
+    summary_text = "indeterminate value"
     sympy_name = "nan"
 
 
@@ -405,7 +413,7 @@ class Infinity(_SympyConstant):
     """
     <dl>
     <dt>'Infinity'
-        <dd>represents an infinite real quantity.
+        <dd>a symbol that represents an infinite real quantity.
     </dl>
 
     >> 1 / Infinity
@@ -432,7 +440,7 @@ class Infinity(_SympyConstant):
     numpy_name = "Inf"
     mpmath_name = "inf"
     python_equivalent = math.inf
-
+    summary_text = "infinite real quantity"
     rules = {
         "Infinity": "DirectedInfinity[1]",
         "MakeBoxes[Infinity, f:StandardForm|TraditionalForm]": ('"\\[Infinity]"'),
@@ -442,7 +450,7 @@ class Infinity(_SympyConstant):
 class Khinchin(_MPMathConstant):
     """
     <dl>
-      <dt>'Khinchin'</dt>
+      <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
     </dl>
 
@@ -453,13 +461,72 @@ class Khinchin(_MPMathConstant):
      # = 2.6854520010653075701156922150403261184692382812500
     """
 
+    summary_text = "Khinchin's constant K ≃ 2.6854"
     mpmath_name = "khinchin"
+
+
+class Overflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'
+      <dd>represents a number too large to be represented by Mathics.
+    </dl>
+
+    >> Exp[10.*^20]
+     : Overflow occurred in computation.
+     = Overflow[]
+    >> Table[Exp[10.^k],{k, 3}]
+     : Overflow occurred in computation.
+     = {22026.5, 2.68812×10^43, Overflow[]}
+    >> 1 / Underflow[]
+     = Overflow[]
+    """
+
+    rules = {
+        "Power[Overflow[], -1]": "Underflow[]",
+    }
+    summary_text = "overflow in numeric evaluation"
+
+
+class Underflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'
+      <dd>represents a number too small to be represented by Mathics.
+    </dl>
+
+    >> 1 / Overflow[]
+     = Underflow[]
+    >> 5 * Underflow[]
+     = 5 Underflow[]
+    >> % // N
+     = 0.
+    Underflow[] is kept symbolic in operations against integer numbers,
+    but taken as 0. in numeric evaluations:
+    >> 1 - Underflow[]
+     = 1 - Underflow[]
+    >> % // N
+     = 1.
+    #
+    # TODO: handle this kind of expressions where precision may be
+    # lost:
+    # >> Exp[-1000.]
+    #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
+    #  = Underflow[]
+    """
+
+    rules = {
+        "Power[Underflow[], -1]": "Overflow[]",
+        "x_Real + Underflow[]": "x",
+        "Underflow[] * x_Real": "0.",
+    }
+    summary_text = "underflow in numeric evaluation"
 
 
 class Pi(_MPMathConstant, _SympyConstant):
     """
      <dl>
-       <dt>'Pi'</dt>
+       <dt>'Pi'
        <dd>is the constant \u03c0.
      </dl>
 
@@ -485,3 +552,4 @@ class Pi(_MPMathConstant, _SympyConstant):
     sympy_name = "pi"
     mpmath_name = "pi"
     numpy_name = "pi"
+    summary_text = "pi \u03c0 ≃ 3.1416"

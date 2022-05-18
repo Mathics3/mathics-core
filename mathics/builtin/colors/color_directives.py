@@ -13,11 +13,13 @@ from mathics.builtin.base import (
     Builtin,
     BoxConstructError,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElement, get_class
+from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
+from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Real,
+    MachineReal,
     String,
     from_python,
 )
@@ -123,7 +125,41 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
-class _Color(_GraphicsElement):
+class Opacity(_GraphicsDirective):
+    """
+    <dl>
+    <dt>'Opacity[$level$]'
+    <dd> is a graphics directive that sets the opacity to $level$.
+    </dl>
+    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
+     = -Graphics-
+    >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
+     = -Graphics3D-
+    Notice that 'Opacity' does not overwrite the value of the alpha channel if it is set in a color directive:
+    >> Graphics[{Blue, Disk[], RGBColor[1,0,0,1],Opacity[.2], Rectangle[{0,0},{1,1}]}]
+     = -Graphics-
+    """
+
+    def init(self, item=None, *args, **kwargs):
+        if isinstance(item, (int, float)):
+            item = Expression("Opacity", MachineReal(item))
+            super(Opacity, self).init(None, item)
+        self.opacity = item.leaves[0].to_python()
+
+    def to_css(self):
+        try:
+            if 0.0 <= self.opacity <= 1.0:
+                return self.opacity
+        except:
+            pass
+        return None
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(item)
+
+
+class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
         # diminish in size when they appear in lists or rows. we only want the display of colors this
@@ -141,7 +177,7 @@ class _Color(_GraphicsElement):
     default_components = []
 
     def init(self, item=None, components=None):
-        super(_Color, self).init(None, item)
+        super(_ColorObject, self).init(None, item)
         if item is not None:
             leaves = item.leaves
             if len(leaves) in self.components_sizes:
@@ -180,7 +216,7 @@ class _Color(_GraphicsElement):
 
     def to_css(self):
         rgba = self.to_rgba()
-        alpha = rgba[3] if len(rgba) > 3 else 1.0
+        alpha = rgba[3] if len(rgba) > 3 else None
         return (
             r"rgb(%f%%, %f%%, %f%%)" % (rgba[0] * 100, rgba[1] * 100, rgba[2] * 100),
             alpha,
@@ -205,7 +241,7 @@ class _Color(_GraphicsElement):
         return components
 
 
-class CMYKColor(_Color):
+class CMYKColor(_ColorObject):
     """
     <dl>
     <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
@@ -258,6 +294,7 @@ class ColorDistance(Builtin):
 
     """
 
+    summary_text = "distance between two colors"
     options = {"DistanceFunction": "Automatic"}
 
     requires = ("numpy",)
@@ -383,8 +420,8 @@ class ColorDistance(Builtin):
 
         def distance(a, b):
             try:
-                py_a = _Color.create(a)
-                py_b = _Color.create(b)
+                py_a = _ColorObject.create(a)
+                py_b = _ColorObject.create(b)
             except ColorError:
                 evaluation.message("ColorDistance", "invarg", a, b)
                 raise
@@ -419,7 +456,7 @@ class ColorError(BoxConstructError):
     pass
 
 
-class GrayLevel(_Color):
+class GrayLevel(_ColorObject):
     """
     <dl>
     <dt>'GrayLevel[$g$]'
@@ -435,7 +472,7 @@ class GrayLevel(_Color):
     default_components = [0, 1]
 
 
-class Hue(_Color):
+class Hue(_ColorObject):
     """
     <dl>
     <dt>'Hue[$h$, $s$, $l$, $a$]'
@@ -490,7 +527,7 @@ class Hue(_Color):
         return result
 
 
-class LABColor(_Color):
+class LABColor(_ColorObject):
     """
     <dl>
     <dt>'LABColor[$l$, $a$, $b$]'
@@ -504,7 +541,7 @@ class LABColor(_Color):
     default_components = [0, 0, 0, 1]
 
 
-class LCHColor(_Color):
+class LCHColor(_ColorObject):
     """
     <dl>
     <dt>'LCHColor[$l$, $c$, $h$]'
@@ -518,7 +555,7 @@ class LCHColor(_Color):
     default_components = [0, 0, 0, 1]
 
 
-class LUVColor(_Color):
+class LUVColor(_ColorObject):
     """
     <dl>
     <dt>'LCHColor[$l$, $u$, $v$]'
@@ -531,7 +568,7 @@ class LUVColor(_Color):
     default_components = [0, 0, 0, 1]
 
 
-class RGBColor(_Color):
+class RGBColor(_ColorObject):
     """
     <dl>
     <dt>'RGBColor[$r$, $g$, $b$]'
@@ -557,7 +594,7 @@ class RGBColor(_Color):
         return self.components
 
 
-class XYZColor(_Color):
+class XYZColor(_ColorObject):
     """
     <dl>
     <dt>'XYZColor[$x$, $y$, $z$]'
@@ -572,7 +609,7 @@ class XYZColor(_Color):
 
 def expression_to_color(color):
     try:
-        return _Color.create(color)
+        return _ColorObject.create(color)
     except ColorError:
         return None
 

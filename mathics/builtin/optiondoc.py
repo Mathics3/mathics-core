@@ -31,6 +31,8 @@ class Automatic(Builtin):
      = {Background :> Automatic, Exclusions :> Automatic, ImageSize :> Automatic, MaxRecursion :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic}
     """
 
+    summary_text = "choose the value automatically"
+
 
 class Axes(Builtin):
     """
@@ -49,6 +51,8 @@ class Axes(Builtin):
      = -Graphics-
     """
 
+    summary_text = "show the axes or not"
+
 
 class Axis(Builtin):
     """
@@ -60,6 +64,8 @@ class Axis(Builtin):
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis]
      = -Graphics-
     """
+
+    summary_text = "fill to the axis"
 
 
 class Bottom(Builtin):
@@ -73,6 +79,8 @@ class Bottom(Builtin):
      = -Graphics-
     """
 
+    summary_text = "align / fill at bottom"
+
 
 class ChartLabels(Builtin):
     """
@@ -85,6 +93,8 @@ class ChartLabels(Builtin):
      = -Graphics-
     """
 
+    summary_text = "labels for a chart"
+
 
 class ChartLegends(Builtin):
     """
@@ -93,6 +103,8 @@ class ChartLegends(Builtin):
       <dd>is a charting option.
     </dl>
     """
+
+    summary_text = "legends for the chart"
 
 
 class Filling(Builtin):
@@ -106,6 +118,8 @@ class Filling(Builtin):
      = -Graphics-
     """
 
+    summary_text = "whether / what kind of filling"
+
 
 class Full(Builtin):
     """
@@ -114,6 +128,8 @@ class Full(Builtin):
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
     </dl>
     """
+
+    summary_text = "the full range"
 
 
 class ImageSize(Builtin):
@@ -136,6 +152,8 @@ class ImageSize(Builtin):
      = -Graphics-
     """
 
+    summary_text = "size of the final picture"
+
 
 class Joined(Builtin):
     """
@@ -148,6 +166,8 @@ class Joined(Builtin):
      = -Graphics-
     """
 
+    summary_text = "whether the data points are joint to make likes"
+
 
 class MaxRecursion(Builtin):
     """
@@ -157,8 +177,10 @@ class MaxRecursion(Builtin):
     </dl>
 
     >> NIntegrate[Exp[-10^8 x^2], {x, -1, 1}, MaxRecursion -> 10]
-     =  1.97519*^-207
+     =  1.97519×10^-207
     """
+
+    summary_text = "maximum number of recursive subdivisions"
 
 
 class Mesh(Builtin):
@@ -184,6 +206,7 @@ class Mesh(Builtin):
     messages = {
         "ilevels": "`1` is not a valid mesh specification.",
     }
+    summary_text = "whether / how the mesh is shown"
 
 
 class PlotPoints(Builtin):
@@ -196,6 +219,8 @@ class PlotPoints(Builtin):
     >> Plot[Sin[Cos[x^2]],{x,-4,4}, PlotPoints->22]
      = -Graphics-
     """
+
+    summary_text = "initial size for the set of sample points"
 
 
 class PlotRange(Builtin):
@@ -219,6 +244,8 @@ class PlotRange(Builtin):
      = -Graphics-
     """
 
+    summary_text = "range to be plotted"
+
 
 class TicksStyle(Builtin):
     """
@@ -237,6 +264,8 @@ class TicksStyle(Builtin):
      = -Graphics-
     """
 
+    summary_text = "format for ticks in a graphic"
+
 
 class Top(Builtin):
     """
@@ -248,3 +277,5 @@ class Top(Builtin):
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis|Top|Bottom]
      = -Graphics-
     """
+
+    summary_text = "align /fill at top"

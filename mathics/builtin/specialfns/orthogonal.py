@@ -24,6 +24,7 @@ class ChebyshevT(_MPMathFunction):
     nargs = 2
     sympy_name = "chebyshevt"
     mpmath_name = "chebyt"
+    summary_text = "Chebyshev's polynomials of the first kind"
 
 
 class ChebyshevU(_MPMathFunction):
@@ -43,6 +44,7 @@ class ChebyshevU(_MPMathFunction):
     nargs = 2
     sympy_name = "chebyshevu"
     mpmath_name = "chebyu"
+    summary_text = "Chebyshev's polynomials of the second kind"
 
 
 class GegenbauerC(_MPMathFunction):
@@ -64,6 +66,7 @@ class GegenbauerC(_MPMathFunction):
     nargs = 3
     sympy_name = "gegenbauer"
     mpmath_name = "gegenbauer"
+    summary_text = "Gegenbauer's polynomials"
 
 
 class HermiteH(_MPMathFunction):
@@ -86,6 +89,7 @@ class HermiteH(_MPMathFunction):
     nargs = 2
     sympy_name = "hermite"
     mpmath_name = "hermite"
+    summary_text = "Hermite's polynomials"
 
 
 class JacobiP(_MPMathFunction):
@@ -105,6 +109,7 @@ class JacobiP(_MPMathFunction):
     nargs = 4
     sympy_name = "jacobi"
     mpmath_name = "jacobi"
+    summary_text = "Jacobi's polynomials"
 
 
 class LaguerreL(_MPMathFunction):
@@ -133,6 +138,7 @@ class LaguerreL(_MPMathFunction):
     nargs = 3
     sympy_name = "laguerre_poly"
     mpmath_name = "laguerre"
+    summary_text = "Laguerre's polynomials"
 
     def prepare_sympy(self, leaves):
         if len(leaves) == 3:
@@ -181,6 +187,7 @@ class LegendreP(_MPMathFunction):
     nargs = 3
     sympy_name = "legendre"
     mpmath_name = "legenp"
+    summary_text = "Legendre's polynomials of first kind"
 
     def prepare_sympy(self, leaves):
         if leaves[1] == Integer0:
@@ -223,6 +230,7 @@ class LegendreQ(_MPMathFunction):
     nargs = 3
     sympy_name = ""
     mpmath_name = "legenq"
+    summary_text = "Legendre's polynomials of second kind"
 
     def prepare_sympy(self, leaves):
         if leaves[1] == Integer0:
@@ -251,6 +259,8 @@ class SphericalHarmonicY(_MPMathFunction):
     nargs = 4
     sympy_name = "Ynm"
     mpmath_name = "spherharm"
+    summary_text = "3D Spherical Harmonic"
+
     rules = {
         "Derivative[0,0,1,0][SphericalHarmonicY]": "(Cot[#3]*#2*SphericalHarmonicY[#1, #2, #3, #4] + (Sqrt[Gamma[1 + #1 - #2]]*Sqrt[Gamma[2 + #1 + #2]]*SphericalHarmonicY[#1, 1 + #2, #3, #4])/(E^(I*#4)*Sqrt[Gamma[#1 - #2]]*Sqrt[Gamma[1 + #1 + #2]]))&",
         "Derivative[0,0,0,1][SphericalHarmonicY]": "(I*#2*SphericalHarmonicY[#1, #2, #3, #4])&",

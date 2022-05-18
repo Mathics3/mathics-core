@@ -150,18 +150,33 @@ class _Get(_HTMLBuiltin):
 
 
 class HTMLGet(_Get):
+    """
+    <dl>
+    <dd>HTMLGet['str']
+    <dt>Parses 'str' as HTML code.
+    </dl>
+    """
+
+    summary_text = "parse HTML code"
+
     def _parse(self, text):
         return parse_html_file(text)
 
 
 class HTMLGetString(_Get):
     """
+    <dl>
+    <dt>'HTML`Parser`HTMLGetString["string"]'
+    <dd> parses HTML code contained in "string".
+    </dl>
     #> Head[HTML`Parser`HTMLGetString["<a></a>"]]
      = XMLObject[Document]
 
     #> Head[HTML`Parser`HTMLGetString["<a><b></a>"]]
      = XMLObject[Document]
     """
+
+    summary_text = "parse HTML code"
 
     def _parse(self, text):
         with BytesIO() as f:
@@ -176,35 +191,35 @@ class _DataImport(_TagImport):
 
         if full_data:
 
-            def add_data(l, x):
-                l.append(x)
-                return l
+            def add_data(data_list, x):
+                data_list.append(x)
+                return data_list
 
         else:
 
-            def add_data(l, x):
+            def add_data(data_list, x):
                 if x is None:
-                    return l
-                if l is None:
+                    return data_list
+                if data_list is None:
                     return [x]
                 elif len(x) == 1:
-                    l.extend(x)
+                    data_list.extend(x)
                 elif x:
-                    l.append(Expression("List", *x))
-                return l
+                    data_list.append(Expression("List", *x))
+                return data_list
 
         newline = re.compile(r"\s+")
 
-        def add_text(l, node):
+        def add_text(data_list, node):
             deep_data = traverse(node)
             if deep_data:  # if there's data, we ignore any text
-                add_data(l, deep_data)
+                add_data(data_list, deep_data)
             else:
                 t = []
                 for s in node.xpath(".//text()"):
                     t.append(s)
                 if t or full_data:
-                    l.append(String(newline.sub(" ", " ".join(t))))
+                    data_list.append(String(newline.sub(" ", " ".join(t))))
 
         def traverse(parent):
             if full_data:
@@ -248,6 +263,10 @@ class _DataImport(_TagImport):
 
 class DataImport(_DataImport):
     """
+    <dl>
+    <dt>'HTML`DataImport["filename"]'
+    <dd> imports data from a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Data"][[1, 1, 2, 3]]
      = {Washington, D.C., 77...03′56.07″ W (1897) or 77...04′02.24″ W (NAD 27) or 77...04′01.16″ W (NAD 83), New Naval Observatory meridian}
 
@@ -255,11 +274,20 @@ class DataImport(_DataImport):
      = 3
     """
 
+    summary_text = "import data from a HTML file"
     full_data = False
     tag_name = "Data"
 
 
 class FullDataImport(_DataImport):
+    """
+    <dl>
+    <dt>'HTML`FullDataImport["filename"]'
+    <dd> imports data from a HTML file.
+    </dl>
+    """
+
+    summary_text = "import data from a HTML file"
     full_data = True
     tag_name = "FullData"
 
@@ -274,10 +302,16 @@ class _LinksImport(_TagImport):
 
 class HyperlinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'HTML`HyperlinksImport["filename"]'
+    <dd> imports hyperlinks from a HTML file.
+    </dl>
+
     >> Import["ExampleData/PrimeMeridian.html", "Hyperlinks"][[1]]
      = /wiki/Prime_meridian_(Greenwich)
     """
 
+    summary_text = "import hyperlinks from a HTML file"
     tag_name = "Hyperlinks"
 
     def _links(self, tree):
@@ -289,10 +323,15 @@ class HyperlinksImport(_LinksImport):
 
 class ImageLinksImport(_LinksImport):
     """
+    <dl>
+    <dt>'HTML`ImageLinksImport["filename"]'
+    <dd> imports links to the images included in a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "ImageLinks"][[6]]
      = //upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Prime_meridian.jpg/180px-Prime_meridian.jpg
     """
 
+    summary_text = "import images from a HTML file"
     tag_name = "ImageLinks"
 
     def _links(self, tree):
@@ -304,10 +343,15 @@ class ImageLinksImport(_LinksImport):
 
 class PlaintextImport(_TagImport):
     """
+    <dl>
+    <dt>'HTML`PlaintextImport["filename"]'
+    <dd> imports plane text from a HTML file.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html"], RegularExpression["Wiki[a-z]+"]]]
      = {Wikipedia, Wikidata, Wikibase, Wikimedia}
     """
 
+    summary_text = "import plane text from a HTML file"
     tag_name = "Plaintext"
 
     def _import(self, tree):
@@ -322,9 +366,15 @@ class PlaintextImport(_TagImport):
 
 class SourceImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'HTML`SourceImport["filename"]'
+    <dd> imports source code from a HTML file.
+    </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html", "Source"], RegularExpression["<t[a-z]+>"]]]
      = {<title>, <tr>, <th>, <td>}
     """
+
+    summary_text = "import source code from a HTML file"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
@@ -340,10 +390,15 @@ class SourceImport(_HTMLBuiltin):
 
 class TitleImport(_TagImport):
     """
+    <dl>
+    <dt>'HTML`TitleImport["filename"]'
+    <dd> imports the title string from a HTML file.
+    </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Title"]
      = Prime meridian - Wikipedia
     """
 
+    summary_text = "import title string from a HTML file"
     tag_name = "Title"
 
     def _import(self, tree):
@@ -354,9 +409,15 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
+    <dl>
+    <dt>'HTML`XMLObjectImport["filename"]'
+    <dd> imports XML objects from a HTML file.
+    </dl>
     >> Part[Import["ExampleData/PrimeMeridian.html", "XMLObject"], 2, 3, 1, 3, 2]
      = XMLElement[title, {}, {Prime meridian - Wikipedia}]
     """
+
+    summary_text = "import XML objects from a HTML file"
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""

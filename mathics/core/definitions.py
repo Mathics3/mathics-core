@@ -12,7 +12,7 @@ from collections import defaultdict
 from typing import List, Optional
 
 from mathics.core.atoms import String
-from mathics.core.attributes import nothing
+from mathics.core.attributes import no_attributes
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -100,8 +100,8 @@ class Definitions(object):
         self._packages = []
         self.current_context = "Global`"
         self.context_path = (
-            "Global`",
             "System`",
+            "Global`",
         )
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
@@ -485,7 +485,7 @@ class Definitions(object):
                 attributes = builtin.attributes
             else:
                 is_numeric = False
-                attributes = nothing
+                attributes = no_attributes
 
             options = {}
             formatvalues = {
@@ -584,7 +584,7 @@ class Definitions(object):
                 attributes = builtin.attributes
                 is_numeric = builtin.is_numeric
             else:
-                attributes = nothing
+                attributes = no_attributes
                 is_numeric = False
             self.user[name] = Definition(
                 name=name,
@@ -811,7 +811,7 @@ class Definition(object):
         upvalues=None,
         formatvalues=None,
         messages=None,
-        attributes=nothing,
+        attributes=no_attributes,
         options=None,
         nvalues=None,
         defaultvalues=None,

@@ -78,7 +78,15 @@ class BaseRule(KeyComparable):
         try:
             self.pattern.match(yield_match, expression, {}, evaluation, fully=fully)
         except StopGenerator_BaseRule as exc:
-            return exc.value
+            # FIXME: figure where these values are not getting set or updated properly.
+            # For now we have to take a pessimistic view
+            expr = exc.value
+            # FIXME: expr is sometimes a list - why the changing types
+            if hasattr(expr, "_elements_fully_evaluated"):
+                expr._elements_fully_evaluated = False
+                expr._is_flat = False  # I think this is fully updated
+                expr._is_ordered = False
+            return expr
 
         if return_list:
             return result_list

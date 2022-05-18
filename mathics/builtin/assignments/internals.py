@@ -5,7 +5,7 @@ from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression
 from mathics.core.rules import Rule
-from mathics.core.atoms import Atom
+from mathics.core.atoms import Atom, Integer
 from mathics.core.symbols import (
     Symbol,
     SymbolN,
@@ -14,7 +14,7 @@ from mathics.core.symbols import (
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolNull
+from mathics.core.systemsymbols import SymbolMachinePrecision
 
 from mathics.core.attributes import attribute_string_to_number, locked, protected
 
@@ -159,11 +159,11 @@ def unroll_patterns(lhs, rhs, evaluation):
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
-    lhs_elements = lhs._elements
+    lhs_elements = lhs.elements
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
-        rhs, status = rhs.apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
 
     if name == "System`HoldPattern":
@@ -177,7 +177,7 @@ def unroll_conditions(lhs):
     if isinstance(lhs, Symbol):
         return lhs, None
     else:
-        name, lhs_elements = lhs.get_head_name(), lhs._elements
+        name, lhs_elements = lhs.get_head_name(), lhs.get_elements()
     condition = []
     # This handle the case of many sucesive conditions:
     # f[x_]/; cond1 /; cond2 ... ->  f[x_]/; And[cond1, cond2, ...]
@@ -186,7 +186,7 @@ def unroll_conditions(lhs):
         lhs = lhs_elements[0]
         if isinstance(lhs, Atom):
             break
-        name, lhs_elements = lhs.get_head_name(), lhs._elements
+        name, lhs_elements = lhs.get_head_name(), lhs.elements
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:
@@ -369,17 +369,16 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
 def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
-    defs = evaluation.definitions
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
         # raise AssignmentException(lhs, rhs)
         return True
-    leaves = lhs.leaves
-    if len(leaves) > 1:
-        evaluation.message("NumericQ", "argx", Integer(len(leaves)))
+    elements = lhs.elements
+    if len(elements) > 1:
+        evaluation.message("NumericQ", "argx", Integer(len(elements)))
         # raise AssignmentException(lhs, rhs)
         return True
-    target = leaves[0]
+    target = elements[0]
     if isinstance(target, Symbol):
         name = target.get_name()
         definition = evaluation.definitions.get_definition(name)
@@ -560,8 +559,9 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     rule = Rule(lhs, rhs)
     for tag in tags:
-        if rejected_because_protected(self, lhs, tag, evaluation):
-            continue
+        # Messages can be assigned even if the symbol is protected...
+        # if rejected_because_protected(self, lhs, tag, evaluation):
+        #    continue
         count += 1
         defs.add_message(tag, rule)
     return count > 0
@@ -576,7 +576,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
             evaluation.message_args("Condition", len(rhs.leaves), 2)
             raise AssignmentException(lhs, None)
         lhs = Expression(
-            "Condition", lhs, rhs.leaves[1].apply_rules([rulopc], evaluation)[0]
+            "Condition", lhs, rhs.leaves[1].do_apply_rules([rulopc], evaluation)[0]
         )
         rhs = rhs.leaves[0]
         rhs_name = rhs.get_head_name()
@@ -586,7 +586,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
         lhs = Expression(
             "Condition",
             lhs,
-            condition.leaves[1].apply_rules([rulopc], evaluation)[0],
+            condition.leaves[1].do_apply_rules([rulopc], evaluation)[0],
         )
     return lhs, rhs
 

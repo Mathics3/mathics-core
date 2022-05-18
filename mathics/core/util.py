@@ -18,7 +18,7 @@ def timeit(method):
     """Add this as a decorator to time parts of the code.
 
     For example:
-        @timit
+        @timeit
         def long_running_function():
             ...
     """

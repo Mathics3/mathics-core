@@ -1,20 +1,262 @@
 """
 Gamma and Related Functions
 """
+import sys
+import sympy
+import mpmath
 
-
-from mathics.builtin.arithmetic import _MPMathMultiFunction
-from mathics.builtin.base import SympyFunction
+from mathics.builtin.arithmetic import (
+    _MPMathFunction,
+    _MPMathMultiFunction,
+    call_mpmath,
+)
+from mathics.builtin.base import SympyFunction, PostfixOperator
+from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer0
+from mathics.core.evaluators import apply_N
+from mathics.core.symbols import SymbolSequence
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+)
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    Number,
+    from_mpmath,
+    from_python,
+)
 
 from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.number import min_prec, dps
+
+
+class Beta(_MPMathMultiFunction):
+    """
+    <dl>
+      <dt>'Beta[$a$, $b$]'
+      <dd>is the Euler's Beta function.
+      <dt>'Beta[$z$, $a$, $b$]'
+      <dd>gives the incomplete Beta function.
+    </dl>
+    The Beta function satisfies the property
+    Beta[x, y] = Integrate[t^(x-1)(1-t)^(y-1),{t,0,1}] = Gamma[a] Gamma[b] / Gamma[a + b]
+    >> Beta[2, 3]
+     = 1 / 12
+    >> 12* Beta[1., 2, 3]
+     = 1.
+    """
+
+    summary_text = "Euler's Beta function"
+    attributes = listable | numeric_function | protected
+    mpmath_names = {
+        2: "beta",  # two arguments
+        3: "betainc",  # three arguments
+        4: "betainc",  # three arguments
+    }
+    sympy_names = {
+        2: "beta",  # two arguments
+        # sympy still does not implement beta incomplete.
+    }
+    rules = {
+        "Derivative[1, 0, 0][Beta]": "(#1^(#2-1) * (1-#1)^(#3-1) )&",
+    }
+
+    def get_sympy_names(self):
+        return ["beta", "betainc"]
+
+    def from_sympy(self, sympy_name, leaves):
+        if sympy_name == "betainc":
+            # lowergamma(z, x) -> Gamma[z, 0, x]
+            z, a, b = leaves
+            return Expression(self.get_name(), z, a, b)
+        else:
+            return Expression(self.get_name(), *leaves)
+
+    # sympy does not handles Beta for integer arguments.
+    def apply_2(self, a, b, evaluation):
+        """Beta[a_, b_]"""
+        if not (a.is_numeric() and b.is_numeric()):
+            return
+        gamma_a = Expression("Gamma", a)
+        gamma_b = Expression("Gamma", b)
+        gamma_a_plus_b = Expression("Gamma", a + b)
+        return gamma_a * gamma_b / gamma_a_plus_b
+
+    def apply_3(self, z, a, b, evaluation):
+        """Beta[z_, a_, b_]"""
+        # Here I needed to do that because the order of the arguments in WL
+        # is different from the order in mpmath. Most of the code is the same
+        # thatn in
+        if not all(isinstance(q, Number) for q in (a, b, z)):
+            return
+
+        args = (
+            Expression(SymbolSequence, a, b, Integer0, z)
+            .numerify(evaluation)
+            .get_sequence()
+        )
+        mpmath_function = self.get_mpmath_function(tuple(args))
+        if any(arg.is_machine_precision() for arg in args):
+            # if any argument has machine precision then the entire calculation
+            # is done with machine precision.
+            float_args = [
+                arg.round().get_float_value(permit_complex=True) for arg in args
+            ]
+            if None in float_args:
+                return
+
+            result = call_mpmath(mpmath_function, tuple(float_args))
+            if isinstance(result, (mpmath.mpc, mpmath.mpf)):
+                if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
+                    result = SymbolComplexInfinity
+                elif mpmath.isinf(result) and result > 0:
+                    result = Expression(SymbolDirectedInfinity, Integer1)
+                elif mpmath.isinf(result) and result < 0:
+                    result = Expression(SymbolDirectedInfinity, Integer(-1))
+                elif mpmath.isnan(result):
+                    result = SymbolIndeterminate
+                else:
+                    result = from_mpmath(result)
+        else:
+            prec = min_prec(*args)
+            d = dps(prec)
+            args = [apply_N(arg, evaluation, Integer(d)) for arg in args]
+            with mpmath.workprec(prec):
+                mpmath_args = [x.to_mpmath() for x in args]
+                if None in mpmath_args:
+                    return
+                result = call_mpmath(mpmath_function, tuple(mpmath_args))
+                if isinstance(result, (mpmath.mpc, mpmath.mpf)):
+                    result = from_mpmath(result, d)
+        return result
+
+
+class Factorial(PostfixOperator, _MPMathFunction):
+    """
+    <dl>
+    <dt>'Factorial[$n$]'
+    <dt>'$n$!'
+        <dd>computes the factorial of $n$.
+    </dl>
+
+    >> 20!
+     = 2432902008176640000
+
+    'Factorial' handles numeric (real and complex) values using the gamma function:
+    >> 10.5!
+     = 1.18994×10^7
+    >> (-3.0+1.5*I)!
+     = 0.0427943 - 0.00461565 I
+
+    However, the value at poles is 'ComplexInfinity':
+    >> (-1.)!
+     = ComplexInfinity
+
+    'Factorial' has the same operator ('!') as 'Not', but with higher precedence:
+    >> !a! //FullForm
+     = Not[Factorial[a]]
+
+    #> 0!
+     = 1
+    """
+
+    summary_text = "factorial"
+    attributes = numeric_function | protected
+
+    operator = "!"
+    precedence = 610
+    mpmath_name = "factorial"
+
+
+class Factorial2(PostfixOperator, _MPMathFunction):
+    """
+    <dl>
+      <dt>'Factorial2[$n$]'
+      <dt>'$n$!!'
+      <dd>computes the double factorial of $n$.
+    </dl>
+    The double factorial or semifactorial of a number $n$, is the product of all the integers from 1 up to n that have the same parity (odd or even) as $n$.
+
+    >> 5!!
+     = 15.
+
+    >> Factorial2[-3]
+     = -1.
+
+    'Factorial2' accepts Integers, Rationals, Reals, or Complex Numbers:
+    >> I!! + 1
+     = 3.71713 + 0.279527 I
+
+    Irrationals can be handled by using numeric approximation:
+    >> N[Pi!!, 6]
+     = 3.35237
+    """
+
+    attributes = numeric_function | protected
+    operator = "!!"
+    precedence = 610
+    mpmath_name = "fac2"
+    sympy_name = "factorial2"
+    messages = {
+        "ndf": "`1` evaluation error: `2`.",
+        "unknownp": "'`1`' not in ('Automatic', 'sympy', 'mpmath')",
+    }
+    summary_text = "semi-factorial"
+    options = {"Method": "Automatic"}
+
+    def apply(self, number, evaluation, options={}):
+        "Factorial2[number_?NumberQ, OptionsPattern[%(name)s]]"
+
+        try:
+            import scipy.special as sp
+            from numpy import pi
+
+            # From https://stackoverflow.com/a/36779406/546218
+            def fact2_generic(x):
+                n = (x + 1.0) / 2.0
+                return 2.0 ** n * sp.gamma(n + 0.5) / (pi ** (0.5))
+
+        except ImportError:
+            fact2_generic = None
+
+        pref_expr = self.get_option(options, "Method", evaluation)
+        is_automatic = False
+        if pref_expr is SymbolAutomatic:
+            is_automatic = True
+            preference = "mpmath"
+        else:
+            preference = pref_expr.get_string_value()
+
+        if preference in ("mpmath", "Automatic"):
+            number_arg = number.to_mpmath()
+            convert_from_fn = from_mpmath
+            fact2_fn = getattr(mpmath, self.mpmath_name)
+        elif preference == "sympy":
+            number_arg = number.to_sympy()
+            convert_from_fn = from_sympy
+            fact2_fn = getattr(sympy, self.sympy_name)
+        else:
+            return evaluation.message("Factorial2", "unknownp", preference)
+
+        try:
+            result = fact2_fn(number_arg)
+        except:  # noqa
+            number_arg = number.to_python()
+            # Maybe an even negative number? Try generic routine
+            if is_automatic and fact2_generic:
+                return from_python(fact2_generic(number_arg))
+            return evaluation.message(
+                "Factorial2", "ndf", preference, str(sys.exc_info()[1])
+            )
+        return convert_from_fn(result)
 
 
 class Gamma(_MPMathMultiFunction):
     """
-    In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
-
     <dl>
       <dt>'Gamma[$z$]'
       <dd>is the gamma function on the complex number $z$.
@@ -42,7 +284,7 @@ class Gamma(_MPMathMultiFunction):
 
     Numeric arguments:
     >> Gamma[123.78]
-     = 4.21078*^204
+     = 4.21078×10^204
     >> Gamma[1. + I]
      = 0.498016 - 0.15495 I
 
@@ -74,6 +316,7 @@ class Gamma(_MPMathMultiFunction):
         1: "gamma",  # one argument
         2: "uppergamma",
     }
+    summary_text = "complete and incomplete gamma functions"
 
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
@@ -95,6 +338,49 @@ class Gamma(_MPMathMultiFunction):
             return Expression(self.get_name(), *leaves)
 
 
+class LogGamma(_MPMathMultiFunction):
+    """
+    In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
+
+    <dl>
+      <dt>'LogGamma[$z$]'
+      <dd>is the logarithm of the gamma function on the complex number $z$.
+    </dl>
+
+    >> LogGamma[3]
+     = Log[2]
+
+    LogGamma[z] has different analytical structure than Log[Gamma[z]]
+    >> LogGamma[-2.+3 I]
+     = -6.77652 - 4.56879 I
+    >> Log[Gamma[-2.+3 I]]
+     = -6.77652 + 1.71439 I
+    LogGamma also can be evaluated for large arguments, for which Gamma produces Overflow:
+    >>  LogGamma[1.*^20]
+     = 4.50517×10^21
+    >>  Log[Gamma[1.*^20]]
+     : Overflow occurred in computation.
+     = Overflow[]
+
+    """
+
+    summary_text = "logarithm of the gamma function"
+
+    mpmath_names = {
+        1: "loggamma",  # one argument
+    }
+    sympy_names = {
+        1: "loggamma",  # one argument
+    }
+    rules = {
+        "LogGamma[i_Integer]": "Log[Gamma[i]]",
+        "Derivative[1][LogGamma]": "(PolyGamma[0, #1])&",
+    }
+
+    def get_sympy_names(self):
+        return ["loggamma"]
+
+
 class Pochhammer(SympyFunction):
     """
     The Pochhammer symbol or rising factorial often appears in series expansions for hypergeometric functions.
@@ -111,7 +397,7 @@ class Pochhammer(SympyFunction):
     attributes = listable | numeric_function | protected
 
     sympy_name = "RisingFactorial"
-
+    summary_text = "Pochhammer's symbols"
     rules = {
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
@@ -136,7 +422,6 @@ class PolyGamma(_MPMathMultiFunction):
     >> PolyGamma[3, 5]
      = -22369 / 3456 + Pi ^ 4 / 15
     """
-
     attributes = listable | numeric_function | protected
 
     mpmath_names = {
@@ -144,7 +429,7 @@ class PolyGamma(_MPMathMultiFunction):
         2: "psi",
     }
 
-    summary_text = "PolyGamma function"
+    summary_text = "polygamma function"
 
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 
@@ -167,5 +452,5 @@ class StieltjesGamma(SympyFunction):
 
     attributes = listable | numeric_function | protected
 
-    summary_text = "Stieltjes function"
+    summary_text = "Stieltjes' function"
     sympy_name = "stieltjes"

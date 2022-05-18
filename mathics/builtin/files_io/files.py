@@ -20,6 +20,7 @@ from itertools import chain
 
 from mathics_scanner import TranslateError
 from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core import read
 from mathics.core.read import (
     channel_to_stream,
     MathicsOpen,
@@ -61,7 +62,6 @@ INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
 
 INPUT_VAR = ""
-INPUTFILE_VAR = ""
 
 TMP_DIR = tempfile.gettempdir()
 SymbolPath = Symbol("$Path")
@@ -70,7 +70,7 @@ SymbolPath = Symbol("$Path")
 ### it can be moved somewhere else.
 
 
-class Input(Predefined):
+class Input_(Predefined):
     """
     <dl>
     <dt>'$Input'
@@ -83,13 +83,14 @@ class Input(Predefined):
 
     attributes = protected | read_protected
     name = "$Input"
+    summary_text = "the name of the current input stream"
 
     def evaluate(self, evaluation):
         global INPUT_VAR
         return String(INPUT_VAR)
 
 
-class InputFileName(Predefined):
+class InputFileName_(Predefined):
     """
     <dl>
     <dt>'$InputFileName'
@@ -100,11 +101,13 @@ class InputFileName(Predefined):
     X> $InputFileName
     """
 
+    summary_text = (
+        "the full absolute path to the file from which input is currently being sought"
+    )
     name = "$InputFileName"
 
     def evaluate(self, evaluation):
-        global INPUTFILE_VAR
-        return String(INPUTFILE_VAR)
+        return String(read.INPUTFILE_VAR)
 
 
 class EndOfFile(Builtin):
@@ -114,6 +117,8 @@ class EndOfFile(Builtin):
       <dd>is returned by 'Read' when the end of an input stream is reached.
     </dl>
     """
+
+    summary_text = "end of the file"
 
 
 # TODO: Improve docs for these Read[] arguments.
@@ -125,6 +130,8 @@ class Byte(Builtin):
     </dl>
     """
 
+    summary_text = "single byte of data, returned as an integer"
+
 
 class Character(Builtin):
     """
@@ -133,6 +140,8 @@ class Character(Builtin):
       <dd>is a data type for 'Read'.
     </dl>
     """
+
+    summary_text = "single character, returned as a one‐character string"
 
 
 class Expression_(Builtin):
@@ -145,6 +154,7 @@ class Expression_(Builtin):
     For information about underlying data structure Expression (a kind of M-expression) that is central in evaluation, see: <url>https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>
     """
 
+    summary_text = "WL expression"
     name = "Expression"
 
 
@@ -156,6 +166,7 @@ class Number_(Builtin):
     </dl>
     """
 
+    summary_text = "exact or approximate number in Fortran‐like notation"
     name = "Number"
 
 
@@ -167,6 +178,8 @@ class Record(Builtin):
     </dl>
     """
 
+    summary_text = "sequence of characters delimited by record separators"
+
 
 class Word(Builtin):
     """
@@ -175,6 +188,8 @@ class Word(Builtin):
       <dd>is a data type for 'Read'.
     </dl>
     """
+
+    summary_text = "sequence of characters delimited by word separators"
 
 
 class Read(Builtin):
@@ -265,16 +280,16 @@ class Read(Builtin):
 
     #> Close[stream];
     #> stream = StringToStream["1.523E-19"]; Read[stream, Real]
-     = 1.523*^-19
+     = 1.523×10^-19
     #> Close[stream];
     #> stream = StringToStream["-1.523e19"]; Read[stream, Real]
-     = -1.523*^19
+     = -1.523×10^19
     #> Close[stream];
     #> stream = StringToStream["3*^10"]; Read[stream, Real]
-     = 3.*^10
+     = 3.×10^10
     #> Close[stream];
     #> stream = StringToStream["3.*^10"]; Read[stream, Real]
-     = 3.*^10
+     = 3.×10^10
     #> Close[stream];
 
     ## Expression
@@ -331,6 +346,7 @@ class Read(Builtin):
 
     """
 
+    summary_text = "read an object of the specified type from a stream"
     messages = {
         "openx": "`1` is not open.",
         "readf": "`1` is not a valid format specification.",
@@ -427,7 +443,7 @@ class Read(Builtin):
 
         # Wrap types in a list (if it isn't already one)
         if types.has_form("List", None):
-            types = types._elements
+            types = types.elements
         else:
             types = (types,)
 
@@ -587,6 +603,8 @@ class Write(Builtin):
      = {10 x + 15 y ^ 2, 3 Sin[z]}
     #> Close[stream];
     """
+
+    summary_text = "write a sequence of expressions to a stream, ending the output with a newline (line feed)"
 
     def apply(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
@@ -1170,6 +1188,7 @@ class BinaryWrite(Builtin):
      = {148, 135, 230, 22, 136, 141, 234, 99}
     """
 
+    summary_text = "write an object of the specified type"
     messages = {
         "writex": "`1`.",
     }
@@ -1458,9 +1477,9 @@ class BinaryRead(Builtin):
     ## Real128
     ## 0x0000
     #> WbR[{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,0}, "Real128"]
-     = 0.*^-4965
+     = 0.×10^-4965
     #> WbR[{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,0,128}, "Real128"]
-     = 0.*^-4965
+     = 0.×10^-4965
     ## 0x0001 - 0x7FFE
     #> WbR[{0,0,0,0, 0,0,0,0, 0,0,0,0, 0,0,255,63}, "Real128"]
      = 1.00000000000000000000000000000000
@@ -1469,9 +1488,9 @@ class BinaryRead(Builtin):
     #> WbR[{135, 62, 233, 137, 22, 208, 233, 210, 133, 82, 251, 92, 220, 216, 255, 63}, "Real128"]
      = 1.84711247573661489653389674493896
     #> WbR[{135, 62, 233, 137, 22, 208, 233, 210, 133, 82, 251, 92, 220, 216, 207, 72}, "Real128"]
-     = 2.45563355727491021879689747166252*^679
+     = 2.45563355727491021879689747166252×10^679
     #> WbR[{74, 95, 30, 234, 116, 130, 1, 84, 20, 133, 245, 221, 113, 110, 219, 212}, "Real128"]
-     = -4.52840681592341879518366539335138*^1607
+     = -4.52840681592341879518366539335138×10^1607
     #> % // Precision
      = 33.
     ## 0x7FFF
@@ -1533,6 +1552,7 @@ class BinaryRead(Builtin):
      = {EndOfFile, EndOfFile, EndOfFile}
     """
 
+    summary_text = "read an object of the specified type"
     readers = _BinaryFormat.get_readers()
 
     messages = {
@@ -1638,6 +1658,7 @@ class WriteString(Builtin):
 
     """
 
+    summary_text = "write a sequence of strings to a stream, with no extra newlines"
     messages = {
         "strml": ("`1` is not a string, stream, " "or list of strings and streams."),
         "writex": "`1`.",
@@ -1705,7 +1726,7 @@ class _OpenAction(Builtin):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
-            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR)
+            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=True)
             path = String(tmpf.name)
             tmpf.close()
             return self.apply_path(path, evaluation, options)
@@ -1793,6 +1814,7 @@ class OpenRead(_OpenAction):
     #> Close[%];
     """
 
+    summary_text = "open a file for reading"
     mode = "r"
     stream_type = "InputStream"
 
@@ -1813,6 +1835,9 @@ class OpenWrite(_OpenAction):
     #> Close[%];
     """
 
+    summary_text = (
+        "send an output stream to a file, wiping out the previous contents of the file"
+    )
     mode = "w"
     stream_type = "OutputStream"
 
@@ -1836,6 +1861,9 @@ class OpenAppend(_OpenAction):
     #> DeleteFile["MathicsNonExampleFile"]
     """
 
+    summary_text = (
+        "open an output stream to a file, appending to what was already in the file"
+    )
     mode = "a"
     stream_type = "OutputStream"
 
@@ -1875,7 +1903,7 @@ class Get(PrefixOperator):
     #> Hold[<<`/.\-_:$*~?] // FullForm
      = Hold[Get["`/.\\\\-_:$*~?"]]
     """
-
+    summary_text = "read in a file and evaluate commands in it"
     operator = "<<"
     precedence = 720
     options = {
@@ -1992,6 +2020,7 @@ class Put(BinaryOperator):
     S> DeleteFile[filename]
     """
 
+    summary_text = "write an expression to a file"
     operator = ">>"
     precedence = 30
 
@@ -2081,6 +2110,7 @@ class PutAppend(BinaryOperator):
      = x >>> /proc/uptime
     """
 
+    summary_text = "append an expression to a file"
     operator = ">>>"
     precedence = 30
 
@@ -2171,7 +2201,7 @@ class ReadList(Read):
     >> InputForm[%]
      = {123, abc}
     """
-
+    summary_text = "read a sequence of elements from a file, and put them in a WL list"
     rules = {
         "ReadList[stream_]": "ReadList[stream, Expression]",
     }
@@ -2264,6 +2294,7 @@ class FilePrint(Builtin):
      = FilePrint[]
     """
 
+    summary_text = "display the contents of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -2352,6 +2383,7 @@ class Close(Builtin):
      = Close[OutputStream[...]]
     """
 
+    summary_text = "close a stream"
     messages = {
         "closex": "`1`.",
     }
@@ -2391,6 +2423,8 @@ class StreamPosition(Builtin):
     >> StreamPosition[stream]
      = 7
     """
+
+    summary_text = "find the position of the current point in an open stream"
 
     def apply_input(self, name, n, evaluation):
         "StreamPosition[InputStream[name_, n_]]"
@@ -2441,7 +2475,6 @@ class SetStreamPosition(Builtin):
     #> SetStreamPosition[stream, 40]
      = ERROR_MESSAGE_HERE
     """
-
     messages = {
         "int": "Integer expected at position 2 in `1`.",
         "stmrng": (
@@ -2450,6 +2483,7 @@ class SetStreamPosition(Builtin):
         ),
         "seek": "Invalid I/O Seek.",
     }
+    summary_text = "set the position of the current point in an open stream"
 
     def apply_input(self, name, n, m, evaluation):
         "SetStreamPosition[InputStream[name_, n_], m_]"
@@ -2520,10 +2554,6 @@ class Skip(Read):
     #> Close[stream];
     """
 
-    rules = {
-        "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
-    }
-
     messages = {
         "intm": "Non-negative machine-sized integer expected at position 3 in `1`",
     }
@@ -2535,6 +2565,11 @@ class Skip(Read):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+
+    rules = {
+        "Skip[InputStream[name_, n_], types_]": "Skip[InputStream[name, n], types, 1]",
+    }
+    summary_text = "skip over an object of the specified type in an input stream"
 
     def apply(self, name, n, types, m, evaluation, options):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
@@ -2596,6 +2631,7 @@ class Find(Read):
         "RecordSeparators": '{"\r\n", "\n", "\r"}',
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "find the next occurrence of a string"
 
     def apply(self, name, n, text, evaluation, options):
         "Find[InputStream[name_, n_], text_, OptionsPattern[Find]]"
@@ -2652,6 +2688,8 @@ class InputStream(Builtin):
      = String
     """
 
+    summary_text = "an input stream"
+
 
 class OutputStream(Builtin):
     """
@@ -2665,6 +2703,8 @@ class OutputStream(Builtin):
     >> Close[%]
      = ...
     """
+
+    summary_text = "an output stream"
 
 
 class StringToStream(Builtin):
@@ -2686,6 +2726,8 @@ class StringToStream(Builtin):
     #> Close[strm]
      = String
     """
+
+    summary_text = "open an input stream for reading from a string"
 
     def apply(self, string, evaluation):
         "StringToStream[string_]"
@@ -2718,6 +2760,8 @@ class Streams(Builtin):
     #> Streams["some_nonexistant_name"]
      = {}
     """
+
+    summary_text = "list currently open streams"
 
     def apply(self, evaluation):
         "Streams[]"

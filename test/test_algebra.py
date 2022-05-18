@@ -284,3 +284,14 @@ def test_simplify():
         ),
     ):
         check_evaluation(str_expr, str_expected)
+
+
+def test_fullsimplify():
+    for str_expr, str_expected, failure_message in (
+        (
+            " a[x] + e f / (2 d) + c[x] // FullSimplify",
+            "e f / (2 d) + a[x] + c[x]",
+            "issue #214",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected, failure_message)

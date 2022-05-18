@@ -183,6 +183,7 @@ class ButtonBox(BoxConstruct):
     """
 
     attributes = protected | read_protected
+    summary_text = "box construct for buttons"
 
 
 class InterpretationBox(BoxConstruct):
@@ -202,6 +203,7 @@ class InterpretationBox(BoxConstruct):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box associated to an input expression"
 
     def apply_to_expression(boxexpr, form, evaluation):
         """ToExpression[boxexpr_IntepretationBox, form___]"""
@@ -448,11 +450,7 @@ class RowBox(BoxConstruct):
     </dl>
     """
 
-    #    def __str__(self):
-    #        return("RowBow  "+  tuple(item.__repr__() for item in self.items).__repr__(), self.box_options)
-
-    #    def __str__(self):
-    #        return self.__repr__()
+    summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
         return "List[" + self.items.__repr__() + "]"
@@ -566,6 +564,7 @@ class StyleBox(BoxConstruct):
 
     options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
     attributes = protected | read_protected
+    summary_text = "associate boxes with styles"
 
     def boxes_to_text(self, **options):
         options.pop("evaluation")
@@ -628,6 +627,7 @@ class TagBox(BoxConstruct):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "box tag with a head"
 
 
 class TemplateBox(BoxConstruct):
@@ -639,6 +639,7 @@ class TemplateBox(BoxConstruct):
     """
 
     attributes = hold_all_complete | protected | read_protected
+    summary_text = "parametrized box"
 
 
 class TooltipBox(BoxConstruct):
@@ -648,6 +649,8 @@ class TooltipBox(BoxConstruct):
         <dd>undocumented...
     </dl>
     """
+
+    summary_text = "box for showing tooltips"
 
 
 class FractionBox(BoxConstruct):

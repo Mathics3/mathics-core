@@ -122,7 +122,7 @@ class Context(Builtin):
 
     rules = {"Context[]": "$Context"}
 
-    summary_text = "gives the name of the context of a symbol"
+    summary_text = "give the name of the context of a symbol"
 
     def apply(self, symbol, evaluation):
         "Context[symbol_]"
@@ -239,7 +239,7 @@ class Definition(Builtin):
 
     attributes = hold_all | protected
     precedence = 670
-    summary_text = "gives values of a symbol in a form that can be stored in a package"
+    summary_text = "give values of a symbol in a form that can be stored in a package"
 
     def format_definition(self, symbol, evaluation, grid=True):
         "StandardForm,TraditionalForm,OutputForm: Definition[symbol_]"
@@ -402,7 +402,7 @@ class DownValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives a list of transformation rules corresponding to all downvalues defined for a symbol"
+    summary_text = "give a list of transformation rules corresponding to all downvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
         "DownValues[symbol_]"
@@ -611,7 +611,7 @@ class Names(Builtin):
      = True
     """
 
-    summary_text = "finds a list of symbols with names matching a pattern"
+    summary_text = "find a list of symbols with names matching a pattern"
 
     def apply(self, pattern, evaluation):
         "Names[pattern_]"
@@ -659,7 +659,7 @@ class OwnValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives the rule corresponding to any ownvalue defined for a symbol"
+    summary_text = "give the rule corresponding to any ownvalue defined for a symbol"
 
     def apply(self, symbol, evaluation):
         "OwnValues[symbol_]"
@@ -725,12 +725,12 @@ class SymbolName(Builtin):
      = "x"
     """
 
-    summary_text = "gives the name of a symbol as a string"
+    summary_text = "give the name of a symbol as a string"
 
     def apply(self, symbol, evaluation):
         "SymbolName[symbol_Symbol]"
 
-        # MMA docs say "SymbolName always gives the short name,
+        # MMA docs say "SymbolName always give the short name,
         # without any context"
         return String(strip_context(symbol.get_name()))
 
@@ -749,6 +749,8 @@ class SymbolQ(Test):
     >> SymbolQ[a + b]
      = False
     """
+
+    summary_text = "test whether is a symbol"
 
     def test(self, expr):
         return isinstance(expr, Symbol)
@@ -776,7 +778,7 @@ class UpValues(Builtin):
     """
 
     attributes = hold_all | protected
-    summary_text = "gives a list of transformation rules corresponding to upvalues defined for a symbol"
+    summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
         "UpValues[symbol_]"

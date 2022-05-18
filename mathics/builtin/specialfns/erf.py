@@ -34,7 +34,7 @@ class Erf(_MPMathMultiFunction):
     """
 
     attributes = listable | numeric_function | protected
-
+    summary_text = "error function"
     mpmath_names = {
         1: "erf",
     }
@@ -66,7 +66,7 @@ class Erfc(_MPMathFunction):
     """
 
     mpmath_name = "erfc"
-
+    summary_text = "complementary error function"
     rules = {
         "Derivative[1][Erfc]": "-2 Exp[-#^2] / Sqrt[Pi] &",
     }
@@ -87,6 +87,7 @@ class FresnelC(_MPMathFunction):
      = FresnelC[z]
     """
 
+    summary_text = "Fresnel's integral C"
     rules = {
         "Derivative[1][FresnelC]": "Cos[(Pi*#1^2)/2]&",
     }
@@ -111,6 +112,7 @@ class FresnelS(_MPMathFunction):
     rules = {
         "Derivative[1][FresnelS]": "Sin[(Pi*#1^2)/2]&",
     }
+    summary_text = "Fresnel's integral S"
     mpmath_name = "fresnels"
 
 
@@ -133,7 +135,7 @@ class InverseErf(_MPMathFunction):
 
     # No inherited NumericFunction
     attributes = listable | protected
-
+    summary_text = "inverse of the error function"
     sympy_name = "erfinv"
     mpmath_name = "erfinv"
 
@@ -167,7 +169,7 @@ class InverseErfc(_MPMathFunction):
     # No inherited NumericFunction
     attributes = listable | protected
     sympy_name = "erfcinv"
-
+    summary_text = "inverse of the complementary error function"
     rules = {
         "Derivative[1][InverseErfc]": "-Sqrt[Pi] Exp[InverseErfc[#]^2] / 2 &",
     }
