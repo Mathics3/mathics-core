@@ -26,7 +26,7 @@ from mathics.builtin.drawing.graphics3d import (
 )
 
 from mathics.builtin.drawing.graphics_internals import get_class
-from mathics.core.expression import Symbol
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.formatter import lookup_method
 from mathics.format.asy_fns import asy_create_pens, asy_number
 
@@ -615,10 +615,10 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale
     ):
         axes = graphics_options.get("System`Axes")
-        if axes.is_true():
+        if axes is SymbolTrue:
             axes = (True, True, True)
         elif axes.has_form("List", 3):
-            axes = (leaf.is_true() for leaf in axes.leaves)
+            axes = (leaf is SymbolTrue for leaf in axes.leaves)
         else:
             axes = (False, False, False)
         ticks_style = graphics_options.get("System`TicksStyle")

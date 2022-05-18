@@ -1740,7 +1740,7 @@ class _OpenAction(Builtin):
         # Options
         # BinaryFormat
         mode = self.mode
-        if options["System`BinaryFormat"].is_true():
+        if options["System`BinaryFormat"] is SymbolTrue:
             if not self.mode.endswith("b"):
                 mode += "b"
 

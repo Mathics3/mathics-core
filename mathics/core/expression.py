@@ -39,6 +39,7 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
+    SymbolTrue,
     system_symbols,
 )
 from mathics.core.systemsymbols import SymbolSequence
@@ -1628,7 +1629,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     name = rule._elements[0].get_name()
                     value = rule._elements[1]
                     if name == "System`ShowStringCharacters":
-                        value = value.is_true()
+                        value = value is SymbolTrue
                         options = options.copy()
                         options["show_string_characters"] = value
                     elif name == "System`ImageSizeMultipliers":

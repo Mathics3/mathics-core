@@ -18,7 +18,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolList
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule
 
 from mathics.builtin.colors.color_internals import (
@@ -1444,7 +1444,7 @@ class ColorCombine(_ImageBuiltin):
 
         numpy_channels = []
         for channel in channels.leaves:
-            if not Expression("MatrixQ", channel).evaluate(evaluation).is_true():
+            if not Expression("MatrixQ", channel).evaluate(evaluation) is SymbolTrue:
                 return
             numpy_channels.append(matrix_to_numpy(channel))
 
@@ -1518,7 +1518,7 @@ class Colorize(_ImageBuiltin):
             pixels = values.grayscale().pixels
             matrix = pixels_as_ubyte(pixels.reshape(pixels.shape[:2]))
         else:
-            if not Expression("MatrixQ", values).evaluate(evaluation).is_true():
+            if not Expression("MatrixQ", values).evaluate(evaluation) is SymbolTrue:
                 return
             matrix = matrix_to_numpy(values)
 

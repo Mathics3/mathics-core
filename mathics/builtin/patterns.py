@@ -246,7 +246,7 @@ class Replace(Builtin):
             if ret:
                 return rules
 
-            heads = self.get_option(options, "Heads", evaluation).is_true()
+            heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
             result, applied = expr.do_apply_rules(
                 rules,
@@ -673,7 +673,7 @@ class PatternTest(BinaryOperator, PatternObject):
                 else:
                     test_expr = Expression(self.test, item)
                     test_value = test_expr.evaluate(evaluation)
-                    if not test_value.is_true():
+                    if not test_value is SymbolTrue:
                         break
                         # raise StopGenerator
             else:
@@ -1527,7 +1527,7 @@ class Condition(BinaryOperator, PatternObject):
         def yield_match(new_vars, rest):
             test_expr = self.test.replace_vars(new_vars)
             test_result = test_expr.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 yield_func(new_vars, rest)
 
         self.pattern.match(yield_match, expression, vars, evaluation)
