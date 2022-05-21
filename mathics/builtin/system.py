@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -582,11 +581,9 @@ class Share(Builtin):
     """
     <dl>
       <dt>'Share[]'
-      <dd>Tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
-          By now, it just tries to release memory forcing Python to do garbage collection.
-          If psutil is available, returns the amount of released memory. Otherwise always returns $0$.
+      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
 
     </dl>
 
@@ -594,9 +591,9 @@ class Share(Builtin):
      = ...
     """
 
-    summary_text = "share common subexpressions throughout memory"
+    summary_text = "force Python garbage collection"
 
-    def apply_0(self, evaluation) -> Integer:
+    def apply(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
@@ -610,7 +607,7 @@ class Share(Builtin):
             gc.collect()
             return Integer0
 
-    def apply_1(self, symbol, evaluation) -> Integer:
+    def apply_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
