@@ -409,9 +409,6 @@ class GraphicsBox(BoxConstruct):
         instance.elements = elements
         return instance
 
-    def to_expression(self):
-        return self
-
     @property
     def elements(self):
         return self._elements

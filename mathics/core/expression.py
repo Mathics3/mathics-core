@@ -1616,7 +1616,7 @@ class Expression(BaseElement, NumericOperators):
         if self._cache:
             self._cache = self._cache.reordered()
 
-    def apply_rules(self, rules, evaluation, level=0, options=None):
+    def do_apply_rules(self, rules, evaluation, level=0, options=None):
         """for rule in rules:
         result = rule.apply(self, evaluation, fully=False)
         if result is not None:
@@ -1626,7 +1626,7 @@ class Expression(BaseElement, NumericOperators):
         new_applied = [False]
 
         def apply_element(element):
-            new, sub_applied = element.apply_rules(
+            new, sub_applied = element.do_apply_rules(
                 rules, evaluation, level + 1, options
             )
             new_applied[0] = new_applied[0] or sub_applied
@@ -1638,21 +1638,21 @@ class Expression(BaseElement, NumericOperators):
             )
 
         if options is None:  # default ReplaceAll mode; replace breadth first
-            result, applied = super().apply_rules(rules, evaluation, level, options)
+            result, applied = super().do_apply_rules(rules, evaluation, level, options)
             if applied:
                 return result, True
-            head, applied = self._head.apply_rules(rules, evaluation, level, options)
+            head, applied = self._head.do_apply_rules(rules, evaluation, level, options)
             new_applied[0] = applied
             return descend(Expression(head, *self._elements)), new_applied[0]
         else:  # Replace mode; replace depth first
             expr = descend(self)
-            expr, applied = super(Expression, expr).apply_rules(
+            expr, applied = super(Expression, expr).do_apply_rules(
                 rules, evaluation, level, options
             )
             new_applied[0] = new_applied[0] or applied
             if not applied and options["heads"]:
                 # heads in Replace are treated at the level of the arguments, i.e. level + 1
-                head, applied = expr._head.apply_rules(
+                head, applied = expr._head.do_apply_rules(
                     rules, evaluation, level + 1, options
                 )
                 new_applied[0] = new_applied[0] or applied

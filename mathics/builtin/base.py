@@ -707,7 +707,7 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin):
+class BoxConstruct(InstanceableBuiltin, BaseElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
@@ -811,6 +811,9 @@ class BoxConstruct(InstanceableBuiltin):
     def get_lookup_name(self):
         return self.get_name()
 
+    def get_sort_key(self):
+        return self.to_expression().get_sort_key()
+
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
 
@@ -844,39 +847,6 @@ class BoxConstruct(InstanceableBuiltin):
     @leaves.setter
     def leaves(self, value):
         raise ValueError("BoxConstruct.leaves is write protected.")
-
-    # I need to repeat this, because this is not
-    # an expression...
-    def has_form(self, heads, *element_counts):
-        """
-        element_counts:
-            (,):        no leaves allowed
-            (None,):    no constraint on number of leaves
-            (n, None):  leaf count >= n
-            (n1, n2, ...):    leaf count in {n1, n2, ...}
-        """
-
-        head_name = self.get_name()
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
-                return False
-        else:
-            if head_name != ensure_context(heads):
-                return False
-        if not element_counts:
-            return False
-        if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
-            if count not in element_counts:
-                if (
-                    len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
-                    and count >= element_counts[0]
-                ):
-                    return True
-                else:
-                    return False
-        return True
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxConstruct":
         return self
