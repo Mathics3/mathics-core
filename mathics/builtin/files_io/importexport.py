@@ -10,7 +10,13 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList, SymbolNull, strip_context
+from mathics.core.symbols import (
+    Symbol,
+    SymbolList,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
+)
 from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolFailed,
@@ -1973,7 +1979,7 @@ class ExportString(Builtin):
             evaluation,
         )
 
-        is_binary = exporter_options["System`BinaryFormat"].is_true()
+        is_binary = exporter_options["System`BinaryFormat"] is SymbolTrue
         if function_channels is None:
             evaluation.message("ExportString", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out

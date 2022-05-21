@@ -59,8 +59,8 @@ Internals
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46.
 * ``Cylinder`` rendering is implemented in Asymptote.
-* ``N[_,_,Method->method]`` was reworked. Issue #137
-
+* ``N[_,_,Method->method]`` was reworked. Issue #137.
+* the method ``Element.is_true()`` was removed in favor of `is SymbolTrue`
 
 Package update
 ++++++++++++++

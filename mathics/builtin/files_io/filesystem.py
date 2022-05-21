@@ -1710,7 +1710,7 @@ class Needs(Builtin):
             return
         test_loaded = Expression("MemberQ", Symbol("$Packages"), context)
         test_loaded = test_loaded.evaluate(evaluation)
-        if test_loaded.is_true():
+        if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
         result = Expression("Get", context).evaluate(evaluation)

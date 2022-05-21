@@ -225,7 +225,7 @@ class ContainsOnly(Builtin):
         def sameQ(a, b) -> bool:
             """Mathics SameQ"""
             result = Expression(same_test, a, b).evaluate(evaluation)
-            return result.is_true()
+            return result is SymbolTrue
 
         self.check_options(None, evaluation, options)
         for a in list1.leaves:
@@ -504,7 +504,7 @@ class Level(Builtin):
             result.append(level)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         walk_levels(expr, start, stop, heads=heads, callback=callback)
         return Expression(SymbolList, *result)
 
@@ -702,7 +702,7 @@ class Split(Builtin):
         result = [[mlist.leaves[0]]]
         for leaf in mlist.leaves[1:]:
             applytest = Expression(test, result[-1][-1], leaf)
-            if applytest.evaluate(evaluation).is_true():
+            if applytest.evaluate(evaluation) is SymbolTrue:
                 result[-1].append(leaf)
             else:
                 result.append([leaf])
@@ -900,7 +900,7 @@ class Position(Builtin):
                 result.append(pos)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         walk_levels(expr, start, stop, heads=heads, callback=callback, include_pos=True)
         return from_python(result)
 
@@ -957,18 +957,24 @@ class _IterationFunction(Builtin):
     def apply_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
-        index = 0
-        imax = imax.evaluate(evaluation)
-        imax = imax.numerify(evaluation)
-        if isinstance(imax, Number):
-            imax = imax.round()
-        imax = imax.get_float_value()
-        if imax is None:
-            if self.throw_iterb:
-                evaluation.message(self.get_name(), "iterb")
-            return
+        # Even though `imax` should be an integeral value, its type does not
+        # have to be an Integer.
+        if isinstance(imax, Integer):
+            py_max = imax.get_int_value()
+        else:
+            imax = imax.evaluate(evaluation)
+            imax = imax.numerify(evaluation)
+            if isinstance(imax, Number):
+                imax = imax.round()
+            py_max = imax.get_float_value()
+            if py_max is None:
+                if self.throw_iterb:
+                    evaluation.message(self.get_name(), "iterb")
+                return
+
         result = []
-        while index < imax:
+        index = 0
+        while index < py_max:
             evaluation.check_stopped()
             try:
                 result.append(expr.evaluate(evaluation))
@@ -1028,7 +1034,7 @@ class _IterationFunction(Builtin):
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
             if cont is SymbolFalse:
                 break
-            if not cont.is_true():
+            if not cont is SymbolTrue:
                 if self.throw_iterb:
                     evaluation.message(self.get_name(), "iterb")
                 return
@@ -1439,9 +1445,8 @@ class _RankedTake(Builtin):
 
                     def exclude(item):
                         return (
-                            Expression("MatchQ", item, excluded)
-                            .evaluate(evaluation)
-                            .is_true()
+                            Expression("MatchQ", item, excluded).evaluate(evaluation)
+                            is SymbolTrue
                         )
 
                 filtered = [leaf for leaf in t.leaves if not exclude(leaf)]

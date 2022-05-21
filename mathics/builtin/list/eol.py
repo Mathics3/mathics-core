@@ -32,7 +32,7 @@ from mathics.builtin.base import MessageException
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
-from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMakeBoxes,
@@ -205,12 +205,12 @@ class Cases(Builtin):
 
         if ls.has_form("Rule", 2):
             if ls.leaves[0].get_name() == "System`Heads":
-                heads = ls.leaves[1].is_true()
+                heads = ls.leaves[1] is SymbolTrue
                 ls = Expression("List", 1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
-            heads = self.get_option(options, "Heads", evaluation).is_true()
+            heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
             start, stop = python_levelspec(ls)
@@ -1016,7 +1016,7 @@ class Pick(Builtin):
 
     def apply(self, items, sel, evaluation):
         "Pick[items_, sel_]"
-        return self._do(items, sel, lambda s: s.is_true(), evaluation)
+        return self._do(items, sel, lambda s: s is SymbolTrue, evaluation)
 
     def apply_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
@@ -1301,7 +1301,7 @@ class Select(Builtin):
 
         def cond(leaf):
             test = Expression(expr, leaf)
-            return test.evaluate(evaluation).is_true()
+            return test.evaluate(evaluation) is SymbolTrue
 
         return items.filter(items.head, cond, evaluation)
 

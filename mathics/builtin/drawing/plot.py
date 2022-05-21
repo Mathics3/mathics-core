@@ -30,7 +30,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList, SymbolN
+from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule
 
 
@@ -2547,7 +2547,7 @@ class DensityPlot(_Plot3D):
             color_function_min = color_function.leaves[2].leaves[0].round_to_float()
             color_function_max = color_function.leaves[2].leaves[1].round_to_float()
 
-        color_function_scaling = color_function_scaling.is_true()
+        color_function_scaling = color_function_scaling is SymbolTrue
         v_range = v_max - v_min
 
         if v_range == 0:

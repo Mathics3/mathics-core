@@ -22,7 +22,7 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Atom, Symbol, SymbolList
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
 
 from mathics.core.attributes import flat, one_identity, protected
 
@@ -35,7 +35,7 @@ def _test_pair(test, a, b, evaluation, name):
         and (result.has_symbol("True") or result.has_symbol("False"))
     ):
         evaluation.message(name, "smtst", test_expr, result)
-    return result.is_true()
+    return result is SymbolTrue
 
 
 def _is_sameq(same_test):
