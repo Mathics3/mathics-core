@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 Global System Information
 """
 
-
+import gc
 import os
 import platform
 import sys
@@ -582,30 +581,42 @@ class Share(Builtin):
     """
     <dl>
       <dt>'Share[]'
-      <dd>Tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
-          Now it just do nothing.
+      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+
     </dl>
 
     >> Share[]
      = ...
     """
 
-    summary_text = "share common subexpressions throughout memory"
+    summary_text = "force Python garbage collection"
 
-    def apply_0(self, evaluation) -> Integer:
+    def apply(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0
 
-    def apply_1(self, symbol, evaluation) -> Integer:
+    def apply_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0

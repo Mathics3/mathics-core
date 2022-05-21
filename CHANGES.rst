@@ -4,13 +4,14 @@ CHANGES
 Enhancements
 ============
 
-* ``D`` can now act over ``Integrate`` and  ``NIntegrate`` (fix issue #130).
-* numeric overflows now do not affect the full evaluation, but just the element
-  which produce it.
+* ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130
+* numeric overflows now do not affect the full evaluation, but instead just the element which produce it.
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
-* ``Simplify`` now has a semantics closer to the WMA, and handles properly expressions of the form ``Simplify[0^a]`` (issue #167)
-* The order of the context name resolution (and `$ContextPath`) follows now the standard in WMA, with ``"System`"`` coming before ``"Global`"`.
-* In assignment to messages associated to symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA.
+* ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` (issue #167)
+* The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
+* In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
+* ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
+
 
 Documentation
 .............
@@ -21,15 +22,15 @@ Documentation
 New Builtins
 ============
 * Euler's ``Beta`` function.
-* ``Diagonal`` (Issue #115)
+* ``Diagonal``. Issue #115
 * ``EulerPhi``
-* ``$Echo`` (Issue #42).
-* ``FindRoot`` was improved for supporting numerical derivatives (issue 67), as well as the use of scipy libraries when are available.
+* ``$Echo``. Issue #42.
+* ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
 * ``LogGamma`` function.
 * ``NumericFunction``
-* Partial support for ``Opacity``.
+* Partial support for Graphics option ``Opacity``.
 * ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
    -  Pass option ``ShowTimeBySteps``, to show accumulated time before each setp
@@ -58,8 +59,8 @@ Internals
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46.
 * ``Cylinder`` rendering is implemented in Asymptote.
-* ``N[_,_,Method->method]`` was reworked (Issue #137).
-
+* ``N[_,_,Method->method]`` was reworked. Issue #137.
+* the method ``Element.is_true()`` was removed in favor of `is SymbolTrue`
 
 Package update
 ++++++++++++++
@@ -83,6 +84,9 @@ Bugs
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 * Fix a bug in `Simplify` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
 * Fix bug in ``Clear``  and ``ClearAll`` (#194).
+* Fix base 10 formatting for infix ``Times`` Issue #266
+* Partial fix of ``FillSimplify``
+
 
 4.0.1
 -----

@@ -25,9 +25,8 @@ from mathics.core.attributes import hold_first, protected, read_protected
 class AddTo(BinaryOperator):
     """
     <dl>
-      <dt>'AddTo[$x$, $dx$]'</dt>
-
-      <dt>'$x$ += $dx$'</dt>
+      <dt>'AddTo[$x$, $dx$]'
+      <dt>'$x$ += $dx$'
       <dd>is equivalent to '$x$ = $x$ + $dx$'.
     </dl>
 
@@ -52,9 +51,9 @@ class AddTo(BinaryOperator):
 class Decrement(PostfixOperator):
     """
     <dl>
-      <dt>'Decrement[$x$]'</dt>
+      <dt>'Decrement[$x$]'
 
-      <dt>'$x$--'</dt>
+      <dt>'$x$--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -81,9 +80,8 @@ class Decrement(PostfixOperator):
 class DivideBy(BinaryOperator):
     """
     <dl>
-      <dt>'DivideBy[$x$, $dx$]'</dt>
-
-      <dt>'$x$ /= $dx$'</dt>
+      <dt>'DivideBy[$x$, $dx$]'
+      <dt>'$x$ /= $dx$'
       <dd>is equivalent to '$x$ = $x$ / $dx$'.
     </dl>
 
@@ -108,9 +106,9 @@ class DivideBy(BinaryOperator):
 class Increment(PostfixOperator):
     """
     <dl>
-      <dt>'Increment[$x$]'</dt>
+      <dt>'Increment[$x$]'
 
-      <dt>'$x$++'</dt>
+      <dt>'$x$++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -145,8 +143,8 @@ class Increment(PostfixOperator):
 class PreIncrement(PrefixOperator):
     """
     <dl>
-    <dt>'PreIncrement[$x$]'</dt>
-    <dt>'++$x$'</dt>
+    <dt>'PreIncrement[$x$]'
+    <dt>'++$x$'
         <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
@@ -172,9 +170,9 @@ class PreIncrement(PrefixOperator):
 class PreDecrement(PrefixOperator):
     """
     <dl>
-      <dt>'PreDecrement[$x$]'</dt>
+      <dt>'PreDecrement[$x$]'
 
-      <dt>'--$x$'</dt>
+      <dt>'--$x$'
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
 
@@ -199,8 +197,8 @@ class PreDecrement(PrefixOperator):
 class SubtractFrom(BinaryOperator):
     """
     <dl>
-    <dt>'SubtractFrom[$x$, $dx$]'</dt>
-    <dt>'$x$ -= $dx$'</dt>
+    <dt>'SubtractFrom[$x$, $dx$]'
+    <dt>'$x$ -= $dx$'
         <dd>is equivalent to '$x$ = $x$ - $dx$'.
     </dl>
 
@@ -225,9 +223,8 @@ class SubtractFrom(BinaryOperator):
 class TimesBy(BinaryOperator):
     """
     <dl>
-      <dt>'TimesBy[$x$, $dx$]'</dt>
-
-      <dt>'$x$ *= $dx$'</dt>
+      <dt>'TimesBy[$x$, $dx$]'
+      <dt>'$x$ *= $dx$'
       <dd>is equivalent to '$x$ = $x$ * $dx$'.
     </dl>
 

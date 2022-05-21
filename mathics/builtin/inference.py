@@ -108,7 +108,7 @@ def remove_nots_when_unnecesary(pred, evaluation):
     while cc:
         pred, cc = pred.do_apply_rules(remove_not_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred is SymbolFalse:
+        if pred is SymbolTrue or pred is SymbolFalse:
             return pred
     return pred
 
@@ -149,7 +149,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
     changed = False
     for assumption in assumptions_list:
         if isinstance(assumption, Symbol):
-            if assumption.is_true():
+            if assumption is SymbolTrue:
                 changed = True
                 continue
             if assumption is SymbolFalse:
@@ -364,7 +364,7 @@ def evaluate_predicate(pred, evaluation):
     while cc:
         pred, cc = pred.do_apply_rules(logical_algebraic_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred is SymbolFalse:
+        if pred is SymbolTrue or pred is SymbolFalse:
             return pred
 
     assumption_rules = get_assumption_rules_dispatch(evaluation)

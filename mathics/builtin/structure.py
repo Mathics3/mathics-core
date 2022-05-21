@@ -99,9 +99,8 @@ class Sort(Builtin):
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.leaf, other.leaf)
-                        .evaluate(evaluation)
-                        .is_true()
+                        not Expression(p, self.leaf, other.leaf).evaluate(evaluation)
+                        is SymbolTrue
                     )
 
             new_elements = sorted(list.leaves, key=Key)
@@ -468,7 +467,7 @@ class Apply(BinaryOperator):
             else:
                 return Expression(f, *level.leaves)
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
@@ -528,7 +527,7 @@ class Map(BinaryOperator):
         def callback(level):
             return Expression(f, level)
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
@@ -667,7 +666,7 @@ class Scan(Builtin):
             Expression(f, level).evaluate(evaluation)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return SymbolNull
@@ -736,7 +735,7 @@ class MapIndexed(Builtin):
         def callback(level, pos):
             return Expression(f, level, Expression("List", *[Integer(p) for p in pos]))
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(
             expr, start, stop, heads=heads, callback=callback, include_pos=True
         )
