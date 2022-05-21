@@ -242,8 +242,8 @@ class TagSetDelayed(TagSet):
 class LoadModule(Builtin):
     """
     <dl>
-      <dt>'LoadModule[$module$]'</dt>
-      <dd>'Load Mathics definitions from the python module $module$</dd>
+      <dt>'LoadModule[$module$]'
+      <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
      : Python module nomodule does not exist.
@@ -258,6 +258,7 @@ class LoadModule(Builtin):
         "notfound": "Python module `1` does not exist.",
         "notmathicslib": "Python module `1` is not a pymathics module.",
     }
+    summary_text = "load a pymathics module"
 
     def apply(self, module, evaluation):
         "LoadModule[module_String]"
