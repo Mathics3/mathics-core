@@ -710,14 +710,13 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-
-class BoxConstruct(InstanceableBuiltin, BaseElement):
+class BoxExpression(BuiltinElement, BaseElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
     # The idea is that this class and their subclasses implement
     # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
-    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # Also, these objects should not be evaluated, so in the evaluation process should be
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
