@@ -710,7 +710,8 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxExpression(BuiltinElement):
+
+class BoxConstruct(InstanceableBuiltin, BaseElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
