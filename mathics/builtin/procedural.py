@@ -26,8 +26,9 @@ from mathics.core.interrupt import (
 
 from mathics.core.symbols import (
     Symbol,
-    SymbolTrue,
     SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
 )
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
@@ -193,14 +194,14 @@ class CompoundExpression(BinaryOperator):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
-        result = Symbol("Null")
+        result = SymbolNull
         for expr in items:
             prev_result = result
             result = expr.evaluate(evaluation)
 
             # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
             # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is Symbol("Null") and prev_result != Symbol("Null"):
+            if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -279,7 +280,7 @@ class Do(_IterationFunction):
     summary_text = "evaluate an expression looping over a variable"
 
     def get_result(self, items):
-        return Symbol("Null")
+        return SymbolNull
 
 
 class For(Builtin):
@@ -334,7 +335,7 @@ class For(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class If(Builtin):
@@ -373,7 +374,7 @@ class If(Builtin):
         if condition is SymbolTrue:
             return t.evaluate(evaluation)
         elif condition is SymbolFalse:
-            return Symbol("Null")
+            return SymbolNull
 
     def apply_3(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
@@ -817,7 +818,7 @@ class Which(Builtin):
                     return None
                 return Expression("Which", *items)
             items = items[2:]
-        return Symbol("Null")
+        return SymbolNull
 
 
 class While(Builtin):
@@ -859,7 +860,7 @@ class While(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class Throw(Builtin):

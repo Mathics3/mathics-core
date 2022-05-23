@@ -12,7 +12,7 @@ However in contrast to \Mathematica, you can set any symbol as an attribute.
 
 from mathics.builtin.base import Predefined, Builtin
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull
 from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import get_symbol_list
@@ -240,7 +240,7 @@ class Protect(Builtin):
                     if not locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("SetAttributes", Expression("List", *items), protected).evaluate(
+        Expression("SetAttributes", Expression(SymbolList, *items), protected).evaluate(
             evaluation
         )
         return SymbolNull
@@ -293,9 +293,11 @@ class Unprotect(Builtin):
                     if not locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("ClearAttributes", Expression("List", *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            "ClearAttributes",
+            Expression(SymbolList, *items),
+            protected,
+        ).evaluate(evaluation)
         return SymbolNull
 
 
