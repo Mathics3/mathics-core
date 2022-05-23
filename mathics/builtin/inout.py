@@ -11,7 +11,7 @@ import typing
 from typing import Any
 
 
-from mathics.builtin.box.inout import RowBox
+from mathics.builtin.box.inout import RowBox, to_boxes
 
 from mathics.builtin.base import (
     BoxConstruct,
@@ -590,7 +590,8 @@ class MakeBoxes(Builtin):
     def apply_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
-
+        if isinstance(expr, BoxConstruct):
+            expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
         else:
@@ -607,7 +608,9 @@ class MakeBoxes(Builtin):
             # like (a + b)[x], but not f[a] in f[a][b].
             #
             head_boxes = parenthesize(670, head, MakeBoxes(head, f), False)
-            result = [head_boxes, String(left)]
+            head_boxes = head_boxes.evaluate(evaluation)
+            head_boxes = to_boxes(head_boxes, evaluation)
+            result = [head_boxes, to_boxes(String(left), evaluation)]
 
             if len(leaves) > 1:
                 row = []
@@ -621,12 +624,16 @@ class MakeBoxes(Builtin):
                     sep = ","
                 for index, leaf in enumerate(leaves):
                     if index > 0:
-                        row.append(String(sep))
-                    row.append(MakeBoxes(leaf, f))
+                        row.append(to_boxes(String(sep), evaluation))
+                    row.append(
+                        to_boxes(MakeBoxes(leaf, f).evaluate(evaluation), evaluation)
+                    )
                 result.append(RowBox(Expression(SymbolList, *row)))
             elif len(leaves) == 1:
-                result.append(MakeBoxes(leaves[0], f))
-            result.append(String(right))
+                result.append(
+                    to_boxes(MakeBoxes(leaves[0], f).evaluate(evaluation), evaluation)
+                )
+            result.append(to_boxes(String(right), evaluation))
             return RowBox(Expression(SymbolList, *result))
 
     def apply_outerprecedenceform(self, expr, prec, evaluation):
@@ -656,9 +663,11 @@ class MakeBoxes(Builtin):
             else:
                 args = (h, leaf)
 
-            return Expression(SymbolRowBox, Expression(SymbolList, *args))
+            return Expression(
+                SymbolRowBox, Expression(SymbolList, *args).evaluate(evaluation)
+            )
         else:
-            return MakeBoxes(expr, f)
+            return MakeBoxes(expr, f).evaluate(evaluation)
 
     def apply_infix(self, expr, h, prec, grouping, f, evaluation):
         """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
@@ -771,8 +780,10 @@ class Row(Builtin):
             result = []
             for index, item in enumerate(items):
                 if index > 0 and not sep.sameQ(String("")):
-                    result.append(sep)
-                result.append(MakeBoxes(item, f))
+                    result.append(to_boxes(sep, evaluation))
+                item = MakeBoxes(item, f).evaluate(evaluation)
+                item = to_boxes(item, evaluation)
+                result.append(item)
             return RowBox(Expression(SymbolList, *result))
 
 
@@ -809,6 +820,9 @@ class GridBox(BoxConstruct):
     """
     options = {"ColumnAlignments": "Center"}
     summary_text = "low-level representation of an arbitrary 2D layout"
+
+    # TODO: elements in the GridBox should be stored as an array with
+    # elements in its evaluated form.
 
     def get_array(self, leaves, evaluation):
         options = self.get_option_values(leaves=leaves[1:], evaluation=evaluation)
@@ -1339,14 +1353,16 @@ class StringForm(Builtin):
             if index > last_index:
                 last_index = index
             if start > pos:
-                result.append(String(s[pos:start]))
+                result.append(to_boxes(String(s[pos:start]), evaluation))
             pos = end
             if 1 <= index <= len(args):
                 arg = args[index - 1]
-                result.append(MakeBoxes(arg, f))
+                result.append(
+                    to_boxes(MakeBoxes(arg, f).evaluate(evaluation), evaluation)
+                )
         if pos < len(s):
-            result.append(String(s[pos:]))
-        return RowBox(Expression(SymbolList, *result))
+            result.append(to_boxes(String(s[pos:]), evaluation))
+        return RowBox(Expression(SymbolList, *result).evaluate(evaluation))
 
 
 class Message(Builtin):
@@ -2253,7 +2269,6 @@ class TeXForm(Builtin):
 
     def apply_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-
         boxes = MakeBoxes(expr).evaluate(evaluation)
         try:
             tex = boxes.boxes_to_tex(evaluation=evaluation)
@@ -2894,7 +2909,7 @@ class BaseForm(Builtin):
             x = expr.get_int_value()
             p = 0
         else:
-            return Expression(SymbolMakeBoxes, expr, f)
+            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
 
         try:
             val = convert_base(x, base, p)
@@ -2902,6 +2917,8 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return String("%s_%d" % (val, base))
+            return to_boxes(String("%s_%d" % (val, base)), evaluation)
         else:
-            return Expression(SymbolSubscriptBox, String(val), String(base))
+            return to_boxes(
+                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
+            )

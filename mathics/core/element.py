@@ -217,7 +217,7 @@ class BaseElement(KeyComparable):
                         return result.evaluate(evaluation)
                 return None
 
-            formatted = format_expr(expr)
+            formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
             if formatted is not None:
                 result = formatted.do_format(evaluation, form)
                 if include_form:
@@ -265,10 +265,6 @@ class BaseElement(KeyComparable):
         if type(self) is type(rhs):
             return self == rhs
         return None
-
-    def evaluate(self, evaluation) -> "BaseElement":
-        """Returns the value of the expression. The subclass must implement this"""
-        raise NotImplementedError
 
     # FIXME the fact that we have to import all of these symbols means
     # modularity is broken somehwere.
@@ -333,47 +329,7 @@ class BaseElement(KeyComparable):
         return ""
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
-        """
-        Build a dictionary of options from an expression.
-        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
-        will return a list of options associated to the definition of the symbol "Integrate".
-        If self is not an expression,
-        """
-        # comment @mmatera: The implementation of this is awfull.
-        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
-        # The implementation should be move to Symbol and Expression classes.
-
-        from mathics.core.atoms import String
-        from mathics.core.symbols import SymbolList
-
-        options = self
-        if options.has_form("List", None):
-            options = options.flatten_with_respect_to_head(SymbolList)
-            values = options.leaves
-        else:
-            values = [options]
-        option_values = {}
-        for option in values:
-            symbol_name = option.get_name()
-            if allow_symbols and symbol_name:
-                options = evaluation.definitions.get_options(symbol_name)
-                option_values.update(options)
-            else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                name = option.leaves[0].get_name()
-                if not name and isinstance(option.leaves[0], String):
-                    name = ensure_context(option.leaves[0].get_string_value())
-                if not name:
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                option_values[name] = option.leaves[1]
-        return option_values
+        pass
 
     def get_precision(self) -> None:
         """Returns the default specification for precision in N and other
@@ -485,16 +441,6 @@ class BaseElement(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
-        """
-        Performs a since rewrite/apply/eval step used in
-        evaluation.
-
-        Here we specialize evaluation so that any results returned
-        do not need further evaluation.
-        """
-        return self.evaluate(evaluation), False
-
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         return id(self) == id(rhs)
@@ -514,3 +460,34 @@ class BaseElement(KeyComparable):
 
     def to_mpmath(self):
         raise NotImplementedError
+
+
+class EvalMixin:
+    """
+    Class associated to evaluable elements
+    """
+
+    def evaluate(self, evaluation):
+        pass
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()`, we don't need a `definitions`
+        parameter.
+
+        Each subclass should decide what is right here.
+        """
+        return False
+
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
+        """
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
+        """
+        return self.evaluate(evaluation), False

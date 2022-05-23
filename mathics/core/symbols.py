@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from mathics.core.element import (
     BaseElement,
+    EvalMixin,
     ensure_context,
     fully_qualified_symbol_name,
 )
@@ -290,6 +291,17 @@ class Atom(BaseElement):
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
 
+    #    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    #        """
+    #        Build a dictionary of options from an expression.
+    #        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+    #        will return a list of options associated to the definition of the symbol "Integrate".
+    #        If self is not an expression,
+    #        """
+    #        print("get_option_values is trivial for ", (self, stop_on_error, allow_symbols ))
+    #        1/0
+    #        return None if stop_on_error else {}
+
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return [0, 0, 1, 1, 0, 0, 0, 1]
@@ -348,7 +360,7 @@ class Atom(BaseElement):
         return self
 
 
-class Symbol(Atom, NumericOperators):
+class Symbol(Atom, NumericOperators, EvalMixin):
     """
     Note: Symbol is right now used in a couple of ways which in the
     future may be separated.
@@ -467,6 +479,19 @@ class Symbol(Atom, NumericOperators):
 
     def get_head_name(self):
         return "System`Symbol"
+
+    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+        """
+        Build a dictionary of options from an expression.
+        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        will return a list of options associated to the definition of the symbol "Integrate".
+        If self is not an expression,
+        """
+        if allow_symbols:
+            options = evaluation.definitions.get_options(self.get_name())
+            return options.copy()
+        else:
+            return None if stop_on_error else {}
 
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)

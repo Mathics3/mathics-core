@@ -42,6 +42,7 @@ from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
 
+from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
@@ -1608,12 +1609,21 @@ class OptionsPattern(PatternObject):
                 # f[x:OptionsPattern[]] := x; f["Test" -> 1]
                 # set self.defaults to an empty List, so we don't crash.
                 self.defaults = Expression(SymbolList)
-        values = self.defaults.get_option_values(
-            evaluation, allow_symbols=True, stop_on_error=False
+        defaults = self.defaults
+        values = (
+            defaults.get_option_values(
+                evaluation, allow_symbols=True, stop_on_error=False
+            )
+            if isinstance(defaults, EvalMixin)
+            else {}
         )
         sequence = expression.get_sequence()
         for options in sequence:
-            option_values = options.get_option_values(evaluation)
+            option_values = (
+                options.get_option_values(evaluation)
+                if isinstance(options, EvalMixin)
+                else None
+            )
             if option_values is None:
                 return
             values.update(option_values)

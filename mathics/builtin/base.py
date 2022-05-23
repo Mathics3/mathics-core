@@ -481,7 +481,7 @@ class Builtin:
         raise NotImplementedError
 
 
-class InstanceableBuiltin(Builtin):
+class BuiltinElement(Builtin, BaseElement):
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
         new_kwargs["expression"] = False
@@ -503,6 +503,9 @@ class InstanceableBuiltin(Builtin):
 
     def init(self, *args, **kwargs):
         pass
+
+    def __hash__(self):
+        return hash((self.get_name(), id(self)))
 
 
 class AtomBuiltin(Builtin):
@@ -707,13 +710,13 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin, BaseElement):
+class BoxExpression(BuiltinElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
     # The idea is that this class and their subclasses implement
     # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
-    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # Also, these objects should not be evaluated, so in the evaluation process should be
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
@@ -721,9 +724,7 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
     #
     # Changes to do, after the refactor of mathics.core:
     #
-    # * Change the name of this class: It must be ``FormatExpression``,
-    #   ``BoxExpression`` or ``BoxElement`` or something like that.
-    # * Make this to be a subclass of ``BaseElement``.
+
     # * Review the implementation
 
     attributes = protected | read_protected
@@ -749,7 +750,7 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
             </dl>
             """
 
-        # the __new__ method from InstanceableBuiltin
+        # the __new__ method from BuiltinElement
         # calls self.init. It is expected that it set
         # self._elements. However, if it didn't happens,
         # we set it with a default value.
@@ -767,7 +768,7 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
 
-        Think about: We will say that a BoxConstruct can't change.
+        Think about: We will say that a BoxExpression can't change.
         """
         return True
 
@@ -797,10 +798,6 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
         expr = self.to_expression()
         result = expr.replace_vars(vars, options, in_scoping, in_function)
         return result
-
-    def evaluate(self, evaluation):
-        # THINK about: Should we evaluate the elements here?
-        return self
 
     def get_elements(self):
         return self._elements
@@ -838,7 +835,7 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
 
     @head.setter
     def head(self, value):
-        raise ValueError("BoxConstruct.head is write protected.")
+        raise ValueError("BoxExpression.head is write protected.")
 
     @property
     def leaves(self):
@@ -846,9 +843,9 @@ class BoxConstruct(InstanceableBuiltin, BaseElement):
 
     @leaves.setter
     def leaves(self, value):
-        raise ValueError("BoxConstruct.leaves is write protected.")
+        raise ValueError("BoxExpression.leaves is write protected.")
 
-    def flatten_pattern_sequence(self, evaluation) -> "BoxConstruct":
+    def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self
 
     def get_option_values(self, leaves, **options):
@@ -889,7 +886,7 @@ class PatternArgumentError(PatternError):
         super().__init__(name, "argr", count, expected)
 
 
-class PatternObject(InstanceableBuiltin, Pattern):
+class PatternObject(BuiltinElement, Pattern):
     needs_verbatim = True
 
     arg_counts: typing.List[int] = []
@@ -1036,3 +1033,7 @@ class CountableInteger:
                             return CountableInteger(0, upper_limit=True)
 
         return None  # leave original expression unevaluated
+
+
+# Backward compatibility
+BoxConstruct = BoxExpression
