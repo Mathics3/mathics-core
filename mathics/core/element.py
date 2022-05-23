@@ -463,11 +463,6 @@ class BaseElement(KeyComparable):
         """
         return False
 
-    # Warning - this is going away
-    def is_true(self) -> bool:
-        """Better use self is SymbolTrue"""
-        return False
-
     @property
     def is_zero(self) -> bool:
         return False
