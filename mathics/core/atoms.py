@@ -272,7 +272,9 @@ Integer0 = Integer(0)
 Integer1 = Integer(1)
 Integer2 = Integer(2)
 Integer3 = Integer(3)
+Integer310 = Integer(310)
 Integer10 = Integer(10)
+IntegerM1 = Integer(-1)
 
 
 class Rational(Number):
