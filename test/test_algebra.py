@@ -294,12 +294,23 @@ def test_simplify():
         check_evaluation(str_expr, str_expected)
 
 
-def test_fullsimplify():
-    for str_expr, str_expected, failure_message in (
-        (
-            " a[x] + e f / (2 d) + c[x] // FullSimplify",
-            "e f / (2 d) + a[x] + c[x]",
-            "issue #214",
-        ),
-    ):
-        check_evaluation(str_expr, str_expected, failure_message)
+do_fullsimplify_test = False
+try:
+    import sympy
+    from packaging import version
+
+    do_fullsimplify_test = version.parse(sympy.__version__) >= version.parse("1.10.0")
+except:
+    pass
+
+if do_fullsimplify_test:
+
+    def test_fullsimplify():
+        for str_expr, str_expected, failure_message in (
+            (
+                " a[x] + e f / (2 d) + c[x] // FullSimplify",
+                "e f / (2 d) + a[x] + c[x]",
+                "issue #214",
+            ),
+        ):
+            check_evaluation(str_expr, str_expected, failure_message)
