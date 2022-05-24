@@ -65,27 +65,64 @@ def has_option(options, name, evaluation):
     return get_option(options, name, evaluation, evaluate=False) is not None
 
 
+def split_name(name: str) -> str:
+    """
+    insert spaces in front of upper case letters
+    and numbers. For instance,
+    ``split_name("BezierCurve3D")`` results in
+    ``"bezier curve 3D"``
+
+    """
+    if name == "":
+        return ""
+    result = name[0]
+    for i in range(1, len(name)):
+        if name[i].isupper():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        elif name[i].isdigit():
+            if not name[i - 1].isdigit():
+                result = result + " "
+        result = result + name[i]
+    return result.lower()
+
+
 mathics_to_python = {}
 
 
-class Builtin(object):
+class Builtin:
     """
-    This class is the base class for Builtin symbol definitions.
+    A base class for a Built-in function symbols, like List, or variables, like $SystemID,
+    and Built-in Objects, like DateTimeObject.
 
-    A Builtin class is a structure that holds the information needed to generate
-    a Definition object for a built-in Symbol, like transformation rules, attributes, options,
-    etc.
-    Method with names of the form ``apply*`` are considered replacement rules, for expressions
-    that match the pattern described in their docstrings. For example
+    Some of the class variables of the Builtin object are used to
+    create a definition object for that built-in symbol.  In particular,
+    there are (transformation) rules, attributes, (error) messages,
+    options, and other things.
+
+    Function application pattern matching
+    -------------------------------------
+
+    Method names of a builtin-class that start with the word ``apply`` are evaluation methods that
+    will get called when the docstring of that method matches the expression to be evaluated.
+
+    For example:
 
     ```
         def apply(x, evaluation):
-             '''F[x_Real]'''
+             "F[x_Real]"
              return Expression("G", x*2)
     ```
-    adds a ``BuilitinRule`` that implements ``F[x_]->G[x*2].
+
+    adds a ``BuiltinRule`` to the symbol's definition object that implements ``F[x_]->G[x*2]``.
+
+    As shown in the example above, leading argument names of the
+    function are the arguments mentioned in the names given up to the
+    first underscore ``_``.  So the single parameter in the above is
+    ``x``. The method must also have an evaluation parameter, and may
+    have an optional `options` parameter.
+
     If the ``apply*`` method returns ``None``, the replacement fails, and the expression keeps its original form.
-    Notice that the argument names must coincide with the name of the corresponding pattern in the docstring.
 
     For rules including ``OptionsPattern``
     ```
@@ -104,7 +141,7 @@ class Builtin(object):
     ```
     produces a ``Definitions`` object with just one definition, for the ``Symbol`` ``System`List``.
 
-    Notice that for creating a Bultinin, we must pass to the constructor the option ``expression=False``. Otherwise,
+    Notice that for creating a Builtin, we must pass to the constructor the option ``expression=False``. Otherwise,
     an Expression object is created, with the ``Symbol`` associated to the definition as the ``Head``.
     For example,
 
@@ -120,7 +157,6 @@ class Builtin(object):
     ```
     expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
     ```
-
     """
 
     name: typing.Optional[str] = None
@@ -432,8 +468,20 @@ class Builtin(object):
                     return s.get_name()[len(prefix) :], s
         return None, s
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
 
-class InstanceableBuiltin(Builtin):
+        Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
+
+
+class BuiltinElement(Builtin, BaseElement):
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
         new_kwargs["expression"] = False
@@ -456,8 +504,16 @@ class InstanceableBuiltin(Builtin):
     def init(self, *args, **kwargs):
         pass
 
+    def __hash__(self):
+        return hash((self.get_name(), id(self)))
+
 
 class AtomBuiltin(Builtin):
+    """
+    This class is used to define Atoms other than those ones in core, but also
+    have the Builtin function/variable/object properties.
+    """
+
     # allows us to define apply functions, rules, messages, etc. for Atoms
     # which are by default not in the definitions' contribution pipeline.
     # see Image[] for an example of this.
@@ -654,13 +710,13 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin):
+class BoxExpression(BuiltinElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
     # The idea is that this class and their subclasses implement
     # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
-    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # Also, these objects should not be evaluated, so in the evaluation process should be
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
@@ -668,16 +724,33 @@ class BoxConstruct(InstanceableBuiltin):
     #
     # Changes to do, after the refactor of mathics.core:
     #
-    # * Change the name of this class: It must be ``FormatExpression``,
-    #   ``BoxExpression`` or ``BoxElement`` or something like that.
-    # * Make this to be a subclass of ``BaseElement``.
+
     # * Review the implementation
 
     attributes = protected | read_protected
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
-        # the __new__ method from InstanceableBuiltin
+        article = (
+            "an "
+            if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
+            else "a "
+        )
+
+        instance.summary_text = (
+            "box representation for "
+            + article
+            + split_name(cls.get_name(short=True)[:-3])
+        )
+        if not instance.__doc__:
+            instance.__doc__ = rf"""
+            <dl>
+            <dt>'{instance.get_name()}'
+            <dd> box structure.
+            </dl>
+            """
+
+        # the __new__ method from BuiltinElement
         # calls self.init. It is expected that it set
         # self._elements. However, if it didn't happens,
         # we set it with a default value.
@@ -686,6 +759,27 @@ class BoxConstruct(InstanceableBuiltin):
         if not hasattr(instance, "_elements"):
             instance._elements = tuple(elements)
         return instance
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Think about: We will say that a BoxExpression can't change.
+        """
+        return True
+
+    @property
+    def elements(self):
+        return self._elements
+
+    @elements.setter
+    def elements(self, value):
+        self._elements = value
+        return self._elements
 
     def tex_block(self, tex, only_subsup=False):
         if len(tex) == 1:
@@ -705,10 +799,6 @@ class BoxConstruct(InstanceableBuiltin):
         result = expr.replace_vars(vars, options, in_scoping, in_function)
         return result
 
-    def evaluate(self, evaluation):
-        # THINK about: Should we evaluate the elements here?
-        return self
-
     def get_elements(self):
         return self._elements
 
@@ -717,6 +807,9 @@ class BoxConstruct(InstanceableBuiltin):
 
     def get_lookup_name(self):
         return self.get_name()
+
+    def get_sort_key(self):
+        return self.to_expression().get_sort_key()
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
@@ -742,7 +835,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @head.setter
     def head(self, value):
-        raise ValueError("BoxConstruct.head is write protected.")
+        raise ValueError("BoxExpression.head is write protected.")
 
     @property
     def leaves(self):
@@ -750,42 +843,9 @@ class BoxConstruct(InstanceableBuiltin):
 
     @leaves.setter
     def leaves(self, value):
-        raise ValueError("BoxConstruct.leaves is write protected.")
+        raise ValueError("BoxExpression.leaves is write protected.")
 
-    # I need to repeat this, because this is not
-    # an expression...
-    def has_form(self, heads, *element_counts):
-        """
-        element_counts:
-            (,):        no leaves allowed
-            (None,):    no constraint on number of leaves
-            (n, None):  leaf count >= n
-            (n1, n2, ...):    leaf count in {n1, n2, ...}
-        """
-
-        head_name = self.get_name()
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
-                return False
-        else:
-            if head_name != ensure_context(heads):
-                return False
-        if not element_counts:
-            return False
-        if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
-            if count not in element_counts:
-                if (
-                    len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
-                    and count >= element_counts[0]
-                ):
-                    return True
-                else:
-                    return False
-        return True
-
-    def flatten_pattern_sequence(self, evaluation) -> "BoxConstruct":
+    def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self
 
     def get_option_values(self, leaves, **options):
@@ -826,7 +886,7 @@ class PatternArgumentError(PatternError):
         super().__init__(name, "argr", count, expected)
 
 
-class PatternObject(InstanceableBuiltin, Pattern):
+class PatternObject(BuiltinElement, Pattern):
     needs_verbatim = True
 
     arg_counts: typing.List[int] = []
@@ -973,3 +1033,7 @@ class CountableInteger:
                             return CountableInteger(0, upper_limit=True)
 
         return None  # leave original expression unevaluated
+
+
+# Backward compatibility
+BoxConstruct = BoxExpression

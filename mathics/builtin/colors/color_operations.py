@@ -9,7 +9,7 @@ import itertools
 from math import floor
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import (
-    _Color,
+    _ColorObject,
     ColorError,
     RGBColor,
 )
@@ -67,6 +67,7 @@ class Blend(Builtin):
      = Blend[{RGBColor[1, 0, 0], RGBColor[0, 1, 0], RGBColor[0, 0, 1]}, {1, 0.5}]
     """
 
+    summary_text = "blend of colors"
     messages = {
         "arg": (
             "`1` is not a valid list of color or gray-level directives, "
@@ -109,7 +110,7 @@ class Blend(Builtin):
 
         colors_orig = colors
         try:
-            colors = [_Color.create(color) for color in colors.get_sequence()]
+            colors = [_ColorObject.create(color) for color in colors.get_sequence()]
             if not colors:
                 raise ColorError
         except ColorError:
@@ -169,6 +170,7 @@ class ColorConvert(Builtin):
     XYZ: convert to XYZColor
     """
 
+    summary_text = "convert between color models"
     messages = {
         "ccvinput": "`` should be a color.",
         "imgcstype": "`` is not a valid color space.",
@@ -217,6 +219,8 @@ class ColorNegate(_ImageBuiltin):
     </dl>
     """
 
+    summary_text = "the negative color of a given color"
+
     def apply_for_color(self, color, evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
@@ -250,6 +254,7 @@ class Darker(Builtin):
      = -Graphics-
     """
 
+    summary_text = "make a color darker"
     rules = {"Darker[c_, f_]": "Blend[{c, Black}, f]", "Darker[c_]": "Darker[c, 1/3]"}
 
 
@@ -301,6 +306,7 @@ class DominantColors(_ImageBuiltin):
      = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
     """
 
+    summary_text = "find a list of dominant colors"
     rules = {
         "DominantColors[image_Image, n_Integer, options___]": 'DominantColors[image, n, "Color", options]',
         "DominantColors[image_Image, options___]": 'DominantColors[image, 256, "Color", options]',
@@ -436,6 +442,7 @@ class Lighter(Builtin):
      = -Graphics-
     """
 
+    summary_text = "make a color lighter"
     rules = {
         "Lighter[c_, f_]": "Blend[{c, White}, f]",
         "Lighter[c_]": "Lighter[c, 1/3]",

@@ -35,6 +35,15 @@ def fully_qualified_symbol_name(name) -> bool:
     )
 
 
+class ImmutableValueMixin:
+    @property
+    def is_literal(self) -> bool:
+        """
+        The value value can't change once it is set.
+        """
+        return True
+
+
 class KeyComparable:
     """
 
@@ -57,23 +66,23 @@ class KeyComparable:
     def get_sort_key(self):
         raise NotImplementedError
 
-    def __lt__(self, other) -> bool:
-        return self.get_sort_key() < other.get_sort_key()
-
-    def __gt__(self, other) -> bool:
-        return self.get_sort_key() > other.get_sort_key()
-
-    def __le__(self, other) -> bool:
-        return self.get_sort_key() <= other.get_sort_key()
-
-    def __ge__(self, other) -> bool:
-        return self.get_sort_key() >= other.get_sort_key()
-
     def __eq__(self, other) -> bool:
         return (
             hasattr(other, "get_sort_key")
             and self.get_sort_key() == other.get_sort_key()
         )
+
+    def __gt__(self, other) -> bool:
+        return self.get_sort_key() > other.get_sort_key()
+
+    def __ge__(self, other) -> bool:
+        return self.get_sort_key() >= other.get_sort_key()
+
+    def __le__(self, other) -> bool:
+        return self.get_sort_key() <= other.get_sort_key()
+
+    def __lt__(self, other) -> bool:
+        return self.get_sort_key() < other.get_sort_key()
 
     def __ne__(self, other) -> bool:
         return (
@@ -97,34 +106,7 @@ class BaseElement(KeyComparable):
     # this variable holds a function defined in mathics.core.expression that creates an expression
     create_expression: Any
 
-    # FIXME: kwargs seems to be is needed because Real.__new_() takes a parameter
-    # and magically that gets turned into kwargs here.
-    # Figure out how to address this.
-    def __init__(self, *args, **kwargs):
-        self.options = None
-        self.pattern_sequence = False
-        # This property would be useful for a BoxExpression
-        # (see comment in mathocs.core.expression.) However,
-        # WL has a way to handle the connection between
-        # an expression and a Box expression ``InterpretationBox``.
-        # self.unformatted = self  # This may be a garbage-collection nightmare.
-
-    # comment @mmatera: The next method have a name that starts with ``apply``.
-    # This obstaculizes to define ``InstanceableBuiltin``
-    # with ``Element`` as an ancestor class. I would like to have this
-    # to reimplement  ``mathics.builtin.BoxConstruct`` in a way that do not
-    # require to redefine several of the methods of this class.
-    # I propose then to change the name to ``do_apply_rules``.
-    # This change implies to change just an small number of lines
-    # in the code of ``mathics.core`` and ``mathics.builtin``. In particular
-    # the afected files apart from this would be:
-    #
-    # mathics/core/expression.py
-    # mathics/builtin/inference.py
-    # mathics/builtin/patterns.py
-    # mathics/builtin/assignments/internals.py
-
-    def apply_rules(
+    def do_apply_rules(
         self, rules, evaluation, level=0, options=None
     ) -> Tuple["BaseElement", bool]:
         """
@@ -175,6 +157,7 @@ class BaseElement(KeyComparable):
         formats = format_symbols
         evaluation.inc_recursion_depth()
         try:
+            fexpr = self
             expr = self
             head = self.get_head()
             leaves = self.get_elements()
@@ -183,10 +166,13 @@ class BaseElement(KeyComparable):
             # takes the form from the expression and
             # removes the format from the expression.
             if head in formats and len(leaves) == 1:
+                fexpr = self
                 expr = leaves[0]
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
+            else:
+                fexpr = self.create_expression(form, expr)
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
@@ -230,12 +216,18 @@ class BaseElement(KeyComparable):
                 name = expr.get_lookup_name()
                 formats = evaluation.definitions.get_formats(name, form.get_name())
                 for rule in formats:
+                    # Check first if there is a rule for the particular format:
+                    result = rule.apply(fexpr, evaluation)
+                    if result is not None and result != expr:
+                        return result.evaluate(evaluation)
+
+                    # Otherwise, try with the naked expression:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
                         return result.evaluate(evaluation)
                 return None
 
-            formatted = format_expr(expr)
+            formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
             if formatted is not None:
                 result = formatted.do_format(evaluation, form)
                 if include_form:
@@ -252,12 +244,11 @@ class BaseElement(KeyComparable):
             elif (
                 head is not SymbolNumberForm
                 and not isinstance(expr, Atom)
-                and head is not SymbolGraphics
-                and head is not SymbolGraphics3D
+                and head not in (SymbolGraphics, SymbolGraphics3D)
             ):
                 # print("Not inside graphics or numberform, and not is atom")
                 new_elements = [
-                    leaf.do_format(evaluation, form) for leaf in expr.leaves
+                    element.do_format(evaluation, form) for element in expr.elements
                 ]
                 expr = self.create_expression(
                     expr.head.do_format(evaluation, form), *new_elements
@@ -284,10 +275,6 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
-    def evaluate(self, evaluation) -> "BaseElement":
-        """Returns the value of the expression. The subclass must implement this"""
-        raise NotImplementedError
-
     # FIXME the fact that we have to import all of these symbols means
     # modularity is broken somehwere.
     # And format really doesn't belong here.
@@ -299,14 +286,21 @@ class BaseElement(KeyComparable):
             Symbol,
             SymbolMakeBoxes,
         )
+        from mathics.core.atoms import String
 
         if isinstance(form, str):
             form = Symbol(form)
         expr = self.do_format(evaluation, form)
-        result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
-            evaluation
-        )
-        return result
+        result = self.create_expression(SymbolMakeBoxes, expr, form)
+        result_box = result.evaluate(evaluation)
+        from mathics.builtin.base import BoxExpression
+
+        if isinstance(result_box, BoxExpression):
+            return result_box
+        elif type(result_box) is String:
+            return result_box
+        else:
+            return self.format(evaluation, "FullForm", **kwargs)
 
     def get_atoms(self, include_heads=True):
         """
@@ -351,47 +345,7 @@ class BaseElement(KeyComparable):
         return ""
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
-        """
-        Build a dictionary of options from an expression.
-        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
-        will return a list of options associated to the definition of the symbol "Integrate".
-        If self is not an expression,
-        """
-        # comment @mmatera: The implementation of this is awfull.
-        # This general method (in BaseElement) should be simpler (Numbers does not have Options).
-        # The implementation should be move to Symbol and Expression classes.
-
-        from mathics.core.atoms import String
-        from mathics.core.symbols import SymbolList
-
-        options = self
-        if options.has_form("List", None):
-            options = options.flatten_with_respect_to_head(SymbolList)
-            values = options.leaves
-        else:
-            values = [options]
-        option_values = {}
-        for option in values:
-            symbol_name = option.get_name()
-            if allow_symbols and symbol_name:
-                options = evaluation.definitions.get_options(symbol_name)
-                option_values.update(options)
-            else:
-                if not option.has_form(("Rule", "RuleDelayed"), 2):
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                name = option.leaves[0].get_name()
-                if not name and isinstance(option.leaves[0], String):
-                    name = ensure_context(option.leaves[0].get_string_value())
-                if not name:
-                    if stop_on_error:
-                        return None
-                    else:
-                        continue
-                option_values[name] = option.leaves[1]
-        return option_values
+        pass
 
     def get_precision(self) -> None:
         """Returns the default specification for precision in N and other
@@ -444,6 +398,18 @@ class BaseElement(KeyComparable):
     def get_string_value(self):
         return None
 
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()`, we don't need a `definitions`
+        parameter.
+
+        Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
+
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
         Used in Expression.do_format() to determine if we should (re)evaluate
@@ -469,11 +435,6 @@ class BaseElement(KeyComparable):
         """
         return False
 
-    # Warning - this is going away
-    def is_true(self) -> bool:
-        """Better use self is SymbolTrue"""
-        return False
-
     @property
     def is_zero(self) -> bool:
         return False
@@ -496,16 +457,6 @@ class BaseElement(KeyComparable):
     def is_inexact(self) -> bool:
         return self.get_precision() is not None
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
-        """
-        Performs a since rewrite/apply/eval step used in
-        evaluation.
-
-        Here we specialize evaluation so that any results returned
-        do not need further evaluation.
-        """
-        return self.evaluate(evaluation), False
-
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""
         return id(self) == id(rhs)
@@ -525,3 +476,34 @@ class BaseElement(KeyComparable):
 
     def to_mpmath(self):
         raise NotImplementedError
+
+
+class EvalMixin:
+    """
+    Class associated to evaluable elements
+    """
+
+    def evaluate(self, evaluation):
+        pass
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()`, we don't need a `definitions`
+        parameter.
+
+        Each subclass should decide what is right here.
+        """
+        return False
+
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
+        """
+        Performs a since rewrite/apply/eval step used in
+        evaluation.
+
+        Here we specialize evaluation so that any results returned
+        do not need further evaluation.
+        """
+        return self.evaluate(evaluation), False

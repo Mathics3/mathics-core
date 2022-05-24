@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-"""
+__doc__ = """
 Image[] and image related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
-
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
@@ -19,10 +18,8 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolList
-from mathics.core.systemsymbols import (
-    SymbolRule,
-)
+from mathics.core.symbols import Symbol, SymbolNull, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import SymbolRule
 
 from mathics.builtin.colors.color_internals import (
     convert_color,
@@ -123,6 +120,11 @@ class _Exif:
 
 class ImageImport(_ImageBuiltin):
     """
+    <dl>
+    <dt> 'ImageImport["path"]'
+    <dd> import an image from the file "path".
+    </dl>
+
     ## Image
     >> Import["ExampleData/Einstein.jpg"]
      = -Image-
@@ -135,6 +137,8 @@ class ImageImport(_ImageBuiltin):
     #> Import["ExampleData/lena.tif"]
      = -Image-
     """
+
+    summary_text = "import an image from a file"
 
     def apply(self, path, evaluation):
         """ImageImport[path_String]"""
@@ -156,6 +160,14 @@ class ImageImport(_ImageBuiltin):
 
 
 class ImageExport(_ImageBuiltin):
+    """
+    <dl>
+    <dt> 'ImageExport["path", $image$]'
+    <dd> export $image$ as file in "path".
+    </dl>
+    """
+
+    summary_text = "export an image to a file"
     messages = {"noimage": "only an Image[] can be exported into an image file"}
 
     def apply(self, path, expr, opts, evaluation):
@@ -245,6 +257,8 @@ class ImageAdd(_ImageArithmetic):
      = -Image-
     """
 
+    summary_text = "build an image adding pixel values of another image "
+
 
 class ImageSubtract(_ImageArithmetic):
     """
@@ -268,6 +282,8 @@ class ImageSubtract(_ImageArithmetic):
      : Expecting a number, image, or graphics instead of x.
      = ImageSubtract[-Image-, x]
     """
+
+    summary_text = "build an image substracting pixel values of another image "
 
 
 class ImageMultiply(_ImageArithmetic):
@@ -298,6 +314,8 @@ class ImageMultiply(_ImageArithmetic):
      = -Image-
     """
 
+    summary_text = "build an image multiplying the pixel values of another image "
+
 
 class RandomImage(_ImageBuiltin):
     """
@@ -326,6 +344,7 @@ class RandomImage(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "build an image with random pixels"
     options = {"ColorSpace": "Automatic"}
 
     rules = {
@@ -425,6 +444,7 @@ class ImageResize(_ImageBuiltin):
      = ImageResize[-Image-, x]
     """
 
+    summary_text = "resize an image"
     options = {"Resampling": "Automatic"}
 
     messages = {
@@ -590,6 +610,7 @@ class ImageReflect(_ImageBuiltin):
      = ImageReflect[-Image-, x -> Top]
     """
 
+    summary_text = "reflect an image"
     rules = {
         "ImageReflect[image_Image]": "ImageReflect[image, Top -> Bottom]",
         "ImageReflect[image_Image, Top|Bottom]": "ImageReflect[image, Top -> Bottom]",
@@ -604,8 +625,11 @@ class ImageReflect(_ImageBuiltin):
             specs = [orig.get_name(), dest.get_name()]
             specs.sort()  # `Top -> Bottom` is the same as `Bottom -> Top`
 
-        anti_transpose = lambda i: numpy.flipud(numpy.transpose(numpy.flipud(i)))
-        no_op = lambda i: i
+        def anti_transpose(i):
+            return numpy.flipud(numpy.transpose(numpy.flipud(i)))
+
+        def no_op(i):
+            return i
 
         method = {
             ("System`Bottom", "System`Top"): numpy.flipud,
@@ -653,6 +677,7 @@ class ImageRotate(_ImageBuiltin):
      = ImageRotate[-Image-, -Image-]
     """
 
+    summary_text = "rotate an image"
     rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
 
     messages = {
@@ -714,6 +739,7 @@ class ImagePartition(_ImageBuiltin):
      = ImagePartition[-Image-, {0, 300}]
     """
 
+    summary_text = "divide an image in an array of sub-images"
     rules = {"ImagePartition[i_Image, s_Integer]": "ImagePartition[i, {s, s}]"}
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
@@ -760,6 +786,7 @@ class ImageAdjust(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "adjust levels, brightness, contrast, gamma, etc"
     rules = {
         "ImageAdjust[image_Image, c_?RealNumberQ]": "ImageAdjust[image, {c, 0, 1}]",
         "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ}]": "ImageAdjust[image, {c, b, 1}]",
@@ -821,6 +848,7 @@ class Blur(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "blurred version of an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
         "Blur[image_Image, r_?RealNumberQ]": "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]",
@@ -843,6 +871,7 @@ class Sharpen(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "sharpen version of an image"
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
 
     def apply(self, image, r, evaluation):
@@ -863,6 +892,7 @@ class GaussianFilter(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "apply a gaussian filter to an image"
     messages = {"only3": "GaussianFilter only supports up to three channels."}
 
     def apply_radius(self, image, radius, evaluation):
@@ -878,6 +908,16 @@ class GaussianFilter(_ImageBuiltin):
 
 
 class PillowImageFilter(_ImageBuiltin):
+    """
+    <dl>
+    <dt>'PillowImageFilter[$image$, "filtername"]'
+    <dd> applies an image filter "filtername" from the pillow library.
+    </dl>
+    TODO: test cases?
+    """
+
+    summary_text = "apply a pillow filter to an image"
+
     def compute(self, image, f):
         return image.filter(lambda im: im.filter(f))
 
@@ -894,6 +934,8 @@ class MinFilter(PillowImageFilter):
     >> MinFilter[lena, 5]
      = -Image-
     """
+
+    summary_text = "replace every pixel value by the minimum in a neighbourhood"
 
     def apply(self, image, r, evaluation):
         "MinFilter[image_Image, r_Integer]"
@@ -913,6 +955,8 @@ class MaxFilter(PillowImageFilter):
      = -Image-
     """
 
+    summary_text = "replace every pixel value by the maximum in a neighbourhood"
+
     def apply(self, image, r, evaluation):
         "MaxFilter[image_Image, r_Integer]"
         return self.compute(image, PIL.ImageFilter.MaxFilter(1 + 2 * r.get_int_value()))
@@ -930,6 +974,8 @@ class MedianFilter(PillowImageFilter):
     >> MedianFilter[lena, 5]
      = -Image-
     """
+
+    summary_text = "replace every pixel value by the median in a neighbourhood"
 
     def apply(self, image, r, evaluation):
         "MedianFilter[image_Image, r_Integer]"
@@ -954,6 +1000,7 @@ class EdgeDetect(_SkimageBuiltin):
      = -Image-
     """
 
+    summary_text = "detect edges in an image using Canny and other methods"
     rules = {
         "EdgeDetect[i_Image]": "EdgeDetect[i, 2, 0.2]",
         "EdgeDetect[i_Image, r_?RealNumberQ]": "EdgeDetect[i, r, 0.2]",
@@ -990,6 +1037,8 @@ class BoxMatrix(_ImageBuiltin):
      = {{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}}
     """
 
+    summary_text = "a matrix with all its entries set to 1"
+
     def apply(self, r, evaluation):
         "BoxMatrix[r_?RealNumberQ]"
         py_r = abs(r.round_to_float())
@@ -1007,6 +1056,8 @@ class DiskMatrix(_ImageBuiltin):
     >> DiskMatrix[3]
      = {{0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}}
     """
+
+    summary_text = "a matrix with 1 in a disk-shaped region, and 0 outside"
 
     def apply(self, r, evaluation):
         "DiskMatrix[r_?RealNumberQ]"
@@ -1033,6 +1084,8 @@ class DiamondMatrix(_ImageBuiltin):
     >> DiamondMatrix[3]
      = {{0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0}}
     """
+
+    summary_text = "a matrix with 1 in a diamond-shaped region, and 0 outside"
 
     def apply(self, r, evaluation):
         "DiamondMatrix[r_?RealNumberQ]"
@@ -1071,6 +1124,8 @@ class ImageConvolve(_ImageBuiltin):
     >> ImageConvolve[img, BoxMatrix[5] / 121]
      = -Image-
     """
+
+    summary_text = "give the convolution of image with kernel"
 
     def apply(self, image, kernel, evaluation):
         "%(name)s[image_Image, kernel_?MatrixQ]"
@@ -1116,6 +1171,8 @@ class Dilation(_MorphologyFilter):
      = -Image-
     """
 
+    summary_text = "give the dilation with respect to a range-r square"
+
 
 class Erosion(_MorphologyFilter):
     """
@@ -1128,6 +1185,8 @@ class Erosion(_MorphologyFilter):
     >> Erosion[ein, 2.5]
      = -Image-
     """
+
+    summary_text = "give the erotion with respect to a range-r square"
 
 
 class Opening(_MorphologyFilter):
@@ -1142,6 +1201,8 @@ class Opening(_MorphologyFilter):
      = -Image-
     """
 
+    summary_text = "morphological opening regarding a kernel"
+
 
 class Closing(_MorphologyFilter):
     """
@@ -1155,8 +1216,22 @@ class Closing(_MorphologyFilter):
      = -Image-
     """
 
+    summary_text = "morphological closing regarding a kernel"
+
 
 class MorphologicalComponents(_SkimageBuiltin):
+    """
+    <dl>
+    <dt>'MorphologicalComponents[$image$]'
+    <dd> Builds a 2-D array in which each pixel of $image$ is replaced
+    by an integer index representing the connected foreground image
+    component in which the pixel lies.
+    <dt>'MorphologicalComponents[$image$, $threshold$]'
+    <dd> consider any pixel with a value above $threshold$ as the foreground.
+    </dl>
+    """
+
+    summary_text = "tag connected regions of similar colors"
 
     rules = {"MorphologicalComponents[i_Image]": "MorphologicalComponents[i, 0]"}
 
@@ -1187,6 +1262,8 @@ class ImageColorSpace(_ImageBuiltin):
      = RGB
     """
 
+    summary_text = "colorspace used in the image"
+
     def apply(self, image, evaluation):
         "ImageColorSpace[image_Image]"
         return String(image.color_space)
@@ -1211,6 +1288,7 @@ class ColorQuantize(_ImageBuiltin):
      = ColorQuantize[-Image-, -1]
     """
 
+    summary_text = "give an approximation to image that uses only n distinct colors"
     messages = {"intp": "Positive integer expected at position `2` in `1`."}
 
     def apply(self, image, n, evaluation):
@@ -1248,6 +1326,7 @@ class Threshold(_SkimageBuiltin):
      = 0.504726
     """
 
+    summary_text = "estimate a threshold value for binarize an image"
     options = {"Method": '"Cluster"'}
 
     messages = {
@@ -1299,6 +1378,8 @@ class Binarize(_SkimageBuiltin):
      = -Image-
     """
 
+    summary_text = "create a binarized image"
+
     def apply(self, image, evaluation):
         "Binarize[image_Image]"
         image = image.grayscale()
@@ -1327,6 +1408,8 @@ class ColorSeparate(_ImageBuiltin):
     </dl>
     """
 
+    summary_text = "separate color channels"
+
     def apply(self, image, evaluation):
         "ColorSeparate[image_Image]"
         images = []
@@ -1350,6 +1433,8 @@ class ColorCombine(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "combine color channels"
+
     def apply(self, channels, colorspace, evaluation):
         "ColorCombine[channels_List, colorspace_String]"
 
@@ -1359,7 +1444,7 @@ class ColorCombine(_ImageBuiltin):
 
         numpy_channels = []
         for channel in channels.leaves:
-            if not Expression("MatrixQ", channel).evaluate(evaluation).is_true():
+            if not Expression("MatrixQ", channel).evaluate(evaluation) is SymbolTrue:
                 return
             numpy_channels.append(matrix_to_numpy(channel))
 
@@ -1419,6 +1504,7 @@ class Colorize(_ImageBuiltin):
      = -Image-
     """
 
+    summary_text = "create pseudocolor images"
     options = {"ColorFunction": "Automatic"}
 
     messages = {
@@ -1432,7 +1518,7 @@ class Colorize(_ImageBuiltin):
             pixels = values.grayscale().pixels
             matrix = pixels_as_ubyte(pixels.reshape(pixels.shape[:2]))
         else:
-            if not Expression("MatrixQ", values).evaluate(evaluation).is_true():
+            if not Expression("MatrixQ", values).evaluate(evaluation) is SymbolTrue:
                 return
             matrix = matrix_to_numpy(values)
 
@@ -1488,6 +1574,7 @@ class ImageData(_ImageBuiltin):
      = ImageData[-Image-, Bytf]
     """
 
+    summary_text = "the array of pixel values from an image"
     rules = {"ImageData[image_Image]": 'ImageData[image, "Real"]'}
 
     messages = {"pixelfmt": 'Unsupported pixel format "``".'}
@@ -1522,6 +1609,8 @@ class ImageTake(_ImageBuiltin):
       <dd>gives a cropped version of $image$.
     </dl>
     """
+
+    summary_text = "create an image from a range of lines of another image"
 
     def apply(self, image, n, evaluation):
         "ImageTake[image_Image, n_Integer]"
@@ -1584,6 +1673,7 @@ class PixelValue(_ImageBuiltin):
      : Padding not implemented for PixelValue.
     """
 
+    summary_text = "pixel value of image at a given position"
     messages = {"nopad": "Padding not implemented for PixelValue."}
 
     def apply(self, image, x, y, evaluation):
@@ -1621,6 +1711,7 @@ class PixelValuePositions(_ImageBuiltin):
      = {0.25098, 0.0117647, 0.215686}
     """
 
+    summary_text = "list the position of pixels with a given value"
     rules = {
         "PixelValuePositions[image_Image, val_?RealNumberQ]": "PixelValuePositions[image, val, 0]"
     }
@@ -1669,6 +1760,8 @@ class ImageDimensions(_ImageBuiltin):
      = {2, 3}
     """
 
+    summary_text = "pixel dimensions of the raster associated with an image"
+
     def apply(self, image, evaluation):
         "ImageDimensions[image_Image]"
         return Expression(SymbolList, *image.dimensions())
@@ -1688,6 +1781,8 @@ class ImageAspectRatio(_ImageBuiltin):
     >> ImageAspectRatio[Image[{{0, 1}, {1, 0}, {1, 1}}]]
      = 3 / 2
     """
+
+    summary_text = "give the ratio of height to width of an image"
 
     def apply(self, image, evaluation):
         "ImageAspectRatio[image_Image]"
@@ -1709,6 +1804,8 @@ class ImageChannels(_ImageBuiltin):
     >> ImageChannels[img]
      = 3
     """
+
+    summary_text = "number of channels present in the data for an image"
 
     def apply(self, image, evaluation):
         "ImageChannels[image_Image]"
@@ -1734,6 +1831,8 @@ class ImageType(_ImageBuiltin):
 
     """
 
+    summary_text = "type of values used for each pixel element in an image"
+
     def apply(self, image, evaluation):
         "ImageType[image_Image]"
         return String(image.storage_type())
@@ -1753,6 +1852,8 @@ class BinaryImageQ(_ImageTest):
     S> BinaryImageQ[Binarize[img]]
      = True
     """
+
+    summary_text = "test whether pixels in an image ar binary bit values"
 
     def test(self, expr):
         return isinstance(expr, Image) and expr.storage_type() == "Bit"
@@ -1795,6 +1896,8 @@ class ImageQ(_ImageTest):
     >> ImageQ["abc"]
      = False
     """
+
+    summary_text = "test whether is a valid image"
 
     def test(self, expr):
         return isinstance(expr, Image)
@@ -1996,6 +2099,11 @@ class Image(Atom):
 
 class ImageAtom(AtomBuiltin):
     """
+    <dl>
+    <dt>'Image[...]'
+    <dd> produces the internal representation of an image from an array
+    of values for the pixels.
+    </dl>
     #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
      = -Image-
 
@@ -2003,6 +2111,7 @@ class ImageAtom(AtomBuiltin):
      = -Image-
     """
 
+    summary_text = "internal representation of an image"
     requires = _image_requires
 
     def apply_create(self, array, evaluation):
@@ -2027,6 +2136,7 @@ class TextRecognize(Builtin):
     </dl>
     """
 
+    summary_text = "recognize text in an image"
     requires = _image_requires + ("pyocr",)
 
     messages = {
@@ -2106,6 +2216,7 @@ if "Pyston" not in sys.version:
          = -Image-
         """
 
+        summary_text = "a word cloud from a list of words"
         requires = _image_requires + ("wordcloud",)
 
         options = {

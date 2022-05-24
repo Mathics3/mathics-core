@@ -23,6 +23,7 @@ class Compress(Builtin):
     options = {
         "Method": "{}",
     }
+    summary_text = "compress an expression"
 
     def apply(self, expr, evaluation, options):
         "Compress[expr_, OptionsPattern[Compress]]"
@@ -59,6 +60,8 @@ class Uncompress(Builtin):
     >> Uncompress[b]
      = x ^ 2 + y Sin[x] + 10 Log[15]
     """
+
+    summary_text = "recover a compressed expression"
 
     def apply(self, string, evaluation):
         "Uncompress[string_String]"

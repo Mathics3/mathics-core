@@ -37,6 +37,7 @@ class Minimize(Builtin):
     """
 
     attributes = protected | read_protected
+    summary_text = "minimize a function"
 
     def apply_onevariable(self, f, x, evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
@@ -365,6 +366,7 @@ class Maximize(Builtin):
     """
 
     attributes = protected | read_protected
+    summary_text = "maximize a function"
 
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"

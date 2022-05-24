@@ -39,9 +39,10 @@ class Or(BinaryOperator):
      = a || b
     """
 
+    attributes = flat | hold_all | one_identity | protected
     operator = "||"
     precedence = 215
-    attributes = flat | hold_all | one_identity | protected
+    summary_text = "logic (inclusive) disjunction"
 
     #    rules = {
     #        "Or[a_]": "a",
@@ -55,7 +56,7 @@ class Or(BinaryOperator):
         leaves = []
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 return SymbolTrue
             elif result != SymbolFalse:
                 leaves.append(result)
@@ -87,10 +88,10 @@ class And(BinaryOperator):
      = a && b && c
     """
 
+    attributes = flat | hold_all | one_identity | protected
     operator = "&&"
     precedence = 215
-    attributes = flat | hold_all | one_identity | protected
-
+    summary_text = "logic conjunction"
     #    rules = {
     #        "And[a_]": "a",
     #        "And[a_, a_]": "a",
@@ -106,7 +107,7 @@ class And(BinaryOperator):
             result = arg.evaluate(evaluation)
             if result is SymbolFalse:
                 return SymbolFalse
-            elif not result.is_true():
+            elif not result is SymbolTrue:
                 leaves.append(result)
         if leaves:
             if len(leaves) == 1:
@@ -141,6 +142,7 @@ class Not(PrefixOperator):
         "Not[False]": "True",
         "Not[Not[expr_]]": "expr",
     }
+    summary_text = "logic negation"
 
 
 class Nand(Builtin):
@@ -158,6 +160,7 @@ class Nand(Builtin):
     rules = {
         "Nand[expr___]": "Not[And[expr]]",
     }
+    summary_text = "negation of logic conjunction"
 
 
 class Nor(Builtin):
@@ -175,6 +178,7 @@ class Nor(Builtin):
     rules = {
         "Nor[expr___]": "Not[Or[expr]]",
     }
+    summary_text = "negation of logic (inclusive) disjunction"
 
 
 class Implies(BinaryOperator):
@@ -202,6 +206,7 @@ class Implies(BinaryOperator):
     operator = "\u21D2"
     precedence = 200
     grouping = "Right"
+    summary_text = "logic implication"
 
     def apply(self, x, y, evaluation):
         "Implies[x_, y_]"
@@ -209,7 +214,7 @@ class Implies(BinaryOperator):
         result0 = x.evaluate(evaluation)
         if result0 is SymbolFalse:
             return SymbolTrue
-        elif result0.is_true():
+        elif result0 is SymbolTrue:
             return y.evaluate(evaluation)
         else:
             return Expression("Implies", result0, y.evaluate(evaluation))
@@ -241,9 +246,10 @@ class Equivalent(BinaryOperator):
      = True
     """
 
+    attributes = orderless | protected
     operator = "\u29E6"
     precedence = 205
-    attributes = orderless | protected
+    summary_text = "logic equivalence"
 
     def apply(self, args, evaluation):
         "Equivalent[args___]"
@@ -255,7 +261,7 @@ class Equivalent(BinaryOperator):
         flag = False
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result is SymbolFalse or result.is_true():
+            if result is SymbolFalse or result is SymbolTrue:
                 flag = not flag
                 break
         if flag:
@@ -300,9 +306,10 @@ class Xor(BinaryOperator):
      = a \u22BB b
     """
 
+    attributes = flat | one_identity | orderless | protected
     operator = "\u22BB"
     precedence = 215
-    attributes = flat | one_identity | orderless | protected
+    summary_text = "logic (exclusive) disjunction"
 
     def apply(self, args, evaluation):
         "Xor[args___]"
@@ -312,7 +319,7 @@ class Xor(BinaryOperator):
         flag = True
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 flag = not flag
             elif result != SymbolFalse:
                 leaves.append(result)
@@ -340,6 +347,7 @@ class True_(Predefined):
 
     attributes = locked | protected
     name = "True"
+    summary_text = "boolean constant for True"
 
 
 class False_(Predefined):
@@ -352,6 +360,7 @@ class False_(Predefined):
 
     attributes = locked | protected
     name = "False"
+    summary_text = "boolean constant for False"
 
 
 class _ShortCircuit(Exception):
@@ -381,7 +390,9 @@ class _ManyTrue(Builtin):
             return
 
         def callback(node):
-            self._short_circuit(Expression(test, node).evaluate(evaluation).is_true())
+            self._short_circuit(
+                Expression(test, node).evaluate(evaluation) is SymbolTrue
+            )
             return node
 
         try:
@@ -413,6 +424,8 @@ class NoneTrue(_ManyTrue):
      = True
     """
 
+    summary_text = "all the elements are False"
+
     def _short_circuit(self, what):
         if what:
             raise _ShortCircuit(SymbolFalse)
@@ -442,6 +455,8 @@ class AnyTrue(_ManyTrue):
      = False
     """
 
+    summary_text = "some of the elements are True"
+
     def _short_circuit(self, what):
         if what:
             raise _ShortCircuit(SymbolTrue)
@@ -470,6 +485,8 @@ class AllTrue(_ManyTrue):
     #> AllTrue[{}, EvenQ]
      = True
     """
+
+    summary_text = "all the elements are True"
 
     def _short_circuit(self, what):
         if not what:

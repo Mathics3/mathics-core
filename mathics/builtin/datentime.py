@@ -19,17 +19,14 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
+from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolInfinity,
-    SymbolRowBox,
 )
 
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
-
-from mathics.builtin.base import Builtin, Predefined
 from mathics.settings import TIME_12HOUR
 
 START_TIME = time.time()
@@ -416,13 +413,14 @@ class AbsoluteTiming(Builtin):
 class DateDifference(Builtin):
     """
     <dl>
-    <dt>'DateDifference[$date1$, $date2$]'
+      <dt>'DateDifference[$date1$, $date2$]'
       <dd>returns the difference between $date1$ and $date2$ in days.
-    <dt>'DateDifference[$date1$, $date2$, $unit$]'
+
+      <dt>'DateDifference[$date1$, $date2$, $unit$]'
       <dd>returns the difference in the specified $unit$.
-    <dt>'DateDifference[$date1$, $date2$, {$unit1$, $unit2$, ...}]'
-      <dd>represents the difference as a list of integer multiples of
-      each $unit$, with any remainder expressed in the smallest unit.
+
+      <dt>'DateDifference[$date1$, $date2$, {$unit1$, $unit2$, ...}]'
+      <dd>represents the difference as a list of integer multiples of each $unit$, with any remainder expressed in the smallest unit.
     </dl>
 
     >> DateDifference[{2042, 1, 4}, {2057, 1, 1}]
@@ -447,7 +445,7 @@ class DateDifference(Builtin):
      = {{14, "Month"}, {20, "Day"}}
     """
 
-    rules = {"DateDifference[date1_, date2_]": 'DateDifference[date1, date2, "Day"]'}
+    attributes = read_protected | protected
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -456,7 +454,7 @@ class DateDifference(Builtin):
         ),
     }
 
-    attributes = read_protected | protected
+    rules = {"DateDifference[date1_, date2_]": 'DateDifference[date1, date2, "Day"]'}
 
     summary_text = "find the difference in days, weeks, etc. between two dates"
 
@@ -563,7 +561,7 @@ class DateDifference(Builtin):
         return from_python(result)
 
 
-class DateObject(_DateFormat):
+class DateObject(_DateFormat, ImmutableValueMixin):
     """
     <dl>
       <dt>'DateObject[...]'
@@ -981,7 +979,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
      = {2030, 4, 21}
     """
 
-    summary_text = "Find the date of Easter Sunday for a given year"
+    summary_text = "find the date of Easter Sunday for a given year"
 
     def apply(self, year, evaluation):
         "EasterSunday[year_Integer]"
@@ -1022,7 +1020,7 @@ class Pause(Builtin):
         ),
     }
 
-    summary_text = "pauses for a number of seconds"
+    summary_text = "pause for a number of seconds"
 
     def apply(self, n, evaluation):
         "Pause[n_]"

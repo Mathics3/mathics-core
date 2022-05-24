@@ -353,7 +353,7 @@ all_test = {
                 "BoxError",
             ),
             "System`TraditionalForm": (
-                "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
+                "Subsuperscript[∫, a, g(b)]\u2062F(x)\u2062\uf74cx",
                 "BoxError",
             ),
             "System`InputForm": "Integrate[F[x], {x, a, g[b]}]",
@@ -433,8 +433,8 @@ all_test = {
             "System`OutputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
         },
         "mathml": {
-            "System`StandardForm": "<msqrt><mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac></msqrt>",
-            "System`TraditionalForm": "<msqrt><mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac></msqrt>",
+            "System`StandardForm": "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
+            "System`TraditionalForm": "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
             "System`InputForm": "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
             "System`OutputForm": "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
         },
@@ -621,7 +621,6 @@ for expr in all_test:
     ("str_expr", "str_expected", "form", "msg"),
     text_current_failing,
 )
-@pytest.mark.xfail
 def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
@@ -694,7 +693,7 @@ for expr in all_test:
     ("str_expr", "str_expected", "form", "msg"),
     tex_current_failing,
 )
-@pytest.mark.xfail
+# @pytest.mark.xfail
 def test_makeboxes_tex_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
@@ -787,10 +786,12 @@ def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
 def test_makeboxes_mathml_ok(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
+    strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
+    print("result:")
+    print(strresult)
+    print("\n expected:")
+    print(str_expected)
     if msg:
-        assert (
-            format_result.boxes_to_mathml(evaluation=session.evaluation) == str_expected
-        ), msg
+        assert strresult == str_expected, msg
     else:
-        strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
         assert strresult == str_expected

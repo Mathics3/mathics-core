@@ -176,6 +176,8 @@ class DamerauLevenshteinDistance(_StringDistance):
      = 1
     """
 
+    summary_text = "Damerau-Levenshtein distance"
+
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _damerau_levenshtein)
 
@@ -213,6 +215,8 @@ class EditDistance(_StringDistance):
      = 2
     """
 
+    summary_text = "Edit distance"
+
     def _distance(self, s1, s2, sameQ: Callable[..., bool]):
         return _levenshtein_like_or_border_cases(s1, s2, sameQ, _levenshtein)
 
@@ -242,6 +246,7 @@ class HammingDistance(Builtin):
     options = {
         "IgnoreCase": "False",
     }
+    summary_text = "Hamming distance"
 
     @staticmethod
     def _compute(u, v, sameQ, evaluation):
@@ -262,7 +267,7 @@ class HammingDistance(Builtin):
         ignore_case = self.get_option(options, "IgnoreCase", evaluation)
         py_u = u.get_string_value()
         py_v = v.get_string_value()
-        if ignore_case and ignore_case.is_true():
+        if ignore_case and ignore_case is SymbolTrue:
             py_u = py_u.lower()
             py_v = py_v.lower()
         return HammingDistance._compute(py_u, py_v, lambda x, y: x == y, evaluation)

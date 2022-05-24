@@ -26,8 +26,9 @@ from mathics.core.interrupt import (
 
 from mathics.core.symbols import (
     Symbol,
-    SymbolTrue,
     SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
 )
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
@@ -109,7 +110,7 @@ class Catch(Builtin):
 
     attributes = hold_all | protected
 
-    summary_text = "Handles an exception raised by a 'Throw'"
+    summary_text = "handle an exception raised by a 'Throw'"
 
     def apply_expr(self, expr, evaluation):
         "Catch[expr_]"
@@ -127,7 +128,7 @@ class Catch(Builtin):
             # TODO: check that form match tag.
             # otherwise, re-raise the exception
             match = Expression("MatchQ", e.tag, form).evaluate(evaluation)
-            if match.is_true():
+            if match is SymbolTrue:
                 return Expression(f, e.value)
             else:
                 # A plain raise hide, this path and preserves the traceback
@@ -193,14 +194,14 @@ class CompoundExpression(BinaryOperator):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
-        result = Symbol("Null")
+        result = SymbolNull
         for expr in items:
             prev_result = result
             result = expr.evaluate(evaluation)
 
             # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
             # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is Symbol("Null") and prev_result != Symbol("Null"):
+            if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -224,7 +225,7 @@ class Continue(Builtin):
         "nofwd": "No enclosing For, While, or Do found for Continue[].",
     }
 
-    summary_text = "continues with the next iteration in a 'For', 'While' or 'Do' loop"
+    summary_text = "continue with the next iteration in a 'For', 'While' or 'Do' loop"
 
     def apply(self, evaluation):
         "Continue[]"
@@ -279,7 +280,7 @@ class Do(_IterationFunction):
     summary_text = "evaluate an expression looping over a variable"
 
     def get_result(self, items):
-        return Symbol("Null")
+        return SymbolNull
 
 
 class For(Builtin):
@@ -318,7 +319,7 @@ class For(Builtin):
 
     def apply(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
             try:
                 try:
@@ -334,7 +335,7 @@ class For(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class If(Builtin):
@@ -362,6 +363,8 @@ class If(Builtin):
     >> If[a, (*then*) b, (*else*) c];
     """
 
+    summary_text = "if-then-else conditional expression"
+    # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
     attributes = hold_rest | protected
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
@@ -371,7 +374,7 @@ class If(Builtin):
         if condition is SymbolTrue:
             return t.evaluate(evaluation)
         elif condition is SymbolFalse:
-            return Symbol("Null")
+            return SymbolNull
 
     def apply_3(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
@@ -452,7 +455,7 @@ class FixedPoint(Builtin):
             new_result = Expression(f, result).evaluate(evaluation)
             if sametest:
                 same = Expression(sametest, result, new_result).evaluate(evaluation)
-                same = same.is_true()
+                same = same is SymbolTrue
                 if same:
                     break
             else:
@@ -635,11 +638,11 @@ class NestWhile(Builtin):
      = 625 / 2
     """
 
+    summary_text = "nest while a condition is satisfied returning the last expression"
+
     rules = {
         "NestWhile[f_, expr_, test_]": "NestWhile[f, expr, test, 1]",
     }
-
-    summary_text = "nest while a condition is satisfied returning the last expression"
 
     def apply(self, f, expr, test, m, evaluation):
         "NestWhile[f_, expr_, test_, Pattern[m,_Integer|All]]"
@@ -652,7 +655,7 @@ class NestWhile(Builtin):
                 test_elements = results[-m.value :]
             test_expr = Expression(test, *test_elements)
             test_result = test_expr.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 next = Expression(f, results[-1])
                 results.append(next.evaluate(evaluation))
             else:
@@ -735,6 +738,7 @@ class Switch(Builtin):
      = Switch[b, b]
     """
 
+    summary_text = "switch based on a value, with patterns allowed"
     attributes = hold_rest | protected
 
     messages = {
@@ -807,14 +811,14 @@ class Which(Builtin):
         while items:
             test, item = items[0], items[1]
             test_result = test.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 return item.evaluate(evaluation)
             elif test_result != SymbolFalse:
                 if len(items) == nr_items:
                     return None
                 return Expression("Which", *items)
             items = items[2:]
-        return Symbol("Null")
+        return SymbolNull
 
 
 class While(Builtin):
@@ -837,17 +841,16 @@ class While(Builtin):
      = 12
     """
 
+    summary_text = "evaluate an expression while a criterion is true"
     attributes = hold_all | protected
     rules = {
         "While[test_]": "While[test, Null]",
     }
 
-    summary_text = "evaluate an expression while a criterion is true"
-
     def apply(self, test, body, evaluation):
         "While[test_, body_]"
 
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             try:
                 evaluation.check_stopped()
                 body.evaluate(evaluation)
@@ -857,7 +860,7 @@ class While(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class Throw(Builtin):

@@ -275,7 +275,6 @@ class Manipulate(Builtin):
      : 'Illegal variable range or step parameters for `x`.
      = Manipulate[x, {x, 1, 0}]
     """
-
     attributes = (
         hold_all | protected
     )  # we'll call ReleaseHold at the time of evaluation below
@@ -290,6 +289,7 @@ class Manipulate(Builtin):
     }
 
     requires = ("ipywidgets",)
+    summary_text = "interactively manipulate any expression, graphic, or other object"
 
     def apply(self, expr, args, evaluation):
         "Manipulate[expr_, args__]"

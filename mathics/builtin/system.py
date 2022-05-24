@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 Global System Information
 """
 
-
+import gc
 import os
 import platform
 import sys
@@ -45,10 +44,31 @@ class Aborted(Predefined):
     </dl>
     """
 
+    summary_text = "return value for aborted evaluations"
     name = "$Aborted"
 
 
 class ByteOrdering(Predefined):
+    """
+    <dl>
+      <dt>'ByteOrdering'
+      <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering
+    of bytes should be assumed for your computer system..
+    </dl>
+
+    X> ByteOrdering
+     = 1
+
+    #> ByteOrdering == -1 || ByteOrdering == 1
+     = True
+    """
+
+    summary_text = "ordering of the bits in a byte"
+    name = "ByteOrdering"
+    rules = {"ByteOrdering": "$ByteOrdering"}
+
+
+class ByteOrdering_(Predefined):
     """
     <dl>
       <dt>'$ByteOrdering'
@@ -62,6 +82,7 @@ class ByteOrdering(Predefined):
      = True
     """
 
+    summary_text = "native machine byte ordering of the computer system"
     name = "$ByteOrdering"
 
     def evaluate(self, evaluation) -> Integer:
@@ -78,6 +99,7 @@ class CommandLine(Predefined):
      = {...}
     """
 
+    summary_text = "the command line arguments passed when the current Mathics session was launched"
     name = "$CommandLine"
 
     def evaluate(self, evaluation) -> Expression:
@@ -93,6 +115,8 @@ class Environment(Builtin):
     X> Environment["HOME"]
      = ...
     """
+
+    summary_text = "list the system environment variables"
 
     def apply(self, var, evaluation):
         "Environment[var_String]"
@@ -115,6 +139,7 @@ class Failed(Predefined):
      = $Failed
     """
 
+    summary_text = "retrieved result for failed evaluations"
     name = "$Failed"
 
 
@@ -128,6 +153,8 @@ class GetEnvironment(Builtin):
     X> GetEnvironment["HOME"]
     = ...
     """
+
+    summary_text = "retrieve the value of a system environment variable"
 
     def apply(self, var, evaluation):
         "GetEnvironment[var___]"
@@ -161,6 +188,7 @@ class Machine(Predefined):
      = linux
     """
 
+    summary_text = "the type of computer system over whith Mathics is running"
     name = "$Machine"
 
     def evaluate(self, evaluation) -> String:
@@ -177,6 +205,7 @@ class MachineName(Predefined):
      = buster
     """
 
+    summary_text = "the name of computer over whith Mathics is running"
     name = "$MachineName"
 
     def evaluate(self, evaluation) -> String:
@@ -193,6 +222,7 @@ class MathicsVersion(Predefined):
     >> MathicsVersion
     = ...
     """
+    summary_text = "the version of the mathics core"
 
     def evaluate(self, evaluation) -> String:
         return String(__version__)
@@ -211,6 +241,7 @@ class Packages(Predefined):
     = True
     """
 
+    summary_text = "list the packages loaded in the current session"
     name = "$Packages"
     rules = {
         "$Packages": '{"ImportExport`",  "XML`","Internal`", "System`", "Global`"}'
@@ -230,7 +261,7 @@ class ParentProcessID(Predefined):
     #> Head[$ParentProcessID] == Integer
      = True
     """
-
+    summary_text = "id of the process that invoked Mathics"
     name = "$ParentProcessID"
 
     def evaluate(self, evaluation) -> Integer:
@@ -250,7 +281,7 @@ class ProcessID(Predefined):
     #> Head[$ProcessID] == Integer
      = True
     """
-
+    summary_text = "id of the Mathics process"
     name = "$ProcessID"
 
     def evaluate(self, evaluation) -> Integer:
@@ -266,7 +297,9 @@ class ProcessorType(Predefined):
     X> $ProcessorType
     = x86_64
     """
-
+    summary_text = (
+        "name of the architecture of the processor over which Mathics is running"
+    )
     name = "$ProcessorType"
 
     def evaluate(self, evaluation):
@@ -283,6 +316,7 @@ class ScriptCommandLine(Predefined):
      = {...}
     """
 
+    summary_text = "list of command line arguments"
     name = "$ScriptCommandLine"
 
     def evaluate(self, evaluation):
@@ -306,6 +340,8 @@ class Run(Builtin):
      = ...
     """
 
+    summary_text = "run a system command"
+
     def apply(self, command, evaluation):
         "Run[command_String]"
         command_str = command.to_python()
@@ -321,7 +357,7 @@ class SystemID(Predefined):
     X> $SystemID
      = linux
     """
-
+    summary_text = "id for the type of computer system"
     name = "$SystemID"
 
     def evaluate(self, evaluation) -> String:
@@ -340,7 +376,7 @@ class SystemWordLength(Predefined):
     #> Head[$SystemWordLength] == Integer
      = True
     """
-
+    summary_text = "word length of computer system"
     name = "$SystemWordLength"
 
     def evaluate(self, evaluation) -> Integer:
@@ -357,14 +393,14 @@ class UserName(Predefined):
     r"""
     <dl>
       <dt>$UserName
-      <dd>returns a string describing the type of computer system on which
-      \Mathics is being run.
+      <dd>returns the login name, according to the operative system, of the user that started the current
+      \Mathics session.
     </dl>
 
     X> $UserName
      = ...
     """
-
+    summary_text = "login name of the user that invoked the current session"
     name = "$UserName"
 
     def evaluate(self, evaluation) -> String:
@@ -388,6 +424,7 @@ class Version(Predefined):
      = Mathics ...
     """
 
+    summary_text = "the current Mathics version"
     name = "$Version"
 
     def evaluate(self, evaluation) -> String:
@@ -404,7 +441,7 @@ class VersionNumber(Predefined):
     >> $VersionNumber
     = ...
     """
-
+    summary_text = "the version number of the current Mathics core"
     name = "$VersionNumber"
     value = 10.0
 
@@ -427,6 +464,7 @@ if have_psutil:
          = ...
         """
 
+        summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
         def evaluate(self, evaluation) -> Integer:
@@ -448,6 +486,8 @@ if have_psutil:
          = True
         """
 
+        summary_text = "the available amount of physical memory in the system"
+
         def apply(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             totalmem = psutil.virtual_memory().available
@@ -468,6 +508,7 @@ else:
          = -1
         """
 
+        summary_text = "the total amount of physical memory in the system"
         name = "$SystemMemory"
 
         def evaluate(self, evaluation) -> Integer:
@@ -485,6 +526,8 @@ else:
          = -1
         """
 
+        summary_text = "the available amount of physical memory in the system"
+
         def apply(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             return Integer(-1)
@@ -500,6 +543,8 @@ class MemoryInUse(Builtin):
     >> MemoryInUse[]
      = ...
     """
+
+    summary_text = "number of bytes of memory currently being used by Mathics"
 
     def apply_0(self, evaluation) -> Integer:
         """MemoryInUse[]"""
@@ -536,28 +581,42 @@ class Share(Builtin):
     """
     <dl>
       <dt>'Share[]'
-      <dd>Tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
-          Now it just do nothing.
+      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+
     </dl>
 
     >> Share[]
      = ...
     """
 
-    def apply_0(self, evaluation) -> Integer:
+    summary_text = "force Python garbage collection"
+
+    def apply(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0
 
-    def apply_1(self, symbol, evaluation) -> Integer:
+    def apply_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0

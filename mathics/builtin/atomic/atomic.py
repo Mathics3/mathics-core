@@ -55,7 +55,7 @@ class AtomQ(Test):
     #> Clear[x]
     """
 
-    summary_text = "tests whether an expression is an atom"
+    summary_text = "test whether an expression is an atom"
 
     def test(self, expr):
         return isinstance(expr, Atom)
@@ -76,7 +76,7 @@ class Head(Builtin):
      = Symbol
     """
 
-    summary_text = "finds the head of any expression, including an atom"
+    summary_text = "find the head of any expression, including an atom"
 
     def apply(self, expr, evaluation):
         "Head[expr_]"

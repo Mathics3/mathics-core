@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from mathics.core.element import (
     BaseElement,
+    EvalMixin,
     ensure_context,
     fully_qualified_symbol_name,
 )
@@ -40,14 +41,14 @@ class NumericOperators:
     def __abs__(self) -> BaseElement:
         return self.create_expression("Abs", self)
 
+    def __add__(self, other) -> BaseElement:
+        return self.create_expression("Plus", self, other)
+
     def __pos__(self):
         return self
 
     def __neg__(self):
         return self.create_expression("Times", self, -1)
-
-    def __add__(self, other) -> BaseElement:
-        return self.create_expression("Plus", self, other)
 
     def __sub__(self, other) -> BaseElement:
         return self.create_expression(
@@ -124,24 +125,6 @@ class Monomial(object):
     def __init__(self, exps_dict):
         self.exps = exps_dict
 
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
-
     def __cmp(self, other) -> int:
         self_exps = self.exps.copy()
         other_exps = other.exps.copy()
@@ -193,21 +176,39 @@ class Monomial(object):
             index += 1
         return 0
 
+    def __eq__(self, other) -> bool:
+        return self.__cmp(other) == 0
+
+    def __le__(self, other) -> bool:
+        return self.__cmp(other) <= 0
+
+    def __lt__(self, other) -> bool:
+        return self.__cmp(other) < 0
+
+    def __ge__(self, other) -> bool:
+        return self.__cmp(other) >= 0
+
+    def __gt__(self, other) -> bool:
+        return self.__cmp(other) > 0
+
+    def __ne__(self, other) -> bool:
+        return self.__cmp(other) != 0
+
 
 class Atom(BaseElement):
     """
-    Atoms are the leaves (in the common tree sense, not the Mathics
-    ``_elements`` sense) and Heads of an Expression or M-Expression.
+    Atoms are the (some) leaves and the Heads of an S-Expression or an M-Expression.
 
-    In other words, they are the units of an expression that we cannot
-    dig down deeper structurally.  Various object primitives i.e.
-    ``ByteArray``, `CompiledCode`` or ``Image`` are atoms.
+    In other words, they are the expression's elements (leaves of the
+    expression) which we cannot dig down deeper structurally.
 
     Of note is the fact that the Mathics ``Part[]`` function of an
     Atom object does not exist.
 
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
+
+    The other kinds expression leaf is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
     """
 
     _head_name = ""
@@ -290,6 +291,17 @@ class Atom(BaseElement):
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
 
+    #    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    #        """
+    #        Build a dictionary of options from an expression.
+    #        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+    #        will return a list of options associated to the definition of the symbol "Integrate".
+    #        If self is not an expression,
+    #        """
+    #        print("get_option_values is trivial for ", (self, stop_on_error, allow_symbols ))
+    #        1/0
+    #        return None if stop_on_error else {}
+
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
             return [0, 0, 1, 1, 0, 0, 0, 1]
@@ -307,6 +319,23 @@ class Atom(BaseElement):
 
     def has_symbol(self, symbol_name) -> bool:
         return False
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Most Atoms, like Numbers and Strings, do not need evaluation
+        or reevaluation. However some kinds of Atoms like Symbols do
+        in general. The Symbol class or any other class that is
+        subclassed from here (Atom) then needs to override this method, when
+        it might is literal in general.
+
+        """
+        return True
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
@@ -331,7 +360,7 @@ class Atom(BaseElement):
         return self
 
 
-class Symbol(Atom, NumericOperators):
+class Symbol(Atom, NumericOperators, EvalMixin):
     """
     Note: Symbol is right now used in a couple of ways which in the
     future may be separated.
@@ -451,8 +480,33 @@ class Symbol(Atom, NumericOperators):
     def get_head_name(self):
         return "System`Symbol"
 
+    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+        """
+        Build a dictionary of options from an expression.
+        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        will return a list of options associated to the definition of the symbol "Integrate".
+        If self is not an expression,
+        """
+        if allow_symbols:
+            options = evaluation.definitions.get_options(self.get_name())
+            return options.copy()
+        else:
+            return None if stop_on_error else {}
+
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        Here, we have to be pessimistic and return False.
+        """
+        return False
 
     def is_numeric(self, evaluation=None) -> bool:
         """
@@ -499,9 +553,6 @@ class Symbol(Atom, NumericOperators):
                 self.name,
                 1,
             ]
-
-    def is_true(self) -> bool:
-        return self is SymbolTrue
 
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
@@ -563,6 +614,21 @@ class PredefinedSymbol(Symbol):
     a list of known Symbol names or where the name might get deleted,
     this never occurs here.
     """
+
+    @property
+    def is_literal(self) -> bool:
+        """
+        True if the value can't change, i.e. a value is set and it does not
+        depend on definition bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a `definitions`
+        parameter.
+
+        We have to be pessimistic here. There may be certain situations though
+        where the above context changes this. For example, `If`
+        has the property HoldRest. That kind of thing though is detected
+        at the higher level in handling the expression setup for `If`, not here.
+        """
+        return False
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """

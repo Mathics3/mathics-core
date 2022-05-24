@@ -12,7 +12,7 @@ import numpy
 import sympy
 
 
-from mathics.builtin.base import Predefined, SympyObject
+from mathics.builtin.base import Builtin, Predefined, SympyObject
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -311,7 +311,7 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-    <dt>'E'</dt>
+    <dt>'E'
         <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
@@ -337,7 +337,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
     <dl>
-      <dt>'EulerGamma'</dt>
+      <dt>'EulerGamma'
       <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
     </dl>
 
@@ -357,7 +357,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 class Glaisher(_MPMathConstant):
     """
     <dl>
-      <dt>'Glaisher'</dt>
+      <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
     </dl>
 
@@ -393,7 +393,7 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 class Indeterminate(_SympyConstant):
     """
     <dl>
-    <dt>'Indeterminate'</dt>
+    <dt>'Indeterminate'
         <dd>represents an indeterminate result.
     </dl>
 
@@ -450,7 +450,7 @@ class Infinity(_SympyConstant):
 class Khinchin(_MPMathConstant):
     """
     <dl>
-      <dt>'Khinchin'</dt>
+      <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
     </dl>
 
@@ -465,10 +465,68 @@ class Khinchin(_MPMathConstant):
     mpmath_name = "khinchin"
 
 
+class Overflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'
+      <dd>represents a number too large to be represented by Mathics.
+    </dl>
+
+    >> Exp[10.*^20]
+     : Overflow occurred in computation.
+     = Overflow[]
+    >> Table[Exp[10.^k],{k, 3}]
+     : Overflow occurred in computation.
+     = {22026.5, 2.68812×10^43, Overflow[]}
+    >> 1 / Underflow[]
+     = Overflow[]
+    """
+
+    rules = {
+        "Power[Overflow[], -1]": "Underflow[]",
+    }
+    summary_text = "overflow in numeric evaluation"
+
+
+class Underflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'
+      <dd>represents a number too small to be represented by Mathics.
+    </dl>
+
+    >> 1 / Overflow[]
+     = Underflow[]
+    >> 5 * Underflow[]
+     = 5 Underflow[]
+    >> % // N
+     = 0.
+    Underflow[] is kept symbolic in operations against integer numbers,
+    but taken as 0. in numeric evaluations:
+    >> 1 - Underflow[]
+     = 1 - Underflow[]
+    >> % // N
+     = 1.
+    #
+    # TODO: handle this kind of expressions where precision may be
+    # lost:
+    # >> Exp[-1000.]
+    #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
+    #  = Underflow[]
+    """
+
+    rules = {
+        "Power[Underflow[], -1]": "Overflow[]",
+        "x_Real + Underflow[]": "x",
+        "Underflow[] * x_Real": "0.",
+    }
+    summary_text = "underflow in numeric evaluation"
+
+
 class Pi(_MPMathConstant, _SympyConstant):
     """
      <dl>
-       <dt>'Pi'</dt>
+       <dt>'Pi'
        <dd>is the constant \u03c0.
      </dl>
 
@@ -491,7 +549,8 @@ class Pi(_MPMathConstant, _SympyConstant):
       = {Constant, Protected, ReadProtected}
     """
 
-    sympy_name = "pi"
     mpmath_name = "pi"
     numpy_name = "pi"
+    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
     summary_text = "pi \u03c0 ≃ 3.1416"
+    sympy_name = "pi"

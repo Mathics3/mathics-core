@@ -25,9 +25,8 @@ from mathics.core.attributes import hold_first, protected, read_protected
 class AddTo(BinaryOperator):
     """
     <dl>
-      <dt>'AddTo[$x$, $dx$]'</dt>
-
-      <dt>'$x$ += $dx$'</dt>
+      <dt>'AddTo[$x$, $dx$]'
+      <dt>'$x$ += $dx$'
       <dd>is equivalent to '$x$ = $x$ + $dx$'.
     </dl>
 
@@ -46,15 +45,15 @@ class AddTo(BinaryOperator):
     rules = {
         "x_ += dx_": "x = x + dx",
     }
-    summary_text = "adds a value and assignes that returning the new value"
+    summary_text = "add a value and assignes that returning the new value"
 
 
 class Decrement(PostfixOperator):
     """
     <dl>
-      <dt>'Decrement[$x$]'</dt>
+      <dt>'Decrement[$x$]'
 
-      <dt>'$x$--'</dt>
+      <dt>'$x$--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -81,9 +80,8 @@ class Decrement(PostfixOperator):
 class DivideBy(BinaryOperator):
     """
     <dl>
-      <dt>'DivideBy[$x$, $dx$]'</dt>
-
-      <dt>'$x$ /= $dx$'</dt>
+      <dt>'DivideBy[$x$, $dx$]'
+      <dt>'$x$ /= $dx$'
       <dd>is equivalent to '$x$ = $x$ / $dx$'.
     </dl>
 
@@ -102,15 +100,15 @@ class DivideBy(BinaryOperator):
     rules = {
         "x_ /= dx_": "x = x / dx",
     }
-    summary_text = "divides a value and assigns that returning the new value"
+    summary_text = "divide a value and assigns that returning the new value"
 
 
 class Increment(PostfixOperator):
     """
     <dl>
-      <dt>'Increment[$x$]'</dt>
+      <dt>'Increment[$x$]'
 
-      <dt>'$x$++'</dt>
+      <dt>'$x$++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
 
@@ -145,8 +143,8 @@ class Increment(PostfixOperator):
 class PreIncrement(PrefixOperator):
     """
     <dl>
-    <dt>'PreIncrement[$x$]'</dt>
-    <dt>'++$x$'</dt>
+    <dt>'PreIncrement[$x$]'
+    <dt>'++$x$'
         <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
@@ -166,15 +164,15 @@ class PreIncrement(PrefixOperator):
         "++x_": "x = x + 1",
     }
 
-    summary_text = "increases the value by one and assigns that returning the new value"
+    summary_text = "increase the value by one and assigns that returning the new value"
 
 
 class PreDecrement(PrefixOperator):
     """
     <dl>
-      <dt>'PreDecrement[$x$]'</dt>
+      <dt>'PreDecrement[$x$]'
 
-      <dt>'--$x$'</dt>
+      <dt>'--$x$'
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
 
@@ -193,14 +191,14 @@ class PreDecrement(PrefixOperator):
     rules = {
         "--x_": "x = x - 1",
     }
-    summary_text = "decreases the value by one and assigns that returning the new value"
+    summary_text = "decrease the value by one and assigns that returning the new value"
 
 
 class SubtractFrom(BinaryOperator):
     """
     <dl>
-    <dt>'SubtractFrom[$x$, $dx$]'</dt>
-    <dt>'$x$ -= $dx$'</dt>
+    <dt>'SubtractFrom[$x$, $dx$]'
+    <dt>'$x$ -= $dx$'
         <dd>is equivalent to '$x$ = $x$ - $dx$'.
     </dl>
 
@@ -219,15 +217,14 @@ class SubtractFrom(BinaryOperator):
     rules = {
         "x_ -= dx_": "x = x - dx",
     }
-    summary_text = "subtracts a value and assins that returning the new value"
+    summary_text = "subtract a value and assins that returning the new value"
 
 
 class TimesBy(BinaryOperator):
     """
     <dl>
-      <dt>'TimesBy[$x$, $dx$]'</dt>
-
-      <dt>'$x$ *= $dx$'</dt>
+      <dt>'TimesBy[$x$, $dx$]'
+      <dt>'$x$ *= $dx$'
       <dd>is equivalent to '$x$ = $x$ * $dx$'.
     </dl>
 
@@ -246,4 +243,4 @@ class TimesBy(BinaryOperator):
     rules = {
         "x_ *= dx_": "x = x * dx",
     }
-    summary_text = "multiplies a value and assigns that returning the new value"
+    summary_text = "multiply a value and assigns that returning the new value"

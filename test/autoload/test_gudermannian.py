@@ -3,7 +3,7 @@
 Unit tests from autoload/GudermannianRules.m
 """
 
-from .helper import check_evaluation
+from test.helper import check_evaluation
 
 
 def test_gudermannian():

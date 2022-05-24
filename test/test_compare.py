@@ -12,6 +12,10 @@ import pytest
             "Null",
             None,
         ),
+        ('"a"==A', "a == A", "comparable expressions"),
+        ('"a"=="a"', "True", "comparable expressions"),
+        ('"a"=="b"', "False", "comparable expressions"),
+        ('"a"==3', "False", "comparable expressions"),
         ("g[2]==g[3]", "g[2] == g[3]", "not comparable expressions, Issue #200"),
         ("g[a]==g[3]", "g[a] == g[3]", "not comparable expressions"),
         ("g[2]==g[a]", "g[2] == g[a]", "not comparable expressions"),
@@ -43,6 +47,10 @@ import pytest
         ("Equal[0, 0] == True", "True", "Issue260"),
         #
         # Unequal (!=)
+        ('"a"!=A', "a != A", "comparable expressions"),
+        ('"a"!="a"', "False", "comparable expressions"),
+        ('"a"!="b"', "True", "comparable expressions"),
+        ('"a"!=3', "True", "comparable expressions"),
         ("g[2]!=g[3]", "g[2] != g[3]", "not comparable expressions, Issue #200"),
         ("g[a]!=g[3]", "g[a] != g[3]", "not comparable expressions"),
         ("g[2]!=g[a]", "g[2] != g[a]", "not comparable expressions"),
@@ -51,6 +59,8 @@ import pytest
         ("g[1]!=g[1]", "False", "identical expressions"),
         #
         # LessEqual (<=)
+        ('"a"<="b"', "a <= b", "not comparable expressions"),
+        ('"a"<=3', "a <= 3", "not comparable expressions"),
         ("g[2]<=g[3]", "g[2] <= g[3]", "not comparable expressions, Issue #200"),
         ("g[a]<=g[3]", "g[a] <= g[3]", "not comparable expressions"),
         ("g[2]<=g[a]", "g[2] <= g[a]", "not comparable expressions"),

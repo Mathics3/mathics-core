@@ -364,9 +364,10 @@ class Evaluation(object):
                 else:
                     self.exc_result = Expression("Hold", Expression("Throw", ti.value))
                 self.message("Throw", "nocatch", self.exc_result)
-            except OverflowError:
-                self.message("General", "ovfl")
-                self.exc_result = Expression("Overflow")
+            #            except OverflowError:
+            #                print("Catch the overflow")
+            #                self.message("General", "ovfl")
+            #                self.exc_result = Expression("Overflow")
             except BreakInterrupt:
                 self.message("Break", "nofdw")
                 self.exc_result = Expression("Hold", Expression("Break"))
@@ -424,6 +425,8 @@ class Evaluation(object):
             return dict((k, self.format_output(expr, f)) for k, f in format.items())
 
         from mathics.core.expression import Expression, BoxError
+        from mathics.builtin.base import BoxExpression
+        from mathics.core.atoms import String
 
         if format == "text":
             result = expr.format(self, "System`OutputForm")
@@ -437,16 +440,20 @@ class Evaluation(object):
         else:
             raise ValueError
 
+        text_from_boxes = None
         try:
-            # With the new implementation, if result is not a ``BoxConstruct``
-            # then we should raise a BoxError here.
-            boxes = result.boxes_to_text(evaluation=self)
+            if isinstance(result, (String, BoxExpression)):
+                text_from_boxes = result.boxes_to_text(evaluation=self)
+            else:
+                print("   ", result, " is not a Box expression, but ", type(result))
         except BoxError:
+            pass
+
+        if text_from_boxes is None:
             self.message(
                 "General", "notboxes", Expression("FullForm", result).evaluate(self)
             )
-            boxes = None
-        return boxes
+        return text_from_boxes
 
     def set_quiet_messages(self, messages) -> None:
         from mathics.core.expression import Expression

@@ -75,6 +75,8 @@ class Sort(Builtin):
      = {x_, y_}
     """
 
+    summary_text = "sort lexicographically or with any comparison function"
+
     def apply(self, list, evaluation):
         "Sort[list_]"
 
@@ -97,9 +99,8 @@ class Sort(Builtin):
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.leaf, other.leaf)
-                        .evaluate(evaluation)
-                        .is_true()
+                        not Expression(p, self.leaf, other.leaf).evaluate(evaluation)
+                        is SymbolTrue
                     )
 
             new_elements = sorted(list.leaves, key=Key)
@@ -124,6 +125,7 @@ class SortBy(Builtin):
     = {{10, -9}, {5, 1}}
     """
 
+    summary_text = "sort by the values of a function applied to elements"
     rules = {
         "SortBy[f_]": "SortBy[#, f]&",
     }
@@ -209,6 +211,7 @@ class BinarySearch(Builtin):
      = 2
     """
 
+    summary_text = "search a sorted list for a key"
     context = "CombinatoricaOld`"
 
     rules = {
@@ -279,6 +282,8 @@ class PatternsOrderedQ(Builtin):
      = True
     """
 
+    summary_text = "test whether patterns are canonically sorted"
+
     def apply(self, p1, p2, evaluation):
         "PatternsOrderedQ[p1_, p2_]"
 
@@ -301,6 +306,8 @@ class OrderedQ(Builtin):
     >> OrderedQ[{b, a}]
      = False
     """
+
+    summary_text = "test whether elements are canonically sorted"
 
     def apply(self, expr, evaluation):
         "OrderedQ[expr_]"
@@ -334,6 +341,8 @@ class Order(Builtin):
      = 0
     """
 
+    summary_text = "canonical ordering of expressions"
+
     def apply(self, x, y, evaluation):
         "Order[x_, y_]"
         if x < y:
@@ -359,6 +368,8 @@ class Head(Builtin):
      = Symbol
     """
 
+    summary_text = "the head of the expression"
+
     def apply(self, expr, evaluation):
         "Head[expr_]"
 
@@ -377,6 +388,7 @@ class ApplyLevel(BinaryOperator):
      = {f[a, b], f[c, d]}
     """
 
+    summary_text = "apply a function to a list, at the top level"
     operator = "@@@"
     precedence = 620
     grouping = "Right"
@@ -425,6 +437,7 @@ class Apply(BinaryOperator):
      = Apply[f, {a, b, c}, x + y]
     """
 
+    summary_text = "apply a function to a list, at specified levels"
     operator = "@@"
     precedence = 620
     grouping = "Right"
@@ -454,7 +467,7 @@ class Apply(BinaryOperator):
             else:
                 return Expression(f, *level.leaves)
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
@@ -487,6 +500,7 @@ class Map(BinaryOperator):
      = Map[f, expr, a + b, Heads -> True]
     """
 
+    summary_text = "map a function over a list, at specified levels"
     operator = "/@"
     precedence = 620
     grouping = "Right"
@@ -513,7 +527,7 @@ class Map(BinaryOperator):
         def callback(level):
             return Expression(f, level)
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return result
@@ -555,6 +569,7 @@ class MapAt(Builtin):
      = {f[a], b, c, d}
     """
 
+    summary_text = "map a function at particular positions"
     rules = {
         "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
     }
@@ -586,14 +601,14 @@ class MapAt(Builtin):
 
         a = args.to_python()
         if isinstance(a, int):
-            new_elements = list(expr.leaves)
+            new_elements = list(expr.elements)
             new_elements = map_at_one(a, new_elements)
             return List(*new_elements)
         elif isinstance(a, list):
-            new_elements = list(expr.leaves)
-            for l in a:
-                if len(l) == 1 and isinstance(l[0], int):
-                    new_elements = map_at_one(l[0], new_elements)
+            new_elements = list(expr.elements)
+            for item in a:
+                if len(item) == 1 and isinstance(item[0], int):
+                    new_elements = map_at_one(item[0], new_elements)
             return List(*new_elements)
 
 
@@ -623,6 +638,7 @@ class Scan(Builtin):
      = 1
     """
 
+    summary_text = "scan over every element of a list, applying a function"
     options = {
         "Heads": "False",
     }
@@ -650,7 +666,7 @@ class Scan(Builtin):
             Expression(f, level).evaluate(evaluation)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
 
         return SymbolNull
@@ -696,6 +712,7 @@ class MapIndexed(Builtin):
      = MapIndexed[f, {1, 2}, a + b]
     """
 
+    summary_text = "map a function, including index information"
     options = {
         "Heads": "False",
     }
@@ -718,7 +735,7 @@ class MapIndexed(Builtin):
         def callback(level, pos):
             return Expression(f, level, Expression("List", *[Integer(p) for p in pos]))
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(
             expr, start, stop, heads=heads, callback=callback, include_pos=True
         )
@@ -767,6 +784,7 @@ class MapThread(Builtin):
      = {{f[a, d], f[b, e]}, {f[c, f]}}
     """
 
+    summary_text = "map a function across corresponding elements in multiple lists"
     messages = {
         "intnm": "Non-negative machine-sized integer expected at position `2` in `1`.",
         "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
@@ -857,6 +875,7 @@ class Thread(Builtin):
      = {a + d + g, b + e + g, c + f + g}
     """
 
+    summary_text = '"thread" a function across lists that appear in its arguments'
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",
     }
@@ -896,6 +915,9 @@ class FreeQ(Builtin):
      = True
     """
 
+    summary_text = (
+        "test whether an expression is free of subexpressions matching a pattern"
+    )
     rules = {
         "FreeQ[form_][expr_]": "FreeQ[expr, form]",
     }
@@ -971,6 +993,7 @@ class Flatten(Builtin):
      = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
     """
 
+    summary_text = "flatten out any sequence of levels in a nested list"
     rules = {
         "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
         "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
@@ -1021,26 +1044,26 @@ class Flatten(Builtin):
             if not (isinstance(level, list) and len(level) > 0):
                 evaluation.message("Flatten", "flpi", n)
                 return
-            for l in level:
-                if not (isinstance(l, int) and l > 0):
+            for r in level:
+                if not (isinstance(r, int) and r > 0):
                     evaluation.message("Flatten", "flpi", n)
                     return
-                if l in seen_levels:
+                if r in seen_levels:
                     # level repeated
-                    evaluation.message("Flatten", "flrep", l)
+                    evaluation.message("Flatten", "flrep", r)
                     return
-                seen_levels.append(l)
+                seen_levels.append(r)
 
         # complete the level spec e.g. {{2}} -> {{2}, {1}, {3}}
-        for l in range(1, max_depth + 1):
-            if l not in seen_levels:
-                levels.append([l])
+        for s in range(1, max_depth + 1):
+            if s not in seen_levels:
+                levels.append([s])
 
         # verify specified levels are smaller max depth
         for level in levels:
-            for l in level:
-                if l > max_depth:
-                    evaluation.message("Flatten", "fldep", l, n, max_depth, expr)
+            for s in level:
+                if s > max_depth:
+                    evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
                     return
 
         # assign new indices to each leaf
@@ -1116,6 +1139,8 @@ class Null(Predefined):
      = #<--#
     """
 
+    summary_text = "implicit result for expressions that does not yield a result"
+
 
 class Depth(Builtin):
     """
@@ -1143,6 +1168,8 @@ class Depth(Builtin):
     >> Depth[f[a, b][c]]
      = 2
     """
+
+    summary_text = "the maximum number of indices to specify any part"
 
     def apply(self, expr, evaluation):
         "Depth[expr_]"
@@ -1175,6 +1202,7 @@ class Operate(Builtin):
      = Operate[p, f, -1]
     """
 
+    summary_text = "apply a function to the head of an expression"
     messages = {
         "intnn": "Non-negative integer expected at position `2` in `1`.",
     }
@@ -1226,6 +1254,8 @@ class Through(Builtin):
      = p[f[x], g[x]]
     """
 
+    summary_text = "distribute operators that appears inside the head of expressions"
+
     def apply(self, p, args, x, evaluation):
         "Through[p_[args___][x___]]"
 
@@ -1244,6 +1274,8 @@ class ByteCount(Builtin):
 
     The results may heavily depend on the Python implementation in use.
     """
+
+    summary_text = "amount of memory used by expr, in bytes"
 
     def apply(self, expression, evaluation):
         "ByteCount[expression_]"

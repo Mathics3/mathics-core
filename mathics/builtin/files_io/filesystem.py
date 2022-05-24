@@ -67,6 +67,7 @@ class AbsoluteFileName(Builtin):
         "fstr": ("File specification x is not a string of one or more characters."),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "absolute path"
 
     def apply(self, name, evaluation):
         "AbsoluteFileName[name_]"
@@ -100,6 +101,7 @@ class BaseDirectory(Predefined):
      = ...
     """
 
+    summary_text = "path to the configuration directory"
     name = "$BaseDirectory"
 
     def evaluate(self, evaluation):
@@ -115,6 +117,7 @@ class CopyDirectory(Builtin):
     </dl>
     """
 
+    summary_text = "copy a directory into a new path"
     messages = {
         "argr": "called with `1` argument; 2 arguments are expected.",
         "fstr": (
@@ -167,6 +170,7 @@ class CopyFile(Builtin):
     X> DeleteFile["MathicsSunflowers.jpg"]
     """
 
+    summary_text = "copy a file into a new path"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "fstr": (
@@ -229,6 +233,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
+    summary_text = "create a directory"
     attributes = listable | protected
 
     options = {
@@ -283,6 +288,7 @@ class CreateFile(Builtin):
     </dl>
     """
 
+    summary_text = "create a file"
     rules = {
         "CreateFile[]": "CreateTemporary[]",
     }
@@ -316,6 +322,8 @@ class CreateTemporary(Builtin):
     </dl>
     """
 
+    summary_text = "create a temporary file"
+
     def apply_0(self, evaluation):
         "CreateTemporary[]"
         try:
@@ -341,6 +349,7 @@ class DeleteDirectory(Builtin):
      = $Failed
     """
 
+    summary_text = "delete a directory"
     options = {
         "DeleteContents": "False",
     }
@@ -404,6 +413,7 @@ class DeleteFile(Builtin):
     >> DeleteFile[{"MathicsSunflowers1.jpg", "MathicsSunflowers2.jpg"}]
     """
 
+    summary_text = "delete a file"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "strs": (
@@ -458,6 +468,8 @@ class Directory(Builtin):
     = ...
     """
 
+    summary_text = "current working directory"
+
     def apply(self, evaluation):
         "Directory[]"
         result = os.getcwd()
@@ -495,6 +507,7 @@ class DirectoryName(Builtin):
      = DirectoryName[x]
     """
 
+    summary_text = "directory part of a filename"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -546,6 +559,8 @@ class DirectoryStack(Builtin):
     = ...
     """
 
+    summary_text = "list the sequence of current directories in use"
+
     def apply(self, evaluation):
         "DirectoryStack[]"
         global DIRECTORY_STACK
@@ -571,6 +586,7 @@ class DirectoryQ(Builtin):
      = False
     """
 
+    summary_text = "test whether a path exists and is a directory"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -604,6 +620,7 @@ class ExpandFileName(Builtin):
      = ...
     """
 
+    summary_text = "absolute path"
     messages = {
         "string": "String expected at position 1 in `1`.",
     }
@@ -624,7 +641,14 @@ class ExpandFileName(Builtin):
 
 
 class File(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'File["$file$"]'
+      <dd>is a symbolic representation of an element in the local file system.
+    </dl>
+    """
+
+    summary_text = "element of the local filesystem"
 
 
 class FileBaseName(Builtin):
@@ -647,6 +671,7 @@ class FileBaseName(Builtin):
      = file
     """
 
+    summary_text = "base name of the file"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -670,6 +695,7 @@ class FileByteCount(Builtin):
      = 142286
     """
 
+    summary_text = "length of the file"
     messages = {
         "fstr": "File specification `1` is not a string of one or more characters.",
     }
@@ -739,6 +765,7 @@ class FileDate(Builtin):
      = FileDate[ExampleData/sunflowers.jpg, Fail]
     """
 
+    summary_text = "date and time of the last change in a file"
     messages = {
         "nffil": "File not found during `1`.",
         "datetype": (
@@ -815,6 +842,7 @@ class FileExistsQ(Builtin):
      = False
     """
 
+    summary_text = "test whether a file exists"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -855,6 +883,7 @@ class FileExtension(Builtin):
      = #<--#
     """
 
+    summary_text = "file extension"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
@@ -873,10 +902,10 @@ class FileHash(Builtin):
     <dt>'FileHash[$file$]'
       <dd>returns an integer hash for the given $file$.
     <dt>'FileHash[$file$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $file$.</dd>
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".</dd>
+      <dd>returns an integer hash of the specified $type$ for the given $file$.
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
     <dt>'FileHash[$file$, $type$, $format$]'
-      <dd>gives a hash code in the specified format.</dd>
+      <dd>gives a hash code in the specified format.
     </dl>
 
     >> FileHash["ExampleData/sunflowers.jpg"]
@@ -910,12 +939,12 @@ class FileHash(Builtin):
      = FileHash[xyzsymbol]
     """
 
+    attributes = protected | read_protected
     rules = {
         "FileHash[filename_String]": 'FileHash[filename, "MD5", "Integer"]',
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
     }
-
-    attributes = protected | read_protected
+    summary_text = "compute a hash from the content of a file"
 
     def apply(self, filename, hashtype, format, evaluation):
         "FileHash[filename_String, hashtype_String, format_String]"
@@ -957,6 +986,7 @@ class FileInformation(Builtin):
     rules = {
         "FileInformation[name_String]": "If[FileExistsQ[name], {File -> ExpandFileName[name], FileType -> FileType[name], ByteCount -> FileByteCount[name], Date -> AbsoluteTime[FileDate[name]]}, {}]",
     }
+    summary_text = "information about a file"
 
 
 class FileNameDepth(Builtin):
@@ -986,6 +1016,7 @@ class FileNameDepth(Builtin):
     rules = {
         "FileNameDepth[name_String]": "Length[FileNameSplit[name]]",
     }
+    summary_text = "number of parts in a path"
 
 
 class FileNameJoin(Builtin):
@@ -1008,16 +1039,16 @@ class FileNameJoin(Builtin):
      = dir1\\dir2\\dir3
     """
 
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
     messages = {
         "ostype": (
             "The value of option OperatingSystem -> `1` "
             'must be one of "MacOSX", "Windows", or "Unix".'
         ),
     }
+    options = {
+        "OperatingSystem": "$OperatingSystem",
+    }
+    summary_text = "join parts into a path"
 
     def apply(self, pathlist, evaluation, options):
         "FileNameJoin[pathlist_List, OptionsPattern[FileNameJoin]]"
@@ -1077,6 +1108,7 @@ class FileType(Builtin):
      = FileType[x]
     """
 
+    summary_text = "type of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
@@ -1124,6 +1156,9 @@ class FindFile(Builtin):
     messages = {
         "string": "String expected at position 1 in `1`.",
     }
+    summary_text = (
+        "search the path of of a file in the current directory and its subdirectories"
+    )
 
     def apply(self, name, evaluation):
         "FindFile[name_]"
@@ -1171,15 +1206,15 @@ class FileNames(Builtin):
     # >> FileNames[]//Length
     #  = 2
     fmtmaps = {Symbol("System`All"): "*"}
-    options = {
-        "IgnoreCase": "Automatic",
-    }
-
     messages = {
         "nofmtstr": "`1` is not a format or a list of formats.",
         "nodirstr": "`1` is not a directory name  or a list of directory names.",
         "badn": "`1` is not an integer number.",
     }
+    options = {
+        "IgnoreCase": "Automatic",
+    }
+    summary_text = "list file names in the current directory"
 
     def apply_0(self, evaluation, **options):
         """FileNames[OptionsPattern[FileNames]]"""
@@ -1296,16 +1331,17 @@ class FileNameSplit(Builtin):
      = {example, path}
     """
 
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
     messages = {
         "ostype": (
             "The value of option OperatingSystem -> `1` "
             'must be one of "MacOSX", "Windows", or "Unix".'
         ),
     }
+    options = {
+        "OperatingSystem": "$OperatingSystem",
+    }
+
+    summary_text = "split the file name in a list of parts"
 
     def apply(self, filename, evaluation, options):
         "FileNameSplit[filename_String, OptionsPattern[FileNameSplit]]"
@@ -1355,7 +1391,7 @@ class FileNameTake(Builtin):
 
     """
 
-    # mmatura: please put in a pytest
+    # mmatera: please put in a pytest
     # >> FileNameTake["/tmp/file.txt"]
     #  = file.txt
     # >> FileNameTake["tmp/file.txt", 1]
@@ -1366,6 +1402,7 @@ class FileNameTake(Builtin):
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
+    summary_text = "take a part of the filename"
 
     def apply(self, filename, evaluation, options):
         "FileNameTake[filename_String, OptionsPattern[FileBaseName]]"
@@ -1420,6 +1457,7 @@ class FindList(Builtin):
         "WordSearch": "False",
         "WordSeparators": '{" ", "\t"}',
     }
+    summary_text = "list lines in a file that contains a text"
 
     # TODO: Extra options AnchoredSearch, IgnoreCase RecordSeparators,
     # WordSearch, WordSeparators this is probably best done with a regex
@@ -1502,6 +1540,7 @@ class HomeDirectory(Predefined):
     """
 
     name = "$HomeDirectory"
+    summary_text = "user home directory"
 
     def evaluate(self, evaluation):
         global HOME_DIR
@@ -1520,6 +1559,7 @@ class InitialDirectory(Predefined):
     """
 
     name = "$InitialDirectory"
+    summary_text = "initial directory when Mathics was started"
 
     def evaluate(self, evaluation):
         global INITIAL_DIR
@@ -1538,6 +1578,7 @@ class InstallationDirectory(Predefined):
 
     attributes = no_attributes
     name = "$InstallationDirectory"
+    summary_text = "Mathics installation directory"
 
     def evaluate(self, evaluation):
         global ROOT_DIR
@@ -1653,6 +1694,7 @@ class Needs(Builtin):
         ),
         "nocont": "Context `1` was not created when Needs was evaluated.",
     }
+    summary_text = "load a package if it is not already loaded"
 
     def apply(self, context, evaluation):
         "Needs[context_String]"
@@ -1668,7 +1710,7 @@ class Needs(Builtin):
             return
         test_loaded = Expression("MemberQ", Symbol("$Packages"), context)
         test_loaded = test_loaded.evaluate(evaluation)
-        if test_loaded.is_true():
+        if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
         result = Expression("Get", context).evaluate(evaluation)
@@ -1693,6 +1735,7 @@ class OperatingSystem(Predefined):
 
     attributes = locked | protected
     name = "$OperatingSystem"
+    summary_text = "type of operating system"
 
     def evaluate(self, evaluation):
         if os.name == "posix":
@@ -1718,15 +1761,15 @@ class ParentDirectory(Builtin):
      = ...
     """
 
-    rules = {
-        "ParentDirectory[]": "ParentDirectory[Directory[]]",
-    }
-
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    rules = {
+        "ParentDirectory[]": "ParentDirectory[Directory[]]",
+    }
+    summary_text = "parent directory of the current working directory"
 
     def apply(self, path, evaluation):
         "ParentDirectory[path_]"
@@ -1754,6 +1797,7 @@ class Path(Predefined):
 
     attributes = no_attributes
     name = "$Path"
+    summary_text = "list directories where files are searched"
 
     def evaluate(self, evaluation):
         return Expression(SymbolList, *[String(p) for p in PATH_VAR])
@@ -1771,6 +1815,7 @@ class PathnameSeparator(Predefined):
     """
 
     name = "$PathnameSeparator"
+    summary_text = "system character path separator"
 
     def evaluate(self, evaluation):
         return String(os.sep)
@@ -1792,6 +1837,7 @@ class RenameDirectory(Builtin):
         "filex": "Cannot overwrite existing file `1`.",
         "nodir": "Directory `1` not found.",
     }
+    summary_text = "change the name of a directory"
 
     def apply(self, dirs, evaluation):
         "RenameDirectory[dirs__]"
@@ -1845,6 +1891,7 @@ class RenameFile(Builtin):
         ),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "change the name of a file"
 
     def apply(self, source, dest, evaluation):
         "RenameFile[source_, dest_]"
@@ -1896,6 +1943,7 @@ class ResetDirectory(Builtin):
     messages = {
         "dtop": "Directory stack is empty.",
     }
+    summary_text = "return to the directory before the last SetDirectory call"
 
     def apply(self, evaluation):
         "ResetDirectory[]"
@@ -1921,6 +1969,7 @@ class RootDirectory(Predefined):
     """
 
     name = "$RootDirectory"
+    summary_text = "system root directory"
 
     def evaluate(self, evaluation):
         global SYS_ROOT_DIR
@@ -1942,16 +1991,16 @@ class SetDirectory(Builtin):
      = $Failed
     """
 
-    rules = {
-        "SetDirectory[]": "SetDirectory[$HomeDirectory]",
-    }
-
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
         "cdir": "Cannot set current directory to `1`.",
     }
+    rules = {
+        "SetDirectory[]": "SetDirectory[$HomeDirectory]",
+    }
+    summary_text = "set the working directory"
 
     def apply(self, path, evaluation):
         "SetDirectory[path_]"
@@ -2028,6 +2077,7 @@ class SetFileDate(Builtin):
             "The Creation date of a file cannot be set on " "Macintosh or Unix."
         ),
     }
+    summary_text = "set the access/modification time of a file in the filesystem"
 
     def apply(self, filename, datelist, attribute, evaluation):
         "SetFileDate[filename_, datelist_, attribute_]"
@@ -2127,6 +2177,7 @@ class TemporaryDirectory(Predefined):
     """
 
     name = "$TemporaryDirectory"
+    summary_text = "path to the temporary directory"
 
     def evaluate(self, evaluation):
         return String(TMP_DIR)
@@ -2156,6 +2207,7 @@ class ToFileName(Builtin):
         "ToFileName[dirs_List, name_String]": "FileNameJoin[Append[dirs, name]]",
         "ToFileName[dirs_List]": "FileNameJoin[dirs]",
     }
+    summary_text = "build a path from a list of directory names and a filename"
 
 
 class UserBaseDirectory(Predefined):
@@ -2170,6 +2222,7 @@ class UserBaseDirectory(Predefined):
     """
 
     name = "$UserBaseDirectory"
+    summary_text = "directory where user configurations are stored"
 
     def evaluate(self, evaluation):
         global HOME_DIR
@@ -2190,6 +2243,7 @@ class URLSave(Builtin):
         "invfile": "`1` is not a valid Filename",
         "invhttp": "`1` is not a valid URL",
     }
+    summary_text = "save the content of an URL"
 
     def apply_1(self, url, evaluation, **options):
         "URLSave[url_String, OptionsPattern[URLSave]]"

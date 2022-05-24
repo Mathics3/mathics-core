@@ -107,6 +107,8 @@ def cuboid_3d_box(self):
     Compact (lower-level) JSON formatting of a Cuboid3DBox.
     """
     face_color = self.face_color.to_js()
+    if len(face_color) < 4 and self.face_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         [self.points],
         "cuboid",
@@ -124,6 +126,8 @@ def cylinder_3d_box(self):
     Compact (lower-level) JSON formatting of a Cylinder3DBox.
     """
     face_color = self.face_color.to_js()
+    if len(face_color) < 4 and self.face_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         [self.points],
         "cylinder",
@@ -143,6 +147,8 @@ def line_3d_box(self):
     """
     # TODO: account for line widths and style
     color = self.edge_color.to_rgba()
+    if len(color) < 4 and self.edge_opacity:
+        color = color + [self.edge_opacity.opacity]
     data = convert_coord_collection(self.lines, "line", color)
     # print("### json Line3DBox", data)
     return data
@@ -158,6 +164,8 @@ def point_3d_box(self) -> list:
     # TODO: account for point size
 
     face_color = self.face_color.to_rgba()
+    if len(face_color) < 4 and self.face_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
 
     point_size, _ = self.style.get_style(PointSize, face_element=False)
     relative_point_size = 0.01 if point_size is None else point_size.value
@@ -186,6 +194,8 @@ def polygon_3d_box(self) -> list:
     else:
         face_color = None
 
+    if face_color and len(face_color) < 4 and self.face_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         self.lines,
         "polygon",
@@ -200,6 +210,8 @@ add_conversion_fn(Polygon3DBox, polygon_3d_box)
 
 def sphere_3d_box(self) -> list:
     face_color = self.face_color.to_js()
+    if len(face_color) < 4 and self.face_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         [self.points],
         "sphere",
@@ -215,6 +227,8 @@ add_conversion_fn(Sphere3DBox, sphere_3d_box)
 
 def uniform_polyhedron_3d_box(self) -> list:
     face_color = self.face_color.to_js()
+    if len(face_color) < 4 and self.edge_opacity:
+        face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         [self.points],
         "uniformPolyhedron",
@@ -232,6 +246,8 @@ def tube_3d_box(self) -> list:
     face_color = self.face_color
     if face_color is not None:
         face_color = face_color.to_js()
+        if len(face_color) < 4 and self.edge_opacity:
+            face_color = face_color + [self.face_opacity.opacity]
     data = convert_coord_collection(
         [self.points],
         "tube",

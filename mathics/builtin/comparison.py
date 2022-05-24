@@ -27,6 +27,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Number,
+    String,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -102,9 +103,9 @@ class _EqualityOperator(_InequalityOperator):
         same_heads = lhs.get_head().sameQ(rhs.get_head())
         if not same_heads:
             return None
-        if len(lhs._elements) != len(rhs._elements):
+        if len(lhs.elements) != len(rhs.elements):
             return
-        for l, r in zip(lhs._elements, rhs._elements):
+        for l, r in zip(lhs.elements, rhs.elements):
             tst = self.equal2(l, r, max_extra_prec)
             # If the there are a pair of corresponding elements
             # that are not equals, then we are not able to decide
@@ -119,11 +120,11 @@ class _EqualityOperator(_InequalityOperator):
         if not lhs.get_head().sameQ(SymbolDirectedInfinity):
             return None
         if rhs.sameQ(SymbolInfinity) or rhs.sameQ(SymbolComplexInfinity):
-            if len(lhs._elements) == 0:
+            if len(lhs.elements) == 0:
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs._elements[0]), Integer1, max_extra_prec
+                    Expression("Sign", lhs.elements[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -131,10 +132,10 @@ class _EqualityOperator(_InequalityOperator):
             return None
         if rhs.get_head().sameQ(lhs.get_head()):
             dir1 = dir2 = Integer1
-            if len(lhs._elements) == 1:
-                dir1 = lhs._elements[0]
-            if len(rhs._elements) == 1:
-                dir2 = rhs._elements[0]
+            if len(lhs.elements) == 1:
+                dir1 = lhs.elements[0]
+            if len(rhs.elements) == 1:
+                dir2 = rhs.elements[0]
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:
@@ -249,8 +250,12 @@ class _ComparisonOperator(_InequalityOperator):
             return SymbolTrue
         items = self.numerify_args(items, evaluation)
         wanted = operators[self.get_name()]
+        if isinstance(items[-1], String):
+            return None
         for i in range(len(items) - 1):
             x = items[i]
+            if isinstance(x, String):
+                return None
             y = items[i + 1]
             c = do_cmp(x, y)
             if c is None:
@@ -379,6 +384,7 @@ class TrueQ(Builtin):
     rules = {
         "TrueQ[expr_]": "If[expr, True, False, False]",
     }
+    summary_text = "test whether the expression evaluates to True"
 
 
 class BooleanQ(Builtin):
@@ -410,6 +416,7 @@ class BooleanQ(Builtin):
     rules = {
         "BooleanQ[expr_]": "If[expr, True, True, False]",
     }
+    summary_text = "test whether the expression evaluates to a boolean constant"
 
 
 class Inequality(Builtin):
@@ -439,6 +446,7 @@ class Inequality(Builtin):
             "arguments is expected to be an odd number >= 3."
         ),
     }
+    summary_text = "chain of inequalities"
 
     def apply(self, items, evaluation):
         "Inequality[items___]"
@@ -533,9 +541,9 @@ def do_cmp(x1, x2) -> Optional[int]:
     return None
 
 
-class SympyComparison(SympyFunction):
+class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
-        to_sympy = super(SympyComparison, self).to_sympy
+        to_sympy = super(_SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
 
             def pairs(items):
@@ -549,7 +557,7 @@ class SympyComparison(SympyFunction):
         return to_sympy(expr, **kwargs)
 
 
-class Equal(_EqualityOperator, SympyComparison):
+class Equal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Equal[$x$, $y$]'
@@ -685,7 +693,7 @@ class Equal(_EqualityOperator, SympyComparison):
         return x
 
 
-class Unequal(_EqualityOperator, SympyComparison):
+class Unequal(_EqualityOperator, _SympyComparison):
     u"""
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
@@ -758,7 +766,7 @@ class Unequal(_EqualityOperator, SympyComparison):
         return not x
 
 
-class Less(_ComparisonOperator, SympyComparison):
+class Less(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Less[$x$, $y$]' or $x$ < $y$
@@ -778,10 +786,11 @@ class Less(_ComparisonOperator, SympyComparison):
     """
 
     operator = "<"
+    summary_text = "less than"
     sympy_name = "StrictLessThan"
 
 
-class LessEqual(_ComparisonOperator, SympyComparison):
+class LessEqual(_ComparisonOperator, _SympyComparison):
     u"""
      <dl>
        <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
@@ -798,10 +807,11 @@ class LessEqual(_ComparisonOperator, SympyComparison):
     """
 
     operator = "<="
+    summary_text = "less than or equal to"
     sympy_name = "LessThan"  # in contrast to StrictLessThan
 
 
-class Greater(_ComparisonOperator, SympyComparison):
+class Greater(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
@@ -821,10 +831,11 @@ class Greater(_ComparisonOperator, SympyComparison):
     """
 
     operator = ">"
+    summary_text = "greater than"
     sympy_name = "StrictGreaterThan"
 
 
-class GreaterEqual(_ComparisonOperator, SympyComparison):
+class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
@@ -835,6 +846,7 @@ class GreaterEqual(_ComparisonOperator, SympyComparison):
     """
 
     operator = ">="
+    summary_text = "greater than or equal to"
     sympy_name = "GreaterThan"
 
 
@@ -867,6 +879,7 @@ class Positive(Builtin):
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
     }
+    summary_text = "test whether an expression is a positive number"
 
 
 class Negative(Builtin):
@@ -896,6 +909,7 @@ class Negative(Builtin):
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
     }
+    summary_text = "test whether an expression is a negative number"
 
 
 class NonNegative(Builtin):
@@ -914,6 +928,7 @@ class NonNegative(Builtin):
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
     }
+    summary_text = "test whether an expression is a non-negative number"
 
 
 class NonPositive(Builtin):
@@ -932,6 +947,7 @@ class NonPositive(Builtin):
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
     }
+    summary_text = "test whether an expression is a non-positive number"
 
 
 def expr_max(items):
@@ -965,21 +981,24 @@ class _MinMax(Builtin):
 
         for item in items:
             if item.has_form("List", None):
-                leaves = item.leaves
+                elements = item.elements
             else:
-                leaves = [item]
-            for leaf in leaves:
+                elements = [item]
+            for element in elements:
+                if isinstance(element, String):
+                    results.append(element)
+                    continue
                 if best is None:
-                    best = leaf
+                    best = element
                     results.append(best)
                     continue
-                c = do_cmp(leaf, best)
+                c = do_cmp(element, best)
                 if c is None:
-                    results.append(leaf)
+                    results.append(element)
                 elif (self.sense == 1 and c > 0) or (self.sense == -1 and c < 0):
                     results.remove(best)
-                    best = leaf
-                    results.append(leaf)
+                    best = element
+                    results.append(element)
 
         if not results:
             return Expression("DirectedInfinity", -self.sense)
@@ -1020,10 +1039,14 @@ class Max(_MinMax):
     >> Max[]
      = -Infinity
 
+    'Max' does not compare strings or symbols:
+    >> Max[-1.37, 2, "a", b]
+     = Max[2, a, b]
     #> Max[x]
      = x
     """
 
+    summary_text = "the maximum value"
     sense = 1
 
 
@@ -1059,3 +1082,4 @@ class Min(_MinMax):
     """
 
     sense = -1
+    summary_text = "the minimum value"

@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, session
+"""
+Unit tests from mathics.builtins.numbers.linalg
+"""
+from test.helper import check_evaluation
 import pytest
 
 

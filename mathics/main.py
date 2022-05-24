@@ -35,7 +35,7 @@ def show_echo(query, evaluation):
     if not isinstance(echovar, Expression) or not echovar.has_form("List", None):
         return
 
-    for leaf in echovar._elements:
+    for leaf in echovar.elements:
         if isinstance(leaf, String) and leaf.get_string_value() == "stdout":
             stream = stream_manager.lookup_stream(1)
         else:

@@ -6,7 +6,6 @@ List Functions - Miscellaneous
 import heapq
 import sympy
 
-from collections import defaultdict
 from itertools import chain
 
 
@@ -99,7 +98,7 @@ class All(Predefined):
     </dl>
     """
 
-    pass
+    summary_text = "all the parts in the level"
 
 
 class ByteArray(Builtin):
@@ -125,7 +124,7 @@ class ByteArray(Builtin):
      : The first argument in Bytearray[asy] should be a B64 enconded string or a vector of integers.
      = $Failed
     """
-
+    summary_text = "array of bytes"
     messages = {
         "aotd": "Elements in `1` are inconsistent with type Byte",
         "lend": "The first argument in Bytearray[`1`] should "
@@ -154,7 +153,7 @@ class ByteArray(Builtin):
         if not values.has_form("List", None):
             return
         try:
-            ba = bytearray([b.get_int_value() for b in values._elements])
+            ba = bytearray([b.get_int_value() for b in values.elements])
         except Exception:
             evaluation.message("ByteArray", "aotd", values)
             return
@@ -196,6 +195,7 @@ class ContainsOnly(Builtin):
      = True
     """
 
+    summary_text = "test if all the elements of a list appears into another list"
     attributes = protected | read_protected
 
     messages = {
@@ -225,7 +225,7 @@ class ContainsOnly(Builtin):
         def sameQ(a, b) -> bool:
             """Mathics SameQ"""
             result = Expression(same_test, a, b).evaluate(evaluation)
-            return result.is_true()
+            return result is SymbolTrue
 
         self.check_options(None, evaluation, options)
         for a in list1.leaves:
@@ -339,6 +339,7 @@ class Delete(Builtin):
      = Delete[{a, b, c, d}, {{1}, {n}}]
     """
 
+    summary_text = "delete elements from a list at given positions"
     messages = {
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
@@ -405,7 +406,7 @@ class Failure(Builtin):
     </dl>
     """
 
-    pass
+    summary_text = "a failure at the level of the interpreter"
 
 
 # From backports in CellsToTeX. This functions provides compatibility to WMA 10.
@@ -425,6 +426,7 @@ class Key(Builtin):
     </dl>
     """
 
+    summary_text = "indicate a key within a part specification"
     rules = {
         "Key[key_][assoc_Association]": "assoc[key]",
     }
@@ -434,7 +436,7 @@ class Level(Builtin):
     """
     <dl>
     <dt>'Level[$expr$, $levelspec$]'
-        <dd>gives a list of all subexpressions of $expr$ at the
+    <dd>gives a list of all subexpressions of $expr$ at the
         level(s) specified by $levelspec$.
     </dl>
 
@@ -483,6 +485,7 @@ class Level(Builtin):
      = {f, g, h, g[h], x, f[g[h]][x]}
     """
 
+    summary_text = "parts specified by a given number of indices"
     options = {
         "Heads": "False",
     }
@@ -501,7 +504,7 @@ class Level(Builtin):
             result.append(level)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         walk_levels(expr, start, stop, heads=heads, callback=callback)
         return Expression(SymbolList, *result)
 
@@ -522,6 +525,8 @@ class LevelQ(Test):
     >> LevelQ[a + b]
      = False
     """
+
+    summary_text = "test whether is a valid level specification"
 
     def test(self, ls):
         try:
@@ -548,6 +553,7 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
+    summary_text = "specify a list explicitly"
     attributes = locked | protected
 
     def apply_makeboxes(self, items, f, evaluation):
@@ -575,6 +581,8 @@ class ListQ(Test):
      = False
     """
 
+    summary_text = "test if an expression is a list"
+
     def test(self, expr):
         return expr.get_head_name() == "System`List"
 
@@ -586,6 +594,8 @@ class NotListQ(Test):
         <dd>returns true if $expr$ is not a list.
     </dl>
     """
+
+    summary_text = "test if an expression is not a list"
 
     def test(self, expr):
         return expr.get_head_name() != "System`List"
@@ -628,6 +638,7 @@ class None_(Predefined):
     </dl>
     """
 
+    summary_text = "not any part"
     name = "None"
 
 
@@ -667,6 +678,7 @@ class Split(Builtin):
     #> ClearAll[A];
     """
 
+    summary_text = "split into runs of identical elements"
     rules = {
         "Split[list_]": "Split[list, SameQ]",
     }
@@ -690,7 +702,7 @@ class Split(Builtin):
         result = [[mlist.leaves[0]]]
         for leaf in mlist.leaves[1:]:
             applytest = Expression(test, result[-1][-1], leaf)
-            if applytest.evaluate(evaluation).is_true():
+            if applytest.evaluate(evaluation) is SymbolTrue:
                 result[-1].append(leaf)
             else:
                 result.append([leaf])
@@ -718,6 +730,7 @@ class SplitBy(Builtin):
      = {{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}
     """
 
+    summary_text = "split based on values of a function applied to elements"
     rules = {
         "SplitBy[list_]": "SplitBy[list, Identity]",
     }
@@ -800,6 +813,7 @@ class LeafCount(Builtin):
      = LeafCount[1 / 3, 1 + I]
     """
 
+    summary_text = "the total number of atomic subexpressions"
     messages = {
         "argx": "LeafCount called with `1` arguments; 1 argument is expected.",
     }
@@ -855,6 +869,7 @@ class Position(Builtin):
      = {{2}}
     """
 
+    summary_text = "positions of matching elements"
     options = {"Heads": "True"}
 
     rules = {
@@ -885,7 +900,7 @@ class Position(Builtin):
                 result.append(pos)
             return level
 
-        heads = self.get_option(options, "Heads", evaluation).is_true()
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         walk_levels(expr, start, stop, heads=heads, callback=callback, include_pos=True)
         return from_python(result)
 
@@ -942,18 +957,24 @@ class _IterationFunction(Builtin):
     def apply_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
-        index = 0
-        imax = imax.evaluate(evaluation)
-        imax = imax.numerify(evaluation)
-        if isinstance(imax, Number):
-            imax = imax.round()
-        imax = imax.get_float_value()
-        if imax is None:
-            if self.throw_iterb:
-                evaluation.message(self.get_name(), "iterb")
-            return
+        # Even though `imax` should be an integeral value, its type does not
+        # have to be an Integer.
+        if isinstance(imax, Integer):
+            py_max = imax.get_int_value()
+        else:
+            imax = imax.evaluate(evaluation)
+            imax = imax.numerify(evaluation)
+            if isinstance(imax, Number):
+                imax = imax.round()
+            py_max = imax.get_float_value()
+            if py_max is None:
+                if self.throw_iterb:
+                    evaluation.message(self.get_name(), "iterb")
+                return
+
         result = []
-        while index < imax:
+        index = 0
+        while index < py_max:
             evaluation.check_stopped()
             try:
                 result.append(expr.evaluate(evaluation))
@@ -1013,7 +1034,7 @@ class _IterationFunction(Builtin):
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
             if cont is SymbolFalse:
                 break
-            if not cont.is_true():
+            if not cont is SymbolTrue:
                 if self.throw_iterb:
                     evaluation.message(self.get_name(), "iterb")
                 return
@@ -1107,6 +1128,7 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
+    summary_text = "join lists together at any level"
     attributes = flat | one_identity | protected
 
     def apply(self, lists, evaluation):
@@ -1145,6 +1167,8 @@ class Insert(Builtin):
      = {a, b, c, d, x, e}
     """
 
+    summary_text = "insert an element at a given position"
+
     def apply(self, expr, elem, n, evaluation):
         "Insert[expr_List, elem_, n_Integer]"
 
@@ -1179,6 +1203,7 @@ class UnitVector(Builtin):
      = {0, 0, 1, 0}
     """
 
+    summary_text = "unit vector along a coordinate direction"
     messages = {
         "nokun": "There is no unit vector in direction `1` in `2` dimensions.",
     }
@@ -1207,65 +1232,6 @@ class UnitVector(Builtin):
         return Expression(SymbolList, *(item(i) for i in range(1, n + 1)))
 
 
-def _test_pair(test, a, b, evaluation, name):
-    test_expr = Expression(test, a, b)
-    result = test_expr.evaluate(evaluation)
-    if not (
-        isinstance(result, Symbol)
-        and (result.has_symbol("True") or result.has_symbol("False"))
-    ):
-        evaluation.message(name, "smtst", test_expr, result)
-    return result.is_true()
-
-
-class _FastEquivalence:
-    # models an equivalence relation through SameQ. for n distinct elements (each
-    # in its own bin), we expect to make O(n) comparisons (if the hash function
-    # does not fail us by distributing items very unevenly).
-
-    # IMPORTANT NOTE ON ATOM'S HASH FUNCTIONS / this code relies on this assumption:
-    #
-    # if SameQ[a, b] == true then hash(a) == hash(b)
-    #
-    # more specifically, this code bins items based on their hash code, and only if
-    # the hash code matches, is SameQ evoked.
-    #
-    # this assumption has been checked for these types: Integer, Real, Complex,
-    # String, Rational (*), Expression, Image; new atoms need proper hash functions
-    #
-    # (*) Rational values are sympy Rationals which are always held in reduced form
-    # and thus are hashed correctly (see sympy/core/number.py:Rational.__eq__()).
-
-    def __init__(self):
-        self._hashes = defaultdict(list)
-
-    def select(self, elem):
-        return self._hashes[hash(elem)]
-
-    def sameQ(self, a, b) -> bool:
-        """Mathics SameQ"""
-        return a.sameQ(b)
-
-
-class _SlowEquivalence:
-    # models an equivalence relation through a user defined test function. for n
-    # distinct elements (each in its own bin), we need sum(1, .., n - 1) = O(n^2)
-    # comparisons.
-
-    def __init__(self, test, evaluation, name):
-        self._groups = []
-        self._test = test
-        self._evaluation = evaluation
-        self._name = name
-
-    def select(self, elem):
-        return self._groups
-
-    def sameQ(self, a, b) -> bool:
-        """Mathics SameQ"""
-        return _test_pair(self._test, a, b, self._evaluation, self._name)
-
-
 class IntersectingQ(Builtin):
     """
     <dl>
@@ -1274,6 +1240,7 @@ class IntersectingQ(Builtin):
     </dl>
     """
 
+    summary_text = "test whether two lists have common elements"
     rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
 
 
@@ -1285,6 +1252,7 @@ class DisjointQ(Test):
     </dl>
     """
 
+    summary_text = "test whether two lists do not have common elements"
     rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
 
 
@@ -1304,6 +1272,7 @@ class Fold(Builtin):
      = f[f[f[5, 1], 2], 3]
     """
 
+    summary_text = "iterative application of a binary operation over elements of a list"
     rules = {
         "Fold[exp_, x_, head_]": "Module[{list = Level[head, 1], res = x, i = 1}, Do[res = exp[res, list[[i]]], {i, 1, Length[list]}]; res]",
         "Fold[exp_, head_] /; Length[head] > 0": "Fold[exp, First[head], Rest[head]]",
@@ -1327,25 +1296,10 @@ class FoldList(Builtin):
      = {1, 2, 6}
     """
 
+    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
     rules = {
         "FoldList[exp_, x_, head_]": "Module[{i = 1}, Head[head] @@ Prepend[Table[Fold[exp, x, Take[head, i]], {i, 1, Length[head]}], x]]",
         "FoldList[exp_, head_]": "If[Length[head] == 0, head, FoldList[exp, First[head], Rest[head]]]",
-    }
-
-
-class CentralMoment(Builtin):  # see https://en.wikipedia.org/wiki/Central_moment
-    """
-    <dl>
-    <dt>'CentralMoment[$list$, $r$]'
-      <dd>gives the the $r$th central moment (i.e. the $r$th moment about the mean) of $list$.
-    </dl>
-
-    >> CentralMoment[{1.1, 1.2, 1.4, 2.1, 2.4}, 4]
-     = 0.100845
-    """
-
-    rules = {
-        "CentralMoment[list_List, r_]": "Total[(list - Mean[list]) ^ r] / Length[list]",
     }
 
 
@@ -1391,6 +1345,7 @@ class RankedMin(Builtin):
      = 17
     """
 
+    summary_text = "the n-th smallest item"
     messages = {
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
@@ -1419,6 +1374,7 @@ class RankedMax(Builtin):
      = 181
     """
 
+    summary_text = "the n-th largest item"
     messages = {
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
@@ -1433,22 +1389,6 @@ class RankedMax(Builtin):
             evaluation.message("RankedMax", "rank", py_n, len(leaf.leaves))
         else:
             return introselect(leaf.get_mutable_elements(), len(leaf.leaves) - py_n)
-
-
-class Quartiles(Builtin):
-    """
-    <dl>
-    <dt>'Quartiles[$list$]'
-      <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
-    </dl>
-
-    >> Quartiles[Range[25]]
-     = {27 / 4, 13, 77 / 4}
-    """
-
-    rules = {
-        "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
-    }
 
 
 class _RankedTake(Builtin):
@@ -1505,9 +1445,8 @@ class _RankedTake(Builtin):
 
                     def exclude(item):
                         return (
-                            Expression("MatchQ", item, excluded)
-                            .evaluate(evaluation)
-                            .is_true()
+                            Expression("MatchQ", item, excluded).evaluate(evaluation)
+                            is SymbolTrue
                         )
 
                 filtered = [leaf for leaf in t.leaves if not exclude(leaf)]
@@ -1582,6 +1521,8 @@ class TakeLargest(_RankedTakeLargest):
      = {Missing[abc], 150}
     """
 
+    summary_text = "sublist of n largest elements"
+
     def apply(self, leaf, n, evaluation, options):
         "TakeLargest[leaf_List, n_, OptionsPattern[TakeLargest]]"
         return self._compute(leaf, n, evaluation, options)
@@ -1604,6 +1545,8 @@ class TakeLargestBy(_RankedTakeLargest):
      = {abc}
     """
 
+    summary_text = "sublist of n largest elements according to a given criteria"
+
     def apply(self, leaf, f, n, evaluation, options):
         "TakeLargestBy[leaf_List, f_, n_, OptionsPattern[TakeLargestBy]]"
         return self._compute(leaf, n, evaluation, options, f=f)
@@ -1621,6 +1564,8 @@ class TakeSmallest(_RankedTakeSmallest):
     >> TakeSmallest[{100, -1, 50, 10}, 2]
      = {-1, 10}
     """
+
+    summary_text = "sublist of n smallest elements"
 
     def apply(self, leaf, n, evaluation, options):
         "TakeSmallest[leaf_List, n_, OptionsPattern[TakeSmallest]]"
@@ -1643,6 +1588,8 @@ class TakeSmallestBy(_RankedTakeSmallest):
     >> TakeSmallestBy[{"abc", "ab", "x"}, StringLength, 1]
      = {x}
     """
+
+    summary_text = "sublist of n largest elements according to a criteria"
 
     def apply(self, leaf, f, n, evaluation, options):
         "TakeSmallestBy[leaf_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
@@ -1870,6 +1817,7 @@ class PadLeft(_Pad):
      = {{x, x}, {x, x}, {x, x}, {3, x}, {x, x}}
     """
 
+    summary_text = "pad out by the left a ragged array to make a matrix"
     _mode = -1
 
 
@@ -1905,6 +1853,7 @@ class PadRight(_Pad):
      = {{x, x}, {x, 1}, {x, x}, {x, x}, {x, x}}
     """
 
+    summary_text = "pad out by the right a ragged array to make a matrix"
     _mode = 1
 
 
@@ -2210,6 +2159,8 @@ class FindClusters(_Cluster):
     Optimize builds the clustering from top down, and uses random sampling.
     """
 
+    summary_text = "divide data into lists of similar elements"
+
     def apply(self, p, evaluation, options):
         "FindClusters[p_, OptionsPattern[%(name)s]]"
         return self._cluster(
@@ -2254,6 +2205,8 @@ class ClusteringComponents(_Cluster):
     >> ClusteringComponents[{10, 100, 20}, Method -> "KMeans"]
      = {1, 0, 1}
     """
+
+    summary_text = "label data with the index of the cluster it is in"
 
     def apply(self, p, evaluation, options):
         "ClusteringComponents[p_, OptionsPattern[%(name)s]]"
@@ -2308,6 +2261,7 @@ class Nearest(Builtin):
      = {b}
     """
 
+    summary_text = "the nearest element from a list"
     options = {
         "DistanceFunction": "Automatic",
         "Method": '"Scan"',
@@ -2460,6 +2414,7 @@ class SubsetQ(Builtin):
      = True
     """
 
+    summary_text = "test if a list is a subset of another list"
     messages = {
         "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
         "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",

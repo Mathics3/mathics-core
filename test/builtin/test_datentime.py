@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, evaluate
+from test.helper import check_evaluation, evaluate
 
 import sys
 import time

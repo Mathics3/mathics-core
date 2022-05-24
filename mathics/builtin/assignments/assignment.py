@@ -196,7 +196,7 @@ class TagSet(Builtin, _SetOperator):
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
     }
-    summary_text = "assigns a value to an expression, associating the corresponding assignment with the a symbol."
+    summary_text = "assign a value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ = rhs_"
@@ -222,7 +222,7 @@ class TagSetDelayed(TagSet):
     """
 
     attributes = hold_all | protected | sequence_hold
-    summary_text = "assigns a delayed value to an expression, associating the corresponding assignment with the a symbol."
+    summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
         "f_ /: lhs_ := rhs_"
@@ -242,8 +242,8 @@ class TagSetDelayed(TagSet):
 class LoadModule(Builtin):
     """
     <dl>
-      <dt>'LoadModule[$module$]'</dt>
-      <dd>'Load Mathics definitions from the python module $module$</dd>
+      <dt>'LoadModule[$module$]'
+      <dd>'Load Mathics definitions from the python module $module$
     </dl>
     >> LoadModule["nomodule"]
      : Python module nomodule does not exist.
@@ -258,6 +258,7 @@ class LoadModule(Builtin):
         "notfound": "Python module `1` does not exist.",
         "notmathicslib": "Python module `1` is not a pymathics module.",
     }
+    summary_text = "load a pymathics module"
 
     def apply(self, module, evaluation):
         "LoadModule[module_String]"

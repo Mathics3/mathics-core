@@ -117,6 +117,7 @@ class With(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "replace variables by some constant values"
 
     def apply(self, vars, expr, evaluation):
         "With[vars_, expr_]"
@@ -175,6 +176,7 @@ class Block(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "evaluate an expression using local values for some given symbols"
 
     def apply(self, vars, expr, evaluation):
         "Block[vars_, expr_]"
@@ -211,6 +213,7 @@ class ModuleNumber(Predefined):
     rules = {
         "$ModuleNumber": "1",
     }
+    summary_text = "serial number of the current local module"
 
 
 class Module(Builtin):
@@ -263,6 +266,7 @@ class Module(Builtin):
         ),
         "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "generates symbols with names of the form x$nnn to represent each local variable."
 
     def apply(self, vars, expr, evaluation):
         "Module[vars_, expr_]"
@@ -356,19 +360,18 @@ class Unique(Predefined):
      = {Flat}
     """
 
-    seq_number = 1
-
+    attributes = protected
     messages = {
         "usym": "`1` is not a symbol or a valid symbol name.",
         "argrx": "Unique called with `1` arguments; 0 or 1 argument are expected.",
         "attnf": "`1` is not a known attribute.",
     }
 
-    attributes = protected
-
     rules = {
         "Unique[x_Symbol]": "Module[{x}, x]",
     }
+    seq_number = 1
+    summary_text = "generate a new symbols with a unique name"
 
     def apply(self, evaluation):
         "Unique[]"
@@ -444,6 +447,8 @@ class Contexts(Builtin):
     X> Contexts[] // InputForm
     """
 
+    summary_text = "list all the defined contexts"
+
     def apply(self, evaluation):
         "Contexts[]"
 
@@ -474,13 +479,12 @@ class Context_(Predefined):
      = True
     """
 
-    name = "$Context"
-
     messages = {"cxset": "`1` is not a valid context name ending in `."}
-
+    name = "$Context"
     rules = {
         "$Context": '"Global`"',
     }
+    summary_text = "the current context"
 
 
 class ContextPath(Predefined):
@@ -499,16 +503,15 @@ class ContextPath(Predefined):
      = 1
     #> System`$ContextPath
      = {x`}
-    #> $ContextPath = {"Global`", "System`"};
+    #> $ContextPath = {"System`", "Global`"};
     """
 
-    name = "$ContextPath"
-
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
-
+    name = "$ContextPath"
     rules = {
-        "$ContextPath": '{"Global`", "System`"}',
+        "$ContextPath": '{"System`", "Global`"}',
     }
+    summary_text = "the current context search path"
 
 
 class Begin(Builtin):
@@ -546,6 +549,7 @@ class Begin(Builtin):
              $Context
         """,
     }
+    summary_text = "temporarily set the current context"
 
 
 class End(Builtin):
@@ -573,6 +577,7 @@ class End(Builtin):
                                 System`Private`old]]
         """,
     }
+    summary_text = "revert to the context previous to the nearest 'Begin' statement"
 
 
 class BeginPackage(Builtin):
@@ -606,6 +611,7 @@ class BeginPackage(Builtin):
              context
         """,
     }
+    summary_text = "temporarily set the context and clean the context path"
 
 
 class EndPackage(Builtin):
@@ -638,6 +644,7 @@ class EndPackage(Builtin):
                                  Null]]
         """,
     }
+    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
 
 
 class ContextStack(Builtin):

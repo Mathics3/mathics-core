@@ -42,6 +42,7 @@ class Fibonacci(_MPMathFunction):
     attributes = listable | numeric_function | protected | read_protected
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
+    summary_text = "Fibonacci's numbers"
 
 
 class HarmonicNumber(_MPMathFunction):
@@ -64,9 +65,9 @@ class HarmonicNumber(_MPMathFunction):
     rules = {
         "HarmonicNumber[-1]": "ComplexInfinity",
     }
-
-    sympy_name = "harmonic"
+    summary_text = "Harmonic numbers"
     mpmath_name = "harmonic"
+    sympy_name = "harmonic"
 
 
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
@@ -87,6 +88,7 @@ class StirlingS1(Builtin):
     attributes = listable | protected
 
     nargs = 2
+    summary_text = "Stirling numbers of the first kind"
     sympy_name = "functions.combinatorial.stirling"
     mpmath_name = "stirling1"
 
@@ -111,10 +113,10 @@ class StirlingS2(Builtin):
     """
 
     attributes = listable | protected
-
+    nargs = 2
     sympy_name = "functions.combinatorial.numbers.stirling"
     mpmath_name = "stirling2"
-    nargs = 2
+    summary_text = "Stirling numbers of the second kind"
 
     def apply(self, m, n, evaluation):
         "%(name)s[n_Integer, m_Integer]"

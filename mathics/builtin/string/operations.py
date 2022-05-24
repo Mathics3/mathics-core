@@ -68,11 +68,11 @@ class Hash(Builtin):
       <dd>returns an integer hash for the given $expr$.
 
       <dt>'Hash[$expr$, $type$]'
-      <dd>returns an integer hash of the specified $type$ for the given $expr$.</dd>
-      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".</dd>
+      <dd>returns an integer hash of the specified $type$ for the given $expr$.
+      <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
 
       <dt>'Hash[$expr$, $type$, $format$]'
-      <dd>Returns the hash in the specified format.</dd>
+      <dd>Returns the hash in the specified format.
     </dl>
 
     > Hash["The Adventures of Huckleberry Finn"]
@@ -129,7 +129,7 @@ class Hash(Builtin):
         if py_format == "DecimalString":
             return String(str(res))
         elif py_format == "ByteArray":
-            return Expression(SymbolByteArray, ByteArrayAtom(arg))
+            return Expression(SymbolByteArray, ByteArrayAtom(res))
         return Integer(res)
 
     def apply(self, expr, hashtype, outformat, evaluation):
@@ -169,6 +169,7 @@ class StringDrop(Builtin):
     = abcd
     """
 
+    summary_text = "drop a part of a string"
     messages = {
         "strse": "String expected at position 1.",
         "mseqs": "Integer or list of two Integers are expected at position 2.",
@@ -341,6 +342,7 @@ class StringInsert(Builtin):
     >> StringInsert["1234567890123456", ".", Range[-16, -4, 3]]
      = 1.234.567.890.123.456"""
 
+    summary_text = "insert a string in a given position"
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
         "string": "String expected at position `1` in `2`.",
@@ -439,11 +441,10 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
+    summary_text = "join strings together"
     attributes = flat | one_identity | protected
     operator = "<>"
     precedence = 600
-
-    summary_text = "join strings together"
 
     def apply(self, items, evaluation):
         "StringJoin[items___]"
@@ -547,6 +548,7 @@ class StringPosition(Builtin):
      = {{5, 7}, {10, 12}}
     """
 
+    summary_text = "range of positions where substrings match a pattern"
     options = {
         "IgnoreCase": "False",
         "MetaCharacters": "None",
@@ -739,7 +741,7 @@ class StringReplace(_StringFind):
     #> StringReplace["product: A \\[CirclePlus] B" , "\\[CirclePlus]" -> "x"]
      = A x B
     """
-
+    summary_text = "apply replace rules to substrings"
     rules = {
         "StringReplace[rule_][string_]": "StringReplace[string, rule]",
     }
@@ -775,6 +777,7 @@ class StringReverse(Builtin):
        = evil
     """
 
+    summary_text = "reverses the order of the characters in a string"
     attributes = listable | protected
 
     def apply(self, string, evaluation):
@@ -843,6 +846,7 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
+    summary_text = "assemble a string from a list, inserting delimiters"
     attributes = protected | read_protected
 
     messages = {
@@ -853,8 +857,6 @@ class StringRiffle(Builtin):
         "sublist": "Sublist form in position 1 is is not implemented yet.",
         "mulsep": "Multiple separators form is not implemented yet.",
     }
-
-    summary_text = "assemble a string from a list, inserting delimiters"
 
     def apply(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
@@ -966,6 +968,7 @@ class StringSplit(Builtin):
 
     """
 
+    summary_text = "split strings at whitespace, or at a pattern"
     rules = {
         "StringSplit[s_]": "StringSplit[s, Whitespace]",
     }
@@ -980,15 +983,11 @@ class StringSplit(Builtin):
         "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
     }
 
-    summary_text = "split strings at whitespace, or at a pattern"
-
     def apply(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":
-            leaves = [
-                self.apply(s, patt, evaluation, options) for s in string._elements
-            ]
+            leaves = [self.apply(s, patt, evaluation, options) for s in string.elements]
             return Expression(SymbolList, *leaves)
 
         py_string = string.get_string_value()
@@ -1093,6 +1092,7 @@ class StringTake(Builtin):
      = StringTake[kkkl, -Graphics-]
     """
 
+    summary_text = "sub-string from a range of positions"
     messages = {
         "strse": "String or list of strings expected at position 1.",
         # FIXME: mseqs should be: Sequence specification (+n, -n, {+n}, {-n}, {m, n}, or {m, n, s}) or a list

@@ -93,7 +93,7 @@ def asy_color(self):
     """Return an asymptote rgba string fragment for object's RGB or RGBA
     value and it opacity (alpha) value"""
     rgba = self.to_rgba()
-    alpha = rgba[3] if len(rgba) > 3 else 1.0
+    alpha = rgba[3] if len(rgba) > 3 else None
     return (
         fr"rgb({asy_number(rgba[0])}, {asy_number(rgba[1])}, {asy_number(rgba[2])})",
         alpha,
@@ -103,6 +103,8 @@ def asy_color(self):
 def asy_create_pens(
     edge_color=None,
     face_color=None,
+    edge_opacity=None,
+    face_opacity=None,
     stroke_width=None,
     is_face_element=False,
     dotfactor=None,
@@ -113,7 +115,9 @@ def asy_create_pens(
     result = []
     if face_color is not None:
         brush, opacity = asy_color(face_color)
-        if opacity != 1:
+        if opacity is None:
+            opacity = face_opacity
+        if opacity is not None and opacity != 1:
             brush += f"+opacity({asy_number(opacity)})"
         if dotfactor is not None:
             brush += f"+{dotfactor}"
@@ -122,7 +126,9 @@ def asy_create_pens(
         result.append("nullpen")
     if edge_color is not None:
         pen, opacity = asy_color(edge_color)
-        if opacity != 1:
+        if opacity is None:
+            opacity = edge_opacity
+        if opacity is not None and opacity != 1:
             pen += f"+opacity({asy_number(opacity)})"
         if stroke_width is not None:
             pen += f"+linewidth({asy_number(stroke_width)})"
