@@ -39,7 +39,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolUndefined
+from mathics.core.systemsymbols import SymbolInfix, SymbolUndefined
 from mathics.core.number import min_prec, dps, SpecialValueError
 
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
@@ -205,10 +205,10 @@ def create_infix(items, operator, prec, grouping):
         return items[0]
     else:
         return Expression(
-            "Infix",
-            Expression("List", *items),
+            SymbolInfix,
+            Expression(SymbolList, *items),
             String(operator),
-            prec,
+            Integer(prec),
             Symbol(grouping),
         )
 
