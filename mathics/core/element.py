@@ -151,13 +151,13 @@ class BaseElement(KeyComparable):
             SymbolStandardForm,
             format_symbols,
         )
+        from mathics.builtin.base import BoxExpression
 
         if isinstance(form, str):
             form = Symbol(form)
         formats = format_symbols
         evaluation.inc_recursion_depth()
         try:
-            fexpr = self
             expr = self
             head = self.get_head()
             leaves = self.get_elements()
@@ -166,13 +166,11 @@ class BaseElement(KeyComparable):
             # takes the form from the expression and
             # removes the format from the expression.
             if head in formats and len(leaves) == 1:
-                fexpr = self
                 expr = leaves[0]
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
-            else:
-                fexpr = self.create_expression(form, expr)
+
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
@@ -216,12 +214,6 @@ class BaseElement(KeyComparable):
                 name = expr.get_lookup_name()
                 formats = evaluation.definitions.get_formats(name, form.get_name())
                 for rule in formats:
-                    # Check first if there is a rule for the particular format:
-                    result = rule.apply(fexpr, evaluation)
-                    if result is not None and result != expr:
-                        return result.evaluate(evaluation)
-
-                    # Otherwise, try with the naked expression:
                     result = rule.apply(expr, evaluation)
                     if result is not None and result != expr:
                         return result.evaluate(evaluation)
@@ -243,7 +235,7 @@ class BaseElement(KeyComparable):
                 expr = expr.do_format(evaluation, form)
             elif (
                 head is not SymbolNumberForm
-                and not isinstance(expr, Atom)
+                and not isinstance(expr, (Atom, BoxExpression))
                 and head not in (SymbolGraphics, SymbolGraphics3D)
             ):
                 # print("Not inside graphics or numberform, and not is atom")

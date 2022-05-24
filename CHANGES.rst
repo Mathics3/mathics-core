@@ -35,6 +35,7 @@ New Builtins
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
    -  Pass option ``ShowTimeBySteps``, to show accumulated time before each setp
    - The variable ``$TraceEvalution`` when set True will show all expression evaluations.
+* ``TraditionalForm``
 
 
 Internals
@@ -63,7 +64,10 @@ Internals
 * ``BoxConstruction`` -> ``BoxExpression``
 * the method ``Element.is_true()`` was removed in favor of ``is SymbolTrue``
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
+* The methods  ``boxes_to_*`` were removed from ``Element`` and ``Expression``
+  and kept just for ``Atoms`` and  ``BoxExpressions``.
 
+  
 Package update
 ++++++++++++++
 

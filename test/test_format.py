@@ -162,47 +162,47 @@ all_test = {
         },
     },
     # String with special characters
-    '"\\[Pi] is a trascendent number"': {
+    '"\\[Pi] is a trascendental number"': {
         "msg": "A String",
         "text": {
-            "System`StandardForm": "π is a trascendent number",
-            "System`TraditionalForm": "π is a trascendent number",
-            "System`InputForm": "π is a trascendent number",
-            "System`OutputForm": "π is a trascendent number",
+            "System`StandardForm": "π is a trascendental number",
+            "System`TraditionalForm": "π is a trascendental number",
+            "System`InputForm": "π is a trascendental number",
+            "System`OutputForm": "π is a trascendental number",
         },
         "mathml": {
             "System`StandardForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendent&nbsp;number</mtext>",
+                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
                 " should be a unicode symbol, not Pi",
             ),
             "System`TraditionalForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendent&nbsp;number</mtext>",
+                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
                 " should be a unicode symbol, not Pi",
             ),
             "System`InputForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendent&nbsp;number</mtext>",
+                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
                 " should be a unicode symbol, not Pi",
             ),
             "System`OutputForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendent&nbsp;number</mtext>",
+                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
                 " should be a unicode symbol, not Pi",
             ),
         },
         "tex": {
             "System`StandardForm": (
-                "\\text{$\\pi $ is a trascendent number}",
+                "\\text{π is a trascendental number}",
                 'should be a math symbol, not "Pi"',
             ),
             "System`TraditionalForm": (
-                "\\text{$\\pi $ is a trascendent number}",
+                "\\text{π is a trascendental number}",
                 'should be a math symbol, not "Pi"',
             ),
             "System`InputForm": (
-                "\\text{$\\pi $ is a trascendent number}",
+                "\\text{π is a trascendental number}",
                 'should be a math symbol, not "Pi"',
             ),
             "System`OutputForm": (
-                "\\text{$\\pi $ is a trascendent number}",
+                "\\text{π is a trascendental number}",
                 'should be a math symbol, not "Pi"',
             ),
         },
@@ -253,18 +253,18 @@ all_test = {
     "\\[Pi]": {
         "msg": "A greek letter Symbol",
         "text": {
-            "System`StandardForm": "Pi",
-            "System`TraditionalForm": "Pi",
+            "System`StandardForm": "π",
+            "System`TraditionalForm": "π",
             "System`InputForm": "Pi",
             "System`OutputForm": "Pi",
         },
         "mathml": {
             "System`StandardForm": (
-                "<mi>&#960;</mi>",
+                "<mi>π</mi>",
                 " must be a utf character, not Pi",
             ),
             "System`TraditionalForm": (
-                "<mi>&#960;</mi>",
+                "<mi>π</mi>",
                 " must be a utf character, not Pi",
             ),
             "System`InputForm": "<mi>Pi</mi>",
@@ -272,10 +272,10 @@ all_test = {
         },
         "tex": {
             "System`StandardForm": (
-                "\\pi",
+                "π",
                 ' should be a math symbol, not "Pi"',
             ),
-            "System`TraditionalForm": ("\\pi", ' should be a math symbol, not "Pi"'),
+            "System`TraditionalForm": ("π", ' should be a math symbol, not "Pi"'),
             "System`InputForm": "\\text{Pi}",
             "System`OutputForm": "\\text{Pi}",
         },
@@ -693,7 +693,6 @@ for expr in all_test:
     ("str_expr", "str_expected", "form", "msg"),
     tex_current_failing,
 )
-# @pytest.mark.xfail
 def test_makeboxes_tex_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)

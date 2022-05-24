@@ -708,7 +708,6 @@ class FractionBox(BoxConstruct):
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
-        print(options)
         return "\\frac{%s}{%s}" % (
             self.num.boxes_to_tex(**options),
             self.den.boxes_to_tex(**options),
