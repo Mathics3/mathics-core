@@ -2,6 +2,7 @@
 """
 Unit tests from builtins ... algebra.py
 """
+import pytest
 from .helper import check_evaluation
 
 
@@ -303,14 +304,14 @@ try:
 except:
     pass
 
-if do_fullsimplify_test:
 
-    def test_fullsimplify():
-        for str_expr, str_expected, failure_message in (
-            (
-                " a[x] + e f / (2 d) + c[x] // FullSimplify",
-                "e f / (2 d) + a[x] + c[x]",
-                "issue #214",
-            ),
-        ):
-            check_evaluation(str_expr, str_expected, failure_message)
+@pytest.mark.skipif(do_fullsimplify_test, reason="requires sympy 1.10.10 or higher")
+def test_fullsimplify():
+    for str_expr, str_expected, failure_message in (
+        (
+            " a[x] + e f / (2 d) + c[x] // FullSimplify",
+            "e f / (2 d) + a[x] + c[x]",
+            "issue #214",
+        ),
+    ):
+        check_evaluation(str_expr, str_expected, failure_message)
