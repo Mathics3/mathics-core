@@ -295,17 +295,17 @@ def test_simplify():
         check_evaluation(str_expr, str_expected)
 
 
-do_fullsimplify_test = False
+skip_fullsimplify_test = True
 try:
     import sympy
     from packaging import version
 
-    do_fullsimplify_test = version.parse(sympy.__version__) >= version.parse("1.10.0")
+    skip_fullsimplify_test = version.parse(sympy.__version__) < version.parse("1.10.0")
 except:
     pass
 
 
-@pytest.mark.skipif(do_fullsimplify_test, reason="requires sympy 1.10.10 or higher")
+@pytest.mark.skipif(skip_fullsimplify_test, reason="requires sympy 1.10.10 or higher")
 def test_fullsimplify():
     for str_expr, str_expected, failure_message in (
         (
