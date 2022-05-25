@@ -346,14 +346,14 @@ def find_all_vars(expr):
     return variables
 
 
-def find_exponents(expr, var):
+def get_exponents_sorted(expr, var) -> list:
     """
-    Find all exponents of var in expr
+    Return a sorted list of exponents of var in expr
     """
     f = expr.to_sympy()
     x = var.to_sympy()
     if f is None or x is None:
-        return {0}
+        return [Integer0]
 
     result = set()
     for t in f.expand(power_exp=False).as_ordered_terms():
@@ -971,7 +971,7 @@ class CoefficientList(Builtin):
             # single & multiple variables cases
             if not form.has_form("List", None):
                 return Expression(
-                    "List",
+                    SymbolList,
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -982,7 +982,7 @@ class CoefficientList(Builtin):
             elif form.has_form("List", 1):
                 form = form.leaves[0]
                 return Expression(
-                    "List",
+                    SymbolList,
                     *[
                         _coefficient(
                             self.__class__.__name__, expr, form, Integer(n), evaluation
@@ -1351,11 +1351,11 @@ class Exponent(Builtin):
             return Expression(SymbolDirectedInfinity, Integer(-1))
 
         if not form.has_form("List", None):
-            return Expression(h, *[i for i in find_exponents(expr, form)])
+            return Expression(h, *[i for i in get_exponents_sorted(expr, form)])
         else:
-            exponents = [find_exponents(expr, var) for var in form.leaves]
+            exponents = [get_exponents_sorted(expr, var) for var in form.leaves]
             return Expression(
-                "List", *[Expression(h, *[i for i in s]) for s in exponents]
+                SymbolList, *[Expression(h, *[i for i in s]) for s in exponents]
             )
 
 
