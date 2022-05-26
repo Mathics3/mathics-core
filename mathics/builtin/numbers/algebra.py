@@ -1351,9 +1351,13 @@ class Exponent(Builtin):
             return Expression(SymbolDirectedInfinity, Integer(-1))
 
         if not form.has_form("List", None):
+            # TODO: add ElementProperties in Expression interface refactor branch:
+            #   fully_evaluated, flat, and is_ordered are all True
             return Expression(h, *[i for i in get_exponents_sorted(expr, form)])
         else:
             exponents = [get_exponents_sorted(expr, var) for var in form.leaves]
+            # TODO: add ElementProperties in Expression interface refactor branch:
+            #   fully_evaluated is True, flat is false, and is_ordered is probably True
             return Expression(
                 SymbolList, *[Expression(h, *[i for i in s]) for s in exponents]
             )
