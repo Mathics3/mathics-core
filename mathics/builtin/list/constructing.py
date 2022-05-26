@@ -191,6 +191,8 @@ class Range(Builtin):
             and isinstance(di, Integer)
         ):
             result = [Integer(i) for i in range(imin.value, imax.value + 1, di.value)]
+            # TODO: add ElementProperties in Expression interface refactor branch:
+            #   fully_evaluated, flat, are True and is_ordered = di.value >= 0
             return Expression(SymbolList, *result)
 
         imin = imin.to_sympy()
