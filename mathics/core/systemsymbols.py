@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from mathics.core.symbols import PredefinedSymbol, Symbol
+from mathics.core.symbols import Symbol
 
 # Some other common Symbols. This list is sorted in alphabetic order.
 Symbol_Assumptions = Symbol("$Assumptions")
 SymbolAborted = Symbol("$Aborted")
+SymbolAbs = Symbol("Abs")
 SymbolAlternatives = Symbol("Alternatives")
+SymbolApply = Symbol("Apply")
 SymbolAssociation = Symbol("Association")
 SymbolAutomatic = Symbol("Automatic")
 SymbolBlank = Symbol("Blank")
@@ -20,6 +22,7 @@ SymbolDirectedInfinity = Symbol("DirectedInfinity")
 SymbolDispatch = Symbol("Dispatch")
 SymbolDivide = Symbol("Divide")
 SymbolE = Symbol("E")
+SymbolExpandAll = Symbol("ExpandAll")
 SymbolEulerGamma = Symbol("EulerGamma")
 SymbolFailed = Symbol("$Failed")
 SymbolGoldenRatio = Symbol("GoldenRatio")
@@ -44,9 +47,11 @@ SymbolNone = Symbol("None")
 SymbolNull = Symbol("Null")
 SymbolNumberQ = Symbol("NumberQ")
 SymbolNumericQ = Symbol("NumericQ")
+SymbolOverflow = Symbol("Overflow")
 SymbolPattern = Symbol("Pattern")
 SymbolPi = Symbol("Pi")
 SymbolPlus = Symbol("Plus")
+SymbolPossibleZeroQ = Symbol("PossibleZeroQ")
 SymbolPower = Symbol("Power")
 SymbolRational = Symbol("Rational")
 SymbolRowBox = Symbol("RowBox")
