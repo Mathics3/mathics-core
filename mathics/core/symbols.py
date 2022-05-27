@@ -428,9 +428,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
         return String(evaluation.definitions.shorten_name(self.name))
 
-    def boxes_to_text(self, **options) -> str:
-        return str(self.name)
-
     def default_format(self, evaluation, form) -> str:
         return self.name
 

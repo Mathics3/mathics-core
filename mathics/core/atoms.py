@@ -200,21 +200,6 @@ class Integer(Number):
     def __init__(self, value) -> "Integer":
         super().__init__()
 
-    def boxes_to_text(self, **options) -> str:
-        return str(self.value)
-
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return str(self.value)
-
-    def _make_boxes(self, form) -> "String":
-        from mathics.builtin.box.inout import _BoxedString
-
-        numbers_as_text = form in ("System`InputForm", "System`OutputForm")
-        return _BoxedString(str(self.value), numbers_as_text=numbers_as_text)
-
     def atom_to_boxes(self, f, evaluation):
         from mathics.builtin.box.inout import _BoxedString
 
@@ -431,15 +416,6 @@ class Real(Number):
     def __ne__(self, other) -> bool:
         # Real is a total order
         return not (self == other)
-
-    def boxes_to_text(self, **options) -> str:
-        return self.make_boxes("System`OutputForm").boxes_to_text(**options)
-
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("System`MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return self.make_boxes("System`TeXForm").boxes_to_tex(**options)
 
     def atom_to_boxes(self, f, evaluation):
         return self._make_boxes(f.get_name())
@@ -820,6 +796,10 @@ class String(Atom, ImmutableValueMixin):
 
         return value
 
+    # ``boxes_to_*`` are going to be removed from the ``Atom`` interface.
+    # For ``String`` however, it is still tricky to move all to _BoxedString.
+    # Another option would be to unify BoxedString and String, and make that both
+    # be BoxExpressions.
     def boxes_to_mathml(self, show_string_characters=False, **options) -> str:
         from mathics.core.parser import is_symbol_name
         from mathics.builtin import builtins_by_module
@@ -998,15 +978,6 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
 
     def __str__(self) -> str:
         return base64.b64encode(self.value).decode("utf8")
-
-    def boxes_to_text(self, **options) -> str:
-        return '"' + self.__str__() + '"'
-
-    def boxes_to_mathml(self, **options) -> str:
-        return encode_mathml(String('"' + self.__str__() + '"'))
-
-    def boxes_to_tex(self, **options) -> str:
-        return encode_tex(String('"' + self.__str__() + '"'))
 
     def atom_to_boxes(self, f, evaluation):
         res = String('""' + self.__str__() + '""')
