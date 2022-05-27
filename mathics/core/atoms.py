@@ -100,25 +100,27 @@ def _ExponentFunction(value):
 
 def _NumberFormat(man, base, exp, options):
     from mathics.core.expression import Expression
+    from mathics.builtin.box.inout import _BoxedString, RowBox, SuperscriptBox
 
+    numbers_as_text = options["_Form"] in (
+        "System`InputForm",
+        "System`OutputForm",
+    )
+    man = _BoxedString(man.value, numbers_as_text=numbers_as_text)
     if exp.get_string_value():
+        exp = _BoxedString(exp.value, numbers_as_text=numbers_as_text)
         if options["_Form"] in (
             "System`InputForm",
             "System`StandardForm",
             "System`FullForm",
         ):
-            return Expression(
-                SymbolRowBox, Expression(SymbolList, man, String("*^"), exp)
-            )
+            return RowBox(man, _BoxedString("*^"), exp)
         else:
-            return Expression(
-                SymbolRowBox,
-                Expression(
-                    SymbolList,
-                    man,
-                    String(options["NumberMultiplier"]),
-                    Expression(SymbolSuperscriptBox, base, exp),
-                ),
+            base = _BoxedString(base.value, numbers_as_text=numbers_as_text)
+            return RowBox(
+                man,
+                _BoxedString(options["NumberMultiplier"]),
+                SuperscriptBox(base, exp),
             )
     else:
         return man
@@ -207,11 +209,17 @@ class Integer(Number):
     def boxes_to_tex(self, **options) -> str:
         return str(self.value)
 
-    def make_boxes(self, form) -> "String":
-        return String(str(self.value))
+    def _make_boxes(self, form) -> "String":
+        from mathics.builtin.box.inout import _BoxedString
+
+        numbers_as_text = form in ("System`InputForm", "System`OutputForm")
+        return _BoxedString(str(self.value), numbers_as_text=numbers_as_text)
 
     def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
+        from mathics.builtin.box.inout import _BoxedString
+
+        numbers_as_text = f.get_name() in ("System`InputForm", "System`OutputForm")
+        return _BoxedString(str(self.value), numbers_as_text=numbers_as_text)
 
     def default_format(self, evaluation, form) -> str:
         return str(self.value)
@@ -434,7 +442,7 @@ class Real(Number):
         return self.make_boxes("System`TeXForm").boxes_to_tex(**options)
 
     def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
+        return self._make_boxes(f.get_name())
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
@@ -516,7 +524,7 @@ class MachineReal(Real):
     def get_float_value(self, permit_complex=False) -> float:
         return self.value
 
-    def make_boxes(self, form):
+    def _make_boxes(self, form):
         from mathics.builtin.inout import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
@@ -602,7 +610,7 @@ class PrecisionReal(Real):
         """Returns the default specification for precision in N and other numerical functions."""
         return self.value._prec + 1.0
 
-    def make_boxes(self, form):
+    def _make_boxes(self, form):
         from mathics.builtin.inout import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat

@@ -151,6 +151,7 @@ class BaseElement(KeyComparable):
             SymbolStandardForm,
             format_symbols,
         )
+        from mathics.builtin.base import BoxExpression
 
         if isinstance(form, str):
             form = Symbol(form)
@@ -169,6 +170,7 @@ class BaseElement(KeyComparable):
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
+
             # If form is Fullform, return it without changes
             if form is SymbolFullForm:
                 if include_form:
@@ -233,9 +235,8 @@ class BaseElement(KeyComparable):
                 expr = expr.do_format(evaluation, form)
             elif (
                 head is not SymbolNumberForm
-                and not isinstance(expr, Atom)
-                and head is not SymbolGraphics
-                and head is not SymbolGraphics3D
+                and not isinstance(expr, (Atom, BoxExpression))
+                and head not in (SymbolGraphics, SymbolGraphics3D)
             ):
                 # print("Not inside graphics or numberform, and not is atom")
                 new_elements = [
@@ -277,14 +278,21 @@ class BaseElement(KeyComparable):
             Symbol,
             SymbolMakeBoxes,
         )
+        from mathics.core.atoms import String
 
         if isinstance(form, str):
             form = Symbol(form)
         expr = self.do_format(evaluation, form)
-        result = self.create_expression(SymbolMakeBoxes, expr, form).evaluate(
-            evaluation
-        )
-        return result
+        result = self.create_expression(SymbolMakeBoxes, expr, form)
+        result_box = result.evaluate(evaluation)
+        from mathics.builtin.base import BoxExpression
+
+        if isinstance(result_box, BoxExpression):
+            return result_box
+        elif type(result_box) is String:
+            return result_box
+        else:
+            return self.format(evaluation, "FullForm", **kwargs)
 
     def get_atoms(self, include_heads=True):
         """

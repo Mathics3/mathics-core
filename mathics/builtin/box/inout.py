@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.base import BoxConstruct
+from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue, Symbol
@@ -12,40 +12,41 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.parser import is_symbol_name
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxConstruct:
+def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
     """
     This function takes the expression ``x``
-    and tries to reduce it to a ``BoxConstruct``
+    and tries to reduce it to a ``BoxExpression``
     expression unsing an evaluation object.
     """
-    if isinstance(x, BoxConstruct):
+    if isinstance(x, BoxExpression):
         return x
     if isinstance(x, String):
-        x = _BoxedString(x, options)
-        return x
+        return _BoxedString(x.value, **options)
     if isinstance(x, Atom):
         x = x.atom_to_boxes(Symbol("StandardForm"), evaluation)
-        if isinstance(x, String):
-            return _BoxedString(x, options)
+        return to_boxes(x, evaluation, options)
     if isinstance(x, Expression):
         if not x.has_form("MakeBoxes", None):
             x = Expression("MakeBoxes", x)
         x_boxed = x.evaluate(evaluation)
-    if isinstance(x_boxed, BoxConstruct):
-        return x_boxed
-    if isinstance(x_boxed, Atom):
-        return to_boxes(x_boxed, evaluation, options)
-    raise Exception(x, "cannot be boxed.")
+        if isinstance(x_boxed, BoxExpression):
+            return x_boxed
+        if isinstance(x_boxed, Atom):
+            return to_boxes(x_boxed, evaluation, options)
+    raise Exception(x, type(x), "cannot be boxed.")
 
 
-class _BoxedString(BoxConstruct):
+class _BoxedString(BoxExpression):
 
     options = {
         "System`ShowStringCharacters": "False",
     }
 
-    def init(self, string, options={}):
-        self.value = string.value
+    def init(self, string, **options):
+        if isinstance(string, Atom):
+            print("boxedstring", (string, options), type(string))
+            string = str(string.value)
+        self.value = string
         self.box_options = {
             "System`ShowStringCharacters": SymbolFalse,
         }
@@ -80,6 +81,7 @@ class _BoxedString(BoxConstruct):
         _options.update(options)
         options = _options
         show_string_characters = options["System`ShowStringCharacters"] is SymbolTrue
+        numbers_as_mn = not options.get("numbers_as_text", True)
         text = self.value
 
         def render(format, string):
@@ -94,7 +96,18 @@ class _BoxedString(BoxConstruct):
                 for line in text[1:-1].split("\n"):
                     outtext += render("<mtext>%s</mtext>", line)
                 return outtext
-        elif text and ("0" <= text[0] <= "9" or text[0] == "."):
+        elif (
+            text
+            and numbers_as_mn
+            and (
+                "0" <= text[0] <= "9"
+                or text[0]
+                in (
+                    ".",
+                    "-",
+                )
+            )
+        ):
             return render("<mn>%s</mn>", text)
         else:
             if text in operators or text in extra_operators:
@@ -173,7 +186,7 @@ class _BoxedString(BoxConstruct):
                 return render("%s", text)
 
 
-class ButtonBox(BoxConstruct):
+class ButtonBox(BoxExpression):
     """
     <dl>
     <dt>'ButtonBox[$boxes$]'
@@ -186,7 +199,7 @@ class ButtonBox(BoxConstruct):
     summary_text = "box construct for buttons"
 
 
-class InterpretationBox(BoxConstruct):
+class InterpretationBox(BoxExpression):
     """
     <dl>
     <dt>'InterpretationBox[{...}, expr]'
@@ -214,7 +227,7 @@ class InterpretationBox(BoxConstruct):
         return boxexpr.elements[0]
 
 
-class SubscriptBox(BoxConstruct):
+class SubscriptBox(BoxExpression):
     """
     <dl>
     <dt>'SubscriptBox[$a$, $b$]'
@@ -234,21 +247,19 @@ class SubscriptBox(BoxConstruct):
     }
 
     def apply(self, a, b, evaluation, options):
-        """SubscriptBox[a_, b_, OptionsPattern[]]"""
+        """SubscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
         )
-        return SubscriptBox(a_box, b_box, options)
+        return SubscriptBox(a_box, b_box, **options)
 
-    def init(self, a, b, options):
+    def init(self, a, b, **options):
         self.box_options = options.copy()
         if not (
-            isinstance(a, (String, BoxConstruct))
-            and isinstance(b, (String, BoxConstruct))
+            isinstance(a, (String, BoxExpression))
+            and isinstance(b, (String, BoxExpression))
         ):
-            print("a=", a)
-            print("b=", b)
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.subindex = b
@@ -287,7 +298,7 @@ class SubscriptBox(BoxConstruct):
         )
 
 
-class SubsuperscriptBox(BoxConstruct):
+class SubsuperscriptBox(BoxExpression):
     """
     <dl>
     <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
@@ -300,24 +311,21 @@ class SubsuperscriptBox(BoxConstruct):
     }
 
     def apply(self, a, b, c, evaluation, options):
-        """SubsuperscriptBox[a_, b_, c_, OptionsPattern[]]"""
+        """SubsuperscriptBox[a_, b__, c_, OptionsPattern[]]"""
         a_box, b_box, c_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
             to_boxes(c, evaluation, options),
         )
-        return SubsuperscriptBox(a_box, b_box, c_box, options)
+        return SubsuperscriptBox(a_box, b_box, c_box, **options)
 
-    def init(self, a, b, c, options):
+    def init(self, a, b, c, **options):
         self.box_options = options.copy()
         if not (
-            isinstance(a, BoxConstruct)
-            and isinstance(b, BoxConstruct)
-            and isinstance(c, BoxConstruct)
+            isinstance(a, BoxExpression)
+            and isinstance(b, BoxExpression)
+            and isinstance(c, BoxExpression)
         ):
-            print("a=", a)
-            print("b=", b)
-            print("c=", c)
             raise Exception((a, b, c), "are not boxes")
         self.base = a
         self.subindex = b
@@ -363,7 +371,7 @@ class SubsuperscriptBox(BoxConstruct):
         )
 
 
-class SuperscriptBox(BoxConstruct):
+class SuperscriptBox(BoxExpression):
     """
     <dl>
     <dt>'SuperscriptBox[$a$, $b$]'
@@ -377,18 +385,16 @@ class SuperscriptBox(BoxConstruct):
     }
 
     def apply(self, a, b, evaluation, options):
-        """SuperscriptBox[a_, b_, OptionsPattern[]]"""
+        """SuperscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
         )
-        return SuperscriptBox(a_box, b_box, options)
+        return SuperscriptBox(a_box, b_box, **options)
 
-    def init(self, a, b, options):
+    def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not (isinstance(a, BoxConstruct) and isinstance(b, BoxConstruct)):
-            print("a=", a)
-            print("b=", b)
+        if not (isinstance(a, BoxExpression) and isinstance(b, BoxExpression)):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -428,6 +434,7 @@ class SuperscriptBox(BoxConstruct):
         _options.update(options)
         options = _options
         tex1 = self.base.boxes_to_tex(**options)
+
         sup_string = self.superindex.get_string_value()
         # Handle derivatives
         if sup_string == "\u2032":
@@ -435,13 +442,21 @@ class SuperscriptBox(BoxConstruct):
         elif sup_string == "\u2032\u2032":
             return "%s''" % tex1
         else:
-            return "%s^%s" % (
-                self.tex_block(tex1, True),
-                self.tex_block(self.superindex.boxes_to_tex(**options), True),
-            )
+            base = self.tex_block(tex1, True)
+            superindx = self.tex_block(self.superindex.boxes_to_tex(**options), True)
+            if isinstance(self.superindex, _BoxedString):
+                return "%s^%s" % (
+                    base,
+                    superindx,
+                )
+            else:
+                return "%s^{%s}" % (
+                    base,
+                    superindx,
+                )
 
 
-class RowBox(BoxConstruct):
+class RowBox(BoxExpression):
     """
     <dl>
     <dt>'RowBox[{...}]'
@@ -453,7 +468,7 @@ class RowBox(BoxConstruct):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "List[" + self.items.__repr__() + "]"
+        return "RowBox[List[" + self.items.__repr__() + "]]"
 
     def apply_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
@@ -463,41 +478,38 @@ class RowBox(BoxConstruct):
         return result
 
     def init(self, *items, **kwargs):
-        # TODO: check that each element is an string or a BoxConstruct
+        # TODO: check that each element is an string or a BoxExpression
         self.box_options = {}
         if isinstance(items[0], Expression):
             if len(items) != 1:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxConstruct"
+                    items, "is not a List[] or a list of Strings or BoxExpression"
                 )
             if items[0].has_form("List", None):
                 items = items[0]._elements
             else:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxConstruct"
+                    items, "is not a List[] or a list of Strings or BoxExpression"
                 )
         for item in items:
-            if not isinstance(item, BoxConstruct):
+            if not isinstance(item, BoxExpression):
                 raise Exception(
-                    item, "is not a List[] or a list of Strings or BoxConstruct"
+                    item, "is not a List[] or a list of Strings or BoxExpression"
                 )
         self.items = tuple(items)
 
-        elements = []
-        for item in items:
-            if isinstance(item, BoxConstruct):
-                elements.append(item.to_expression())
-            else:
-                elements.append(item)
-        elements = Expression(SymbolList, *elements)
-        self._elements = tuple((elements,))
+        self._elements = None
 
     def to_expression(self):
         """
         returns an evaluable expression.
         """
-        items = (item.to_expression() for item in self.items)
-        result = Expression("RowBox", Expression("List", *items))
+        if self._elements is None:
+            self._elements = tuple(
+                item.to_expression() if isinstance(item, BoxExpression) else item
+                for item in self.items
+            )
+        result = Expression("RowBox", Expression("List", *self._elements))
         return result
 
     def boxes_to_text(self, **options):
@@ -550,7 +562,7 @@ class RowBox(BoxConstruct):
         return "<mrow>%s</mrow>" % " ".join(result)
 
 
-class StyleBox(BoxConstruct):
+class StyleBox(BoxExpression):
     """
     <dl>
     <dt>'StyleBox[boxes, options]'
@@ -587,20 +599,20 @@ class StyleBox(BoxConstruct):
 
     def apply_options(self, boxes, evaluation, options):
         """StyleBox[boxes_, OptionsPattern[]]"""
-        return StyleBox(boxes, style="", options=options)
+        return StyleBox(boxes, style="", **options)
 
     def apply_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, options=options)
 
-    def init(self, boxes, style=None, options={}):
+    def init(self, boxes, style=None, **options):
         # This implementation superseeds Expresion.process_style_box
         self.style = style
         self.box_options = options
         # Here I need to check that is exactly
         # String and not a BoxedString
         if type(boxes) is String:
-            self.boxes = _BoxedString(boxes)
+            self.boxes = _BoxedString(boxes.value)
         else:
             self.boxes = boxes
 
@@ -617,7 +629,7 @@ class StyleBox(BoxConstruct):
         )
 
 
-class TagBox(BoxConstruct):
+class TagBox(BoxExpression):
     """
     <dl>
     <dt>'TagBox[boxes, tag]'
@@ -630,7 +642,7 @@ class TagBox(BoxConstruct):
     summary_text = "box tag with a head"
 
 
-class TemplateBox(BoxConstruct):
+class TemplateBox(BoxExpression):
     """
     <dl>
     <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
@@ -642,7 +654,7 @@ class TemplateBox(BoxConstruct):
     summary_text = "parametrized box"
 
 
-class TooltipBox(BoxConstruct):
+class TooltipBox(BoxExpression):
     """
     <dl>
     <dt>'TooltipBox[{...}]'
@@ -653,7 +665,7 @@ class TooltipBox(BoxConstruct):
     summary_text = "box for showing tooltips"
 
 
-class FractionBox(BoxConstruct):
+class FractionBox(BoxExpression):
     """
     <dl>
     <dt>'FractionBox[$x$, $y$]'
@@ -672,9 +684,9 @@ class FractionBox(BoxConstruct):
             to_boxes(num, evaluation, options),
             to_boxes(den, evaluation, options),
         )
-        return FractionBox(num_box, den_box, options)
+        return FractionBox(num_box, den_box, **options)
 
-    def init(self, num, den, options={}):
+    def init(self, num, den, **options):
         self.num = num
         self.den = den
         self.box_options = options
@@ -686,12 +698,15 @@ class FractionBox(BoxConstruct):
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
-        return "/".join(
-            [
-                " ( " + element.boxes_to_text(**options) + " ) "
-                for element in (self.num, self.den)
-            ]
-        )
+        num_box = self.num.boxes_to_text(**options)
+        den_box = self.den.boxes_to_text(**options)
+        print(num_box, den_box)
+        if isinstance(self.num, RowBox):
+            num_box = "(" + num_box + ")"
+        if isinstance(self.den, RowBox):
+            den_box = "(" + den_box + ")"
+
+        return " / ".join([num_box, den_box])
 
     def boxes_to_mathml(self, **options):
         _options = self.box_options.copy()
@@ -712,7 +727,7 @@ class FractionBox(BoxConstruct):
         )
 
 
-class SqrtBox(BoxConstruct):
+class SqrtBox(BoxExpression):
     """
     <dl>
     <dt>'SqrtBox[$x$]'
@@ -733,14 +748,14 @@ class SqrtBox(BoxConstruct):
             to_boxes(radicand, evaluation, options),
             to_boxes(index, evaluation, options),
         )
-        return SqrtBox(radicand_box, index_box, options)
+        return SqrtBox(radicand_box, index_box, **options)
 
     def apply(self, radicand, evaluation, options):
         """SqrtBox[radicand_, OptionsPattern[]]"""
         radicand_box = to_boxes(radicand, evaluation, options)
-        return SqrtBox(radicand_box, None, options)
+        return SqrtBox(radicand_box, None, **options)
 
-    def init(self, radicand, index=None, options={}):
+    def init(self, radicand, index=None, **options):
         self.radicand = radicand
         self.index = index
         self.box_options = options

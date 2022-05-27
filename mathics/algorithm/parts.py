@@ -4,6 +4,7 @@
 Algorithms to access and manipulate elements in nested lists / expressions
 """
 
+from mathics.builtin.base import BoxExpression
 
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
@@ -305,6 +306,8 @@ def walk_levels(
     include_pos=False,
     cur_pos=[],
 ):
+    if isinstance(expr, BoxExpression):
+        expr = expr.to_expression()
     if isinstance(expr, Atom):
         depth = 0
         new_expr = expr

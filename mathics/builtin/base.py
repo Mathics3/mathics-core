@@ -821,9 +821,9 @@ class BoxExpression(BuiltinElement):
     def do_format(self, evaluation, format):
         return self
 
-    def format(self, evaluation, fmt):
+    def format(self, evaluation, fmt, **kwargs):
         expr = Expression("HoldForm", self.to_expression())
-        fexpr = expr.format(evaluation, fmt)
+        fexpr = expr.format(evaluation, fmt, **kwargs)
         return fexpr
 
     def get_head(self):

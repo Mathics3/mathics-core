@@ -549,7 +549,8 @@ class Pi(_MPMathConstant, _SympyConstant):
       = {Constant, Protected, ReadProtected}
     """
 
-    sympy_name = "pi"
     mpmath_name = "pi"
     numpy_name = "pi"
+    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
     summary_text = "pi \u03c0 ≃ 3.1416"
+    sympy_name = "pi"

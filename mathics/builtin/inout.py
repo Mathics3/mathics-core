@@ -2084,6 +2084,22 @@ class StandardForm(Builtin):
     summary_text = "default output format"
 
 
+class TraditionalForm(Builtin):
+    """
+    <dl>
+    <dt>'TraditionalForm[$expr$]'
+        <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
+           function evaluations are represented by brackets instead of square brackets.
+    </dl>
+
+    ## To pass this test, we need to improve the implementation of Element.format
+    ## >> TraditionalForm[g[x]]
+    ## = g(x)
+    """
+
+    summary_text = "traditional output format"
+
+
 class InputForm(Builtin):
     r"""
     <dl>
@@ -2866,10 +2882,10 @@ class BaseForm(Builtin):
     Bases must be between 2 and 36:
     >> BaseForm[12, -3]
      : Positive machine-sized integer expected at position 2 in BaseForm[12, -3].
-     : MakeBoxes[BaseForm[12, -3], OutputForm] is not a valid box structure.
+     = BaseForm[12, -3]
     >> BaseForm[12, 100]
      : Requested base 100 must be between 2 and 36.
-     : MakeBoxes[BaseForm[12, 100], OutputForm] is not a valid box structure.
+     = BaseForm[12, 100]
 
     #> BaseForm[0, 2]
      = 0_2
@@ -2894,10 +2910,9 @@ class BaseForm(Builtin):
         f:StandardForm|TraditionalForm|OutputForm]"""
 
         base = n.get_int_value()
-
         if base <= 0:
             evaluation.message("BaseForm", "intpm", expr, n)
-            return
+            return None
 
         if isinstance(expr, PrecisionReal):
             x = expr.to_sympy()

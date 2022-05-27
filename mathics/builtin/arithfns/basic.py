@@ -181,7 +181,7 @@ class Divide(BinaryOperator):
     rules = {
         "Divide[x_, y_]": "Times[x, Power[y, -1]]",
         "MakeBoxes[Divide[x_, y_], f:StandardForm|TraditionalForm]": (
-            "FractionBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
+            "FractionBox[MakeBoxes[HoldForm[x], f], MakeBoxes[HoldForm[y], f]]"
         ),
     }
 
