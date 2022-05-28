@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.base import BoxExpression
+from mathics.builtin.base import BoxConstruct
 
 
-class CompiledCodeBox(BoxExpression):
+class CompiledCodeBox(BoxConstruct):
     """
     <dl>
     <dt>'CompiledCodeBox[...]'

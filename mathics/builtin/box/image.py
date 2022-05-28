@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.base import BoxExpression
+from mathics.builtin.base import BoxConstruct
 
 
-class ImageBox(BoxExpression):
+class ImageBox(BoxConstruct):
     """
     <dl>
     <dt>'ImageBox[...]'

@@ -7,7 +7,7 @@ import base64
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
 from mathics.builtin.base import (
-    BoxExpression,
+    BoxConstruct,
     BoxConstructError,
 )
 
@@ -389,7 +389,7 @@ class DiskBox(_ArcBox):
     summary_text = "internal box representation for 'Disk' elements"
 
 
-class GraphicsBox(BoxExpression):
+class GraphicsBox(BoxConstruct):
     """
     <dl>
     <dt>'GraphicsBox[...]'

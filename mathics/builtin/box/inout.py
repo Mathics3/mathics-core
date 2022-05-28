@@ -44,7 +44,6 @@ class _BoxedString(BoxExpression):
 
     def init(self, string, **options):
         if isinstance(string, Atom):
-            print("boxedstring", (string, options), type(string))
             string = str(string.value)
         self.value = string
         self.box_options = {
@@ -700,7 +699,6 @@ class FractionBox(BoxExpression):
         options = _options
         num_box = self.num.boxes_to_text(**options)
         den_box = self.den.boxes_to_text(**options)
-        print(num_box, den_box)
         if isinstance(self.num, RowBox):
             num_box = "(" + num_box + ")"
         if isinstance(self.den, RowBox):
