@@ -1,5 +1,6 @@
 # from .helper import session
 from mathics.session import MathicsSession
+import os
 
 session = MathicsSession()
 
@@ -71,11 +72,11 @@ all_test = {
         "mathml": {
             "System`StandardForm": (
                 "<mn>-4.32</mn>",
-                " must be <mn>, not <mtext>",
+                "must be <mn>, not <mtext>",
             ),
             "System`TraditionalForm": (
                 "<mn>-4.32</mn>",
-                " must be <mn>, not <mtext>",
+                "must be <mn>, not <mtext>",
             ),
             "System`InputForm": "<mtext>-4.32</mtext>",
             "System`OutputForm": "<mtext>-4.32</mtext>",
@@ -469,7 +470,7 @@ all_test = {
         },
     },
     "TableForm[{{a,b},{c,d}}]": {
-        "msg": "GridBox in a table",
+        "msg": "GridBox in a table - Fragile!",
         "text": {
             "System`StandardForm": "a   b\n\nc   d\n",
             "System`TraditionalForm": "a   b\n\nc   d\n",
@@ -490,7 +491,7 @@ all_test = {
         },
     },
     "MatrixForm[{{a,b},{c,d}}]": {
-        "msg": "GridBox in a matrix",
+        "msg": "GridBox in a matrix - Fragile!",
         "text": {
             "System`StandardForm": "(a   b\n\nc   d\n)",
             "System`TraditionalForm": "(a   b\n\nc   d\n)",
@@ -598,7 +599,7 @@ for expr in all_test:
                 )
             )
         else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
+            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!" and False:
                 text_current_fragile.append(
                     (
                         expr,
@@ -622,6 +623,7 @@ for expr in all_test:
     ("str_expr", "str_expected", "form", "msg"),
     text_current_fragile,
 )
+@pytest.mark.xfail
 def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
@@ -670,7 +672,7 @@ for expr in all_test:
                 )
             )
         else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
+            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!" and False:
                 tex_current_fragile.append(
                     (
                         expr,
@@ -694,7 +696,8 @@ for expr in all_test:
     ("str_expr", "str_expected", "form", "msg"),
     tex_current_fragile,
 )
-def test_makeboxes_tex_fail(str_expr, str_expected, form, msg):
+@pytest.mark.xfail
+def test_makeboxes_tex_fragile(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
@@ -730,9 +733,22 @@ for expr in all_test:
     expected_fmt = all_test[expr]["mathml"]
     for form in expected_fmt:
         tst = expected_fmt[form]
+        fragile = len(base_msg) > 8 and base_msg[-8:] == "Fragile!"
+
         if not isinstance(tst, str):
             tst, extra_msg = tst
+            if len(extra_msg) > 7 and extra_msg[:7] == "must be":
+                fragile = True
+            elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
+                fragile = True
             msg = base_msg + " - " + extra_msg
+        else:
+            msg = base_msg
+
+        if fragile and MATHML_STRICT:
+            fragile = False
+
+        if fragile:
             mathml_current_fragile.append(
                 (
                     expr,
@@ -742,24 +758,14 @@ for expr in all_test:
                 )
             )
         else:
-            if not MATHML_STRICT or (len(base_msg) > 8 and base_msg[-8:] == "Fragile!"):
-                mathml_current_fragile.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
+            mathml_current_pass.append(
+                (
+                    expr,
+                    tst,
+                    form,
+                    msg,
                 )
-            else:
-                mathml_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+            )
 
 
 @pytest.mark.parametrize(
