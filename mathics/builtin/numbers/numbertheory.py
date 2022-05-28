@@ -100,7 +100,7 @@ class Divisors(Builtin):
         if n == Integer0:
             return None
         return to_expression(
-            SymbolList, *sympy.divisors(n.to_sympy()), elements_conversion_fn=from_sympy
+            SymbolList, *sympy.divisors(n.value), elements_conversion_fn=Integer
         )
 
 

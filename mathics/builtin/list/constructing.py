@@ -11,7 +11,7 @@ from itertools import permutations
 
 from mathics.builtin.base import Builtin, Pattern
 
-from mathics.builtin.elemtns import ElementsProperties
+from mathics.core.element import ElementsProperties
 
 from mathics.builtin.lists import (
     _IterationFunction,
