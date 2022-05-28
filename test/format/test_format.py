@@ -71,14 +71,8 @@ all_test = {
             "System`OutputForm": "-4.32",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.32</mn>",
-                " must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.32</mn>",
-                " must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.32</mn>",
+            "System`TraditionalForm": "<mn>-4.32</mn>",
             "System`InputForm": "<mtext>-4.32</mtext>",
             "System`OutputForm": "<mtext>-4.32</mtext>",
         },
@@ -98,14 +92,8 @@ all_test = {
             "System`OutputForm": "-4.320",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.320</mn>",
+            "System`TraditionalForm": "<mn>-4.320</mn>",
             "System`InputForm": "<mtext>-4.320</mtext>",
             "System`OutputForm": "<mtext>-4.320</mtext>",
         },
@@ -125,14 +113,8 @@ all_test = {
             "System`OutputForm": "-4.3",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.3</mn>",
+            "System`TraditionalForm": "<mn>-4.3</mn>",
             "System`InputForm": "<mtext>-4.3</mtext>",
             "System`OutputForm": "<mtext>-4.3</mtext>",
         },
@@ -549,10 +531,11 @@ def load_tests(key):
         for form in expected_fmt:
             tst = expected_fmt[form]
             fragile = fragil_set
+            must_be = False
             if not isinstance(tst, str):
                 tst, extra_msg = tst
                 if len(extra_msg) > 7 and extra_msg[:7] == "must be":
-                    fragile = True
+                    must_be = True
                 elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
                     fragile = True
                 msg = base_msg + " - " + extra_msg
@@ -564,7 +547,7 @@ def load_tests(key):
             if key != "mathml" or MATHML_STRICT:
                 fragile = False
             full_test = (expr, tst, form, msg)
-            if fragile:
+            if fragile or must_be:
                 fragile_tests.append(full_test)
             else:
                 mandatory_tests.append(full_test)
