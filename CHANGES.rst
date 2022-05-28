@@ -68,7 +68,7 @@ Internals
 * The methods  ``boxes_to_*`` were removed from ``Element`` and ``Expression``
   and kept just for ``Atoms`` and  ``BoxExpressions``.
 
-  
+
 Package update
 ++++++++++++++
 

@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
-from mathics.core.expression import Expression
+from mathics.core.expression import ElementsProperties, Expression, to_expression
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -126,6 +126,7 @@ class CubeRoot(Builtin):
                 SymbolDivide,
                 Integer1,
                 Integer3,
+                elements_properties=ElementsProperties(True, True, True),
             ),
         )
 
@@ -342,11 +343,11 @@ class Plus(BinaryOperator, SympyFunction):
             return False
 
         items = items.get_sequence()
-        values = [Expression(SymbolHoldForm, item) for item in items[:1]]
+        values = [to_expression(SymbolHoldForm, item) for item in items[:1]]
         ops = []
         for item in items[1:]:
             if (
-                item.has_form("Times", 1, None) and is_negative(item.leaves[0])
+                item.has_form("Times", 1, None) and is_negative(item.elements[0])
             ) or is_negative(item):
                 item = negate(item)
                 op = "-"

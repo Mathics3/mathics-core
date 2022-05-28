@@ -181,7 +181,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     positional Arguments:
         - head -- The head of the M-Expression
-        - *elements - optional: the remainin elements
+        - *elements - optional: the remaining elements
 
     Keyword Arguments:
         - element_properties -- properties of the collection of elements
@@ -716,6 +716,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             expr.options = self.options
         if expr.elements_properties is None:
             expr._build_elements_properties()
+        else:
+            expr.elements_properties.is_flat = True
         return expr
 
     def flatten_sequence(self, evaluation):
@@ -1618,8 +1620,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements
-        if self.elements_properties is None:
-            self._build_elements_properties()
+        self._build_elements_properties()
 
         if self._cache:
             self._cache = self._cache.reordered()
