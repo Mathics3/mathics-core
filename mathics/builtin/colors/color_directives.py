@@ -15,7 +15,7 @@ from mathics.builtin.base import (
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.atoms import (
     Integer,
     Real,
@@ -25,8 +25,11 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolApply
 
 from mathics.core.number import machine_epsilon
+
+SymbolOpacity = Symbol("Opacity")
 
 
 def _cie2000_distance(lab1, lab2):
@@ -142,7 +145,7 @@ class Opacity(_GraphicsDirective):
 
     def init(self, item=None, *args, **kwargs):
         if isinstance(item, (int, float)):
-            item = Expression("Opacity", MachineReal(item))
+            item = Expression(SymbolOpacity, MachineReal(item))
             super(Opacity, self).init(None, item)
         self.opacity = item.leaves[0].to_python()
 
@@ -226,7 +229,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
         return self.to_rgba()
 
     def to_expr(self):
-        return Expression(self.get_name(), *self.components)
+        return to_expression(self.get_name(), *self.components)
 
     def to_rgba(self):
         return self.to_color_space("RGB")
@@ -401,15 +404,15 @@ class ColorDistance(Builtin):
 
             def compute(a, b):
                 return Expression(
-                    "Apply",
+                    SymbolApply,
                     distance_function,
                     Expression(
-                        "List",
+                        SymbolList,
                         Expression(
-                            "List", *[Real(val) for val in a.to_color_space("LAB")]
+                            SymbolList, *[Real(val) for val in a.to_color_space("LAB")]
                         ),
                         Expression(
-                            "List", *[Real(val) for val in b.to_color_space("LAB")]
+                            SymbolList, *[Real(val) for val in b.to_color_space("LAB")]
                         ),
                     ),
                 )
@@ -436,7 +439,7 @@ class ColorDistance(Builtin):
                         return
                     else:
                         return Expression(
-                            "List",
+                            SymbolList,
                             *[distance(a, b) for a, b in zip(c1.leaves, c2.leaves)],
                         )
                 else:
@@ -475,16 +478,19 @@ class GrayLevel(_ColorObject):
 class Hue(_ColorObject):
     """
     <dl>
-    <dt>'Hue[$h$, $s$, $l$, $a$]'
-        <dd>represents the color with hue $h$, saturation $s$,
-        lightness $l$ and opacity $a$.
-    <dt>'Hue[$h$, $s$, $l$]'
-        <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
-    <dt>'Hue[$h$, $s$]'
-        <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
-    <dt>'Hue[$h$]'
-        <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
+      <dt>'Hue[$h$, $s$, $l$, $a$]'
+      <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
+
+      <dt>'Hue[$h$, $s$, $l$]'
+      <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
+
+      <dt>'Hue[$h$, $s$]'
+      <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
+
+      <dt>'Hue[$h$]'
+      <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
     </dl>
+
     >> Graphics[Table[{EdgeForm[Gray], Hue[h, s], Disk[{12h, 8s}]}, {h, 0, 1, 1/6}, {s, 0, 1, 1/4}]]
      = -Graphics-
 
@@ -496,7 +502,7 @@ class Hue(_ColorObject):
     components_sizes = [1, 2, 3, 4]
     default_components = [0, 1, 1, 1]
 
-    def hsl_to_rgba(self):
+    def hsl_to_rgba(self) -> tuple:
         h, s, l = self.components[:3]
         if l < 0.5:
             q = l * (1 + s)
@@ -622,4 +628,4 @@ def color_to_expression(components, colorspace):
     else:
         converted_color_name = colorspace + "Color"
 
-    return Expression(converted_color_name, *components)
+    return to_expression(converted_color_name, *components)
