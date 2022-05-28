@@ -25,7 +25,7 @@ import pytest
 
 MATHML_STRICT = (
     int(os.environ.get("MATHML_STRICT", "0")) == 1
-)  # To set to false set ENV var to "1"
+)  # To set to True set ENV var to "1"
 
 
 # This dict contains all the tests. The main key is an expression to be evaluated and
