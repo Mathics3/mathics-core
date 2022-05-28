@@ -34,7 +34,7 @@ New Builtins
 * Partial support for Graphics option ``Opacity``.
 * ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument.
-   -  Pass option ``ShowTimeBySteps``, to show accumulated time before each setp
+   -  Pass option ``ShowTimeBySteps``, to show accumulated time before each step
    - The variable ``$TraceEvalution`` when set True will show all expression evaluations.
 * ``TraditionalForm``
 

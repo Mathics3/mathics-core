@@ -11,25 +11,26 @@ import pytest
 #
 #  Aim of the tests:
 #
-# In these tests we check that the current behavior of makeboxes does not change
-# without noticing that it could affect both compatibility with WL and with
-# mathics-django. Also looking at some issues in the curren behavior regarding
+# In these tests, we check that the current behavior of makeboxes does not change
+# without noticing that it could affect compatibility with WL and with
+# mathics-django. Also looking at some issues in the current behavior regarding
 # the WL standard (for instance, how to represent $a^(b/c)$) and the Mathics
 # own implementation (BoxError raising in some simple conditions).
 # These test should be updated as we fix pending issues.
 
 
-# Set this to False in case mathml tests must be considered xfail. With True, ensures the
+# Set this to 0 in case mathml tests must be considered xfail. With True, ensures the
 # compatibility with the current mathics-django branch.
 
-MATHML_STRICT = True
-
+MATHML_STRICT = (
+    int(os.environ.get("MATHML_STRICT", "1")) == 1
+)  # To set to false set ENV var to "0"
 
 # This dict contains all the tests. The main key is an expression to be evaluated and
 # formatted. For each expression, we have a base message, and tests for each output box
 # mode ("text", "mathml" and "tex"). On each mode, we have a dict for the different formats.
-# If the value associated to a format is a string and the message does not
-# finishes with "- Fragile!", the test is considered mandatory,
+# If the value associated with a format is a string and the message does not
+# finish with "- Fragile!", the test is considered mandatory,
 # (not xfail), and the assert message is the base message.
 # If there is a tuple instead, the test is against the first element of the tuple,
 # and allowed to fail. In this case, the assert message is the
@@ -578,7 +579,7 @@ all_test = {
 
 
 text_current_pass = []
-text_current_failing = []
+text_current_fragile = []
 
 for expr in all_test:
     base_msg = all_test[expr]["msg"]
@@ -588,7 +589,7 @@ for expr in all_test:
         if not isinstance(tst, str):
             tst, extra_msg = tst
             msg = base_msg + " - " + extra_msg
-            text_current_failing.append(
+            text_current_fragile.append(
                 (
                     expr,
                     tst,
@@ -598,7 +599,7 @@ for expr in all_test:
             )
         else:
             if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
-                text_current_failing.append(
+                text_current_fragile.append(
                     (
                         expr,
                         tst,
@@ -619,7 +620,7 @@ for expr in all_test:
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    text_current_failing,
+    text_current_fragile,
 )
 def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
@@ -650,7 +651,7 @@ def test_makeboxes_text_ok(str_expr, str_expected, form, msg):
 
 
 tex_current_pass = []
-tex_current_failing = []
+tex_current_fragile = []
 
 for expr in all_test:
     base_msg = all_test[expr]["msg"]
@@ -660,7 +661,7 @@ for expr in all_test:
         if not isinstance(tst, str):
             tst, extra_msg = tst
             msg = base_msg + " - " + extra_msg
-            tex_current_failing.append(
+            tex_current_fragile.append(
                 (
                     expr,
                     tst,
@@ -670,7 +671,7 @@ for expr in all_test:
             )
         else:
             if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
-                tex_current_failing.append(
+                tex_current_fragile.append(
                     (
                         expr,
                         tst,
@@ -691,7 +692,7 @@ for expr in all_test:
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    tex_current_failing,
+    tex_current_fragile,
 )
 def test_makeboxes_tex_fail(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
@@ -722,7 +723,7 @@ def test_makeboxes_tex_ok(str_expr, str_expected, form, msg):
 
 
 mathml_current_pass = []
-mathml_current_failing = []
+mathml_current_fragile = []
 
 for expr in all_test:
     base_msg = all_test[expr]["msg"]
@@ -732,7 +733,7 @@ for expr in all_test:
         if not isinstance(tst, str):
             tst, extra_msg = tst
             msg = base_msg + " - " + extra_msg
-            mathml_current_failing.append(
+            mathml_current_fragile.append(
                 (
                     expr,
                     tst,
@@ -742,7 +743,7 @@ for expr in all_test:
             )
         else:
             if not MATHML_STRICT or (len(base_msg) > 8 and base_msg[-8:] == "Fragile!"):
-                mathml_current_failing.append(
+                mathml_current_fragile.append(
                     (
                         expr,
                         tst,
@@ -763,7 +764,7 @@ for expr in all_test:
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    mathml_current_failing,
+    mathml_current_fragile,
 )
 @pytest.mark.xfail
 def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
@@ -786,10 +787,6 @@ def test_makeboxes_mathml_ok(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
-    print("result:")
-    print(strresult)
-    print("\n expected:")
-    print(str_expected)
     if msg:
         assert strresult == str_expected, msg
     else:

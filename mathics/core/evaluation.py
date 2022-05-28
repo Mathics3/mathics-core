@@ -425,8 +425,6 @@ class Evaluation(object):
             return dict((k, self.format_output(expr, f)) for k, f in format.items())
 
         from mathics.core.expression import Expression, BoxError
-        from mathics.builtin.base import BoxExpression
-        from mathics.core.atoms import String
 
         if format == "text":
             result = expr.format(self, "System`OutputForm")
@@ -440,20 +438,16 @@ class Evaluation(object):
         else:
             raise ValueError
 
-        text_from_boxes = None
         try:
-            if isinstance(result, (String, BoxExpression)):
-                text_from_boxes = result.boxes_to_text(evaluation=self)
-            else:
-                print("   ", result, " is not a Box expression, but ", type(result))
+            # With the new implementation, if result is not a ``BoxConstruct``
+            # then we should raise a BoxError here.
+            boxes = result.boxes_to_text(evaluation=self)
         except BoxError:
-            pass
-
-        if text_from_boxes is None:
             self.message(
                 "General", "notboxes", Expression("FullForm", result).evaluate(self)
             )
-        return text_from_boxes
+            boxes = None
+        return boxes
 
     def set_quiet_messages(self, messages) -> None:
         from mathics.core.expression import Expression
