@@ -50,8 +50,8 @@ all_test = {
             "System`OutputForm": "-4",
         },
         "mathml": {
-            "System`StandardForm": "<mtext>-4</mtext>",
-            "System`TraditionalForm": "<mtext>-4</mtext>",
+            "System`StandardForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
+            "System`TraditionalForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
             "System`InputForm": "<mtext>-4</mtext>",
             "System`OutputForm": "<mtext>-4</mtext>",
         },
@@ -174,40 +174,16 @@ all_test = {
             "System`OutputForm": "π is a trascendental number",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-                " should be a unicode symbol, not Pi",
-            ),
-            "System`TraditionalForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-                " should be a unicode symbol, not Pi",
-            ),
-            "System`InputForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-                " should be a unicode symbol, not Pi",
-            ),
-            "System`OutputForm": (
-                "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-                " should be a unicode symbol, not Pi",
-            ),
+            "System`StandardForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
+            "System`TraditionalForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
+            "System`InputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
+            "System`OutputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
         },
         "tex": {
-            "System`StandardForm": (
-                "\\text{π is a trascendental number}",
-                'should be a math symbol, not "Pi"',
-            ),
-            "System`TraditionalForm": (
-                "\\text{π is a trascendental number}",
-                'should be a math symbol, not "Pi"',
-            ),
-            "System`InputForm": (
-                "\\text{π is a trascendental number}",
-                'should be a math symbol, not "Pi"',
-            ),
-            "System`OutputForm": (
-                "\\text{π is a trascendental number}",
-                'should be a math symbol, not "Pi"',
-            ),
+            "System`StandardForm": "\\text{π is a trascendental number}",
+            "System`TraditionalForm": "\\text{π is a trascendental number}",
+            "System`InputForm": "\\text{π is a trascendental number}",
+            "System`OutputForm": "\\text{π is a trascendental number}",
         },
     },
     '"-4.32"': {
@@ -262,23 +238,14 @@ all_test = {
             "System`OutputForm": "Pi",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mi>π</mi>",
-                " must be a utf character, not Pi",
-            ),
-            "System`TraditionalForm": (
-                "<mi>π</mi>",
-                " must be a utf character, not Pi",
-            ),
+            "System`StandardForm": "<mi>π</mi>",
+            "System`TraditionalForm": "<mi>π</mi>",
             "System`InputForm": "<mi>Pi</mi>",
             "System`OutputForm": "<mi>Pi</mi>",
         },
         "tex": {
-            "System`StandardForm": (
-                "π",
-                ' should be a math symbol, not "Pi"',
-            ),
-            "System`TraditionalForm": ("π", ' should be a math symbol, not "Pi"'),
+            "System`StandardForm": "π",
+            "System`TraditionalForm": "π",
             "System`InputForm": "\\text{Pi}",
             "System`OutputForm": "\\text{Pi}",
         },
@@ -293,10 +260,22 @@ all_test = {
             "System`OutputForm": "a ^ 4",
         },
         "mathml": {
-            "System`StandardForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
-            "System`TraditionalForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
-            "System`InputForm": "<mrow><mi>a</mi> <mo>^</mo> <mn>4</mn></mrow>",
-            "System`OutputForm": "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>",
+            "System`StandardForm": (
+                "<msup><mi>a</mi> <mn>4</mn></msup>",
+                "must be <mn> instead of <mtext>",
+            ),
+            "System`TraditionalForm": (
+                "<msup><mi>a</mi> <mn>4</mn></msup>",
+                "must be <mn> instead of <mtext>",
+            ),
+            "System`InputForm": (
+                "<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>",
+                "must be <mtext> instead of <mn> in this case",
+            ),
+            "System`OutputForm": (
+                "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mtext>4</mtext></mrow>",
+                "must be <mtext> instead of <mn> in this case",
+            ),
         },
         "tex": {
             "System`StandardForm": "a^4",
@@ -314,10 +293,22 @@ all_test = {
             "System`OutputForm": "Subscript[a, 4]",
         },
         "mathml": {
-            "System`StandardForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
-            "System`TraditionalForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
-            "System`InputForm": "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mn>4</mn></mrow> <mo>]</mo></mrow>",
-            "System`OutputForm": "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mn>4</mn></mrow> <mo>]</mo></mrow>",
+            "System`StandardForm": (
+                "<msub><mi>a</mi> <mn>4</mn></msub>",
+                "must be <mn> instead <mtext>",
+            ),
+            "System`TraditionalForm": (
+                "<msub><mi>a</mi> <mn>4</mn></msub>",
+                "must be <mn> instead <mtext>",
+            ),
+            "System`InputForm": (
+                "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
+                "must be <mtext> instead <mn>",
+            ),
+            "System`OutputForm": (
+                "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
+                "must be <mtext> instead <mn>",
+            ),
         },
         "tex": {
             "System`StandardForm": "a_4",
@@ -329,8 +320,8 @@ all_test = {
     "Subsuperscript[a, p, q]": {
         "msg": "SubsuperscriptBox",
         "text": {
-            "System`StandardForm": ("Subsuperscript[a, p, q]", "BoxError"),
-            "System`TraditionalForm": ("Subsuperscript[a, p, q]", "BoxError"),
+            "System`StandardForm": "Subsuperscript[a, p, q]",
+            "System`TraditionalForm": "Subsuperscript[a, p, q]",
             "System`InputForm": "Subsuperscript[a, p, q]",
             "System`OutputForm": "Subsuperscript[a, p, q]",
         },
@@ -351,14 +342,8 @@ all_test = {
     "Integrate[F[x], {x, a, g[b]}]": {
         "msg": "Non trivial SubsuperscriptBox",
         "text": {
-            "System`StandardForm": (
-                "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
-                "BoxError",
-            ),
-            "System`TraditionalForm": (
-                "Subsuperscript[∫, a, g(b)]\u2062F(x)\u2062\uf74cx",
-                "BoxError",
-            ),
+            "System`StandardForm": "Subsuperscript[∫, a, g[b]]\u2062F[x]\u2062\uf74cx",
+            "System`TraditionalForm": "Subsuperscript[∫, a, g(b)]\u2062F(x)\u2062\uf74cx",
             "System`InputForm": "Integrate[F[x], {x, a, g[b]}]",
             "System`OutputForm": "Integrate[F[x], {x, a, g[b]}]",
         },
@@ -379,10 +364,13 @@ all_test = {
     "a^(b/c)": {
         "msg": "SuperscriptBox with a nested expression.",
         "text": {
-            "System`StandardForm": ("a^( ( b ) / ( c ) )", "Missing parenthesis"),
             "System`StandardForm": (
-                "a^( ( b ) / ( c ) )",
-                "Missing parenthesis",
+                "a^(b/c)",
+                "must be a^(b/c) instead of a^((b)/(c))",
+            ),
+            "System`TraditionalForm": (
+                "a^(b/c)",
+                "must be a^(b/c) instead of a^((b)/(c))",
             ),
             "System`InputForm": "a^(b / c)",
             "System`OutputForm": "a ^ (b / c)",
@@ -403,16 +391,34 @@ all_test = {
     "1/(1+1/(1+1/a))": {
         "msg": "FractionBox",
         "text": {
-            "System`StandardForm": " ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ",
-            "System`TraditionalForm": " ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ",
+            "System`StandardForm": (
+                "1 / (1+1 / (1+1 / a))",
+                "must be 1 / (1+1 / (1+1 / a))",
+            ),
+            "System`TraditionalForm": (
+                "1 / (1+1 / (1+1 / a))",
+                "must be 1 / (1+1 / (1+1 / a))",
+            ),
             "System`InputForm": "1 / (1 + 1 / (1 + 1 / a))",
             "System`OutputForm": "1 / (1 + 1 / (1 + 1 / a))",
         },
         "mathml": {
-            "System`StandardForm": "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
-            "System`TraditionalForm": "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
-            "System`InputForm": "<mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
-            "System`OutputForm": "<mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
+            "System`StandardForm": (
+                "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
+                "must be <mn> instead <mtext>",
+            ),
+            "System`TraditionalForm": (
+                "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
+                "must be <mn> instead <mtext>",
+            ),
+            "System`InputForm": (
+                "<mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
+                "must be <mtext> instead <mn>",
+            ),
+            "System`OutputForm": (
+                "<mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
+                "must be <mtext> instead <mn>",
+            ),
         },
         "tex": {
             "System`StandardForm": "\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}",
@@ -425,21 +431,33 @@ all_test = {
         "msg": "SqrtBox",
         "text": {
             "System`StandardForm": (
-                "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
-                "BoxError",
+                "Sqrt[1 / (1+1 / (1+1 / a))]",
+                "must be Sqrt[1 / (1+1 / (1+1 / a))]",
             ),
             "System`TraditionalForm": (
-                "Sqrt[ ( 1 ) / ( 1+ ( 1 ) / ( 1+ ( 1 ) / ( a )  )  ) ]",
-                "BoxError",
+                "Sqrt[1 / (1+1 / (1+1 / a))]",
+                "must be Sqrt[1 / (1+1 / (1+1 / a))]",
             ),
             "System`InputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
             "System`OutputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
         },
         "mathml": {
-            "System`StandardForm": "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
-            "System`TraditionalForm": "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
-            "System`InputForm": "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
-            "System`OutputForm": "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
+            "System`StandardForm": (
+                "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
+                "must be...",
+            ),
+            "System`TraditionalForm": (
+                "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
+                "must be...",
+            ),
+            "System`InputForm": (
+                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
+                "must be...",
+            ),
+            "System`OutputForm": (
+                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
+                "must be ...",
+            ),
         },
         "tex": {
             "System`StandardForm": "\\sqrt{\\frac{1}{1+\\frac{1}{1+\\frac{1}{a}}}}",
@@ -471,7 +489,7 @@ all_test = {
         },
     },
     "TableForm[{{a,b},{c,d}}]": {
-        "msg": "GridBox in a table - Fragile!",
+        "msg": "GridBox in a table",
         "text": {
             "System`StandardForm": "a   b\n\nc   d\n",
             "System`TraditionalForm": "a   b\n\nc   d\n",
@@ -492,7 +510,7 @@ all_test = {
         },
     },
     "MatrixForm[{{a,b},{c,d}}]": {
-        "msg": "GridBox in a matrix - Fragile!",
+        "msg": "GridBox in a matrix",
         "text": {
             "System`StandardForm": "(a   b\n\nc   d\n)",
             "System`TraditionalForm": "(a   b\n\nc   d\n)",
@@ -546,7 +564,7 @@ all_test = {
         "mathml": {
             "System`StandardForm": '<mglyph width="294px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjEzNi41MDAwMDAgMTYyLjUwMDAwMCAyMS4wMDAwMDAgMjUuMDAwMDAwIj4KICAgICAgICAgICAgICAgIDwhLS1HcmFwaGljc0VsZW1lbnRzLS0+Cjx0ZXh0IHg9IjE0Ny4wIiB5PSIxNzUuMCIgb3g9IjAiIG95PSIwIiBmb250LXNpemU9IjEwcHgiIHN0eWxlPSJ0ZXh0LWFuY2hvcjplbmQ7IGRvbWluYW50LWJhc2VsaW5lOmhhbmdpbmc7IHN0cm9rZTogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBzdHJva2Utb3BhY2l0eTogMTsgZmlsbDogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBmaWxsLW9wYWNpdHk6IDE7IGNvbG9yOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IG9wYWNpdHk6IDEuMCI+YV5iPC90ZXh0Pgo8L3N2Zz4K"/>',
             "System`TraditionalForm": '<mglyph width="294px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjEzNi41MDAwMDAgMTYyLjUwMDAwMCAyMS4wMDAwMDAgMjUuMDAwMDAwIj4KICAgICAgICAgICAgICAgIDwhLS1HcmFwaGljc0VsZW1lbnRzLS0+Cjx0ZXh0IHg9IjE0Ny4wIiB5PSIxNzUuMCIgb3g9IjAiIG95PSIwIiBmb250LXNpemU9IjEwcHgiIHN0eWxlPSJ0ZXh0LWFuY2hvcjplbmQ7IGRvbWluYW50LWJhc2VsaW5lOmhhbmdpbmc7IHN0cm9rZTogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBzdHJva2Utb3BhY2l0eTogMTsgZmlsbDogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBmaWxsLW9wYWNpdHk6IDE7IGNvbG9yOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IG9wYWNpdHk6IDEuMCI+YV5iPC90ZXh0Pgo8L3N2Zz4K"/>',
-            "System`InputForm": "<mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mn>0</mn> <mtext>,&nbsp;</mtext> <mn>0</mn></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>",
+            "System`InputForm": "<mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mtext>0</mtext> <mtext>,&nbsp;</mtext> <mtext>0</mtext></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>",
             "System`OutputForm": '<mglyph width="294px" height="350px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjEzNi41MDAwMDAgMTYyLjUwMDAwMCAyMS4wMDAwMDAgMjUuMDAwMDAwIj4KICAgICAgICAgICAgICAgIDwhLS1HcmFwaGljc0VsZW1lbnRzLS0+Cjx0ZXh0IHg9IjE0Ny4wIiB5PSIxNzUuMCIgb3g9IjAiIG95PSIwIiBmb250LXNpemU9IjEwcHgiIHN0eWxlPSJ0ZXh0LWFuY2hvcjplbmQ7IGRvbWluYW50LWJhc2VsaW5lOmhhbmdpbmc7IHN0cm9rZTogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBzdHJva2Utb3BhY2l0eTogMTsgZmlsbDogcmdiKDAuMDAwMDAwJSwgMC4wMDAwMDAlLCAwLjAwMDAwMCUpOyBmaWxsLW9wYWNpdHk6IDE7IGNvbG9yOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IG9wYWNpdHk6IDEuMCI+YV5iPC90ZXh0Pgo8L3N2Zz4K"/>',
         },
         "tex": {
@@ -567,7 +585,7 @@ all_test = {
         "mathml": {
             "System`StandardForm": '<mtable columnalign="center">\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n</mtable>',
             "System`TraditionalForm": '<mtable columnalign="center">\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n</mtable>',
-            "System`InputForm": "<mrow><mi>TableForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mn>0</mn> <mtext>,&nbsp;</mtext> <mn>0</mn></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mn>0</mn> <mtext>,&nbsp;</mtext> <mn>0</mn></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>",
+            "System`InputForm": "<mrow><mi>TableForm</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mtext>0</mtext> <mtext>,&nbsp;</mtext> <mtext>0</mtext></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mi>Graphics</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mi>Text</mi> <mo>[</mo> <mrow><mrow><mi>Power</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mi>b</mi></mrow> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mtext>0</mtext> <mtext>,&nbsp;</mtext> <mtext>0</mtext></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>",
             "System`OutputForm": '<mtable columnalign="center">\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n<mtr><mtd columnalign="center"><mglyph width="147px" height="175px" src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjEuMHB4IiBoZWlnaHQ9IjI1LjBweCIgeG1sbnM6c3ZnPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIKICAgICAgICAgICAgICAgIHZlcnNpb249IjEuMSIKICAgICAgICAgICAgICAgIHZpZXdCb3g9IjYzLjAwMDAwMCA3NS4wMDAwMDAgMjEuMDAwMDAwIDI1LjAwMDAwMCI+CiAgICAgICAgICAgICAgICA8IS0tR3JhcGhpY3NFbGVtZW50cy0tPgo8dGV4dCB4PSI3My41IiB5PSI4Ny41IiBveD0iMCIgb3k9IjAiIGZvbnQtc2l6ZT0iMTBweCIgc3R5bGU9InRleHQtYW5jaG9yOmVuZDsgZG9taW5hbnQtYmFzZWxpbmU6aGFuZ2luZzsgc3Ryb2tlOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IHN0cm9rZS1vcGFjaXR5OiAxOyBmaWxsOiByZ2IoMC4wMDAwMDAlLCAwLjAwMDAwMCUsIDAuMDAwMDAwJSk7IGZpbGwtb3BhY2l0eTogMTsgY29sb3I6IHJnYigwLjAwMDAwMCUsIDAuMDAwMDAwJSwgMC4wMDAwMDAlKTsgb3BhY2l0eTogMS4wIj5hXmI8L3RleHQ+Cjwvc3ZnPgo="/></mtd></mtr>\n</mtable>',
         },
         "tex": {
@@ -580,52 +598,74 @@ all_test = {
 }
 
 
-text_current_pass = []
-text_current_fragile = []
-
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["text"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            msg = base_msg + " - " + extra_msg
-            text_current_fragile.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
-        else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!" and False:
-                text_current_fragile.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+def load_tests(key):
+    """
+    This function takes the full set of tests, pick the ones corresponding to one
+    of the final formats ("text", "tex", "mathml") and produce two list:
+    the first with the mandatory tests, and the other with "fragile" tests
+    """
+    global all_tests
+    global MATHML_STRICT
+    mandatory_tests = []
+    fragile_tests = []
+    for expr in all_test:
+        base_msg = all_test[expr]["msg"]
+        expected_fmt = all_test[expr][key]
+        fragil_set = len(base_msg) > 8 and base_msg[-8:] == "Fragile!"
+        for form in expected_fmt:
+            tst = expected_fmt[form]
+            fragile = fragil_set
+            must_be = False
+            if not isinstance(tst, str):
+                tst, extra_msg = tst
+                if len(extra_msg) > 7 and extra_msg[:7] == "must be":
+                    must_be = True
+                elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
+                    fragile = True
+                msg = base_msg + " - " + extra_msg
             else:
-                text_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+                msg = base_msg
+
+            # discard Fragile for "text", "tex" or if
+            # MATHML_STRICT is True
+            if key != "mathml" or MATHML_STRICT:
+                fragile = False
+            full_test = (expr, tst, form, msg)
+            if fragile or must_be:
+                fragile_tests.append(full_test)
+            else:
+                mandatory_tests.append(full_test)
+
+    return mandatory_tests, fragile_tests
+
+
+mandatory_tests, fragile_tests = load_tests("text")
+
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_text_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_text(evaluation=session.evaluation)
+                == str_expected
+            ), msg
+        else:
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
 
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    text_current_fragile,
+    mandatory_tests,
 )
-@pytest.mark.xfail
-def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
+def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
@@ -637,144 +677,71 @@ def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
         assert strresult == str_expected
 
 
+mandatory_tests, fragile_tests = load_tests("tex")
+
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_tex_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_tex(evaluation=session.evaluation)
+                == str_expected
+            ), msg
+        else:
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    text_current_pass,
+    mandatory_tests,
 )
-def test_makeboxes_text_ok(str_expr, str_expected, form, msg):
+def test_makeboxes_tex(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
         ), msg
     else:
         strresult = format_result.boxes_to_text(evaluation=session.evaluation)
         assert strresult == str_expected
 
 
-tex_current_pass = []
-tex_current_fragile = []
+mandatory_tests, fragile_tests = load_tests("mathml")
 
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["tex"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            msg = base_msg + " - " + extra_msg
-            tex_current_fragile.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_mathml_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_tex(evaluation=session.evaluation)
+                == str_expected
+            ), msg
         else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!" and False:
-                tex_current_fragile.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
-            else:
-                tex_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
 
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    tex_current_fragile,
+    mandatory_tests,
 )
-@pytest.mark.xfail
-def test_makeboxes_tex_fragile(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    if msg:
-        assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
-        ), msg
-    else:
-        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    tex_current_pass,
-)
-def test_makeboxes_tex_ok(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    if msg:
-        assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
-        ), msg
-    else:
-        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-mathml_current_pass = []
-mathml_current_fragile = []
-
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["mathml"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        fragile = len(base_msg) > 8 and base_msg[-8:] == "Fragile!"
-
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            if len(extra_msg) > 7 and extra_msg[:7] == "must be":
-                fragile = True
-            elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
-                fragile = True
-            msg = base_msg + " - " + extra_msg
-        else:
-            msg = base_msg
-
-        if fragile and MATHML_STRICT:
-            fragile = False
-
-        if fragile:
-            mathml_current_fragile.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
-        else:
-            mathml_current_pass.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    mathml_current_fragile,
-)
-@pytest.mark.xfail
-def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
+def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
@@ -783,18 +750,4 @@ def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
         ), msg
     else:
         strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    mathml_current_pass,
-)
-def test_makeboxes_mathml_ok(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
-    if msg:
-        assert strresult == str_expected, msg
-    else:
         assert strresult == str_expected
