@@ -24,11 +24,10 @@ import pytest
 # compatibility with the current mathics-django branch.
 
 MATHML_STRICT = (
-    int(os.environ.get("MATHML_STRICT", "1")) == 1
-)  # To set to false set ENV var to "0"
+    int(os.environ.get("MATHML_STRICT", "0")) == 1
+)  # To set to false set ENV var to "1"
 
-# TO check what happns in the CI
-MATHML_STRICT = False
+
 # This dict contains all the tests. The main key is an expression to be evaluated and
 # formatted. For each expression, we have a base message, and tests for each output box
 # mode ("text", "mathml" and "tex"). On each mode, we have a dict for the different formats.
