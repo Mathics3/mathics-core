@@ -132,6 +132,7 @@ INSTALL_REQUIRES += [
     "pint",
     "python-dateutil",
     "llvmlite",
+    "recordclass",
     "requests",
 ]
 

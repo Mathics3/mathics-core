@@ -9,7 +9,7 @@ import sympy
 
 from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import (
     Integer,
@@ -99,8 +99,8 @@ class Divisors(Builtin):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
-        return Expression(
-            SymbolList, *sympy.divisors(n.to_sympy()), element_conversion_fn=from_sympy
+        return to_expression(
+            SymbolList, *sympy.divisors(n.to_sympy()), elements_conversion_fn=from_sympy
         )
 
 
