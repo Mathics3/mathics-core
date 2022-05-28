@@ -182,12 +182,12 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     def init(self, item=None, components=None):
         super(_ColorObject, self).init(None, item)
         if item is not None:
-            leaves = item.leaves
-            if len(leaves) in self.components_sizes:
+            elements = item.elements
+            if len(elements) in self.components_sizes:
                 # we must not clip here; we copy the components, without clipping,
                 # e.g. RGBColor[-1, 0, 0] stays RGBColor[-1, 0, 0]. this is especially
                 # important for color spaces like LAB that have negative components.
-                components = [value.round_to_float() for value in leaves]
+                components = [value.round_to_float() for value in elements]
                 if None in components:
                     raise ColorError
 
@@ -356,8 +356,8 @@ class ColorDistance(Builtin):
                 evaluation.message("ColorDistance", "invdist", distance_function)
                 return
         elif distance_function.has_form("List", 2):
-            if distance_function.leaves[0].get_string_value() == "CMC":
-                if distance_function.leaves[1].get_string_value() == "Acceptability":
+            if distance_function.elements[0].get_string_value() == "CMC":
+                if distance_function.elements[1].get_string_value() == "Acceptability":
                     compute = (
                         lambda c1, c2: _CMC_distance(
                             100 * c1.to_color_space("LAB")[:3],
@@ -367,23 +367,34 @@ class ColorDistance(Builtin):
                         )
                         / 100
                     )
-                elif distance_function.leaves[1].get_string_value() == "Perceptibility":
+                elif (
+                    distance_function.elements[1].get_string_value() == "Perceptibility"
+                ):
                     compute = ColorDistance._distances.get("CMC")
 
-                elif distance_function.leaves[1].has_form("List", 2):
+                elif distance_function.elements[1].has_form("List", 2):
                     if isinstance(
-                        distance_function.leaves[1].leaves[0], Integer
-                    ) and isinstance(distance_function.leaves[1].leaves[1], Integer):
+                        distance_function.elements[1].elements[0], Integer
+                    ) and isinstance(
+                        distance_function.elements[1].elements[1], Integer
+                    ):
                         if (
-                            distance_function.leaves[1].leaves[0].get_int_value() > 0
-                            and distance_function.leaves[1].leaves[1].get_int_value()
+                            distance_function.elements[1].elements[0].get_int_value()
+                            > 0
+                            and distance_function.elements[1]
+                            .elements[1]
+                            .get_int_value()
                             > 0
                         ):
                             lightness = (
-                                distance_function.leaves[1].leaves[0].get_int_value()
+                                distance_function.elements[1]
+                                .elements[0]
+                                .get_int_value()
                             )
                             chroma = (
-                                distance_function.leaves[1].leaves[1].get_int_value()
+                                distance_function.elements[1]
+                                .elements[1]
+                                .get_int_value()
                             )
                             compute = (
                                 lambda c1, c2: _CMC_distance(
@@ -434,18 +445,20 @@ class ColorDistance(Builtin):
         try:
             if c1.get_head_name() == "System`List":
                 if c2.get_head_name() == "System`List":
-                    if len(c1.leaves) != len(c2.leaves):
+                    if len(c1.elements) != len(c2.elements):
                         evaluation.message("ColorDistance", "invarg", c1, c2)
                         return
                     else:
                         return Expression(
                             SymbolList,
-                            *[distance(a, b) for a, b in zip(c1.leaves, c2.leaves)],
+                            *[distance(a, b) for a, b in zip(c1.elements, c2.elements)],
                         )
                 else:
-                    return Expression(SymbolList, *[distance(c, c2) for c in c1.leaves])
+                    return Expression(
+                        SymbolList, *[distance(c, c2) for c in c1.elements]
+                    )
             elif c2.get_head_name() == "System`List":
-                return Expression(SymbolList, *[distance(c1, c) for c in c2.leaves])
+                return Expression(SymbolList, *[distance(c1, c) for c in c2.elements])
             else:
                 return distance(c1, c2)
         except ColorError:
