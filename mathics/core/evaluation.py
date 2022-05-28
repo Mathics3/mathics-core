@@ -282,7 +282,7 @@ class Evaluation(object):
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
-        from mathics.core.expression import Expression
+        from mathics.core.expression import Expression, to_expression
         from mathics.core.rules import Rule
 
         self.start_time = time.time()
@@ -307,7 +307,9 @@ class Evaluation(object):
 
         def evaluate():
             if history_length > 0:
-                self.definitions.add_rule("In", Rule(Expression("In", line_no), query))
+                self.definitions.add_rule(
+                    "In", Rule(to_expression("In", line_no), query)
+                )
             if check_io_hook("System`$Pre"):
                 self.last_eval = Expression("System`$Pre", query).evaluate(self)
             else:
@@ -326,7 +328,7 @@ class Evaluation(object):
 
                 stored_result = self.get_stored_result(out_result)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression("Out", line_no), stored_result)
+                    "Out", Rule(to_expression("Out", line_no), stored_result)
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):

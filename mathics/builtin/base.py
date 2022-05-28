@@ -7,7 +7,7 @@ from functools import total_ordering
 import importlib
 from itertools import chain
 import typing
-from typing import Any, cast
+from typing import Any, Iterable, cast
 
 
 from mathics.builtin.exceptions import (
@@ -37,7 +37,7 @@ from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
-
+from mathics.core.systemsymbols import SymbolMessageName
 from mathics.core.attributes import protected, read_protected
 
 
@@ -328,7 +328,7 @@ class Builtin:
             self.messages["usage"] = self.summary_text
         messages = [
             Rule(
-                Expression("MessageName", Symbol(name), String(msg)),
+                Expression(SymbolMessageName, Symbol(name), String(msg)),
                 String(value),
                 system=True,
             )
@@ -337,7 +337,7 @@ class Builtin:
 
         messages.append(
             Rule(
-                Expression("MessageName", Symbol(name), String("optx")),
+                Expression(SymbolMessageName, Symbol(name), String("optx")),
                 String("`1` is not a supported option for `2`[]."),
                 system=True,
             )
@@ -688,17 +688,17 @@ class SympyFunction(SympyObject):
             return getattr(sympy, self.sympy_name)
         return None
 
-    def prepare_sympy(self, leaves):
-        return leaves
+    def prepare_sympy(self, elements: Iterable) -> Iterable:
+        return elements
 
     def to_sympy(self, expr, **kwargs):
         try:
             if self.sympy_name:
-                leaves = self.prepare_sympy(expr.leaves)
-                sympy_args = [leaf.to_sympy(**kwargs) for leaf in leaves]
+                elements = self.prepare_sympy(expr.elements)
+                sympy_args = [element.to_sympy(**kwargs) for element in elements]
                 if None in sympy_args:
                     return None
-                sympy_function = self.get_sympy_function(leaves)
+                sympy_function = self.get_sympy_function(elements)
                 return sympy_function(*sympy_args)
         except TypeError:
             pass
@@ -799,6 +799,7 @@ class BoxExpression(BuiltinElement):
         result = expr.replace_vars(vars, options, in_scoping, in_function)
         return result
 
+    # Deprecated: remove eventually
     def get_elements(self):
         return self._elements
 

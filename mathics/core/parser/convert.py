@@ -196,7 +196,7 @@ class Converter(GenericConverter):
         return maa.PrecisionReal(sympy.Float(x, prec))
 
     def _make_Expression(self, head, children):
-        return mae.Expression(head, *children)
+        return mae.to_expression(head, *children)
 
 
 converter = Converter()
