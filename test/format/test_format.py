@@ -1,5 +1,6 @@
 # from .helper import session
 from mathics.session import MathicsSession
+import os
 
 session = MathicsSession()
 
@@ -11,25 +12,27 @@ import pytest
 #
 #  Aim of the tests:
 #
-# In these tests we check that the current behavior of makeboxes does not change
-# without noticing that it could affect both compatibility with WL and with
-# mathics-django. Also looking at some issues in the curren behavior regarding
+# In these tests, we check that the current behavior of makeboxes does not change
+# without noticing that it could affect compatibility with WL and with
+# mathics-django. Also looking at some issues in the current behavior regarding
 # the WL standard (for instance, how to represent $a^(b/c)$) and the Mathics
 # own implementation (BoxError raising in some simple conditions).
 # These test should be updated as we fix pending issues.
 
 
-# Set this to False in case mathml tests must be considered xfail. With True, ensures the
+# Set this to 0 in case mathml tests must be considered xfail. With True, ensures the
 # compatibility with the current mathics-django branch.
 
-MATHML_STRICT = True
+MATHML_STRICT = (
+    int(os.environ.get("MATHML_STRICT", "0")) == 1
+)  # To set to True set ENV var to "1"
 
 
 # This dict contains all the tests. The main key is an expression to be evaluated and
 # formatted. For each expression, we have a base message, and tests for each output box
 # mode ("text", "mathml" and "tex"). On each mode, we have a dict for the different formats.
-# If the value associated to a format is a string and the message does not
-# finishes with "- Fragile!", the test is considered mandatory,
+# If the value associated with a format is a string and the message does not
+# finish with "- Fragile!", the test is considered mandatory,
 # (not xfail), and the assert message is the base message.
 # If there is a tuple instead, the test is against the first element of the tuple,
 # and allowed to fail. In this case, the assert message is the
@@ -529,51 +532,73 @@ all_test = {
 }
 
 
-text_current_pass = []
-text_current_failing = []
-
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["text"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            msg = base_msg + " - " + extra_msg
-            text_current_failing.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
-        else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
-                text_current_failing.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+def load_tests(key):
+    """
+    This function takes the full set of tests, pick the ones corresponding to one
+    of the final formats ("text", "tex", "mathml") and produce two list:
+    the first with the mandatory tests, and the other with "fragile" tests
+    """
+    global all_tests
+    global MATHML_STRICT
+    mandatory_tests = []
+    fragile_tests = []
+    for expr in all_test:
+        base_msg = all_test[expr]["msg"]
+        expected_fmt = all_test[expr][key]
+        fragil_set = len(base_msg) > 8 and base_msg[-8:] == "Fragile!"
+        for form in expected_fmt:
+            tst = expected_fmt[form]
+            fragile = fragil_set
+            if not isinstance(tst, str):
+                tst, extra_msg = tst
+                if len(extra_msg) > 7 and extra_msg[:7] == "must be":
+                    fragile = True
+                elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
+                    fragile = True
+                msg = base_msg + " - " + extra_msg
             else:
-                text_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+                msg = base_msg
+
+            # discard Fragile for "text", "tex" or if
+            # MATHML_STRICT is True
+            if key != "mathml" or MATHML_STRICT:
+                fragile = False
+            full_test = (expr, tst, form, msg)
+            if fragile:
+                fragile_tests.append(full_test)
+            else:
+                mandatory_tests.append(full_test)
+
+    return mandatory_tests, fragile_tests
+
+
+mandatory_tests, fragile_tests = load_tests("text")
+
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_text_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_text(evaluation=session.evaluation)
+                == str_expected
+            ), msg
+        else:
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
 
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    text_current_failing,
+    mandatory_tests,
 )
-def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
+def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
@@ -585,139 +610,71 @@ def test_makeboxes_text_fail(str_expr, str_expected, form, msg):
         assert strresult == str_expected
 
 
+mandatory_tests, fragile_tests = load_tests("tex")
+
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_tex_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_tex(evaluation=session.evaluation)
+                == str_expected
+            ), msg
+        else:
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
+
+
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    text_current_pass,
+    mandatory_tests,
 )
-def test_makeboxes_text_ok(str_expr, str_expected, form, msg):
+def test_makeboxes_tex(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
+            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
         ), msg
     else:
         strresult = format_result.boxes_to_text(evaluation=session.evaluation)
         assert strresult == str_expected
 
 
-tex_current_pass = []
-tex_current_failing = []
+mandatory_tests, fragile_tests = load_tests("mathml")
 
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["tex"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            msg = base_msg + " - " + extra_msg
-            tex_current_failing.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
+if fragile_tests:
+
+    @pytest.mark.parametrize(
+        ("str_expr", "str_expected", "form", "msg"),
+        fragile_tests,
+    )
+    @pytest.mark.xfail
+    def test_makeboxes_mathml_fragile(str_expr, str_expected, form, msg):
+        result = session.evaluate(str_expr)
+        format_result = result.format(session.evaluation, form)
+        if msg:
+            assert (
+                format_result.boxes_to_tex(evaluation=session.evaluation)
+                == str_expected
+            ), msg
         else:
-            if len(base_msg) > 8 and base_msg[-8:] == "Fragile!":
-                tex_current_failing.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
-            else:
-                tex_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
+            strresult = format_result.boxes_to_text(evaluation=session.evaluation)
+            assert strresult == str_expected
 
 
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "form", "msg"),
-    tex_current_failing,
+    mandatory_tests,
 )
-def test_makeboxes_tex_fail(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    if msg:
-        assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
-        ), msg
-    else:
-        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    tex_current_pass,
-)
-def test_makeboxes_tex_ok(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    if msg:
-        assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
-        ), msg
-    else:
-        strresult = format_result.boxes_to_tex(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-mathml_current_pass = []
-mathml_current_failing = []
-
-for expr in all_test:
-    base_msg = all_test[expr]["msg"]
-    expected_fmt = all_test[expr]["mathml"]
-    for form in expected_fmt:
-        tst = expected_fmt[form]
-        if not isinstance(tst, str):
-            tst, extra_msg = tst
-            msg = base_msg + " - " + extra_msg
-            mathml_current_failing.append(
-                (
-                    expr,
-                    tst,
-                    form,
-                    msg,
-                )
-            )
-        else:
-            if not MATHML_STRICT or (len(base_msg) > 8 and base_msg[-8:] == "Fragile!"):
-                mathml_current_failing.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
-            else:
-                mathml_current_pass.append(
-                    (
-                        expr,
-                        tst,
-                        form,
-                        base_msg,
-                    )
-                )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    mathml_current_failing,
-)
-def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
+def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
     format_result = result.format(session.evaluation, form)
     if msg:
@@ -726,18 +683,4 @@ def test_makeboxes_mathml_fail(str_expr, str_expected, form, msg):
         ), msg
     else:
         strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
-        assert strresult == str_expected
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "form", "msg"),
-    mathml_current_pass,
-)
-def test_makeboxes_mathml_ok(str_expr, str_expected, form, msg):
-    result = session.evaluate(str_expr)
-    format_result = result.format(session.evaluation, form)
-    strresult = format_result.boxes_to_mathml(evaluation=session.evaluation)
-    if msg:
-        assert strresult == str_expected, msg
-    else:
         assert strresult == str_expected
