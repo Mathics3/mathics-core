@@ -247,8 +247,6 @@ class SubscriptBox(BoxConstruct):
             isinstance(a, (String, BoxConstruct))
             and isinstance(b, (String, BoxConstruct))
         ):
-            print("a=", a)
-            print("b=", b)
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.subindex = b
@@ -315,9 +313,6 @@ class SubsuperscriptBox(BoxConstruct):
             and isinstance(b, BoxConstruct)
             and isinstance(c, BoxConstruct)
         ):
-            print("a=", a)
-            print("b=", b)
-            print("c=", c)
             raise Exception((a, b, c), "are not boxes")
         self.base = a
         self.subindex = b
@@ -387,8 +382,6 @@ class SuperscriptBox(BoxConstruct):
     def init(self, a, b, options):
         self.box_options = options.copy()
         if not (isinstance(a, BoxConstruct) and isinstance(b, BoxConstruct)):
-            print("a=", a)
-            print("b=", b)
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -428,6 +421,7 @@ class SuperscriptBox(BoxConstruct):
         _options.update(options)
         options = _options
         tex1 = self.base.boxes_to_tex(**options)
+
         sup_string = self.superindex.get_string_value()
         # Handle derivatives
         if sup_string == "\u2032":
@@ -435,10 +429,18 @@ class SuperscriptBox(BoxConstruct):
         elif sup_string == "\u2032\u2032":
             return "%s''" % tex1
         else:
-            return "%s^%s" % (
-                self.tex_block(tex1, True),
-                self.tex_block(self.superindex.boxes_to_tex(**options), True),
-            )
+            base = self.tex_block(tex1, True)
+            superindx = self.tex_block(self.superindex.boxes_to_tex(**options), True)
+            if isinstance(self.superindex, _BoxedString):
+                return "%s^%s" % (
+                    base,
+                    superindx,
+                )
+            else:
+                return "%s^{%s}" % (
+                    base,
+                    superindx,
+                )
 
 
 class RowBox(BoxConstruct):
@@ -453,7 +455,7 @@ class RowBox(BoxConstruct):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "List[" + self.items.__repr__() + "]"
+        return "RowBox[List[" + self.items.__repr__() + "]]"
 
     def apply_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
