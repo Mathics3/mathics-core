@@ -44,11 +44,14 @@ class ElementsProperties(RecordClass):
 
     In general, if you have some set of properties that you know should
     be set a particular way, but don't know about the others, it is safe
-    to set the unknown properties to False.
+    to set the unknown properties to False. Omitting that property is the
+    same as setting a property to False.
 
-    When *all* of the properties are unknown, use a `None` value in
+    However, when *all* of the properties are unknown, use a `None` value in
     the Expression.properties field instead of creating an
     ElementsProperties object with everything set False.
+    By setting the field to None, the code will look over the elements before
+    evaluation and set the property values correctly.
     """
 
     # True if none of the elements needs to be evaluated.
