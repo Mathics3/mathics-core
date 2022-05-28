@@ -9,7 +9,6 @@ import typing
 from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from itertools import chain
 from bisect import bisect_left
-from recordclass import RecordClass
 
 from mathics.core.atoms import from_python, Number, Integer
 
@@ -27,7 +26,7 @@ from mathics.core.attributes import (
     sequence_hold as SEQUENCE_HOLD,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
-from mathics.core.element import ensure_context
+from mathics.core.element import ensure_context, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
@@ -87,38 +86,6 @@ class BoxError(Exception):
         super().__init__("Box %s cannot be formatted as %s" % (box, form))
         self.box = box
         self.form = form
-
-
-class ElementsProperties(RecordClass):
-    """Properties of Expression elements that are useful in evaluation.
-
-    In general, if you have some set of properties that you know should
-    be set a particular way, but don't know about the others, it is safe
-    to set the unknown properties to False.
-
-    When *all* of the properties are unknown, use a `None` value in
-    the Expression.properties field instead of creating an
-    ElementsProperties object with everything set False.
-    """
-
-    # True if none of the elements needs to be evaluated.
-    elements_fully_evaluated: bool = False
-
-    # is_flat: True if none of the elements is an Expression
-    # Some Mathics functions allow flattening of elements. Therefore
-    # it can be useful to know if the elements are already flat
-    is_flat: bool = False
-
-    # is_ordered: True if all of the elements are ordered. Of course this is true,
-    # if there are less than 2 elements. Ordered is an Attribute of a
-    # Mathics function.
-    #
-    # In rewrite_eval_apply() if a function is not marked as Ordered this attribute
-    # has no effect which means it doesn't matter how it is set. So
-    # when it doubt, it is always safe to set is_ordered to False since at worst
-    # it will cause an ordering operation on elements sometimes. On the other hand, setting
-    # this True elements are not sorted can cause evaluation differences.
-    is_ordered: bool = False
 
 
 # ExpressionCache keeps track of the following attributes for one Expression instance:

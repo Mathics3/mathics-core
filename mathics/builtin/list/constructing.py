@@ -11,6 +11,8 @@ from itertools import permutations
 
 from mathics.builtin.base import Builtin, Pattern
 
+from mathics.builtin.elemtns import ElementsProperties
+
 from mathics.builtin.lists import (
     _IterationFunction,
     get_tuples,
@@ -19,7 +21,6 @@ from mathics.builtin.lists import (
 from mathics.core.convert import from_sympy
 
 from mathics.core.expression import (
-    ElementsProperties,
     Expression,
     to_expression,
     structure,
