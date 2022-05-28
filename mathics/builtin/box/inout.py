@@ -4,6 +4,7 @@ from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue, Symbol
+from mathics.core.systemsymbols import SymbolRowBox
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
 from mathics.core.expression import Expression
@@ -263,10 +264,7 @@ class SubscriptBox(BoxExpression):
         self.base = a
         self.subindex = b
 
-    def to_expression(self):
-        """
-        returns an evaluable expression.
-        """
+    def to_expression(self) -> Expression:
         return Expression("SubscriptBox", self.base, self.subindex)
 
     def boxes_to_text(self, **options):
@@ -330,10 +328,7 @@ class SubsuperscriptBox(BoxExpression):
         self.subindex = b
         self.superindex = c
 
-    def to_expression(self):
-        """
-        returns an evaluable expression.
-        """
+    def to_expression(self) -> Expression:
         return Expression(
             "SubsuperscriptBox", self.base, self.subindex, self.superindex
         )
@@ -398,10 +393,7 @@ class SuperscriptBox(BoxExpression):
         self.base = a
         self.superindex = b
 
-    def to_expression(self):
-        """
-        returns an evaluable expression.
-        """
+    def to_expression(self) -> Expression:
         return Expression("SuperscriptBox", self.base, self.superindex)
 
     def boxes_to_text(self, **options):
@@ -499,16 +491,13 @@ class RowBox(BoxExpression):
 
         self._elements = None
 
-    def to_expression(self):
-        """
-        returns an evaluable expression.
-        """
+    def to_expression(self) -> Expression:
         if self._elements is None:
             self._elements = tuple(
                 item.to_expression() if isinstance(item, BoxExpression) else item
                 for item in self.items
             )
-        result = Expression("RowBox", Expression("List", *self._elements))
+        result = Expression(SymbolRowBox, Expression(SymbolList, *self._elements))
         return result
 
     def boxes_to_text(self, **options):
