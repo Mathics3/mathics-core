@@ -36,7 +36,7 @@ from mathics.builtin.colors.color_directives import (
 )
 
 from mathics.builtin.options import options_to_rules
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.symbols import (
     Symbol,
     system_symbols,
@@ -286,11 +286,11 @@ class Graphics(Builtin):
             head = content.get_head()
 
             if head is SymbolList:
-                return Expression(
+                return to_expression(
                     SymbolList, *[convert(item) for item in content.leaves]
                 )
             elif head is Symbol("System`Style"):
-                return Expression(
+                return to_expression(
                     "StyleBox", *[convert(item) for item in content.leaves]
                 )
 
