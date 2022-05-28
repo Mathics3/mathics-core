@@ -2,6 +2,7 @@
 """
 Unit tests from builtins ... algebra.py
 """
+import pytest
 from .helper import check_evaluation
 
 
@@ -277,6 +278,14 @@ def test_simplify():
             "Simplify[a*x^2+b*x^2]",
             "x ^ 2 (a + b)",
         ),
+        (
+            "Simplify[2 Log[2]]",
+            "Log[4]",
+        ),
+        (
+            "Simplify[18 Log[2]]",
+            "18 Log[2]",
+        ),
         # triggers TypeError in sympy.simplify
         (
             "Clear[f]; x f[{y}] // Simplify",
@@ -286,6 +295,17 @@ def test_simplify():
         check_evaluation(str_expr, str_expected)
 
 
+skip_fullsimplify_test = True
+try:
+    import sympy
+    from packaging import version
+
+    skip_fullsimplify_test = version.parse(sympy.__version__) < version.parse("1.10.0")
+except:
+    pass
+
+
+@pytest.mark.skipif(skip_fullsimplify_test, reason="requires sympy 1.10.10 or higher")
 def test_fullsimplify():
     for str_expr, str_expected, failure_message in (
         (

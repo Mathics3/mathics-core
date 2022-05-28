@@ -3,9 +3,8 @@
 from mathics.core.symbols import PredefinedSymbol, Symbol
 
 # Some other common Symbols. This list is sorted in alphabetic order.
-Symbol_Context = Symbol("$Context")
-Symbol_ContextPath = Symbol("$ContextPath")
-SymbolAborted = PredefinedSymbol("$Aborted")
+Symbol_Assumptions = Symbol("$Assumptions")
+SymbolAborted = Symbol("$Aborted")
 SymbolAlternatives = Symbol("Alternatives")
 SymbolAssociation = Symbol("Association")
 SymbolAutomatic = Symbol("Automatic")
@@ -13,6 +12,8 @@ SymbolBlank = Symbol("Blank")
 SymbolByteArray = Symbol("ByteArray")
 SymbolCatalan = Symbol("Catalan")
 SymbolComplexInfinity = Symbol("ComplexInfinity")
+Symbol_Context = Symbol("$Context")
+Symbol_ContextPath = Symbol("$ContextPath")
 SymbolCos = Symbol("Cos")
 SymbolD = Symbol("D")
 SymbolDirectedInfinity = Symbol("DirectedInfinity")

@@ -160,13 +160,13 @@ class BaseElement(KeyComparable):
         try:
             expr = self
             head = self.get_head()
-            leaves = self.get_elements()
+            elements = self.get_elements()
             include_form = False
             # If the expression is enclosed by a Format
             # takes the form from the expression and
             # removes the format from the expression.
-            if head in formats and len(leaves) == 1:
-                expr = leaves[0]
+            if head in formats and len(elements) == 1:
+                expr = elements[0]
                 if not (form is SymbolOutputForm and head is SymbolStandardForm):
                     form = head
                     include_form = True
@@ -179,12 +179,12 @@ class BaseElement(KeyComparable):
             # Repeated and RepeatedNull confuse the formatter,
             # so we need to hardlink their format rules:
             if head is SymbolRepeated:
-                if len(leaves) == 1:
+                if len(elements) == 1:
                     return self.create_expression(
                         SymbolHoldForm,
                         self.create_expression(
                             SymbolPostfix,
-                            self.create_expression(SymbolList, leaves[0]),
+                            self.create_expression(SymbolList, elements[0]),
                             "..",
                             170,
                         ),
@@ -192,12 +192,12 @@ class BaseElement(KeyComparable):
                 else:
                     return self.create_expression(SymbolHoldForm, expr)
             elif head is SymbolRepeatedNull:
-                if len(leaves) == 1:
+                if len(elements) == 1:
                     return self.create_expression(
                         SymbolHoldForm,
                         self.create_expression(
                             SymbolPostfix,
-                            self.create_expression(SymbolList, leaves[0]),
+                            self.create_expression(SymbolList, elements[0]),
                             "...",
                             170,
                         ),
@@ -229,7 +229,7 @@ class BaseElement(KeyComparable):
             # If the expression is still enclosed by a Format,
             # iterate.
             # If the expression is not atomic or of certain
-            # specific cases, iterate over the leaves.
+            # specific cases, iterate over the elements.
             head = expr.get_head()
             if head in formats:
                 expr = expr.do_format(evaluation, form)
@@ -367,14 +367,14 @@ class BaseElement(KeyComparable):
         list_expr = self.flatten_with_respect_to_head(SymbolList)
         list = []
         if list_expr.has_form("List", None):
-            list.extend(list_expr.leaves)
+            list.extend(list_expr.elements)
         else:
             list.append(list_expr)
         rules = []
         for item in list:
             if not item.has_form(("Rule", "RuleDelayed"), 2):
                 return None
-            rule = Rule(item.leaves[0], item.leaves[1])
+            rule = Rule(item.elements[0], item.elements[1])
             rules.append(rule)
         return rules
 
@@ -383,7 +383,7 @@ class BaseElement(KeyComparable):
         from mathics.core.symbols import SymbolSequence
 
         if self.get_head() is SymbolSequence:
-            return self.leaves
+            return self.elements
         else:
             return [self]
 
@@ -422,7 +422,7 @@ class BaseElement(KeyComparable):
 
     def has_form(self, heads, *element_counts):
         """Check if the expression is of the form Head[l1,...,ln]
-        with Head.name in `heads` and a number of leaves according to the specification in
+        with Head.name in `heads` and a number of elements according to the specification in
         element_counts.
         """
         return False

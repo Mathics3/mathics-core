@@ -6,7 +6,7 @@ import math
 import time
 
 import typing
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional, Union
 from itertools import chain
 from bisect import bisect_left
 
@@ -1971,3 +1971,20 @@ def atom_list_constructor(evaluation, head, *atom_names):
 
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
+
+
+def to_expression(
+    head: Union[str, Symbol], *elements, elements_conversion_fn: Callable = from_python
+) -> Expression:
+    """
+    This is an expression constructor that can be used when the Head and elements are not Mathics
+    objects. For example to_expression("Plus", 1, 2, 3)
+    """
+    if isinstance(head, str):
+        head = Symbol(head)
+
+    # This is what we do in expression-interface:refactor
+    # elements_tuple, elements_properties = convert_expression_elements(
+    #     elements, elements_conversion_fn
+    # )
+    return Expression(head, *elements)
