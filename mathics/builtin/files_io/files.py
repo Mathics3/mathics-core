@@ -23,6 +23,7 @@ from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core import read
 from mathics.core.read import (
     channel_to_stream,
+    close_stream,
     MathicsOpen,
     read_get_separators,
     read_name_and_stream_from_channel,
@@ -65,6 +66,7 @@ INPUT_VAR = ""
 
 TMP_DIR = tempfile.gettempdir()
 SymbolPath = Symbol("$Path")
+SymbolBinaryWrite = Symbol("BinaryWrite")
 
 ### FIXME: All of this is related to Read[]
 ### it can be moved somewhere else.
@@ -325,7 +327,7 @@ class Read(Builtin):
      = {123, abc}
     #> Read[stream, {Number, Word}]
      = EndOfFile
-    #> Close[stream];
+    #> lose[stream];
 
     #> stream = StringToStream["123 abc"];
     #> Quiet[Read[stream, {Word, Number}]]
@@ -596,12 +598,11 @@ class Write(Builtin):
      = ...
     >> Write[stream, 10 x + 15 y ^ 2]
     >> Write[stream, 3 Sin[z]]
-    >> Close[stream]
-     = ...
+    >> Close[stream];
     >> stream = OpenRead[%];
     >> ReadList[stream]
      = {10 x + 15 y ^ 2, 3 Sin[z]}
-    #> Close[stream];
+    #> DeleteFile[Close[stream]];
     """
 
     summary_text = "write a sequence of expressions to a stream, ending the output with a newline (line feed)"
@@ -989,7 +990,7 @@ class BinaryWrite(Builtin):
      = 4
     >> BinaryRead[strm, "Character8"]
      = z
-    >> Close[strm];
+    >> DeleteFile[Close[strm]];
 
     Write a String
     >> strm = OpenWrite[BinaryFormat -> True]
@@ -1012,8 +1013,7 @@ class BinaryWrite(Builtin):
      = InputStream[...]
     >> BinaryRead[strm, {"Byte", "Byte", "Byte", "Byte", "Byte", "Byte", "Byte"}]
      = {97, 98, 99, 49, 50, 51, EndOfFile}
-    >> Close[strm]
-     = ...
+    >> DeleteFile[Close[strm]];
 
     Write Type
     >> strm = OpenWrite[BinaryFormat -> True]
@@ -1022,8 +1022,7 @@ class BinaryWrite(Builtin):
      = OutputStream[...]
     >> BinaryWrite[strm, {97, 98, 99}, {"Byte", "Byte", "Byte"}]
      = OutputStream[...]
-    >> Close[%]
-     = ...
+    >> DeleteFile[Close[%]];
 
     ## Write then Read as Bytes
     #> WRb[bytes_, form_] := Module[{stream, res={}, byte}, stream = OpenWrite[BinaryFormat -> True]; BinaryWrite[stream, bytes, form]; stream = OpenRead[Close[stream], BinaryFormat -> True]; While[Not[SameQ[byte = BinaryRead[stream], EndOfFile]], res = Join[res, {byte}];]; Close[stream]; res]
@@ -1206,10 +1205,10 @@ class BinaryWrite(Builtin):
 
         # Check Empty Type
         if typ is None:
-            expr = Expression("BinaryWrite", channel, b)
+            expr = Expression(SymbolBinaryWrite, channel, b)
             typ = Expression("List")
         else:
-            expr = Expression("BinaryWrite", channel, b, typ)
+            expr = Expression(SymbolBinaryWrite, channel, b, typ)
 
         # Check channel
         stream = stream_manager.lookup_stream(n.get_int_value())
@@ -1219,7 +1218,7 @@ class BinaryWrite(Builtin):
             return expr
 
         if stream.mode not in ["wb", "ab"]:
-            evaluation.message("BinaryWrite", "openr", channel)
+            evaluation.message(SymbolBinaryWrite, "openr", channel)
             return expr
 
         # Check b
@@ -1302,18 +1301,18 @@ class BinaryWrite(Builtin):
                 x = x.get_int_value()
 
             if x is None:
-                return evaluation.message("BinaryWrite", "nocoerce", b)
+                return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
 
             try:
                 self.writers[t](stream.io, x)
             except struct.error:
-                return evaluation.message("BinaryWrite", "nocoerce", b)
+                return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
             i += 1
 
         try:
             stream.io.flush()
         except IOError as err:
-            evaluation.message("BinaryWrite", "writex", err.strerror)
+            evaluation.message(SymbolBinaryWrite, "writex", err.strerror)
         return channel
 
 
@@ -1332,16 +1331,15 @@ class BinaryRead(Builtin):
      = OutputStream[...]
     >> BinaryWrite[strm, {97, 98, 99}]
      = OutputStream[...]
-    >> Close[strm]
-     = ...
+    >> Close[strm];
     >> strm = OpenRead[%, BinaryFormat -> True]
      = InputStream[...]
     >> BinaryRead[strm, {"Character8", "Character8", "Character8"}]
      = {a, b, c}
-    >> Close[strm];
+    >> DeleteFile[Close[strm]];
 
     ## Write as Bytes then Read
-    #> WbR[bytes_, form_] := Module[{stream, res}, stream = OpenWrite[BinaryFormat -> True]; BinaryWrite[stream, bytes]; stream = OpenRead[Close[stream], BinaryFormat -> True]; res = BinaryRead[stream, form]; Close[stream]; res]
+    #> WbR[bytes_, form_] := Module[{stream, res}, stream = OpenWrite[BinaryFormat -> True]; BinaryWrite[stream, bytes]; stream = OpenRead[Close[stream], BinaryFormat -> True]; res = BinaryRead[stream, form]; DeleteFile[Close[stream]]; res]
 
     ## Byte
     #> WbR[{149, 2, 177, 132}, {"Byte", "Byte", "Byte", "Byte"}]
@@ -1623,8 +1621,7 @@ class WriteString(Builtin):
     >> stream = OpenWrite[];
     >> WriteString[stream, "This is a test 1"]
     >> WriteString[stream, "This is also a test 2"]
-    >> Close[stream]
-     = ...
+    >> Close[stream];
     >> FilePrint[%]
      | This is a test 1This is also a test 2
 
@@ -1651,8 +1648,7 @@ class WriteString(Builtin):
     #> WriteString[%%, abc]
     #> Streams[%%%][[1]]
      = ...
-    #> Close[%]
-     = ...
+    #> Close[%];
     #> FilePrint[%]
      | abc
 
@@ -1726,7 +1722,13 @@ class _OpenAction(Builtin):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
-            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=True)
+            # We use delete=False because we write to the name *after*
+            # tfms.close() is done. In other words we are using
+            # NamedTempararyFile to get a unique name and ensure that
+            # no one else uses it.
+            # In Close[] we will explicitly remove the name from the
+            # filesystem.
+            tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=False)
             path = String(tmpf.name)
             tmpf.close()
             return self.apply_path(path, evaluation, options)
@@ -1828,11 +1830,11 @@ class OpenWrite(_OpenAction):
 
     >> OpenWrite[]
      = OutputStream[...]
-    #> Close[%];
+    #> DeleteFile[Close[%]];
 
     #> OpenWrite[BinaryFormat -> True]
      = OutputStream[...]
-    #> Close[%];
+    #> DeleteFile[Close[%]];
     """
 
     summary_text = (
@@ -1851,7 +1853,7 @@ class OpenAppend(_OpenAction):
 
     >> OpenAppend[]
      = OutputStream[...]
-    #> Close[%];
+    #> DeleteFile[Close[%]];
 
     #> appendFile = OpenAppend["MathicsNonExampleFile"]
      = OutputStream[MathicsNonExampleFile, ...]
@@ -2032,7 +2034,10 @@ class Put(BinaryOperator):
         else:
             return  # opening failed
         result = self.apply_input(exprs, name, n, evaluation)
-        Expression("Close", instream).evaluate(evaluation)
+        instream_number = instream.elements[1].value
+        py_instream = stream_manager.lookup_stream(instream_number)
+
+        close_stream(py_instream, instream_number)
         return result
 
     def apply_input(self, exprs, name, n, evaluation):
@@ -2118,7 +2123,7 @@ class PutAppend(BinaryOperator):
         "PutAppend[exprs___, filename_String]"
         instream = Expression("OpenAppend", filename).evaluate(evaluation)
         if len(instream.leaves) == 2:
-            name, n = instream.leaves
+            name, n = instream.elements
         else:
             return  # opening failed
         result = self.apply_input(exprs, name, n, evaluation)
@@ -2402,8 +2407,7 @@ class Close(Builtin):
             evaluation.message("General", "openx", channel)
             return
 
-        stream.io.close()
-        stream_manager.delete(py_n)
+        close_stream(stream, n)
         return name
 
 

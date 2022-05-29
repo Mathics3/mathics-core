@@ -127,7 +127,7 @@ class StreamsManager(object):
             return True
         return False
 
-    def lookup_stream(self, n=None) -> Optional["Stream"]:
+    def lookup_stream(self, n: Optional[int] = None) -> Optional["Stream"]:
         if n is None:
             return None
         return self.STREAMS.get(n, None)

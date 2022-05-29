@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
+"""
+Unit tests from builtins/files_io/files.py
+"""
 import os.path as osp
+import pytest
 import sys
-from .helper import check_evaluation, evaluate
+from test.helper import check_evaluation, evaluate
 
 
 def test_compress():
@@ -21,21 +25,35 @@ def test_unprotected():
         check_evaluation(str_expr, str_expected, message)
 
 
-if sys.platform not in ("win32",):
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="POSIX pathname tests do not work on Windows"
+)
+def test_get_and_put():
+    temp_filename = evaluate('$TemporaryDirectory<>"/testfile"').to_python()
+    temp_filename_strip = temp_filename[1:-1]
+    check_evaluation(f"40! >> {temp_filename_strip}", "Null")
+    check_evaluation(f"<< {temp_filename_strip}", "40!")
+    check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
-    def test_get_and_put():
-        temp_filename = evaluate('$TemporaryDirectory<>"/testfile"').to_python()
-        temp_filename_strip = temp_filename[1:-1]
-        check_evaluation(f"40! >> {temp_filename_strip}", "Null")
-        check_evaluation(f"<< {temp_filename_strip}", "40!")
-        check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
-    def test_get_path_search():
-        # Check that AppendTo[$Path] works in conjunction with Get[]
-        dirname = osp.join(osp.dirname(osp.abspath(__file__)), "data")
-        evaled = evaluate(f"""AppendTo[$Path, "{dirname}"]""")
-        assert evaled.has_form("List", 1, None)
-        check_evaluation('Get["fortytwo.m"]', "42")
+def test_get_path_search():
+    # Check that AppendTo[$Path] works in conjunction with Get[]
+    dirname = osp.join(osp.dirname(osp.abspath(__file__)), "..", "..", "data")
+    evaled = evaluate(f"""AppendTo[$Path, "{dirname}"]""")
+    assert evaled.has_form("List", 1, None)
+    check_evaluation('Get["fortytwo.m"]', "42")
+
+
+def test_temptream():
+    temp_filename = evaluate("Close[OpenWrite[BinaryFormat -> True]]").value
+    assert osp.exists(
+        temp_filename
+    ), f"temporary filename {temp_filename} should not appear"
+    result = evaluate(f"""DeleteFile["{temp_filename}"]""").to_python()
+    assert result is None
+    assert not osp.exists(
+        temp_filename
+    ), f"temporary filename {temp_filename} should not appear"
 
 
 # I do not know what this is it supposed to test with this...

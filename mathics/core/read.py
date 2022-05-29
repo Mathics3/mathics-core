@@ -3,7 +3,9 @@ Functions to support Read[]
 """
 
 import io
+import os
 import os.path as osp
+from typing import Optional
 
 from mathics.builtin.base import MessageException
 from mathics.builtin.atomic.strings import to_python_encoding
@@ -96,6 +98,15 @@ def channel_to_stream(channel, mode="r"):
         return channel
     else:
         return None
+
+
+def close_stream(stream, stream_number: int, delete_name: Optional[String] = None):
+    stream.io.close()
+    stream_manager.delete(stream_number)
+    # We need an explicit unlink because we've written
+    # to a name outside of the scope that NamedTemporaryFile sees.
+    if delete_name is not None:
+        os.unlink(delete_name.value)
 
 
 def read_name_and_stream_from_channel(channel, evaluation):
