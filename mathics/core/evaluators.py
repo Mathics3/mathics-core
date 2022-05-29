@@ -71,11 +71,14 @@ def apply_nvalues(
     # just apply `apply_nvalues` to each leaf and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         leaves = expr.leaves
+
+        # FIXME: incorporate these lines into Expression call
         result = Expression(expr.head)
         newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
         result.elements = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
+        result._build_elements_properties()
         return result
 
     # Special case for the Root builtin
@@ -133,8 +136,10 @@ def apply_nvalues(
             if newleaf:
                 leaves[index] = newleaf
 
+        # FIXME: incorporate these 3 lines into Expression call
         result = Expression(head)
         result.elements = tuple(leaves)
+        result._build_elements_properties()
         return result
 
 

@@ -6,7 +6,7 @@ import math
 import time
 
 import typing
-from typing import Any, Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from itertools import chain
 from bisect import bisect_left
 
@@ -26,7 +26,7 @@ from mathics.core.attributes import (
     sequence_hold as SEQUENCE_HOLD,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
-from mathics.core.element import ensure_context
+from mathics.core.element import ensure_context, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
@@ -79,10 +79,6 @@ symbols_arithmetic_operations = system_symbols(
     "Divide",
     "Sin",
 )
-
-
-def identity_fn(arg: Any) -> Any:
-    return arg
 
 
 class BoxError(Exception):
@@ -185,53 +181,34 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     positional Arguments:
         - head -- The head of the M-Expression
-        - *elements - optional: the remainin elements
+        - *elements - optional: the remaining elements
 
     Keyword Arguments:
-
-        - element_properties -- optional: a dictionary describing properties
-                                of the colletion of elements.
-          Properties include:
-             _is_flat: bool    -- True inone of the elements is an Expression
-             _is_ordered: bool -- True if all of the elements are ordered. Of course this is true,
-                                  if there are less than 2 elements. (Ordered is an Attribute of
-                                  a function)
-             _fully_evaluated: bool
-                               -- True if none of the elements needs to be evaluated
+        - element_properties -- properties of the collection of elements
     """
 
     head: "Symbol"
     leaves: typing.List[Any]
     _sequences: Any
 
-    def __init__(self, head, *elements, **kwargs):
+    def __init__(
+        self, head, *elements, elements_properties: Optional[ElementsProperties] = None
+    ):
         self.options = None
         self.pattern_sequence = False
         if isinstance(head, str):
+            # We should fix or convert to to_expression all nonSymbol uses.
             head = Symbol(head)
         self._head = head
 
-        # Set some properties on elements that help us speed up evaluation.
-        # These are set in self._build_elements(elements)
-        #    self._elements_fully_evaluated, self._is_flat, self._is_ordered
-
-        conversion_fn = kwargs.pop("element_conversion_fn", from_python)
-        element_properties = kwargs.pop("element_properties", None)
-
-        # Note: We don't allow specifying "_is_ordered"
-        # when "_elements_fully_evaluated" is False. And I suppose this
-        # might be right since we can't really know ordering if we things
-        # are not fully evaluated.
-        if element_properties is not None:
-            for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
-                setattr(self, field, element_properties.get(field, False))
-            self._elements = (
-                elements
-                if self._elements_fully_evaluated
-                else (conversion_fn(element) for element in elements)
-            )
-        else:
-            self._elements = self._build_elements(elements, conversion_fn)
+        # Note: After we make a pass over all Expression() calls, this line will get removed
+        # and replaced with the two commented-out lines below:
+        self._elements, self.elements_properties = convert_expression_elements(
+            elements, from_python
+        )
+        assert isinstance(self._elements, tuple)
+        # self._elements = elements
+        # self.elements_properties = elements_properties
 
         self._sequences = None
         self._cache = None
@@ -251,11 +228,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def __str__(self) -> str:
         return "%s[%s]" % (
             self._head,
-            ", ".join([element.__str__() for element in self.elements]),
+            ", ".join([element.__str__() for element in self._elements]),
         )
 
     def _as_sympy_function(self, **kwargs) -> sympy.Function:
-        sym_args = [element.to_sympy(**kwargs) for element in self.elements]
+        sym_args = [element.to_sympy(**kwargs) for element in self._elements]
 
         if None in sym_args:
             return None
@@ -264,68 +241,35 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return f(*sym_args)
 
     # Note: this function is called a *lot* so it needs to be fast.
-    def _build_elements(
-        self, elements: Iterable, conversion_fn: Callable = from_python
-    ) -> tuple:
+    def _build_elements_properties(self):
         """
-        Build a tuple of Elements converted from the Python-like items in `elements`.
-        We also note useful properties such as whether the collection of elements is
-        ordered, flat, or fully evaluated.
+        Compute self.elements_properties.
 
-        Note: we add or set the following fields:
-          self._elements_fully_evaluated, self._is_flat, and self._is_ordered
+        This is like _build_elements(), but simpler because the list of elements is in place
+        and no conversion needs to be done
         """
 
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
+        self.elements_properties = ElementsProperties(True, True, True)
 
-        # _elements_fully_evaluated is True if all elements have been fully evaluated.
-        # Strings, and Numbers are fully evaluated. Symbols like Null, True, and False may be up for debate.
-        self._elements_fully_evaluated = True
-
-        # _is_flat is True if all elements are atoms/leaves.
-        self._is_flat = True
-
-        # _is_ordered is True if elements do not need ordering.
-        # Elements with less than 2 items or are ordered.
-        # Otherwise we'll try to use "==" to check for orderedness and if that fails
-        # we'll say the elements are not ordered.
-
-        # Note that *checking* a list is O(n) while sorting is O(n log n).
-        # Ordering is a Attribute is defined for some Mathics functions.
-        self._is_ordered = True
-
-        result = []
-
-        last_converted_elt = None
-        for element in elements:
-            # FIXME: the below code is a workaround for the
-            # fact that Expression() is getting called from
-            # many places which already have expressions that don't need
-            # conversion. Expression() needs to be written in such a way
-            # to accomodate this.
-            converted_elt = (
-                element if isinstance(element, BaseElement) else conversion_fn(element)
-            )
-
+        last_element = None
+        for element in self._elements:
             # Test for the three properties mentioned above.
-            if not converted_elt.is_literal:
-                self._elements_fully_evaluated = False
-            if isinstance(converted_elt, Expression):
-                self._is_flat = False
-                if self._elements_fully_evaluated:
+            if not element.is_literal:
+                self.elements_properties.elements_fully_evaluated = False
+            if isinstance(element, Expression):
+                self.elements_properties.is_flat = False
+                if self.elements_properties.elements_fully_evaluated:
                     self._elements_fully_evaluated = (
-                        converted_elt._elements_fully_evaluated
+                        element.elements_properties.elements_fully_evaluated
                     )
 
-            if self._is_ordered and last_converted_elt is not None:
+            if self.elements_properties.is_ordered and last_element is not None:
                 try:
-                    self._is_ordered = last_converted_elt <= converted_elt
+                    self.elements_properties.is_ordered = last_element <= element
                 except Exception:
-                    self._is_ordered = False
-            last_converted_elt = converted_elt
-            result.append(converted_elt)
-
-        return tuple(result)
+                    self.elements_properties.is_ordered = False
+            last_element = element
 
     def _flatten_sequence(self, sequence, evaluation) -> "Expression":
         indices = self.sequences()
@@ -620,7 +564,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     @elements.setter
     def elements(self, values: Iterable):
-        self._elements = self._build_elements(values)
+        self._elements = tuple(values)
+        # Set to build self.elements_properties on next evaluation()
+        self.elements_properties = None
 
     def equal2(self, rhs: Any) -> Optional[bool]:
         """Mathics two-argument Equal (==)
@@ -756,6 +702,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # faster equivalent to: Expression(head, [element in self.elements if cond(element)])
         return structure(head, self, evaluation).filter(self, cond)
 
+    # FIXME: go over and preserve elements_properties.
     def flatten_pattern_sequence(self, evaluation):
         def sequence(element):
             flattened = element.flatten_pattern_sequence(evaluation)
@@ -767,8 +714,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         expr = self._flatten_sequence(sequence, evaluation)
         if hasattr(self, "options"):
             expr.options = self.options
-        assert hasattr(expr, "_is_flat")
-        expr._is_flat = True
+        if expr.elements_properties is None:
+            expr._build_elements_properties()
+        else:
+            expr.elements_properties.is_flat = True
         return expr
 
     def flatten_sequence(self, evaluation):
@@ -1173,6 +1122,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if deps is None:
             deps = self
+        # FIXME: look over
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
@@ -1209,28 +1159,39 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         attributes = head.get_attributes(evaluation.definitions)
 
+        if self.elements_properties is None:
+            self._build_elements_properties()
+
         # @timeit
         def eval_elements():
+            # @timeit
             def rest_range(indices):
                 if not HOLD_ALL_COMPLETE & attributes:
                     if self._no_symbol("System`Evaluate"):
                         return
+                    recompute_properties = False
                     for index in indices:
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
+                            # FIXME this reassigns too much
+                            # and recomputes properties too much
                             elements[index] = (
                                 element.evaluate(evaluation)
                                 if isinstance(element, EvalMixin)
                                 else element
                             )
-                            self._is_ordered = False
-                            self._elements_fully_evaluated = False
-                            self._is_flat = False
+                            recompute_properties = True
+                    if recompute_properties:
+                        self._build_elements_properties()
 
+            # @timeit
             def eval_range(indices):
+                recompute_properties = False
                 for index in indices:
                     element = elements[index]
                     if not element.has_form("Unevaluated", 1):
+                        # FIXME this reassigns too much
+                        # and recomputes properties too much
                         element = (
                             element.evaluate(evaluation)
                             if isinstance(element, EvalMixin)
@@ -1238,10 +1199,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         )
                         if element:
                             if elements[index] != element:
-                                self._is_ordered = False
-                                self._elements_fully_evaluated = False
-                                self._is_flat = False
+                                recompute_properties = True
                             elements[index] = element
+                        recompute_properties = True
+                if recompute_properties:
+                    self._build_elements_properties()
 
             if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
@@ -1262,36 +1224,32 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
 
-        if self._elements_fully_evaluated:
+        if self.elements_properties.elements_fully_evaluated:
+            elements = self._elements
             new = Expression(
-                head,
-                *self._elements,
-                element_properties={
-                    "_is_flat": self._is_flat,
-                    "_is_ordered": self._is_ordered,
-                    "_elements_fully_evaluated": self._elements_fully_evaluated,
-                }
+                head, *self._elements, elements_properties=self.elements_properties
             )
-            elements = new.elements
         else:
             elements = self.get_mutable_elements()
+            # FIXME: see if we can preserve elements properties in eval_elements()
             eval_elements()
             new = Expression(head, *elements)
+            new._build_elements_properties()
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
-        if not new._is_flat and not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes:
+        if (
+            not new.elements_properties.is_flat
+            and not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes
+        ):
             # This step is applied to most of the expressions
             # and could be heavy for expressions with many elements (like long lists)
             # however, most of the times, expressions does not have `Sequence` expressions
             # inside. Now this is handled by caching the sequences.
             new = new.flatten_sequence(evaluation)
+            if new.elements_properties is None:
+                new._build_elements_properties()
             elements = new._elements
-
-        # This has to be done *after*  flatten sequence above which can set
-        # self._is_ordered
-        new._elements_fully_evaluated = self._elements_fully_evaluated
-        new._is_ordered = self._is_ordered
 
         # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
         # The idea is to mark which elements was marked as "Unevaluated"
@@ -1323,8 +1281,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
-                new = Expression(head)
-                new.elements = dirty_elements
+                new = Expression(head, *dirty_elements)
                 elements = dirty_elements
 
         # If the Attribute ``Flat`` (flag ``FLAT``) is set, calls
@@ -1336,11 +1293,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if FLAT & attributes:
             new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            if new.elements_properties is None:
+                new._build_elements_properties()
 
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if not new._is_ordered and (ORDERLESS & attributes):
+        if not new.elements_properties.is_ordered and (ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1523,11 +1482,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # this is a minimal, shallow copy: head, elements are shared with
         # the original, only the Expression instance is new.
 
-        # FIXME: this should be encapulated in the constructor better.
-        expr = Expression(self._head)
-        expr._elements = self._elements
-        for field in ("_elements_fully_evaluated", "_is_flat", "_is_ordered"):
-            setattr(expr, field, getattr(self, field, False))
+        expr = Expression(
+            self._head, *self._elements, elements_properties=self.elements_properties
+        )
 
         # rebuilding the cache in self speeds up large operations, e.g.
         # First[Timing[Fold[#1+#2&, Range[750]]]]
@@ -1663,7 +1620,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements
-        self._is_ordered = True
+        self._build_elements_properties()
+
         if self._cache:
             self._cache = self._cache.reordered()
 
@@ -2147,6 +2105,46 @@ def atom_list_constructor(evaluation, head, *atom_names):
     return construct
 
 
+# Note: this function is called a *lot* so it needs to be fast.
+def convert_expression_elements(
+    elements: Iterable, conversion_fn: Callable = from_python
+) -> Tuple[tuple, ElementsProperties]:
+    """
+    Convert and return tuple of Elements from the Python-like items in `elements`,
+    along with elements properties of the elements tuple.
+
+    The return information is suitable for use to the Expression() constructor.
+    """
+
+    # All of the properties start out optimistic (True) and are reset when that proves wrong.
+    elements_properties = ElementsProperties(True, True, True)
+
+    result = []
+    last_converted_elt = None
+    for element in elements:
+        converted_elt = conversion_fn(element)
+
+        # Test for the three properties mentioned above.
+        if not converted_elt.is_literal:
+            elements_properties.elements_fully_evaluated = False
+        if isinstance(converted_elt, Expression):
+            elements_properties.is_flat = False
+            if elements_properties.elements_fully_evaluated:
+                elements_properties.elements_fully_evaluated = (
+                    converted_elt.elements_properties.elements_fully_evaluated
+                )
+
+        if elements_properties.is_ordered and last_converted_elt is not None:
+            try:
+                elements_properties.is_ordered = last_converted_elt <= converted_elt
+            except Exception:
+                elements_properties.is_ordered = False
+        last_converted_elt = converted_elt
+        result.append(converted_elt)
+
+    return tuple(result), elements_properties
+
+
 def string_list(head, elements, evaluation):
     return atom_list_constructor(evaluation, head, "String")(elements)
 
@@ -2161,8 +2159,7 @@ def to_expression(
     if isinstance(head, str):
         head = Symbol(head)
 
-    # This is what we do in expression-interface:refactor
-    # elements_tuple, elements_properties = convert_expression_elements(
-    #     elements, elements_conversion_fn
-    # )
-    return Expression(head, *elements)
+    elements_tuple, elements_properties = convert_expression_elements(
+        elements, elements_conversion_fn
+    )
+    return Expression(head, *elements_tuple, elements_properties=elements_properties)

@@ -11,6 +11,8 @@ from itertools import permutations
 
 from mathics.builtin.base import Builtin, Pattern
 
+from mathics.core.element import ElementsProperties
+
 from mathics.builtin.lists import (
     _IterationFunction,
     get_tuples,
@@ -20,6 +22,7 @@ from mathics.core.convert import from_sympy
 
 from mathics.core.expression import (
     Expression,
+    to_expression,
     structure,
 )
 from mathics.core.atoms import Integer
@@ -110,7 +113,7 @@ class Array(Builtin):
                     level.append(rec(rest_dims[1:], current + [index]))
                 return Expression(head, *level)
             else:
-                return Expression(f, *current, element_conversion_fn=Integer)
+                return to_expression(f, *current, elements_conversion_fn=Integer)
 
         return rec(dims, [])
 
@@ -447,7 +450,9 @@ class Table(_IterationFunction):
 
     def get_result(self, items):
         return Expression(
-            SymbolList, *items, element_properties={"_elements_fully_evaluated": True}
+            SymbolList,
+            *items,
+            elements_properties=ElementsProperties(elements_fully_evaluated=True),
         )
 
 

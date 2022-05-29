@@ -46,7 +46,10 @@ def test_elements_properties():
         # convert() creates the initial Expression. In that various properties should
         # be set.
         expr = convert(ast, session.definitions)
+        expr._build_elements_properties()
         # print("XXX", str_expression, expr)
-        assert expr._elements_fully_evaluated == full_eval, str_expression
-        assert expr._is_ordered == is_ordered, str_expression
-        assert expr._is_flat == is_flat, str_expression
+        assert (
+            expr.elements_properties.elements_fully_evaluated == full_eval
+        ), str_expression
+        assert expr.elements_properties.is_ordered == is_ordered, str_expression
+        assert expr.elements_properties.is_flat == is_flat, str_expression
