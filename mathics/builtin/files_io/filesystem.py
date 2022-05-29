@@ -79,7 +79,7 @@ class AbsoluteFileName(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result = path_search(py_name)
+        result, is_temporary_file = path_search(py_name)
 
         if result is None:
             evaluation.message(
@@ -196,7 +196,7 @@ class CopyFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source = path_search(py_source)
+        py_source, is_temporary_file = path_search(py_source)
 
         if py_source is None:
             evaluation.message("CopyFile", "filex", source)
@@ -439,7 +439,7 @@ class DeleteFile(Builtin):
                 return
 
             path = path[1:-1]
-            path = path_search(path)
+            path, is_temporary_file = path_search(path)
 
             if path is None:
                 evaluation.message(
@@ -602,7 +602,7 @@ class DirectoryQ(Builtin):
             return
         path = path[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is not None and osp.isdir(path):
             return SymbolTrue
@@ -784,7 +784,7 @@ class FileDate(Builtin):
 
     def apply(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
-        py_path = path_search(path.to_python()[1:-1])
+        py_path, is_temparary_file = path_search(path.to_python()[1:-1])
 
         if py_path is None:
             if timetype is None:
@@ -857,7 +857,7 @@ class FileExistsQ(Builtin):
             return
         path = path[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is None:
             return SymbolFalse
@@ -1122,7 +1122,7 @@ class FileType(Builtin):
             return
         path = filename.to_python()[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is None:
             return Symbol("None")
@@ -1170,7 +1170,7 @@ class FindFile(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result = path_search(py_name)
+        result, is_temporary_file = path_search(py_name)
 
         if result is None:
             return SymbolFailed
@@ -1910,7 +1910,7 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source = path_search(py_source)
+        py_source, is_temporary_file = path_search(py_source)
 
         if py_source is None:
             evaluation.message("RenameFile", "filex", source)
@@ -2104,7 +2104,7 @@ class SetFileDate(Builtin):
         ):
             evaluation.message("SetFileDate", "fstr", filename)
             return
-        py_filename = path_search(py_filename[1:-1])
+        py_filename, is_temporary_file = path_search(py_filename[1:-1])
 
         if py_filename is None:
             evaluation.message("SetFileDate", "nffil", expr)
