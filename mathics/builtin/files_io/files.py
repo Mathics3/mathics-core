@@ -1621,36 +1621,41 @@ class WriteString(Builtin):
     >> stream = OpenWrite[];
     >> WriteString[stream, "This is a test 1"]
     >> WriteString[stream, "This is also a test 2"]
-    >> Close[stream];
+    >> pathname = Close[stream];
     >> FilePrint[%]
      | This is a test 1This is also a test 2
 
+    #> DeleteFile[pathname];
     >> stream = OpenWrite[];
     >> WriteString[stream, "This is a test 1", "This is also a test 2"]
-    >> Close[stream]
+    >> pathname = Close[stream]
      = ...
     >> FilePrint[%]
      | This is a test 1This is also a test 2
 
+    #> DeleteFile[pathname];
     #> stream = OpenWrite[];
     #> WriteString[stream, 100, 1 + x + y, Sin[x  + y]]
-    #> Close[stream]
+    #> pathname = Close[stream]
      = ...
     #> FilePrint[%]
      | 1001 + x + ySin[x + y]
 
+    #> DeleteFile[pathname];
     #> stream = OpenWrite[];
     #> WriteString[stream]
-    #> Close[stream]
+    #> pathame = Close[stream]
      = ...
     #> FilePrint[%]
 
     #> WriteString[%%, abc]
     #> Streams[%%%][[1]]
      = ...
-    #> Close[%];
+    #> pathname = Close[%];
     #> FilePrint[%]
      | abc
+    #> DeleteFile[pathname];
+    #> Clear[pathname];
 
     """
 

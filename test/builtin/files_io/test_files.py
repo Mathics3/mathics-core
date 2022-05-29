@@ -36,6 +36,9 @@ def test_get_and_put():
     check_evaluation(f"DeleteFile[{temp_filename}]", "Null")
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="$Path does not work on Windows?"
+)
 def test_get_path_search():
     # Check that AppendTo[$Path] works in conjunction with Get[]
     dirname = osp.join(osp.dirname(osp.abspath(__file__)), "..", "..", "data")
@@ -44,6 +47,9 @@ def test_get_path_search():
     check_evaluation('Get["fortytwo.m"]', "42")
 
 
+@pytest.mark.skipif(
+    sys.platform in ("win32",), reason="$Path does not work on Windows?"
+)
 def test_temptream():
     temp_filename = evaluate("Close[OpenWrite[BinaryFormat -> True]]").value
     assert osp.exists(
