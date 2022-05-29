@@ -4,11 +4,12 @@
 File Stream Operations
 """
 from io import open as io_open
+import os
 import requests
 import sys
 import tempfile
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import os.path as osp
 
@@ -47,19 +48,28 @@ def urlsave_tmp(url, location=None, **kwargs):
     return result
 
 
-def path_search(filename):
+def path_search(filename: str) -> Tuple[str, bool]:
+    """
+    Search for a Mathics `filename` possibly adding extensions ".mx", or ".m"
+    or as a file under directory PATH_VAR or as an Internet address.
+
+    Return the resolved file name and True if this is a file in the
+    a temporary file created, which happens for Internet addresses,
+    or False if the file is a file in the filesystem.
+    """
     # For names of the form "name`", search for name.mx and name.m
+    is_temporary_file = False
     if filename[-1] == "`":
         filename = filename[:-1].replace("`", osp.sep)
         for ext in [".mx", ".m"]:
-            result = path_search(filename + ext)
+            result, is_temporary_file = path_search(filename + ext)
             if result is not None:
                 filename = None
                 break
     if filename is not None:
         result = None
-        # If filename is an internet address, download the file
-        # and store it in a temporal location
+        # If filename is an Internet address, download the file
+        # and store it in a tempory file
         lenfn = len(filename)
         if (
             (lenfn > 7 and filename[:7] == "http://")
@@ -67,6 +77,7 @@ def path_search(filename):
             or (lenfn > 6 and filename[:6] == "ftp://")
         ):
             result = urlsave_tmp(filename)
+            is_temporary_file = True
         else:
             for p in PATH_VAR + [""]:
                 path = osp.join(p, filename)
@@ -74,13 +85,13 @@ def path_search(filename):
                     result = path
                     break
 
-            # If FindFile resolves to a dir, search within for Kernel/init.m and init.m
+            # If `result` resolves to a dir, search within for Kernel/init.m and init.m
             if result is not None and osp.isdir(result):
                 for ext in [osp.join("Kernel", "init.m"), "init.m"]:
                     tmp = osp.join(result, ext)
                     if osp.isfile(tmp):
-                        return tmp
-    return result
+                        return tmp, is_temporary_file
+    return result, is_temporary_file
 
 
 class StreamsManager(object):
@@ -108,6 +119,7 @@ class StreamsManager(object):
         encoding=None,
         io=None,
         num: Optional[int] = None,
+        is_temporary_file: bool = False,
     ) -> Optional["Stream"]:
         if num is None:
             num = self.next
@@ -116,12 +128,15 @@ class StreamsManager(object):
         found = self.lookup_stream(num)
         if found and found is not None:
             raise Exception(f"Stream {num} already open")
-        stream = Stream(name, mode, encoding, io, num)
+        stream = Stream(name, mode, encoding, io, num, is_temporary_file)
         self.STREAMS[num] = stream
         return stream
 
     def delete(self, n: int) -> bool:
         stream = self.STREAMS.get(n, None)
+        is_temporary_file = stream.is_temporary_file
+        if is_temporary_file:
+            os.unlink(stream.name)
         if stream is not None:
             del self.STREAMS[stream.n]
             return True
@@ -153,7 +168,15 @@ class Stream(object):
     However see MathicsOpen which wraps this
     """
 
-    def __init__(self, name: str, mode="r", encoding=None, io=None, channel_num=None):
+    def __init__(
+        self,
+        name: str,
+        mode="r",
+        encoding=None,
+        io=None,
+        channel_num=None,
+        is_temporary_file: bool = False,
+    ):
         if channel_num is None:
             channel_num = stream_manager.next
         if mode is None:
@@ -163,13 +186,14 @@ class Stream(object):
         self.encoding = encoding
         self.io = io
         self.n = channel_num
+        self.is_temporary_file = is_temporary_file
 
         if mode not in ["r", "w", "a", "rb", "wb", "ab"]:
             raise ValueError("Can't handle mode {0}".format(mode))
 
     def __enter__(self):
         # find path
-        path = path_search(self.name)
+        path, is_temporary_file = path_search(self.name)
         if path is None and self.mode in ["w", "a", "wb", "ab"]:
             path = self.name
         if path is None:
@@ -183,7 +207,13 @@ class Stream(object):
 
         # open the stream
         fp = io_open(path, self.mode, encoding=encoding)
-        stream_manager.add(name=path, mode=self.mode, encoding=encoding, io=fp)
+        stream_manager.add(
+            name=path,
+            mode=self.mode,
+            encoding=encoding,
+            io=fp,
+            is_temporary_file=is_temporary_file,
+        )
         return fp
 
     def __exit__(self, type, value, traceback):

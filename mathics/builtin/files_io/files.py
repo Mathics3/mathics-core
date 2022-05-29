@@ -478,7 +478,7 @@ class _OpenAction(Builtin):
 
         path_string = path.get_string_value()
 
-        tmp = path_search(path_string)
+        tmp, is_temporary_file = path_search(path_string)
         if tmp is None:
             if mode in ["r", "rb"]:
                 evaluation.message("General", "noopen", path)
@@ -492,9 +492,12 @@ class _OpenAction(Builtin):
                 return
 
             opener = MathicsOpen(
-                path_string, mode=mode, encoding=encoding.get_string_value()
+                path_string,
+                mode=mode,
+                encoding=encoding.get_string_value(),
+                is_temporary_file=is_temporary_file,
             )
-            opener.__enter__()
+            opener.__enter__(is_temporary_file=is_temporary_file)
             n = opener.n
         except IOError:
             evaluation.message("General", "noopen", path)
@@ -503,7 +506,7 @@ class _OpenAction(Builtin):
             e.message(evaluation)
             return
 
-        return Expression(self.stream_type, path, Integer(n))
+        return Expression(Symbol(self.stream_type), path, Integer(n))
 
 
 class BinaryWrite(Builtin):
@@ -1187,7 +1190,7 @@ class Character(Builtin):
 class Close(Builtin):
     """
     <dl>
-    <dt>'Close[$stream$]'
+      <dt>'Close[$stream$]'
       <dd>closes an input or output stream.
     </dl>
 
@@ -1229,7 +1232,7 @@ class Close(Builtin):
             evaluation.message("General", "openx", channel)
             return
 
-        close_stream(stream, n)
+        close_stream(stream, n.value)
         return name
 
 
@@ -1302,7 +1305,7 @@ class FilePrint(Builtin):
         ):
             evaluation.message("FilePrint", "fstr", path)
             return
-        pypath = path_search(pypath[1:-1])
+        pypath, is_temporary_file = path_search(pypath[1:-1])
 
         # Options
         record_separators = options["System`RecordSeparators"].to_python()
@@ -1494,7 +1497,7 @@ class InputStream(Builtin):
 class OpenRead(_OpenAction):
     """
     <dl>
-    <dt>'OpenRead["file"]'
+      <dt>'OpenRead["file"]'
       <dd>opens a file and returns an InputStream.
     </dl>
 
@@ -1502,8 +1505,7 @@ class OpenRead(_OpenAction):
      = InputStream[...]
     #> Close[%];
 
-    S> OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]
-     = ...
+    S> Close[OpenRead["https://raw.githubusercontent.com/Mathics3/mathics-core/master/README.rst"]];
 
     #> OpenRead[]
      : OpenRead called with 0 arguments; 1 argument is expected.

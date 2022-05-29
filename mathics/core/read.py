@@ -5,7 +5,6 @@ Functions to support Read[]
 import io
 import os
 import os.path as osp
-from typing import Optional
 
 from mathics.builtin.base import MessageException
 from mathics.builtin.atomic.strings import to_python_encoding
@@ -39,7 +38,7 @@ READ_TYPES = [
 
 
 class MathicsOpen(Stream):
-    def __init__(self, name, mode="r", encoding=None):
+    def __init__(self, name, mode="r", encoding=None, is_temporary_file=False):
         if encoding is not None:
             encoding = to_python_encoding(encoding)
             if "b" in mode:
@@ -50,10 +49,11 @@ class MathicsOpen(Stream):
         self.encoding = encoding
         super().__init__(name, mode, self.encoding)
         self.old_inputfile_var = None  # Set in __enter__ and __exit__
+        self.is_temporary_file = is_temporary_file
 
-    def __enter__(self):
+    def __enter__(self, is_temporary_file=False):
         # find path
-        path = path_search(self.name)
+        path, _ = path_search(self.name)
         if path is None and self.mode in ["w", "a", "wb", "ab"]:
             path = self.name
         if path is None:
@@ -70,6 +70,7 @@ class MathicsOpen(Stream):
             encoding=self.encoding,
             io=fp,
             num=stream_manager.next,
+            is_temporary_file=is_temporary_file,
         )
         return fp
 
@@ -100,13 +101,13 @@ def channel_to_stream(channel, mode="r"):
         return None
 
 
-def close_stream(stream, stream_number: int, delete_name: Optional[String] = None):
+def close_stream(stream: Stream, stream_number: int):
+    """
+    Close stream: `stream` and delete it from the list of streams we manage.
+    If the stream was to a temporary file, remove the temporary file.
+    """
     stream.io.close()
     stream_manager.delete(stream_number)
-    # We need an explicit unlink because we've written
-    # to a name outside of the scope that NamedTemporaryFile sees.
-    if delete_name is not None:
-        os.unlink(delete_name.value)
 
 
 def read_name_and_stream_from_channel(channel, evaluation):
