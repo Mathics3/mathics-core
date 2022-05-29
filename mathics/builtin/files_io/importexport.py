@@ -4,6 +4,7 @@
 Importing and Exporting
 """
 
+import os
 
 from mathics.core.atoms import (
     ByteArrayAtom,
@@ -1888,9 +1889,10 @@ class Export(Builtin):
 class ExportString(Builtin):
     """
     <dl>
-    <dt>'ExportString[$expr$, $form$]'
+      <dt>'ExportString[$expr$, $form$]'
       <dd>exports $expr$ to a string, in the format $form$.
-    <dt>'Export["$file$", $exprs$, $elems$]'
+
+      <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>
 
@@ -2014,6 +2016,7 @@ class ExportString(Builtin):
                         tmpstream = open(filename.value, "r")
                     res = tmpstream.read()
                     tmpstream.close()
+                    os.unlink(tmpstream.name)
                 except Exception as e:
                     print("something went wrong")
                     print(e)
