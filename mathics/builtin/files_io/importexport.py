@@ -5,6 +5,7 @@ Importing and Exporting
 """
 
 import os
+import sys
 
 from mathics.core.atoms import (
     ByteArrayAtom,
@@ -2016,7 +2017,12 @@ class ExportString(Builtin):
                         tmpstream = open(filename.value, "r")
                     res = tmpstream.read()
                     tmpstream.close()
-                    os.unlink(tmpstream.name)
+                    if sys.platform not in ("win32",):
+                        # On Windows unlink make the second NamedTemporaryFIle
+                        # fail giving something like:
+                        #   [WinError 32] The process cannot access the file because it is being used by another process: ...
+                        #    \\AppData\\Local\\Temp\\Mathics3-ExportString35eo_rih.svg'
+                        os.unlink(tmpstream.name)
                 except Exception as e:
                     print("something went wrong")
                     print(e)
