@@ -923,11 +923,16 @@ class String(Atom, ImmutableValueMixin):
                 return render("%s", text)
 
     def atom_to_boxes(self, f, evaluation):
+        from mathics.builtin.box.inout import _BoxedString
+
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
+            _BoxedString(
+                '"' + inner + '"', **{"System`ShowStringCharacters": SymbolTrue}
+            )
 
-        return String('"' + inner + '"')
+        return _BoxedString('"' + inner + '"')
 
     def do_copy(self) -> "String":
         return String(self.value)

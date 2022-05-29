@@ -1154,7 +1154,9 @@ class Subscript(Builtin):
 
         y = y.get_sequence()
         return Expression(
-            SymbolSubscriptBox, Expression(SymbolMakeBoxes, x, f), *list_boxes(y, f)
+            SymbolSubscriptBox,
+            Expression(SymbolMakeBoxes, x, f),
+            *list_boxes(y, f, evaluation),
         )
 
 

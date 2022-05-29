@@ -36,6 +36,8 @@ from mathics.builtin.base import (
     Test,
 )
 
+from mathics.builtin.box.inout import RowBox
+
 from mathics.builtin.exceptions import (
     InvalidLevelspecError,
     PartDepthError,
@@ -561,9 +563,7 @@ class List(Builtin):
         f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
 
         items = items.get_sequence()
-        return Expression(
-            "RowBox", Expression(SymbolList, *list_boxes(items, f, "{", "}"))
-        )
+        return RowBox(*list_boxes(items, f, evaluation, "{", "}"))
 
 
 class ListQ(Test):
@@ -609,15 +609,17 @@ def riffle(items, sep):
     return result
 
 
-def list_boxes(items, f, open=None, close=None):
-    result = [Expression(SymbolMakeBoxes, item, f) for item in items]
+def list_boxes(items, f, evaluation, open=None, close=None):
+    result = [
+        Expression(SymbolMakeBoxes, item, f).evaluate(evaluation) for item in items
+    ]
     if f.get_name() in ("System`OutputForm", "System`InputForm"):
         sep = ", "
     else:
         sep = ","
     result = riffle(result, String(sep))
     if len(items) > 1:
-        result = Expression("RowBox", Expression(SymbolList, *result))
+        result = RowBox(*result)
     elif items:
         result = result[0]
     if result:

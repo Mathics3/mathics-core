@@ -29,6 +29,7 @@ from mathics.algorithm.parts import (
 )
 
 from mathics.builtin.base import MessageException
+from mathics.builtin.box.inout import RowBox
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
@@ -36,7 +37,6 @@ from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull, SymbolTru
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolMakeBoxes,
-    SymbolRowBox,
     SymbolSequence,
 )
 
@@ -924,13 +924,13 @@ class Part(Builtin):
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         i = i.get_sequence()
-        list = Expression(SymbolMakeBoxes, list, f)
+        list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
         if f.get_name() in ("System`OutputForm", "System`InputForm"):
             open, close = "[[", "]]"
         else:
             open, close = "\u301a", "\u301b"
-        indices = list_boxes(i, f, open, close)
-        result = Expression(SymbolRowBox, Expression(SymbolList, list, *indices))
+        indices = list_boxes(i, f, evaluation, open, close)
+        result = RowBox(list, *indices)
         return result
 
     def apply(self, list, i, evaluation):
