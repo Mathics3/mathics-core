@@ -7,9 +7,9 @@ XML
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
-from mathics.core.expression import Expression, to_expression
 from mathics.core.atoms import String, from_python
-from mathics.core.symbols import Symbol
+from mathics.core.expression import Expression, to_expression
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolFailed
 
 from mathics.builtin.base import MessageException
@@ -40,7 +40,9 @@ def xml_comments(node):
         return Expression("List", *[String(s.text) for s in node.xpath("//comment()")])
 
 
-_namespace_key = to_expression("List", "http://www.w3.org/2000/xmlns/", "xmlns")
+_namespace_key = to_expression(
+    SymbolList, "http://www.w3.org/2000/xmlns/", "xmlns", elements_conversion_fn=String
+)
 
 
 def node_to_xml_element(node, parent_namespace=None, strip_whitespace=True):

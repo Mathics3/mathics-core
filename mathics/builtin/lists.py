@@ -24,8 +24,6 @@ from mathics.algorithm.clusters import (
     optimize,
 )
 
-from mathics.core.evaluators import apply_N
-
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
@@ -60,9 +58,11 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.convert import from_sympy
+from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
+from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -76,6 +76,7 @@ from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolMakeBoxes,
+    SymbolRowBox,
     SymbolRule,
     SymbolSequence,
 )
@@ -562,7 +563,7 @@ class List(Builtin):
 
         items = items.get_sequence()
         return Expression(
-            "RowBox", Expression(SymbolList, *list_boxes(items, f, "{", "}"))
+            SymbolRowBox, to_mathics_list(*list_boxes(items, f, "{", "}"))
         )
 
 
@@ -617,7 +618,7 @@ def list_boxes(items, f, open=None, close=None):
         sep = ","
     result = riffle(result, String(sep))
     if len(items) > 1:
-        result = Expression("RowBox", Expression(SymbolList, *result))
+        result = Expression(SymbolRowBox, Expression(SymbolList, *result))
     elif items:
         result = result[0]
     if result:

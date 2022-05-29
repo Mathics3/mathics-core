@@ -199,6 +199,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if isinstance(head, str):
             # We should fix or convert to to_expression all nonSymbol uses.
             head = Symbol(head)
+
         self._head = head
 
         # Note: After we make a pass over all Expression() calls, this line will get removed
@@ -243,10 +244,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     # Note: this function is called a *lot* so it needs to be fast.
     def _build_elements_properties(self):
         """
-        Compute self.elements_properties.
-
-        This is like _build_elements(), but simpler because the list of elements is in place
-        and no conversion needs to be done
+        Compute ElementsProperties and store in self.elements_properties
         """
 
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
@@ -1014,10 +1012,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
+        True if the value doesn't change after evaluation, i.e. a
+        value is set and it does not depend on definition
+        bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a
+        `definitions` parameter.
         """
         # Right now we are pessimisitic. We might consider changing this for
         # Lists. Lists definitions can't be changed right?
@@ -2150,7 +2149,9 @@ def string_list(head, elements, evaluation):
 
 
 def to_expression(
-    head: Union[str, Symbol], *elements, elements_conversion_fn: Callable = from_python
+    head: Union[str, Symbol],
+    *elements: Any,
+    elements_conversion_fn: Callable = from_python
 ) -> Expression:
     """
     This is an expression constructor that can be used when the Head and elements are not Mathics
@@ -2159,7 +2160,16 @@ def to_expression(
     if isinstance(head, str):
         head = Symbol(head)
 
+    # # The below code should disappear after we have gone over the entire code base
+    # # to replace all calls of the form Expression(SymbolList ...) or
+    # # to_expression("List", ...)
+    # if head is SymbolList:
+    #     from mathics.core.list import to_mathics_list
+    #     is_literal = len(elements) == 0
+    #     return to_mathics_list(elements, is_literal=is_literal)
+
     elements_tuple, elements_properties = convert_expression_elements(
         elements, elements_conversion_fn
     )
+
     return Expression(head, *elements_tuple, elements_properties=elements_properties)
