@@ -849,6 +849,9 @@ class BoxExpression(BuiltinElement):
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self
 
+    def flatten_with_respect_to_head(self, symbol):
+        return self.to_expression().flatten_with_respect_to_head(symbol)
+
     def get_option_values(self, leaves, **options):
         evaluation = options.get("evaluation", None)
         if evaluation:

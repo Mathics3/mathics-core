@@ -12,7 +12,10 @@ import zlib
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
+    BoxExpression,
 )
+from mathics.builtin.box.inout import _BoxedString
+
 from mathics.core.expression import Expression, string_list
 from mathics.core.symbols import (
     Symbol,
@@ -178,7 +181,7 @@ class StringDrop(Builtin):
 
     def apply_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse")
         if isinstance(n, Integer):
             pos = n.value
@@ -196,7 +199,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse", string)
 
         if ni.value == 0 or nf.value == 0:
@@ -218,7 +221,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse", string)
         if ni.value == 0:
             return evaluation.message("StringDrop", "drop", ni, ni)
@@ -233,7 +236,7 @@ class StringDrop(Builtin):
 
     def apply(self, string, something, evaluation):
         "StringDrop[string_,something___]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse")
         return evaluation.message("StringDrop", "mseqs")
 
@@ -448,15 +451,14 @@ class StringJoin(BinaryOperator):
 
     def apply(self, items, evaluation):
         "StringJoin[items___]"
-
         result = ""
         items = items.flatten_with_respect_to_head(SymbolList)
         if items.get_head_name() == "System`List":
-            items = items.leaves
+            items = items.elements
         else:
             items = items.get_sequence()
         for item in items:
-            if not isinstance(item, String):
+            if not isinstance(item, (String, _BoxedString)):
                 evaluation.message("StringJoin", "string")
                 return
             result += item.value
@@ -487,8 +489,7 @@ class StringLength(Builtin):
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
-
-        if not isinstance(str, String):
+        if not isinstance(str, (String, _BoxedString)):
             evaluation.message("StringLength", "string")
             return
         return Integer(len(str.value))
@@ -567,7 +568,6 @@ class StringPosition(Builtin):
 
     def apply(self, string, patt, evaluation, options):
         "StringPosition[string_, patt_, OptionsPattern[StringPosition]]"
-
         return self.apply_n(
             string,
             patt,
@@ -578,7 +578,6 @@ class StringPosition(Builtin):
 
     def apply_n(self, string, patt, n, evaluation, options):
         "StringPosition[string_, patt_, n:(_Integer|DirectedInfinity[1]), OptionsPattern[StringPosition]]"
-
         expr = Expression("StringPosition", string, patt, n)
 
         # check n
@@ -873,10 +872,11 @@ class StringRiffle(Builtin):
         elif len(separators) == 1:
             if separators[0].has_form("List", None):
                 if len(separators[0].leaves) != 3 or any(
-                    not isinstance(s, String) for s in separators[0].leaves
+                    not isinstance(s, (String, _BoxedString))
+                    for s in separators[0].leaves
                 ):
                     return evaluation.message("StringRiffle", "string", Integer(2), exp)
-            elif not isinstance(separators[0], String):
+            elif not isinstance(separators[0], (String, _BoxedString)):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string
