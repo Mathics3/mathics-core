@@ -279,18 +279,20 @@ class BaseElement(KeyComparable):
             SymbolMakeBoxes,
         )
         from mathics.core.atoms import String
+        from mathics.builtin.base import BoxExpression
+        from mathics.builtin.box.inout import _BoxedString
 
         if isinstance(form, str):
             form = Symbol(form)
+
         expr = self.do_format(evaluation, form)
         result = self.create_expression(SymbolMakeBoxes, expr, form)
         result_box = result.evaluate(evaluation)
-        from mathics.builtin.base import BoxExpression
 
         if isinstance(result_box, BoxExpression):
             return result_box
-        elif type(result_box) is String:
-            return result_box
+        elif isinstance(result_box, String):
+            return _BoxedString(result_box.value)
         else:
             return self.format(evaluation, "FullForm", **kwargs)
 

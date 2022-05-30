@@ -4,12 +4,15 @@ from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue, Symbol
+from mathics.core.systemsymbols import SymbolRowBox
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.parser import is_symbol_name
+
+SymbolString = Symbol("System`String")
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
@@ -38,7 +41,8 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
 
 
 class _BoxedString(BoxExpression):
-
+    value: str
+    box_options: dict
     options = {
         "System`ShowStringCharacters": "False",
     }
@@ -54,20 +58,18 @@ class _BoxedString(BoxExpression):
     def __repr__(self):
         return self.value
 
-    def get_string_value(self) -> str:
+    def __str__(self):
         return self.value
 
-    def to_expression(self):
-        return String(self.value)
-
     def boxes_to_text(self, **options):
-        _options = self.box_options.copy()
-        _options.update(options)
-        options = _options
         value = self.value
-        show_string_characters = options["System`ShowStringCharacters"]
-        show_string_characters = show_string_characters is SymbolTrue
         if value.startswith('"') and value.endswith('"'):  # nopep8
+            show_string_characters = options.get("show_string_characters", None)
+            if show_string_characters is None:
+                show_string_characters = (
+                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
+                )
+
             if not show_string_characters:
                 value = value[1:-1]
         return value
@@ -75,18 +77,23 @@ class _BoxedString(BoxExpression):
     def boxes_to_mathml(self, **options) -> str:
         from mathics.builtin import display_operators_set as operators
 
-        _options = self.box_options.copy()
-        _options.update(options)
-        options = _options
-        show_string_characters = options["System`ShowStringCharacters"] is SymbolTrue
         text = self.value
-        number_as_text = options.get("number_as_text", False)
+
+        number_as_text = options.get("number_as_text", None)
+        if number_as_text is None:
+            number_as_text = self.box_options.get("number_as_text", False)
 
         def render(format, string):
             encoded_text = encode_mathml(string)
             return format % encoded_text
 
         if text.startswith('"') and text.endswith('"'):
+            show_string_characters = options.get("show_string_characters", None)
+            if show_string_characters is None:
+                show_string_characters = (
+                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
+                )
+
             if show_string_characters:
                 return render("<ms>%s</ms>", text[1:-1])
             else:
@@ -120,13 +127,10 @@ class _BoxedString(BoxExpression):
                 return outtext
 
     def boxes_to_tex(self, **options) -> str:
-        # from mathics.builtin import display_operators_set as operators
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
 
-        # operators = display_operators_set
-        show_string_characters = options["System`ShowStringCharacters"] is SymbolTrue
         text = self.value
 
         def render(format, string, in_text=False):
@@ -175,6 +179,18 @@ class _BoxedString(BoxExpression):
                 return render(r"\text{%s}", text, in_text=True)
             else:
                 return render("%s", text)
+
+    def get_head(self) -> Symbol:
+        return SymbolString
+
+    def get_head_name(self) -> "str":
+        return "System`String"
+
+    def get_string_value(self) -> str:
+        return self.value
+
+    def to_expression(self):
+        return String(self.value)
 
 
 class ButtonBox(BoxExpression):
@@ -482,14 +498,17 @@ class RowBox(BoxExpression):
                 raise Exception(
                     items, "is not a List[] or a list of Strings or BoxExpression"
                 )
-        for item in items:
+
+        def check_item(item):
             if isinstance(item, String):
-                item = _BoxedString(item.value)
+                return _BoxedString(item.value)
             if not isinstance(item, BoxExpression):
                 raise Exception(
                     item, "is not a List[] or a list of Strings or BoxExpression"
                 )
-        self.items = tuple(items)
+            return item
+
+        self.items = tuple((check_item(item) for item in items))
         self._elements = None
 
     def to_expression(self):
@@ -500,7 +519,7 @@ class RowBox(BoxExpression):
             item.to_expression() if isinstance(item, BoxExpression) else item
             for item in self.items
         )
-        result = Expression("RowBox", Expression("List", *items))
+        result = Expression(SymbolRowBox, Expression(SymbolList, *items))
         return result
 
     def boxes_to_text(self, **options):
@@ -613,7 +632,7 @@ class StyleBox(BoxExpression):
                 self.get_name(),
                 self.boxes,
                 self.style,
-                *options_to_rules(self.box_options)
+                *options_to_rules(self.box_options),
             )
         return Expression(
             self.get_name(), self.boxes, *options_to_rules(self.box_options)
@@ -689,12 +708,14 @@ class FractionBox(BoxExpression):
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
-        return "/".join(
-            [
-                " ( " + element.boxes_to_text(**options) + " ) "
-                for element in (self.num, self.den)
-            ]
-        )
+        num_text = self.num.boxes_to_text(**options)
+        den_text = self.den.boxes_to_text(**options)
+        if isinstance(self.num, RowBox):
+            num_text = f"({num_text})"
+        if isinstance(self.den, RowBox):
+            den_text = f"({den_text})"
+
+        return " / ".join([num_text, den_text])
 
     def boxes_to_mathml(self, **options):
         _options = self.box_options.copy()
