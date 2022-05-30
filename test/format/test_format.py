@@ -281,6 +281,63 @@ all_test = {
             "System`OutputForm": "\\text{Subscript}\\left[a, 4\\right]",
         },
     },
+    (
+        "Grid[{"
+        '{"Spanish", "Hola!"},'
+        '{"Portuguese", "Olà!"},'
+        '{"English", "Hi!"}'
+        "}]"
+    ): {
+        "msg": "Strings in a GridBox",
+        "text": {
+            "System`StandardForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+            "System`TraditionalForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+            "System`InputForm": (
+                "Grid[{"
+                '{"Spanish", "Hola!"}, '
+                '{"Portuguese", "Olà!"}, '
+                '{"English", "Hi!"}'
+                "}]"
+            ),
+            "System`OutputForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+        },
+        "tex": {
+            "System`StandardForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+            "System`TraditionalForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{Spanish}, \text{Hola!}\right\}, \left\{\text{Portuguese}, \text{Olà!}\right\}, \left\{\text{English}, \text{Hi!}\right\}\right\}\right]",
+            "System`OutputForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+        },
+        "mathml": {
+            "System`StandardForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
+            "System`TraditionalForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
+            "System`InputForm": r"""<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><ms>Spanish</ms> <mtext>,&nbsp;</mtext> <ms>Hola!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>Portuguese</ms> <mtext>,&nbsp;</mtext> <ms>Olà!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>English</ms> <mtext>,&nbsp;</mtext> <ms>Hi!</ms></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>""",
+            "System`OutputForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
+        },
+    },
     "Subsuperscript[a, p, q]": {
         "msg": "SubsuperscriptBox",
         "text": {
@@ -637,7 +694,9 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(evaluation=session.evaluation)
+                format_result.boxes_to_tex(
+                    show_string_characters=False, evaluation=session.evaluation
+                )
                 == str_expected
             ), msg
         else:
@@ -654,7 +713,10 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
+            format_result.boxes_to_tex(
+                show_string_characters=False, evaluation=session.evaluation
+            )
+            == str_expected
         ), msg
     else:
         strresult = format_result.boxes_to_text(evaluation=session.evaluation)

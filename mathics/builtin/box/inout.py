@@ -127,21 +127,27 @@ class _BoxedString(BoxExpression):
                 return outtext
 
     def boxes_to_tex(self, **options) -> str:
-        _options = self.box_options.copy()
-        _options.update(options)
-        options = _options
-
         text = self.value
 
         def render(format, string, in_text=False):
             return format % encode_tex(string, in_text)
 
         if text.startswith('"') and text.endswith('"'):
-            # if show_string_characters:
-            #    return render(r'\text{"%s"}', text[1:-1], in_text=True)
-            # else:
-            # In WMA, this never include quotes.
-            return render(r"\text{%s}", text[1:-1], in_text=True)
+            show_string_characters = options.get("show_string_characters", None)
+            if show_string_characters is None:
+                show_string_characters = (
+                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
+                )
+            # In WMA, ``TeXForm`` never adds quotes to
+            # strings, even if ``InputForm`` or ``FullForm``
+            # is required, to so get the standard WMA behaviour,
+            # this option is set to False:
+            # show_string_characters = False
+
+            if show_string_characters:
+                return render(r'\text{"%s"}', text[1:-1], in_text=True)
+            else:
+                return render(r"\text{%s}", text[1:-1], in_text=True)
         elif text and text[0] in "0123456789-.":
             return render("%s", text)
         else:

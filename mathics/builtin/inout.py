@@ -846,11 +846,11 @@ class GridBox(BoxConstruct):
             raise BoxConstructError
         return items, options
 
-    def boxes_to_tex(self, leaves=None, **box_options) -> str:
-        if not leaves:
-            leaves = self._elements
+    def boxes_to_tex(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
         evaluation = box_options.get("evaluation")
-        items, options = self.get_array(leaves, evaluation)
+        items, options = self.get_array(elements, evaluation)
         new_box_options = box_options.copy()
         new_box_options["inside_list"] = True
         column_alignments = options["System`ColumnAlignments"].get_name()
@@ -974,11 +974,14 @@ class Grid(Builtin):
         f:StandardForm|TraditionalForm|OutputForm]"""
         return GridBox(
             Expression(
-                "List",
+                SymbolList,
                 *(
                     Expression(
                         SymbolList,
-                        *(Expression(SymbolMakeBoxes, item, f) for item in row.leaves),
+                        *(
+                            Expression(SymbolMakeBoxes, item, f)
+                            for item in row.elements
+                        ),
                     )
                     for row in array.leaves
                 ),
@@ -2305,7 +2308,11 @@ class TeXForm(Builtin):
         if isinstance(boxes, String):
             boxes = _BoxedString(boxes.value)
         try:
-            tex = boxes.boxes_to_tex(evaluation=evaluation)
+            # Here we set ``show_string_characters`` to False, to reproduce
+            # the standard behaviour in WMA.
+            tex = boxes.boxes_to_tex(
+                show_string_characters=False, evaluation=evaluation
+            )
 
             # Replace multiple newlines by a single one e.g. between asy-blocks
             tex = MULTI_NEWLINE_RE.sub("\n", tex)
