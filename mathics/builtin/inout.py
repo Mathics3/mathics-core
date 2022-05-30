@@ -2304,7 +2304,6 @@ class TeXForm(Builtin):
         boxes = MakeBoxes(expr).evaluate(evaluation)
         if isinstance(boxes, String):
             boxes = _BoxedString(boxes.value)
-        print("apply_tex", boxes, type(boxes))
         try:
             tex = boxes.boxes_to_tex(evaluation=evaluation)
 
