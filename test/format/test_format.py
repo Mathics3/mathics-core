@@ -50,10 +50,10 @@ all_test = {
             "System`OutputForm": "-4",
         },
         "mathml": {
-            "System`StandardForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
-            "System`TraditionalForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
+            "System`StandardForm": "<mn>-4</mn>",
+            "System`TraditionalForm": "<mn>-4</mn>",
             "System`InputForm": "<mtext>-4</mtext>",
-            "System`OutputForm": "<mtext>-4</mtext>",
+            "System`OutputForm": "<mn>-4</mn>",
         },
         "tex": {
             "System`StandardForm": "-4",
@@ -71,16 +71,10 @@ all_test = {
             "System`OutputForm": "-4.32",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.32</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.32</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.32</mn>",
+            "System`TraditionalForm": "<mn>-4.32</mn>",
             "System`InputForm": "<mtext>-4.32</mtext>",
-            "System`OutputForm": "<mtext>-4.32</mtext>",
+            "System`OutputForm": "<mn>-4.32</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.32",
@@ -98,16 +92,10 @@ all_test = {
             "System`OutputForm": "-4.320",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.320</mn>",
+            "System`TraditionalForm": "<mn>-4.320</mn>",
             "System`InputForm": "<mtext>-4.320</mtext>",
-            "System`OutputForm": "<mtext>-4.320</mtext>",
+            "System`OutputForm": "<mn>-4.320</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.320",
@@ -125,16 +113,10 @@ all_test = {
             "System`OutputForm": "-4.3",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.3</mn>",
+            "System`TraditionalForm": "<mn>-4.3</mn>",
             "System`InputForm": "<mtext>-4.3</mtext>",
-            "System`OutputForm": "<mtext>-4.3</mtext>",
+            "System`OutputForm": "<mn>-4.3</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.3",
@@ -148,13 +130,13 @@ all_test = {
         "text": {
             "System`StandardForm": "Hola!",
             "System`TraditionalForm": "Hola!",
-            "System`InputForm": "Hola!",
+            "System`InputForm": '"Hola!"',
             "System`OutputForm": "Hola!",
         },
         "mathml": {
             "System`StandardForm": "<mtext>Hola!</mtext>",
             "System`TraditionalForm": "<mtext>Hola!</mtext>",
-            "System`InputForm": "<mtext>Hola!</mtext>",
+            "System`InputForm": "<ms>Hola!</ms>",
             "System`OutputForm": "<mtext>Hola!</mtext>",
         },
         "tex": {
@@ -170,13 +152,13 @@ all_test = {
         "text": {
             "System`StandardForm": "π is a trascendental number",
             "System`TraditionalForm": "π is a trascendental number",
-            "System`InputForm": "π is a trascendental number",
+            "System`InputForm": '"π is a trascendental number"',
             "System`OutputForm": "π is a trascendental number",
         },
         "mathml": {
             "System`StandardForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
             "System`TraditionalForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-            "System`InputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
+            "System`InputForm": "<ms>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>",
             "System`OutputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
         },
         "tex": {
@@ -191,13 +173,13 @@ all_test = {
         "text": {
             "System`StandardForm": "-4.32",
             "System`TraditionalForm": "-4.32",
-            "System`InputForm": "-4.32",
+            "System`InputForm": '"-4.32"',
             "System`OutputForm": "-4.32",
         },
         "mathml": {
             "System`StandardForm": "<mtext>-4.32</mtext>",
             "System`TraditionalForm": "<mtext>-4.32</mtext>",
-            "System`InputForm": "<mtext>-4.32</mtext>",
+            "System`InputForm": "<ms>-4.32</ms>",
             "System`OutputForm": "<mtext>-4.32</mtext>",
         },
         "tex": {
@@ -260,22 +242,10 @@ all_test = {
             "System`OutputForm": "a ^ 4",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<msup><mi>a</mi> <mn>4</mn></msup>",
-                "must be <mn> instead of <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<msup><mi>a</mi> <mn>4</mn></msup>",
-                "must be <mn> instead of <mtext>",
-            ),
-            "System`InputForm": (
-                "<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>",
-                "must be <mtext> instead of <mn> in this case",
-            ),
-            "System`OutputForm": (
-                "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mtext>4</mtext></mrow>",
-                "must be <mtext> instead of <mn> in this case",
-            ),
+            "System`StandardForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
+            "System`TraditionalForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
+            "System`InputForm": "<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>",
+            "System`OutputForm": "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>",
         },
         "tex": {
             "System`StandardForm": "a^4",
@@ -293,17 +263,11 @@ all_test = {
             "System`OutputForm": "Subscript[a, 4]",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<msub><mi>a</mi> <mn>4</mn></msub>",
-                "must be <mn> instead <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<msub><mi>a</mi> <mn>4</mn></msub>",
-                "must be <mn> instead <mtext>",
-            ),
+            "System`StandardForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
+            "System`TraditionalForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
             "System`InputForm": (
                 "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
-                "must be <mtext> instead <mn>",
+                "Fragile!",
             ),
             "System`OutputForm": (
                 "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
@@ -620,7 +584,7 @@ def load_tests(key):
                 tst, extra_msg = tst
                 if len(extra_msg) > 7 and extra_msg[:7] == "must be":
                     must_be = True
-                elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
+                elif len(extra_msg) > 8 and extra_msg[-8:] == "Fragile!":
                     fragile = True
                 msg = base_msg + " - " + extra_msg
             else:
