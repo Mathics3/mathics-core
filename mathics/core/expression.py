@@ -12,6 +12,7 @@ from itertools import chain
 from bisect import bisect_left
 from functools import lru_cache
 
+# from mathics.core.util import timeit, TimeitContextManager
 
 from mathics.core.numbers import get_type, dps, prec, min_prec, machine_precision
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression
@@ -1342,6 +1343,7 @@ class Expression(BaseExpression):
 
         return expr
 
+    # @timeit
     def evaluate_next(self, evaluation) -> typing.Tuple["Expression", bool]:
         from mathics.builtin.base import BoxConstruct
 
@@ -1349,6 +1351,7 @@ class Expression(BaseExpression):
         attributes = head.get_attributes(evaluation.definitions)
         leaves = self.get_mutable_leaves()
 
+        # @timeit
         def rest_range(indices):
             if "System`HoldAllComplete" not in attributes:
                 if self._no_symbol("System`Evaluate"):
@@ -1358,6 +1361,7 @@ class Expression(BaseExpression):
                     if leaf.has_form("Evaluate", 1):
                         leaves[index] = leaf.evaluate(evaluation)
 
+        # @timeit
         def eval_range(indices):
             for index in indices:
                 leaf = leaves[index]
