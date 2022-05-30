@@ -423,7 +423,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def __str__(self) -> str:
         return self.name
 
-    def atom_to_boxes(self, f, evaluation) -> "String":
+    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
         from mathics.builtin.box.inout import _BoxedString
 
         return _BoxedString(evaluation.definitions.shorten_name(self.name))

@@ -11,7 +11,7 @@ import typing
 from typing import Any
 
 
-from mathics.builtin.box.inout import RowBox, to_boxes
+from mathics.builtin.box.inout import RowBox, to_boxes, _BoxedString
 
 from mathics.builtin.base import (
     BoxConstruct,
@@ -26,6 +26,7 @@ from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
+from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
 from mathics.core.symbols import (
     Atom,
@@ -434,7 +435,15 @@ def number_form(expr, n, f, evaluation, options):
 
     # build number
     method = options["NumberFormat"]
-    return method(String(s), String(base), String(pexp), options)
+    if options["_Form"] in ("System`InputForm", "System`FullForm"):
+        return method(
+            _BoxedString(s, number_as_text=True),
+            _BoxedString(base, number_as_text=True),
+            _BoxedString(pexp, number_as_text=True),
+            options,
+        )
+    else:
+        return method(_BoxedString(s), _BoxedString(base), _BoxedString(pexp), options)
 
 
 class MakeBoxes(Builtin):
@@ -628,13 +637,13 @@ class MakeBoxes(Builtin):
                     row.append(
                         to_boxes(MakeBoxes(leaf, f).evaluate(evaluation), evaluation)
                     )
-                result.append(RowBox(Expression(SymbolList, *row)))
+                result.append(RowBox(*row))
             elif len(leaves) == 1:
                 result.append(
                     to_boxes(MakeBoxes(leaves[0], f).evaluate(evaluation), evaluation)
                 )
             result.append(to_boxes(String(right), evaluation))
-            return RowBox(Expression(SymbolList, *result))
+            return RowBox(*result)
 
     def apply_outerprecedenceform(self, expr, prec, evaluation):
         """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
@@ -784,7 +793,7 @@ class Row(Builtin):
                 item = MakeBoxes(item, f).evaluate(evaluation)
                 item = to_boxes(item, evaluation)
                 result.append(item)
-            return RowBox(Expression(SymbolList, *result))
+            return RowBox(*result)
 
 
 # Right now this seems to be used only in GridBox.
@@ -1364,7 +1373,12 @@ class StringForm(Builtin):
                 )
         if pos < len(s):
             result.append(to_boxes(String(s[pos:]), evaluation))
-        return RowBox(Expression(SymbolList, *result).evaluate(evaluation))
+        return RowBox(
+            *tuple(
+                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
+                for r in result
+            )
+        )
 
 
 class Message(Builtin):
@@ -2276,7 +2290,7 @@ class TeXForm(Builtin):
      = \sqrt{a^3}
 
     #> {"hi","you"} //InputForm //TeXForm
-     = \left\{\text{"hi"}, \text{"you"}\right\}
+     = \left\{\text{hi}, \text{you}\right\}
 
     #> TeXForm[a+b*c]
      = a+b c
@@ -2812,6 +2826,7 @@ class NumberForm(_NumberForm):
             py_n = None
 
         if py_n is not None:
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
@@ -2831,6 +2846,7 @@ class NumberForm(_NumberForm):
             return fallback
 
         if isinstance(expr, (Integer, Real)):
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
@@ -2852,6 +2868,7 @@ class NumberForm(_NumberForm):
             return fallback
 
         if isinstance(expr, (Integer, Real)):
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 

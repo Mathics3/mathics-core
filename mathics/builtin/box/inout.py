@@ -21,7 +21,7 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
     if isinstance(x, BoxExpression):
         return x
     if isinstance(x, String):
-        x = _BoxedString(x.value, options)
+        x = _BoxedString(x.value, **options)
         return x
     if isinstance(x, Atom):
         x = x.atom_to_boxes(Symbol("StandardForm"), evaluation)
@@ -43,9 +43,8 @@ class _BoxedString(BoxExpression):
         "System`ShowStringCharacters": "False",
     }
 
-    def init(self, string: str, options={}):
+    def init(self, string: str, **options):
         #
-        assert isinstance(string, str)
         self.value = string
         self.box_options = {
             "System`ShowStringCharacters": SymbolFalse,
@@ -68,13 +67,9 @@ class _BoxedString(BoxExpression):
         value = self.value
         show_string_characters = options["System`ShowStringCharacters"]
         show_string_characters = show_string_characters is SymbolTrue
-        if (
-            not show_string_characters
-            and value.startswith('"')  # nopep8
-            and value.endswith('"')
-        ):
-            value = value[1:-1]
-
+        if value.startswith('"') and value.endswith('"'):  # nopep8
+            if not show_string_characters:
+                value = value[1:-1]
         return value
 
     def boxes_to_mathml(self, **options) -> str:
@@ -85,6 +80,7 @@ class _BoxedString(BoxExpression):
         options = _options
         show_string_characters = options["System`ShowStringCharacters"] is SymbolTrue
         text = self.value
+        number_as_text = options.get("number_as_text", False)
 
         def render(format, string):
             encoded_text = encode_mathml(string)
@@ -98,7 +94,11 @@ class _BoxedString(BoxExpression):
                 for line in text[1:-1].split("\n"):
                     outtext += render("<mtext>%s</mtext>", line)
                 return outtext
-        elif text and ("0" <= text[0] <= "9" or text[0] == "."):
+        elif (
+            text
+            and not number_as_text
+            and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
+        ):
             return render("<mn>%s</mn>", text)
         else:
             if text in operators or text in extra_operators:
@@ -121,7 +121,6 @@ class _BoxedString(BoxExpression):
 
     def boxes_to_tex(self, **options) -> str:
         # from mathics.builtin import display_operators_set as operators
-
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
@@ -134,10 +133,11 @@ class _BoxedString(BoxExpression):
             return format % encode_tex(string, in_text)
 
         if text.startswith('"') and text.endswith('"'):
-            if show_string_characters:
-                return render(r'\text{"%s"}', text[1:-1], in_text=True)
-            else:
-                return render(r"\text{%s}", text[1:-1], in_text=True)
+            # if show_string_characters:
+            #    return render(r'\text{"%s"}', text[1:-1], in_text=True)
+            # else:
+            # In WMA, this never include quotes.
+            return render(r"\text{%s}", text[1:-1], in_text=True)
         elif text and text[0] in "0123456789-.":
             return render("%s", text)
         else:
@@ -243,9 +243,9 @@ class SubscriptBox(BoxExpression):
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
         )
-        return SubscriptBox(a_box, b_box, options)
+        return SubscriptBox(a_box, b_box, **options)
 
-    def init(self, a, b, options):
+    def init(self, a, b, **options):
         self.box_options = options.copy()
         if not (
             isinstance(a, (String, BoxExpression))
@@ -308,9 +308,9 @@ class SubsuperscriptBox(BoxExpression):
             to_boxes(b, evaluation, options),
             to_boxes(c, evaluation, options),
         )
-        return SubsuperscriptBox(a_box, b_box, c_box, options)
+        return SubsuperscriptBox(a_box, b_box, c_box, **options)
 
-    def init(self, a, b, c, options):
+    def init(self, a, b, c, **options):
         self.box_options = options.copy()
         if not (
             isinstance(a, BoxExpression)
@@ -381,9 +381,9 @@ class SuperscriptBox(BoxExpression):
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
         )
-        return SuperscriptBox(a_box, b_box, options)
+        return SuperscriptBox(a_box, b_box, **options)
 
-    def init(self, a, b, options):
+    def init(self, a, b, **options):
         self.box_options = options.copy()
         if not (isinstance(a, BoxExpression) and isinstance(b, BoxExpression)):
             raise Exception((a, b), "are not boxes")
@@ -594,9 +594,9 @@ class StyleBox(BoxExpression):
 
     def apply_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
-        return StyleBox(boxes, style=style, options=options)
+        return StyleBox(boxes, style=style, **options)
 
-    def init(self, boxes, style=None, options={}):
+    def init(self, boxes, style=None, **options):
         # This implementation superseeds Expresion.process_style_box
         self.style = style
         self.box_options = options
@@ -675,9 +675,9 @@ class FractionBox(BoxExpression):
             to_boxes(num, evaluation, options),
             to_boxes(den, evaluation, options),
         )
-        return FractionBox(num_box, den_box, options)
+        return FractionBox(num_box, den_box, **options)
 
-    def init(self, num, den, options={}):
+    def init(self, num, den, **options):
         self.num = num
         self.den = den
         self.box_options = options
@@ -736,14 +736,14 @@ class SqrtBox(BoxExpression):
             to_boxes(radicand, evaluation, options),
             to_boxes(index, evaluation, options),
         )
-        return SqrtBox(radicand_box, index_box, options)
+        return SqrtBox(radicand_box, index_box, **options)
 
     def apply(self, radicand, evaluation, options):
         """SqrtBox[radicand_, OptionsPattern[]]"""
         radicand_box = to_boxes(radicand, evaluation, options)
-        return SqrtBox(radicand_box, None, options)
+        return SqrtBox(radicand_box, None, **options)
 
-    def init(self, radicand, index=None, options={}):
+    def init(self, radicand, index=None, **options):
         self.radicand = radicand
         self.index = index
         self.box_options = options

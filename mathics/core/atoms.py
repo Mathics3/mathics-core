@@ -10,6 +10,7 @@ import typing
 from typing import Any, Optional
 from functools import lru_cache
 
+
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
@@ -100,6 +101,7 @@ def _ExponentFunction(value):
 
 def _NumberFormat(man, base, exp, options):
     from mathics.core.expression import Expression
+    from mathics.builtin.box.inout import RowBox, _BoxedString, SuperscriptBox
 
     if exp.get_string_value():
         if options["_Form"] in (
@@ -107,18 +109,12 @@ def _NumberFormat(man, base, exp, options):
             "System`StandardForm",
             "System`FullForm",
         ):
-            return Expression(
-                SymbolRowBox, Expression(SymbolList, man, String("*^"), exp)
-            )
+            return RowBox(man, _BoxedString("*^"), exp)
         else:
-            return Expression(
-                SymbolRowBox,
-                Expression(
-                    SymbolList,
-                    man,
-                    String(options["NumberMultiplier"]),
-                    Expression(SymbolSuperscriptBox, base, exp),
-                ),
+            return RowBox(
+                man,
+                _BoxedString(options["NumberMultiplier"]),
+                SuperscriptBox(base, exp),
             )
     else:
         return man
@@ -198,17 +194,12 @@ class Integer(Number):
     def __init__(self, value) -> "Integer":
         super().__init__()
 
-    def boxes_to_text(self, **options) -> str:
-        return str(self.value)
+    def make_boxes(self, form) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return str(self.value)
-
-    def make_boxes(self, form) -> "String":
-        return String(str(self.value))
+        if form in ("System`InputForm", "System`FullForm"):
+            return _BoxedString(str(self.value), number_as_text=True)
+        return _BoxedString(str(self.value))
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
@@ -423,15 +414,6 @@ class Real(Number):
     def __ne__(self, other) -> bool:
         # Real is a total order
         return not (self == other)
-
-    def boxes_to_text(self, **options) -> str:
-        return self.make_boxes("System`OutputForm").boxes_to_text(**options)
-
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("System`MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return self.make_boxes("System`TeXForm").boxes_to_tex(**options)
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
@@ -928,10 +910,9 @@ class String(Atom, ImmutableValueMixin):
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
-            _BoxedString(
+            return _BoxedString(
                 '"' + inner + '"', **{"System`ShowStringCharacters": SymbolTrue}
             )
-
         return _BoxedString('"' + inner + '"')
 
     def do_copy(self) -> "String":
@@ -996,17 +977,10 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def __str__(self) -> str:
         return base64.b64encode(self.value).decode("utf8")
 
-    def boxes_to_text(self, **options) -> str:
-        return '"' + self.__str__() + '"'
+    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-    def boxes_to_mathml(self, **options) -> str:
-        return encode_mathml(String('"' + self.__str__() + '"'))
-
-    def boxes_to_tex(self, **options) -> str:
-        return encode_tex(String('"' + self.__str__() + '"'))
-
-    def atom_to_boxes(self, f, evaluation):
-        res = String('""' + self.__str__() + '""')
+        res = _BoxedString('""' + self.__str__() + '""')
         return res
 
     def do_copy(self) -> "ByteArrayAtom":
