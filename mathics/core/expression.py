@@ -1165,6 +1165,23 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # @timeit
         def eval_elements():
             # @timeit
+            def eval_range(indices):
+                recompute_properties = False
+                for index in indices:
+                    element = elements[index]
+                    if not element.has_form("Unevaluated", 1):
+                        if isinstance(element, EvalMixin):
+                            new_value = element.evaluate(evaluation)
+                            if new_value:
+                                # We need id() because != by itself is too permissive
+                                if id(elements[index]) != id(new_value):
+                                    recompute_properties = True
+                                    elements[index] = new_value
+
+                if recompute_properties:
+                    self._build_elements_properties()
+
+            # @timeit
             def rest_range(indices):
                 if not HOLD_ALL_COMPLETE & attributes:
                     if self._no_symbol("System`Evaluate"):
@@ -1173,37 +1190,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     for index in indices:
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
-                            # FIXME this reassigns too much
-                            # and recomputes properties too much
-                            elements[index] = (
-                                element.evaluate(evaluation)
-                                if isinstance(element, EvalMixin)
-                                else element
-                            )
-                            recompute_properties = True
+                            if isinstance(element, EvalMixin):
+                                new_value = element.evaluate(evaluation)
+                                # We need id() because != by itself is too permissive
+                                if id(new_value) != id(element):
+                                    elements[index] = new_value
+                                    recompute_properties = True
+
                     if recompute_properties:
                         self._build_elements_properties()
-
-            # @timeit
-            def eval_range(indices):
-                recompute_properties = False
-                for index in indices:
-                    element = elements[index]
-                    if not element.has_form("Unevaluated", 1):
-                        # FIXME this reassigns too much
-                        # and recomputes properties too much
-                        element = (
-                            element.evaluate(evaluation)
-                            if isinstance(element, EvalMixin)
-                            else element
-                        )
-                        if element:
-                            if elements[index] != element:
-                                recompute_properties = True
-                            elements[index] = element
-                        recompute_properties = True
-                if recompute_properties:
-                    self._build_elements_properties()
 
             if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
