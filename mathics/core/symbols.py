@@ -423,13 +423,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def __str__(self) -> str:
         return self.name
 
-    def atom_to_boxes(self, f, evaluation) -> "String":
-        from mathics.core.atoms import String
+    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-        return String(evaluation.definitions.shorten_name(self.name))
-
-    def boxes_to_text(self, **options) -> str:
-        return str(self.name)
+        return _BoxedString(evaluation.definitions.shorten_name(self.name))
 
     def default_format(self, evaluation, form) -> str:
         return self.name

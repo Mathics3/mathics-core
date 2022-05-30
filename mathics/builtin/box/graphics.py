@@ -47,10 +47,11 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import SymbolList, Symbol
 
 from mathics.core.attributes import hold_all, protected, read_protected
 
+SymbolStandardForm = Symbol("StandardForm")
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):
@@ -1081,6 +1082,9 @@ class InsetBox(_GraphicsElementBox):
             self.content = content
             self.pos = pos
             self.opos = opos
+
+        if isinstance(self.content, String):
+            self.content = self.content.atom_to_boxes(SymbolStandardForm)
         self.content_text = self.content.boxes_to_text(
             evaluation=self.graphics.evaluation
         )

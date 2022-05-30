@@ -1,7 +1,6 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Unit tests from builtins ... colors.py
+Unit tests from builtins/colors/colors.py
 """
 
 

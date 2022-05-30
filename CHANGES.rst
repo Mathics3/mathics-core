@@ -65,8 +65,7 @@ Internals
 * ``BoxConstruction`` -> ``BoxExpression``
 * the method ``Element.is_true()`` was removed in favor of ``is SymbolTrue``
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
-* The methods  ``boxes_to_*`` were removed from ``Element`` and ``Expression``
-  and kept just for ``Atoms`` and  ``BoxExpressions``.
+* The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 
 
 Package update
