@@ -42,7 +42,13 @@ from mathics.core.symbols import (
     SymbolTrue,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolGet,
+    SymbolMemberQ,
+    SymbolNeeds,
+    SymbolPackages,
+)
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
@@ -1706,14 +1712,14 @@ class Needs(Builtin):
             contextstr = curr_ctxt + contextstr[1:]
             context = String(contextstr)
         if not valid_context_name(contextstr):
-            evaluation.message("Needs", "ctx", Expression("Needs", context), 1, "`")
+            evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
-        test_loaded = Expression("MemberQ", Symbol("$Packages"), context)
+        test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
         test_loaded = test_loaded.evaluate(evaluation)
         if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = Expression("Get", context).evaluate(evaluation)
+        result = Expression(SymbolGet, context).evaluate(evaluation)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)

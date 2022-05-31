@@ -11,7 +11,14 @@ from mathics.builtin.base import (
     MessageException,
 )
 from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
+from mathics.core.atoms import (
+    Integer,
+    Integer0,
+    Integer1,
+    Rational,
+)
 from mathics.core.expression import Expression
+from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -21,13 +28,7 @@ from mathics.core.symbols import (
     SymbolList,
 )
 
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Rational,
-)
-from mathics.core.rules import Pattern
+from mathics.core.systemsymbols import SymbolDirectedInfinity
 
 from mathics.builtin.lists import (
     python_levelspec,
@@ -1109,7 +1110,7 @@ class Flatten(Builtin):
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
 
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             n = -1  # a negative number indicates an unbounded level
         else:
             n_int = n.get_int_value()
