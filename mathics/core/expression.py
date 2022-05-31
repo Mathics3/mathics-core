@@ -1171,11 +1171,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     if not element.has_form("Unevaluated", 1):
                         if isinstance(element, EvalMixin):
                             new_value = element.evaluate(evaluation)
-                            if new_value:
-                                # We need id() because != by itself is too permissive
-                                if id(elements[index]) != id(new_value):
-                                    recompute_properties = True
-                                    elements[index] = new_value
+                            # We need id() because != by itself is too permissive
+                            if id(elements[index]) != id(new_value):
+                                recompute_properties = True
+                                elements[index] = new_value
 
                 if recompute_properties:
                     self._build_elements_properties()
