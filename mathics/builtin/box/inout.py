@@ -634,7 +634,7 @@ class StyleBox(BoxExpression):
 
     def apply_options(self, boxes, evaluation, options):
         """StyleBox[boxes_, OptionsPattern[]]"""
-        return StyleBox(boxes, style="", options=options)
+        return StyleBox(boxes, style="", **options)
 
     def apply_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
