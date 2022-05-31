@@ -25,7 +25,7 @@ from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.scoping import dynamic_scoping
 
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -102,7 +102,7 @@ class _MPMathFunction(SympyFunction):
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
-            result = Expression(self.get_name(), *args).to_sympy()
+            result = to_expression(self.get_name(), *args).to_sympy()
             result = self.prepare_mathics(result)
             result = from_sympy(result)
             # evaluate leaves to convert e.g. Plus[2, I] -> Complex[2, 1]

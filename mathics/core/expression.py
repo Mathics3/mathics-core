@@ -42,21 +42,24 @@ from mathics.core.symbols import (
     SymbolTrue,
     system_symbols,
 )
-from mathics.core.systemsymbols import SymbolSequence
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolAlternatives,
+    SymbolDirectedInfinity,
+    SymbolBlank,
+    SymbolSequence,
+    SymbolTimes,
+)
 from mathics.core.atoms import String
 
 # from mathics.core.util import timeit
 
-SymbolAborted = Symbol("$Aborted")
-SymbolAlternatives = Symbol("Alternatives")
-SymbolBlank = Symbol("System`Blank")
 SymbolBlankSequence = Symbol("System`BlankSequence")
 SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
 SymbolCompile = Symbol("Compile")
 SymbolCompiledFunction = Symbol("CompiledFunction")
 SymbolCondition = Symbol("Condition")
 SymbolDefault = Symbol("Default")
-SymbolDirectedInfinity = Symbol("DirectedInfinity")
 SymbolFunction = Symbol("Function")
 SymbolOptional = Symbol("Optional")
 SymbolOptionsPattern = Symbol("OptionsPattern")
@@ -64,7 +67,6 @@ SymbolPattern = Symbol("Pattern")
 SymbolPatternTest = Symbol("PatternTest")
 SymbolSlot = Symbol("Slot")
 SymbolSlotSequence = Symbol("SlotSequence")
-SymbolTimes = Symbol("Times")
 SymbolVerbatim = Symbol("Verbatim")
 
 

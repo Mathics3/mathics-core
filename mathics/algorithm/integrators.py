@@ -10,9 +10,12 @@ from mathics.core.atoms import (
     Number,
 )
 
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolSequence
 
 from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolComplex,
     SymbolD,
     SymbolNIntegrate,
     SymbolPlus,
@@ -23,24 +26,24 @@ from mathics.core.systemsymbols import (
 def decompose_domain(interval, evaluation):
     if interval.has_form("System`Sequence", 1, None):
         intervals = []
-        for leaf in interval.leaves:
-            inner_interval = decompose_domain(leaf, evaluation)
+        for element in interval.elements:
+            inner_interval = decompose_domain(element, evaluation)
             if inner_interval:
                 intervals.append(inner_interval)
             else:
-                evaluation.message("ilim", leaf)
+                evaluation.message("ilim", element)
                 return None
         return intervals
 
     if interval.has_form("System`List", 3, None):
         intervals = []
-        intvar = interval.leaves[0]
+        intvar = interval.elements[0]
         if not isinstance(intvar, Symbol):
             evaluation.message("ilim", interval)
             return None
-        boundaries = [a for a in interval.leaves[1:]]
+        boundaries = interval.elements[1:]  # Rest[interval]
         if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-            intvar = Expression("List", intvar, Expression("Blank", Symbol("Complex")))
+            intvar = ListExpression(intvar, Expression(SymbolBlank, SymbolComplex))
         for i in range(len(boundaries) - 1):
             intervals.append((boundaries[i], boundaries[i + 1]))
         if len(intervals) > 0:

@@ -38,7 +38,6 @@ from mathics.builtin.pymimesniffer import magic
 from mathics.core.attributes import no_attributes, protected, read_protected
 
 import mimetypes
-import sys
 from itertools import chain
 
 try:

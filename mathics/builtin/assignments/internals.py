@@ -3,18 +3,24 @@
 
 from mathics.algorithm.parts import walk_parts
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.rules import Rule
 from mathics.core.atoms import Atom, Integer
 from mathics.core.symbols import (
     Symbol,
+    SymbolFalse,
     SymbolN,
     SymbolTrue,
-    SymbolFalse,
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolMachinePrecision,
+    SymbolOptionValue,
+    SymbolPattern,
+)
+
 
 from mathics.core.attributes import attribute_string_to_number, locked, protected
 
@@ -51,10 +57,10 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
 def build_rulopc(optval):
     return Rule(
         Expression(
-            "OptionValue",
-            Expression("Pattern", Symbol("$cond$"), Expression("Blank")),
+            SymbolOptionValue,
+            Expression(SymbolPattern, Symbol("$cond$"), SymbolBlank),
         ),
-        Expression("OptionValue", optval, Symbol("$cond$")),
+        Expression(SymbolOptionValue, optval, Symbol("$cond$")),
     )
 
 
@@ -491,7 +497,7 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
     defs = evaluation.definitions
 
     if len(lhs.leaves) not in (1, 2, 3):
-        evaluation.message_args("Default", len(lhs.leaves), 1, 2, 3)
+        evaluation.message_args(SymbolDefault, len(lhs.leaves), 1, 2, 3)
         raise AssignmentException(lhs, None)
     focus = lhs.leaves[0]
     tags = process_tags_and_upset_dont_allow_custom(

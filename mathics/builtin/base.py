@@ -31,7 +31,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, SymbolDefault, to_expression
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.symbols import (
     SymbolFalse,
@@ -358,9 +358,9 @@ class Builtin:
             value = parse_builtin_rule(value)
             pattern = None
             if spec is None:
-                pattern = Expression("Default", Symbol(name))
+                pattern = Expression(SymbolDefault, Symbol(name))
             elif isinstance(spec, int):
-                pattern = Expression("Default", Symbol(name), Integer(spec))
+                pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
                 defaults.append(Rule(pattern, value, system=True))
 
@@ -704,7 +704,7 @@ class SympyFunction(SympyObject):
             pass
 
     def from_sympy(self, sympy_name, elements):
-        return Expression(self.get_name(), *elements)
+        return to_expression(self.get_name(), *elements)
 
     def prepare_mathics(self, sympy_expr):
         return sympy_expr

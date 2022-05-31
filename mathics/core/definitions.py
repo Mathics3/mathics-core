@@ -24,6 +24,8 @@ from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
 
+SymbolGet = Symbol("Get")
+
 
 def get_file_time(file) -> float:
     try:
@@ -50,7 +52,7 @@ def autoload_files(
     # Load symbols from the autoload folder
     for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
         for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
-            Expression("Get", String(path)).evaluate(Evaluation(defs))
+            Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
