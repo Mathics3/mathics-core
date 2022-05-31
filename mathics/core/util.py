@@ -29,7 +29,7 @@ def timeit(method):
         ts = time.time()
         result = method(*args, **kw)
         te = time.time()
-        elapsed = int((te - ts) * 1000)
+        elapsed = (te - ts) * 1000
         if elapsed > MIN_ELAPSE_REPORT:
             if "log_time" in kw:
                 name = kw.get("log_name", method.__name__.upper())
@@ -46,7 +46,7 @@ class TimeitContextManager:
     """Add this as a context manager to time parts of the code.
 
     For example:
-        with TimeitContextManger("testing my loop"):
+        with TimeitContextManager("testing my loop"):
            for x in collection:
                ...
     """
@@ -60,7 +60,7 @@ class TimeitContextManager:
 
     def __exit__(self, exc_type, exc_value, exc_tb):
         te = time.time()
-        elapsed = int((te - self.ts) * 1000)
+        elapsed = (te - self.ts) * 1000
         if elapsed > MIN_ELAPSE_REPORT:
             print("%r  %2.2f ms" % (self.name, elapsed))
 
