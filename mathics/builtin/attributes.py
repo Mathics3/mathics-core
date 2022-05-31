@@ -27,6 +27,9 @@ from mathics.core.attributes import (
     protected,
 )
 
+SymbolClearAttributes = Symbol("ClearAttributes")
+SymbolSetAttributes = Symbol("SetAttributes")
+
 
 class Attributes(Builtin):
     """
@@ -240,9 +243,9 @@ class Protect(Builtin):
                     if not locked & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
-        Expression("SetAttributes", Expression(SymbolList, *items), protected).evaluate(
-            evaluation
-        )
+        Expression(
+            SymbolSetAttributes, Expression(SymbolList, *items), protected
+        ).evaluate(evaluation)
         return SymbolNull
 
 
@@ -294,7 +297,7 @@ class Unprotect(Builtin):
                         items.append(symbol)
 
         Expression(
-            "ClearAttributes",
+            SymbolClearAttributes,
             Expression(SymbolList, *items),
             protected,
         ).evaluate(evaluation)

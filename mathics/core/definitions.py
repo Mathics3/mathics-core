@@ -15,16 +15,17 @@ from mathics.core.atoms import String
 from mathics.core.attributes import no_attributes
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
     strip_context,
 )
+from mathics.core.systemsymbols import SymbolGet
+
 from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
-
-SymbolGet = Symbol("Get")
 
 
 def get_file_time(file) -> float:
@@ -303,7 +304,7 @@ class Definitions(object):
         assert all([isinstance(c, str) for c in context_path])
         self.set_ownvalue(
             "System`$ContextPath",
-            Expression("System`List", *[String(c) for c in context_path]),
+            to_mathics_list(*context_path, elements_conversion_fn=String),
         )
         self.context_path = context_path
         self.clear_cache()
