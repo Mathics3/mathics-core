@@ -13,6 +13,13 @@ from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.parser import is_symbol_name
 
 SymbolString = Symbol("System`String")
+SymbolStandardForm = Symbol("System`StandardForm")
+SymbolFractionBox = Symbol("System`FractionBox")
+SymbolSubscriptBox = Symbol("System`SubscriptBox")
+SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
+SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
+SymbolSqrtBox = Symbol("System`SqrtBox")
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
@@ -27,11 +34,11 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
         x = _BoxedString(x.value, **options)
         return x
     if isinstance(x, Atom):
-        x = x.atom_to_boxes(Symbol("StandardForm"), evaluation)
+        x = x.atom_to_boxes(SymbolStandardForm, evaluation)
         return to_boxes(x, evaluation, options)
     if isinstance(x, Expression):
         if not x.has_form("MakeBoxes", None):
-            x = Expression("MakeBoxes", x)
+            x = Expression(SymbolMakeBoxes, x)
         x_boxed = x.evaluate(evaluation)
         if isinstance(x_boxed, BoxExpression):
             return x_boxed
@@ -195,7 +202,7 @@ class _BoxedString(BoxExpression):
     def get_string_value(self) -> str:
         return self.value
 
-    def to_expression(self):
+    def to_expression(self) -> String:
         return String(self.value)
 
 
@@ -281,7 +288,7 @@ class SubscriptBox(BoxExpression):
         """
         returns an evaluable expression.
         """
-        return Expression("SubscriptBox", self.base, self.subindex)
+        return Expression(SymbolSubscriptBox, self.base, self.subindex)
 
     def boxes_to_text(self, **options):
         _options = self.box_options.copy()
@@ -349,7 +356,7 @@ class SubsuperscriptBox(BoxExpression):
         returns an evaluable expression.
         """
         return Expression(
-            "SubsuperscriptBox", self.base, self.subindex, self.superindex
+            SymbolSubsuperscriptBox, self.base, self.subindex, self.superindex
         )
 
     def boxes_to_text(self, **options):
@@ -416,7 +423,7 @@ class SuperscriptBox(BoxExpression):
         """
         returns an evaluable expression.
         """
-        return Expression("SuperscriptBox", self.base, self.superindex)
+        return Expression(SymbolSuperscriptBox, self.base, self.superindex)
 
     def boxes_to_text(self, **options):
         _options = self.box_options.copy()
@@ -517,9 +524,19 @@ class RowBox(BoxExpression):
         self.items = tuple((check_item(item) for item in items))
         self._elements = None
 
-    def to_expression(self):
+    def to_expression(self) -> Expression:
         """
-        returns an evaluable expression.
+        returns an expression that can be evaluated. This is needed
+        to implement the interface of normal Expressions, for example, when a boxed expression
+        is manipulated to produce a new boxed expression.
+
+        For instance, consider the folling definition:
+        ```
+        MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+        ```
+        Here, MakeBoxes is applied over the items, then ``Riffle`` the elements of the result, convert them into
+        a sequence and finally, a ``RowBox`` is built. Then, riffle needs an expression as an argument. To get it,
+        in the apply method, this function must be called.
         """
         items = tuple(
             item.to_expression() if isinstance(item, BoxExpression) else item
@@ -635,13 +652,13 @@ class StyleBox(BoxExpression):
     def to_expression(self):
         if self.style:
             return Expression(
-                self.get_name(),
+                Symbol(self.get_name()),
                 self.boxes,
                 self.style,
                 *options_to_rules(self.box_options),
             )
         return Expression(
-            self.get_name(), self.boxes, *options_to_rules(self.box_options)
+            Symbol(self.get_name()), self.boxes, *options_to_rules(self.box_options)
         )
 
 
@@ -708,7 +725,7 @@ class FractionBox(BoxExpression):
         self.box_options = options
 
     def to_expression(self):
-        return Expression("FractionBox", self.num, self.den)
+        return Expression(SymbolFractionBox, self.num, self.den)
 
     def boxes_to_text(self, **options):
         _options = self.box_options.copy()
@@ -777,8 +794,8 @@ class SqrtBox(BoxExpression):
 
     def to_expression(self):
         if self.index:
-            return Expression("SqrtBox", self.radicand, self.index)
-        return Expression("SqrtBox", self.radicand)
+            return Expression(SymbolSqrtBox, self.radicand, self.index)
+        return Expression(SymbolSqrtBox, self.radicand)
 
     def boxes_to_text(self, **options):
         _options = self.box_options.copy()
