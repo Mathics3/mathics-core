@@ -12,7 +12,7 @@ Enhancements
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
-* Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA.
+* Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. Now, in ``MathMLForm`` numbers are tagged as "<mn>", except in the case of ``InputForm``, where a "<mtext>" tag is used. In ``TeXForm``, ``String`` elements are formatted as ``\text{...}``  discarding quotes in all the cases, in compliance with the behaviour in WMA.
 
 
 Documentation

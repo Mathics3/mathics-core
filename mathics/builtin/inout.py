@@ -2309,7 +2309,8 @@ class TeXForm(Builtin):
             boxes = _BoxedString(boxes.value)
         try:
             # Here we set ``show_string_characters`` to False, to reproduce
-            # the standard behaviour in WMA.
+            # the standard behaviour in WMA. Remove this parameter to recover the
+            # quotes in InputForm and FullForm
             tex = boxes.boxes_to_tex(
                 show_string_characters=False, evaluation=evaluation
             )
