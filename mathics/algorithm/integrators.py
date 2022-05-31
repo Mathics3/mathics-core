@@ -10,9 +10,11 @@ from mathics.core.atoms import (
     Number,
 )
 
-from mathics.core.symbols import Symbol, SymbolSequence
+from mathics.core.symbols import Symbol, SymbolList, SymbolSequence
 
 from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolComplex,
     SymbolD,
     SymbolNIntegrate,
     SymbolPlus,
@@ -40,7 +42,9 @@ def decompose_domain(interval, evaluation):
             return None
         boundaries = [a for a in interval.leaves[1:]]
         if any([b.get_head_name() == "System`Complex" for b in boundaries]):
-            intvar = Expression("List", intvar, Expression("Blank", Symbol("Complex")))
+            intvar = Expression(
+                SymbolList, intvar, Expression(SymbolBlank, SymbolComplex)
+            )
         for i in range(len(boundaries) - 1):
             intervals.append((boundaries[i], boundaries[i + 1]))
         if len(intervals) > 0:

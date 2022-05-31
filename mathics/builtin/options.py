@@ -14,6 +14,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.expression import (
     Expression,
+    SymbolDefault,
     get_default_value,
 )
 from mathics.core.atoms import String
@@ -266,16 +267,16 @@ class Default(Builtin):
 
         i = i.get_sequence()
         if len(i) > 2:
-            evaluation.message("Default", "argb", 1 + len(i), 1, 3)
+            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
             return
         i = [index.get_int_value() for index in i]
         for index in i:
             if index is None or index < 1:
-                evaluation.message("Default", "intp")
+                evaluation.message(SymbolDefault, "intp")
                 return
         name = f.get_name()
         if not name:
-            evaluation.message("Default", "sym", f, 1)
+            evaluation.message(SymbolDefault, "sym", f, 1)
             return
         result = get_default_value(name, evaluation, *i)
         return result

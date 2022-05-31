@@ -16,7 +16,8 @@ from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal
 
 from mathics.core.atoms import (
     Integer,
@@ -109,10 +110,10 @@ class Compile(Builtin):
 
         # _Complex not implemented
         permitted_types = {
-            Expression("Blank", Symbol("Integer")): int_type,
-            Expression("Blank", Symbol("Real")): real_type,
-            Symbol("True"): bool_type,
-            Symbol("False"): bool_type,
+            Expression(SymbolBlank, SymbolInteger): int_type,
+            Expression(SymbolBlank, SymbolReal): real_type,
+            SymbolTrue: bool_type,
+            SymbolFalse: bool_type,
         }
 
         if not vars.has_form("List", None):

@@ -15,6 +15,7 @@ from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import flat, hold_all, n_hold_all, one_identity, protected
+from mathics.core.convert import SymbolFunction
 from mathics.core.symbols import Symbol
 
 
@@ -78,7 +79,7 @@ class Function(PostfixOperator):
     def apply_slots(self, body, args, evaluation):
         "Function[body_][args___]"
 
-        args = list(chain([Expression("Function", body)], args.get_sequence()))
+        args = list(chain([Expression(SymbolFunction, body)], args.get_sequence()))
         return body.replace_slots(args, evaluation)
 
     def apply_named(self, vars, body, args, evaluation):

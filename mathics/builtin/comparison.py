@@ -57,6 +57,9 @@ operators = {
     "System`Unequal": (-1, 1),
 }
 
+SymbolExactNumberQ = Symbol("ExactNumberQ")
+SymbolMaxExtraPrecision = Symbol("$MaxExtraPrecision")
+
 
 class _InequalityOperator(BinaryOperator):
     precedence = 290
@@ -209,7 +212,7 @@ class _EqualityOperator(_InequalityOperator):
         if n <= 1:
             return SymbolTrue
         is_exact_vals = [
-            Expression("ExactNumberQ", arg).evaluate(evaluation)
+            Expression(SymbolExactNumberQ, arg).evaluate(evaluation)
             for arg in items_sequence
         ]
         if not all(val is SymbolTrue for val in is_exact_vals):
@@ -226,9 +229,7 @@ class _EqualityOperator(_InequalityOperator):
     def apply_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
         args = args.get_sequence()
-        max_extra_prec = (
-            Symbol("$MaxExtraPrecision").evaluate(evaluation).get_int_value()
-        )
+        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         for x, y in self.get_pairs(args):

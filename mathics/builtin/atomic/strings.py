@@ -24,7 +24,7 @@ from mathics.core.symbols import (
     SymbolTrue,
     SymbolList,
 )
-from mathics.core.systemsymbols import SymbolFailed, SymbolDirectedInfinity
+from mathics.core.systemsymbols import SymbolBlank, SymbolFailed, SymbolDirectedInfinity
 from mathics.core.atoms import (
     String,
     Integer,
@@ -39,7 +39,6 @@ from mathics_scanner import TranslateError
 from mathics.core.attributes import listable, protected
 
 
-SymbolBlank = Symbol("Blank")
 SymbolOutputForm = Symbol("OutputForm")
 SymbolToExpression = Symbol("ToExpression")
 SymbolInputForm = Symbol("InputForm")
@@ -217,7 +216,7 @@ def to_regex(
     if expr.has_form("Except", 1, 2):
         if len(expr.leaves) == 1:
             # TODO: Check if this shouldn't be SymbolBlank
-            # instad of SymbolBlank[]
+            # instead of SymbolBlank[]
             leaves = [expr.leaves[0], Expression(SymbolBlank)]
         else:
             leaves = [expr.leaves[0], expr.leaves[1]]

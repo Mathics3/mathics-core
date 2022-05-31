@@ -58,7 +58,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolDispatch, SymbolRowBox
+from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch, SymbolRowBox
 from mathics.core.rules import Rule
 from mathics.core.pattern import Pattern, StopGenerator
 
@@ -776,7 +776,7 @@ class Except(PatternObject):
         if len(expr.leaves) == 2:
             self.p = Pattern.create(expr.leaves[1])
         else:
-            self.p = Pattern.create(Expression("Blank"))
+            self.p = Pattern.create(Expression(SymbolBlank))
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         def except_yield_func(vars, rest):
