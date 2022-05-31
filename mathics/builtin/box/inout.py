@@ -267,7 +267,7 @@ class SubscriptBox(BoxExpression):
     }
 
     def apply(self, a, b, evaluation, options):
-        """SubscriptBox[a_, b_, OptionsPattern[]]"""
+        """SubscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
@@ -331,7 +331,7 @@ class SubsuperscriptBox(BoxExpression):
     }
 
     def apply(self, a, b, c, evaluation, options):
-        """SubsuperscriptBox[a_, b_, c_, OptionsPattern[]]"""
+        """SubsuperscriptBox[a_, b__, c__, OptionsPattern[]]"""
         a_box, b_box, c_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
@@ -405,7 +405,7 @@ class SuperscriptBox(BoxExpression):
     }
 
     def apply(self, a, b, evaluation, options):
-        """SuperscriptBox[a_, b_, OptionsPattern[]]"""
+        """SuperscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
             to_boxes(a, evaluation, options),
             to_boxes(b, evaluation, options),
@@ -538,12 +538,14 @@ class RowBox(BoxExpression):
         a sequence and finally, a ``RowBox`` is built. Then, riffle needs an expression as an argument. To get it,
         in the apply method, this function must be called.
         """
-        items = tuple(
-            item.to_expression() if isinstance(item, BoxExpression) else item
-            for item in self.items
-        )
-        result = Expression(SymbolRowBox, Expression(SymbolList, *items))
-        return result
+        if self._elements is None:
+            items = tuple(
+                item.to_expression() if isinstance(item, BoxExpression) else item
+                for item in self.items
+            )
+
+            self._elements = Expression(SymbolRowBox, Expression(SymbolList, *items))
+        return self._elements
 
     def boxes_to_text(self, **options):
         _options = self.box_options.copy()
