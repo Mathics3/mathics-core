@@ -24,8 +24,8 @@ import pytest
 # compatibility with the current mathics-django branch.
 
 MATHML_STRICT = (
-    int(os.environ.get("MATHML_STRICT", "0")) == 1
-)  # To set to True set ENV var to "1"
+    int(os.environ.get("MATHML_STRICT", "1")) == 1
+)  # To set to False, set ENV var to "0"
 
 
 # This dict contains all the tests. The main key is an expression to be evaluated and
@@ -50,10 +50,10 @@ all_test = {
             "System`OutputForm": "-4",
         },
         "mathml": {
-            "System`StandardForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
-            "System`TraditionalForm": ("<mn>-4</mn>", "must be <mn>-4</mn>"),
+            "System`StandardForm": "<mn>-4</mn>",
+            "System`TraditionalForm": "<mn>-4</mn>",
             "System`InputForm": "<mtext>-4</mtext>",
-            "System`OutputForm": "<mtext>-4</mtext>",
+            "System`OutputForm": "<mn>-4</mn>",
         },
         "tex": {
             "System`StandardForm": "-4",
@@ -70,17 +70,14 @@ all_test = {
             "System`InputForm": "-4.32",
             "System`OutputForm": "-4.32",
         },
+        # In WMA, depending on the requested form, numbers in MathMLForm is
+        # tagged with <mn> or <mtext>. In particular, for InputForm and FullForm
+        # the choice is <mtext>
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.32</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.32</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.32</mn>",
+            "System`TraditionalForm": "<mn>-4.32</mn>",
             "System`InputForm": "<mtext>-4.32</mtext>",
-            "System`OutputForm": "<mtext>-4.32</mtext>",
+            "System`OutputForm": "<mn>-4.32</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.32",
@@ -98,16 +95,10 @@ all_test = {
             "System`OutputForm": "-4.320",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.320</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.320</mn>",
+            "System`TraditionalForm": "<mn>-4.320</mn>",
             "System`InputForm": "<mtext>-4.320</mtext>",
-            "System`OutputForm": "<mtext>-4.320</mtext>",
+            "System`OutputForm": "<mn>-4.320</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.320",
@@ -125,16 +116,10 @@ all_test = {
             "System`OutputForm": "-4.3",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<mn>-4.3</mn>",
-                "must be <mn>, not <mtext>",
-            ),
+            "System`StandardForm": "<mn>-4.3</mn>",
+            "System`TraditionalForm": "<mn>-4.3</mn>",
             "System`InputForm": "<mtext>-4.3</mtext>",
-            "System`OutputForm": "<mtext>-4.3</mtext>",
+            "System`OutputForm": "<mn>-4.3</mn>",
         },
         "tex": {
             "System`StandardForm": "-4.3",
@@ -148,15 +133,20 @@ all_test = {
         "text": {
             "System`StandardForm": "Hola!",
             "System`TraditionalForm": "Hola!",
-            "System`InputForm": "Hola!",
+            "System`InputForm": '"Hola!"',
             "System`OutputForm": "Hola!",
         },
         "mathml": {
             "System`StandardForm": "<mtext>Hola!</mtext>",
             "System`TraditionalForm": "<mtext>Hola!</mtext>",
-            "System`InputForm": "<mtext>Hola!</mtext>",
+            "System`InputForm": "<ms>Hola!</ms>",
             "System`OutputForm": "<mtext>Hola!</mtext>",
         },
+        # Notice that differetly from "text", where InputForm
+        # preserves the quotes in strings, MathTeXForm just
+        # sorrounds the string in a ``\text{...}`` command,
+        # in the same way that all the other forms. This choice
+        # follows the behavior in WMA.
         "tex": {
             "System`StandardForm": "\\text{Hola!}",
             "System`TraditionalForm": "\\text{Hola!}",
@@ -165,18 +155,21 @@ all_test = {
         },
     },
     # String with special characters
+    # In WMA, TeXForm[Pi] returns ``"\pi"`` instead the unicode character.
+    # In a next round, the idea would be to use mathics-scanner to recover the
+    # right representation of the characters.
     '"\\[Pi] is a trascendental number"': {
         "msg": "A String",
         "text": {
             "System`StandardForm": "π is a trascendental number",
             "System`TraditionalForm": "π is a trascendental number",
-            "System`InputForm": "π is a trascendental number",
+            "System`InputForm": '"π is a trascendental number"',
             "System`OutputForm": "π is a trascendental number",
         },
         "mathml": {
             "System`StandardForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
             "System`TraditionalForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
-            "System`InputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
+            "System`InputForm": "<ms>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</ms>",
             "System`OutputForm": "<mtext>π&nbsp;is&nbsp;a&nbsp;trascendental&nbsp;number</mtext>",
         },
         "tex": {
@@ -191,13 +184,13 @@ all_test = {
         "text": {
             "System`StandardForm": "-4.32",
             "System`TraditionalForm": "-4.32",
-            "System`InputForm": "-4.32",
+            "System`InputForm": '"-4.32"',
             "System`OutputForm": "-4.32",
         },
         "mathml": {
             "System`StandardForm": "<mtext>-4.32</mtext>",
             "System`TraditionalForm": "<mtext>-4.32</mtext>",
-            "System`InputForm": "<mtext>-4.32</mtext>",
+            "System`InputForm": "<ms>-4.32</ms>",
             "System`OutputForm": "<mtext>-4.32</mtext>",
         },
         "tex": {
@@ -260,22 +253,10 @@ all_test = {
             "System`OutputForm": "a ^ 4",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<msup><mi>a</mi> <mn>4</mn></msup>",
-                "must be <mn> instead of <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<msup><mi>a</mi> <mn>4</mn></msup>",
-                "must be <mn> instead of <mtext>",
-            ),
-            "System`InputForm": (
-                "<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>",
-                "must be <mtext> instead of <mn> in this case",
-            ),
-            "System`OutputForm": (
-                "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mtext>4</mtext></mrow>",
-                "must be <mtext> instead of <mn> in this case",
-            ),
+            "System`StandardForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
+            "System`TraditionalForm": "<msup><mi>a</mi> <mn>4</mn></msup>",
+            "System`InputForm": "<mrow><mi>a</mi> <mo>^</mo> <mtext>4</mtext></mrow>",
+            "System`OutputForm": "<mrow><mi>a</mi> <mtext>&nbsp;^&nbsp;</mtext> <mn>4</mn></mrow>",
         },
         "tex": {
             "System`StandardForm": "a^4",
@@ -293,21 +274,15 @@ all_test = {
             "System`OutputForm": "Subscript[a, 4]",
         },
         "mathml": {
-            "System`StandardForm": (
-                "<msub><mi>a</mi> <mn>4</mn></msub>",
-                "must be <mn> instead <mtext>",
-            ),
-            "System`TraditionalForm": (
-                "<msub><mi>a</mi> <mn>4</mn></msub>",
-                "must be <mn> instead <mtext>",
-            ),
+            "System`StandardForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
+            "System`TraditionalForm": "<msub><mi>a</mi> <mn>4</mn></msub>",
             "System`InputForm": (
                 "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
-                "must be <mtext> instead <mn>",
+                "Fragile!",
             ),
             "System`OutputForm": (
-                "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mtext>4</mtext></mrow> <mo>]</mo></mrow>",
-                "must be <mtext> instead <mn>",
+                "<mrow><mi>Subscript</mi> <mo>[</mo> <mrow><mi>a</mi> <mtext>,&nbsp;</mtext> <mn>4</mn></mrow> <mo>]</mo></mrow>",
+                "Fragile!",
             ),
         },
         "tex": {
@@ -315,6 +290,63 @@ all_test = {
             "System`TraditionalForm": "a_4",
             "System`InputForm": "\\text{Subscript}\\left[a, 4\\right]",
             "System`OutputForm": "\\text{Subscript}\\left[a, 4\\right]",
+        },
+    },
+    (
+        "Grid[{"
+        '{"Spanish", "Hola!"},'
+        '{"Portuguese", "Olà!"},'
+        '{"English", "Hi!"}'
+        "}]"
+    ): {
+        "msg": "Strings in a GridBox",
+        "text": {
+            "System`StandardForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+            "System`TraditionalForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+            "System`InputForm": (
+                "Grid[{"
+                '{"Spanish", "Hola!"}, '
+                '{"Portuguese", "Olà!"}, '
+                '{"English", "Hi!"}'
+                "}]"
+            ),
+            "System`OutputForm": (
+                "Spanish      Hola!\n\n" "Portuguese   Olà!\n\n" "English      Hi!\n"
+            ),
+        },
+        "tex": {
+            "System`StandardForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+            "System`TraditionalForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{Spanish}, \text{Hola!}\right\}, \left\{\text{Portuguese}, \text{Olà!}\right\}, \left\{\text{English}, \text{Hi!}\right\}\right\}\right]",
+            "System`OutputForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
+        },
+        "mathml": {
+            "System`StandardForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
+            "System`TraditionalForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
+            "System`InputForm": r"""<mrow><mi>Grid</mi> <mo>[</mo> <mrow><mo>{</mo> <mrow><mrow><mo>{</mo> <mrow><ms>Spanish</ms> <mtext>,&nbsp;</mtext> <ms>Hola!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>Portuguese</ms> <mtext>,&nbsp;</mtext> <ms>Olà!</ms></mrow> <mo>}</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><ms>English</ms> <mtext>,&nbsp;</mtext> <ms>Hi!</ms></mrow> <mo>}</mo></mrow></mrow> <mo>}</mo></mrow> <mo>]</mo></mrow>""",
+            "System`OutputForm": (
+                '<mtable columnalign="center">\n'
+                '<mtr><mtd columnalign="center"><mtext>Spanish</mtext></mtd><mtd columnalign="center"><mtext>Hola!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>Portuguese</mtext></mtd><mtd columnalign="center"><mtext>Olà!</mtext></mtd></mtr>\n'
+                '<mtr><mtd columnalign="center"><mtext>English</mtext></mtd><mtd columnalign="center"><mtext>Hi!</mtext></mtd></mtr>\n'
+                "</mtable>"
+            ),
         },
     },
     "Subsuperscript[a, p, q]": {
@@ -364,14 +396,8 @@ all_test = {
     "a^(b/c)": {
         "msg": "SuperscriptBox with a nested expression.",
         "text": {
-            "System`StandardForm": (
-                "a^(b/c)",
-                "must be a^(b/c) instead of a^((b)/(c))",
-            ),
-            "System`TraditionalForm": (
-                "a^(b/c)",
-                "must be a^(b/c) instead of a^((b)/(c))",
-            ),
+            "System`StandardForm": "a^(b / c)",
+            "System`TraditionalForm": "a^(b / c)",
             "System`InputForm": "a^(b / c)",
             "System`OutputForm": "a ^ (b / c)",
         },
@@ -391,33 +417,27 @@ all_test = {
     "1/(1+1/(1+1/a))": {
         "msg": "FractionBox",
         "text": {
-            "System`StandardForm": (
-                "1 / (1+1 / (1+1 / a))",
-                "must be 1 / (1+1 / (1+1 / a))",
-            ),
-            "System`TraditionalForm": (
-                "1 / (1+1 / (1+1 / a))",
-                "must be 1 / (1+1 / (1+1 / a))",
-            ),
+            "System`StandardForm": "1 / (1+1 / (1+1 / a))",
+            "System`TraditionalForm": "1 / (1+1 / (1+1 / a))",
             "System`InputForm": "1 / (1 + 1 / (1 + 1 / a))",
             "System`OutputForm": "1 / (1 + 1 / (1 + 1 / a))",
         },
         "mathml": {
             "System`StandardForm": (
                 "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
-                "must be <mn> instead <mtext>",
+                "Fragile!",
             ),
             "System`TraditionalForm": (
                 "<mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac>",
-                "must be <mn> instead <mtext>",
+                "Fragile!",
             ),
             "System`InputForm": (
                 "<mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
-                "must be <mtext> instead <mn>",
+                "Fragile!",
             ),
             "System`OutputForm": (
-                "<mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
-                "must be <mtext> instead <mn>",
+                "<mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow>",
+                "Fragile!",
             ),
         },
         "tex": {
@@ -430,33 +450,27 @@ all_test = {
     "Sqrt[1/(1+1/(1+1/a))]": {
         "msg": "SqrtBox",
         "text": {
-            "System`StandardForm": (
-                "Sqrt[1 / (1+1 / (1+1 / a))]",
-                "must be Sqrt[1 / (1+1 / (1+1 / a))]",
-            ),
-            "System`TraditionalForm": (
-                "Sqrt[1 / (1+1 / (1+1 / a))]",
-                "must be Sqrt[1 / (1+1 / (1+1 / a))]",
-            ),
+            "System`StandardForm": "Sqrt[1 / (1+1 / (1+1 / a))]",
+            "System`TraditionalForm": "Sqrt[1 / (1+1 / (1+1 / a))]",
             "System`InputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
             "System`OutputForm": "Sqrt[1 / (1 + 1 / (1 + 1 / a))]",
         },
         "mathml": {
             "System`StandardForm": (
                 "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
-                "must be...",
+                "Fragile!",
             ),
             "System`TraditionalForm": (
                 "<msqrt> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mrow><mn>1</mn> <mo>+</mo> <mfrac><mn>1</mn> <mi>a</mi></mfrac></mrow></mfrac></mrow></mfrac> </msqrt>",
-                "must be...",
+                "Fragile!",
             ),
             "System`InputForm": (
                 "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
-                "must be...",
+                "Fragile!",
             ),
             "System`OutputForm": (
-                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mtext>1</mtext> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mtext>1</mtext> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
-                "must be ...",
+                "<mrow><mi>Sqrt</mi> <mo>[</mo> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mrow><mo>(</mo> <mrow><mn>1</mn> <mtext>&nbsp;+&nbsp;</mtext> <mrow><mn>1</mn> <mtext>&nbsp;/&nbsp;</mtext> <mi>a</mi></mrow></mrow> <mo>)</mo></mrow></mrow></mrow> <mo>)</mo></mrow></mrow> <mo>]</mo></mrow>",
+                "Fragile!",
             ),
         },
         "tex": {
@@ -620,7 +634,7 @@ def load_tests(key):
                 tst, extra_msg = tst
                 if len(extra_msg) > 7 and extra_msg[:7] == "must be":
                     must_be = True
-                elif len(extra_msg) > 8 and extra_msg[:7] == "Fragile!":
+                elif len(extra_msg) > 8 and extra_msg[-8:] == "Fragile!":
                     fragile = True
                 msg = base_msg + " - " + extra_msg
             else:
@@ -691,7 +705,9 @@ if fragile_tests:
         format_result = result.format(session.evaluation, form)
         if msg:
             assert (
-                format_result.boxes_to_tex(evaluation=session.evaluation)
+                format_result.boxes_to_tex(
+                    show_string_characters=False, evaluation=session.evaluation
+                )
                 == str_expected
             ), msg
         else:
@@ -708,7 +724,10 @@ def test_makeboxes_tex(str_expr, str_expected, form, msg):
     format_result = result.format(session.evaluation, form)
     if msg:
         assert (
-            format_result.boxes_to_tex(evaluation=session.evaluation) == str_expected
+            format_result.boxes_to_tex(
+                show_string_characters=False, evaluation=session.evaluation
+            )
+            == str_expected
         ), msg
     else:
         strresult = format_result.boxes_to_text(evaluation=session.evaluation)

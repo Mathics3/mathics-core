@@ -10,6 +10,7 @@ import typing
 from typing import Any, Optional
 from functools import lru_cache
 
+
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
 from mathics.core.symbols import (
@@ -100,6 +101,7 @@ def _ExponentFunction(value):
 
 def _NumberFormat(man, base, exp, options):
     from mathics.core.expression import Expression
+    from mathics.builtin.box.inout import RowBox, _BoxedString, SuperscriptBox
 
     if exp.get_string_value():
         if options["_Form"] in (
@@ -107,18 +109,12 @@ def _NumberFormat(man, base, exp, options):
             "System`StandardForm",
             "System`FullForm",
         ):
-            return Expression(
-                SymbolRowBox, Expression(SymbolList, man, String("*^"), exp)
-            )
+            return RowBox(man, _BoxedString("*^"), exp)
         else:
-            return Expression(
-                SymbolRowBox,
-                Expression(
-                    SymbolList,
-                    man,
-                    String(options["NumberMultiplier"]),
-                    Expression(SymbolSuperscriptBox, base, exp),
-                ),
+            return RowBox(
+                man,
+                _BoxedString(options["NumberMultiplier"]),
+                SuperscriptBox(base, exp),
             )
     else:
         return man
@@ -198,17 +194,12 @@ class Integer(Number):
     def __init__(self, value) -> "Integer":
         super().__init__()
 
-    def boxes_to_text(self, **options) -> str:
-        return str(self.value)
+    def make_boxes(self, form) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return str(self.value)
-
-    def make_boxes(self, form) -> "String":
-        return String(str(self.value))
+        if form in ("System`InputForm", "System`FullForm"):
+            return _BoxedString(str(self.value), number_as_text=True)
+        return _BoxedString(str(self.value))
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
@@ -423,15 +414,6 @@ class Real(Number):
     def __ne__(self, other) -> bool:
         # Real is a total order
         return not (self == other)
-
-    def boxes_to_text(self, **options) -> str:
-        return self.make_boxes("System`OutputForm").boxes_to_text(**options)
-
-    def boxes_to_mathml(self, **options) -> str:
-        return self.make_boxes("System`MathMLForm").boxes_to_mathml(**options)
-
-    def boxes_to_tex(self, **options) -> str:
-        return self.make_boxes("System`TeXForm").boxes_to_tex(**options)
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
@@ -801,133 +783,16 @@ class String(Atom, ImmutableValueMixin):
     def __str__(self) -> str:
         return '"%s"' % self.value
 
-    def boxes_to_text(self, show_string_characters=False, **options) -> str:
-        value = self.value
-        if (
-            not show_string_characters
-            and value.startswith('"')  # nopep8
-            and value.endswith('"')
-        ):
-            value = value[1:-1]
-
-        return value
-
-    def boxes_to_mathml(self, show_string_characters=False, **options) -> str:
-        from mathics.core.parser import is_symbol_name
-        from mathics.builtin import builtins_by_module
-
-        # comment @mmatera:  This piece of code loads all the operators
-        # in all the modules.
-        # Maybe it should be build and stored once in mathics.builtin object.
-        #
-        operators = set()
-        for modname, builtins in builtins_by_module.items():
-            for builtin in builtins:
-                # name = builtin.get_name()
-                operator = builtin.get_operator_display()
-                if operator is not None:
-                    operators.add(operator)
-
-        text = self.value
-
-        def render(format, string):
-            encoded_text = encode_mathml(string)
-            return format % encoded_text
-
-        if text.startswith('"') and text.endswith('"'):
-            if show_string_characters:
-                return render("<ms>%s</ms>", text[1:-1])
-            else:
-                outtext = ""
-                for line in text[1:-1].split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-        elif text and ("0" <= text[0] <= "9" or text[0] == "."):
-            return render("<mn>%s</mn>", text)
-        else:
-            if text in operators or text in extra_operators:
-                if text == "\u2146":
-                    return render(
-                        '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
-                    )
-                if text == "\u2062":
-                    return render(
-                        '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
-                    )
-                return render("<mo>%s</mo>", text)
-            elif is_symbol_name(text):
-                return render("<mi>%s</mi>", text)
-            else:
-                outtext = ""
-                for line in text.split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-
-    def boxes_to_tex(self, show_string_characters=False, **options) -> str:
-        from mathics.builtin import builtins_by_module
-
-        operators = set()
-
-        for modname, builtins in builtins_by_module.items():
-            for builtin in builtins:
-                operator = builtin.get_operator_display()
-                if operator is not None:
-                    operators.add(operator)
-
-        text = self.value
-
-        def render(format, string, in_text=False):
-            return format % encode_tex(string, in_text)
-
-        if text.startswith('"') and text.endswith('"'):
-            if show_string_characters:
-                return render(r'\text{"%s"}', text[1:-1], in_text=True)
-            else:
-                return render(r"\text{%s}", text[1:-1], in_text=True)
-        elif text and text[0] in "0123456789-.":
-            return render("%s", text)
-        else:
-            # FIXME: this should be done in a better way.
-            if text == "\u2032":
-                return "'"
-            elif text == "\u2032\u2032":
-                return "''"
-            elif text == "\u2062":
-                return " "
-            elif text == "\u221e":
-                return r"\infty "
-            elif text == "\u00d7":
-                return r"\times "
-            elif text in ("(", "[", "{"):
-                return render(r"\left%s", text)
-            elif text in (")", "]", "}"):
-                return render(r"\right%s", text)
-            elif text == "\u301a":
-                return r"\left[\left["
-            elif text == "\u301b":
-                return r"\right]\right]"
-            elif text == "," or text == ", ":
-                return text
-            elif text == "\u222b":
-                return r"\int"
-            # Tolerate WL or Unicode DifferentialD
-            elif text in ("\u2146", "\U0001D451"):
-                return r"\, d"
-            elif text == "\u2211":
-                return r"\sum"
-            elif text == "\u220f":
-                return r"\prod"
-            elif len(text) > 1:
-                return render(r"\text{%s}", text, in_text=True)
-            else:
-                return render("%s", text)
-
     def atom_to_boxes(self, f, evaluation):
+        from mathics.builtin.box.inout import _BoxedString
+
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
             inner = inner.replace("\\", "\\\\")
-
-        return String('"' + inner + '"')
+            return _BoxedString(
+                '"' + inner + '"', **{"System`ShowStringCharacters": SymbolTrue}
+            )
+        return _BoxedString('"' + inner + '"')
 
     def do_copy(self) -> "String":
         return String(self.value)
@@ -991,17 +856,10 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def __str__(self) -> str:
         return base64.b64encode(self.value).decode("utf8")
 
-    def boxes_to_text(self, **options) -> str:
-        return '"' + self.__str__() + '"'
+    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-    def boxes_to_mathml(self, **options) -> str:
-        return encode_mathml(String('"' + self.__str__() + '"'))
-
-    def boxes_to_tex(self, **options) -> str:
-        return encode_tex(String('"' + self.__str__() + '"'))
-
-    def atom_to_boxes(self, f, evaluation):
-        res = String('""' + self.__str__() + '""')
+        res = _BoxedString('""' + self.__str__() + '""')
         return res
 
     def do_copy(self) -> "ByteArrayAtom":

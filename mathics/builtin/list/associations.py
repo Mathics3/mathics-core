@@ -11,6 +11,7 @@ from mathics.builtin.base import (
     Builtin,
     Test,
 )
+from mathics.builtin.box.inout import RowBox
 
 from mathics.builtin.lists import list_boxes
 
@@ -20,7 +21,6 @@ from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
-    SymbolRowBox,
 )
 
 from mathics.core.attributes import hold_all_complete, protected
@@ -104,18 +104,14 @@ class Association(Builtin):
 
         rules = rules.get_sequence()
         if self.error_idx == 0 and validate(rules) is True:
-            expr = Expression(
-                SymbolRowBox, Expression(SymbolList, *list_boxes(rules, f, "<|", "|>"))
-            )
+            expr = RowBox(*list_boxes(rules, f, evaluation, "<|", "|>"))
         else:
             self.error_idx += 1
             symbol = Expression(SymbolMakeBoxes, SymbolAssociation, f)
-            expr = Expression(
-                SymbolRowBox,
-                Expression(SymbolList, symbol, *list_boxes(rules, f, "[", "]")),
+            expr = RowBox(
+                symbol.evaluate(evaluation), *list_boxes(rules, f, evaluation, "[", "]")
             )
 
-        expr = expr.evaluate(evaluation)
         if self.error_idx > 0:
             self.error_idx -= 1
         return expr

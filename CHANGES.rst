@@ -12,6 +12,8 @@ Enhancements
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
+* Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
+
 
 
 Documentation
@@ -65,8 +67,7 @@ Internals
 * ``BoxConstruction`` -> ``BoxExpression``
 * the method ``Element.is_true()`` was removed in favor of ``is SymbolTrue``
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
-* The methods  ``boxes_to_*`` were removed from ``Element`` and ``Expression``
-  and kept just for ``Atoms`` and  ``BoxExpressions``.
+* The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 
 
 Package update
