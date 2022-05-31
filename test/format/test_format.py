@@ -70,6 +70,9 @@ all_test = {
             "System`InputForm": "-4.32",
             "System`OutputForm": "-4.32",
         },
+        # In WMA, depending on the requested form, numbers in MathMLForm is
+        # tagged with <mn> or <mtext>. In particular, for InputForm and FullForm
+        # the choice is <mtext>
         "mathml": {
             "System`StandardForm": "<mn>-4.32</mn>",
             "System`TraditionalForm": "<mn>-4.32</mn>",
@@ -139,6 +142,11 @@ all_test = {
             "System`InputForm": "<ms>Hola!</ms>",
             "System`OutputForm": "<mtext>Hola!</mtext>",
         },
+        # Notice that differetly from "text", where InputForm
+        # preserves the quotes in strings, MathTeXForm just
+        # sorrounds the string in a ``\text{...}`` command,
+        # in the same way that all the other forms. This choice
+        # follows the behavior in WMA.
         "tex": {
             "System`StandardForm": "\\text{Hola!}",
             "System`TraditionalForm": "\\text{Hola!}",
@@ -147,6 +155,9 @@ all_test = {
         },
     },
     # String with special characters
+    # In WMA, TeXForm[Pi] returns ``"\pi"`` instead the unicode character.
+    # In a next round, the idea would be to use mathics-scanner to recover the
+    # right representation of the characters.
     '"\\[Pi] is a trascendental number"': {
         "msg": "A String",
         "text": {
