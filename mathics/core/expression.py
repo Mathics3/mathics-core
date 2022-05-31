@@ -1174,7 +1174,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         if isinstance(element, EvalMixin):
                             new_value = element.evaluate(evaluation)
                             # We need id() because != by itself is too permissive
-                            if id(elements[index]) != id(new_value):
+                            if id(element) != id(new_value):
                                 recompute_properties = True
                                 elements[index] = new_value
 
