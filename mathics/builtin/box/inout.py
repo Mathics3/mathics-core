@@ -196,7 +196,7 @@ class _BoxedString(BoxExpression):
     def get_head(self) -> Symbol:
         return SymbolString
 
-    def get_head_name(self) -> "str":
+    def get_head_name(self) -> str:
         return "System`String"
 
     def get_string_value(self) -> str:
