@@ -41,7 +41,7 @@ def decompose_domain(interval, evaluation):
         if not isinstance(intvar, Symbol):
             evaluation.message("ilim", interval)
             return None
-        boundaries = [a for a in interval.elements[1:]]
+        boundaries = interval.elements[1:]  # Rest[interval]
         if any([b.get_head_name() == "System`Complex" for b in boundaries]):
             intvar = ListExpression(intvar, Expression(SymbolBlank, SymbolComplex))
         for i in range(len(boundaries) - 1):
