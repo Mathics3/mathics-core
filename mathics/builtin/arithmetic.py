@@ -38,11 +38,16 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolInfix, SymbolUndefined
-from mathics.core.number import min_prec, dps, SpecialValueError
-
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
+from mathics.core.number import min_prec, dps, SpecialValueError
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
+    SymbolInfix,
+    SymbolPlus,
+    SymbolTable,
+    SymbolUndefined,
+)
 
 from mathics.core.attributes import (
     hold_all,
@@ -61,7 +66,7 @@ def call_mpmath(mpmath_function, mpmath_args):
     except ValueError as exc:
         text = str(exc)
         if text == "gamma function pole":
-            return Symbol("ComplexInfinity")
+            return SymbolComplexInfinity
         else:
             raise
     except ZeroDivisionError:
@@ -105,7 +110,7 @@ class _MPMathFunction(SympyFunction):
             result = to_expression(self.get_name(), *args).to_sympy()
             result = self.prepare_mathics(result)
             result = from_sympy(result)
-            # evaluate leaves to convert e.g. Plus[2, I] -> Complex[2, 1]
+            # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
             return result.evaluate_elements(evaluation)
         elif mpmath_function is None:
             return
@@ -984,7 +989,7 @@ class Sum(_IterationFunction, SympyFunction):
     )
 
     def get_result(self, items):
-        return Expression("Plus", *items)
+        return Expression(SymbolPlus, *items)
 
     def to_sympy(self, expr, **kwargs) -> SympyExpression:
         """
@@ -1030,7 +1035,7 @@ class Sum(_IterationFunction, SympyFunction):
                     # Sum[f[x], {<limits>}] into
                     #   MathicsSum[Table[f[x], {<limits>}]]
                     # where MathicsSum is self.get_result() our Iteration iterator.
-                    values = Expression("Table", *expr.leaves).evaluate(evaluation)
+                    values = Expression(SymbolTable, *expr.leaves).evaluate(evaluation)
                     ret = self.get_result(values.leaves).evaluate(evaluation)
                     # Make sure to convert the result back to sympy.
                     return ret.to_sympy()

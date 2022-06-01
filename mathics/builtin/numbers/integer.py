@@ -10,11 +10,11 @@ import string
 
 
 from mathics.builtin.base import Builtin, SympyFunction
+from mathics.core.atoms import Integer, Integer0, String
+from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0, String
-
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.list import ListExpression, to_mathics_list
 
 
 class Floor(SympyFunction):
@@ -277,8 +277,7 @@ class IntegerDigits(_IntBaseBuiltin):
         "IntegerDigits[n_Integer, b_Integer]"
         base = self._valid_base(b, evaluation)
         return (
-            Expression(
-                "List",
+            ListExpression(
                 *[
                     Integer(d)
                     for d in reversed(list(_reversed_digits(n.get_int_value(), base)))
@@ -292,8 +291,7 @@ class IntegerDigits(_IntBaseBuiltin):
         "IntegerDigits[n_Integer, b_Integer, length_Integer]"
         base = self._valid_base(b, evaluation)
         return (
-            Expression(
-                "List",
+            ListExpression(
                 *_pad(
                     [
                         Integer(d)
@@ -361,7 +359,7 @@ class DigitCount(_IntBaseBuiltin):
         for digit in _reversed_digits(n.get_int_value(), base):
             occurence_count[digit] += 1
         # result list is rotated by one element to the left
-        return Expression("List", *(occurence_count[1:] + [occurence_count[0]]))
+        return to_mathics_list(*(occurence_count[1:] + [occurence_count[0]]))
 
 
 class IntegerReverse(_IntBaseBuiltin):
