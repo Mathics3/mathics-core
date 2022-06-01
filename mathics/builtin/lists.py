@@ -61,10 +61,9 @@ from mathics.core.atoms import (
 
 from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, structure
+from mathics.core.expression import Expression, structure, to_expression
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -77,8 +76,11 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
+    SymbolGreaterEqual,
+    SymbolLess,
+    SymbolLessEqual,
     SymbolMakeBoxes,
-    SymbolRowBox,
+    SymbolPlus,
     SymbolRule,
     SymbolSequence,
 )
@@ -1029,9 +1031,9 @@ class _IterationFunction(Builtin):
 
         result = []
         compare_type = (
-            "GreaterEqual"
-            if Expression("Less", di, Integer0).evaluate(evaluation).to_python()
-            else "LessEqual"
+            SymbolGreaterEqual
+            if Expression(SymbolLess, di, Integer0).evaluate(evaluation).to_python()
+            else SymbolLessEqual
         )
         while True:
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
@@ -1061,7 +1063,7 @@ class _IterationFunction(Builtin):
                     return e.expr
                 else:
                     raise
-            index = Expression("Plus", index, di).evaluate(evaluation)
+            index = Expression(SymbolPlus, index, di).evaluate(evaluation)
         return self.get_result(result)
 
     def apply_list(self, expr, i, items, evaluation):
@@ -2458,10 +2460,10 @@ class SubsetQ(Builtin):
 def delete_one(expr, pos):
     if isinstance(expr, Atom):
         raise PartDepthError(pos)
-    leaves = expr.leaves
+    elements = expr.elements
     if pos == 0:
-        return Expression(SymbolSequence, *leaves)
-    s = len(leaves)
+        return Expression(SymbolSequence, *elements)
+    s = len(elements)
     truepos = pos
     if truepos < 0:
         truepos = s + truepos
@@ -2469,8 +2471,12 @@ def delete_one(expr, pos):
         truepos = truepos - 1
     if truepos < 0 or truepos >= s:
         raise PartRangeError
-    leaves = leaves[:truepos] + (Expression("System`Sequence"),) + leaves[truepos + 1 :]
-    return Expression(expr.get_head(), *leaves)
+    elements = (
+        elements[:truepos]
+        + (to_expression("System`Sequence"),)
+        + elements[truepos + 1 :]
+    )
+    return to_expression(expr.get_head(), *elements)
 
 
 def delete_rec(expr, pos):
@@ -2479,20 +2485,20 @@ def delete_rec(expr, pos):
     truepos = pos[0]
     if truepos == 0 or isinstance(expr, Atom):
         raise PartDepthError(pos[0])
-    leaves = expr.leaves
-    s = len(leaves)
+    elements = expr.elements
+    s = len(elements)
     if truepos < 0:
         truepos = truepos + s
         if truepos < 0:
             raise PartRangeError
-        newleaf = delete_rec(leaves[truepos], pos[1:])
-        leaves = leaves[:truepos] + (newleaf,) + leaves[truepos + 1 :]
+        newleaf = delete_rec(elements[truepos], pos[1:])
+        elements = elements[:truepos] + (newleaf,) + elements[truepos + 1 :]
     else:
         if truepos > s:
             raise PartRangeError
-        newleaf = delete_rec(leaves[truepos - 1], pos[1:])
-        leaves = leaves[: truepos - 1] + (newleaf,) + leaves[truepos:]
-    return Expression(expr.get_head(), *leaves)
+        newleaf = delete_rec(elements[truepos - 1], pos[1:])
+        elements = elements[: truepos - 1] + (newleaf,) + elements[truepos:]
+    return Expression(expr.get_head(), *elements)
 
 
 #    rules = {'Failure /: MakeBoxes[Failure[tag_, assoc_Association], StandardForm]' :

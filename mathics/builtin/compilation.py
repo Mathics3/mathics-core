@@ -17,7 +17,12 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolFunction,
+    SymbolInteger,
+    SymbolReal,
+)
 
 from mathics.core.atoms import (
     Integer,
@@ -166,7 +171,7 @@ class Compile(Builtin):
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
             args = Expression("List", *names)
-            return Expression("Function", args, expr)
+            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
         arg_names = Expression("List", *(Symbol(arg.name) for arg in args))

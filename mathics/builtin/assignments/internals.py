@@ -16,6 +16,7 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolBlank,
+    SymbolCondition,
     SymbolMachinePrecision,
     SymbolOptionValue,
     SymbolPattern,
@@ -582,7 +583,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
             evaluation.message_args("Condition", len(rhs.leaves), 2)
             raise AssignmentException(lhs, None)
         lhs = Expression(
-            "Condition", lhs, rhs.leaves[1].do_apply_rules([rulopc], evaluation)[0]
+            SymbolCondition, lhs, rhs.leaves[1].do_apply_rules([rulopc], evaluation)[0]
         )
         rhs = rhs.leaves[0]
         rhs_name = rhs.get_head_name()
@@ -590,7 +591,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
     # Now, let's add the conditions on the LHS
     if condition:
         lhs = Expression(
-            "Condition",
+            SymbolCondition,
             lhs,
             condition.leaves[1].do_apply_rules([rulopc], evaluation)[0],
         )

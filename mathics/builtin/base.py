@@ -181,7 +181,7 @@ class Builtin:
         # mathics.builtin.inout
 
         if kwargs.get("expression", None) is not False:
-            return Expression(cls.get_name(), *args)
+            return to_expression(cls.get_name(), *args)
         else:
             instance = super().__new__(cls)
             if not instance.formats:
