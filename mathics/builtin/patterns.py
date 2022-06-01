@@ -43,7 +43,7 @@ from mathics.algorithm.parts import python_levelspec
 from mathics.builtin.lists import InvalidLevelspecError
 
 from mathics.core.element import EvalMixin
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.atoms import (
     String,
     Number,
@@ -1022,7 +1022,7 @@ class Pattern_(PatternObject):
             )
         else:
             # Treat existing variable as verbatim
-            verbatim_expr = Expression("Verbatim", existing)
+            verbatim_expr = Expression(SymbolVerbatim, existing)
             verbatim = Verbatim(verbatim_expr)
             return verbatim.get_match_candidates(
                 leaves, expression, attributes, evaluation, vars

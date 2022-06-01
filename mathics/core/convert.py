@@ -19,6 +19,7 @@ from mathics.core.symbols import (
     sympy_slot_prefix,
 )
 from mathics.core.systemsymbols import (
+    SymbolEqual,
     SymbolFunction,
     SymbolGreater,
     SymbolGreaterEqual,
@@ -33,7 +34,6 @@ from mathics.core.systemsymbols import (
 )
 
 
-SymbolEqual = Symbol("Equal")
 SymbolO = Symbol("O")
 SymbolPiecewise = Symbol("Piecewise")
 SymbolPrime = Symbol("Prime")
