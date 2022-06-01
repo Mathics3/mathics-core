@@ -17,6 +17,7 @@ from mathics.core.atoms import (
     Integer,
     String,
 )
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     SymbolFalse,
@@ -523,7 +524,7 @@ class Transpose(Builtin):
                     result.append([item])
                 else:
                     result[col_index].append(item)
-        return Expression("List", *[Expression("List", *row) for row in result])
+        return ListExpression(*[ListExpression(*row) for row in result])
 
 
 class VectorQ(Builtin):

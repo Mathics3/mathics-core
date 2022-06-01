@@ -11,10 +11,15 @@ It is closely related to many other areas of mathematics and has many applicatio
 from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolDivide, SymbolPlus, SymbolTimes
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.core.attributes import listable, numeric_function, orderless, protected
 from itertools import combinations
+
+SymbolBinomial = Symbol("Binomial")
+SymbolSubsets = Symbol("Subsets")
 
 
 class Binomial(_MPMathFunction):
@@ -80,8 +85,10 @@ class Multinomial(Builtin):
         total = []
         for value in values:
             total.append(value)
-            elements.append(Expression("Binomial", Expression("Plus", *total), value))
-        return Expression("Times", *elements)
+            elements.append(
+                Expression(SymbolBinomial, Expression(SymbolPlus, *total), value)
+            )
+        return Expression(SymbolTimes, *elements)
 
 
 class _NoBoolVector(Exception):
@@ -146,7 +153,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
     summary_text = "simple matching dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, n)
+        return Expression(SymbolDivide, c_tf + c_ft, n)
 
 
 class JaccardDissimilarity(_BooleanDissimilarity):
@@ -165,7 +172,7 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, c_tt + c_ft + c_tf)
+        return Expression(SymbolDivide, c_tf + c_ft, c_tt + c_ft + c_tf)
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
@@ -184,7 +191,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
     summary_text = "Dice dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
+        return Expression(SymbolDivide, c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
 
 
 class YuleDissimilarity(_BooleanDissimilarity):
@@ -204,7 +211,7 @@ class YuleDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r_half = c_tf * c_ft
-        return Expression("Divide", 2 * r_half, c_tt * c_ff + r_half)
+        return Expression(SymbolDivide, 2 * r_half, c_tt * c_ff + r_half)
 
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
@@ -224,7 +231,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression("Divide", r, c_tt + r)
+        return Expression(SymbolDivide, r, c_tt + r)
 
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
@@ -243,7 +250,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     summary_text = "Russell-Rao dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression("Divide", n - c_tt, n)
+        return Expression(SymbolDivide, n - c_tt, n)
 
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
@@ -263,7 +270,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression("Divide", r, c_tt + c_ff + r)
+        return Expression(SymbolDivide, r, c_tt + c_ff + r)
 
 
 class Subsets(Builtin):
@@ -412,32 +419,32 @@ class Subsets(Builtin):
         "Subsets[list_]"
 
         return (
-            evaluation.message("Subsets", "normal", Expression("Subsets", list))
+            evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
             if isinstance(list, Atom)
-            else self.apply_1(list, Integer(len(list.leaves)), evaluation)
+            else self.apply_1(list, Integer(len(list.elements)), evaluation)
         )
 
     def apply_1(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
-        expr = Expression("Subsets", list, n)
+        expr = Expression(SymbolSubsets, list, n)
         if isinstance(list, Atom):
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
             n_value = n.get_int_value()
             if n_value == 0:
-                return Expression("List", Expression("List"))
+                return ListExpression(ListExpression())
             if n_value is None or n_value < 0:
                 return evaluation.message("Subsets", "nninfseq", expr)
 
             nested_list = [
                 Expression(head_t, *c)
                 for i in range(n_value + 1)
-                for c in combinations(list.leaves, i)
+                for c in combinations(list.elements, i)
             ]
 
-            return Expression("List", *nested_list)
+            return ListExpression(*nested_list)
 
     def apply_2(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
@@ -451,13 +458,13 @@ class Subsets(Builtin):
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
                 return self.apply(list, evaluation)
 
-            n_len = len(n.leaves)
+            n_len = len(n.elements)
 
             if n_len == 0:
                 return evaluation.message("Subsets", "nninfseq", expr)
 
             elif n_len == 1:
-                elem1 = n.leaves[0].get_int_value()
+                elem1 = n.elements[0].get_int_value()
                 if elem1 is None or elem1 < 0:
                     return evaluation.message("Subsets", "nninfseq", expr)
                 min_n = elem1
@@ -465,11 +472,11 @@ class Subsets(Builtin):
                 step_n = 1
 
             elif n_len == 2:
-                elem1 = n.leaves[0].get_int_value()
+                elem1 = n.elements[0].get_int_value()
                 elem2 = (
-                    n.leaves[1].get_int_value()
-                    if not n.leaves[1].has_form("DirectedInfinity", 1)
-                    else len(list.leaves) + 1
+                    n.elements[1].get_int_value()
+                    if not n.elements[1].has_form("DirectedInfinity", 1)
+                    else len(list.elements) + 1
                 )
                 if elem1 is None or elem2 is None or elem1 < 0 or elem2 < 0:
                     return evaluation.message("Subsets", "nninfseq", expr)
@@ -478,13 +485,13 @@ class Subsets(Builtin):
                 step_n = 1
 
             elif n_len == 3:
-                elem1 = n.leaves[0].get_int_value()
+                elem1 = n.elements[0].get_int_value()
                 elem2 = (
-                    n.leaves[1].get_int_value()
-                    if not n.leaves[1].has_form("DirectedInfinity", 1)
-                    else len(list.leaves) + 1
+                    n.elements[1].get_int_value()
+                    if not n.elements[1].has_form("DirectedInfinity", 1)
+                    else len(list.elements) + 1
                 )
-                elem3 = n.leaves[2].get_int_value()
+                elem3 = n.elements[2].get_int_value()
                 if (
                     elem1 is None
                     or elem2 is None
@@ -508,14 +515,14 @@ class Subsets(Builtin):
             nested_list = [
                 Expression(head_t, *c)
                 for i in range(min_n, max_n, step_n)
-                for c in combinations(list.leaves, i)
+                for c in combinations(list.elements, i)
             ]
 
-            return Expression("List", *nested_list)
+            return ListExpression(*nested_list)
 
     def apply_3(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
         return evaluation.message(
-            "Subsets", "normal", Expression("Subsets", list, n, spec)
+            "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
         )
