@@ -11,7 +11,7 @@ from mathics.builtin.base import Builtin
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolRule, SymbolTable
 
@@ -144,7 +144,7 @@ class SparseArray(Builtin):
                             dims[i] = j
         if any(d == 0 for d in dims):
             return
-        return to_mathics_list(dims, elements_conversion_fn=Integer)
+        return ListExpression(*[Integer(d) for d in dims])
 
     def apply_1(self, rules, evaluation):
         """SparseArray[rules_List]"""
