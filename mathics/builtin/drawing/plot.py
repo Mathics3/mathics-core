@@ -26,12 +26,22 @@ from mathics.core.atoms import (
     String,
     Integer,
     Integer0,
+    Integer1,
     from_python,
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import (
+    SymbolBlend,
+    SymbolColorData,
+    SymbolFunction,
+    SymbolMessageName,
+    SymbolPower,
+    SymbolQuiet,
+    SymbolRule,
+    SymbolSlot,
+)
 
 
 try:
@@ -44,7 +54,7 @@ except ImportError:
 
 def gradient_palette(color_function, n, evaluation):  # always returns RGB values
     if isinstance(color_function, String):
-        color_data = Expression("ColorData", color_function).evaluate(evaluation)
+        color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
         if not color_data.has_form("ColorDataFunction", 4):
             return
         name, kind, interval, blend = color_data.leaves
@@ -95,7 +105,8 @@ class _GradientColorScheme(object):
             "List", *[Expression("RGBColor", *color) for color in self.colors()]
         )
         blend = Expression(
-            "Function", Expression("Blend", colors, Expression("Slot", 1))
+            SymbolFunction,
+            Expression(SymbolBlend, colors, Expression(SymbolSlot, Integer1)),
         )
         arguments = [
             String(name),
@@ -268,10 +279,10 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
             return quiet_f
     expr = Expression(SymbolN, expr).evaluate(evaluation)
     quiet_expr = Expression(
-        "Quiet",
+        SymbolQuiet,
         expr,
         Expression(
-            SymbolList, Expression("MessageName", Symbol("Power"), String("infy"))
+            SymbolList, Expression(SymbolMessageName, SymbolPower, String("infy"))
         ),
     )
 
@@ -2211,7 +2222,7 @@ class ParametricPlot(_Plot):
 
 
 class PolarPlot(_Plot):
-    u"""
+    """
     <dl>
       <dt>'PolarPlot[$r$, {$t$, $t_min$, $t_max$}]'
       <dd>creates a polar plot of curve with radius $r$ as a function of angle $t$ ranging from $t_min$ to $t_max$.
@@ -2242,6 +2253,7 @@ class PolarPlot(_Plot):
     >> PolarPlot[Sqrt[t], {t, 0, 16 Pi}]
      = -Graphics-
     """
+
     summary_text = "draw a polar plot"
     options = _Plot.options.copy()
     options.update(
@@ -2538,7 +2550,8 @@ class DensityPlot(_Plot3D):
                 color_function_min = func.leaves[2].leaves[0].round_to_float()
                 color_function_max = func.leaves[2].leaves[1].round_to_float()
                 color_function = Expression(
-                    "Function", Expression(func.leaves[3], Expression("Slot", 1))
+                    SymbolFunction,
+                    Expression(func.leaves[3], Expression(SymbolSlot, Integer1)),
                 )
             else:
                 evaluation.message("DensityPlot", "color", func)

@@ -45,6 +45,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
+    SymbolCondition,
     SymbolDirectedInfinity,
     SymbolBlank,
     SymbolSequence,
@@ -58,7 +59,6 @@ SymbolBlankSequence = Symbol("System`BlankSequence")
 SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
 SymbolCompile = Symbol("Compile")
 SymbolCompiledFunction = Symbol("CompiledFunction")
-SymbolCondition = Symbol("Condition")
 SymbolDefault = Symbol("Default")
 SymbolFunction = Symbol("Function")
 SymbolOptional = Symbol("Optional")

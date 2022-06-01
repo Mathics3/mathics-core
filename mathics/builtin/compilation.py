@@ -15,9 +15,15 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolBlank, SymbolInteger, SymbolReal
+from mathics.core.expression import Expression, SymbolCompiledFunction
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolFunction,
+    SymbolInteger,
+    SymbolReal,
+)
 
 from mathics.core.atoms import (
     Integer,
@@ -162,15 +168,19 @@ class Compile(Builtin):
                 cfunc = _pythonized_mathics_expr
             except Exception:
                 cfunc = None
-
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
-            args = Expression("List", *names)
-            return Expression("Function", args, expr)
+            # FIXME: we don't have tests for the below code. If we did,
+            # we may find that the below is buggy using Expression(SymbolList, or to_mathics_list()
+            # args = Expression(SymbolList, *names)
+            args = to_mathics_list(*names, elements_conversion_fn=String)
+            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
-        arg_names = Expression("List", *(Symbol(arg.name) for arg in args))
-        return Expression("CompiledFunction", arg_names, expr, code)
+        arg_names = to_mathics_list(
+            *(arg.name for arg in args), elements_conversion_fn=Symbol
+        )
+        return Expression(SymbolCompiledFunction, arg_names, expr, code)
 
 
 class CompiledCode(Atom, ImmutableValueMixin):
