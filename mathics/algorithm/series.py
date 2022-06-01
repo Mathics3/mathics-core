@@ -1,4 +1,12 @@
-from mathics.core.symbols import Atom, Symbol, SymbolList
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolList,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
+
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.expression import Expression
 from mathics.core.rules import Pattern
@@ -8,9 +16,6 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolIndeterminate,
     SymbolInfinity,
-    SymbolPlus,
-    SymbolPower,
-    SymbolTimes,
 )
 
 IntegerMinusOne = Integer(-1)
@@ -36,105 +41,103 @@ def same_monomial(expr, x, x0):
     return False
 
 
-"""
-def to_series_term(series, term, x, x0):
-    return None, None
-    coeff = None
-    power = None
-    reminder = None
-    if isinstance(term, Atom):
-        if term.sameQ(x):
-            coeff = Integer1
-            power = 1
-            reminder = -x0
-        else:
-            coeff = term
-            power = 0
-            reminder = None
-    else:
-        head, leaves = term.head, term.leaves
-        if head is SymbolPower:
-            base, exponent = leaves
-            head_exponent = exponent.get_head()
-            if head_exponent is SymbolInteger:
-                power = exponent.to_float()
-            elif head_exponent is SymbolRational:
-                num, den = exponent.value.as_numer_denom()
-                if den != 1 and den != series[-1]:
-                    return None, None
-                power = exponent.to_float()
-            else:
-                return None, None
-            if x.sameQ(base):
-                reminder = -term + Expression(SymbolPower, x - x0, exponent)
-                coeff = 1
-            elif same_monomial(base, x, x0):
-                coeff = 1
-                reminder = None
-            else:
-                return None, None
-        elif head is SymbolTimes:
-            coeffs_free = []
-            coeffs_powers = []
-            coeffs_x = []
-            for leaf in leaves:
-                if x.sameQ(leaf):
-                    coeffs_x.append(x)
-                elif isinstance(leaf, Atom):
-                    coeffs_free.append(leaf)
-                elif leaf.get_head() is SymbolPower:
-                    coeffs_powers.append(leaf)
-                else:
-                    return None, None
-            # All the factors are of the form x^k
-            if all(x.sameQ(leaf.leaves[0]) for leaf in coeffs_powers):
-                coeff = Expression(SymbolTimes, *coeffs_free)
-                power = len(coeffs_x)
-                exponents = [leaf.leaves[1] for leaf in coeffs_powers]
-                if not all(
-                    isinstance(exponent, (Integer, Rational)) for exponent in exponents
-                ):
-                    return None, None
-                power = power + sum([exp.to_python() for exp in exponents])
-                reminder = -term + Expression(
-                    SymbolTimes, coeff, Expression(SymbolPower, x - x0, power)
-                )
-            # All the factors are of the form (x-x0)^k
-            elif (
-                all(same_monomial(leaf.leaves[0], x, x0) for leaf in coeffs_powers)
-                and len(coeffs_x) == 0
-            ):
-                coeff = Expression(SymbolTimes, *coeffs_free)
-                exponents = [leaf.leaves[1] for leaf in coeffs_powers]
-                if not all(
-                    isinstance(exponent, (Integer, Rational)) for exponent in exponents
-                ):
-                    return None, None
-                power = power + sum([exp.to_python() for exp in exponents])
-                reminder = None
-            else:
-                return None, None
-    if coeff:
-        power = power * series[-1]
-        if power > series[-2] or (power - int(power)) != 0:
-            return None, None
-        nmin = series[1]
-        power = int(power) - nmin
-        if power < 0:
-            nmin = nmin + power
-            newdata = [coef] + [Integer0 for i in range(1 - power)] + series[0].leaves
-        else:
-            newdata = [
-                c + coeff if p == power else c for p, c in enumerate(series[0].leaves)
-            ]
-        return (
-            Expression(SymbolList, *newdata),
-            nmin,
-            series[-2],
-            series[-1],
-        ), reminder
-    return None, None
-"""
+# def to_series_term(series, term, x, x0):
+#     return None, None
+#     coeff = None
+#     power = None
+#     reminder = None
+#     if isinstance(term, Atom):
+#         if term.sameQ(x):
+#             coeff = Integer1
+#             power = 1
+#             reminder = -x0
+#         else:
+#             coeff = term
+#             power = 0
+#             reminder = None
+#     else:
+#         head, leaves = term.head, term.leaves
+#         if head is SymbolPower:
+#             base, exponent = leaves
+#             head_exponent = exponent.get_head()
+#             if head_exponent is SymbolInteger:
+#                 power = exponent.to_float()
+#             elif head_exponent is SymbolRational:
+#                 num, den = exponent.value.as_numer_denom()
+#                 if den != 1 and den != series[-1]:
+#                     return None, None
+#                 power = exponent.to_float()
+#             else:
+#                 return None, None
+#             if x.sameQ(base):
+#                 reminder = -term + Expression(SymbolPower, x - x0, exponent)
+#                 coeff = 1
+#             elif same_monomial(base, x, x0):
+#                 coeff = 1
+#                 reminder = None
+#             else:
+#                 return None, None
+#         elif head is SymbolTimes:
+#             coeffs_free = []
+#             coeffs_powers = []
+#             coeffs_x = []
+#             for leaf in leaves:
+#                 if x.sameQ(leaf):
+#                     coeffs_x.append(x)
+#                 elif isinstance(leaf, Atom):
+#                     coeffs_free.append(leaf)
+#                 elif leaf.get_head() is SymbolPower:
+#                     coeffs_powers.append(leaf)
+#                 else:
+#                     return None, None
+#             # All the factors are of the form x^k
+#             if all(x.sameQ(leaf.leaves[0]) for leaf in coeffs_powers):
+#                 coeff = Expression(SymbolTimes, *coeffs_free)
+#                 power = len(coeffs_x)
+#                 exponents = [leaf.leaves[1] for leaf in coeffs_powers]
+#                 if not all(
+#                     isinstance(exponent, (Integer, Rational)) for exponent in exponents
+#                 ):
+#                     return None, None
+#                 power = power + sum([exp.to_python() for exp in exponents])
+#                 reminder = -term + Expression(
+#                     SymbolTimes, coeff, Expression(SymbolPower, x - x0, power)
+#                 )
+#             # All the factors are of the form (x-x0)^k
+#             elif (
+#                 all(same_monomial(leaf.leaves[0], x, x0) for leaf in coeffs_powers)
+#                 and len(coeffs_x) == 0
+#             ):
+#                 coeff = Expression(SymbolTimes, *coeffs_free)
+#                 exponents = [leaf.leaves[1] for leaf in coeffs_powers]
+#                 if not all(
+#                     isinstance(exponent, (Integer, Rational)) for exponent in exponents
+#                 ):
+#                     return None, None
+#                 power = power + sum([exp.to_python() for exp in exponents])
+#                 reminder = None
+#             else:
+#                 return None, None
+#     if coeff:
+#         power = power * series[-1]
+#         if power > series[-2] or (power - int(power)) != 0:
+#             return None, None
+#         nmin = series[1]
+#         power = int(power) - nmin
+#         if power < 0:
+#             nmin = nmin + power
+#             newdata = [coef] + [Integer0 for i in range(1 - power)] + series[0].leaves
+#         else:
+#             newdata = [
+#                 c + coeff if p == power else c for p, c in enumerate(series[0].leaves)
+#             ]
+#         return (
+#             Expression(SymbolList, *newdata),
+#             nmin,
+#             series[-2],
+#             series[-1],
+#         ), reminder
+#     return None, None
 
 
 def series_plus_series(series1, series2):

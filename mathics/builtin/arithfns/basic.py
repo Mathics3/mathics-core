@@ -35,20 +35,25 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
-from mathics.core.symbols import Symbol, SymbolList, SymbolNull, SymbolHoldForm
+from mathics.core.symbols import (
+    Symbol,
+    SymbolDivide,
+    SymbolHoldForm,
+    SymbolList,
+    SymbolNull,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
-    SymbolDivide,
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
     SymbolMinus,
     SymbolPattern,
-    SymbolPlus,
-    SymbolPower,
-    SymbolTimes,
     SymbolSequence,
 )
 from mathics.core.number import min_prec, dps

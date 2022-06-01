@@ -623,40 +623,6 @@ class PredefinedSymbol(Symbol):
         return False
 
 
-# Symbols used in this module.
-
-# Note, below we are only setting PredefinedSymbol for Symbols which
-# are both predefined and have the Locked attribute.
-
-# An experiment using PredefinedSymbol("Pi") in the Pythoin code and
-# running:
-#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
-# show that this does not change the output in any way.
-#
-# That said, for now we will proceed very conservatively and
-# cautiously. However we may decide in the future to
-# more of the below and in systemsymbols
-# PredefineSymbol.
-
-SymbolFalse = PredefinedSymbol("System`False")
-SymbolGraphics = Symbol("System`Graphics")
-SymbolGraphics3D = Symbol("System`Graphics3D")
-SymbolHoldForm = Symbol("System`HoldForm")
-SymbolList = PredefinedSymbol("System`List")
-SymbolMachinePrecision = Symbol("MachinePrecision")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
-SymbolMaxPrecision = Symbol("$MaxPrecision")
-SymbolMinPrecision = Symbol("$MinPrecision")
-SymbolN = Symbol("System`N")
-SymbolNull = Symbol("System`Null")
-SymbolNumberForm = Symbol("System`NumberForm")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolRepeated = Symbol("System`Repeated")
-SymbolRepeatedNull = Symbol("System`RepeatedNull")
-SymbolSequence = Symbol("System`Sequence")
-SymbolTrue = PredefinedSymbol("System`True")
-
-
 # The available formats.
 
 format_symbols = system_symbols(
@@ -670,10 +636,113 @@ format_symbols = system_symbols(
 )
 
 
-SymbolInputForm = Symbol("InputForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolStandardForm = Symbol("StandardForm")
+# Symbols used in this module.
+
+# Note, below we are only setting PredefinedSymbol for Symbols which
+# are both predefined and have the Locked attribute.
+
+# An experiment using PredefinedSymbol("Pi") in the Python code and
+# running:
+#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
+# show that this does not change the output in any way.
+#
+# That said, for now we will proceed very conservatively and
+# cautiously. However we may decide in the future to
+# more of the below and in systemsymbols
+# PredefineSymbol.
+
+SymbolFalse = PredefinedSymbol("System`False")
+SymbolList = PredefinedSymbol("System`List")
+SymbolTrue = PredefinedSymbol("System`True")
+
+SymbolAbs = Symbol("Abs")
+SymbolDivide = Symbol("Divide")
 SymbolFullForm = Symbol("FullForm")
-SymbolTraditionalForm = Symbol("TraditionalForm")
-SymbolTeXForm = Symbol("TeXForm")
+SymbolGraphics = Symbol("System`Graphics")
+SymbolGraphics3D = Symbol("System`Graphics3D")
+SymbolHoldForm = Symbol("System`HoldForm")
+SymbolInputForm = Symbol("InputForm")
+SymbolMachinePrecision = Symbol("MachinePrecision")
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
 SymbolMathMLForm = Symbol("MathMLForm")
+SymbolMaxPrecision = Symbol("$MaxPrecision")
+SymbolMinPrecision = Symbol("$MinPrecision")
+SymbolN = Symbol("System`N")
+SymbolNull = Symbol("System`Null")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolPlus = Symbol("Plus")
+SymbolPostfix = Symbol("System`Postfix")
+SymbolPower = Symbol("Power")
+SymbolRepeated = Symbol("System`Repeated")
+SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolSequence = Symbol("System`Sequence")
+SymbolStandardForm = Symbol("StandardForm")
+SymbolTeXForm = Symbol("TeXForm")
+SymbolTimes = Symbol("Times")
+SymbolTraditionalForm = Symbol("TraditionalForm")
+
+# NumericOperators uses some of the Symbols above.
+class NumericOperators:
+    """
+    This is a mixin class for Element-like objects that might have numeric values.
+    It adds or "mixes in" numeric functions for these objects like round_to_float().
+
+    It also adds methods to the class to facilite building
+    ``Expression``s in the Mathics Python code using Python syntax.
+
+    So for example, instead of writing in Python:
+
+        to_expression("Abs", -8)
+        Expression(SymbolPlus, Integer1, Integer2)
+
+    you can instead have:
+        abs(Integer(-8))
+        Integer(1) + Integer(2)
+    """
+
+    def __abs__(self) -> BaseElement:
+        return self.create_expression(SymbolAbs, self)
+
+    def __add__(self, other) -> BaseElement:
+        return self.create_expression(SymbolPlus, self, other)
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        return self.create_expression(SymbolTimes, self, -1)
+
+    def __sub__(self, other) -> BaseElement:
+        return self.create_expression(
+            "Plus", self, self.create_expression(SymbolTimes, other, -1)
+        )
+
+    def __mul__(self, other) -> BaseElement:
+        return self.create_expression(SymbolTimes, self, other)
+
+    def __truediv__(self, other) -> BaseElement:
+        return self.create_expression(SymbolDivide, self, other)
+
+    def __floordiv__(self, other) -> BaseElement:
+        return self.create_expression(
+            "Floor", self.create_expression(SymbolDivide, self, other)
+        )
+
+    def __pow__(self, other) -> BaseElement:
+        return self.create_expression(SymbolPower, self, other)
+
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None

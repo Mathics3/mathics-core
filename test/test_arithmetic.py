@@ -16,8 +16,7 @@ from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolAbs, SymbolPlus, SymbolTimes
+from mathics.core.symbols import Symbol, SymbolAbs, SymbolPlus, SymbolTimes
 
 
 class ArithmeticTest(unittest.TestCase):

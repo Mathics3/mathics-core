@@ -47,6 +47,9 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolList,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
     SymbolTrue,
 )
 
@@ -58,13 +61,10 @@ from mathics.core.systemsymbols import (
     SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
-    SymbolPlus,
-    SymbolPower,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
     SymbolSeriesData,
-    SymbolTimes,
     SymbolUndefined,
 )
 from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy

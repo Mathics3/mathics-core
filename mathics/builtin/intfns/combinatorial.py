@@ -12,8 +12,15 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolDivide, SymbolPlus, SymbolTimes
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolDivide,
+    SymbolFalse,
+    SymbolPlus,
+    SymbolTimes,
+    SymbolTrue,
+)
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.core.attributes import listable, numeric_function, orderless, protected
 from itertools import combinations

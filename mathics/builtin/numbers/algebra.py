@@ -15,16 +15,6 @@ There are a number of built-in functions that perform:
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
-
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolNull,
-    SymbolTrue,
-)
 
 from mathics.core.atoms import (
     Integer,
@@ -34,22 +24,33 @@ from mathics.core.atoms import (
     Number,
 )
 
+from mathics.core.expression import Expression
+
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolNull,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+    SymbolTrue,
+)
+
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolAlternatives,
-    Symbol_Assumptions,
+    SymbolAssumptions,
     SymbolComplexInfinity,
     SymbolCos,
     SymbolDirectedInfinity,
     SymbolEqual,
     SymbolIndeterminate,
     SymbolLess,
-    SymbolPlus,
-    SymbolPower,
     SymbolRule,
     SymbolRuleDelayed,
     SymbolSin,
-    SymbolTimes,
 )
 
 from mathics.algorithm.simplify import default_complexity_function
@@ -1590,7 +1591,7 @@ class Simplify(Builtin):
 
         # If the option "Assumptions" was passed, then merge with assum:
         assumptions_list = options.pop("System`Assumptions")
-        if assumptions_list and assumptions_list is not Symbol_Assumptions:
+        if assumptions_list and assumptions_list is not SymbolAssumptions:
             if assum.get_head() is not SymbolList:
                 assum = Expression(SymbolList, assum)
             if assumptions_list.get_head() is not SymbolList:
@@ -1623,7 +1624,7 @@ class Simplify(Builtin):
         # rebuild the expression without this option, and evaluate it
         # inside a scope with $Assumptions set accordingly.
         assumptions = options.pop("System`Assumptions", None)
-        if assumptions not in (None, Symbol_Assumptions):
+        if assumptions not in (None, SymbolAssumptions):
             simplify_expr = Expression(
                 self.get_name(), expr, *options_to_rules(options)
             )

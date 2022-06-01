@@ -14,6 +14,9 @@ BasicSympy = sympy.Expr
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
     SymbolTrue,
     sympy_symbol_prefix,
     sympy_slot_prefix,
@@ -27,10 +30,7 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
-    SymbolPlus,
-    SymbolPower,
     SymbolSlot,
-    SymbolTimes,
 )
 
 

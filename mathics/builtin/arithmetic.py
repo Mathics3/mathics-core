@@ -35,6 +35,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
     String,
+    SymbolPlus,
     from_mpmath,
     from_python,
 )
@@ -44,7 +45,6 @@ from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTr
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolInfix,
-    SymbolPlus,
     SymbolTable,
     SymbolUndefined,
 )
