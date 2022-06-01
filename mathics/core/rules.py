@@ -62,10 +62,11 @@ class BaseRule(KeyComparable):
             else:
                 result = new_expression
 
-            if isinstance(result, Expression) and result.elements_properties is None:
-                result._build_elements_properties()
-            # Flatten out sequences (important for Rule itself!)
-            result = result.flatten_pattern_sequence(evaluation)
+            if isinstance(result, Expression):
+                if result.elements_properties is None:
+                    result._build_elements_properties()
+                # Flatten out sequences (important for Rule itself!)
+                result = result.flatten_pattern_sequence(evaluation)
             if return_list:
                 result_list.append(result)
                 # count += 1

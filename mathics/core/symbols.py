@@ -254,12 +254,6 @@ class Atom(BaseElement):
         """
         return self
 
-    def flatten_sequence(self, evaluation) -> "Atom":
-        return self
-
-    def flatten_pattern_sequence(self, evaluation) -> "Atom":
-        return self
-
     def flatten_with_respect_to_head(
         self, head, pattern_only=False, callback=None, level=None
     ) -> "Atom":
