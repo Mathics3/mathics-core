@@ -38,8 +38,12 @@ from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolAlternatives,
     Symbol_Assumptions,
+    SymbolComplexInfinity,
     SymbolCos,
     SymbolDirectedInfinity,
+    SymbolEqual,
+    SymbolIndeterminate,
+    SymbolLess,
     SymbolPlus,
     SymbolPower,
     SymbolRule,
@@ -1605,13 +1609,13 @@ class Simplify(Builtin):
 
     def apply_power_of_zero(self, b, evaluation):
         "%(name)s[0^b_]"
-        if self.apply(Expression("Less", 0, b), evaluation, options) is SymbolTrue:
+        if self.apply(Expression(SymbolLess, 0, b), evaluation) is SymbolTrue:
             return Integer0
-        if self.apply(Expression("Less", b, 0), evaluation, options) is SymbolTrue:
-            return Symbol("ComplexInfinity")
-        if self.apply(Expression("Equal", b, 0), evaluation, options) is SymbolTrue:
-            return Symbol("Indeterminate")
-        return Expression("Power", Integer0, b)
+        if self.apply(Expression(SymbolLess, b, 0), evaluation) is SymbolTrue:
+            return Symbol(SymbolComplexInfinity)
+        if self.apply(Expression(SymbolEqual, b, 0), evaluation) is SymbolTrue:
+            return Symbol(SymbolIndeterminate)
+        return Expression(SymbolPower, Integer0, b)
 
     def apply(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[]]"
@@ -1648,10 +1652,12 @@ class Simplify(Builtin):
         # Notice that here we want to pass through the full evaluation process
         # to use all the defined rules...
         name = self.get_name()
+        symbol_name = Symbol(name)
         elements = [
-            Expression(name, element).evaluate(evaluation) for element in expr._elements
+            Expression(symbol_name, element).evaluate(evaluation)
+            for element in expr._elements
         ]
-        head = Expression(name, expr.get_head()).evaluate(evaluation)
+        head = Expression(symbol_name, expr.get_head()).evaluate(evaluation)
         expr = Expression(head, *elements)
 
         # At this point, we used all the tools available in Mathics.
