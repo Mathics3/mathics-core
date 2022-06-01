@@ -12,6 +12,7 @@ from mathics.core.expression import Expression
 from mathics.core.convert import sympy_symbol_prefix, from_sympy
 from mathics.core.attributes import constant
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolFunction
 
 
 class RSolve(Builtin):
@@ -169,7 +170,7 @@ class RSolve(Builtin):
                         Expression(
                             "Rule",
                             a,
-                            Expression("Function", function_form, from_sympy(soln)),
+                            Expression(SymbolFunction, function_form, from_sympy(soln)),
                         ),
                     )
                     for soln in sym_result

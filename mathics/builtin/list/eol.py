@@ -35,9 +35,11 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAppend,
     SymbolFailed,
     SymbolMakeBoxes,
     SymbolSequence,
+    SymbolSet,
 )
 
 from mathics.core.rules import Rule
@@ -133,7 +135,9 @@ class AppendTo(Builtin):
             return evaluation.message("AppendTo", "rvalue", s)
 
         if not isinstance(resolved_s, Atom):
-            result = Expression("Set", s, Expression("Append", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolAppend, resolved_s, item)
+            )
             return result.evaluate(evaluation)
 
         return evaluation.message("AppendTo", "normal", Expression("AppendTo", s, item))

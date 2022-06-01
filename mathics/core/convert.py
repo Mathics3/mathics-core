@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
@@ -19,25 +18,27 @@ from mathics.core.symbols import (
     sympy_symbol_prefix,
     sympy_slot_prefix,
 )
+from mathics.core.systemsymbols import (
+    SymbolFunction,
+    SymbolGreater,
+    SymbolGreaterEqual,
+    SymbolIndeterminate,
+    SymbolInfinity,
+    SymbolLess,
+    SymbolLessEqual,
+    SymbolPlus,
+    SymbolPower,
+    SymbolSlot,
+    SymbolTimes,
+)
 
 
 SymbolEqual = Symbol("Equal")
-SymbolFunction = Symbol("Function")
-SymbolGreater = Symbol("Greater")
-SymbolGreaterEqual = Symbol("GreaterEqual")
-SymbolIndeterminate = Symbol("Indeterminate")
-SymbolInfinity = Symbol("Infinity")
-SymbolLess = Symbol("Less")
-SymbolLessEqual = Symbol("LessEqual")
 SymbolO = Symbol("O")
 SymbolPiecewise = Symbol("Piecewise")
-SymbolPlus = Symbol("Plus")
-SymbolPower = Symbol("Power")
 SymbolPrime = Symbol("Prime")
 SymbolRoot = Symbol("Root")
 SymbolRootSum = Symbol("RootSum")
-SymbolSlot = Symbol("Slot")
-SymbolTimes = Symbol("Times")
 SymbolUnequal = Symbol("Unequal")
 
 

@@ -9,6 +9,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 from mathics.core.convert import from_sympy
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolFunction
 
 
 class DSolve(Builtin):
@@ -196,7 +197,9 @@ class DSolve(Builtin):
                             "Rule",
                             y,
                             Expression(
-                                "Function", function_form, *from_sympy(soln).leaves[1:]
+                                SymbolFunction,
+                                function_form,
+                                *from_sympy(soln).leaves[1:]
                             ),
                         ),
                     )

@@ -26,6 +26,14 @@ from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
+from mathics.core.atoms import (
+    String,
+    StringFromPython,
+    Integer,
+    Real,
+    MachineReal,
+    PrecisionReal,
+)
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
 from mathics.core.symbols import (
@@ -37,16 +45,9 @@ from mathics.core.symbols import (
     SymbolNull,
 )
 
-from mathics.core.atoms import (
-    String,
-    StringFromPython,
-    Integer,
-    Real,
-    MachineReal,
-    PrecisionReal,
-)
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
+    SymbolQuiet,
     SymbolRowBox,
     SymbolRule,
 )
@@ -1646,7 +1647,7 @@ class Quiet(Builtin):
         old_quiet_messages = set(evaluation.get_quiet_messages())
         quiet_messages = old_quiet_messages.copy()
         try:
-            quiet_expr = Expression("Quiet", expr, moff, mon)
+            quiet_expr = Expression(SymbolQuiet, expr, moff, mon)
             try:
                 off_all, off_messages = get_msg_list(moff)
             except ValueError:
