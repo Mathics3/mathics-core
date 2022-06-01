@@ -39,6 +39,7 @@ from mathics.core.symbols import (
     Symbol,
     SymbolList,
     SymbolN,
+    SymbolTimes,
     SymbolTrue,
     system_symbols,
 )
@@ -49,7 +50,6 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolBlank,
     SymbolSequence,
-    SymbolTimes,
 )
 from mathics.core.atoms import String
 

@@ -11,15 +11,14 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolSequence
+from mathics.core.symbols import Symbol, SymbolPlus, SymbolSequence, SymbolTimes
+
 
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplex,
     SymbolD,
     SymbolNIntegrate,
-    SymbolPlus,
-    SymbolTimes,
 )
 
 

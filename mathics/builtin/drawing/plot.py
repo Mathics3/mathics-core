@@ -31,13 +31,12 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlend,
     SymbolColorData,
     SymbolFunction,
     SymbolMessageName,
-    SymbolPower,
     SymbolQuiet,
     SymbolRule,
     SymbolSlot,
