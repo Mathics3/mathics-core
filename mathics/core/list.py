@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from mathics.core.expression import Expression, convert_expression_elements
 
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from mathics.core.atoms import from_python
 from mathics.core.element import ElementsProperties
-from mathics.core.symbols import SymbolList
+from mathics.core.symbols import EvalMixin, SymbolList
 
 
 class ListExpression(Expression):
@@ -57,6 +57,48 @@ class ListExpression(Expression):
         parameter.
         """
         return self._is_literal
+
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple[Expression, bool]:
+        """Perform a single rewrite/apply/eval step of the bigger
+        Expression.evaluate() process.
+
+        We return the ListExpression as well as a Boolean which indicates
+        whether the caller `evaluate()` should consider reevaluating
+        the expression. For lists, once we evaluate a list, we
+        never have to re-evaluate it
+
+        Note that this is a recursive process: we may call something
+        that may call our parent: evaluate() which calls us again.
+
+        In general that this step is time consuming, complicated, and involved.
+        For lists, things are simpler.
+        """
+
+        if self.elements_properties is None:
+            self._build_elements_properties()
+
+        # @timeit
+        def eval_range(indices):
+            recompute_properties = False
+            for index in indices:
+                element = elements[index]
+                if not element.has_form("Unevaluated", 1):
+                    if isinstance(element, EvalMixin):
+                        new_value = element.evaluate(evaluation)
+                        # We need id() because != by itself is too permissive
+                        if id(element) != id(new_value):
+                            recompute_properties = True
+                            elements[index] = new_value
+
+            if recompute_properties:
+                self._build_elements_properties()
+                self.python_list = None
+
+        if not self.elements_properties.elements_fully_evaluated:
+            elements = self.get_mutable_elements()
+            eval_range(len(elements))
+            self._elements = elements
+        return self, True
 
 
 def to_mathics_list(
