@@ -452,7 +452,7 @@ class StringJoin(BinaryOperator):
     def apply(self, items, evaluation):
         "StringJoin[items___]"
         result = ""
-        if isinstance(items, Expression):
+        if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
         if items.get_head_name() == "System`List":
             items = items.elements

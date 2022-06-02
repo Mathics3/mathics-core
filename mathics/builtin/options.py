@@ -319,7 +319,7 @@ class OptionQ(Test):
     )
 
     def test(self, expr):
-        if isinstance(expr, Expression):
+        if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]
@@ -352,7 +352,7 @@ class NotOptionQ(Test):
     summary_text = "test whether an expression does not match the form of a valid option specification"
 
     def test(self, expr):
-        if isinstance(expr, Expression):
+        if hasattr(expr, "flatten_with_respect_to_head"):
             expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]

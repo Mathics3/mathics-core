@@ -3,9 +3,28 @@
 
 import sympy
 from mathics.core.symbols import Symbol
-from mathics.core.atoms import from_python, Complex, Integer, MachineReal, Real, String
+from mathics.core.atoms import (
+    from_python,
+    Complex,
+    Integer,
+    Integer0,
+    Integer1,
+    IntegerM1,
+    MachineReal,
+    Real,
+    String,
+)
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import SymbolPlus
+from mathics.core.systemsymbols import (
+    SymbolD,
+    SymbolDerivative,
+    SymbolGamma,
+    SymbolIntegrate,
+    SymbolSin,
+)
 import random
 import sys
 import unittest
@@ -34,8 +53,8 @@ class SympyConvert(unittest.TestCase):
         self.compare(Real(1.0), sympy.Float(1.0))
 
     def testInteger(self):
-        self.compare(Integer(0), sympy.Integer(0))
-        self.compare(Integer(1), sympy.Integer(1))
+        self.compare(Integer0, sympy.Integer(0))
+        self.compare(Integer1, sympy.Integer(1))
 
         n = random.randint(-sys.maxsize, sys.maxsize)
         self.compare(Integer(n), sympy.Integer(n))
@@ -49,10 +68,10 @@ class SympyConvert(unittest.TestCase):
             sympy.Add(sympy.Float("1.0"), sympy.Float("1.0") * sympy.I),
         )
 
-        self.compare(Complex(Integer(0), Integer(1)), sympy.I)
+        self.compare(Complex(Integer0, Integer1), sympy.I)
 
         self.compare(
-            Complex(Integer(-1), Integer(1)),
+            Complex(IntegerM1, Integer1),
             sympy.Integer(-1) + sympy.I,
         )
 
@@ -61,13 +80,13 @@ class SympyConvert(unittest.TestCase):
 
     def testAdd(self):
         self.compare(
-            Expression("Plus", Integer(1), Symbol("Global`x")),
+            Expression(SymbolPlus, Integer1, Symbol("Global`x")),
             sympy.Add(sympy.Integer(1), sympy.Symbol("_Mathics_User_Global`x")),
         )
 
     def testIntegrate(self):
         self.compare(
-            Expression("Integrate", Symbol("Global`x"), Symbol("Global`y")),
+            Expression(SymbolIntegrate, Symbol("Global`x"), Symbol("Global`y")),
             sympy.Integral(
                 sympy.Symbol("_Mathics_User_Global`x"),
                 sympy.Symbol("_Mathics_User_Global`y"),
@@ -76,7 +95,7 @@ class SympyConvert(unittest.TestCase):
 
     def testDerivative(self):
         self.compare(
-            Expression("D", Symbol("Global`x"), Symbol("Global`y")),
+            Expression(SymbolD, Symbol("Global`x"), Symbol("Global`y")),
             sympy.Derivative(
                 sympy.Symbol("_Mathics_User_Global`x"),
                 sympy.Symbol("_Mathics_User_Global`y"),
@@ -87,7 +106,7 @@ class SympyConvert(unittest.TestCase):
         kwargs = {"converted_functions": set(["Global`f"])}
 
         head = Expression(
-            Expression("System`Derivative", Integer(1), Integer(0)),
+            Expression(SymbolDerivative, Integer1, Integer0),
             Symbol("Global`f"),
         )
         expr = Expression(head, Symbol("Global`x"), Symbol("Global`y"))
@@ -104,13 +123,13 @@ class SympyConvert(unittest.TestCase):
     def testConvertedFunctions(self):
         kwargs = {"converted_functions": set(["Global`f"])}
 
-        marg1 = Expression("Global`f", Symbol("Global`x"))
+        marg1 = Expression(Symbol("Global`f"), Symbol("Global`x"))
         sarg1 = sympy.Function(str("_Mathics_User_Global`f"))(
             sympy.Symbol("_Mathics_User_Global`x")
         )
         self.compare(marg1, sarg1, **kwargs)
 
-        marg2 = Expression("Global`f", Symbol("Global`x"), Symbol("Global`y"))
+        marg2 = Expression(Symbol("Global`f"), Symbol("Global`x"), Symbol("Global`y"))
         sarg2 = sympy.Function(str("_Mathics_User_Global`f"))(
             sympy.Symbol("_Mathics_User_Global`x"),
             sympy.Symbol("_Mathics_User_Global`y"),
@@ -118,14 +137,14 @@ class SympyConvert(unittest.TestCase):
         self.compare(marg2, sarg2, **kwargs)
 
         self.compare(
-            Expression("D", marg2, Symbol("Global`x")),
+            Expression(SymbolD, marg2, Symbol("Global`x")),
             sympy.Derivative(sarg2, sympy.Symbol("_Mathics_User_Global`x")),
             **kwargs
         )
 
     def testExpression(self):
         self.compare(
-            Expression("Sin", Symbol("Global`x")),
+            Expression(SymbolSin, Symbol("Global`x")),
             sympy.sin(sympy.Symbol("_Mathics_User_Global`x")),
         )
 
@@ -135,11 +154,11 @@ class SympyConvert(unittest.TestCase):
 
     def testGamma(self):
         self.compare(
-            Expression("Gamma", Symbol("Global`z")),
+            Expression(SymbolGamma, Symbol("Global`z")),
             sympy.gamma(sympy.Symbol("_Mathics_User_Global`z")),
         )
         self.compare(
-            Expression("Gamma", Symbol("Global`z"), Symbol("Global`x")),
+            Expression(SymbolGamma, Symbol("Global`z"), Symbol("Global`x")),
             sympy.uppergamma(
                 sympy.Symbol("_Mathics_User_Global`z"),
                 sympy.Symbol("_Mathics_User_Global`x"),
@@ -177,13 +196,13 @@ class PythonConvert(unittest.TestCase):
         self.compare(Complex(Integer(1), MachineReal(1.0)), 1 + 1.0j)
         self.compare(Complex(MachineReal(1.0), Integer(1)), 1.0 + 1j)
         self.compare(Complex(Real("1.0", 5), Integer(1)), 1.0 + 1j)
-        self.compare(Complex(Integer(1), Real("1.0", 20)), 1 + 1.0j)
+        self.compare(Complex(Integer1, Real("1.0", 20)), 1 + 1.0j)
 
-        self.compare(Complex(Integer(0), Integer(1)), 1j)
-        self.compare(Complex(Integer(1), Integer(0)), 1)
+        self.compare(Complex(Integer0, Integer1), 1j)
+        self.compare(Complex(Integer1, Integer0), 1)
 
     def testList(self):
-        self.compare(Expression("List", Integer(1)), [1])
+        self.compare(ListExpression(Integer1), [1])
 
 
 if __name__ == "__main__":

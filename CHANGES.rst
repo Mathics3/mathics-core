@@ -68,6 +68,7 @@ Internals
 * the method ``Element.is_true()`` was removed in favor of ``is SymbolTrue``
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
 * The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
+* remove ``flatten_*`` from the ``Atom`` interface.
 
 
 Package update
