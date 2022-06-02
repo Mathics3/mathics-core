@@ -15,16 +15,6 @@ There are a number of built-in functions that perform:
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
-
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolNull,
-    SymbolTrue,
-)
 
 from mathics.core.atoms import (
     Integer,
@@ -34,18 +24,33 @@ from mathics.core.atoms import (
     Number,
 )
 
+from mathics.core.expression import Expression
+
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolNull,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+    SymbolTrue,
+)
+
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolAlternatives,
-    Symbol_Assumptions,
+    SymbolAssumptions,
+    SymbolComplexInfinity,
     SymbolCos,
     SymbolDirectedInfinity,
-    SymbolPlus,
-    SymbolPower,
+    SymbolEqual,
+    SymbolIndeterminate,
+    SymbolLess,
     SymbolRule,
     SymbolRuleDelayed,
     SymbolSin,
-    SymbolTimes,
 )
 
 from mathics.algorithm.simplify import default_complexity_function
@@ -1586,7 +1591,7 @@ class Simplify(Builtin):
 
         # If the option "Assumptions" was passed, then merge with assum:
         assumptions_list = options.pop("System`Assumptions")
-        if assumptions_list and assumptions_list is not Symbol_Assumptions:
+        if assumptions_list and assumptions_list is not SymbolAssumptions:
             if assum.get_head() is not SymbolList:
                 assum = Expression(SymbolList, assum)
             if assumptions_list.get_head() is not SymbolList:
@@ -1605,13 +1610,13 @@ class Simplify(Builtin):
 
     def apply_power_of_zero(self, b, evaluation):
         "%(name)s[0^b_]"
-        if self.apply(Expression("Less", 0, b), evaluation, options) is SymbolTrue:
+        if self.apply(Expression(SymbolLess, 0, b), evaluation) is SymbolTrue:
             return Integer0
-        if self.apply(Expression("Less", b, 0), evaluation, options) is SymbolTrue:
-            return Symbol("ComplexInfinity")
-        if self.apply(Expression("Equal", b, 0), evaluation, options) is SymbolTrue:
-            return Symbol("Indeterminate")
-        return Expression("Power", Integer0, b)
+        if self.apply(Expression(SymbolLess, b, 0), evaluation) is SymbolTrue:
+            return Symbol(SymbolComplexInfinity)
+        if self.apply(Expression(SymbolEqual, b, 0), evaluation) is SymbolTrue:
+            return Symbol(SymbolIndeterminate)
+        return Expression(SymbolPower, Integer0, b)
 
     def apply(self, expr, evaluation, options={}):
         "%(name)s[expr_, OptionsPattern[]]"
@@ -1619,7 +1624,7 @@ class Simplify(Builtin):
         # rebuild the expression without this option, and evaluate it
         # inside a scope with $Assumptions set accordingly.
         assumptions = options.pop("System`Assumptions", None)
-        if assumptions not in (None, Symbol_Assumptions):
+        if assumptions not in (None, SymbolAssumptions):
             simplify_expr = Expression(
                 self.get_name(), expr, *options_to_rules(options)
             )
@@ -1648,10 +1653,12 @@ class Simplify(Builtin):
         # Notice that here we want to pass through the full evaluation process
         # to use all the defined rules...
         name = self.get_name()
+        symbol_name = Symbol(name)
         elements = [
-            Expression(name, element).evaluate(evaluation) for element in expr._elements
+            Expression(symbol_name, element).evaluate(evaluation)
+            for element in expr._elements
         ]
-        head = Expression(name, expr.get_head()).evaluate(evaluation)
+        head = Expression(symbol_name, expr.get_head()).evaluate(evaluation)
         expr = Expression(head, *elements)
 
         # At this point, we used all the tools available in Mathics.

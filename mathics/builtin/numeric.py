@@ -38,8 +38,7 @@ from mathics.core.number import (
     machine_epsilon,
 )
 
-from mathics.core.symbols import SymbolMachinePrecision
-from mathics.core.systemsymbols import SymbolDivide, SymbolTimes
+from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
 
 
 def chop(expr, delta=10.0 ** (-10.0)):

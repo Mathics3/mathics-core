@@ -68,10 +68,11 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolList,
-    strip_context,
-    SymbolTrue,
     SymbolFalse,
+    SymbolList,
+    SymbolPlus,
+    SymbolTrue,
+    strip_context,
 )
 
 from mathics.core.systemsymbols import (
@@ -81,7 +82,6 @@ from mathics.core.systemsymbols import (
     SymbolLess,
     SymbolLessEqual,
     SymbolMakeBoxes,
-    SymbolPlus,
     SymbolRule,
     SymbolSequence,
 )
