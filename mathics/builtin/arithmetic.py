@@ -1148,9 +1148,10 @@ class Product(_IterationFunction, SympyFunction):
 class Piecewise(SympyFunction):
     """
     <dl>
-    <dt>'Piecewise[{{expr1, cond1}, ...}]'
+      <dt>'Piecewise[{{expr1, cond1}, ...}]'
       <dd>represents a piecewise function.
-    <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
+
+      <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
       <dd>represents a piecewise function with default 'expr'.
     </dl>
 
@@ -1266,11 +1267,10 @@ class Boole(Builtin):
 
 class Assumptions(Predefined):
     """
-     <dl>
-     <dt>'$Assumptions'
-       <dd>is the default setting for the Assumptions option used in such
-    functions as Simplify, Refine, and Integrate.
-     </dl>
+    <dl>
+      <dt>'$Assumptions'
+      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
+    </dl>
     """
 
     summary_text = "assumptions used to simplify expressions"

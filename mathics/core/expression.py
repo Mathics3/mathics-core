@@ -204,8 +204,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._head = head
 
+        # This is useful for finding potential improprer calls
+        # for element in elements:
+        #     if not isinstance(element, BaseElement):
+        #          from trepan.api import debug; debug()
+        #     assert isinstance(element, BaseElement)
+
         # Note: After we make a pass over all Expression() calls, this line will get removed
         # and replaced with the two commented-out lines below:
+
         self._elements, self.elements_properties = convert_expression_elements(
             elements, from_python
         )

@@ -38,7 +38,7 @@ from mathics.core.attributes import (
 )
 
 
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
@@ -669,7 +669,8 @@ class Integrate(SympyFunction):
             else:
                 vars.append((x, a, b))
         try:
-            result = sympy.integrate(f_sympy, *vars)
+            sympy_result = sympy.integrate(f_sympy, *vars)
+            pass
         except sympy.PolynomialError:
             return
         except ValueError:
@@ -679,11 +680,11 @@ class Integrate(SympyFunction):
             # e.g. NotImplementedError: Result depends on the sign of
             # -sign(_Mathics_User_j)*sign(_Mathics_User_w)
             return
-        if prec is not None and isinstance(result, sympy.Integral):
-            # TODO MaxExtaPrecision -> maxn
-            result = result.evalf(dps(prec))
+        if prec is not None and isinstance(sympy_result, sympy.Integral):
+            # TODO MaxExtraPrecision -> maxn
+            result = sympy_result.evalf(dps(prec))
         else:
-            result = from_sympy(result)
+            result = from_sympy(sympy_result)
         # If the result is defined as a Piecewise expression,
         # use ConditionalExpression.
         # This does not work now because the form sympy returns the values
@@ -737,7 +738,9 @@ class Integrate(SympyFunction):
                 cases = cases[0]
                 result = Expression(SymbolConditionalExpression, *(cases.elements))
             else:
-                result = Expression(result._head, cases, default)
+                # FIXME: there is a bug in from_sympy which is leaving an integer
+                # untranslated. Fix this and we can use Expression()
+                result = to_expression(result._head, cases, default)
         else:
             if result.get_head() is SymbolIntegrate:
                 if result.elements[0].evaluate(evaluation).sameQ(f):
