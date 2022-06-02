@@ -4,13 +4,13 @@ CHANGES
 Enhancements
 ============
 
-* ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130
+* ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
 * numeric overflows now do not affect the full evaluation, but instead just the element which produce it.
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
-* ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` (issue #167)
+* ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
-* In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
+* In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
 
@@ -25,7 +25,7 @@ Documentation
 New Builtins
 ============
 * Euler's ``Beta`` function.
-* ``Diagonal``. Issue #115
+* ``Diagonal``. Issue #115.
 * ``EulerPhi``
 * ``$Echo``. Issue #42.
 * ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
@@ -52,7 +52,7 @@ Internals
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
-* A bug comming from a failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
+* A failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
 * ``any`` /``all`` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * ``BaseExpression.get_head``  now avoids building a symbol and then look for its name. It saves two function calls.
 * ``SameQ`` first checks type, then ``id``s, and then names in symbols.
@@ -78,7 +78,7 @@ Package update
 Compatibility
 +++++++++++++
 
-- ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA (issue #132).
+- ``ScriptCommandLine`` now returns, as the first element, the name of the script file (when available), for compatibility with WMA. Issue #132.
 - ``Expression.numerify`` improved in a way to obtain a behavior closer to WMA.
 - ``NumericQ`` lhs expressions are now handled as a special case in assignment. For example ``NumericQ[a]=True`` tells the interpreter that ``a`` must be considered
   a numeric quantity, so ``NumericQ[Sin[a]]`` evaluates to ``True``.
@@ -90,11 +90,12 @@ Bugs
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 *  ``Set*``: fixed issue #128.
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
-* Fix a bug in `Simplify` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
+* Fix a bug in ``Simplify`` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
 * Fix bug in ``Clear``  and ``ClearAll`` (#194).
-* Fix base 10 formatting for infix ``Times`` Issue #266
+* Fix base 10 formatting for infix ``Times``. Issue #266.
 * Partial fix of ``FillSimplify``
-
+* Streams used in MathicsOpen are now freed and their file descriptors now released. Issue #326.
+* Some temporary files that were created are now removed from the filesystem. Issue #309.
 
 4.0.1
 -----
@@ -238,7 +239,7 @@ New variables and builtins
 
 * ``Arrow`` for Graphics3D (preliminary)
 * ``Cylinder`` (preliminary)
-* ``Factorial2`` PR #1459 Issue #682
+* ``Factorial2`` PR #1459 Issue #682.
 
 Enhancements
 ++++++++++++
@@ -384,7 +385,7 @@ Enhancements
 * ``D`` and ``Derivative`` improvements.
 * ``Expand`` and ``ExpandAll`` now support a second parameter ``patt`` Issue #1301.
 * ``Expand`` and ``ExpandAll`` works with hyperbolic functions (`Sinh`, `Cosh`, `Tanh`, `Coth`).
-* ``FileNames`` returns a sorted list (#1250).
+* ``FileNames`` returns a sorted list. Issue #1250.
 * ``FindRoot`` now accepts several optional parameters like ``Method`` and ``MaxIterations``. See Issue #1235.
 * ``FixedPoint`` now supports the ``SameTest`` option.
 * ``mathics`` CLI now uses its own Mathics ``settings.m`` file
@@ -687,7 +688,7 @@ Enhancements and bug fixes
 - ``SetDirectory`` fixes. PR #994
 - Catch ```PatternError`` Exceptions
 - Fix formatting of ``..`` and ``...`` (``RepeatAll``)
-- Tokenization of ``\.`` without a following space (``ReplaceAll``). Issue #992
+- Tokenization of ``\.`` without a following space (``ReplaceAll``). Issue #992.
 - Support for assignments to named ```Pattern```
 - Improve support for ```Names``. PR #1003
 - Add a ``MathicsSession`` class to simplify running Mathics from Python. PR #1001
