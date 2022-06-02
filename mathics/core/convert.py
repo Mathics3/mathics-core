@@ -30,12 +30,13 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
+    SymbolMatrixPower,
+    SymbolPiecewise,
     SymbolSlot,
 )
 
 
 SymbolO = Symbol("O")
-SymbolPiecewise = Symbol("Piecewise")
 SymbolPrime = Symbol("Prime")
 SymbolRoot = Symbol("Root")
 SymbolRootSum = Symbol("RootSum")
@@ -183,7 +184,9 @@ def from_sympy(expr):
                 *[[from_sympy(item) for item in row] for row in expr.tolist()]
             )
     if isinstance(expr, sympy.MatPow):
-        return Expression("MatrixPower", from_sympy(expr.base), from_sympy(expr.exp))
+        return Expression(
+            SymbolMatrixPower, from_sympy(expr.base), from_sympy(expr.exp)
+        )
     if expr.is_Atom:
         name = None
         if expr.is_Symbol:
@@ -370,7 +373,7 @@ def from_sympy(expr):
     elif isinstance(expr, sympy.O):
         if expr.args[0].func == sympy.core.power.Pow:
             [var, power] = [from_sympy(arg) for arg in expr.args[0].args]
-            o = Expression("O", var)
+            o = Expression(SymbolO, var)
             return Expression(SymbolPower, o, power)
         else:
             return Expression(SymbolO, from_sympy(expr.args[0]))
