@@ -3,7 +3,6 @@ Functions to support Read[]
 """
 
 import io
-import os
 import os.path as osp
 
 from mathics.builtin.base import MessageException
@@ -13,6 +12,7 @@ from mathics.core.atoms import Integer, String
 from mathics.core.symbols import Symbol
 from mathics.core.streams import Stream, path_search, stream_manager
 
+# FIXME: don't use a module-level path
 INPUTFILE_VAR = ""
 
 SymbolEndOfFile = Symbol("EndOfFile")
@@ -38,7 +38,22 @@ READ_TYPES = [
 
 
 class MathicsOpen(Stream):
-    def __init__(self, name, mode="r", encoding=None, is_temporary_file=False):
+    """
+    Context manager for reading files.
+
+    Use like this::
+
+        with MathicsOpen(path, "r") as f:
+            # read from f
+            ...
+
+    The ``file``, ``mode``, and ``encoding`` fields are the same as those
+    in the Python builtin ``open()`` function.
+    """
+
+    def __init__(
+        self, file: str, mode: str = "r", encoding=None, is_temporary_file: bool = False
+    ):
         if encoding is not None:
             encoding = to_python_encoding(encoding)
             if "b" in mode:
@@ -47,9 +62,13 @@ class MathicsOpen(Stream):
             elif encoding is None:
                 raise MessageException("General", "charcode", self.encoding)
         self.encoding = encoding
-        super().__init__(name, mode, self.encoding)
-        self.old_inputfile_var = None  # Set in __enter__ and __exit__
+        super().__init__(file, mode, self.encoding)
         self.is_temporary_file = is_temporary_file
+
+        # The following are set in __enter__ and __exit__
+        self.old_inputfile_var = None
+        self.stream = None
+        self.fp = None
 
     def __enter__(self, is_temporary_file=False):
         # find path
@@ -59,24 +78,29 @@ class MathicsOpen(Stream):
         if path is None:
             raise IOError
 
-        # open the stream
-        fp = io.open(path, self.mode, encoding=self.encoding)
+        # Open the file
+        self.fp = io.open(path, self.mode, encoding=self.encoding)
         global INPUTFILE_VAR
         INPUTFILE_VAR = osp.abspath(path)
 
-        stream_manager.add(
+        # Add to our internal list of streams
+        self.stream = stream_manager.add(
             name=path,
             mode=self.mode,
             encoding=self.encoding,
-            io=fp,
+            io=self.fp,
             num=stream_manager.next,
             is_temporary_file=is_temporary_file,
         )
-        return fp
+
+        # return a handle ot the openend file
+        return self.fp
 
     def __exit__(self, type, value, traceback):
         global INPUTFILE_VAR
         INPUTFILE_VAR = self.old_inputfile_var or ""
+        self.fp.close()
+        stream_manager.delete_stream(self.stream)
         super().__exit__(type, value, traceback)
 
 
