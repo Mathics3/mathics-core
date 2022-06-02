@@ -225,10 +225,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # assert head is BaseElement
 
         self._head = head
-        self._elements = elements
-        self.elements_properties = elements_properties
-        self.value = literal_values
-        self._is_literal = None if literal_values is None else True
+
+        # This is useful for finding potential improprer calls
+        # for element in elements:
+        #     if not isinstance(element, BaseElement):
+        #          from trepan.api import debug; debug()
+        #     assert isinstance(element, BaseElement)
+
+        # assert isinstance(self._elements, tuple)
 
         self._sequences = None
         self._cache = None
