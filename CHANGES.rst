@@ -10,7 +10,7 @@ Enhancements
 * ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
-* In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, folliwing the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
+* In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
 
@@ -52,7 +52,7 @@ Internals
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
 * ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
-* A bug comming from a failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
+* A failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
 * ``any`` /``all`` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * ``BaseExpression.get_head``  now avoids building a symbol and then look for its name. It saves two function calls.
 * ``SameQ`` first checks type, then ``id``s, and then names in symbols.
