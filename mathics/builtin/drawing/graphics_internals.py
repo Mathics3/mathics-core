@@ -4,7 +4,6 @@
 # Also no docstring which may confuse the doc system
 
 
-from mathics.core.expression import Expression
 from mathics.builtin.base import (
     BuiltinElement,
     BoxConstruct,

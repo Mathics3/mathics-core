@@ -42,6 +42,8 @@ from mathics.core.systemsymbols import (
     SymbolSlot,
 )
 
+SymbolHue = Symbol("Hue")
+SymbolLine = Symbol("Line")
 
 try:
     from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
@@ -394,6 +396,8 @@ class _Plot(Builtin):
 
     expect_list = False
 
+    RealPoint6 = Real(0.6)
+
     def apply(self, functions, x, start, stop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
@@ -675,8 +679,10 @@ class _Plot(Builtin):
             if exclusions == "System`None":  # Join all the Lines
                 points = [[(xx, yy) for line in points for xx, yy in line]]
 
-            graphics.append(Expression("Hue", hue, 0.6, 0.6))
-            graphics.append(Expression("Line", from_python(points)))
+            graphics.append(
+                Expression(SymbolHue, Real(hue), self.RealPoint6, self.RealPoint6)
+            )
+            graphics.append(Expression(SymbolLine, from_python(points)))
 
             for line in points:
                 plot_points.extend(line)
