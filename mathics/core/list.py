@@ -48,6 +48,31 @@ class ListExpression(Expression):
     # def __repr__(self) -> str:
     #     return "<ListExpression: %s>" % self
 
+    # @timeit
+    def evaluate_elements(self, evaluation):
+        elements_changed = False
+        # Make tuple self._elements mutable by turning it into a list.
+        elements = list(self._elements)
+        for index, element in enumerate(self._elements):
+            if not element.has_form("Unevaluated", 1):
+                if isinstance(element, EvalMixin):
+                    new_value = element.evaluate(evaluation)
+                    # We need id() because != by itself is too permissive
+                    if id(element) != id(new_value):
+                        elements_changed = True
+                        elements[index] = new_value
+
+        if elements_changed:
+            # Save changed elements, making them immutable again.
+            self._elements = tuple(elements)
+
+            # TODO: we could have a specialized version of this
+            # that keeps self.python_list up to date when that is
+            # easy to do. That is left of some future time to
+            # decide whether doing this this is warranted.
+            self._build_elements_properties()
+            self.python_list = None
+
     @property
     def is_literal(self) -> bool:
         """
@@ -59,44 +84,28 @@ class ListExpression(Expression):
         return self._is_literal
 
     def rewrite_apply_eval_step(self, evaluation) -> Tuple[Expression, bool]:
-        """Perform a single rewrite/apply/eval step of the bigger
+        """
+        Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
 
-        We return the ListExpression as well as a Boolean which indicates
-        whether the caller `evaluate()` should consider reevaluating
-        the expression. For lists, once we evaluate a list, we
-        never have to re-evaluate it
+        We return the ListExpression as well as a Boolean False which indicates
+        to the caller `evaluate()` that it should consider this a "fixed-point"
+        evaluation and not have to iterate calling this routine using the
+        returned results.
 
         Note that this is a recursive process: we may call something
         that may call our parent: evaluate() which calls us again.
 
-        In general that this step is time consuming, complicated, and involved.
-        For lists, things are simpler.
+        In general, this step is time consuming, complicated, and involved.
+        However for a ListExpression, things are much much simpler and faster because
+        we don't need the rewrite/apply phases of evaluation.
         """
 
         if self.elements_properties is None:
             self._build_elements_properties()
 
-        # @timeit
-        def eval_range(elements):
-            recompute_properties = False
-            for index, element in enumerate(elements):
-                if not element.has_form("Unevaluated", 1):
-                    if isinstance(element, EvalMixin):
-                        new_value = element.evaluate(evaluation)
-                        # We need id() because != by itself is too permissive
-                        if id(element) != id(new_value):
-                            recompute_properties = True
-                            elements[index] = new_value
-
-            if recompute_properties:
-                self._build_elements_properties()
-                self.python_list = None
-
         if not self.elements_properties.elements_fully_evaluated:
-            elements = self.get_mutable_elements()
-            eval_range(elements)
-            self._elements = tuple(elements)
+            self.evaluate_elements(evaluation)
         return self, False
 
 
