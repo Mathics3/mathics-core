@@ -36,20 +36,17 @@ from mathics.builtin.graphics import (
     coords,
 )
 
-from mathics.core.formatter import lookup_method
-
-from mathics.format.asy_fns import asy_color, asy_number
-
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.atoms import (
     Integer,
     Real,
     String,
 )
-from mathics.core.symbols import SymbolList, Symbol
-
 from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.formatter import lookup_method
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
+from mathics.format.asy_fns import asy_color, asy_number
+
 
 SymbolStandardForm = Symbol("StandardForm")
 
@@ -1084,7 +1081,9 @@ class InsetBox(_GraphicsElementBox):
             self.opos = opos
 
         if isinstance(self.content, String):
-            self.content = self.content.atom_to_boxes(SymbolStandardForm)
+            self.content = self.content.atom_to_boxes(
+                SymbolStandardForm, evaluation=self.graphics.evaluation
+            )
         self.content_text = self.content.boxes_to_text(
             evaluation=self.graphics.evaluation
         )
