@@ -562,6 +562,11 @@ class List(Builtin):
     summary_text = "specify a list explicitly"
     attributes = locked | protected
 
+    def apply(self, items, evaluation):
+        """List[items___]"""
+        items = items.get_sequence()
+        return ListExpression(*items)
+
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
         f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""

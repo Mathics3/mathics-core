@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from mathics.core.expression import Expression, convert_expression_elements
 
-import typing
 from typing import Any, Callable, Optional, Tuple
 
 from mathics.core.atoms import from_python
