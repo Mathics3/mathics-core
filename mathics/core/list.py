@@ -78,10 +78,9 @@ class ListExpression(Expression):
             self._build_elements_properties()
 
         # @timeit
-        def eval_range(indices):
+        def eval_range(elements):
             recompute_properties = False
-            for index in indices:
-                element = elements[index]
+            for index, element in enumerate(elements):
                 if not element.has_form("Unevaluated", 1):
                     if isinstance(element, EvalMixin):
                         new_value = element.evaluate(evaluation)
@@ -96,9 +95,9 @@ class ListExpression(Expression):
 
         if not self.elements_properties.elements_fully_evaluated:
             elements = self.get_mutable_elements()
-            eval_range(len(elements))
+            eval_range(elements)
             self._elements = elements
-        return self, True
+        return self, False
 
 
 def to_mathics_list(
