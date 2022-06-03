@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from mathics.core.expression import Expression, convert_expression_elements
 
-import typing
 from typing import Any, Callable, Optional, Tuple
 
 from mathics.core.atoms import from_python
@@ -103,81 +102,13 @@ class ListExpression(Expression):
 
         """
 
-        # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
-        # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
-
-        # Note: self._head can be not just a symbol, but some arbitrary expression.
-        # This is what makes expressions in Mathics be M-expressions rather than
-        # S-expressions.
-
         if self.elements_properties is None:
             self._build_elements_properties()
 
         if not self.elements_properties.elements_fully_evaluated:
             self.evaluate_elements(evaluation)
-        # Step 2: Build a new expression. If it can be avoided, we take care not
-        # to:
-        # * evaluate elements,
-        # * run to_python() on them in Expression construction, or
-        # * convert Expression elements from a tuple to a list and back
 
-        # if self.elements_properties.elements_fully_evaluated:
-        elements = self._elements
-        new = self
-        # with the current implementation, this never happens
-        # else:
-        #    elements = self.get_mutable_elements()
-        #    # FIXME: see if we can preserve elements properties in eval_elements()
-        #    eval_elements()
-        #    new = ListExpression(*elements)
-        #    new._build_elements_properties()
-
-        # Step 3:  Rebuild the ExpressionCache, which tracks which symbols
-        # where involved, the Sequence`s present, and the last time they have changed.
-
-        # new._timestamp_cache(evaluation)
-
-        # Step 4: Now,the next step is to look at the rules associated to
-        # the upvalues of each element
-
-        def rules():
-            rules_names = set()
-            for element in elements:
-                if not isinstance(element, EvalMixin):
-                    continue
-                name = element.get_lookup_name()
-                if len(name) > 0:  # only lookup rules if this is a symbol
-                    if name not in rules_names:
-                        rules_names.add(name)
-                        for rule in evaluation.definitions.get_upvalues(name):
-                            yield rule
-
-        for rule in rules():
-            result = rule.apply(new, evaluation, fully=False)
-            if result is not None:
-                if not isinstance(result, EvalMixin):
-                    return result, False
-                if result.sameQ(new):
-                    new._timestamp_cache(evaluation)
-                    return new, False
-                else:
-                    return result, True
-
-        # Step 7: If we are here, is because we didn't find any rule that matches with the expression.
-
-        dirty_elements = None
-
-        # Expression did not change, re-apply Unevaluated
-        for index, element in enumerate(new._elements):
-            if hasattr(element, "unevaluated") and element.unevaluated:
-                if dirty_elements is None:
-                    dirty_elements = list(new._elements)
-                dirty_elements[index] = Expression("Unevaluated", element)
-
-        if dirty_elements:
-            new = ListExpression(*dirty_elements)
-
-        return new, False
+        return self, False
 
 
 def to_mathics_list(
