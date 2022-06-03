@@ -214,6 +214,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         #     elements, from_python
         # )
         # assert isinstance(self._elements, tuple)
+        self._elements = elements
+        self.elements_properties = elements_properties
 
         self._sequences = None
         self._cache = None
