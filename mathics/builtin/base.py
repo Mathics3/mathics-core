@@ -790,9 +790,10 @@ class BoxExpression(BuiltinElement):
             else:
                 return tex
 
-    def to_expression(self):
-        expr = Expression(self.get_name(), self._elements)
-        return expr
+    def to_expression(self) -> Expression:
+        # FIXME: All classes should store their symbol name.
+        # So there should be a self.head.
+        return Expression(Symbol(self.get_name()), *self._elements)
 
     def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
         expr = self.to_expression()
