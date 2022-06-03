@@ -238,3 +238,7 @@ def test_predecrement():
     check_evaluation(
         "--5", "4", failure_message="Set::setraw: Cannot assign to raw object 5."
     )
+
+
+def test_assign_list():
+    check_evaluation("G[x_Real]=x^2; a={G[x]}; {x=1.; a, x=.; a}", "{{1.}, {G[x]}}")
