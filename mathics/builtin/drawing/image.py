@@ -5,6 +5,8 @@ Image[] and image related functions
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
 
+import os.path as osp
+
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
 from mathics.core.atoms import (
@@ -19,7 +21,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
 from mathics.builtin.colors.color_internals import (
     convert_color,
@@ -107,7 +109,7 @@ class _Exif:
                     if name == "FocalLength":
                         value = value.round(2)
                     else:
-                        value = Expression("Simplify", value).evaluate(evaluation)
+                        value = Expression(SymbolSimplify, value).evaluate(evaluation)
                 elif isinstance(v, bytes):  # Byte
                     value = String(" ".join(["%d" % x for x in v]))
                 elif isinstance(v, (int, str)):  # Short, Long, Ascii
@@ -475,7 +477,7 @@ class ImageResize(_ImageBuiltin):
                 return old_size
             return predefined_sizes.get(name, None)
         if new_size.has_form("Scaled", 1):
-            s = new_size.leaves[0].round_to_float()
+            s = new_size.elements[0].round_to_float()
             if s is None:
                 return None
             return max(1, old_size * s)  # handle negative s values silently
@@ -485,7 +487,7 @@ class ImageResize(_ImageBuiltin):
         "ImageResize[image_Image, s_, OptionsPattern[ImageResize]]"
         old_w = image.pixels.shape[1]
         if s.has_form("List", 1):
-            width = s.leaves[0]
+            width = s.elements[0]
         else:
             width = s
         w = self._get_image_size_spec(old_w, width)
@@ -1443,7 +1445,7 @@ class ColorCombine(_ImageBuiltin):
             return
 
         numpy_channels = []
-        for channel in channels.leaves:
+        for channel in channels.elements:
             if not Expression("MatrixQ", channel).evaluate(evaluation) is SymbolTrue:
                 return
             numpy_channels.append(matrix_to_numpy(channel))
@@ -2239,11 +2241,11 @@ if "Pyston" not in sys.version:
 
         def apply_words_weights(self, weights, words, evaluation, options):
             "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
-            if len(weights.leaves) != len(words.leaves):
+            if len(weights.elements) != len(words.elements):
                 return
 
             def weights_and_words():
-                for weight, word in zip(weights.leaves, words.leaves):
+                for weight, word in zip(weights.elements, words.elements):
                     yield weight.round_to_float(), word.get_string_value()
 
             return self._word_cloud(weights_and_words(), evaluation, options)
@@ -2253,24 +2255,24 @@ if "Pyston" not in sys.version:
 
             if not words:
                 return
-            elif isinstance(words.leaves[0], String):
+            elif isinstance(words.elements[0], String):
 
                 def weights_and_words():
-                    for word in words.leaves:
+                    for word in words.elements:
                         yield 1, word.get_string_value()
 
             else:
 
                 def weights_and_words():
-                    for word in words.leaves:
-                        if len(word.leaves) != 2:
+                    for word in words.elements:
+                        if len(word.elements) != 2:
                             raise ValueError
 
                         head_name = word.get_head_name()
                         if head_name == "System`Rule":
-                            weight, s = word.leaves
+                            weight, s = word.elements
                         elif head_name == "System`List":
-                            s, weight = word.leaves
+                            s, weight = word.elements
                         else:
                             raise ValueError
 
@@ -2304,13 +2306,13 @@ if "Pyston" not in sys.version:
                 py_image_size = (800, 600)
             elif (
                 image_size.get_head_name() == "System`List"
-                and len(image_size.leaves) == 2
+                and len(image_size.elements) == 2
             ):
                 py_image_size = []
-                for leaf in image_size.leaves:
-                    if not isinstance(leaf, Integer):
+                for element in image_size.elements:
+                    if not isinstance(element, Integer):
                         return
-                    py_image_size.append(leaf.get_int_value())
+                    py_image_size.append(element.get_int_value())
             elif isinstance(image_size, Integer):
                 size = image_size.get_int_value()
                 py_image_size = (size, size)
@@ -2326,10 +2328,10 @@ if "Pyston" not in sys.version:
             ):
                 return self.default_colors[random.randint(0, 7)]
 
-            font_base_path = os.path.dirname(os.path.abspath(__file__)) + "/../fonts/"
+            font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
 
-            font_path = os.path.realpath(font_base_path + "AmaticSC-Bold.ttf")
-            if not os.path.exists(font_path):
+            font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
+            if not osp.exists(font_path):
                 font_path = None
 
             from wordcloud import WordCloud

@@ -1610,11 +1610,11 @@ class Simplify(Builtin):
 
     def apply_power_of_zero(self, b, evaluation):
         "%(name)s[0^b_]"
-        if self.apply(Expression(SymbolLess, 0, b), evaluation) is SymbolTrue:
+        if self.apply(Expression(SymbolLess, Integer0, b), evaluation) is SymbolTrue:
             return Integer0
-        if self.apply(Expression(SymbolLess, b, 0), evaluation) is SymbolTrue:
+        if self.apply(Expression(SymbolLess, b, Integer0), evaluation) is SymbolTrue:
             return Symbol(SymbolComplexInfinity)
-        if self.apply(Expression(SymbolEqual, b, 0), evaluation) is SymbolTrue:
+        if self.apply(Expression(SymbolEqual, b, Integer0), evaluation) is SymbolTrue:
             return Symbol(SymbolIndeterminate)
         return Expression(SymbolPower, Integer0, b)
 

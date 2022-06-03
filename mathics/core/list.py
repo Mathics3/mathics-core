@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from mathics.core.expression import Expression, convert_expression_elements
+
 import typing
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, Tuple
 
 from mathics.core.atoms import from_python
 from mathics.core.element import ElementsProperties
@@ -48,6 +49,31 @@ class ListExpression(Expression):
     # def __repr__(self) -> str:
     #     return "<ListExpression: %s>" % self
 
+    # @timeit
+    def evaluate_elements(self, evaluation):
+        elements_changed = False
+        # Make tuple self._elements mutable by turning it into a list.
+        elements = list(self._elements)
+        for index, element in enumerate(self._elements):
+            if not element.has_form("Unevaluated", 1):
+                if isinstance(element, EvalMixin):
+                    new_value = element.evaluate(evaluation)
+                    # We need id() because != by itself is too permissive
+                    if id(element) != id(new_value):
+                        elements_changed = True
+                        elements[index] = new_value
+
+        if elements_changed:
+            # Save changed elements, making them immutable again.
+            self._elements = tuple(elements)
+
+            # TODO: we could have a specialized version of this
+            # that keeps self.python_list up to date when that is
+            # easy to do. That is left of some future time to
+            # decide whether doing this this is warranted.
+            self._build_elements_properties()
+            self.python_list = None
+
     @property
     def is_literal(self) -> bool:
         """
@@ -58,20 +84,23 @@ class ListExpression(Expression):
         """
         return self._is_literal
 
-    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
-        """Perform a single rewrite/apply/eval step of the bigger
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple[Expression, bool]:
+        """
+        Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
 
-        We return the ListExpression as well as a Boolean which indicates
-        whether the caller `evaluate()` should consider reevaluating
-        the expression. For lists, once we evaluate a list, we
-        never have to re-evaluate it
+        We return the ListExpression as well as a Boolean False which indicates
+        to the caller `evaluate()` that it should consider this a "fixed-point"
+        evaluation and not have to iterate calling this routine using the
+        returned results.
 
         Note that this is a recursive process: we may call something
         that may call our parent: evaluate() which calls us again.
 
-        In general that this step is time consuming, complicated, and involved.
-        For lists, things are simpler.
+        In general, this step is time consuming, complicated, and involved.
+        However for a ListExpression, things are much much simpler and faster because
+        we don't need the rewrite/apply phases of evaluation.
+
         """
 
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
@@ -84,42 +113,29 @@ class ListExpression(Expression):
         if self.elements_properties is None:
             self._build_elements_properties()
 
-        # @timeit
-        def eval_elements():
-            # @timeit
-            recompute_properties = False
-            for index, element in enumerate(elements):
-                if not element.has_form("Unevaluated", 1):
-                    if isinstance(element, EvalMixin):
-                        new_value = element.evaluate(evaluation)
-                        # We need id() because != by itself is too permissive
-                        if id(element) != id(new_value):
-                            recompute_properties = True
-                            elements[index] = new_value
-
-            if recompute_properties:
-                self._build_elements_properties()
-
+        if not self.elements_properties.elements_fully_evaluated:
+            self.evaluate_elements(evaluation)
         # Step 2: Build a new expression. If it can be avoided, we take care not
         # to:
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
 
-        if self.elements_properties.elements_fully_evaluated:
-            elements = self._elements
-            new = self
-        else:
-            elements = self.get_mutable_elements()
-            # FIXME: see if we can preserve elements properties in eval_elements()
-            eval_elements()
-            new = ListExpression(*elements)
-            new._build_elements_properties()
+        # if self.elements_properties.elements_fully_evaluated:
+        elements = self._elements
+        new = self
+        # with the current implementation, this never happens
+        # else:
+        #    elements = self.get_mutable_elements()
+        #    # FIXME: see if we can preserve elements properties in eval_elements()
+        #    eval_elements()
+        #    new = ListExpression(*elements)
+        #    new._build_elements_properties()
 
         # Step 3:  Rebuild the ExpressionCache, which tracks which symbols
         # where involved, the Sequence`s present, and the last time they have changed.
 
-        new._timestamp_cache(evaluation)
+        # new._timestamp_cache(evaluation)
 
         # Step 4: Now,the next step is to look at the rules associated to
         # the upvalues of each element
@@ -161,8 +177,6 @@ class ListExpression(Expression):
         if dirty_elements:
             new = ListExpression(*dirty_elements)
 
-        # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
-        new._timestamp_cache(evaluation)
         return new, False
 
 

@@ -94,68 +94,6 @@ def path_search(filename: str) -> Tuple[str, bool]:
     return result, is_temporary_file
 
 
-class StreamsManager(object):
-    __instance = None
-    STREAMS = {}
-
-    @staticmethod
-    def get_instance():
-        """Static access method."""
-        if StreamsManager.__instance is None:
-            StreamsManager()
-        return StreamsManager.__instance
-
-    def __init__(self):
-        """Virtually private constructor."""
-        if StreamsManager.__instance is not None:
-            raise Exception("this class is a singleton!")
-        else:
-            StreamsManager.__instance = self
-
-    def add(
-        self,
-        name: str,
-        mode: Optional[str] = None,
-        encoding=None,
-        io=None,
-        num: Optional[int] = None,
-        is_temporary_file: bool = False,
-    ) -> Optional["Stream"]:
-        if num is None:
-            num = self.next
-            # In theory in this branch we won't find num.
-        # sanity check num
-        found = self.lookup_stream(num)
-        if found and found is not None:
-            raise Exception(f"Stream {num} already open")
-        stream = Stream(name, mode, encoding, io, num, is_temporary_file)
-        self.STREAMS[num] = stream
-        return stream
-
-    def delete(self, n: int) -> bool:
-        stream = self.STREAMS.get(n, None)
-        is_temporary_file = stream.is_temporary_file
-        if is_temporary_file:
-            os.unlink(stream.name)
-        if stream is not None:
-            del self.STREAMS[stream.n]
-            return True
-        return False
-
-    def lookup_stream(self, n: Optional[int] = None) -> Optional["Stream"]:
-        if n is None:
-            return None
-        return self.STREAMS.get(n, None)
-
-    @property
-    def next(self):
-        numbers = [stream.n for stream in self.STREAMS.values()] + [2]
-        return max(numbers) + 1
-
-
-stream_manager = StreamsManager()
-
-
 class Stream(object):
     """
     Opens a stream
@@ -165,7 +103,7 @@ class Stream(object):
     with Stream(pypath, "r") as f:
          ...
 
-    However see MathicsOpen which wraps this
+    However see StreamManager and MathicsOpen which wraps this.
     """
 
     def __init__(
@@ -221,6 +159,77 @@ class Stream(object):
             self.io.close()
         # Leave around self.io so we can call closed() to query its status.
         stream_manager.delete(self.n)
+
+
+class StreamsManager(object):
+    __instance = None
+    STREAMS = {}
+
+    @staticmethod
+    def get_instance():
+        """Static access method."""
+        if StreamsManager.__instance is None:
+            StreamsManager()
+        return StreamsManager.__instance
+
+    def __init__(self):
+        """Virtually private constructor."""
+        if StreamsManager.__instance is not None:
+            raise Exception("this class is a singleton!")
+        else:
+            StreamsManager.__instance = self
+
+    def add(
+        self,
+        name: str,
+        mode: Optional[str] = None,
+        encoding=None,
+        io=None,
+        num: Optional[int] = None,
+        is_temporary_file: bool = False,
+    ) -> Optional["Stream"]:
+        if num is None:
+            num = self.next
+            # In theory in this branch we won't find num.
+        # sanity check num
+        found = self.lookup_stream(num)
+        if found and found is not None:
+            raise Exception(f"Stream {num} already open")
+        stream = Stream(name, mode, encoding, io, num, is_temporary_file)
+        self.STREAMS[num] = stream
+        return stream
+
+    def delete(self, n: int) -> bool:
+        stream = self.lookup_stream(n)
+        if stream is None:
+            return False
+        self.delete_stream(stream)
+        return True
+
+    def delete_stream(self, stream: Stream):
+        """
+        Delete `stream` from the list of streams we
+        keep track of.
+        """
+        is_temporary_file = stream.is_temporary_file
+        if is_temporary_file:
+            os.unlink(stream.name)
+        del self.STREAMS[stream.n]
+
+    def lookup_stream(self, n: int) -> Optional[Stream]:
+        """
+        Find and return a stream given is stream number `n`.
+        None is returned if no stream found.
+        """
+        return self.STREAMS.get(n, None)
+
+    @property
+    def next(self):
+        numbers = [stream.n for stream in self.STREAMS.values()] + [2]
+        return max(numbers) + 1
+
+
+stream_manager = StreamsManager()
 
 
 stream_manager.add("stdin", mode="r", num=0, io=sys.stdin)
