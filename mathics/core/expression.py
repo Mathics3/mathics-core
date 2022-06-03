@@ -233,6 +233,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         #     assert isinstance(element, BaseElement)
 
         # assert isinstance(self._elements, tuple)
+        self._elements = elements
+        self.elements_properties = elements_properties
 
         self._sequences = None
         self._cache = None
