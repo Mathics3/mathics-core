@@ -96,7 +96,7 @@ class ListExpression(Expression):
         if not self.elements_properties.elements_fully_evaluated:
             elements = self.get_mutable_elements()
             eval_range(elements)
-            self._elements = elements
+            self._elements = tuple(elements)
         return self, False
 
 
