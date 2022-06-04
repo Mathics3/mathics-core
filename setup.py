@@ -45,14 +45,19 @@ if sys.version_info < (3, 6):
     print("Mathics does not support Python %d.%d" % sys.version_info[:2])
     sys.exit(-1)
 elif sys.version_info[:2] == (3, 6):
-    INSTALL_REQUIRES += ["recordclass", "numpy<1.20", "llvmlite<0.37"]
+    INSTALL_REQUIRES += [
+        "recordclass",
+        "numpy<1.20",
+        "llvmlite<0.37",
+        "sympy>=1.8,<1.9",
+    ]
     if is_PyPy:
         print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
         sys.exit(-1)
 elif sys.version_info[:2] == (3, 7):
-    INSTALL_REQUIRES += ["numpy<1.22", "llvmlite"]
+    INSTALL_REQUIRES += ["numpy<1.22", "llvmlite", "sympy>=1.8, < 1.11"]
 else:
-    INSTALL_REQUIRES += ["numpy", "llvmlite"]
+    INSTALL_REQUIRES += ["numpy", "llvmlite", "sympy>=1.8, < 1.11"]
 
 if not is_PyPy:
     INSTALL_REQUIRES += ["recordclass"]
@@ -134,7 +139,6 @@ else:
 # General Requirements
 INSTALL_REQUIRES += [
     "Mathics_Scanner>=1.2.1,<1.3.0",
-    "sympy>=1.8, < 1.11",
     "mpmath>=1.2.0",
     "palettable",
     "pint",
