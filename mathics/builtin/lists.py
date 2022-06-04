@@ -562,6 +562,15 @@ class List(Builtin):
     summary_text = "specify a list explicitly"
     attributes = locked | protected
 
+    def apply(self, elements, evaluation):
+        """List[elements___]"""
+        # Pick out the elements part of the parameter elements;
+        # we we will call that `elements_part_of_elements__`.
+        # Note that the parameter elements may be wrapped in a Sequence[]
+        # so remove that if when it is present.
+        elements_part_of_elements__ = elements.get_sequence()
+        return ListExpression(*elements_part_of_elements__)
+
     def apply_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
         f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""

@@ -210,8 +210,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         #          from trepan.api import debug; debug()
         #     assert isinstance(element, BaseElement)
 
-        # Note: After we make a pass over all Expression() calls, this line will get removed
-        # and replaced with the two commented-out lines below:
+        # Note: After we make a pass over all Expression() calls, these lines will get removed
+        # and replaced with the two commented-out lines below them:
 
         self._elements, self.elements_properties = convert_expression_elements(
             elements, from_python
@@ -1989,9 +1989,8 @@ def to_expression(
     # # to replace all calls of the form Expression(SymbolList ...) or
     # # to_expression("List", ...)
     # if head is SymbolList:
-    #     from mathics.core.list import to_mathics_list
-    #     is_literal = len(elements) == 0
-    #     return to_mathics_list(elements, is_literal=is_literal)
+    #    from mathics.core.list import to_mathics_list
+    #    return to_mathics_list(elements)
 
     elements_tuple, elements_properties = convert_expression_elements(
         elements, elements_conversion_fn
