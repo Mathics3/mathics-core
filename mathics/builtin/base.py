@@ -17,6 +17,7 @@ from mathics.builtin.exceptions import (
 from mathics.core.attributes import no_attributes
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.list import ListExpression
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
 from mathics.core.rules import Rule, BuiltinRule, Pattern
 from mathics.core.symbols import (
@@ -37,7 +38,7 @@ from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolMessageName
+from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, SymbolRule
 from mathics.core.attributes import protected, read_protected
 
 
@@ -238,7 +239,7 @@ class Builtin:
                         evaluation.message(
                             name,
                             "optx",
-                            Expression("Rule", short_key, value),
+                            Expression(SymbolRule, short_key, value),
                             strip_context(name),
                         )
                         if option_syntax in ("Strict", "System`Strict"):
@@ -824,7 +825,7 @@ class BoxExpression(BuiltinElement):
         return self
 
     def format(self, evaluation, fmt):
-        expr = Expression("HoldForm", self.to_expression())
+        expr = Expression(SymbolHoldForm, self.to_expression())
         fexpr = expr.format(evaluation, fmt)
         return fexpr
 
@@ -857,7 +858,7 @@ class BoxExpression(BuiltinElement):
         evaluation = options.get("evaluation", None)
         if evaluation:
             default = evaluation.definitions.get_options(self.get_name()).copy()
-            options = Expression("List", *leaves).get_option_values(evaluation)
+            options = ListExpression(*leaves).get_option_values(evaluation)
             default.update(options)
         else:
             from mathics.core.parser import parse_builtin_rule

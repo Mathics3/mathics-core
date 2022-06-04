@@ -6,20 +6,21 @@ Options and Default Arguments
 
 
 from mathics.builtin.base import Builtin, Test, get_option
+from mathics.builtin.drawing.image import Image
+
+from mathics.core.atoms import String
+from mathics.core.expression import (
+    Expression,
+    SymbolDefault,
+    get_default_value,
+)
 from mathics.core.symbols import (
     Symbol,
     SymbolList,
     ensure_context,
     strip_context,
 )
-from mathics.core.expression import (
-    Expression,
-    SymbolDefault,
-    get_default_value,
-)
-from mathics.core.atoms import String
-
-from mathics.builtin.drawing.image import Image
+from mathics.core.systemsymbols import SymbolRule
 
 
 class Options(Builtin):
@@ -406,4 +407,4 @@ def options_to_rules(options, filter=None):
             for name, value in items
             if strip_context(name) in filter.keys()
         ]
-    return [Expression("Rule", Symbol(name), value) for name, value in items]
+    return [Expression(SymbolRule, Symbol(name), value) for name, value in items]
