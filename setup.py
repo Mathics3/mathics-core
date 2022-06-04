@@ -88,6 +88,7 @@ try:
 except ImportError:
     pass
 else:
+    INSTALL_REQUIRES += ["recordclass"]
     if not os.environ.get("NO_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
@@ -120,7 +121,7 @@ else:
         #     for module in modules
         # )
         CMDCLASS = {"build_ext": build_ext}
-        INSTALL_REQUIRES += ["cython>=0.15.1", "recordclass"]
+        INSTALL_REQUIRES += ["cython>=0.15.1"]
 
 # General Requirements
 INSTALL_REQUIRES += [
