@@ -45,14 +45,14 @@ if sys.version_info < (3, 6):
     print("Mathics does not support Python %d.%d" % sys.version_info[:2])
     sys.exit(-1)
 elif sys.version_info[:2] == (3, 6):
-    INSTALL_REQUIRES += ["recordclass", "numpy<1.20"]
+    INSTALL_REQUIRES += ["recordclass", "numpy<1.20", "llvmlite<0.37"]
     if is_PyPy:
         print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
         sys.exit(-1)
 elif sys.version_info[:2] == (3, 7):
-    INSTALL_REQUIRES += ["numpy<1.22"]
+    INSTALL_REQUIRES += ["numpy<1.22", "llvmlite"]
 else:
-    INSTALL_REQUIRES += ["numpy"]
+    INSTALL_REQUIRES += ["numpy", "llvmlite"]
 
 if not is_PyPy:
     INSTALL_REQUIRES += ["recordclass"]
@@ -139,7 +139,6 @@ INSTALL_REQUIRES += [
     "palettable",
     "pint",
     "python-dateutil",
-    "llvmlite",
     "requests",
 ]
 
