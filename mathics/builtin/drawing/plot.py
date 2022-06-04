@@ -31,19 +31,31 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlend,
     SymbolColorData,
+    SymbolEdgeForm,
     SymbolFunction,
+    SymbolGraphics,
+    SymbolGrid,
     SymbolMessageName,
+    SymbolMap,
     SymbolQuiet,
+    SymbolPoint,
+    SymbolRow,
     SymbolRule,
+    SymbolRGBColor,
     SymbolSlot,
+    SymbolStyle,
 )
 
+RealPoint6 = Real(0.6)
+RealPoint2 = Real(0.2)
 SymbolHue = Symbol("Hue")
 SymbolLine = Symbol("Line")
+SymbolRectangle = Symbol("Rectangle")
 
 try:
     from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
@@ -71,9 +83,7 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
 
     xd = x1 - x0
     offsets = [MachineReal(x0 + float(xd * i) / float(n - 1)) for i in range(n)]
-    colors = Expression("Map", blend, Expression(SymbolList, *offsets)).evaluate(
-        evaluation
-    )
+    colors = Expression(SymbolMap, blend, ListExpression(*offsets)).evaluate(evaluation)
     if len(colors.leaves) != n:
         return
 
@@ -103,7 +113,7 @@ class ColorDataFunction(Builtin):
 class _GradientColorScheme(object):
     def color_data_function(self, name):
         colors = Expression(
-            "List", *[Expression("RGBColor", *color) for color in self.colors()]
+            "List", *[Expression(SymbolRGBColor, *color) for color in self.colors()]
         )
         blend = Expression(
             SymbolFunction,
@@ -112,7 +122,7 @@ class _GradientColorScheme(object):
         arguments = [
             String(name),
             String("Gradients"),
-            Expression(SymbolList, 0, 1),
+            ListExpression(Integer0, Integer1),
             blend,
         ]
         return Expression("ColorDataFunction", *arguments)
@@ -218,15 +228,13 @@ class ColorData(Builtin):
 
     def apply_directory(self, evaluation):
         "ColorData[]"
-        return Expression(SymbolList, String("Gradients"))
+        return ListExpression(String("Gradients"))
 
     def apply(self, name, evaluation):
         "ColorData[name_String]"
         py_name = name.get_string_value()
         if py_name == "Gradients":
-            return Expression(
-                SymbolList, *[String(name) for name in self.palettes.keys()]
-            )
+            return ListExpression(*[String(name) for name in self.palettes.keys()])
         palette = ColorData.palettes.get(py_name, None)
         if palette is None:
             evaluation.message("ColorData", "notent", name)
@@ -282,9 +290,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
     quiet_expr = Expression(
         SymbolQuiet,
         expr,
-        Expression(
-            SymbolList, Expression(SymbolMessageName, SymbolPower, String("infy"))
-        ),
+        ListExpression(Expression(SymbolMessageName, SymbolPower, String("infy"))),
     )
 
     def quiet_f(*args):
@@ -396,8 +402,6 @@ class _Plot(Builtin):
 
     expect_list = False
 
-    RealPoint6 = Real(0.6)
-
     def apply(self, functions, x, start, stop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
@@ -416,9 +420,10 @@ class _Plot(Builtin):
                 functions_param[index] = f
             functions = functions.flatten_with_respect_to_head(SymbolList)
 
-        expr_limits = Expression(SymbolList, x, start, stop)
+        expr_limits = ListExpression(x, start, stop)
+        # FIXME: arrange forself to have a .symbolname property or attribute
         expr = Expression(
-            self.get_name(), functions, expr_limits, *options_to_rules(options)
+            Symbol(self.get_name()), functions, expr_limits, *options_to_rules(options)
         )
         functions = self.get_functions_param(functions)
         x_name = x.get_name()
@@ -679,9 +684,7 @@ class _Plot(Builtin):
             if exclusions == "System`None":  # Join all the Lines
                 points = [[(xx, yy) for line in points for xx, yy in line]]
 
-            graphics.append(
-                Expression(SymbolHue, Real(hue), self.RealPoint6, self.RealPoint6)
-            )
+            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
             graphics.append(Expression(SymbolLine, from_python(points)))
 
             for line in points:
@@ -716,14 +719,14 @@ class _Plot(Builtin):
 
         if mesh != "None":
             for hue, points in zip(function_hues, mesh_points):
-                graphics.append(Expression("Hue", hue, 0.6, 0.6))
-                meshpoints = [Expression(SymbolList, xx, yy) for xx, yy in points]
                 graphics.append(
-                    Expression("Point", Expression(SymbolList, *meshpoints))
+                    Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6)
                 )
+                meshpoints = [to_mathics_list(xx, yy) for xx, yy in points]
+                graphics.append(Expression(SymbolPoint, ListExpression(*meshpoints)))
 
         return Expression(
-            "Graphics", Expression(SymbolList, *graphics), *options_to_rules(options)
+            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
         )
 
 
@@ -797,9 +800,9 @@ class _Chart(Builtin):
                 multiple_colors = True
 
             if not multiple_colors and not self.never_monochrome:
-                colors = [Expression("RGBColor", *mpl_colors[0])]
+                colors = [Expression(SymbolRGBColor, *mpl_colors[0])]
             else:
-                colors = [Expression("RGBColor", *c) for c in mpl_colors]
+                colors = [Expression(SymbolRGBColor, *c) for c in mpl_colors]
             spread_colors = True
         else:
             return
@@ -815,12 +818,14 @@ class _Chart(Builtin):
 
             def box(color):
                 return Expression(
-                    "Graphics",
-                    Expression(
-                        "List", Expression("FaceForm", color), Expression("Rectangle")
+                    SymbolGraphics,
+                    ListExpression(
+                        Expression("FaceForm", color), Expression(SymbolRectangle)
                     ),
                     Expression(
-                        SymbolRule, Symbol("ImageSize"), Expression(SymbolList, 50, 50)
+                        SymbolRule,
+                        Symbol("ImageSize"),
+                        ListExpression(Integer(50), Integer(50)),
                     ),
                 )
 
@@ -843,7 +848,7 @@ class _Chart(Builtin):
                         items.extend([box(color(k, n)), names[k - 1]])
                     else:
                         items.extend([String(""), String("")])
-                yield Expression(SymbolList, *items)
+                yield ListExpression(*items)
 
         def color(k, n):
             if spread_colors and n < len(colors):
@@ -856,9 +861,9 @@ class _Chart(Builtin):
 
         if has_chart_legends:
             grid = Expression(
-                "Grid", Expression(SymbolList, *list(legends(chart_legends.leaves)))
+                SymbolGrid, ListExpression(*list(legends(chart_legends.leaves)))
             )
-            chart = Expression("Row", Expression(SymbolList, chart, grid))
+            chart = Expression(SymbolRow, ListExpression(chart, grid))
 
         return chart
 
@@ -958,9 +963,9 @@ class PieChart(_Chart):
         sector_spacing = self.get_option(options, "SectorSpacing", evaluation)
         if isinstance(sector_spacing, Symbol):
             if sector_spacing.get_name() == "System`Automatic":
-                sector_spacing = Expression(SymbolList, Integer0, Real(0.2))
+                sector_spacing = ListExpression(Integer0, Real(0.2))
             elif sector_spacing.get_name() == "System`None":
-                sector_spacing = Expression(SymbolList, Integer0, Integer0)
+                sector_spacing = ListExpression(Integer0, Integer0)
             else:
                 return
         if not sector_spacing.has_form("List", 2):
@@ -969,7 +974,7 @@ class PieChart(_Chart):
         radius_spacing = max(0.0, min(1.0, sector_spacing.leaves[1].round_to_float()))
 
         def vector2(x, y):
-            return Expression(SymbolList, Real(x), Real(y))
+            return ListExpression(Real(x), Real(y))
 
         def radii():
             outer = 2.0
@@ -1002,7 +1007,7 @@ class PieChart(_Chart):
                 phi0 = phi1
 
         def segments():
-            yield Expression("EdgeForm", Symbol("Black"))
+            yield Expression(SymbolEdgeForm, Symbol("Black"))
 
             origin = vector2(0.0, 0.0)
 
@@ -1013,14 +1018,14 @@ class PieChart(_Chart):
 
                 for k, (phi0, phi1) in enumerate(phis(values)):
                     yield Expression(
-                        "Style",
+                        SymbolStyle,
                         Expression("Disk", origin, radius, vector2(phi0, phi1)),
                         color(k + 1, n),
                     )
 
                 if r1 > 0.0:
                     yield Expression(
-                        "Style",
+                        SymbolStyle,
                         Expression("Disk", origin, vector2(r1, r1)),
                         Symbol("White"),
                     )
@@ -1045,7 +1050,7 @@ class PieChart(_Chart):
         )
 
         return Expression(
-            "Graphics", Expression(SymbolList, *graphics), *options_to_rules(options)
+            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
         )
 
 
@@ -1100,7 +1105,7 @@ class BarChart(_Chart):
 
     def _draw(self, data, color, evaluation, options):
         def vector2(x, y):
-            return Expression(SymbolList, Real(x), Real(y))
+            return to_mathics_list(x, y)
 
         def boxes():
             w = 0.9
@@ -1119,17 +1124,17 @@ class BarChart(_Chart):
                 x += 0.2
 
         def rectangles():
-            yield Expression("EdgeForm", Symbol("Black"))
+            yield Expression(SymbolEdgeForm, Symbol("Black"))
 
             last_x1 = 0
 
             for (k, n), x0, x1, y in boxes():
                 yield Expression(
-                    "Style",
+                    SymbolStyle,
                     Expression(
-                        "Rectangle",
-                        Expression(SymbolList, x0, 0),
-                        Expression(SymbolList, x1, y),
+                        SymbolRectangle,
+                        to_mathics_list(x0, 0),
+                        to_mathics_list(x1, y),
                     ),
                     color(k, n),
                 )
@@ -1137,20 +1142,20 @@ class BarChart(_Chart):
                 last_x1 = x1
 
             yield Expression(
-                "Line", Expression(SymbolList, vector2(0, 0), vector2(last_x1, 0))
+                SymbolLine, ListExpression(vector2(0, 0), vector2(last_x1, Integer0))
             )
 
         def axes():
             yield Expression("FaceForm", Symbol("Black"))
 
             def points(x):
-                return Expression(SymbolList, vector2(x, 0), vector2(x, -0.2))
+                return ListExpression(vector2(x, 0), vector2(x, Real(-0.2)))
 
             for (k, n), x0, x1, y in boxes():
                 if k == 1:
-                    yield Expression("Line", points(x0))
+                    yield Expression(SymbolLine, points(x0))
                 if k == n:
-                    yield Expression("Line", points(x1))
+                    yield Expression(SymbolLine, points(x1))
 
         def labels(names):
             yield Expression("FaceForm", Symbol("Black"))
@@ -1158,7 +1163,7 @@ class BarChart(_Chart):
             for (k, n), x0, x1, y in boxes():
                 if k <= len(names):
                     name = names[k - 1]
-                    yield Expression("Text", name, vector2((x0 + x1) / 2, -0.2))
+                    yield Expression("Text", name, vector2((x0 + x1) / 2, Real(-0.2)))
 
         x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
         y_coords = [0] + [y for (k, n), x0, x1, y in boxes()]
@@ -1180,12 +1185,12 @@ class BarChart(_Chart):
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1
 
-        options["System`PlotRange"] = Expression(
-            "List", vector2(*x_range), vector2(*y_range)
+        options["System`PlotRange"] = ListExpression(
+            vector2(*x_range), vector2(*y_range)
         )
 
         return Expression(
-            "Graphics", Expression(SymbolList, *graphics), *options_to_rules(options)
+            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
         )
 
 
@@ -1297,18 +1302,21 @@ class Histogram(Builtin):
                         x = minimum + ((i + 1) * span) / n_bins
 
                 def rectangles():
-                    yield Expression("EdgeForm", Expression("RGBColor", 0, 0, 0))
+                    yield Expression(
+                        SymbolEdgeForm,
+                        Expression(SymbolRGBColor, Integer0, Integer0, Integer0),
+                    )
 
                     last_x1 = 0
-                    style = Expression("RGBColor", *color)
+                    style = Expression(SymbolRGBColor, *color)
 
                     for x0, x1, y in boxes():
                         yield Expression(
-                            "Style",
+                            SymbolStyle,
                             Expression(
-                                "Rectangle",
-                                Expression(SymbolList, x0, 0),
-                                Expression(SymbolList, x1, y),
+                                SymbolRectangle,
+                                to_mathics_list(x0, Integer0),
+                                to_mathics_list(x1, y),
                             ),
                             style,
                         )
@@ -1316,11 +1324,10 @@ class Histogram(Builtin):
                         last_x1 = x1
 
                     yield Expression(
-                        "Line",
-                        Expression(
-                            "List",
-                            Expression(SymbolList, 0, 0),
-                            Expression(SymbolList, last_x1, 0),
+                        SymbolLine,
+                        ListExpression(
+                            ListExpression(Integer0, Integer0),
+                            to_mathics_list(last_x1, Integer0),
                         ),
                     )
 
@@ -1387,9 +1394,7 @@ class Histogram(Builtin):
             options["System`PlotRange"] = from_python([x_range, y_range])
 
             return Expression(
-                "Graphics",
-                Expression(SymbolList, *graphics),
-                *options_to_rules(options)
+                SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
             )
 
         def manual_bins(bspec, hspec):
@@ -1434,8 +1439,8 @@ class Histogram(Builtin):
                 spec.append(None)
             return manual_bins(*spec)
         return Expression(
-            "Graphics",
-            Expression(SymbolList, *graphics),
+            SymbolGraphics,
+            ListExpression(*graphics),
             *options_to_rules(options, Graphics.options)
         )
 
@@ -1454,7 +1459,8 @@ class _ListPlot(Builtin):
 
         plot_name = self.get_name()
         all_points = points.to_python(n_evaluation=evaluation)
-        expr = Expression(self.get_name(), points, *options_to_rules(options))
+        # FIXME: arrange forself to have a .symbolname property or attribute
+        expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
 
         # PlotRange Option
         def check_range(range):
@@ -1589,12 +1595,16 @@ class _ListPlot(Builtin):
 
         graphics = []
         for indx, line in enumerate(all_points):
-            graphics.append(Expression("Hue", hue, 0.6, 0.6))
+            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
             for segment in line:
                 if joined:
-                    graphics.append(Expression("Line", from_python(segment)))
+                    graphics.append(Expression(SymbolLine, from_python(segment)))
                     if filling is not None:
-                        graphics.append(Expression("Hue", hue, 0.6, 0.6, 0.2))
+                        graphics.append(
+                            Expression(
+                                SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
+                            )
+                        )
                         fill_area = list(segment)
                         fill_area.append([segment[-1][0], filling])
                         fill_area.append([segment[0][0], filling])
@@ -1605,7 +1615,7 @@ class _ListPlot(Builtin):
                         for point in segment:
                             graphics.append(
                                 Expression(
-                                    "Line",
+                                    SymbolLine,
                                     from_python(
                                         [[point[0], filling], [point[0], point[1]]]
                                     ),
@@ -1624,8 +1634,8 @@ class _ListPlot(Builtin):
         options["System`PlotRange"] = from_python([x_range, y_range])
 
         return Expression(
-            "Graphics",
-            Expression(SymbolList, *graphics),
+            SymbolGraphics,
+            ListExpression(*graphics),
             *options_to_rules(options, Graphics.options)
         )
 
@@ -1650,10 +1660,10 @@ class _Plot3D(Builtin):
     def apply(self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
-        xexpr_limits = Expression(SymbolList, x, xstart, xstop)
-        yexpr_limits = Expression(SymbolList, y, ystart, ystop)
+        xexpr_limits = ListExpression(x, xstart, xstop)
+        yexpr_limits = ListExpression(y, ystart, ystop)
         expr = Expression(
-            self.get_name(),
+            Symbol(self.get_name()),
             functions,
             xexpr_limits,
             yexpr_limits,
@@ -2461,11 +2471,10 @@ class Plot3D(_Plot3D):
             graphics.append(
                 Expression(
                     "Polygon",
-                    Expression(
-                        "List",
-                        Expression(SymbolList, *p1),
-                        Expression(SymbolList, *p2),
-                        Expression(SymbolList, *p3),
+                    ListExpression(
+                        to_mathics_list(*p1),
+                        to_mathics_list(*p2),
+                        to_mathics_list(*p3),
                     ),
                 )
             )
@@ -2474,20 +2483,19 @@ class Plot3D(_Plot3D):
             line = []
             for yi in range(len(mesh_points[xi])):
                 line.append(
-                    Expression(
-                        "List",
+                    to_mathics_list(
                         mesh_points[xi][yi][0],
                         mesh_points[xi][yi][1],
                         mesh_points[xi][yi][2],
                     )
                 )
-            graphics.append(Expression("Line", Expression(SymbolList, *line)))
+            graphics.append(Expression(SymbolLine, ListExpression(*line)))
         return graphics
 
     def final_graphics(self, graphics, options):
         return Expression(
             "Graphics3D",
-            Expression(SymbolList, *graphics),
+            ListExpression(*graphics),
             *options_to_rules(options, Graphics3D.options)
         )
 
@@ -2495,8 +2503,8 @@ class Plot3D(_Plot3D):
 class DensityPlot(_Plot3D):
     """
     <dl>
-    <dt>'DensityPlot[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
-        <dd>plots a density plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
+      <dt>'DensityPlot[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
+      <dd>plots a density plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
     </dl>
 
     >> DensityPlot[x ^ 2 + 1 / y, {x, -1, 1}, {y, 1, 4}]
@@ -2609,19 +2617,17 @@ class DensityPlot(_Plot3D):
         vertex_colors = []
         graphics = []
         for p in triangles:
-            points.append(
-                Expression(SymbolList, *(Expression(SymbolList, *x[:2]) for x in p))
-            )
-            vertex_colors.append(Expression(SymbolList, *(eval_color(*x) for x in p)))
+            points.append(ListExpression(*(to_mathics_list(*x[:2]) for x in p)))
+            vertex_colors.append(ListExpression(*(eval_color(*x) for x in p)))
 
         graphics.append(
             Expression(
                 "Polygon",
-                Expression(SymbolList, *points),
+                ListExpression(*points),
                 Expression(
-                    "Rule",
+                    SymbolRule,
                     Symbol("VertexColors"),
-                    Expression(SymbolList, *vertex_colors),
+                    ListExpression(*vertex_colors),
                 ),
             )
         )
@@ -2631,17 +2637,15 @@ class DensityPlot(_Plot3D):
             line = []
             for yi in range(len(mesh_points[xi])):
                 line.append(
-                    Expression(
-                        SymbolList, mesh_points[xi][yi][0], mesh_points[xi][yi][1]
-                    )
+                    to_mathics_list(mesh_points[xi][yi][0], mesh_points[xi][yi][1])
                 )
-            graphics.append(Expression("Line", Expression(SymbolList, *line)))
+            graphics.append(Expression(SymbolLine, ListExpression(*line)))
 
         return graphics
 
     def final_graphics(self, graphics, options):
         return Expression(
-            "Graphics",
-            Expression(SymbolList, *graphics),
+            SymbolGraphics,
+            ListExpression(*graphics),
             *options_to_rules(options, Graphics.options)
         )

@@ -9,29 +9,13 @@ import re
 import zlib
 
 
+from mathics.algorithm.parts import python_seq, convert_seq
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
-    BoxExpression,
 )
 from mathics.builtin.box.inout import _BoxedString
 
-from mathics.core.expression import Expression, string_list
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-from mathics.core.systemsymbols import SymbolByteArray
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    Integer,
-    Integer1,
-    String,
-    from_python,
-)
-from mathics.algorithm.parts import python_seq, convert_seq
 from mathics.builtin.atomic.strings import (
     _StringFind,
     _evaluate_match,
@@ -39,7 +23,13 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-
+from mathics.core.atoms import (
+    ByteArrayAtom,
+    Integer,
+    Integer1,
+    String,
+    from_python,
+)
 from mathics.core.attributes import (
     flat,
     listable,
@@ -47,9 +37,21 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.expression import Expression, string_list
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolTrue,
+)
+from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolByteArray,
+    SymbolDirectedInfinity,
+)
 
-
-SymbolAll = Symbol("All")
+SymbolStringPosition = Symbol("StringPosition")
 
 
 class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
@@ -571,14 +573,14 @@ class StringPosition(Builtin):
         return self.apply_n(
             string,
             patt,
-            Expression("DirectedInfinity", Integer1),
+            Expression(SymbolDirectedInfinity, Integer1),
             evaluation,
             options,
         )
 
     def apply_n(self, string, patt, n, evaluation, options):
         "StringPosition[string_, patt_, n:(_Integer|DirectedInfinity[1]), OptionsPattern[StringPosition]]"
-        expr = Expression("StringPosition", string, patt, n)
+        expr = Expression(SymbolStringPosition, string, patt, n)
 
         # check n
         if n.has_form("DirectedInfinity", 1):
@@ -622,7 +624,7 @@ class StringPosition(Builtin):
                 self.do_apply(py_string, compiled_patts, py_n, overlap)
                 for py_string in py_strings
             ]
-            return Expression(SymbolList, *results)
+            return ListExpression(*results)
         else:
             py_string = string.get_string_value()
             if py_string is None:
@@ -988,7 +990,7 @@ class StringSplit(Builtin):
 
         if string.get_head_name() == "System`List":
             leaves = [self.apply(s, patt, evaluation, options) for s in string.elements]
-            return Expression(SymbolList, *leaves)
+            return ListExpression(*leaves)
 
         py_string = string.get_string_value()
 

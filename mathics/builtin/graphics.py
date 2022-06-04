@@ -320,7 +320,7 @@ class Graphics(Builtin):
                         )
                 else:
                     n_elements = content.leaves
-                return Expression(head.name + self.box_suffix, *n_elements)
+                return Expression(Symbol(head.name + self.box_suffix), *n_elements)
             return content
 
         for option in options:
