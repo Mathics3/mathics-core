@@ -35,10 +35,27 @@ import sys
 
 from setuptools import setup, Extension
 
+is_PyPy = platform.python_implementation() == "PyPy"
+
+INSTALL_REQUIRES = ["Mathics-Scanner >= 1.2.1,<1.3.0"]
+
 # Ensure user has the correct Python version
+# Address specific package dependencies based on Python version
 if sys.version_info < (3, 6):
     print("Mathics does not support Python %d.%d" % sys.version_info[:2])
     sys.exit(-1)
+elif sys.version_info[:2] == (3, 6):
+    INSTALL_REQUIRES += ["recordclass", "numpy<1.20"]
+    if is_PyPy:
+        print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
+        sys.exit(-1)
+elif sys.version_info[:2] == (3, 7):
+    INSTALL_REQUIRES += ["numpy<1.22"]
+else:
+    INSTALL_REQUIRES += ["numpy"]
+
+if not is_PyPy:
+    INSTALL_REQUIRES += ["recordclass"]
 
 
 def get_srcdir():
@@ -50,15 +67,7 @@ def read(*rnames):
     return open(osp.join(get_srcdir(), *rnames)).read()
 
 
-# stores __version__ in the current namespace
-exec(compile(open("mathics/version.py").read(), "mathics/version.py", "exec"))
-
 long_description = read("README.rst") + "\n"
-
-
-is_PyPy = platform.python_implementation() == "PyPy"
-
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.2.1,<1.3.0"]
 
 # stores __version__ in the current namespace
 exec(compile(open("mathics/version.py").read(), "mathics/version.py", "exec"))
@@ -88,7 +97,6 @@ try:
 except ImportError:
     pass
 else:
-    INSTALL_REQUIRES += ["recordclass"]
     if not os.environ.get("NO_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
@@ -128,13 +136,14 @@ INSTALL_REQUIRES += [
     "Mathics_Scanner>=1.2.1,<1.3.0",
     "sympy>=1.8, < 1.11",
     "mpmath>=1.2.0",
-    "numpy",
     "palettable",
     "pint",
     "python-dateutil",
     "llvmlite",
     "requests",
 ]
+
+print(f'Installation requires "{", ".join(INSTALL_REQUIRES)}')
 
 
 def subdirs(root, file="*.*", depth=10):
