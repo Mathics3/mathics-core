@@ -120,7 +120,7 @@ else:
         #     for module in modules
         # )
         CMDCLASS = {"build_ext": build_ext}
-        INSTALL_REQUIRES += ["cython>=0.15.1"]
+        INSTALL_REQUIRES += ["cython>=0.15.1", "recordclass"]
 
 # General Requirements
 INSTALL_REQUIRES += [
@@ -132,7 +132,6 @@ INSTALL_REQUIRES += [
     "pint",
     "python-dateutil",
     "llvmlite",
-    "recordclass",
     "requests",
 ]
 
