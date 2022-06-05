@@ -4,13 +4,11 @@
 Number theoretic functions
 """
 
+import mpmath
 import sympy
 
 
-from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.expression import Expression, to_expression
-from mathics.core.symbols import Symbol
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -19,9 +17,6 @@ from mathics.core.atoms import (
     SymbolList,
     from_python,
 )
-from mathics.core.convert import from_sympy, SympyPrime
-import mpmath
-
 from mathics.core.attributes import (
     listable,
     numeric_function,
@@ -29,6 +24,10 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert import from_sympy, SympyPrime
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression, to_expression
+from mathics.core.symbols import Symbol, SymbolFloor
 
 
 class ContinuedFraction(SympyFunction):
@@ -36,6 +35,7 @@ class ContinuedFraction(SympyFunction):
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
       <dd>generate the first $n$ terms in the continued fraction reprentation of $x$.
+
       <dt>'ContinuedFraction[$x$]'
       <dd>the complete continued fraction representation for a rational or quadradic irrational number.
     </dl>
@@ -240,7 +240,7 @@ def _fractional_part(self, n, expr, evaluation):
     if n_sympy.is_constant():
         if n_sympy >= 0:
             positive_integer_part = (
-                Expression("Floor", n).evaluate(evaluation).to_python()
+                Expression(SymbolFloor, n).evaluate(evaluation).to_python()
             )
             result = n - positive_integer_part
         else:
@@ -573,7 +573,7 @@ class Prime(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         if expr.has_form("Prime", 1):
-            return SympyPrime(expr.leaves[0].to_sympy(**kwargs))
+            return SympyPrime(expr.elements[0].to_sympy(**kwargs))
 
 
 class PrimePi(SympyFunction):
@@ -747,11 +747,11 @@ class RandomPrime(Builtin):
 
         imin, imax = min(py_int), max(py_int)
         if imin <= 0 or not isinstance(imin, int):
-            evaluation.message("RandomPrime", "posint", interval.leaves[0])
+            evaluation.message("RandomPrime", "posint", interval.elements[0])
             return
 
         if imax <= 0 or not isinstance(imax, int):
-            evaluation.message("RandomPrime", "posint", interval.leaves[1])
+            evaluation.message("RandomPrime", "posint", interval.elements[1])
             return
 
         try:

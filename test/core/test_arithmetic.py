@@ -29,9 +29,12 @@ class ArithmeticTest(unittest.TestCase):
         Test forms of binary infix operator subtraction
         """
         cases = (
-            (self.symbol_a - 3, Expression(SymbolPlus, -3, self.symbol_a)),
-            (Integer1 - 3, Integer(-2)),
-            (Integer1 - (-3), Integer(4)),
+            (
+                self.symbol_a - Integer3,
+                Expression(SymbolPlus, Integer(-3), self.symbol_a),
+            ),
+            (Integer1 - Integer3, Integer(-2)),
+            (Integer1 - Integer(-3), Integer(4)),
             (
                 # test using to_mathics_list() and with element_convesion_fn
                 to_mathics_list(1, 2) - to_mathics_list(-1, 8),
@@ -45,9 +48,12 @@ class ArithmeticTest(unittest.TestCase):
         Test forms of binary infix operator multiplication
         """
         cases = (
-            (self.symbol_a * 3, Expression(SymbolTimes, 3, self.symbol_a)),
-            (Integer(3) * 7, Integer(21)),
-            (Integer(3) * -7, Integer(-21)),
+            (
+                self.symbol_a * Integer3,
+                Expression(SymbolTimes, Integer3, self.symbol_a),
+            ),
+            (Integer(3) * Integer(7), Integer(21)),
+            (Integer(3) * -Integer(7), Integer(-21)),
             (
                 to_mathics_list(1, 2) * to_mathics_list(-1, 8),
                 to_mathics_list(-1, 16, elements_conversion_fn=Integer),
@@ -60,10 +66,13 @@ class ArithmeticTest(unittest.TestCase):
         Test forms of binary infix operator true division
         """
         cases = (
-            (Symbol("a") / 3, Expression(SymbolTimes, Rational(1, 3), Symbol("a"))),
-            (Integer(8) / 2, Integer(4)),
-            (Integer(8) / -2, Integer(-4)),
-            (Integer(7) / 2, Rational(7, 2)),
+            (
+                Symbol("a") / Integer3,
+                Expression(SymbolTimes, Rational(1, 3), Symbol("a")),
+            ),
+            (Integer(8) / Integer2, Integer(4)),
+            (Integer(8) / Integer(-2), Integer(-4)),
+            (Integer(7) / Integer2, Rational(7, 2)),
             (
                 # Here we test using ListExpression() instead of to_mathics_list()
                 ListExpression(Integer1, Integer(9))

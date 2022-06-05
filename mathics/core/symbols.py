@@ -39,35 +39,39 @@ class NumericOperators:
     """
 
     def __abs__(self) -> BaseElement:
-        return self.create_expression("Abs", self)
+        return self.create_expression(SymbolAbs, self)
 
     def __add__(self, other) -> BaseElement:
-        return self.create_expression("Plus", self, other)
+        return self.create_expression(SymbolPlus, self, other)
 
     def __pos__(self):
         return self
 
     def __neg__(self):
-        return self.create_expression("Times", self, -1)
+        from mathics.core.atoms import IntegerM1
+
+        return self.create_expression(SymbolTimes, self, IntegerM1)
 
     def __sub__(self, other) -> BaseElement:
+        from mathics.core.atoms import IntegerM1
+
         return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, -1)
+            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
         )
 
     def __mul__(self, other) -> BaseElement:
-        return self.create_expression("Times", self, other)
+        return self.create_expression(SymbolTimes, self, other)
 
     def __truediv__(self, other) -> BaseElement:
-        return self.create_expression("Divide", self, other)
+        return self.create_expression(SymbolDivide, self, other)
 
     def __floordiv__(self, other) -> BaseElement:
         return self.create_expression(
-            "Floor", self.create_expression("Divide", self, other)
+            SymbolFloor, self.create_expression(SymbolDivide, self, other)
         )
 
     def __pow__(self, other) -> BaseElement:
-        return self.create_expression("Power", self, other)
+        return self.create_expression(SymbolPower, self, other)
 
     def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
         """
@@ -668,6 +672,7 @@ SymbolTrue = PredefinedSymbol("System`True")
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")
+SymbolFloor = Symbol("Floor")
 SymbolFullForm = Symbol("FullForm")
 SymbolGraphics = Symbol("System`Graphics")
 SymbolGraphics3D = Symbol("System`Graphics3D")
@@ -722,11 +727,15 @@ class NumericOperators:
         return self
 
     def __neg__(self):
-        return self.create_expression(SymbolTimes, self, -1)
+        from mathics.core.atoms import IntegerM1
+
+        return self.create_expression(SymbolTimes, self, IntegerM1)
 
     def __sub__(self, other) -> BaseElement:
+        from mathics.core.atoms import IntegerM1
+
         return self.create_expression(
-            "Plus", self, self.create_expression(SymbolTimes, other, -1)
+            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
         )
 
     def __mul__(self, other) -> BaseElement:
@@ -737,7 +746,7 @@ class NumericOperators:
 
     def __floordiv__(self, other) -> BaseElement:
         return self.create_expression(
-            "Floor", self.create_expression(SymbolDivide, self, other)
+            SymbolFloor, self.create_expression(SymbolDivide, self, other)
         )
 
     def __pow__(self, other) -> BaseElement:

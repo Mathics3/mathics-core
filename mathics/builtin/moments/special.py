@@ -10,6 +10,8 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
 from mathics.core.expression import Expression
+from mathics.core.symbols import SymbolDivide
+from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
 
 
 class Correlation(Builtin):
@@ -34,17 +36,19 @@ class Correlation(Builtin):
     def apply(self, a, b, evaluation):
         "Correlation[a_List, b_List]"
 
-        if len(a.leaves) != len(b.leaves):
+        if len(a.elements) != len(b.elements):
             evaluation.message("Correlation", "vctmat", a, b)
-        elif len(a.leaves) < 2:
+        elif len(a.elements) < 2:
             evaluation.message("Correlation", "shlen", a)
-        elif len(b.leaves) < 2:
+        elif len(b.elements) < 2:
             evaluation.message("Correlation", "shlen", b)
         else:
             da = Expression("StandardDeviation", a)
             db = Expression("StandardDeviation", b)
             return Expression(
-                "Divide", Expression("Covariance", a, b), Expression("Times", da, db)
+                SymbolDivide,
+                Expression("Covariance", a, b),
+                Expression("Times", da, db),
             )
 
 
@@ -68,19 +72,19 @@ class Covariance(Builtin):
     def apply(self, a, b, evaluation):
         "Covariance[a_List, b_List]"
 
-        if len(a.leaves) != len(b.leaves):
+        if len(a.elements) != len(b.elements):
             evaluation.message("Covariance", "vctmat", a, b)
-        elif len(a.leaves) < 2:
+        elif len(a.elements) < 2:
             evaluation.message("Covariance", "shlen", a)
-        elif len(b.leaves) < 2:
+        elif len(b.elements) < 2:
             evaluation.message("Covariance", "shlen", b)
         else:
-            ma = Expression("Subtract", a, Expression("Mean", a))
-            mb = Expression("Subtract", b, Expression("Mean", b))
+            ma = Expression(SymbolSubtract, a, Expression(SymbolMean, a))
+            mb = Expression(SymbolSubtract, b, Expression(SymbolMean, b))
             return Expression(
-                "Divide",
-                Expression("Dot", ma, Expression("Conjugate", mb)),
-                len(a.leaves) - 1,
+                SymbolDivide,
+                Expression(SymbolDot, ma, Expression("Conjugate", mb)),
+                len(a.elements) - 1,
             )
 
 
@@ -150,9 +154,9 @@ class StandardDeviation(_Rectangular):
 
     def apply(self, l, evaluation):
         "StandardDeviation[l_List]"
-        if len(l.leaves) <= 1:
+        if len(l.elements) <= 1:
             evaluation.message("StandardDeviation", "shlen", l)
-        elif all(leaf.get_head_name() == "System`List" for leaf in l.leaves):
+        elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
             except _NotRectangularException:
@@ -199,17 +203,17 @@ class Variance(_Rectangular):
 
     def apply(self, l, evaluation):
         "Variance[l_List]"
-        if len(l.leaves) <= 1:
+        if len(l.elements) <= 1:
             evaluation.message("Variance", "shlen", l)
-        elif all(leaf.get_head_name() == "System`List" for leaf in l.leaves):
+        elif all(element.get_head_name() == "System`List" for element in l.elements):
             try:
                 return self.rect(l)
             except _NotRectangularException:
                 evaluation.message("Variance", "rectt", Expression("Variance", l))
         else:
-            d = Expression("Subtract", l, Expression("Mean", l))
+            d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))
             return Expression(
-                "Divide",
-                Expression("Dot", d, Expression("Conjugate", d)),
-                len(l.leaves) - 1,
+                SymbolDivide,
+                Expression(SymbolDot, d, Expression("Conjugate", d)),
+                len(l.elements) - 1,
             )

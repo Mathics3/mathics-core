@@ -13,18 +13,33 @@ from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Real, from_mpmath
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Symbol,
+    SymbolAbs,
+    SymbolDivide,
+    SymbolList,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+)
+from mathics.core.systemsymbols import (
+    SymbolMax,
+    SymbolNorm,
+    SymbolSubtract,
+    SymbolTotal,
+)
 
 
 def matrix_data(m):
     if not m.has_form("List", None):
         return None
-    if all(leaf.has_form("List", None) for leaf in m.leaves):
-        result = [[item.to_sympy() for item in row.leaves] for row in m.leaves]
+    if all(element.has_form("List", None) for element in m.elements):
+        result = [[item.to_sympy() for item in row.elements] for row in m.elements]
         if not any(None in row for row in result):
             return result
-    elif not any(leaf.has_form("List", None) for leaf in m.leaves):
-        result = [item.to_sympy() for item in m.leaves]
+    elif not any(element.has_form("List", None) for element in m.elements):
+        result = [item.to_sympy() for item in m.elements]
         if None not in result:
             return result
 
@@ -49,9 +64,9 @@ def to_mpmath_matrix(data, **kwargs):
     def mpmath_matrix_data(m):
         if not m.has_form("List", None):
             return None
-        if not all(leaf.has_form("List", None) for leaf in m.leaves):
+        if not all(element.has_form("List", None) for element in m.elements):
             return None
-        return [[str(item) for item in row.leaves] for row in m.leaves]
+        return [[str(item) for item in row.elements] for row in m.elements]
 
     if not isinstance(data, list):
         data = mpmath_matrix_data(data)
@@ -275,7 +290,9 @@ class SingularValueDecomposition(Builtin):
         if matrix is None:
             return evaluation.message("SingularValueDecomposition", "matrix", m, 1)
 
-        if not any(leaf.is_inexact() for row in m.leaves for leaf in row.leaves):
+        if not any(
+            element.is_inexact() for row in m.elements for element in row.elements
+        ):
             # symbolic argument (not implemented)
             evaluation.message("SingularValueDecomposition", "nosymb")
 
@@ -462,14 +479,14 @@ class LinearSolve(Builtin):
             return evaluation.message("LinearSolve", "matrix", m, 1)
         if not b.has_form("List", None):
             return
-        if len(b.leaves) != len(matrix):
+        if len(b.elements) != len(matrix):
             return evaluation.message("LinearSolve", "lslc")
 
-        for leaf in b.leaves:
-            if leaf.has_form("List", None):
+        for element in b.elements:
+            if element.has_form("List", None):
                 return evaluation.message("LinearSolve", "matrix", b, 2)
 
-        system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.leaves)]
+        system = [mm + [v.to_sympy()] for mm, v in zip(matrix, b.elements)]
         system = to_sympy_matrix(system)
         if system is None:
             return evaluation.message("LinearSolve", "matrix", b, 2)
@@ -1159,9 +1176,9 @@ class EuclideanDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "EuclideanDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
-            return Expression("Norm", t)
+            return Expression(SymbolNorm, t)
 
 
 class SquaredEuclideanDistance(Builtin):
@@ -1184,7 +1201,7 @@ class SquaredEuclideanDistance(Builtin):
         "SquaredEuclideanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Power", Expression("Norm", t), 2)
+            return Expression(SymbolPower, Expression(SymbolNorm, t), 2)
 
 
 class ManhattanDistance(Builtin):
@@ -1208,7 +1225,7 @@ class ManhattanDistance(Builtin):
         "ManhattanDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Total", Expression("Abs", t))
+            return Expression(SymbolTotal, Expression(SymbolAbs, t))
 
 
 class ChessboardDistance(Builtin):
@@ -1232,7 +1249,7 @@ class ChessboardDistance(Builtin):
         "ChessboardDistance[u_, v_]"
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
-            return Expression("Max", Expression("Abs", t))
+            return Expression(SymbolMax, Expression(SymbolAbs, t))
 
 
 class CanberraDistance(Builtin):
@@ -1259,9 +1276,11 @@ class CanberraDistance(Builtin):
             return Expression(
                 "Total",
                 Expression(
-                    "Divide",
-                    Expression("Abs", t),
-                    Expression("Plus", Expression("Abs", u), Expression("Abs", v)),
+                    SymbolDivide,
+                    Expression(SymbolAbs, t),
+                    Expression(
+                        SymbolPlus, Expression(SymbolAbs, u), Expression(SymbolAbs, v)
+                    ),
                 ),
             )
 
@@ -1287,9 +1306,11 @@ class BrayCurtisDistance(Builtin):
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
             return Expression(
-                "Divide",
-                Expression("Total", Expression("Abs", t)),
-                Expression("Total", Expression("Abs", Expression("Plus", u, v))),
+                SymbolDivide,
+                Expression("Total", Expression(SymbolAbs, t)),
+                Expression(
+                    "Total", Expression(SymbolAbs, Expression(SymbolPlus, u, v))
+                ),
             )
 
 
@@ -1316,11 +1337,15 @@ class CosineDistance(Builtin):
         dot = _norm_calc("Dot", u, v, evaluation)
         if dot is not None:
             return Expression(
-                "Subtract",
+                SymbolSubtract,
                 1,
                 Expression(
-                    "Divide",
+                    SymbolDivide,
                     dot,
-                    Expression("Times", Expression("Norm", u), Expression("Norm", v)),
+                    Expression(
+                        SymbolTimes,
+                        Expression(SymbolNorm, u),
+                        Expression(SymbolNorm, v),
+                    ),
                 ),
             )

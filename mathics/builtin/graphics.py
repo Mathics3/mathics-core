@@ -36,18 +36,20 @@ from mathics.builtin.colors.color_directives import (
 )
 
 from mathics.builtin.options import options_to_rules
+
+from mathics.core.atoms import (
+    Integer,
+    Rational,
+    Real,
+)
 from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     system_symbols,
     system_symbols_dict,
     SymbolList,
     SymbolNull,
-)
-from mathics.core.atoms import (
-    Integer,
-    Rational,
-    Real,
 )
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
@@ -85,7 +87,7 @@ class CoordinatesError(BoxConstructError):
 
 def coords(value):
     if value.has_form("List", 2):
-        x, y = value.leaves[0].round_to_float(), value.leaves[1].round_to_float()
+        x, y = value.elements[0].round_to_float(), value.elements[1].round_to_float()
         if x is None or y is None:
             raise CoordinatesError
         return (x, y)
@@ -99,9 +101,9 @@ class Coords(object):
         self.d = d
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                self.d = coords(expr.leaves[0])
-                if len(expr.leaves) > 1:
-                    self.p = coords(expr.leaves[1])
+                self.d = coords(expr.elements[0])
+                if len(expr.elements) > 1:
+                    self.p = coords(expr.elements[1])
                 else:
                     self.p = None
             else:
@@ -137,14 +139,14 @@ def _to_float(x):
     return x
 
 
-def _data_and_options(leaves, defined_options):
+def _data_and_options(elements, defined_options):
     data = []
     options = defined_options.copy()
-    for leaf in leaves:
-        if leaf.get_head_name() == "System`Rule":
-            if len(leaf.leaves) != 2:
+    for element in elements:
+        if element.get_head_name() == "System`Rule":
+            if len(element.elements) != 2:
                 raise BoxConstructError
-            name, value = leaf.leaves
+            name, value = element.elements
             name_head = name.get_head_name()
             if name_head == "System`Symbol":
                 py_name = name.get_name()
@@ -154,7 +156,7 @@ def _data_and_options(leaves, defined_options):
                 raise BoxConstructError
             options[py_name] = value
         else:
-            data.append(leaf)
+            data.append(element)
     return data, options
 
 
@@ -162,7 +164,7 @@ def _extract_graphics(graphics, format, evaluation):
     graphics_box = Expression(SymbolMakeBoxes, graphics).evaluate(evaluation)
     # builtin = GraphicsBox(expression=False)
     elements, calc_dimensions = graphics_box._prepare_elements(
-        graphics_box.leaves, {"evaluation": evaluation}, neg_y=True
+        graphics_box.elements, {"evaluation": evaluation}, neg_y=True
     )
     xmin, xmax, ymin, ymax, _, _, _, _ = calc_dimensions()
 
@@ -216,11 +218,14 @@ class Show(Builtin):
         # The below could probably be done with graphics.filter..
         new_elements = []
         options_set = set(options.keys())
-        for leaf in graphics.leaves:
-            leaf_name = leaf.get_head_name()
-            if leaf_name == "System`Rule" and str(leaf.leaves[0]) in options_set:
+        for element in graphics.elements:
+            element_name = element.get_head_name()
+            if (
+                element_name == "System`Rule"
+                and str(element.elements[0]) in options_set
+            ):
                 continue
-            new_elements.append(leaf)
+            new_elements.append(element)
 
         new_elements += options_to_rules(options)
         graphics = graphics.restructure(graphics.head, new_elements, evaluation)
@@ -287,11 +292,11 @@ class Graphics(Builtin):
 
             if head is SymbolList:
                 return to_expression(
-                    SymbolList, *[convert(item) for item in content.leaves]
+                    SymbolList, *[convert(item) for item in content.elements]
                 )
             elif head is Symbol("System`Style"):
                 return to_expression(
-                    "StyleBox", *[convert(item) for item in content.leaves]
+                    "StyleBox", *[convert(item) for item in content.elements]
                 )
 
             if head in element_heads:
@@ -304,7 +309,7 @@ class Graphics(Builtin):
                     for atom in atoms
                 ):
                     if head is Symbol("System`Inset"):
-                        inset = content.leaves[0]
+                        inset = content.elements[0]
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
@@ -312,14 +317,15 @@ class Graphics(Builtin):
                                 inset._elements[0], evaluation, opts
                             )
                         n_elements = [inset] + [
-                            apply_N(leaf, evaluation) for leaf in content.leaves[1:]
+                            apply_N(element, evaluation)
+                            for element in content.elements[1:]
                         ]
                     else:
                         n_elements = (
-                            apply_N(leaf, evaluation) for leaf in content.leaves
+                            apply_N(element, evaluation) for element in content.elements
                         )
                 else:
-                    n_elements = content.leaves
+                    n_elements = content.elements
                 return Expression(Symbol(head.name + self.box_suffix), *n_elements)
             return content
 
@@ -345,7 +351,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.leaves[0].round_to_float()
+            self.value = item.elements[0].round_to_float()
         elif value is not None:
             self.value = value
         else:
@@ -553,19 +559,22 @@ class _Polyline(_GraphicsElementBox):
         if not points.has_form("List", None):
             raise BoxConstructError
         if (
-            points.leaves
-            and points.leaves[0].has_form("List", None)
-            and all(leaf.has_form("List", None) for leaf in points.leaves[0].leaves)
+            points.elements
+            and points.elements[0].has_form("List", None)
+            and all(
+                element.has_form("List", None)
+                for element in points.elements[0].elements
+            )
         ):
-            leaves = points.leaves
+            elements = points.elements
             self.multi_parts = True
         else:
-            leaves = [Expression(SymbolList, *points.leaves)]
+            elements = [ListExpression(*points.elements)]
             self.multi_parts = False
         lines = []
-        for leaf in leaves:
-            if leaf.has_form("List", None):
-                lines.append(leaf.leaves)
+        for element in elements:
+            if element.has_form("List", None):
+                lines.append(element.elements)
             else:
                 raise BoxConstructError
         self.lines = [
@@ -809,9 +818,9 @@ class Arrowheads(_GraphicsDirective):
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
-        if len(item.leaves) != 1:
+        if len(item.elements) != 1:
             raise BoxConstructError
-        self.spec = item.leaves[0]
+        self.spec = item.elements[0]
 
     def _arrow_size(self, s, extent):
         if isinstance(s, Symbol):
@@ -824,10 +833,10 @@ class Arrowheads(_GraphicsDirective):
         # see https://reference.wolfram.com/language/ref/Arrowheads.html
 
         if self.spec.get_head_name() == "System`List":
-            leaves = self.spec.leaves
-            if all(x.get_head_name() == "System`List" for x in leaves):
-                for head in leaves:
-                    spec = head.leaves
+            elements = self.spec.elements
+            if all(x.get_head_name() == "System`List" for x in elements):
+                for head in elements:
+                    spec = head.elements
                     if len(spec) not in (2, 3):
                         raise BoxConstructError
                     size_spec = spec[0]
@@ -854,8 +863,8 @@ class Arrowheads(_GraphicsDirective):
 
                     yield s, _to_float(spec[1]), arrow
             else:
-                n = max(1.0, len(leaves) - 1.0)
-                for i, head in enumerate(leaves):
+                n = max(1.0, len(elements) - 1.0)
+                for i, head in enumerate(elements):
                     yield self._arrow_size(head, extent), i / n, default_arrow
         else:
             yield self._arrow_size(self.spec, extent), 1, default_arrow
@@ -1042,14 +1051,14 @@ def _style(graphics, item):
         style = graphics.style_class(
             graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
         )
-        if len(item.leaves) > 1:
+        if len(item.elements) > 1:
             raise BoxConstructError
-        if item.leaves:
-            if item.leaves[0].has_form("List", None):
-                for dir in item.leaves[0].leaves:
+        if item.elements:
+            if item.elements[0].has_form("List", None):
+                for dir in item.elements[0].elements:
                     style.append(dir, allow_forms=False)
             else:
-                style.append(item.leaves[0], allow_forms=False)
+                style.append(item.elements[0], allow_forms=False)
     else:
         raise BoxConstructError
     return style
@@ -1165,8 +1174,8 @@ class _GraphicsElements(object):
                 head = spec.get_head()
                 if head in style_and_form_heads:
                     new_style.append(spec)
-                elif head is Symbol("System`Rule") and len(spec.leaves) == 2:
-                    option, expr = spec.leaves
+                elif head is Symbol("System`Rule") and len(spec.elements) == 2:
+                    option, expr = spec.elements
                     if not isinstance(option, Symbol):
                         raise BoxConstructError
 
@@ -1182,7 +1191,7 @@ class _GraphicsElements(object):
 
         def convert(content, style):
             if content.has_form("List", None):
-                items = content.leaves
+                items = content.elements
             else:
                 items = [content]
             style = style.clone()
@@ -1193,17 +1202,17 @@ class _GraphicsElements(object):
                 if head in style_and_form_heads:
                     style.append(item)
                 elif head is Symbol("System`StyleBox"):
-                    if len(item.leaves) < 1:
+                    if len(item.elements) < 1:
                         raise BoxConstructError
                     for element in convert(
-                        item.leaves[0], stylebox_style(style, item.leaves[1:])
+                        item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
                     options = get_options(head.name[:-3])
                     if options:
-                        data, options = _data_and_options(item.leaves, options)
+                        data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
                         element = element_class(self, style, new_item, options)
                     else:
@@ -1223,7 +1232,7 @@ class _GraphicsElements(object):
 
         def convert(expr):
             if expr.has_form(("List", "Directive"), None):
-                for item in expr.leaves:
+                for item in expr.elements:
                     convert(item)
             else:
                 style.append(expr)
