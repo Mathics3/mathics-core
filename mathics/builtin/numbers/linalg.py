@@ -12,8 +12,8 @@ from mpmath import mp
 from mathics.builtin.base import Builtin
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Real, from_mpmath
-from mathics.core.list import ListExpression
+from mathics.core.atoms import Integer, Integer0, Real, from_mpmath
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import (
     Symbol,
     SymbolAbs,
@@ -249,8 +249,8 @@ class Inverse(Builtin):
 class SingularValueDecomposition(Builtin):
     """
     <dl>
-    <dt>'SingularValueDecomposition[$m$]'
-        <dd>calculates the singular value decomposition for the matrix $m$.
+      <dt>'SingularValueDecomposition[$m$]'
+      <dd>calculates the singular value decomposition for the matrix $m$.
     </dl>
 
     'SingularValueDecomposition' returns $u$, $s$, $w$ such that $m$=$u$ $s$ $v$,
@@ -298,10 +298,10 @@ class SingularValueDecomposition(Builtin):
 
         U, S, V = mp.svd(matrix)
         S = mp.diag(S)
-        U_list = Expression("List", *U.tolist())
-        S_list = Expression("List", *S.tolist())
-        V_list = Expression("List", *V.tolist())
-        return Expression("List", *[U_list, S_list, V_list])
+        U_list = to_mathics_list(*U.tolist())
+        S_list = to_mathics_list(*S.tolist())
+        V_list = to_mathics_list(*V.tolist())
+        return ListExpression(*[U_list, S_list, V_list])
 
 
 class QRDecomposition(Builtin):
@@ -336,7 +336,7 @@ class QRDecomposition(Builtin):
         except sympy.matrices.MatrixError:
             return evaluation.message("QRDecomposition", "sympy")
         Q = Q.transpose()
-        return Expression("List", *[from_sympy(Q), from_sympy(R)])
+        return ListExpression(*[from_sympy(Q), from_sympy(R)])
 
 
 class PseudoInverse(Builtin):
@@ -818,7 +818,7 @@ class Eigenvalues(Builtin):
                     from_sympy(v) for (v, c) in eigenvalues for _ in range(c)
                 ]
 
-                return Expression("List", *eigenvalues)
+                return ListExpression(*eigenvalues)
             except TypeError:
                 pass
 
@@ -1132,9 +1132,9 @@ class Eigenvectors(Builtin):
             # Add the vectors to results
             result.extend(vects)
         result.extend(
-            [Expression("List", *([0] * matrix.rows))] * (matrix.rows - len(result))
+            [ListExpression(*([Integer0] * matrix.rows))] * (matrix.rows - len(result))
         )
-        return Expression("List", *result)
+        return ListExpression(*result)
 
 
 # These distance functions deserves a different module
