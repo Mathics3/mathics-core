@@ -208,7 +208,7 @@ class Eigenvalues(Builtin):
             key=lambda v: (abs(v[0]), -v[0].real, -(v[0].imag)), reverse=True
         )
         eigenvalues = [[from_mpmath(c) for c in row] for row in eigenvalues]
-        return Expression("List", *eigenvalues)
+        return ListExpression(*eigenvalues)
 
     options = {"Method": "sympy"}
 

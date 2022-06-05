@@ -3,6 +3,7 @@ Numerial Data
 """
 
 from mathics.builtin.base import Builtin
+from mathics.core.atoms import Integer1
 from mathics.core.expression import Expression
 
 from mathics.core.symbols import (
@@ -58,9 +59,9 @@ class BrayCurtisDistance(Builtin):
         if t is not None:
             return Expression(
                 SymbolDivide,
-                Expression("Total", Expression(SymbolAbs, t)),
+                Expression(SymbolTotal, Expression(SymbolAbs, t)),
                 Expression(
-                    "Total", Expression(SymbolAbs, Expression(SymbolPlus, u, v))
+                    SymbolTotal, Expression(SymbolAbs, Expression(SymbolPlus, u, v))
                 ),
             )
 
@@ -86,7 +87,7 @@ class CanberraDistance(Builtin):
         t = _norm_calc("Subtract", u, v, evaluation)
         if t is not None:
             return Expression(
-                "Total",
+                SymbolTotal,
                 Expression(
                     SymbolDivide,
                     Expression(SymbolAbs, t),
@@ -145,7 +146,7 @@ class CosineDistance(Builtin):
         if dot is not None:
             return Expression(
                 SymbolSubtract,
-                1,
+                Integer1,
                 Expression(
                     SymbolDivide,
                     dot,
