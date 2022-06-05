@@ -28,7 +28,12 @@ class ListExpression(Expression):
         self.pattern_sequence = False
         self._head = SymbolList
 
-        assert isinstance(elements, tuple)
+        # For debugging
+        # from mathics.core.symbols import BaseElement
+        # for element in elements:
+        #     if not isinstance(element, BaseElement):
+        #          from trepan.api import debug; debug()
+
         self._elements = elements
         self._is_literal = False
         self.python_list = None
@@ -45,6 +50,7 @@ class ListExpression(Expression):
         # here...
         self._format_cache = None
 
+    # # Add this when it is safe to do.
     # def __repr__(self) -> str:
     #     return "<ListExpression: %s>" % self
 
