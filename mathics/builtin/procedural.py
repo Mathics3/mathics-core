@@ -12,10 +12,12 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 
 
 from mathics.builtin.base import Builtin, BinaryOperator
+from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.patterns import match
 
 from mathics.core.atoms import from_python
+from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
 from mathics.core.expression import Expression
-
 from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
@@ -23,17 +25,12 @@ from mathics.core.interrupt import (
     ReturnInterrupt,
     WLThrowInterrupt,
 )
-
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
 )
-from mathics.builtin.lists import _IterationFunction
-from mathics.builtin.patterns import match
-
-from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
 
 
 class Abort(Builtin):
@@ -195,6 +192,7 @@ class CompoundExpression(BinaryOperator):
 
         items = expr.get_sequence()
         result = SymbolNull
+
         for expr in items:
             prev_result = result
             result = expr.evaluate(evaluation)

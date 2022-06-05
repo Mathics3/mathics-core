@@ -51,6 +51,7 @@ from mathics.core.atoms import (
     ByteArrayAtom,
     Integer,
     Integer0,
+    Integer1,
     Number,
     Real,
     String,
@@ -64,7 +65,7 @@ from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, structure, to_expression
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -144,7 +145,7 @@ class ByteArray(Builtin):
         except Exception:
             evaluation.message("ByteArray", "lend", string)
             return SymbolFailed
-        return Expression("ByteArray", atom)
+        return Expression(SymbolByteArray, atom)
 
     def apply_to_str(self, baa, evaluation):
         "ToString[ByteArray[baa_ByteArrayAtom]]"
@@ -152,7 +153,7 @@ class ByteArray(Builtin):
 
     def apply_normal(self, baa, evaluation):
         "System`Normal[ByteArray[baa_ByteArrayAtom]]"
-        return Expression(SymbolList, *[Integer(x) for x in baa.value])
+        return to_mathics_list(*baa.value, elements_conversion_fn=Integer)
 
     def apply_list(self, values, evaluation):
         "ByteArray[values_List]"
@@ -234,8 +235,8 @@ class ContainsOnly(Builtin):
             return result is SymbolTrue
 
         self.check_options(None, evaluation, options)
-        for a in list1.leaves:
-            if not any(sameQ(a, b) for b in list2.leaves):
+        for a in list1.elements:
+            if not any(sameQ(a, b) for b in list2.elements):
                 return SymbolFalse
         return SymbolTrue
 
@@ -377,8 +378,8 @@ class Delete(Builtin):
 
         # Create new python list of the positions and sort it
         positions = (
-            [t for t in positions.leaves]
-            if positions.leaves[0].has_form("List", None)
+            [t for t in positions.elements]
+            if positions.elements[0].has_form("List", None)
             else [positions]
         )
         positions.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
@@ -387,7 +388,7 @@ class Delete(Builtin):
             pos = [p.get_int_value() for p in position.get_elements()]
             if None in pos:
                 return evaluation.message(
-                    "Delete", "psl", position.leaves[pos.index(None)], expr
+                    "Delete", "psl", position.elements[pos.index(None)], expr
                 )
             if len(pos) == 0:
                 return evaluation.message(
@@ -711,16 +712,16 @@ class Split(Builtin):
             evaluation.message("Select", "normal", 1, expr)
             return
 
-        if not mlist.leaves:
+        if not mlist.elements:
             return Expression(mlist.head)
 
-        result = [[mlist.leaves[0]]]
-        for leaf in mlist.leaves[1:]:
-            applytest = Expression(test, result[-1][-1], leaf)
+        result = [[mlist.elements[0]]]
+        for element in mlist.elements[1:]:
+            applytest = Expression(test, result[-1][-1], element)
             if applytest.evaluate(evaluation) is SymbolTrue:
-                result[-1].append(leaf)
+                result[-1].append(element)
             else:
-                result.append([leaf])
+                result.append([element])
 
         inner = structure("List", mlist, evaluation)
         outer = structure(mlist.head, inner, evaluation)
@@ -763,16 +764,16 @@ class SplitBy(Builtin):
             evaluation.message("Select", "normal", 1, expr)
             return
 
-        plist = [t for t in mlist.leaves]
+        plist = [t for t in mlist.elements]
 
         result = [[plist[0]]]
         prev = Expression(func, plist[0]).evaluate(evaluation)
-        for leaf in plist[1:]:
-            curr = Expression(func, leaf).evaluate(evaluation)
+        for element in plist[1:]:
+            curr = Expression(func, element).evaluate(evaluation)
             if curr == prev:
-                result[-1].append(leaf)
+                result[-1].append(element)
             else:
-                result.append([leaf])
+                result.append([element])
             prev = curr
 
         inner = structure("List", mlist, evaluation)
@@ -788,7 +789,7 @@ class SplitBy(Builtin):
             return
 
         result = mlist
-        for f in funcs.leaves[::-1]:
+        for f in funcs.elements[::-1]:
             result = self.apply(result, f, evaluation)
 
         return result
@@ -838,17 +839,17 @@ class LeafCount(Builtin):
 
         from mathics.core.atoms import Rational, Complex
 
-        leaves = []
+        elements = []
 
         def callback(level):
             if isinstance(level, Rational):
-                leaves.extend(
+                elements.extend(
                     [level.get_head(), level.numerator(), level.denominator()]
                 )
             elif isinstance(level, Complex):
-                leaves.extend([level.get_head(), level.real, level.imag])
+                elements.extend([level.get_head(), level.real, level.imag])
             else:
-                leaves.append(level)
+                elements.append(level)
             return level
 
         expr = expr.get_sequence()
@@ -856,7 +857,7 @@ class LeafCount(Builtin):
             return evaluation.message("LeafCount", "argx", Integer(len(expr)))
 
         walk_levels(expr[0], start=-1, stop=-1, heads=True, callback=callback)
-        return Integer(len(leaves))
+        return Integer(len(elements))
 
 
 class Position(Builtin):
@@ -937,19 +938,19 @@ class _IterationFunction(Builtin):
         "%(name)s[expr_, iterator_Symbol]"
         iterator = iterator.evaluate(evaluation)
         if iterator.has_form(["List", "Range", "Sequence"], None):
-            leaves = iterator.leaves
-            if len(leaves) == 1:
-                return self.apply_max(expr, *leaves, evaluation)
-            elif len(leaves) == 2:
-                if leaves[1].has_form(["List", "Sequence"], None):
-                    seq = Expression(SymbolSequence, *(leaves[1].leaves))
-                    return self.apply_list(expr, leaves[0], seq, evaluation)
+            elements = iterator.elements
+            if len(elements) == 1:
+                return self.apply_max(expr, *elements, evaluation)
+            elif len(elements) == 2:
+                if elements[1].has_form(["List", "Sequence"], None):
+                    seq = Expression(SymbolSequence, *(elements[1].elements))
+                    return self.apply_list(expr, elements[0], seq, evaluation)
                 else:
-                    return self.apply_range(expr, *leaves, evaluation)
-            elif len(leaves) == 3:
-                return self.apply_iter_nostep(expr, *leaves, evaluation)
-            elif len(leaves) == 4:
-                return self.apply_iter(expr, *leaves, evaluation)
+                    return self.apply_range(expr, *elements, evaluation)
+            elif len(elements) == 3:
+                return self.apply_iter_nostep(expr, *elements, evaluation)
+            elif len(elements) == 4:
+                return self.apply_iter(expr, *elements, evaluation)
 
         if self.throw_iterb:
             evaluation.message(self.get_name(), "iterb")
@@ -961,21 +962,49 @@ class _IterationFunction(Builtin):
         if imax.has_form("Range", None):
             # FIXME: this should work as an iterator in Python3, not
             # building the sequence explicitly...
-            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).leaves))
+            seq = Expression(SymbolSequence, *(imax.evaluate(evaluation).elements))
             return self.apply_list(expr, i, seq, evaluation)
         elif imax.has_form("List", None):
-            seq = Expression(SymbolSequence, *(imax.leaves))
+            seq = Expression(SymbolSequence, *(imax.elements))
             return self.apply_list(expr, i, seq, evaluation)
         else:
-            return self.apply_iter(expr, i, Integer(1), imax, Integer(1), evaluation)
+            return self.apply_iter(expr, i, Integer1, imax, Integer1, evaluation)
 
     def apply_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
         # Even though `imax` should be an integeral value, its type does not
         # have to be an Integer.
+
+        result = []
+
+        def do_iteration():
+            evaluation.check_stopped()
+            try:
+                result.append(expr.evaluate(evaluation))
+            except ContinueInterrupt:
+                if self.allow_loopcontrol:
+                    pass
+                else:
+                    raise
+            except BreakInterrupt:
+                if self.allow_loopcontrol:
+                    raise StopIteration
+                else:
+                    raise
+            except ReturnInterrupt as e:
+                if self.allow_loopcontrol:
+                    return e.expr
+                else:
+                    raise
+
         if isinstance(imax, Integer):
-            py_max = imax.get_int_value()
+            for _ in range(imax.value):
+                try:
+                    do_iteration()
+                except StopIteration:
+                    break
+
         else:
             imax = imax.evaluate(evaluation)
             imax = imax.numerify(evaluation)
@@ -987,28 +1016,13 @@ class _IterationFunction(Builtin):
                     evaluation.message(self.get_name(), "iterb")
                 return
 
-        result = []
-        index = 0
-        while index < py_max:
-            evaluation.check_stopped()
-            try:
-                result.append(expr.evaluate(evaluation))
-            except ContinueInterrupt:
-                if self.allow_loopcontrol:
-                    pass
-                else:
-                    raise
-            except BreakInterrupt:
-                if self.allow_loopcontrol:
+            index = 0
+            while index < py_max:
+                try:
+                    do_iteration()
+                except StopIteration:
                     break
-                else:
-                    raise
-            except ReturnInterrupt as e:
-                if self.allow_loopcontrol:
-                    return e.expr
-                else:
-                    raise
-            index += 1
+                index += 1
         return self.get_result(result)
 
     def apply_iter_nostep(self, expr, i, imin, imax, evaluation):
@@ -1160,7 +1174,7 @@ class Join(Builtin):
                 evaluation.message("Join", "heads", head, list.get_head())
                 return
             head = list.get_head()
-            result.extend(list.leaves)
+            result.extend(list.elements)
 
         if result:
             return sequence[0].restructure(head, result, evaluation, deps=sequence)
@@ -1326,8 +1340,8 @@ class _Rectangular(Builtin):
     # A helper for Builtins X that allow X[{a1, a2, ...}, {b1, b2, ...}, ...] to be evaluated
     # as {X[{a1, b1, ...}, {a1, b2, ...}, ...]}.
 
-    def rect(self, leaf):
-        lengths = [len(leaf.leaves) for leaf in leaf.leaves]
+    def rect(self, element):
+        lengths = [len(element.elements) for element in element.elements]
         if all(length == 0 for length in lengths):
             return  # leave as is, without error
 
@@ -1336,7 +1350,7 @@ class _Rectangular(Builtin):
             raise _NotRectangularException()
 
         transposed = [
-            [sleaf.leaves[i] for sleaf in leaf.leaves] for i in range(n_columns)
+            [sleaf.elements[i] for sleaf in element.elements] for i in range(n_columns)
         ]
 
         return Expression(
@@ -1366,15 +1380,17 @@ class RankedMin(Builtin):
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
 
-    def apply(self, leaf, n, evaluation):
-        "RankedMin[leaf_List, n_Integer]"
+    def apply(self, element, n, evaluation):
+        "RankedMin[element_List, n_Integer]"
         py_n = n.get_int_value()
         if py_n < 1:
-            evaluation.message("RankedMin", "intpm", Expression("RankedMin", leaf, n))
-        elif py_n > len(leaf.leaves):
-            evaluation.message("RankedMin", "rank", py_n, len(leaf.leaves))
+            evaluation.message(
+                "RankedMin", "intpm", Expression("RankedMin", element, n)
+            )
+        elif py_n > len(element.elements):
+            evaluation.message("RankedMin", "rank", py_n, len(element.elements))
         else:
-            return introselect(leaf.get_mutable_elements(), py_n - 1)
+            return introselect(element.get_mutable_elements(), py_n - 1)
 
 
 class RankedMax(Builtin):
@@ -1395,15 +1411,19 @@ class RankedMax(Builtin):
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
 
-    def apply(self, leaf, n, evaluation):
-        "RankedMax[leaf_List, n_Integer]"
+    def apply(self, element, n, evaluation):
+        "RankedMax[element_List, n_Integer]"
         py_n = n.get_int_value()
         if py_n < 1:
-            evaluation.message("RankedMax", "intpm", Expression("RankedMax", leaf, n))
-        elif py_n > len(leaf.leaves):
-            evaluation.message("RankedMax", "rank", py_n, len(leaf.leaves))
+            evaluation.message(
+                "RankedMax", "intpm", Expression("RankedMax", element, n)
+            )
+        elif py_n > len(element.elements):
+            evaluation.message("RankedMax", "rank", py_n, len(element.elements))
         else:
-            return introselect(leaf.get_mutable_elements(), len(leaf.leaves) - py_n)
+            return introselect(
+                element.get_mutable_elements(), len(element.elements) - py_n
+            )
 
 
 class _RankedTake(Builtin):
@@ -1456,7 +1476,7 @@ class _RankedTake(Builtin):
                             return False
 
                 else:
-                    excluded = Expression("Alternatives", *excluded.leaves)
+                    excluded = Expression("Alternatives", *excluded.elements)
 
                     def exclude(item):
                         return (
@@ -1464,9 +1484,9 @@ class _RankedTake(Builtin):
                             is SymbolTrue
                         )
 
-                filtered = [leaf for leaf in t.leaves if not exclude(leaf)]
+                filtered = [element for element in t.elements if not exclude(element)]
             else:
-                filtered = t.leaves
+                filtered = t.elements
 
             if limit > len(filtered):
                 if not limit.is_upper_limit():
@@ -1484,20 +1504,20 @@ class _RankedTake(Builtin):
 
             if f:
                 heap = [
-                    (Expression(f, leaf).evaluate(evaluation), leaf, i)
-                    for i, leaf in enumerate(filtered)
+                    (Expression(f, element).evaluate(evaluation), element, i)
+                    for i, element in enumerate(filtered)
                 ]
-                leaf_pos = 1  # in tuple above
+                element_pos = 1  # in tuple above
             else:
-                heap = [(leaf, i) for i, leaf in enumerate(filtered)]
-                leaf_pos = 0  # in tuple above
+                heap = [(element, i) for i, element in enumerate(filtered)]
+                element_pos = 0  # in tuple above
 
             if py_n == 1:
                 result = [self._get_1(heap)]
             else:
                 result = self._get_n(py_n, heap)
 
-            return t.restructure("List", [x[leaf_pos] for x in result], evaluation)
+            return t.restructure("List", [x[element_pos] for x in result], evaluation)
 
 
 class _RankedTakeSmallest(_RankedTake):
@@ -1538,9 +1558,9 @@ class TakeLargest(_RankedTakeLargest):
 
     summary_text = "sublist of n largest elements"
 
-    def apply(self, leaf, n, evaluation, options):
-        "TakeLargest[leaf_List, n_, OptionsPattern[TakeLargest]]"
-        return self._compute(leaf, n, evaluation, options)
+    def apply(self, element, n, evaluation, options):
+        "TakeLargest[element_List, n_, OptionsPattern[TakeLargest]]"
+        return self._compute(element, n, evaluation, options)
 
 
 class TakeLargestBy(_RankedTakeLargest):
@@ -1562,9 +1582,9 @@ class TakeLargestBy(_RankedTakeLargest):
 
     summary_text = "sublist of n largest elements according to a given criteria"
 
-    def apply(self, leaf, f, n, evaluation, options):
-        "TakeLargestBy[leaf_List, f_, n_, OptionsPattern[TakeLargestBy]]"
-        return self._compute(leaf, n, evaluation, options, f=f)
+    def apply(self, element, f, n, evaluation, options):
+        "TakeLargestBy[element_List, f_, n_, OptionsPattern[TakeLargestBy]]"
+        return self._compute(element, n, evaluation, options, f=f)
 
 
 class TakeSmallest(_RankedTakeSmallest):
@@ -1582,9 +1602,9 @@ class TakeSmallest(_RankedTakeSmallest):
 
     summary_text = "sublist of n smallest elements"
 
-    def apply(self, leaf, n, evaluation, options):
-        "TakeSmallest[leaf_List, n_, OptionsPattern[TakeSmallest]]"
-        return self._compute(leaf, n, evaluation, options)
+    def apply(self, element, n, evaluation, options):
+        "TakeSmallest[element_List, n_, OptionsPattern[TakeSmallest]]"
+        return self._compute(element, n, evaluation, options)
 
 
 class TakeSmallestBy(_RankedTakeSmallest):
@@ -1606,9 +1626,9 @@ class TakeSmallestBy(_RankedTakeSmallest):
 
     summary_text = "sublist of n largest elements according to a criteria"
 
-    def apply(self, leaf, f, n, evaluation, options):
-        "TakeSmallestBy[leaf_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
-        return self._compute(leaf, n, evaluation, options, f=f)
+    def apply(self, element, f, n, evaluation, options):
+        "TakeSmallestBy[element_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
+        return self._compute(element, n, evaluation, options, f=f)
 
 
 class _IllegalPaddingDepth(Exception):
@@ -1629,8 +1649,8 @@ class _Pad(Builtin):
     def _find_dims(expr):
         def dive(expr, level):
             if isinstance(expr, Expression):
-                if expr.leaves:
-                    return max(dive(x, level + 1) for x in expr.leaves)
+                if expr.elements:
+                    return max(dive(x, level + 1) for x in expr.elements)
                 else:
                     return level + 1
             else:
@@ -1638,19 +1658,21 @@ class _Pad(Builtin):
 
         def calc(expr, dims, level):
             if isinstance(expr, Expression):
-                for x in expr.leaves:
+                for x in expr.elements:
                     calc(x, dims, level + 1)
-                dims[level] = max(dims[level], len(expr.leaves))
+                dims[level] = max(dims[level], len(expr.elements))
 
         dims = [0] * dive(expr, 0)
         calc(expr, dims, 0)
         return dims
 
     @staticmethod
-    def _build(leaf, n, x, m, level, mode):  # mode < 0 for left pad, > 0 for right pad
+    def _build(
+        element, n, x, m, level, mode
+    ):  # mode < 0 for left pad, > 0 for right pad
         if not n:
-            return leaf
-        if not isinstance(leaf, Expression):
+            return element
+        if not isinstance(element, Expression):
             raise _IllegalPaddingDepth(level)
 
         if isinstance(m, (list, tuple)):
@@ -1679,13 +1701,13 @@ class _Pad(Builtin):
             else:
                 return clip(x * (1 + amount // len(x)), amount, sign)
 
-        leaves = leaf.leaves
-        d = n[0] - len(leaves)
+        elements = element.elements
+        d = n[0] - len(elements)
         if d < 0:
-            new_elements = clip(leaves, d, mode)
+            new_elements = clip(elements, d, mode)
             padding_main = []
         elif d >= 0:
-            new_elements = leaves
+            new_elements = elements
             padding_main = padding(d, mode)
 
         if current_m > 0:
@@ -1713,7 +1735,7 @@ class _Pad(Builtin):
         else:
             parts = (padding_margin, new_elements, padding_main)
 
-        return Expression(leaf.get_head(), *list(chain(*parts)))
+        return Expression(element.get_head(), *list(chain(*parts)))
 
     def _pad(self, in_l, in_n, in_x, in_m, evaluation, expr):
         if not isinstance(in_l, Expression):
@@ -1724,8 +1746,8 @@ class _Pad(Builtin):
         if isinstance(in_n, Symbol) and in_n.get_name() == "System`Automatic":
             py_n = _Pad._find_dims(in_l)
         elif in_n.get_head_name() == "System`List":
-            if all(isinstance(sleaf, Integer) for sleaf in in_n.leaves):
-                py_n = [sleaf.get_int_value() for sleaf in in_n.leaves]
+            if all(isinstance(sleaf, Integer) for sleaf in in_n.elements):
+                py_n = [sleaf.get_int_value() for sleaf in in_n.elements]
         elif isinstance(in_n, Integer):
             py_n = [in_n.get_int_value()]
 
@@ -1734,17 +1756,17 @@ class _Pad(Builtin):
             return
 
         if in_x.get_head_name() == "System`List":
-            py_x = in_x.leaves
+            py_x = in_x.elements
         else:
             py_x = [in_x]
 
         if isinstance(in_m, Integer):
             py_m = in_m.get_int_value()
         else:
-            if not all(isinstance(x, Integer) for x in in_m.leaves):
+            if not all(isinstance(x, Integer) for x in in_m.elements):
                 evaluation.message(self.get_name(), "ilsm", 4, expr())
                 return
-            py_m = [x.get_int_value() for x in in_m.leaves]
+            py_m = [x.get_int_value() for x in in_m.elements]
 
         try:
             return _Pad._build(in_l, py_n, py_x, py_m, 1, self._mode)
@@ -1766,37 +1788,37 @@ class _Pad(Builtin):
             )
             return None
 
-    def apply_zero(self, leaf, n, evaluation):
-        "%(name)s[leaf_, n_]"
+    def apply_zero(self, element, n, evaluation):
+        "%(name)s[element_, n_]"
         return self._pad(
-            leaf,
+            element,
             n,
             Integer0,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), leaf, n),
+            lambda: Expression(self.get_name(), element, n),
         )
 
-    def apply(self, leaf, n, x, evaluation):
-        "%(name)s[leaf_, n_, x_]"
+    def apply(self, element, n, x, evaluation):
+        "%(name)s[element_, n_, x_]"
         return self._pad(
-            leaf,
+            element,
             n,
             x,
             Integer0,
             evaluation,
-            lambda: Expression(self.get_name(), leaf, n, x),
+            lambda: Expression(self.get_name(), element, n, x),
         )
 
-    def apply_margin(self, leaf, n, x, m, evaluation):
-        "%(name)s[leaf_, n_, x_, m_]"
+    def apply_margin(self, element, n, x, m, evaluation):
+        "%(name)s[element_, n_, x_, m_]"
         return self._pad(
-            leaf,
+            element,
             n,
             x,
             m,
             evaluation,
-            lambda: Expression(self.get_name(), leaf, n, x, m),
+            lambda: Expression(self.get_name(), element, n, x, m),
         )
 
 
@@ -1898,7 +1920,7 @@ class _PrecomputedDistances(PrecomputedDistances):
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
         distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
-        mpmath_distances = [_to_real_distance(d) for d in distances.leaves]
+        mpmath_distances = [_to_real_distance(d) for d in distances.elements]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
 
@@ -1920,19 +1942,19 @@ class _LazyDistances(LazyDistances):
 def _dist_repr(p):
     dist_p = repr_p = None
     if p.has_form("Rule", 2):
-        if all(q.get_head_name() == "System`List" for q in p.leaves):
-            dist_p, repr_p = (q.leaves for q in p.leaves)
+        if all(q.get_head_name() == "System`List" for q in p.elements):
+            dist_p, repr_p = (q.elements for q in p.elements)
         elif (
-            p.leaves[0].get_head_name() == "System`List"
-            and p.leaves[1].get_name() == "System`Automatic"
+            p.elements[0].get_head_name() == "System`List"
+            and p.elements[1].get_name() == "System`Automatic"
         ):
-            dist_p = p.leaves[0].leaves
+            dist_p = p.elements[0].elements
             repr_p = [Integer(i + 1) for i in range(len(dist_p))]
     elif p.get_head_name() == "System`List":
-        if all(q.get_head_name() == "System`Rule" for q in p.leaves):
-            dist_p, repr_p = ([q.leaves[i] for q in p.leaves] for i in range(2))
+        if all(q.get_head_name() == "System`Rule" for q in p.elements):
+            dist_p, repr_p = ([q.elements[i] for q in p.elements] for i in range(2))
         else:
-            dist_p = repr_p = p.leaves
+            dist_p = repr_p = p.elements
     return dist_p, repr_p
 
 
@@ -2099,7 +2121,7 @@ class _Cluster(Builtin):
             for q in p:
                 if q.get_head_name() != "System`List":
                     raise _IllegalDataPoint
-                v = list(convert_scalars(q.leaves))
+                v = list(convert_scalars(q.elements))
                 if d is None:
                     d = len(v)
                 elif len(v) != d:
@@ -2308,8 +2330,8 @@ class Nearest(Builtin):
             return
 
         if limit.has_form("List", 2):
-            up_to = limit.leaves[0]
-            py_r = limit.leaves[1].to_mpmath()
+            up_to = limit.elements[0]
+            py_r = limit.elements[1].to_mpmath()
         else:
             up_to = limit
             py_r = None
@@ -2354,7 +2376,7 @@ class Nearest(Builtin):
                 raise ValueError()
 
             py_distances = [
-                (_to_real_distance(d), i) for i, d in enumerate(distances.leaves)
+                (_to_real_distance(d), i) for i, d in enumerate(distances.elements)
             ]
 
             if py_r is not None:
@@ -2375,7 +2397,7 @@ class Nearest(Builtin):
             if not multiple_x:
                 return nearest(pivot)
             else:
-                return Expression(SymbolList, *[nearest(t) for t in pivot.leaves])
+                return Expression(SymbolList, *[nearest(t) for t in pivot.elements])
         except _IllegalDistance:
             return SymbolFailed
         except ValueError:
@@ -2461,7 +2483,7 @@ class SubsetQ(Builtin):
                 "SubsetQ", "heads", expr.get_head(), subset.get_head()
             )
 
-        if set(subset.leaves).issubset(set(expr.leaves)):
+        if set(subset.elements).issubset(set(expr.elements)):
             return SymbolTrue
         else:
             return SymbolFalse
@@ -2501,13 +2523,13 @@ def delete_rec(expr, pos):
         truepos = truepos + s
         if truepos < 0:
             raise PartRangeError
-        newleaf = delete_rec(elements[truepos], pos[1:])
-        elements = elements[:truepos] + (newleaf,) + elements[truepos + 1 :]
+        newelement = delete_rec(elements[truepos], pos[1:])
+        elements = elements[:truepos] + (newelement,) + elements[truepos + 1 :]
     else:
         if truepos > s:
             raise PartRangeError
-        newleaf = delete_rec(elements[truepos - 1], pos[1:])
-        elements = elements[: truepos - 1] + (newleaf,) + elements[truepos:]
+        newelement = delete_rec(elements[truepos - 1], pos[1:])
+        elements = elements[: truepos - 1] + (newelement,) + elements[truepos:]
     return Expression(expr.get_head(), *elements)
 
 
