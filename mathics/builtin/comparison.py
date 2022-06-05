@@ -976,8 +976,9 @@ class _MinMax(Builtin):
 
     def apply(self, items, evaluation):
         "%(name)s[items___]"
-
-        items = items.flatten_with_respect_to_head(SymbolList).get_sequence()
+        if hasattr(items, "flatten_with_respect_to_head"):
+            items = items.flatten_with_respect_to_head(SymbolList)
+        items = items.get_sequence()
         results = []
         best = None
 

@@ -258,17 +258,6 @@ class Atom(BaseElement):
         """
         return self
 
-    def flatten_with_respect_to_head(
-        self, head, pattern_only=False, callback=None, level=None
-    ) -> "Atom":
-        """
-        Flatten elements in self which have `head` in them.
-
-        Atoms don't have elements, so an Atom is already "flattened". So just return
-        the Atom.
-        """
-        return self
-
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
