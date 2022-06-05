@@ -631,7 +631,7 @@ class Integrate(SympyFunction):
             else:
                 args.append(element)
         new_elements = [elements[0]] + args
-        return Expression(self.get_name(), *new_elements)
+        return Expression(Symbol(self.get_name()), *new_elements)
 
     def apply(self, f, xs, evaluation, options):
         "Integrate[f_, xs__, OptionsPattern[]]"

@@ -36,6 +36,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -1067,20 +1068,18 @@ class TableForm(Builtin):
             #        Expression('List', Expression('MakeBoxes', item, f))
             #        for item in table.leaves)))
         else:
-            new_depth = Expression(SymbolRule, SymbolTableDepth, depth - 2)
+            new_depth = Expression(SymbolRule, SymbolTableDepth, Integer(depth - 2))
 
             def transform_item(item):
                 if depth > 2:
-                    return Expression(self.get_name(), item, new_depth)
+                    return Expression(Symbol(self.get_name()), item, new_depth)
                 else:
                     return item
 
             return GridBox(
-                Expression(
-                    "List",
+                ListExpression(
                     *(
-                        Expression(
-                            "List",
+                        ListExpression(
                             *(
                                 Expression(SymbolMakeBoxes, transform_item(item), f)
                                 for item in row.leaves

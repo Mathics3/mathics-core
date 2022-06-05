@@ -14,7 +14,7 @@ from mathics.builtin.base import SympyFunction, PostfixOperator
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.evaluators import apply_N
-from mathics.core.symbols import SymbolSequence
+from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolComplexInfinity,
@@ -32,6 +32,8 @@ from mathics.core.atoms import (
 
 from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.number import min_prec, dps
+
+SymbolGamma = Symbol("Gamma")
 
 
 class Beta(_MPMathMultiFunction):
@@ -68,22 +70,22 @@ class Beta(_MPMathMultiFunction):
     def get_sympy_names(self):
         return ["beta", "betainc"]
 
-    def from_sympy(self, sympy_name, leaves):
+    def from_sympy(self, sympy_name, elements):
         if sympy_name == "betainc":
             # lowergamma(z, x) -> Gamma[z, 0, x]
-            z, a, b = leaves
-            return Expression(self.get_name(), z, a, b)
+            z, a, b = elements
+            return Expression(Symbol(self.get_name()), z, a, b)
         else:
-            return Expression(self.get_name(), *leaves)
+            return Expression(Symbol(self.get_name()), *elements)
 
     # sympy does not handles Beta for integer arguments.
     def apply_2(self, a, b, evaluation):
         """Beta[a_, b_]"""
         if not (a.is_numeric() and b.is_numeric()):
             return
-        gamma_a = Expression("Gamma", a)
-        gamma_b = Expression("Gamma", b)
-        gamma_a_plus_b = Expression("Gamma", a + b)
+        gamma_a = Expression(SymbolGamma, a)
+        gamma_b = Expression(SymbolGamma, b)
+        gamma_a_plus_b = Expression(SymbolGamma, a + b)
         return gamma_a * gamma_b / gamma_a_plus_b
 
     def apply_3(self, z, a, b, evaluation):
@@ -329,13 +331,13 @@ class Gamma(_MPMathMultiFunction):
     def get_sympy_names(self):
         return ["gamma", "uppergamma", "lowergamma"]
 
-    def from_sympy(self, sympy_name, leaves):
+    def from_sympy(self, sympy_name, elements):
         if sympy_name == "lowergamma":
             # lowergamma(z, x) -> Gamma[z, 0, x]
-            z, x = leaves
-            return Expression(self.get_name(), z, Integer0, x)
+            z, x = elements
+            return Expression(Symbol(self.get_name()), z, Integer0, x)
         else:
-            return Expression(self.get_name(), *leaves)
+            return Expression(Symbol(self.get_name()), *elements)
 
 
 class LogGamma(_MPMathMultiFunction):

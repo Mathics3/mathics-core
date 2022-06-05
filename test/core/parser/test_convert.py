@@ -9,10 +9,6 @@ from mathics_scanner import (
     SingleLineFeeder,
 )
 
-from mathics.core.definitions import Definitions
-from mathics.core.parser import parse
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -21,6 +17,11 @@ from mathics.core.atoms import (
     Rational,
     String,
 )
+from mathics.core.definitions import Definitions
+from mathics.core.expression import Expression
+from mathics.core.parser import parse
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolDerivative
 
 
 definitions = Definitions(add_builtin=True)
@@ -113,14 +114,14 @@ class ConvertTests(unittest.TestCase):
 
     def testDerivative(self):
         f = Symbol("Global`f")
-        self.check("f'", Expression(Expression("Derivative", Integer1), f))
-        self.check("f''", Expression(Expression("Derivative", Integer(2)), f))
+        self.check("f'", Expression(Expression(SymbolDerivative, Integer1), f))
+        self.check("f''", Expression(Expression(SymbolDerivative, Integer(2)), f))
         self.check(
             "(f'')'''",
             Expression(
-                Expression("Derivative", Integer(3)),
-                Expression(Expression("Derivative", Integer(2)), f),
+                Expression(SymbolDerivative, Integer(3)),
+                Expression(Expression(SymbolDerivative, Integer(2)), f),
             ),
         )
-        self.check("Derivative[f]", Expression("Derivative", f))
+        self.check("Derivative[f]", Expression(SymbolDerivative, f))
         self.check("Derivative[1][f]'", "(f')'")

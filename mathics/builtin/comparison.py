@@ -26,14 +26,15 @@ from mathics.core.atoms import (
     Complex,
     Integer0,
     Integer1,
+    IntegerM1,
     Number,
     String,
 )
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolComplexInfinity,
     SymbolDirectedInfinity,
     SymbolInfinity,
-    SymbolComplexInfinity,
     SymbolMaxPrecision,
 )
 from mathics.core.number import dps
@@ -952,7 +953,7 @@ class NonPositive(Builtin):
 
 
 def expr_max(items):
-    result = Expression("DirectedInfinity", -1)
+    result = Expression(SymbolDirectedInfinity, IntegerM1)
     for item in items:
         c = do_cmp(item, result)
         if c > 0:
@@ -961,7 +962,7 @@ def expr_max(items):
 
 
 def expr_min(items):
-    result = Expression("DirectedInfinity", 1)
+    result = Expression(SymbolDirectedInfinity, Integer1)
     for item in items:
         c = do_cmp(item, result)
         if c < 0:
