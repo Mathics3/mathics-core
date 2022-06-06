@@ -739,8 +739,9 @@ class StringRepeat(Builtin):
 
     def apply_truncated(self, s, n, m, expression, evaluation):
         "StringRepeat[s_String, n_Integer, m_Integer]"
-        py_n = n.value if isinstance(n, Integer) else 0
-        py_m = m.value if isinstance(m, Integer) else 0
+        # The above rule insures that n and m are boht Integer type
+        py_n = n.value
+        py_m = m.value
 
         if py_n < 1:
             evaluation.message("StringRepeat", "intp", 2, expression)
