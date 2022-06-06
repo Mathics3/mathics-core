@@ -94,7 +94,7 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
             "a =.; F[a, x_Real, a] := List[x]^2;a=4.;",
             "F[Unevaluated[a], a, Unevaluated[a]]",
             "{16.}",
-            "Here, the second a is kept unevaluated because the bug.",
+            "Here, the second ``a`` is kept unevaluated because of a bug.",
         ),
     ],
 )
