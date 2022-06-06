@@ -34,6 +34,7 @@ from mathics.core.read import (
 
 
 from mathics.core.expression import BoxError, Expression, to_expression
+from mathics.core.list import to_mathics_list
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -43,8 +44,10 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolList, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
     SymbolFailed,
 )
 
@@ -66,8 +69,7 @@ INPUT_VAR = ""
 
 TMP_DIR = tempfile.gettempdir()
 
-SymbolDirectedInfinity = Symbol("DirectedInfinity")
-SymbolIndeterminate = Symbol("Indeterminate")
+SymbolComplex = Symbol("Complex")
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolPath = Symbol("$Path")
@@ -1166,7 +1168,7 @@ class BinaryRead(Builtin):
                 result.append(SymbolEndOfFile)
 
         if typ.has_form("List", None):
-            return to_expression("List", *result)
+            return to_mathics_list(*result)
         else:
             if len(result) == 1:
                 return result[0]
@@ -2040,7 +2042,7 @@ class Read(Builtin):
             else typ
             for typ in types
         )
-        types = to_expression("List", *types)
+        types = to_mathics_list(*types)
 
         for typ in types.leaves:
             if typ not in READ_TYPES:
@@ -2715,7 +2717,7 @@ class Write(Builtin):
             return SymbolNull
 
         expr = expr.get_sequence()
-        expr = to_expression("Row", to_expression("List", *expr))
+        expr = to_expression("Row", to_mathics_list(*expr))
 
         evaluation.format = "text"
         text = evaluation.format_output(expr)

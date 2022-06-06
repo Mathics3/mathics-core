@@ -8,7 +8,8 @@ XML
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import String, from_python
-from mathics.core.list import to_expression, to_mathics_list, Expression
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import to_mathics_list
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed
 
@@ -109,14 +110,14 @@ def node_to_xml_element(node, parent_namespace=None, strip_whitespace=True):
     if namespace is None or namespace == default_namespace:
         name = String(localname)
     else:
-        name = to_expression("List", String(namespace), String(localname))
+        name = to_mathics_list(String(namespace), String(localname))
 
     return [
         to_expression(
             "XMLElement",
             name,
-            to_expression("List", *list(attributes())),
-            to_expression("List", *list(children())),
+            to_mathics_list(*list(attributes())),
+            to_mathics_list(*list(children())),
         )
     ]
 
@@ -140,7 +141,7 @@ def xml_object(root):
 
     return Expression(
         to_expression("XMLObject", String("Document")),
-        to_expression("List", *declaration),
+        to_mathics_list(*declaration),
         *node_to_xml_element(root)
     )
 
@@ -324,7 +325,7 @@ class PlaintextImport(Builtin):
                     yield s
 
         plaintext = String("\n".join(lines()))
-        return to_expression("List", to_expression("Rule", "Plaintext", plaintext))
+        return to_mathics_list(to_expression("Rule", "Plaintext", plaintext))
 
 
 class TagsImport(Builtin):
@@ -350,14 +351,14 @@ class TagsImport(Builtin):
                 gather(child)
 
         gather(root)
-        return to_expression("List", *[String(tag) for tag in sorted(list(tags))])
+        return to_mathics_list(*[String(tag) for tag in sorted(list(tags))])
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
         root = parse_xml(parse_xml_file, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
             return root
-        return to_expression("List", to_expression("Rule", "Tags", self._tags(root)))
+        return to_mathics_list(to_expression("Rule", "Tags", self._tags(root)))
 
 
 class XMLObjectImport(Builtin):
@@ -380,4 +381,4 @@ class XMLObjectImport(Builtin):
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("XML`Parser`XMLGet", text).evaluate(evaluation)
-        return to_expression("List", to_expression("Rule", "XMLObject", xml))
+        return to_mathics_list(to_expression("Rule", "XMLObject", xml))

@@ -12,15 +12,15 @@ Basic implementation for a HTML importer
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.expression import Expression, to_expression
+from mathics.core.list import to_mathics_list
 from mathics.core.atoms import String, from_python
 from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.systemsymbols import SymbolRule
 from mathics.builtin.base import MessageException
 
 from io import BytesIO
 import platform
 import re
-
-SymbolRule = Symbol("Rule")
 
 try:
     import lxml.html as lhtml
@@ -54,8 +54,8 @@ def node_to_xml_element(node, strip_whitespace=True):
         to_expression(
             "XMLElement",
             String(node.tag),
-            to_expression("List", *list(attributes())),
-            to_expression("List", *list(children())),
+            to_mathics_list(*list(attributes())),
+            to_mathics_list(*list(children())),
         )
     ]
 
@@ -80,7 +80,7 @@ def xml_object(tree):
 
     return Expression(
         to_expression("XMLObject", String("Document")),
-        to_expression("List", *declaration),
+        to_mathics_list(*declaration),
         *node_to_xml_element(tree.getroot())
     )
 
@@ -210,7 +210,7 @@ class _DataImport(_TagImport):
                 elif len(x) == 1:
                     data_list.extend(x)
                 elif x:
-                    data_list.append(to_expression("List", *x))
+                    data_list.append(to_mathics_list(*x))
                 return data_list
 
         newline = re.compile(r"\s+")
@@ -263,7 +263,7 @@ class _DataImport(_TagImport):
         if result is None:
             result = []
 
-        return to_expression("List", *result)
+        return to_mathics_list(*result)
 
 
 class DataImport(_DataImport):
@@ -302,7 +302,7 @@ class _LinksImport(_TagImport):
         raise NotImplementedError
 
     def _import(self, tree):
-        return to_expression("List", *list(self._links(tree)))
+        return to_mathics_list(*list(self._links(tree)))
 
 
 class HyperlinksImport(_LinksImport):
@@ -427,4 +427,4 @@ class XMLObjectImport(_HTMLBuiltin):
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
-        return to_expression("List", to_expression(SymbolRule, "XMLObject", xml))
+        return to_mathics_list(to_expression(SymbolRule, "XMLObject", xml))
