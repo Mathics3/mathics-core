@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from mathics.core.expression import Expression
+from mathics.core.evaluation import Evaluation
 from mathics.core.atoms import Number, Real
 from mathics.core.symbols import SymbolList, Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
@@ -15,6 +16,8 @@ from scipy.optimize import (
     root_scalar,
     root,
 )
+
+SymbolCompile = Symbol("Compile")
 
 
 def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None):
@@ -64,7 +67,9 @@ def compile_fn(f, x, opts, evaluation):
     """produces a compiled version of f, which is callable from Python"""
     if opts["_isfindmaximum"]:
         f = -f
-    comp_func = Expression("Compile", Expression(SymbolList, x), f).evaluate(evaluation)
+    comp_func = Expression(SymbolCompile, Expression(SymbolList, x), f).evaluate(
+        evaluation
+    )
     return comp_func._elements[2].cfunc
 
 

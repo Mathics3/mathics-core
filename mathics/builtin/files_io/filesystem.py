@@ -25,7 +25,7 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,
@@ -89,7 +89,7 @@ class AbsoluteFileName(Builtin):
 
         if result is None:
             evaluation.message(
-                "AbsoluteFileName", "nffil", Expression("AbsoluteFileName", name)
+                "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
             )
             return SymbolFailed
 
@@ -216,7 +216,7 @@ class CopyFile(Builtin):
             shutil.copy(py_source, py_dest)
         except IOError:
             evaluation.message(
-                "CopyFile", "nffil", Expression("CopyFile", source, dest)
+                "CopyFile", "nffil", to_expression("CopyFile", source, dest)
             )
             return SymbolFailed
 
@@ -257,7 +257,7 @@ class CreateDirectory(Builtin):
     def apply(self, dirname, evaluation, options):
         "CreateDirectory[dirname_, OptionsPattern[CreateDirectory]]"
 
-        expr = Expression("CreateDirectory", dirname)
+        expr = to_expression("CreateDirectory", dirname)
         py_dirname = dirname.to_python()
 
         if not (isinstance(py_dirname, str) and py_dirname[0] == py_dirname[-1] == '"'):
@@ -373,7 +373,7 @@ class DeleteDirectory(Builtin):
     def apply(self, dirname, evaluation, options):
         "DeleteDirectory[dirname_, OptionsPattern[DeleteDirectory]]"
 
-        expr = Expression("DeleteDirectory", dirname)
+        expr = to_expression("DeleteDirectory", dirname)
         py_dirname = dirname.to_python()
 
         delete_contents = options["System`DeleteContents"].to_python()
@@ -440,7 +440,10 @@ class DeleteFile(Builtin):
             # Check filenames
             if not (isinstance(path, str) and path[0] == path[-1] == '"'):
                 evaluation.message(
-                    "DeleteFile", "strs", filename, Expression("DeleteFile", filename)
+                    "DeleteFile",
+                    "strs",
+                    filename,
+                    to_expression("DeleteFile", filename),
                 )
                 return
 
@@ -449,7 +452,7 @@ class DeleteFile(Builtin):
 
             if path is None:
                 evaluation.message(
-                    "DeleteFile", "nffil", Expression("DeleteFile", filename)
+                    "DeleteFile", "nffil", to_expression("DeleteFile", filename)
                 )
                 return SymbolFailed
             py_paths.append(path)
@@ -527,10 +530,10 @@ class DirectoryName(Builtin):
         "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
 
         if n is None:
-            expr = Expression("DirectoryName", name)
+            expr = to_expression("DirectoryName", name)
             py_n = 1
         else:
-            expr = Expression("DirectoryName", name, n)
+            expr = to_expression("DirectoryName", name, n)
             py_n = n.to_python()
 
         if not (isinstance(py_n, int) and py_n > 0):
@@ -638,7 +641,7 @@ class ExpandFileName(Builtin):
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
             evaluation.message(
-                "ExpandFileName", "string", Expression("ExpandFileName", name)
+                "ExpandFileName", "string", to_expression("ExpandFileName", name)
             )
             return
         py_name = py_name[1:-1]
@@ -794,10 +797,10 @@ class FileDate(Builtin):
 
         if py_path is None:
             if timetype is None:
-                evaluation.message("FileDate", "nffil", Expression("FileDate", path))
+                evaluation.message("FileDate", "nffil", to_expression("FileDate", path))
             else:
                 evaluation.message(
-                    "FileDate", "nffil", Expression("FileDate", path, timetype)
+                    "FileDate", "nffil", to_expression("FileDate", path, timetype)
                 )
             return
 
@@ -810,11 +813,11 @@ class FileDate(Builtin):
             result = osp.getatime(py_path)
         elif time_type == "Creation":
             if os.name == "posix":
-                return Expression("Missing", "NotApplicable")
+                return to_expression("Missing", "NotApplicable")
             result = osp.getctime(py_path)
         elif time_type == "Change":
             if os.name != "posix":
-                return Expression("Missing", "NotApplicable")
+                return to_expression("Missing", "NotApplicable")
             result = osp.getctime(py_path)
         elif time_type == "Modification":
             result = osp.getmtime(py_path)
@@ -828,7 +831,7 @@ class FileDate(Builtin):
         ).to_python(n_evaluation=evaluation)
         result += epochtime
 
-        return Expression("DateList", Real(result))
+        return to_expression("DateList", Real(result))
 
     def apply_default(self, path, evaluation):
         "FileDate[path_]"
@@ -1172,7 +1175,7 @@ class FindFile(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("FindFile", "string", Expression("FindFile", name))
+            evaluation.message("FindFile", "string", to_expression("FindFile", name))
             return
         py_name = py_name[1:-1]
 
@@ -1319,7 +1322,7 @@ class FileNames(Builtin):
                                 filenames.add(osp.join(root, fn))
                                 break
 
-        return Expression("List", *[String(s) for s in sorted(filenames)])
+        return Expression(SymbolList, *[String(s) for s in sorted(filenames)])
 
 
 class FileNameSplit(Builtin):
@@ -1478,10 +1481,10 @@ class FindList(Builtin):
         py_name = filename.to_python()
         if n is None:
             py_n = None
-            expr = Expression("FindList", filename, text)
+            expr = to_expression("FindList", filename, text)
         else:
             py_n = n.to_python()
-            expr = Expression("FindList", filename, text, n)
+            expr = to_expression("FindList", filename, text, n)
 
         if not isinstance(py_text, list):
             py_text = [py_text]
@@ -2091,18 +2094,18 @@ class SetFileDate(Builtin):
         py_filename = filename.to_python()
 
         if datelist is None:
-            py_datelist = Expression("DateList").evaluate(evaluation).to_python()
-            expr = Expression("SetFileDate", filename)
+            py_datelist = to_expression("DateList").evaluate(evaluation).to_python()
+            expr = to_expression("SetFileDate", filename)
         else:
             py_datelist = datelist.to_python()
 
         if attribute is None:
             py_attr = "All"
             if datelist is not None:
-                expr = Expression("SetFileDate", filename, datelist)
+                expr = to_expression("SetFileDate", filename, datelist)
         else:
             py_attr = attribute.to_python()
-            expr = Expression("SetFileDate", filename, datelist, attribute)
+            expr = to_expression("SetFileDate", filename, datelist, attribute)
 
         # Check filename
         if not (
@@ -2131,12 +2134,14 @@ class SetFileDate(Builtin):
             return
 
         epochtime = (
-            Expression("AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
+            to_expression(
+                "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
+            )
             .evaluate(evaluation)
             .to_python()
         )
 
-        stattime = Expression("AbsoluteTime", from_python(py_datelist))
+        stattime = to_expression("AbsoluteTime", from_python(py_datelist))
         stattime = stattime.to_python(n_evaluation=evaluation)
 
         stattime -= epochtime
