@@ -14,6 +14,7 @@ from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
     SymbolD,
     SymbolDirectedInfinity,
+    SymbolFactorial,
     SymbolIndeterminate,
     SymbolInfinity,
 )
@@ -385,7 +386,7 @@ def build_series(f, x, x0, n, evaluation):
     for i in range(n):
         df = Expression(SymbolD, df, x).evaluate(evaluation)
         newcoeff = df.replace_vars(vars).evaluate(evaluation)
-        factorial = Expression("Factorial", Integer(i + 1))
+        factorial = Expression(SymbolFactorial, Integer(i + 1))
         newcoeff = Expression(
             SymbolTimes,
             Expression(SymbolPower, factorial, IntegerMinusOne),

@@ -21,6 +21,7 @@ from mathics.core.attributes import hold_all, no_attributes, protected, read_pro
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -1232,7 +1233,7 @@ class Timing(Builtin):
         start = time.process_time()
         result = expr.evaluate(evaluation)
         stop = time.process_time()
-        return Expression(SymbolList, Real(stop - start), result)
+        return ListExpression(Real(stop - start), result)
 
 
 class SessionTime(Builtin):

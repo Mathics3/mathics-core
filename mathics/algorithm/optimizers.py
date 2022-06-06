@@ -7,6 +7,7 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
+    Integer0,
     Integer1,
     Integer2,
     Integer3,
@@ -48,7 +49,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         evaluation_monitor = None
 
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    maxit = maxit_opt.value if maxit_opt else 100
 
     curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
 
@@ -257,7 +258,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     x_name = x.get_name()
 
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    maxit = maxit_opt.value if maxit_opt else 100
 
     step_monitor = opts.get("System`StepMonitor", None)
     if step_monitor is SymbolNone:
@@ -446,17 +447,3 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     max_it = opts.get("System`MaxIteration")
     max_it = to_integer_or_none(max_it)
     return acc_goal, prec_goal, max_it
-
-
-def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
-    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
-    acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
-    eps: Real = Real(1e-10)
-    if not (acc_goal or prec_goal):
-        return eps
-    eps = apply_N(
-        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
-    )
-    if acc_goal:
-        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
-    return eps
