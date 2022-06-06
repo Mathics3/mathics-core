@@ -6,19 +6,18 @@ import sys
 
 import time
 
-if sys.platform not in ("win32",):
 
-    def test_datentime():
-        str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
-        result = evaluate(str_expr)
-        assert result is None or 0 < result.to_python() < 9
+@pytest.mark.skipif(
+    sys.platform in ("win32",) or hasattr(sys, "pyston_version_info"),
+    reason="TimeConstrained needs to be rewritten",
+)
+def test_timeremaining():
+    str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
+    result = evaluate(str_expr)
+    assert result is None or 0 < result.to_python() < 9
 
 
-# @pytest.mark.skipif(
-#     sys.platform in ("win32","darwin") or hasattr(sys, "pyston_version_info"),
-#     reason="TimeConstained needs to be rewritten"
-# )
-@pytest.mark.skipif(True, reason="TimeConstrained neds to be rewritten")
+@pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
 def test_timeconstrained1():
     #
     str_expr1 = "a=1.; TimeConstrained[Do[Pause[.1];a=a+1,{1000}],1]"
