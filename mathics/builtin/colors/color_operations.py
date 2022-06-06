@@ -14,16 +14,16 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
 )
 from mathics.builtin.colors.color_internals import convert_color
+from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Rational,
     Real,
 )
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolList
-
-from mathics.builtin.drawing.image import _ImageBuiltin, Image
+from mathics.core.list import to_mathics_list
 
 _image_requires = ("numpy", "PIL")
 
@@ -350,7 +350,7 @@ class DominantColors(_ImageBuiltin):
         if py_min_color_coverage is None or py_max_color_coverage is None:
             return
 
-        at_most = n.get_int_value()
+        at_most = n.value
 
         if at_most > 256:
             return
@@ -422,7 +422,7 @@ class DominantColors(_ImageBuiltin):
                     else:
                         yield Expression(out_palette_head, *prototype)
 
-        return Expression(SymbolList, *itertools.islice(result(), 0, at_most))
+        return to_mathics_list(*itertools.islice(result(), 0, at_most))
 
 
 class Lighter(Builtin):

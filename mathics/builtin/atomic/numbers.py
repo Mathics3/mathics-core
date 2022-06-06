@@ -20,37 +20,45 @@ from functools import lru_cache
 
 from mathics.builtin.base import Builtin, Predefined, Test
 
-from mathics.core.evaluators import apply_N
-
-from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
 from mathics.core.atoms import (
     Integer,
     Integer0,
+    Integer10,
     MachineReal,
     Number,
     Rational,
     Real,
+    SymbolDivide,
     from_python,
 )
-
-
+from mathics.core.attributes import (
+    listable,
+    protected,
+)
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.number import (
     dps,
     convert_int_to_digit_list,
     machine_precision,
     machine_epsilon,
 )
-
-from mathics.core.attributes import (
-    listable,
-    protected,
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolTrue,
 )
+from mathics.core.systemsymbols import (
+    SymbolLog,
+    SymbolN,
+    SymbolPrecision,
+    SymbolRound,
+)
+
+SymbolIntegerDigits = Symbol("IntegerDigits")
+SymbolIntegerExponent = Symbol("IntegerExponent")
+SymbolRealDigits = Symbol("RealDigits")
 
 
 @lru_cache(maxsize=1024)
@@ -227,7 +235,7 @@ class IntegerDigits(Builtin):
 
         if not (isinstance(n, Integer)):
             return evaluation.message(
-                "IntegerDigits", "int", Expression("IntegerDigits", n, base)
+                "IntegerDigits", "int", Expression(SymbolIntegerDigits, n, base)
             )
 
         if not (isinstance(base, Integer) and base.get_int_value() > 1):
@@ -235,9 +243,10 @@ class IntegerDigits(Builtin):
 
         if nr_elements == 0:
             # trivial case: we don't want any digits
-            return Expression(SymbolList)
+            return ListExpression()
 
-        digits = convert_int_to_digit_list(n.get_int_value(), base.get_int_value())
+        # Note: above we checked that n and b are Integers, so we can use x.value.
+        digits = convert_int_to_digit_list(n.value, base.value)
 
         if nr_elements is not None:
             if len(digits) >= nr_elements:
@@ -247,7 +256,7 @@ class IntegerDigits(Builtin):
                 # Pad with zeroes
                 digits = [0] * (nr_elements - len(digits)) + digits
 
-        return Expression(SymbolList, *digits)
+        return to_mathics_list(*digits, element_conversion_fn=Integer)
 
 
 class IntegerExponent(Builtin):
@@ -280,27 +289,44 @@ class IntegerExponent(Builtin):
 
     summary_text = "number of trailing 0s in a given base"
 
-    def apply(self, n, b, evaluation):
+    def apply_two_arg_integers(self, n, b, evaluation):
         "IntegerExponent[n_Integer, b_Integer]"
 
-        py_n, py_b = n.to_python(), b.to_python()
-        expr = Expression("IntegerExponent", n, b)
-
-        if not isinstance(py_n, int):
-            evaluation.message("IntegerExponent", "int", expr)
+        py_n, py_b = n.value, b.value
         py_n = abs(py_n)
-
-        if not (isinstance(py_b, int) and py_b > 1):
-            evaluation.message("IntegerExponent", "ibase", b)
 
         # TODO: Optimise this (dont need to calc. base^result)
         # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
-        # symbols
+        # symbols. The function signature here ensures we have Integers.
         result = 1
         while py_n % (py_b ** result) == 0:
             result += 1
 
         return Integer(result - 1)
+
+    # FIXME: If WMA supports things other than Integers, the below code might
+    # be useful as a starting point.
+    # def apply(self, n, b, evaluation):
+    #     "IntegerExponent[n_Integer, b_Integer]"
+
+    #     py_n, py_b = n.to_python(), b.to_python()
+    #     expr = Expression("IntegerExponent", n, b)
+
+    #     if not isinstance(py_n, int):
+    #         evaluation.message("IntegerExponent", "int", expr)
+    #     py_n = abs(py_n)
+
+    #     if not (isinstance(py_b, int) and py_b > 1):
+    #         evaluation.message("IntegerExponent", "ibase", b)
+
+    #     # TODO: Optimise this (dont need to calc. base^result)
+    #     # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
+    #     # symbols
+    #     result = 1
+    #     while py_n % (py_b ** result) == 0:
+    #         result += 1
+
+    #     return Integer(result - 1)
 
 
 class IntegerLength(Builtin):
@@ -546,7 +572,7 @@ class RealDigits(Builtin):
         "%(name)s[n_Rational, b_Integer]"
         # expr = Expression("RealDigits", n)
         py_n = abs(n.value)
-        py_b = b.get_int_value()
+        py_b = b.value
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
             return self.apply_with_base(n, b, evaluation)
         else:
@@ -555,13 +581,13 @@ class RealDigits(Builtin):
                 py_n.as_numer_denom()[0], py_n.as_numer_denom()[1], py_b
             )
 
-            leaves = []
+            elements = []
             for x in head:
                 if x != "0":
-                    leaves.append(Integer(int(x)))
-            leaves.append(from_python(tails))
-            list_str = Expression(SymbolList, *leaves)
-        return Expression(SymbolList, list_str, exp)
+                    elements.append(Integer(int(x)))
+            elements.append(from_python(tails))
+            list_expr = ListExpression(*elements)
+        return ListExpression(list_expr, Integer(exp))
 
     def apply_rational_without_base(self, n, evaluation):
         "%(name)s[n_Rational]"
@@ -581,7 +607,7 @@ class RealDigits(Builtin):
     def apply_with_base(self, n, b, evaluation, nr_elements=None, pos=None):
         "%(name)s[n_?NumericQ, b_Integer]"
 
-        expr = Expression("RealDigits", n)
+        expr = Expression(SymbolRealDigits, n)
         rational_no = (
             True if isinstance(n, Rational) else False
         )  # it is used for checking whether the input n is a rational or not
@@ -589,8 +615,11 @@ class RealDigits(Builtin):
         if isinstance(n, (Expression, Symbol, Rational)):
             pos_len = abs(pos) + 1 if pos is not None and pos < 0 else 1
             if nr_elements is not None:
+                # we can't use apply_n here because we have the two-arguemnt form
                 n = Expression(
-                    "N", n, int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1
+                    SymbolN,
+                    n,
+                    Integer(int(mpmath.log(py_b ** (nr_elements + pos_len), 10)) + 1),
                 ).evaluate(evaluation)
             else:
                 if rational_no:
@@ -613,19 +642,17 @@ class RealDigits(Builtin):
             )
         else:
             display_len = int(
-                Expression(
-                    "N",
+                apply_N(
                     Expression(
-                        "Round",
+                        SymbolRound,
                         Expression(
-                            "Divide",
-                            Expression("Precision", py_n),
-                            Expression("Log", 10, py_b),
+                            SymbolDivide,
+                            Expression(SymbolPrecision, n),
+                            Expression(SymbolLog, Integer10, b),
                         ),
                     ),
-                )
-                .evaluate(evaluation)
-                .to_python()
+                    evaluation,
+                ).to_python()
             )
 
         exp = log_n_b(py_n, py_b)
@@ -661,39 +688,39 @@ class RealDigits(Builtin):
                 digits = digits[abs(move) :]
                 display_len = display_len - move
 
-        leaves = []
+        elements = []
         for x in digits:
             if x == "e" or x == "E":
                 break
             # Convert to Mathics' list format
-            leaves.append(Integer(int(x)))
+            elements.append(Integer(int(x)))
 
         if not rational_no:
-            while len(leaves) < display_len:
-                leaves.append(Integer0)
+            while len(elements) < display_len:
+                elements.append(Integer0)
 
         if nr_elements is not None:
             # display_len == nr_elements
-            if len(leaves) >= nr_elements:
+            if len(elements) >= nr_elements:
                 # Truncate, preserving the digits on the right
-                leaves = leaves[:nr_elements]
+                elements = elements[:nr_elements]
             else:
                 if isinstance(n, Integer):
-                    while len(leaves) < nr_elements:
-                        leaves.append(Integer0)
+                    while len(elements) < nr_elements:
+                        elements.append(Integer0)
                 else:
                     # Adding Indeterminate if the length is greater than the precision
-                    while len(leaves) < nr_elements:
-                        leaves.append(from_python(Symbol("Indeterminate")))
-        list_str = Expression(SymbolList, *leaves)
-        return Expression(SymbolList, list_str, exp)
+                    while len(elements) < nr_elements:
+                        elements.append(from_python(Symbol("Indeterminate")))
+        list_expr = ListExpression(*elements)
+        return ListExpression(list_expr, Integer(exp))
 
     def apply_with_base_and_length(self, n, b, length, evaluation, pos=None):
         "%(name)s[n_?NumericQ, b_Integer, length_]"
-        leaves = []
+        elements = []
         if pos is not None:
-            leaves.append(from_python(pos))
-        expr = Expression("RealDigits", n, b, length, *leaves)
+            elements.append(from_python(pos))
+        expr = Expression(SymbolRealDigits, n, b, length, *elements)
         if not (isinstance(length, Integer) and length.get_int_value() >= 0):
             return evaluation.message("RealDigits", "intnm", expr)
 
@@ -705,7 +732,7 @@ class RealDigits(Builtin):
         "%(name)s[n_?NumericQ, b_Integer, length_, p_]"
         if not isinstance(p, Integer):
             return evaluation.message(
-                "RealDigits", "intm", Expression("RealDigits", n, b, length, p)
+                "RealDigits", "intm", Expression(SymbolRealDigits, n, b, length, p)
             )
 
         return self.apply_with_base_and_length(
