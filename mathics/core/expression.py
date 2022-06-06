@@ -1079,6 +1079,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # The idea is to mark which elements was marked as "Unevaluated"
         # Also, this consumes time for long lists, and is useful just for a very unfrequent
         # expressions, involving `Unevaluated` elements.
+        # Notice also that this behaviour is broken when the argument of "Unevaluated" is a symbol (see comment and tests in test/test_unevaluate.py)
+
         for element in elements:
             element.unevaluated = False
 

@@ -61,6 +61,8 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
         assert result == expected
 
 
+# We skip this test because this behaviour is currently
+# broken
 @pytest.mark.parametrize(
     "str_setup,str_expr,str_expected,message",
     [
@@ -96,7 +98,7 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
         ),
     ],
 )
-@pytest.mark.xfail
+@pytest.mark.skip
 def test_unevaluate(str_setup, str_expr, str_expected, message):
     if str_setup:
         evaluate(str_setup)
