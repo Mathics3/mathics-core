@@ -11,15 +11,16 @@ Basic implementation for a HTML importer
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.atoms import String, from_python
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolList
 from mathics.builtin.base import MessageException
 
 from io import BytesIO
 import platform
 import re
 
+SymbolRule = Symbol("Rule")
 
 try:
     import lxml.html as lhtml
@@ -47,14 +48,14 @@ def node_to_xml_element(node, strip_whitespace=True):
 
     def attributes():
         for name, value in node.attrib.items():
-            yield Expression("Rule", from_python(name), from_python(value))
+            yield to_expression(SymbolRule, from_python(name), from_python(value))
 
     return [
-        Expression(
+        to_expression(
             "XMLElement",
             String(node.tag),
-            Expression("List", *list(attributes())),
-            Expression("List", *list(children())),
+            to_expression("List", *list(attributes())),
+            to_expression("List", *list(children())),
         )
     ]
 
@@ -62,22 +63,24 @@ def node_to_xml_element(node, strip_whitespace=True):
 def xml_object(tree):
     declaration = [
         Expression(
-            Expression("XMLObject", String("Declaration")),
-            Expression(
-                "Rule", String("Version"), String(tree.docinfo.xml_version or "1.0")
+            to_expression("XMLObject", String("Declaration")),
+            to_expression(
+                SymbolRule, String("Version"), String(tree.docinfo.xml_version or "1.0")
             ),
-            Expression(
-                "Rule",
+            to_expression(
+                SymbolRule,
                 String("Standalone"),
                 String("yes") if tree.docinfo.standalone else String("no"),
             ),
-            Expression("Rule", String("Encoding"), String(tree.docinfo.encoding)),
+            to_expression(
+                SymbolRule, String("Encoding"), String(tree.docinfo.encoding)
+            ),
         )
     ]
 
     return Expression(
-        Expression("XMLObject", String("Document")),
-        Expression("List", *declaration),
+        to_expression("XMLObject", String("Document")),
+        to_expression("List", *declaration),
         *node_to_xml_element(tree.getroot())
     )
 
@@ -130,7 +133,9 @@ class _TagImport(_HTMLBuiltin):
         tree = parse_html(parse_html_file, text, evaluation)
         if isinstance(tree, Symbol):  # $Failed?
             return tree
-        return Expression("List", Expression("Rule", self.tag_name, self._import(tree)))
+        return to_expression(
+            SymbolList, to_expression(SymbolRule, self.tag_name, self._import(tree))
+        )
 
 
 class _Get(_HTMLBuiltin):
@@ -205,7 +210,7 @@ class _DataImport(_TagImport):
                 elif len(x) == 1:
                     data_list.extend(x)
                 elif x:
-                    data_list.append(Expression("List", *x))
+                    data_list.append(to_expression("List", *x))
                 return data_list
 
         newline = re.compile(r"\s+")
@@ -258,7 +263,7 @@ class _DataImport(_TagImport):
         if result is None:
             result = []
 
-        return Expression("List", *result)
+        return to_expression("List", *result)
 
 
 class DataImport(_DataImport):
@@ -297,7 +302,7 @@ class _LinksImport(_TagImport):
         raise NotImplementedError
 
     def _import(self, tree):
-        return Expression("List", *list(self._links(tree)))
+        return to_expression("List", *list(self._links(tree)))
 
 
 class HyperlinksImport(_LinksImport):
@@ -382,7 +387,7 @@ class SourceImport(_HTMLBuiltin):
         def source(filename):
             with MathicsOpen(filename, "r", encoding="UTF-8") as f:
                 return Expression(
-                    "List", Expression("Rule", "Source", String(f.read()))
+                    SymbolList, to_expression(SymbolRule, "Source", String(f.read()))
                 )
 
         return parse_html(source, text, evaluation)
@@ -421,5 +426,5 @@ class XMLObjectImport(_HTMLBuiltin):
 
     def apply(self, text, evaluation):
         """%(name)s[text_String]"""
-        xml = Expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
-        return Expression("List", Expression("Rule", "XMLObject", xml))
+        xml = to_expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
+        return to_expression("List", to_expression(SymbolRule, "XMLObject", xml))

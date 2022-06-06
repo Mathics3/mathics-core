@@ -1452,7 +1452,7 @@ class Import(Builtin):
                     tmpfile = True
                     stream = Expression(SymbolOpenWrite).evaluate(evaluation)
                     findfile = stream.leaves[0]
-                    if not data is None:
+                    if data is not None:
                         Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:
                         Expression(SymbolWriteString, String("")).evaluate(evaluation)
