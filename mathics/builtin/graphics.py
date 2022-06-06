@@ -207,6 +207,7 @@ class Show(Builtin):
     """
 
     options = GRAPHICS_OPTIONS
+    summary_text = "display graphic objects"
 
     def apply(self, graphics, evaluation, options):
         """Show[graphics_, OptionsPattern[%(name)s]]"""
@@ -282,6 +283,7 @@ class Graphics(Builtin):
     options = GRAPHICS_OPTIONS
 
     box_suffix = "Box"
+    summary_text = "general two‐dimensional graphics"
 
     def apply_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
@@ -392,6 +394,8 @@ class Thickness(_Thickness):
      = -Graphics-
     """
 
+    summary_text = "line thicknesses"
+
     def get_thickness(self):
         return self.graphics.translate_relative(self.value)
 
@@ -405,6 +409,7 @@ class Thin(Builtin):
     """
 
     rules = {"Thin": "AbsoluteThickness[0.5]"}
+    summary_text = "make lines width thiner"
 
 
 class Thick(Builtin):
@@ -416,6 +421,7 @@ class Thick(Builtin):
     """
 
     rules = {"Thick": "AbsoluteThickness[2]"}
+    summary_text = "make lines width thicker"
 
 
 class PointSize(_Size):
@@ -433,6 +439,8 @@ class PointSize(_Size):
     = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
     """
 
+    summary_text = "relative sizes of points"
+
     def get_absolute_size(self):
         if self.graphics.view_width is None:
             self.graphics.view_width = 400
@@ -449,11 +457,18 @@ class FontColor(Builtin):
     </dl>
     """
 
-    pass
+    summary_text = "color of characters"
 
 
 class Offset(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'Offset[{$dx$, $dy$}, $position$]'
+    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+    </dl>
+    """
+
+    summary_text = "offset by an absolute distance"
 
 
 class Rectangle(Builtin):
@@ -473,6 +488,7 @@ class Rectangle(Builtin):
     """
 
     rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
+    summary_text = "2D filled rectangle"
 
 
 class Disk(Builtin):
@@ -504,6 +520,7 @@ class Disk(Builtin):
     """
 
     rules = {"Disk[]": "Disk[{0, 0}]"}
+    summary_text = "filled circle, ellipse or arc"
 
 
 class Circle(Builtin):
@@ -533,10 +550,24 @@ class Circle(Builtin):
     """
 
     rules = {"Circle[]": "Circle[{0, 0}]"}
+    summary_text = "empty circle, ellipse or arc"
 
 
 class Inset(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'Text[$obj$]'
+        <dd>represents an object $obj$ inset in a graphic.
+    <dt>'Text[$obj$, $pos$]'
+        <dd>represents an object $obj$ inset in a graphic at position $pos$.
+    <dt>'Text[$obj$, $pos$, $$]'
+        <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in
+            the enclosing graphic.
+    </dl>
+
+    """
+
+    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
 
 
 class Text(Inset):
@@ -552,6 +583,8 @@ class Text(Inset):
     #> Graphics[{Text[x, {0,0}]}]
      = -Graphics-
     """
+
+    summary_text = "arbitrary text or other expressions in 2D or 3D"
 
 
 class _Polyline(_GraphicsElementBox):
@@ -619,7 +652,7 @@ class Point(Builtin):
 
     """
 
-    pass
+    summary_text = "a point or list of points in 2D or 3D"
 
 
 # FIXME: We model points as line segments which
@@ -640,7 +673,7 @@ class Line(Builtin):
     = -Graphics3D-
     """
 
-    pass
+    summary_text = "a line joining a sequence of points in 2D or 3D"
 
 
 def _svg_bezier(*segments):
@@ -689,7 +722,7 @@ class FilledCurve(Builtin):
     = -Graphics-
     """
 
-    pass
+    summary_text = "a filled area with curve segment boundary in 2D"
 
 
 class Polygon(Builtin):
@@ -716,7 +749,7 @@ class Polygon(Builtin):
     = -Graphics3D-
     """
 
-    pass
+    summary_text = "a polygon in 2D or 3D"
 
 
 class RegularPolygon(Builtin):
@@ -738,6 +771,8 @@ class RegularPolygon(Builtin):
     >> Graphics[{Yellow, Rectangle[], Orange, RegularPolygon[{1, 1}, {0.25, 0}, 3]}]
     = -Graphics-
     """
+
+    summary_text = "a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -773,7 +808,7 @@ class Arrow(Builtin):
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-, -Graphics-}
     """
 
-    pass
+    summary_text = "graphics primitive to specify arbitrary graphical arrows"
 
 
 class Arrowheads(_GraphicsDirective):
@@ -815,6 +850,7 @@ class Arrowheads(_GraphicsDirective):
         "System`Medium": 9,
         "System`Large": 18,
     }
+    summary_text = "form and placement of arrowheads"
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
@@ -1028,6 +1064,10 @@ def total_extent(extents):
 
 class EdgeForm(Builtin):
     """
+    <dl>
+    <dt> 'EdgeForm[$g$]'
+    <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
     >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
      = -Graphics-
 
@@ -1035,11 +1075,18 @@ class EdgeForm(Builtin):
      = -Graphics-
     """
 
-    pass
+    summary_text = "rendering properties for edges"
 
 
 class FaceForm(Builtin):
-    pass
+    """
+    <dl>
+    <dt> 'FaceForm[$g$]'
+    <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
+    """
+
+    summary_text = "rendering properties for faces"
 
 
 def _style(graphics, item):
@@ -1313,7 +1360,15 @@ class GraphicsElements(_GraphicsElements):
 
 
 class Directive(Builtin):
+    """
+    <dl>
+    <dt> 'Directive'[$g_1$, $g_2$, ...]
+    <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
+    </dl>
+    """
+
     attributes = read_protected | protected
+    summary_text = "compound directive"
 
 
 class Tiny(Builtin):
@@ -1324,6 +1379,8 @@ class Tiny(Builtin):
     </dl>
     """
 
+    summary_text = "tiny size"
+
 
 class Small(Builtin):
     """
@@ -1332,6 +1389,8 @@ class Small(Builtin):
         <dd>produces a small image.
     </dl>
     """
+
+    summary_text = "small size"
 
 
 class Medium(Builtin):
@@ -1342,6 +1401,8 @@ class Medium(Builtin):
     </dl>
     """
 
+    summary_text = "medium size"
+
 
 class Large(Builtin):
     """
@@ -1350,6 +1411,8 @@ class Large(Builtin):
         <dd>produces a large image.
     </dl>
     """
+
+    summary_text = "large size"
 
 
 element_heads = frozenset(
