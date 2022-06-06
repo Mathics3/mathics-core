@@ -999,11 +999,11 @@ class _IterationFunction(Builtin):
                     raise
 
         if isinstance(imax, Integer):
-            for _ in range(imax.value):
-                try:
+            try:
+                for _ in range(imax.value):
                     do_iteration()
-                except StopIteration:
-                    break
+            except StopIteration:
+                pass
 
         else:
             imax = imax.evaluate(evaluation)
@@ -1017,12 +1017,13 @@ class _IterationFunction(Builtin):
                 return
 
             index = 0
-            while index < py_max:
-                try:
+            try:
+                while index < py_max:
                     do_iteration()
-                except StopIteration:
-                    break
-                index += 1
+                    index += 1
+            except StopIteration:
+                pass
+
         return self.get_result(result)
 
     def apply_iter_nostep(self, expr, i, imin, imax, evaluation):
