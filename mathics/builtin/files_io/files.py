@@ -44,7 +44,7 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Symbol, SymbolList, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolIndeterminate,
@@ -2656,7 +2656,7 @@ class Streams(Builtin):
             expr = Expression(head, _name, Integer(stream.n))
             if name is None or _name == name:
                 result.append(expr)
-        return Expression(SymbolList, *result)
+        return to_mathics_list(*result)
 
 
 class Record(Builtin):
