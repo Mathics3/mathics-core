@@ -98,7 +98,9 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
         ),
     ],
 )
-@pytest.mark.skip
+@pytest.mark.skip(
+    reason="the right behaviour was broken since we start to use Symbol as singleton, to speedup comparisons."
+)
 def test_unevaluate(str_setup, str_expr, str_expected, message):
     if str_setup:
         evaluate(str_setup)
