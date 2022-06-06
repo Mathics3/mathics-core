@@ -258,7 +258,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     x_name = x.get_name()
 
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    maxit = maxit_opt.value if maxit_opt else 100
 
     step_monitor = opts.get("System`StepMonitor", None)
     if step_monitor is SymbolNone:
