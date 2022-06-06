@@ -50,6 +50,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
+    SymbolIndeterminate,
     SymbolLog,
     SymbolN,
     SymbolPrecision,
@@ -711,7 +712,7 @@ class RealDigits(Builtin):
                 else:
                     # Adding Indeterminate if the length is greater than the precision
                     while len(elements) < nr_elements:
-                        elements.append(from_python(Symbol("Indeterminate")))
+                        elements.append(SymbolIndeterminate)
         list_expr = ListExpression(*elements)
         return ListExpression(list_expr, Integer(exp))
 
