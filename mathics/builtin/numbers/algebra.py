@@ -1981,7 +1981,15 @@ class Variables(Builtin):
 
 
 class UpTo(Builtin):
+    """
+    <dl>
+    <dt>'UpTo[$n$]'
+    <dd>is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
+    </dl>
+    """
+
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
     }
+    summary_text = "a certain number of elements, or as many as are available"
