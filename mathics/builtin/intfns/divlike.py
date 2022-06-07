@@ -342,8 +342,8 @@ class Quotient(Builtin):
 
     def apply(self, m: Integer, n: Integer, evaluation):
         "Quotient[m_Integer, n_Integer]"
-        py_m = m.get_int_value()
-        py_n = n.get_int_value()
+        py_m = m.value
+        py_n = n.value
         if py_n == 0:
             evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
             return SymbolComplexInfinity
