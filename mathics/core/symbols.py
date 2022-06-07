@@ -308,6 +308,10 @@ class Atom(BaseElement):
         return False
 
     @property
+    def head(self) -> BaseElement:
+        return Symbol(self.class_head_name)
+
+    @property
     def is_literal(self) -> bool:
         """
         True if the value can't change, i.e. a value is set and it does not
