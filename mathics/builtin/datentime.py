@@ -999,7 +999,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 
     def apply(self, year, evaluation):
         "EasterSunday[year_Integer]"
-        y = year.get_int_value()
+        y = year.value
 
         # "Anonymous Gregorian algorithm", see https://en.wikipedia.org/wiki/Computus
         a = y % 19
@@ -1017,7 +1017,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         month = (h + l - 7 * m + 114) // 31
         day = ((h + l - 7 * m + 114) % 31) + 1
 
-        return Expression(SymbolList, year, Integer(month), Integer(day))
+        return ListExpression(year, Integer(month), Integer(day))
 
 
 class Pause(Builtin):
