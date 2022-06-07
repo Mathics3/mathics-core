@@ -69,6 +69,7 @@ Internals
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
 * The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 * remove ``flatten_*`` from the ``Atom`` interface.
+* ``Expression.flatten_with_respect_to_head`` was reworked as an iterative instead of a recursive algorithm. The ``callback`` parameter was also removed.
 
 
 Package update

@@ -26,6 +26,7 @@ class ListExpression(Expression):
     ):
         self.options = None
         self.pattern_sequence = False
+        self.unevaluated = False
         self._head = SymbolList
 
         # For debugging

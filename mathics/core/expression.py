@@ -9,6 +9,7 @@ import typing
 from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from itertools import chain
 from bisect import bisect_left
+from collections import deque
 
 from mathics.core.atoms import from_python, Number, Integer
 
@@ -198,6 +199,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     ):
         self.options = None
         self.pattern_sequence = False
+        # put inside element_properties
+        self.unevaluated = False
+
         if isinstance(head, str):
             # We should fix or convert to to_expression all nonSymbol uses.
             head = Symbol(head)
@@ -559,7 +563,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return self._flatten_sequence(sequence, evaluation)
 
     def flatten_with_respect_to_head(
-        self, head, pattern_only=False, callback=None, level=100
+        self, head, pattern_only=False, level=-1
     ) -> "Expression":
         """
         Flatten elements in self which have `head` in them.
@@ -586,7 +590,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
               elements are drawn from
 
 
-        callback:  a callback function called each time a element is flattened.
         level:   maximum depth to flatten. This often isn't used and seems to have been put in
                  as a potential safety measure possibly for the future. If you don't want a limit
                  on flattening pass a negative number.
@@ -596,31 +599,122 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return self
         if self._no_symbol(head.get_name()):
             return self
-        sub_level = level - 1
-        do_flatten = False
-        for element in self._elements:
-            if element.get_head().sameQ(head) and (
-                not pattern_only or element.pattern_sequence
-            ):
-                do_flatten = True
-                break
-        if do_flatten:
-            new_elements = []
-            for element in self._elements:
-                if element.get_head().sameQ(head) and (
-                    not pattern_only or element.pattern_sequence
-                ):
-                    new_element = element.flatten_with_respect_to_head(
-                        head, pattern_only, callback, level=sub_level
+
+        # This decides which is the right test function
+        # regarding the parameters.
+        if level == -1:
+            if pattern_only:
+
+                def do_flatten(e):
+                    return (
+                        isinstance(e, Expression)
+                        and e.get_head().sameQ(head)
+                        and e.pattern_sequence
                     )
-                    if callback is not None:
-                        callback(new_element._elements, element)
-                    new_elements.extend(new_element._elements)
-                else:
-                    new_elements.append(element)
-            return Expression(self._head, *new_elements)
+
+            else:
+
+                def do_flatten(e):
+                    return isinstance(e, Expression) and e.get_head().sameQ(head)
+
         else:
+            if pattern_only:
+
+                def do_flatten(e):
+                    return (
+                        curr_level < level
+                        and isinstance(e, Expression)
+                        and e.get_head().sameQ(head)
+                        and e.pattern_sequence
+                    )
+
+            else:
+
+                def do_flatten(e):
+                    return (
+                        curr_level < level
+                        and isinstance(e, Expression)
+                        and e.get_head().sameQ(head)
+                    )
+
+        new_elements = None
+        curr_pos = None
+        curr_level = 0
+        old_elements = self.elements
+        unevaluated = self.unevaluated
+        # not sure if this is the right structure for
+        # implementing a stack in Python.
+        level_deque = deque()
+        fully_evaluated = True
+        is_ordered = True
+        is_flat = True
+
+        for pos, element in enumerate(old_elements):
+            if do_flatten(element):
+                new_elements = list(old_elements[:pos])
+                curr_pos = pos
+                break
+
+        if new_elements is None:
             return self
+
+        while True:
+            # This loop goes over all the elements
+            # and all the levels. In the end,
+            # new_elements is the list of elements of the
+            # flattened expression
+
+            # leaving the level
+            if curr_pos == len(old_elements):
+                if curr_level == 0:
+                    break
+                old_elements, curr_pos, unevaluated = level_deque.pop()
+                curr_level = curr_level - 1
+                curr_pos = curr_pos + 1
+                continue
+
+            element = old_elements[curr_pos]
+            if do_flatten(element):
+                # entry to a new level
+                level_deque.append((old_elements, curr_pos, unevaluated))
+                old_elements = element.elements
+                unevaluated = unevaluated or element.unevaluated
+                curr_pos = 0
+                curr_level = curr_level + 1
+                continue
+
+            # Update the properties. Here I tried to follow
+            # self._build_element_properties()
+            if not element.is_literal:
+                fully_evaluated = False
+            if isinstance(element, Expression):
+                is_flat = False
+            try:
+                if new_elements and new_elements[-1] > element:
+                    is_ordered = False
+            except Exception:
+                is_ordered = False
+
+            # If the expression is tagged as "Unevaluated"
+            # tag the elements. Notice that the Elements_Properties are
+            # evaluated before this step.
+            if unevaluated:
+                if isinstance(element, Atom):
+                    element = Expression(SymbolSequence, element)
+                element.unevaluated = True
+
+            new_elements.append(element)
+            curr_pos = curr_pos + 1
+
+        # Now, create the new expression and its properties and return.
+        elements_properties = ElementsProperties(
+            elements_fully_evaluated=fully_evaluated,
+            is_flat=is_flat,
+            is_ordered=is_ordered,
+        )
+        return Expression(
+            self._head, *new_elements, elements_properties=elements_properties
+        )
 
     def get_atoms(self, include_heads=True):
         """Returns a list of atoms involved in the expression."""
@@ -1075,14 +1169,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
             elements = new._elements
 
-        # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
-        # The idea is to mark which elements was marked as "Unevaluated"
-        # Also, this consumes time for long lists, and is useful just for a very unfrequent
-        # expressions, involving `Unevaluated` elements.
-        # Notice also that this behaviour is broken when the argument of "Unevaluated" is a symbol (see comment and tests in test/test_unevaluate.py)
-
         for element in elements:
-            element.unevaluated = False
+            if isinstance(element, Expression):
+                element.unevaluated = False
 
         # If HoldAllComplete Attribute (flag ``HOLD_ALL_COMPLETE``) is not set,
         # and the expression has elements of the form  `Unevaluated[element]`
@@ -1099,27 +1188,56 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if not HOLD_ALL_COMPLETE & attributes:
             dirty_elements = None
 
+            # If some element is tagged as "Unevaluated",
+            # replace by its argument, but mark the element
+            # as "unevaluated". If the element is a Symbol ``s``,
+            # replace it by a Sequence[s] first. If is a number
+            # or another kind of non-evalmixin, discard the tag.
+            possible_problematic_corner_case = False
             for index, element in enumerate(elements):
                 if element.has_form("Unevaluated", 1):
                     if dirty_elements is None:
                         dirty_elements = list(elements)
-                    dirty_elements[index] = element._elements[0]
+                    uneval_element = element._elements[0]
+                    if isinstance(uneval_element, Symbol):
+                        uneval_element = Expression(SymbolSequence, uneval_element)
+                        # see comment bellow
+                        possible_problematic_corner_case = True
+                        uneval_element.unevaluated = True
+                    elif isinstance(uneval_element, Expression):
+                        uneval_element.unevaluated = True
+
+                    dirty_elements[index] = uneval_element
                     dirty_elements[index].unevaluated = True
 
             if dirty_elements:
-                new = Expression(head, *dirty_elements)
+                # here we call flatten_sequence to get ride of the Sequence sorrounding
+                # dirty atoms.
+                # Problematic corner case: If the expression has the attribute
+                # HoldSequence, and there are Unevaluated atoms, this
+                # mechanism could fail. Maybe here we should send a warning in that case.
+                assert not (
+                    possible_problematic_corner_case and (SEQUENCE_HOLD & attributes)
+                ), "Fixme: HoldSequence attribute and Unevaluate[x] with x an atom does not work together."
+
+                def remove_fake_seq(e):
+                    if not e.head.sameQ(SymbolSequence):
+                        return e
+                    if len(e.elements) == 1 and isinstance(e.elements[0], Atom):
+                        return e.elements[0]
+                    return e
+
+                new = Expression(head, *[remove_fake_seq(d) for d in dirty_elements])
                 elements = dirty_elements
 
         # If the Attribute ``Flat`` (flag ``FLAT``) is set, calls
         # flatten with a callback that set elements as unevaluated
         # too.
-        def flatten_callback(new_elements, old):
-            for element in new_elements:
-                element.unevaluated = old.unevaluated
 
         if FLAT & attributes:
-            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            new = new.flatten_with_respect_to_head(new._head)
             if new.elements_properties is None:
+                assert False
                 new._build_elements_properties()
 
         # If the attribute `Orderless` is set, sort the elements, according to the
@@ -1187,6 +1305,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         def rules():
             rules_names = set()
             if not HOLD_ALL_COMPLETE & attributes:
+                # Notice that if there are "dirty" elements, we are not going to look
+                # at their rules (because elements keeps the ``Sequence`` sorrounding them)
+                # but any rule that we found "outside" the dirty elements are going to be applied
+                # to ``new``, because we strip there the sequences.
                 for element in elements:
                     if not isinstance(element, EvalMixin):
                         continue
@@ -1224,7 +1346,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # Expression did not change, re-apply Unevaluated
         for index, element in enumerate(new._elements):
-            if element.unevaluated:
+            if isinstance(element, Expression) and element.unevaluated:
                 if dirty_elements is None:
                     dirty_elements = list(new._elements)
                 dirty_elements[index] = Expression("Unevaluated", element)
