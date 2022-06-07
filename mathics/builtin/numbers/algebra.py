@@ -5,11 +5,11 @@ Algebraic Transformations
 There are a number of built-in functions that perform:
 
 <ul>
-<li>Structural Operations on Polynomials
-<li>Finding the Structure of a Polynomial
-<li>Structural Operations on Rational Expressions
-<li>Polynomials over Algebraic Number Fields
-<li>Simplification with or without Assumptions
+  <li>Structural Operations on Polynomials
+  <li>Finding the Structure of a Polynomial
+  <li>Structural Operations on Rational Expressions
+  <li>Polynomials over Algebraic Number Fields
+  <li>Simplification with or without Assumptions
 </ul>
 """
 
@@ -54,13 +54,13 @@ from mathics.core.systemsymbols import (
 )
 
 from mathics.algorithm.simplify import default_complexity_function
-from mathics.core.convert import from_sympy, sympy_symbol_prefix
-from mathics.core.rules import Pattern
-from mathics.builtin.scoping import dynamic_scoping
 from mathics.builtin.inference import evaluate_predicate
 from mathics.builtin.options import options_to_rules
-
+from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.attributes import listable, protected
+from mathics.core.convert import from_sympy, sympy_symbol_prefix
+from mathics.core.list import ListExpression
+from mathics.core.rules import Pattern
 
 import sympy
 
@@ -860,16 +860,13 @@ class CoefficientArrays(_CoefficientHandler):
                     return
                 while len(arrays) <= order:
                     cur_ord = len(arrays)
-                    range2 = Expression(SymbolList, Integer(dim2))
+                    range2 = ListExpression(Integer(dim2))
                     its2 = [range2 for k in range(cur_ord)]
                     # TODO: Use SparseArray...
                     # This constructs a tensor or range cur_ord+1
                     if dim1 > 1:
                         newtable = Expression(
-                            "Table",
-                            Integer(0),
-                            Expression(SymbolList, Integer(dim1)),
-                            *its2
+                            "Table", Integer(0), ListExpression(Integer(dim1)), *its2
                         )
                     else:
                         newtable = Expression("Table", Integer(0), *its2)
@@ -887,7 +884,7 @@ class CoefficientArrays(_CoefficientHandler):
                 else:
                     walk_parts([curr_array], arrayidx, evaluation, coeff)
                     arrays[order] = curr_array
-        return Expression(SymbolList, *arrays)
+        return ListExpression(*arrays)
 
 
 class CoefficientList(Builtin):
@@ -951,13 +948,13 @@ class CoefficientList(Builtin):
         e_null = expr is SymbolNull
         f_null = form is SymbolNull
         if expr == Integer0:
-            return Expression(SymbolList)
+            return ListExpression()
         elif e_null and f_null:
-            return Expression(SymbolList, Integer0)
+            return ListExpression(Integer0)
         elif e_null and not f_null:
-            return Expression(SymbolList, SymbolNull)
+            return ListExpression(SymbolNull)
         elif f_null:
-            return Expression(SymbolList, expr)
+            return ListExpression(expr)
         elif form.has_form("List", 0):
             return expr
 
@@ -1008,7 +1005,7 @@ class CoefficientList(Builtin):
                         subs = _nth(poly, dims[1:], exponents)
                         leaves.append(subs)
                         exponents.pop()
-                    result = Expression(SymbolList, *leaves)
+                    result = ListExpression(*leaves)
                     return result
 
                 return _nth(sympy_poly, dimensions, [])
@@ -1462,9 +1459,9 @@ class FactorTermsList(Builtin):
     def apply_list(self, expr, vars, evaluation):
         "FactorTermsList[expr_, vars_List]"
         if expr == Integer0:
-            return Expression(SymbolList, Integer1, Integer0)
+            return ListExpression(Integer1, Integer0)
         elif isinstance(expr, Number):
-            return Expression(SymbolList, expr, Integer1)
+            return ListExpression(expr, Integer1)
 
         for x in vars.leaves:
             if not (isinstance(x, Atom)):
@@ -1472,7 +1469,7 @@ class FactorTermsList(Builtin):
 
         sympy_expr = expr.to_sympy()
         if sympy_expr is None:
-            return Expression(SymbolList, Integer1, expr)
+            return ListExpression(Integer1, expr)
         sympy_expr = sympy.together(sympy_expr)
 
         sympy_vars = [
@@ -1523,7 +1520,7 @@ class FactorTermsList(Builtin):
             result.append(sympy.expand(numer))
             # evaluation.message(self.get_name(), 'poly', expr)
 
-        return Expression(SymbolList, *[from_sympy(i) for i in result])
+        return ListExpression(*[from_sympy(i) for i in result])
 
 
 # This is out of order alphabetically because it has to come before
@@ -1593,10 +1590,10 @@ class Simplify(Builtin):
         assumptions_list = options.pop("System`Assumptions")
         if assumptions_list and assumptions_list is not SymbolAssumptions:
             if assum.get_head() is not SymbolList:
-                assum = Expression(SymbolList, assum)
+                assum = ListExpression(assum)
             if assumptions_list.get_head() is not SymbolList:
-                assumptions_list = Expression(SymbolList, assumptions_list)
-            assum = Expression(SymbolList, assum, assumptions_list)
+                assumptions_list = ListExpression(assumptions_list)
+            assum = ListExpression(assum, assumptions_list)
         assumptions = assum.evaluate(evaluation).flatten_with_respect_to_head(
             SymbolList
         )
@@ -1975,7 +1972,7 @@ class Variables(Builtin):
 
         variables = find_all_vars(expr)
 
-        variables = Expression(SymbolList, *variables)
+        variables = ListExpression(*variables)
         variables.sort()  # MMA doesn't do this
         return variables
 

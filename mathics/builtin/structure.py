@@ -18,6 +18,7 @@ from mathics.core.atoms import (
     Rational,
 )
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
@@ -25,7 +26,6 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolFalse,
     SymbolTrue,
-    SymbolList,
 )
 
 from mathics.core.systemsymbols import SymbolDirectedInfinity
@@ -50,7 +50,7 @@ class Sort(Builtin):
     """
     <dl>
       <dt>'Sort[$list$]'
-      <dd>sorts $list$ (or the leaves of any other expression) according to canonical ordering.
+      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering.
 
       <dt>'Sort[$list$, $p$]'
       <dd>sorts using $p$ to determine the order of two elements.
@@ -84,7 +84,7 @@ class Sort(Builtin):
         if isinstance(list, Atom):
             evaluation.message("Sort", "normal")
         else:
-            new_elements = sorted(list.leaves)
+            new_elements = sorted(list.elements)
             return list.restructure(list.head, new_elements, evaluation)
 
     def apply_predicate(self, list, p, evaluation):
@@ -104,7 +104,7 @@ class Sort(Builtin):
                         is SymbolTrue
                     )
 
-            new_elements = sorted(list.leaves, key=Key)
+            new_elements = sorted(list.elements, key=Key)
             return list.restructure(list.head, new_elements, evaluation)
 
 
@@ -112,8 +112,8 @@ class SortBy(Builtin):
     """
     <dl>
     <dt>'SortBy[$list$, $f$]'
-    <dd>sorts $list$ (or the leaves of any other expression) according to canonical ordering of the keys that are
-    extracted from the $list$'s elements using $f. Chunks of leaves that appear the same under $f are sorted
+    <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
+    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
     according to their natural order (without applying $f).
     <dt>'SortBy[$f$]'
     <dd>creates an operator function that, when applied, sorts by $f.
@@ -152,13 +152,13 @@ class SortBy(Builtin):
             if (
                 keys_expr is None
                 or keys_expr.get_head_name() != "System`List"
-                or len(keys_expr.leaves) != len(li.leaves)
+                or len(keys_expr.elements) != len(li.elements)
             ):
                 expr = Expression("SortBy", li, f)
                 return evaluation.message("SortBy", "func", expr, 2)
 
-            keys = keys_expr.leaves
-            raw_keys = li.leaves
+            keys = keys_expr.elements
+            raw_keys = li.elements
 
             class Key(object):
                 def __init__(self, index):
@@ -173,9 +173,9 @@ class SortBy(Builtin):
                     else:  # if f(x) == f(y), resort to x < y?
                         return raw_keys[self.index] > raw_keys[other.index]
 
-            # we sort a list of indices. after sorting, we reorder the leaves.
+            # we sort a list of indices. after sorting, we reorder the elements.
             new_indices = sorted(list(range(len(raw_keys))), key=Key)
-            new_elements = [raw_keys[i] for i in new_indices]  # reorder leaves
+            new_elements = [raw_keys[i] for i in new_indices]  # reorder elements
             return li.restructure(li.head, new_elements, evaluation)
 
 
@@ -222,10 +222,10 @@ class BinarySearch(Builtin):
     def apply(self, l, k, f, evaluation):
         "CombinatoricaOld`BinarySearch[l_List, k_, f_] /; Length[l] > 0"
 
-        leaves = l.leaves
+        elements = l.elements
 
         lower_index = 1
-        upper_index = len(leaves)
+        upper_index = len(elements)
 
         if (
             lower_index > upper_index
@@ -245,24 +245,24 @@ class BinarySearch(Builtin):
 
         # loop invariants (true at any time in the following loop):
         # (1) lower_index <= upper_index
-        # (2) k > leaves[i] for all i < lower_index
-        # (3) k < leaves[i] for all i > upper_index
+        # (2) k > elements[i] for all i < lower_index
+        # (3) k < elements[i] for all i > upper_index
         while True:
             pivot_index = (lower_index + upper_index) >> 1  # i.e. a + (b - a) // 2
             # as lower_index <= upper_index, lower_index <= pivot_index <= upper_index
-            pivot = transform(leaves[pivot_index - 1])  # 1-based to 0-based
+            pivot = transform(elements[pivot_index - 1])  # 1-based to 0-based
 
             # we assume a trichotomous relation: k < pivot, or k = pivot, or k > pivot
             if k < pivot:
                 if pivot_index == lower_index:  # see invariant (2), to see that
-                    # k < leaves[pivot_index] and k > leaves[pivot_index - 1]
+                    # k < elements[pivot_index] and k > elements[pivot_index - 1]
                     return Rational((pivot_index - 1) + pivot_index, 2)
                 upper_index = pivot_index - 1
             elif k == pivot:
                 return Integer(pivot_index)
             else:  # k > pivot
                 if pivot_index == upper_index:  # see invariant (3), to see that
-                    # k > leaves[pivot_index] and k < leaves[pivot_index + 1]
+                    # k > elements[pivot_index] and k < elements[pivot_index + 1]
                     return Rational(pivot_index + (pivot_index + 1), 2)
                 lower_index = pivot_index + 1
 
@@ -313,8 +313,8 @@ class OrderedQ(Builtin):
     def apply(self, expr, evaluation):
         "OrderedQ[expr_]"
 
-        for index, value in enumerate(expr.leaves[:-1]):
-            if expr.leaves[index] <= expr.leaves[index + 1]:
+        for index, value in enumerate(expr.elements[:-1]):
+            if expr.elements[index] <= expr.elements[index + 1]:
                 continue
             else:
                 return SymbolFalse
@@ -466,7 +466,7 @@ class Apply(BinaryOperator):
             if isinstance(level, Atom):
                 return level
             else:
-                return Expression(f, *level.leaves)
+                return Expression(f, *level.elements)
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
@@ -578,9 +578,9 @@ class MapAt(Builtin):
     def apply(self, f, expr, args, evaluation, options={}):
         "MapAt[f_, expr_, args_]"
 
-        m = len(expr.leaves)
+        m = len(expr.elements)
 
-        def map_at_one(i, leaves):
+        def map_at_one(i, elements):
             if 1 <= i <= m:
                 j = i - 1
             elif -m <= i <= -1:
@@ -593,8 +593,8 @@ class MapAt(Builtin):
             ):
                 new_elements[j] = Expression(
                     "System`Rule",
-                    replace_leaf.leaves[0],
-                    Expression(f, replace_leaf.leaves[1]),
+                    replace_leaf.elements[0],
+                    Expression(f, replace_leaf.elements[1]),
                 )
             else:
                 new_elements[j] = Expression(f, replace_leaf)
@@ -812,7 +812,7 @@ class MapThread(Builtin):
             return evaluation.message("MapThread", "intnm", full_expr, 3)
 
         if expr.has_form("List", 0):
-            return Expression(SymbolList)
+            return ListExpression()
         if not expr.has_form("List", None):
             return evaluation.message("MapThread", "list", 2, full_expr)
 
@@ -830,8 +830,8 @@ class MapThread(Builtin):
                             "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
                         )
                     if dim is None:
-                        dim = len(arg.leaves)
-                    if dim != len(arg.leaves):
+                        dim = len(arg.elements)
+                    if dim != len(arg.elements):
                         raise MessageException(
                             "MapThread",
                             "mptc",
@@ -839,12 +839,12 @@ class MapThread(Builtin):
                             i + 1,
                             full_expr,
                             dim,
-                            len(arg.leaves),
+                            len(arg.elements),
                         )
                 return Expression(
                     "List",
                     *[
-                        walk([arg.leaves[i] for arg in args], depth + 1)
+                        walk([arg.elements[i] for arg in args], depth + 1)
                         for i in range(dim)
                     ]
                 )
@@ -1079,21 +1079,21 @@ class Flatten(Builtin):
         expr, depth = walk_levels(expr, callback=callback, include_pos=True)
 
         # build new tree inserting nodes as needed
-        leaves = sorted(new_indices.items())
+        elements = sorted(new_indices.items())
 
-        def insert_leaf(leaves):
-            # gather leaves into groups with the same leading index
+        def insert_leaf(elements):
+            # gather elements into groups with the same leading index
             # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
             # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
             leading_index = None
             grouped_elements = []
-            for index, leaf in leaves:
+            for index, leaf in elements:
                 if index[0] == leading_index:
                     grouped_elements[-1].append((index[1:], leaf))
                 else:
                     leading_index = index[0]
                     grouped_elements.append([(index[1:], leaf)])
-            # for each group of leaves we either insert them into the current level
+            # for each group of elements we either insert them into the current level
             # or make a new level and recurse
             new_elements = []
             for group in grouped_elements:
@@ -1105,7 +1105,7 @@ class Flatten(Builtin):
 
             return new_elements
 
-        return Expression(h, *insert_leaf(leaves))
+        return Expression(h, *insert_leaf(elements))
 
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"
@@ -1126,8 +1126,8 @@ class Flatten(Builtin):
 class Null(Predefined):
     """
     <dl>
-    <dt>'Null'
-        <dd>is the implicit result of expressions that do not yield a result.
+      <dt>'Null'
+      <dd>is the implicit result of expressions that do not yield a result.
     </dl>
 
     >> FullForm[a:=b]
@@ -1146,8 +1146,8 @@ class Null(Predefined):
 class Depth(Builtin):
     """
     <dl>
-    <dt>'Depth[$expr$]'
-        <dd>gives the depth of $expr$.
+      <dt>'Depth[$expr$]'
+      <dd>gives the depth of $expr$.
     </dl>
 
     The depth of an expression is defined as one plus the maximum
@@ -1181,10 +1181,11 @@ class Depth(Builtin):
 class Operate(Builtin):
     """
     <dl>
-    <dt>'Operate[$p$, $expr$]'
-        <dd>applies $p$ to the head of $expr$.
-    <dt>'Operate[$p$, $expr$, $n$]'
-        <dd>applies $p$ to the $n$th head of $expr$.
+      <dt>'Operate[$p$, $expr$]'
+      <dd>applies $p$ to the head of $expr$.
+
+      <dt>'Operate[$p$, $expr$, $n$]'
+      <dd>applies $p$ to the $n$th head of $expr$.
     </dl>
 
     >> Operate[p, f[a, b]]

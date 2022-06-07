@@ -33,7 +33,8 @@ from mathics.builtin.box.inout import RowBox
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0
-from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull, SymbolTrue
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAppend,
     SymbolFailed,
@@ -203,7 +204,7 @@ class Cases(Builtin):
     def apply(self, items, pattern, ls, evaluation, options):
         "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
-            return Expression(SymbolList)
+            return ListExpression()
 
         from mathics.builtin.patterns import Matcher
 
@@ -245,7 +246,7 @@ class Cases(Builtin):
 
         walk_levels(items, start, stop, heads=heads, callback=callback)
 
-        return Expression(SymbolList, *results)
+        return ListExpression(*results)
 
 
 class Count(Builtin):
@@ -600,7 +601,7 @@ class FirstPosition(Builtin):
         "FirstPosition[expr_, pattern_]"
 
         if expr == pattern:
-            return Expression(SymbolList)
+            return ListExpression()
 
         result = []
 
@@ -630,7 +631,7 @@ class FirstPosition(Builtin):
         if isinstance(expr, Expression) and (maxLevel is None or maxLevel > 0):
             is_found = check_pattern(expr, pattern, result, 1)
         if is_found:
-            return Expression(SymbolList, *result)
+            return to_mathics_list(*result)
         else:
             return Expression("Missing", "NotFound") if default is None else default
 
@@ -1198,9 +1199,7 @@ class ReplacePart(Builtin):
             if not replacement.has_form("Rule", 2) and not replacement.has_form(  # noqa
                 "RuleDelayed", 2
             ):
-                evaluation.message(
-                    "ReplacePart", "reps", Expression(SymbolList, *replacements)
-                )
+                evaluation.message("ReplacePart", "reps", ListExpression(*replacements))
                 return
             position = replacement.leaves[0]
             replace = replacement.leaves[1]

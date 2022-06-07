@@ -10,23 +10,21 @@ import platform
 import sys
 import subprocess
 
-from mathics.version import __version__
-from mathics.core.expression import Expression
+from mathics import version_string
+from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import (
     Integer,
     Integer0,
     Real,
     String,
 )
-from mathics.core.symbols import (
-    SymbolList,
-)
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolRule,
 )
-from mathics.builtin.base import Builtin, Predefined
-from mathics import version_string
+from mathics.version import __version__
 
 try:
     import psutil
@@ -103,7 +101,7 @@ class CommandLine(Predefined):
     name = "$CommandLine"
 
     def evaluate(self, evaluation) -> Expression:
-        return Expression(SymbolList, *(String(arg) for arg in sys.argv))
+        return ListExpression(*(String(arg) for arg in sys.argv))
 
 
 class Environment(Builtin):
@@ -175,7 +173,7 @@ class GetEnvironment(Builtin):
                 Expression(SymbolRule, name, value)
                 for name, value in os.environ.items()
             ]
-            return Expression(SymbolList, *rules)
+            return ListExpression(*rules)
 
 
 class Machine(Predefined):
@@ -309,7 +307,7 @@ class ProcessorType(Predefined):
 class ScriptCommandLine(Predefined):
     """
     <dl>
-    <dt>'$ScriptCommandLine'
+      <dt>'$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
     >> $ScriptCommandLine
@@ -324,10 +322,10 @@ class ScriptCommandLine(Predefined):
             dash_index = sys.argv.index("--")
         except ValueError:
             # not run in script mode
-            return Expression(SymbolList)
+            return ListExpression()
         scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
         parms = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
-        return Expression(SymbolList, *(String(arg) for arg in parms))
+        return to_mathics_list(*parms, elements_conversion_fn=String)
 
 
 class Run(Builtin):
