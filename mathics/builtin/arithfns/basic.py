@@ -238,7 +238,7 @@ class Minus(PrefixOperator):
 
     summary_text = "arithmetic negation"
 
-    def apply_int(self, x, evaluation):
+    def apply_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
         return Integer(-x.value)
 
