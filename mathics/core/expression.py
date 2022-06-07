@@ -1050,15 +1050,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
-            new = Expression(
-                head, *self._elements, elements_properties=self.elements_properties
-            )
         else:
             elements = self.get_mutable_elements()
             # FIXME: see if we can preserve elements properties in eval_elements()
             eval_elements()
-            new = Expression(head, *elements)
-            new._build_elements_properties()
+
+        new = Expression(head, *elements, elements_properties=self.elements_properties)
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
@@ -1109,6 +1106,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if dirty_elements:
                 new = Expression(head, *dirty_elements)
                 elements = dirty_elements
+                new._build_elements_properties()
 
         # If the Attribute ``Flat`` (flag ``FLAT``) is set, calls
         # flatten with a callback that set elements as unevaluated
