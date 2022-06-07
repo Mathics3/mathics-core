@@ -600,43 +600,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if self._no_symbol(head.get_name()):
             return self
 
-        # This decides which is the right test function
-        # regarding the parameters.
-        if level == -1:
-            if pattern_only:
-
-                def do_flatten(e):
-                    return (
-                        isinstance(e, Expression)
-                        and e.get_head().sameQ(head)
-                        and e.pattern_sequence
-                    )
-
-            else:
-
-                def do_flatten(e):
-                    return isinstance(e, Expression) and e.get_head().sameQ(head)
-
-        else:
-            if pattern_only:
-
-                def do_flatten(e):
-                    return (
-                        curr_level < level
-                        and isinstance(e, Expression)
-                        and e.get_head().sameQ(head)
-                        and e.pattern_sequence
-                    )
-
-            else:
-
-                def do_flatten(e):
-                    return (
-                        curr_level < level
-                        and isinstance(e, Expression)
-                        and e.get_head().sameQ(head)
-                    )
-
         new_elements = None
         curr_pos = None
         curr_level = 0
@@ -650,7 +613,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         is_flat = True
 
         for pos, element in enumerate(old_elements):
-            if do_flatten(element):
+            do_flatten = level > curr_level if level >= 0 else True
+            if pattern_only:
+                do_flatten = do_flatten and element.pattern_sequence
+
+            if do_flatten:
+                do_flatten = (
+                    do_flatten
+                    and isinstance(element, Expression)
+                    and element.get_head().sameQ(head)
+                )
+            if do_flatten:
                 new_elements = list(old_elements[:pos])
                 curr_pos = pos
                 break
@@ -674,7 +647,19 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 continue
 
             element = old_elements[curr_pos]
-            if do_flatten(element):
+
+            do_flatten = level > curr_level if level >= 0 else True
+            if pattern_only:
+                do_flatten = do_flatten and element.pattern_sequence
+
+            if do_flatten:
+                do_flatten = (
+                    do_flatten
+                    and isinstance(element, Expression)
+                    and element.get_head().sameQ(head)
+                )
+
+            if do_flatten:
                 # entry to a new level
                 level_deque.append((old_elements, curr_pos, unevaluated))
                 old_elements = element.elements
