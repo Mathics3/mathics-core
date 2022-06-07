@@ -18,6 +18,7 @@ from mathics.core.atoms import (
     Rational,
 )
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
@@ -25,7 +26,6 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolFalse,
     SymbolTrue,
-    SymbolList,
 )
 
 from mathics.core.systemsymbols import SymbolDirectedInfinity
@@ -812,7 +812,7 @@ class MapThread(Builtin):
             return evaluation.message("MapThread", "intnm", full_expr, 3)
 
         if expr.has_form("List", 0):
-            return Expression(SymbolList)
+            return ListExpression()
         if not expr.has_form("List", None):
             return evaluation.message("MapThread", "list", 2, full_expr)
 

@@ -10,8 +10,6 @@ import numpy as np
 from itertools import product
 from typing import Optional
 
-from mathics.core.evaluators import apply_N
-from mathics.core.evaluation import Evaluation
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -27,7 +25,6 @@ from mathics.core.atoms import (
     Real,
     from_python,
 )
-
 from mathics.core.attributes import (
     constant,
     hold_all,
@@ -36,9 +33,11 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-
+from mathics.core.evaluation import Evaluation
+from mathics.core.evaluators import apply_N
 
 from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
@@ -338,7 +337,7 @@ class D(SympyFunction):
     def apply_wrong(self, expr, x, other, evaluation):
         "D[expr_, {x_, other___}]"
 
-        arg = Expression(SymbolList, x, *other.get_sequence())
+        arg = ListExpression(x, *other.get_sequence())
         evaluation.message(SymbolD, "dvar", arg)
         return Expression(SymbolD, expr, arg)
 
@@ -732,7 +731,7 @@ class Integrate(SympyFunction):
                     cond = Expression(SymbolAnd, resif.elements[1], cond)
                     cond = Expression(SymbolSimplify, cond).evaluate(evaluation)
                     resif = resif.elements[0]
-                simplified_cases.append(Expression(SymbolList, resif, cond))
+                simplified_cases.append(ListExpression(resif, cond))
             cases = simplified_cases
             if default is SymbolUndefined and len(cases) == 1:
                 cases = cases[0]
@@ -987,7 +986,7 @@ class Solve(Builtin):
             if eq is SymbolTrue:
                 pass
             elif eq is SymbolFalse:
-                return Expression(SymbolList)
+                return ListExpression()
             elif not eq.has_form("Equal", 2):
                 return evaluation.message("Solve", "eqf", eqs_original)
             else:
@@ -1060,9 +1059,9 @@ class Solve(Builtin):
             if not isinstance(result, list):
                 result = [result]
             if isinstance(result, list) and len(result) == 1 and result[0] is True:
-                return Expression(SymbolList, Expression(SymbolList))
+                return ListExpression(ListExpression())
             if result == [None]:
-                return Expression(SymbolList)
+                return ListExpression()
             results = []
             for sol in result:
                 results.extend(transform_solution(sol))
@@ -1395,10 +1394,10 @@ class _BaseFinder(Builtin):
             return Expression(
                 SymbolList,
                 x0[1],
-                Expression(SymbolList, Expression(SymbolRule, x, x0[0])),
+                ListExpression(Expression(SymbolRule, x, x0[0])),
             )
         else:
-            return Expression(SymbolList, Expression(SymbolRule, x, x0))
+            return ListExpression(Expression(SymbolRule, x, x0))
 
     def apply_with_x_tuple(self, f, xtuple, evaluation, options):
         "%(name)s[f_, xtuple_, OptionsPattern[]]"
@@ -1824,7 +1823,7 @@ class SeriesData(Builtin):
                     tseries = (data_y, nmin_val, nmax_val, den_val)
 
             if tseries is None:
-                data_y = Expression(SymbolList, t)
+                data_y = ListExpression(t)
                 tseries = (data_y, 0, max_exponent.get_int_value(), 1)
             series_new = series_plus_series(series, tseries)
             if series_new:
@@ -1900,7 +1899,7 @@ class SeriesData(Builtin):
                     fseries = (data_y, nmin_val, nmax_val, den_val)
 
             if fseries is None:
-                data_y = Expression(SymbolList, factor)
+                data_y = ListExpression(factor)
                 fseries = (data_y, 0, max_exponent.get_int_value(), 1)
             series_new = series_times_series(series, fseries)
             if series_new:
@@ -2156,7 +2155,7 @@ class NIntegrate(Builtin):
             evaluation.message("NIntegrate", "cmpint")
             return
 
-        intvars = Expression(SymbolList, *coords)
+        intvars = ListExpression(*coords)
         integrand = Expression("Compile", intvars, func).evaluate(evaluation)
 
         if len(integrand.elements) >= 3:

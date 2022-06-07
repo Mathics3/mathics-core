@@ -37,13 +37,16 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
-from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
+from mathics.builtin.base import (
+    Builtin,
+    BinaryOperator,
+    PostfixOperator,
+    AtomBuiltin,
+    PatternObject,
+    PatternError,
+)
 from mathics.builtin.lists import InvalidLevelspecError
-
-from mathics.core.element import EvalMixin
-from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.atoms import (
     String,
     Number,
@@ -51,6 +54,18 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
+from mathics.core.attributes import (
+    hold_all,
+    hold_first,
+    hold_rest,
+    protected,
+    sequence_hold,
+)
+from mathics.core.element import EvalMixin
+from mathics.core.expression import Expression, SymbolVerbatim
+from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.list import ListExpression
+from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -59,16 +74,6 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch, SymbolRowBox
-from mathics.core.rules import Rule
-from mathics.core.pattern import Pattern, StopGenerator
-
-from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    hold_rest,
-    protected,
-    sequence_hold,
-)
 
 
 class Rule_(BinaryOperator):
@@ -472,7 +477,7 @@ class ReplaceList(Builtin):
             result = rule.apply(expr, evaluation, return_list=True, max_list=max_count)
             list.extend(result)
 
-        return Expression(SymbolList, *list)
+        return ListExpression(*list)
 
 
 class PatternTest(BinaryOperator, PatternObject):
@@ -1608,7 +1613,7 @@ class OptionsPattern(PatternObject):
                 # default options defined, e.g. with this code:
                 # f[x:OptionsPattern[]] := x; f["Test" -> 1]
                 # set self.defaults to an empty List, so we don't crash.
-                self.defaults = Expression(SymbolList)
+                self.defaults = ListExpression()
         defaults = self.defaults
         values = (
             defaults.get_option_values(
@@ -1671,7 +1676,7 @@ class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
     def __init__(self, rulelist, evaluation):
-        self.src = Expression(SymbolList, *rulelist)
+        self.src = ListExpression(*rulelist)
         self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
         self._head = SymbolDispatch
@@ -1744,7 +1749,7 @@ class DispatchAtom(AtomBuiltin):
         all_list = all(rule.has_form("List", None) for rule in rules)
         if all_list:
             leaves = [self.apply_create(rule, evaluation) for rule in rules]
-            return Expression(SymbolList, *leaves)
+            return ListExpression(*leaves)
         flatten_list = []
         for rule in rules:
             if isinstance(rule, Symbol):
