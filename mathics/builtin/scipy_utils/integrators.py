@@ -1,4 +1,52 @@
-from scipy.integrate import romberg, quad, nquad
+# -*- coding: utf-8 -*-
+import sys
+
+IS_PYPY = "__pypy__" in sys.builtin_module_names
+if IS_PYPY:
+    raise ImportError
+
+try:
+    from scipy.integrate import romberg, quad, nquad
+except Exception:
+    scipy_nintegrate_methods = {}
+else:
+    scipy_nintegrate_methods = {
+        "NQuadrature": tuple(
+            (
+                _scipy_interface(
+                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
+                ),
+                True,
+            )
+        ),
+        "Quadrature": tuple(
+            (
+                _scipy_interface(
+                    quad,
+                    {
+                        "tol": ("epsabs", None),
+                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
+                    },
+                    {"full_output": 1},
+                    lambda res: (res[0], res[1]),
+                ),
+                False,
+            )
+        ),
+        "Romberg": tuple(
+            (
+                _scipy_interface(
+                    romberg,
+                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
+                    None,
+                    lambda x: (x, np.nan),
+                ),
+                False,
+            )
+        ),
+    }
+
+
 import numpy as np
 
 
