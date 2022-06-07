@@ -5,7 +5,13 @@ Image[] and image related functions
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
 
+from collections import defaultdict
+import base64
+import functools
+import math
 import os.path as osp
+
+from typing import Optional, Tuple
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
@@ -14,15 +20,13 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    MachineReal,
     Rational,
     Real,
-    MachineReal,
+    SymbolDivide,
     from_python,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
-
 from mathics.builtin.colors.color_internals import (
     convert_color,
     colorspaces as known_colorspaces,
@@ -37,11 +41,10 @@ from mathics.builtin.drawing.image_internals import (
     numpy_flip,
     convolve,
 )
+from mathics.core.list import to_mathics_list, ListExpression
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
-import base64
-import functools
-import math
-from collections import defaultdict
 
 _image_requires = ("numpy", "PIL")
 
@@ -147,11 +150,10 @@ class ImageImport(_ImageBuiltin):
         pillow = PIL.Image.open(path.get_string_value())
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        exif = Expression(SymbolList, *list(_Exif.extract(pillow, evaluation)))
+        exif = to_mathics_list(*list(_Exif.extract(pillow, evaluation)))
 
         image = Image(pixels, "RGB" if is_rgb else "Grayscale")
-        return Expression(
-            "List",
+        return ListExpression(
             Expression(SymbolRule, String("Image"), image),
             Expression(SymbolRule, String("ColorSpace"), String(image.color_space)),
             Expression(
@@ -371,7 +373,7 @@ class RandomImage(_ImageBuiltin):
             cs = "Grayscale"
         else:
             cs = color_space.get_string_value()
-        size = [w.get_int_value(), h.get_int_value()]
+        size = [w.value, h.value]
         if size[0] <= 0 or size[1] <= 0:
             return evaluation.message("RandomImage", "bddim", from_python(size))
         minrange, maxrange = minval.round_to_float(), maxval.round_to_float()
@@ -456,7 +458,7 @@ class ImageResize(_ImageBuiltin):
         "skimage": "Please install scikit-image to use Resampling -> Gaussian.",
     }
 
-    def _get_image_size_spec(self, old_size, new_size):
+    def _get_image_size_spec(self, old_size, new_size) -> Optional[float]:
         predefined_sizes = {
             "System`Tiny": 75,
             "System`Small": 150,
@@ -517,7 +519,7 @@ class ImageResize(_ImageBuiltin):
         h = self._get_image_size_spec(old_h, height)
         if h is None or w is None:
             return evaluation.message(
-                "ImageResize", "imgrssz", Expression(SymbolList, width, height)
+                "ImageResize", "imgrssz", to_mathics_list(width, height)
             )
 
         # handle Automatic
@@ -746,21 +748,21 @@ class ImagePartition(_ImageBuiltin):
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
 
-    def apply(self, image, w, h, evaluation):
+    def apply(self, image, w: Integer, h: Integer, evaluation):
         "ImagePartition[image_Image, {w_Integer, h_Integer}]"
-        w = w.get_int_value()
-        h = h.get_int_value()
-        if w <= 0 or h <= 0:
-            return evaluation.message("ImagePartition", "arg2", from_python([w, h]))
+        py_w = w.value
+        py_h = h.value
+        if py_w <= 0 or py_h <= 0:
+            return evaluation.message("ImagePartition", "arg2", ListExpression(w, h))
         pixels = image.pixels
         shape = pixels.shape
 
         # drop blocks less than w x h
         parts = []
-        for yi in range(shape[0] // h):
+        for yi in range(shape[0] // py_h):
             row = []
-            for xi in range(shape[1] // w):
-                p = pixels[yi * h : (yi + 1) * h, xi * w : (xi + 1) * w]
+            for xi in range(shape[1] // py_w):
+                p = pixels[yi * py_h : (yi + 1) * py_h, xi * py_w : (xi + 1) * py_w]
                 row.append(Image(p, image.color_space))
             if row:
                 parts.append(row)
@@ -939,9 +941,9 @@ class MinFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the minimum in a neighbourhood"
 
-    def apply(self, image, r, evaluation):
+    def apply(self, image, r: Integer, evaluation):
         "MinFilter[image_Image, r_Integer]"
-        return self.compute(image, PIL.ImageFilter.MinFilter(1 + 2 * r.get_int_value()))
+        return self.compute(image, PIL.ImageFilter.MinFilter(1 + 2 * r.value))
 
 
 class MaxFilter(PillowImageFilter):
@@ -959,9 +961,9 @@ class MaxFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the maximum in a neighbourhood"
 
-    def apply(self, image, r, evaluation):
+    def apply(self, image, r: Integer, evaluation):
         "MaxFilter[image_Image, r_Integer]"
-        return self.compute(image, PIL.ImageFilter.MaxFilter(1 + 2 * r.get_int_value()))
+        return self.compute(image, PIL.ImageFilter.MaxFilter(1 + 2 * r.value))
 
 
 class MedianFilter(PillowImageFilter):
@@ -979,11 +981,9 @@ class MedianFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the median in a neighbourhood"
 
-    def apply(self, image, r, evaluation):
+    def apply(self, image, r: Integer, evaluation):
         "MedianFilter[image_Image, r_Integer]"
-        return self.compute(
-            image, PIL.ImageFilter.MedianFilter(1 + 2 * r.get_int_value())
-        )
+        return self.compute(image, PIL.ImageFilter.MedianFilter(1 + 2 * r.value))
 
 
 class EdgeDetect(_SkimageBuiltin):
@@ -1025,7 +1025,7 @@ class EdgeDetect(_SkimageBuiltin):
 
 
 def _matrix(rows):
-    return Expression(SymbolList, *[Expression(SymbolList, *r) for r in rows])
+    return ListExpression(*[ListExpression(*r) for r in rows])
 
 
 class BoxMatrix(_ImageBuiltin):
@@ -1293,9 +1293,10 @@ class ColorQuantize(_ImageBuiltin):
     summary_text = "give an approximation to image that uses only n distinct colors"
     messages = {"intp": "Positive integer expected at position `2` in `1`."}
 
-    def apply(self, image, n, evaluation):
+    def apply(self, image, n: Integer, evaluation):
         "ColorQuantize[image_Image, n_Integer]"
-        if n.get_int_value() <= 0:
+        py_value = n.value
+        if py_value <= 0:
             return evaluation.message(
                 "ColorQuantize", "intp", Expression("ColorQuantize", image, n), 2
             )
@@ -1303,7 +1304,7 @@ class ColorQuantize(_ImageBuiltin):
         if converted is None:
             return
         pixels = pixels_as_ubyte(converted.pixels)
-        im = PIL.Image.fromarray(pixels).quantize(n.get_int_value())
+        im = PIL.Image.fromarray(pixels).quantize(py_value)
         im = im.convert("RGB")
         return Image(numpy.array(im), "RGB")
 
@@ -1421,7 +1422,7 @@ class ColorSeparate(_ImageBuiltin):
         else:
             for i in range(pixels.shape[2]):
                 images.append(Image(pixels[:, :, i], "Grayscale"))
-        return Expression(SymbolList, *images)
+        return ListExpression(*images)
 
 
 class ColorCombine(_ImageBuiltin):
@@ -1614,19 +1615,19 @@ class ImageTake(_ImageBuiltin):
 
     summary_text = "create an image from a range of lines of another image"
 
-    def apply(self, image, n, evaluation):
+    def apply(self, image, n: Integer, evaluation):
         "ImageTake[image_Image, n_Integer]"
-        py_n = n.get_int_value()
+        py_n = n.value
         if py_n >= 0:
             pixels = image.pixels[:py_n]
         elif py_n < 0:
             pixels = image.pixels[py_n:]
         return Image(pixels, image.color_space)
 
-    def _slice(self, image, i1, i2, axis):
+    def _slice(self, image, i1: Integer, i2: Integer, axis):
         n = image.pixels.shape[axis]
-        py_i1 = min(max(i1.get_int_value() - 1, 0), n - 1)
-        py_i2 = min(max(i2.get_int_value() - 1, 0), n - 1)
+        py_i1 = min(max(i1.value - 1, 0), n - 1)
+        py_i2 = min(max(i2.value - 1, 0), n - 1)
 
         def flip(pixels):
             if py_i1 > py_i2:
@@ -1636,12 +1637,14 @@ class ImageTake(_ImageBuiltin):
 
         return slice(min(py_i1, py_i2), 1 + max(py_i1, py_i2)), flip
 
-    def apply_rows(self, image, r1, r2, evaluation):
+    def apply_rows(self, image, r1: Integer, r2: Integer, evaluation):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}]"
         s, f = self._slice(image, r1, r2, 0)
         return Image(f(image.pixels[s]), image.color_space)
 
-    def apply_rows_cols(self, image, r1, r2, c1, c2, evaluation):
+    def apply_rows_cols(
+        self, image, r1: Integer, r2: Integer, c1: Integer, c2: Integer, evaluation
+    ):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}, {c1_Integer, c2_Integer}]"
         sr, fr = self._slice(image, r1, r2, 0)
         sc, fc = self._slice(image, c1, c2, 1)
@@ -1688,7 +1691,7 @@ class PixelValue(_ImageBuiltin):
             return evaluation.message("PixelValue", "nopad")
         pixel = pixels_as_float(image.pixels)[height - y, x - 1]
         if isinstance(pixel, (numpy.ndarray, numpy.generic, list)):
-            return Expression(SymbolList, *[MachineReal(float(x)) for x in list(pixel)])
+            return ListExpression(*[MachineReal(float(x)) for x in list(pixel)])
         else:
             return MachineReal(float(pixel))
 
@@ -1736,7 +1739,9 @@ class PixelValuePositions(_ImageBuiltin):
             result = sorted(
                 (j + 1, height - i, k + 1) for i, j, k in positions.tolist()
             )
-        return Expression(SymbolList, *(Expression(SymbolList, *arg) for arg in result))
+        return ListExpression(
+            *(to_mathics_list(*arg, elements_conversion_fn=Integer) for arg in result)
+        )
 
 
 # image attribute queries
@@ -1766,7 +1771,7 @@ class ImageDimensions(_ImageBuiltin):
 
     def apply(self, image, evaluation):
         "ImageDimensions[image_Image]"
-        return Expression(SymbolList, *image.dimensions())
+        return to_mathics_list(*image.dimensions(), elements_conversion_fn=Integer)
 
 
 class ImageAspectRatio(_ImageBuiltin):
@@ -1789,7 +1794,7 @@ class ImageAspectRatio(_ImageBuiltin):
     def apply(self, image, evaluation):
         "ImageAspectRatio[image_Image]"
         dim = image.dimensions()
-        return Expression("Divide", Integer(dim[1]), Integer(dim[0]))
+        return Expression(SymbolDivide, Integer(dim[1]), Integer(dim[0]))
 
 
 class ImageChannels(_ImageBuiltin):
@@ -2069,7 +2074,7 @@ class Image(Atom):
             )
         )
 
-    def dimensions(self):
+    def dimensions(self) -> Tuple[int, int]:
         shape = self.pixels.shape
         return shape[1], shape[0]
 

@@ -9,9 +9,10 @@ from itertools import combinations
 
 
 from mathics.builtin.base import Builtin, Test, SympyFunction
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse, SymbolList
+from mathics.core.expression import Expression
+from mathics.core.list import to_mathics_list
+from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse
 from mathics.core.systemsymbols import SymbolComplexInfinity
 
 from mathics.core.attributes import (
@@ -124,7 +125,7 @@ class GCD(Builtin):
         ns = ns.get_sequence()
         result = 0
         for n in ns:
-            value = n.get_int_value()
+            value = n.value
             if value is None:
                 return
             result = sympy.gcd(result, value)
@@ -153,7 +154,7 @@ class LCM(Builtin):
         ns = ns.get_sequence()
         result = 1
         for n in ns:
-            value = n.get_int_value()
+            value = n.value
             if value is None:
                 return
             result = sympy.lcm(result, value)
@@ -181,10 +182,10 @@ class Mod(Builtin):
     attributes = listable | numeric_function | protected
     summary_text = "the remainder in an integer division"
 
-    def apply(self, n, m, evaluation):
+    def apply(self, n: Integer, m: Integer, evaluation):
         "Mod[n_Integer, m_Integer]"
 
-        n, m = n.get_int_value(), m.get_int_value()
+        n, m = n.value, m.value
         if m == 0:
             evaluation.message("Mod", "divz", m)
             return
@@ -240,7 +241,7 @@ class PowerMod(Builtin):
     }
     summary_text = "modular powers and roots"
 
-    def apply(self, a, b, m, evaluation):
+    def apply(self, a: Integer, b: Integer, m: Integer, evaluation):
         "PowerMod[a_Integer, b_Integer, m_Integer]"
 
         a_int = a
@@ -339,10 +340,10 @@ class Quotient(Builtin):
     }
     summary_text = "integer quotient"
 
-    def apply(self, m, n, evaluation):
+    def apply(self, m: Integer, n: Integer, evaluation):
         "Quotient[m_Integer, n_Integer]"
-        py_m = m.get_int_value()
-        py_n = n.get_int_value()
+        py_m = m.value
+        py_n = n.value
         if py_n == 0:
             evaluation.message("Quotient", "infy", Expression(SymbolQuotient, m, n))
             return SymbolComplexInfinity
@@ -396,6 +397,8 @@ class QuotientRemainder(Builtin):
                     "divz",
                     Expression(SymbolQuotientRemainder, m, n),
                 )
-            return Expression(SymbolList, Integer(py_m // py_n), (py_m % py_n))
+            # Note: py_m % py_n can be a float or an int.
+            # Also note that we *want* the first arguemnt to be an Integer.
+            return to_mathics_list(Integer(py_m // py_n), py_m % py_n)
         else:
             return Expression(SymbolQuotientRemainder, m, n)
