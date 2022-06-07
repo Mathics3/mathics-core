@@ -1180,7 +1180,7 @@ class Join(Builtin):
         if result:
             return sequence[0].restructure(head, result, evaluation, deps=sequence)
         else:
-            return Expression(SymbolList)
+            return ListExpression()
 
 
 class Insert(Builtin):
@@ -1455,7 +1455,7 @@ class _RankedTake(Builtin):
             return
 
         if limit == 0:
-            return Expression(SymbolList)
+            return ListExpression()
         else:
             excluded = self.get_option(options, "ExcludedForms", evaluation)
             if excluded:
@@ -1501,7 +1501,7 @@ class _RankedTake(Builtin):
                 py_n = limit.get_int_value()
 
             if py_n < 1:
-                return Expression(SymbolList)
+                return ListExpression()
 
             if f:
                 heap = [
@@ -1695,9 +1695,7 @@ class _Pad(Builtin):
                 return []
             elif len(n) > 1:
                 return [
-                    _Pad._build(
-                        Expression(SymbolList), n[1:], x, next_m, level + 1, mode
-                    )
+                    _Pad._build(ListExpression(), n[1:], x, next_m, level + 1, mode)
                 ] * amount
             else:
                 return clip(x * (1 + amount // len(x)), amount, sign)
@@ -1998,7 +1996,7 @@ class _Cluster(Builtin):
             return
 
         if not dist_p:
-            return Expression(SymbolList)
+            return ListExpression()
 
         if k is not None:  # the number of clusters k is specified as an integer.
             if not isinstance(k, Integer):
@@ -2345,7 +2343,7 @@ class Nearest(Builtin):
             return
 
         if not dist_p or (py_n is not None and py_n < 1):
-            return Expression(SymbolList)
+            return ListExpression()
 
         multiple_x = False
 

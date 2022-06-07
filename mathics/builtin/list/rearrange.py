@@ -22,9 +22,9 @@ from mathics.core.expression import (
     structure,
 )
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
-
 from mathics.core.attributes import flat, one_identity, protected
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolTrue
 
 
 def _test_pair(test, a, b, evaluation, name):
@@ -107,7 +107,7 @@ class _GatherBin:
         self.add_to = self._items.append
 
     def from_python(self):
-        return Expression(SymbolList, *self._items)
+        return ListExpression(*self._items)
 
 
 class _GatherOperation(Builtin):
@@ -163,7 +163,7 @@ class _GatherOperation(Builtin):
                 selection.append((key, new_bin.add_to))
                 bins.append(new_bin)
 
-        return Expression(SymbolList, *[b.from_python() for b in bins])
+        return ListExpression(*[b.from_python() for b in bins])
 
 
 class _Rotate(Builtin):
@@ -283,7 +283,7 @@ class _TallyBin:
         self._count += 1
 
     def from_python(self):
-        return Expression(SymbolList, self._item, Integer(self._count))
+        return ListExpression(self._item, Integer(self._count))
 
 
 class Catenate(Builtin):
@@ -318,7 +318,7 @@ class Catenate(Builtin):
                     "List", result, evaluation, deps=lists.leaves
                 )
             else:
-                return Expression(SymbolList)
+                return ListExpression()
         except MessageException as e:
             e.message(evaluation)
 
@@ -519,7 +519,7 @@ class Join(Builtin):
         if result:
             return sequence[0].restructure(head, result, evaluation, deps=sequence)
         else:
-            return Expression(SymbolList)
+            return ListExpression()
 
 
 class Partition(Builtin):
@@ -674,7 +674,7 @@ class Reverse(Builtin):
 
 def riffle_lists(items, seps):
     if len(seps) == 0:  # special case
-        seps = [Expression(SymbolList)]
+        seps = [ListExpression()]
 
     i = 0
     while i < len(items):
