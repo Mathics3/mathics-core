@@ -52,6 +52,7 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
+    Integer2,
     Number,
     Real,
     String,
@@ -77,14 +78,17 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAlternatives,
     SymbolByteArray,
     SymbolFailed,
     SymbolGreaterEqual,
     SymbolLess,
     SymbolLessEqual,
     SymbolMakeBoxes,
+    SymbolMatchQ,
     SymbolRule,
     SymbolSequence,
+    SymbolSubsetQ,
 )
 
 from mathics.core.attributes import (
@@ -95,6 +99,14 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+
+SymbolClusteringComponents = Symbol("ClusteringComponents")
+SymbolContainsOnly = Symbol("ContainsOnly")
+SymbolFindClusters = Symbol("FindClusters")
+SymbolKey = Symbol("Key")
+SymbolRankedMax = Symbol("RankedMax")
+SymbolRankedMin = Symbol("RankedMin")
+SymbolSplit = Symbol("Split")
 
 
 class All(Predefined):
@@ -246,9 +258,9 @@ class ContainsOnly(Builtin):
         opts = (
             options_to_rules(options)
             if len(options) <= 1
-            else [Expression(SymbolList, *options_to_rules(options))]
+            else [ListExpression(*options_to_rules(options))]
         )
-        expr = Expression("ContainsOnly", e1, e2, *opts)
+        expr = Expression(SymbolContainsOnly, e1, e2, *opts)
 
         if not isinstance(e1, Symbol) and not e1.has_form("List", None):
             evaluation.message("ContainsOnly", "lsa", e1)
@@ -354,13 +366,13 @@ class Delete(Builtin):
         "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
 
-    def apply_one(self, expr, position, evaluation):
+    def apply_one(self, expr, position: Integer, evaluation):
         "Delete[expr_, position_Integer]"
-        pos = position.get_int_value()
+        pos = position.value
         try:
             return delete_one(expr, pos)
         except PartRangeError:
-            evaluation.message("Part", "partw", Expression(SymbolList, pos), expr)
+            evaluation.message("Part", "partw", ListExpression(position), expr)
 
     def apply(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
@@ -373,7 +385,7 @@ class Delete(Builtin):
         positions = positions[0]
         if not positions.has_form("List", None):
             return evaluation.message(
-                "Delete", "pkspec", positions, Expression("Key", positions)
+                "Delete", "pkspec", positions, Expression(SymbolKey, positions)
             )
 
         # Create new python list of the positions and sort it
@@ -392,16 +404,14 @@ class Delete(Builtin):
                 )
             if len(pos) == 0:
                 return evaluation.message(
-                    "Delete", "psl", Expression(SymbolList, *positions), expr
+                    "Delete", "psl", ListExpression(*positions), expr
                 )
             try:
                 newexpr = delete_rec(newexpr, pos)
             except PartDepthError as exc:
                 return evaluation.message("Part", "partw", Integer(exc.index), expr)
             except PartError:
-                return evaluation.message(
-                    "Part", "partw", Expression(SymbolList, *pos), expr
-                )
+                return evaluation.message("Part", "partw", ListExpression(*pos), expr)
         return newexpr
 
 
@@ -513,7 +523,7 @@ class Level(Builtin):
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         walk_levels(expr, start, stop, heads=heads, callback=callback)
-        return Expression(SymbolList, *result)
+        return ListExpression(*result)
 
 
 class LevelQ(Test):
@@ -706,7 +716,7 @@ class Split(Builtin):
     def apply(self, mlist, test, evaluation):
         "Split[mlist_, test_]"
 
-        expr = Expression("Split", mlist, test)
+        expr = Expression(SymbolSplit, mlist, test)
 
         if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
@@ -758,7 +768,7 @@ class SplitBy(Builtin):
     def apply(self, mlist, func, evaluation):
         "SplitBy[mlist_, func_?NotListQ]"
 
-        expr = Expression("Split", mlist, func)
+        expr = Expression(SymbolSplit, mlist, func)
 
         if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
@@ -782,7 +792,7 @@ class SplitBy(Builtin):
 
     def apply_multiple(self, mlist, funcs, evaluation):
         "SplitBy[mlist_, funcs_List]"
-        expr = Expression("Split", mlist, funcs)
+        expr = Expression(SymbolSplit, mlist, funcs)
 
         if isinstance(mlist, Atom):
             evaluation.message("Select", "normal", 1, expr)
@@ -1028,7 +1038,7 @@ class _IterationFunction(Builtin):
 
     def apply_iter_nostep(self, expr, i, imin, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.apply_iter(expr, i, imin, imax, Integer(1), evaluation)
+        return self.apply_iter(expr, i, imin, imax, Integer1, evaluation)
 
     def apply_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
@@ -1199,10 +1209,10 @@ class Insert(Builtin):
 
     summary_text = "insert an element at a given position"
 
-    def apply(self, expr, elem, n, evaluation):
+    def apply(self, expr, elem, n: Integer, evaluation):
         "Insert[expr_List, elem_, n_Integer]"
 
-        py_n = n.to_python()
+        py_n = n.value
         new_list = list(expr.get_elements())
 
         position = py_n - 1 if py_n > 0 else py_n + 1
@@ -1242,24 +1252,24 @@ class UnitVector(Builtin):
         "UnitVector[k_Integer]": "UnitVector[2, k]",
     }
 
-    def apply(self, n, k, evaluation):
+    def apply(self, n: Integer, k: Integer, evaluation):
         "UnitVector[n_Integer, k_Integer]"
 
-        n = n.get_int_value()
-        k = k.get_int_value()
-        if n is None or k is None:
+        py_n = n.value
+        py_k = k.value
+        if py_n is None or py_k is None:
             return
-        if not 1 <= k <= n:
+        if not 1 <= py_k <= py_n:
             evaluation.message("UnitVector", "nokun", k, n)
             return
 
         def item(i):
-            if i == k:
-                return Integer(1)
+            if i == py_k:
+                return Integer1
             else:
                 return Integer0
 
-        return Expression(SymbolList, *(item(i) for i in range(1, n + 1)))
+        return ListExpression(*(item(i) for i in range(1, py_n + 1)))
 
 
 class IntersectingQ(Builtin):
@@ -1354,10 +1364,9 @@ class _Rectangular(Builtin):
             [sleaf.elements[i] for sleaf in element.elements] for i in range(n_columns)
         ]
 
-        return Expression(
-            "List",
+        return ListExpression(
             *[
-                Expression(self.get_name(), Expression(SymbolList, *items))
+                Expression(Symbol(self.get_name()), ListExpression(*items))
                 for items in transposed
             ],
         )
@@ -1381,12 +1390,12 @@ class RankedMin(Builtin):
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
 
-    def apply(self, element, n, evaluation):
+    def apply(self, element, n: Integer, evaluation):
         "RankedMin[element_List, n_Integer]"
-        py_n = n.get_int_value()
+        py_n = n.value
         if py_n < 1:
             evaluation.message(
-                "RankedMin", "intpm", Expression("RankedMin", element, n)
+                "RankedMin", "intpm", Expression(SymbolRankedMin, element, n)
             )
         elif py_n > len(element.elements):
             evaluation.message("RankedMin", "rank", py_n, len(element.elements))
@@ -1412,12 +1421,12 @@ class RankedMax(Builtin):
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
 
-    def apply(self, element, n, evaluation):
+    def apply(self, element, n: Integer, evaluation):
         "RankedMax[element_List, n_Integer]"
-        py_n = n.get_int_value()
+        py_n = n.value
         if py_n < 1:
             evaluation.message(
-                "RankedMax", "intpm", Expression("RankedMax", element, n)
+                "RankedMax", "intpm", Expression(SymbolRankedMax, element, n)
             )
         elif py_n > len(element.elements):
             evaluation.message("RankedMax", "rank", py_n, len(element.elements))
@@ -1477,11 +1486,13 @@ class _RankedTake(Builtin):
                             return False
 
                 else:
-                    excluded = Expression("Alternatives", *excluded.elements)
+                    excluded = Expression(SymbolAlternatives, *excluded.elements)
 
                     def exclude(item):
                         return (
-                            Expression("MatchQ", item, excluded).evaluate(evaluation)
+                            Expression(SymbolMatchQ, item, excluded).evaluate(
+                                evaluation
+                            )
                             is SymbolTrue
                         )
 
@@ -1918,7 +1929,7 @@ class _PrecomputedDistances(PrecomputedDistances):
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = apply_N(Expression(SymbolList, *distances_form), evaluation)
+        distances = apply_N(ListExpression(*distances_form), evaluation)
         mpmath_distances = [_to_real_distance(d) for d in distances.elements]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -2010,14 +2021,12 @@ class _Cluster(Builtin):
                 evaluation.message(self.get_name(), "nclst", py_k, len(dist_p))
                 return
             elif py_k == 1:
-                return Expression(SymbolList, *repr_p)
+                return ListExpression(*repr_p)
             elif py_k == len(dist_p):
-                return Expression(
-                    SymbolList, [Expression(SymbolList, q) for q in repr_p]
-                )
+                return ListExpression(*[ListExpression(q) for q in repr_p])
         else:  # automatic detection of k. choose a suitable method here.
             if len(dist_p) <= 2:
-                return Expression(SymbolList, *repr_p)
+                return ListExpression(*repr_p)
             constructor = self._criteria.get(method_string)
             py_k = (constructor, {}) if constructor else None
 
@@ -2045,7 +2054,7 @@ class _Cluster(Builtin):
                     self.get_name(),
                     "amtd",
                     name_of_builtin,
-                    Expression(SymbolList, *dist_p),
+                    ListExpression(*dist_p),
                 )
                 return
 
@@ -2056,7 +2065,7 @@ class _Cluster(Builtin):
             evaluation.message(self.get_name(), "kmsud")
             return
 
-        def df(i, j):
+        def df(i, j) -> Expression:
             return Expression(distance_function, i, j)
 
         try:
@@ -2077,16 +2086,14 @@ class _Cluster(Builtin):
                 self.get_name(),
                 "amtd",
                 name_of_builtin,
-                Expression(SymbolList, *dist_p),
+                ListExpression(*dist_p),
             )
             return
 
         if mode == "clusters":
-            return Expression(
-                SymbolList, *[Expression(SymbolList, *c) for c in clusters]
-            )
+            return ListExpression(*[ListExpression(*c) for c in clusters])
         elif mode == "components":
-            return Expression(SymbolList, *clusters)
+            return to_mathics_list(*clusters)
         else:
             raise ValueError("illegal mode %s" % mode)
 
@@ -2205,10 +2212,10 @@ class FindClusters(_Cluster):
             "clusters",
             evaluation,
             options,
-            Expression("FindClusters", p, *options_to_rules(options)),
+            Expression(SymbolFindClusters, p, *options_to_rules(options)),
         )
 
-    def apply_manual_k(self, p, k, evaluation, options):
+    def apply_manual_k(self, p, k: Integer, evaluation, options):
         "FindClusters[p_, k_Integer, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -2216,7 +2223,7 @@ class FindClusters(_Cluster):
             "clusters",
             evaluation,
             options,
-            Expression("FindClusters", p, k, *options_to_rules(options)),
+            Expression(SymbolFindClusters, p, k, *options_to_rules(options)),
         )
 
 
@@ -2252,10 +2259,10 @@ class ClusteringComponents(_Cluster):
             "components",
             evaluation,
             options,
-            Expression("ClusteringComponents", p, *options_to_rules(options)),
+            Expression(SymbolClusteringComponents, p, *options_to_rules(options)),
         )
 
-    def apply_manual_k(self, p, k, evaluation, options):
+    def apply_manual_k(self, p, k: Integer, evaluation, options):
         "ClusteringComponents[p_, k_Integer, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -2263,23 +2270,27 @@ class ClusteringComponents(_Cluster):
             "components",
             evaluation,
             options,
-            Expression("ClusteringComponents", p, k, *options_to_rules(options)),
+            Expression(SymbolClusteringComponents, p, k, *options_to_rules(options)),
         )
 
 
 class Nearest(Builtin):
     """
     <dl>
-    <dt>'Nearest[$list$, $x$]'
-        <dd>returns the one item in $list$ that is nearest to $x$.
-    <dt>'Nearest[$list$, $x$, $n$]'
-        <dd>returns the $n$ nearest items.
-    <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
-        <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
-    <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
-        <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
-    <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
-        <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+      <dt>'Nearest[$list$, $x$]'
+      <dd>returns the one item in $list$ that is nearest to $x$.
+
+      <dt>'Nearest[$list$, $x$, $n$]'
+      <dd>returns the $n$ nearest items.
+
+      <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
+      <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
+
+      <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
+      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
+
+      <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
+      <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
     </dl>
 
     >> Nearest[{5, 2.5, 10, 11, 15, 8.5, 14}, 12]
@@ -2356,7 +2367,7 @@ class Nearest(Builtin):
             distance_function = get_default_distance(dist_p)
             if distance_function is None:
                 evaluation.message(
-                    self.get_name(), "amtd", "Nearest", Expression(SymbolList, *dist_p)
+                    self.get_name(), "amtd", "Nearest", ListExpression(*dist_p)
                 )
                 return
 
@@ -2367,9 +2378,9 @@ class Nearest(Builtin):
                 if depth_x > depth_items:
                     multiple_x = True
 
-        def nearest(x):
+        def nearest(x) -> ListExpression:
             calls = [Expression(distance_function, x, y) for y in dist_p]
-            distances = Expression(SymbolList, *calls).evaluate(evaluation)
+            distances = ListExpression(*calls).evaluate(evaluation)
 
             if not distances.has_form("List", len(dist_p)):
                 raise ValueError()
@@ -2390,13 +2401,13 @@ class Nearest(Builtin):
                 for d, i in candidates:
                     yield repr_p[i]
 
-            return Expression(SymbolList, *list(pick()))
+            return ListExpression(*list(pick()))
 
         try:
             if not multiple_x:
                 return nearest(pivot)
             else:
-                return Expression(SymbolList, *[nearest(t) for t in pivot.elements])
+                return ListExpression(*[nearest(t) for t in pivot.elements])
         except _IllegalDistance:
             return SymbolFailed
         except ValueError:
@@ -2406,8 +2417,8 @@ class Nearest(Builtin):
 class SubsetQ(Builtin):
     """
     <dl>
-    <dt>'SubsetQ[$list1$, $list2$]'
-        <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
+      <dt>'SubsetQ[$list1$, $list2$]'
+      <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
     </dl>
 
     >> SubsetQ[{1, 2, 3}, {3, 1}]
@@ -2463,7 +2474,7 @@ class SubsetQ(Builtin):
 
         if isinstance(expr, Atom):
             return evaluation.message(
-                "SubsetQ", "normal", Integer(1), Expression("SubsetQ", expr, subset)
+                "SubsetQ", "normal", Integer1, Expression(SymbolSubsetQ, expr, subset)
             )
 
         subset = subset.get_sequence()
@@ -2475,7 +2486,7 @@ class SubsetQ(Builtin):
         subset = subset[0]
         if isinstance(subset, Atom):
             return evaluation.message(
-                "SubsetQ", "normal", Integer(2), Expression("SubsetQ", expr, subset)
+                "SubsetQ", "normal", Integer2, Expression(SymbolSubsetQ, expr, subset)
             )
         if expr.get_head_name() != subset.get_head_name():
             return evaluation.message(
