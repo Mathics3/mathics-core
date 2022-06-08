@@ -14,13 +14,14 @@ from mathics.core.expression import (
     SymbolDefault,
     get_default_value,
 )
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolList,
     ensure_context,
     strip_context,
 )
-from mathics.core.systemsymbols import SymbolRule
+from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 
 class Options(Builtin):
@@ -103,8 +104,8 @@ class Options(Builtin):
         for option, value in sorted(options.items(), key=lambda item: item[0]):
             # Don't use HoldPattern, since the returned List should be
             # assignable to Options again!
-            result.append(Expression("RuleDelayed", Symbol(option), value))
-        return Expression("List", *result)
+            result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
+        return ListExpression(*result)
 
 
 class OptionValue(Builtin):
@@ -206,7 +207,7 @@ class OptionValue(Builtin):
                 )
             else:
                 if f.get_head_name() in ("System`Rule", "System`RuleDelayed"):
-                    f = Expression("List", f)
+                    f = ListExpression(f)
                 if f.get_head_name() == "System`List":
                     for element in f.get_elements():
                         if isinstance(element, Symbol):
@@ -394,11 +395,11 @@ class FilterRules(Builtin):
         match = Matcher(pattern).match
 
         def matched():
-            for rule in rules.leaves:
-                if rule.has_form("Rule", 2) and match(rule.leaves[0], evaluation):
+            for rule in rules.elements:
+                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
                     yield rule
 
-        return Expression("List", *list(matched()))
+        return ListExpression(*list(matched()))
 
 
 def options_to_rules(options, filter=None):

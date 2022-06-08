@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from queue import Queue
@@ -26,11 +25,19 @@ from mathics.core.interrupt import (
 )
 
 from mathics.core.symbols import (
-    SymbolList,
+    Symbol,
     SymbolNull,
 )
 
-from mathics.core.systemsymbols import SymbolAborted
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolBreak,
+    SymbolContinue,
+    SymbolHold,
+    SymbolMessageName,
+    SymbolOverflow,
+    SymbolStringForm,
+)
 
 FORMATS = [
     "StandardForm",
@@ -43,6 +50,10 @@ FORMATS = [
     "MatrixForm",
     "TableForm",
 ]
+
+SymbolPre = Symbol("System`$Pre")
+SymbolPrePrint = Symbol("System`$PrePrint")
+SymbolPost = Symbol("System`$Post")
 
 
 def _thread_target(request, queue) -> None:
@@ -311,14 +322,12 @@ class Evaluation(object):
                     "In", Rule(to_expression("In", line_no), query)
                 )
             if check_io_hook("System`$Pre"):
-                self.last_eval = Expression("System`$Pre", query).evaluate(self)
+                self.last_eval = Expression(SymbolPre, query).evaluate(self)
             else:
                 self.last_eval = query.evaluate(self)
 
             if check_io_hook("System`$Post"):
-                self.last_eval = Expression("System`$Post", self.last_eval).evaluate(
-                    self
-                )
+                self.last_eval = Expression(SymbolPost, self.last_eval).evaluate(self)
             if history_length > 0:
                 if self.predetermined_out is not None:
                     out_result = self.predetermined_out
@@ -333,7 +342,7 @@ class Evaluation(object):
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
                     self.last_eval = Expression(
-                        "System`$PrePrint", self.last_eval
+                        SymbolPrePrint, self.last_eval
                     ).evaluate(self)
                 return self.format_output(self.last_eval, format)
             else:
@@ -355,7 +364,7 @@ class Evaluation(object):
                     or text == "mpq.pow outrageous exp num"  # noqa
                 ):
                     self.message("General", "ovfl")
-                    self.exc_result = Expression("Overflow")
+                    self.exc_result = Expression(SymbolOverflow)
                 else:
                     raise
             except WLThrowInterrupt as ti:
@@ -372,10 +381,10 @@ class Evaluation(object):
             #                self.exc_result = Expression("Overflow")
             except BreakInterrupt:
                 self.message("Break", "nofdw")
-                self.exc_result = Expression("Hold", Expression("Break"))
+                self.exc_result = Expression(SymbolHold, Expression(SymbolBreak))
             except ContinueInterrupt:
                 self.message("Continue", "nofdw")
-                self.exc_result = Expression("Hold", Expression("Continue"))
+                self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
                 self.timeout = True
@@ -452,9 +461,9 @@ class Evaluation(object):
         return boxes
 
     def set_quiet_messages(self, messages) -> None:
-        from mathics.core.expression import Expression
+        from mathics.core.list import ListExpression
 
-        value = Expression(SymbolList, *messages)
+        value = ListExpression(*messages)
         self.definitions.set_ownvalue("Internal`$QuietMessages", value)
 
     def get_quiet_messages(self):
@@ -480,7 +489,7 @@ class Evaluation(object):
         symbol = ensure_context(symbol)
         quiet_messages = set(self.get_quiet_messages())
 
-        pattern = Expression("MessageName", Symbol(symbol), String(tag))
+        pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))
 
         if pattern in quiet_messages or self.quiet_all:
             return
@@ -496,7 +505,7 @@ class Evaluation(object):
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
-            pattern = Expression("MessageName", Symbol("General"), String(tag))
+            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
             text = self.definitions.get_value(
                 "System`General", "System`Messages", pattern, self
             )
@@ -505,7 +514,8 @@ class Evaluation(object):
             text = String("Message %s::%s not found." % (symbol_shortname, tag))
 
         text = self.format_output(
-            Expression("StringForm", text, *(from_python(arg) for arg in args)), "text"
+            Expression(SymbolStringForm, text, *(from_python(arg) for arg in args)),
+            "text",
         )
 
         self.out.append(Message(symbol_shortname, tag, text))
