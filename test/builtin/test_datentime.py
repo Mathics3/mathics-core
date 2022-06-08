@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from test.helper import check_evaluation, evaluate
+from mathics.core.symbols import Symbol
 
 import pytest
 import sys
@@ -8,17 +9,28 @@ import time
 
 
 @pytest.mark.skipif(
-    sys.platform in ("win32",) or hasattr(sys, "pyston_version_info"),
+    sys.platform in ("win32",),  # or hasattr(sys, "pyston_version_info"),
+    reason="pyston and win32 does not do well killing threads",
+)
+def test_timeremaining0():
+    str_expr = "TimeConstrained[Integrate[Sin[x]^1000000, x], 0.9]"
+    result = evaluate(str_expr)
+
+    assert result is None or result == Symbol("$Aborted")
+
+
+@pytest.mark.skipif(
+    sys.platform in ("win32",),  # or hasattr(sys, "pyston_version_info"),
     reason="TimeConstrained needs to be rewritten",
 )
-def test_timeremaining():
+def test_timeremaining1():
     str_expr = "TimeConstrained[1+2; TimeRemaining[], 0.9]"
     result = evaluate(str_expr)
     assert result is None or 0 < result.to_python() < 9
 
 
-@pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
-def test_timeconstrained1():
+# @pytest.mark.skip(reason="TimeConstrained needs to be rewritten")
+def test_timeconstrained2():
     #
     str_expr1 = "a=1.; TimeConstrained[Do[Pause[.1];a=a+1,{1000}],1]"
     result = evaluate(str_expr1)
@@ -55,7 +67,7 @@ def test_datelist():
         check_evaluation(str_expr, str_expected)
 
 
-def test_datestring():
+def test_datestring2():
     for str_expr, str_expected in (
         ## Check Leading 0s
         # (
