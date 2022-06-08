@@ -44,7 +44,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
 
 from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
