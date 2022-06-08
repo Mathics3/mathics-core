@@ -141,8 +141,6 @@ class SympyPrime(sympy.Function):
 
 def from_sympy(expr):
     from mathics.builtin import sympy_to_mathics
-    from mathics.core.expression import Expression
-    from mathics.core.symbols import Symbol
     from mathics.core.atoms import (
         Integer,
         Integer0,
@@ -153,7 +151,10 @@ def from_sympy(expr):
         String,
         MachineReal,
     )
+    from mathics.core.expression import Expression
+    from mathics.core.list import to_mathics_list
     from mathics.core.symbols import (
+        Symbol,
         SymbolNull,
         SymbolList,
     )
@@ -179,8 +180,7 @@ def from_sympy(expr):
                 SymbolList, *[from_sympy(item) for item in expr.T.tolist()[0]]
             )
         else:
-            return Expression(
-                SymbolList,
+            return to_mathics_list(
                 *[[from_sympy(item) for item in row] for row in expr.tolist()]
             )
     if isinstance(expr, sympy.MatPow):
