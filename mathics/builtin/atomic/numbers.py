@@ -333,10 +333,11 @@ class IntegerExponent(Builtin):
 class IntegerLength(Builtin):
     """
     <dl>
-    <dt>'IntegerLength[$x$]'
-        <dd>gives the number of digits in the base-10 representation of $x$.
-    <dt>'IntegerLength[$x$, $b$]'
-        <dd>gives the number of base-$b$ digits in $x$.
+      <dt>'IntegerLength[$x$]'
+      <dd>gives the number of digits in the base-10 representation of $x$.
+
+      <dt>'IntegerLength[$x$, $b$]'
+      <dd>gives the number of base-$b$ digits in $x$.
     </dl>
 
     >> IntegerLength[123456]
@@ -440,8 +441,8 @@ class InexactNumberQ(Test):
 class IntegerQ(Test):
     """
     <dl>
-    <dt>'IntegerQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
+      <dt>'IntegerQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an integer, and 'False' otherwise.
     </dl>
 
     >> IntegerQ[3]
@@ -459,8 +460,8 @@ class IntegerQ(Test):
 class MachineNumberQ(Test):
     """
     <dl>
-    <dt>'MachineNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
+      <dt>'MachineNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
     </dl>
 
      = True

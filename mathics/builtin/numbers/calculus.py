@@ -10,6 +10,12 @@ import numpy as np
 from itertools import product
 from typing import Optional
 
+from mathics.algorithm.series import (
+    build_series,
+    series_plus_series,
+    series_times_series,
+    series_derivative,
+)
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -33,6 +39,7 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
 
@@ -56,6 +63,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolAutomatic,
+    SymbolCompile,
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
@@ -72,15 +80,8 @@ from mathics.core.systemsymbols import (
     SymbolSimplify,
     SymbolUndefined,
 )
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression, from_sympy
 
 
-from mathics.algorithm.series import (
-    build_series,
-    series_plus_series,
-    series_times_series,
-    series_derivative,
-)
 import sympy
 
 from mathics.algorithm.integrators import (
@@ -1079,11 +1080,9 @@ class Solve(Builtin):
                 if all(sympy.simplify(denom.subs(sol)) != 0 for denom in sympy_denoms)
             ]
 
-            return Expression(
-                SymbolList,
+            return ListExpression(
                 *(
-                    Expression(
-                        SymbolList,
+                    ListExpression(
                         *(
                             Expression(SymbolRule, var, from_sympy(sol[var_sympy]))
                             for var, var_sympy in zip(vars, vars_sympy)
@@ -1391,8 +1390,7 @@ class _BaseFinder(Builtin):
         if not success:
             return
         if isinstance(x0, tuple):
-            return Expression(
-                SymbolList,
+            return ListExpression(
                 x0[1],
                 ListExpression(Expression(SymbolRule, x, x0[0])),
             )
@@ -1860,8 +1858,8 @@ class SeriesData(Builtin):
             if Integer1.sameQ(factor):
                 continue
             if factor.is_free(x_pattern, evaluation):
-                newdata = Expression(
-                    SymbolList, *[factor * element for element in data.elements]
+                newdata = to_mathics_list(
+                    *[factor * element for element in data.elements]
                 )
                 series = (newdata, *series[1:])
                 continue
@@ -2156,7 +2154,7 @@ class NIntegrate(Builtin):
             return
 
         intvars = ListExpression(*coords)
-        integrand = Expression("Compile", intvars, func).evaluate(evaluation)
+        integrand = Expression(SymbolCompile, intvars, func).evaluate(evaluation)
 
         if len(integrand.elements) >= 3:
             integrand = integrand.elements[2].cfunc

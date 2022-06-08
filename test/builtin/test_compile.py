@@ -7,10 +7,25 @@ import io
 import math
 
 from mathics.builtin.compile import has_llvmlite
-from mathics.core.atoms import Integer, MachineReal, String
+from mathics.core.atoms import (
+    Integer,
+    Integer1,
+    Integer2,
+    Integer3,
+    MachineReal,
+    String,
+)
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolCos, SymbolSin
+from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower
+
+from mathics.core.systemsymbols import (
+    SymbolCos,
+    SymbolEqual,
+    SymbolIf,
+    SymbolReturn,
+    SymbolSin,
+    SymbolUnequal,
+)
 
 if has_llvmlite:
     from mathics.builtin.compile import (
@@ -48,20 +63,20 @@ class CompileTest(unittest.TestCase):
 
 class ArithmeticTest(CompileTest):
     def test_a(self):
-        expr = Expression("Plus", Symbol("x"), Integer(2))
+        expr = Expression(SymbolPlus, Symbol("x"), Integer2)
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(2, 4), 4)
 
     def test_b(self):
-        expr = Expression("Plus", Symbol("x"), Symbol("y"))
+        expr = Expression(SymbolPlus, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", real_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(1, 2.5), 3.5)
 
     def test_c(self):
         expr = Expression(
-            "Plus", Expression("Plus", Symbol("x"), Symbol("y")), Integer(5)
+            SymbolPlus, Expression(SymbolPlus, Symbol("x"), Symbol("y")), Integer(5)
         )
         args = [CompileArg("System`x", int_type), CompileArg("System`y", real_type)]
         cfunc = _compile(expr, args)
@@ -69,7 +84,7 @@ class ArithmeticTest(CompileTest):
 
     def test_d(self):
         expr = Expression(
-            "Plus", Symbol("x"), MachineReal(1.5), Integer(2), Symbol("x")
+            SymbolPlus, Symbol("x"), MachineReal(1.5), Integer2, Symbol("x")
         )
         args = [CompileArg("System`x", real_type)]
         cfunc = _compile(expr, args)
@@ -96,8 +111,8 @@ class ArithmeticTest(CompileTest):
             py_result = float(py_result)
         return py_result
 
-    def _test_unary_math(self, name, fn):
-        expr = Expression(name, Symbol("x"))
+    def _test_unary_math(self, name: str, fn):
+        expr = Expression(Symbol(name), Symbol("x"))
         for xtype in [int_type, real_type]:
             args = [CompileArg("System`x", xtype)]
             cfunc = _compile(expr, args)
@@ -107,8 +122,8 @@ class ArithmeticTest(CompileTest):
                 c_result = cfunc(x)
                 self.assertNumEqual(c_result, py_result)
 
-    def _test_binary_math(self, name, fn, check_type=True):
-        expr = Expression(name, Symbol("x"), Symbol("y"))
+    def _test_binary_math(self, name: str, fn, check_type=True):
+        expr = Expression(Symbol(name), Symbol("x"), Symbol("y"))
         for xtype, ytype in itertools.product([int_type, real_type], repeat=2):
             args = [CompileArg("System`x", xtype), CompileArg("System`y", ytype)]
             cfunc = _compile(expr, args)
@@ -148,26 +163,26 @@ class ArithmeticTest(CompileTest):
 
     @unittest.expectedFailure
     def test_pow_int(self):
-        expr = Expression("Power", Symbol("x"), Symbol("y"))
+        expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(4, 9), 4 ** 9)
+        self.assertTypeEqual(cfunc(4, 9), 4**9)
 
     def test_pow_real_int(self):
-        expr = Expression("Power", MachineReal(2.5), Symbol("x"))
+        expr = Expression(SymbolPower, MachineReal(2.5), Symbol("x"))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(4), 2.5 ** 4)
+        self.assertTypeEqual(cfunc(4), 2.5**4)
 
     def test_pow_int_real(self):
-        expr = Expression("Power", Symbol("x"), MachineReal(5.5))
+        expr = Expression(SymbolPower, Symbol("x"), MachineReal(5.5))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(8), 8 ** 5.5)
+        self.assertTypeEqual(cfunc(8), 8**5.5)
 
     def test_pow_2(self):
         # 2 ^ x
-        expr = Expression("Power", Integer(2), Symbol("x"))
+        expr = Expression(SymbolPower, Integer2, Symbol("x"))
         args = [CompileArg("System`x", real_type)]
         cfunc = _compile(expr, args)
         for _ in range(1000):
@@ -176,7 +191,7 @@ class ArithmeticTest(CompileTest):
 
     def test_pow_E(self):
         # E ^ x
-        expr = Expression("Power", Symbol("E"), Symbol("x"))
+        expr = Expression(SymbolPower, Symbol("E"), Symbol("x"))
         args = [CompileArg("System`x", real_type)]
         cfunc = _compile(expr, args)
         for _ in range(1000):
@@ -192,7 +207,7 @@ class ArithmeticTest(CompileTest):
         self._test_unary_math("Coth", mpmath.coth)
 
     def test_div0(self):
-        expr = Expression("Power", Symbol("x"), Symbol("y"))
+        expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", real_type), CompileArg("System`y", real_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(0.0, -1.5), float("+inf"))
@@ -222,7 +237,7 @@ class ArithmeticTest(CompileTest):
 
 class FlowControlTest(CompileTest):
     def test_if(self):
-        expr = Expression("If", Symbol("x"), Symbol("y"), Symbol("z"))
+        expr = Expression(SymbolIf, Symbol("x"), Symbol("y"), Symbol("z"))
         args = [
             CompileArg("System`x", int_type),
             CompileArg("System`y", real_type),
@@ -235,10 +250,10 @@ class FlowControlTest(CompileTest):
 
     def test_if_cont(self):
         expr = Expression(
-            "Plus",
-            Integer(1),
+            SymbolPlus,
+            Integer1,
             Expression(
-                "If",
+                SymbolIf,
                 Symbol("x"),
                 Expression(SymbolSin, Symbol("y")),
                 Expression(SymbolCos, Symbol("y")),
@@ -251,7 +266,7 @@ class FlowControlTest(CompileTest):
 
     def test_if_eq(self):
         expr = Expression(
-            "If", Expression("Equal", Symbol("x"), Integer(1)), Integer(2), Integer(3)
+            SymbolIf, Expression(SymbolEqual, Symbol("x"), Integer1), Integer2, Integer3
         )
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
@@ -259,21 +274,21 @@ class FlowControlTest(CompileTest):
         self.assertTypeEqual(cfunc(2), 3)
 
     def test_if_int_real(self):
-        expr = Expression("If", Symbol("x"), Integer(2), MachineReal(3))
+        expr = Expression(SymbolIf, Symbol("x"), Integer2, MachineReal(3))
         args = [CompileArg("System`x", bool_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(True), 2.0)
         self.assertTypeEqual(cfunc(False), 3.0)
 
     def test_if_real_int(self):
-        expr = Expression("If", Symbol("x"), MachineReal(3), Integer(2))
+        expr = Expression(SymbolIf, Symbol("x"), MachineReal(3), Integer(2))
         args = [CompileArg("System`x", bool_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(True), 3.0)
         self.assertTypeEqual(cfunc(False), 2.0)
 
     def test_if_bool_bool(self):
-        expr = Expression("If", Symbol("x"), Symbol("y"), Symbol("z"))
+        expr = Expression(SymbolIf, Symbol("x"), Symbol("y"), Symbol("z"))
         args = [
             CompileArg("System`x", bool_type),
             CompileArg("System`y", bool_type),
@@ -286,14 +301,14 @@ class FlowControlTest(CompileTest):
         self.assertFalse(cfunc(False, True, False))
 
     def test_return(self):
-        expr = Expression("Return", Symbol("x"))
+        expr = Expression(SymbolReturn, Symbol("x"))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(1), 1)
 
     @unittest.expectedFailure
     def test_print(self):
-        expr = Expression("Print", String("Hello world"))
+        expr = Expression(Symbol("Print"), String("Hello world"))
         cfunc = _compile(expr, [])
 
         # XXX Hack to capture the output
@@ -309,7 +324,7 @@ class FlowControlTest(CompileTest):
 
     def test_if_return1(self):
         expr = Expression(
-            "If", Symbol("x"), Expression("Return", Symbol("y")), Integer(3)
+            SymbolIf, Symbol("x"), Expression(SymbolReturn, Symbol("y")), Integer(3)
         )
         args = [CompileArg("System`x", bool_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
@@ -318,10 +333,10 @@ class FlowControlTest(CompileTest):
 
     def test_if_return2(self):
         expr = Expression(
-            "If",
+            SymbolIf,
             Symbol("x"),
-            Expression("Return", Symbol("y")),
-            Expression("Return", Integer(3)),
+            Expression(SymbolReturn, Symbol("y")),
+            Expression(SymbolReturn, Integer(3)),
         )
         args = [CompileArg("System`x", bool_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
@@ -330,7 +345,7 @@ class FlowControlTest(CompileTest):
 
     def test_if_return3(self):
         expr = Expression(
-            "If", Symbol("x"), Symbol("y"), Expression("Return", Integer(3))
+            SymbolIf, Symbol("x"), Symbol("y"), Expression(SymbolReturn, Integer(3))
         )
         args = [CompileArg("System`x", bool_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
@@ -338,7 +353,7 @@ class FlowControlTest(CompileTest):
         self.assertTypeEqual(cfunc(False, 1), 3)
 
     def test_expr_return(self):
-        expr = Expression("Plus", Integer(3), Expression("Return", Symbol("x")))
+        expr = Expression(SymbolPlus, Integer(3), Expression(SymbolReturn, Symbol("x")))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(1), 1)
@@ -346,10 +361,10 @@ class FlowControlTest(CompileTest):
 
     def test_if_return_error(self):
         expr = Expression(
-            "If",
+            SymbolIf,
             Symbol("x"),
-            Expression("Return", Symbol("y")),
-            Expression("Return", Symbol("z")),
+            Expression(SymbolReturn, Symbol("y")),
+            Expression(SymbolReturn, Symbol("z")),
         )
         args = [
             CompileArg("System`x", bool_type),
@@ -362,7 +377,7 @@ class FlowControlTest(CompileTest):
 
 class ComparisonTest(CompileTest):
     def test_int_equal(self):
-        expr = Expression("Equal", Symbol("x"), Symbol("y"), Integer(3))
+        expr = Expression(SymbolEqual, Symbol("x"), Symbol("y"), Integer(3))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
         self.assertTrue(cfunc(3, 3))
@@ -370,7 +385,7 @@ class ComparisonTest(CompileTest):
         self.assertFalse(cfunc(2, 3))
 
     def test_int_unequal(self):
-        expr = Expression("Unequal", Symbol("x"), Symbol("y"), Integer(3))
+        expr = Expression(SymbolUnequal, Symbol("x"), Symbol("y"), Integer(3))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
         self.assertTrue(cfunc(1, 2))
@@ -380,7 +395,7 @@ class ComparisonTest(CompileTest):
         self.assertFalse(cfunc(3, 3))
 
     def test_real_equal(self):
-        expr = Expression("Equal", Symbol("x"), Symbol("y"))
+        expr = Expression(SymbolEqual, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", real_type), CompileArg("System`y", real_type)]
         cfunc = _compile(expr, args)
         self.assertTrue(cfunc(3.0, 3.0))
@@ -389,7 +404,7 @@ class ComparisonTest(CompileTest):
         # TODO NaN/+inf/-inf comparisons
 
     def test_int_real_equal(self):
-        expr = Expression("Equal", Symbol("x"), Symbol("y"))
+        expr = Expression(SymbolEqual, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", real_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
         self.assertTrue(cfunc(3.0, 3))
@@ -414,7 +429,7 @@ class ComparisonTest(CompileTest):
         for head, args, result in cases:
             check = getattr(self, "assert" + str(result))
 
-            expr = Expression(head, Symbol("x"), Symbol("y"))
+            expr = Expression(Symbol(head), Symbol("x"), Symbol("y"))
             int_args = [
                 CompileArg("System`x", int_type),
                 CompileArg("System`y", int_type),
@@ -431,10 +446,10 @@ class ComparisonTest(CompileTest):
 
 
 class LogicTest(CompileTest):
-    def _test_logic(self, head, args, result):
+    def _test_logic(self, head: str, args, result):
         check = getattr(self, "assert" + str(result))
         arg_names = ["x%i" % i for i in range(len(args))]
-        expr = Expression(head, *(Symbol(arg_name) for arg_name in arg_names))
+        expr = Expression(Symbol(head), *(Symbol(arg_name) for arg_name in arg_names))
         bool_args = [
             CompileArg("System`" + arg_name, bool_type) for arg_name in arg_names
         ]
@@ -482,9 +497,9 @@ class LogicTest(CompileTest):
 
 
 class BitwiseTest(CompileTest):
-    def _test_bitwise(self, head, args, result):
+    def _test_bitwise(self, head: str, args, result):
         arg_names = ["x%i" % i for i in range(len(args))]
-        expr = Expression(head, *(Symbol(arg_name) for arg_name in arg_names))
+        expr = Expression(Symbol(head), *(Symbol(arg_name) for arg_name in arg_names))
         int_args = [
             CompileArg("System`" + arg_name, int_type) for arg_name in arg_names
         ]
