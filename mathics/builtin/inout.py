@@ -216,7 +216,7 @@ def parenthesize(precedence, leaf, leaf_boxes, when_equal):
         if precedence > leaf_prec or (precedence == leaf_prec and when_equal):
             return Expression(
                 SymbolRowBox,
-                Expression(SymbolList, String("("), leaf_boxes, String(")")),
+                ListExpression(String("("), leaf_boxes, String(")")),
             )
     return leaf_boxes
 
@@ -238,7 +238,7 @@ def make_boxes_infix(leaves, ops, precedence, grouping, form):
         leaf = parenthesize(precedence, leaf, leaf_boxes, parenthesized)
 
         result.append(leaf)
-    return Expression(SymbolRowBox, Expression(SymbolList, *result))
+    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def real_to_s_exp(expr, n):
@@ -674,9 +674,7 @@ class MakeBoxes(Builtin):
             else:
                 args = (h, leaf)
 
-            return Expression(
-                SymbolRowBox, Expression(SymbolList, *args).evaluate(evaluation)
-            )
+            return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
@@ -1058,7 +1056,7 @@ class TableForm(Builtin):
                 Expression(
                     SymbolList,
                     *(
-                        Expression(SymbolList, Expression(SymbolMakeBoxes, item, f))
+                        ListExpression(Expression(SymbolMakeBoxes, item, f))
                         for item in table.leaves
                     ),
                 )
@@ -1124,7 +1122,7 @@ class MatrixForm(TableForm):
         result = super(MatrixForm, self).apply_makeboxes(table, f, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return Expression(
-                SymbolRowBox, Expression(SymbolList, String("("), result, String(")"))
+                SymbolRowBox, ListExpression(String("("), result, String(")"))
             )
         return result
 
@@ -1623,7 +1621,7 @@ class Quiet(Builtin):
 
         def get_msg_list(expr):
             if check_message(expr):
-                expr = Expression(SymbolList, expr)
+                expr = ListExpression(expr)
             if expr.get_name() == "System`All":
                 all = True
                 messages = []
@@ -1668,7 +1666,7 @@ class Quiet(Builtin):
                     break
             if conflict:
                 evaluation.message(
-                    "Quiet", "conflict", quiet_expr, Expression(SymbolList, *conflict)
+                    "Quiet", "conflict", quiet_expr, ListExpression(*conflict)
                 )
                 return
             for off in off_messages:
@@ -2059,7 +2057,7 @@ class Print(Builtin):
         "Print[expr__]"
 
         expr = expr.get_sequence()
-        expr = Expression(SymbolRow, Expression(SymbolList, *expr))
+        expr = Expression(SymbolRow, ListExpression(*expr))
         evaluation.print_out(expr)
         return SymbolNull
 
@@ -2211,7 +2209,7 @@ class MathMLForm(Builtin):
                 mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
 
         mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-        return Expression(SymbolRowBox, Expression(SymbolList, String(mathml)))
+        return Expression(SymbolRowBox, ListExpression(String(mathml)))
 
 
 class PythonForm(Builtin):
@@ -2326,7 +2324,7 @@ class TeXForm(Builtin):
                 Expression(SymbolFullForm, boxes).evaluate(evaluation),
             )
             tex = ""
-        return Expression(SymbolRowBox, Expression(SymbolList, String(tex)))
+        return Expression(SymbolRowBox, ListExpression(String(tex)))
 
 
 class Style(Builtin):
@@ -2808,9 +2806,7 @@ class NumberForm(_NumberForm):
         return Expression(
             SymbolList,
             *[
-                Expression(
-                    SymbolNumberForm, leaf, Expression(SymbolList, n, f), *options
-                )
+                Expression(SymbolNumberForm, leaf, ListExpression(n, f), *options)
                 for leaf in expr.leaves
             ],
         )
@@ -2866,7 +2862,7 @@ class NumberForm(_NumberForm):
 
         fallback = Expression(SymbolMakeBoxes, expr, form)
 
-        nf = Expression(SymbolList, n, f)
+        nf = ListExpression(n, f)
         py_n = n.get_int_value()
         py_f = f.get_int_value()
         if py_n is None or py_n <= 0 or py_f is None or py_f < 0:

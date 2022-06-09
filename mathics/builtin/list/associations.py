@@ -17,7 +17,8 @@ from mathics.builtin.lists import list_boxes
 
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
@@ -179,18 +180,18 @@ class AssociationQ(Test):
     summary_text = "test if an expression is a valid association"
 
     def test(self, expr):
-        def validate(leaves):
-            for leaf in leaves:
-                if leaf.has_form(("Rule", "RuleDelayed"), 2):
+        def validate(elements):
+            for element in elements:
+                if element.has_form(("Rule", "RuleDelayed"), 2):
                     pass
-                elif leaf.has_form(("List", "Association"), None):
-                    if not validate(leaf.leaves):
+                elif element.has_form(("List", "Association"), None):
+                    if not validate(element.elements):
                         return False
                 else:
                     return False
             return True
 
-        return expr.get_head_name() == "System`Association" and validate(expr.leaves)
+        return expr.get_head_name() == "System`Association" and validate(expr.elements)
 
 
 class Keys(Builtin):
@@ -267,12 +268,12 @@ class Keys(Builtin):
 
         def get_keys(expr):
             if expr.has_form(("Rule", "RuleDelayed"), 2):
-                return expr.leaves[0]
+                return expr.elements[0]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
                 and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
-                return Expression(SymbolList, *[get_keys(leaf) for leaf in expr.leaves])
+                return ListExpression(*[get_keys(element) for element in expr.elements])
             else:
                 evaluation.message("Keys", "invrl", expr)
                 raise TypeError
@@ -391,13 +392,13 @@ class Values(Builtin):
 
         def get_values(expr):
             if expr.has_form(("Rule", "RuleDelayed"), 2):
-                return expr.leaves[1]
+                return expr.elements[1]
             elif expr.has_form("List", None) or (
                 expr.has_form("Association", None)
-                and AssociationQ(expr).evaluate(evaluation) is Symbol("True")
+                and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
-                return Expression(
-                    SymbolList, *[get_values(leaf) for leaf in expr.leaves]
+                return to_mathics_list(
+                    *expr.elements, elements_conversion_fn=get_values
                 )
             else:
                 raise TypeError

@@ -12,11 +12,11 @@ import shutil
 import tempfile
 import time
 
+from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.string.operations import Hash
-from mathics.builtin.atomic.strings import to_regex
 from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import (
     listable,
@@ -26,6 +26,7 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.expression import Expression, to_expression
+from mathics.core.list import to_mathics_list
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,
@@ -37,7 +38,6 @@ from mathics.core.streams import (
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
-    SymbolList,
     SymbolNull,
     SymbolTrue,
     valid_context_name,
@@ -1322,7 +1322,7 @@ class FileNames(Builtin):
                                 filenames.add(osp.join(root, fn))
                                 break
 
-        return Expression(SymbolList, *[String(s) for s in sorted(filenames)])
+        return to_mathics_list(*sorted(filenames), elements_conversion_fn=String)
 
 
 class FileNameSplit(Builtin):
@@ -1432,11 +1432,13 @@ class FileNameTake(Builtin):
 class FindList(Builtin):
     """
     <dl>
-    <dt>'FindList[$file$, $text$]'
+      <dt>'FindList[$file$, $text$]'
       <dd>returns a list of all lines in $file$ that contain $text$.
-    <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
+
+      <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
       <dd>returns a list of all lines in $file$ that contain any of the specified string.
-    <dt>'FindList[{$file1$, $file2$, ...}, ...]'
+
+      <dt>'FindList[{$file1$, $file2$, ...}, ...]'
       <dd>returns a list of all lines in any of the $filei$ that contain the specified strings.
     </dl>
 
@@ -1540,7 +1542,7 @@ class FindList(Builtin):
 class HomeDirectory(Predefined):
     """
     <dl>
-    <dt>'$HomeDirectory'
+      <dt>'$HomeDirectory'
       <dd>returns the users HOME directory.
     </dl>
 
@@ -1559,7 +1561,7 @@ class HomeDirectory(Predefined):
 class InitialDirectory(Predefined):
     """
     <dl>
-    <dt>'$InitialDirectory'
+      <dt>'$InitialDirectory'
       <dd>returns the directory from which \\Mathics was started.
     </dl>
 
@@ -1760,9 +1762,10 @@ class OperatingSystem(Predefined):
 class ParentDirectory(Builtin):
     """
     <dl>
-    <dt>'ParentDirectory[]'
+      <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
-    <dt>'ParentDirectory["$dir$"]'
+
+      <dt>'ParentDirectory["$dir$"]'
       <dd>returns the parent $dir$.
     </dl>
 
@@ -1796,7 +1799,7 @@ class ParentDirectory(Builtin):
 class Path(Predefined):
     """
     <dl>
-    <dt>'$Path'
+      <dt>'$Path'
       <dd>returns the list of directories to search when looking for a file.
     </dl>
 
@@ -1809,13 +1812,13 @@ class Path(Predefined):
     summary_text = "list directories where files are searched"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *[String(p) for p in PATH_VAR])
+        return to_mathics_list(*PATH_VAR, elements_conversion_fn=String)
 
 
 class PathnameSeparator(Predefined):
     """
     <dl>
-    <dt>'$PathnameSeparator'
+      <dt>'$PathnameSeparator'
       <dd>returns a string for the seperator in paths.
     </dl>
 
@@ -1833,7 +1836,7 @@ class PathnameSeparator(Predefined):
 class RenameDirectory(Builtin):
     """
     <dl>
-    <dt>'RenameDirectory["$dir1$", "$dir2$"]'
+      <dt>'RenameDirectory["$dir1$", "$dir2$"]'
       <dd>renames directory $dir1$ to $dir2$.
     </dl>
     """
