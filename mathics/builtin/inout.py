@@ -2017,6 +2017,7 @@ class General(Builtin):
         "invalidargs": "Invalid arguments.",
         "notboxes": "`1` is not a valid box structure.",
         "pyimport": '`1`[] is not available. Python module "`2`" is not installed.',
+        "warn": "`1`",
     }
     summary_text = "general-purpose messages"
 

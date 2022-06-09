@@ -54,7 +54,7 @@ def _thread_target(request, queue) -> None:
         queue.put((False, exc_info))
 
 
-def kill_thread(thread):
+def kill_thread(thread) -> bool:
     """
     Tries to kill a thread.
     If successful, returns True; otherwise, False.
@@ -149,9 +149,8 @@ def run_with_timeout_and_stack(request, timeout, evaluation):
     thread.join(timeout)
     if thread.is_alive():
         evaluation.timeout = True
-        time.sleep(0.01)
         if not kill_thread(thread):
-            print("thread couldn't be stopped.")
+            evaluation.message("General", "warn", "thread couldn't be stopped.")
         evaluation.stopped = False
         evaluation.timeout = False
         raise TimeoutInterrupt()

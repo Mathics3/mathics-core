@@ -1118,17 +1118,17 @@ if sys.platform != "win32":
         # that TimeConstraint has bugs.
 
         # Consider testing via unit tests.
-        >> TimeConstrained[Pause[5];x,.1]
+        >> TimeConstrained[Pause[.5];x,.1]
          = $Aborted
 
-        >> TimeConstrained[Pause[5];Integrate[Sin[x],x], .1, Integrate[Cos[x],x]]
+        >> TimeConstrained[Pause[.5];Integrate[Sin[x],x], .1, Integrate[Cos[x],x]]
          = Sin[x]
 
         >> s=TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
          : Number of seconds a is not a positive machine-sized number or Infinity.
          = TimeConstrained[Integrate[Sin[x] ^ 3, x], a]
 
-        >> a=5.; s
+        >> a=.5; s
          = Cos[x] (-3 + Cos[x] ^ 2) / 3
         """
 
