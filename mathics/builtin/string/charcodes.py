@@ -6,17 +6,17 @@ Character Codes
 import sys
 
 
+from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.builtin.base import Builtin
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Integer1,
     String,
 )
 from mathics.core.symbols import SymbolList
-
-from mathics.builtin.atomic.strings import to_python_encoding
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.expression import Expression
 
 
 def pack_bytes(codes):
@@ -107,11 +107,12 @@ class ToCharacterCode(Builtin):
 
             def convert(s):
                 return Expression(
-                    "List", *[Integer(x) for x in unpack_bytes(s.encode(py_encoding))]
+                    SymbolList,
+                    *[Integer(x) for x in unpack_bytes(s.encode(py_encoding))]
                 )
 
         if isinstance(string, list):
-            return Expression(SymbolList, *[convert(substring) for substring in string])
+            return to_mathics_list(*string, elements_conversion_fn=convert)
         elif isinstance(string, str):
             return convert(string)
 
@@ -222,7 +223,7 @@ class FromCharacterCode(Builtin):
                         evaluation.message(
                             "FromCharacterCode",
                             "notunicode",
-                            Expression(SymbolList, *li),
+                            ListExpression(*li),
                             Integer(i + 1),
                         )
                         raise _InvalidCodepointError
@@ -247,7 +248,7 @@ class FromCharacterCode(Builtin):
                         else:
                             stringi = convert_codepoint_list([element])
                         list_of_strings.append(String(stringi))
-                    return Expression(SymbolList, *list_of_strings)
+                    return ListExpression(*list_of_strings)
                 else:
                     return String(convert_codepoint_list(n.get_elements()))
             else:

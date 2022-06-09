@@ -40,10 +40,11 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolList,
-    SymbolTrue,
     SymbolFalse,
+    SymbolFullForm,
+    SymbolList,
     SymbolNull,
+    SymbolTrue,
 )
 
 from mathics.core.systemsymbols import (
@@ -973,11 +974,9 @@ class Grid(Builtin):
         """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
         f:StandardForm|TraditionalForm|OutputForm]"""
         return GridBox(
-            Expression(
-                SymbolList,
+            ListExpression(
                 *(
-                    Expression(
-                        SymbolList,
+                    ListExpression(
                         *(
                             Expression(SymbolMakeBoxes, item, f)
                             for item in row.elements
@@ -988,9 +987,6 @@ class Grid(Builtin):
             ),
             *options_to_rules(options),
         )
-
-
-#        return Expression('GridBox',Expression('List', *(Expression('List', *(Expression('MakeBoxes', item, f) for item in row.leaves)) for row in array.leaves)),            *options_to_rules(options))
 
 
 SymbolTableDepth = Symbol("TableDepth")

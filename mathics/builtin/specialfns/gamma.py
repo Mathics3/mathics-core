@@ -11,16 +11,6 @@ from mathics.builtin.arithmetic import (
     call_mpmath,
 )
 from mathics.builtin.base import SympyFunction, PostfixOperator
-from mathics.core.convert import from_sympy
-from mathics.core.expression import Expression
-from mathics.core.evaluators import apply_N
-from mathics.core.symbols import Symbol, SymbolSequence
-from mathics.core.systemsymbols import (
-    SymbolAutomatic,
-    SymbolComplexInfinity,
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -29,11 +19,19 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-
 from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.number import min_prec, dps
-
-SymbolGamma = Symbol("Gamma")
+from mathics.core.convert import from_sympy
+from mathics.core.expression import Expression
+from mathics.core.evaluators import apply_N
+from mathics.core.symbols import Symbol, SymbolSequence
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolGamma,
+    SymbolIndeterminate,
+)
 
 
 class Beta(_MPMathMultiFunction):

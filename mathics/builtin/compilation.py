@@ -8,13 +8,19 @@ When LLVM and Python libraries are available, compilation produces LLVM code.
 
 
 import ctypes
+from types import FunctionType
 
-
-from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
+from mathics.core.atoms import (
+    Integer,
+    String,
+)
+from mathics.core.attributes import hold_all, protected
+from mathics.core.atoms import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
+from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, SymbolCompiledFunction
 from mathics.core.list import to_mathics_list
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
@@ -24,16 +30,6 @@ from mathics.core.systemsymbols import (
     SymbolInteger,
     SymbolReal,
 )
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-    from_python,
-)
-
-from mathics.core.attributes import hold_all, protected
-
-from types import FunctionType
 
 
 class Compile(Builtin):

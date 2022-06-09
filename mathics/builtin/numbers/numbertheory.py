@@ -14,7 +14,6 @@ from mathics.core.atoms import (
     Integer0,
     Rational,
     SymbolDivide,
-    SymbolList,
     from_python,
 )
 from mathics.core.attributes import (
@@ -27,7 +26,7 @@ from mathics.core.attributes import (
 from mathics.core.convert import from_sympy, SympyPrime
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, to_expression
-from mathics.core.symbols import Symbol, SymbolFloor
+from mathics.core.symbols import Symbol, SymbolFloor, SymbolList
 
 
 class ContinuedFraction(SympyFunction):
