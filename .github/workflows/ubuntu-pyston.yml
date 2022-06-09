@@ -1,0 +1,30 @@
+name: Mathics (ubuntu full with Cython)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        pyston-version: [2.3.4]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Pyston ${{ matrix.pyston-version }}
+      run: |
+      wget https://github.com/pyston/pyston/releases/download/pyston_2.3.4/pyston_2.3.4_20.04_amd64.deb
+      dpkg -i pyston_2.3.4_20.04_amd64.deb
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-dev
+        pyston -m pip install --upgrade pip
+    - name: Install Mathics with full dependencies
+      run: |
+        make develop
+    - name: Test Mathics
+      run: |
+        make -j3 check
