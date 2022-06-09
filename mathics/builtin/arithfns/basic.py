@@ -35,11 +35,11 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
     SymbolHoldForm,
-    SymbolList,
     SymbolNull,
     SymbolPlus,
     SymbolPower,
@@ -361,8 +361,8 @@ class Plus(BinaryOperator, SympyFunction):
             ops.append(String(op))
         return Expression(
             SymbolInfix,
-            Expression(SymbolList, *values),
-            Expression(SymbolList, *ops),
+            ListExpression(*values),
+            ListExpression(*ops),
             Integer310,
             SymbolLeft,
         )

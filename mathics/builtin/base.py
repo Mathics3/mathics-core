@@ -156,7 +156,7 @@ class Builtin:
     ```
     is equivalent to:
     ```
-    expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
+    expr_list = ListExpression(Integer(1), Integer(2), Integer(3))
     ```
     """
 
@@ -174,7 +174,7 @@ class Builtin:
     def __new__(cls, *args, **kwargs):
         # comment @mmatera:
         # The goal of this method is to allow to build expressions
-        # like ``Expression(SymbolList,x,y,z)``
+        # like ``ListExpression(x,y,z)``
         # in the handy way  ``List(x,y,z)``.
         # This is handy, but can be confusing if this is not very
         # well documented.

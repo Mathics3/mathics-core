@@ -16,8 +16,8 @@ from mathics.builtin.box.compilation import CompiledCodeBox
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolCompiledFunction
-from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.list import to_mathics_list
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolFunction,
@@ -170,9 +170,6 @@ class Compile(Builtin):
                 cfunc = None
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
-            # FIXME: we don't have tests for the below code. If we did,
-            # we may find that the below is buggy using Expression(SymbolList, or to_mathics_list()
-            # args = Expression(SymbolList, *names)
             args = to_mathics_list(*names, elements_conversion_fn=String)
             return Expression(SymbolFunction, args, expr)
 

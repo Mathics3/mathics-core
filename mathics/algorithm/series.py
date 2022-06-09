@@ -9,6 +9,7 @@ from mathics.core.symbols import (
 
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
@@ -133,7 +134,7 @@ def same_monomial(expr, x, x0):
 #                 c + coeff if p == power else c for p, c in enumerate(series[0].leaves)
 #             ]
 #         return (
-#             Expression(SymbolList, *newdata),
+#             ListExpression(*newdata),
 #             nmin,
 #             series[-2],
 #             series[-1],
@@ -180,7 +181,7 @@ def series_plus_series(series1, series2):
             else:
                 data[p] = Expression(SymbolPlus, data[p], coeff)
 
-    data = Expression(SymbolList, *data)
+    data = ListExpression(*data)
     result = reduce_series_trailing_zeros((data, nmin, nmax, den))
     return result
 
@@ -219,7 +220,7 @@ def series_times_series(series1, series2):
                     SymbolPlus, Expression(SymbolTimes, c1, c2), data[pos]
                 )
 
-    data = Expression(SymbolList, *data)
+    data = ListExpression(*data)
     return reduce_series_trailing_zeros((data, nmin, nmax, den))
 
 
@@ -239,7 +240,7 @@ def _series_times_rational_power(series, num_power, den_power):
     for k, val in enumerate(data):
         data_[k * granularity] = val
     return reduce_series_trailing_zeros(
-        (Expression(SymbolList, *data_), nmin_, nmax_, den * den_power)
+        (ListExpression(*data_), nmin_, nmax_, den * den_power)
     )
 
 
@@ -263,7 +264,7 @@ def reduce_series_trailing_zeros(series):
         data = data[:useful_len]
     if len(data) == 0:
         nmin = nmax
-    result = (Expression(SymbolList, *data), nmin, nmax, den)
+    result = (ListExpression(*data), nmin, nmax, den)
     return result
 
 
@@ -298,7 +299,7 @@ def reduce_series(series):
 
         if series[-1] == den:
             return series
-        return (Expression(SymbolList, *data), nmin, nmax, den)
+        return (ListExpression(*data), nmin, nmax, den)
 
     for factor in factors(series[-1]):
         series = reduce_dataseries(series, factor)
@@ -327,7 +328,7 @@ def reduce_series_plus(series, terms, x, x0):
         if term_head is SymbolSeriesData:
             y, y0, data, nummin, nummax, den = term_elements
             if not x.sameQ(y):
-                data = Expression(SymbolList, *[term])
+                data = ListExpression(*[term])
                 y = x
                 y0 = x0
                 nummin = 0
@@ -409,7 +410,7 @@ def build_series(f, x, x0, n, evaluation):
                 ]
             )
         data.append(newcoeff)
-    data = Expression(SymbolList, *data).evaluate(evaluation)
+    data = ListExpression(*data).evaluate(evaluation)
     series = reduce_series_trailing_zeros((data, 0, n + 1, 1))
     return Expression(
         SymbolSeriesData,
@@ -485,6 +486,6 @@ def series_derivative(series, x, x0, y, evaluation):
         new_coeffs = [c1.evaluate(evaluation) for c1 in coeffs2]
 
     result = reduce_series_trailing_zeros(
-        (Expression(SymbolList, *new_coeffs), nmin, nmax, den)
+        (ListExpression(*new_coeffs), nmin, nmax, den)
     )
     return result
