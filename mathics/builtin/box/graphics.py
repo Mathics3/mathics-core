@@ -44,7 +44,8 @@ from mathics.core.atoms import (
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
-from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.format.asy_fns import asy_color, asy_number
 
 
@@ -1158,7 +1159,7 @@ class PointBox(_Polyline):
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
                 if all(not leaf.has_form("List", None) for leaf in points.elements):
-                    points = Expression(SymbolList, points)
+                    points = ListExpression(points)
             self.do_init(graphics, points)
         else:
             raise BoxConstructError
@@ -1212,7 +1213,7 @@ class PolygonBox(_Polyline):
             self.vertex_colors = [[black] * len(line) for line in self.lines]
             colors = value.elements
             if not self.multi_parts:
-                colors = [Expression(SymbolList, *colors)]
+                colors = [ListExpression(*colors)]
             for line_index, line in enumerate(self.lines):
                 if line_index >= len(colors):
                     break
@@ -1310,7 +1311,7 @@ class RegularPolygonBox(PolygonBox):
                     )
 
             new_item = Expression(
-                "RegularPolygonBox", Expression(SymbolList, *list(vertices()))
+                "RegularPolygonBox", ListExpression(*list(vertices()))
             )
         else:
             raise BoxConstructError

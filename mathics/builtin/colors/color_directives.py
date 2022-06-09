@@ -458,7 +458,7 @@ class ColorDistance(Builtin):
                         SymbolList, *[distance(c, c2) for c in c1.elements]
                     )
             elif c2.get_head_name() == "System`List":
-                return Expression(SymbolList, *[distance(c1, c) for c in c2.elements])
+                return ListExpression(*[distance(c1, c) for c in c2.elements])
             else:
                 return distance(c1, c2)
         except ColorError:

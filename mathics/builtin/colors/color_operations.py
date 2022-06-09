@@ -22,8 +22,8 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.list import to_mathics_list
+from mathics.core.symbols import Symbol
+from mathics.core.list import ListExpression, to_mathics_list
 
 _image_requires = ("numpy", "PIL")
 
@@ -114,14 +114,14 @@ class Blend(Builtin):
             if not colors:
                 raise ColorError
         except ColorError:
-            evaluation.message("Blend", "arg", Expression(SymbolList, colors_orig))
+            evaluation.message("Blend", "arg", ListExpression(colors_orig))
             return
 
         if u.has_form("List", None):
-            values = [value.round_to_float(evaluation) for value in u.leaves]
+            values = [value.round_to_float(evaluation) for value in u.elements]
             if None in values:
                 values = None
-            if len(u.leaves) != len(colors):
+            if len(u.elements) != len(colors):
                 values = None
             use_list = True
         else:
@@ -134,9 +134,7 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            return evaluation.message(
-                "Blend", "argl", u, Expression(SymbolList, colors_orig)
-            )
+            return evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
 
         if use_list:
             return self.do_blend(colors, values).to_expr()
@@ -224,7 +222,7 @@ class ColorNegate(_ImageBuiltin):
     def apply_for_color(self, color, evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
-        r, g, b = [leaf.to_python() for leaf in color.leaves]
+        r, g, b = [element.to_python() for element in color.elements]
         # Invert
         r, g, b = (1.0 - r, 1.0 - g, 1.0 - b)
         # Reconstitute
@@ -341,8 +339,8 @@ class DominantColors(_ImageBuiltin):
             py_min_color_coverage = 0.05
             py_max_color_coverage = 1.0
         elif color_coverage.has_form("List", 2):
-            py_min_color_coverage = color_coverage.leaves[0].round_to_float()
-            py_max_color_coverage = color_coverage.leaves[1].round_to_float()
+            py_min_color_coverage = color_coverage.elements[0].round_to_float()
+            py_max_color_coverage = color_coverage.elements[1].round_to_float()
         else:
             py_min_color_coverage = color_coverage.round_to_float()
             py_max_color_coverage = 1.0

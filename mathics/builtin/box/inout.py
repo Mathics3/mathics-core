@@ -3,14 +3,15 @@
 from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.symbols import SymbolFalse, SymbolList, SymbolTrue, Symbol
-from mathics.core.systemsymbols import SymbolRowBox
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
-from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
+from mathics.core.list import ListExpression
 from mathics.core.parser import is_symbol_name
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolRowBox
 
 SymbolString = Symbol("System`String")
 SymbolStandardForm = Symbol("System`StandardForm")
@@ -544,7 +545,7 @@ class RowBox(BoxExpression):
                 for item in self.items
             )
 
-            self._elements = Expression(SymbolRowBox, Expression(SymbolList, *items))
+            self._elements = Expression(SymbolRowBox, ListExpression(*items))
         return self._elements
 
     def boxes_to_text(self, **options):

@@ -31,12 +31,12 @@ from mathics.core.attributes import (
 )
 
 from mathics.core.expression import Expression
+from mathics.core.list import to_mathics_list
 from mathics.core.rules import Rule
 
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
-    SymbolList,
     SymbolNull,
     SymbolTrue,
     strip_context,
@@ -631,7 +631,7 @@ class Names(Builtin):
 
         # TODO: Mathematica ignores contexts when it sorts the list of
         # names.
-        return Expression(SymbolList, *[String(name) for name in sorted(names)])
+        return to_mathics_list(*sorted(names), elements_conversion_fn=String)
 
 
 # In Mathematica 5, this appears under "Types of Values".

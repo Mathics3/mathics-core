@@ -230,7 +230,7 @@ def create_infix(items, operator, prec, grouping):
     else:
         return Expression(
             SymbolInfix,
-            Expression(SymbolList, *items),
+            ListExpression(*items),
             String(operator),
             Integer(prec),
             Symbol(grouping),

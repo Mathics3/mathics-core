@@ -21,7 +21,7 @@ from mathics.core.attributes import hold_all, no_attributes, protected, read_pro
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol, SymbolList
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -416,7 +416,7 @@ class AbsoluteTiming(Builtin):
         start = time.time()
         result = expr.evaluate(evaluation)
         stop = time.time()
-        return Expression(SymbolList, Real(stop - start), result)
+        return ListExpression(Real(stop - start), result)
 
 
 class DateDifference(Builtin):
@@ -674,7 +674,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
         if fmt.sameQ(Symbol("Automatic")):
-            fmt = Expression(SymbolList, String("DateTimeShort"))
+            fmt = ListExpression(String("DateTimeShort"))
         fmtds = Expression(SymbolDateString, datetime, fmt).evaluate(evaluation)
         if fmtds is None:
             return
@@ -776,7 +776,7 @@ class DatePlus(Builtin):
         elif date_prec == "string":
             result = Expression(
                 SymbolDateString,
-                Expression(SymbolList, *[Integer(i) for i in idate.to_list()]),
+                to_mathics_list(*idate.to_list(), elements_conversion_fn=Integer),
             )
 
         return result
@@ -847,7 +847,7 @@ class DateList(_DateFormat):
             return
 
         date_elements = [Integer(i) for i in datelist[:-1]] + [Real(datelist[-1])]
-        return Expression(SymbolList, *date_elements)
+        return ListExpression(*date_elements)
 
 
 class DateString(_DateFormat):
@@ -978,7 +978,7 @@ class DateStringFormat(Predefined):
     # TODO: Methods to change this
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, String(self.value))
+        return ListExpression(String(self.value))
 
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday

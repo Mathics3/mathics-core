@@ -11,6 +11,12 @@ from heapq import heappush, heappop
 from typing import Any, List
 
 
+from mathics.core.atoms import (
+    String,
+    Integer,
+    Integer0,
+    Integer1,
+)
 from mathics.builtin.base import (
     Builtin,
     Test,
@@ -18,6 +24,8 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
@@ -25,14 +33,7 @@ from mathics.core.symbols import (
     SymbolList,
 )
 from mathics.core.systemsymbols import SymbolBlank, SymbolFailed, SymbolDirectedInfinity
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer0,
-    Integer1,
-)
 
-from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
 
@@ -175,7 +176,7 @@ def to_regex(
             result = re.escape(result)
         return result
     if expr.has_form("RegularExpression", 1):
-        regex = expr.leaves[0].get_string_value()
+        regex = expr.elements[0].get_string_value()
         if regex is None:
             return regex
         try:
@@ -203,7 +204,7 @@ def to_regex(
         }.get(expr.get_name())
 
     if expr.has_form("CharacterRange", 2):
-        (start, stop) = (leaf.get_string_value() for leaf in expr.leaves)
+        (start, stop) = (element.get_string_value() for element in expr.elements)
         if all(x is not None and len(x) == 1 for x in (start, stop)):
             return "[{0}-{1}]".format(re.escape(start), re.escape(stop))
 
@@ -214,54 +215,54 @@ def to_regex(
     if expr.has_form("BlankNullSequence", 0):
         return r"(.|\n)" + q["*"]
     if expr.has_form("Except", 1, 2):
-        if len(expr.leaves) == 1:
+        if len(expr.elements) == 1:
             # TODO: Check if this shouldn't be SymbolBlank
             # instead of SymbolBlank[]
-            leaves = [expr.leaves[0], Expression(SymbolBlank)]
+            elements = [expr.elements[0], Expression(SymbolBlank)]
         else:
-            leaves = [expr.leaves[0], expr.leaves[1]]
-        leaves = [recurse(leaf) for leaf in leaves]
-        if all(leaf is not None for leaf in leaves):
-            return "(?!{0}){1}".format(*leaves)
+            elements = [expr.elements[0], expr.elements[1]]
+        elements = [recurse(element) for element in elements]
+        if all(element is not None for element in elements):
+            return "(?!{0}){1}".format(*elements)
     if expr.has_form("Characters", 1):
-        leaf = expr.leaves[0].get_string_value()
-        if leaf is not None:
-            return "[{0}]".format(re.escape(leaf))
+        element = expr.elements[0].get_string_value()
+        if element is not None:
+            return "[{0}]".format(re.escape(element))
     if expr.has_form("StringExpression", None):
-        leaves = [recurse(leaf) for leaf in expr.leaves]
-        if None in leaves:
+        elements = [recurse(element) for element in expr.elements]
+        if None in elements:
             return None
-        return "".join(leaves)
+        return "".join(elements)
     if expr.has_form("Repeated", 1):
-        leaf = recurse(expr.leaves[0])
-        if leaf is not None:
-            return "({0})".format(leaf) + q["+"]
+        element = recurse(expr.elements[0])
+        if element is not None:
+            return "({0})".format(element) + q["+"]
     if expr.has_form("RepeatedNull", 1):
-        leaf = recurse(expr.leaves[0])
-        if leaf is not None:
-            return "({0})".format(leaf) + q["*"]
+        element = recurse(expr.elements[0])
+        if element is not None:
+            return "({0})".format(element) + q["*"]
     if expr.has_form("Alternatives", None):
-        leaves = [recurse(leaf) for leaf in expr.leaves]
-        if all(leaf is not None for leaf in leaves):
-            return "|".join(leaves)
+        elements = [recurse(element) for element in expr.elements]
+        if all(element is not None for element in elements):
+            return "|".join(elements)
     if expr.has_form("Shortest", 1):
-        return recurse(expr.leaves[0], quantifiers=_regex_shortest)
+        return recurse(expr.elements[0], quantifiers=_regex_shortest)
     if expr.has_form("Longest", 1):
-        return recurse(expr.leaves[0], quantifiers=_regex_longest)
-    if expr.has_form("Pattern", 2) and isinstance(expr.leaves[0], Symbol):
-        name = expr.leaves[0].get_name()
+        return recurse(expr.elements[0], quantifiers=_regex_longest)
+    if expr.has_form("Pattern", 2) and isinstance(expr.elements[0], Symbol):
+        name = expr.elements[0].get_name()
         patt = groups.get(name, None)
         if patt is not None:
-            if expr.leaves[1].has_form("Blank", 0):
+            if expr.elements[1].has_form("Blank", 0):
                 pass  # ok, no warnings
-            elif not expr.leaves[1].sameQ(patt):
+            elif not expr.elements[1].sameQ(patt):
                 evaluation.message(
-                    "StringExpression", "cond", expr.leaves[0], expr, expr.leaves[0]
+                    "StringExpression", "cond", expr.elements[0], expr, expr.elements[0]
                 )
             return "(?P=%s)" % _encode_pname(name)
         else:
-            groups[name] = expr.leaves[1]
-            return "(?P<%s>%s)" % (_encode_pname(name), recurse(expr.leaves[1]))
+            groups[name] = expr.elements[1]
+            return "(?P<%s>%s)" % (_encode_pname(name), recurse(expr.elements[1]))
 
     return None
 
@@ -483,7 +484,7 @@ class Alphabet(Builtin):
         if alphabet is None:
             evaluation.message("Alphabet", "nalph", alpha)
             return
-        return Expression(SymbolList, *[String(c) for c in alphabet["Lowercase"]])
+        return to_mathics_list(*alphabet["Lowercase"], elements_conversion_fn=String)
 
 
 class LetterNumber(Builtin):
@@ -567,12 +568,12 @@ class LetterNumber(Builtin):
                     if cp == -1:
                         cp = alphabet["Uppercase"].find(c) + 1
                     r.append(cp)
-                return Expression(SymbolList, *r)
+                return ListExpression(*r)
         elif chars.has_form("List", 1, None):
             result = []
-            for leaf in chars.leaves:
-                result.append(self.apply_alpha_str(leaf, alpha, evaluation))
-            return Expression(SymbolList, *result)
+            for element in chars.elements:
+                result.append(self.apply_alpha_str(element, alpha, evaluation))
+            return ListExpression(*result)
         else:
             return evaluation.message(self.__class__.__name__, "nas", chars)
         return None
@@ -591,12 +592,12 @@ class LetterNumber(Builtin):
                     letter_number(c, start_ord)[0] if c.isalpha() else 0
                     for c in py_chars
                 ]
-                return Expression(SymbolList, *r)
+                return to_mathics_list(*r)
         elif chars.has_form("List", 1, None):
             result = []
-            for leaf in chars.leaves:
-                result.append(self.apply(leaf, evaluation))
-            return Expression(SymbolList, *result)
+            for element in chars.elements:
+                result.append(self.apply(element, evaluation))
+            return ListExpression(*result)
         else:
             return evaluation.message(self.__class__.__name__, "nas", chars)
         return None
@@ -643,7 +644,7 @@ class _StringFind(Builtin):
 
         # convert string
         if string.has_form("List", None):
-            py_strings = [stri.get_string_value() for stri in string.leaves]
+            py_strings = [stri.get_string_value() for stri in string.elements]
             if None in py_strings:
                 return evaluation.message(self.get_name(), "strse", Integer1, expr)
         else:
@@ -653,13 +654,13 @@ class _StringFind(Builtin):
 
         # convert rule
         def convert_rule(r):
-            if r.has_form("Rule", None) and len(r.leaves) == 2:
-                py_s = to_regex(r.leaves[0], evaluation)
+            if r.has_form("Rule", None) and len(r.elements) == 2:
+                py_s = to_regex(r.elements[0], evaluation)
                 if py_s is None:
                     return evaluation.message(
-                        "StringExpression", "invld", r.leaves[0], r.leaves[0]
+                        "StringExpression", "invld", r.elements[0], r.elements[0]
                     )
-                py_sp = r.leaves[1]
+                py_sp = r.elements[1]
                 return py_s, py_sp
             elif cases:
                 py_s = to_regex(r, evaluation)
@@ -670,7 +671,7 @@ class _StringFind(Builtin):
             return evaluation.message(self.get_name(), "srep", r)
 
         if rule.has_form("List", None):
-            py_rules = [convert_rule(r) for r in rule.leaves]
+            py_rules = [convert_rule(r) for r in rule.elements]
         else:
             py_rules = [convert_rule(rule)]
         if None in py_rules:
@@ -1089,7 +1090,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
 
     # Check string validity and perform regex searchhing
     if string.has_form("List", None):
-        py_s = [s.get_string_value() for s in string.leaves]
+        py_s = [s.get_string_value() for s in string.elements]
         if any(s is None for s in py_s):
             return evaluation.message(
                 name, "strse", Integer1, Expression(name, string, patt)
