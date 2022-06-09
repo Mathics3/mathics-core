@@ -328,7 +328,7 @@ def reduce_series_plus(series, terms, x, x0):
         if term_head is SymbolSeriesData:
             y, y0, data, nummin, nummax, den = term_elements
             if not x.sameQ(y):
-                data = ListExpression(*[term])
+                data = ListExpression(term)
                 y = x
                 y0 = x0
                 nummin = 0
