@@ -27,4 +27,4 @@ jobs:
         make develop
     - name: Test Mathics
       run: |
-        make -j3 check
+        make -j3 PYTHON=pyston check
