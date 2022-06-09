@@ -122,7 +122,7 @@ class ChessboardDistance(Builtin):
 
 
 class CosineDistance(Builtin):
-    """
+    r"""
     <dl>
       <dt>'CosineDistance[$u$, $v$]'
       <dd>returns the cosine distance between $u$ and $v$.

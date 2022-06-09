@@ -550,7 +550,7 @@ class ImageResize(_ImageBuiltin):
             return evaluation.message("ImageResize", "imgrsm", resampling)
 
         try:
-            from skimage import transform
+            from skimage import transform, __version__ as skimage_version
 
             multichannel = image.pixels.ndim == 3
 
@@ -570,9 +570,20 @@ class ImageResize(_ImageBuiltin):
                     image.pixels, upscale=s, multichannel=multichannel
                 ).clip(0, 1)
             else:
-                pixels = transform.pyramid_reduce(
-                    image.pixels, multichannel=multichannel, downscale=(1.0 / s)
-                ).clip(0, 1)
+                kwargs = {"downscale": (1.0 / s)}
+                # scikit_image in version 0.19 changes the resize parameter deprecating
+                # "multichannel". scikit_image also doesn't support older Pythons like 3.6.15.
+                # If we drop suport for 3.6 we can probably remove
+                if skimage_version >= "0.19":
+                    # Not totally sure that we want channel_axis=1, but it makes the
+                    # test work. multichannel is deprecated in scikit-image-19.2
+                    # Previously we used multichannel (=3)
+                    # as in the above s > 1 case.
+                    kwargs["channel_axis"] = 2
+                else:
+                    kwargs["multichannel"] = multichannel
+
+                pixels = transform.pyramid_reduce(image.pixels, **kwargs).clip(0, 1)
 
             return Image(pixels, image.color_space)
         except ImportError:
