@@ -138,6 +138,28 @@ SPECIAL_COMMANDS = {
 test_result_map = {}
 
 
+# TODO: Use this when checking requires for modules.
+requires_lib_cache = {}
+
+
+def check_requires_list(requires: list) -> bool:
+    global requires_cache
+
+    for package in requires:
+        lib_is_installed = requires_lib_cache.get(package, None)
+        if lib_is_installed is None:
+            lib_is_installed = True
+            try:
+                importlib.import_module(package)
+            except ImportError:
+                lib_is_installed = False
+            requires_lib_cache[package] = lib_is_installed
+
+        if not lib_is_installed:
+            return False
+    return True
+
+
 def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> list:
     """
     Sometimes test numbering is off, either due to bugs or changes since the
@@ -665,6 +687,8 @@ class Documentation(object):
                                     # iterated below. Probably some other code is faulty and
                                     # when fixed the below loop and collection into doctest_list[]
                                     # will be removed.
+                                    if not docsubsection.installed:
+                                        continue
                                     doctest_list = []
                                     index = 1
                                     for doctests in docsubsection.items:
@@ -906,13 +930,8 @@ class MathicsMainDocumentation(Documentation):
         object to the chapter, a DocChapter object.
         "section_object" is either a Python module or a Class object instance.
         """
-        installed = True
-        for package in getattr(section_object, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
+        installed = check_requires_list(getattr(section_object, "requires", []))
+
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
         # user manual
@@ -949,17 +968,12 @@ class MathicsMainDocumentation(Documentation):
         operator=None,
         in_guide=False,
     ):
-        installed = True
-        for package in getattr(instance, "requires", []):
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                installed = False
-                break
+        installed = check_requires_list(getattr(instance, "requires", []))
 
         # FIXME add an additional mechanism in the module
         # to allow a docstring and indicate it is not to go in the
         # user manual
+
         if not instance.__doc__:
             return
         subsection = DocSubsection(
@@ -1058,6 +1072,9 @@ class PyMathicsDocumentation(Documentation):
                 and var.__module__[: len(self.pymathicsmodule.__name__)]
                 == self.pymathicsmodule.__name__
             ):  # nopep8
+                if not check_requires_list(var):
+                    print("  skiping ", var.__name__)
+                    continue
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     self.symbols[instance.get_name()] = instance
@@ -1105,13 +1122,7 @@ class PyMathicsDocumentation(Documentation):
         chapter = DocChapter(builtin_part, title, XMLDoc(text))
         for name in self.symbols:
             instance = self.symbols[name]
-            installed = True
-            for package in getattr(instance, "requires", []):
-                try:
-                    importlib.import_module(package)
-                except ImportError:
-                    installed = False
-                    break
+            installed = check_requires_list(getattr(instance, "requires", []))
             section = DocSection(
                 chapter,
                 strip_system_prefix(name),
@@ -1329,8 +1340,12 @@ class DocGuideSection(DocSection):
         # A guide section's subsection are Sections without the Guide.
         # it is *their* subsections where we generally find tests.
         for section in self.subsections:
+            if not section.installed:
+                continue
             for subsection in section.subsections:
                 # FIXME we are omitting the section title here...
+                if not subsection.installed:
+                    continue
                 for doctests in subsection.items:
                     yield doctests.get_tests()
 
