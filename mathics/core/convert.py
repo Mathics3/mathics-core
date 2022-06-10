@@ -153,11 +153,10 @@ def from_sympy(expr):
         MachineReal,
     )
     from mathics.core.expression import Expression, to_expression
-    from mathics.core.list import to_mathics_list
+    from mathics.core.list import ListExpression, to_mathics_list
     from mathics.core.symbols import (
         Symbol,
         SymbolNull,
-        SymbolList,
     )
     from mathics.core.number import machine_precision
 
@@ -264,10 +263,9 @@ def from_sympy(expr):
         args = expr.args
         return Expression(
             SymbolPiecewise,
-            Expression(
-                SymbolList,
+            ListExpression(
                 *[
-                    Expression(SymbolList, from_sympy(case), from_sympy(cond))
+                    to_mathics_list(from_sympy(case), from_sympy(cond))
                     for case, cond in args
                 ]
             ),

@@ -97,7 +97,8 @@ class ToCharacterCode(Builtin):
         if encoding == "Unicode":
 
             def convert(s):
-                return Expression(SymbolList, *[Integer(ord(code)) for code in s])
+                # FIXME: we can defined a custom conversion fn here
+                return to_mathics_list(*[Integer(ord(code)) for code in s])
 
         else:
             py_encoding = to_python_encoding(encoding)
@@ -106,8 +107,8 @@ class ToCharacterCode(Builtin):
                 return
 
             def convert(s):
-                return Expression(
-                    SymbolList,
+                # FIXME: we can defined a custom conversion fn here
+                return to_mathics_list(
                     *[Integer(x) for x in unpack_bytes(s.encode(py_encoding))]
                 )
 

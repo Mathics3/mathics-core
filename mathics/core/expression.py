@@ -1502,6 +1502,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         to avoid replacing them.
         """
         from mathics.builtin.scoping import get_scoping_vars
+        from mathics.core.list import ListExpression
 
         if not in_scoping:
             if (
@@ -1542,7 +1543,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     func_params = [Symbol(name + "$") for name in func_params]
                     body = body.replace_vars(replacement, options, in_scoping)
                     elements = chain(
-                        [Expression(SymbolList, *func_params), body], self._elements[2:]
+                        [ListExpression(*func_params), body], self._elements[2:]
                     )
 
         if not vars:  # might just be a symbol set via Set[] we looked up here
