@@ -143,8 +143,6 @@ requires_lib_cache = {}
 
 
 def check_requires_list(requires: list) -> bool:
-    global requires_cache
-
     for package in requires:
         lib_is_installed = requires_lib_cache.get(package, None)
         if lib_is_installed is None:
@@ -1073,7 +1071,6 @@ class PyMathicsDocumentation(Documentation):
                 == self.pymathicsmodule.__name__
             ):  # nopep8
                 if not check_requires_list(var):
-                    print("  skiping ", var.__name__)
                     continue
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
