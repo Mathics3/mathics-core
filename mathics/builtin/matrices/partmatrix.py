@@ -8,8 +8,7 @@ Methods for manipulating Matrices.
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolList
+from mathics.core.list import ListExpression
 
 
 class Diagonal(Builtin):
@@ -54,7 +53,7 @@ class Diagonal(Builtin):
             if count < 0:
                 continue
             result.append(value.elements[count])
-        return Expression(SymbolList, *result)
+        return ListExpression(*result)
 
 
 class MatrixQ(Builtin):

@@ -6,20 +6,6 @@ String Patterns
 import re
 
 
-from mathics.builtin.base import BinaryOperator, Builtin
-
-from mathics.core.expression import Expression
-from mathics.core.atoms import (
-    Integer1,
-    String,
-)
-from mathics.core.symbols import (
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-
-
 from mathics.builtin.atomic.strings import (
     _StringFind,
     _evaluate_match,
@@ -29,7 +15,18 @@ from mathics.builtin.atomic.strings import (
     to_regex,
 )
 
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.expression import Expression
+from mathics.core.atoms import (
+    Integer1,
+    String,
+)
 from mathics.core.attributes import flat, listable, one_identity, protected
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    SymbolFalse,
+    SymbolTrue,
+)
 
 
 class DigitCharacter(Builtin):
@@ -216,7 +213,7 @@ class StringCases(_StringFind):
                 else:
                     yield _evaluate_match(form, match, evaluation)
 
-        return Expression(SymbolList, *list(cases()))
+        return ListExpression(*list(cases()))
 
     def apply(self, string, rule, n, evaluation, options):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"

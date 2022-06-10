@@ -1,42 +1,18 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import sympy
-import mpmath
+import base64
 import math
+import mpmath
 import re
-
+import sympy
 import typing
+
 from typing import Any, Optional
 from functools import lru_cache
 
 
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.symbols import (
-    Atom,
-    BaseElement,
-    NumericOperators,
-    Symbol,
-    SymbolDivide,
-    SymbolHoldForm,
-    SymbolFalse,
-    SymbolFullForm,
-    SymbolList,
-    SymbolNull,
-    SymbolPlus,
-    SymbolTimes,
-    SymbolTrue,
-    system_symbols,
-)
-
-from mathics.core.systemsymbols import (
-    SymbolByteArray,
-    SymbolComplex,
-    SymbolMinus,
-    SymbolRational,
-    SymbolRule,
-)
-
 from mathics.core.number import (
     dps,
     get_type,
@@ -45,7 +21,28 @@ from mathics.core.number import (
     machine_digits,
     machine_precision,
 )
-import base64
+from mathics.core.symbols import (
+    Atom,
+    BaseElement,
+    NumericOperators,
+    Symbol,
+    SymbolDivide,
+    SymbolFalse,
+    SymbolFullForm,
+    SymbolHoldForm,
+    SymbolNull,
+    SymbolPlus,
+    SymbolTimes,
+    SymbolTrue,
+    system_symbols,
+)
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolComplex,
+    SymbolMinus,
+    SymbolRational,
+    SymbolRule,
+)
 
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
@@ -97,7 +94,6 @@ def _ExponentFunction(value):
 
 
 def _NumberFormat(man, base, exp, options):
-    from mathics.core.expression import Expression
     from mathics.builtin.box.inout import RowBox, _BoxedString, SuperscriptBox
 
     if exp.get_string_value():
@@ -930,6 +926,7 @@ def from_python(arg):
     symbol like underscore.
     """
     from mathics.core.expression import Expression
+    from mathics.core.list import ListExpression, to_mathics_list
 
     if isinstance(arg, BaseElement):
         return arg
@@ -964,9 +961,9 @@ def from_python(arg):
             )
             for key in arg
         ]
-        return Expression(SymbolList, *entries)
+        return ListExpression(*entries)
     elif isinstance(arg, list) or isinstance(arg, tuple):
-        return Expression(SymbolList, *[from_python(leaf) for leaf in arg])
+        return to_mathics_list(*arg, elements_conversion_fn=from_python)
     elif isinstance(arg, bytearray) or isinstance(arg, bytes):
         return Expression(SymbolByteArray, ByteArrayAtom(arg))
     else:
