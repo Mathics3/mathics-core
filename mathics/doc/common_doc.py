@@ -143,6 +143,11 @@ requires_lib_cache = {}
 
 
 def check_requires_list(requires: list) -> bool:
+    """
+    Check if module names in ``requires`` can be imported and return True if they can or False if not.
+
+    This state value is also recorded in dictionary `requires_lib_cache` keyed by module name and is used to determine whether to skip trying to get information from the module."""
+    global requires_lib_cache
     for package in requires:
         lib_is_installed = requires_lib_cache.get(package, None)
         if lib_is_installed is None:
