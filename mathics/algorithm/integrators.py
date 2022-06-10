@@ -229,3 +229,5 @@ integrator_methods = {
 }
 integrator_methods["Simpson"] = integrator_methods["Internal"]
 integrator_methods["Automatic"] = integrator_methods["Internal"]
+
+integrator_messages = {}
