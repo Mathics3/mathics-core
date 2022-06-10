@@ -1986,7 +1986,7 @@ def to_expression(
         head = Symbol(head)
 
     # # The below code should disappear after we have gone over the entire code base
-    # # to replace all calls of the form Expression(SymbolList ...) or
+    # # to replace all calls of the form ListExpression(...) or
     # # to_expression("List", ...)
     # if head is SymbolList:
     #    from mathics.core.list import to_mathics_list
