@@ -33,14 +33,19 @@ all: develop
 build:
 	$(PYTHON) ./setup.py build
 
+# Note that we need ./setup.py develop
+# because pip install doesn't handle
+# INSTALL_REQUIRES properly
 #: Set up to run from the source tree
 develop:
 	$(PIP) install -e .[dev]
 
+# See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
 develop-full:
 	$(PIP) install -e .[dev,full]
 
+# See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
 develop-full-cython:
 	$(PIP) install -e .[dev,full,cython]
