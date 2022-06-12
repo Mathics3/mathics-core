@@ -25,8 +25,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert import from_sympy, SympyPrime
 from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, to_expression
-from mathics.core.symbols import Symbol, SymbolFloor, SymbolList
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolCeiling, SymbolFloor, SymbolIm, SymbolRe
+
+
+SymbolMantissaExponent = Symbol("MantissaExponent")
 
 
 class ContinuedFraction(SympyFunction):
@@ -98,9 +103,7 @@ class Divisors(Builtin):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
-        return to_expression(
-            SymbolList, *sympy.divisors(n.value), elements_conversion_fn=Integer
-        )
+        return to_mathics_list(*sympy.divisors(n.value), elements_conversion_fn=Integer)
 
 
 # FIXME: Previously this used gmpy's gcdext. sympy's gcdex is not as powerful
@@ -138,8 +141,8 @@ class Divisors(Builtin):
 #            new_result, c1, c2 = sympy.gcdex(result, value)
 #            result = new_result
 #            coeff = [c * c1 for c in coeff] + [c2]
-#            return Expression('List', Integer(result), Expression(
-#                'List', *(Integer(c) for c in coeff)))
+#            return ListExpression(Integer(result), ListExpression(
+#                *(Integer(c) for c in coeff)))
 
 
 class EulerPhi(SympyFunction):
@@ -214,9 +217,8 @@ class FactorInteger(Builtin):
         if isinstance(n, Integer):
             factors = sympy.factorint(n.value)
             factors = sorted(factors.items())
-            return Expression(
-                SymbolList,
-                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
+            return ListExpression(
+                *(to_mathics_list(factor, exp) for factor, exp in factors)
             )
 
         elif isinstance(n, Rational):
@@ -226,9 +228,8 @@ class FactorInteger(Builtin):
             for factor, exp in factors_denom.items():
                 factors[factor] = factors.get(factor, 0) - exp
             factors = sorted(factors.items())
-            return Expression(
-                SymbolList,
-                *(Expression(SymbolList, factor, exp) for factor, exp in factors)
+            return ListExpression(
+                *(to_mathics_list(factor, exp) for factor, exp in factors)
             )
         else:
             return evaluation.message("FactorInteger", "exact", n)
@@ -244,7 +245,7 @@ def _fractional_part(self, n, expr, evaluation):
             result = n - positive_integer_part
         else:
             negative_integer_part = (
-                Expression("Ceiling", n).evaluate(evaluation).to_python()
+                Expression(SymbolCeiling, n).evaluate(evaluation).to_python()
             )
             result = n - negative_integer_part
     else:
@@ -293,8 +294,8 @@ class FractionalPart(Builtin):
     def apply_2(self, n, evaluation):
         "FractionalPart[n_Complex]"
         expr = Expression("FractionalPart", n)
-        n_real = Expression("Re", n).evaluate(evaluation)
-        n_image = Expression("Im", n).evaluate(evaluation)
+        n_real = Expression(SymbolRe, n).evaluate(evaluation)
+        n_image = Expression(SymbolIm, n).evaluate(evaluation)
 
         real_fractional_part = _fractional_part(
             self.__class__.__name__, n_real, expr, evaluation
@@ -412,7 +413,7 @@ class MantissaExponent(Builtin):
         # Handle Input with special cases such as PI and E
         n_sympy, b_sympy = n.to_sympy(), b.to_sympy()
 
-        expr = Expression("MantissaExponent", n, b)
+        expr = Expression(SymbolMantissaExponent, n, b)
 
         if isinstance(n.to_python(), complex):
             evaluation.message("MantissaExponent", "realx", n)
@@ -438,7 +439,7 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression(SymbolList, Expression(SymbolDivide, n, b ** exp), exp)
+        return ListExpression(Expression(SymbolDivide, n, b ** exp), Integer(exp))
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -458,16 +459,17 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return Expression(SymbolList, Expression(SymbolDivide, n, (10 ** exp)), exp)
+        return ListExpression(Expression(SymbolDivide, n, (10 ** exp)), Integer(exp))
 
 
 class NextPrime(Builtin):
     """
     <dl>
-    <dt>'NextPrime[$n$]'
-        <dd>gives the next prime after $n$.
-    <dt>'NextPrime[$n$,$k$]'
-        <dd>gives the $k$th  prime after $n$.
+      <dt>'NextPrime[$n$]'
+      <dd>gives the next prime after $n$.
+
+      <dt>'NextPrime[$n$,$k$]'
+      <dd>gives the $k$th  prime after $n$.
     </dl>
 
     >> NextPrime[10000]

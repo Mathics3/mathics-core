@@ -507,13 +507,13 @@ class RealDigits(Builtin):
     >> RealDigits[19 / 7]
      = {{2, {7, 1, 4, 2, 8, 5}}, 1}
 
-    The 10000th digit of  is an 8:
-    >> RealDigits[Pi, 10, 1, -10000]
-    = {{8}, -9999}
+    The 500th digit of Pi is 2:
+    >> RealDigits[Pi, 10, 1, -500]
+    = {{2}, -499}
 
-    20 digits starting with the coefficient of 10^-5:
-    >> RealDigits[Pi, 10, 20, -5]
-     = {{9, 2, 6, 5, 3, 5, 8, 9, 7, 9, 3, 2, 3, 8, 4, 6, 2, 6, 4, 3}, -4}
+    11 digits starting with the coefficient of 10^-3:
+    >> RealDigits[Pi, 10, 11, -3]
+     = {{1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7}, -2}
 
     RealDigits gives Indeterminate if more digits than the precision are requested:
     >> RealDigits[123.45, 10, 18]

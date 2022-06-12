@@ -869,13 +869,13 @@ class BoxExpression(BuiltinElement):
                 default[option] = parse_builtin_rule(value)
         return default
 
-    def boxes_to_text(self, leaves, **options) -> str:
+    def boxes_to_text(self, elements, **options) -> str:
         raise BoxConstructError
 
-    def boxes_to_mathml(self, leaves, **options) -> str:
+    def boxes_to_mathml(self, elements, **options) -> str:
         raise BoxConstructError
 
-    def boxes_to_tex(self, leaves, **options) -> str:
+    def boxes_to_tex(self, elements, **options) -> str:
         raise BoxConstructError
 
 
@@ -900,11 +900,11 @@ class PatternObject(BuiltinElement, Pattern):
     def init(self, expr):
         super().init(expr)
         if self.arg_counts is not None:
-            if len(expr.leaves) not in self.arg_counts:
-                self.error_args(len(expr.leaves), *self.arg_counts)
+            if len(expr.elements) not in self.arg_counts:
+                self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
         self.head = Pattern.create(expr.head)
-        self.leaves = [Pattern.create(leaf) for leaf in expr.leaves]
+        self.leaves = [Pattern.create(element) for element in expr.elements]
 
     def error(self, tag, *args):
         raise PatternError(self.get_name(), tag, *args)
@@ -1012,18 +1012,18 @@ class CountableInteger:
         """
 
         if isinstance(expr, Integer):
-            py_n = expr.get_int_value()
+            py_n = expr.value
             if py_n >= 0:
                 return CountableInteger(py_n, upper_limit=False)
             else:
                 raise NegativeIntegerException()
         elif expr.get_head_name() == "System`UpTo":
-            if len(expr.leaves) != 1:
-                raise MessageException("UpTo", "argx", len(expr.leaves))
+            if len(expr.elements) != 1:
+                raise MessageException("UpTo", "argx", len(expr.elements))
             else:
-                n = expr.leaves[0]
+                n = expr.elements[0]
                 if isinstance(n, Integer):
-                    py_n = n.get_int_value()
+                    py_n = n.value
                     if py_n < 0:
                         raise MessageException("UpTo", "innf", expr)
                     else:
@@ -1031,9 +1031,9 @@ class CountableInteger:
                 elif CountableInteger._support_infinity:
                     if (
                         n.get_head_name() == "System`DirectedInfinity"
-                        and len(n.leaves) == 1
+                        and len(n.elements) == 1
                     ):
-                        if n.leaves[0].get_int_value() > 0:
+                        if n.elements[0].get_int_value() > 0:
                             return CountableInteger("Infinity", upper_limit=True)
                         else:
                             return CountableInteger(0, upper_limit=True)

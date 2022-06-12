@@ -1285,18 +1285,9 @@ class _BaseFinder(Builtin):
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
     """
 
-    options = {
-        "MaxIterations": "100",
-        "Method": "Automatic",
-        "AccuracyGoal": "Automatic",
-        "PrecisionGoal": "Automatic",
-        "StepMonitor": "None",
-        "EvaluationMonitor": "None",
-        "Jacobian": "Automatic",
-    }
-
     attributes = hold_all | protected
-
+    requires = ["scipy"]
+    methods = {}
     messages = {
         "snum": "Value `1` is not a number.",
         "nnum": "The function value is not a number at `1` = `2`.",
@@ -1313,7 +1304,15 @@ class _BaseFinder(Builtin):
         ),
     }
 
-    methods = {}
+    options = {
+        "MaxIterations": "100",
+        "Method": "Automatic",
+        "AccuracyGoal": "Automatic",
+        "PrecisionGoal": "Automatic",
+        "StepMonitor": "None",
+        "EvaluationMonitor": "None",
+        "Jacobian": "Automatic",
+    }
 
     def apply(self, f, x, x0, evaluation, options):
         "%(name)s[f_, {x_, x0_}, OptionsPattern[]]"
@@ -1524,9 +1523,9 @@ class FindMinimum(_BaseFinder):
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
 
     methods = {}
@@ -1567,9 +1566,9 @@ class FindMaximum(_BaseFinder):
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
 
     methods = {}
@@ -2048,6 +2047,7 @@ class NIntegrate(Builtin):
 
     """
 
+    requires = ["scipy"]
     summary_text = "numerical integration in one or several variables"
     messages = {
         "bdmtd": "The Method option should be a built-in method name.",
@@ -2077,6 +2077,7 @@ class NIntegrate(Builtin):
         "Automatic": (None, False),
     }
     try:
+        # builtin integrators
         from mathics.algorithm.integrators import (
             integrator_methods,
             integrator_messages,
@@ -2088,6 +2089,7 @@ class NIntegrate(Builtin):
         pass
 
     try:
+        # scipy integrators
         from mathics.builtin.scipy_utils.integrators import (
             scipy_nintegrate_methods,
             scipy_nintegrate_messages,
@@ -2096,11 +2098,9 @@ class NIntegrate(Builtin):
         methods.update(scipy_nintegrate_methods)
         messages.update(scipy_nintegrate_messages)
     except Exception as e:
-        print(e)
-        print("scipy integrators was not loaded.")
         pass
 
-    methods.update(
+    messages.update(
         {
             "bdmtd": "The Method option should be a "
             + "built-in method name in {`"
