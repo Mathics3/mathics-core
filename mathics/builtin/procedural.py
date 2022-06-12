@@ -594,7 +594,7 @@ class NestList(Builtin):
     ## TODO: improve this example when RandomChoice, PointSize, Axes->False are implemented
     Chaos game rendition of the Sierpinski triangle:
     >> vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};
-    >> points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 2000];
+    >> points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 500];
     >> Graphics[Point[points], ImageSize->Small]
      = -Graphics-
     """

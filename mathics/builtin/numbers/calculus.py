@@ -1524,9 +1524,9 @@ class FindMinimum(_BaseFinder):
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
 
     methods = {}
@@ -1567,9 +1567,9 @@ class FindMaximum(_BaseFinder):
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->300]
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
      : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 300]
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
     """
 
     methods = {}
