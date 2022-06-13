@@ -37,7 +37,7 @@ from typing import Callable
 
 from mathics import builtin
 from mathics import settings
-from mathics.builtin import get_module_doc
+from mathics.builtin import get_module_doc, check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.doc.utils import slugify
 
@@ -136,31 +136,6 @@ SPECIAL_COMMANDS = {
 
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
-
-
-# TODO: Use this when checking requires for modules.
-requires_lib_cache = {}
-
-
-def check_requires_list(requires: list) -> bool:
-    """
-    Check if module names in ``requires`` can be imported and return True if they can or False if not.
-
-    This state value is also recorded in dictionary `requires_lib_cache` keyed by module name and is used to determine whether to skip trying to get information from the module."""
-    global requires_lib_cache
-    for package in requires:
-        lib_is_installed = requires_lib_cache.get(package, None)
-        if lib_is_installed is None:
-            lib_is_installed = True
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                lib_is_installed = False
-            requires_lib_cache[package] = lib_is_installed
-
-        if not lib_is_installed:
-            return False
-    return True
 
 
 def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> list:
