@@ -1360,9 +1360,7 @@ class Exponent(Builtin):
             exponents = [get_exponents_sorted(expr, var) for var in form.leaves]
             # TODO: add ElementProperties in Expression interface refactor branch:
             #   fully_evaluated is True, flat is false, and is_ordered is probably True
-            return Expression(
-                SymbolList, *[Expression(h, *[i for i in s]) for s in exponents]
-            )
+            return ListExpression(*[Expression(h, *[i for i in s]) for s in exponents])
 
 
 class Factor(Builtin):

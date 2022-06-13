@@ -1698,9 +1698,7 @@ class Dispatch(Atom):
         elements = self.src.format(evaluation, f.get_name())
         return Expression(
             SymbolRowBox,
-            Expression(
-                SymbolList, String("Dispatch"), String("["), elements, String("]")
-            ),
+            ListExpression(String("Dispatch"), String("["), elements, String("]")),
         )
 
 

@@ -693,8 +693,7 @@ class _StringFind(Builtin):
             flags = flags | re.IGNORECASE
 
         if isinstance(py_strings, list):
-            return Expression(
-                SymbolList,
+            return to_mathics_list(
                 *[
                     self._find(py_stri, py_rules, py_n, flags, evaluation)
                     for py_stri in py_strings
@@ -1095,9 +1094,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
             return evaluation.message(
                 name, "strse", Integer1, Expression(name, string, patt)
             )
-        return Expression(
-            SymbolList, *[_search(re_patts, s, flags, matched) for s in py_s]
-        )
+        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
     else:
         py_s = string.get_string_value()
         if py_s is None:

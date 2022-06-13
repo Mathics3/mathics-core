@@ -48,10 +48,15 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolInfinity,
     SymbolMakeBoxes,
+    SymbolMessageName,
     SymbolQuiet,
+    SymbolRow,
     SymbolRowBox,
     SymbolRule,
+    SymbolRuleDelayed,
 )
 from mathics.core.number import (
     dps,
@@ -66,14 +71,8 @@ from mathics.core.attributes import hold_all, hold_all_complete, hold_first, pro
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
-SymbolAutomatic = Symbol("Automatic")
-SymbolFullForm = Symbol("FullForm")
-SymbolInfinity = Symbol("Infinity")
-SymbolMessageName = Symbol("MessageName")
 SymbolNumberForm = Symbol("NumberForm")
 SymbolOutputForm = Symbol("OutputForm")
-SymbolRow = Symbol("Row")
-SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
@@ -1049,11 +1048,10 @@ class TableForm(Builtin):
             return Expression(SymbolMakeBoxes, table, f)
         elif depth == 1:
             return GridBox(
-                Expression(
-                    SymbolList,
+                ListExpression(
                     *(
                         ListExpression(Expression(SymbolMakeBoxes, item, f))
-                        for item in table.leaves
+                        for item in table.elements
                     ),
                 )
             )
@@ -2775,9 +2773,7 @@ class NumberForm(_NumberForm):
             mul = String(options["NumberMultiplier"])
             return Expression(
                 SymbolRowBox,
-                Expression(
-                    SymbolList, man, mul, Expression(SymbolSuperscriptBox, base, exp)
-                ),
+                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
             )
         else:
             return man
@@ -2788,9 +2784,11 @@ class NumberForm(_NumberForm):
             Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
-        return Expression(
-            SymbolList,
-            *[Expression(SymbolNumberForm, leaf, n, *options) for leaf in expr.leaves],
+        return ListExpression(
+            *[
+                Expression(SymbolNumberForm, element, n, *options)
+                for element in expr.elements
+            ]
         )
 
     def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
@@ -2799,11 +2797,10 @@ class NumberForm(_NumberForm):
             Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
-        return Expression(
-            SymbolList,
+        return ListExpression(
             *[
-                Expression(SymbolNumberForm, leaf, ListExpression(n, f), *options)
-                for leaf in expr.leaves
+                Expression(SymbolNumberForm, element, ListExpression(n, f), *options)
+                for element in expr.elements
             ],
         )
 
