@@ -5,6 +5,7 @@ from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
@@ -15,11 +16,14 @@ from mathics.core.symbols import (
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
+    SymbolAnd,
     SymbolBlank,
     SymbolCondition,
+    SymbolHoldPattern,
     SymbolMachinePrecision,
     SymbolOptionValue,
     SymbolPattern,
+    SymbolRuleDelayed,
 )
 
 
@@ -97,9 +101,9 @@ def get_symbol_values(symbol, func_name, position, evaluation):
             if pattern.has_form("HoldPattern", 1):
                 pattern = pattern.expr
             else:
-                pattern = Expression("HoldPattern", pattern.expr)
-            elements.append(Expression("RuleDelayed", pattern, rule.replace))
-    return Expression("List", *elements)
+                pattern = Expression(SymbolHoldPattern, pattern.expr)
+            elements.append(Expression(SymbolRuleDelayed, pattern, rule.replace))
+    return ListExpression(*elements)
 
 
 def is_protected(tag, defin):
@@ -197,10 +201,10 @@ def unroll_conditions(lhs):
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:
-        condition = Expression("System`And", *condition)
+        condition = Expression(SymbolAnd, *condition)
     else:
         condition = condition[0]
-    condition = Expression("System`Condition", lhs, condition)
+    condition = Expression(SymbolCondition, lhs, condition)
     lhs._format_cache = None
     return lhs, condition
 

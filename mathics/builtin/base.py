@@ -112,7 +112,7 @@ class Builtin:
     ```
         def apply(x, evaluation):
              "F[x_Real]"
-             return Expression("G", x*2)
+             return Expression(Symbol("G"), x*2)
     ```
 
     adds a ``BuiltinRule`` to the symbol's definition object that implements ``F[x_]->G[x*2]``.
@@ -721,7 +721,7 @@ class BoxExpression(BuiltinElement):
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
-    # should be evaluated to ``Expression("RowBox", '"a"', '"+"', '"b"')``.
+    # should be evaluated to ``Expression(SymbolRowBox, '"a"', '"+"', '"b"')``.
     #
     # Changes to do, after the refactor of mathics.core:
     #

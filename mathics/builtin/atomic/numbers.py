@@ -311,7 +311,7 @@ class IntegerExponent(Builtin):
     #     "IntegerExponent[n_Integer, b_Integer]"
 
     #     py_n, py_b = n.to_python(), b.to_python()
-    #     expr = Expression("IntegerExponent", n, b)
+    #     expr = Expression(SymbolIntegerExponent, n, b)
 
     #     if not isinstance(py_n, int):
     #         evaluation.message("IntegerExponent", "int", expr)
@@ -572,7 +572,7 @@ class RealDigits(Builtin):
 
     def apply_rational_with_base(self, n, b, evaluation):
         "%(name)s[n_Rational, b_Integer]"
-        # expr = Expression("RealDigits", n)
+        # expr = Expression(SymbolRealDigits, n)
         py_n = abs(n.value)
         py_b = b.value
         if check_finite_decimal(n.denominator().get_int_value()) and not py_b % 2:
