@@ -30,7 +30,6 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolTrue,
-    SymbolList,
 )
 from mathics.core.systemsymbols import SymbolBlank, SymbolFailed, SymbolDirectedInfinity
 
@@ -706,10 +705,12 @@ class _StringFind(Builtin):
 class StringRepeat(Builtin):
     """
     <dl>
-    <dt>'StringRepeat["$string$", $n$]'
-        <dd>gives $string$ repeated $n$ times.
-    <dt>'StringRepeat["$string$", $n$, $max$]'
-        <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
+      <dt>'StringRepeat["$string$", $n$]'
+      <dd>gives $string$ repeated $n$ times.
+
+      <dt>'StringRepeat["$string$", $n$, $max$]'
+      <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
+
     </dl>
 
     >> StringRepeat["abc", 3]
@@ -757,8 +758,8 @@ class StringRepeat(Builtin):
 class String_(Builtin):
     """
     <dl>
-    <dt>'String'
-        <dd>is the head of strings.
+      <dt>'String'
+      <dd>is the head of strings.
     </dl>
 
     >> Head["abc"]

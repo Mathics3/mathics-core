@@ -2,10 +2,10 @@
 
 
 from mathics.algorithm.parts import walk_parts
+from mathics.core.atoms import Atom, Integer
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.rules import Rule
-from mathics.core.atoms import Atom, Integer
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
