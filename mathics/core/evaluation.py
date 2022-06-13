@@ -379,7 +379,9 @@ class Evaluation(object):
                         SymbolHold, Expression(SymbolThrow, ti.value, ti.tag)
                     )
                 else:
-                    self.exc_result = Expression(SymbolHold, Expression(SymbolThrow, ti.value))
+                    self.exc_result = Expression(
+                        SymbolHold, Expression(SymbolThrow, ti.value)
+                    )
                 self.message("Throw", "nocatch", self.exc_result)
             #            except OverflowError:
             #                print("Catch the overflow")
@@ -446,7 +448,9 @@ class Evaluation(object):
         if format == "text":
             result = expr.format(self, "System`OutputForm")
         elif format == "xml":
-            result = Expression(SymbolStandardForm, expr).format(self, "System`MathMLForm")
+            result = Expression(SymbolStandardForm, expr).format(
+                self, "System`MathMLForm"
+            )
         elif format == "tex":
             result = Expression(SymbolStandardForm, expr).format(self, "System`TeXForm")
         elif format == "unformatted":

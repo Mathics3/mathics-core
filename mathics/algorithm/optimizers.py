@@ -82,7 +82,9 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         )
     else:
         d2 = dynamic_scoping(
-            lambda ev: Expression(SymbolD, d1, x).evaluate(ev), {x_name: None}, evaluation
+            lambda ev: Expression(SymbolD, d1, x).evaluate(ev),
+            {x_name: None},
+            evaluation,
         )
         val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
         if not isinstance(val_d2, Number):
@@ -218,7 +220,9 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
                 Expression(
                     SymbolTimes,
                     Real(0.75),
-                    Expression(SymbolPlus, x1, Expression(SymbolTimes, Integer(-1), x0)),
+                    Expression(
+                        SymbolPlus, x1, Expression(SymbolTimes, Integer(-1), x0)
+                    ),
                 ),
             )
             x1 = x1.evaluate(evaluation)
@@ -328,9 +332,9 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
             return x0, False
-        x1 = Expression(SymbolPlus, x0, Expression(SymbolTimes, Integer(-1), minus)).evaluate(
-            evaluation
-        )
+        x1 = Expression(
+            SymbolPlus, x0, Expression(SymbolTimes, Integer(-1), minus)
+        ).evaluate(evaluation)
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
