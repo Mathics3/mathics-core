@@ -2004,8 +2004,7 @@ class SeriesData(Builtin):
                         Expression(SymbolPower, variable, powers[i]),
                     )
             expansion.append(term)
-        expansion = Expression(
-            SymbolList,
+        expansion = ListExpression(
             Expression(SymbolPlus, *expansion),
             Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
         )
