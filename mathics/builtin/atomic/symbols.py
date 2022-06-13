@@ -44,7 +44,10 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolAttributes,
+    SymbolFormat,
     SymbolHoldForm,
+    SymbolInfix,
+    SymbolInputForm,
     SymbolSet,
 )
 
@@ -308,14 +311,14 @@ class Definition(Builtin):
                 for rule in rules:
 
                     def lhs(expr):
-                        return Expression("Format", expr, Symbol(format))
+                        return Expression(SymbolFormat, expr, Symbol(format))
 
                     def rhs(expr):
                         if expr.has_form("Infix", None):
                             expr = Expression(
-                                Expression("HoldForm", expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.leaves
                             )
-                        return Expression("InputForm", expr)
+                        return Expression(SymbolInputForm, expr)
 
                     print_rule(rule, lhs=lhs, rhs=rhs)
         for rule in all.defaultvalues:

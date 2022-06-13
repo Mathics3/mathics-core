@@ -51,7 +51,7 @@ Internals
 * To speed up the lookup of symbols names, ``Definitions`` object now have two properties: ``current_context`` and ``context_path``. These properties stores the values of the corresponding symbols in the `builtin` definitions.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
-* ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression("N", expr, prec).evaluate(evaluation)`` makes the evaluation faster.
+* ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression(SymbolN, expr, prec).evaluate(evaluation)`` makes the evaluation faster.
 * A failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
 * ``any`` /``all`` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * ``BaseExpression.get_head``  now avoids building a symbol and then look for its name. It saves two function calls.
