@@ -407,7 +407,6 @@ class Builtin:
         unavailable_function = self._get_unavailable_function()
         for name in dir(self):
             if name.startswith(prefix):
-
                 function = getattr(self, name)
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
