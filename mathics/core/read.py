@@ -9,6 +9,7 @@ from mathics.builtin.base import MessageException
 from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.streams import Stream, path_search, stream_manager
 
@@ -181,7 +182,7 @@ def read_list_from_types(read_types):
         for typ in read_types
     )
 
-    return Expression("List", *read_types)
+    return ListExpression(*read_types)
 
 
 def read_check_options(options: dict) -> dict:

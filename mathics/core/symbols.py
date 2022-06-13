@@ -30,8 +30,8 @@ class NumericOperators:
 
     So for example, instead of writing in Python:
 
-        Expression("Abs", -8)
-        Expression("Plus", 1, 2)
+        Expression(SymbolAbs, -8)
+        Expression(SybolPlus, 1, 2)
 
     you can instead have:
         abs(Integer(-8))

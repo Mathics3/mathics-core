@@ -42,6 +42,11 @@ from mathics.core.symbols import (
     SymbolTrue,
     strip_context,
 )
+from mathics.core.systemsymbols import (
+    SymbolAttributes,
+    SymbolHoldForm,
+    SymbolSet,
+)
 
 
 def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
@@ -278,14 +283,11 @@ class Definition(Builtin):
             attributes_list = attributes_bitset_to_list(attributes)
             lines.append(
                 Expression(
-                    "HoldForm",
+                    SymbolHoldForm,
                     Expression(
-                        "Set",
-                        Expression("Attributes", symbol),
-                        Expression(
-                            "List",
-                            *(Symbol(attribute) for attribute in attributes_list)
-                        ),
+                        SymbolSet,
+                        Expression(SymbolAttributes, symbol),
+                        to_mathics_list(*attributes_list, elements_conversion_fn=Symbol),
                     ),
                 )
             )
