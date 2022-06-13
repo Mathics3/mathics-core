@@ -31,7 +31,8 @@ from mathics.core.attributes import (
 )
 
 from mathics.core.expression import Expression
-from mathics.core.list import to_mathics_list
+
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.rules import Rule
 
 from mathics.core.symbols import (
@@ -339,7 +340,7 @@ class Definition(Builtin):
             if lines:
                 return Expression(
                     "Grid",
-                    Expression("List", *(Expression("List", line) for line in lines)),
+                    ListExpression(*(ListExpression(line) for line in lines)),
                     Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
                 )
             else:
@@ -471,7 +472,7 @@ class Information(PrefixOperator):
             if lines:
                 infoshow = Expression(
                     "Grid",
-                    Expression("List", *(Expression("List", line) for line in lines)),
+                    ListExpression(*(to_mathics_list(line) for line in lines)),
                     Expression("Rule", Symbol("ColumnAlignments"), Symbol("Left")),
                 )
                 evaluation.print_out(infoshow)
