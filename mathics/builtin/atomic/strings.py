@@ -30,7 +30,6 @@ from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
     SymbolTrue,
-    SymbolList,
 )
 from mathics.core.systemsymbols import SymbolBlank, SymbolFailed, SymbolDirectedInfinity
 
@@ -693,8 +692,7 @@ class _StringFind(Builtin):
             flags = flags | re.IGNORECASE
 
         if isinstance(py_strings, list):
-            return Expression(
-                SymbolList,
+            return to_mathics_list(
                 *[
                     self._find(py_stri, py_rules, py_n, flags, evaluation)
                     for py_stri in py_strings
@@ -707,10 +705,12 @@ class _StringFind(Builtin):
 class StringRepeat(Builtin):
     """
     <dl>
-    <dt>'StringRepeat["$string$", $n$]'
-        <dd>gives $string$ repeated $n$ times.
-    <dt>'StringRepeat["$string$", $n$, $max$]'
-        <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
+      <dt>'StringRepeat["$string$", $n$]'
+      <dd>gives $string$ repeated $n$ times.
+
+      <dt>'StringRepeat["$string$", $n$, $max$]'
+      <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
+
     </dl>
 
     >> StringRepeat["abc", 3]
@@ -758,8 +758,8 @@ class StringRepeat(Builtin):
 class String_(Builtin):
     """
     <dl>
-    <dt>'String'
-        <dd>is the head of strings.
+      <dt>'String'
+      <dd>is the head of strings.
     </dl>
 
     >> Head["abc"]
@@ -1095,9 +1095,7 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
             return evaluation.message(
                 name, "strse", Integer1, Expression(name, string, patt)
             )
-        return Expression(
-            SymbolList, *[_search(re_patts, s, flags, matched) for s in py_s]
-        )
+        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
     else:
         py_s = string.get_string_value()
         if py_s is None:

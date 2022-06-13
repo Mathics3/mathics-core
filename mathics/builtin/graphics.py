@@ -43,7 +43,7 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import (
     Symbol,
     system_symbols,
@@ -293,8 +293,8 @@ class Graphics(Builtin):
             head = content.get_head()
 
             if head is SymbolList:
-                return to_expression(
-                    SymbolList, *[convert(item) for item in content.elements]
+                return to_mathics_list(
+                    *content.elements, elements_conversion_fn=convert
                 )
             elif head is Symbol("System`Style"):
                 return to_expression(

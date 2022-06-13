@@ -1,7 +1,6 @@
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolList,
     SymbolPlus,
     SymbolPower,
     SymbolTimes,
@@ -9,7 +8,7 @@ from mathics.core.symbols import (
 
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.rules import Pattern
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,
@@ -440,9 +439,7 @@ def series_derivative(series, x, x0, y, evaluation):
         if dcoeffs:
             return reduce_series_trailing_zeros(
                 (
-                    Expression(
-                        SymbolList, *[coeff.evaluate(evaluation) for coeff in dcoeffs]
-                    ),
+                    to_mathics_list(*[coeff.evaluate(evaluation) for coeff in dcoeffs]),
                     nmin,
                     nmax,
                     den,

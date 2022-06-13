@@ -73,6 +73,7 @@ from mathics.core.systemsymbols import (
     SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
+    SymbolO,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -1996,10 +1997,9 @@ class SeriesData(Builtin):
                         Expression(SymbolPower, variable, powers[i]),
                     )
             expansion.append(term)
-        expansion = Expression(
-            SymbolList,
+        expansion = ListExpression(
             Expression(SymbolPlus, *expansion),
-            Expression(SymbolPower, Expression("O", variable), powers[-1]),
+            Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
         )
         return Expression(SymbolInfix, expansion, "+", 300, SymbolLeft)
 
@@ -2017,8 +2017,8 @@ class NIntegrate(Builtin):
        <dt>'NIntegrate[$expr$, $interval$]'
        <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
 
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+       <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+       <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]

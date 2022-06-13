@@ -14,8 +14,6 @@ from mathics.builtin.base import (
     BoxConstructError,
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression, to_expression
 from mathics.core.atoms import (
     Integer,
     Real,
@@ -23,11 +21,12 @@ from mathics.core.atoms import (
     String,
     from_python,
 )
-
-from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolApply
-
+from mathics.core.element import ImmutableValueMixin
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.number import machine_epsilon
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolApply
 
 SymbolOpacity = Symbol("Opacity")
 
@@ -417,13 +416,12 @@ class ColorDistance(Builtin):
                 return Expression(
                     SymbolApply,
                     distance_function,
-                    Expression(
-                        SymbolList,
-                        Expression(
-                            SymbolList, *[Real(val) for val in a.to_color_space("LAB")]
+                    ListExpression(
+                        to_mathics_list(
+                            *a.to_color_space("LAB"), elements_conversion_fn=Real
                         ),
-                        Expression(
-                            SymbolList, *[Real(val) for val in b.to_color_space("LAB")]
+                        to_mathics_list(
+                            *b.to_color_space("LAB"), elements_conversion_fn=Real
                         ),
                     ),
                 )
@@ -449,14 +447,11 @@ class ColorDistance(Builtin):
                         evaluation.message("ColorDistance", "invarg", c1, c2)
                         return
                     else:
-                        return Expression(
-                            SymbolList,
+                        return to_mathics_list(
                             *[distance(a, b) for a, b in zip(c1.elements, c2.elements)],
                         )
                 else:
-                    return Expression(
-                        SymbolList, *[distance(c, c2) for c in c1.elements]
-                    )
+                    return to_mathics_list(*[distance(c, c2) for c in c1.elements])
             elif c2.get_head_name() == "System`List":
                 return ListExpression(*[distance(c1, c) for c in c2.elements])
             else:

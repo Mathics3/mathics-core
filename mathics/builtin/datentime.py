@@ -22,7 +22,7 @@ from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, to_expression
 from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolInfinity,
@@ -681,7 +681,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         # tz = Expression("ToString", tz).evaluate(evaluation)
         tz_string = String(str(int(tz.to_python())))
         return to_expression(
-            SymbolRowBox, to_expression(SymbolList, "[", fmtds, "  GTM", tz_string, "]")
+            SymbolRowBox, to_mathics_list("[", fmtds, "  GTM", tz_string, "]")
         )
 
 
@@ -768,8 +768,8 @@ class DatePlus(Builtin):
             return
 
         if isinstance(date_prec, int):
-            result = Expression(
-                SymbolList, *[Integer(i) for i in idate.to_list()[:date_prec]]
+            result = to_mathics_list(
+                *idate.to_list()[:date_prec], elements_conversion_fn=Integer
             )
         elif date_prec == "absolute":
             result = Expression(SymbolAbsoluteTime, idate.to_list())
