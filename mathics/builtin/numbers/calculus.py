@@ -73,6 +73,7 @@ from mathics.core.systemsymbols import (
     SymbolLeft,
     SymbolLog,
     SymbolNIntegrate,
+    SymbolO,
     SymbolRule,
     SymbolSequence,
     SymbolSeries,
@@ -2006,7 +2007,7 @@ class SeriesData(Builtin):
         expansion = Expression(
             SymbolList,
             Expression(SymbolPlus, *expansion),
-            Expression(SymbolPower, Expression("O", variable), powers[-1]),
+            Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
         )
         return Expression(SymbolInfix, expansion, "+", 300, SymbolLeft)
 
