@@ -25,7 +25,7 @@ jobs:
         # sudo /usr/lib/llvm-11/bin/llvm-config --version
         sudo pyston -m pip install --upgrade pip
         sudo LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config  pyston -m pip install llvmlite
-    - name: Install Mathics with minimal dependencies
+    - name: Install Mathics with full dependencies
       run: |
         make develop-full
     - name: Test Mathics
