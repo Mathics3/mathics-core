@@ -21,13 +21,13 @@ jobs:
         sudo dpkg -i pyston_2.3.4_20.04_amd64.deb
     - name: Install dependencies
       run: |
-        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-11 llvm-11-dev
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-11 llvm-11-dev libxml2-dev libxslt-dev
         # sudo /usr/lib/llvm-11/bin/llvm-config --version
         sudo pyston -m pip install --upgrade pip
         sudo LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config  pyston -m pip install llvmlite
     - name: Install Mathics with minimal dependencies
       run: |
-        make develop
+        make develop-full
     - name: Test Mathics
       run: |
         # py.test seems to use always the default python interpreter of the system. Any idea about how to
