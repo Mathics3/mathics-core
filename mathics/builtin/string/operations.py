@@ -1138,7 +1138,7 @@ class StringTake(Builtin):
             if result is None:
                 return None
             result_list.append(result)
-        return Expression("List", *result_list)
+        return ListExpression(*result_list)
 
 
 class StringTrim(Builtin):

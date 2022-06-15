@@ -32,7 +32,7 @@ from mathics.builtin.base import MessageException
 from mathics.builtin.box.inout import RowBox
 
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0
+from mathics.core.atoms import Integer, Integer0, Integer1
 from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -211,7 +211,7 @@ class Cases(Builtin):
         if ls.has_form("Rule", 2):
             if ls.leaves[0].get_name() == "System`Heads":
                 heads = ls.leaves[1] is SymbolTrue
-                ls = Expression("List", 1)
+                ls = ListExpression(Integer1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
