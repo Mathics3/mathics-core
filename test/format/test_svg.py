@@ -3,6 +3,8 @@ from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer0, Integer1
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
+from mathics.core.systemsymbols import SymbolPoint
 from mathics.session import MathicsSession
 from mathics.builtin.inout import MakeBoxes
 from mathics.core.formatter import lookup_method
@@ -53,7 +55,7 @@ def get_svg(expression):
 def test_svg_circle():
     expression = Expression(
         GraphicsSymbol,
-        Expression("Circle", Expression(ListSymbol, Integer0, Integer0)),
+        Expression(Symbol("Circle"), Expression(ListSymbol, Integer0, Integer0)),
     )
 
     svg = get_svg(expression)
@@ -71,7 +73,7 @@ def test_svg_circle():
 def test_svg_point():
     expression = Expression(
         GraphicsSymbol,
-        Expression("Point", Expression(ListSymbol, Integer0, Integer0)),
+        Expression(SymbolPoint, ListExpression(Integer0, Integer0)),
     )
 
     svg = get_svg(expression)
@@ -89,11 +91,10 @@ def test_svg_arrowbox():
     expression = Expression(
         GraphicsSymbol,
         Expression(
-            "Arrow",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("Arrow"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )
@@ -113,11 +114,10 @@ def test_svg_bezier_curve():
     expression = Expression(
         GraphicsSymbol,
         Expression(
-            "BezierCurve",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("BezierCurve"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )

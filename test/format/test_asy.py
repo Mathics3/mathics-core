@@ -3,14 +3,14 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer0, Integer1
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
+from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
 from mathics.session import MathicsSession
 from mathics.builtin.inout import MakeBoxes
 
 session = MathicsSession(add_builtin=True, catch_interrupt=False)
 evaluation = Evaluation(session.definitions)
 
-GraphicsSymbol = Symbol("Graphics")
-ListSymbol = Symbol("List")
 
 asy_wrapper_pat = r"""^\s*
 \s*\\begin{asy}
@@ -35,8 +35,8 @@ def get_asy(expression):
 
 def test_asy_circle():
     expression = Expression(
-        GraphicsSymbol,
-        Expression("Circle", Expression(ListSymbol, Integer0, Integer0)),
+        SymbolGraphics,
+        Expression(Symbol("Circle"), ListExpression(Integer0, Integer0)),
     )
 
     asy = get_asy(expression)
@@ -55,8 +55,8 @@ def test_asy_circle():
 
 def test_asy_point():
     expression = Expression(
-        GraphicsSymbol,
-        Expression("Point", Expression(ListSymbol, Integer0, Integer0)),
+        SymbolGraphics,
+        Expression(SymbolPoint, ListExpression(Integer0, Integer0)),
     )
 
     asy = get_asy(expression)
@@ -73,13 +73,12 @@ def test_asy_point():
 
 def test_asy_arrowbox():
     expression = Expression(
-        GraphicsSymbol,
+        SymbolGraphics,
         Expression(
-            "Arrow",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("Arrow"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )
@@ -94,13 +93,12 @@ def test_asy_arrowbox():
 def test_asy_bezier_curve():
 
     expression = Expression(
-        GraphicsSymbol,
+        SymbolGraphics,
         Expression(
-            "BezierCurve",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("BezierCurve"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )

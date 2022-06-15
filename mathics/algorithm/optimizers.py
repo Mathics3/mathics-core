@@ -17,10 +17,16 @@ from mathics.core.atoms import (
     from_python,
 )
 
-from mathics.core.symbols import SymbolTrue, BaseElement
+from mathics.core.symbols import (
+    BaseElement,
+    SymbolPlus,
+    SymbolTimes,
+    SymbolTrue,
+)
 
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolD,
     SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
@@ -62,7 +68,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         else:
             return x0, False
     d1 = dynamic_scoping(
-        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
+        lambda ev: Expression(SymbolD, f, x).evaluate(ev), {x_name: None}, evaluation
     )
     val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
     if not isinstance(val_d1, Number):
@@ -76,7 +82,9 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         )
     else:
         d2 = dynamic_scoping(
-            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
+            lambda ev: Expression(SymbolD, d1, x).evaluate(ev),
+            {x_name: None},
+            evaluation,
         )
         val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
         if not isinstance(val_d2, Number):
@@ -207,12 +215,14 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
     while count < maxit:
         if f0 == f1:
             x1 = Expression(
-                "Plus",
+                SymbolPlus,
                 x0,
                 Expression(
-                    "Times",
+                    SymbolTimes,
                     Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
+                    Expression(
+                        SymbolPlus, x1, Expression(SymbolTimes, Integer(-1), x0)
+                    ),
                 ),
             )
             x1 = x1.evaluate(evaluation)
@@ -226,11 +236,11 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
         inv_deltaf = from_python(1.0 / (f1 - f0))
         num = Expression(
-            "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
+            SymbolPlus,
+            Expression(SymbolTimes, x0, f1),
+            Expression(SymbolTimes, x1, f0, Integer(-1)),
         )
-        x2 = Expression("Times", num, inv_deltaf)
+        x2 = Expression(SymbolTimes, num, inv_deltaf)
         x2 = x2.evaluate(evaluation)
         f2 = dynamic_scoping(
             lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
@@ -322,9 +332,9 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
             return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
+        x1 = Expression(
+            SymbolPlus, x0, Expression(SymbolTimes, Integer(-1), minus)
+        ).evaluate(evaluation)
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
