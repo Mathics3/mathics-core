@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 import sys
+from mathics.builtin import check_requires_list
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
-if IS_PYPY:
+if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
     raise ImportError
 
 import numpy as np

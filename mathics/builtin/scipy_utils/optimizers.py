@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import sys
 
+from mathics.builtin import check_requires_list
+
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.atoms import Number, Real
@@ -12,8 +14,9 @@ from mathics.core.evaluators import apply_N
 SymbolCompile = Symbol("Compile")
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
-if IS_PYPY:
+if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
     raise ImportError
+
 
 from scipy.optimize import (
     minimize_scalar,
