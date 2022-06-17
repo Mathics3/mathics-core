@@ -42,6 +42,31 @@ from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, Symbol
 from mathics.core.attributes import protected, read_protected
 
 
+# This global dict stores which libraries was required to
+# be available, and the corresponding result.
+requires_lib_cache = {}
+
+
+def check_requires_list(requires: list) -> bool:
+    """
+    Check if module names in ``requires`` can be imported and return True if they can or False if not.
+
+    This state value is also recorded in dictionary `requires_lib_cache` keyed by module name and is used to determine whether to skip trying to get information from the module."""
+    for package in requires:
+        lib_is_installed = requires_lib_cache.get(package, None)
+        if lib_is_installed is None:
+            lib_is_installed = True
+            try:
+                importlib.import_module(package)
+            except ImportError:
+                lib_is_installed = False
+            requires_lib_cache[package] = lib_is_installed
+
+        if not lib_is_installed:
+            return False
+    return True
+
+
 def get_option(options, name, evaluation, pop=False, evaluate=True):
     # we do not care whether an option X is given as System`X,
     # Global`X, or with any prefix from $ContextPath for that
@@ -407,7 +432,6 @@ class Builtin:
         unavailable_function = self._get_unavailable_function()
         for name in dir(self):
             if name.startswith(prefix):
-
                 function = getattr(self, name)
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
@@ -439,25 +463,23 @@ class Builtin:
     def get_option(options, name, evaluation, pop=False):
         return get_option(options, name, evaluation, pop)
 
-    def _get_unavailable_function(self):
+    def _get_unavailable_function(self) -> "Optional[function]":
+        """
+        If some of the required libraries for a symbol are not available,
+        returns a default function that override the ``apply_`` methods
+        of the class. Otherwise, returns ``None``.
+        """
+
+        def apply_unavailable(**kwargs):  # will override apply method
+            kwargs["evaluation"].message(
+                "General",
+                "pyimport",  # see inout.py
+                strip_context(self.get_name()),
+                package,
+            )
+
         requires = getattr(self, "requires", [])
-
-        for package in requires:
-            try:
-                importlib.import_module(package)
-            except ImportError:
-
-                def apply(**kwargs):  # will override apply method
-                    kwargs["evaluation"].message(
-                        "General",
-                        "pyimport",  # see inout.py
-                        strip_context(self.get_name()),
-                        package,
-                    )
-
-                return apply
-
-        return None
+        return None if check_requires_list(requires) else apply_unavailable
 
     def get_option_string(self, *params):
         s = self.get_option(*params)
