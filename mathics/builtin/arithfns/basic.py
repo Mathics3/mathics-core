@@ -357,7 +357,7 @@ class Plus(BinaryOperator, SympyFunction):
                 op = "-"
             else:
                 op = "+"
-            values.append(Expression(SymbolHoldForm, item))
+            values.append(to_expression(SymbolHoldForm, item))
             ops.append(String(op))
         return Expression(
             SymbolInfix,
