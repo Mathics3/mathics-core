@@ -34,6 +34,7 @@ from mathics.builtin.base import (
     SympyObject,
     Operator,
     PatternObject,
+    check_requires_list,
 )
 
 

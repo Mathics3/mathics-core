@@ -1,0 +1,35 @@
+name: Mathics (ubuntu full with Pyston)
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        pyston-version: [2.3.4]
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Pyston ${{ matrix.pyston-version }}
+      run: |
+        wget https://github.com/pyston/pyston/releases/download/pyston_2.3.4/pyston_2.3.4_20.04_amd64.deb
+        sudo apt-get install tk8.6-blt2.5 libffi7
+        sudo dpkg -i pyston_2.3.4_20.04_amd64.deb
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq && sudo apt-get install -qq liblapack-dev llvm-11 llvm-11-dev
+        # sudo /usr/lib/llvm-11/bin/llvm-config --version
+        sudo pyston -m pip install --upgrade pip
+        sudo LLVM_CONFIG=/usr/lib/llvm-11/bin/llvm-config  pyston -m pip install llvmlite
+    - name: Install Mathics with minimal dependencies
+      run: |
+        make develop
+    - name: Test Mathics
+      run: |
+        # py.test seems to use always the default python interpreter of the system. Any idea about how to
+        # change this behaviour?
+        make -j3 PYTHON=pyston doctest
