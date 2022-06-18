@@ -678,7 +678,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         fmtds = Expression(SymbolDateString, datetime, fmt).evaluate(evaluation)
         if fmtds is None:
             return
-        # tz = Expression("ToString", tz).evaluate(evaluation)
+        # tz_string = to_mathic_expression("ToString", tz).evaluate(evaluation)
         tz_string = String(str(int(tz.to_python())))
         return to_expression(
             SymbolRowBox, to_mathics_list("[", fmtds, "  GTM", tz_string, "]")

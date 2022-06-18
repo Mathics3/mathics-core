@@ -15,18 +15,6 @@ from typing import Optional, Tuple
 
 from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
 from mathics.builtin.box.image import ImageBox
-from mathics.core.atoms import (
-    Atom,
-    Integer,
-    Integer0,
-    Integer1,
-    MachineReal,
-    Rational,
-    Real,
-    SymbolDivide,
-    from_python,
-)
-from mathics.core.expression import Expression
 from mathics.builtin.colors.color_internals import (
     convert_color,
     colorspaces as known_colorspaces,
@@ -41,9 +29,27 @@ from mathics.builtin.drawing.image_internals import (
     numpy_flip,
     convolve,
 )
+
+from mathics.core.atoms import (
+    Atom,
+    Integer,
+    Integer0,
+    Integer1,
+    MachineReal,
+    Rational,
+    Real,
+    SymbolDivide,
+    from_python,
+)
+from mathics.core.expression import Expression
 from mathics.core.list import to_mathics_list, ListExpression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
+
+SymbolColorQuantize = Symbol("ColorQuantize")
+SymbolImage = Symbol("Image")
+SymbolMatrixQ = Symbol("MatrixQ")
+SymbolThreshold = Symbol("Threshold")
 
 
 _image_requires = ("numpy", "PIL")
@@ -1309,7 +1315,7 @@ class ColorQuantize(_ImageBuiltin):
         py_value = n.value
         if py_value <= 0:
             return evaluation.message(
-                "ColorQuantize", "intp", Expression("ColorQuantize", image, n), 2
+                "ColorQuantize", "intp", Expression(SymbolColorQuantize, image, n), 2
             )
         converted = image.color_convert("RGB")
         if converted is None:
@@ -1397,7 +1403,9 @@ class Binarize(_SkimageBuiltin):
     def apply(self, image, evaluation):
         "Binarize[image_Image]"
         image = image.grayscale()
-        thresh = Expression("Threshold", image).evaluate(evaluation).round_to_float()
+        thresh = (
+            Expression(SymbolThreshold, image).evaluate(evaluation).round_to_float()
+        )
         if thresh is not None:
             return Image(image.pixels > thresh, "Grayscale")
 
@@ -1458,7 +1466,10 @@ class ColorCombine(_ImageBuiltin):
 
         numpy_channels = []
         for channel in channels.elements:
-            if not Expression("MatrixQ", channel).evaluate(evaluation) is SymbolTrue:
+            if (
+                not Expression(SymbolMatrixQ, channel).evaluate(evaluation)
+                is SymbolTrue
+            ):
                 return
             numpy_channels.append(matrix_to_numpy(channel))
 
@@ -1532,7 +1543,7 @@ class Colorize(_ImageBuiltin):
             pixels = values.grayscale().pixels
             matrix = pixels_as_ubyte(pixels.reshape(pixels.shape[:2]))
         else:
-            if not Expression("MatrixQ", values).evaluate(evaluation) is SymbolTrue:
+            if not Expression(SymbolMatrixQ, values).evaluate(evaluation) is SymbolTrue:
                 return
             matrix = matrix_to_numpy(values)
 
@@ -1833,7 +1844,7 @@ class ImageChannels(_ImageBuiltin):
 class ImageType(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageType[$image$]'
+      <dt>'ImageType[$image$]'
       <dd>gives the interval storage type of $image$, e.g. "Real", "Bit32", or "Bit".
     </dl>
 
@@ -2108,8 +2119,7 @@ class Image(Atom):
             return str(dtype)
 
     def options(self):
-        return Expression(
-            "List",
+        return ListExpression(
             Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
             Expression(SymbolRule, String("MetaInformation"), self.metadata),
         )
@@ -2140,7 +2150,7 @@ class ImageAtom(AtomBuiltin):
             is_rgb = len(shape) == 3 and shape[2] in (3, 4)
             return Image(pixels.clip(0, 1), "RGB" if is_rgb else "Grayscale")
         else:
-            return Expression("Image", array)
+            return Expression(SymbolImage, array)
 
 
 # complex operations

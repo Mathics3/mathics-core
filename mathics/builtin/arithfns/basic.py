@@ -319,7 +319,7 @@ class Plus(BinaryOperator, SympyFunction):
     def format_plus(self, items, evaluation):
         "Plus[items__]"
 
-        def negate(item):
+        def negate(item):  # -> Expression (see FIXME below)
             if item.has_form("Times", 1, None):
                 if isinstance(item.elements[0], Number):
                     neg = -item.elements[0]
@@ -333,11 +333,13 @@ class Plus(BinaryOperator, SympyFunction):
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
+                # FIXME: Isn't this is the wrong type? We should be
+                # returning an Expression,
                 return -item.to_sympy()
             else:
                 return Expression(SymbolTimes, IntegerM1, item)
 
-        def is_negative(value):
+        def is_negative(value) -> bool:
             if isinstance(value, Complex):
                 real, imag = value.to_sympy().as_real_imag()
                 if real <= 0 and imag <= 0:
@@ -346,18 +348,18 @@ class Plus(BinaryOperator, SympyFunction):
                 return True
             return False
 
-        items = items.get_sequence()
-        values = [to_expression(SymbolHoldForm, item) for item in items[:1]]
+        elements = items.get_sequence()
+        values = [to_expression(SymbolHoldForm, element) for element in elements[:1]]
         ops = []
-        for item in items[1:]:
+        for element in elements[1:]:
             if (
-                item.has_form("Times", 1, None) and is_negative(item.elements[0])
-            ) or is_negative(item):
-                item = negate(item)
+                element.has_form("Times", 1, None) and is_negative(element.elements[0])
+            ) or is_negative(element):
+                element = negate(element)
                 op = "-"
             else:
                 op = "+"
-            values.append(Expression(SymbolHoldForm, item))
+            values.append(Expression(SymbolHoldForm, element))
             ops.append(String(op))
         return Expression(
             SymbolInfix,
