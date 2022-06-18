@@ -3,6 +3,7 @@
 Structural Operations
 """
 
+from typing import Iterable
 
 from mathics.builtin.base import (
     Builtin,
@@ -18,7 +19,7 @@ from mathics.core.atoms import (
     Rational,
 )
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
@@ -28,7 +29,7 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 
-from mathics.core.systemsymbols import SymbolDirectedInfinity
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap, SymbolRule
 
 from mathics.builtin.lists import (
     python_levelspec,
@@ -44,6 +45,10 @@ else:
     from .pympler.asizeof import asizeof as count_bytes
 
     bytecount_support = True
+
+SymbolMapThread = Symbol("MapThread")
+SymbolOperate = Symbol("Operate")
+SymbolSortBy = Symbol("SortBy")
 
 
 class Sort(Builtin):
@@ -126,15 +131,16 @@ class SortBy(Builtin):
     = {{10, -9}, {5, 1}}
     """
 
-    summary_text = "sort by the values of a function applied to elements"
-    rules = {
-        "SortBy[f_]": "SortBy[#, f]&",
-    }
-
     messages = {
         "list": "List expected at position `2` in `1`.",
         "func": "Function expected at position `2` in `1`.",
     }
+
+    rules = {
+        "SortBy[f_]": "SortBy[#, f]&",
+    }
+
+    summary_text = "sort by the values of a function applied to elements"
 
     def apply(self, li, f, evaluation):
         "SortBy[li_, f_]"
@@ -142,10 +148,10 @@ class SortBy(Builtin):
         if isinstance(li, Atom):
             return evaluation.message("Sort", "normal")
         elif li.get_head_name() != "System`List":
-            expr = Expression("SortBy", li, f)
+            expr = Expression(SymbolSortBy, li, f)
             return evaluation.message(self.get_name(), "list", expr, 1)
         else:
-            keys_expr = Expression("Map", f, li).evaluate(evaluation)  # precompute:
+            keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
             # even though our sort function has only (n log n) comparisons, we should
             # compute f no more than n times.
 
@@ -154,7 +160,7 @@ class SortBy(Builtin):
                 or keys_expr.get_head_name() != "System`List"
                 or len(keys_expr.elements) != len(li.elements)
             ):
-                expr = Expression("SortBy", li, f)
+                expr = Expression(SymbolSortBy, li, f)
                 return evaluation.message("SortBy", "func", expr, 2)
 
             keys = keys_expr.elements
@@ -212,12 +218,13 @@ class BinarySearch(Builtin):
      = 2
     """
 
-    summary_text = "search a sorted list for a key"
     context = "CombinatoricaOld`"
 
     rules = {
         "CombinatoricaOld`BinarySearch[l_List, k_] /; Length[l] > 0": "CombinatoricaOld`BinarySearch[l, k, Identity]"
     }
+
+    summary_text = "search a sorted list for a key"
 
     def apply(self, l, k, f, evaluation):
         "CombinatoricaOld`BinarySearch[l_List, k_, f_] /; Length[l] > 0"
@@ -380,33 +387,37 @@ class Head(Builtin):
 class ApplyLevel(BinaryOperator):
     """
     <dl>
-    <dt>'ApplyLevel[$f$, $expr$]'
-    <dt>'$f$ @@@ $expr$'
-        <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
+      <dt>'ApplyLevel[$f$, $expr$]'
+
+      <dt>'$f$ @@@ $expr$'
+      <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
     </dl>
 
     >> f @@@ {{a, b}, {c, d}}
      = {f[a, b], f[c, d]}
     """
 
-    summary_text = "apply a function to a list, at the top level"
+    grouping = "Right"
     operator = "@@@"
     precedence = 620
-    grouping = "Right"
 
     rules = {
         "ApplyLevel[f_, expr_]": "Apply[f, expr, {1}]",
     }
 
+    summary_text = "apply a function to a list, at the top level"
+
 
 class Apply(BinaryOperator):
     """
     <dl>
-    <dt>'Apply[$f$, $expr$]'
-    <dt>'$f$ @@ $expr$'
-        <dd>replaces the head of $expr$ with $f$.
-    <dt>'Apply[$f$, $expr$, $levelspec$]'
-        <dd>applies $f$ on the parts specified by $levelspec$.
+      <dt>'Apply[$f$, $expr$]'
+
+      <dt>'$f$ @@ $expr$'
+      <dd>replaces the head of $expr$ with $f$.
+
+      <dt>'Apply[$f$, $expr$, $levelspec$]'
+      <dd>applies $f$ on the parts specified by $levelspec$.
     </dl>
 
     >> f @@ {1, 2, 3}
@@ -477,10 +488,11 @@ class Apply(BinaryOperator):
 class Map(BinaryOperator):
     """
     <dl>
-    <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
-        <dd>applies $f$ to each part on the first level of $expr$.
-    <dt>'Map[$f$, $expr$, $levelspec$]'
-        <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
+      <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
+      <dd>applies $f$ to each part on the first level of $expr$.
+
+      <dt>'Map[$f$, $expr$, $levelspec$]'
+      <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
     >> f /@ {1, 2, 3}
@@ -539,8 +551,10 @@ class MapAt(Builtin):
     <dl>
       <dt>'MapAt[$f$, $expr$, $n$]'
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
+
       <dt>'MapAt[f, $exp$r, {$i$, $j$ ...}]'
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
+
       <dt>'MapAt[$f$,$pos$]'
       <dd>represents an operator form of MapAt that can be applied to an expression.
     </dl>
@@ -592,7 +606,7 @@ class MapAt(Builtin):
                 "System`Rule"
             ):
                 new_elements[j] = Expression(
-                    "System`Rule",
+                    SymbolRule,
                     replace_leaf.elements[0],
                     Expression(f, replace_leaf.elements[1]),
                 )
@@ -616,9 +630,10 @@ class MapAt(Builtin):
 class Scan(Builtin):
     """
     <dl>
-    <dt>'Scan[$f$, $expr$]'
+      <dt>'Scan[$f$, $expr$]'
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
-    <dt>'Scan[$f$, $expr$, $levelspec$]
+
+      <dt>'Scan[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
@@ -676,11 +691,11 @@ class Scan(Builtin):
 class MapIndexed(Builtin):
     """
     <dl>
-    <dt>'MapIndexed[$f$, $expr$]'
-        <dd>applies $f$ to each part on the first level of $expr$, including the part positions
-        in the call to $f$.
-    <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
-        <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
+      <dt>'MapIndexed[$f$, $expr$]'
+      <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
+
+      <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
+      <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
 
     >> MapIndexed[f, {a, b, c}]
@@ -733,8 +748,10 @@ class MapIndexed(Builtin):
             evaluation.message("MapIndexed", "level", ls)
             return
 
-        def callback(level, pos):
-            return Expression(f, level, Expression("List", *[Integer(p) for p in pos]))
+        def callback(level, pos: Iterable):
+            return Expression(
+                f, level, to_mathics_list(*pos, elements_conversion_fn=Integer)
+            )
 
         heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
         result, depth = walk_levels(
@@ -747,9 +764,10 @@ class MapIndexed(Builtin):
 class MapThread(Builtin):
     """
     <dl>
-    <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
+      <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
       <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
-    <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
+
+      <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
       <dd>applies $f$ at level $n$.
     </dl>
 
@@ -803,9 +821,9 @@ class MapThread(Builtin):
 
         if n is None:
             n = 1
-            full_expr = Expression("MapThread", f, expr)
+            full_expr = Expression(SymbolMapThread, f, expr)
         else:
-            full_expr = Expression("MapThread", f, expr, n)
+            full_expr = Expression(SymbolMapThread, f, expr, n)
             n = n.get_int_value()
 
         if n is None or n < 0:
@@ -841,8 +859,7 @@ class MapThread(Builtin):
                             dim,
                             len(arg.elements),
                         )
-                return Expression(
-                    "List",
+                return ListExpression(
                     *[
                         walk([arg.elements[i] for arg in args], depth + 1)
                         for i in range(dim)
@@ -858,10 +875,11 @@ class MapThread(Builtin):
 class Thread(Builtin):
     """
     <dl>
-    <dt>'Thread[$f$[$args$]]'
-        <dd>threads $f$ over any lists that appear in $args$.
-    <dt>'Thread[$f$[$args$], $h$]'
-        <dd>threads over any parts with head $h$.
+      <dt>'Thread[$f$[$args$]]'
+      <dd>threads $f$ over any lists that appear in $args$.
+
+      <dt>'Thread[$f$[$args$], $h$]'
+      <dd>threads over any parts with head $h$.
     </dl>
 
     >> Thread[f[{a, b, c}]]
@@ -876,7 +894,6 @@ class Thread(Builtin):
      = {a + d + g, b + e + g, c + f + g}
     """
 
-    summary_text = '"thread" a function across lists that appear in its arguments'
     messages = {
         "tdlen": "Objects of unequal length cannot be combined.",
     }
@@ -884,6 +901,8 @@ class Thread(Builtin):
     rules = {
         "Thread[f_[args___]]": "Thread[f[args], List]",
     }
+
+    summary_text = '"thread" a function across lists that appear in its arguments'
 
     def apply(self, f, args, h, evaluation):
         "Thread[f_[args___], h_]"
@@ -897,9 +916,8 @@ class Thread(Builtin):
 class FreeQ(Builtin):
     """
     <dl>
-    <dt>'FreeQ[$expr$, $x$]'
-        <dd>returns 'True' if $expr$ does not contain the expression
-        $x$.
+      <dt>'FreeQ[$expr$, $x$]'
+      <dd>returns 'True' if $expr$ does not contain the expression $x$.
     </dl>
 
     >> FreeQ[y, x]
@@ -916,12 +934,13 @@ class FreeQ(Builtin):
      = True
     """
 
-    summary_text = (
-        "test whether an expression is free of subexpressions matching a pattern"
-    )
     rules = {
         "FreeQ[form_][expr_]": "FreeQ[expr, form]",
     }
+
+    summary_text = (
+        "test whether an expression is free of subexpressions matching a pattern"
+    )
 
     def apply(self, expr, form, evaluation):
         "FreeQ[expr_, form_]"
@@ -936,12 +955,14 @@ class FreeQ(Builtin):
 class Flatten(Builtin):
     """
     <dl>
-    <dt>'Flatten[$expr$]'
-        <dd>flattens out nested lists in $expr$.
-    <dt>'Flatten[$expr$, $n$]'
-        <dd>stops flattening at level $n$.
-    <dt>'Flatten[$expr$, $n$, $h$]'
-        <dd>flattens expressions with head $h$ instead of 'List'.
+      <dt>'Flatten[$expr$]'
+      <dd>flattens out nested lists in $expr$.
+
+      <dt>'Flatten[$expr$, $n$]'
+      <dd>stops flattening at level $n$.
+
+      <dt>'Flatten[$expr$, $n$, $h$]'
+      <dd>flattens expressions with head $h$ instead of 'List'.
     </dl>
 
     >> Flatten[{{a, b}, {c, {d}, e}, {f, {g, h}}}]
@@ -994,12 +1015,6 @@ class Flatten(Builtin):
      = Flatten[{{1, 2}, {3, {4}}}, {{1, 2, 3}}, List]
     """
 
-    summary_text = "flatten out any sequence of levels in a nested list"
-    rules = {
-        "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
-        "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
-    }
-
     messages = {
         "flpi": (
             "Levels to be flattened together in `1` "
@@ -1011,6 +1026,13 @@ class Flatten(Builtin):
             "which can be flattened together in `4`."
         ),
     }
+
+    rules = {
+        "Flatten[expr_]": "Flatten[expr, Infinity, Head[expr]]",
+        "Flatten[expr_, n_]": "Flatten[expr, n, Head[expr]]",
+    }
+
+    summary_text = "flatten out any sequence of levels in a nested list"
 
     def apply_list(self, expr, n, h, evaluation):
         "Flatten[expr_, n_List, h_]"
@@ -1215,7 +1237,7 @@ class Operate(Builtin):
         head_depth = n.get_int_value()
         if head_depth is None or head_depth < 0:
             return evaluation.message(
-                "Operate", "intnn", Expression("Operate", p, expr, n), 3
+                "Operate", "intnn", Expression(SymbolOperate, p, expr, n), 3
             )
 
         if head_depth == 0:
@@ -1246,8 +1268,8 @@ class Operate(Builtin):
 class Through(Builtin):
     """
     <dl>
-    <dt>'Through[$p$[$f$][$x$]]'
-        <dd>gives $p$[$f$[$x$]].
+      <dt>'Through[$p$[$f$][$x$]]'
+      <dd>gives $p$[$f$[$x$]].
     </dl>
 
     >> Through[f[g][x]]
@@ -1261,17 +1283,17 @@ class Through(Builtin):
     def apply(self, p, args, x, evaluation):
         "Through[p_[args___][x___]]"
 
-        items = []
-        for leaf in args.get_sequence():
-            items.append(Expression(leaf, *x.get_sequence()))
-        return Expression(p, *items)
+        elements = []
+        for element in args.get_sequence():
+            elements.append(Expression(element, *x.get_sequence()))
+        return Expression(p, *elements)
 
 
 class ByteCount(Builtin):
     """
     <dl>
-    <dt>'ByteCount[$expr$]'
-        <dd>gives the internal memory space used by $expr$, in bytes.
+      <dt>'ByteCount[$expr$]'
+      <dd>gives the internal memory space used by $expr$, in bytes.
     </dl>
 
     The results may heavily depend on the Python implementation in use.

@@ -7,12 +7,11 @@ Plotting functions take a function as a parameter and data, often a range of poi
 
 
 from math import sin, cos, pi, sqrt, isnan, isinf
-import numbers
 import itertools
+import numbers
 import palettable
 
 
-from mathics.core.evaluators import apply_N
 from mathics.builtin.numeric import chop
 from mathics.builtin.base import Builtin
 from mathics.builtin.graphics import Graphics
@@ -30,6 +29,7 @@ from mathics.core.atoms import (
     from_python,
 )
 from mathics.core.attributes import hold_all, protected
+from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
@@ -39,6 +39,7 @@ from mathics.core.systemsymbols import (
     SymbolEdgeForm,
     SymbolFunction,
     SymbolGraphics,
+    SymbolGraphics3D,
     SymbolGrid,
     SymbolMessageName,
     SymbolMap,
@@ -54,9 +55,14 @@ from mathics.core.systemsymbols import (
 
 RealPoint6 = Real(0.6)
 RealPoint2 = Real(0.2)
+
+SymbolColorDataFunction = Symbol("ColorDataFunction")
+SymbolDisk = Symbol("Disk")
+SymbolFaceForm = Symbol("FaceForm")
 SymbolHue = Symbol("Hue")
 SymbolLine = Symbol("Line")
 SymbolRectangle = Symbol("Rectangle")
+SymbolText = Symbol("Text")
 
 try:
     from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
@@ -113,8 +119,8 @@ class ColorDataFunction(Builtin):
 
 class _GradientColorScheme(object):
     def color_data_function(self, name):
-        colors = Expression(
-            "List", *[Expression(SymbolRGBColor, *color) for color in self.colors()]
+        colors = ListExpression(
+            *[Expression(SymbolRGBColor, *color) for color in self.colors()]
         )
         blend = Expression(
             SymbolFunction,
@@ -126,7 +132,7 @@ class _GradientColorScheme(object):
             ListExpression(Integer0, Integer1),
             blend,
         ]
-        return Expression("ColorDataFunction", *arguments)
+        return Expression(SymbolColorDataFunction, *arguments)
 
 
 class _PredefinedGradient(_GradientColorScheme):
@@ -821,7 +827,7 @@ class _Chart(Builtin):
                 return Expression(
                     SymbolGraphics,
                     ListExpression(
-                        Expression("FaceForm", color), Expression(SymbolRectangle)
+                        Expression(SymbolFaceForm, color), Expression(SymbolRectangle)
                     ),
                     Expression(
                         SymbolRule,
@@ -974,7 +980,7 @@ class PieChart(_Chart):
         segment_spacing = 0.0  # not yet implemented; needs real arc graphics
         radius_spacing = max(0.0, min(1.0, sector_spacing.leaves[1].round_to_float()))
 
-        def vector2(x, y):
+        def vector2(x, y) -> ListExpression:
             return ListExpression(Real(x), Real(y))
 
         def radii():
@@ -1020,25 +1026,27 @@ class PieChart(_Chart):
                 for k, (phi0, phi1) in enumerate(phis(values)):
                     yield Expression(
                         SymbolStyle,
-                        Expression("Disk", origin, radius, vector2(phi0, phi1)),
+                        Expression(SymbolDisk, origin, radius, vector2(phi0, phi1)),
                         color(k + 1, n),
                     )
 
                 if r1 > 0.0:
                     yield Expression(
                         SymbolStyle,
-                        Expression("Disk", origin, vector2(r1, r1)),
+                        Expression(SymbolDisk, origin, vector2(r1, r1)),
                         Symbol("White"),
                     )
 
         def labels(names):
-            yield Expression("FaceForm", Symbol("Black"))
+            yield Expression(SymbolFaceForm, Symbol("Black"))
 
             for values, (r0, r1) in zip(data, radii()):
                 for name, (phi0, phi1) in zip(names, phis(values)):
                     r = (r0 + r1) / 2.0
                     phi = (phi0 + phi1) / 2.0
-                    yield Expression("Text", name, vector2(r * cos(phi), r * sin(phi)))
+                    yield Expression(
+                        SymbolText, name, vector2(r * cos(phi), r * sin(phi))
+                    )
 
         graphics = list(segments())
 
@@ -1046,8 +1054,8 @@ class PieChart(_Chart):
         if chart_labels.get_head_name() == "System`List":
             graphics.extend(list(labels(chart_labels.leaves)))
 
-        options["System`PlotRange"] = Expression(
-            "List", vector2(-2.0, 2.0), vector2(-2.0, 2.0)
+        options["System`PlotRange"] = ListExpression(
+            vector2(-2.0, 2.0), vector2(-2.0, 2.0)
         )
 
         return Expression(
@@ -1105,7 +1113,7 @@ class BarChart(_Chart):
     )
 
     def _draw(self, data, color, evaluation, options):
-        def vector2(x, y):
+        def vector2(x, y) -> ListExpression:
             return to_mathics_list(x, y)
 
         def boxes():
@@ -1147,7 +1155,7 @@ class BarChart(_Chart):
             )
 
         def axes():
-            yield Expression("FaceForm", Symbol("Black"))
+            yield Expression(SymbolFaceForm, Symbol("Black"))
 
             def points(x):
                 return ListExpression(vector2(x, 0), vector2(x, Real(-0.2)))
@@ -1159,12 +1167,14 @@ class BarChart(_Chart):
                     yield Expression(SymbolLine, points(x1))
 
         def labels(names):
-            yield Expression("FaceForm", Symbol("Black"))
+            yield Expression(SymbolFaceForm, Symbol("Black"))
 
             for (k, n), x0, x1, y in boxes():
                 if k <= len(names):
                     name = names[k - 1]
-                    yield Expression("Text", name, vector2((x0 + x1) / 2, Real(-0.2)))
+                    yield Expression(
+                        SymbolText, name, vector2((x0 + x1) / 2, Real(-0.2))
+                    )
 
         x_coords = list(itertools.chain(*[[x0, x1] for (k, n), x0, x1, y in boxes()]))
         y_coords = [0] + [y for (k, n), x0, x1, y in boxes()]
@@ -2473,7 +2483,7 @@ class Plot3D(_Plot3D):
         for p1, p2, p3 in triangles:
             graphics.append(
                 Expression(
-                    "Polygon",
+                    SymbolPolygon,
                     ListExpression(
                         to_mathics_list(*p1),
                         to_mathics_list(*p2),
@@ -2497,7 +2507,7 @@ class Plot3D(_Plot3D):
 
     def final_graphics(self, graphics, options):
         return Expression(
-            "Graphics3D",
+            SymbolGraphics3D,
             ListExpression(*graphics),
             *options_to_rules(options, Graphics3D.options)
         )
@@ -2559,9 +2569,9 @@ class DensityPlot(_Plot3D):
         if color_function.get_name() == "System`Automatic":
             color_function = String("LakeColors")
         if color_function.get_string_value():
-            func = Expression("ColorData", color_function.get_string_value()).evaluate(
-                evaluation
-            )
+            func = Expression(
+                SymbolColorData, color_function.get_string_value()
+            ).evaluate(evaluation)
             if func.has_form("ColorDataFunction", 4):
                 color_function_min = func.leaves[2].leaves[0].round_to_float()
                 color_function_max = func.leaves[2].leaves[1].round_to_float()
@@ -2625,7 +2635,7 @@ class DensityPlot(_Plot3D):
 
         graphics.append(
             Expression(
-                "Polygon",
+                SymbolPolygon,
                 ListExpression(*points),
                 Expression(
                     SymbolRule,

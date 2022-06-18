@@ -176,7 +176,9 @@ def logical_expand_assumptions(assumptions_list, evaluation):
                     new_assumptions_list.append(Expression(SymbolNot, element))
                 continue
             if sentence.has_form("And", None):
-                elements = (Expression("Not", element) for element in sentence.elements)
+                elements = (
+                    Expression(SymbolNot, element) for element in sentence.elements
+                )
                 new_assumptions_list.append(Expression(SymbolOr, *elements))
                 continue
             if sentence.has_form("Implies", 2):

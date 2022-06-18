@@ -8,9 +8,11 @@ It is closely related to many other areas of mathematics and has many applicatio
 """
 
 
+from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
+from mathics.core.attributes import listable, numeric_function, orderless, protected
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
@@ -21,8 +23,6 @@ from mathics.core.symbols import (
     SymbolTimes,
     SymbolTrue,
 )
-from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.core.attributes import listable, numeric_function, orderless, protected
 from itertools import combinations
 
 SymbolBinomial = Symbol("Binomial")
@@ -456,7 +456,7 @@ class Subsets(Builtin):
     def apply_2(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
 
-        expr = Expression("Subsets", list, n)
+        expr = Expression(SymbolSubsets, list, n)
 
         if isinstance(list, Atom):
             return evaluation.message("Subsets", "normal", expr)
