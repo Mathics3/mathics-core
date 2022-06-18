@@ -10,7 +10,7 @@ from test.helper import evaluate
 
 # From How to check if a Python module exists without importing it:
 # https://stackoverflow.com/a/14050282/546218
-scipy_integrate = importlib.find_loader("scipy.integrate")
+scipy_integrate = importlib.util.find_spec("scipy.integrate")
 
 if scipy_integrate is not None:
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
