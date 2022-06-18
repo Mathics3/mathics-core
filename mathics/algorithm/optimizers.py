@@ -360,9 +360,11 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     return x0, True
 
 
+native_optimizer_messages = {}
+
 native_local_optimizer_methods = {
     "Automatic": find_minimum_newton1d,
-    "newton": find_minimum_newton1d,
+    "Newton": find_minimum_newton1d,
 }
 
 native_findroot_methods = {
@@ -370,6 +372,7 @@ native_findroot_methods = {
     "Newton": find_root_newton,
     "Secant": find_root_secant,
 }
+native_findroot_messages = {}
 
 
 def is_zero(
