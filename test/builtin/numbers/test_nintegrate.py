@@ -1,20 +1,18 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+NIntegrate[] tests
 
-
+This also
+"""
+import importlib
 import pytest
-from .helper import evaluate
+from test.helper import evaluate
 
+# From How to check if a Python module exists without importing it:
+# https://stackoverflow.com/a/14050282/546218
+scipy_integrate = importlib.find_loader("scipy.integrate")
 
-try:
-    import scipy.integrate
-
-    usescipy = True
-except:
-    usescipy = False
-
-
-if usescipy:
+if scipy_integrate is not None:
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [
