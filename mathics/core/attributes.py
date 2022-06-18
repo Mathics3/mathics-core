@@ -17,7 +17,7 @@
 # To remove an attribute you do:
 # attributes = ~ATTRIBUTE_NAME & attributes
 
-from typing import Dict, List
+from typing import Dict, Generator
 
 # fmt: off
 no_attributes     = 0b0000000000000000
@@ -83,7 +83,7 @@ attribute_string_to_number: Dict[str, int] = {
 }
 
 
-def attributes_bitset_to_list(attributes_bitset: int) -> List[int]:
+def attributes_bitset_to_list(attributes_bitset: int) -> Generator[int, None, None]:
     bit = 1
 
     while attributes_bitset >= bit:
