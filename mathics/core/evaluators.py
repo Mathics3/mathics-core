@@ -33,7 +33,7 @@ def apply_N(
     prec: BaseElement = SymbolMachinePrecision,
 ) -> BaseElement:
     """
-    Equivalent to Expression("N", expression).evaluate(evaluation)
+    Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
     result = apply_nvalues(evaluated_expression, prec, evaluation)

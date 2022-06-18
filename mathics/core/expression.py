@@ -10,7 +10,7 @@ from typing import Any, Callable, Iterable, Optional, Tuple, Union
 from itertools import chain
 from bisect import bisect_left
 
-from mathics.core.atoms import from_python, Number, Integer
+from mathics.core.atoms import from_python, Number, Integer, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
@@ -46,12 +46,12 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolAlternatives,
+    SymbolBlank,
     SymbolCondition,
     SymbolDirectedInfinity,
-    SymbolBlank,
     SymbolSequence,
+    SymbolUnevaluated,
 )
-from mathics.core.atoms import String
 
 # from mathics.core.util import timeit
 
@@ -1225,7 +1225,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if element.unevaluated:
                 if dirty_elements is None:
                     dirty_elements = list(new._elements)
-                dirty_elements[index] = Expression("Unevaluated", element)
+                dirty_elements[index] = Expression(SymbolUnevaluated, element)
 
         if dirty_elements:
             new = Expression(head)
@@ -1238,14 +1238,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     #  Now, let's see how much take each step for certain typical expressions:
     #  (assuming that "F" and "a1", ... "a100" are undefined symbols, and n0->0, n1->1,..., n99->99)
     #
-    #  Expr1: Expression("F", 1)                       (trivial evaluation to a short expression)
-    #  Expr2: Expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
-    #  Expr3: Expression("F", a0, a2, ...., a99)       (trivial evaluation to a long expression, with just undefined symbols)
-    #  Expr4: Expression("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
-    #  Expr5: Expression("Plus", 99,..., 0)            (nontrivial evaluation to a long expression, with just undefined symbols)
-    #  Expr6: Expression("Plus", a99,..., a0)          (nontrivial evaluation to a long expression, with just undefined symbols)
-    #  Expr7: Expression("Plus", n99,..., n0)          (nontrivial evaluation to a long expression, with just undefined symbols)
-    #  Expr8: Expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr1: to_expression("F", 1)                       (trivial evaluation to a short expression)
+    #  Expr2: to_expression("F", 0, 1, 2, .... 99)        (trivial evaluation to a long expression, with just numbers)
+    #  Expr3: to_expression("F", a0, a2, ...., a99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr4: to_expresion("F", n0, n2, ...., n99)       (trivial evaluation to a long expression, with just undefined symbols)
+    #  Expr5: to_expression("Plus", 99,..., 0)            (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr6: to_expression("Plus", a99,..., a0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr7: to_expression("Plus", n99,..., n0)          (nontrivial evaluation to a long expression, with just undefined symbols)
+    #  Expr8: to_expression("Plus", n1,..., n1)           (nontrivial evaluation to a long expression, with just undefined symbols)
     #
 
     def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:

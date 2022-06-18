@@ -22,8 +22,9 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
 from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
@@ -226,7 +227,7 @@ class ColorNegate(_ImageBuiltin):
         # Invert
         r, g, b = (1.0 - r, 1.0 - g, 1.0 - b)
         # Reconstitute
-        return Expression("RGBColor", Real(r), Real(g), Real(b))
+        return Expression(SymbolRGBColor, Real(r), Real(g), Real(b))
 
     def apply_for_image(self, image, evaluation):
         "ColorNegate[image_Image]"

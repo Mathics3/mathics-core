@@ -44,6 +44,7 @@ from mathics.core.systemsymbols import (
     SymbolMap,
     SymbolQuiet,
     SymbolPoint,
+    SymbolPolygon,
     SymbolRow,
     SymbolRule,
     SymbolRGBColor,
@@ -1608,9 +1609,11 @@ class _ListPlot(Builtin):
                         fill_area = list(segment)
                         fill_area.append([segment[-1][0], filling])
                         fill_area.append([segment[0][0], filling])
-                        graphics.append(Expression("Polygon", from_python(fill_area)))
+                        graphics.append(
+                            Expression(SymbolPolygon, from_python(fill_area))
+                        )
                 else:
-                    graphics.append(Expression("Point", from_python(segment)))
+                    graphics.append(Expression(SymbolPoint, from_python(segment)))
                     if filling is not None:
                         for point in segment:
                             graphics.append(

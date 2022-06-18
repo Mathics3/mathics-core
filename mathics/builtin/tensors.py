@@ -11,21 +11,21 @@ Mathics represents tensors of vectors and matrices as lists; tensors of any rank
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.core.expression import Expression
+from mathics.algorithm.parts import get_part
 from mathics.core.atoms import (
     Integer,
     String,
 )
+from mathics.builtin.base import Builtin, BinaryOperator
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
     SymbolFalse,
     SymbolTrue,
 )
-from mathics.core.rules import Pattern
 
-from mathics.algorithm.parts import get_part
 
 from mathics.core.attributes import flat, one_identity, protected
 
@@ -203,7 +203,7 @@ class Dimensions(Builtin):
     def apply(self, expr, evaluation):
         "Dimensions[expr_]"
 
-        return Expression("List", *[Integer(dim) for dim in get_dimensions(expr)])
+        return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
 class Dot(BinaryOperator):

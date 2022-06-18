@@ -7,8 +7,9 @@ Methods for constructing Matrices.
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer0
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 
 
 class DiagonalMatrix(Builtin):
@@ -38,8 +39,8 @@ class DiagonalMatrix(Builtin):
         for index, item in enumerate(list.leaves):
             row = [Integer0] * n
             row[index] = item
-            result.append(Expression("List", *row))
-        return Expression("List", *result)
+            result.append(ListExpression(*row))
+        return ListExpression(*result)
 
 
 class IdentityMatrix(Builtin):

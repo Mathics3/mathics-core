@@ -87,7 +87,7 @@ class SparseArray(Builtin):
                 if element.is_numeric(evaluation) and element.is_zero:
                     continue
                 elements.append(
-                    Expression("Rule", Expression("List", Integer(i + 1)), element)
+                    Expression(SymbolRule, ListExpression(Integer(i + 1)), element)
                 )
 
             dims = ListExpression(Integer(len(array.elements)))
@@ -96,10 +96,10 @@ class SparseArray(Builtin):
                 Symbol("Automatic"),
                 dims,
                 Integer0,
-                Expression("List", *elements),
+                ListExpression(*elements),
             )
         # Now, reformat the list of sparse arrays as a single sparse array
-        dims = Expression("List", Integer(len(array.elements)), *(dims.elements))
+        dims = ListExpression(Integer(len(array.elements)), *(dims.elements))
         rules = []
         for i, element in enumerate(elements):
             for rule in element.elements[3].elements:
