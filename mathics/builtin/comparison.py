@@ -20,7 +20,6 @@ from mathics.builtin.base import (
 
 from mathics.builtin.numbers.constants import mp_convert_constant
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
@@ -30,12 +29,16 @@ from mathics.core.atoms import (
     Number,
     String,
 )
+from mathics.core.expression import Expression, to_expression
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAnd,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
+    SymbolInequality,
     SymbolInfinity,
     SymbolMaxPrecision,
+    SymbolSign,
 )
 from mathics.core.number import dps
 
@@ -67,7 +70,7 @@ class _InequalityOperator(BinaryOperator):
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(items, evaluation):
+    def numerify_args(items, evaluation) -> list:
         items_sequence = items.get_sequence()
         all_numeric = all(
             item.is_numeric(evaluation) and item.get_precision() is None
@@ -128,7 +131,7 @@ class _EqualityOperator(_InequalityOperator):
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs.elements[0]), Integer1, max_extra_prec
+                    to_expression(SymbolSign, lhs.elements[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -143,9 +146,9 @@ class _EqualityOperator(_InequalityOperator):
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:
-            dir1 = Expression("Sign", dir1)
-            dir2 = Expression("Sign", dir2)
-            return self.equal2(dir1, dir2, max_extra_prec)
+            dir1_sign = Expression(SymbolSign, dir1)
+            dir2_sign = Expression(SymbolSign, dir2)
+            return self.equal2(dir1_sign, dir2_sign, max_extra_prec)
         return
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
@@ -453,22 +456,22 @@ class Inequality(Builtin):
     def apply(self, items, evaluation):
         "Inequality[items___]"
 
-        items = items.numerify(evaluation).get_sequence()
-        count = len(items)
+        elements = items.numerify(evaluation).get_sequence()
+        count = len(elements)
         if count == 1:
             return SymbolTrue
         elif count % 2 == 0:
             evaluation.message("Inequality", "ineq", count)
         elif count == 3:
-            name = items[1].get_name()
+            name = elements[1].get_name()
             if name in operators:
-                return Expression(name, items[0], items[2])
+                return Expression(Symbol(name), elements[0], elements[2])
         else:
             groups = [
-                Expression("Inequality", *items[index - 1 : index + 2])
+                Expression(SymbolInequality, *elements[index - 1 : index + 2])
                 for index in range(1, count - 1, 2)
             ]
-            return Expression("And", *groups)
+            return Expression(SymbolAnd, *groups)
 
 
 def do_cplx_equal(x, y) -> Optional[int]:
@@ -548,12 +551,12 @@ class _SympyComparison(SympyFunction):
         to_sympy = super(_SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
 
-            def pairs(items):
-                yield Expression(expr.get_head_name(), *items[:2])
-                items = items[1:]
-                while len(items) >= 2:
-                    yield Expression(expr.get_head_name(), *items[:2])
-                    items = items[1:]
+            def pairs(elements):
+                yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                elements = elements[1:]
+                while len(elements) >= 2:
+                    yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                    elements = elements[1:]
 
             return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.leaves)])
         return to_sympy(expr, **kwargs)
@@ -952,21 +955,21 @@ class NonPositive(Builtin):
     summary_text = "test whether an expression is a non-positive number"
 
 
-def expr_max(items):
+def expr_max(elements):
     result = Expression(SymbolDirectedInfinity, IntegerM1)
-    for item in items:
-        c = do_cmp(item, result)
+    for element in elements:
+        c = do_cmp(element, result)
         if c > 0:
-            result = item
+            result = element
     return result
 
 
-def expr_min(items):
+def expr_min(elements):
     result = Expression(SymbolDirectedInfinity, Integer1)
-    for item in items:
-        c = do_cmp(item, result)
+    for element in elements:
+        c = do_cmp(element, result)
         if c < 0:
-            result = item
+            result = element
     return result
 
 
@@ -1004,13 +1007,13 @@ class _MinMax(Builtin):
                     results.append(element)
 
         if not results:
-            return Expression("DirectedInfinity", -self.sense)
+            return Expression(SymbolDirectedInfinity, -self.sense)
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):
             # Some simplification was possible because we discarded
             # elements.
-            return Expression(self.get_name(), *results)
+            return Expression(Symbol(self.get_name()), *results)
         # If we get here, no simplification was possible.
         return None
 
