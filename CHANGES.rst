@@ -13,6 +13,7 @@ Enhancements
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
+* Revise ``Nintegrate[]`` to allow scipy to be optional.
 
 
 
@@ -97,6 +98,7 @@ Bugs
 * Partial fix of ``FillSimplify``
 * Streams used in MathicsOpen are now freed and their file descriptors now released. Issue #326.
 * Some temporary files that were created are now removed from the filesystem. Issue #309.
+* There were a number of small changes/fixes involving ``NIntegrate`` and its Method options. ``Nintegrate`` tests have been expanded.
 
 4.0.1
 -----

@@ -1,25 +1,29 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+NIntegrate[] tests
 
-
+This also
+"""
+import importlib
 import pytest
-from .helper import evaluate
+from test.helper import evaluate
 
+# From How to check if a Python module exists without importing it:
+# https://stackoverflow.com/a/14050282/546218
+scipy_integrate = importlib.find_loader("scipy.integrate")
 
-try:
-    import scipy.integrate
-
-    usescipy = True
-except:
-    usescipy = False
-
-
-if usescipy:
+if scipy_integrate is not None:
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}, {method} ]", r"1/3.", ""),
-        (r"NIntegrate[x^2 y^(-1.+1/3.), {x,0,1},{y,0,1}, {method}]", r"1.", ""),
+        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}, {method} ]", r"1/9.", ""),
+        # FIXME: improve singularity handling in NIntegrate
+        # (
+        #    r"NIntegrate[x^2 y^(-1.+1/3.), {x,1.*^-9,1},{y, 1.*^-9,1}, {method}]",
+        #    r"1.",
+        #    "",
+        # ),
     ]
 
     tests_for_nintegrate = sum(
@@ -35,6 +39,7 @@ if usescipy:
 else:
     tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}]", r"1/3.", ""),
+        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}]", r"1/9.", ""),
         # FIXME: this can integrate to Infinity
         # (r"NIntegrate[x^2 y^(-.5), {x,0,1},{y,0,1}]", r"1.", ""),
     ]

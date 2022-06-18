@@ -1287,7 +1287,6 @@ class _BaseFinder(Builtin):
     """
 
     attributes = hold_all | protected
-    requires = ["scipy"]
     methods = {}
     messages = {
         "snum": "Value `1` is not a number.",
@@ -1483,9 +1482,13 @@ class FindRoot(_BaseFinder):
     )
 
     try:
-        from mathics.algorithm.optimizers import native_findroot_methods
+        from mathics.algorithm.optimizers import (
+            native_findroot_methods,
+            native_findroot_messages,
+        )
 
         methods.update(native_findroot_methods)
+        messages.update(native_findroot_messages)
     except Exception:
         pass
     try:
@@ -1519,8 +1522,8 @@ class FindMinimum(_BaseFinder):
      = {2., {x -> 3.}}
     >> FindMinimum[Sin[x], {x, 1}]
      = {-1., {x -> -1.5708}}
-    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
-    >> FindMinimum[phi[x]-x,{x,1.2}]
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
+    >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
      = {-0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
@@ -1532,9 +1535,13 @@ class FindMinimum(_BaseFinder):
     methods = {}
     summary_text = "local minimum optimization"
     try:
-        from mathics.algorithm.optimizers import native_local_optimizer_methods
+        from mathics.algorithm.optimizers import (
+            native_local_optimizer_methods,
+            native_optimizer_messages,
+        )
 
         methods.update(native_local_optimizer_methods)
+        messages.update(native_optimizer_messages)
     except Exception:
         pass
     try:
@@ -1562,8 +1569,8 @@ class FindMaximum(_BaseFinder):
      = {2., {x -> 3.}}
     >> FindMaximum[Sin[x], {x, 1}]
      = {1., {x -> 1.5708}}
-    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}];
-    >> FindMaximum[-phi[x]+x,{x,1.2}]
+    >> phi[x_?NumberQ]:=NIntegrate[u, {u, 0., x}, Method->"Internal"];
+    >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
      = {0.5, {x -> 1.00001}}
     >> Clear[phi];
     For a not so well behaving function, the result can be less accurate:
@@ -2017,37 +2024,35 @@ class NIntegrate(Builtin):
        <dt>'NIntegrate[$expr$, $interval$]'
        <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
 
-       <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-       <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
-    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6]
+    >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
      = 1.
-    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6]
+    >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6, Method->"Internal"]
      = 1.
-    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6]
-     = 2.50663
-
-    >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
-     : The specified method failed to return a number. Falling back into the internal evaluator.
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
-     : Integration over a complex domain is not implemented yet
-     = NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance -> 0.0001]
-     ## = 6.2832 I
-
-    Integrate singularities with weak divergences:
-    >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.} ]
-     = {1., 2., 3., 4., 5., 6., 7.}
-
-    Mutiple Integrals :
-    >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
-     = 0.25
+    >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6, Method->"Internal"]
+     = 2.50664
 
     """
 
-    requires = ["scipy"]
+    # ## The Following tests fails if sympy is not installed.
+    # >> Table[1./NIntegrate[x^k,{x,0,1},Tolerance->1*^-6], {k,0,6}]
+    # : The specified method failed to return a number. Falling back into the internal evaluator.
+    # = {1., 2., 3., 4., 5., 6., 7.}
+
+    # >> NIntegrate[1 / z, {z, -1 - I, 1 - I, 1 + I, -1 + I, -1 - I}, Tolerance->1.*^-4]
+    # ## = 6.2832 I
+
+    # Integrate singularities with weak divergences:
+    # >> Table[ NIntegrate[x^(1./k-1.), {x,0,1.}, Tolerance->1*^-6], {k,1,7.}]
+    # = {1., 2., 3., 4., 5., 6., 7.}
+
+    # Mutiple Integrals :
+    # >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
+    # = 0.25
+
     summary_text = "numerical integration in one or several variables"
     messages = {
         "bdmtd": "The Method option should be a built-in method name.",
@@ -2122,6 +2127,8 @@ class NIntegrate(Builtin):
             method = method.value
         elif isinstance(method, Symbol):
             method = method.get_name()
+            # strip context
+            method = method[method.rindex("`") + 1 :]
         else:
             evaluation.message("NIntegrate", "bdmtd", method)
             return
