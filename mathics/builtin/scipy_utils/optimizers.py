@@ -14,7 +14,6 @@ from mathics.core.utils import IS_PYPY
 
 SymbolCompile = Symbol("Compile")
 
-IS_PYPY = "__pypy__" in sys.builtin_module_names
 if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
     raise ImportError
 

@@ -1055,8 +1055,6 @@ class PyMathicsDocumentation(Documentation):
                 and var.__module__[: len(self.pymathicsmodule.__name__)]
                 == self.pymathicsmodule.__name__
             ):  # nopep8
-                if not check_requires_list(var):
-                    continue
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     self.symbols[instance.get_name()] = instance
