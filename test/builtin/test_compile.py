@@ -166,19 +166,19 @@ class ArithmeticTest(CompileTest):
         expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(4, 9), 4 ** 9)
+        self.assertTypeEqual(cfunc(4, 9), 4**9)
 
     def test_pow_real_int(self):
         expr = Expression(SymbolPower, MachineReal(2.5), Symbol("x"))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(4), 2.5 ** 4)
+        self.assertTypeEqual(cfunc(4), 2.5**4)
 
     def test_pow_int_real(self):
         expr = Expression(SymbolPower, Symbol("x"), MachineReal(5.5))
         args = [CompileArg("System`x", int_type)]
         cfunc = _compile(expr, args)
-        self.assertTypeEqual(cfunc(8), 8 ** 5.5)
+        self.assertTypeEqual(cfunc(8), 8**5.5)
 
     def test_pow_2(self):
         # 2 ^ x
