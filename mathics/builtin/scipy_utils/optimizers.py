@@ -3,13 +3,14 @@ import sys
 
 from mathics.builtin import check_requires_list
 
+from mathics.core.atoms import Number, Real
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
-from mathics.core.atoms import Number, Real
+from mathics.core.evaluators import apply_N
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
-from mathics.core.evaluators import apply_N
+from mathics.core.utils import IS_PYPY
 
 SymbolCompile = Symbol("Compile")
 
