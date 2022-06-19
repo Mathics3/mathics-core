@@ -475,6 +475,11 @@ class Builtin:
                 "General",
                 "pyimport",  # see inout.py
                 strip_context(self.get_name()),
+                # WARNING: package isn't defined here, but mysteriously is
+                # defined in the place gets apply (or rather "eval"'d).
+                # Without it we there are a number of doctests we won't run
+                # even though they are should be.
+                package,  # noqa
             )
 
         requires = getattr(self, "requires", [])
