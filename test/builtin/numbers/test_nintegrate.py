@@ -6,14 +6,10 @@ NIntegrate[] tests
 import importlib
 import pytest
 from test.helper import evaluate
+from mathics.builtin import check_requires_list
 
-# From How to check if a Python module exists without importing it:
-# https://stackoverflow.com/a/14050282/546218
-scipy_integrate_module = None
-if importlib.util.find_spec("scipy") is not None:
-    scipy_integrate_module = importlib.util.find_spec("scipy.integrate")
 
-if scipy_integrate_module is not None:
+if check_requires_list(["scipy", "scipy.integrate"]):
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [

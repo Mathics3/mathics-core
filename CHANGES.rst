@@ -13,9 +13,9 @@ Enhancements
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
-* Revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available
-
-
+* Allow scipy and skimage to be optional. In particular:
+   - Revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available.
+* Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
 
 Documentation
 .............
