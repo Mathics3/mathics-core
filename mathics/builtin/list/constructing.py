@@ -10,26 +10,23 @@ from itertools import permutations
 
 
 from mathics.builtin.base import Builtin, Pattern
-
-from mathics.core.element import ElementsProperties
-
 from mathics.builtin.lists import (
     _IterationFunction,
     get_tuples,
 )
-
+from mathics.core.atoms import Integer, Symbol
+from mathics.core.attributes import hold_first, listable, protected
 from mathics.core.convert import from_sympy
-
+from mathics.core.element import ElementsProperties
 from mathics.core.expression import (
     Expression,
     to_expression,
     structure,
 )
-from mathics.core.atoms import Integer
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 
-from mathics.core.attributes import hold_first, listable, protected
+SymbolNormal = Symbol("Normal")
 
 
 class Array(Builtin):
@@ -155,7 +152,7 @@ class Normal(Builtin):
             return
         return Expression(
             expr.get_head(),
-            *[Expression("Normal", element) for element in expr.elements],
+            *[Expression(SymbolNormal, element) for element in expr.elements],
         )
 
 
@@ -447,9 +444,9 @@ class Table(_IterationFunction):
 
     summary_text = "make a table of values of an expression"
 
-    def get_result(self, items):
+    def get_result(self, elements) -> ListExpression:
         return ListExpression(
-            *items,
+            *elements,
             elements_properties=ElementsProperties(elements_fully_evaluated=True),
         )
 

@@ -12,19 +12,17 @@ from mathics.builtin.base import (
     Test,
 )
 from mathics.builtin.box.inout import RowBox
-
 from mathics.builtin.lists import list_boxes
-
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.attributes import hold_all_complete, protected
+from mathics.core.expression import Expression
+from mathics.core.list import to_mathics_list
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,
     SymbolMakeBoxes,
+    SymbolMissing,
 )
-
-from mathics.core.attributes import hold_all_complete, protected
 
 
 class Association(Builtin):
@@ -157,7 +155,7 @@ class Association(Builtin):
             return (
                 result[key]
                 if result
-                else Expression("Missing", Symbol("KeyAbsent"), key)
+                else Expression(SymbolMissing, Symbol("KeyAbsent"), key)
             )
         except TypeError:
             return None
@@ -273,7 +271,7 @@ class Keys(Builtin):
                 expr.has_form("Association", None)
                 and AssociationQ(expr).evaluate(evaluation) is SymbolTrue
             ):
-                return ListExpression(*[get_keys(element) for element in expr.elements])
+                return to_mathics_list(*expr.elements, elements_conversion_fn=get_keys)
             else:
                 evaluation.message("Keys", "invrl", expr)
                 raise TypeError

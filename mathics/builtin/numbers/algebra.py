@@ -1596,7 +1596,9 @@ class Simplify(Builtin):
             SymbolList
         )
         # Now, reevaluate the expression with all the assumptions.
-        simplify_expr = Expression(self.get_name(), expr, *options_to_rules(options))
+        simplify_expr = Expression(
+            Symbol(self.get_name()), expr, *options_to_rules(options)
+        )
         return dynamic_scoping(
             lambda ev: simplify_expr.evaluate(ev),
             {"System`$Assumptions": assumptions},

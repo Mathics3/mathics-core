@@ -31,20 +31,7 @@ from mathics.algorithm.parts import (
 from mathics.builtin.base import MessageException
 from mathics.builtin.box.inout import RowBox
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, Integer0, Integer1
-from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAppend,
-    SymbolFailed,
-    SymbolMakeBoxes,
-    SymbolSequence,
-    SymbolSet,
-)
-
-from mathics.core.rules import Rule
-
 from mathics.core.attributes import (
     hold_first,
     hold_rest,
@@ -52,6 +39,27 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.rules import Rule
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolAppend,
+    SymbolByteArray,
+    SymbolFailed,
+    SymbolInfinity,
+    SymbolMakeBoxes,
+    SymbolMissing,
+    SymbolSequence,
+    SymbolSet,
+)
+
+SymbolAppendTo = Symbol("AppendTo")
+SymbolDeleteCases = Symbol("DeleteCases")
+SymbolDrop = Symbol("Drop")
+SymbolPrepend = Symbol("Prepend")
+SymbolPrependTo = Symbol("PrependTo")
+SymbolTake = Symbol("Take")
 
 
 class Append(Builtin):
@@ -96,8 +104,8 @@ class Append(Builtin):
 class AppendTo(Builtin):
     """
     <dl>
-    <dt>'AppendTo[$s$, $item$]'
-        <dd>append $item$ to value of $s$ and sets $s$ to the result.
+    <dt>'AppendTo[$s$, $elem$]'
+        <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
     >> s = {};
@@ -129,19 +137,21 @@ class AppendTo(Builtin):
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
     }
 
-    def apply(self, s, item, evaluation):
-        "AppendTo[s_, item_]"
+    def apply(self, s, element, evaluation):
+        "AppendTo[s_, element_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
             return evaluation.message("AppendTo", "rvalue", s)
 
         if not isinstance(resolved_s, Atom):
             result = Expression(
-                SymbolSet, s, Expression(SymbolAppend, resolved_s, item)
+                SymbolSet, s, Expression(SymbolAppend, resolved_s, element)
             )
             return result.evaluate(evaluation)
 
-        return evaluation.message("AppendTo", "normal", Expression("AppendTo", s, item))
+        return evaluation.message(
+            "AppendTo", "normal", Expression(SymbolAppendTo, s, element)
+        )
 
 
 class Cases(Builtin):
@@ -317,7 +327,7 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is Symbol("Infinity"):
+        if n is SymbolInfinity:
             n = -1
         elif n.get_head_name() == "System`Integer":
             n = n.get_int_value()
@@ -325,13 +335,13 @@ class DeleteCases(Builtin):
                 evaluation.message(
                     "DeleteCases",
                     "innf",
-                    Expression("DeleteCases", items, pattern, levelspec, n),
+                    Expression(SymbolDeleteCases, items, pattern, levelspec, n),
                 )
         else:
             evaluation.message(
                 "DeleteCases",
                 "innf",
-                Expression("DeleteCases", items, pattern, levelspec, n),
+                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
             )
             return SymbolNull
 
@@ -401,11 +411,11 @@ class Drop(Builtin):
      = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
-    summary_text = "remove a number of elements from a list"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
     }
+    summary_text = "remove a number of elements from a list"
 
     def apply(self, items, seqs, evaluation):
         "Drop[items_, seqs___]"
@@ -414,7 +424,7 @@ class Drop(Builtin):
 
         if isinstance(items, Atom):
             return evaluation.message(
-                "Drop", "normal", 1, Expression("Drop", items, *seqs)
+                "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
             )
 
         try:
@@ -633,7 +643,7 @@ class FirstPosition(Builtin):
         if is_found:
             return to_mathics_list(*result)
         else:
-            return Expression("Missing", "NotFound") if default is None else default
+            return Expression(SymbolMissing, "NotFound") if default is None else default
 
     def apply_default(self, expr, pattern, default, evaluation):
         "FirstPosition[expr_, pattern_, default_]"
@@ -957,7 +967,7 @@ class Part(Builtin):
             if idx.get_head_name() == "System`Integer":
                 idx = idx.get_int_value()
                 if idx == 0:
-                    return Symbol("System`ByteArray")
+                    return SymbolByteArray
                 data = list.elements[0].value
                 lendata = len(data)
                 if idx < 0:
@@ -1130,11 +1140,13 @@ class PrependTo(Builtin):
             return evaluation.message("PrependTo", "rvalue", s)
 
         if not isinstance(resolved_s, Atom):
-            result = Expression("Set", s, Expression("Prepend", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolPrepend, resolved_s, item)
+            )
             return result.evaluate(evaluation)
 
         return evaluation.message(
-            "PrependTo", "normal", Expression("PrependTo", s, item)
+            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
         )
 
 
@@ -1302,8 +1314,8 @@ class Select(Builtin):
             evaluation.message("Select", "normal")
             return
 
-        def cond(leaf):
-            test = Expression(expr, leaf)
+        def cond(element):
+            test = Expression(expr, element)
             return test.evaluate(evaluation) is SymbolTrue
 
         return items.filter(items.head, cond, evaluation)
@@ -1421,7 +1433,7 @@ class Take(Builtin):
 
         if isinstance(items, Atom):
             return evaluation.message(
-                "Take", "normal", 1, Expression("Take", items, *seqs)
+                "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
             )
 
         try:
