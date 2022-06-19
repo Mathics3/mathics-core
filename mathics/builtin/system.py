@@ -536,7 +536,7 @@ class MemoryInUse(Builtin):
     """
     <dl>
       <dt>'MemoryInUse[]'
-      <dd>Returns the amount of memory used by the definitions object. If we can't determine this we return -1.
+      <dd>Returns the amount of memory used by all of the definitions objects if we can determine that; -1 otherwise.
     </dl>
 
     >> MemoryInUse[]
