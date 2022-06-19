@@ -51,9 +51,8 @@ SymbolImage = Symbol("Image")
 SymbolMatrixQ = Symbol("MatrixQ")
 SymbolThreshold = Symbol("Threshold")
 
-
+# Note a list of packages that are needed for image Builtins.
 _image_requires = ("numpy", "PIL")
-
 _skimage_requires = _image_requires + ("skimage", "scipy", "matplotlib", "networkx")
 
 try:
@@ -73,12 +72,20 @@ except ImportError:
 
 from io import BytesIO
 
+# The following classes are used to allow inclusion of
+# Buultin Functions only when certain Python packages
+# are available. They do this by setting the `requires` class variable.
+
 
 class _ImageBuiltin(Builtin):
     requires = _image_requires
 
 
 class _ImageTest(Test):
+    """
+    Testing Image Builtins -- those function names ending with "Q" -- that require scikit-image.
+    """
+
     requires = _image_requires
 
 
@@ -90,7 +97,7 @@ class _SkimageBuiltin(_ImageBuiltin):
     requires = _skimage_requires
 
 
-# import and export
+# Code related to Mathics Functions that import and export.
 
 
 class _Exif:
@@ -136,8 +143,8 @@ class _Exif:
 class ImageImport(_ImageBuiltin):
     """
     <dl>
-    <dt> 'ImageImport["path"]'
-    <dd> import an image from the file "path".
+      <dt> 'ImageImport["path"]'
+      <dd> import an image from the file "path".
     </dl>
 
     ## Image
@@ -176,13 +183,13 @@ class ImageImport(_ImageBuiltin):
 class ImageExport(_ImageBuiltin):
     """
     <dl>
-    <dt> 'ImageExport["path", $image$]'
-    <dd> export $image$ as file in "path".
+      <dt> 'ImageExport["path", $image$]'
+      <dd> export $image$ as file in "path".
     </dl>
     """
 
-    summary_text = "export an image to a file"
     messages = {"noimage": "only an Image[] can be exported into an image file"}
+    summary_text = "export an image to a file"
 
     def apply(self, path, expr, opts, evaluation):
         """ImageExport[path_String, expr_, opts___]"""
@@ -303,7 +310,7 @@ class ImageSubtract(_ImageArithmetic):
 class ImageMultiply(_ImageArithmetic):
     """
     <dl>
-    <dt>'ImageMultiply[$image$, $expr_1$, $expr_2$, ...]'
+      <dt>'ImageMultiply[$image$, $expr_1$, $expr_2$, ...]'
       <dd>multiplies all $expr_i$ with $image$ where each $expr_i$ must be an image or a real number.
     </dl>
 
@@ -358,20 +365,19 @@ class RandomImage(_ImageBuiltin):
      = -Image-
     """
 
-    summary_text = "build an image with random pixels"
     options = {"ColorSpace": "Automatic"}
 
+    messages = {
+        "bddim": "The specified dimension `1` should be a pair of positive integers.",
+        "imgcstype": "`1` is an invalid color space specification.",
+    }
     rules = {
         "RandomImage[]": "RandomImage[{0, 1}, {150, 150}]",
         "RandomImage[max_?RealNumberQ]": "RandomImage[{0, max}, {150, 150}]",
         "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}]": "RandomImage[{minval, maxval}, {150, 150}]",
         "RandomImage[max_?RealNumberQ, {w_Integer, h_Integer}]": "RandomImage[{0, max}, {w, h}]",
     }
-
-    messages = {
-        "bddim": "The specified dimension `1` should be a pair of positive integers.",
-        "imgcstype": "`1` is an invalid color space specification.",
-    }
+    summary_text = "build an image with random pixels"
 
     def apply(self, minval, maxval, w, h, evaluation, options):
         "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}, {w_Integer, h_Integer}, OptionsPattern[RandomImage]]"
@@ -874,9 +880,10 @@ class Blur(_ImageBuiltin):
 class Sharpen(_ImageBuiltin):
     """
     <dl>
-    <dt>'Sharpen[$image$]'
+      <dt>'Sharpen[$image$]'
       <dd>gives a sharpened version of $image$.
-    <dt>'Sharpen[$image$, $r$]'
+
+      <dt>'Sharpen[$image$, $r$]'
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
 
