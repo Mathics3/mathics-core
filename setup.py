@@ -47,7 +47,7 @@ if sys.version_info < (3, 6):
 elif sys.version_info[:2] == (3, 6):
     INSTALL_REQUIRES += [
         "recordclass",
-        "numpy<1.20",
+        "numpy<1.24",
         "llvmlite<0.37",
         "sympy>=1.8,<1.9",
     ]
