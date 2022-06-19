@@ -1667,7 +1667,7 @@ class DocTest(object):
         self.private = testcase[0] == "#"
 
         # Ignored test cases are NOT executed, but shown as part of the docs
-        # Sandboxed test cases are NOT executed if environtment SANDBOX is set
+        # Sandboxed test cases are NOT executed if environment SANDBOX is set
         if testcase[0] == "X" or (testcase[0] == "S" and getenv("SANDBOX", False)):
             self.ignore = True
             # substitute '>' again so we get the correct formatting
