@@ -7,7 +7,7 @@ from functools import total_ordering
 import importlib
 from itertools import chain
 import typing
-from typing import Any, Iterable, cast
+from typing import Any, Callable, Iterable, List, Optional, cast
 
 
 from mathics.builtin.exceptions import (
@@ -463,7 +463,7 @@ class Builtin:
     def get_option(options, name, evaluation, pop=False):
         return get_option(options, name, evaluation, pop)
 
-    def _get_unavailable_function(self) -> "Optional[function]":
+    def _get_unavailable_function(self) -> Optional[Callable]:
         """
         If some of the required libraries for a symbol are not available,
         returns a default function that override the ``apply_`` methods
@@ -475,7 +475,6 @@ class Builtin:
                 "General",
                 "pyimport",  # see inout.py
                 strip_context(self.get_name()),
-                package,
             )
 
         requires = getattr(self, "requires", [])
@@ -565,7 +564,7 @@ class Operator(Builtin):
 
 
 class Predefined(Builtin):
-    def get_functions(self, prefix="apply", is_pymodule=False):
+    def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
         if prefix == "apply" and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))

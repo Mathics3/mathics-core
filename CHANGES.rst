@@ -13,8 +13,8 @@ Enhancements
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
-* Revise ``Nintegrate[]`` to allow scipy to be optional.
-
+* Allow scipy and skimage to be optional. In particular:
+   - Revise ``Nintegrate[]`` use ``Method="Internal"`` when scipy isn't available
 
 
 Documentation
@@ -47,19 +47,16 @@ Internals
 * ``Definition`` has a new property ``is_numeric``.
 * ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
 * ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
-* To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
-* To speed up the lookup of symbols names, ``Definitions`` object now have two properties: ``current_context`` and ``context_path``. These properties stores the values of the corresponding symbols in the `builtin` definitions.
+
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
-* ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression(SymbolN, expr, prec).evaluate(evaluation)`` makes the evaluation faster.
 * A failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
 * ``any`` /``all`` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * ``BaseExpression.get_head``  now avoids building a symbol and then look for its name. It saves two function calls.
 * ``SameQ`` first checks type, then ``id``s, and then names in symbols.
 * In ``mathics.builtin.patterns.PatternTest``, if the condition is one of the most used tests (``NumberQ``, ``NumericQ``, ``StringQ``, etc) the ``match`` method is overwritten to specialized versions that avoid function calls.
 * in the same aim, ``mathics.core.patterns.AtomPattern`` now specializes the comparison depending of the ``Atom`` type.
-* To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46.
@@ -70,6 +67,15 @@ Internals
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
 * The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 * remove ``flatten_*`` from the ``Atom`` interface.
+*
+
+Speed improvements:
+..................
+
+* In ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
+* Attributes are now stored in a bitset instead of a tuple of strings.
+* To speed up the lookup of symbols names, ``Definitions`` object now have two properties: ``current_context`` and ``context_path``. These properties stores the values of the corresponding symbols in the ``builtin`` definitions.
+* ``apply_N`` was add to speed up the then often-used built-in function ``N``.
 
 
 Package update
