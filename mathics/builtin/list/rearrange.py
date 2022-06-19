@@ -428,7 +428,7 @@ class GatherBy(_GatherOperation):
       <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical.
 
       <dt>'GatherBy[$list$, {$f$, $g$, ...}]'
-      <dd>gathers elements of $list$ into sub lists of items whose image under $f identical. Then, gathers these sub lists again into sub sub lists, that are identical under $g.
+      <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical. Then, gathers these sub lists again into sub sub lists, that are identical under $g.
     </dl>
 
     >> GatherBy[{{1, 3}, {2, 2}, {1, 1}}, Total]
@@ -693,7 +693,7 @@ class Riffle(Builtin):
       <dd>inserts a copy of $x$ between each element of $list$.
 
       <dt>'Riffle[{$a1$, $a2$, ...}, {$b1$, $b2$, ...}]'
-      <dd>interleaves the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
+      <dd>interelements the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
     </dl>
 
     >> Riffle[{a, b, c}, x]
