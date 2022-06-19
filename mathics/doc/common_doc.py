@@ -39,6 +39,7 @@ from mathics import builtin
 from mathics import settings
 from mathics.builtin import get_module_doc
 from mathics.core.evaluation import Message, Print
+from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
 
 # These regular expressions pull out information from docstring or text in a file.
@@ -834,6 +835,11 @@ class MathicsMainDocumentation(Documentation):
                         # user manual
                         if submodule.__doc__ is None:
                             continue
+                        elif IS_PYPY and submodule.__name__ == "builtins":
+                            # PyPy seems to add this module on its own,
+                            # but it is not something htat can be importable
+                            continue
+
                         if submodule in modules_seen:
                             continue
 

@@ -1393,12 +1393,12 @@ class Binarize(_SkimageBuiltin):
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
 
-    >> img = Import["ExampleData/lena.tif"];
-    X> Binarize[img]
+    S> img = Import["ExampleData/lena.tif"];
+    S> Binarize[img]
      = -Image-
-    X> Binarize[img, 0.7]
+    S> Binarize[img, 0.7]
      = -Image-
-    X> Binarize[img, {0.2, 0.6}]
+    S> Binarize[img, {0.2, 0.6}]
      = -Image-
     """
 
