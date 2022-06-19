@@ -251,7 +251,7 @@ class _BinaryFormat(object):
                 return SymbolIndeterminate
 
         with mpmath.workprec(112):
-            core = mpmath.fdiv(fracbits, 2 ** 112)
+            core = mpmath.fdiv(fracbits, 2**112)
             if expbits == 0x000:
                 assert fracbits != 0
                 exp = -16382
@@ -262,9 +262,9 @@ class _BinaryFormat(object):
                 core = mpmath.fmul((-1) ** signbit, mpmath.fadd(1, core))
 
             if exp >= 0:
-                result = mpmath.fmul(core, 2 ** exp)
+                result = mpmath.fmul(core, 2**exp)
             else:
-                result = mpmath.fdiv(core, 2 ** -exp)
+                result = mpmath.fdiv(core, 2**-exp)
 
             return from_mpmath(result, dps(112))
 

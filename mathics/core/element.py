@@ -77,7 +77,6 @@ try:
         # this True elements are not sorted can cause evaluation differences.
         is_ordered: bool = False
 
-
 except ImportError:
     from dataclasses import dataclass
 

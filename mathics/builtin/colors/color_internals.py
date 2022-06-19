@@ -208,7 +208,7 @@ def xyz_to_rgb(x, y, z, *rest):
 @conditional
 def _scale_xyz_to_lab(t):
     if t > 0.008856:
-        return t ** 0.33333333  # MMA specific
+        return t**0.33333333  # MMA specific
     else:
         return (903.3 * t + 16.0) / 116.0
 
@@ -254,7 +254,7 @@ def xyz_to_luv(x, y, z, *rest):
 @conditional
 def _scale_lab_to_xyz(t):
     if t > 0.2068930:  # 0.008856 ** (1/3)
-        return t ** 3
+        return t**3
     else:
         return (t - 16.0 / 116.0) / 7.787
 

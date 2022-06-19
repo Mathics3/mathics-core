@@ -163,8 +163,8 @@ def convert_base(x, base, precision=10) -> str:
     def convert(x, base, exponents):
         out = []
         for e in exponents:
-            d = int(x / (base ** e))
-            x -= d * (base ** e)
+            d = int(x / (base**e))
+            x -= d * (base**e)
             out.append(digits[d])
             if x == 0 and e < 0:
                 break
@@ -197,8 +197,8 @@ def convert_int_to_digit_list(x, base) -> typing.List[int]:
     def convert(x, base, exponents):
         out = []
         for e in exponents:
-            d = int(x // (base ** e))
-            x -= d * (base ** e)
+            d = int(x // (base**e))
+            x -= d * (base**e)
             if out or d != 0:  # drop any leading zeroes
                 out.append(d)
             if x == 0 and e < 0:

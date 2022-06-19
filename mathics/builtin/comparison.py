@@ -699,7 +699,7 @@ class Equal(_EqualityOperator, _SympyComparison):
 
 
 class Unequal(_EqualityOperator, _SympyComparison):
-    u"""
+    """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
       <dd>is 'False' if $x$ and $y$ are known to be equal, or
@@ -796,7 +796,7 @@ class Less(_ComparisonOperator, _SympyComparison):
 
 
 class LessEqual(_ComparisonOperator, _SympyComparison):
-    u"""
+    """
      <dl>
        <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
        <dd>yields 'True' if $x$ is known to be less than or equal to $y$.

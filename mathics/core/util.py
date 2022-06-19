@@ -249,7 +249,6 @@ try:
     def _python_function_arguments(f):
         return signature(f).parameters.keys()
 
-
 except ImportError:  # py2, pypy
     from inspect import getargspec
 
@@ -263,7 +262,6 @@ elif sys.version_info[0] >= 3:  # py3.3
 
     def _cython_function_arguments(f):
         return f.__code__.co_varnames
-
 
 else:  # py2
 

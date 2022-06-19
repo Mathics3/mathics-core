@@ -124,7 +124,7 @@ class Coords(object):
 
 def cut(value):
     "Cut values in graphics primitives (not displayed otherwise in SVG)"
-    border = 10 ** 8
+    border = 10**8
     if value < -border:
         value = -border
     elif value > border:

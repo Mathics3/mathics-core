@@ -62,7 +62,7 @@ else:
                     quad,
                     {
                         "tol": ("epsabs", None),
-                        "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
+                        "maxrec": ("limit", lambda maxrec: int(2**maxrec)),
                     },
                     {"full_output": 1},
                     lambda res: (res[0], res[1]),

@@ -95,7 +95,7 @@ def asy_color(self):
     rgba = self.to_rgba()
     alpha = rgba[3] if len(rgba) > 3 else None
     return (
-        fr"rgb({asy_number(rgba[0])}, {asy_number(rgba[1])}, {asy_number(rgba[2])})",
+        rf"rgb({asy_number(rgba[0])}, {asy_number(rgba[1])}, {asy_number(rgba[2])})",
         alpha,
     )
 

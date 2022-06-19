@@ -109,7 +109,7 @@ class Options(Builtin):
 
 
 class OptionValue(Builtin):
-    u"""
+    """
     <dl>
     <dt>'OptionValue[$name$]'
         <dd>gives the value of the option $name$ as specified in a

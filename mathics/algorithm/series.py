@@ -392,15 +392,11 @@ def build_series(f, x, x0, n, evaluation):
             Expression(SymbolPower, factorial, IntegerMinusOne),
             newcoeff,
         ).evaluate(evaluation)
-        if (
-            newcoeff
-            in (
-                SymbolInfinity,
-                SymbolComplexInfinity,
-                SymbolIndeterminate,
-            )
-            or newcoeff.get_head() in (SymbolDirectedInfinity,)
-        ):
+        if newcoeff in (
+            SymbolInfinity,
+            SymbolComplexInfinity,
+            SymbolIndeterminate,
+        ) or newcoeff.get_head() in (SymbolDirectedInfinity,):
             return Expression(
                 f.get_head(),
                 *[

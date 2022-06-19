@@ -697,7 +697,7 @@ class MatrixPower(Builtin):
             return
 
         try:
-            res = sympy_m ** sympy_power
+            res = sympy_m**sympy_power
         except NotImplementedError:
             return evaluation.message("MatrixPower", "matrixpowernotimplemented", m)
         except ValueError:

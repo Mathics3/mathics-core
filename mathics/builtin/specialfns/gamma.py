@@ -218,7 +218,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
             # From https://stackoverflow.com/a/36779406/546218
             def fact2_generic(x):
                 n = (x + 1.0) / 2.0
-                return 2.0 ** n * sp.gamma(n + 0.5) / (pi ** (0.5))
+                return 2.0**n * sp.gamma(n + 0.5) / (pi ** (0.5))
 
         except ImportError:
             fact2_generic = None

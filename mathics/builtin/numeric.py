@@ -334,7 +334,7 @@ class Rationalize(Builtin):
         )
         for i in it:
             p, q = i.as_numer_denom()
-            tol = c / q ** 2
+            tol = c / q**2
             if abs(i - x) <= tol:
                 return i
             if tol < machine_epsilon:

@@ -1144,7 +1144,6 @@ try:  # MCCABE 19
             k = _claskey(obj, _new_style)
         return k
 
-
 except AttributeError:  # Python 3+
 
     def _keytuple(obj):  # PYCHOK expected

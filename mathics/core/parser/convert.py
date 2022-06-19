@@ -63,7 +63,7 @@ class GenericConverter(object):
                 if n < 0:
                     return "Rational", sign * int(s, base), base ** abs(n)
                 else:
-                    return "Integer", sign * int(s, base) * (base ** n)
+                    return "Integer", sign * int(s, base) * (base**n)
             else:
                 s = s + "."
 
@@ -114,11 +114,11 @@ class GenericConverter(object):
             man = s[0] + s[1]
         man = sign * int(man, base)
         if n >= 0:
-            p = man * base ** n
+            p = man * base**n
             q = 1
         else:
             p = man
-            q = base ** -n
+            q = base**-n
         result = "Rational", p, q
         x = float(sympy.Rational(p, q))
 

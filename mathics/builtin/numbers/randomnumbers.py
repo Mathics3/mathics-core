@@ -48,7 +48,6 @@ if _numpy:
         # for numpy, seed must be convertible to 32 bit unsigned integer
         numpy.random.seed(abs(x) & 0xFFFFFFFF)
 
-
 else:
     random_get_state = random.getstate
     random_set_state = random.setstate

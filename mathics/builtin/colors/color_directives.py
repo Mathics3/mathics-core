@@ -42,15 +42,15 @@ def _cie2000_distance(lab1, lab2):
 
     dL = L2 - L1
     Lm = (L1 + L2) / 2
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
     Cm = (C1 + C2) / 2
 
-    a1 = a1 * (1 + (1 - sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))) / 2)
-    a2 = a2 * (1 + (1 - sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))) / 2)
+    a1 = a1 * (1 + (1 - sqrt(Cm**7 / (Cm**7 + 25**7))) / 2)
+    a2 = a2 * (1 + (1 - sqrt(Cm**7 / (Cm**7 + 25**7))) / 2)
 
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
     Cm = (C1 + C2) / 2
     dC = C2 - C1
 
@@ -80,8 +80,8 @@ def _cie2000_distance(lab1, lab2):
 
     rT = (
         -2
-        * sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))
-        * sin(radians(60 * exp(-((Hm - 275) ** 2 / 25 ** 2))))
+        * sqrt(Cm**7 / (Cm**7 + 25**7))
+        * sin(radians(60 * exp(-((Hm - 275) ** 2 / 25**2))))
     )
     return sqrt(
         (dL / (SL * kL)) ** 2
@@ -100,13 +100,13 @@ def _CMC_distance(lab1, lab2, l, c):
     dL, da, db = L2 - L1, a2 - a1, b2 - b1
     e = machine_epsilon
 
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
 
     h1 = (180 * atan2(b1, a1 + e)) / pi % 360
     dC = C2 - C1
-    dH2 = da ** 2 + db ** 2 - dC ** 2
-    F = C1 ** 2 / sqrt(C1 ** 4 + 1900)
+    dH2 = da**2 + db**2 - dC**2
+    F = C1**2 / sqrt(C1**4 + 1900)
     T = (
         0.56 + abs(0.2 * cos(radians(h1 + 168)))
         if (164 <= h1 and h1 <= 345)
@@ -116,7 +116,7 @@ def _CMC_distance(lab1, lab2, l, c):
     SL = 0.511 if L1 < 16 else (0.040975 * L1) / (1 + 0.01765 * L1)
     SC = (0.0638 * C1) / (1 + 0.0131 * C1) + 0.638
     SH = SC * (F * T + 1 - F)
-    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH ** 2)
+    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
 
 
 def _component_distance(a, b, i):

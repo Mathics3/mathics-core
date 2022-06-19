@@ -439,7 +439,7 @@ class MantissaExponent(Builtin):
 
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return ListExpression(Expression(SymbolDivide, n, b ** exp), Integer(exp))
+        return ListExpression(Expression(SymbolDivide, n, b**exp), Integer(exp))
 
     def apply_2(self, n, evaluation):
         "MantissaExponent[n_]"
@@ -459,7 +459,7 @@ class MantissaExponent(Builtin):
         base_exp = int(mpmath.log10(py_n))
         exp = (base_exp + 1) if base_exp >= 0 else base_exp
 
-        return ListExpression(Expression(SymbolDivide, n, (10 ** exp)), Integer(exp))
+        return ListExpression(Expression(SymbolDivide, n, (10**exp)), Integer(exp))
 
 
 class NextPrime(Builtin):

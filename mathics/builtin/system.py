@@ -383,7 +383,7 @@ class SystemWordLength(Predefined):
         # says it is more reliable to get bits using sys.maxsize
         # than platform.architecture()[0]
         size = 128
-        while not sys.maxsize > 2 ** size:
+        while not sys.maxsize > 2**size:
             size >>= 1
         return Integer(size << 1)
 
@@ -491,7 +491,6 @@ if have_psutil:
             """MemoryAvailable[]"""
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
-
 
 else:
 

@@ -69,7 +69,7 @@ class BezierFunction(Builtin):
 
 
 class BezierCurve(Builtin):
-    u"""
+    """
      <dl>
        <dt>'BezierCurve[{$pt_1$, $pt_2$ ...}]'
        <dd>represents a Bézier curve with control points $p_i$.

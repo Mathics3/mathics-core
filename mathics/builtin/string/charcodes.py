@@ -31,7 +31,7 @@ def unpack_bytes(codes):
 
 
 class ToCharacterCode(Builtin):
-    u"""
+    """
     <dl>
     <dt>'ToCharacterCode["$string$"]'
       <dd>converts the string to a list of character codes (Unicode

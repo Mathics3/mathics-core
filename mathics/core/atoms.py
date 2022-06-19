@@ -571,7 +571,7 @@ class PrecisionReal(Real):
         value = self.value
         prec = min(value._prec, other_value._prec)
         diff = abs(value - other_value)
-        return diff < 0.5 ** prec
+        return diff < 0.5**prec
 
     def get_precision(self) -> float:
         """Returns the default specification for precision in N and other numerical functions."""

@@ -382,7 +382,7 @@ def number_form(expr, n, f, evaluation, options):
         assert isinstance(number, int)
         assert number >= 0
         number += 5 * int(10 ** -(1 + ndigits))
-        number //= int(10 ** -ndigits)
+        number //= int(10**-ndigits)
         return number
 
     # pad with NumberPadding

@@ -2195,7 +2195,7 @@ class NIntegrate(Builtin):
                         else:
                             subdomain2.append([le, -le])
                         coordtransform.append(
-                            (np.arctanh, lambda u: 1.0 / (1.0 - u ** 2))
+                            (np.arctanh, lambda u: 1.0 / (1.0 - u**2))
                         )
                     else:
                         if not b.is_numeric(evaluation):

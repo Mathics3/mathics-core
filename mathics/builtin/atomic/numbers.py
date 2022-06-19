@@ -300,7 +300,7 @@ class IntegerExponent(Builtin):
         # NOTE: IntegerExponent[a,b] causes a Python error here when a or b are
         # symbols. The function signature here ensures we have Integers.
         result = 1
-        while py_n % (py_b ** result) == 0:
+        while py_n % (py_b**result) == 0:
             result += 1
 
         return Integer(result - 1)
@@ -398,7 +398,7 @@ class IntegerLength(Builtin):
 
         # find bounds
         j = 1
-        while b ** j <= n:
+        while b**j <= n:
             j *= 2
         i = j // 2
 
@@ -406,7 +406,7 @@ class IntegerLength(Builtin):
         while i + 1 < j:
             # assert b ** i <= n <= b ** j
             k = (i + j) // 2
-            if b ** k <= n:
+            if b**k <= n:
                 i = k
             else:
                 j = k

@@ -78,7 +78,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
         val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
         val_d2 = apply_N(
-            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+            (f2val + f1val - Integer2 * curr_val) / (eps**Integer2), evaluation
         )
     else:
         d2 = dynamic_scoping(
@@ -122,7 +122,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
             f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
             val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
             val_d2 = apply_N(
-                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+                (f2val + f1val - Integer2 * curr_val) / (eps**Integer2), evaluation
             )
         return (val_d1, val_d2)
 
