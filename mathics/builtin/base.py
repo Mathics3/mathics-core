@@ -14,10 +14,19 @@ from mathics.builtin.exceptions import (
     BoxConstructError,
     MessageException,
 )
-from mathics.core.attributes import no_attributes
+
+from mathics.core.atoms import (
+    Integer,
+    MachineReal,
+    PrecisionReal,
+    String,
+)
+from mathics.core.attributes import protected, read_protected, no_attributes
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.expression import Expression, SymbolDefault, to_expression
 from mathics.core.list import ListExpression
+from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
 from mathics.core.rules import Rule, BuiltinRule, Pattern
 from mathics.core.symbols import (
@@ -25,21 +34,10 @@ from mathics.core.symbols import (
     Symbol,
     ensure_context,
     strip_context,
-)
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    String,
-)
-from mathics.core.expression import Expression, SymbolDefault, to_expression
-from mathics.core.number import get_precision, PrecisionValueError
-from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, SymbolRule
-from mathics.core.attributes import protected, read_protected
 
 
 def check_requires_list(requires: list) -> bool:
@@ -254,7 +252,7 @@ class Builtin:
                         evaluation.message(
                             name,
                             "optx",
-                            Expression(SymbolRule, short_key, value),
+                            Expression(SymbolRule, String(short_key), value),
                             strip_context(name),
                         )
                         if option_syntax in ("Strict", "System`Strict"):

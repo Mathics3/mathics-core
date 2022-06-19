@@ -46,9 +46,10 @@ from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
+
 from mathics.format.asy_fns import asy_color, asy_number
 
-
+SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
 
 # Note: has to come before _ArcBox
@@ -114,7 +115,7 @@ class _ArcBox(_RoundBox):
                 else:
                     self.arc = (start_angle, end_angle)
 
-            item = Expression(item.get_head_name(), *item.elements[:2])
+            item = Expression(Symbol(item.get_head_name()), *item.elements[:2])
         else:
             self.arc = None
         super(_ArcBox, self).init(graphics, style, item)
@@ -1306,12 +1307,10 @@ class RegularPolygonBox(PolygonBox):
             def vertices():
                 for i in range(n):
                     phi = phi0 + pi2 * i / float(n)
-                    yield Expression(
-                        "List", Real(x + r * cos(phi)), Real(y + r * sin(phi))
-                    )
+                    yield ListExpression(Real(x + r * cos(phi)), Real(y + r * sin(phi)))
 
             new_item = Expression(
-                "RegularPolygonBox", ListExpression(*list(vertices()))
+                SymbolRegularPolygonBox, ListExpression(*list(vertices()))
             )
         else:
             raise BoxConstructError

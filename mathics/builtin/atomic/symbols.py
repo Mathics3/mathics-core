@@ -40,6 +40,7 @@ from mathics.core.symbols import (
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
+    SymbolUpSet,
     strip_context,
 )
 from mathics.core.systemsymbols import (
@@ -275,7 +276,9 @@ class Definition(Builtin):
                 lines.append(
                     Expression(
                         SymbolHoldForm,
-                        Expression(up and "UpSet" or "Set", lhs(rule.pattern.expr), r),
+                        Expression(
+                            up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
+                        ),
                     )
                 )
 
@@ -349,7 +352,7 @@ class Definition(Builtin):
         if grid:
             if lines:
                 return Expression(
-                    "Grid",
+                    SymbolGrid,
                     ListExpression(*(ListExpression(line) for line in lines)),
                     Expression(SymbolRule, Symbol("ColumnAlignments"), Symbol("Left")),
                 )

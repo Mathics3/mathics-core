@@ -9,11 +9,6 @@ import sympy
 from itertools import chain
 
 
-from mathics.algorithm.introselect import introselect
-from mathics.algorithm.parts import (
-    python_levelspec,
-    walk_levels,
-)
 from mathics.algorithm.clusters import (
     AutomaticMergeCriterion,
     AutomaticSplitCriterion,
@@ -22,6 +17,11 @@ from mathics.algorithm.clusters import (
     agglomerate,
     kmeans,
     optimize,
+)
+from mathics.algorithm.introselect import introselect
+from mathics.algorithm.parts import (
+    python_levelspec,
+    walk_levels,
 )
 
 from mathics.builtin.base import (
@@ -60,7 +60,14 @@ from mathics.core.atoms import (
     machine_precision,
     min_prec,
 )
-
+from mathics.core.attributes import (
+    flat,
+    hold_all,
+    locked,
+    one_identity,
+    protected,
+    read_protected,
+)
 from mathics.core.convert import from_sympy
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, structure, to_expression
@@ -91,14 +98,6 @@ from mathics.core.systemsymbols import (
     SymbolSubsetQ,
 )
 
-from mathics.core.attributes import (
-    flat,
-    hold_all,
-    locked,
-    one_identity,
-    protected,
-    read_protected,
-)
 
 SymbolClusteringComponents = Symbol("ClusteringComponents")
 SymbolContainsOnly = Symbol("ContainsOnly")
@@ -143,12 +142,13 @@ class ByteArray(Builtin):
      : The first argument in Bytearray[asy] should be a B64 enconded string or a vector of integers.
      = $Failed
     """
-    summary_text = "array of bytes"
+
     messages = {
         "aotd": "Elements in `1` are inconsistent with type Byte",
         "lend": "The first argument in Bytearray[`1`] should "
         + "be a B64 enconded string or a vector of integers.",
     }
+    summary_text = "array of bytes"
 
     def apply_str(self, string, evaluation):
         "ByteArray[string_String]"
@@ -214,7 +214,6 @@ class ContainsOnly(Builtin):
      = True
     """
 
-    summary_text = "test if all the elements of a list appears into another list"
     attributes = protected | read_protected
 
     messages = {
@@ -226,6 +225,8 @@ class ContainsOnly(Builtin):
     options = {
         "SameTest": "SameQ",
     }
+
+    summary_text = "test if all the elements of a list appears into another list"
 
     def check_options(self, expr, evaluation, options):
         for key in options:
@@ -358,13 +359,13 @@ class Delete(Builtin):
      = Delete[{a, b, c, d}, {{1}, {n}}]
     """
 
-    summary_text = "delete elements from a list at given positions"
     messages = {
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
         "pkspec": "The expression `1` cannot be used as a part specification. Use `2` instead.",
     }
+    summary_text = "delete elements from a list at given positions"
 
     def apply_one(self, expr, position: Integer, evaluation):
         "Delete[expr_, position_Integer]"
@@ -443,10 +444,10 @@ class Key(Builtin):
     </dl>
     """
 
-    summary_text = "indicate a key within a part specification"
     rules = {
         "Key[key_][assoc_Association]": "assoc[key]",
     }
+    summary_text = "indicate a key within a part specification"
 
 
 class Level(Builtin):
@@ -502,10 +503,10 @@ class Level(Builtin):
      = {f, g, h, g[h], x, f[g[h]][x]}
     """
 
-    summary_text = "parts specified by a given number of indices"
     options = {
         "Heads": "False",
     }
+    summary_text = "parts specified by a given number of indices"
 
     def apply(self, expr, ls, evaluation, options={}):
         "Level[expr_, ls_, OptionsPattern[Level]]"
@@ -570,8 +571,8 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
-    summary_text = "specify a list explicitly"
     attributes = locked | protected
+    summary_text = "specify a list explicitly"
 
     def apply(self, elements, evaluation):
         """List[elements___]"""
@@ -664,8 +665,8 @@ class None_(Predefined):
     </dl>
     """
 
-    summary_text = "not any part"
     name = "None"
+    summary_text = "not any part"
 
 
 class Split(Builtin):
@@ -704,7 +705,6 @@ class Split(Builtin):
     #> ClearAll[A];
     """
 
-    summary_text = "split into runs of identical elements"
     rules = {
         "Split[list_]": "Split[list, SameQ]",
     }
@@ -712,6 +712,7 @@ class Split(Builtin):
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
+    summary_text = "split into runs of identical elements"
 
     def apply(self, mlist, test, evaluation):
         "Split[mlist_, test_]"
@@ -756,14 +757,15 @@ class SplitBy(Builtin):
      = {{{1, 1, 1}, {1, 1, 2}, {1, 2, 1}, {1, 2, 2}}, {{2, 1, 1}, {2, 1, 2}, {2, 2, 1}, {2, 2, 2}}}
     """
 
-    summary_text = "split based on values of a function applied to elements"
+    messages = {
+        "normal": "Nonatomic expression expected at position `1` in `2`.",
+    }
+
     rules = {
         "SplitBy[list_]": "SplitBy[list, Identity]",
     }
 
-    messages = {
-        "normal": "Nonatomic expression expected at position `1` in `2`.",
-    }
+    summary_text = "split based on values of a function applied to elements"
 
     def apply(self, mlist, func, evaluation):
         "SplitBy[mlist_, func_?NotListQ]"
@@ -839,10 +841,10 @@ class LeafCount(Builtin):
      = LeafCount[1 / 3, 1 + I]
     """
 
-    summary_text = "the total number of atomic subexpressions"
     messages = {
         "argx": "LeafCount called with `1` arguments; 1 argument is expected.",
     }
+    summary_text = "the total number of atomic subexpressions"
 
     def apply(self, expr, evaluation):
         "LeafCount[expr___]"
@@ -895,12 +897,12 @@ class Position(Builtin):
      = {{2}}
     """
 
-    summary_text = "positions of matching elements"
     options = {"Heads": "True"}
 
     rules = {
         "Position[pattern_][expr_]": "Position[expr, pattern]",
     }
+    summary_text = "positions of matching elements"
 
     def apply_invalidlevel(self, patt, expr, ls, evaluation, options={}):
         "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
@@ -1168,8 +1170,8 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    summary_text = "join lists together at any level"
     attributes = flat | one_identity | protected
+    summary_text = "join lists together at any level"
 
     def apply(self, lists, evaluation):
         "Join[lists___]"
@@ -1243,7 +1245,6 @@ class UnitVector(Builtin):
      = {0, 0, 1, 0}
     """
 
-    summary_text = "unit vector along a coordinate direction"
     messages = {
         "nokun": "There is no unit vector in direction `1` in `2` dimensions.",
     }
@@ -1251,6 +1252,7 @@ class UnitVector(Builtin):
     rules = {
         "UnitVector[k_Integer]": "UnitVector[2, k]",
     }
+    summary_text = "unit vector along a coordinate direction"
 
     def apply(self, n: Integer, k: Integer, evaluation):
         "UnitVector[n_Integer, k_Integer]"
@@ -1280,8 +1282,8 @@ class IntersectingQ(Builtin):
     </dl>
     """
 
-    summary_text = "test whether two lists have common elements"
     rules = {"IntersectingQ[a_List, b_List]": "Length[Intersect[a, b]] > 0"}
+    summary_text = "test whether two lists have common elements"
 
 
 class DisjointQ(Test):
@@ -1292,8 +1294,8 @@ class DisjointQ(Test):
     </dl>
     """
 
-    summary_text = "test whether two lists do not have common elements"
     rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
+    summary_text = "test whether two lists do not have common elements"
 
 
 class Fold(Builtin):
@@ -1312,11 +1314,11 @@ class Fold(Builtin):
      = f[f[f[5, 1], 2], 3]
     """
 
-    summary_text = "iterative application of a binary operation over elements of a list"
     rules = {
         "Fold[exp_, x_, head_]": "Module[{list = Level[head, 1], res = x, i = 1}, Do[res = exp[res, list[[i]]], {i, 1, Length[list]}]; res]",
         "Fold[exp_, head_] /; Length[head] > 0": "Fold[exp, First[head], Rest[head]]",
     }
+    summary_text = "iterative application of a binary operation over elements of a list"
 
 
 class FoldList(Builtin):
@@ -1336,11 +1338,11 @@ class FoldList(Builtin):
      = {1, 2, 6}
     """
 
-    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
     rules = {
         "FoldList[exp_, x_, head_]": "Module[{i = 1}, Head[head] @@ Prepend[Table[Fold[exp, x, Take[head, i]], {i, 1, Length[head]}], x]]",
         "FoldList[exp_, head_]": "If[Length[head] == 0, head, FoldList[exp, First[head], Rest[head]]]",
     }
+    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
 
 
 class _NotRectangularException(Exception):
@@ -1384,11 +1386,11 @@ class RankedMin(Builtin):
      = 17
     """
 
-    summary_text = "the n-th smallest item"
     messages = {
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    summary_text = "the n-th smallest item"
 
     def apply(self, element, n: Integer, evaluation):
         "RankedMin[element_List, n_Integer]"
@@ -1415,11 +1417,11 @@ class RankedMax(Builtin):
      = 181
     """
 
-    summary_text = "the n-th largest item"
     messages = {
         "intpm": "Expected positive integer at position 2 in ``.",
         "rank": "The specified rank `1` is not between 1 and `2`.",
     }
+    summary_text = "the n-th largest item"
 
     def apply(self, element, n: Integer, evaluation):
         "RankedMax[element_List, n_Integer]"
@@ -1864,8 +1866,8 @@ class PadLeft(_Pad):
      = {{x, x}, {x, x}, {x, x}, {3, x}, {x, x}}
     """
 
-    summary_text = "pad out by the left a ragged array to make a matrix"
     _mode = -1
+    summary_text = "pad out by the left a ragged array to make a matrix"
 
 
 class PadRight(_Pad):
@@ -1900,8 +1902,8 @@ class PadRight(_Pad):
      = {{x, x}, {x, 1}, {x, x}, {x, x}, {x, x}}
     """
 
-    summary_text = "pad out by the right a ragged array to make a matrix"
     _mode = 1
+    summary_text = "pad out by the right a ragged array to make a matrix"
 
 
 class _IllegalDistance(Exception):
@@ -2057,10 +2059,8 @@ class _Cluster(Builtin):
                     ListExpression(*dist_p),
                 )
                 return
-
-        if (
-            method_string == "KMeans"
-            and distance_function != "SquaredEuclideanDistance"
+        if method_string == "KMeans" and distance_function is not Symbol(
+            "SquaredEuclideanDistance"
         ):
             evaluation.message(self.get_name(), "kmsud")
             return
@@ -2308,22 +2308,22 @@ class Nearest(Builtin):
      = {b}
     """
 
-    summary_text = "the nearest element from a list"
-    options = {
-        "DistanceFunction": "Automatic",
-        "Method": '"Scan"',
-    }
-
     messages = {
         "amtd": "`1` failed to pick a suitable distance function for `2`.",
         "list": "Expected a list or a rule with equally sized lists at position 1 in ``.",
         "nimp": "Method `1` is not implemented yet.",
     }
 
+    options = {
+        "DistanceFunction": "Automatic",
+        "Method": '"Scan"',
+    }
+
     rules = {
         "Nearest[list_, pattern_]": "Nearest[list, pattern, 1]",
         "Nearest[pattern_][list_]": "Nearest[list, pattern]",
     }
+    summary_text = "the nearest element from a list"
 
     def apply(self, items, pivot, limit, expression, evaluation, options):
         "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
@@ -2461,13 +2461,13 @@ class SubsetQ(Builtin):
      = True
     """
 
-    summary_text = "test if a list is a subset of another list"
     messages = {
         "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
         "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
         "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
+    summary_text = "test if a list is a subset of another list"
 
     def apply(self, expr, subset, evaluation):
         "SubsetQ[expr_, subset___]"

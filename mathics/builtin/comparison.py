@@ -11,7 +11,7 @@ from typing import Optional, Any
 
 import sympy
 
-from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
@@ -23,13 +23,24 @@ from mathics.builtin.numbers.constants import mp_convert_constant
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
+    Integer,
     Integer0,
     Integer1,
     IntegerM1,
     Number,
     String,
 )
+from mathics.core.attributes import (
+    flat,
+    listable,
+    numeric_function,
+    one_identity,
+    orderless,
+    protected,
+)
+from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, to_expression
+from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAnd,
@@ -39,16 +50,6 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolMaxPrecision,
     SymbolSign,
-)
-from mathics.core.number import dps
-
-from mathics.core.attributes import (
-    flat,
-    listable,
-    numeric_function,
-    one_identity,
-    orderless,
-    protected,
 )
 
 
@@ -322,8 +323,8 @@ class SameQ(_ComparisonOperator):
     15.9546 is the value of '$MaxPrecision'
     """
 
-    operator = "==="
     grouping = "None"  # Indeterminate grouping: Neither left nor right
+    operator = "==="
     precedence = 290
 
     summary_text = "literal symbolic identity"
@@ -683,8 +684,8 @@ class Equal(_EqualityOperator, _SympyComparison):
     empty or single-element lists are both 'Equal' and 'Unequal'.
     """
 
-    operator = "=="
     grouping = "None"
+    operator = "=="
     summary_text = "numerical equality"
     sympy_name = "Eq"
 
@@ -1007,7 +1008,7 @@ class _MinMax(Builtin):
                     results.append(element)
 
         if not results:
-            return Expression(SymbolDirectedInfinity, -self.sense)
+            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):
@@ -1052,8 +1053,8 @@ class Max(_MinMax):
      = x
     """
 
-    summary_text = "the maximum value"
     sense = 1
+    summary_text = "the maximum value"
 
 
 class Min(_MinMax):

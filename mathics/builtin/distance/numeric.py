@@ -3,10 +3,11 @@ Numerial Data
 """
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer1
+from mathics.core.atoms import Integer1, Integer2
 from mathics.core.expression import Expression
 
 from mathics.core.symbols import (
+    Symbol,
     SymbolAbs,
     SymbolDivide,
     SymbolPlus,
@@ -14,6 +15,7 @@ from mathics.core.symbols import (
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
+    SymbolDot,
     SymbolMax,
     SymbolNorm,
     SymbolSubtract,
@@ -55,7 +57,7 @@ class BrayCurtisDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "BrayCurtisDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
             return Expression(
                 SymbolDivide,
@@ -84,7 +86,7 @@ class CanberraDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "CanberraDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
             return Expression(
                 SymbolTotal,
@@ -116,7 +118,7 @@ class ChessboardDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "ChessboardDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
             return Expression(SymbolMax, Expression(SymbolAbs, t))
 
@@ -142,7 +144,7 @@ class CosineDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "CosineDistance[u_, v_]"
-        dot = _norm_calc("Dot", u, v, evaluation)
+        dot = _norm_calc(SymbolDot, u, v, evaluation)
         if dot is not None:
             return Expression(
                 SymbolSubtract,
@@ -203,7 +205,7 @@ class ManhattanDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "ManhattanDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
             return Expression(SymbolTotal, Expression(SymbolAbs, t))
 
@@ -226,6 +228,6 @@ class SquaredEuclideanDistance(Builtin):
 
     def apply(self, u, v, evaluation):
         "SquaredEuclideanDistance[u_, v_]"
-        t = _norm_calc("Subtract", u, v, evaluation)
+        t = _norm_calc(SymbolSubtract, u, v, evaluation)
         if t is not None:
-            return Expression(SymbolPower, Expression(SymbolNorm, t), 2)
+            return Expression(SymbolPower, Expression(SymbolNorm, t), Integer2)
