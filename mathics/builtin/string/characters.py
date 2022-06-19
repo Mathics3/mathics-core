@@ -6,11 +6,10 @@ Characters in Strings
 
 from mathics.builtin.base import Builtin, Test
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import String
-from mathics.core.list import to_mathics_list
-
 from mathics.core.attributes import listable, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 
 
 class Characters(Builtin):
@@ -36,8 +35,8 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
-    summary_text = "list the characters in a string"
     attributes = listable | protected
+    summary_text = "list the characters in a string"
 
     def apply(self, string, evaluation):
         "Characters[string_String]"
@@ -74,9 +73,7 @@ class CharacterRange(Builtin):
             return
         start = ord(start.value[0])
         stop = ord(stop.value[0])
-        return Expression(
-            "List", *[String(chr(code)) for code in range(start, stop + 1)]
-        )
+        return ListExpression(*[String(chr(code)) for code in range(start, stop + 1)])
 
 
 class DigitQ(Builtin):
@@ -175,8 +172,8 @@ class ToLowerCase(Builtin):
      = new york
     """
 
-    summary_text = "turn all the letters into lower case"
     attributes = listable | protected
+    summary_text = "turn all the letters into lower case"
 
     def apply(self, s, evaluation):
         "ToLowerCase[s_String]"
@@ -194,8 +191,8 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
-    summary_text = "turn all the letters into upper case"
     attributes = listable | protected
+    summary_text = "turn all the letters into upper case"
 
     def apply(self, s, evaluation):
         "ToUpperCase[s_String]"

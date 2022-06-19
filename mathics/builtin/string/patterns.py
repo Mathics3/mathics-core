@@ -16,17 +16,23 @@ from mathics.builtin.atomic.strings import (
 )
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.expression import Expression
+
 from mathics.core.atoms import (
     Integer1,
     String,
 )
 from mathics.core.attributes import flat, listable, one_identity, protected
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolTrue,
 )
+
+
+SymbolStringMatchQ = Symbol("StringMatchQ")
+SymbolStringExpression = Symbol("StringExpression")
 
 
 class DigitCharacter(Builtin):
@@ -200,10 +206,10 @@ class StringCases(_StringFind):
      = {a, ä}
     """
 
-    summary_text = "occurrences of string patterns in a string"
     rules = {
         "StringCases[rule_][string_]": "StringCases[string, rule]",
     }
+    summary_text = "occurrences of string patterns in a string"
 
     def _find(self, py_stri, py_rules, py_n, flags, evaluation):
         def cases():
@@ -238,15 +244,15 @@ class StringExpression(BinaryOperator):
      = a ~~ b
     """
 
-    summary_text = "an arbitrary string expression"
+    attributes = flat | one_identity | protected
     operator = "~~"
     precedence = 135
-    attributes = flat | one_identity | protected
 
     messages = {
         "invld": "Element `1` is not a valid string or pattern element in `2`.",
         "cond": "Ignored restriction given for `1` in `2` as it does not match previous occurences of `1`.",
     }
+    summary_text = "an arbitrary string expression"
 
     def apply(self, args, evaluation):
         "StringExpression[args__String]"
@@ -334,7 +340,10 @@ class StringFreeQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
-    summary_text = "test whether a string is free of substrings matching a pattern"
+    messages = {
+        "strse": "String or list of strings expected at position `1` in `2`.",
+    }
+
     options = {
         "IgnoreCase": "False",
     }
@@ -343,9 +352,7 @@ class StringFreeQ(Builtin):
         "StringFreeQ[patt_][expr_]": "StringFreeQ[expr, patt]",
     }
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-    }
+    summary_text = "test whether a string is free of substrings matching a pattern"
 
     def apply(self, string, patt, evaluation, options):
         "StringFreeQ[string_, patt_, OptionsPattern[%(name)s]]"
@@ -411,7 +418,7 @@ class StringMatchQ(Builtin):
     #> StringMatchQ["ae", "a@e"]
      = False
     """
-    summary_text = "test whether a string matches a pattern"
+
     attributes = listable | protected
 
     options = {
@@ -426,6 +433,7 @@ class StringMatchQ(Builtin):
     rules = {
         "StringMatchQ[patt_][expr_]": "StringMatchQ[expr, patt]",
     }
+    summary_text = "test whether a string matches a pattern"
 
     def apply(self, string, patt, evaluation, options):
         "StringMatchQ[string_, patt_, OptionsPattern[%(name)s]]"
@@ -435,13 +443,16 @@ class StringMatchQ(Builtin):
                 "StringMatchQ",
                 "strse",
                 Integer1,
-                Expression("StringMatchQ", string, patt),
+                Expression(SymbolStringMatchQ, string, patt),
             )
 
         re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
         if re_patt is None:
             return evaluation.message(
-                "StringExpression", "invld", patt, Expression("StringExpression", patt)
+                "StringExpression",
+                "invld",
+                patt,
+                Expression(SymbolStringExpression, patt),
             )
 
         re_patt = anchor_pattern(re_patt)
