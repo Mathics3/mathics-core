@@ -124,10 +124,10 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    operator = ":>"
-    precedence = 120
     attributes = sequence_hold | hold_rest | protected
     needs_verbatim = True
+    operator = ":>"
+    precedence = 120
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
@@ -245,9 +245,8 @@ class Replace(Builtin):
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
     }
 
-    rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
-
     options = {"Heads": "False"}
+    rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
     summary_text = "apply a replacement rule"
 
     def apply_levelspec(self, expr, rules, ls, evaluation, options):
@@ -316,10 +315,10 @@ class ReplaceAll(BinaryOperator):
      = y
     """
 
-    operator = "/."
-    precedence = 110
     grouping = "Left"
     needs_verbatim = True
+    operator = "/."
+    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -367,10 +366,10 @@ class ReplaceRepeated(BinaryOperator):
      = Log[a] + Log[f (b c) ^ d ^ e]
     """
 
-    operator = "//."
-    precedence = 110
     grouping = "Left"
     needs_verbatim = True
+    operator = "//."
+    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -720,10 +719,9 @@ class Alternatives(BinaryOperator, PatternObject):
     """
 
     arg_counts = None
+    needs_verbatim = True
     operator = "|"
     precedence = 160
-    needs_verbatim = True
-
     summary_text = "match to any of several patterns"
 
     def init(self, expr):

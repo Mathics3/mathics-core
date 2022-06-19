@@ -1181,16 +1181,16 @@ class StringContainsQ(Builtin):
     ## Element F is not a valid string or pattern element in {F ~~ __ ~~ r, aw ~~ ___}.
     """
 
+    messages = {
+        "strse": "String or list of strings expected at position `1` in `2`.",
+    }
+
     options = {
         "IgnoreCase": "False",
     }
 
     rules = {
         "StringContainsQ[patt_][expr_]": "StringContainsQ[expr, patt]",
-    }
-
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
     }
 
     summary_text = "test whether a pattern matches with a substring"
