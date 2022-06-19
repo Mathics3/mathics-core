@@ -407,7 +407,7 @@ class StringInsert(Builtin):
 
         # Check and create list of position
         listpos = []
-        if pos.get_head() is SymbolList:
+        if pos.has_form("List", None):
             elements = pos.get_elements()
             if not elements:
                 return strsource
@@ -424,7 +424,7 @@ class StringInsert(Builtin):
             listpos.append(py_pos)
 
         # Check and perform the insertion
-        if strsource.get_head() is SymbolList:
+        if strsource.has_form("List", None):
             py_strsource = [sub.get_string_value() for sub in strsource.elements]
             if any(sub is None for sub in py_strsource):
                 return evaluation.message("StringInsert", "strse", Integer1, exp)
@@ -619,7 +619,7 @@ class StringPosition(Builtin):
             overlap = False  # unknown options are teated as False
 
         # convert patterns
-        if patt.get_head() is SymbolList:
+        if patt.has_form("List", None):
             patts = patt.get_elements()
         else:
             patts = [patt]
@@ -632,7 +632,7 @@ class StringPosition(Builtin):
         compiled_patts = [re.compile(re_patt) for re_patt in re_patts]
 
         # string or list of strings
-        if string.get_head() is SymbolList:
+        if string.has_form("List", None):
             py_strings = [s.get_string_value() for s in string.elements]
             if None in py_strings:
                 return
@@ -891,7 +891,7 @@ class StringRiffle(Builtin):
         if len(separators) > 1:
             return evaluation.message("StringRiffle", "mulsep")
         elif len(separators) == 1:
-            if separators[0].get_head() is SymbolList:
+            if separators[0].has_form("List", None):
                 if len(separators[0].elements) != 3 or any(
                     not isinstance(s, (String, _BoxedString))
                     for s in separators[0].elements
@@ -901,10 +901,10 @@ class StringRiffle(Builtin):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string
-        if not liststr.get_head() is SymbolList:
+        if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
             return evaluation.message("StringRiffle", "argmu", exp)
-        elif any(element.get_head() is SymbolList for element in liststr.elements):
+        elif any(element.has_form("List", None) for element in liststr.elements):
             return evaluation.message("StringRiffle", "sublist")
 
         # Determine the separation token
@@ -912,7 +912,7 @@ class StringRiffle(Builtin):
         if len(separators) == 0:
             sep = " "
         else:
-            if separators[0].get_head() is SymbolList:
+            if separators[0].has_form("List", None):
                 left = separators[0].elements[0].value
                 sep = separators[0].elements[1].value
                 right = separators[0].elements[2].value
@@ -1021,7 +1021,7 @@ class StringSplit(Builtin):
                 "StringSplit", "strse", Integer1, Expression(SymbolStringSplit, string)
             )
 
-        if patt.get_head() is SymbolList:
+        if patt.has_form("List", None):
             patts = patt.get_elements()
         else:
             patts = [patt]

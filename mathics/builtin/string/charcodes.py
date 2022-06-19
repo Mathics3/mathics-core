@@ -87,7 +87,7 @@ class ToCharacterCode(Builtin):
     def _encode(self, string, encoding, evaluation):
         exp = Expression(SymbolToCharacterCode, string)
 
-        if string.get_head() is SymbolList:
+        if string.has_form("List", None):
             string = [substring.get_string_value() for substring in string.elements]
             if any(substring is None for substring in string):
                 evaluation.message("ToCharacterCode", "strse", Integer1, exp)
