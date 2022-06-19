@@ -42,26 +42,16 @@ from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, Symbol
 from mathics.core.attributes import protected, read_protected
 
 
-# This global dict stores which libraries was required to
-# be available, and the corresponding result.
-requires_lib_cache = {}
-
-
 def check_requires_list(requires: list) -> bool:
     """
     Check if module names in ``requires`` can be imported and return True if they can or False if not.
-
-    This state value is also recorded in dictionary `requires_lib_cache` keyed by module name and is used to determine whether to skip trying to get information from the module."""
+    """
     for package in requires:
-        lib_is_installed = requires_lib_cache.get(package, None)
-        if lib_is_installed is None:
-            lib_is_installed = True
-            try:
-                importlib.import_module(package)
-            except ImportError:
-                lib_is_installed = False
-            requires_lib_cache[package] = lib_is_installed
-
+        lib_is_installed = True
+        try:
+            lib_is_installed = importlib.util.find_spec(package) is not None
+        except ImportError:
+            lib_is_installed = False
         if not lib_is_installed:
             return False
     return True
