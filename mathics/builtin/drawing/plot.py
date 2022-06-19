@@ -11,11 +11,10 @@ import itertools
 import numbers
 import palettable
 
-
-from mathics.builtin.numeric import chop
 from mathics.builtin.base import Builtin
-from mathics.builtin.graphics import Graphics
 from mathics.builtin.drawing.graphics3d import Graphics3D
+from mathics.builtin.graphics import Graphics
+from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -120,7 +119,10 @@ class ColorDataFunction(Builtin):
 class _GradientColorScheme(object):
     def color_data_function(self, name):
         colors = ListExpression(
-            *[Expression(SymbolRGBColor, *color) for color in self.colors()]
+            *[
+                Expression(SymbolRGBColor, *(MachineReal(c) for c in color))
+                for color in self.colors()
+            ]
         )
         blend = Expression(
             SymbolFunction,
@@ -377,19 +379,7 @@ class _Plot(Builtin):
 
     attributes = hold_all | protected
 
-    options = Graphics.options.copy()
-    options.update(
-        {
-            "Axes": "True",
-            "AspectRatio": "1 / GoldenRatio",
-            "MaxRecursion": "Automatic",
-            "Mesh": "None",
-            "PlotRange": "Automatic",
-            "PlotPoints": "None",
-            "Exclusions": "Automatic",
-            "$OptionSyntax": "Strict",
-        }
-    )
+    expect_list = False
 
     messages = {
         "invmaxrec": (
@@ -407,7 +397,19 @@ class _Plot(Builtin):
         ),
     }
 
-    expect_list = False
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "MaxRecursion": "Automatic",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Exclusions": "Automatic",
+            "$OptionSyntax": "Strict",
+        }
+    )
 
     def apply(self, functions, x, start, stop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
@@ -739,7 +741,7 @@ class _Plot(Builtin):
 
 class _Chart(Builtin):
     attributes = hold_all | protected
-
+    never_monochrome = False
     options = Graphics.options.copy()
     options.update(
         {
@@ -750,8 +752,6 @@ class _Chart(Builtin):
             "ChartStyle": "Automatic",
         }
     )
-
-    never_monochrome = False
 
     def _draw(self, data, color, evaluation, options):
         raise NotImplementedError()
@@ -809,7 +809,10 @@ class _Chart(Builtin):
             if not multiple_colors and not self.never_monochrome:
                 colors = [Expression(SymbolRGBColor, *mpl_colors[0])]
             else:
-                colors = [Expression(SymbolRGBColor, *c) for c in mpl_colors]
+                colors = [
+                    Expression(SymbolRGBColor, *(MachineReal(cc) for cc in c))
+                    for c in mpl_colors
+                ]
             spread_colors = True
         else:
             return
@@ -925,7 +928,7 @@ class PieChart(_Chart):
      = -Graphics-
     """
 
-    summary_text = "draw a pie chart"
+    never_monochrome = True
     options = _Chart.options.copy()
     options.update(
         {
@@ -936,7 +939,7 @@ class PieChart(_Chart):
         }
     )
 
-    never_monochrome = True
+    summary_text = "draw a pie chart"
 
     def _draw(self, data, color, evaluation, options):
         data = [[max(0.0, x) for x in group] for group in data]
@@ -1103,7 +1106,6 @@ class BarChart(_Chart):
      = -Graphics-
     """
 
-    summary_text = "draw a bar chart"
     options = _Chart.options.copy()
     options.update(
         {
@@ -1111,6 +1113,8 @@ class BarChart(_Chart):
             "AspectRatio": "1 / GoldenRatio",
         }
     )
+
+    summary_text = "draw a bar chart"
 
     def _draw(self, data, color, evaluation, options):
         def vector2(x, y) -> ListExpression:
@@ -1219,7 +1223,6 @@ class Histogram(Builtin):
      = -Graphics-
     """
 
-    summary_text = "draw a histogram"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -1231,6 +1234,7 @@ class Histogram(Builtin):
             "PlotRange": "Automatic",
         }
     )
+    summary_text = "draw a histogram"
 
     def apply(self, points, spec, evaluation, options):
         "%(name)s[points_, spec___, OptionsPattern[%(name)s]]"
@@ -2210,8 +2214,8 @@ class ParametricPlot(_Plot):
     = -Graphics-
     """
 
-    summary_text = "2D parametric curves or regions"
     expect_list = True
+    summary_text = "2D parametric curves or regions"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", 2) and not (
@@ -2282,13 +2286,13 @@ class PolarPlot(_Plot):
      = -Graphics-
     """
 
-    summary_text = "draw a polar plot"
     options = _Plot.options.copy()
     options.update(
         {
             "AspectRatio": "1",
         }
     )
+    summary_text = "draw a polar plot"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
@@ -2338,7 +2342,6 @@ class ListPlot(_ListPlot):
      = -Graphics-
     """
 
-    summary_text = "plot lists of points"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2353,6 +2356,7 @@ class ListPlot(_ListPlot):
             "Joined": "False",
         }
     )
+    summary_text = "plot lists of points"
 
 
 class ListLinePlot(_ListPlot):
@@ -2377,7 +2381,6 @@ class ListLinePlot(_ListPlot):
      = -Graphics-
     """
 
-    summary_text = "plot lines through lists of points"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2392,6 +2395,7 @@ class ListLinePlot(_ListPlot):
             "Joined": "True",
         }
     )
+    summary_text = "plot lines through lists of points"
 
 
 class Plot3D(_Plot3D):
@@ -2455,7 +2459,6 @@ class Plot3D(_Plot3D):
     """
     #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
     """
-    summary_text = "3D surfaces of one or more functions"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2469,6 +2472,7 @@ class Plot3D(_Plot3D):
             "MaxRecursion": "2",
         }
     )
+    summary_text = "3D surfaces of one or more functions"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
@@ -2536,7 +2540,6 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
-    summary_text = "density plot for a function"
     attributes = hold_all | protected
 
     options = Graphics.options.copy()
@@ -2553,6 +2556,7 @@ class DensityPlot(_Plot3D):
             # 'MaxRecursion': '2',  # FIXME causes bugs in svg output see #303
         }
     )
+    summary_text = "density plot for a function"
 
     def get_functions_param(self, functions):
         return [functions]
@@ -2570,7 +2574,7 @@ class DensityPlot(_Plot3D):
             color_function = String("LakeColors")
         if color_function.get_string_value():
             func = Expression(
-                SymbolColorData, color_function.get_string_value()
+                SymbolColorData, String(color_function.get_string_value())
             ).evaluate(evaluation)
             if func.has_form("ColorDataFunction", 4):
                 color_function_min = func.leaves[2].leaves[0].round_to_float()

@@ -11,13 +11,16 @@ from csv import reader as csvreader
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, strip_context
+
 from mathics.core.atoms import (
     Integer,
     String,
     from_python,
 )
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol, strip_context
+
+SymbolMissing = Symbol("Missing")
 
 
 class NoElementDataFile(Exception):
@@ -95,14 +98,6 @@ class ElementData(Builtin):
     #> Outer[ElementData, Range[118], ElementData["Properties"]];
     """
 
-    rules = {
-        "ElementData[n_]": 'ElementData[n, "StandardName"]',
-        "ElementData[]": "ElementData[All]",
-        'ElementData["Properties"]': 'ElementData[All, "Properties"]',
-    }
-
-    summary_text = "Data about chemical elements"
-
     messages = {
         "noent": (
             "`1` is not a known entity, class, or tag for ElementData. "
@@ -113,6 +108,14 @@ class ElementData(Builtin):
             'Use ElementData["Properties"] for a list of properties.'
         ),
     }
+
+    rules = {
+        "ElementData[n_]": 'ElementData[n, "StandardName"]',
+        "ElementData[]": "ElementData[All]",
+        'ElementData["Properties"]': 'ElementData[All, "Properties"]',
+    }
+
+    summary_text = "Data about chemical elements"
 
     def apply_all(self, evaluation):
         "ElementData[All]"
@@ -182,13 +185,13 @@ class ElementData(Builtin):
             result = _ELEMENT_DATA[py_n][iprop]
 
             if result == "NOT_AVAILABLE":
-                return Expression("Missing", "NotAvailable")
+                return Expression(SymbolMissing, String("NotAvailable"))
 
             if result == "NOT_APPLICABLE":
-                return Expression("Missing", "NotApplicable")
+                return Expression(SymbolMissing, String("NotApplicable"))
 
             if result == "NOT_KNOWN":
-                return Expression("Missing", "Unknown")
+                return Expression(SymbolMissing, String("Unknown"))
 
             result = evaluation.parse(result)
             if isinstance(result, Symbol):
