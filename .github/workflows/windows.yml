@@ -34,7 +34,14 @@ jobs:
       run: |
         python setup.py install
     - name: Test Mathics
+      # Limit pip install to a basic install *without* full dependencies.
+      # Here is why:
+      #   * Windows is the slowest CI build, this speeds up testing by about
+      #     3 minutes
+      #   * Other CI tests on other (faster) OS's full dependencies and
+      #     we needs some CI that tests running when packages aren't available
+      # So "dev" only below, not "dev,full".
       run: |
-        pip install -e .[dev,full]
+        pip install -e .[dev]
         set PYTEST_WORKERS="-n3"
         make check
