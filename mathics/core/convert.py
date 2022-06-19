@@ -285,7 +285,7 @@ def from_sympy(expr):
                 factors.append(from_sympy(coeff))
             for index, exp in enumerate(monom):
                 if exp != 0:
-                    slot = Expression(SymbolSlot, index + 1)
+                    slot = Expression(SymbolSlot, Integer(index + 1))
                     if exp == 1:
                         factors.append(slot)
                     else:
@@ -306,7 +306,7 @@ def from_sympy(expr):
         except Exception:
             pass
 
-        return Expression(SymbolRoot, from_sympy(e), i + 1)
+        return Expression(SymbolRoot, from_sympy(e), Integer(i + 1))
     elif isinstance(expr, sympy.Lambda):
         vars = [
             sympy.Symbol("%s%d" % (sympy_slot_prefix, index + 1))
@@ -341,7 +341,7 @@ def from_sympy(expr):
             name = expr.func.__name__
             if is_Cn_expr(name):
                 return Expression(
-                    Expression("C", int(name[1:])),
+                    Expression(Symbol("C"), Integer(int(name[1:]))),
                     *[from_sympy(arg) for arg in expr.args]
                 )
             if name.startswith(sympy_symbol_prefix):

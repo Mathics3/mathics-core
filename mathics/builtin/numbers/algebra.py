@@ -13,8 +13,12 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
+from mathics.algorithm.simplify import default_complexity_function
 
 from mathics.builtin.base import Builtin
+from mathics.builtin.inference import evaluate_predicate
+from mathics.builtin.options import options_to_rules
+from mathics.builtin.scoping import dynamic_scoping
 
 from mathics.core.atoms import (
     Integer,
@@ -23,9 +27,11 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Number,
 )
-
+from mathics.core.attributes import listable, protected
+from mathics.core.convert import from_sympy, sympy_symbol_prefix
 from mathics.core.expression import Expression
-
+from mathics.core.list import ListExpression
+from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -51,16 +57,9 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolRuleDelayed,
     SymbolSin,
+    SymbolTable,
 )
 
-from mathics.algorithm.simplify import default_complexity_function
-from mathics.builtin.inference import evaluate_predicate
-from mathics.builtin.options import options_to_rules
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.attributes import listable, protected
-from mathics.core.convert import from_sympy, sympy_symbol_prefix
-from mathics.core.list import ListExpression
-from mathics.core.rules import Pattern
 
 import sympy
 
@@ -139,43 +138,43 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         _expand(Expression(SymbolSin, y)),
                     )
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head is Symbol("Cos"):
+                elif head is SymbolCos:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCos, x)),
                         _expand(Expression(SymbolCos, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSin, x)),
                         _expand(Expression(SymbolSin, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, -b))
-                elif head is Symbol("Sinh"):
+                elif head is SymbolSinh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
 
                     return _expand(Expression(SymbolPlus, a, b))
-                elif head is Symbol("Cosh"):
+                elif head is SymbolCosh:
                     a = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolCosh, x)),
                         _expand(Expression(SymbolCosh, y)),
                     )
 
                     b = Expression(
-                        "Times",
+                        SymbolTimes,
                         _expand(Expression(SymbolSinh, x)),
                         _expand(Expression(SymbolSinh, y)),
                     )
@@ -289,7 +288,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                         ]
                     else:
                         elements = [_expand(element) for element in elements]
-                    sub_exprs[i] = Expression(head, *elements)
+                    sub_exprs[i] = Expression(Symbol(head), *elements)
                     break
 
     hints = {
@@ -413,7 +412,6 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    summary_text = "partial fraction decomposition"
     attributes = listable | protected
     rules = {
         "Apart[expr_]": (
@@ -421,6 +419,7 @@ class Apart(Builtin):
             "  If[Length[vars] > 0, Apart[expr, vars[[1]]], expr]]"
         ),
     }
+    summary_text = "partial fraction decomposition"
 
     def apply(self, expr, var, evaluation):
         "Apart[expr_, var_Symbol]"
@@ -456,8 +455,8 @@ class Cancel(Builtin):
      = 2 f[x] / x
     """
 
-    summary_text = "cancel common factors in rational expressions"
     attributes = listable | protected
+    summary_text = "cancel common factors in rational expressions"
 
     def apply(self, expr, evaluation):
         "Cancel[expr_]"
@@ -551,13 +550,13 @@ class Coefficient(Builtin):
     ##  = {2, 1, 7}
     """
 
-    summary_text = "coefficient of a monomial in a polynomial expression"
+    attributes = listable | protected
     messages = {
         "argtu": "Coefficient called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
     }
 
-    attributes = listable | protected
+    summary_text = "coefficient of a monomial in a polynomial expression"
 
     def apply_noform(self, expr, evaluation):
         "Coefficient[expr_]"
@@ -588,7 +587,7 @@ class _CoefficientHandler(Builtin):
             target_pat = Pattern.create(Expression(SymbolAlternatives, *var_exprs))
             var_pats = [Pattern.create(var) for var in var_exprs]
 
-        ####### Auxiliary functions #########
+        # ###### Auxiliary functions #########
         def key_powers(lst):
             key = Expression(SymbolPlus, *lst)
             key = key.evaluate(evaluation)
@@ -663,16 +662,16 @@ class _CoefficientHandler(Builtin):
             elif len(coeffs) == 1:
                 coeffs = coeffs[0]
             else:
-                coeffs = Expression("Times", *coeffs)
+                coeffs = Expression(SymbolTimes, *coeffs)
             if len(powers) == 0:
                 powers = None
             elif len(powers) == 1:
                 powers = powers[0]
             else:
-                powers = Expression("Times", *sorted(powers))
+                powers = Expression(SymbolTimes, *sorted(powers))
             return coeffs, powers
 
-        #################  The actual begin ####################
+        # ################  The actual begin ####################
         expr = expand(
             expr,
             numer=True,
@@ -703,7 +702,7 @@ class _CoefficientHandler(Builtin):
                 if coeff is Integer1:
                     return expr
                 else:
-                    return Expression("Times", coeff, expr)
+                    return Expression(SymbolTimes, coeff, expr)
             else:
                 if not coeff.is_free(target_pat, evaluation):
                     return []
@@ -725,7 +724,7 @@ class _CoefficientHandler(Builtin):
                     if coeff is Integer1:
                         return powers
                     else:
-                        return Expression("Times", coeff, powers)
+                        return Expression(SymbolTimes, coeff, powers)
             else:
                 pl = powers_list(powers)
                 return [(pl, coeff)]
@@ -743,7 +742,7 @@ class _CoefficientHandler(Builtin):
                     return []
                 pl = powers_list(powers)
                 key = str(pl)
-                if not key in powers_dict:
+                if key not in powers_dict:
                     if form == "expr":
                         powers_dict[key] = powers
                     else:
@@ -771,7 +770,7 @@ class _CoefficientHandler(Builtin):
                 powerfactor = powers_dict[key]
                 if form == "expr":
                     if powerfactor:
-                        terms.append(Expression("Times", coeff, powerfactor))
+                        terms.append(Expression(SymbolTimes, coeff, powerfactor))
                     else:
                         terms.append(coeff)
                 else:
@@ -810,15 +809,15 @@ class CoefficientArrays(_CoefficientHandler):
      = CoefficientArrays[(x + y + Sin[z]) ^ 3, {x, z}]
     """
 
-    summary_text = (
-        "array of coefficients associated with a polynomial in many variables"
-    )
-    options = {
-        "Symmetric": "False",
-    }
     messages = {
         "poly": "`1` is not a polynomial in `2`",
     }
+    options = {
+        "Symmetric": "False",
+    }
+    summary_text = (
+        "array of coefficients associated with a polynomial in many variables"
+    )
 
     def apply_list(self, polys, varlist, evaluation, options):
         "%(name)s[polys_, varlist_, OptionsPattern[]]"
@@ -866,10 +865,13 @@ class CoefficientArrays(_CoefficientHandler):
                     # This constructs a tensor or range cur_ord+1
                     if dim1 > 1:
                         newtable = Expression(
-                            "Table", Integer(0), ListExpression(Integer(dim1)), *its2
+                            SymbolTable,
+                            Integer(0),
+                            ListExpression(Integer(dim1)),
+                            *its2
                         )
                     else:
-                        newtable = Expression("Table", Integer(0), *its2)
+                        newtable = Expression(SymbolTable, Integer(0), *its2)
                     arrays.append(newtable.evaluate(evaluation))
                 curr_array = arrays[order]
                 arrayidx = [
@@ -924,12 +926,12 @@ class CoefficientList(Builtin):
      = CoefficientList[x / y, {x, y}]
     """
 
-    summary_text = "list of coefficients defining a polynomial"
     messages = {
         "argtu": "CoefficientList called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
         "poly": "`1` is not a polynomial.",
     }
+    summary_text = "list of coefficients defining a polynomial"
 
     def apply_noform(self, expr, evaluation):
         "CoefficientList[expr_]"
@@ -1037,10 +1039,10 @@ class Collect(_CoefficientHandler):
      = x h[4 Sin[x z]] + x ^ 3 h[1] + x y h[3] + x ^ 2 y h[3] + y ^ 2 h[4 Sin[x z]] + x y ^ 2 h[3] + y ^ 3 h[1]
     """
 
-    summary_text = "collect terms with a variable at the same power"
     rules = {
         "Collect[expr_, varlist_]": "Collect[expr, varlist, Identity]",
     }
+    summary_text = "collect terms with a variable at the same power"
 
     def apply_var_filter(self, expr, varlist, filt, evaluation):
         """Collect[expr_, varlist_, filt_]"""
@@ -1071,8 +1073,8 @@ class Denominator(Builtin):
      = 1
     """
 
-    summary_text = "denominator of an expression"
     attributes = listable | protected
+    summary_text = "denominator of an expression"
 
     def apply(self, expr, evaluation):
         "Denominator[expr_]"
@@ -1332,7 +1334,6 @@ class Exponent(Builtin):
      = Exponent[x ^ 2]
     """
 
-    summary_text = "maximum power in which a form appears in a polynomial"
     attributes = listable | protected
 
     messages = {
@@ -1342,6 +1343,7 @@ class Exponent(Builtin):
     rules = {
         "Exponent[expr_, form_]": "Exponent[expr, form, Max]",
     }
+    summary_text = "maximum power in which a form appears in a polynomial"
 
     def apply_novar(self, expr, evaluation):
         "Exponent[expr_]"
@@ -1397,8 +1399,8 @@ class Factor(Builtin):
      = {x (1 + x)}
     """
 
-    summary_text = "factor sums into product and powers"
     attributes = listable | protected
+    summary_text = "factor sums into product and powers"
 
     def apply(self, expr, evaluation):
         "Factor[expr_]"
@@ -1443,16 +1445,15 @@ class FactorTermsList(Builtin):
      = {-3, 1 - a - y + a y, -1 + 2 x}
     """
 
-    summary_text = "a polynomial as a list of factors"
-    rules = {
-        "FactorTermsList[expr_]": "FactorTermsList[expr, {}]",
-        "FactorTermsList[expr_, var_]": "FactorTermsList[expr, {var}]",
-    }
-
     messages = {
         # 'poly': '`1` is not a polynomial.',
         "ivar": "`1` is not a valid variable.",
     }
+    rules = {
+        "FactorTermsList[expr_]": "FactorTermsList[expr, {}]",
+        "FactorTermsList[expr_, var_]": "FactorTermsList[expr, {var}]",
+    }
+    summary_text = "a polynomial as a list of factors"
 
     def apply_list(self, expr, vars, evaluation):
         "FactorTermsList[expr_, vars_List]"
@@ -1524,7 +1525,7 @@ class FactorTermsList(Builtin):
 # This is out of order alphabetically because it has to come before
 # FullSimplify
 class Simplify(Builtin):
-    """
+    r"""
     <dl>
       <dt>'Simplify[$expr$]'
       <dd>simplifies $expr$.
@@ -1565,15 +1566,15 @@ class Simplify(Builtin):
      = Log[1048576]
     """
 
-    summary_text = "apply transformations to simplify an expression"
-    rules = {
-        "Simplify[list_List]": "Simplify /@ list",
-        "Simplify[rule_Rule]": "Simplify /@ rule",
-    }
     options = {
         "Assumptions": "$Assumptions",
         "ComplexityFunction": "Automatic",
     }
+    rules = {
+        "Simplify[list_List]": "Simplify /@ list",
+        "Simplify[rule_Rule]": "Simplify /@ rule",
+    }
+    summary_text = "apply transformations to simplify an expression"
 
     def apply_with_assumptions(self, expr, assum, evaluation, options={}):
         "%(name)s[expr_, assum_, OptionsPattern[]]"
@@ -1623,7 +1624,7 @@ class Simplify(Builtin):
         assumptions = options.pop("System`Assumptions", None)
         if assumptions not in (None, SymbolAssumptions):
             simplify_expr = Expression(
-                self.get_name(), expr, *options_to_rules(options)
+                Symbol(self.get_name()), expr, *options_to_rules(options)
             )
             return dynamic_scoping(
                 lambda ev: simplify_expr.evaluate(ev),
@@ -1702,12 +1703,12 @@ class FullSimplify(Simplify):
 
     """
 
-    summary_text = "apply a full set of simplification transformations"
     rules = {
         "FullSimplify[list_List]": "FullSimplify /@ list",
         "FullSimplify[rule_Rule]": "FullSimplify /@ rule",
         "FullSimplify[eq_Equal]": "FullSimplify /@ eq",
     }
+    summary_text = "apply a full set of simplification transformations"
 
 
 class MinimalPolynomial(Builtin):
@@ -1738,12 +1739,12 @@ class MinimalPolynomial(Builtin):
      = 1 - 4 #1 ^ 2 + #1 ^ 4
     """
 
-    summary_text = "minimal polynomial for a general algebraic number"
     attributes = listable | protected
 
     messages = {
         "nalg": "`1` is not an explicit algebraic number.",
     }
+    summary_text = "minimal polynomial for a general algebraic number"
 
     def apply_novar(self, s, evaluation):
         "MinimalPolynomial[s_]"
@@ -1781,8 +1782,8 @@ class Numerator(Builtin):
      = a + b
     """
 
-    summary_text = "numerator of an expression"
     attributes = listable | protected
+    summary_text = "numerator of an expression"
 
     def apply(self, expr, evaluation):
         "Numerator[expr_]"
@@ -1849,11 +1850,11 @@ class PolynomialQ(Builtin):
     ##  = False
     """
 
-    summary_text = "test if the expression is a polynomial in a variable"
     messages = {
         "argt": "PolynomialQ called with `1` arguments; 1 or 2 arguments are expected.",
         "novar": "No variable is not supported in PolynomialQ.",
     }
+    summary_text = "test if the expression is a polynomial in a variable"
 
     def apply(self, expr, v, evaluation):
         "PolynomialQ[expr_, v___]"
@@ -1898,7 +1899,6 @@ class PowerExpand(Builtin):
      = x
     """
 
-    summary_text = "expand out powers"
     rules = {
         "PowerExpand[(x_ ^ y_) ^ z_]": "x ^ (y * z)",
         "PowerExpand[(x_ * y_) ^ z_]": "x ^ z * y ^ z",
@@ -1910,6 +1910,7 @@ class PowerExpand(Builtin):
         "PowerExpand[x_Rule]": "PowerExpand /@ x",
         "PowerExpand[other_]": "other",
     }
+    summary_text = "expand out powers"
 
 
 class Together(Builtin):
@@ -1932,8 +1933,8 @@ class Together(Builtin):
      = f[x] (1 + x) / x ^ 2
     """
 
-    summary_text = "put over a common denominator"
     attributes = listable | protected
+    summary_text = "put over a common denominator"
 
     def apply(self, expr, evaluation):
         "Together[expr_]"

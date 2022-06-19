@@ -2,21 +2,26 @@
 
 from typing import Optional
 
-from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.builtin.scoping import dynamic_scoping
+
+
 from mathics.core.atoms import (
     String,
     Integer,
     Integer0,
+    IntegerM1,
     Integer1,
     Integer2,
     Integer3,
     Integer10,
+    MachineReal,
     Number,
     Real,
     from_python,
 )
-
+from mathics.core.evaluation import Evaluation
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression
 from mathics.core.symbols import (
     BaseElement,
     SymbolPlus,
@@ -33,9 +38,6 @@ from mathics.core.systemsymbols import (
     SymbolLog,
     SymbolNone,
 )
-
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.evaluators import apply_N
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -237,8 +239,8 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
         inv_deltaf = from_python(1.0 / (f1 - f0))
         num = Expression(
             SymbolPlus,
-            Expression(SymbolTimes, x0, f1),
-            Expression(SymbolTimes, x1, f0, Integer(-1)),
+            Expression(SymbolTimes, x0, from_python(f1)),
+            Expression(SymbolTimes, x1, from_python(f0), IntegerM1),
         )
         x2 = Expression(SymbolTimes, num, inv_deltaf)
         x2 = x2.evaluate(evaluation)

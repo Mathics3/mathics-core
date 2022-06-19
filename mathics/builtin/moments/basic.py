@@ -11,6 +11,7 @@ from mathics.builtin.base import Builtin
 
 from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
+from mathics.core.atoms import Integer2
 from mathics.core.expression import (
     Expression,
     Integer,
@@ -40,10 +41,10 @@ class CentralMoment(Builtin):  # see https://en.wikipedia.org/wiki/Central_momen
      = 0.100845
     """
 
-    summary_text = "central moments of distributions and data"
     rules = {
         "CentralMoment[list_List, r_]": "Total[(list - Mean[list]) ^ r] / Length[list]",
     }
+    summary_text = "central moments of distributions and data"
 
 
 class Median(_Rectangular):
@@ -65,8 +66,8 @@ class Median(_Rectangular):
      = {99 / 2, 1, 4, 26}
     """
 
-    summary_text = "central value of a dataset"
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
+    summary_text = "central value of a dataset"
 
     def apply(self, data, evaluation):
         "Median[data_List]"
@@ -84,7 +85,7 @@ class Median(_Rectangular):
                 i = n // 2
                 a = introselect(v, i)
                 b = introselect(v, i - 1)
-                return Expression(SymbolDivide, Expression(SymbolPlus, a, b), 2)
+                return Expression(SymbolDivide, Expression(SymbolPlus, a, b), Integer2)
             else:
                 i = n // 2
                 return introselect(v, i)
@@ -130,8 +131,6 @@ class Quantile(Builtin):
          = {2, 6}
     """
 
-    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
-
     messages = {
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
@@ -140,6 +139,7 @@ class Quantile(Builtin):
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
+    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
     def apply(self, data, qs, a, b, c, d, evaluation):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
@@ -161,7 +161,7 @@ class Quantile(Builtin):
                 return
 
             x = Expression(
-                "Plus",
+                SymbolPlus,
                 a,
                 Expression(SymbolTimes, Expression(SymbolPlus, Integer(n), b), q),
             )
@@ -222,7 +222,7 @@ class Quartiles(Builtin):
      = {27 / 4, 13, 77 / 4}
     """
 
-    summary_text = "list of quartiles"
     rules = {
         "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
     }
+    summary_text = "list of quartiles"

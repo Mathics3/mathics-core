@@ -9,9 +9,16 @@ from mathics.builtin.base import Builtin
 
 from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
+from mathics.core.atoms import Integer
 from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolDivide
+from mathics.core.symbols import Symbol, SymbolDivide, SymbolTimes
 from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
+
+SymbolConjugate = Symbol("Conjugate")
+SymbolCovariance = Symbol("Covariance")
+SymbolSqrt = Symbol("Sqrt")
+SymbolStandardDeviation = Symbol("StandardDeviation")
+SymbolVariance = Symbol("Variance")
 
 
 class Correlation(Builtin):
@@ -27,11 +34,11 @@ class Correlation(Builtin):
      = 0.816421
     """
 
-    summary_text = "Pearson's correlation of a pair of datasets"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "vctmat": "`1` and `2` need to be of equal length.",
     }
+    summary_text = "Pearson's correlation of a pair of datasets"
 
     def apply(self, a, b, evaluation):
         "Correlation[a_List, b_List]"
@@ -43,12 +50,12 @@ class Correlation(Builtin):
         elif len(b.elements) < 2:
             evaluation.message("Correlation", "shlen", b)
         else:
-            da = Expression("StandardDeviation", a)
-            db = Expression("StandardDeviation", b)
+            da = Expression(SymbolStandardDeviation, a)
+            db = Expression(SymbolStandardDeviation, b)
             return Expression(
                 SymbolDivide,
-                Expression("Covariance", a, b),
-                Expression("Times", da, db),
+                Expression(SymbolCovariance, a, b),
+                Expression(SymbolTimes, da, db),
             )
 
 
@@ -63,11 +70,11 @@ class Covariance(Builtin):
      = 0.025
     """
 
-    summary_text = "covariance matrix for a pair of datasets"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "vctmat": "`1` and `2` need to be of equal length.",
     }
+    summary_text = "covariance matrix for a pair of datasets"
 
     def apply(self, a, b, evaluation):
         "Covariance[a_List, b_List]"
@@ -83,8 +90,8 @@ class Covariance(Builtin):
             mb = Expression(SymbolSubtract, b, Expression(SymbolMean, b))
             return Expression(
                 SymbolDivide,
-                Expression(SymbolDot, ma, Expression("Conjugate", mb)),
-                len(a.elements) - 1,
+                Expression(SymbolDot, ma, Expression(SymbolConjugate, mb)),
+                Integer(len(a.elements) - 1),
             )
 
 
@@ -99,10 +106,10 @@ class Kurtosis(Builtin):  # see https://en.wikipedia.org/wiki/Kurtosis
      = 1.42098
     """
 
-    summary_text = "kurtosis coefficient"
     rules = {
         "Kurtosis[list_List]": "CentralMoment[list, 4] / (CentralMoment[list, 2] ^ 2)",
     }
+    summary_text = "kurtosis coefficient"
 
 
 class Skewness(Builtin):  # see https://en.wikipedia.org/wiki/Skewness
@@ -117,10 +124,10 @@ class Skewness(Builtin):  # see https://en.wikipedia.org/wiki/Skewness
      = 0.407041
     """
 
-    summary_text = "skewness coefficient"
     rules = {
         "Skewness[list_List]": "CentralMoment[list, 3] / (CentralMoment[list, 2] ^ (3 / 2))",
     }
+    summary_text = "skewness coefficient"
 
 
 class StandardDeviation(_Rectangular):
@@ -146,11 +153,11 @@ class StandardDeviation(_Rectangular):
      = {Sqrt[2], 5 Sqrt[2]}
     """
 
-    summary_text = "standard deviation of a dataset"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "rectt": "Expected a rectangular array at position 1 in ``.",
     }
+    summary_text = "standard deviation of a dataset"
 
     def apply(self, l, evaluation):
         "StandardDeviation[l_List]"
@@ -161,10 +168,10 @@ class StandardDeviation(_Rectangular):
                 return self.rect(l)
             except _NotRectangularException:
                 evaluation.message(
-                    "StandardDeviation", "rectt", Expression("StandardDeviation", l)
+                    "StandardDeviation", "rectt", Expression(SymbolStandardDeviation, l)
                 )
         else:
-            return Expression("Sqrt", Expression("Variance", l))
+            return Expression(SymbolSqrt, Expression(SymbolVariance, l))
 
 
 class Variance(_Rectangular):
@@ -192,11 +199,11 @@ class Variance(_Rectangular):
      = {9 / 2, 49 / 2, 9025 / 2}
     """
 
-    summary_text = "variance of a dataset"
     messages = {
         "shlen": "`` must contain at least two elements.",
         "rectt": "Expected a rectangular array at position 1 in ``.",
     }
+    summary_text = "variance of a dataset"
 
     # for the general formulation of real and complex variance below, see for example
     # https://en.wikipedia.org/wiki/Variance#Generalizations
@@ -209,11 +216,11 @@ class Variance(_Rectangular):
             try:
                 return self.rect(l)
             except _NotRectangularException:
-                evaluation.message("Variance", "rectt", Expression("Variance", l))
+                evaluation.message("Variance", "rectt", Expression(SymbolVariance, l))
         else:
             d = Expression(SymbolSubtract, l, Expression(SymbolMean, l))
             return Expression(
                 SymbolDivide,
-                Expression(SymbolDot, d, Expression("Conjugate", d)),
-                len(l.elements) - 1,
+                Expression(SymbolDot, d, Expression(SymbolConjugate, d)),
+                Integer(len(l.elements) - 1),
             )
