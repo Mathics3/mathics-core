@@ -18,6 +18,7 @@ from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
 from mathics.core.atoms import (
     Integer,
+    MachineReal,
     Rational,
     Real,
 )
@@ -68,7 +69,6 @@ class Blend(Builtin):
      = Blend[{RGBColor[1, 0, 0], RGBColor[0, 1, 0], RGBColor[0, 0, 1]}, {1, 0.5}]
     """
 
-    summary_text = "blend of colors"
     messages = {
         "arg": (
             "`1` is not a valid list of color or gray-level directives, "
@@ -81,6 +81,7 @@ class Blend(Builtin):
     }
 
     rules = {"Blend[colors_]": "Blend[colors, ConstantArray[1, Length[colors]]]"}
+    summary_text = "blend of colors"
 
     def do_blend(self, colors, values):
         type = None
@@ -169,11 +170,11 @@ class ColorConvert(Builtin):
     XYZ: convert to XYZColor
     """
 
-    summary_text = "convert between color models"
     messages = {
         "ccvinput": "`` should be a color.",
         "imgcstype": "`` is not a valid color space.",
     }
+    summary_text = "convert between color models"
 
     def apply(self, input, colorspace, evaluation):
         "ColorConvert[input_, colorspace_String]"
@@ -253,8 +254,8 @@ class Darker(Builtin):
      = -Graphics-
     """
 
-    summary_text = "make a color darker"
     rules = {"Darker[c_, f_]": "Blend[{c, Black}, f]", "Darker[c_]": "Darker[c, 1/3]"}
+    summary_text = "make a color darker"
 
 
 class DominantColors(_ImageBuiltin):
@@ -305,13 +306,13 @@ class DominantColors(_ImageBuiltin):
      = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
     """
 
-    summary_text = "find a list of dominant colors"
     rules = {
         "DominantColors[image_Image, n_Integer, options___]": 'DominantColors[image, n, "Color", options]',
         "DominantColors[image_Image, options___]": 'DominantColors[image, 256, "Color", options]',
     }
 
     options = {"ColorCoverage": "Automatic", "MinColorDistance": "Automatic"}
+    summary_text = "find a list of dominant colors"
 
     def apply(self, image, n, prop, evaluation, options):
         "DominantColors[image_Image, n_Integer, prop_String, OptionsPattern[%(name)s]]"
@@ -419,7 +420,10 @@ class DominantColors(_ImageBuiltin):
                             mask = mask | (pixels == i)
                         yield Image(mask.reshape(tuple(reversed(im.size))), "Grayscale")
                     else:
-                        yield Expression(out_palette_head, *prototype)
+                        yield Expression(
+                            Symbol(out_palette_head),
+                            *(MachineReal(c) for c in prototype)
+                        )
 
         return to_mathics_list(*itertools.islice(result(), 0, at_most))
 
@@ -441,8 +445,8 @@ class Lighter(Builtin):
      = -Graphics-
     """
 
-    summary_text = "make a color lighter"
     rules = {
         "Lighter[c_, f_]": "Blend[{c, White}, f]",
         "Lighter[c_]": "Lighter[c, 1/3]",
     }
+    summary_text = "make a color lighter"

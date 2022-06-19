@@ -17,6 +17,7 @@ from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.string.operations import Hash
+
 from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import (
     listable,
@@ -52,6 +53,9 @@ from mathics.core.systemsymbols import (
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
+
+
+SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
 
 class AbsoluteFileName(Builtin):
@@ -107,8 +111,8 @@ class BaseDirectory(Predefined):
      = ...
     """
 
-    summary_text = "path to the configuration directory"
     name = "$BaseDirectory"
+    summary_text = "path to the configuration directory"
 
     def evaluate(self, evaluation):
         global ROOT_DIR
@@ -123,7 +127,6 @@ class CopyDirectory(Builtin):
     </dl>
     """
 
-    summary_text = "copy a directory into a new path"
     messages = {
         "argr": "called with `1` argument; 2 arguments are expected.",
         "fstr": (
@@ -132,6 +135,7 @@ class CopyDirectory(Builtin):
         "filex": "Cannot overwrite existing file `1`.",
         "nodir": "Directory `1` not found.",
     }
+    summary_text = "copy a directory into a new path"
 
     def apply(self, dirs, evaluation):
         "CopyDirectory[dirs__]"
@@ -176,7 +180,6 @@ class CopyFile(Builtin):
     X> DeleteFile["MathicsSunflowers.jpg"]
     """
 
-    summary_text = "copy a file into a new path"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "fstr": (
@@ -184,6 +187,7 @@ class CopyFile(Builtin):
         ),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "copy a file into a new path"
 
     def apply(self, source, dest, evaluation):
         "CopyFile[source_, dest_]"
@@ -239,7 +243,6 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    summary_text = "create a directory"
     attributes = listable | protected
 
     options = {
@@ -253,6 +256,7 @@ class CreateDirectory(Builtin):
         "nffil": "File not found during `1`.",
         "filex": "`1` already exists.",
     }
+    summary_text = "create a directory"
 
     def apply(self, dirname, evaluation, options):
         "CreateDirectory[dirname_, OptionsPattern[CreateDirectory]]"
@@ -294,16 +298,15 @@ class CreateFile(Builtin):
     </dl>
     """
 
-    summary_text = "create a file"
-    rules = {
-        "CreateFile[]": "CreateTemporary[]",
-    }
+    attributes = listable | protected
     options = {
         "CreateIntermediateDirectories": "True",
         "OverwriteTarget": "True",
     }
-
-    attributes = listable | protected
+    rules = {
+        "CreateFile[]": "CreateTemporary[]",
+    }
+    summary_text = "create a file"
 
     def apply(self, filename, evaluation, **options):
         "CreateFile[filename_String, OptionsPattern[CreateFile]]"
@@ -355,11 +358,6 @@ class DeleteDirectory(Builtin):
      = $Failed
     """
 
-    summary_text = "delete a directory"
-    options = {
-        "DeleteContents": "False",
-    }
-
     messages = {
         "strs": (
             "String or non-empty list of strings expected at " "position 1 in `1`."
@@ -369,6 +367,10 @@ class DeleteDirectory(Builtin):
         "optx": "Unknown option `1` in `2`",
         "idcts": "DeleteContents expects either True or False.",  # MMA Bug
     }
+    options = {
+        "DeleteContents": "False",
+    }
+    summary_text = "delete a directory"
 
     def apply(self, dirname, evaluation, options):
         "DeleteDirectory[dirname_, OptionsPattern[DeleteDirectory]]"
@@ -419,7 +421,6 @@ class DeleteFile(Builtin):
     >> DeleteFile[{"MathicsSunflowers1.jpg", "MathicsSunflowers2.jpg"}]
     """
 
-    summary_text = "delete a file"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "strs": (
@@ -427,6 +428,7 @@ class DeleteFile(Builtin):
         ),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "delete a file"
 
     def apply(self, filename, evaluation):
         "DeleteFile[filename_]"
@@ -516,15 +518,15 @@ class DirectoryName(Builtin):
      = DirectoryName[x]
     """
 
-    summary_text = "directory part of a filename"
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
     messages = {
         "string": "String expected at position 1 in `1`.",
         "intpm": ("Positive machine-sized integer expected at " "position 2 in `1`."),
     }
+
+    options = {
+        "OperatingSystem": "$OperatingSystem",
+    }
+    summary_text = "directory part of a filename"
 
     def apply_with_n(self, name, n, evaluation, options):
         "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
@@ -595,12 +597,12 @@ class DirectoryQ(Builtin):
      = False
     """
 
-    summary_text = "test whether a path exists and is a directory"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "test whether a path exists and is a directory"
 
     def apply(self, pathname, evaluation):
         "DirectoryQ[pathname_]"
@@ -629,10 +631,10 @@ class ExpandFileName(Builtin):
      = ...
     """
 
-    summary_text = "absolute path"
     messages = {
         "string": "String expected at position 1 in `1`.",
     }
+    summary_text = "absolute path"
 
     def apply(self, name, evaluation):
         "ExpandFileName[name_]"
@@ -680,10 +682,10 @@ class FileBaseName(Builtin):
      = file
     """
 
-    summary_text = "base name of the file"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
+    summary_text = "base name of the file"
 
     def apply(self, filename, evaluation, options):
         "FileBaseName[filename_String, OptionsPattern[FileBaseName]]"
@@ -704,10 +706,10 @@ class FileByteCount(Builtin):
      = 142286
     """
 
-    summary_text = "length of the file"
     messages = {
         "fstr": "File specification `1` is not a string of one or more characters.",
     }
+    summary_text = "length of the file"
 
     def apply(self, filename, evaluation):
         "FileByteCount[filename_]"
@@ -774,7 +776,6 @@ class FileDate(Builtin):
      = FileDate[ExampleData/sunflowers.jpg, Fail]
     """
 
-    summary_text = "date and time of the last change in a file"
     messages = {
         "nffil": "File not found during `1`.",
         "datetype": (
@@ -790,6 +791,7 @@ class FileDate(Builtin):
             "Change" -> FileDate[filepath, "Change"],
             "Modification" -> FileDate[filepath, "Modification"]}""",
     }
+    summary_text = "date and time of the last change in a file"
 
     def apply(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
@@ -827,7 +829,7 @@ class FileDate(Builtin):
 
         # Offset for system epoch
         epochtime = Expression(
-            "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
+            SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
         ).to_python(n_evaluation=evaluation)
         result += epochtime
 
@@ -851,12 +853,12 @@ class FileExistsQ(Builtin):
      = False
     """
 
-    summary_text = "test whether a file exists"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "test whether a file exists"
 
     def apply(self, filename, evaluation):
         "FileExistsQ[filename_]"
@@ -892,10 +894,10 @@ class FileExtension(Builtin):
      = #<--#
     """
 
-    summary_text = "file extension"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
+    summary_text = "file extension"
 
     def apply(self, filename, evaluation, options):
         "FileExtension[filename_String, OptionsPattern[FileExtension]]"
@@ -1117,12 +1119,12 @@ class FileType(Builtin):
      = FileType[x]
     """
 
-    summary_text = "type of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "type of a file"
 
     def apply(self, filename, evaluation):
         "FileType[filename_]"

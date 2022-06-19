@@ -513,7 +513,9 @@ class Information(PrefixOperator):
                 lines.append(
                     Expression(
                         SymbolHoldForm,
-                        Expression(up and "UpSet" or "Set", lhs(rule.pattern.expr), r),
+                        Expression(
+                            up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
+                        ),
                     )
                 )
 

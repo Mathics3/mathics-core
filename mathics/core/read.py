@@ -16,6 +16,8 @@ from mathics.core.streams import Stream, path_search, stream_manager
 # FIXME: don't use a module-level path
 INPUTFILE_VAR = ""
 
+SymbolInputStream = Symbol("InputStream")
+SymbolOutputStream = Symbol("OutputStream")
 SymbolEndOfFile = Symbol("EndOfFile")
 
 READ_TYPES = [
@@ -112,9 +114,9 @@ def channel_to_stream(channel, mode="r"):
         opener.__enter__()
         n = opener.n
         if mode in ["r", "rb"]:
-            head = "InputStream"
+            head = SymbolInputStream
         elif mode in ["w", "a", "wb", "ab"]:
-            head = "OutputStream"
+            head = SymbolOutputStream
         else:
             raise ValueError(f"Unknown format {mode}")
         return Expression(head, channel, Integer(n))

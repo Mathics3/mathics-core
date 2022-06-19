@@ -15,7 +15,7 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
-from mathics.core.atoms import from_python
+from mathics.core.atoms import Integer1, from_python
 from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
@@ -31,6 +31,12 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolMatchQ,
+)
+
+SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
@@ -124,7 +130,7 @@ class Catch(Builtin):
         except WLThrowInterrupt as e:
             # TODO: check that form match tag.
             # otherwise, re-raise the exception
-            match = Expression("MatchQ", e.tag, form).evaluate(evaluation)
+            match = Expression(SymbolMatchQ, e.tag, form).evaluate(evaluation)
             if match is SymbolTrue:
                 return Expression(f, e.value)
             else:
@@ -427,7 +433,7 @@ class FixedPoint(Builtin):
 
     def apply(self, f, expr, n, evaluation, options):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             count = None
         else:
             count = n.get_int_value()
@@ -507,7 +513,7 @@ class FixedPointList(Builtin):
     def apply(self, f, expr, n, evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
 
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             count = None
         else:
             count = n.get_int_value()
@@ -814,7 +820,7 @@ class Which(Builtin):
             elif test_result != SymbolFalse:
                 if len(items) == nr_items:
                     return None
-                return Expression("Which", *items)
+                return Expression(SymbolWhich, *items)
             items = items[2:]
         return SymbolNull
 

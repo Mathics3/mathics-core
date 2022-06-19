@@ -807,7 +807,11 @@ class _Chart(Builtin):
                 multiple_colors = True
 
             if not multiple_colors and not self.never_monochrome:
-                colors = [Expression(SymbolRGBColor, *mpl_colors[0])]
+                colors = [
+                    Expression(
+                        SymbolRGBColor, *(MachineReal(cc) for cc in mpl_colors[0])
+                    )
+                ]
             else:
                 colors = [
                     Expression(SymbolRGBColor, *(MachineReal(cc) for cc in c))
@@ -1323,7 +1327,7 @@ class Histogram(Builtin):
                     )
 
                     last_x1 = 0
-                    style = Expression(SymbolRGBColor, *color)
+                    style = Expression(SymbolRGBColor, *(MachineReal(c) for c in color))
 
                     for x0, x1, y in boxes():
                         yield Expression(
