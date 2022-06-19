@@ -35,8 +35,8 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
-    summary_text = "list the characters in a string"
     attributes = listable | protected
+    summary_text = "list the characters in a string"
 
     def apply(self, string, evaluation):
         "Characters[string_String]"
@@ -172,8 +172,8 @@ class ToLowerCase(Builtin):
      = new york
     """
 
-    summary_text = "turn all the letters into lower case"
     attributes = listable | protected
+    summary_text = "turn all the letters into lower case"
 
     def apply(self, s, evaluation):
         "ToLowerCase[s_String]"
@@ -191,8 +191,8 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
-    summary_text = "turn all the letters into upper case"
     attributes = listable | protected
+    summary_text = "turn all the letters into upper case"
 
     def apply(self, s, evaluation):
         "ToUpperCase[s_String]"
