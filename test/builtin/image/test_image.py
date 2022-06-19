@@ -9,14 +9,16 @@ import os
 import pytest
 
 from test.helper import evaluate
+from mathics.core.symbols import SymbolNull
 
 # From How to check if a Python module exists without importing it:
 # https://stackoverflow.com/a/14050282/546218
 skimage_module = importlib.util.find_spec("skimage")
 
-image_tests = [('img = Import["ExampleData/lena.tif"]; BinaryImageQ[img]', "False", "")]
+image_tests = [('img = Import["ExampleData/lena.tif"];', None, "")]
 if skimage_module is not None:
     image_tests += [
+        ("BinaryImageQ[img]", "False", ""),
         ("BinaryImageQ[Binarize[img]]", "True", ""),
         (
             """ein = Import["ExampleData/Einstein.jpg"]; ImageDimensions[ein]""",
@@ -49,8 +51,9 @@ if skimage_module is not None:
 @pytest.mark.parametrize(("str_expr, str_expected, msg"), image_tests)
 def test_image(str_expr: str, str_expected: str, msg: str, message=""):
     result = evaluate(str_expr)
-    expected = evaluate(str_expected)
-    if msg:
-        assert result == expected, msg
-    else:
-        assert result == expected
+    if result is not SymbolNull or str_expected is not None:
+        expected = evaluate(str_expected)
+        if msg:
+            assert result == expected, msg
+        else:
+            assert result == expected
