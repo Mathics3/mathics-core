@@ -9,11 +9,11 @@ Enhancements
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
 * ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
-* The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"`.
+* The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"``.
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
 * Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
-* Revise ``Nintegrate[]`` to allow scipy to be optional.
+* Revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available
 
 
 
@@ -47,19 +47,15 @@ Internals
 * ``Definition`` has a new property ``is_numeric``.
 * ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
 * ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
-* To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
-* To speed up the lookup of symbols names, ``Definitions`` object now have two properties: ``current_context`` and ``context_path``. These properties stores the values of the corresponding symbols in the `builtin` definitions.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
 * ``Expression.is_numeric()`` accepts an ``Evaluation`` object as a parameter;  the definitions attribute of that is used.
-* ``apply_N`` was introduced in module ``mathics.builtin.numeric`` to speed up the critical built-in function``N``. Its use instead of the idiom ``Expression(SymbolN, expr, prec).evaluate(evaluation)`` makes the evaluation faster.
 * A failure in the order in which ``mathics.core.definitions`` stores the rules was fixed.
 * ``any`` /``all`` calls were unrolled as loops in Cythonized modules: this avoids the overhead of a function call replacing it by a (C) for loop, which is faster.
 * ``BaseExpression.get_head``  now avoids building a symbol and then look for its name. It saves two function calls.
-* ``SameQ`` first checks type, then ``id``s, and then names in symbols.
+* ``SameQ`` first checks the type, then the ``id``, and then names in symbols.
 * In ``mathics.builtin.patterns.PatternTest``, if the condition is one of the most used tests (``NumberQ``, ``NumericQ``, ``StringQ``, etc) the ``match`` method is overwritten to specialized versions that avoid function calls.
 * in the same aim, ``mathics.core.patterns.AtomPattern`` now specializes the comparison depending of the ``Atom`` type.
-* To speed up the Mathics ``Expression`` manipulation code, `Symbol`s objects are now a singleton class. This avoids a lot of unnecesary string comparisons, and calls to ``ensure_context``.
 * To speed up development, you can set ``NO_CYTHON`` to skip Cythonizing Python modules
 * A bug was fixed relating to the order in which ``mathics.core.definitions`` stores the rules
 * Improved support for ``Series`` Issue #46.
@@ -70,6 +66,14 @@ Internals
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
 * The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 * remove ``flatten_*`` from the ``Atom`` interface.
+
+Speed improvements:
+...................
+
+* In ``Expression`` manipulation code, ``Symbol`` objects are now a singleton class. This avoids a lot of unnecessary string comparisons, and calls to ``ensure_context``.
+* Attributes are now stored in a bitset instead of a tuple of strings.
+* The ``Definitions`` object has two properties: ``current_contex`` and ``context_path``. This speeds up the lookup of symbols names.  These properties store their values into the corresponding symbols in the ``builtin`` definitions.
+* ``apply_N`` was add to speed up the then often-used built-in function ``N``.
 
 
 Package update
@@ -226,7 +230,7 @@ Bugs
 Regressions
 +++++++++++
 
-* Some of the test output for buitins inside a guide sections is not automatically rendered
+* Some of the test output for builtins inside a guide sections is not automatically rendered
 * Density plot rendered in Mathics Django do not render as nice since we no longer
   use the secret protocol handshake hack. We may fix this in a future release
 * Some of the Asymptote graphs look different. Graphic3D mesh lines are not as
@@ -436,7 +440,7 @@ Internal changes
 * Some builtin functions have been grouped together in a module
   underneath the top-level builtin directory.  As a result, in the
   documents you will list some builtins listed under an overarching
-  categery like ``Specific Functions`` or ``Graphics, Drawing, and
+  category like ``Specific Functions`` or ``Graphics, Drawing, and
   Images``. More work is expected in the future to improve document sectioning.
 * ``System`$Notebooks`` is removed from settings. It is in all of the front-ends now.
 
@@ -573,7 +577,7 @@ Many of these and the existing constants are computable via mpmath, NumPy, or Sy
 Settings through WL variables
 +++++++++++++++++++++++++++++
 
-Certain aspects of the kernel configuration are now controlled by variables, defined in ``/autoad/settings.m``.
+Certain aspects of the kernel configuration are now controlled by variables, defined in ``/autoload/settings.m``.
 
 - ``$GetTrace`` (``False`` by default).  Defines if when a WL module is load through ``Get``, definitions will be traced (for debug).
 - ``$PreferredBackendMethod`` Set this do whether to use mpmath, NumPy or SymPy for numeric and symbolic constants and methods when there is a choice (``"sympy"`` by default) (see #1124)
@@ -785,7 +789,7 @@ Performance improvements
 ++++++++++++++++++++++++
 
 - Speed up pattern matching for large lists
-- Quadraditc speed improvement in pattern matching. #619 and see the graph comparisons there
+- Quadradtic speed improvement in pattern matching. #619 and see the graph comparisons there
 - In-memory sessions #623
 
 Other changes
@@ -838,7 +842,7 @@ New features
 - ``Nearest`` #559
 - ``Count`` #558
 - ``RegularPolygon`` #556
-- Impoved date parsing #555
+- Improved date parsing #555
 - ``Permutations`` #552
 - LLVM compilation of simple expressions #548
 - ``NumberForm`` #534, #530, #455
@@ -931,7 +935,7 @@ Bug fixes
 - Fix loss of precision bugs #440
 - Many minor bugs from fuzzing #436
 - ``Positive``/``Negative`` do not numerify arguments #430 fixes #380
-- Chains of approximate identites #429
+- Chains of approximate identities #429
 - Logical expressions behave inconsistently/incorrectly #420 fixes #260
 - Fix ``Take[_Symbol, ___]`` #396
 - Avoid slots in rule handling #375 fixes #373
