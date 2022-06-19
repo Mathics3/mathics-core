@@ -514,7 +514,7 @@ class Information(PrefixOperator):
                     Expression(
                         SymbolHoldForm,
                         Expression(
-                            SymbolUpSet if up else SymbolSet, lhs(rule.pattern.expr), r
+                            up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
                         ),
                     )
                 )
