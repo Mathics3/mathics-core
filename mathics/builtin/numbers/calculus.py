@@ -2033,7 +2033,7 @@ class NIntegrate(Builtin):
     >> NIntegrate[Exp[x],{x,-Infinity, 0},Tolerance->1*^-6, Method->"Internal"]
      = 1.
     >> NIntegrate[Exp[-x^2/2.],{x,-Infinity, Infinity},Tolerance->1*^-6, Method->"Internal"]
-     = 2.50664
+     = 2.5066...
 
     """
 

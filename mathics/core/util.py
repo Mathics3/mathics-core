@@ -10,6 +10,8 @@ FORMAT_RE = re.compile(r"\`(\d*)\`")
 
 import time
 
+IS_PYPY = "__pypy__" in sys.builtin_module_names
+
 # A small, simple timing tool
 MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
 

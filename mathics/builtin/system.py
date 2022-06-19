@@ -15,6 +15,7 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import (
     Integer,
     Integer0,
+    IntegerM1,
     Real,
     String,
 )
@@ -510,7 +511,7 @@ else:
         name = "$SystemMemory"
 
         def evaluate(self, evaluation) -> Integer:
-            return Integer(-1)
+            return IntegerM1
 
     class MemoryAvailable(Builtin):
         """
@@ -535,7 +536,7 @@ class MemoryInUse(Builtin):
     """
     <dl>
       <dt>'MemoryInUse[]'
-      <dd>Returns the amount of memory used by the definitions object.
+      <dd>Returns the amount of memory used by all of the definitions objects if we can determine that; -1 otherwise.
     </dl>
 
     >> MemoryInUse[]
@@ -552,7 +553,11 @@ class MemoryInUse(Builtin):
 
         definitions = evaluation.definitions
         seen = set()
-        default_size = getsizeof(0)
+        try:
+            default_size = getsizeof(0)
+        except TypeError:
+            return IntegerM1
+
         handlers = {
             tuple: iter,
             list: iter,
