@@ -38,6 +38,7 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 
 
 from mathics.algorithm.parts import python_levelspec
+
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
@@ -47,6 +48,7 @@ from mathics.builtin.base import (
     PatternError,
 )
 from mathics.builtin.lists import InvalidLevelspecError
+
 from mathics.core.atoms import (
     String,
     Number,
@@ -63,8 +65,8 @@ from mathics.core.attributes import (
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, SymbolVerbatim
-from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.list import ListExpression
+from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Atom,
@@ -74,6 +76,8 @@ from mathics.core.symbols import (
     SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch, SymbolRowBox
+
+SymbolDefault = Symbol("Default")
 
 
 class Rule_(BinaryOperator):
@@ -152,9 +156,11 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 
         if all_lists:
             return (
-                Expression(
-                    "List",
-                    *[Expression(name, expr, item, *extra_args) for item in rules]
+                ListExpression(
+                    *[
+                        Expression(Symbol(name), expr, item, *extra_args)
+                        for item in rules
+                    ]
                 ),
                 True,
             )
@@ -678,7 +684,7 @@ class PatternTest(BinaryOperator, PatternObject):
                 else:
                     test_expr = Expression(self.test, item)
                     test_value = test_expr.evaluate(evaluation)
-                    if not test_value is SymbolTrue:
+                    if test_value is not SymbolTrue:
                         break
                         # raise StopGenerator
             else:
@@ -1150,7 +1156,7 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
             name, "System`DefaultValues", defaultexpr, evaluation
@@ -1769,7 +1775,7 @@ class DispatchAtom(AtomBuiltin):
                 return
         try:
             return Dispatch(flatten_list, evaluation)
-        except:
+        except Exception:
             return
 
     def apply_normal(self, dispatch, evaluation):

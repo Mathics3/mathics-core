@@ -6,11 +6,10 @@ Characters in Strings
 
 from mathics.builtin.base import Builtin, Test
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import String
-from mathics.core.list import to_mathics_list
-
 from mathics.core.attributes import listable, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 
 
 class Characters(Builtin):
@@ -74,9 +73,7 @@ class CharacterRange(Builtin):
             return
         start = ord(start.value[0])
         stop = ord(stop.value[0])
-        return Expression(
-            "List", *[String(chr(code)) for code in range(start, stop + 1)]
-        )
+        return ListExpression(*[String(chr(code)) for code in range(start, stop + 1)])
 
 
 class DigitQ(Builtin):

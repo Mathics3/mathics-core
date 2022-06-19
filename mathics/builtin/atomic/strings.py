@@ -11,18 +11,20 @@ from heapq import heappush, heappop
 from typing import Any, List
 
 
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer0,
-    Integer1,
-)
 from mathics.builtin.base import (
     Builtin,
     Test,
     Predefined,
     PrefixOperator,
 )
+
+from mathics.core.atoms import (
+    String,
+    Integer,
+    Integer0,
+    Integer1,
+)
+from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.parser import MathicsFileLineFeeder, parse
@@ -35,8 +37,6 @@ from mathics.core.systemsymbols import SymbolBlank, SymbolFailed, SymbolDirected
 
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
-
-from mathics.core.attributes import listable, protected
 
 
 SymbolOutputForm = Symbol("OutputForm")
@@ -636,10 +636,10 @@ class _StringFind(Builtin):
 
     def _apply(self, string, rule, n, evaluation, options, cases):
         if n.sameQ(Symbol("System`Private`Null")):
-            expr = Expression(self.get_name(), string, rule)
+            expr = Expression(Symbol(self.get_name()), string, rule)
             n = None
         else:
-            expr = Expression(self.get_name(), string, rule, n)
+            expr = Expression(Symbol(self.get_name()), string, rule, n)
 
         # convert string
         if string.has_form("List", None):
@@ -1093,14 +1093,14 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
         py_s = [s.get_string_value() for s in string.elements]
         if any(s is None for s in py_s):
             return evaluation.message(
-                name, "strse", Integer1, Expression(name, string, patt)
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
             )
         return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
     else:
         py_s = string.get_string_value()
         if py_s is None:
             return evaluation.message(
-                name, "strse", Integer1, Expression(name, string, patt)
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
             )
         return _search(re_patts, py_s, flags, matched)
 

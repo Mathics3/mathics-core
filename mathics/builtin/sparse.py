@@ -9,8 +9,9 @@ from mathics.algorithm.parts import walk_parts
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.expression import Expression
+
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolRule, SymbolTable
@@ -92,8 +93,8 @@ class SparseArray(Builtin):
 
             dims = ListExpression(Integer(len(array.elements)))
             return Expression(
-                "SparseArray",
-                Symbol("Automatic"),
+                SymbolSparseArray,
+                SymbolAutomatic,
                 dims,
                 Integer0,
                 ListExpression(*elements),

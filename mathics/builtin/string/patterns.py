@@ -16,17 +16,23 @@ from mathics.builtin.atomic.strings import (
 )
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.expression import Expression
+
 from mathics.core.atoms import (
     Integer1,
     String,
 )
 from mathics.core.attributes import flat, listable, one_identity, protected
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
+    Symbol,
     SymbolFalse,
     SymbolTrue,
 )
+
+
+SymbolStringMatchQ = Symbol("StringMatchQ")
+SymbolStringExpression = Symbol("StringExpression")
 
 
 class DigitCharacter(Builtin):
@@ -435,13 +441,16 @@ class StringMatchQ(Builtin):
                 "StringMatchQ",
                 "strse",
                 Integer1,
-                Expression("StringMatchQ", string, patt),
+                Expression(SymbolStringMatchQ, string, patt),
             )
 
         re_patt = to_regex(patt, evaluation, abbreviated_patterns=True)
         if re_patt is None:
             return evaluation.message(
-                "StringExpression", "invld", patt, Expression("StringExpression", patt)
+                "StringExpression",
+                "invld",
+                patt,
+                Expression(SymbolStringExpression, patt),
             )
 
         re_patt = anchor_pattern(re_patt)
