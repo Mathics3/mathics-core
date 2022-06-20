@@ -39,7 +39,7 @@ SymbolCosh = Symbol("Cosh")
 SymbolSinh = Symbol("Sinh")
 
 
-class Fold(object):
+class Fold:
     # allows inherited classes to specify a single algorithm implementation that
     # can be called with machine precision, arbitrary precision or symbolically.
 

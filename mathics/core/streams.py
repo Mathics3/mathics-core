@@ -94,7 +94,7 @@ def path_search(filename: str) -> Tuple[str, bool]:
     return result, is_temporary_file
 
 
-class Stream(object):
+class Stream:
     """
     Opens a stream
 
@@ -161,7 +161,7 @@ class Stream(object):
         stream_manager.delete(self.n)
 
 
-class StreamsManager(object):
+class StreamsManager:
     __instance = None
     STREAMS = {}
 

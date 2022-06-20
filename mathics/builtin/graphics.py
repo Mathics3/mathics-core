@@ -94,7 +94,7 @@ def coords(value):
     raise CoordinatesError
 
 
-class Coords(object):
+class Coords:
     def __init__(self, graphics, expr=None, pos=None, d=None):
         self.graphics = graphics
         self.p = pos
@@ -1111,7 +1111,7 @@ def _style(graphics, item):
     return style
 
 
-class Style(object):
+class Style:
     def __init__(self, graphics, edge=False, face=False):
         self.styles = []
         self.options = {}
@@ -1200,7 +1200,7 @@ def _flatten(elements):
             yield element
 
 
-class _GraphicsElements(object):
+class _GraphicsElements:
     style_class = Style
 
     def __init__(self, content, evaluation):

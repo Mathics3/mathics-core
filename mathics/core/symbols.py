@@ -120,7 +120,7 @@ def strip_context(name) -> str:
     return name
 
 
-class Monomial(object):
+class Monomial:
     """
     An object to sort monomials, used in Expression.get_sort_key and
     Symbol.get_sort_key.

@@ -610,14 +610,14 @@ def post_sub(text, post_substitutions):
     return text
 
 
-class Tests(object):
+class Tests:
     # FIXME: add optional guide section
     def __init__(self, part: str, chapter: str, section: str, doctests):
         self.part, self.chapter = part, chapter
         self.section, self.tests = section, doctests
 
 
-class Documentation(object):
+class Documentation:
     def __str__(self):
         return "\n\n\n".join(str(part) for part in self.parts)
 
@@ -1123,7 +1123,7 @@ class PyMathicsDocumentation(Documentation):
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
 
-class DocPart(object):
+class DocPart:
     def __init__(self, doc, title, is_reference=False):
         self.doc = doc
         self.title = title
@@ -1160,7 +1160,7 @@ class DocPart(object):
         return result
 
 
-class DocChapter(object):
+class DocChapter:
     def __init__(self, part, title, doc=None):
         self.doc = doc
         self.guide_sections = []
@@ -1209,7 +1209,7 @@ class DocChapter(object):
         return "".join(chapter_sections)
 
 
-class DocSection(object):
+class DocSection:
     def __init__(
         self, chapter, title, text, operator=None, installed=True, in_guide=False
     ):
@@ -1357,7 +1357,7 @@ class DocGuideSection(DocSection):
         return "".join(guide_sections)
 
 
-class DocSubsection(object):
+class DocSubsection:
     """An object for a Documented Subsection.
     A Subsection is part of a Section.
     """
@@ -1503,7 +1503,7 @@ def gather_tests(
     return items
 
 
-class XMLDoc(object):
+class XMLDoc:
     """A class to hold our internal XML-like format data.
     The `latex()` method can turn this into LaTeX.
 
@@ -1558,7 +1558,7 @@ class XMLDoc(object):
         )
 
 
-class DocText(object):
+class DocText:
     def __init__(self, text):
         self.text = text
 
@@ -1578,7 +1578,7 @@ class DocText(object):
         return []
 
 
-class DocTests(object):
+class DocTests:
     def __init__(self):
         self.tests = []
 
@@ -1614,7 +1614,7 @@ class DocTests(object):
 END_LINE_SENTINAL = "#<--#"
 
 
-class DocTest(object):
+class DocTest:
     """
     DocTest formatting rules:
 

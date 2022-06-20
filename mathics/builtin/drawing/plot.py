@@ -116,7 +116,7 @@ class ColorDataFunction(Builtin):
     pass
 
 
-class _GradientColorScheme(object):
+class _GradientColorScheme:
     def color_data_function(self, name):
         colors = ListExpression(
             *[

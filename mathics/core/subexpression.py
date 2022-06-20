@@ -59,7 +59,7 @@ def _pspec_span_to_tuple(pspec, expr):
     return tuple(k for k in range(start, stop, step))
 
 
-class ExpressionPointer(object):
+class ExpressionPointer:
     """
     This class represents a reference to a leaf in an expression.
     Supports a minimal part of the basic interface of `mathics.core.symbols.BaseElement`.
@@ -190,7 +190,7 @@ class ExpressionPointer(object):
             parent.set_element(i - 1, new)
 
 
-class SubExpression(object):
+class SubExpression:
     """
     This class represents a Subexpression of an existing Expression.
     Assignment to a subexpression results in the change of the original Expression.

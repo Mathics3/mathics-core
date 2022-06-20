@@ -102,7 +102,7 @@ class Input_(Predefined):
 
 
 # TODO: Improve docs for these Read[] arguments.
-class _BinaryFormat(object):
+class _BinaryFormat:
     """
     Container for BinaryRead readers and BinaryWrite writers
     """

@@ -99,7 +99,7 @@ class Sort(Builtin):
             evaluation.message("Sort", "normal")
         else:
 
-            class Key(object):
+            class Key:
                 def __init__(self, leaf):
                     self.leaf = leaf
 
@@ -166,7 +166,7 @@ class SortBy(Builtin):
             keys = keys_expr.elements
             raw_keys = li.elements
 
-            class Key(object):
+            class Key:
                 def __init__(self, index):
                     self.index = index
 

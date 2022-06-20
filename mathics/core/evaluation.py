@@ -200,7 +200,7 @@ class Print(Out):
         }
 
 
-class Result(object):
+class Result:
     def __init__(self, out, result, line_no, last_eval=None) -> None:
         self.out = out
         self.result = result
@@ -215,7 +215,7 @@ class Result(object):
         }
 
 
-class Output(object):
+class Output:
     def max_stored_size(self, settings) -> int:
         return settings.MAX_STORED_SIZE
 
@@ -229,7 +229,7 @@ class Output(object):
         raise NotImplementedError
 
 
-class Evaluation(object):
+class Evaluation:
     def __init__(
         self, definitions=None, output=None, format="text", catch_interrupt=True
     ) -> None:

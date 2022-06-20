@@ -36,7 +36,7 @@ def parse_returning_code(definitions, feeder) -> Tuple[Any, str]:
         return None, source_code
 
 
-class SystemDefinitions(object):
+class SystemDefinitions:
     """
     Dummy Definitions object that puts every unqualified symbol in
     System`.
@@ -69,7 +69,7 @@ SYSTEM_LIST: FrozenSet[str] = frozenset(
 )
 
 
-class PyMathicsDefinitions(object):
+class PyMathicsDefinitions:
     """
     Dummy Definitions object that puts every unqualified symbol in
     Pymathics`.
