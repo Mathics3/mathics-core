@@ -1,11 +1,10 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 A couple of helper functions for doing numpy-like stuff without numpy.
 """
 
-from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from itertools import chain
 from contextlib import contextmanager
 from math import (
@@ -186,10 +185,10 @@ def instantiate_elements(a, new_element, d=1):
         e = e[0]
         depth += 1
     if d == depth:
-        leaves = [new_element(x) for x in a]
+        elements = [new_element(x) for x in a]
     else:
-        leaves = [instantiate_elements(e, new_element, d) for e in a]
-    return Expression("List", *leaves)
+        elements = [instantiate_elements(e, new_element, d) for e in a]
+    return ListExpression(*elements)
 
 
 #
