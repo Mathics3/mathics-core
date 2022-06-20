@@ -228,11 +228,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # This is useful for finding potential improprer calls
         # for element in elements:
-        #     if not isinstance(element, BaseElement):
-        #          from trepan.api import debug; debug()
         #     assert isinstance(element, BaseElement)
 
-        # assert isinstance(self._elements, tuple)
         self._elements = elements
         self.elements_properties = elements_properties
 
