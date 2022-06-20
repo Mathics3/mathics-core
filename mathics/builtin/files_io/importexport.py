@@ -13,11 +13,24 @@ from itertools import chain
 import urllib.request as request
 from urllib.error import HTTPError, URLError
 
+from mathics.builtin.base import (
+    Builtin,
+    Predefined,
+    String,
+    Integer,
+    get_option,
+)
+
+from mathics.builtin.pymimesniffer import magic
+
 from mathics.core.atoms import (
     ByteArrayAtom,
     from_python,
 )
-
+from mathics.core.attributes import no_attributes, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.streams import stream_manager
 from mathics.core.symbols import (
     Symbol,
     SymbolNull,
@@ -31,21 +44,6 @@ from mathics.core.systemsymbols import (
     SymbolToString,
 )
 
-
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-    String,
-    Integer,
-    get_option,
-)
-
-from mathics.builtin.pymimesniffer import magic
-
-from mathics.core.attributes import no_attributes, protected, read_protected
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.streams import stream_manager
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
@@ -1145,7 +1143,7 @@ class RegisterImport(Builtin):
             options,
         )
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class RegisterExport(Builtin):
@@ -1202,7 +1200,7 @@ class RegisterExport(Builtin):
         OptionsPattern[ImportExport`RegisterExport]]"""
         EXPORTERS[formatname.get_string_value()] = (function, options)
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class URLFetch(Builtin):
@@ -2009,7 +2007,7 @@ class ExportString(Builtin):
                 *list(chain(stream_options, custom_options))
             )
             exportres = exporter_function.evaluate(evaluation)
-            if exportres != Symbol("Null"):
+            if exportres != SymbolNull:
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
             else:

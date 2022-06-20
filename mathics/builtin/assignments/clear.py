@@ -12,6 +12,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolNull,
     system_symbols,
 )
 
@@ -129,7 +130,7 @@ class Clear(Builtin):
                 definition = evaluation.definitions.get_user_definition(name)
                 self.do_clear(definition)
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class ClearAll(Clear):
@@ -262,7 +263,7 @@ class Unset(PostfixOperator):
             else:
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
-            return Symbol("Null")
+            return SymbolNull
         name = expr.get_lookup_name()
         if not name:
             evaluation.message("Unset", "usraw", expr)
@@ -271,7 +272,7 @@ class Unset(PostfixOperator):
             if not isinstance(expr, Atom):
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
-        return Symbol("Null")
+        return SymbolNull
 
 
 SYSTEM_SYMBOL_VALUES = system_symbols(

@@ -2,7 +2,7 @@
 
 
 from mathics.builtin.base import BinaryOperator
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import SymbolNull
 
 from mathics.core.systemsymbols import SymbolFailed
 
@@ -91,6 +91,6 @@ class UpSetDelayed(UpSet):
         "lhs_ ^:= rhs_"
 
         if self.assign_elementary(lhs, rhs, evaluation, upset=True):
-            return Symbol("Null")
+            return SymbolNull
         else:
             return SymbolFailed

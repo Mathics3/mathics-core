@@ -22,11 +22,10 @@ from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, to_expression
 from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolInfinity,
-    SymbolNull,
     SymbolRowBox,
 )
 
