@@ -12,7 +12,7 @@ from mathics.core.parser.ast import Symbol, String, Number, Filename
 from mathics.core.number import machine_precision, reconstruct_digits
 
 
-class GenericConverter(object):
+class GenericConverter:
     def do_convert(self, node):
         if isinstance(node, Symbol):
             return self.convert_Symbol(node)

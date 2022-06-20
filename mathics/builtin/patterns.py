@@ -803,7 +803,7 @@ class _StopGeneratorMatchQ(StopGenerator):
     pass
 
 
-class Matcher(object):
+class Matcher:
     def __init__(self, form):
         if isinstance(form, Pattern):
             self.form = form

@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -135,7 +134,7 @@ def _silhouette(a, b):
     return s
 
 
-class PrecomputedDistances(object):
+class PrecomputedDistances:
     def __init__(self, distances):
         self._distances = distances
 
@@ -146,7 +145,7 @@ class PrecomputedDistances(object):
         return self._distances
 
 
-class LazyDistances(object):
+class LazyDistances:
     def __init__(self):
         self._computed = {}
 
@@ -268,7 +267,7 @@ def _agoras(n, k, distance):  # see [Rangel2016]
             return s[-1]
 
 
-class SplitCriterion(object):
+class SplitCriterion:
     # note that as this runs as part of an O(n) algorithm, this
     # should not introduce an O(n^2) algorithm. see [Desgraupes2013]
     # and [Greutert2003] for possible algorithms,
@@ -669,7 +668,7 @@ def optimize(p, k, distances, mode="clusters", seed=12345, granularity=1.0):
         random.setstate(random_state)
 
 
-class MergeCriterion(object):
+class MergeCriterion:
     def __init__(self, distances, n):
         self.distances = distances
         self.n = n

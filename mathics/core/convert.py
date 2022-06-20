@@ -89,7 +89,7 @@ class SympyExpression(BasicSympy):
 
     @property
     def func(self):
-        class SympyExpressionFunc(object):
+        class SympyExpressionFunc:
             def __new__(cls, *args):
                 return SympyExpression(self.expr)
                 # return SympyExpression(expression.Expression(self.expr.head,

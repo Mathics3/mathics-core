@@ -678,7 +678,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     return tags, focus
 
 
-class _SetOperator(object):
+class _SetOperator:
     special_cases = {
         "System`OwnValues": process_assign_definition_values,
         "System`DownValues": process_assign_definition_values,

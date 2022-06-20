@@ -75,7 +75,7 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
-class Definitions(object):
+class Definitions:
     """
     The state of one instance of the Mathics interpreter is stored in this object.
 
@@ -796,7 +796,7 @@ def insert_rule(values, rule) -> None:
     bisect.insort_left(values, rule)
 
 
-class Definition(object):
+class Definition:
     """
     A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
 

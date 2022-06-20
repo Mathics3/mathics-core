@@ -107,7 +107,7 @@ def bool_args(f):
     return wrapped_f
 
 
-class IRGenerator(object):
+class IRGenerator:
     def __init__(self, expr, args, func_name):
         self.expr = expr
         self.args = args

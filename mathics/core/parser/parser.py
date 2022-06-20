@@ -40,7 +40,7 @@ permitted_digits = {c: i for i, c in enumerate(string.digits + string.ascii_lowe
 permitted_digits["."] = 0
 
 
-class Parser(object):
+class Parser:
     def __init__(self):
         # no implicit times on these tokens
         self.halt_tags = set(

@@ -34,7 +34,7 @@ def coords3D(value):
     raise CoordinatesError
 
 
-class Coords3D(object):
+class Coords3D:
     def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
         if expr is not None:
