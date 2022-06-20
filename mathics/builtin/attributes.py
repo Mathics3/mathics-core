@@ -28,6 +28,7 @@ from mathics.core.symbols import Symbol, SymbolNull
 
 SymbolClearAttributes = Symbol("ClearAttributes")
 SymbolSetAttributes = Symbol("SetAttributes")
+SymbolProtected = Symbol("Protected")
 
 
 class Attributes(Builtin):
@@ -211,7 +212,7 @@ class Protect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Protect[symbols___]"
-        protected = Symbol("System`Protected")
+        protected = SymbolProtected
         items = []
 
         if isinstance(symbols, Symbol):
@@ -267,7 +268,7 @@ class Unprotect(Builtin):
 
     def apply(self, symbols, evaluation):
         "Unprotect[symbols___]"
-        protected = Symbol("System`Protected")
+        protected = SymbolProtected
         items = []
         if isinstance(symbols, Symbol):
             symbols = [symbols]

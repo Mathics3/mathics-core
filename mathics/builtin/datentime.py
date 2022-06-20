@@ -25,6 +25,7 @@ from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAutomatic,
     SymbolInfinity,
     SymbolRowBox,
 )
@@ -630,7 +631,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
 
         fmt = None
 
-        if options["System`TimeZone"].sameQ(Symbol("Automatic")):
+        if options["System`TimeZone"].sameQ(SymbolAutomatic):
             timezone = Real(-time.timezone / 3600.0)
         else:
             timezone = options["System`TimeZone"].evaluate(evaluation)
@@ -671,7 +672,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     def apply_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
-        if fmt.sameQ(Symbol("Automatic")):
+        if fmt.sameQ(SymbolAutomatic):
             fmt = ListExpression(String("DateTimeShort"))
         fmtds = Expression(SymbolDateString, datetime, fmt).evaluate(evaluation)
         if fmtds is None:

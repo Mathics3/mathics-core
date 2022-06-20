@@ -51,15 +51,16 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
+    SymbolInfinity,
     SymbolLog,
     SymbolN,
     SymbolPrecision,
+    SymbolRealDigits,
     SymbolRound,
 )
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
-SymbolRealDigits = Symbol("RealDigits")
 
 
 @lru_cache(maxsize=1024)
@@ -1019,7 +1020,7 @@ class Precision(Builtin):
         "Precision[z_]"
 
         if not z.is_inexact():
-            return Symbol("Infinity")
+            return SymbolInfinity
         elif z.to_sympy().is_zero:
             return Real(0)
         else:

@@ -46,6 +46,7 @@ from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolAutomatic
 
 from mathics.format.asy_fns import asy_color, asy_number
 
@@ -431,7 +432,7 @@ class GraphicsBox(BoxConstruct):
         if image_size_multipliers is None:
             image_size_multipliers = (0.5, 0.25)
 
-        if aspect_ratio is Symbol("Automatic"):
+        if aspect_ratio is SymbolAutomatic:
             aspect = None
         else:
             aspect = aspect_ratio.round_to_float()
