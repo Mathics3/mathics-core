@@ -125,7 +125,14 @@ class ListExpression(Expression):
             *self._elements, elements_properties=self.elements_properties
         )
 
-    copy = shallow_copy
+    def copy(self, reevaluate=False) -> "Expression":
+        expr = ListExpression(self._head.copy(reevaluate))
+        expr._elements = tuple(element.copy(reevaluate) for element in self._elements)
+        expr.options = self.options
+        expr.original = self
+        expr._sequences = self._sequences
+        expr._format_cache = self._format_cache
+        return expr
 
 
 def to_mathics_list(
