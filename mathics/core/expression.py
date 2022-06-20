@@ -198,9 +198,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     ):
         self.options = None
         self.pattern_sequence = False
-        if isinstance(head, str):
-            # We should fix or convert to to_expression all nonSymbol uses.
-            head = Symbol(head)
+        # if isinstance(head, str):
+        #     # We should fix or convert to to_expression all nonSymbol uses.
+        #     head = Symbol(head)
 
         self._head = head
 
