@@ -4,7 +4,7 @@ from mathics.builtin.base import BoxConstruct, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.symbol import Symbol
+from mathics.core.symbols import Symbol
 
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
 

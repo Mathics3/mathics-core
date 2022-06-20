@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Color Operations
+"""
+Color Operations
 
 Functions for manipulating colors and color images.
 """
@@ -22,7 +23,7 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRGBColor
@@ -420,9 +421,10 @@ class DominantColors(_ImageBuiltin):
                             mask = mask | (pixels == i)
                         yield Image(mask.reshape(tuple(reversed(im.size))), "Grayscale")
                     else:
-                        yield Expression(
+                        yield to_expression(
                             Symbol(out_palette_head),
-                            *(MachineReal(c) for c in prototype)
+                            *prototype,
+                            elements_conversion_fn=MachineReal
                         )
 
         return to_mathics_list(*itertools.islice(result(), 0, at_most))
@@ -431,10 +433,11 @@ class DominantColors(_ImageBuiltin):
 class Lighter(Builtin):
     """
     <dl>
-    <dt>'Lighter[$c$, $f$]'
-        <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.
-    <dt>'Lighter[$c$]'
-        <dd>is equivalent to 'Lighter[$c$, 1/3]'.
+      <dt>'Lighter[$c$, $f$]'
+      <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.
+
+      <dt>'Lighter[$c$]'
+      <dd>is equivalent to 'Lighter[$c$, 1/3]'.
     </dl>
 
     >> Lighter[Orange, 1/4]
