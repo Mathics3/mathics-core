@@ -48,6 +48,7 @@ from mathics.core.systemsymbols import (
     SymbolGet,
     SymbolMemberQ,
     SymbolNeeds,
+    SymbolNone,
     SymbolPackages,
 )
 
@@ -1136,7 +1137,7 @@ class FileType(Builtin):
         path, is_temporary_file = path_search(path)
 
         if path is None:
-            return Symbol("None")
+            return SymbolNone
 
         if osp.isfile(path):
             return Symbol("File")

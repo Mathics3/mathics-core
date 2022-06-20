@@ -19,6 +19,7 @@ from mathics.core.systemsymbols import (
     SymbolComplex,
     SymbolD,
     SymbolNIntegrate,
+    SymbolRule,
 )
 
 
@@ -172,7 +173,7 @@ def apply_D_to_Integral(func, domain, var, evaluation, options, head):
     """Implements D[%(name)s[func_, domain__, OptionsPattern[%(name)s]], var_Symbol]"""
     if head is SymbolNIntegrate:
         options = tuple(
-            Expression(Symbol("Rule"), Symbol(key), options[key]) for key in options
+            Expression(SymbolRule, Symbol(key), options[key]) for key in options
         )
     else:
         # It would be better to set those options that are not default...

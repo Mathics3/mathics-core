@@ -10,6 +10,8 @@ from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolMinPrecision,
+    SymbolMaxPrecision,
     SymbolN,
     SymbolTrue,
     system_symbols,
@@ -318,7 +320,7 @@ def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
     if rhs_int_value is not None and rhs_int_value >= 0:
         max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
         if max_prec is not None and max_prec < rhs_int_value:
-            evaluation.message("$MinPrecision", "preccon", Symbol("$MinPrecision"))
+            evaluation.message("$MinPrecision", "preccon", SymbolMinPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:
@@ -334,7 +336,7 @@ def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
     elif rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
         if min_prec is not None and rhs_int_value < min_prec:
-            evaluation.message("$MaxPrecision", "preccon", Symbol("$MaxPrecision"))
+            evaluation.message("$MaxPrecision", "preccon", SymbolMaxPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:

@@ -260,9 +260,9 @@ class CompiledFunction(Builtin):
         for arg in argseq:
             if isinstance(arg, Integer):
                 py_args.append(arg.get_int_value())
-            elif arg.sameQ(Symbol("True")):
+            elif arg.sameQ(SymbolTrue):
                 py_args.append(True)
-            elif arg.sameQ(Symbol("False")):
+            elif arg.sameQ(SymbolFalse):
                 py_args.append(False)
             else:
                 py_args.append(arg.round_to_float(evaluation))

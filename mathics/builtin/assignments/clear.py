@@ -8,6 +8,15 @@ from mathics.builtin.base import (
     Builtin,
     PostfixOperator,
 )
+from mathics.core.attributes import (
+    hold_all,
+    hold_first,
+    listable,
+    locked,
+    no_attributes,
+    protected,
+    read_protected,
+)
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
@@ -20,21 +29,12 @@ from mathics.core.systemsymbols import (
     Symbol_Context,
     Symbol_ContextPath,
     SymbolFailed,
+    SymbolOptions,
 )
 
 from mathics.core.atoms import String
 
 from mathics.builtin.assignments.internals import is_protected
-
-from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    listable,
-    locked,
-    no_attributes,
-    protected,
-    read_protected,
-)
 
 
 class Clear(Builtin):
@@ -258,7 +258,7 @@ class Unset(PostfixOperator):
             if not symbol:
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
-            if head is Symbol("System`Options"):
+            if head is SymbolOptions:
                 empty = {}
             else:
                 empty = []

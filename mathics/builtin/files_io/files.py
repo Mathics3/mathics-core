@@ -49,6 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolIndeterminate,
     SymbolFailed,
+    SymbolHold,
 )
 
 from mathics.core.number import dps
@@ -61,6 +62,7 @@ from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOper
 from mathics.builtin.base import MessageException
 
 from mathics.core.attributes import protected, read_protected
+from mathics.core.systemsymbols import SymbolComplex, SymbolReal
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
@@ -69,7 +71,6 @@ INPUT_VAR = ""
 
 TMP_DIR = tempfile.gettempdir()
 
-SymbolComplex = Symbol("Complex")
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolPath = Symbol("$Path")
@@ -2110,7 +2111,7 @@ class Read(Builtin):
                         return SymbolFailed
                     elif isinstance(expr, BaseElement):
                         if typ is Symbol("HoldExpression"):
-                            expr = to_expression("Hold", expr)
+                            expr = Expression(SymbolHold, expr)
                         result.append(expr)
                     # else:
                     #  TODO: Supposedly we can't get here
@@ -2130,7 +2131,7 @@ class Read(Builtin):
                             return SymbolFailed
                     result.append(tmp)
 
-                elif typ is Symbol("Real"):
+                elif typ is SymbolReal:
                     tmp = next(read_real)
                     tmp = tmp.replace("*^", "E")
                     try:

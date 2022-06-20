@@ -19,7 +19,6 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
-from mathics.core.element import BaseElement
 from mathics.core.expression import ElementsProperties, Expression, to_expression
 from mathics.core.atoms import (
     Complex,
@@ -53,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
     SymbolInfix,
+    SymbolLeft,
     SymbolMinus,
     SymbolPattern,
     SymbolSequence,
@@ -70,9 +70,6 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-
-
-SymbolLeft = Symbol("Left")
 
 
 class CubeRoot(Builtin):
