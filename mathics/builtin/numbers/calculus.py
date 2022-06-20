@@ -1767,20 +1767,20 @@ class SeriesData(Builtin):
         # If the series is null, build a series with the remaining terms
         if all(Integer0.sameQ(element) for element in data.elements):
             if term.get_head() is SymbolSequence:
-                term = Expression(SymbolPlus, *(term.elements))
+                term = Expression(SymbolPlus, *term.elements)
             ret = build_series(
                 term,
                 x,
                 x0,
-                Integer(nummax.get_int_value() / nummax.get_int_value()),
+                nummax.value / nummax.value,
                 evaluation,
             )
             return ret
         series = (
             data,
-            nummin.get_int_value(),
-            nummax.get_int_value(),
-            den.get_int_value(),
+            nummin.value,
+            nummax.value,
+            den.value,
         )
         if term.get_head() is SymbolSequence:
             terms = term.elements
