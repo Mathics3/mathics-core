@@ -14,18 +14,21 @@ from mathics.builtin.base import (
     BoxConstructError,
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Real,
+    MachineReal,
     String,
     from_python,
 )
-
-from mathics.core.symbols import Symbol, SymbolList
-
+from mathics.core.element import ImmutableValueMixin
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.number import machine_epsilon
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolApply
+
+SymbolOpacity = Symbol("Opacity")
 
 
 def _cie2000_distance(lab1, lab2):
@@ -39,15 +42,15 @@ def _cie2000_distance(lab1, lab2):
 
     dL = L2 - L1
     Lm = (L1 + L2) / 2
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
     Cm = (C1 + C2) / 2
 
-    a1 = a1 * (1 + (1 - sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))) / 2)
-    a2 = a2 * (1 + (1 - sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))) / 2)
+    a1 = a1 * (1 + (1 - sqrt(Cm**7 / (Cm**7 + 25**7))) / 2)
+    a2 = a2 * (1 + (1 - sqrt(Cm**7 / (Cm**7 + 25**7))) / 2)
 
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
     Cm = (C1 + C2) / 2
     dC = C2 - C1
 
@@ -77,8 +80,8 @@ def _cie2000_distance(lab1, lab2):
 
     rT = (
         -2
-        * sqrt(Cm ** 7 / (Cm ** 7 + 25 ** 7))
-        * sin(radians(60 * exp(-((Hm - 275) ** 2 / 25 ** 2))))
+        * sqrt(Cm**7 / (Cm**7 + 25**7))
+        * sin(radians(60 * exp(-((Hm - 275) ** 2 / 25**2))))
     )
     return sqrt(
         (dL / (SL * kL)) ** 2
@@ -97,13 +100,13 @@ def _CMC_distance(lab1, lab2, l, c):
     dL, da, db = L2 - L1, a2 - a1, b2 - b1
     e = machine_epsilon
 
-    C1 = sqrt(a1 ** 2 + b1 ** 2)
-    C2 = sqrt(a2 ** 2 + b2 ** 2)
+    C1 = sqrt(a1**2 + b1**2)
+    C2 = sqrt(a2**2 + b2**2)
 
     h1 = (180 * atan2(b1, a1 + e)) / pi % 360
     dC = C2 - C1
-    dH2 = da ** 2 + db ** 2 - dC ** 2
-    F = C1 ** 2 / sqrt(C1 ** 4 + 1900)
+    dH2 = da**2 + db**2 - dC**2
+    F = C1**2 / sqrt(C1**4 + 1900)
     T = (
         0.56 + abs(0.2 * cos(radians(h1 + 168)))
         if (164 <= h1 and h1 <= 345)
@@ -113,7 +116,7 @@ def _CMC_distance(lab1, lab2, l, c):
     SL = 0.511 if L1 < 16 else (0.040975 * L1) / (1 + 0.01765 * L1)
     SC = (0.0638 * C1) / (1 + 0.0131 * C1) + 0.638
     SH = SC * (F * T + 1 - F)
-    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH ** 2)
+    return sqrt((dL / (l * SL)) ** 2 + (dC / (c * SC)) ** 2 + dH2 / SH**2)
 
 
 def _component_distance(a, b, i):
@@ -122,6 +125,40 @@ def _component_distance(a, b, i):
 
 def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
+
+
+class Opacity(_GraphicsDirective):
+    """
+    <dl>
+    <dt>'Opacity[$level$]'
+    <dd> is a graphics directive that sets the opacity to $level$.
+    </dl>
+    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
+     = -Graphics-
+    >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
+     = -Graphics3D-
+    Notice that 'Opacity' does not overwrite the value of the alpha channel if it is set in a color directive:
+    >> Graphics[{Blue, Disk[], RGBColor[1,0,0,1],Opacity[.2], Rectangle[{0,0},{1,1}]}]
+     = -Graphics-
+    """
+
+    def init(self, item=None, *args, **kwargs):
+        if isinstance(item, (int, float)):
+            item = Expression(SymbolOpacity, MachineReal(item))
+            super(Opacity, self).init(None, item)
+        self.opacity = item.leaves[0].to_python()
+
+    def to_css(self):
+        try:
+            if 0.0 <= self.opacity <= 1.0:
+                return self.opacity
+        except:
+            pass
+        return None
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(item)
 
 
 class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
@@ -144,12 +181,12 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     def init(self, item=None, components=None):
         super(_ColorObject, self).init(None, item)
         if item is not None:
-            leaves = item.leaves
-            if len(leaves) in self.components_sizes:
+            elements = item.elements
+            if len(elements) in self.components_sizes:
                 # we must not clip here; we copy the components, without clipping,
                 # e.g. RGBColor[-1, 0, 0] stays RGBColor[-1, 0, 0]. this is especially
                 # important for color spaces like LAB that have negative components.
-                components = [value.round_to_float() for value in leaves]
+                components = [value.round_to_float() for value in elements]
                 if None in components:
                     raise ColorError
 
@@ -181,7 +218,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
     def to_css(self):
         rgba = self.to_rgba()
-        alpha = rgba[3] if len(rgba) > 3 else 1.0
+        alpha = rgba[3] if len(rgba) > 3 else None
         return (
             r"rgb(%f%%, %f%%, %f%%)" % (rgba[0] * 100, rgba[1] * 100, rgba[2] * 100),
             alpha,
@@ -191,7 +228,7 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
         return self.to_rgba()
 
     def to_expr(self):
-        return Expression(self.get_name(), *self.components)
+        return to_expression(self.get_name(), *self.components)
 
     def to_rgba(self):
         return self.to_color_space("RGB")
@@ -318,8 +355,8 @@ class ColorDistance(Builtin):
                 evaluation.message("ColorDistance", "invdist", distance_function)
                 return
         elif distance_function.has_form("List", 2):
-            if distance_function.leaves[0].get_string_value() == "CMC":
-                if distance_function.leaves[1].get_string_value() == "Acceptability":
+            if distance_function.elements[0].get_string_value() == "CMC":
+                if distance_function.elements[1].get_string_value() == "Acceptability":
                     compute = (
                         lambda c1, c2: _CMC_distance(
                             100 * c1.to_color_space("LAB")[:3],
@@ -329,23 +366,34 @@ class ColorDistance(Builtin):
                         )
                         / 100
                     )
-                elif distance_function.leaves[1].get_string_value() == "Perceptibility":
+                elif (
+                    distance_function.elements[1].get_string_value() == "Perceptibility"
+                ):
                     compute = ColorDistance._distances.get("CMC")
 
-                elif distance_function.leaves[1].has_form("List", 2):
+                elif distance_function.elements[1].has_form("List", 2):
                     if isinstance(
-                        distance_function.leaves[1].leaves[0], Integer
-                    ) and isinstance(distance_function.leaves[1].leaves[1], Integer):
+                        distance_function.elements[1].elements[0], Integer
+                    ) and isinstance(
+                        distance_function.elements[1].elements[1], Integer
+                    ):
                         if (
-                            distance_function.leaves[1].leaves[0].get_int_value() > 0
-                            and distance_function.leaves[1].leaves[1].get_int_value()
+                            distance_function.elements[1].elements[0].get_int_value()
+                            > 0
+                            and distance_function.elements[1]
+                            .elements[1]
+                            .get_int_value()
                             > 0
                         ):
                             lightness = (
-                                distance_function.leaves[1].leaves[0].get_int_value()
+                                distance_function.elements[1]
+                                .elements[0]
+                                .get_int_value()
                             )
                             chroma = (
-                                distance_function.leaves[1].leaves[1].get_int_value()
+                                distance_function.elements[1]
+                                .elements[1]
+                                .get_int_value()
                             )
                             compute = (
                                 lambda c1, c2: _CMC_distance(
@@ -366,15 +414,14 @@ class ColorDistance(Builtin):
 
             def compute(a, b):
                 return Expression(
-                    "Apply",
+                    SymbolApply,
                     distance_function,
-                    Expression(
-                        "List",
-                        Expression(
-                            "List", *[Real(val) for val in a.to_color_space("LAB")]
+                    ListExpression(
+                        to_mathics_list(
+                            *a.to_color_space("LAB"), elements_conversion_fn=Real
                         ),
-                        Expression(
-                            "List", *[Real(val) for val in b.to_color_space("LAB")]
+                        to_mathics_list(
+                            *b.to_color_space("LAB"), elements_conversion_fn=Real
                         ),
                     ),
                 )
@@ -396,18 +443,17 @@ class ColorDistance(Builtin):
         try:
             if c1.get_head_name() == "System`List":
                 if c2.get_head_name() == "System`List":
-                    if len(c1.leaves) != len(c2.leaves):
+                    if len(c1.elements) != len(c2.elements):
                         evaluation.message("ColorDistance", "invarg", c1, c2)
                         return
                     else:
-                        return Expression(
-                            "List",
-                            *[distance(a, b) for a, b in zip(c1.leaves, c2.leaves)],
+                        return to_mathics_list(
+                            *[distance(a, b) for a, b in zip(c1.elements, c2.elements)],
                         )
                 else:
-                    return Expression(SymbolList, *[distance(c, c2) for c in c1.leaves])
+                    return to_mathics_list(*[distance(c, c2) for c in c1.elements])
             elif c2.get_head_name() == "System`List":
-                return Expression(SymbolList, *[distance(c1, c) for c in c2.leaves])
+                return ListExpression(*[distance(c1, c) for c in c2.elements])
             else:
                 return distance(c1, c2)
         except ColorError:
@@ -440,16 +486,19 @@ class GrayLevel(_ColorObject):
 class Hue(_ColorObject):
     """
     <dl>
-    <dt>'Hue[$h$, $s$, $l$, $a$]'
-        <dd>represents the color with hue $h$, saturation $s$,
-        lightness $l$ and opacity $a$.
-    <dt>'Hue[$h$, $s$, $l$]'
-        <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
-    <dt>'Hue[$h$, $s$]'
-        <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
-    <dt>'Hue[$h$]'
-        <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
+      <dt>'Hue[$h$, $s$, $l$, $a$]'
+      <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
+
+      <dt>'Hue[$h$, $s$, $l$]'
+      <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
+
+      <dt>'Hue[$h$, $s$]'
+      <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
+
+      <dt>'Hue[$h$]'
+      <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
     </dl>
+
     >> Graphics[Table[{EdgeForm[Gray], Hue[h, s], Disk[{12h, 8s}]}, {h, 0, 1, 1/6}, {s, 0, 1, 1/4}]]
      = -Graphics-
 
@@ -461,7 +510,7 @@ class Hue(_ColorObject):
     components_sizes = [1, 2, 3, 4]
     default_components = [0, 1, 1, 1]
 
-    def hsl_to_rgba(self):
+    def hsl_to_rgba(self) -> tuple:
         h, s, l = self.components[:3]
         if l < 0.5:
             q = l * (1 + s)
@@ -587,4 +636,4 @@ def color_to_expression(components, colorspace):
     else:
         converted_color_name = colorspace + "Color"
 
-    return Expression(converted_color_name, *components)
+    return to_expression(converted_color_name, *components)

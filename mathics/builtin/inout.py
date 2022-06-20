@@ -11,7 +11,7 @@ import typing
 from typing import Any
 
 
-from mathics.builtin.box.inout import RowBox
+from mathics.builtin.box.inout import RowBox, to_boxes, _BoxedString
 
 from mathics.builtin.base import (
     BoxConstruct,
@@ -26,16 +26,6 @@ from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.expression import Expression, BoxError
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolList,
-    SymbolTrue,
-    SymbolFalse,
-    SymbolNull,
-)
-
 from mathics.core.atoms import (
     String,
     StringFromPython,
@@ -44,10 +34,29 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
 )
+from mathics.core.element import EvalMixin
+from mathics.core.expression import Expression, BoxError
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFalse,
+    SymbolFullForm,
+    SymbolList,
+    SymbolNull,
+    SymbolTrue,
+)
+
 from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolInfinity,
     SymbolMakeBoxes,
+    SymbolMessageName,
+    SymbolQuiet,
+    SymbolRow,
     SymbolRowBox,
     SymbolRule,
+    SymbolRuleDelayed,
 )
 from mathics.core.number import (
     dps,
@@ -62,14 +71,8 @@ from mathics.core.attributes import hold_all, hold_all_complete, hold_first, pro
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
-SymbolAutomatic = Symbol("Automatic")
-SymbolFullForm = Symbol("FullForm")
-SymbolInfinity = Symbol("Infinity")
-SymbolMessageName = Symbol("MessageName")
 SymbolNumberForm = Symbol("NumberForm")
 SymbolOutputForm = Symbol("OutputForm")
-SymbolRow = Symbol("Row")
-SymbolRuleDelayed = Symbol("RuleDelayed")
 SymbolSuperscriptBox = Symbol("SuperscriptBox")
 SymbolSubscriptBox = Symbol("SubscriptBox")
 
@@ -213,7 +216,7 @@ def parenthesize(precedence, leaf, leaf_boxes, when_equal):
         if precedence > leaf_prec or (precedence == leaf_prec and when_equal):
             return Expression(
                 SymbolRowBox,
-                Expression(SymbolList, String("("), leaf_boxes, String(")")),
+                ListExpression(String("("), leaf_boxes, String(")")),
             )
     return leaf_boxes
 
@@ -235,7 +238,7 @@ def make_boxes_infix(leaves, ops, precedence, grouping, form):
         leaf = parenthesize(precedence, leaf, leaf_boxes, parenthesized)
 
         result.append(leaf)
-    return Expression(SymbolRowBox, Expression(SymbolList, *result))
+    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def real_to_s_exp(expr, n):
@@ -379,7 +382,7 @@ def number_form(expr, n, f, evaluation, options):
         assert isinstance(number, int)
         assert number >= 0
         number += 5 * int(10 ** -(1 + ndigits))
-        number //= int(10 ** -ndigits)
+        number //= int(10**-ndigits)
         return number
 
     # pad with NumberPadding
@@ -434,7 +437,15 @@ def number_form(expr, n, f, evaluation, options):
 
     # build number
     method = options["NumberFormat"]
-    return method(String(s), String(base), String(pexp), options)
+    if options["_Form"] in ("System`InputForm", "System`FullForm"):
+        return method(
+            _BoxedString(s, number_as_text=True),
+            _BoxedString(base, number_as_text=True),
+            _BoxedString(pexp, number_as_text=True),
+            options,
+        )
+    else:
+        return method(_BoxedString(s), _BoxedString(base), _BoxedString(pexp), options)
 
 
 class MakeBoxes(Builtin):
@@ -590,7 +601,8 @@ class MakeBoxes(Builtin):
     def apply_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
-
+        if isinstance(expr, BoxConstruct):
+            expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
         else:
@@ -607,7 +619,9 @@ class MakeBoxes(Builtin):
             # like (a + b)[x], but not f[a] in f[a][b].
             #
             head_boxes = parenthesize(670, head, MakeBoxes(head, f), False)
-            result = [head_boxes, String(left)]
+            head_boxes = head_boxes.evaluate(evaluation)
+            head_boxes = to_boxes(head_boxes, evaluation)
+            result = [head_boxes, to_boxes(String(left), evaluation)]
 
             if len(leaves) > 1:
                 row = []
@@ -621,13 +635,17 @@ class MakeBoxes(Builtin):
                     sep = ","
                 for index, leaf in enumerate(leaves):
                     if index > 0:
-                        row.append(String(sep))
-                    row.append(MakeBoxes(leaf, f))
-                result.append(RowBox(Expression(SymbolList, *row)))
+                        row.append(to_boxes(String(sep), evaluation))
+                    row.append(
+                        to_boxes(MakeBoxes(leaf, f).evaluate(evaluation), evaluation)
+                    )
+                result.append(RowBox(*row))
             elif len(leaves) == 1:
-                result.append(MakeBoxes(leaves[0], f))
-            result.append(String(right))
-            return RowBox(Expression(SymbolList, *result))
+                result.append(
+                    to_boxes(MakeBoxes(leaves[0], f).evaluate(evaluation), evaluation)
+                )
+            result.append(to_boxes(String(right), evaluation))
+            return RowBox(*result)
 
     def apply_outerprecedenceform(self, expr, prec, evaluation):
         """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
@@ -656,9 +674,9 @@ class MakeBoxes(Builtin):
             else:
                 args = (h, leaf)
 
-            return Expression(SymbolRowBox, Expression(SymbolList, *args))
+            return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
-            return MakeBoxes(expr, f)
+            return MakeBoxes(expr, f).evaluate(evaluation)
 
     def apply_infix(self, expr, h, prec, grouping, f, evaluation):
         """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
@@ -771,9 +789,11 @@ class Row(Builtin):
             result = []
             for index, item in enumerate(items):
                 if index > 0 and not sep.sameQ(String("")):
-                    result.append(sep)
-                result.append(MakeBoxes(item, f))
-            return RowBox(Expression(SymbolList, *result))
+                    result.append(to_boxes(sep, evaluation))
+                item = MakeBoxes(item, f).evaluate(evaluation)
+                item = to_boxes(item, evaluation)
+                result.append(item)
+            return RowBox(*result)
 
 
 # Right now this seems to be used only in GridBox.
@@ -810,6 +830,9 @@ class GridBox(BoxConstruct):
     options = {"ColumnAlignments": "Center"}
     summary_text = "low-level representation of an arbitrary 2D layout"
 
+    # TODO: elements in the GridBox should be stored as an array with
+    # elements in its evaluated form.
+
     def get_array(self, leaves, evaluation):
         options = self.get_option_values(leaves=leaves[1:], evaluation=evaluation)
         if not leaves:
@@ -823,11 +846,11 @@ class GridBox(BoxConstruct):
             raise BoxConstructError
         return items, options
 
-    def boxes_to_tex(self, leaves=None, **box_options) -> str:
-        if not leaves:
-            leaves = self._elements
+    def boxes_to_tex(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
         evaluation = box_options.get("evaluation")
-        items, options = self.get_array(leaves, evaluation)
+        items, options = self.get_array(elements, evaluation)
         new_box_options = box_options.copy()
         new_box_options["inside_list"] = True
         column_alignments = options["System`ColumnAlignments"].get_name()
@@ -950,21 +973,19 @@ class Grid(Builtin):
         """MakeBoxes[Grid[array_?MatrixQ, OptionsPattern[Grid]],
         f:StandardForm|TraditionalForm|OutputForm]"""
         return GridBox(
-            Expression(
-                "List",
+            ListExpression(
                 *(
-                    Expression(
-                        SymbolList,
-                        *(Expression(SymbolMakeBoxes, item, f) for item in row.leaves),
+                    ListExpression(
+                        *(
+                            Expression(SymbolMakeBoxes, item, f)
+                            for item in row.elements
+                        ),
                     )
                     for row in array.leaves
                 ),
             ),
             *options_to_rules(options),
         )
-
-
-#        return Expression('GridBox',Expression('List', *(Expression('List', *(Expression('MakeBoxes', item, f) for item in row.leaves)) for row in array.leaves)),            *options_to_rules(options))
 
 
 SymbolTableDepth = Symbol("TableDepth")
@@ -1027,11 +1048,10 @@ class TableForm(Builtin):
             return Expression(SymbolMakeBoxes, table, f)
         elif depth == 1:
             return GridBox(
-                Expression(
-                    SymbolList,
+                ListExpression(
                     *(
-                        Expression(SymbolList, Expression(SymbolMakeBoxes, item, f))
-                        for item in table.leaves
+                        ListExpression(Expression(SymbolMakeBoxes, item, f))
+                        for item in table.elements
                     ),
                 )
             )
@@ -1040,20 +1060,18 @@ class TableForm(Builtin):
             #        Expression('List', Expression('MakeBoxes', item, f))
             #        for item in table.leaves)))
         else:
-            new_depth = Expression(SymbolRule, SymbolTableDepth, depth - 2)
+            new_depth = Expression(SymbolRule, SymbolTableDepth, Integer(depth - 2))
 
             def transform_item(item):
                 if depth > 2:
-                    return Expression(self.get_name(), item, new_depth)
+                    return Expression(Symbol(self.get_name()), item, new_depth)
                 else:
                     return item
 
             return GridBox(
-                Expression(
-                    "List",
+                ListExpression(
                     *(
-                        Expression(
-                            "List",
+                        ListExpression(
                             *(
                                 Expression(SymbolMakeBoxes, transform_item(item), f)
                                 for item in row.leaves
@@ -1098,7 +1116,7 @@ class MatrixForm(TableForm):
         result = super(MatrixForm, self).apply_makeboxes(table, f, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return Expression(
-                SymbolRowBox, Expression(SymbolList, String("("), result, String(")"))
+                SymbolRowBox, ListExpression(String("("), result, String(")"))
             )
         return result
 
@@ -1140,7 +1158,9 @@ class Subscript(Builtin):
 
         y = y.get_sequence()
         return Expression(
-            SymbolSubscriptBox, Expression(SymbolMakeBoxes, x, f), *list_boxes(y, f)
+            SymbolSubscriptBox,
+            Expression(SymbolMakeBoxes, x, f),
+            *list_boxes(y, f, evaluation),
         )
 
 
@@ -1339,14 +1359,21 @@ class StringForm(Builtin):
             if index > last_index:
                 last_index = index
             if start > pos:
-                result.append(String(s[pos:start]))
+                result.append(to_boxes(String(s[pos:start]), evaluation))
             pos = end
             if 1 <= index <= len(args):
                 arg = args[index - 1]
-                result.append(MakeBoxes(arg, f))
+                result.append(
+                    to_boxes(MakeBoxes(arg, f).evaluate(evaluation), evaluation)
+                )
         if pos < len(s):
-            result.append(String(s[pos:]))
-        return RowBox(Expression(SymbolList, *result))
+            result.append(to_boxes(String(s[pos:]), evaluation))
+        return RowBox(
+            *tuple(
+                r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
+                for r in result
+            )
+        )
 
 
 class Message(Builtin):
@@ -1588,7 +1615,7 @@ class Quiet(Builtin):
 
         def get_msg_list(expr):
             if check_message(expr):
-                expr = Expression(SymbolList, expr)
+                expr = ListExpression(expr)
             if expr.get_name() == "System`All":
                 all = True
                 messages = []
@@ -1611,7 +1638,7 @@ class Quiet(Builtin):
         old_quiet_messages = set(evaluation.get_quiet_messages())
         quiet_messages = old_quiet_messages.copy()
         try:
-            quiet_expr = Expression("Quiet", expr, moff, mon)
+            quiet_expr = Expression(SymbolQuiet, expr, moff, mon)
             try:
                 off_all, off_messages = get_msg_list(moff)
             except ValueError:
@@ -1633,7 +1660,7 @@ class Quiet(Builtin):
                     break
             if conflict:
                 evaluation.message(
-                    "Quiet", "conflict", quiet_expr, Expression(SymbolList, *conflict)
+                    "Quiet", "conflict", quiet_expr, ListExpression(*conflict)
                 )
                 return
             for off in off_messages:
@@ -2024,7 +2051,7 @@ class Print(Builtin):
         "Print[expr__]"
 
         expr = expr.get_sequence()
-        expr = Expression(SymbolRow, Expression(SymbolList, *expr))
+        expr = Expression(SymbolRow, ListExpression(*expr))
         evaluation.print_out(expr)
         return SymbolNull
 
@@ -2066,6 +2093,22 @@ class StandardForm(Builtin):
     """
 
     summary_text = "default output format"
+
+
+class TraditionalForm(Builtin):
+    """
+    <dl>
+    <dt>'TraditionalForm[$expr$]'
+        <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
+           function evaluations are represented by brackets instead of square brackets.
+    </dl>
+
+    ## To pass this test, we need to improve the implementation of Element.format
+    ## >> TraditionalForm[g[x]]
+    ## = g(x)
+    """
+
+    summary_text = "traditional output format"
 
 
 class InputForm(Builtin):
@@ -2160,7 +2203,7 @@ class MathMLForm(Builtin):
                 mathml = '<mstyle mathvariant="sans-serif">%s</mstyle>' % mathml
 
         mathml = '<math display="block">%s</math>' % mathml  # convert_box(boxes)
-        return Expression(SymbolRowBox, Expression(SymbolList, String(mathml)))
+        return Expression(SymbolRowBox, ListExpression(String(mathml)))
 
 
 class PythonForm(Builtin):
@@ -2242,7 +2285,7 @@ class TeXForm(Builtin):
      = \sqrt{a^3}
 
     #> {"hi","you"} //InputForm //TeXForm
-     = \left\{\text{"hi"}, \text{"you"}\right\}
+     = \left\{\text{hi}, \text{you}\right\}
 
     #> TeXForm[a+b*c]
      = a+b c
@@ -2253,10 +2296,16 @@ class TeXForm(Builtin):
 
     def apply_tex(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, TeXForm]"
-
         boxes = MakeBoxes(expr).evaluate(evaluation)
+        if isinstance(boxes, String):
+            boxes = _BoxedString(boxes.value)
         try:
-            tex = boxes.boxes_to_tex(evaluation=evaluation)
+            # Here we set ``show_string_characters`` to False, to reproduce
+            # the standard behaviour in WMA. Remove this parameter to recover the
+            # quotes in InputForm and FullForm
+            tex = boxes.boxes_to_tex(
+                show_string_characters=False, evaluation=evaluation
+            )
 
             # Replace multiple newlines by a single one e.g. between asy-blocks
             tex = MULTI_NEWLINE_RE.sub("\n", tex)
@@ -2269,7 +2318,7 @@ class TeXForm(Builtin):
                 Expression(SymbolFullForm, boxes).evaluate(evaluation),
             )
             tex = ""
-        return Expression(SymbolRowBox, Expression(SymbolList, String(tex)))
+        return Expression(SymbolRowBox, ListExpression(String(tex)))
 
 
 class Style(Builtin):
@@ -2724,9 +2773,7 @@ class NumberForm(_NumberForm):
             mul = String(options["NumberMultiplier"])
             return Expression(
                 SymbolRowBox,
-                Expression(
-                    SymbolList, man, mul, Expression(SymbolSuperscriptBox, base, exp)
-                ),
+                ListExpression(man, mul, Expression(SymbolSuperscriptBox, base, exp)),
             )
         else:
             return man
@@ -2737,9 +2784,11 @@ class NumberForm(_NumberForm):
             Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
-        return Expression(
-            SymbolList,
-            *[Expression(SymbolNumberForm, leaf, n, *options) for leaf in expr.leaves],
+        return ListExpression(
+            *[
+                Expression(SymbolNumberForm, element, n, *options)
+                for element in expr.elements
+            ]
         )
 
     def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
@@ -2748,13 +2797,10 @@ class NumberForm(_NumberForm):
             Expression(SymbolRuleDelayed, Symbol(key), value)
             for key, value in options.items()
         ]
-        return Expression(
-            SymbolList,
+        return ListExpression(
             *[
-                Expression(
-                    SymbolNumberForm, leaf, Expression(SymbolList, n, f), *options
-                )
-                for leaf in expr.leaves
+                Expression(SymbolNumberForm, element, ListExpression(n, f), *options)
+                for element in expr.elements
             ],
         )
 
@@ -2779,6 +2825,7 @@ class NumberForm(_NumberForm):
             py_n = None
 
         if py_n is not None:
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
@@ -2798,6 +2845,7 @@ class NumberForm(_NumberForm):
             return fallback
 
         if isinstance(expr, (Integer, Real)):
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
@@ -2807,7 +2855,7 @@ class NumberForm(_NumberForm):
 
         fallback = Expression(SymbolMakeBoxes, expr, form)
 
-        nf = Expression(SymbolList, n, f)
+        nf = ListExpression(n, f)
         py_n = n.get_int_value()
         py_f = f.get_int_value()
         if py_n is None or py_n <= 0 or py_f is None or py_f < 0:
@@ -2819,6 +2867,7 @@ class NumberForm(_NumberForm):
             return fallback
 
         if isinstance(expr, (Integer, Real)):
+            py_options["_Form"] = form.get_name()
             return number_form(expr, py_n, py_f, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
@@ -2851,10 +2900,10 @@ class BaseForm(Builtin):
     Bases must be between 2 and 36:
     >> BaseForm[12, -3]
      : Positive machine-sized integer expected at position 2 in BaseForm[12, -3].
-     : MakeBoxes[BaseForm[12, -3], OutputForm] is not a valid box structure.
+     = BaseForm[12, -3]
     >> BaseForm[12, 100]
      : Requested base 100 must be between 2 and 36.
-     : MakeBoxes[BaseForm[12, 100], OutputForm] is not a valid box structure.
+     = BaseForm[12, 100]
 
     #> BaseForm[0, 2]
      = 0_2
@@ -2879,10 +2928,9 @@ class BaseForm(Builtin):
         f:StandardForm|TraditionalForm|OutputForm]"""
 
         base = n.get_int_value()
-
         if base <= 0:
             evaluation.message("BaseForm", "intpm", expr, n)
-            return
+            return None
 
         if isinstance(expr, PrecisionReal):
             x = expr.to_sympy()
@@ -2894,7 +2942,7 @@ class BaseForm(Builtin):
             x = expr.get_int_value()
             p = 0
         else:
-            return Expression(SymbolMakeBoxes, expr, f)
+            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
 
         try:
             val = convert_base(x, base, p)
@@ -2902,6 +2950,8 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return String("%s_%d" % (val, base))
+            return to_boxes(String("%s_%d" % (val, base)), evaluation)
         else:
-            return Expression(SymbolSubscriptBox, String(val), String(base))
+            return to_boxes(
+                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
+            )

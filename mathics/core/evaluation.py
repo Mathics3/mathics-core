@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 from queue import Queue
@@ -15,6 +14,7 @@ from mathics_scanner import TranslateError
 
 from mathics import settings
 
+from mathics.core.atoms import from_python, Integer, String
 from mathics.core.element import KeyComparable, ensure_context
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -26,11 +26,24 @@ from mathics.core.interrupt import (
 )
 
 from mathics.core.symbols import (
-    SymbolList,
+    Symbol,
     SymbolNull,
 )
 
-from mathics.core.systemsymbols import SymbolAborted
+from mathics.core.systemsymbols import (
+    SymbolAborted,
+    SymbolBreak,
+    SymbolContinue,
+    SymbolFullForm,
+    SymbolHold,
+    SymbolIn,
+    SymbolMessageName,
+    SymbolOut,
+    SymbolOverflow,
+    SymbolStandardForm,
+    SymbolStringForm,
+    SymbolThrow,
+)
 
 FORMATS = [
     "StandardForm",
@@ -43,6 +56,10 @@ FORMATS = [
     "MatrixForm",
     "TableForm",
 ]
+
+SymbolPre = Symbol("System`$Pre")
+SymbolPrePrint = Symbol("System`$PrePrint")
+SymbolPost = Symbol("System`$Post")
 
 
 def _thread_target(request, queue) -> None:
@@ -183,7 +200,7 @@ class Print(Out):
         }
 
 
-class Result(object):
+class Result:
     def __init__(self, out, result, line_no, last_eval=None) -> None:
         self.out = out
         self.result = result
@@ -198,7 +215,7 @@ class Result(object):
         }
 
 
-class Output(object):
+class Output:
     def max_stored_size(self, settings) -> int:
         return settings.MAX_STORED_SIZE
 
@@ -212,7 +229,7 @@ class Output(object):
         raise NotImplementedError
 
 
-class Evaluation(object):
+class Evaluation:
     def __init__(
         self, definitions=None, output=None, format="text", catch_interrupt=True
     ) -> None:
@@ -282,7 +299,7 @@ class Evaluation(object):
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
-        from mathics.core.expression import Expression
+        from mathics.core.expression import Expression, to_expression
         from mathics.core.rules import Rule
 
         self.start_time = time.time()
@@ -307,16 +324,16 @@ class Evaluation(object):
 
         def evaluate():
             if history_length > 0:
-                self.definitions.add_rule("In", Rule(Expression("In", line_no), query))
+                self.definitions.add_rule(
+                    "In", Rule(to_expression("In", line_no), query)
+                )
             if check_io_hook("System`$Pre"):
-                self.last_eval = Expression("System`$Pre", query).evaluate(self)
+                self.last_eval = Expression(SymbolPre, query).evaluate(self)
             else:
                 self.last_eval = query.evaluate(self)
 
             if check_io_hook("System`$Post"):
-                self.last_eval = Expression("System`$Post", self.last_eval).evaluate(
-                    self
-                )
+                self.last_eval = Expression(SymbolPost, self.last_eval).evaluate(self)
             if history_length > 0:
                 if self.predetermined_out is not None:
                     out_result = self.predetermined_out
@@ -326,12 +343,12 @@ class Evaluation(object):
 
                 stored_result = self.get_stored_result(out_result)
                 self.definitions.add_rule(
-                    "Out", Rule(Expression("Out", line_no), stored_result)
+                    "Out", Rule(Expression(SymbolOut, Integer(line_no)), stored_result)
                 )
             if self.last_eval != self.SymbolNull:
                 if check_io_hook("System`$PrePrint"):
                     self.last_eval = Expression(
-                        "System`$PrePrint", self.last_eval
+                        SymbolPrePrint, self.last_eval
                     ).evaluate(self)
                 return self.format_output(self.last_eval, format)
             else:
@@ -353,27 +370,29 @@ class Evaluation(object):
                     or text == "mpq.pow outrageous exp num"  # noqa
                 ):
                     self.message("General", "ovfl")
-                    self.exc_result = Expression("Overflow")
+                    self.exc_result = Expression(SymbolOverflow)
                 else:
                     raise
             except WLThrowInterrupt as ti:
                 if ti.tag:
                     self.exc_result = Expression(
-                        "Hold", Expression("Throw", ti.value, ti.tag)
+                        SymbolHold, Expression(SymbolThrow, ti.value, ti.tag)
                     )
                 else:
-                    self.exc_result = Expression("Hold", Expression("Throw", ti.value))
+                    self.exc_result = Expression(
+                        SymbolHold, Expression(SymbolThrow, ti.value)
+                    )
                 self.message("Throw", "nocatch", self.exc_result)
             #            except OverflowError:
             #                print("Catch the overflow")
             #                self.message("General", "ovfl")
-            #                self.exc_result = Expression("Overflow")
+            #                self.exc_result = Expression(SymbolOverflow)
             except BreakInterrupt:
                 self.message("Break", "nofdw")
-                self.exc_result = Expression("Hold", Expression("Break"))
+                self.exc_result = Expression(SymbolHold, Expression(SymbolBreak))
             except ContinueInterrupt:
                 self.message("Continue", "nofdw")
-                self.exc_result = Expression("Hold", Expression("Continue"))
+                self.exc_result = Expression(SymbolHold, Expression(SymbolContinue))
             except TimeoutInterrupt:
                 self.stopped = False
                 self.timeout = True
@@ -398,8 +417,10 @@ class Evaluation(object):
 
         line = line_no - history_length
         while line > 0:
-            unset_in = self.definitions.unset("In", Expression("In", line))
-            unset_out = self.definitions.unset("Out", Expression("Out", line))
+            unset_in = self.definitions.unset("In", Expression(SymbolIn, Integer(line)))
+            unset_out = self.definitions.unset(
+                "Out", Expression(SymbolOut, Integer(line))
+            )
             if not (unset_in or unset_out):
                 break
             line -= 1
@@ -429,9 +450,11 @@ class Evaluation(object):
         if format == "text":
             result = expr.format(self, "System`OutputForm")
         elif format == "xml":
-            result = Expression("StandardForm", expr).format(self, "System`MathMLForm")
+            result = Expression(SymbolStandardForm, expr).format(
+                self, "System`MathMLForm"
+            )
         elif format == "tex":
-            result = Expression("StandardForm", expr).format(self, "System`TeXForm")
+            result = Expression(SymbolStandardForm, expr).format(self, "System`TeXForm")
         elif format == "unformatted":
             self.exc_result = None
             return expr
@@ -444,15 +467,15 @@ class Evaluation(object):
             boxes = result.boxes_to_text(evaluation=self)
         except BoxError:
             self.message(
-                "General", "notboxes", Expression("FullForm", result).evaluate(self)
+                "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)
             )
             boxes = None
         return boxes
 
     def set_quiet_messages(self, messages) -> None:
-        from mathics.core.expression import Expression
+        from mathics.core.list import ListExpression
 
-        value = Expression(SymbolList, *messages)
+        value = ListExpression(*messages)
         self.definitions.set_ownvalue("Internal`$QuietMessages", value)
 
     def get_quiet_messages(self):
@@ -470,15 +493,13 @@ class Evaluation(object):
 
     def message(self, symbol, tag, *args) -> None:
         from mathics.core.expression import Expression
-        from mathics.core.atoms import String, from_python
-        from mathics.core.symbols import Symbol
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
         # System`MyBuiltin)
         symbol = ensure_context(symbol)
         quiet_messages = set(self.get_quiet_messages())
 
-        pattern = Expression("MessageName", Symbol(symbol), String(tag))
+        pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))
 
         if pattern in quiet_messages or self.quiet_all:
             return
@@ -494,7 +515,7 @@ class Evaluation(object):
 
         text = self.definitions.get_value(symbol, "System`Messages", pattern, self)
         if text is None:
-            pattern = Expression("MessageName", Symbol("General"), String(tag))
+            pattern = Expression(SymbolMessageName, Symbol("General"), String(tag))
             text = self.definitions.get_value(
                 "System`General", "System`Messages", pattern, self
             )
@@ -503,7 +524,8 @@ class Evaluation(object):
             text = String("Message %s::%s not found." % (symbol_shortname, tag))
 
         text = self.format_output(
-            Expression("StringForm", text, *(from_python(arg) for arg in args)), "text"
+            Expression(SymbolStringForm, text, *(from_python(arg) for arg in args)),
+            "text",
         )
 
         self.out.append(Message(symbol_shortname, tag, text))

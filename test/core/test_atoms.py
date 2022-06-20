@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -12,7 +11,8 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.symbols import Symbol, SymbolFalse
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolSameQ
 
 from mathics.core.definitions import Definitions
 import sys
@@ -22,7 +22,7 @@ definitions = Definitions(add_builtin=True)
 
 
 def _symbol_truth_value(x):
-    if x.is_true():
+    if x is SymbolTrue:
         return True
     elif isinstance(x, Symbol) and x is SymbolFalse:
         return False
@@ -38,7 +38,7 @@ def _test_group(k, *group):
                 continue
             evaluation = Evaluation(definitions, catch_interrupt=False)
             try:
-                is_same_under_sameq = Expression("SameQ", a, b).evaluate(evaluation)
+                is_same_under_sameq = Expression(SymbolSameQ, a, b).evaluate(evaluation)
             except Exception as exc:
                 print("Exception %s" % exc)
                 info = sys.exc_info()

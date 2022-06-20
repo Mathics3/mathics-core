@@ -2,33 +2,42 @@
 
 from typing import Optional
 
-from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+from mathics.builtin.scoping import dynamic_scoping
+
+
 from mathics.core.atoms import (
     String,
     Integer,
+    Integer0,
+    IntegerM1,
     Integer1,
     Integer2,
     Integer3,
     Integer10,
+    MachineReal,
     Number,
     Real,
     from_python,
 )
-
-from mathics.core.symbols import SymbolTrue, BaseElement
+from mathics.core.evaluation import Evaluation
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
+    BaseElement,
+    SymbolPlus,
+    SymbolTimes,
+    SymbolTrue,
+)
 
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
+    SymbolD,
     SymbolInfinity,
     SymbolLess,
     SymbolLessEqual,
     SymbolLog,
     SymbolNone,
 )
-
-from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.evaluators import apply_N
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
@@ -48,7 +57,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         evaluation_monitor = None
 
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    maxit = maxit_opt.value if maxit_opt else 100
 
     curr_val = apply_N(f.replace_vars({x_name: x0}), evaluation)
 
@@ -61,7 +70,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         else:
             return x0, False
     d1 = dynamic_scoping(
-        lambda ev: Expression("D", f, x).evaluate(ev), {x_name: None}, evaluation
+        lambda ev: Expression(SymbolD, f, x).evaluate(ev), {x_name: None}, evaluation
     )
     val_d1 = apply_N(d1.replace_vars({x_name: x0}), evaluation)
     if not isinstance(val_d1, Number):
@@ -71,11 +80,13 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
         f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
         val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
         val_d2 = apply_N(
-            (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+            (f2val + f1val - Integer2 * curr_val) / (eps**Integer2), evaluation
         )
     else:
         d2 = dynamic_scoping(
-            lambda ev: Expression("D", d1, x).evaluate(ev), {x_name: None}, evaluation
+            lambda ev: Expression(SymbolD, d1, x).evaluate(ev),
+            {x_name: None},
+            evaluation,
         )
         val_d2 = apply_N(d2.replace_vars({x_name: x0}), evaluation)
         if not isinstance(val_d2, Number):
@@ -113,7 +124,7 @@ def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):
             f1val = apply_N(f.replace_vars({x_name: x0 - eps}), evaluation)
             val_d1 = apply_N((f2val - f1val) / (Integer2 * eps), evaluation)
             val_d2 = apply_N(
-                (f2val + f1val - Integer2 * curr_val) / (eps ** Integer2), evaluation
+                (f2val + f1val - Integer2 * curr_val) / (eps**Integer2), evaluation
             )
         return (val_d1, val_d2)
 
@@ -206,12 +217,14 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
     while count < maxit:
         if f0 == f1:
             x1 = Expression(
-                "Plus",
+                SymbolPlus,
                 x0,
                 Expression(
-                    "Times",
+                    SymbolTimes,
                     Real(0.75),
-                    Expression("Plus", x1, Expression("Times", Integer(-1), x0)),
+                    Expression(
+                        SymbolPlus, x1, Expression(SymbolTimes, Integer(-1), x0)
+                    ),
                 ),
             )
             x1 = x1.evaluate(evaluation)
@@ -225,11 +238,11 @@ def find_root_secant(f, x0, x, opts, evaluation) -> (Number, bool):
 
         inv_deltaf = from_python(1.0 / (f1 - f0))
         num = Expression(
-            "Plus",
-            Expression("Times", x0, f1),
-            Expression("Times", x1, f0, Integer(-1)),
+            SymbolPlus,
+            Expression(SymbolTimes, x0, from_python(f1)),
+            Expression(SymbolTimes, x1, from_python(f0), IntegerM1),
         )
-        x2 = Expression("Times", num, inv_deltaf)
+        x2 = Expression(SymbolTimes, num, inv_deltaf)
         x2 = x2.evaluate(evaluation)
         f2 = dynamic_scoping(
             lambda ev: f.evaluate(evaluation), {x_name: x2}, evaluation
@@ -257,7 +270,7 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     x_name = x.get_name()
 
     acc_goal, prec_goal, maxit_opt = get_accuracy_prec_and_maxit(opts, evaluation)
-    maxit = maxit_opt.get_int_value() if maxit_opt else 100
+    maxit = maxit_opt.value if maxit_opt else 100
 
     step_monitor = opts.get("System`StepMonitor", None)
     if step_monitor is SymbolNone:
@@ -321,9 +334,9 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
         if minus is None:
             evaluation.message("FindRoot", "dsing", x, x0)
             return x0, False
-        x1 = Expression("Plus", x0, Expression("Times", Integer(-1), minus)).evaluate(
-            evaluation
-        )
+        x1 = Expression(
+            SymbolPlus, x0, Expression(SymbolTimes, Integer(-1), minus)
+        ).evaluate(evaluation)
         if not isinstance(x1, Number):
             evaluation.message("FindRoot", "nnum", x, x0)
             return x0, False
@@ -349,9 +362,11 @@ def find_root_newton(f, x0, x, opts, evaluation) -> (Number, bool):
     return x0, True
 
 
+native_optimizer_messages = {}
+
 native_local_optimizer_methods = {
     "Automatic": find_minimum_newton1d,
-    "newton": find_minimum_newton1d,
+    "Newton": find_minimum_newton1d,
 }
 
 native_findroot_methods = {
@@ -359,6 +374,7 @@ native_findroot_methods = {
     "Newton": find_root_newton,
     "Secant": find_root_secant,
 }
+native_findroot_messages = {}
 
 
 def is_zero(
@@ -446,17 +462,3 @@ def get_accuracy_prec_and_maxit(opts: dict, evaluation: "Evaluation") -> tuple:
     max_it = opts.get("System`MaxIteration")
     max_it = to_integer_or_none(max_it)
     return acc_goal, prec_goal, max_it
-
-
-def determine_epsilon(x0: Real, options: dict, evaluation: Evaluation) -> Real:
-    """Determine epsilon  from a reference value, and from the accuracy and the precision goals"""
-    acc_goal, prec_goal, maxit = get_accuracy_prec_and_maxit(options, evaluation)
-    eps: Real = Real(1e-10)
-    if not (acc_goal or prec_goal):
-        return eps
-    eps = apply_N(
-        abs(x0) * Integer10 ** (-prec_goal) if prec_goal else Integer0, evaluation
-    )
-    if acc_goal:
-        eps = apply_N(Integer10 ** (-acc_goal) + eps, evaluation)
-    return eps

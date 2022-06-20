@@ -6,7 +6,7 @@ class CompileError(Exception):
     pass
 
 
-class CompileArg(object):
+class CompileArg:
     def __init__(self, name, type):
         self.name = name
         self.type = type

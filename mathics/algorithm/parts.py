@@ -4,11 +4,11 @@
 Algorithms to access and manipulate elements in nested lists / expressions
 """
 
-
+from mathics.builtin.base import BoxExpression
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.atoms import Integer
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.atoms import Integer, Integer1
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
 from mathics.builtin.exceptions import (
@@ -305,6 +305,8 @@ def walk_levels(
     include_pos=False,
     cur_pos=[],
 ):
+    if isinstance(expr, BoxExpression):
+        expr = expr.to_expression()
     if isinstance(expr, Atom):
         depth = 0
         new_expr = expr
@@ -351,7 +353,7 @@ def python_levelspec(levelspec):
     def value_to_level(expr):
         value = expr.get_int_value()
         if value is None:
-            if expr == Expression("DirectedInfinity", 1):
+            if expr == Expression(SymbolDirectedInfinity, Integer1):
                 return None
             else:
                 raise InvalidLevelspecError

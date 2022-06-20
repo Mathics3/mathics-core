@@ -11,7 +11,7 @@ from typing import Optional, Any
 
 import sympy
 
-from mathics.core.evaluators import apply_N
+
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
@@ -20,24 +20,16 @@ from mathics.builtin.base import (
 
 from mathics.builtin.numbers.constants import mp_convert_constant
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
+    Integer,
     Integer0,
     Integer1,
+    IntegerM1,
     Number,
     String,
 )
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolInfinity,
-    SymbolComplexInfinity,
-    SymbolMaxPrecision,
-)
-from mathics.core.number import dps
-
 from mathics.core.attributes import (
     flat,
     listable,
@@ -45,6 +37,19 @@ from mathics.core.attributes import (
     one_identity,
     orderless,
     protected,
+)
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression, to_expression
+from mathics.core.number import dps
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolInequality,
+    SymbolInfinity,
+    SymbolMaxPrecision,
+    SymbolSign,
 )
 
 
@@ -57,13 +62,16 @@ operators = {
     "System`Unequal": (-1, 1),
 }
 
+SymbolExactNumberQ = Symbol("ExactNumberQ")
+SymbolMaxExtraPrecision = Symbol("$MaxExtraPrecision")
+
 
 class _InequalityOperator(BinaryOperator):
     precedence = 290
     grouping = "NonAssociative"
 
     @staticmethod
-    def numerify_args(items, evaluation):
+    def numerify_args(items, evaluation) -> list:
         items_sequence = items.get_sequence()
         all_numeric = all(
             item.is_numeric(evaluation) and item.get_precision() is None
@@ -124,7 +132,7 @@ class _EqualityOperator(_InequalityOperator):
                 return True
             else:
                 return self.equal2(
-                    Expression("Sign", lhs.elements[0]), Integer1, max_extra_prec
+                    to_expression(SymbolSign, lhs.elements[0]), Integer1, max_extra_prec
                 )
         if rhs.is_numeric():
             return False
@@ -139,9 +147,9 @@ class _EqualityOperator(_InequalityOperator):
             if self.equal2(dir1, dir2, max_extra_prec):
                 return True
             # Now, compare the signs:
-            dir1 = Expression("Sign", dir1)
-            dir2 = Expression("Sign", dir2)
-            return self.equal2(dir1, dir2, max_extra_prec)
+            dir1_sign = Expression(SymbolSign, dir1)
+            dir2_sign = Expression(SymbolSign, dir2)
+            return self.equal2(dir1_sign, dir2_sign, max_extra_prec)
         return
 
     def sympy_equal(self, lhs, rhs, max_extra_prec=None) -> Optional[bool]:
@@ -209,7 +217,7 @@ class _EqualityOperator(_InequalityOperator):
         if n <= 1:
             return SymbolTrue
         is_exact_vals = [
-            Expression("ExactNumberQ", arg).evaluate(evaluation)
+            Expression(SymbolExactNumberQ, arg).evaluate(evaluation)
             for arg in items_sequence
         ]
         if not all(val is SymbolTrue for val in is_exact_vals):
@@ -226,9 +234,7 @@ class _EqualityOperator(_InequalityOperator):
     def apply_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
         args = args.get_sequence()
-        max_extra_prec = (
-            Symbol("$MaxExtraPrecision").evaluate(evaluation).get_int_value()
-        )
+        max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         for x, y in self.get_pairs(args):
@@ -317,8 +323,8 @@ class SameQ(_ComparisonOperator):
     15.9546 is the value of '$MaxPrecision'
     """
 
-    operator = "==="
     grouping = "None"  # Indeterminate grouping: Neither left nor right
+    operator = "==="
     precedence = 290
 
     summary_text = "literal symbolic identity"
@@ -451,22 +457,22 @@ class Inequality(Builtin):
     def apply(self, items, evaluation):
         "Inequality[items___]"
 
-        items = items.numerify(evaluation).get_sequence()
-        count = len(items)
+        elements = items.numerify(evaluation).get_sequence()
+        count = len(elements)
         if count == 1:
             return SymbolTrue
         elif count % 2 == 0:
             evaluation.message("Inequality", "ineq", count)
         elif count == 3:
-            name = items[1].get_name()
+            name = elements[1].get_name()
             if name in operators:
-                return Expression(name, items[0], items[2])
+                return Expression(Symbol(name), elements[0], elements[2])
         else:
             groups = [
-                Expression("Inequality", *items[index - 1 : index + 2])
+                Expression(SymbolInequality, *elements[index - 1 : index + 2])
                 for index in range(1, count - 1, 2)
             ]
-            return Expression("And", *groups)
+            return Expression(SymbolAnd, *groups)
 
 
 def do_cplx_equal(x, y) -> Optional[int]:
@@ -546,12 +552,12 @@ class _SympyComparison(SympyFunction):
         to_sympy = super(_SympyComparison, self).to_sympy
         if len(expr.leaves) > 2:
 
-            def pairs(items):
-                yield Expression(expr.get_head_name(), *items[:2])
-                items = items[1:]
-                while len(items) >= 2:
-                    yield Expression(expr.get_head_name(), *items[:2])
-                    items = items[1:]
+            def pairs(elements):
+                yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                elements = elements[1:]
+                while len(elements) >= 2:
+                    yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                    elements = elements[1:]
 
             return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.leaves)])
         return to_sympy(expr, **kwargs)
@@ -678,8 +684,8 @@ class Equal(_EqualityOperator, _SympyComparison):
     empty or single-element lists are both 'Equal' and 'Unequal'.
     """
 
-    operator = "=="
     grouping = "None"
+    operator = "=="
     summary_text = "numerical equality"
     sympy_name = "Eq"
 
@@ -694,7 +700,7 @@ class Equal(_EqualityOperator, _SympyComparison):
 
 
 class Unequal(_EqualityOperator, _SympyComparison):
-    u"""
+    """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
       <dd>is 'False' if $x$ and $y$ are known to be equal, or
@@ -791,7 +797,7 @@ class Less(_ComparisonOperator, _SympyComparison):
 
 
 class LessEqual(_ComparisonOperator, _SympyComparison):
-    u"""
+    """
      <dl>
        <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
        <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
@@ -950,21 +956,21 @@ class NonPositive(Builtin):
     summary_text = "test whether an expression is a non-positive number"
 
 
-def expr_max(items):
-    result = Expression("DirectedInfinity", -1)
-    for item in items:
-        c = do_cmp(item, result)
+def expr_max(elements):
+    result = Expression(SymbolDirectedInfinity, IntegerM1)
+    for element in elements:
+        c = do_cmp(element, result)
         if c > 0:
-            result = item
+            result = element
     return result
 
 
-def expr_min(items):
-    result = Expression("DirectedInfinity", 1)
-    for item in items:
-        c = do_cmp(item, result)
+def expr_min(elements):
+    result = Expression(SymbolDirectedInfinity, Integer1)
+    for element in elements:
+        c = do_cmp(element, result)
         if c < 0:
-            result = item
+            result = element
     return result
 
 
@@ -974,8 +980,9 @@ class _MinMax(Builtin):
 
     def apply(self, items, evaluation):
         "%(name)s[items___]"
-
-        items = items.flatten_with_respect_to_head(SymbolList).get_sequence()
+        if hasattr(items, "flatten_with_respect_to_head"):
+            items = items.flatten_with_respect_to_head(SymbolList)
+        items = items.get_sequence()
         results = []
         best = None
 
@@ -1001,13 +1008,13 @@ class _MinMax(Builtin):
                     results.append(element)
 
         if not results:
-            return Expression("DirectedInfinity", -self.sense)
+            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
         if len(results) == 1:
             return results.pop()
         if len(results) < len(items):
             # Some simplification was possible because we discarded
             # elements.
-            return Expression(self.get_name(), *results)
+            return Expression(Symbol(self.get_name()), *results)
         # If we get here, no simplification was possible.
         return None
 
@@ -1046,8 +1053,8 @@ class Max(_MinMax):
      = x
     """
 
-    summary_text = "the maximum value"
     sense = 1
+    summary_text = "the maximum value"
 
 
 class Min(_MinMax):

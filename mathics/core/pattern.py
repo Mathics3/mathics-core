@@ -6,6 +6,7 @@
 from mathics.core.element import ensure_context
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, system_symbols
+from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
@@ -511,11 +512,11 @@ class ExpressionPattern(Pattern):
             if max_count is None or len(items) <= max_count:
                 if orderless & attributes:
                     for perm in permutations(items):
-                        sequence = Expression("Sequence", *perm)
+                        sequence = Expression(SymbolSequence, *perm)
                         sequence.pattern_sequence = True
                         yield_func(sequence)
                 else:
-                    sequence = Expression("Sequence", *items)
+                    sequence = Expression(SymbolSequence, *items)
                     sequence.pattern_sequence = True
                     yield_func(sequence)
             if flat & attributes and include_flattened:

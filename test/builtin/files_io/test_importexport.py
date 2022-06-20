@@ -4,7 +4,7 @@ import os
 import os.path as osp
 import pytest
 import sys
-from .helper import check_evaluation, session
+from ...helper import session
 
 from mathics.builtin.atomic.strings import to_python_encoding
 

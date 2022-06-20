@@ -26,13 +26,14 @@ from mathics.core.attributes import (
 )
 
 
+# FIXME: Add the two-argument form N[expr, n]
 def apply_N(
     expression: BaseElement,
     evaluation: Evaluation,
     prec: BaseElement = SymbolMachinePrecision,
 ) -> BaseElement:
     """
-    Equivalent to Expression("N", expression).evaluate(evaluation)
+    Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
     result = apply_nvalues(evaluated_expression, prec, evaluation)
@@ -71,11 +72,14 @@ def apply_nvalues(
     # just apply `apply_nvalues` to each leaf and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         leaves = expr.leaves
+
+        # FIXME: incorporate these lines into Expression call
         result = Expression(expr.head)
         newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
         result.elements = tuple(
             newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
         )
+        result._build_elements_properties()
         return result
 
     # Special case for the Root builtin
@@ -133,8 +137,10 @@ def apply_nvalues(
             if newleaf:
                 leaves[index] = newleaf
 
+        # FIXME: incorporate these 3 lines into Expression call
         result = Expression(head)
         result.elements = tuple(leaves)
+        result._build_elements_properties()
         return result
 
 

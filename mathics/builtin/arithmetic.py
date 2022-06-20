@@ -25,12 +25,12 @@ from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.scoping import dynamic_scoping
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Complex,
     Integer,
     Integer0,
     Integer1,
+    IntegerM1,
     Number,
     Rational,
     Real,
@@ -38,11 +38,35 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
-from mathics.core.systemsymbols import SymbolUndefined
-from mathics.core.number import min_prec, dps, SpecialValueError
-
 from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression
+from mathics.core.number import min_prec, dps, SpecialValueError
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolAbs,
+    SymbolFalse,
+    SymbolList,
+    SymbolPlus,
+    SymbolPower,
+    SymbolTimes,
+    SymbolTrue,
+)
+from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolComplexInfinity,
+    SymbolDirectedInfinity,
+    SymbolExpandAll,
+    SymbolIndeterminate,
+    SymbolInfix,
+    SymbolOverflow,
+    SymbolPiecewise,
+    SymbolPossibleZeroQ,
+    SymbolSimplify,
+    SymbolTable,
+    SymbolUndefined,
+)
 
 from mathics.core.attributes import (
     hold_all,
@@ -61,7 +85,7 @@ def call_mpmath(mpmath_function, mpmath_args):
     except ValueError as exc:
         text = str(exc)
         if text == "gamma function pole":
-            return Symbol("ComplexInfinity")
+            return SymbolComplexInfinity
         else:
             raise
     except ZeroDivisionError:
@@ -102,10 +126,10 @@ class _MPMathFunction(SympyFunction):
 
         # if no arguments are inexact attempt to use sympy
         if all(not x.is_inexact() for x in args):
-            result = Expression(self.get_name(), *args).to_sympy()
+            result = to_expression(self.get_name(), *args).to_sympy()
             result = self.prepare_mathics(result)
             result = from_sympy(result)
-            # evaluate leaves to convert e.g. Plus[2, I] -> Complex[2, 1]
+            # evaluate elements to convert e.g. Plus[2, I] -> Complex[2, 1]
             return result.evaluate_elements(evaluation)
         elif mpmath_function is None:
             return
@@ -126,13 +150,13 @@ class _MPMathFunction(SympyFunction):
 
             if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                 if mpmath.isinf(result) and isinstance(result, mpmath.mpc):
-                    result = Symbol("ComplexInfinity")
+                    result = SymbolComplexInfinity
                 elif mpmath.isinf(result) and result > 0:
-                    result = Expression("DirectedInfinity", Integer1)
+                    result = Expression(SymbolDirectedInfinity, Integer1)
                 elif mpmath.isinf(result) and result < 0:
-                    result = Expression("DirectedInfinity", Integer(-1))
+                    result = Expression(SymbolDirectedInfinity, IntegerM1)
                 elif mpmath.isnan(result):
-                    result = Symbol("Indeterminate")
+                    result = SymbolIndeterminate
                 else:
                     # FIXME: replace try/except as a context manager
                     # like "with evaluation.from_mpmath()...
@@ -143,7 +167,7 @@ class _MPMathFunction(SympyFunction):
                         result = from_mpmath(result)
                     except OverflowError:
                         evaluation.message("General", "ovfl")
-                        result = Expression("Overflow")
+                        result = Expression(SymbolOverflow)
         else:
             prec = min_prec(*args)
             d = dps(prec)
@@ -163,7 +187,7 @@ class _MPMathFunction(SympyFunction):
         except ValueError as exc:
             text = str(exc)
             if text == "gamma function pole":
-                return Symbol("ComplexInfinity")
+                return SymbolComplexInfinity
             else:
                 raise
         except ZeroDivisionError:
@@ -182,22 +206,22 @@ class _MPMathMultiFunction(_MPMathFunction):
             return [self.sympy_name]
         return self.sympy_names.values()
 
-    def get_function(self, module, names, fallback_name, leaves):
+    def get_function(self, module, names, fallback_name, elements):
         try:
             name = fallback_name
             if names is not None:
-                name = names[len(leaves)]
+                name = names[len(elements)]
             if name is None:
                 return None
             return getattr(module, name)
         except KeyError:
             return None
 
-    def get_sympy_function(self, leaves):
-        return self.get_function(sympy, self.sympy_names, self.sympy_name, leaves)
+    def get_sympy_function(self, elements):
+        return self.get_function(sympy, self.sympy_names, self.sympy_name, elements)
 
-    def get_mpmath_function(self, leaves):
-        return self.get_function(mpmath, self.mpmath_names, self.mpmath_name, leaves)
+    def get_mpmath_function(self, elements):
+        return self.get_function(mpmath, self.mpmath_names, self.mpmath_name, elements)
 
 
 def create_infix(items, operator, prec, grouping):
@@ -205,10 +229,10 @@ def create_infix(items, operator, prec, grouping):
         return items[0]
     else:
         return Expression(
-            "Infix",
-            Expression("List", *items),
+            SymbolInfix,
+            ListExpression(*items),
             String(operator),
-            prec,
+            Integer(prec),
             Symbol(grouping),
         )
 
@@ -293,7 +317,7 @@ class DirectedInfinity(SympyFunction):
 
     def to_sympy(self, expr, **kwargs):
         if len(expr.elements) == 1:
-            dir = expr.leaves[0].get_int_value()
+            dir = expr.elements[0].get_int_value()
             if dir == 1:
                 return sympy.oo
             elif dir == -1:
@@ -495,7 +519,7 @@ class Arg(_MPMathFunction):
 
     def apply(self, z, evaluation, options={}):
         "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression("PossibleZeroQ", z).evaluate(evaluation) is SymbolTrue:
+        if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
         if preference is None or preference == "Automatic":
@@ -553,7 +577,11 @@ class Sign(SympyFunction):
         "%(name)s[x_]"
         # Sympy and mpmath do not give the desired form of complex number
         if isinstance(x, Complex):
-            return Expression("Times", x, Expression("Power", Expression("Abs", x), -1))
+            return Expression(
+                SymbolTimes,
+                x,
+                Expression(SymbolPower, Expression(SymbolAbs, x), IntegerM1),
+            )
 
         sympy_x = x.to_sympy()
         if sympy_x is None:
@@ -655,7 +683,7 @@ class PossibleZeroQ(SympyFunction):
         result = _iszero(sympy_expr)
         if result is None:
             # try expanding the expression
-            exprexp = Expression("ExpandAll", expr).evaluate(evaluation)
+            exprexp = Expression(SymbolExpandAll, expr).evaluate(evaluation)
             exprexp = exprexp.to_sympy()
             result = _iszero(exprexp)
         if result is None:
@@ -666,7 +694,7 @@ class PossibleZeroQ(SympyFunction):
             elif not numeric_val.is_numeric(evaluation):
                 return (
                     SymbolTrue
-                    if Expression("Simplify", expr).evaluate(evaluation) == Integer0
+                    if Expression(SymbolSimplify, expr).evaluate(evaluation) == Integer0
                     else SymbolFalse
                 )
 
@@ -984,24 +1012,24 @@ class Sum(_IterationFunction, SympyFunction):
     )
 
     def get_result(self, items):
-        return Expression("Plus", *items)
+        return Expression(SymbolPlus, *items)
 
     def to_sympy(self, expr, **kwargs) -> SympyExpression:
         """
         Perform summation via sympy.summation
         """
-        if expr.has_form("Sum", 2) and expr.leaves[1].has_form("List", 3):
-            index = expr.leaves[1]
+        if expr.has_form("Sum", 2) and expr.elements[1].has_form("List", 3):
+            index = expr.elements[1]
             arg_kwargs = kwargs.copy()
             arg_kwargs["convert_all_global_functions"] = True
-            f_sympy = expr.leaves[0].to_sympy(**arg_kwargs)
+            f_sympy = expr.elements[0].to_sympy(**arg_kwargs)
             if f_sympy is None:
                 return
 
             evaluation = kwargs.get("evaluation", None)
 
             # Handle summation parameters: variable, min, max
-            var_min_max = index.leaves[:3]
+            var_min_max = index.elements[:3]
             bounds = [expr.to_sympy(**kwargs) for expr in var_min_max]
 
             if evaluation:
@@ -1030,8 +1058,10 @@ class Sum(_IterationFunction, SympyFunction):
                     # Sum[f[x], {<limits>}] into
                     #   MathicsSum[Table[f[x], {<limits>}]]
                     # where MathicsSum is self.get_result() our Iteration iterator.
-                    values = Expression("Table", *expr.leaves).evaluate(evaluation)
-                    ret = self.get_result(values.leaves).evaluate(evaluation)
+                    values = Expression(SymbolTable, *expr.elements).evaluate(
+                        evaluation
+                    )
+                    ret = self.get_result(values.elements).evaluate(evaluation)
                     # Make sure to convert the result back to sympy.
                     return ret.to_sympy()
 
@@ -1097,18 +1127,18 @@ class Product(_IterationFunction, SympyFunction):
     )
 
     def get_result(self, items):
-        return Expression("Times", *items)
+        return Expression(SymbolTimes, *items)
 
     def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Product", 2) and expr.leaves[1].has_form("List", 3):
-            index = expr.leaves[1]
+        if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
+            index = expr.elements[1]
             try:
                 e_kwargs = kwargs.copy()
                 e_kwargs["convert_all_global_functions"] = True
-                e = expr.leaves[0].to_sympy(**e_kwargs)
-                i = index.leaves[0].to_sympy(**kwargs)
-                start = index.leaves[1].to_sympy(**kwargs)
-                stop = index.leaves[2].to_sympy(**kwargs)
+                e = expr.elements[0].to_sympy(**e_kwargs)
+                i = index.elements[0].to_sympy(**kwargs)
+                start = index.elements[1].to_sympy(**kwargs)
+                stop = index.elements[2].to_sympy(**kwargs)
 
                 return sympy.product(e, (i, start, stop))
             except ZeroDivisionError:
@@ -1118,9 +1148,10 @@ class Product(_IterationFunction, SympyFunction):
 class Piecewise(SympyFunction):
     """
     <dl>
-    <dt>'Piecewise[{{expr1, cond1}, ...}]'
+      <dt>'Piecewise[{{expr1, cond1}, ...}]'
       <dd>represents a piecewise function.
-    <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
+
+      <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
       <dd>represents a piecewise function with default 'expr'.
     </dl>
 
@@ -1156,7 +1187,7 @@ class Piecewise(SympyFunction):
     def apply(self, items, evaluation):
         "%(name)s[items__]"
         result = self.to_sympy(
-            Expression("Piecewise", *items.get_sequence()), evaluation=evaluation
+            Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
         )
         if result is None:
             return
@@ -1165,18 +1196,18 @@ class Piecewise(SympyFunction):
             return result
 
     def to_sympy(self, expr, **kwargs):
-        leaves = expr.leaves
+        elements = expr.elements
         evaluation = kwargs.get("evaluation", None)
-        if len(leaves) not in (1, 2):
+        if len(elements) not in (1, 2):
             return
 
         sympy_cases = []
-        for case in leaves[0].leaves:
+        for case in elements[0].elements:
             if case.get_head_name() != "System`List":
                 return
-            if len(case.leaves) != 2:
+            if len(case.elements) != 2:
                 return
-            then, cond = case.leaves
+            then, cond = case.elements
             if evaluation:
                 cond = evaluate_predicate(cond, evaluation)
 
@@ -1193,8 +1224,8 @@ class Piecewise(SympyFunction):
 
             sympy_cases.append((then.to_sympy(**kwargs), sympy_cond))
 
-        if len(leaves) == 2:  # default case
-            sympy_cases.append((leaves[1].to_sympy(**kwargs), True))
+        if len(elements) == 2:  # default case
+            sympy_cases.append((elements[1].to_sympy(**kwargs), True))
         else:
             sympy_cases.append((Integer0.to_sympy(**kwargs), True))
 
@@ -1202,8 +1233,8 @@ class Piecewise(SympyFunction):
 
     def from_sympy(self, sympy_name, args):
         # Hack to get around weird sympy.Piecewise 'otherwise' behaviour
-        if str(args[-1].leaves[1]).startswith("System`_True__Dummy_"):
-            args[-1].leaves[1] = SymbolTrue
+        if str(args[-1].elements[1]).startswith("System`_True__Dummy_"):
+            args[-1].elements[1] = SymbolTrue
         return Expression(self.get_name(), args)
 
 
@@ -1236,11 +1267,10 @@ class Boole(Builtin):
 
 class Assumptions(Predefined):
     """
-     <dl>
-     <dt>'$Assumptions'
-       <dd>is the default setting for the Assumptions option used in such
-    functions as Simplify, Refine, and Integrate.
-     </dl>
+    <dl>
+      <dt>'$Assumptions'
+      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
+    </dl>
     """
 
     summary_text = "assumptions used to simplify expressions"
@@ -1278,14 +1308,14 @@ class Assuming(Builtin):
     def apply_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"
         assumptions = assumptions.evaluate(evaluation)
-        if assumptions.is_true():
+        if assumptions is SymbolTrue:
             cond = []
         elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
             cond = [assumptions]
         else:
             cond = assumptions.elements
         cond = tuple(cond) + get_assumptions_list(evaluation)
-        list_cond = Expression("List", *cond)
+        list_cond = ListExpression(*cond)
         # TODO: reduce the list of predicates
         return dynamic_scoping(
             lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
@@ -1339,22 +1369,22 @@ class ConditionalExpression(Builtin):
         # cond as a predicate, using assumptions.
         # Let's delegate this to the And (and Or) symbols...
         if not isinstance(cond, Atom) and cond._head is SymbolList:
-            cond = Expression("System`And", *(cond.elements))
+            cond = Expression(SymbolAnd, *(cond.elements))
         else:
-            cond = Expression("System`And", cond)
+            cond = Expression(SymbolAnd, cond)
         if cond is None:
             return
-        if cond.is_true():
+        if cond is SymbolTrue:
             return expr
         if cond is SymbolFalse:
             return SymbolUndefined
         return
 
     def to_sympy(self, expr, **kwargs):
-        leaves = expr.leaves
-        if len(leaves) != 2:
+        elements = expr.elements
+        if len(elements) != 2:
             return
-        expr, cond = leaves
+        expr, cond = elements
 
         sympy_cond = None
         if isinstance(cond, Symbol):

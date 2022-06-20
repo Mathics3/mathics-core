@@ -62,8 +62,11 @@ class BaseRule(KeyComparable):
             else:
                 result = new_expression
 
-            # Flatten out sequences (important for Rule itself!)
-            result = result.flatten_pattern_sequence(evaluation)
+            if isinstance(result, Expression):
+                if result.elements_properties is None:
+                    result._build_elements_properties()
+                # Flatten out sequences (important for Rule itself!)
+                result = result.flatten_pattern_sequence(evaluation)
             if return_list:
                 result_list.append(result)
                 # count += 1
@@ -85,7 +88,7 @@ class BaseRule(KeyComparable):
             if hasattr(expr, "_elements_fully_evaluated"):
                 expr._elements_fully_evaluated = False
                 expr._is_flat = False  # I think this is fully updated
-                expr._is_sorted = False
+                expr._is_ordered = False
             return expr
 
         if return_list:

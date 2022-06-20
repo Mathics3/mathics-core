@@ -12,10 +12,12 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 
 
 from mathics.builtin.base import Builtin, BinaryOperator
+from mathics.builtin.lists import _IterationFunction
+from mathics.builtin.patterns import match
 
-from mathics.core.atoms import from_python
+from mathics.core.atoms import Integer1, from_python
+from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
 from mathics.core.expression import Expression
-
 from mathics.core.interrupt import (
     AbortInterrupt,
     BreakInterrupt,
@@ -23,16 +25,18 @@ from mathics.core.interrupt import (
     ReturnInterrupt,
     WLThrowInterrupt,
 )
-
 from mathics.core.symbols import (
     Symbol,
-    SymbolTrue,
     SymbolFalse,
+    SymbolNull,
+    SymbolTrue,
 )
-from mathics.builtin.lists import _IterationFunction
-from mathics.builtin.patterns import match
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolMatchQ,
+)
 
-from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
+SymbolWhich = Symbol("Which")
 
 
 class Abort(Builtin):
@@ -126,8 +130,8 @@ class Catch(Builtin):
         except WLThrowInterrupt as e:
             # TODO: check that form match tag.
             # otherwise, re-raise the exception
-            match = Expression("MatchQ", e.tag, form).evaluate(evaluation)
-            if match.is_true():
+            match = Expression(SymbolMatchQ, e.tag, form).evaluate(evaluation)
+            if match is SymbolTrue:
                 return Expression(f, e.value)
             else:
                 # A plain raise hide, this path and preserves the traceback
@@ -193,14 +197,15 @@ class CompoundExpression(BinaryOperator):
         "CompoundExpression[expr___]"
 
         items = expr.get_sequence()
-        result = Symbol("Null")
+        result = SymbolNull
+
         for expr in items:
             prev_result = result
             result = expr.evaluate(evaluation)
 
             # `expr1; expr2;` returns `Null` but assigns `expr2` to `Out[n]`.
             # even stranger `CompoundExpression[expr1, Null, Null]` assigns `expr1` to `Out[n]`.
-            if result is Symbol("Null") and prev_result != Symbol("Null"):
+            if result is SymbolNull and prev_result != SymbolNull:
                 evaluation.predetermined_out = prev_result
 
         return result
@@ -279,7 +284,7 @@ class Do(_IterationFunction):
     summary_text = "evaluate an expression looping over a variable"
 
     def get_result(self, items):
-        return Symbol("Null")
+        return SymbolNull
 
 
 class For(Builtin):
@@ -318,7 +323,7 @@ class For(Builtin):
 
     def apply(self, start, test, incr, body, evaluation):
         "For[start_, test_, incr_, body_]"
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             evaluation.check_stopped()
             try:
                 try:
@@ -334,7 +339,7 @@ class For(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class If(Builtin):
@@ -373,7 +378,7 @@ class If(Builtin):
         if condition is SymbolTrue:
             return t.evaluate(evaluation)
         elif condition is SymbolFalse:
-            return Symbol("Null")
+            return SymbolNull
 
     def apply_3(self, condition, t, f, evaluation):
         "If[condition_, t_, f_]"
@@ -428,7 +433,7 @@ class FixedPoint(Builtin):
 
     def apply(self, f, expr, n, evaluation, options):
         "FixedPoint[f_, expr_, n_:DirectedInfinity[1], OptionsPattern[FixedPoint]]"
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             count = None
         else:
             count = n.get_int_value()
@@ -454,7 +459,7 @@ class FixedPoint(Builtin):
             new_result = Expression(f, result).evaluate(evaluation)
             if sametest:
                 same = Expression(sametest, result, new_result).evaluate(evaluation)
-                same = same.is_true()
+                same = same is SymbolTrue
                 if same:
                     break
             else:
@@ -508,7 +513,7 @@ class FixedPointList(Builtin):
     def apply(self, f, expr, n, evaluation):
         "FixedPointList[f_, expr_, n_:DirectedInfinity[1]]"
 
-        if n == Expression("DirectedInfinity", 1):
+        if n == Expression(SymbolDirectedInfinity, Integer1):
             count = None
         else:
             count = n.get_int_value()
@@ -595,7 +600,7 @@ class NestList(Builtin):
     ## TODO: improve this example when RandomChoice, PointSize, Axes->False are implemented
     Chaos game rendition of the Sierpinski triangle:
     >> vertices = {{0,0}, {1,0}, {.5, .5 Sqrt[3]}};
-    >> points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 2000];
+    >> points = NestList[.5(vertices[[ RandomInteger[{1,3}] ]] + #) &, {0.,0.}, 500];
     >> Graphics[Point[points], ImageSize->Small]
      = -Graphics-
     """
@@ -654,7 +659,7 @@ class NestWhile(Builtin):
                 test_elements = results[-m.value :]
             test_expr = Expression(test, *test_elements)
             test_result = test_expr.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 next = Expression(f, results[-1])
                 results.append(next.evaluate(evaluation))
             else:
@@ -810,14 +815,14 @@ class Which(Builtin):
         while items:
             test, item = items[0], items[1]
             test_result = test.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 return item.evaluate(evaluation)
             elif test_result != SymbolFalse:
                 if len(items) == nr_items:
                     return None
-                return Expression("Which", *items)
+                return Expression(SymbolWhich, *items)
             items = items[2:]
-        return Symbol("Null")
+        return SymbolNull
 
 
 class While(Builtin):
@@ -849,7 +854,7 @@ class While(Builtin):
     def apply(self, test, body, evaluation):
         "While[test_, body_]"
 
-        while test.evaluate(evaluation).is_true():
+        while test.evaluate(evaluation) is SymbolTrue:
             try:
                 evaluation.check_stopped()
                 body.evaluate(evaluation)
@@ -859,7 +864,7 @@ class While(Builtin):
                 break
             except ReturnInterrupt as e:
                 return e.expr
-        return Symbol("Null")
+        return SymbolNull
 
 
 class Throw(Builtin):

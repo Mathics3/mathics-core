@@ -13,6 +13,7 @@ from mathics.core.parser.util import SystemDefinitions
 
 from mathics.core.parser import parse_builtin_rule
 from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolAnd, SymbolEqual, SymbolNot, SymbolOr
 
 # TODO: Extend these rules?
 
@@ -36,7 +37,7 @@ logical_algebraic_rules_spec = {
     "Or[q_,]": "q",
     "Or[q_, q_]": "q",
     "Or[pred1___, q_, pred2___, q_, pred3___]": "Or[pred1, q, pred2, pred3]",
-    # TODO: Logical operations should sort the leaves...
+    # TODO: Logical operations should sort the elements...
     "Or[Not[q_], q_]": "True",
     "Or[pred1___, q_, pred2___, Not[q_], pred3___]": "Or[pred1, pred2, pred3]",
     "Or[pred1___, Not[q_], pred2___, q_, pred3___]": "Or[pred1, pred2, pred3]",
@@ -106,9 +107,9 @@ def remove_nots_when_unnecesary(pred, evaluation):
     global remove_not_rules
     cc = True
     while cc:
-        pred, cc = pred.apply_rules(remove_not_rules, evaluation)
+        pred, cc = pred.do_apply_rules(remove_not_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred is SymbolFalse:
+        if pred is SymbolTrue or pred is SymbolFalse:
             return pred
     return pred
 
@@ -149,7 +150,7 @@ def logical_expand_assumptions(assumptions_list, evaluation):
     changed = False
     for assumption in assumptions_list:
         if isinstance(assumption, Symbol):
-            if assumption.is_true():
+            if assumption is SymbolTrue:
                 changed = True
                 continue
             if assumption is SymbolFalse:
@@ -164,28 +165,30 @@ def logical_expand_assumptions(assumptions_list, evaluation):
             continue
         if assumption.has_form("And", None):
             changed = True
-            for leaf in assumption.leaves:
-                new_assumptions_list.append(leaf)
+            for element in assumption.elements:
+                new_assumptions_list.append(element)
             continue
         if assumption.has_form("Not", 1):
             sentence = assumption.elements[0]
             if sentence.has_form("Or", None):
                 changed = True
                 for element in sentence.elements:
-                    new_assumptions_list.append(Expression("Not", element))
+                    new_assumptions_list.append(Expression(SymbolNot, element))
                 continue
             if sentence.has_form("And", None):
-                elements = (Expression("Not", element) for element in sentence.elements)
-                new_assumptions_list.append(Expression("Or", *elements))
+                elements = (
+                    Expression(SymbolNot, element) for element in sentence.elements
+                )
+                new_assumptions_list.append(Expression(SymbolOr, *elements))
                 continue
             if sentence.has_form("Implies", 2):
                 changed = True
                 new_assumptions_list.append(sentence.elements[0])
-                new_assumptions_list.append(Expression("Not", sentence.elements[1]))
+                new_assumptions_list.append(Expression(SymbolNot, sentence.elements[1]))
         if assumption.has_form("Nor", None):
             changed = True
-            for leaf in assumption.leaves:
-                new_assumptions_list.append(Expression("Not", leaf))
+            for element in assumption.elements:
+                new_assumptions_list.append(Expression(SymbolNot, element))
             continue
         else:
             new_assumptions_list.append(assumption)
@@ -206,7 +209,7 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
     # First apply standard rules of reduction.
     # These rules are generated the first time that are used.
     for assumption in assumptions_list:
-        assumption, applied = assumption.apply_rules(
+        assumption, applied = assumption.do_apply_rules(
             logical_algebraic_rules, evaluation
         )
         changed = changed or applied
@@ -225,26 +228,32 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
                     if na.has_form("Not", 1):
                         new_assumptions_list.append(na.elements[0])
                     else:
-                        new_assumptions_list.append(Expression("Not", na))
+                        new_assumptions_list.append(Expression(SymbolNot, na))
             else:
                 new_assumptions_list.append(assumption)
         elif assumption.has_form(("Equal", "Unequal", "Equivalent"), (3, None)):
-            leaves = assumption.leaves()
+            elements = assumption.elements()
             head = assumption.get_head()
             changed = True
-            for i in range(len(leaves)):
+            for i in range(len(elements)):
                 for j in range(i):
-                    new_assumptions_list.append(Expression(head, leaves[i], leaves[j]))
-                    new_assumptions_list.append(Expression(head, leaves[j], leaves[i]))
+                    new_assumptions_list.append(
+                        Expression(head, elements[i], elements[j])
+                    )
+                    new_assumptions_list.append(
+                        Expression(head, elements[j], elements[i])
+                    )
         elif assumption.has_form(
             ("Less", "Greater", "LessEqual", "GreaterEqual"), (3, None)
         ):
-            leaves = assumption.leaves()
+            elements = assumption.elements()
             head = assumption.get_head()
             changed = True
-            for i in range(len(leaves)):
+            for i in range(len(elements)):
                 for j in range(i):
-                    new_assumptions_list.append(Expression(head, leaves[i], leaves[j]))
+                    new_assumptions_list.append(
+                        Expression(head, elements[i], elements[j])
+                    )
         else:
             new_assumptions_list.append(assumption)
 
@@ -254,7 +263,7 @@ def algebraic_expand_assumptions(assumptions_list, evaluation):
         )
         new_assumptions_list = []
         for assumption in assumptions_list:
-            assumption, applied = assumption.apply_rules(
+            assumption, applied = assumption.do_apply_rules(
                 logical_algebraic_rules, evaluation
             )
             new_assumptions_list.append(assumption)
@@ -268,7 +277,7 @@ def get_assumption_rules_dispatch(evaluation):
         return None
 
     # check for consistency:
-    consistent_assumptions = Expression("And", *assumptions_list)
+    consistent_assumptions = Expression(SymbolAnd, *assumptions_list)
     val_consistent_assumptions = consistent_assumptions.evaluate(evaluation)
     if val_consistent_assumptions is SymbolFalse:
         evaluation.message("$Assumptions", "faas")
@@ -322,7 +331,7 @@ def get_assumption_rules_dispatch(evaluation):
                         SymbolFalse,
                     )
                 )
-                for head in ("Equal", "Equivalent"):
+                for head in (SymbolEqual, Symbol("Equivalent")):
                     assumption_rules.append(
                         Rule(
                             Expression(head, pat.elements[0], pat.elements[1]),
@@ -362,9 +371,9 @@ def evaluate_predicate(pred, evaluation):
     debug_logical_expr("->  ", pred, evaluation)
     cc = True
     while cc:
-        pred, cc = pred.apply_rules(logical_algebraic_rules, evaluation)
+        pred, cc = pred.do_apply_rules(logical_algebraic_rules, evaluation)
         debug_logical_expr("->  ", pred, evaluation)
-        if pred.is_true() or pred is SymbolFalse:
+        if pred is SymbolTrue or pred is SymbolFalse:
             return pred
 
     assumption_rules = get_assumption_rules_dispatch(evaluation)
@@ -375,7 +384,7 @@ def evaluate_predicate(pred, evaluation):
         debug_logical_expr(" Now, using the assumptions over ", pred, evaluation)
         changed = True
         while changed:
-            pred, changed = pred.apply_rules(assumption_rules, evaluation)
+            pred, changed = pred.do_apply_rules(assumption_rules, evaluation)
             debug_logical_expr(" -> ", pred, evaluation)
 
     pred = remove_nots_when_unnecesary(pred, evaluation).evaluate(evaluation)

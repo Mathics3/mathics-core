@@ -61,6 +61,57 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
         assert result == expected
 
 
+# We skip this test because this behaviour is currently
+# broken
+@pytest.mark.parametrize(
+    "str_setup,str_expr,str_expected,message",
+    [
+        (
+            "F[x___Real]:=List[x]^2; a=.4;",
+            "F[Unevaluated[a], a, Unevaluated[a]]",
+            "F[Unevaluated[a], 0.4, Unevaluated[a]]",
+            None,
+        ),
+        (
+            "F[x___Real]:=List[x]^2; a=.4;",
+            "F[Unevaluated[b], b, Unevaluated[b]]",
+            "F[Unevaluated[b], b, Unevaluated[b]]",
+            "the second argument shouldn't be ``Unevaluated[b]``",
+        ),
+        (
+            "G[x___Symbol]:=List[x]^2; a=.4;",
+            "G[Unevaluated[a], a, Unevaluated[a]]",
+            "F[Unevaluated[a], 0.4, Unevaluated[a]]",
+            None,
+        ),
+        (
+            "G[x___Symbol]:=List[x]^2; a=.4;",
+            "G[Unevaluated[b], b, Unevaluated[b]]",
+            "F[Unevaluated[b], b, Unevaluated[b]]",
+            "the second argument shouldn't be ``Unevaluated[b]``",
+        ),
+        (
+            "a =.; F[a, x_Real, a] := List[x]^2;a=4.;",
+            "F[Unevaluated[a], a, Unevaluated[a]]",
+            "{16.}",
+            "Here, the second ``a`` is kept unevaluated because of a bug.",
+        ),
+    ],
+)
+@pytest.mark.skip(
+    reason="the right behaviour was broken since we start to use Symbol as singleton, to speedup comparisons."
+)
+def test_unevaluate(str_setup, str_expr, str_expected, message):
+    if str_setup:
+        evaluate(str_setup)
+    result = evaluate(str_expr)
+    expected = evaluate(str_expected)
+    if message:
+        assert result == expected, message
+    else:
+        assert result == expected
+
+
 @pytest.mark.parametrize(
     "str_setup,str_expr,str_expected,msg",
     [

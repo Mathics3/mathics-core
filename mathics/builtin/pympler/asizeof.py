@@ -1048,7 +1048,7 @@ _old_style = "*"  # marker
 _new_style = ""  # no marker
 
 
-class _Claskey(object):
+class _Claskey:
     """Wrapper for class objects."""
 
     __slots__ = ("_obj", "_sty")
@@ -1097,7 +1097,7 @@ try:  # MCCABE 19
     _Types_ClassType = Types.ClassType
     _Types_InstanceType = Types.InstanceType
 
-    class _Instkey(object):
+    class _Instkey:
         """Wrapper for old-style class (instances)."""
 
         __slots__ = ("_obj",)
@@ -1144,7 +1144,6 @@ try:  # MCCABE 19
             k = _claskey(obj, _new_style)
         return k
 
-
 except AttributeError:  # Python 3+
 
     def _keytuple(obj):  # PYCHOK expected
@@ -1161,7 +1160,7 @@ except AttributeError:  # Python 3+
         return k
 
 
-class _NamedRef(object):
+class _NamedRef:
     """Store referred object along
     with the name of the referent.
     """
@@ -1198,7 +1197,7 @@ del _i
 _Not_vari = ""  # non-variable item size
 
 
-class _Typedef(object):
+class _Typedef:
     """Type definition class."""
 
     __slots__ = {
@@ -1840,7 +1839,7 @@ def _typedef(obj, derive=False, frames=False, infer=False):  # MCCABE 25
     return v
 
 
-class _Prof(object):
+class _Prof:
     """Internal type profile class."""
 
     high = 0  # largest size
@@ -1896,7 +1895,7 @@ class _Prof(object):
                 self.objref, self.weak = obj, False
 
 
-class _Rank(object):
+class _Rank:
     """Internal largest object class."""
 
     __slots__ = {
@@ -1955,7 +1954,7 @@ class _Seen(dict):
 # Public classes
 
 
-class Asized(object):
+class Asized:
     """Stores the results of an **asized** object in the following
     4 attributes:
 
@@ -2032,7 +2031,7 @@ class Asized(object):
         return dflt
 
 
-class Asizer(object):
+class Asizer:
     """Sizer state and options to accumulate sizes."""
 
     _above_ = 1024  # rank only objs of 1K+ size

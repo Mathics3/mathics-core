@@ -19,7 +19,6 @@ from mathics.core.evaluators import apply_nvalues
 
 from mathics.core.expression import Expression
 
-from mathics.core.symbols import SymbolMachinePrecision
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -29,15 +28,17 @@ from mathics.core.atoms import (
 )
 
 
-from mathics.core.number import (
-    machine_epsilon,
-)
-
 from mathics.core.attributes import (
     listable,
     numeric_function,
     protected,
 )
+
+from mathics.core.number import (
+    machine_epsilon,
+)
+
+from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
 
 
 def chop(expr, delta=10.0 ** (-10.0)):
@@ -333,7 +334,7 @@ class Rationalize(Builtin):
         )
         for i in it:
             p, q = i.as_numer_denom()
-            tol = c / q ** 2
+            tol = c / q**2
             if abs(i - x) <= tol:
                 return i
             if tol < machine_epsilon:
@@ -481,7 +482,7 @@ class Round(Builtin):
     def apply(self, expr, k, evaluation):
         "Round[expr_?NumericQ, k_?NumericQ]"
 
-        n = Expression("Divide", expr, k).round_to_float(
+        n = Expression(SymbolDivide, expr, k).round_to_float(
             evaluation, permit_complex=True
         )
         if n is None:
@@ -491,4 +492,4 @@ class Round(Builtin):
         else:
             n = round(n)
         n = int(n)
-        return Expression("Times", Integer(n), k)
+        return Expression(SymbolTimes, Integer(n), k)

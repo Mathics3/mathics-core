@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from mathics.core.element import (
     BaseElement,
+    EvalMixin,
     ensure_context,
     fully_qualified_symbol_name,
 )
@@ -29,8 +30,8 @@ class NumericOperators:
 
     So for example, instead of writing in Python:
 
-        Expression("Abs", -8)
-        Expression("Plus", 1, 2)
+        Expression(SymbolAbs, -8)
+        Expression(SybolPlus, 1, 2)
 
     you can instead have:
         abs(Integer(-8))
@@ -38,35 +39,39 @@ class NumericOperators:
     """
 
     def __abs__(self) -> BaseElement:
-        return self.create_expression("Abs", self)
+        return self.create_expression(SymbolAbs, self)
+
+    def __add__(self, other) -> BaseElement:
+        return self.create_expression(SymbolPlus, self, other)
 
     def __pos__(self):
         return self
 
     def __neg__(self):
-        return self.create_expression("Times", self, -1)
+        from mathics.core.atoms import IntegerM1
 
-    def __add__(self, other) -> BaseElement:
-        return self.create_expression("Plus", self, other)
+        return self.create_expression(SymbolTimes, self, IntegerM1)
 
     def __sub__(self, other) -> BaseElement:
+        from mathics.core.atoms import IntegerM1
+
         return self.create_expression(
-            "Plus", self, self.create_expression("Times", other, -1)
+            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
         )
 
     def __mul__(self, other) -> BaseElement:
-        return self.create_expression("Times", self, other)
+        return self.create_expression(SymbolTimes, self, other)
 
     def __truediv__(self, other) -> BaseElement:
-        return self.create_expression("Divide", self, other)
+        return self.create_expression(SymbolDivide, self, other)
 
     def __floordiv__(self, other) -> BaseElement:
         return self.create_expression(
-            "Floor", self.create_expression("Divide", self, other)
+            SymbolFloor, self.create_expression(SymbolDivide, self, other)
         )
 
     def __pow__(self, other) -> BaseElement:
-        return self.create_expression("Power", self, other)
+        return self.create_expression(SymbolPower, self, other)
 
     def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
         """
@@ -115,7 +120,7 @@ def strip_context(name) -> str:
     return name
 
 
-class Monomial(object):
+class Monomial:
     """
     An object to sort monomials, used in Expression.get_sort_key and
     Symbol.get_sort_key.
@@ -123,24 +128,6 @@ class Monomial(object):
 
     def __init__(self, exps_dict):
         self.exps = exps_dict
-
-    def __lt__(self, other) -> bool:
-        return self.__cmp(other) < 0
-
-    def __gt__(self, other) -> bool:
-        return self.__cmp(other) > 0
-
-    def __le__(self, other) -> bool:
-        return self.__cmp(other) <= 0
-
-    def __ge__(self, other) -> bool:
-        return self.__cmp(other) >= 0
-
-    def __eq__(self, other) -> bool:
-        return self.__cmp(other) == 0
-
-    def __ne__(self, other) -> bool:
-        return self.__cmp(other) != 0
 
     def __cmp(self, other) -> int:
         self_exps = self.exps.copy()
@@ -192,6 +179,24 @@ class Monomial(object):
                         return -1
             index += 1
         return 0
+
+    def __eq__(self, other) -> bool:
+        return self.__cmp(other) == 0
+
+    def __le__(self, other) -> bool:
+        return self.__cmp(other) <= 0
+
+    def __lt__(self, other) -> bool:
+        return self.__cmp(other) < 0
+
+    def __ge__(self, other) -> bool:
+        return self.__cmp(other) >= 0
+
+    def __gt__(self, other) -> bool:
+        return self.__cmp(other) > 0
+
+    def __ne__(self, other) -> bool:
+        return self.__cmp(other) != 0
 
 
 class Atom(BaseElement):
@@ -253,23 +258,6 @@ class Atom(BaseElement):
         """
         return self
 
-    def flatten_sequence(self, evaluation) -> "Atom":
-        return self
-
-    def flatten_pattern_sequence(self, evaluation) -> "Atom":
-        return self
-
-    def flatten_with_respect_to_head(
-        self, head, pattern_only=False, callback=None, level=None
-    ) -> "Atom":
-        """
-        Flatten elements in self which have `head` in them.
-
-        Atoms don't have elements, so an Atom is already "flattened". So just return
-        the Atom.
-        """
-        return self
-
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
@@ -289,6 +277,17 @@ class Atom(BaseElement):
 
     def get_head_name(self) -> "str":
         return self.class_head_name  # System`" + self.__class__.__name__
+
+    #    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+    #        """
+    #        Build a dictionary of options from an expression.
+    #        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+    #        will return a list of options associated to the definition of the symbol "Integrate".
+    #        If self is not an expression,
+    #        """
+    #        print("get_option_values is trivial for ", (self, stop_on_error, allow_symbols ))
+    #        1/0
+    #        return None if stop_on_error else {}
 
     def get_sort_key(self, pattern_sort=False):
         if pattern_sort:
@@ -348,7 +347,7 @@ class Atom(BaseElement):
         return self
 
 
-class Symbol(Atom, NumericOperators):
+class Symbol(Atom, NumericOperators, EvalMixin):
     """
     Note: Symbol is right now used in a couple of ways which in the
     future may be separated.
@@ -411,13 +410,10 @@ class Symbol(Atom, NumericOperators):
     def __str__(self) -> str:
         return self.name
 
-    def atom_to_boxes(self, f, evaluation) -> "String":
-        from mathics.core.atoms import String
+    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
+        from mathics.builtin.box.inout import _BoxedString
 
-        return String(evaluation.definitions.shorten_name(self.name))
-
-    def boxes_to_text(self, **options) -> str:
-        return str(self.name)
+        return _BoxedString(evaluation.definitions.shorten_name(self.name))
 
     def default_format(self, evaluation, form) -> str:
         return self.name
@@ -467,6 +463,19 @@ class Symbol(Atom, NumericOperators):
 
     def get_head_name(self):
         return "System`Symbol"
+
+    def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
+        """
+        Build a dictionary of options from an expression.
+        For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
+        will return a list of options associated to the definition of the symbol "Integrate".
+        If self is not an expression,
+        """
+        if allow_symbols:
+            options = evaluation.definitions.get_options(self.get_name())
+            return options.copy()
+        else:
+            return None if stop_on_error else {}
 
     def has_symbol(self, symbol_name) -> bool:
         return self.name == ensure_context(symbol_name)
@@ -528,9 +537,6 @@ class Symbol(Atom, NumericOperators):
                 self.name,
                 1,
             ]
-
-    def is_true(self) -> bool:
-        return self is SymbolTrue
 
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
@@ -621,40 +627,6 @@ class PredefinedSymbol(Symbol):
         return False
 
 
-# Symbols used in this module.
-
-# Note, below we are only setting PredefinedSymbol for Symbols which
-# are both predefined and have the Locked attribute.
-
-# An experiment using PredefinedSymbol("Pi") in the Pythoin code and
-# running:
-#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
-# show that this does not change the output in any way.
-#
-# That said, for now we will proceed very conservatively and
-# cautiously. However we may decide in the future to
-# more of the below and in systemsymbols
-# PredefineSymbol.
-
-SymbolFalse = PredefinedSymbol("System`False")
-SymbolGraphics = Symbol("System`Graphics")
-SymbolGraphics3D = Symbol("System`Graphics3D")
-SymbolHoldForm = Symbol("System`HoldForm")
-SymbolList = PredefinedSymbol("System`List")
-SymbolMachinePrecision = Symbol("MachinePrecision")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
-SymbolMaxPrecision = Symbol("$MaxPrecision")
-SymbolMinPrecision = Symbol("$MinPrecision")
-SymbolN = Symbol("System`N")
-SymbolNull = Symbol("System`Null")
-SymbolNumberForm = Symbol("System`NumberForm")
-SymbolPostfix = Symbol("System`Postfix")
-SymbolRepeated = Symbol("System`Repeated")
-SymbolRepeatedNull = Symbol("System`RepeatedNull")
-SymbolSequence = Symbol("System`Sequence")
-SymbolTrue = PredefinedSymbol("System`True")
-
-
 # The available formats.
 
 format_symbols = system_symbols(
@@ -668,10 +640,119 @@ format_symbols = system_symbols(
 )
 
 
-SymbolInputForm = Symbol("InputForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolStandardForm = Symbol("StandardForm")
+# Symbols used in this module.
+
+# Note, below we are only setting PredefinedSymbol for Symbols which
+# are both predefined and have the Locked attribute.
+
+# An experiment using PredefinedSymbol("Pi") in the Python code and
+# running:
+#    {Pi, Unprotect[Pi];Pi=4; Pi, Pi=.; Pi }
+# show that this does not change the output in any way.
+#
+# That said, for now we will proceed very conservatively and
+# cautiously. However we may decide in the future to
+# more of the below and in systemsymbols
+# PredefineSymbol.
+
+SymbolFalse = PredefinedSymbol("System`False")
+SymbolList = PredefinedSymbol("System`List")
+SymbolTrue = PredefinedSymbol("System`True")
+
+SymbolAbs = Symbol("Abs")
+SymbolDivide = Symbol("Divide")
+SymbolFloor = Symbol("Floor")
 SymbolFullForm = Symbol("FullForm")
-SymbolTraditionalForm = Symbol("TraditionalForm")
-SymbolTeXForm = Symbol("TeXForm")
+SymbolGraphics = Symbol("System`Graphics")
+SymbolGraphics3D = Symbol("System`Graphics3D")
+SymbolHoldForm = Symbol("System`HoldForm")
+SymbolInputForm = Symbol("InputForm")
+SymbolMachinePrecision = Symbol("MachinePrecision")
+SymbolMakeBoxes = Symbol("System`MakeBoxes")
 SymbolMathMLForm = Symbol("MathMLForm")
+SymbolMaxPrecision = Symbol("$MaxPrecision")
+SymbolMinPrecision = Symbol("$MinPrecision")
+SymbolN = Symbol("System`N")
+SymbolNull = Symbol("System`Null")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolOutputForm = Symbol("OutputForm")
+SymbolPlus = Symbol("Plus")
+SymbolPostfix = Symbol("System`Postfix")
+SymbolPower = Symbol("Power")
+SymbolRepeated = Symbol("System`Repeated")
+SymbolRepeatedNull = Symbol("System`RepeatedNull")
+SymbolSequence = Symbol("System`Sequence")
+SymbolStandardForm = Symbol("StandardForm")
+SymbolUpSet = Symbol("UpSet")
+SymbolTeXForm = Symbol("TeXForm")
+SymbolTimes = Symbol("Times")
+SymbolTraditionalForm = Symbol("TraditionalForm")
+
+# NumericOperators uses some of the Symbols above.
+class NumericOperators:
+    """
+    This is a mixin class for Element-like objects that might have numeric values.
+    It adds or "mixes in" numeric functions for these objects like round_to_float().
+
+    It also adds methods to the class to facilite building
+    ``Expression``s in the Mathics Python code using Python syntax.
+
+    So for example, instead of writing in Python:
+
+        to_expression("Abs", -8)
+        Expression(SymbolPlus, Integer1, Integer2)
+
+    you can instead have:
+        abs(Integer(-8))
+        Integer(1) + Integer(2)
+    """
+
+    def __abs__(self) -> BaseElement:
+        return self.create_expression(SymbolAbs, self)
+
+    def __add__(self, other) -> BaseElement:
+        return self.create_expression(SymbolPlus, self, other)
+
+    def __pos__(self):
+        return self
+
+    def __neg__(self):
+        from mathics.core.atoms import IntegerM1
+
+        return self.create_expression(SymbolTimes, self, IntegerM1)
+
+    def __sub__(self, other) -> BaseElement:
+        from mathics.core.atoms import IntegerM1
+
+        return self.create_expression(
+            SymbolPlus, self, self.create_expression(SymbolTimes, other, IntegerM1)
+        )
+
+    def __mul__(self, other) -> BaseElement:
+        return self.create_expression(SymbolTimes, self, other)
+
+    def __truediv__(self, other) -> BaseElement:
+        return self.create_expression(SymbolDivide, self, other)
+
+    def __floordiv__(self, other) -> BaseElement:
+        return self.create_expression(
+            SymbolFloor, self.create_expression(SymbolDivide, self, other)
+        )
+
+    def __pow__(self, other) -> BaseElement:
+        return self.create_expression(SymbolPower, self, other)
+
+    def round_to_float(self, evaluation=None, permit_complex=False) -> Optional[float]:
+        """
+        Round to a Python float. Return None if rounding is not possible.
+        This can happen if self or evaluation is NaN.
+        """
+        value = (
+            self
+            if evaluation is None
+            else self.create_expression(SymbolN, self).evaluate(evaluation)
+        )
+        if hasattr(value, "round") and hasattr(value, "get_float_value"):
+            value = value.round()
+            return value.get_float_value(permit_complex=permit_complex)
+        return None

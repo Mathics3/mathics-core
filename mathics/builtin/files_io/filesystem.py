@@ -12,11 +12,12 @@ import shutil
 import tempfile
 import time
 
+from mathics.builtin.atomic.strings import to_regex
 from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.string.operations import Hash
-from mathics.builtin.atomic.strings import to_regex
+
 from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import (
     listable,
@@ -25,7 +26,8 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import to_mathics_list
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,
@@ -37,15 +39,24 @@ from mathics.core.streams import (
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
-    SymbolList,
     SymbolNull,
     SymbolTrue,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolFailed
+from mathics.core.systemsymbols import (
+    SymbolFailed,
+    SymbolGet,
+    SymbolMemberQ,
+    SymbolNeeds,
+    SymbolNone,
+    SymbolPackages,
+)
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
+
+
+SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
 
 class AbsoluteFileName(Builtin):
@@ -79,11 +90,11 @@ class AbsoluteFileName(Builtin):
             return
         py_name = py_name[1:-1]
 
-        result = path_search(py_name)
+        result, is_temporary_file = path_search(py_name)
 
         if result is None:
             evaluation.message(
-                "AbsoluteFileName", "nffil", Expression("AbsoluteFileName", name)
+                "AbsoluteFileName", "nffil", to_expression("AbsoluteFileName", name)
             )
             return SymbolFailed
 
@@ -101,8 +112,8 @@ class BaseDirectory(Predefined):
      = ...
     """
 
-    summary_text = "path to the configuration directory"
     name = "$BaseDirectory"
+    summary_text = "path to the configuration directory"
 
     def evaluate(self, evaluation):
         global ROOT_DIR
@@ -117,7 +128,6 @@ class CopyDirectory(Builtin):
     </dl>
     """
 
-    summary_text = "copy a directory into a new path"
     messages = {
         "argr": "called with `1` argument; 2 arguments are expected.",
         "fstr": (
@@ -126,6 +136,7 @@ class CopyDirectory(Builtin):
         "filex": "Cannot overwrite existing file `1`.",
         "nodir": "Directory `1` not found.",
     }
+    summary_text = "copy a directory into a new path"
 
     def apply(self, dirs, evaluation):
         "CopyDirectory[dirs__]"
@@ -170,7 +181,6 @@ class CopyFile(Builtin):
     X> DeleteFile["MathicsSunflowers.jpg"]
     """
 
-    summary_text = "copy a file into a new path"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "fstr": (
@@ -178,6 +188,7 @@ class CopyFile(Builtin):
         ),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "copy a file into a new path"
 
     def apply(self, source, dest, evaluation):
         "CopyFile[source_, dest_]"
@@ -196,7 +207,7 @@ class CopyFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source = path_search(py_source)
+        py_source, is_temporary_file = path_search(py_source)
 
         if py_source is None:
             evaluation.message("CopyFile", "filex", source)
@@ -210,7 +221,7 @@ class CopyFile(Builtin):
             shutil.copy(py_source, py_dest)
         except IOError:
             evaluation.message(
-                "CopyFile", "nffil", Expression("CopyFile", source, dest)
+                "CopyFile", "nffil", to_expression("CopyFile", source, dest)
             )
             return SymbolFailed
 
@@ -233,7 +244,6 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    summary_text = "create a directory"
     attributes = listable | protected
 
     options = {
@@ -247,11 +257,12 @@ class CreateDirectory(Builtin):
         "nffil": "File not found during `1`.",
         "filex": "`1` already exists.",
     }
+    summary_text = "create a directory"
 
     def apply(self, dirname, evaluation, options):
         "CreateDirectory[dirname_, OptionsPattern[CreateDirectory]]"
 
-        expr = Expression("CreateDirectory", dirname)
+        expr = to_expression("CreateDirectory", dirname)
         py_dirname = dirname.to_python()
 
         if not (isinstance(py_dirname, str) and py_dirname[0] == py_dirname[-1] == '"'):
@@ -288,16 +299,15 @@ class CreateFile(Builtin):
     </dl>
     """
 
-    summary_text = "create a file"
-    rules = {
-        "CreateFile[]": "CreateTemporary[]",
-    }
+    attributes = listable | protected
     options = {
         "CreateIntermediateDirectories": "True",
         "OverwriteTarget": "True",
     }
-
-    attributes = listable | protected
+    rules = {
+        "CreateFile[]": "CreateTemporary[]",
+    }
+    summary_text = "create a file"
 
     def apply(self, filename, evaluation, **options):
         "CreateFile[filename_String, OptionsPattern[CreateFile]]"
@@ -349,11 +359,6 @@ class DeleteDirectory(Builtin):
      = $Failed
     """
 
-    summary_text = "delete a directory"
-    options = {
-        "DeleteContents": "False",
-    }
-
     messages = {
         "strs": (
             "String or non-empty list of strings expected at " "position 1 in `1`."
@@ -363,11 +368,15 @@ class DeleteDirectory(Builtin):
         "optx": "Unknown option `1` in `2`",
         "idcts": "DeleteContents expects either True or False.",  # MMA Bug
     }
+    options = {
+        "DeleteContents": "False",
+    }
+    summary_text = "delete a directory"
 
     def apply(self, dirname, evaluation, options):
         "DeleteDirectory[dirname_, OptionsPattern[DeleteDirectory]]"
 
-        expr = Expression("DeleteDirectory", dirname)
+        expr = to_expression("DeleteDirectory", dirname)
         py_dirname = dirname.to_python()
 
         delete_contents = options["System`DeleteContents"].to_python()
@@ -413,7 +422,6 @@ class DeleteFile(Builtin):
     >> DeleteFile[{"MathicsSunflowers1.jpg", "MathicsSunflowers2.jpg"}]
     """
 
-    summary_text = "delete a file"
     messages = {
         "filex": "Cannot overwrite existing file `1`.",
         "strs": (
@@ -421,6 +429,7 @@ class DeleteFile(Builtin):
         ),
         "nffil": "File not found during `1`.",
     }
+    summary_text = "delete a file"
 
     def apply(self, filename, evaluation):
         "DeleteFile[filename_]"
@@ -434,16 +443,19 @@ class DeleteFile(Builtin):
             # Check filenames
             if not (isinstance(path, str) and path[0] == path[-1] == '"'):
                 evaluation.message(
-                    "DeleteFile", "strs", filename, Expression("DeleteFile", filename)
+                    "DeleteFile",
+                    "strs",
+                    filename,
+                    to_expression("DeleteFile", filename),
                 )
                 return
 
             path = path[1:-1]
-            path = path_search(path)
+            path, is_temporary_file = path_search(path)
 
             if path is None:
                 evaluation.message(
-                    "DeleteFile", "nffil", Expression("DeleteFile", filename)
+                    "DeleteFile", "nffil", to_expression("DeleteFile", filename)
                 )
                 return SymbolFailed
             py_paths.append(path)
@@ -507,24 +519,24 @@ class DirectoryName(Builtin):
      = DirectoryName[x]
     """
 
-    summary_text = "directory part of a filename"
-    options = {
-        "OperatingSystem": "$OperatingSystem",
-    }
-
     messages = {
         "string": "String expected at position 1 in `1`.",
         "intpm": ("Positive machine-sized integer expected at " "position 2 in `1`."),
     }
 
+    options = {
+        "OperatingSystem": "$OperatingSystem",
+    }
+    summary_text = "directory part of a filename"
+
     def apply_with_n(self, name, n, evaluation, options):
         "DirectoryName[name_, n_, OptionsPattern[DirectoryName]]"
 
         if n is None:
-            expr = Expression("DirectoryName", name)
+            expr = to_expression("DirectoryName", name)
             py_n = 1
         else:
-            expr = Expression("DirectoryName", name, n)
+            expr = to_expression("DirectoryName", name, n)
             py_n = n.to_python()
 
         if not (isinstance(py_n, int) and py_n > 0):
@@ -586,12 +598,12 @@ class DirectoryQ(Builtin):
      = False
     """
 
-    summary_text = "test whether a path exists and is a directory"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "test whether a path exists and is a directory"
 
     def apply(self, pathname, evaluation):
         "DirectoryQ[pathname_]"
@@ -602,7 +614,7 @@ class DirectoryQ(Builtin):
             return
         path = path[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is not None and osp.isdir(path):
             return SymbolTrue
@@ -620,10 +632,10 @@ class ExpandFileName(Builtin):
      = ...
     """
 
-    summary_text = "absolute path"
     messages = {
         "string": "String expected at position 1 in `1`.",
     }
+    summary_text = "absolute path"
 
     def apply(self, name, evaluation):
         "ExpandFileName[name_]"
@@ -632,7 +644,7 @@ class ExpandFileName(Builtin):
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
             evaluation.message(
-                "ExpandFileName", "string", Expression("ExpandFileName", name)
+                "ExpandFileName", "string", to_expression("ExpandFileName", name)
             )
             return
         py_name = py_name[1:-1]
@@ -671,10 +683,10 @@ class FileBaseName(Builtin):
      = file
     """
 
-    summary_text = "base name of the file"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
+    summary_text = "base name of the file"
 
     def apply(self, filename, evaluation, options):
         "FileBaseName[filename_String, OptionsPattern[FileBaseName]]"
@@ -695,10 +707,10 @@ class FileByteCount(Builtin):
      = 142286
     """
 
-    summary_text = "length of the file"
     messages = {
         "fstr": "File specification `1` is not a string of one or more characters.",
     }
+    summary_text = "length of the file"
 
     def apply(self, filename, evaluation):
         "FileByteCount[filename_]"
@@ -765,7 +777,6 @@ class FileDate(Builtin):
      = FileDate[ExampleData/sunflowers.jpg, Fail]
     """
 
-    summary_text = "date and time of the last change in a file"
     messages = {
         "nffil": "File not found during `1`.",
         "datetype": (
@@ -781,17 +792,18 @@ class FileDate(Builtin):
             "Change" -> FileDate[filepath, "Change"],
             "Modification" -> FileDate[filepath, "Modification"]}""",
     }
+    summary_text = "date and time of the last change in a file"
 
     def apply(self, path, timetype, evaluation):
         "FileDate[path_, timetype_]"
-        py_path = path_search(path.to_python()[1:-1])
+        py_path, is_temparary_file = path_search(path.to_python()[1:-1])
 
         if py_path is None:
             if timetype is None:
-                evaluation.message("FileDate", "nffil", Expression("FileDate", path))
+                evaluation.message("FileDate", "nffil", to_expression("FileDate", path))
             else:
                 evaluation.message(
-                    "FileDate", "nffil", Expression("FileDate", path, timetype)
+                    "FileDate", "nffil", to_expression("FileDate", path, timetype)
                 )
             return
 
@@ -804,11 +816,11 @@ class FileDate(Builtin):
             result = osp.getatime(py_path)
         elif time_type == "Creation":
             if os.name == "posix":
-                return Expression("Missing", "NotApplicable")
+                return to_expression("Missing", "NotApplicable")
             result = osp.getctime(py_path)
         elif time_type == "Change":
             if os.name != "posix":
-                return Expression("Missing", "NotApplicable")
+                return to_expression("Missing", "NotApplicable")
             result = osp.getctime(py_path)
         elif time_type == "Modification":
             result = osp.getmtime(py_path)
@@ -818,11 +830,11 @@ class FileDate(Builtin):
 
         # Offset for system epoch
         epochtime = Expression(
-            "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
+            SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
         ).to_python(n_evaluation=evaluation)
         result += epochtime
 
-        return Expression("DateList", Real(result))
+        return to_expression("DateList", Real(result))
 
     def apply_default(self, path, evaluation):
         "FileDate[path_]"
@@ -842,12 +854,12 @@ class FileExistsQ(Builtin):
      = False
     """
 
-    summary_text = "test whether a file exists"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "test whether a file exists"
 
     def apply(self, filename, evaluation):
         "FileExistsQ[filename_]"
@@ -857,7 +869,7 @@ class FileExistsQ(Builtin):
             return
         path = path[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is None:
             return SymbolFalse
@@ -883,10 +895,10 @@ class FileExtension(Builtin):
      = #<--#
     """
 
-    summary_text = "file extension"
     options = {
         "OperatingSystem": "$OperatingSystem",
     }
+    summary_text = "file extension"
 
     def apply(self, filename, evaluation, options):
         "FileExtension[filename_String, OptionsPattern[FileExtension]]"
@@ -1108,12 +1120,12 @@ class FileType(Builtin):
      = FileType[x]
     """
 
-    summary_text = "type of a file"
     messages = {
         "fstr": (
             "File specification `1` is not a string of " "one or more characters."
         ),
     }
+    summary_text = "type of a file"
 
     def apply(self, filename, evaluation):
         "FileType[filename_]"
@@ -1122,10 +1134,10 @@ class FileType(Builtin):
             return
         path = filename.to_python()[1:-1]
 
-        path = path_search(path)
+        path, is_temporary_file = path_search(path)
 
         if path is None:
-            return Symbol("None")
+            return SymbolNone
 
         if osp.isfile(path):
             return Symbol("File")
@@ -1166,11 +1178,11 @@ class FindFile(Builtin):
         py_name = name.to_python()
 
         if not (isinstance(py_name, str) and py_name[0] == py_name[-1] == '"'):
-            evaluation.message("FindFile", "string", Expression("FindFile", name))
+            evaluation.message("FindFile", "string", to_expression("FindFile", name))
             return
         py_name = py_name[1:-1]
 
-        result = path_search(py_name)
+        result, is_temporary_file = path_search(py_name)
 
         if result is None:
             return SymbolFailed
@@ -1313,7 +1325,7 @@ class FileNames(Builtin):
                                 filenames.add(osp.join(root, fn))
                                 break
 
-        return Expression("List", *[String(s) for s in sorted(filenames)])
+        return to_mathics_list(*sorted(filenames), elements_conversion_fn=String)
 
 
 class FileNameSplit(Builtin):
@@ -1423,11 +1435,13 @@ class FileNameTake(Builtin):
 class FindList(Builtin):
     """
     <dl>
-    <dt>'FindList[$file$, $text$]'
+      <dt>'FindList[$file$, $text$]'
       <dd>returns a list of all lines in $file$ that contain $text$.
-    <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
+
+      <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
       <dd>returns a list of all lines in $file$ that contain any of the specified string.
-    <dt>'FindList[{$file1$, $file2$, ...}, ...]'
+
+      <dt>'FindList[{$file1$, $file2$, ...}, ...]'
       <dd>returns a list of all lines in any of the $filei$ that contain the specified strings.
     </dl>
 
@@ -1472,10 +1486,10 @@ class FindList(Builtin):
         py_name = filename.to_python()
         if n is None:
             py_n = None
-            expr = Expression("FindList", filename, text)
+            expr = to_expression("FindList", filename, text)
         else:
             py_n = n.to_python()
-            expr = Expression("FindList", filename, text, n)
+            expr = to_expression("FindList", filename, text, n)
 
         if not isinstance(py_text, list):
             py_text = [py_text]
@@ -1531,7 +1545,7 @@ class FindList(Builtin):
 class HomeDirectory(Predefined):
     """
     <dl>
-    <dt>'$HomeDirectory'
+      <dt>'$HomeDirectory'
       <dd>returns the users HOME directory.
     </dl>
 
@@ -1550,7 +1564,7 @@ class HomeDirectory(Predefined):
 class InitialDirectory(Predefined):
     """
     <dl>
-    <dt>'$InitialDirectory'
+      <dt>'$InitialDirectory'
       <dd>returns the directory from which \\Mathics was started.
     </dl>
 
@@ -1706,14 +1720,14 @@ class Needs(Builtin):
             contextstr = curr_ctxt + contextstr[1:]
             context = String(contextstr)
         if not valid_context_name(contextstr):
-            evaluation.message("Needs", "ctx", Expression("Needs", context), 1, "`")
+            evaluation.message("Needs", "ctx", Expression(SymbolNeeds, context), 1, "`")
             return
-        test_loaded = Expression("MemberQ", Symbol("$Packages"), context)
+        test_loaded = Expression(SymbolMemberQ, SymbolPackages, context)
         test_loaded = test_loaded.evaluate(evaluation)
-        if test_loaded.is_true():
+        if test_loaded is SymbolTrue:
             # Already loaded
             return SymbolNull
-        result = Expression("Get", context).evaluate(evaluation)
+        result = Expression(SymbolGet, context).evaluate(evaluation)
 
         if result is SymbolFailed:
             evaluation.message("Needs", "nocont", context)
@@ -1751,9 +1765,10 @@ class OperatingSystem(Predefined):
 class ParentDirectory(Builtin):
     """
     <dl>
-    <dt>'ParentDirectory[]'
+      <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
-    <dt>'ParentDirectory["$dir$"]'
+
+      <dt>'ParentDirectory["$dir$"]'
       <dd>returns the parent $dir$.
     </dl>
 
@@ -1787,7 +1802,7 @@ class ParentDirectory(Builtin):
 class Path(Predefined):
     """
     <dl>
-    <dt>'$Path'
+      <dt>'$Path'
       <dd>returns the list of directories to search when looking for a file.
     </dl>
 
@@ -1800,13 +1815,13 @@ class Path(Predefined):
     summary_text = "list directories where files are searched"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *[String(p) for p in PATH_VAR])
+        return to_mathics_list(*PATH_VAR, elements_conversion_fn=String)
 
 
 class PathnameSeparator(Predefined):
     """
     <dl>
-    <dt>'$PathnameSeparator'
+      <dt>'$PathnameSeparator'
       <dd>returns a string for the seperator in paths.
     </dl>
 
@@ -1824,7 +1839,7 @@ class PathnameSeparator(Predefined):
 class RenameDirectory(Builtin):
     """
     <dl>
-    <dt>'RenameDirectory["$dir1$", "$dir2$"]'
+      <dt>'RenameDirectory["$dir1$", "$dir2$"]'
       <dd>renames directory $dir1$ to $dir2$.
     </dl>
     """
@@ -1910,7 +1925,7 @@ class RenameFile(Builtin):
         py_source = py_source[1:-1]
         py_dest = py_dest[1:-1]
 
-        py_source = path_search(py_source)
+        py_source, is_temporary_file = path_search(py_source)
 
         if py_source is None:
             evaluation.message("RenameFile", "filex", source)
@@ -2085,18 +2100,18 @@ class SetFileDate(Builtin):
         py_filename = filename.to_python()
 
         if datelist is None:
-            py_datelist = Expression("DateList").evaluate(evaluation).to_python()
-            expr = Expression("SetFileDate", filename)
+            py_datelist = to_expression("DateList").evaluate(evaluation).to_python()
+            expr = to_expression("SetFileDate", filename)
         else:
             py_datelist = datelist.to_python()
 
         if attribute is None:
             py_attr = "All"
             if datelist is not None:
-                expr = Expression("SetFileDate", filename, datelist)
+                expr = to_expression("SetFileDate", filename, datelist)
         else:
             py_attr = attribute.to_python()
-            expr = Expression("SetFileDate", filename, datelist, attribute)
+            expr = to_expression("SetFileDate", filename, datelist, attribute)
 
         # Check filename
         if not (
@@ -2104,7 +2119,7 @@ class SetFileDate(Builtin):
         ):
             evaluation.message("SetFileDate", "fstr", filename)
             return
-        py_filename = path_search(py_filename[1:-1])
+        py_filename, is_temporary_file = path_search(py_filename[1:-1])
 
         if py_filename is None:
             evaluation.message("SetFileDate", "nffil", expr)
@@ -2125,12 +2140,14 @@ class SetFileDate(Builtin):
             return
 
         epochtime = (
-            Expression("AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
+            to_expression(
+                "AbsoluteTime", time.strftime("%Y-%m-%d %H:%M", time.gmtime(0))
+            )
             .evaluate(evaluation)
             .to_python()
         )
 
-        stattime = Expression("AbsoluteTime", from_python(py_datelist))
+        stattime = to_expression("AbsoluteTime", from_python(py_datelist))
         stattime = stattime.to_python(n_evaluation=evaluation)
 
         stattime -= epochtime

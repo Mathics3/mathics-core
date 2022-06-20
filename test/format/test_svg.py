@@ -3,6 +3,8 @@ from mathics.core.symbols import Symbol
 from mathics.core.atoms import Integer0, Integer1
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
+from mathics.core.list import ListExpression
+from mathics.core.systemsymbols import SymbolPoint
 from mathics.session import MathicsSession
 from mathics.builtin.inout import MakeBoxes
 from mathics.core.formatter import lookup_method
@@ -39,21 +41,21 @@ def get_svg(expression):
 
     # Would be nice to DRY this boilerplate from boxes_to_mathml
 
-    leaves = boxes.get_elements()
+    elements = boxes._elements
     elements, calc_dimensions = boxes._prepare_elements(
-        leaves, options=options, neg_y=True
+        elements, options=options, neg_y=True
     )
     xmin, xmax, ymin, ymax, w, h, width, height = calc_dimensions()
     data = (elements, xmin, xmax, ymin, ymax, w, h, width, height)
 
     format_fn = lookup_method(boxes, "svg")
-    return format_fn(boxes, leaves, data=data, options=options)
+    return format_fn(boxes, elements, data=data, options=options)
 
 
 def test_svg_circle():
     expression = Expression(
         GraphicsSymbol,
-        Expression("Circle", Expression(ListSymbol, Integer0, Integer0)),
+        Expression(Symbol("Circle"), Expression(ListSymbol, Integer0, Integer0)),
     )
 
     svg = get_svg(expression)
@@ -71,7 +73,7 @@ def test_svg_circle():
 def test_svg_point():
     expression = Expression(
         GraphicsSymbol,
-        Expression("Point", Expression(ListSymbol, Integer0, Integer0)),
+        Expression(SymbolPoint, ListExpression(Integer0, Integer0)),
     )
 
     svg = get_svg(expression)
@@ -89,11 +91,10 @@ def test_svg_arrowbox():
     expression = Expression(
         GraphicsSymbol,
         Expression(
-            "Arrow",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("Arrow"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )
@@ -113,11 +114,10 @@ def test_svg_bezier_curve():
     expression = Expression(
         GraphicsSymbol,
         Expression(
-            "BezierCurve",
-            Expression(
-                ListSymbol,
-                Expression(ListSymbol, Integer0, Integer0),
-                Expression(ListSymbol, Integer1, Integer1),
+            Symbol("BezierCurve"),
+            ListExpression(
+                ListExpression(Integer0, Integer0),
+                ListExpression(Integer1, Integer1),
             ),
         ),
     )

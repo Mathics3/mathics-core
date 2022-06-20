@@ -8,10 +8,14 @@ Solving Recurrence Equations
 import sympy
 
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
-from mathics.core.convert import sympy_symbol_prefix, from_sympy
+
+from mathics.core.atoms import IntegerM1, SymbolPlus, SymbolTimes
 from mathics.core.attributes import constant
+from mathics.core.convert import sympy_symbol_prefix, from_sympy
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 
 class RSolve(Builtin):
@@ -59,12 +63,12 @@ class RSolve(Builtin):
 
         # TODO: Do this with rules?
         if not eqns.has_form("List", None):
-            eqns = Expression("List", eqns)
+            eqns = ListExpression(eqns)
 
-        if len(eqns.leaves) == 0:
+        if len(eqns.elements) == 0:
             return
 
-        for eqn in eqns.leaves:
+        for eqn in eqns.elements:
             if eqn.get_head_name() != "System`Equal":
                 evaluation.message("RSolve", "deqn", eqn)
                 return
@@ -80,50 +84,50 @@ class RSolve(Builtin):
             return
 
         try:
-            a.leaves
+            a.elements
             function_form = None
             func = a
         except AttributeError:
             func = Expression(a, n)
-            function_form = Expression("List", n)
+            function_form = ListExpression(n)
 
-        if isinstance(func, Atom) or len(func.leaves) != 1:
+        if isinstance(func, Atom) or len(func.elements) != 1:
             evaluation.message("RSolve", "dsfun", a)
 
-        if n not in func.leaves:
+        if n not in func.elements:
             evaluation.message("DSolve", "deqx")
 
         # Seperate relations from conditions
         conditions = {}
 
         def is_relation(eqn):
-            left, right = eqn.leaves
-            for l, r in [(left, right), (right, left)]:
+            left, right = eqn.elements
+            for le, ri in [(left, right), (right, left)]:
                 if (
                     left.get_head_name() == func.get_head_name()
-                    and len(left.leaves) == 1  # noqa
-                    and isinstance(l.leaves[0].to_python(), int)
-                    and r.is_numeric(evaluation)
+                    and len(left.elements) == 1  # noqa
+                    and isinstance(le.elements[0].to_python(), int)
+                    and ri.is_numeric(evaluation)
                 ):
 
-                    r_sympy = r.to_sympy()
+                    r_sympy = ri.to_sympy()
                     if r_sympy is None:
                         raise ValueError
-                    conditions[l.leaves[0].to_python()] = r_sympy
+                    conditions[le.elements[0].to_python()] = r_sympy
                     return False
             return True
 
-        # evaluate is_relation on all leaves to store conditions
+        # evaluate is_relation on all elements to store conditions
         try:
-            relations = [leaf for leaf in eqns.leaves if is_relation(leaf)]
+            relations = [element for element in eqns.elements if is_relation(element)]
         except ValueError:
             return
         relation = relations[0]
 
-        left, right = relation.leaves
-        relation = Expression("Plus", left, Expression("Times", -1, right)).evaluate(
-            evaluation
-        )
+        left, right = relation.elements
+        relation = Expression(
+            SymbolPlus, left, Expression(SymbolTimes, IntegerM1, right)
+        ).evaluate(evaluation)
 
         sym_eq = relation.to_sympy(converted_functions={func.get_head_name()})
         if sym_eq is None:
@@ -153,23 +157,20 @@ class RSolve(Builtin):
             return
 
         if function_form is None:
-            return Expression(
-                "List",
+            return ListExpression(
                 *[
-                    Expression("List", Expression("Rule", a, from_sympy(soln)))
+                    ListExpression(Expression(SymbolRule, a, from_sympy(soln)))
                     for soln in sym_result
                 ]
             )
         else:
-            return Expression(
-                "List",
+            return ListExpression(
                 *[
-                    Expression(
-                        "List",
+                    ListExpression(
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             a,
-                            Expression("Function", function_form, from_sympy(soln)),
+                            Expression(SymbolFunction, function_form, from_sympy(soln)),
                         ),
                     )
                     for soln in sym_result

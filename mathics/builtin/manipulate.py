@@ -2,12 +2,13 @@
 
 
 from mathics import settings
-from mathics.core.evaluation import Output
 
 from mathics.builtin.base import Builtin
+from mathics.core.atoms import Integer, String, from_python
+from mathics.core.evaluation import Output
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, strip_context
-from mathics.core.atoms import Integer, from_python, String
 
 try:
     from ipykernel.kernelbase import Kernel
@@ -330,7 +331,7 @@ class Manipulate(Builtin):
                 Expression("Set", Symbol(name), value) for name, value in kwargs.items()
             ]
             evaluatable = Expression(
-                "ReleaseHold", Expression("Module", Expression("List", *vars), expr)
+                "ReleaseHold", Expression("Module", ListExpression(*vars), expr)
             )
 
             result = evaluation.evaluate(evaluatable, timeout=settings.TIMEOUT)

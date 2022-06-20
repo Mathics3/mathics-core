@@ -10,11 +10,11 @@ import string
 
 
 from mathics.builtin.base import Builtin, SympyFunction
+from mathics.core.atoms import Integer, Integer0, String, SymbolPlus, SymbolTimes
+from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0, String
-
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.list import ListExpression, to_mathics_list
 
 
 class Floor(SympyFunction):
@@ -52,11 +52,10 @@ class Floor(SympyFunction):
      = -10
     """
 
-    summary_text = "closest smaller integer"
     attributes = listable | numeric_function | protected
-
-    sympy_name = "floor"
     rules = {"Floor[x_, a_]": "Floor[x / a] * a"}
+    sympy_name = "floor"
+    summary_text = "closest smaller integer"
 
     def apply_real(self, x, evaluation):
         "Floor[x_]"
@@ -82,10 +81,9 @@ class Ceiling(SympyFunction):
      = 2 + I
     """
 
-    summary_text = "closest larger integer"
     attributes = listable | numeric_function | protected
-
     rules = {"Ceiling[x_, a_]": "Ceiling[x / a] * a"}
+    summary_text = "closest larger integer"
 
     def apply(self, x, evaluation):
         "Ceiling[x_]"
@@ -112,8 +110,8 @@ class BitLength(Builtin):
      = 0
     """
 
-    summary_text = "length of the binary representation"
     attributes = listable | protected
+    summary_text = "length of the binary representation"
 
     def apply(self, n, evaluation):
         "BitLength[n_Integer]"
@@ -178,25 +176,22 @@ class IntegerString(Builtin):
      = c6i5
     """
 
-    summary_text = "decimal representation of a number as a string"
-    attributes = listable | protected
-
-    rules = {
-        "IntegerString[n_Integer]": "IntegerString[n, 10]",
-    }
-
-    messages = {
-        "basf": "Base `` must be an integer in the range from 2 to 36.",
-    }
-
-    list_of_symbols = string.digits + string.ascii_letters
-
     _python_builtin = {
         16: lambda number: hex(abs(number))[2:],
         10: lambda number: str(abs(number)),
         2: lambda number: bin(abs(number))[2:],
         # oct() changed definition for Python 3
     }
+    attributes = listable | protected
+    list_of_symbols = string.digits + string.ascii_letters
+    messages = {
+        "basf": "Base `` must be an integer in the range from 2 to 36.",
+    }
+
+    rules = {
+        "IntegerString[n_Integer]": "IntegerString[n, 10]",
+    }
+    summary_text = "decimal representation of a number as a string"
 
     def _symbols(self, n, b, evaluation):
         builtin = IntegerString._python_builtin.get(b)
@@ -277,8 +272,7 @@ class IntegerDigits(_IntBaseBuiltin):
         "IntegerDigits[n_Integer, b_Integer]"
         base = self._valid_base(b, evaluation)
         return (
-            Expression(
-                "List",
+            ListExpression(
                 *[
                     Integer(d)
                     for d in reversed(list(_reversed_digits(n.get_int_value(), base)))
@@ -292,8 +286,7 @@ class IntegerDigits(_IntBaseBuiltin):
         "IntegerDigits[n_Integer, b_Integer, length_Integer]"
         base = self._valid_base(b, evaluation)
         return (
-            Expression(
-                "List",
+            ListExpression(
                 *_pad(
                     [
                         Integer(d)
@@ -361,7 +354,7 @@ class DigitCount(_IntBaseBuiltin):
         for digit in _reversed_digits(n.get_int_value(), base):
             occurence_count[digit] += 1
         # result list is rotated by one element to the left
-        return Expression("List", *(occurence_count[1:] + [occurence_count[0]]))
+        return to_mathics_list(*(occurence_count[1:] + [occurence_count[0]]))
 
 
 class IntegerReverse(_IntBaseBuiltin):
@@ -456,7 +449,7 @@ class FromDigits(Builtin):
                 digit = code - code_0
             if 0 <= digit < 36:
                 value = Expression(
-                    "Plus", Expression("Times", value, b), Integer(digit)
+                    SymbolPlus, Expression(SymbolTimes, value, b), Integer(digit)
                 )
             else:
                 return None
@@ -468,7 +461,7 @@ class FromDigits(Builtin):
         if l.get_head_name() == "System`List":
             value = Integer0
             for leaf in l.leaves:
-                value = Expression("Plus", Expression("Times", value, b), leaf)
+                value = Expression(SymbolPlus, Expression(SymbolTimes, value, b), leaf)
             return value
         elif isinstance(l, String):
             value = FromDigits._parse_string(l.get_string_value(), b)

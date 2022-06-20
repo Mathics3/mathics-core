@@ -11,27 +11,28 @@ Mathics represents tensors of vectors and matrices as lists; tensors of any rank
 """
 
 
+from mathics.algorithm.parts import get_part
 from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.core.expression import Expression
+
 from mathics.core.atoms import (
     Integer,
     String,
 )
+from mathics.core.attributes import flat, one_identity, protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
+    Symbol,
     SymbolFalse,
     SymbolTrue,
 )
-from mathics.core.rules import Pattern
-
-from mathics.algorithm.parts import get_part
-
-from mathics.core.attributes import flat, one_identity, protected
 
 
 def get_default_distance(p):
     if all(q.is_numeric() for q in p):
-        return "SquaredEuclideanDistance"
+        return Symbol("SquaredEuclideanDistance")
     elif all(q.get_head_name() == "System`List" for q in p):
         dimensions = [get_dimensions(q) for q in p]
         if len(dimensions) < 1:
@@ -48,15 +49,15 @@ def get_default_distance(p):
                 )
 
             if all(all(is_boolean(e) for e in q.leaves) for q in p):
-                return "JaccardDissimilarity"
-        return "SquaredEuclideanDistance"
+                return Symbol("JaccardDissimilarity")
+        return Symbol("SquaredEuclideanDistance")
     elif all(isinstance(q, String) for q in p):
-        return "EditDistance"
+        return Symbol("EditDistance")
     else:
         from mathics.builtin.colors.color_directives import expression_to_color
 
         if all(expression_to_color(q) is not None for q in p):
-            return "ColorDistance"
+            return Symbol("ColorDistance")
 
         return None
 
@@ -202,7 +203,7 @@ class Dimensions(Builtin):
     def apply(self, expr, evaluation):
         "Dimensions[expr_]"
 
-        return Expression("List", *[Integer(dim) for dim in get_dimensions(expr)])
+        return ListExpression(*[Integer(dim) for dim in get_dimensions(expr)])
 
 
 class Dot(BinaryOperator):
@@ -523,7 +524,7 @@ class Transpose(Builtin):
                     result.append([item])
                 else:
                     result[col_index].append(item)
-        return Expression("List", *[Expression("List", *row) for row in result])
+        return ListExpression(*[ListExpression(*row) for row in result])
 
 
 class VectorQ(Builtin):

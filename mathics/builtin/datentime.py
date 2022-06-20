@@ -20,11 +20,14 @@ from mathics.core.atoms import Integer, Real, String, from_python
 from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
+    SymbolAutomatic,
     SymbolInfinity,
+    SymbolRowBox,
 )
 
 from mathics.settings import TIME_12HOUR
@@ -88,13 +91,18 @@ if not hasattr(timedelta, "total_seconds"):
 
     def total_seconds(td):
         return (
-            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6)
-            / 10 ** 6
+            float(td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6)
+            / 10**6
         )
-
 
 else:
     total_seconds = timedelta.total_seconds
+
+SymbolAbsoluteTime = Symbol("AbsoluteTime")
+SymbolDateObject = Symbol("DateObject")
+SymbolDateString = Symbol("DateString")
+SymbolGregorian = Symbol("Gregorian")
+SymbolPause = Symbol("Pause")
 
 
 class _Date:
@@ -407,7 +415,7 @@ class AbsoluteTiming(Builtin):
         start = time.time()
         result = expr.evaluate(evaluation)
         stop = time.time()
-        return Expression("List", Real(stop - start), result)
+        return ListExpression(Real(stop - start), result)
 
 
 class DateDifference(Builtin):
@@ -610,7 +618,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         if isinstance(args, Expression):
             if args.get_head_name() in ("System`Rule", "System`DelayedRule"):
                 options[args.leaves[0].get_name()] = args.leaves[1]
-                args = Expression("AbsoluteTime").evaluate(evaluation)
+                args = Expression(SymbolAbsoluteTime).evaluate(evaluation)
             elif args.get_head_name() == "System`DateObject":
                 datelist = args._elements[0]
                 tz = args._elements[3]
@@ -623,7 +631,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
 
         fmt = None
 
-        if options["System`TimeZone"].sameQ(Symbol("Automatic")):
+        if options["System`TimeZone"].sameQ(SymbolAutomatic):
             timezone = Real(-time.timezone / 3600.0)
         else:
             timezone = options["System`TimeZone"].evaluate(evaluation)
@@ -652,11 +660,11 @@ class DateObject(_DateFormat, ImmutableValueMixin):
             datelist = [Integer(d) for d in datelist]
         else:
             datelist = [Integer(d) for d in datelist[:5]] + [Real(datelist[5])]
-        return Expression(
-            "DateObject",
+        return to_expression(
+            SymbolDateObject,
             datelist,
             epoch,
-            Symbol("Gregorian"),
+            SymbolGregorian,
             timezone,
             fmt,
         )
@@ -664,15 +672,16 @@ class DateObject(_DateFormat, ImmutableValueMixin):
     def apply_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
-        if fmt.sameQ(Symbol("Automatic")):
-            fmt = Expression("List", "DateTimeShort")
-        fmtds = Expression("DateString", datetime, fmt).evaluate(evaluation)
+        if fmt.sameQ(SymbolAutomatic):
+            fmt = ListExpression(String("DateTimeShort"))
+        fmtds = Expression(SymbolDateString, datetime, fmt).evaluate(evaluation)
         if fmtds is None:
             return
-        # tz = Expression("ToString", tz).evaluate(evaluation)
-        tz = int(tz.to_python())
-        tz = String(str(tz))
-        return Expression("RowBox", Expression("List", "[", fmtds, "  GTM", tz, "]"))
+        # tz_string = to_mathic_expression("ToString", tz).evaluate(evaluation)
+        tz_string = String(str(int(tz.to_python())))
+        return to_expression(
+            SymbolRowBox, to_mathics_list("[", fmtds, "  GTM", tz_string, "]")
+        )
 
 
 class DatePlus(Builtin):
@@ -758,11 +767,16 @@ class DatePlus(Builtin):
             return
 
         if isinstance(date_prec, int):
-            result = Expression("List", *idate.to_list()[:date_prec])
+            result = to_mathics_list(
+                *idate.to_list()[:date_prec], elements_conversion_fn=Integer
+            )
         elif date_prec == "absolute":
-            result = Expression("AbsoluteTime", idate.to_list())
+            result = Expression(SymbolAbsoluteTime, idate.to_list())
         elif date_prec == "string":
-            result = Expression("DateString", Expression("List", *idate.to_list()))
+            result = Expression(
+                SymbolDateString,
+                to_mathics_list(*idate.to_list(), elements_conversion_fn=Integer),
+            )
 
         return result
 
@@ -831,7 +845,8 @@ class DateList(_DateFormat):
         if datelist is None:
             return
 
-        return Expression("List", *datelist)
+        date_elements = [Integer(i) for i in datelist[:-1]] + [Real(datelist[-1])]
+        return ListExpression(*date_elements)
 
 
 class DateString(_DateFormat):
@@ -962,7 +977,7 @@ class DateStringFormat(Predefined):
     # TODO: Methods to change this
 
     def evaluate(self, evaluation):
-        return Expression("List", String(self.value))
+        return ListExpression(String(self.value))
 
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday
@@ -983,7 +998,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 
     def apply(self, year, evaluation):
         "EasterSunday[year_Integer]"
-        y = year.get_int_value()
+        y = year.value
 
         # "Anonymous Gregorian algorithm", see https://en.wikipedia.org/wiki/Computus
         a = y % 19
@@ -1001,7 +1016,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
         month = (h + l - 7 * m + 114) // 31
         day = ((h + l - 7 * m + 114) % 31) + 1
 
-        return Expression("List", year, Integer(month), Integer(day))
+        return ListExpression(year, Integer(month), Integer(day))
 
 
 class Pause(Builtin):
@@ -1026,11 +1041,13 @@ class Pause(Builtin):
         "Pause[n_]"
         sleeptime = n.to_python()
         if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
-            evaluation.message("Pause", "numnm", Expression("Pause", n))
+            evaluation.message(
+                "Pause", "numnm", Expression(SymbolPause, from_python(n))
+            )
             return
 
         time.sleep(sleeptime)
-        return Symbol("Null")
+        return SymbolNull
 
 
 class SystemTimeZone(Predefined):
@@ -1067,10 +1084,10 @@ class Now(Predefined):
     summary_text = "current date and time"
 
     def evaluate(self, evaluation):
-        return Expression("DateObject").evaluate(evaluation)
+        return Expression(SymbolDateObject.evaluate(evaluation))
 
 
-if sys.platform != "win32" and ("Pyston" not in sys.version):
+if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
     class TimeConstrained(Builtin):
         r"""
@@ -1215,7 +1232,7 @@ class Timing(Builtin):
         start = time.process_time()
         result = expr.evaluate(evaluation)
         stop = time.process_time()
-        return Expression("List", Real(stop - start), result)
+        return ListExpression(Real(stop - start), result)
 
 
 class SessionTime(Builtin):

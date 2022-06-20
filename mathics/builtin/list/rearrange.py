@@ -17,14 +17,15 @@ from mathics.builtin.base import (
     MessageException,
 )
 
+from mathics.core.atoms import Integer
+from mathics.core.attributes import flat, one_identity, protected
 from mathics.core.expression import (
     Expression,
     structure,
 )
-from mathics.core.atoms import Integer
-from mathics.core.symbols import Atom, Symbol, SymbolList
-
-from mathics.core.attributes import flat, one_identity, protected
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolMap
 
 
 def _test_pair(test, a, b, evaluation, name):
@@ -35,7 +36,7 @@ def _test_pair(test, a, b, evaluation, name):
         and (result.has_symbol("True") or result.has_symbol("False"))
     ):
         evaluation.message(name, "smtst", test_expr, result)
-    return result.is_true()
+    return result is SymbolTrue
 
 
 def _is_sameq(same_test):
@@ -107,7 +108,7 @@ class _GatherBin:
         self.add_to = self._items.append
 
     def from_python(self):
-        return Expression(SymbolList, *self._items)
+        return ListExpression(*self._items)
 
 
 class _GatherOperation(Builtin):
@@ -137,12 +138,12 @@ class _GatherOperation(Builtin):
 
     def _check_list(self, values, arg2, evaluation):
         if isinstance(values, Atom):
-            expr = Expression(self.get_name(), values, arg2)
+            expr = Expression(Symbol(self.get_name()), values, arg2)
             evaluation.message(self.get_name(), "normal", 1, expr)
             return False
 
         if values.get_head_name() != "System`List":
-            expr = Expression(self.get_name(), values, arg2)
+            expr = Expression(Symbol(self.get_name()), values, arg2)
             evaluation.message(self.get_name(), "list", expr, 1)
             return False
 
@@ -152,7 +153,7 @@ class _GatherOperation(Builtin):
         bins = []
         Bin = self._bin
 
-        for key, value in zip(keys.leaves, values.leaves):
+        for key, value in zip(keys.elements, values.elements):
             selection = equivalence.select(key)
             for prototype, add_to_bin in selection:  # find suitable bin
                 if equivalence.sameQ(prototype, key):
@@ -163,7 +164,7 @@ class _GatherOperation(Builtin):
                 selection.append((key, new_bin.add_to))
                 bins.append(new_bin)
 
-        return Expression(SymbolList, *[b.from_python() for b in bins])
+        return ListExpression(*[b.from_python() for b in bins])
 
 
 class _Rotate(Builtin):
@@ -173,12 +174,12 @@ class _Rotate(Builtin):
         if not isinstance(expr, Expression):
             return expr
 
-        leaves = expr.leaves
-        if not leaves:
+        elements = expr.elements
+        if not elements:
             return expr
 
-        index = (self._sign * n[0]) % len(leaves)  # with Python's modulo: index >= 1
-        new_elements = chain(leaves[index:], leaves[:index])
+        index = (self._sign * n[0]) % len(elements)  # with Python's modulo: index >= 1
+        new_elements = chain(elements[index:], elements[:index])
 
         if len(n) > 1:
             new_elements = [
@@ -196,9 +197,9 @@ class _Rotate(Builtin):
         if isinstance(n, Integer):
             py_cycles = [n.get_int_value()]
         elif n.get_head_name() == "System`List" and all(
-            isinstance(x, Integer) for x in n.leaves
+            isinstance(x, Integer) for x in n.elements
         ):
-            py_cycles = [x.get_int_value() for x in n.leaves]
+            py_cycles = [x.get_int_value() for x in n.elements]
             if not py_cycles:
                 return expr
         else:
@@ -245,7 +246,7 @@ class _SetOperation(Builtin):
                     self.get_name(),
                     "normal",
                     pos + 1,
-                    Expression(self.get_name(), *seq),
+                    Expression(Symbol(self.get_name()), *seq),
                 )
 
         for pos, e in enumerate(zip(seq, seq[1:])):
@@ -256,7 +257,7 @@ class _SetOperation(Builtin):
                 )
 
         same_test = self.get_option(options, "SameTest", evaluation)
-        operands = [li.leaves for li in seq]
+        operands = [li.elements for li in seq]
         if not _is_sameq(same_test):
 
             def sameQ(a, b):
@@ -283,7 +284,7 @@ class _TallyBin:
         self._count += 1
 
     def from_python(self):
-        return Expression(SymbolList, self._item, Integer(self._count))
+        return ListExpression(self._item, Integer(self._count))
 
 
 class Catenate(Builtin):
@@ -304,21 +305,21 @@ class Catenate(Builtin):
         "Catenate[lists_List]"
 
         def parts():
-            for li in lists.leaves:
+            for li in lists.elements:
                 head_name = li.get_head_name()
                 if head_name == "System`List":
-                    yield li.leaves
+                    yield li.elements
                 elif head_name != "System`Missing":
                     raise MessageException("Catenate", "invrp", li)
 
         try:
             result = list(chain(*list(parts())))
             if result:
-                return lists.leaves[0].restructure(
-                    "List", result, evaluation, deps=lists.leaves
+                return lists.elements[0].restructure(
+                    "List", result, evaluation, deps=lists.elements
                 )
             else:
-                return Expression(SymbolList)
+                return ListExpression()
         except MessageException as e:
             e.message(evaluation)
 
@@ -401,10 +402,10 @@ class Gather(_GatherOperation):
     """
     <dl>
       <dt>'Gather[$list$, $test$]'
-      <dd>gathers leaves of $list$ into sub lists of items that are the same according to $test$.
+      <dd>gathers elements of $list$ into sub lists of items that are the same according to $test$.
 
       <dt>'Gather[$list$]'
-      <dd>gathers leaves of $list$ into sub lists of items that are the same.
+      <dd>gathers elements of $list$ into sub lists of items that are the same.
     </dl>
 
     The order of the items inside the sub lists is the same as in the original list.
@@ -424,10 +425,10 @@ class GatherBy(_GatherOperation):
     """
     <dl>
       <dt>'GatherBy[$list$, $f$]'
-      <dd>gathers leaves of $list$ into sub lists of items whose image under $f identical.
+      <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical.
 
       <dt>'GatherBy[$list$, {$f$, $g$, ...}]'
-      <dd>gathers leaves of $list$ into sub lists of items whose image under $f identical. Then, gathers these sub lists again into sub sub lists, that are identical under $g.
+      <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical. Then, gathers these sub lists again into sub sub lists, that are identical under $g.
     </dl>
 
     >> GatherBy[{{1, 3}, {2, 2}, {1, 1}}, Total]
@@ -457,8 +458,8 @@ class GatherBy(_GatherOperation):
         if not self._check_list(values, func, evaluation):
             return
 
-        keys = Expression("Map", func, values).evaluate(evaluation)
-        if len(keys.leaves) != len(values.leaves):
+        keys = Expression(SymbolMap, func, values).evaluate(evaluation)
+        if len(keys.elements) != len(values.elements):
             return
 
         return self._gather(keys, values, _FastEquivalence())
@@ -514,12 +515,12 @@ class Join(Builtin):
                 evaluation.message("Join", "heads", head, list.get_head())
                 return
             head = list.get_head()
-            result.extend(list.leaves)
+            result.extend(list.elements)
 
         if result:
             return sequence[0].restructure(head, result, evaluation, deps=sequence)
         else:
-            return Expression(SymbolList)
+            return ListExpression()
 
 
 class Partition(Builtin):
@@ -561,11 +562,11 @@ class Partition(Builtin):
         make_slice = inner.slice
 
         def slices():
-            leaves = expr.leaves
-            for lower in range(0, len(leaves), d):
+            elements = expr.elements
+            for lower in range(0, len(elements), d):
                 upper = lower + n
 
-                chunk = leaves[lower:upper]
+                chunk = elements[lower:upper]
                 if len(chunk) != n:
                     continue
 
@@ -622,14 +623,14 @@ class Reverse(Builtin):
             return expr
 
         if levels[0] == level:
-            expr = expr.restructure(expr.head, reversed(expr.leaves), evaluation)
+            expr = expr.restructure(expr.head, reversed(expr.elements), evaluation)
 
             if len(levels) > 1:
                 expr = expr.restructure(
                     expr.head,
                     [
-                        Reverse._reverse(leaf, level + 1, levels[1:], evaluation)
-                        for leaf in expr.leaves
+                        Reverse._reverse(element, level + 1, levels[1:], evaluation)
+                        for element in expr.elements
                     ],
                     evaluation,
                 )
@@ -637,8 +638,8 @@ class Reverse(Builtin):
             expr = expr.restructure(
                 expr.head,
                 [
-                    Reverse._reverse(leaf, level + 1, levels, evaluation)
-                    for leaf in expr.leaves
+                    Reverse._reverse(element, level + 1, levels, evaluation)
+                    for element in expr.elements
                 ],
                 evaluation,
             )
@@ -654,13 +655,13 @@ class Reverse(Builtin):
         if isinstance(levels, Integer):
             py_levels = [levels.get_int_value()]
         elif levels.get_head_name() == "System`List":
-            if not levels.leaves:
+            if not levels.elements:
                 return expr
-            if any(not isinstance(level, Integer) for level in levels.leaves):
+            if any(not isinstance(level, Integer) for level in levels.elements):
                 py_levels = None
             else:
                 py_levels = sorted(
-                    list(set(level.get_int_value() for level in levels.leaves))
+                    list(set(level.get_int_value() for level in levels.elements))
                 )
         else:
             py_levels = None
@@ -674,7 +675,7 @@ class Reverse(Builtin):
 
 def riffle_lists(items, seps):
     if len(seps) == 0:  # special case
-        seps = [Expression(SymbolList)]
+        seps = [ListExpression()]
 
     i = 0
     while i < len(items):
@@ -692,7 +693,7 @@ class Riffle(Builtin):
       <dd>inserts a copy of $x$ between each element of $list$.
 
       <dt>'Riffle[{$a1$, $a2$, ...}, {$b1$, $b2$, ...}]'
-      <dd>interleaves the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
+      <dd>interelements the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
     </dl>
 
     >> Riffle[{a, b, c}, x]
@@ -723,7 +724,7 @@ class Riffle(Builtin):
         "Riffle[list_List, sep_]"
 
         if sep.has_form("List", None):
-            result = riffle_lists(list.get_elements(), sep.leaves)
+            result = riffle_lists(list.get_elements(), sep.elements)
         else:
             result = riffle_lists(list.get_elements(), [sep])
 

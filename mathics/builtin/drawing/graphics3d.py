@@ -34,7 +34,7 @@ def coords3D(value):
     raise CoordinatesError
 
 
-class Coords3D(object):
+class Coords3D:
     def __init__(self, graphics=None, expr=None, pos=None):
         self.p = pos
         if expr is not None:
@@ -82,7 +82,7 @@ class Graphics3D(Graphics):
      . currentprojection=perspective(2.6,-4.8,4.0);
      . currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
      . // Sphere3DBox
-     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1));
+     . draw(surface(sphere((0, 0, 0), 1)), rgb(1,1,1)+opacity(1));
      . draw(((-1,-1,-1)--(1,-1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
      . draw(((-1,1,-1)--(1,1,-1)), rgb(0.4, 0.4, 0.4)+linewidth(1));
      . draw(((-1,-1,1)--(1,-1,1)), rgb(0.4, 0.4, 0.4)+linewidth(1));

@@ -9,9 +9,14 @@ from mathics.algorithm.parts import walk_parts
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.expression import Expression
+
 from mathics.core.atoms import Integer, Integer0
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolRule, SymbolTable
+
+SymbolSparseArray = Symbol("SparseArray")
 
 
 class SparseArray(Builtin):
@@ -46,66 +51,68 @@ class SparseArray(Builtin):
     def list_to_sparse(self, array, evaluation):
         # TODO: Simplify and modularize this method.
 
-        leaves = []
+        elements = []
         dims = None
         if not array.has_form("List", None):
             return array
-        if len(array.leaves) == 0:
+        if len(array.elements) == 0:
             return
-        # The first leaf determines the dimensions
+        # The first element determines the dimensions
         dims = None
-        leaf = array.leaves[0]
-        if leaf.has_form("List", None):
-            leaf = self.list_to_sparse(leaf, evaluation)
-            if leaf is None:
+        element = array.elements[0]
+        if element.has_form("List", None):
+            element = self.list_to_sparse(element, evaluation)
+            if element is None:
                 return None
-        if leaf.has_form("SparseArray", None):
-            dims = leaf.leaves[1]
+        if element.has_form("SparseArray", None):
+            dims = element.elements[1]
         if dims:
-            leaves = [leaf]
-            for i, leaf in enumerate(array.leaves):
+            elements = [element]
+            for i, element in enumerate(array.elements):
                 if i == 0:
                     continue
-                newleaf = self.list_to_sparse(leaf, evaluation)
-                if newleaf is None:
+                newelement = self.list_to_sparse(element, evaluation)
+                if newelement is None:
                     return
-                if not newleaf.has_form("SparseArray", None):
+                if not newelement.has_form("SparseArray", None):
                     return
-                if not dims == newleaf.leaves[1]:
+                if not dims == newelement.elements[1]:
                     return
-                leaves.append(newleaf)
+                elements.append(newelement)
         else:
-            for i, leaf in enumerate(array.leaves):
-                if leaf.has_form("SparseArray", None) or leaf.has_form("List", None):
+            for i, element in enumerate(array.elements):
+                if element.has_form("SparseArray", None) or element.has_form(
+                    "List", None
+                ):
                     return
-                if leaf.is_numeric(evaluation) and leaf.is_zero:
+                if element.is_numeric(evaluation) and element.is_zero:
                     continue
-                leaves.append(
-                    Expression("Rule", Expression("List", Integer(i + 1)), leaf)
+                elements.append(
+                    Expression(SymbolRule, ListExpression(Integer(i + 1)), element)
                 )
 
-            dims = Expression("List", Integer(len(array.leaves)))
+            dims = ListExpression(Integer(len(array.elements)))
             return Expression(
-                "SparseArray",
-                Symbol("Automatic"),
+                SymbolSparseArray,
+                SymbolAutomatic,
                 dims,
                 Integer0,
-                Expression("List", *leaves),
+                ListExpression(*elements),
             )
         # Now, reformat the list of sparse arrays as a single sparse array
-        dims = Expression("List", Integer(len(array.leaves)), *(dims.leaves))
+        dims = ListExpression(Integer(len(array.elements)), *(dims.elements))
         rules = []
-        for i, leaf in enumerate(leaves):
-            for rule in leaf.leaves[3].leaves:
-                pat, val = rule.leaves
-                pat = Expression("List", Integer(i + 1), *(pat.leaves))
-                rules.append(Expression("Rule", pat, val))
+        for i, element in enumerate(elements):
+            for rule in element.elements[3].elements:
+                pat, val = rule.elements
+                pat = ListExpression(Integer(i + 1), *(pat.elements))
+                rules.append(Expression(SymbolRule, pat, val))
         return Expression(
-            "SparseArray",
-            Symbol("Automatic"),
+            SymbolSparseArray,
+            SymbolAutomatic,
             dims,
             Integer0,
-            Expression("List", *rules),
+            ListExpression(*rules),
         )
 
     def apply_dimensions(self, dims, default, data, evaluation):
@@ -114,48 +121,48 @@ class SparseArray(Builtin):
 
     def apply_normal(self, dims, default, data, evaluation):
         """System`Normal[System`SparseArray[System`Automatic, dims_List, default_, data_List]]"""
-        its = [Expression("List", n) for n in dims.leaves]
-        table = Expression("Table", default, *its)
+        its = [ListExpression(n) for n in dims.elements]
+        table = Expression(SymbolTable, default, *its)
         table = table.evaluate(evaluation)
         # Now, apply the rules...
-        for item in data.leaves:
-            pos, val = item.leaves
+        for item in data.elements:
+            pos, val = item.elements
             if pos.has_form("List", None):
-                walk_parts([table], pos.leaves, evaluation, val)
+                walk_parts([table], pos.elements, evaluation, val)
         return table
 
     def find_dimensions(self, rules, evaluation):
         dims = None
         for rule in rules:
-            pos = rule.leaves[0]
+            pos = rule.elements[0]
             if pos.has_form("List", None):
                 if dims is None:
-                    dims = [0] * len(pos.leaves)
-                for i, idx in enumerate(pos.leaves):
+                    dims = [0] * len(pos.elements)
+                for i, idx in enumerate(pos.elements):
                     if isinstance(idx, Integer):
                         j = idx.get_int_value()
                         if dims[i] < j:
                             dims[i] = j
         if any(d == 0 for d in dims):
             return
-        return Expression("List", *[Integer(d) for d in dims])
+        return ListExpression(*[Integer(d) for d in dims])
 
     def apply_1(self, rules, evaluation):
         """SparseArray[rules_List]"""
-        if not (rules.has_form("List", None) and len(rules.leaves) > 0):
+        if not (rules.has_form("List", None) and len(rules.elements) > 0):
             if rules is Symbol("Automatic"):
                 return
             print(rules.has_form("List", (1,)))
             evaluation.message("SparseArray", "list", rules)
             return
 
-        if not isinstance(rules.leaves[0], Atom) and rules.leaves[
+        if not isinstance(rules.elements[0], Atom) and rules.elements[
             0
         ].get_head_name() in (
             "System`Rule",
             "System`DelayedRule",
         ):
-            dims = self.find_dimensions(rules.leaves, evaluation)
+            dims = self.find_dimensions(rules.elements, evaluation)
             if dims is None:
                 return
             return self.apply_3(rules, dims, Integer0, evaluation)
@@ -167,4 +174,4 @@ class SparseArray(Builtin):
 
     def apply_3(self, rules, dims, default, evaluation):
         """SparseArray[rules_List, dims_List, default_]"""
-        return Expression("SparseArray", Symbol("Automatic"), dims, default, rules)
+        return Expression(SymbolSparseArray, SymbolAutomatic, dims, default, rules)

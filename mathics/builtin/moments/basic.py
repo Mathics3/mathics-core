@@ -11,17 +11,29 @@ from mathics.builtin.base import Builtin
 
 from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
+from mathics.core.atoms import Integer2
 from mathics.core.expression import (
     Expression,
     Integer,
-    SymbolList,
+    Symbol,
 )
+
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    SymbolDivide,
+    SymbolFloor,
+    SymbolPlus,
+    SymbolTimes,
+)
+from mathics.core.systemsymbols import SymbolSubtract
+
+SymbolMedian = Symbol("Median")
 
 
 class CentralMoment(Builtin):  # see https://en.wikipedia.org/wiki/Central_moment
     """
     <dl>
-    <dt>'CentralMoment[$list$, $r$]'
+      <dt>'CentralMoment[$list$, $r$]'
       <dd>gives the the $r$th central moment (i.e. the $r$th moment about the mean) of $list$.
     </dl>
 
@@ -29,10 +41,10 @@ class CentralMoment(Builtin):  # see https://en.wikipedia.org/wiki/Central_momen
      = 0.100845
     """
 
-    summary_text = "central moments of distributions and data"
     rules = {
         "CentralMoment[list_List, r_]": "Total[(list - Mean[list]) ^ r] / Length[list]",
     }
+    summary_text = "central moments of distributions and data"
 
 
 class Median(_Rectangular):
@@ -54,8 +66,8 @@ class Median(_Rectangular):
      = {99 / 2, 1, 4, 26}
     """
 
-    summary_text = "central value of a dataset"
     messages = {"rectn": "Expected a rectangular array of numbers at position 1 in ``."}
+    summary_text = "central value of a dataset"
 
     def apply(self, data, evaluation):
         "Median[data_List]"
@@ -65,7 +77,7 @@ class Median(_Rectangular):
             try:
                 return self.rect(data)
             except _NotRectangularException:
-                evaluation.message("Median", "rectn", Expression("Median", data))
+                evaluation.message("Median", "rectn", Expression(SymbolMedian, data))
         elif all(element.is_numeric(evaluation) for element in data.elements):
             v = data.get_mutable_elements()  # copy needed for introselect
             n = len(v)
@@ -73,12 +85,12 @@ class Median(_Rectangular):
                 i = n // 2
                 a = introselect(v, i)
                 b = introselect(v, i - 1)
-                return Expression("Divide", Expression("Plus", a, b), 2)
+                return Expression(SymbolDivide, Expression(SymbolPlus, a, b), Integer2)
             else:
                 i = n // 2
                 return introselect(v, i)
         else:
-            evaluation.message("Median", "rectn", Expression("Median", data))
+            evaluation.message("Median", "rectn", Expression(SymbolMedian, data))
 
 
 class Quantile(Builtin):
@@ -119,8 +131,6 @@ class Quantile(Builtin):
          = {2, 6}
     """
 
-    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
-
     messages = {
         "nquan": "The quantile `1` has to be between 0 and 1.",
     }
@@ -129,11 +139,12 @@ class Quantile(Builtin):
         "Quantile[list_List, q_, abcd_]": "Quantile[list, {q}, abcd]",
         "Quantile[list_List, q_]": "Quantile[list, q, {{0, 0}, {1, 0}}]",
     }
+    summary_text = "cut points dividing the range of a probability distribution into continuous intervals"
 
     def apply(self, data, qs, a, b, c, d, evaluation):
         """Quantile[data_List, qs_List, {{a_, b_}, {c_, d_}}]"""
 
-        n = len(data.leaves)
+        n = len(data.elements)
         partially_sorted = data.get_mutable_elements()
 
         def ranked(i):
@@ -150,7 +161,9 @@ class Quantile(Builtin):
                 return
 
             x = Expression(
-                "Plus", a, Expression("Times", Expression("Plus", Integer(n), b), q)
+                SymbolPlus,
+                a,
+                Expression(SymbolTimes, Expression(SymbolPlus, Integer(n), b), q),
             )
 
             numeric_x = x.evaluate(evaluation).numerify(evaluation)
@@ -173,27 +186,29 @@ class Quantile(Builtin):
                     s1 = ranked(int(mpceil(py_x)))
 
                     k = Expression(
-                        "Plus",
+                        SymbolPlus,
                         c,
                         Expression(
-                            "Times",
+                            SymbolTimes,
                             d,
-                            Expression("Subtract", x, Expression("Floor", x)),
+                            Expression(SymbolSubtract, x, Expression(SymbolFloor, x)),
                         ),
                     )
 
                     results.append(
                         Expression(
-                            "Plus",
+                            SymbolPlus,
                             s0,
-                            Expression("Times", k, Expression("Subtract", s1, s0)),
+                            Expression(
+                                SymbolTimes, k, Expression(SymbolSubtract, s1, s0)
+                            ),
                         )
                     )
 
         if len(results) == 1:
             return results[0]
         else:
-            return Expression(SymbolList, *results)
+            return ListExpression(*results)
 
 
 class Quartiles(Builtin):
@@ -207,7 +222,7 @@ class Quartiles(Builtin):
      = {27 / 4, 13, 77 / 4}
     """
 
-    summary_text = "list of quartiles"
     rules = {
         "Quartiles[list_List]": "Quantile[list, {1/4, 1/2, 3/4}, {{1/2, 0}, {0, 1}}]",
     }
+    summary_text = "list of quartiles"

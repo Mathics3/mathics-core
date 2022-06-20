@@ -24,6 +24,7 @@ from mathics.builtin.drawing.graphics_internals import (
 )
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
+    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
@@ -35,18 +36,20 @@ from mathics.builtin.colors.color_directives import (
 )
 
 from mathics.builtin.options import options_to_rules
-from mathics.core.expression import Expression
+
+from mathics.core.atoms import (
+    Integer,
+    Rational,
+    Real,
+)
+from mathics.core.expression import Expression, to_expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import (
     Symbol,
     system_symbols,
     system_symbols_dict,
     SymbolList,
     SymbolNull,
-)
-from mathics.core.atoms import (
-    Integer,
-    Rational,
-    Real,
 )
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
@@ -84,23 +87,23 @@ class CoordinatesError(BoxConstructError):
 
 def coords(value):
     if value.has_form("List", 2):
-        x, y = value.leaves[0].round_to_float(), value.leaves[1].round_to_float()
+        x, y = value.elements[0].round_to_float(), value.elements[1].round_to_float()
         if x is None or y is None:
             raise CoordinatesError
         return (x, y)
     raise CoordinatesError
 
 
-class Coords(object):
+class Coords:
     def __init__(self, graphics, expr=None, pos=None, d=None):
         self.graphics = graphics
         self.p = pos
         self.d = d
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                self.d = coords(expr.leaves[0])
-                if len(expr.leaves) > 1:
-                    self.p = coords(expr.leaves[1])
+                self.d = coords(expr.elements[0])
+                if len(expr.elements) > 1:
+                    self.p = coords(expr.elements[1])
                 else:
                     self.p = None
             else:
@@ -121,7 +124,7 @@ class Coords(object):
 
 def cut(value):
     "Cut values in graphics primitives (not displayed otherwise in SVG)"
-    border = 10 ** 8
+    border = 10**8
     if value < -border:
         value = -border
     elif value > border:
@@ -136,14 +139,14 @@ def _to_float(x):
     return x
 
 
-def _data_and_options(leaves, defined_options):
+def _data_and_options(elements, defined_options):
     data = []
     options = defined_options.copy()
-    for leaf in leaves:
-        if leaf.get_head_name() == "System`Rule":
-            if len(leaf.leaves) != 2:
+    for element in elements:
+        if element.get_head_name() == "System`Rule":
+            if len(element.elements) != 2:
                 raise BoxConstructError
-            name, value = leaf.leaves
+            name, value = element.elements
             name_head = name.get_head_name()
             if name_head == "System`Symbol":
                 py_name = name.get_name()
@@ -153,7 +156,7 @@ def _data_and_options(leaves, defined_options):
                 raise BoxConstructError
             options[py_name] = value
         else:
-            data.append(leaf)
+            data.append(element)
     return data, options
 
 
@@ -161,7 +164,7 @@ def _extract_graphics(graphics, format, evaluation):
     graphics_box = Expression(SymbolMakeBoxes, graphics).evaluate(evaluation)
     # builtin = GraphicsBox(expression=False)
     elements, calc_dimensions = graphics_box._prepare_elements(
-        graphics_box.leaves, {"evaluation": evaluation}, neg_y=True
+        graphics_box.elements, {"evaluation": evaluation}, neg_y=True
     )
     xmin, xmax, ymin, ymax, _, _, _, _ = calc_dimensions()
 
@@ -204,6 +207,7 @@ class Show(Builtin):
     """
 
     options = GRAPHICS_OPTIONS
+    summary_text = "display graphic objects"
 
     def apply(self, graphics, evaluation, options):
         """Show[graphics_, OptionsPattern[%(name)s]]"""
@@ -215,11 +219,14 @@ class Show(Builtin):
         # The below could probably be done with graphics.filter..
         new_elements = []
         options_set = set(options.keys())
-        for leaf in graphics.leaves:
-            leaf_name = leaf.get_head_name()
-            if leaf_name == "System`Rule" and str(leaf.leaves[0]) in options_set:
+        for element in graphics.elements:
+            element_name = element.get_head_name()
+            if (
+                element_name == "System`Rule"
+                and str(element.elements[0]) in options_set
+            ):
                 continue
-            new_elements.append(leaf)
+            new_elements.append(element)
 
         new_elements += options_to_rules(options)
         graphics = graphics.restructure(graphics.head, new_elements, evaluation)
@@ -276,6 +283,7 @@ class Graphics(Builtin):
     options = GRAPHICS_OPTIONS
 
     box_suffix = "Box"
+    summary_text = "general two‐dimensional graphics"
 
     def apply_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
@@ -285,12 +293,12 @@ class Graphics(Builtin):
             head = content.get_head()
 
             if head is SymbolList:
-                return Expression(
-                    SymbolList, *[convert(item) for item in content.leaves]
+                return to_mathics_list(
+                    *content.elements, elements_conversion_fn=convert
                 )
             elif head is Symbol("System`Style"):
-                return Expression(
-                    "StyleBox", *[convert(item) for item in content.leaves]
+                return to_expression(
+                    "StyleBox", *[convert(item) for item in content.elements]
                 )
 
             if head in element_heads:
@@ -303,7 +311,7 @@ class Graphics(Builtin):
                     for atom in atoms
                 ):
                     if head is Symbol("System`Inset"):
-                        inset = content.leaves[0]
+                        inset = content.elements[0]
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
@@ -311,15 +319,16 @@ class Graphics(Builtin):
                                 inset._elements[0], evaluation, opts
                             )
                         n_elements = [inset] + [
-                            apply_N(leaf, evaluation) for leaf in content.leaves[1:]
+                            apply_N(element, evaluation)
+                            for element in content.elements[1:]
                         ]
                     else:
                         n_elements = (
-                            apply_N(leaf, evaluation) for leaf in content.leaves
+                            apply_N(element, evaluation) for element in content.elements
                         )
                 else:
-                    n_elements = content.leaves
-                return Expression(head.name + self.box_suffix, *n_elements)
+                    n_elements = content.elements
+                return Expression(Symbol(head.name + self.box_suffix), *n_elements)
             return content
 
         for option in options:
@@ -344,7 +353,7 @@ class _Size(_GraphicsDirective):
     def init(self, graphics, item=None, value=None):
         super(_Size, self).init(graphics, item)
         if item is not None:
-            self.value = item.leaves[0].round_to_float()
+            self.value = item.elements[0].round_to_float()
         elif value is not None:
             self.value = value
         else:
@@ -385,6 +394,8 @@ class Thickness(_Thickness):
      = -Graphics-
     """
 
+    summary_text = "line thicknesses"
+
     def get_thickness(self):
         return self.graphics.translate_relative(self.value)
 
@@ -398,6 +409,7 @@ class Thin(Builtin):
     """
 
     rules = {"Thin": "AbsoluteThickness[0.5]"}
+    summary_text = "make lines width thiner"
 
 
 class Thick(Builtin):
@@ -409,6 +421,7 @@ class Thick(Builtin):
     """
 
     rules = {"Thick": "AbsoluteThickness[2]"}
+    summary_text = "make lines width thicker"
 
 
 class PointSize(_Size):
@@ -426,6 +439,8 @@ class PointSize(_Size):
     = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
     """
 
+    summary_text = "relative sizes of points"
+
     def get_absolute_size(self):
         if self.graphics.view_width is None:
             self.graphics.view_width = 400
@@ -442,11 +457,18 @@ class FontColor(Builtin):
     </dl>
     """
 
-    pass
+    summary_text = "color of characters"
 
 
 class Offset(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'Offset[{$dx$, $dy$}, $position$]'
+    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+    </dl>
+    """
+
+    summary_text = "offset by an absolute distance"
 
 
 class Rectangle(Builtin):
@@ -466,6 +488,7 @@ class Rectangle(Builtin):
     """
 
     rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
+    summary_text = "2D filled rectangle"
 
 
 class Disk(Builtin):
@@ -497,6 +520,7 @@ class Disk(Builtin):
     """
 
     rules = {"Disk[]": "Disk[{0, 0}]"}
+    summary_text = "filled circle, ellipse or arc"
 
 
 class Circle(Builtin):
@@ -526,10 +550,24 @@ class Circle(Builtin):
     """
 
     rules = {"Circle[]": "Circle[{0, 0}]"}
+    summary_text = "empty circle, ellipse or arc"
 
 
 class Inset(Builtin):
-    pass
+    """
+    <dl>
+    <dt>'Text[$obj$]'
+        <dd>represents an object $obj$ inset in a graphic.
+    <dt>'Text[$obj$, $pos$]'
+        <dd>represents an object $obj$ inset in a graphic at position $pos$.
+    <dt>'Text[$obj$, $pos$, $$]'
+        <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in
+            the enclosing graphic.
+    </dl>
+
+    """
+
+    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
 
 
 class Text(Inset):
@@ -546,25 +584,30 @@ class Text(Inset):
      = -Graphics-
     """
 
+    summary_text = "arbitrary text or other expressions in 2D or 3D"
+
 
 class _Polyline(_GraphicsElementBox):
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
             raise BoxConstructError
         if (
-            points.leaves
-            and points.leaves[0].has_form("List", None)
-            and all(leaf.has_form("List", None) for leaf in points.leaves[0].leaves)
+            points.elements
+            and points.elements[0].has_form("List", None)
+            and all(
+                element.has_form("List", None)
+                for element in points.elements[0].elements
+            )
         ):
-            leaves = points.leaves
+            elements = points.elements
             self.multi_parts = True
         else:
-            leaves = [Expression(SymbolList, *points.leaves)]
+            elements = [ListExpression(*points.elements)]
             self.multi_parts = False
         lines = []
-        for leaf in leaves:
-            if leaf.has_form("List", None):
-                lines.append(leaf.leaves)
+        for element in elements:
+            if element.has_form("List", None):
+                lines.append(element.elements)
             else:
                 raise BoxConstructError
         self.lines = [
@@ -609,7 +652,7 @@ class Point(Builtin):
 
     """
 
-    pass
+    summary_text = "a point or list of points in 2D or 3D"
 
 
 # FIXME: We model points as line segments which
@@ -630,7 +673,7 @@ class Line(Builtin):
     = -Graphics3D-
     """
 
-    pass
+    summary_text = "a line joining a sequence of points in 2D or 3D"
 
 
 def _svg_bezier(*segments):
@@ -679,7 +722,7 @@ class FilledCurve(Builtin):
     = -Graphics-
     """
 
-    pass
+    summary_text = "a filled area with curve segment boundary in 2D"
 
 
 class Polygon(Builtin):
@@ -706,7 +749,7 @@ class Polygon(Builtin):
     = -Graphics3D-
     """
 
-    pass
+    summary_text = "a polygon in 2D or 3D"
 
 
 class RegularPolygon(Builtin):
@@ -728,6 +771,8 @@ class RegularPolygon(Builtin):
     >> Graphics[{Yellow, Rectangle[], Orange, RegularPolygon[{1, 1}, {0.25, 0}, 3]}]
     = -Graphics-
     """
+
+    summary_text = "a regular polygon in 2D"
 
 
 class Arrow(Builtin):
@@ -763,7 +808,7 @@ class Arrow(Builtin):
      = {-Graphics-, -Graphics-, -Graphics-, -Graphics-, -Graphics-}
     """
 
-    pass
+    summary_text = "graphics primitive to specify arbitrary graphical arrows"
 
 
 class Arrowheads(_GraphicsDirective):
@@ -805,12 +850,13 @@ class Arrowheads(_GraphicsDirective):
         "System`Medium": 9,
         "System`Large": 18,
     }
+    summary_text = "form and placement of arrowheads"
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
-        if len(item.leaves) != 1:
+        if len(item.elements) != 1:
             raise BoxConstructError
-        self.spec = item.leaves[0]
+        self.spec = item.elements[0]
 
     def _arrow_size(self, s, extent):
         if isinstance(s, Symbol):
@@ -823,10 +869,10 @@ class Arrowheads(_GraphicsDirective):
         # see https://reference.wolfram.com/language/ref/Arrowheads.html
 
         if self.spec.get_head_name() == "System`List":
-            leaves = self.spec.leaves
-            if all(x.get_head_name() == "System`List" for x in leaves):
-                for head in leaves:
-                    spec = head.leaves
+            elements = self.spec.elements
+            if all(x.get_head_name() == "System`List" for x in elements):
+                for head in elements:
+                    spec = head.elements
                     if len(spec) not in (2, 3):
                         raise BoxConstructError
                     size_spec = spec[0]
@@ -853,8 +899,8 @@ class Arrowheads(_GraphicsDirective):
 
                     yield s, _to_float(spec[1]), arrow
             else:
-                n = max(1.0, len(leaves) - 1.0)
-                for i, head in enumerate(leaves):
+                n = max(1.0, len(elements) - 1.0)
+                for i, head in enumerate(elements):
                     yield self._arrow_size(head, extent), i / n, default_arrow
         else:
             yield self._arrow_size(self.spec, extent), 1, default_arrow
@@ -1018,6 +1064,10 @@ def total_extent(extents):
 
 class EdgeForm(Builtin):
     """
+    <dl>
+    <dt> 'EdgeForm[$g$]'
+    <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
     >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
      = -Graphics-
 
@@ -1025,11 +1075,18 @@ class EdgeForm(Builtin):
      = -Graphics-
     """
 
-    pass
+    summary_text = "rendering properties for edges"
 
 
 class FaceForm(Builtin):
-    pass
+    """
+    <dl>
+    <dt> 'FaceForm[$g$]'
+    <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
+    """
+
+    summary_text = "rendering properties for faces"
 
 
 def _style(graphics, item):
@@ -1041,20 +1098,20 @@ def _style(graphics, item):
         style = graphics.style_class(
             graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
         )
-        if len(item.leaves) > 1:
+        if len(item.elements) > 1:
             raise BoxConstructError
-        if item.leaves:
-            if item.leaves[0].has_form("List", None):
-                for dir in item.leaves[0].leaves:
+        if item.elements:
+            if item.elements[0].has_form("List", None):
+                for dir in item.elements[0].elements:
                     style.append(dir, allow_forms=False)
             else:
-                style.append(item.leaves[0], allow_forms=False)
+                style.append(item.elements[0], allow_forms=False)
     else:
         raise BoxConstructError
     return style
 
 
-class Style(object):
+class Style:
     def __init__(self, graphics, edge=False, face=False):
         self.styles = []
         self.options = {}
@@ -1114,7 +1171,6 @@ class Style(object):
                         _, face_style = item.get_style(
                             style_class, default_to_faces=True, consider_forms=False
                         )
-
         return edge_style, face_style
 
     def get_option(self, name):
@@ -1144,7 +1200,7 @@ def _flatten(elements):
             yield element
 
 
-class _GraphicsElements(object):
+class _GraphicsElements:
     style_class = Style
 
     def __init__(self, content, evaluation):
@@ -1165,8 +1221,8 @@ class _GraphicsElements(object):
                 head = spec.get_head()
                 if head in style_and_form_heads:
                     new_style.append(spec)
-                elif head is Symbol("System`Rule") and len(spec.leaves) == 2:
-                    option, expr = spec.leaves
+                elif head is Symbol("System`Rule") and len(spec.elements) == 2:
+                    option, expr = spec.elements
                     if not isinstance(option, Symbol):
                         raise BoxConstructError
 
@@ -1182,7 +1238,7 @@ class _GraphicsElements(object):
 
         def convert(content, style):
             if content.has_form("List", None):
-                items = content.leaves
+                items = content.elements
             else:
                 items = [content]
             style = style.clone()
@@ -1193,17 +1249,17 @@ class _GraphicsElements(object):
                 if head in style_and_form_heads:
                     style.append(item)
                 elif head is Symbol("System`StyleBox"):
-                    if len(item.leaves) < 1:
+                    if len(item.elements) < 1:
                         raise BoxConstructError
                     for element in convert(
-                        item.leaves[0], stylebox_style(style, item.leaves[1:])
+                        item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
                         yield element
                 elif head.name[-3:] == "Box":  # and head[:-3] in element_heads:
                     element_class = get_class(head)
                     options = get_options(head.name[:-3])
                     if options:
-                        data, options = _data_and_options(item.leaves, options)
+                        data, options = _data_and_options(item.elements, options)
                         new_item = Expression(head, *data)
                         element = element_class(self, style, new_item, options)
                     else:
@@ -1213,6 +1269,7 @@ class _GraphicsElements(object):
                     for element in convert(item, style):
                         yield element
                 else:
+                    print(item, " of type ", type(item), " is not a box.")
                     raise BoxConstructError
 
         self.elements = list(convert(content, self.style_class(self)))
@@ -1222,7 +1279,7 @@ class _GraphicsElements(object):
 
         def convert(expr):
             if expr.has_form(("List", "Directive"), None):
-                for item in expr.leaves:
+                for item in expr.elements:
                     convert(item)
             else:
                 style.append(expr)
@@ -1303,7 +1360,15 @@ class GraphicsElements(_GraphicsElements):
 
 
 class Directive(Builtin):
+    """
+    <dl>
+    <dt> 'Directive'[$g_1$, $g_2$, ...]
+    <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
+    </dl>
+    """
+
     attributes = read_protected | protected
+    summary_text = "compound directive"
 
 
 class Tiny(Builtin):
@@ -1314,6 +1379,8 @@ class Tiny(Builtin):
     </dl>
     """
 
+    summary_text = "tiny size"
+
 
 class Small(Builtin):
     """
@@ -1322,6 +1389,8 @@ class Small(Builtin):
         <dd>produces a small image.
     </dl>
     """
+
+    summary_text = "small size"
 
 
 class Medium(Builtin):
@@ -1332,6 +1401,8 @@ class Medium(Builtin):
     </dl>
     """
 
+    summary_text = "medium size"
+
 
 class Large(Builtin):
     """
@@ -1340,6 +1411,8 @@ class Large(Builtin):
         <dd>produces a large image.
     </dl>
     """
+
+    summary_text = "large size"
 
 
 element_heads = frozenset(
@@ -1382,6 +1455,7 @@ styles = system_symbols_dict(
         "Thin": Thin,
         "PointSize": PointSize,
         "Arrowheads": Arrowheads,
+        "Opacity": Opacity,
     }
 )
 

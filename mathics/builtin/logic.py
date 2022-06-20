@@ -4,11 +4,6 @@
 from mathics.builtin.base import BinaryOperator, Predefined, PrefixOperator, Builtin
 from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_levels
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolTrue,
-    SymbolFalse,
-)
 
 from mathics.core.attributes import (
     flat,
@@ -17,6 +12,21 @@ from mathics.core.attributes import (
     orderless,
     protected,
     locked,
+)
+
+
+from mathics.core.symbols import (
+    Symbol,
+    SymbolTrue,
+    SymbolFalse,
+)
+
+from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolImplies,
+    SymbolNot,
+    SymbolOr,
+    SymbolXor,
 )
 
 
@@ -53,18 +63,18 @@ class Or(BinaryOperator):
         "Or[args___]"
 
         args = args.get_sequence()
-        leaves = []
+        elements = []
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 return SymbolTrue
             elif result != SymbolFalse:
-                leaves.append(result)
-        if leaves:
-            if len(leaves) == 1:
-                return leaves[0]
+                elements.append(result)
+        if elements:
+            if len(elements) == 1:
+                return elements[0]
             else:
-                return Expression("Or", *leaves)
+                return Expression(SymbolOr, *elements)
         else:
             return SymbolFalse
 
@@ -102,18 +112,18 @@ class And(BinaryOperator):
         "And[args___]"
 
         args = args.get_sequence()
-        leaves = []
+        elements = []
         for arg in args:
             result = arg.evaluate(evaluation)
             if result is SymbolFalse:
                 return SymbolFalse
-            elif not result.is_true():
-                leaves.append(result)
-        if leaves:
-            if len(leaves) == 1:
-                return leaves[0]
+            elif not result is SymbolTrue:
+                elements.append(result)
+        if elements:
+            if len(elements) == 1:
+                return elements[0]
             else:
-                return Expression("And", *leaves)
+                return Expression(SymbolAnd, *elements)
         else:
             return SymbolTrue
 
@@ -214,10 +224,10 @@ class Implies(BinaryOperator):
         result0 = x.evaluate(evaluation)
         if result0 is SymbolFalse:
             return SymbolTrue
-        elif result0.is_true():
+        elif result0 is SymbolTrue:
             return y.evaluate(evaluation)
         else:
-            return Expression("Implies", result0, y.evaluate(evaluation))
+            return Expression(SymbolImplies, result0, y.evaluate(evaluation))
 
 
 class Equivalent(BinaryOperator):
@@ -261,14 +271,14 @@ class Equivalent(BinaryOperator):
         flag = False
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result is SymbolFalse or result.is_true():
+            if result is SymbolFalse or result is SymbolTrue:
                 flag = not flag
                 break
         if flag:
             return Expression(
-                "Or",
-                Expression("And", *args),
-                Expression("And", *[Expression("Not", arg) for arg in args]),
+                SymbolOr,
+                Expression(SymbolAnd, *args),
+                Expression(SymbolAnd, *[Expression(SymbolNot, arg) for arg in args]),
             ).evaluate(evaluation)
         else:
             return Expression("Equivalent", *args)
@@ -315,24 +325,24 @@ class Xor(BinaryOperator):
         "Xor[args___]"
 
         args = args.get_sequence()
-        leaves = []
+        elements = []
         flag = True
         for arg in args:
             result = arg.evaluate(evaluation)
-            if result.is_true():
+            if result is SymbolTrue:
                 flag = not flag
             elif result != SymbolFalse:
-                leaves.append(result)
-        if leaves and flag:
-            if len(leaves) == 1:
-                return leaves[0]
+                elements.append(result)
+        if elements and flag:
+            if len(elements) == 1:
+                return elements[0]
             else:
-                return Expression("Xor", *leaves)
-        elif leaves and not flag:
-            if len(leaves) == 1:
-                return Expression("Not", leaves[0])
+                return Expression(SymbolXor, *elements)
+        elif elements and not flag:
+            if len(elements) == 1:
+                return Expression(SymbolNot, elements[0])
             else:
-                return Expression("Not", Expression("Xor", *leaves))
+                return Expression(SymbolNot, Expression("Xor", *elements))
         else:
             return Symbol(repr(not flag))
 
@@ -390,7 +400,9 @@ class _ManyTrue(Builtin):
             return
 
         def callback(node):
-            self._short_circuit(Expression(test, node).evaluate(evaluation).is_true())
+            self._short_circuit(
+                Expression(test, node).evaluate(evaluation) is SymbolTrue
+            )
             return node
 
         try:

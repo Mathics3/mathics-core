@@ -1,33 +1,31 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 Global System Information
 """
 
-
+import gc
 import os
 import platform
 import sys
 import subprocess
 
-from mathics.version import __version__
-from mathics.core.expression import Expression
+from mathics import version_string
+from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import (
     Integer,
     Integer0,
+    IntegerM1,
     Real,
     String,
 )
-from mathics.core.symbols import (
-    SymbolList,
-)
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolRule,
 )
-from mathics.builtin.base import Builtin, Predefined
-from mathics import version_string
+from mathics.version import __version__
 
 try:
     import psutil
@@ -104,7 +102,7 @@ class CommandLine(Predefined):
     name = "$CommandLine"
 
     def evaluate(self, evaluation) -> Expression:
-        return Expression(SymbolList, *(String(arg) for arg in sys.argv))
+        return ListExpression(*(String(arg) for arg in sys.argv))
 
 
 class Environment(Builtin):
@@ -176,7 +174,7 @@ class GetEnvironment(Builtin):
                 Expression(SymbolRule, name, value)
                 for name, value in os.environ.items()
             ]
-            return Expression(SymbolList, *rules)
+            return ListExpression(*rules)
 
 
 class Machine(Predefined):
@@ -310,7 +308,7 @@ class ProcessorType(Predefined):
 class ScriptCommandLine(Predefined):
     """
     <dl>
-    <dt>'$ScriptCommandLine'
+      <dt>'$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
     </dl>
     >> $ScriptCommandLine
@@ -325,10 +323,10 @@ class ScriptCommandLine(Predefined):
             dash_index = sys.argv.index("--")
         except ValueError:
             # not run in script mode
-            return Expression(SymbolList)
+            return ListExpression()
         scriptname = "" if dash_index == 0 else sys.argv[dash_index - 1]
         parms = [scriptname] + [s for s in sys.argv[dash_index + 1 :]]
-        return Expression(SymbolList, *(String(arg) for arg in parms))
+        return to_mathics_list(*parms, elements_conversion_fn=String)
 
 
 class Run(Builtin):
@@ -385,7 +383,7 @@ class SystemWordLength(Predefined):
         # says it is more reliable to get bits using sys.maxsize
         # than platform.architecture()[0]
         size = 128
-        while not sys.maxsize > 2 ** size:
+        while not sys.maxsize > 2**size:
             size >>= 1
         return Integer(size << 1)
 
@@ -494,7 +492,6 @@ if have_psutil:
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
 
-
 else:
 
     class SystemMemory(Predefined):
@@ -513,7 +510,7 @@ else:
         name = "$SystemMemory"
 
         def evaluate(self, evaluation) -> Integer:
-            return Integer(-1)
+            return IntegerM1
 
     class MemoryAvailable(Builtin):
         """
@@ -538,7 +535,7 @@ class MemoryInUse(Builtin):
     """
     <dl>
       <dt>'MemoryInUse[]'
-      <dd>Returns the amount of memory used by the definitions object.
+      <dd>Returns the amount of memory used by all of the definitions objects if we can determine that; -1 otherwise.
     </dl>
 
     >> MemoryInUse[]
@@ -555,7 +552,11 @@ class MemoryInUse(Builtin):
 
         definitions = evaluation.definitions
         seen = set()
-        default_size = getsizeof(0)
+        try:
+            default_size = getsizeof(0)
+        except TypeError:
+            return IntegerM1
+
         handlers = {
             tuple: iter,
             list: iter,
@@ -582,30 +583,42 @@ class Share(Builtin):
     """
     <dl>
       <dt>'Share[]'
-      <dd>Tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
-          Now it just do nothing.
+      <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
       <dt>'Share[Symbol]'
-      <dd>Tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+      <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
+
     </dl>
 
     >> Share[]
      = ...
     """
 
-    summary_text = "share common subexpressions throughout memory"
+    summary_text = "force Python garbage collection"
 
-    def apply_0(self, evaluation) -> Integer:
+    def apply(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0
 
-    def apply_1(self, symbol, evaluation) -> Integer:
+    def apply_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
-        return Integer0
+        if have_psutil:
+            totalmem = psutil.virtual_memory().available
+            gc.collect()
+            return Integer(totalmem - psutil.virtual_memory().available)
+        else:
+            gc.collect()
+            return Integer0

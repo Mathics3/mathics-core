@@ -1,4 +1,11 @@
-from scipy.integrate import romberg, quad, nquad
+# -*- coding: utf-8 -*-
+import sys
+from mathics.builtin import check_requires_list
+from mathics.core.utils import IS_PYPY
+
+if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
+    raise ImportError
+
 import numpy as np
 
 
@@ -35,41 +42,46 @@ def _scipy_interface(integrator, options_map, mandatory=None, adapt_func=None):
     return _scipy_proxy_func_filter if adapt_func else _scipy_proxy_func
 
 
-scipy_nintegrate_methods = {
-    "NQuadrature": tuple(
-        (
-            _scipy_interface(
-                nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
-            ),
-            True,
-        )
-    ),
-    "Quadrature": tuple(
-        (
-            _scipy_interface(
-                quad,
-                {
-                    "tol": ("epsabs", None),
-                    "maxrec": ("limit", lambda maxrec: int(2 ** maxrec)),
-                },
-                {"full_output": 1},
-                lambda res: (res[0], res[1]),
-            ),
-            False,
-        )
-    ),
-    "Romberg": tuple(
-        (
-            _scipy_interface(
-                romberg,
-                {"tol": ("tol", None), "maxrec": ("divmax", None)},
-                None,
-                lambda x: (x, np.nan),
-            ),
-            False,
-        )
-    ),
-}
+try:
+    from scipy.integrate import romberg, quad, nquad
+except Exception:
+    scipy_nintegrate_methods = {}
+else:
+    scipy_nintegrate_methods = {
+        "NQuadrature": tuple(
+            (
+                _scipy_interface(
+                    nquad, {}, {"full_output": 1}, lambda res: (res[0], res[1])
+                ),
+                True,
+            )
+        ),
+        "Quadrature": tuple(
+            (
+                _scipy_interface(
+                    quad,
+                    {
+                        "tol": ("epsabs", None),
+                        "maxrec": ("limit", lambda maxrec: int(2**maxrec)),
+                    },
+                    {"full_output": 1},
+                    lambda res: (res[0], res[1]),
+                ),
+                False,
+            )
+        ),
+        "Romberg": tuple(
+            (
+                _scipy_interface(
+                    romberg,
+                    {"tol": ("tol", None), "maxrec": ("divmax", None)},
+                    None,
+                    lambda x: (x, np.nan),
+                ),
+                False,
+            )
+        ),
+    }
 
 scipy_nintegrate_methods["Automatic"] = scipy_nintegrate_methods["Quadrature"]
 scipy_nintegrate_messages = dict()

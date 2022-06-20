@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.builtin.assignments.internals import get_symbol_list
+from mathics.core.attributes import hold_all, protected
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Symbol,
-    fully_qualified_symbol_name,
-)
 from mathics.core.atoms import (
     String,
     Integer,
 )
-
-from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.evaluation import Evaluation
-
-from mathics.core.attributes import hold_all, protected
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Symbol,
+    fully_qualified_symbol_name,
+)
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
@@ -414,15 +412,13 @@ class Unique(Predefined):
         list = []
         for symbol in symbols:
             if isinstance(symbol, Symbol):
-                list.append(
-                    Module(Expression("List", symbol), symbol).evaluate(evaluation)
-                )
+                list.append(Module(ListExpression(symbol), symbol).evaluate(evaluation))
             else:
-                new_name = "%s%d" % (symbol.get_string_value(), self.seq_number)
+                new_name = f"{symbol.get_string_value()}{self.seq_number}"
                 self.seq_number += 1
                 # Next symbol in case of new name is defined before
                 while evaluation.definitions.get_definition(new_name, True) is not None:
-                    new_name = "%s%d" % (symbol.get_string_value(), self.seq_number)
+                    new_name = f"{symbol.get_string_value()}{self.seq_number}"
                     self.seq_number += 1
                 list.append(Symbol(new_name))
         for symbol in list:
@@ -430,7 +426,7 @@ class Unique(Predefined):
                 evaluation.definitions.set_attribute(symbol.get_name(), att)
 
         if vars.has_form("List", None):
-            return Expression("List", *list)
+            return ListExpression(*list)
         else:
             return list[0]
 
@@ -438,8 +434,8 @@ class Unique(Predefined):
 class Contexts(Builtin):
     """
     <dl>
-    <dt>'Contexts[]'
-        <dd>yields a list of all contexts.
+      <dt>'Contexts[]'
+      <dd>yields a list of all contexts.
     </dl>
 
     ## this assignment makes sure that a definition in Global` exists
@@ -456,14 +452,14 @@ class Contexts(Builtin):
         for name in evaluation.definitions.get_names():
             contexts.add(String(name[: name.rindex("`") + 1]))
 
-        return Expression("List", *sorted(contexts))
+        return ListExpression(*sorted(contexts))
 
 
 class Context_(Predefined):
     """
     <dl>
-    <dt>'$Context'
-        <dd>is the current context.
+      <dt>'$Context'
+      <dd>is the current context.
     </dl>
 
     >> $Context
@@ -490,8 +486,8 @@ class Context_(Predefined):
 class ContextPath(Predefined):
     """
     <dl>
-    <dt>'$ContextPath'
-        <dd>is the search path for contexts.
+      <dt>'$ContextPath'
+      <dd>is the search path for contexts.
     </dl>
 
     X> $ContextPath // InputForm
@@ -517,8 +513,8 @@ class ContextPath(Predefined):
 class Begin(Builtin):
     """
     <dl>
-    <dt>'Begin'[$context$]
-        <dd>temporarily sets the current context to $context$.
+      <dt>'Begin'[$context$]
+      <dd>temporarily sets the current context to $context$.
     </dl>
 
     >> Begin["test`"]
@@ -555,8 +551,8 @@ class Begin(Builtin):
 class End(Builtin):
     """
     <dl>
-    <dt>'End[]'
-        <dd>ends a context started by 'Begin'.
+      <dt>'End[]'
+      <dd>ends a context started by 'Begin'.
     </dl>
     """
 
@@ -583,8 +579,8 @@ class End(Builtin):
 class BeginPackage(Builtin):
     """
     <dl>
-    <dt>'BeginPackage'[$context$]
-        <dd>starts the package given by $context$.
+      <dt>'BeginPackage'[$context$]
+      <dd>starts the package given by $context$.
     </dl>
 
     The $context$ argument must be a valid context name.
@@ -617,13 +613,11 @@ class BeginPackage(Builtin):
 class EndPackage(Builtin):
     """
     <dl>
-    <dt>'EndPackage[]'
-        <dd>marks the end of a package, undoing a previous 'BeginPackage'.
+      <dt>'EndPackage[]'
+      <dd>marks the end of a package, undoing a previous 'BeginPackage'.
     </dl>
 
-    After 'EndPackage', the values of '$Context' and '$ContextPath' at
-    the time of the 'BeginPackage' call are restored, with the new
-    package\'s context prepended to $ContextPath.
+    After 'EndPackage', the values of '$Context' and '$ContextPath' at the time of the 'BeginPackage' call are restored, with the new package\'s context prepended to $ContextPath.
     """
 
     messages = {
@@ -650,7 +644,7 @@ class EndPackage(Builtin):
 class ContextStack(Builtin):
     """
     <dl>
-    <dt>'System`Private`$ContextStack'
+      <dt>'System`Private`$ContextStack'
         <dd>is an internal variable tracking the values of '$Context'
         saved by 'Begin' and 'BeginPackage'.
     </dl>
@@ -667,9 +661,8 @@ class ContextStack(Builtin):
 class ContextPathStack(Builtin):
     """
     <dl>
-    <dt>'System`Private`$ContextPathStack'
-        <dd>is an internal variable tracking the values of
-        '$ContextPath' saved by 'Begin' and 'BeginPackage'.
+      <dt>'System`Private`$ContextPathStack'
+      <dd>is an internal variable tracking the values of '$ContextPath' saved by 'Begin' and 'BeginPackage'.
     </dl>
     """
 

@@ -6,7 +6,7 @@ import os.path
 import logging
 
 
-class MagicRule(object):
+class MagicRule:
     def __init__(
         self,
         mimeType,
@@ -27,7 +27,7 @@ class MagicRule(object):
         return "<rule %s>" % self.mimeType
 
 
-class MagicDetector(object):
+class MagicDetector:
     def __init__(self, mimetypes):
         self.mimetypes = mimetypes
 
@@ -84,7 +84,7 @@ class MagicDetector(object):
         return list(matches.keys())
 
 
-class MagicLoader(object):
+class MagicLoader:
     def __init__(self, filename=None):
         if not filename:
             filename = os.path.join(os.path.dirname(__file__), "mimetypes.xml")

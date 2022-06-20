@@ -2,19 +2,32 @@
 
 
 from mathics.algorithm.parts import walk_parts
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
-from mathics.core.expression import Expression
-from mathics.core.rules import Rule
 from mathics.core.atoms import Atom, Integer
+from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
+from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.list import ListExpression
+from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
+    SymbolFalse,
+    SymbolMinPrecision,
+    SymbolMaxPrecision,
     SymbolN,
     SymbolTrue,
-    SymbolFalse,
     system_symbols,
     valid_context_name,
 )
-from mathics.core.systemsymbols import SymbolMachinePrecision
+from mathics.core.systemsymbols import (
+    SymbolAnd,
+    SymbolBlank,
+    SymbolCondition,
+    SymbolHoldPattern,
+    SymbolMachinePrecision,
+    SymbolOptionValue,
+    SymbolPattern,
+    SymbolRuleDelayed,
+)
+
 
 from mathics.core.attributes import attribute_string_to_number, locked, protected
 
@@ -51,10 +64,10 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
 def build_rulopc(optval):
     return Rule(
         Expression(
-            "OptionValue",
-            Expression("Pattern", Symbol("$cond$"), Expression("Blank")),
+            SymbolOptionValue,
+            Expression(SymbolPattern, Symbol("$cond$"), SymbolBlank),
         ),
-        Expression("OptionValue", optval, Symbol("$cond$")),
+        Expression(SymbolOptionValue, optval, Symbol("$cond$")),
     )
 
 
@@ -90,9 +103,9 @@ def get_symbol_values(symbol, func_name, position, evaluation):
             if pattern.has_form("HoldPattern", 1):
                 pattern = pattern.expr
             else:
-                pattern = Expression("HoldPattern", pattern.expr)
-            elements.append(Expression("RuleDelayed", pattern, rule.replace))
-    return Expression("List", *elements)
+                pattern = Expression(SymbolHoldPattern, pattern.expr)
+            elements.append(Expression(SymbolRuleDelayed, pattern, rule.replace))
+    return ListExpression(*elements)
 
 
 def is_protected(tag, defin):
@@ -163,7 +176,7 @@ def unroll_patterns(lhs, rhs, evaluation):
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
-        rhs, status = rhs.apply_rules([Rule(*rulerepl)], evaluation)
+        rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
 
     if name == "System`HoldPattern":
@@ -190,10 +203,10 @@ def unroll_conditions(lhs):
     if len(condition) == 0:
         return lhs, None
     if len(condition) > 1:
-        condition = Expression("System`And", *condition)
+        condition = Expression(SymbolAnd, *condition)
     else:
         condition = condition[0]
-    condition = Expression("System`Condition", lhs, condition)
+    condition = Expression(SymbolCondition, lhs, condition)
     lhs._format_cache = None
     return lhs, condition
 
@@ -307,7 +320,7 @@ def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
     if rhs_int_value is not None and rhs_int_value >= 0:
         max_prec = evaluation.definitions.get_config_value("$MaxPrecision")
         if max_prec is not None and max_prec < rhs_int_value:
-            evaluation.message("$MinPrecision", "preccon", Symbol("$MinPrecision"))
+            evaluation.message("$MinPrecision", "preccon", SymbolMinPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:
@@ -323,7 +336,7 @@ def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
     elif rhs_int_value is not None and rhs_int_value > 0:
         min_prec = evaluation.definitions.get_config_value("$MinPrecision")
         if min_prec is not None and rhs_int_value < min_prec:
-            evaluation.message("$MaxPrecision", "preccon", Symbol("$MaxPrecision"))
+            evaluation.message("$MaxPrecision", "preccon", SymbolMaxPrecision)
             raise AssignmentException(lhs, None)
         return False
     else:
@@ -427,15 +440,15 @@ def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
-        process_assign_recursion_limit(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_recursion_limit(lhs, rhs, evaluation)
     elif lhs_name in ("System`$Line", "System`$HistoryLength"):
         process_assign_line_number_and_history_length(
             self, lhs, rhs, evaluation, tags, upset
         )
     elif lhs_name == "System`$IterationLimit":
-        process_assign_iteration_limit(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_iteration_limit(lhs, rhs, evaluation)
     elif lhs_name == "System`$ModuleNumber":
-        process_assign_module_number(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_module_number(lhs, rhs, evaluation)
     elif lhs_name == "System`$MinPrecision":
         process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
     elif lhs_name == "System`$MaxPrecision":
@@ -491,7 +504,7 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
     defs = evaluation.definitions
 
     if len(lhs.leaves) not in (1, 2, 3):
-        evaluation.message_args("Default", len(lhs.leaves), 1, 2, 3)
+        evaluation.message_args(SymbolDefault, len(lhs.leaves), 1, 2, 3)
         raise AssignmentException(lhs, None)
     focus = lhs.leaves[0]
     tags = process_tags_and_upset_dont_allow_custom(
@@ -576,7 +589,7 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
             evaluation.message_args("Condition", len(rhs.leaves), 2)
             raise AssignmentException(lhs, None)
         lhs = Expression(
-            "Condition", lhs, rhs.leaves[1].apply_rules([rulopc], evaluation)[0]
+            SymbolCondition, lhs, rhs.leaves[1].do_apply_rules([rulopc], evaluation)[0]
         )
         rhs = rhs.leaves[0]
         rhs_name = rhs.get_head_name()
@@ -584,9 +597,9 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
     # Now, let's add the conditions on the LHS
     if condition:
         lhs = Expression(
-            "Condition",
+            SymbolCondition,
             lhs,
-            condition.leaves[1].apply_rules([rulopc], evaluation)[0],
+            condition.leaves[1].do_apply_rules([rulopc], evaluation)[0],
         )
     return lhs, rhs
 
@@ -667,7 +680,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     return tags, focus
 
 
-class _SetOperator(object):
+class _SetOperator:
     special_cases = {
         "System`OwnValues": process_assign_definition_values,
         "System`DownValues": process_assign_definition_values,

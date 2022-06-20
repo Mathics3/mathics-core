@@ -17,7 +17,7 @@ jobs:
       - name: Install click
         run: pip install 'click==8.0.4'
       - name: Install Black
-        run: pip install 'black==21.6b0'
+        run: pip install 'black==22.3.0'
       - name: Run black --check .
         run: black --check .
       - name: If needed, commit black changes to the pull request

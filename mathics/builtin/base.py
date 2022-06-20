@@ -7,16 +7,26 @@ from functools import total_ordering
 import importlib
 from itertools import chain
 import typing
-from typing import Any, cast
+from typing import Any, Callable, Iterable, List, Optional, cast
 
 
 from mathics.builtin.exceptions import (
     BoxConstructError,
     MessageException,
 )
-from mathics.core.attributes import no_attributes
+
+from mathics.core.atoms import (
+    Integer,
+    MachineReal,
+    PrecisionReal,
+    String,
+)
+from mathics.core.attributes import protected, read_protected, no_attributes
 from mathics.core.convert import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.expression import Expression, SymbolDefault, to_expression
+from mathics.core.list import ListExpression
+from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
 from mathics.core.rules import Rule, BuiltinRule, Pattern
 from mathics.core.symbols import (
@@ -24,21 +34,25 @@ from mathics.core.symbols import (
     Symbol,
     ensure_context,
     strip_context,
-)
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    String,
-)
-from mathics.core.expression import Expression
-from mathics.core.number import get_precision, PrecisionValueError
-from mathics.core.symbols import (
     SymbolFalse,
     SymbolTrue,
 )
+from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, SymbolRule
 
-from mathics.core.attributes import protected, read_protected
+
+def check_requires_list(requires: list) -> bool:
+    """
+    Check if module names in ``requires`` can be imported and return True if they can or False if not.
+    """
+    for package in requires:
+        lib_is_installed = True
+        try:
+            lib_is_installed = importlib.util.find_spec(package) is not None
+        except ImportError:
+            lib_is_installed = False
+        if not lib_is_installed:
+            return False
+    return True
 
 
 def get_option(options, name, evaluation, pop=False, evaluate=True):
@@ -111,7 +125,7 @@ class Builtin:
     ```
         def apply(x, evaluation):
              "F[x_Real]"
-             return Expression("G", x*2)
+             return Expression(Symbol("G"), x*2)
     ```
 
     adds a ``BuiltinRule`` to the symbol's definition object that implements ``F[x_]->G[x*2]``.
@@ -155,7 +169,7 @@ class Builtin:
     ```
     is equivalent to:
     ```
-    expr_list = Expression(SymbolList, Integer(1), Integer(2), Integer(3))
+    expr_list = ListExpression(Integer(1), Integer(2), Integer(3))
     ```
     """
 
@@ -173,7 +187,7 @@ class Builtin:
     def __new__(cls, *args, **kwargs):
         # comment @mmatera:
         # The goal of this method is to allow to build expressions
-        # like ``Expression(SymbolList,x,y,z)``
+        # like ``ListExpression(x,y,z)``
         # in the handy way  ``List(x,y,z)``.
         # This is handy, but can be confusing if this is not very
         # well documented.
@@ -181,7 +195,7 @@ class Builtin:
         # mathics.builtin.inout
 
         if kwargs.get("expression", None) is not False:
-            return Expression(cls.get_name(), *args)
+            return to_expression(cls.get_name(), *args)
         else:
             instance = super().__new__(cls)
             if not instance.formats:
@@ -238,7 +252,7 @@ class Builtin:
                         evaluation.message(
                             name,
                             "optx",
-                            Expression("Rule", short_key, value),
+                            Expression(SymbolRule, String(short_key), value),
                             strip_context(name),
                         )
                         if option_syntax in ("Strict", "System`Strict"):
@@ -328,7 +342,7 @@ class Builtin:
             self.messages["usage"] = self.summary_text
         messages = [
             Rule(
-                Expression("MessageName", Symbol(name), String(msg)),
+                Expression(SymbolMessageName, Symbol(name), String(msg)),
                 String(value),
                 system=True,
             )
@@ -337,7 +351,7 @@ class Builtin:
 
         messages.append(
             Rule(
-                Expression("MessageName", Symbol(name), String("optx")),
+                Expression(SymbolMessageName, Symbol(name), String("optx")),
                 String("`1` is not a supported option for `2`[]."),
                 system=True,
             )
@@ -358,9 +372,9 @@ class Builtin:
             value = parse_builtin_rule(value)
             pattern = None
             if spec is None:
-                pattern = Expression("Default", Symbol(name))
+                pattern = Expression(SymbolDefault, Symbol(name))
             elif isinstance(spec, int):
-                pattern = Expression("Default", Symbol(name), Integer(spec))
+                pattern = Expression(SymbolDefault, Symbol(name), Integer(spec))
             if pattern is not None:
                 defaults.append(Rule(pattern, value, system=True))
 
@@ -406,7 +420,6 @@ class Builtin:
         unavailable_function = self._get_unavailable_function()
         for name in dir(self):
             if name.startswith(prefix):
-
                 function = getattr(self, name)
                 pattern = function.__doc__
                 if pattern is None:  # Fixes PyPy bug
@@ -438,25 +451,22 @@ class Builtin:
     def get_option(options, name, evaluation, pop=False):
         return get_option(options, name, evaluation, pop)
 
-    def _get_unavailable_function(self):
+    def _get_unavailable_function(self) -> Optional[Callable]:
+        """
+        If some of the required libraries for a symbol are not available,
+        returns a default function that override the ``apply_`` methods
+        of the class. Otherwise, returns ``None``.
+        """
+
+        def apply_unavailable(**kwargs):  # will override apply method
+            kwargs["evaluation"].message(
+                "General",
+                "pyimport",  # see inout.py
+                strip_context(self.get_name()),
+            )
+
         requires = getattr(self, "requires", [])
-
-        for package in requires:
-            try:
-                importlib.import_module(package)
-            except ImportError:
-
-                def apply(**kwargs):  # will override apply method
-                    kwargs["evaluation"].message(
-                        "General",
-                        "pyimport",  # see inout.py
-                        strip_context(self.get_name()),
-                        package,
-                    )
-
-                return apply
-
-        return None
+        return None if check_requires_list(requires) else apply_unavailable
 
     def get_option_string(self, *params):
         s = self.get_option(*params)
@@ -481,7 +491,7 @@ class Builtin:
         raise NotImplementedError
 
 
-class InstanceableBuiltin(Builtin):
+class BuiltinElement(Builtin, BaseElement):
     def __new__(cls, *args, **kwargs):
         new_kwargs = kwargs.copy()
         new_kwargs["expression"] = False
@@ -503,6 +513,9 @@ class InstanceableBuiltin(Builtin):
 
     def init(self, *args, **kwargs):
         pass
+
+    def __hash__(self):
+        return hash((self.get_name(), id(self)))
 
 
 class AtomBuiltin(Builtin):
@@ -539,7 +552,7 @@ class Operator(Builtin):
 
 
 class Predefined(Builtin):
-    def get_functions(self, prefix="apply", is_pymodule=False):
+    def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
         if prefix == "apply" and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
@@ -685,45 +698,43 @@ class SympyFunction(SympyObject):
             return getattr(sympy, self.sympy_name)
         return None
 
-    def prepare_sympy(self, leaves):
-        return leaves
+    def prepare_sympy(self, elements: Iterable) -> Iterable:
+        return elements
 
     def to_sympy(self, expr, **kwargs):
         try:
             if self.sympy_name:
-                leaves = self.prepare_sympy(expr.leaves)
-                sympy_args = [leaf.to_sympy(**kwargs) for leaf in leaves]
+                elements = self.prepare_sympy(expr.elements)
+                sympy_args = [element.to_sympy(**kwargs) for element in elements]
                 if None in sympy_args:
                     return None
-                sympy_function = self.get_sympy_function(leaves)
+                sympy_function = self.get_sympy_function(elements)
                 return sympy_function(*sympy_args)
         except TypeError:
             pass
 
     def from_sympy(self, sympy_name, elements):
-        return Expression(self.get_name(), *elements)
+        return to_expression(self.get_name(), *elements)
 
     def prepare_mathics(self, sympy_expr):
         return sympy_expr
 
 
-class BoxConstruct(InstanceableBuiltin):
+class BoxExpression(BuiltinElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
     # The idea is that this class and their subclasses implement
     # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
-    # Also, these objets should not be evaluated, so in the evaluation process should be
+    # Also, these objects should not be evaluated, so in the evaluation process should be
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
-    # should be evaluated to ``Expression("RowBox", '"a"', '"+"', '"b"')``.
+    # should be evaluated to ``Expression(SymbolRowBox, '"a"', '"+"', '"b"')``.
     #
     # Changes to do, after the refactor of mathics.core:
     #
-    # * Change the name of this class: It must be ``FormatExpression``,
-    #   ``BoxExpression`` or ``BoxElement`` or something like that.
-    # * Make this to be a subclass of ``BaseElement``.
+
     # * Review the implementation
 
     attributes = protected | read_protected
@@ -749,7 +760,7 @@ class BoxConstruct(InstanceableBuiltin):
             </dl>
             """
 
-        # the __new__ method from InstanceableBuiltin
+        # the __new__ method from BuiltinElement
         # calls self.init. It is expected that it set
         # self._elements. However, if it didn't happens,
         # we set it with a default value.
@@ -767,7 +778,7 @@ class BoxConstruct(InstanceableBuiltin):
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
 
-        Think about: We will say that a BoxConstruct can't change.
+        Think about: We will say that a BoxExpression can't change.
         """
         return True
 
@@ -789,19 +800,17 @@ class BoxConstruct(InstanceableBuiltin):
             else:
                 return tex
 
-    def to_expression(self):
-        expr = Expression(self.get_name(), self._elements)
-        return expr
+    def to_expression(self) -> Expression:
+        # FIXME: All classes should store their symbol name.
+        # So there should be a self.head.
+        return Expression(Symbol(self.get_name()), *self._elements)
 
     def replace_vars(self, vars, options=None, in_scoping=True, in_function=True):
         expr = self.to_expression()
         result = expr.replace_vars(vars, options, in_scoping, in_function)
         return result
 
-    def evaluate(self, evaluation):
-        # THINK about: Should we evaluate the elements here?
-        return self
-
+    # Deprecated: remove eventually
     def get_elements(self):
         return self._elements
 
@@ -810,6 +819,9 @@ class BoxConstruct(InstanceableBuiltin):
 
     def get_lookup_name(self):
         return self.get_name()
+
+    def get_sort_key(self):
+        return self.to_expression().get_sort_key()
 
     def get_string_value(self):
         return "-@" + self.get_head_name() + "@-"
@@ -822,7 +834,7 @@ class BoxConstruct(InstanceableBuiltin):
         return self
 
     def format(self, evaluation, fmt):
-        expr = Expression("HoldForm", self.to_expression())
+        expr = Expression(SymbolHoldForm, self.to_expression())
         fexpr = expr.format(evaluation, fmt)
         return fexpr
 
@@ -835,7 +847,7 @@ class BoxConstruct(InstanceableBuiltin):
 
     @head.setter
     def head(self, value):
-        raise ValueError("BoxConstruct.head is write protected.")
+        raise ValueError("BoxExpression.head is write protected.")
 
     @property
     def leaves(self):
@@ -843,49 +855,19 @@ class BoxConstruct(InstanceableBuiltin):
 
     @leaves.setter
     def leaves(self, value):
-        raise ValueError("BoxConstruct.leaves is write protected.")
+        raise ValueError("BoxExpression.leaves is write protected.")
 
-    # I need to repeat this, because this is not
-    # an expression...
-    def has_form(self, heads, *element_counts):
-        """
-        element_counts:
-            (,):        no leaves allowed
-            (None,):    no constraint on number of leaves
-            (n, None):  leaf count >= n
-            (n1, n2, ...):    leaf count in {n1, n2, ...}
-        """
-
-        head_name = self.get_name()
-        if isinstance(heads, (tuple, list, set)):
-            if head_name not in [ensure_context(h) for h in heads]:
-                return False
-        else:
-            if head_name != ensure_context(heads):
-                return False
-        if not element_counts:
-            return False
-        if element_counts and element_counts[0] is not None:
-            count = len(self._elements)
-            if count not in element_counts:
-                if (
-                    len(element_counts) == 2
-                    and element_counts[1] is None  # noqa
-                    and count >= element_counts[0]
-                ):
-                    return True
-                else:
-                    return False
-        return True
-
-    def flatten_pattern_sequence(self, evaluation) -> "BoxConstruct":
+    def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self
+
+    def flatten_with_respect_to_head(self, symbol):
+        return self.to_expression().flatten_with_respect_to_head(symbol)
 
     def get_option_values(self, leaves, **options):
         evaluation = options.get("evaluation", None)
         if evaluation:
             default = evaluation.definitions.get_options(self.get_name()).copy()
-            options = Expression("List", *leaves).get_option_values(evaluation)
+            options = ListExpression(*leaves).get_option_values(evaluation)
             default.update(options)
         else:
             from mathics.core.parser import parse_builtin_rule
@@ -896,13 +878,13 @@ class BoxConstruct(InstanceableBuiltin):
                 default[option] = parse_builtin_rule(value)
         return default
 
-    def boxes_to_text(self, leaves, **options) -> str:
+    def boxes_to_text(self, elements, **options) -> str:
         raise BoxConstructError
 
-    def boxes_to_mathml(self, leaves, **options) -> str:
+    def boxes_to_mathml(self, elements, **options) -> str:
         raise BoxConstructError
 
-    def boxes_to_tex(self, leaves, **options) -> str:
+    def boxes_to_tex(self, elements, **options) -> str:
         raise BoxConstructError
 
 
@@ -919,7 +901,7 @@ class PatternArgumentError(PatternError):
         super().__init__(name, "argr", count, expected)
 
 
-class PatternObject(InstanceableBuiltin, Pattern):
+class PatternObject(BuiltinElement, Pattern):
     needs_verbatim = True
 
     arg_counts: typing.List[int] = []
@@ -927,11 +909,11 @@ class PatternObject(InstanceableBuiltin, Pattern):
     def init(self, expr):
         super().init(expr)
         if self.arg_counts is not None:
-            if len(expr.leaves) not in self.arg_counts:
-                self.error_args(len(expr.leaves), *self.arg_counts)
+            if len(expr.elements) not in self.arg_counts:
+                self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
         self.head = Pattern.create(expr.head)
-        self.leaves = [Pattern.create(leaf) for leaf in expr.leaves]
+        self.leaves = [Pattern.create(element) for element in expr.elements]
 
     def error(self, tag, *args):
         raise PatternError(self.get_name(), tag, *args)
@@ -1039,18 +1021,18 @@ class CountableInteger:
         """
 
         if isinstance(expr, Integer):
-            py_n = expr.get_int_value()
+            py_n = expr.value
             if py_n >= 0:
                 return CountableInteger(py_n, upper_limit=False)
             else:
                 raise NegativeIntegerException()
         elif expr.get_head_name() == "System`UpTo":
-            if len(expr.leaves) != 1:
-                raise MessageException("UpTo", "argx", len(expr.leaves))
+            if len(expr.elements) != 1:
+                raise MessageException("UpTo", "argx", len(expr.elements))
             else:
-                n = expr.leaves[0]
+                n = expr.elements[0]
                 if isinstance(n, Integer):
-                    py_n = n.get_int_value()
+                    py_n = n.value
                     if py_n < 0:
                         raise MessageException("UpTo", "innf", expr)
                     else:
@@ -1058,11 +1040,15 @@ class CountableInteger:
                 elif CountableInteger._support_infinity:
                     if (
                         n.get_head_name() == "System`DirectedInfinity"
-                        and len(n.leaves) == 1
+                        and len(n.elements) == 1
                     ):
-                        if n.leaves[0].get_int_value() > 0:
+                        if n.elements[0].get_int_value() > 0:
                             return CountableInteger("Infinity", upper_limit=True)
                         else:
                             return CountableInteger(0, upper_limit=True)
 
         return None  # leave original expression unevaluated
+
+
+# Backward compatibility
+BoxConstruct = BoxExpression

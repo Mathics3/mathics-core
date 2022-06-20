@@ -8,12 +8,12 @@ Functions for accessing elements of lists using either indices, positions, or pa
 
 from itertools import chain
 
-
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
+    MessageException,
 )
-
+from mathics.builtin.box.inout import RowBox
 from mathics.builtin.exceptions import InvalidLevelspecError, PartError
 
 from mathics.builtin.lists import list_boxes
@@ -28,20 +28,8 @@ from mathics.algorithm.parts import (
     walk_parts,
 )
 
-from mathics.builtin.base import MessageException
 
-from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, Integer0
-from mathics.core.symbols import Atom, Symbol, SymbolList, SymbolNull
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolMakeBoxes,
-    SymbolRowBox,
-    SymbolSequence,
-)
-
-from mathics.core.rules import Rule
-
+from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
     hold_first,
     hold_rest,
@@ -49,6 +37,27 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.rules import Rule
+from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolAppend,
+    SymbolByteArray,
+    SymbolFailed,
+    SymbolInfinity,
+    SymbolMakeBoxes,
+    SymbolMissing,
+    SymbolSequence,
+    SymbolSet,
+)
+
+SymbolAppendTo = Symbol("AppendTo")
+SymbolDeleteCases = Symbol("DeleteCases")
+SymbolDrop = Symbol("Drop")
+SymbolPrepend = Symbol("Prepend")
+SymbolPrependTo = Symbol("PrependTo")
+SymbolTake = Symbol("Take")
 
 
 class Append(Builtin):
@@ -93,8 +102,8 @@ class Append(Builtin):
 class AppendTo(Builtin):
     """
     <dl>
-    <dt>'AppendTo[$s$, $item$]'
-        <dd>append $item$ to value of $s$ and sets $s$ to the result.
+    <dt>'AppendTo[$s$, $elem$]'
+        <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
     >> s = {};
@@ -119,24 +128,28 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
-    summary_text = "add an element at the end of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
     }
+    summary_text = "add an element at the end of an stored list or expression"
 
-    def apply(self, s, item, evaluation):
-        "AppendTo[s_, item_]"
+    def apply(self, s, element, evaluation):
+        "AppendTo[s_, element_]"
         resolved_s = s.evaluate(evaluation)
         if s == resolved_s:
             return evaluation.message("AppendTo", "rvalue", s)
 
         if not isinstance(resolved_s, Atom):
-            result = Expression("Set", s, Expression("Append", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolAppend, resolved_s, element)
+            )
             return result.evaluate(evaluation)
 
-        return evaluation.message("AppendTo", "normal", Expression("AppendTo", s, item))
+        return evaluation.message(
+            "AppendTo", "normal", Expression(SymbolAppendTo, s, element)
+        )
 
 
 class Cases(Builtin):
@@ -187,7 +200,7 @@ class Cases(Builtin):
     #> z = f[x, y]; x = 1; Cases[z, _Symbol, Infinity]
      = {y}
     """
-    summary_text = ""
+
     rules = {
         "Cases[pattern_][list_]": "Cases[list, pattern]",
     }
@@ -196,21 +209,23 @@ class Cases(Builtin):
         "Heads": "False",
     }
 
+    summary_text = "list elements matching a pattern"
+
     def apply(self, items, pattern, ls, evaluation, options):
         "Cases[items_, pattern_, ls_:{1}, OptionsPattern[]]"
         if isinstance(items, Atom):
-            return Expression(SymbolList)
+            return ListExpression()
 
         from mathics.builtin.patterns import Matcher
 
         if ls.has_form("Rule", 2):
-            if ls.leaves[0].get_name() == "System`Heads":
-                heads = ls.leaves[1].is_true()
-                ls = Expression("List", 1)
+            if ls.elements[0].get_name() == "System`Heads":
+                heads = ls.elements[1] is SymbolTrue
+                ls = ListExpression(Integer1)
             else:
                 return evaluation.message("Position", "level", ls)
         else:
-            heads = self.get_option(options, "Heads", evaluation).is_true()
+            heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
         try:
             start, stop = python_levelspec(ls)
@@ -221,8 +236,8 @@ class Cases(Builtin):
 
         if pattern.has_form("Rule", 2) or pattern.has_form("RuleDelayed", 2):
 
-            match = Matcher(pattern.leaves[0]).match
-            rule = Rule(pattern.leaves[0], pattern.leaves[1])
+            match = Matcher(pattern.elements[0]).match
+            rule = Rule(pattern.elements[0], pattern.elements[1])
 
             def callback(level):
                 if match(level, evaluation):
@@ -241,7 +256,7 @@ class Cases(Builtin):
 
         walk_levels(items, start, stop, heads=heads, callback=callback)
 
-        return Expression(SymbolList, *results)
+        return ListExpression(*results)
 
 
 class Count(Builtin):
@@ -261,11 +276,11 @@ class Count(Builtin):
      = 5
     """
 
-    summary_text = "count the number of occurrences of a pattern"
     rules = {
         "Count[pattern_][list_]": "Count[list, pattern]",
         "Count[list_, arguments__]": "Length[Cases[list, arguments]]",
     }
+    summary_text = "count the number of occurrences of a pattern"
 
 
 class DeleteCases(Builtin):
@@ -292,11 +307,11 @@ class DeleteCases(Builtin):
      = {1}
     """
 
-    summary_text = "delete all occurrences of a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
         "innf": "Non-negative integer or Infinity expected at position 4 in `1`",
     }
+    summary_text = "delete all occurrences of a pattern"
 
     def apply_ls_n(self, items, pattern, levelspec, n, evaluation):
         "DeleteCases[items_, pattern_, levelspec_:1, n_:System`Infinity]"
@@ -312,7 +327,7 @@ class DeleteCases(Builtin):
 
         levelspec = python_levelspec(levelspec)
 
-        if n is Symbol("Infinity"):
+        if n is SymbolInfinity:
             n = -1
         elif n.get_head_name() == "System`Integer":
             n = n.get_int_value()
@@ -320,13 +335,13 @@ class DeleteCases(Builtin):
                 evaluation.message(
                     "DeleteCases",
                     "innf",
-                    Expression("DeleteCases", items, pattern, levelspec, n),
+                    Expression(SymbolDeleteCases, items, pattern, levelspec, n),
                 )
         else:
             evaluation.message(
                 "DeleteCases",
                 "innf",
-                Expression("DeleteCases", items, pattern, levelspec, n),
+                Expression(SymbolDeleteCases, items, pattern, levelspec, n),
             )
             return SymbolNull
 
@@ -338,17 +353,17 @@ class DeleteCases(Builtin):
         match = Matcher(pattern).match
         if n == -1:
 
-            def cond(leaf):
-                return not match(leaf, evaluation)
+            def cond(element):
+                return not match(element, evaluation)
 
             return items.filter("List", cond, evaluation)
         else:
 
-            def condn(leaf):
+            def condn(element):
                 nonlocal n
                 if n == 0:
                     return True
-                elif match(leaf, evaluation):
+                elif match(element, evaluation):
                     n = n - 1
                     return False
                 else:
@@ -370,7 +385,7 @@ class Drop(Builtin):
     """
     <dl>
       <dt>'Drop[$expr$, $n$]'
-      <dd>returns $expr$ with the first $n$ leaves removed.
+      <dd>returns $expr$ with the first $n$ elements removed.
     </dl>
 
     >> Drop[{a, b, c, d}, 3]
@@ -396,11 +411,11 @@ class Drop(Builtin):
      = Drop[{1, 2, 3, 4, 5, 6}, {-5, -2, -2}]
     """
 
-    summary_text = "remove a number of elements from a list"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
         "drop": "Cannot drop positions `1` through `2` in `3`.",
     }
+    summary_text = "remove a number of elements from a list"
 
     def apply(self, items, seqs, evaluation):
         "Drop[items_, seqs___]"
@@ -409,7 +424,7 @@ class Drop(Builtin):
 
         if isinstance(items, Atom):
             return evaluation.message(
-                "Drop", "normal", 1, Expression("Drop", items, *seqs)
+                "Drop", "normal", 1, Expression(SymbolDrop, items, *seqs)
             )
 
         try:
@@ -439,11 +454,11 @@ class First(Builtin):
      = First[{}]
     """
 
-    summary_text = "first element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nofirst": "`1` has zero length and no first element.",
     }
+    summary_text = "first element of a list or expression"
 
     def apply(self, expr, evaluation):
         "First[expr_]"
@@ -451,11 +466,11 @@ class First(Builtin):
         if isinstance(expr, Atom):
             evaluation.message("First", "normal")
             return
-        if len(expr.leaves) == 0:
+        if len(expr.elements) == 0:
             evaluation.message("First", "nofirst", expr)
             return
 
-        return expr.leaves[0]
+        return expr.elements[0]
 
 
 class FirstCase(Builtin):
@@ -479,13 +494,13 @@ class FirstCase(Builtin):
 
     """
 
-    summary_text = "first element that matches a pattern"
     attributes = hold_rest | protected
     options = Cases.options
     rules = {
         'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
         "FirstCase[pattOrRule_][expr_]": "FirstCase[expr, pattOrRule]",
     }
+    summary_text = "first element that matches a pattern"
 
 
 class Extract(Builtin):
@@ -506,13 +521,13 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
-    summary_text = "extract elements that appear at a list of positions"
     attributes = n_hold_rest | protected
 
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
         "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
     }
+    summary_text = "extract elements that appear at a list of positions"
 
 
 class FirstPosition(Builtin):
@@ -585,10 +600,10 @@ class FirstPosition(Builtin):
 
     """
 
-    summary_text = "position of the first element matching a pattern"
     messages = {
         "level": "Level specification `1` is not of the form n, {n}, or {m, n}.",
     }
+    summary_text = "position of the first element matching a pattern"
 
     def apply(
         self, expr, pattern, evaluation, default=None, minLevel=None, maxLevel=None
@@ -596,26 +611,26 @@ class FirstPosition(Builtin):
         "FirstPosition[expr_, pattern_]"
 
         if expr == pattern:
-            return Expression(SymbolList)
+            return ListExpression()
 
         result = []
 
         def check_pattern(input_list, pat, result, beginLevel):
-            for i in range(0, len(input_list.leaves)):
+            for i in range(0, len(input_list.elements)):
                 nested_level = beginLevel
                 result.append(i + 1)
-                if input_list.leaves[i] == pat:
+                if input_list.elements[i] == pat:
                     # found the pattern
                     if minLevel is None or nested_level >= minLevel:
                         return True
 
                 else:
-                    if isinstance(input_list.leaves[i], Expression) and (
+                    if isinstance(input_list.elements[i], Expression) and (
                         maxLevel is None or maxLevel > nested_level
                     ):
                         nested_level = nested_level + 1
                         if check_pattern(
-                            input_list.leaves[i], pat, result, nested_level
+                            input_list.elements[i], pat, result, nested_level
                         ):
                             return True
 
@@ -626,9 +641,13 @@ class FirstPosition(Builtin):
         if isinstance(expr, Expression) and (maxLevel is None or maxLevel > 0):
             is_found = check_pattern(expr, pattern, result, 1)
         if is_found:
-            return Expression(SymbolList, *result)
+            return to_mathics_list(*result)
         else:
-            return Expression("Missing", "NotFound") if default is None else default
+            return (
+                Expression(SymbolMissing, String("NotFound"))
+                if default is None
+                else default
+            )
 
     def apply_default(self, expr, pattern, default, evaluation):
         "FirstPosition[expr_, pattern_, default_]"
@@ -639,21 +658,21 @@ class FirstPosition(Builtin):
 
         def is_interger_list(expr_list):
             return all(
-                isinstance(expr_list.leaves[i], Integer)
-                for i in range(len(expr_list.leaves))
+                isinstance(expr_list.elements[i], Integer)
+                for i in range(len(expr_list.elements))
             )
 
         if level.has_form("List", None):
-            len_list = len(level.leaves)
+            len_list = len(level.elements)
             if len_list > 2 or not is_interger_list(level):
                 return evaluation.message("FirstPosition", "level", level)
             elif len_list == 0:
                 min_Level = max_Level = None
             elif len_list == 1:
-                min_Level = max_Level = level.leaves[0].get_int_value()
+                min_Level = max_Level = level.elements[0].get_int_value()
             elif len_list == 2:
-                min_Level = level.leaves[0].get_int_value()
-                max_Level = level.leaves[1].get_int_value()
+                min_Level = level.elements[0].get_int_value()
+                max_Level = level.elements[1].get_int_value()
         elif isinstance(level, Integer):
             min_Level = 0
             max_Level = level.get_int_value()
@@ -689,11 +708,11 @@ class Last(Builtin):
      = Last[{}]
     """
 
-    summary_text = "last element of a list or expression"
     messages = {
         "normal": "Nonatomic expression expected.",
         "nolast": "`1` has zero length and no last element.",
     }
+    summary_text = "last element of a list or expression"
 
     def apply(self, expr, evaluation):
         "Last[expr_]"
@@ -701,11 +720,11 @@ class Last(Builtin):
         if isinstance(expr, Atom):
             evaluation.message("Last", "normal")
             return
-        if len(expr.leaves) == 0:
+        if len(expr.elements) == 0:
             evaluation.message("Last", "nolast", expr)
             return
 
-        return expr.leaves[-1]
+        return expr.elements[-1]
 
 
 class Length(Builtin):
@@ -745,7 +764,7 @@ class Length(Builtin):
         if isinstance(expr, Atom):
             return Integer0
         else:
-            return Integer(len(expr.leaves))
+            return Integer(len(expr.elements))
 
 
 class MemberQ(Builtin):
@@ -765,11 +784,11 @@ class MemberQ(Builtin):
      = True
     """
 
-    summary_text = "test whether an element is a member of a list"
     rules = {
         "MemberQ[list_, pattern_]": ("Length[Select[list, MatchQ[#, pattern]&]] > 0"),
         "MemberQ[pattern_][expr_]": "MemberQ[expr, pattern]",
     }
+    summary_text = "test whether an element is a member of a list"
 
 
 class Most(Builtin):
@@ -916,21 +935,21 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
-    summary_text = "get/set any part of an expression"
     attributes = n_hold_rest | protected | read_protected
+    summary_text = "get/set any part of an expression"
 
     def apply_makeboxes(self, list, i, f, evaluation):
         """MakeBoxes[Part[list_, i___],
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         i = i.get_sequence()
-        list = Expression(SymbolMakeBoxes, list, f)
+        list = Expression(SymbolMakeBoxes, list, f).evaluate(evaluation)
         if f.get_name() in ("System`OutputForm", "System`InputForm"):
             open, close = "[[", "]]"
         else:
             open, close = "\u301a", "\u301b"
-        indices = list_boxes(i, f, open, close)
-        result = Expression(SymbolRowBox, Expression(SymbolList, list, *indices))
+        indices = list_boxes(i, f, evaluation, open, close)
+        result = RowBox(list, *indices)
         return result
 
     def apply(self, list, i, evaluation):
@@ -952,7 +971,7 @@ class Part(Builtin):
             if idx.get_head_name() == "System`Integer":
                 idx = idx.get_int_value()
                 if idx == 0:
-                    return Symbol("System`ByteArray")
+                    return SymbolByteArray
                 data = list.elements[0].value
                 lendata = len(data)
                 if idx < 0:
@@ -1006,7 +1025,9 @@ class Pick(Builtin):
                 if match(s):
                     yield x
                 elif not isinstance(x, Atom) and not isinstance(s, Atom):
-                    yield x.restructure(x.head, pick(x.leaves, s.leaves), evaluation)
+                    yield x.restructure(
+                        x.head, pick(x.elements, s.elements), evaluation
+                    )
 
         r = list(pick([items0], [sel0]))
         if not r:
@@ -1016,7 +1037,7 @@ class Pick(Builtin):
 
     def apply(self, items, sel, evaluation):
         "Pick[items_, sel_]"
-        return self._do(items, sel, lambda s: s.is_true(), evaluation)
+        return self._do(items, sel, lambda s: s is SymbolTrue, evaluation)
 
     def apply_pattern(self, items, sel, pattern, evaluation):
         "Pick[items_, sel_, pattern_]"
@@ -1030,7 +1051,7 @@ class Prepend(Builtin):
     """
     <dl>
      <dt>'Prepend[$expr$, $item$]'
-     <dd>returns $expr$ with $item$ prepended to its leaves.
+     <dd>returns $expr$ with $item$ prepended to its elements.
 
      <dt>'Prepend[$expr$]'
      <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
@@ -1110,13 +1131,13 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
-    summary_text = "add an element at the beginning of an stored list or expression"
     attributes = hold_first | protected
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
         "normal": "Nonatomic expression expected at position 1 in `1`.",
     }
+    summary_text = "add an element at the beginning of an stored list or expression"
 
     def apply(self, s, item, evaluation):
         "PrependTo[s_, item_]"
@@ -1125,11 +1146,13 @@ class PrependTo(Builtin):
             return evaluation.message("PrependTo", "rvalue", s)
 
         if not isinstance(resolved_s, Atom):
-            result = Expression("Set", s, Expression("Prepend", resolved_s, item))
+            result = Expression(
+                SymbolSet, s, Expression(SymbolPrepend, resolved_s, item)
+            )
             return result.evaluate(evaluation)
 
         return evaluation.message(
-            "PrependTo", "normal", Expression("PrependTo", s, item)
+            "PrependTo", "normal", Expression(SymbolPrependTo, s, item)
         )
 
 
@@ -1170,7 +1193,6 @@ class ReplacePart(Builtin):
      = {a, b, t}
     """
 
-    summary_text = "replace elements at given positions"
     messages = {
         "reps": "`1` is not a list of replacement rules.",
     }
@@ -1184,6 +1206,7 @@ class ReplacePart(Builtin):
             "ReplacePart[expr, rule[#, new]& /@ {indices}]"
         ),
     }
+    summary_text = "replace elements at given positions"
 
     def apply(self, expr, replacements, evaluation):
         "ReplacePart[expr_, {replacements___}]"
@@ -1194,12 +1217,10 @@ class ReplacePart(Builtin):
             if not replacement.has_form("Rule", 2) and not replacement.has_form(  # noqa
                 "RuleDelayed", 2
             ):
-                evaluation.message(
-                    "ReplacePart", "reps", Expression(SymbolList, *replacements)
-                )
+                evaluation.message("ReplacePart", "reps", ListExpression(*replacements))
                 return
-            position = replacement.leaves[0]
-            replace = replacement.leaves[1]
+            position = replacement.elements[0]
+            replace = replacement.elements[1]
             if position.has_form("List", None):
                 position = position.get_mutable_elements()
             else:
@@ -1246,11 +1267,11 @@ class Rest(Builtin):
      = Rest[{}]
     """
 
-    summary_text = "remove the first element"
     messages = {
         "normal": "Nonatomic expression expected.",
         "norest": "Cannot take Rest of expression `1` with length zero.",
     }
+    summary_text = "remove the first element"
 
     def apply(self, expr, evaluation):
         "Rest[expr_]"
@@ -1258,11 +1279,11 @@ class Rest(Builtin):
         if isinstance(expr, Atom):
             evaluation.message("Rest", "normal")
             return
-        if len(expr.leaves) == 0:
+        if len(expr.elements) == 0:
             evaluation.message("Rest", "norest", expr)
             return
 
-        return expr.slice(expr.head, slice(1, len(expr.leaves)), evaluation)
+        return expr.slice(expr.head, slice(1, len(expr.elements)), evaluation)
 
 
 class Select(Builtin):
@@ -1299,9 +1320,9 @@ class Select(Builtin):
             evaluation.message("Select", "normal")
             return
 
-        def cond(leaf):
-            test = Expression(expr, leaf)
-            return test.evaluate(evaluation).is_true()
+        def cond(element):
+            test = Expression(expr, element)
+            return test.evaluate(evaluation) is SymbolTrue
 
         return items.filter(items.head, cond, evaluation)
 
@@ -1349,16 +1370,16 @@ class Span(BinaryOperator):
      = (1 ;; d) (a ;; b ;; c)
     """
 
-    summary_text = "general specification for spans or blocks of elements"
     operator = ";;"
     precedence = 305
+    summary_text = "general specification for spans or blocks of elements"
 
 
 class Take(Builtin):
     """
     <dl>
       <dt>'Take[$expr$, $n$]'
-      <dd>returns $expr$ with all but the first $n$ leaves removed.
+      <dd>returns $expr$ with all but the first $n$ elements removed.
     </dl>
 
     >> Take[{a, b, c, d}, 3]
@@ -1406,10 +1427,10 @@ class Take(Builtin):
      = Take[{1, 2, 3, 4, 5}, {1, 0, -1}]
     """
 
-    summary_text = "pick a range of elements"
     messages = {
         "normal": "Nonatomic expression expected at position `1` in `2`.",
     }
+    summary_text = "pick a range of elements"
 
     def apply(self, items, seqs, evaluation):
         "Take[items_, seqs___]"
@@ -1418,7 +1439,7 @@ class Take(Builtin):
 
         if isinstance(items, Atom):
             return evaluation.message(
-                "Take", "normal", 1, Expression("Take", items, *seqs)
+                "Take", "normal", 1, Expression(SymbolTake, items, *seqs)
             )
 
         try:
@@ -1435,8 +1456,8 @@ class UpTo(Builtin):
     </dl>
     """
 
-    summary_text = "a certain number of elements, or as many as are available"
     messages = {
         "innf": "Expected non-negative integer or infinity at position 1 in ``.",
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
     }
+    summary_text = "a certain number of elements, or as many as are available"

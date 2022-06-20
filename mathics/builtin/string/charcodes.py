@@ -6,17 +6,20 @@ Character Codes
 import sys
 
 
+from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.builtin.base import Builtin
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
     Integer1,
     String,
 )
-from mathics.core.symbols import SymbolList
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol, SymbolList
 
-from mathics.builtin.atomic.strings import to_python_encoding
+SymbolFromCharacterCode = Symbol("FromCharacterCode")
+SymbolToCharacterCode = Symbol("ToCharacterCode")
 
 
 def pack_bytes(codes):
@@ -28,7 +31,7 @@ def unpack_bytes(codes):
 
 
 class ToCharacterCode(Builtin):
-    u"""
+    """
     <dl>
     <dt>'ToCharacterCode["$string$"]'
       <dd>converts the string to a list of character codes (Unicode
@@ -75,16 +78,17 @@ class ToCharacterCode(Builtin):
     #> ToCharacterCode[""]
      = {}
     """
-    summary_text = "convert a string to a list of character codes"
+
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
     }
+    summary_text = "convert a string to a list of character codes"
 
     def _encode(self, string, encoding, evaluation):
-        exp = Expression("ToCharacterCode", string)
+        exp = Expression(SymbolToCharacterCode, string)
 
         if string.has_form("List", None):
-            string = [substring.get_string_value() for substring in string.leaves]
+            string = [substring.get_string_value() for substring in string.elements]
             if any(substring is None for substring in string):
                 evaluation.message("ToCharacterCode", "strse", Integer1, exp)
                 return None
@@ -97,7 +101,8 @@ class ToCharacterCode(Builtin):
         if encoding == "Unicode":
 
             def convert(s):
-                return Expression(SymbolList, *[Integer(ord(code)) for code in s])
+                # FIXME: we can defined a custom conversion fn here
+                return to_mathics_list(*[Integer(ord(code)) for code in s])
 
         else:
             py_encoding = to_python_encoding(encoding)
@@ -106,12 +111,13 @@ class ToCharacterCode(Builtin):
                 return
 
             def convert(s):
-                return Expression(
-                    "List", *[Integer(x) for x in unpack_bytes(s.encode(py_encoding))]
+                # FIXME: we can defined a custom conversion fn here
+                return to_mathics_list(
+                    *[Integer(x) for x in unpack_bytes(s.encode(py_encoding))]
                 )
 
         if isinstance(string, list):
-            return Expression(SymbolList, *[convert(substring) for substring in string])
+            return to_mathics_list(*string, elements_conversion_fn=convert)
         elif isinstance(string, str):
             return convert(string)
 
@@ -193,7 +199,6 @@ class FromCharacterCode(Builtin):
      = FromCharacterCode[{{97, 98, x}, {100, 101, x}}]
     """
 
-    summary_text = "convert from a list of character codes to a string"
     messages = {
         "notunicode": (
             "A character code, which should be a non-negative integer less "
@@ -204,9 +209,10 @@ class FromCharacterCode(Builtin):
         ),
         "utf8": "The given codes could not be decoded as utf-8.",
     }
+    summary_text = "convert from a list of character codes to a string"
 
     def _decode(self, n, encoding, evaluation):
-        exp = Expression("FromCharacterCode", n)
+        exp = Expression(SymbolFromCharacterCode, n)
 
         py_encoding = to_python_encoding(encoding)
         if py_encoding is None:
@@ -222,7 +228,7 @@ class FromCharacterCode(Builtin):
                         evaluation.message(
                             "FromCharacterCode",
                             "notunicode",
-                            Expression(SymbolList, *li),
+                            ListExpression(*li),
                             Integer(i + 1),
                         )
                         raise _InvalidCodepointError
@@ -237,7 +243,7 @@ class FromCharacterCode(Builtin):
                 if not n.get_elements():
                     return String("")
                 # Mathematica accepts FromCharacterCode[{{100}, 101}],
-                # so to match this, just check the first leaf to see
+                # so to match this, just check the first element to see
                 # if we're dealing with nested lists.
                 elif n.get_elements()[0].has_form("List", None):
                     list_of_strings = []
@@ -247,7 +253,7 @@ class FromCharacterCode(Builtin):
                         else:
                             stringi = convert_codepoint_list([element])
                         list_of_strings.append(String(stringi))
-                    return Expression(SymbolList, *list_of_strings)
+                    return ListExpression(*list_of_strings)
                 else:
                     return String(convert_codepoint_list(n.get_elements()))
             else:

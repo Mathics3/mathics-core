@@ -1,25 +1,26 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+"""
+NIntegrate[] tests
 
-
+"""
+import importlib
 import pytest
-from .helper import evaluate
+from test.helper import evaluate
+from mathics.builtin import check_requires_list
 
 
-try:
-    import scipy.integrate
-
-    usescipy = True
-except:
-    usescipy = False
-
-
-if usescipy:
+if check_requires_list(["scipy", "scipy.integrate"]):
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
 
     generic_tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}, {method} ]", r"1/3.", ""),
-        (r"NIntegrate[x^2 y^(-1.+1/3.), {x,0,1},{y,0,1}, {method}]", r"1.", ""),
+        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}, {method} ]", r"1/9.", ""),
+        # FIXME: improve singularity handling in NIntegrate
+        # (
+        #    r"NIntegrate[x^2 y^(-1.+1/3.), {x,1.*^-9,1},{y, 1.*^-9,1}, {method}]",
+        #    r"1.",
+        #    "",
+        # ),
     ]
 
     tests_for_nintegrate = sum(
@@ -35,6 +36,7 @@ if usescipy:
 else:
     tests_for_nintegrate = [
         (r"NIntegrate[x^2, {x,0,1}]", r"1/3.", ""),
+        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}]", r"1/9.", ""),
         # FIXME: this can integrate to Infinity
         # (r"NIntegrate[x^2 y^(-.5), {x,0,1},{y,0,1}]", r"1.", ""),
     ]

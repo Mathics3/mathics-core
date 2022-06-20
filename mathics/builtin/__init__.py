@@ -34,6 +34,7 @@ from mathics.builtin.base import (
     SympyObject,
     Operator,
     PatternObject,
+    check_requires_list,
 )
 
 
@@ -243,3 +244,12 @@ new_builtins = _builtins
 _builtins = {}
 
 add_builtins(new_builtins)
+
+
+display_operators_set = set()
+for modname, builtins in builtins_by_module.items():
+    for builtin in builtins:
+        # name = builtin.get_name()
+        operator = builtin.get_operator_display()
+        if operator is not None:
+            display_operators_set.add(operator)

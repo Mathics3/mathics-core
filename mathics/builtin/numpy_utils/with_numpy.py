@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 """
 A couple of helper functions for doing numpy-like stuff with numpy.
 """
 
-from mathics.core.expression import Expression
 from functools import reduce
-import numpy
+
 import ast
 import inspect
+import numpy
 import sys
 
+from mathics.core.list import ListExpression
 
 #
 # INTERNAL FUNCTIONS
@@ -154,10 +154,10 @@ def instantiate_elements(a, new_element, d=1):
     # if an array of dimension 'd' is reached.
 
     if len(a.shape) == d:
-        leaves = [new_element(x) for x in a]
+        elements = [new_element(x) for x in a]
     else:
-        leaves = [instantiate_elements(e, new_element, d) for e in a]
-    return Expression("List", *leaves)
+        elements = [instantiate_elements(e, new_element, d) for e in a]
+    return ListExpression(*elements)
 
 
 #

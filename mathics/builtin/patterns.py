@@ -21,7 +21,7 @@ Tests and Conditions:
 >> f[4] /. f[x_] /; x > 0 -> x ^ 2
  = 16
 
-Leaves in the beginning of a pattern rather match fewer leaves:
+Elements in the beginning of a pattern rather match fewer elements:
 >> f[a, b, c, d] /. f[start__, end__] -> {{start}, {end}}
  = {{a}, {b, c, d}}
 
@@ -37,12 +37,18 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator, PostfixOperator, AtomBuiltin
-from mathics.builtin.base import PatternObject, PatternError
 from mathics.algorithm.parts import python_levelspec
+
+from mathics.builtin.base import (
+    Builtin,
+    BinaryOperator,
+    PostfixOperator,
+    AtomBuiltin,
+    PatternObject,
+    PatternError,
+)
 from mathics.builtin.lists import InvalidLevelspecError
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Number,
@@ -50,17 +56,6 @@ from mathics.core.atoms import (
     Rational,
     Real,
 )
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-from mathics.core.systemsymbols import SymbolDispatch, SymbolRowBox
-from mathics.core.rules import Rule
-from mathics.core.pattern import Pattern, StopGenerator
-
 from mathics.core.attributes import (
     hold_all,
     hold_first,
@@ -68,6 +63,21 @@ from mathics.core.attributes import (
     protected,
     sequence_hold,
 )
+from mathics.core.element import EvalMixin
+from mathics.core.expression import Expression, SymbolVerbatim
+from mathics.core.list import ListExpression
+from mathics.core.pattern import Pattern, StopGenerator
+from mathics.core.rules import Rule
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolTrue,
+)
+from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch, SymbolRowBox
+
+SymbolDefault = Symbol("Default")
 
 
 class Rule_(BinaryOperator):
@@ -114,10 +124,10 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    operator = ":>"
-    precedence = 120
     attributes = sequence_hold | hold_rest | protected
     needs_verbatim = True
+    operator = ":>"
+    precedence = 120
     summary_text = "a rule that keeps the replacement unevaluated"
 
 
@@ -128,7 +138,7 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
         return Dispatch(rules_expr.elements, evaluation)
 
     if rules_expr.has_form("List", None):
-        rules = rules_expr.leaves
+        rules = rules_expr.elements
     else:
         rules = [rules_expr]
     any_lists = False
@@ -146,9 +156,11 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 
         if all_lists:
             return (
-                Expression(
-                    "List",
-                    *[Expression(name, expr, item, *extra_args) for item in rules]
+                ListExpression(
+                    *[
+                        Expression(Symbol(name), expr, item, *extra_args)
+                        for item in rules
+                    ]
                 ),
                 True,
             )
@@ -161,7 +173,7 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
             if rule.get_head_name() not in ("System`Rule", "System`RuleDelayed"):
                 evaluation.message(name, "reps", rule)
                 return None, True
-            elif len(rule.leaves) != 2:
+            elif len(rule.elements) != 2:
                 evaluation.message(
                     # TODO: shorten names here
                     rule.get_head_name(),
@@ -172,7 +184,7 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
                 )
                 return None, True
             else:
-                result.append(Rule(rule.leaves[0], rule.leaves[1]))
+                result.append(Rule(rule.elements[0], rule.elements[1]))
         return result, False
 
 
@@ -219,7 +231,7 @@ class Replace(Builtin):
     >> Replace[x[x[y]], x -> z, All, Heads -> True]
      = z[z[y]]
 
-    Note that heads are handled at the level of leaves
+    Note that heads are handled at the level of elements
     >> Replace[x[x[y]], x -> z, {1}, Heads -> True]
      = z[x[y]]
 
@@ -233,9 +245,8 @@ class Replace(Builtin):
         "rmix": "Elements of `1` are a mixture of lists and nonlists.",
     }
 
-    rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
-
     options = {"Heads": "False"}
+    rules = {"Replace[rules_][expr_]": "Replace[expr, rules]"}
     summary_text = "apply a replacement rule"
 
     def apply_levelspec(self, expr, rules, ls, evaluation, options):
@@ -245,9 +256,9 @@ class Replace(Builtin):
             if ret:
                 return rules
 
-            heads = self.get_option(options, "Heads", evaluation).is_true()
+            heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
 
-            result, applied = expr.apply_rules(
+            result, applied = expr.do_apply_rules(
                 rules,
                 evaluation,
                 level=0,
@@ -304,10 +315,10 @@ class ReplaceAll(BinaryOperator):
      = y
     """
 
-    operator = "/."
-    precedence = 110
     grouping = "Left"
     needs_verbatim = True
+    operator = "/."
+    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -323,7 +334,7 @@ class ReplaceAll(BinaryOperator):
             rules, ret = create_rules(rules, expr, "ReplaceAll", evaluation)
             if ret:
                 return rules
-            result, applied = expr.apply_rules(rules, evaluation)
+            result, applied = expr.do_apply_rules(rules, evaluation)
             return result
         except PatternError:
             evaluation.message("Replace", "reps", rules)
@@ -355,10 +366,10 @@ class ReplaceRepeated(BinaryOperator):
      = Log[a] + Log[f (b c) ^ d ^ e]
     """
 
-    operator = "//."
-    precedence = 110
     grouping = "Left"
     needs_verbatim = True
+    operator = "//."
+    precedence = 110
 
     messages = {
         "reps": "`1` is not a valid replacement rule.",
@@ -396,7 +407,7 @@ class ReplaceRepeated(BinaryOperator):
             if maxit == 0:
                 break
             maxit -= 1
-            result, applied = expr.apply_rules(rules, evaluation)
+            result, applied = expr.do_apply_rules(rules, evaluation)
             if applied:
                 result = result.evaluate(evaluation)
             if applied and not result.sameQ(expr):
@@ -471,7 +482,7 @@ class ReplaceList(Builtin):
             result = rule.apply(expr, evaluation, return_list=True, max_list=max_count)
             list.extend(result)
 
-        return Expression(SymbolList, *list)
+        return ListExpression(*list)
 
 
 class PatternTest(BinaryOperator, PatternObject):
@@ -521,8 +532,8 @@ class PatternTest(BinaryOperator, PatternObject):
             "System`NonNegative": self.match_nonnegative,
         }
 
-        self.pattern = Pattern.create(expr.leaves[0])
-        self.test = expr.leaves[1]
+        self.pattern = Pattern.create(expr.elements[0])
+        self.test = expr.elements[1]
         testname = self.test.get_name()
         self.test_name = testname
         match_function = match_functions.get(testname, None)
@@ -635,14 +646,14 @@ class PatternTest(BinaryOperator, PatternObject):
         if test == "System`NegativePowerQ":
             return (
                 candidate.has_form("Power", 2)
-                and isinstance(candidate.leaves[1], (Integer, Rational, Real))
-                and candidate.leaves[1].value < 0
+                and isinstance(candidate.elements[1], (Integer, Rational, Real))
+                and candidate.elements[1].value < 0
             )
         elif test == "System`NotNegativePowerQ":
             return not (
                 candidate.has_form("Power", 2)
-                and isinstance(candidate.leaves[1], (Integer, Rational, Real))
-                and candidate.leaves[1].value < 0
+                and isinstance(candidate.elements[1], (Integer, Rational, Real))
+                and candidate.elements[1].value < 0
             )
         else:
             from mathics.builtin.base import Test
@@ -672,7 +683,7 @@ class PatternTest(BinaryOperator, PatternObject):
                 else:
                     test_expr = Expression(self.test, item)
                     test_value = test_expr.evaluate(evaluation)
-                    if not test_value.is_true():
+                    if test_value is not SymbolTrue:
                         break
                         # raise StopGenerator
             else:
@@ -708,15 +719,14 @@ class Alternatives(BinaryOperator, PatternObject):
     """
 
     arg_counts = None
+    needs_verbatim = True
     operator = "|"
     precedence = 160
-    needs_verbatim = True
-
     summary_text = "match to any of several patterns"
 
     def init(self, expr):
         super(Alternatives, self).init(expr)
-        self.alternatives = [Pattern.create(leaf) for leaf in expr.leaves]
+        self.alternatives = [Pattern.create(element) for element in expr.elements]
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         for alternative in self.alternatives:
@@ -771,11 +781,11 @@ class Except(PatternObject):
 
     def init(self, expr):
         super(Except, self).init(expr)
-        self.c = Pattern.create(expr.leaves[0])
-        if len(expr.leaves) == 2:
-            self.p = Pattern.create(expr.leaves[1])
+        self.c = Pattern.create(expr.elements[0])
+        if len(expr.elements) == 2:
+            self.p = Pattern.create(expr.elements[1])
         else:
-            self.p = Pattern.create(Expression("Blank"))
+            self.p = Pattern.create(Expression(SymbolBlank))
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         def except_yield_func(vars, rest):
@@ -793,7 +803,7 @@ class _StopGeneratorMatchQ(StopGenerator):
     pass
 
 
-class Matcher(object):
+class Matcher:
     def __init__(self, form):
         if isinstance(form, Pattern):
             self.form = form
@@ -872,7 +882,7 @@ class Verbatim(PatternObject):
 
     def init(self, expr):
         super(Verbatim, self).init(expr)
-        self.content = expr.leaves[0]
+        self.content = expr.elements[0]
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         if self.content.sameQ(expression):
@@ -903,7 +913,7 @@ class HoldPattern(PatternObject):
 
     def init(self, expr):
         super(HoldPattern, self).init(expr)
-        self.pattern = Pattern.create(expr.leaves[0])
+        self.pattern = Pattern.create(expr.elements[0])
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         # for new_vars, rest in self.pattern.match(
@@ -980,14 +990,14 @@ class Pattern_(PatternObject):
     summary_text = "a named pattern"
 
     def init(self, expr):
-        if len(expr.leaves) != 2:
+        if len(expr.elements) != 2:
             self.error("patvar", expr)
-        varname = expr.leaves[0].get_name()
+        varname = expr.elements[0].get_name()
         if varname is None or varname == "":
             self.error("patvar", expr)
         super(Pattern_, self).init(expr)
         self.varname = varname
-        self.pattern = Pattern.create(expr.leaves[1])
+        self.pattern = Pattern.create(expr.elements[1])
 
     def __repr__(self):
         return "<Pattern: %s>" % repr(self.pattern)
@@ -1013,18 +1023,20 @@ class Pattern_(PatternObject):
             if existing.sameQ(expression):
                 yield_func(vars, None)
 
-    def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
+    def get_match_candidates(
+        self, elements, expression, attributes, evaluation, vars={}
+    ):
         existing = vars.get(self.varname, None)
         if existing is None:
             return self.pattern.get_match_candidates(
-                leaves, expression, attributes, evaluation, vars
+                elements, expression, attributes, evaluation, vars
             )
         else:
             # Treat existing variable as verbatim
-            verbatim_expr = Expression("Verbatim", existing)
+            verbatim_expr = Expression(SymbolVerbatim, existing)
             verbatim = Verbatim(verbatim_expr)
             return verbatim.get_match_candidates(
-                leaves, expression, attributes, evaluation, vars
+                elements, expression, attributes, evaluation, vars
             )
 
 
@@ -1090,9 +1102,9 @@ class Optional(BinaryOperator, PatternObject):
 
     def init(self, expr):
         super(Optional, self).init(expr)
-        self.pattern = Pattern.create(expr.leaves[0])
-        if len(expr.leaves) == 2:
-            self.default = expr.leaves[1]
+        self.pattern = Pattern.create(expr.elements[0])
+        if len(expr.elements) == 2:
+            self.default = expr.elements[1]
         else:
             self.default = None
 
@@ -1142,7 +1154,7 @@ def get_default_value(name, evaluation, k=None, n=None):
     for pos_len in reversed(range(len(pos) + 1)):
         # Try patterns from specific to general
         defaultexpr = Expression(
-            "Default", Symbol(name), *[Integer(index) for index in pos[:pos_len]]
+            SymbolDefault, Symbol(name), *[Integer(index) for index in pos[:pos_len]]
         )
         result = evaluation.definitions.get_value(
             name, "System`DefaultValues", defaultexpr, evaluation
@@ -1159,8 +1171,8 @@ class _Blank(PatternObject):
 
     def init(self, expr):
         super(_Blank, self).init(expr)
-        if expr.leaves:
-            self.head = expr.leaves[0]
+        if expr.elements:
+            self.head = expr.elements[0]
         else:
             # FIXME: elswhere, some code wants to
             # get the attributes of head.
@@ -1219,11 +1231,11 @@ class BlankSequence(_Blank):
     <dl>
     <dt>'BlankSequence[]'
     <dt>'__'
-        <dd>represents any non-empty sequence of expression leaves in
+        <dd>represents any non-empty sequence of expression elements in
         a pattern.
     <dt>'BlankSequence[$h$]'
     <dt>'__$h$'
-        <dd>represents any sequence of leaves, all of which have head $h$.
+        <dd>represents any sequence of elements, all of which have head $h$.
     </dl>
 
     Use a 'BlankSequence' pattern to stand for a non-empty sequence of
@@ -1233,7 +1245,7 @@ class BlankSequence(_Blank):
     >> MatchQ[f[], f[__]]
      = False
 
-    '__'$h$ will match only if all leaves have head $h$:
+    '__'$h$ will match only if all elements have head $h$:
     >> MatchQ[f[1, 2, 3], f[__Integer]]
      = True
     >> MatchQ[f[1, 2.0, 3], f[__Integer]]
@@ -1260,13 +1272,13 @@ class BlankSequence(_Blank):
     summary_text = "match to a non-empty sequence of elements"
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        leaves = expression.get_sequence()
-        if not leaves:
+        elements = expression.get_sequence()
+        if not elements:
             return
         if self.head:
             ok = True
-            for leaf in leaves:
-                if leaf.get_head() != self.head:
+            for element in elements:
+                if element.get_head() != self.head:
                     ok = False
                     break
             if ok:
@@ -1283,7 +1295,7 @@ class BlankNullSequence(_Blank):
     <dl>
     <dt>'BlankNullSequence[]'
     <dt>'___'
-        <dd>represents any sequence of expression leaves in a pattern,
+        <dd>represents any sequence of expression elements in a pattern,
         including an empty sequence.
     </dl>
 
@@ -1295,7 +1307,7 @@ class BlankNullSequence(_Blank):
     ## This test hits infinite recursion
     ##
     ##The value captured by a named 'BlankNullSequence' pattern is a
-    ##'Sequence' object, which can have no leaves:
+    ##'Sequence' object, which can have no elements:
     ##>> f[] /. f[x___] -> x
     ## = Sequence[]
 
@@ -1315,11 +1327,11 @@ class BlankNullSequence(_Blank):
     summary_text = "match to a sequence of zero or more elements"
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        leaves = expression.get_sequence()
+        elements = expression.get_sequence()
         if self.head:
             ok = True
-            for leaf in leaves:
-                if leaf.get_head() != self.head:
+            for element in elements:
+                if element.get_head() != self.head:
                     ok = False
                     break
             if ok:
@@ -1371,28 +1383,28 @@ class Repeated(PostfixOperator, PatternObject):
     summary_text = "match to one or more occurences of a pattern"
 
     def init(self, expr, min=1):
-        self.pattern = Pattern.create(expr.leaves[0])
+        self.pattern = Pattern.create(expr.elements[0])
 
         self.max = None
         self.min = min
-        if len(expr.leaves) == 2:
-            element_1 = expr.leaves[1]
+        if len(expr.elements) == 2:
+            element_1 = expr.elements[1]
             allnumbers = not any(
                 element.get_int_value() is None for element in element_1.get_elements()
             )
             if element_1.has_form("List", 1, 2) and allnumbers:
-                self.max = element_1.leaves[-1].get_int_value()
-                self.min = element_1.leaves[0].get_int_value()
+                self.max = element_1.elements[-1].get_int_value()
+                self.min = element_1.elements[0].get_int_value()
             elif element_1.get_int_value():
                 self.max = element_1.get_int_value()
             else:
                 self.error("range", 2, expr)
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
-        leaves = expression.get_sequence()
-        if len(leaves) < self.min:
+        elements = expression.get_sequence()
+        if len(elements) < self.min:
             return
-        if self.max is not None and len(leaves) > self.max:
+        if self.max is not None and len(elements) > self.max:
             return
 
         def iter(yield_iter, rest_elements, vars):
@@ -1409,9 +1421,9 @@ class Repeated(PostfixOperator, PatternObject):
             else:
                 yield_iter(vars, None)
 
-        # for vars, rest in iter(leaves, vars):
+        # for vars, rest in iter(elements, vars):
         #    yield_func(vars, rest)
-        iter(yield_func, leaves, vars)
+        iter(yield_func, elements, vars)
 
     def get_match_count(self, vars={}):
         return (self.min, self.max)
@@ -1512,13 +1524,13 @@ class Condition(BinaryOperator, PatternObject):
 
     def init(self, expr):
         super(Condition, self).init(expr)
-        self.test = expr.leaves[1]
-        # if (expr.leaves[0].get_head_name() == "System`Condition" and
-        #    len(expr.leaves[0].leaves) == 2):
-        #    self.test = Expression("And", self.test, expr.leaves[0].leaves[1])
-        #    self.pattern = Pattern.create(expr.leaves[0].leaves[0])
+        self.test = expr.elements[1]
+        # if (expr.elements[0].get_head_name() == "System`Condition" and
+        #    len(expr.elements[0].elements) == 2):
+        #    self.test = Expression("And", self.test, expr.elements[0].elements[1])
+        #    self.pattern = Pattern.create(expr.elements[0].elements[0])
         # else:
-        self.pattern = Pattern.create(expr.leaves[0])
+        self.pattern = Pattern.create(expr.elements[0])
 
     def match(self, yield_func, expression, vars, evaluation, **kwargs):
         # for new_vars, rest in self.pattern.match(expression, vars,
@@ -1526,7 +1538,7 @@ class Condition(BinaryOperator, PatternObject):
         def yield_match(new_vars, rest):
             test_expr = self.test.replace_vars(new_vars)
             test_result = test_expr.evaluate(evaluation)
-            if test_result.is_true():
+            if test_result is SymbolTrue:
                 yield_func(new_vars, rest)
 
         self.pattern.match(yield_match, expression, vars, evaluation)
@@ -1593,7 +1605,7 @@ class OptionsPattern(PatternObject):
     def init(self, expr):
         super(OptionsPattern, self).init(expr)
         try:
-            self.defaults = expr.leaves[0]
+            self.defaults = expr.elements[0]
         except IndexError:
             # OptionsPattern[] takes default options of the nearest enclosing
             # function. Set to not None in self.match
@@ -1607,13 +1619,22 @@ class OptionsPattern(PatternObject):
                 # default options defined, e.g. with this code:
                 # f[x:OptionsPattern[]] := x; f["Test" -> 1]
                 # set self.defaults to an empty List, so we don't crash.
-                self.defaults = Expression(SymbolList)
-        values = self.defaults.get_option_values(
-            evaluation, allow_symbols=True, stop_on_error=False
+                self.defaults = ListExpression()
+        defaults = self.defaults
+        values = (
+            defaults.get_option_values(
+                evaluation, allow_symbols=True, stop_on_error=False
+            )
+            if isinstance(defaults, EvalMixin)
+            else {}
         )
         sequence = expression.get_sequence()
         for options in sequence:
-            option_values = options.get_option_values(evaluation)
+            option_values = (
+                options.get_option_values(evaluation)
+                if isinstance(options, EvalMixin)
+                else None
+            )
             if option_values is None:
                 return
             values.update(option_values)
@@ -1625,13 +1646,15 @@ class OptionsPattern(PatternObject):
     def get_match_count(self, vars={}):
         return (0, None)
 
-    def get_match_candidates(self, leaves, expression, attributes, evaluation, vars={}):
-        def _match(leaf):
-            return leaf.has_form(("Rule", "RuleDelayed"), 2) or leaf.has_form(
+    def get_match_candidates(
+        self, elements, expression, attributes, evaluation, vars={}
+    ):
+        def _match(element):
+            return element.has_form(("Rule", "RuleDelayed"), 2) or element.has_form(
                 "List", None
             )
 
-        return [leaf for leaf in leaves if _match(leaf)]
+        return [element for element in elements if _match(element)]
 
 
 class _StopGeneratorBaseElementIsFree(StopGenerator):
@@ -1653,7 +1676,7 @@ def item_is_free(item, form, evaluation):
         return True
     else:
         return item_is_free(item.head, form, evaluation) and all(
-            item_is_free(leaf, form, evaluation) for leaf in item.leaves
+            item_is_free(element, form, evaluation) for element in item.elements
         )
 
 
@@ -1661,7 +1684,7 @@ class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
     def __init__(self, rulelist, evaluation):
-        self.src = Expression(SymbolList, *rulelist)
+        self.src = ListExpression(*rulelist)
         self.rules = [Rule(rule.elements[0], rule.elements[1]) for rule in rulelist]
         self._elements = None
         self._head = SymbolDispatch
@@ -1676,12 +1699,10 @@ class Dispatch(Atom):
         return "dispatch"
 
     def atom_to_boxes(self, f, evaluation):
-        leaves = self.src.format(evaluation, f.get_name())
+        elements = self.src.format(evaluation, f.get_name())
         return Expression(
             SymbolRowBox,
-            Expression(
-                SymbolList, String("Dispatch"), String("["), leaves, String("]")
-            ),
+            ListExpression(String("Dispatch"), String("["), elements, String("]")),
         )
 
 
@@ -1733,8 +1754,8 @@ class DispatchAtom(AtomBuiltin):
 
         all_list = all(rule.has_form("List", None) for rule in rules)
         if all_list:
-            leaves = [self.apply_create(rule, evaluation) for rule in rules]
-            return Expression(SymbolList, *leaves)
+            elements = [self.apply_create(rule, evaluation) for rule in rules]
+            return ListExpression(*elements)
         flatten_list = []
         for rule in rules:
             if isinstance(rule, Symbol):
@@ -1752,7 +1773,7 @@ class DispatchAtom(AtomBuiltin):
                 return
         try:
             return Dispatch(flatten_list, evaluation)
-        except:
+        except Exception:
             return
 
     def apply_normal(self, dispatch, evaluation):

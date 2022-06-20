@@ -4,18 +4,14 @@
 Importing and Exporting
 """
 
+import mimetypes
+import os
+import sys
 
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    from_python,
-)
-from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolList, SymbolNull, strip_context
-from mathics.core.systemsymbols import (
-    SymbolRule,
-    SymbolFailed,
-)
-from mathics.core.streams import stream_manager
+from itertools import chain
+
+import urllib.request as request
+from urllib.error import HTTPError, URLError
 
 from mathics.builtin.base import (
     Builtin,
@@ -27,20 +23,40 @@ from mathics.builtin.base import (
 
 from mathics.builtin.pymimesniffer import magic
 
+from mathics.core.atoms import (
+    ByteArrayAtom,
+    from_python,
+)
 from mathics.core.attributes import no_attributes, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.streams import stream_manager
+from mathics.core.symbols import (
+    Symbol,
+    SymbolNull,
+    SymbolTrue,
+    strip_context,
+)
+from mathics.core.systemsymbols import (
+    SymbolByteArray,
+    SymbolFailed,
+    SymbolRule,
+    SymbolToString,
+)
 
-import mimetypes
-import sys
-from itertools import chain
-
-try:
-    import urllib.request as urllib2
-    from urllib.error import HTTPError, URLError
-except ImportError:
-    import urllib2
-    from urllib2 import HTTPError, URLError
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
+
+SymbolClose = Symbol("Close")
+SymbolDeleteFile = Symbol("DeleteFile")
+SymbolFileExtension = Symbol("FileExtension")
+SymbolFileFormat = Symbol("FileFormat")
+SymbolFindFile = Symbol("FindFile")
+SymbolOpenRead = Symbol("OpenRead")
+SymbolOpenWrite = Symbol("OpenWrite")
+SymbolOutputStream = Symbol("OutputStream")
+SymbolStringToStream = Symbol("StringToStream")
+SymbolWriteString = Symbol("WriteString")
 
 # Seems that JSON is not registered on the mathics.net server, so we do it manually here.
 # Keep in mind that mimetypes has system-dependent aspects (it inspects "/etc/mime.types" and other files).
@@ -944,25 +960,25 @@ class ImportFormats(Predefined):
     name = "$ImportFormats"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *sorted(IMPORTERS.keys()))
+        return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
 
 
 class ExportFormats(Predefined):
     """
     <dl>
-    <dt>'$ExportFormats'
-        <dd>returns a list of file formats supported by Export.
+      <dt>'$ExportFormats'
+      <dd>returns a list of file formats supported by Export.
     </dl>
 
     >> $ExportFormats
      = {...CSV,...SVG,...Text...}
     """
 
-    summary_text = "list supported export formats"
     name = "$ExportFormats"
+    summary_text = "list supported export formats"
 
     def evaluate(self, evaluation):
-        return Expression(SymbolList, *sorted(EXPORTERS.keys()))
+        return to_mathics_list(*sorted(EXPORTERS.keys()), elements_conversion_fn=String)
 
 
 class ConverterDumpsExtensionMappings(Predefined):
@@ -1127,7 +1143,7 @@ class RegisterImport(Builtin):
             options,
         )
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class RegisterExport(Builtin):
@@ -1184,7 +1200,7 @@ class RegisterExport(Builtin):
         OptionsPattern[ImportExport`RegisterExport]]"""
         EXPORTERS[formatname.get_string_value()] = (function, options)
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class URLFetch(Builtin):
@@ -1219,7 +1235,7 @@ class URLFetch(Builtin):
         try:
             # some pages need cookies or they will end up in an infinite redirect (i.e. HTTP 303)
             # loop, which prevents the page from getting loaded.
-            f = urllib2.build_opener(urllib2.HTTPCookieProcessor).open(py_url)
+            f = request.build_opener(request.HTTPCookieProcessor).open(py_url)
 
             try:
                 if sys.version_info >= (3, 0):
@@ -1338,14 +1354,12 @@ class Import(Builtin):
 
     def apply(self, filename, evaluation, options={}):
         "Import[filename_, OptionsPattern[]]"
-        return self.apply_elements(
-            filename, Expression(SymbolList), evaluation, options
-        )
+        return self.apply_elements(filename, ListExpression(), evaluation, options)
 
     def apply_element(self, filename, element, evaluation, options={}):
         "Import[filename_, element_String, OptionsPattern[]]"
         return self.apply_elements(
-            filename, Expression(SymbolList, element), evaluation, options
+            filename, ListExpression(element), evaluation, options
         )
 
     def apply_elements(self, filename, elements, evaluation, options={}):
@@ -1357,7 +1371,7 @@ class Import(Builtin):
             return SymbolFailed
 
         # Load local file
-        findfile = Expression("FindFile", filename).evaluate(evaluation)
+        findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
 
         if findfile is SymbolFailed:
             evaluation.message("Import", "nffil")
@@ -1365,7 +1379,7 @@ class Import(Builtin):
 
         def determine_filetype():
             return (
-                Expression("FileFormat", findfile)
+                Expression(SymbolFileFormat, findfile)
                 .evaluate(evaluation=evaluation)
                 .get_string_value()
             )
@@ -1429,30 +1443,30 @@ class Import(Builtin):
             return SymbolFailed
 
         def get_results(tmp_function, findfile):
-            if function_channels == Expression(SymbolList, String("FileNames")):
+            if function_channels == ListExpression(String("FileNames")):
                 joined_options = list(chain(stream_options, custom_options))
                 tmpfile = False
                 if findfile is None:
                     tmpfile = True
-                    stream = Expression("OpenWrite").evaluate(evaluation)
+                    stream = Expression(SymbolOpenWrite).evaluate(evaluation)
                     findfile = stream.leaves[0]
-                    if not data is None:
-                        Expression("WriteString", data).evaluate(evaluation)
+                    if data is not None:
+                        Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:
-                        Expression("WriteString", String("")).evaluate(evaluation)
-                    Expression("Close", stream).evaluate(evaluation)
+                        Expression(SymbolWriteString, String("")).evaluate(evaluation)
+                    Expression(SymbolClose, stream).evaluate(evaluation)
                     stream = None
                 import_expression = Expression(tmp_function, findfile, *joined_options)
                 tmp = import_expression.evaluate(evaluation)
                 if tmpfile:
-                    Expression("DeleteFile", findfile).evaluate(evaluation)
-            elif function_channels == Expression(SymbolList, String("Streams")):
+                    Expression(SymbolDeleteFile, findfile).evaluate(evaluation)
+            elif function_channels == ListExpression(String("Streams")):
                 if findfile is None:
-                    stream = Expression("StringToStream", data).evaluate(evaluation)
+                    stream = Expression(SymbolStringToStream, data).evaluate(evaluation)
                 else:
-                    stream = Expression("OpenRead", findfile, *stream_options).evaluate(
-                        evaluation
-                    )
+                    stream = Expression(
+                        SymbolOpenRead, findfile, *stream_options
+                    ).evaluate(evaluation)
                 if stream.get_head_name() != "System`InputStream":
                     evaluation.message("Import", "nffil")
                     evaluation.predetermined_out = current_predetermined_out
@@ -1460,7 +1474,7 @@ class Import(Builtin):
                 tmp = Expression(tmp_function, stream, *custom_options).evaluate(
                     evaluation
                 )
-                Expression("Close", stream).evaluate(evaluation)
+                Expression(SymbolClose, stream).evaluate(evaluation)
             else:
                 # TODO message
                 evaluation.predetermined_out = current_predetermined_out
@@ -1487,8 +1501,7 @@ class Import(Builtin):
                 return SymbolFailed
             if default_element is Symbol("Automatic"):
                 evaluation.predetermined_out = current_predetermined_out
-                return Expression(
-                    "List",
+                return ListExpression(
                     *(
                         Expression(SymbolRule, String(key), defaults[key])
                         for key in defaults.keys()
@@ -1609,14 +1622,12 @@ class ImportString(Import):
 
     def apply(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
-        return self.apply_elements(data, Expression(SymbolList), evaluation, options)
+        return self.apply_elements(data, ListExpression(), evaluation, options)
 
     def apply_element(self, data, element, evaluation, options={}):
         "ImportString[data_, element_String, OptionsPattern[]]"
 
-        return self.apply_elements(
-            data, Expression(SymbolList, element), evaluation, options
-        )
+        return self.apply_elements(data, ListExpression(element), evaluation, options)
 
     def apply_elements(self, data, elements, evaluation, options={}):
         "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
@@ -1775,7 +1786,7 @@ class Export(Builtin):
     def apply_element(self, filename, expr, element, evaluation, options={}):
         "Export[filename_, expr_, element_String, OptionsPattern[]]"
         return self.apply_elements(
-            filename, expr, Expression(SymbolList, element), evaluation, options
+            filename, expr, ListExpression(element), evaluation, options
         )
 
     def apply_elements(self, filename, expr, elems, evaluation, options={}):
@@ -1834,7 +1845,7 @@ class Export(Builtin):
             evaluation.message("Export", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out
             return SymbolFailed
-        elif function_channels == Expression(SymbolList, String("FileNames")):
+        elif function_channels == ListExpression(String("FileNames")):
             exporter_function = Expression(
                 exporter_symbol,
                 filename,
@@ -1842,14 +1853,14 @@ class Export(Builtin):
                 *list(chain(stream_options, custom_options))
             )
             res = exporter_function.evaluate(evaluation)
-        elif function_channels == Expression(SymbolList, String("Streams")):
-            stream = Expression("OpenWrite", filename, *stream_options).evaluate(
+        elif function_channels == ListExpression(String("Streams")):
+            stream = Expression(SymbolOpenWrite, filename, *stream_options).evaluate(
                 evaluation
             )
             if stream.get_head_name() != "System`OutputStream":
                 evaluation.message("Export", "nffil")
                 evaluation.predetermined_out = current_predetermined_out
-                return Symbol("$Failed")
+                return SymbolFailed
             exporter_function = Expression(
                 exporter_symbol,
                 stream,
@@ -1857,8 +1868,8 @@ class Export(Builtin):
                 *list(chain(stream_options, custom_options))
             )
             res = exporter_function.evaluate(evaluation)
-            Expression("Close", stream).evaluate(evaluation)
-        if res is Symbol("Null"):
+            Expression(SymbolClose, stream).evaluate(evaluation)
+        if res is SymbolNull:
             evaluation.predetermined_out = current_predetermined_out
             return filename
         evaluation.predetermined_out = current_predetermined_out
@@ -1872,7 +1883,7 @@ class Export(Builtin):
         return False
 
     def _infer_form(self, filename, evaluation):
-        ext = Expression("FileExtension", filename).evaluate(evaluation)
+        ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
         ext = ext.get_string_value().lower()
         # TODO: This dictionary should be accesible from the WL API
         # to allow defining specific converters
@@ -1882,9 +1893,10 @@ class Export(Builtin):
 class ExportString(Builtin):
     """
     <dl>
-    <dt>'ExportString[$expr$, $form$]'
+      <dt>'ExportString[$expr$, $form$]'
       <dd>exports $expr$ to a string, in the format $form$.
-    <dt>'Export["$file$", $exprs$, $elems$]'
+
+      <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>
 
@@ -1919,9 +1931,7 @@ class ExportString(Builtin):
 
     def apply_element(self, expr, element, evaluation, **options):
         "ExportString[expr_, element_String, OptionsPattern[ExportString]]"
-        return self.apply_elements(
-            expr, Expression(SymbolList, element), evaluation, **options
-        )
+        return self.apply_elements(expr, ListExpression(element), evaluation, **options)
 
     def apply_elements(self, expr, elems, evaluation, **options):
         "ExportString[expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[ExportString]]"
@@ -1973,12 +1983,12 @@ class ExportString(Builtin):
             evaluation,
         )
 
-        is_binary = exporter_options["System`BinaryFormat"].is_true()
+        is_binary = exporter_options["System`BinaryFormat"] is SymbolTrue
         if function_channels is None:
             evaluation.message("ExportString", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out
             return SymbolFailed
-        elif function_channels == Expression(SymbolList, String("FileNames")):
+        elif function_channels == ListExpression(String("FileNames")):
             # Generates a temporary file
             import tempfile
 
@@ -1997,7 +2007,7 @@ class ExportString(Builtin):
                 *list(chain(stream_options, custom_options))
             )
             exportres = exporter_function.evaluate(evaluation)
-            if exportres != Symbol("Null"):
+            if exportres != SymbolNull:
                 evaluation.predetermined_out = current_predetermined_out
                 return SymbolFailed
             else:
@@ -2008,16 +2018,22 @@ class ExportString(Builtin):
                         tmpstream = open(filename.value, "r")
                     res = tmpstream.read()
                     tmpstream.close()
+                    if sys.platform not in ("win32",):
+                        # On Windows unlink make the second NamedTemporaryFIle
+                        # fail giving something like:
+                        #   [WinError 32] The process cannot access the file because it is being used by another process: ...
+                        #    \\AppData\\Local\\Temp\\Mathics3-ExportString35eo_rih.svg'
+                        os.unlink(tmpstream.name)
                 except Exception as e:
                     print("something went wrong")
                     print(e)
                     evaluation.predetermined_out = current_predetermined_out
                     return SymbolFailed
                 if is_binary:
-                    res = Expression("ByteArray", ByteArrayAtom(res))
+                    res = Expression(SymbolByteArray, ByteArrayAtom(res))
                 else:
                     res = String(str(res))
-        elif function_channels == Expression(SymbolList, String("Streams")):
+        elif function_channels == ListExpression(String("Streams")):
             from io import StringIO, BytesIO
 
             if is_binary:
@@ -2027,7 +2043,9 @@ class ExportString(Builtin):
 
             name = "ExportString"
             stream = stream_manager.add(name, mode="w", io=pystream)
-            outstream = Expression("OutputStream", String("String"), Integer(stream.n))
+            outstream = Expression(
+                SymbolOutputStream, String("String"), Integer(stream.n)
+            )
             exporter_function = Expression(
                 exporter_symbol,
                 outstream,
@@ -2037,12 +2055,14 @@ class ExportString(Builtin):
             res = exporter_function.evaluate(evaluation)
             if res is SymbolNull:
                 if is_binary:
-                    res = Expression("ByteArray", ByteArrayAtom(pystream.getvalue()))
+                    res = Expression(
+                        SymbolByteArray, ByteArrayAtom(pystream.getvalue())
+                    )
                 else:
                     res = String(str(pystream.getvalue()))
             else:
                 res = Symbol("$Failed")
-            Expression("Close", outstream).evaluate(evaluation)
+            Expression(SymbolClose, outstream).evaluate(evaluation)
         else:
             evaluation.message("ExportString", "emptyfch")
             evaluation.predetermined_out = current_predetermined_out
@@ -2117,10 +2137,10 @@ class FileFormat(Builtin):
     def apply(self, filename, evaluation):
         "FileFormat[filename_String]"
 
-        findfile = Expression("FindFile", filename).evaluate(evaluation)
+        findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
         if findfile is SymbolFailed:
             evaluation.message(
-                "FileFormat", "nffil", Expression("FileFormat", filename)
+                "FileFormat", "nffil", Expression(SymbolFileFormat, filename)
             )
             return findfile
 
@@ -2191,7 +2211,7 @@ class B64Encode(Builtin):
             return String(expr._elements[0].__str__())
         else:
             stringtocodify = (
-                Expression("ToString", expr).evaluate(evaluation).get_string_value()
+                Expression(SymbolToString, expr).evaluate(evaluation).get_string_value()
             )
         return String(
             base64.b64encode(bytearray(stringtocodify, "utf8")).decode("utf8")

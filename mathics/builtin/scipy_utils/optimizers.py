@@ -1,19 +1,31 @@
 # -*- coding: utf-8 -*-
+import sys
 
-from mathics.core.expression import Expression
+from mathics.builtin import check_requires_list
+
 from mathics.core.atoms import Number, Real
-from mathics.core.symbols import SymbolList, Symbol
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
+from mathics.core.expression import Expression
+from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
+from mathics.core.utils import IS_PYPY
+
+SymbolCompile = Symbol("Compile")
+
+if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
+    raise ImportError
+
 
 from scipy.optimize import (
     minimize_scalar,
-    minimize,
-    basinhopping,
-    least_squares,
-    curve_fit,
+    # minimize,
+    # basinhopping,
+    # least_squares,
+    # curve_fit,
     root_scalar,
-    root,
+    # root,
 )
 
 
@@ -64,7 +76,7 @@ def compile_fn(f, x, opts, evaluation):
     """produces a compiled version of f, which is callable from Python"""
     if opts["_isfindmaximum"]:
         f = -f
-    comp_func = Expression("Compile", Expression(SymbolList, x), f).evaluate(evaluation)
+    comp_func = Expression(SymbolCompile, ListExpression(x), f).evaluate(evaluation)
     return comp_func._elements[2].cfunc
 
 
@@ -210,4 +222,10 @@ scipy_findroot_methods = {
     #    "Automatic": find_root1d_brenth,
     "brenth": find_root1d_brenth,
     #    "newton": find_root1d_newton,
+    # TODO Add:
+    # minimize,
+    # basinhopping,
+    # least_squares,
+    # curve_fit,
+    # root,
 }

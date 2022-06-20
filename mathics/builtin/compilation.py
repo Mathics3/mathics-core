@@ -8,25 +8,28 @@ When LLVM and Python libraries are available, compilation produces LLVM code.
 
 
 import ctypes
+from types import FunctionType
 
-
-from mathics.core.evaluators import apply_N
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
-from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
-
 from mathics.core.atoms import (
     Integer,
     String,
-    from_python,
 )
-
 from mathics.core.attributes import hold_all, protected
-
-from types import FunctionType
+from mathics.core.atoms import from_python
+from mathics.core.element import ImmutableValueMixin
+from mathics.core.evaluation import Evaluation
+from mathics.core.evaluators import apply_N
+from mathics.core.expression import Expression, SymbolCompiledFunction
+from mathics.core.list import to_mathics_list
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolBlank,
+    SymbolFunction,
+    SymbolInteger,
+    SymbolReal,
+)
 
 
 class Compile(Builtin):
@@ -109,10 +112,10 @@ class Compile(Builtin):
 
         # _Complex not implemented
         permitted_types = {
-            Expression("Blank", Symbol("Integer")): int_type,
-            Expression("Blank", Symbol("Real")): real_type,
-            Symbol("True"): bool_type,
-            Symbol("False"): bool_type,
+            Expression(SymbolBlank, SymbolInteger): int_type,
+            Expression(SymbolBlank, SymbolReal): real_type,
+            SymbolTrue: bool_type,
+            SymbolFalse: bool_type,
         }
 
         if not vars.has_form("List", None):
@@ -161,15 +164,16 @@ class Compile(Builtin):
                 cfunc = _pythonized_mathics_expr
             except Exception:
                 cfunc = None
-
         if cfunc is None:
             evaluation.message("Compile", "comperr", expr)
-            args = Expression("List", *names)
-            return Expression("Function", args, expr)
+            args = to_mathics_list(*names, elements_conversion_fn=String)
+            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
-        arg_names = Expression("List", *(Symbol(arg.name) for arg in args))
-        return Expression("CompiledFunction", arg_names, expr, code)
+        arg_names = to_mathics_list(
+            *(arg.name for arg in args), elements_conversion_fn=Symbol
+        )
+        return Expression(SymbolCompiledFunction, arg_names, expr, code)
 
 
 class CompiledCode(Atom, ImmutableValueMixin):
@@ -256,9 +260,9 @@ class CompiledFunction(Builtin):
         for arg in argseq:
             if isinstance(arg, Integer):
                 py_args.append(arg.get_int_value())
-            elif arg.sameQ(Symbol("True")):
+            elif arg.sameQ(SymbolTrue):
                 py_args.append(True)
-            elif arg.sameQ(Symbol("False")):
+            elif arg.sameQ(SymbolFalse):
                 py_args.append(False)
             else:
                 py_args.append(arg.round_to_float(evaluation))

@@ -6,19 +6,22 @@ Options and Default Arguments
 
 
 from mathics.builtin.base import Builtin, Test, get_option
+from mathics.builtin.drawing.image import Image
+
+from mathics.core.atoms import String
+from mathics.core.expression import (
+    Expression,
+    SymbolDefault,
+    get_default_value,
+)
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolList,
     ensure_context,
     strip_context,
 )
-from mathics.core.expression import (
-    Expression,
-    get_default_value,
-)
-from mathics.core.atoms import String
-
-from mathics.builtin.drawing.image import Image
+from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 
 class Options(Builtin):
@@ -101,12 +104,12 @@ class Options(Builtin):
         for option, value in sorted(options.items(), key=lambda item: item[0]):
             # Don't use HoldPattern, since the returned List should be
             # assignable to Options again!
-            result.append(Expression("RuleDelayed", Symbol(option), value))
-        return Expression("List", *result)
+            result.append(Expression(SymbolRuleDelayed, Symbol(option), value))
+        return ListExpression(*result)
 
 
 class OptionValue(Builtin):
-    u"""
+    """
     <dl>
     <dt>'OptionValue[$name$]'
         <dd>gives the value of the option $name$ as specified in a
@@ -204,7 +207,7 @@ class OptionValue(Builtin):
                 )
             else:
                 if f.get_head_name() in ("System`Rule", "System`RuleDelayed"):
-                    f = Expression("List", f)
+                    f = ListExpression(f)
                 if f.get_head_name() == "System`List":
                     for element in f.get_elements():
                         if isinstance(element, Symbol):
@@ -266,16 +269,16 @@ class Default(Builtin):
 
         i = i.get_sequence()
         if len(i) > 2:
-            evaluation.message("Default", "argb", 1 + len(i), 1, 3)
+            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
             return
         i = [index.get_int_value() for index in i]
         for index in i:
             if index is None or index < 1:
-                evaluation.message("Default", "intp")
+                evaluation.message(SymbolDefault, "intp")
                 return
         name = f.get_name()
         if not name:
-            evaluation.message("Default", "sym", f, 1)
+            evaluation.message(SymbolDefault, "sym", f, 1)
             return
         result = get_default_value(name, evaluation, *i)
         return result
@@ -318,7 +321,8 @@ class OptionQ(Test):
     )
 
     def test(self, expr):
-        expr = expr.flatten_with_respect_to_head(SymbolList)
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]
         else:
@@ -350,7 +354,8 @@ class NotOptionQ(Test):
     summary_text = "test whether an expression does not match the form of a valid option specification"
 
     def test(self, expr):
-        expr = expr.flatten_with_respect_to_head(SymbolList)
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
         if not expr.has_form("List", None):
             expr = [expr]
         else:
@@ -390,11 +395,11 @@ class FilterRules(Builtin):
         match = Matcher(pattern).match
 
         def matched():
-            for rule in rules.leaves:
-                if rule.has_form("Rule", 2) and match(rule.leaves[0], evaluation):
+            for rule in rules.elements:
+                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
                     yield rule
 
-        return Expression("List", *list(matched()))
+        return ListExpression(*list(matched()))
 
 
 def options_to_rules(options, filter=None):
@@ -405,4 +410,4 @@ def options_to_rules(options, filter=None):
             for name, value in items
             if strip_context(name) in filter.keys()
         ]
-    return [Expression("Rule", Symbol(name), value) for name, value in items]
+    return [Expression(SymbolRule, Symbol(name), value) for name, value in items]

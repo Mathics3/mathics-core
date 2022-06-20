@@ -6,9 +6,11 @@ Differential Equations
 
 import sympy
 from mathics.builtin.base import Builtin
-from mathics.core.expression import Expression
 from mathics.core.convert import from_sympy
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 
 class DSolve(Builtin):
@@ -133,7 +135,7 @@ class DSolve(Builtin):
             func = y
         except AttributeError:
             func = Expression(y, *syms)
-            function_form = Expression("List", *syms)
+            function_form = ListExpression(*syms)
 
         if isinstance(func, Atom):
             evaluation.message("DSolve", "dsfun", y)
@@ -179,24 +181,23 @@ class DSolve(Builtin):
                 sym_result = [sym_result]
 
         if function_form is None:
-            return Expression(
-                "List",
+            return ListExpression(
                 *[
-                    Expression("List", Expression("Rule", *from_sympy(soln).leaves))
+                    ListExpression(Expression(SymbolRule, *from_sympy(soln).elements))
                     for soln in sym_result
                 ]
             )
         else:
-            return Expression(
-                "List",
+            return ListExpression(
                 *[
-                    Expression(
-                        "List",
+                    ListExpression(
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             y,
                             Expression(
-                                "Function", function_form, *from_sympy(soln).leaves[1:]
+                                SymbolFunction,
+                                function_form,
+                                *from_sympy(soln).leaves[1:]
                             ),
                         ),
                     )
@@ -211,9 +212,8 @@ class DSolve(Builtin):
 class C(Builtin):
     """
     <dl>
-    <dt>'C'[$n$]
-        <dd>represents the $n$th constant in a solution to a
-        differential equation.
+      <dt>'C'[$n$]
+      <dd>represents the $n$th constant in a solution to a differential equation.
     </dl>
     """
 

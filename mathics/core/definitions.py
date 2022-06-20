@@ -15,11 +15,14 @@ from mathics.core.atoms import String
 from mathics.core.attributes import no_attributes
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
     strip_context,
 )
+from mathics.core.systemsymbols import SymbolGet
+
 from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
@@ -50,7 +53,7 @@ def autoload_files(
     # Load symbols from the autoload folder
     for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
         for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
-            Expression("Get", String(path)).evaluate(Evaluation(defs))
+            Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
 
     if block_global_definitions:
         # Move any user definitions created by autoloaded files to
@@ -72,7 +75,7 @@ class PyMathicsLoadException(Exception):
         self.module = module
 
 
-class Definitions(object):
+class Definitions:
     """
     The state of one instance of the Mathics interpreter is stored in this object.
 
@@ -301,7 +304,7 @@ class Definitions(object):
         assert all([isinstance(c, str) for c in context_path])
         self.set_ownvalue(
             "System`$ContextPath",
-            Expression("System`List", *[String(c) for c in context_path]),
+            to_mathics_list(*context_path, elements_conversion_fn=String),
         )
         self.context_path = context_path
         self.clear_cache()
@@ -793,7 +796,7 @@ def insert_rule(values, rule) -> None:
     bisect.insort_left(values, rule)
 
 
-class Definition(object):
+class Definition:
     """
     A Definition is a collection of ``Rule``s and attributes which are associated to ``Symbol``.
 

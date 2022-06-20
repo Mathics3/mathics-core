@@ -9,26 +9,13 @@ import re
 import zlib
 
 
+from mathics.algorithm.parts import python_seq, convert_seq
+
 from mathics.builtin.base import (
     BinaryOperator,
     Builtin,
 )
-from mathics.core.expression import Expression, string_list
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
-from mathics.core.systemsymbols import SymbolByteArray
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    Integer,
-    Integer1,
-    String,
-    from_python,
-)
-from mathics.algorithm.parts import python_seq, convert_seq
+
 from mathics.builtin.atomic.strings import (
     _StringFind,
     _evaluate_match,
@@ -36,7 +23,15 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
+from mathics.builtin.box.inout import _BoxedString
 
+from mathics.core.atoms import (
+    ByteArrayAtom,
+    Integer,
+    Integer1,
+    String,
+    from_python,
+)
 from mathics.core.attributes import (
     flat,
     listable,
@@ -44,9 +39,26 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.expression import Expression, string_list
+from mathics.core.list import ListExpression
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolTrue,
+)
+from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolByteArray,
+    SymbolDirectedInfinity,
+)
 
 
-SymbolAll = Symbol("All")
+SymbolStringInsert = Symbol("StringInsert")
+SymbolStringJoin = Symbol("StringJoin")
+SymbolStringPosition = Symbol("StringPosition")
+SymbolStringRiffle = Symbol("StringRiffle")
+SymbolStringSplit = Symbol("StringSplit")
 
 
 class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
@@ -94,12 +106,12 @@ class Hash(Builtin):
      = Hash[{a, b, c}, xyzstr, Integer]
     """
 
+    attributes = protected | read_protected
+
     rules = {
         "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
         "Hash[expr_, type_String]": 'Hash[expr, type, "Integer"]',
     }
-
-    attributes = protected | read_protected
 
     summary_text = "compute hash codes for a string"
 
@@ -169,16 +181,17 @@ class StringDrop(Builtin):
     = abcd
     """
 
-    summary_text = "drop a part of a string"
     messages = {
         "strse": "String expected at position 1.",
         "mseqs": "Integer or list of two Integers are expected at position 2.",
         "drop": 'Cannot drop positions `1` through `2` in "`3`".',
     }
 
+    summary_text = "drop a part of a string"
+
     def apply_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse")
         if isinstance(n, Integer):
             pos = n.value
@@ -196,7 +209,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse", string)
 
         if ni.value == 0 or nf.value == 0:
@@ -218,7 +231,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse", string)
         if ni.value == 0:
             return evaluation.message("StringDrop", "drop", ni, ni)
@@ -233,7 +246,7 @@ class StringDrop(Builtin):
 
     def apply(self, string, something, evaluation):
         "StringDrop[string_,something___]"
-        if not isinstance(string, String):
+        if not isinstance(string, (String, _BoxedString)):
             return evaluation.message("StringDrop", "strse")
         return evaluation.message("StringDrop", "mseqs")
 
@@ -342,7 +355,6 @@ class StringInsert(Builtin):
     >> StringInsert["1234567890123456", ".", Range[-16, -4, 3]]
      = 1.234.567.890.123.456"""
 
-    summary_text = "insert a string in a given position"
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
         "string": "String expected at position `1` in `2`.",
@@ -350,13 +362,21 @@ class StringInsert(Builtin):
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
     }
 
+    summary_text = "insert a string in a given position"
+
     def _insert(self, str, add, lpos, evaluation):
         for pos in lpos:
             if abs(pos) < 1 or abs(pos) > len(str) + 1:
-                evaluation.message("StringInsert", "ins", Integer(pos), String(str))
+                str_string = String(str)
+                add_string = String(add)
+                lpos_element = Integer(lpos[0]) if len(lpos) == 1 else from_python(lpos)
+                evaluation.message("StringInsert", "ins", Integer(pos), str_string)
                 return evaluation.format_output(
                     Expression(
-                        "StringInsert", str, add, lpos[0] if len(lpos) == 1 else lpos
+                        SymbolStringInsert,
+                        str_string,
+                        add_string,
+                        lpos_element,
                     )
                 )
 
@@ -379,7 +399,7 @@ class StringInsert(Builtin):
     def apply(self, strsource, strnew, pos, evaluation):
         "StringInsert[strsource_, strnew_, pos_]"
 
-        exp = Expression("StringInsert", strsource, strnew, pos)
+        exp = Expression(SymbolStringInsert, strsource, strnew, pos)
 
         py_strnew = strnew.get_string_value()
         if py_strnew is None:
@@ -405,11 +425,10 @@ class StringInsert(Builtin):
 
         # Check and perform the insertion
         if strsource.has_form("List", None):
-            py_strsource = [sub.get_string_value() for sub in strsource.leaves]
+            py_strsource = [sub.get_string_value() for sub in strsource.elements]
             if any(sub is None for sub in py_strsource):
                 return evaluation.message("StringInsert", "strse", Integer1, exp)
-            return Expression(
-                "List",
+            return ListExpression(
                 *[
                     String(self._insert(s, py_strnew, listpos, evaluation))
                     for s in py_strsource
@@ -441,22 +460,22 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    summary_text = "join strings together"
     attributes = flat | one_identity | protected
     operator = "<>"
     precedence = 600
+    summary_text = "join strings together"
 
     def apply(self, items, evaluation):
         "StringJoin[items___]"
-
         result = ""
-        items = items.flatten_with_respect_to_head(SymbolList)
+        if hasattr(items, "flatten_with_respect_to_head"):
+            items = items.flatten_with_respect_to_head(SymbolList)
         if items.get_head_name() == "System`List":
-            items = items.leaves
+            items = items.elements
         else:
             items = items.get_sequence()
         for item in items:
-            if not isinstance(item, String):
+            if not isinstance(item, (String, _BoxedString)):
                 evaluation.message("StringJoin", "string")
                 return
             result += item.value
@@ -487,8 +506,7 @@ class StringLength(Builtin):
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
-
-        if not isinstance(str, String):
+        if not isinstance(str, (String, _BoxedString)):
             evaluation.message("StringLength", "string")
             return
         return Integer(len(str.value))
@@ -548,38 +566,37 @@ class StringPosition(Builtin):
      = {{5, 7}, {10, 12}}
     """
 
-    summary_text = "range of positions where substrings match a pattern"
-    options = {
-        "IgnoreCase": "False",
-        "MetaCharacters": "None",
-        "Overlaps": "True",
-    }
-
     messages = {
         "strse": "String or list of strings expected at position `1` in `2`.",
         "overall": "Overlaps -> All option is not currently implemented in Mathics.",
         "innf": "Non-negative integer or Infinity expected at position `2` in `1`.",
     }
 
+    options = {
+        "IgnoreCase": "False",
+        "MetaCharacters": "None",
+        "Overlaps": "True",
+    }
+
     rules = {
         "StringPosition[patt_][s_]": "StringPosition[s, patt]",
     }
 
+    summary_text = "range of positions where substrings match a pattern"
+
     def apply(self, string, patt, evaluation, options):
         "StringPosition[string_, patt_, OptionsPattern[StringPosition]]"
-
         return self.apply_n(
             string,
             patt,
-            Expression("DirectedInfinity", Integer1),
+            Expression(SymbolDirectedInfinity, Integer1),
             evaluation,
             options,
         )
 
     def apply_n(self, string, patt, n, evaluation, options):
         "StringPosition[string_, patt_, n:(_Integer|DirectedInfinity[1]), OptionsPattern[StringPosition]]"
-
-        expr = Expression("StringPosition", string, patt, n)
+        expr = Expression(SymbolStringPosition, string, patt, n)
 
         # check n
         if n.has_form("DirectedInfinity", 1):
@@ -616,14 +633,14 @@ class StringPosition(Builtin):
 
         # string or list of strings
         if string.has_form("List", None):
-            py_strings = [s.get_string_value() for s in string.leaves]
+            py_strings = [s.get_string_value() for s in string.elements]
             if None in py_strings:
                 return
             results = [
                 self.do_apply(py_string, compiled_patts, py_n, overlap)
                 for py_string in py_strings
             ]
-            return Expression(SymbolList, *results)
+            return ListExpression(*results)
         else:
             py_string = string.get_string_value()
             if py_string is None:
@@ -741,10 +758,12 @@ class StringReplace(_StringFind):
     #> StringReplace["product: A \\[CirclePlus] B" , "\\[CirclePlus]" -> "x"]
      = A x B
     """
-    summary_text = "apply replace rules to substrings"
+
     rules = {
         "StringReplace[rule_][string_]": "StringReplace[string, rule]",
     }
+
+    summary_text = "apply replace rules to substrings"
 
     def _find(self, py_stri, py_rules, py_n, flags, evaluation):
         def cases():
@@ -758,7 +777,7 @@ class StringReplace(_StringFind):
             if k < len(py_stri):
                 yield String(py_stri[k:])
 
-        return Expression("StringJoin", *list(cases()))
+        return Expression(SymbolStringJoin, *list(cases()))
 
     def apply(self, string, rule, n, evaluation, options):
         "%(name)s[string_, rule_, OptionsPattern[%(name)s], n_:System`Private`Null]"
@@ -777,8 +796,8 @@ class StringReverse(Builtin):
        = evil
     """
 
-    summary_text = "reverses the order of the characters in a string"
     attributes = listable | protected
+    summary_text = "reverses the order of the characters in a string"
 
     def apply(self, string, evaluation):
         "StringReverse[string_String]"
@@ -846,7 +865,6 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
-    summary_text = "assemble a string from a list, inserting delimiters"
     attributes = protected | read_protected
 
     messages = {
@@ -858,13 +876,15 @@ class StringRiffle(Builtin):
         "mulsep": "Multiple separators form is not implemented yet.",
     }
 
+    summary_text = "assemble a string from a list, inserting delimiters"
+
     def apply(self, liststr, seps, evaluation):
         "StringRiffle[liststr_, seps___]"
         separators = seps.get_sequence()
         exp = (
-            Expression("StringRiffle", liststr, seps)
+            Expression(SymbolStringRiffle, liststr, seps)
             if separators
-            else Expression("StringRiffle", liststr)
+            else Expression(SymbolStringRiffle, liststr)
         )
 
         # Validate separators
@@ -872,18 +892,19 @@ class StringRiffle(Builtin):
             return evaluation.message("StringRiffle", "mulsep")
         elif len(separators) == 1:
             if separators[0].has_form("List", None):
-                if len(separators[0].leaves) != 3 or any(
-                    not isinstance(s, String) for s in separators[0].leaves
+                if len(separators[0].elements) != 3 or any(
+                    not isinstance(s, (String, _BoxedString))
+                    for s in separators[0].elements
                 ):
                     return evaluation.message("StringRiffle", "string", Integer(2), exp)
-            elif not isinstance(separators[0], String):
+            elif not isinstance(separators[0], (String, _BoxedString)):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string
         if not liststr.has_form("List", None):
             evaluation.message("StringRiffle", "list", Integer1, exp)
             return evaluation.message("StringRiffle", "argmu", exp)
-        elif any(leaf.has_form("List", None) for leaf in liststr.leaves):
+        elif any(element.has_form("List", None) for element in liststr.elements):
             return evaluation.message("StringRiffle", "sublist")
 
         # Determine the separation token
@@ -892,21 +913,21 @@ class StringRiffle(Builtin):
             sep = " "
         else:
             if separators[0].has_form("List", None):
-                left = separators[0].leaves[0].value
-                sep = separators[0].leaves[1].value
-                right = separators[0].leaves[2].value
+                left = separators[0].elements[0].value
+                sep = separators[0].elements[1].value
+                right = separators[0].elements[2].value
             else:
                 sep = separators[0].get_string_value()
 
         # Getting all together
         result = left
-        for i in range(len(liststr.leaves)):
+        for i in range(len(liststr.elements)):
             text = (
-                liststr.leaves[i]
+                liststr.elements[i]
                 .format(evaluation, "System`OutputForm")
                 .boxes_to_text(evaluation=evaluation)
             )
-            if i == len(liststr.leaves) - 1:
+            if i == len(liststr.elements) - 1:
                 result += text + right
             else:
                 result += text + sep
@@ -968,9 +989,9 @@ class StringSplit(Builtin):
 
     """
 
-    summary_text = "split strings at whitespace, or at a pattern"
-    rules = {
-        "StringSplit[s_]": "StringSplit[s, Whitespace]",
+    messages = {
+        "strse": "String or list of strings expected at position `1` in `2`.",
+        "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
     }
 
     options = {
@@ -978,23 +999,26 @@ class StringSplit(Builtin):
         "MetaCharacters": "None",
     }
 
-    messages = {
-        "strse": "String or list of strings expected at position `1` in `2`.",
-        "pysplit": "As of Python 3.5 re.split does not handle empty pattern matches.",
+    rules = {
+        "StringSplit[s_]": "StringSplit[s, Whitespace]",
     }
+
+    summary_text = "split strings at whitespace, or at a pattern"
 
     def apply(self, string, patt, evaluation, options):
         "StringSplit[string_, patt_, OptionsPattern[%(name)s]]"
 
         if string.get_head_name() == "System`List":
-            leaves = [self.apply(s, patt, evaluation, options) for s in string.elements]
-            return Expression(SymbolList, *leaves)
+            elements = [
+                self.apply(s, patt, evaluation, options) for s in string.elements
+            ]
+            return ListExpression(*elements)
 
         py_string = string.get_string_value()
 
         if py_string is None:
             return evaluation.message(
-                "StringSplit", "strse", Integer1, Expression("StringSplit", string)
+                "StringSplit", "strse", Integer1, Expression(SymbolStringSplit, string)
             )
 
         if patt.has_form("List", None):
@@ -1092,7 +1116,6 @@ class StringTake(Builtin):
      = StringTake[kkkl, -Graphics-]
     """
 
-    summary_text = "sub-string from a range of positions"
     messages = {
         "strse": "String or list of strings expected at position 1.",
         # FIXME: mseqs should be: Sequence specification (+n, -n, {+n}, {-n}, {m, n}, or {m, n, s}) or a list
@@ -1100,6 +1123,8 @@ class StringTake(Builtin):
         "mseqs": "Integer or a list of sequence specifications expected at position 2.",
         "take": 'Cannot take positions `1` through `2` in "`3`".',
     }
+
+    summary_text = "sub-string from a range of positions"
 
     def apply(self, string, seqspec, evaluation):
         "StringTake[string_String, seqspec_]"
@@ -1130,12 +1155,12 @@ class StringTake(Builtin):
     def apply_strings(self, strings, spec, evaluation):
         "StringTake[strings__, spec_]"
         result_list = []
-        for string in strings.leaves:
+        for string in strings.elements:
             result = self.apply(string, spec, evaluation)
             if result is None:
                 return None
             result_list.append(result)
-        return Expression("List", *result_list)
+        return ListExpression(*result_list)
 
 
 class StringTrim(Builtin):

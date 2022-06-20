@@ -10,10 +10,11 @@ from typing import Callable
 
 from mathics.builtin.base import Builtin
 
+from mathics.core.atoms import Integer, String, Symbol
 from mathics.core.expression import Expression
-from mathics.core.atoms import Integer, String
 from mathics.core.symbols import SymbolTrue
 
+SymbolEditDistance = Symbol("EditDistance")
 
 # Levenshtein's algorithm is defined by the following construction:
 # (adapted from https://de.wikipedia.org/wiki/Levenshtein-Distanz)
@@ -139,7 +140,7 @@ class _StringDistance(Builtin):
         elif a.get_head_name() == "System`List" and b.get_head_name() == "System`List":
             return Integer(self._distance(a.leaves, b.leaves, lambda u, v: u.sameQ(v)))
         else:
-            return Expression("EditDistance", a, b)
+            return Expression(SymbolEditDistance, a, b)
 
 
 class DamerauLevenshteinDistance(_StringDistance):
@@ -267,7 +268,7 @@ class HammingDistance(Builtin):
         ignore_case = self.get_option(options, "IgnoreCase", evaluation)
         py_u = u.get_string_value()
         py_v = v.get_string_value()
-        if ignore_case and ignore_case.is_true():
+        if ignore_case and ignore_case is SymbolTrue:
             py_u = py_u.lower()
             py_v = py_v.lower()
         return HammingDistance._compute(py_u, py_v, lambda x, y: x == y, evaluation)

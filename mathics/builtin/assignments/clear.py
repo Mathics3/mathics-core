@@ -8,23 +8,6 @@ from mathics.builtin.base import (
     Builtin,
     PostfixOperator,
 )
-from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    system_symbols,
-)
-
-from mathics.core.systemsymbols import (
-    Symbol_Context,
-    Symbol_ContextPath,
-    SymbolFailed,
-)
-
-from mathics.core.atoms import String
-
-from mathics.builtin.assignments.internals import is_protected
-
 from mathics.core.attributes import (
     hold_all,
     hold_first,
@@ -34,6 +17,24 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.expression import Expression
+from mathics.core.symbols import (
+    Atom,
+    Symbol,
+    SymbolNull,
+    system_symbols,
+)
+
+from mathics.core.systemsymbols import (
+    Symbol_Context,
+    Symbol_ContextPath,
+    SymbolFailed,
+    SymbolOptions,
+)
+
+from mathics.core.atoms import String
+
+from mathics.builtin.assignments.internals import is_protected
 
 
 class Clear(Builtin):
@@ -129,7 +130,7 @@ class Clear(Builtin):
                 definition = evaluation.definitions.get_user_definition(name)
                 self.do_clear(definition)
 
-        return Symbol("Null")
+        return SymbolNull
 
 
 class ClearAll(Clear):
@@ -257,12 +258,12 @@ class Unset(PostfixOperator):
             if not symbol:
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed
-            if head is Symbol("System`Options"):
+            if head is SymbolOptions:
                 empty = {}
             else:
                 empty = []
             evaluation.definitions.set_values(symbol, expr.get_head_name(), empty)
-            return Symbol("Null")
+            return SymbolNull
         name = expr.get_lookup_name()
         if not name:
             evaluation.message("Unset", "usraw", expr)
@@ -271,7 +272,7 @@ class Unset(PostfixOperator):
             if not isinstance(expr, Atom):
                 evaluation.message("Unset", "norep", expr, Symbol(name))
                 return SymbolFailed
-        return Symbol("Null")
+        return SymbolNull
 
 
 SYSTEM_SYMBOL_VALUES = system_symbols(

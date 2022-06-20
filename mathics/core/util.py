@@ -10,6 +10,8 @@ FORMAT_RE = re.compile(r"\`(\d*)\`")
 
 import time
 
+IS_PYPY = "__pypy__" in sys.builtin_module_names
+
 # A small, simple timing tool
 MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
 
@@ -29,7 +31,7 @@ def timeit(method):
         ts = time.time()
         result = method(*args, **kw)
         te = time.time()
-        elapsed = int((te - ts) * 1000)
+        elapsed = (te - ts) * 1000
         if elapsed > MIN_ELAPSE_REPORT:
             if "log_time" in kw:
                 name = kw.get("log_name", method.__name__.upper())
@@ -40,6 +42,29 @@ def timeit(method):
         return result
 
     return timed
+
+
+class TimeitContextManager:
+    """Add this as a context manager to time parts of the code.
+
+    For example:
+        with TimeitContextManager("testing my loop"):
+           for x in collection:
+               ...
+    """
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def __enter__(self):
+        # print(f"{date.today()}	{method_name} starts")
+        self.ts = time.time()
+
+    def __exit__(self, exc_type, exc_value, exc_tb):
+        te = time.time()
+        elapsed = (te - self.ts) * 1000
+        if elapsed > MIN_ELAPSE_REPORT:
+            print("%r  %2.2f ms" % (self.name, elapsed))
 
 
 def interpolate_string(text, get_param) -> str:
@@ -224,7 +249,6 @@ try:
     def _python_function_arguments(f):
         return signature(f).parameters.keys()
 
-
 except ImportError:  # py2, pypy
     from inspect import getargspec
 
@@ -238,7 +262,6 @@ elif sys.version_info[0] >= 3:  # py3.3
 
     def _cython_function_arguments(f):
         return f.__code__.co_varnames
-
 
 else:  # py2
 

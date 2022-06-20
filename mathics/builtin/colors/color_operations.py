@@ -14,16 +14,18 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
 )
 from mathics.builtin.colors.color_internals import convert_color
+from mathics.builtin.drawing.image import _ImageBuiltin, Image
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     Integer,
+    MachineReal,
     Rational,
     Real,
 )
-from mathics.core.symbols import Symbol, SymbolList
-
-from mathics.builtin.drawing.image import _ImageBuiltin, Image
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolRGBColor
 
 _image_requires = ("numpy", "PIL")
 
@@ -67,7 +69,6 @@ class Blend(Builtin):
      = Blend[{RGBColor[1, 0, 0], RGBColor[0, 1, 0], RGBColor[0, 0, 1]}, {1, 0.5}]
     """
 
-    summary_text = "blend of colors"
     messages = {
         "arg": (
             "`1` is not a valid list of color or gray-level directives, "
@@ -80,6 +81,7 @@ class Blend(Builtin):
     }
 
     rules = {"Blend[colors_]": "Blend[colors, ConstantArray[1, Length[colors]]]"}
+    summary_text = "blend of colors"
 
     def do_blend(self, colors, values):
         type = None
@@ -114,14 +116,14 @@ class Blend(Builtin):
             if not colors:
                 raise ColorError
         except ColorError:
-            evaluation.message("Blend", "arg", Expression(SymbolList, colors_orig))
+            evaluation.message("Blend", "arg", ListExpression(colors_orig))
             return
 
         if u.has_form("List", None):
-            values = [value.round_to_float(evaluation) for value in u.leaves]
+            values = [value.round_to_float(evaluation) for value in u.elements]
             if None in values:
                 values = None
-            if len(u.leaves) != len(colors):
+            if len(u.elements) != len(colors):
                 values = None
             use_list = True
         else:
@@ -134,9 +136,7 @@ class Blend(Builtin):
                 values = 0.0
             use_list = False
         if values is None:
-            return evaluation.message(
-                "Blend", "argl", u, Expression(SymbolList, colors_orig)
-            )
+            return evaluation.message("Blend", "argl", u, ListExpression(colors_orig))
 
         if use_list:
             return self.do_blend(colors, values).to_expr()
@@ -170,11 +170,11 @@ class ColorConvert(Builtin):
     XYZ: convert to XYZColor
     """
 
-    summary_text = "convert between color models"
     messages = {
         "ccvinput": "`` should be a color.",
         "imgcstype": "`` is not a valid color space.",
     }
+    summary_text = "convert between color models"
 
     def apply(self, input, colorspace, evaluation):
         "ColorConvert[input_, colorspace_String]"
@@ -224,11 +224,11 @@ class ColorNegate(_ImageBuiltin):
     def apply_for_color(self, color, evaluation):
         "ColorNegate[color_RGBColor]"
         # Get components
-        r, g, b = [leaf.to_python() for leaf in color.leaves]
+        r, g, b = [element.to_python() for element in color.elements]
         # Invert
         r, g, b = (1.0 - r, 1.0 - g, 1.0 - b)
         # Reconstitute
-        return Expression("RGBColor", Real(r), Real(g), Real(b))
+        return Expression(SymbolRGBColor, Real(r), Real(g), Real(b))
 
     def apply_for_image(self, image, evaluation):
         "ColorNegate[image_Image]"
@@ -254,8 +254,8 @@ class Darker(Builtin):
      = -Graphics-
     """
 
-    summary_text = "make a color darker"
     rules = {"Darker[c_, f_]": "Blend[{c, Black}, f]", "Darker[c_]": "Darker[c, 1/3]"}
+    summary_text = "make a color darker"
 
 
 class DominantColors(_ImageBuiltin):
@@ -306,13 +306,13 @@ class DominantColors(_ImageBuiltin):
      = {RGBColor[0.827451, 0.537255, 0.486275], RGBColor[0.87451, 0.439216, 0.45098], RGBColor[0.341176, 0.0705882, 0.254902]}
     """
 
-    summary_text = "find a list of dominant colors"
     rules = {
         "DominantColors[image_Image, n_Integer, options___]": 'DominantColors[image, n, "Color", options]',
         "DominantColors[image_Image, options___]": 'DominantColors[image, 256, "Color", options]',
     }
 
     options = {"ColorCoverage": "Automatic", "MinColorDistance": "Automatic"}
+    summary_text = "find a list of dominant colors"
 
     def apply(self, image, n, prop, evaluation, options):
         "DominantColors[image_Image, n_Integer, prop_String, OptionsPattern[%(name)s]]"
@@ -341,8 +341,8 @@ class DominantColors(_ImageBuiltin):
             py_min_color_coverage = 0.05
             py_max_color_coverage = 1.0
         elif color_coverage.has_form("List", 2):
-            py_min_color_coverage = color_coverage.leaves[0].round_to_float()
-            py_max_color_coverage = color_coverage.leaves[1].round_to_float()
+            py_min_color_coverage = color_coverage.elements[0].round_to_float()
+            py_max_color_coverage = color_coverage.elements[1].round_to_float()
         else:
             py_min_color_coverage = color_coverage.round_to_float()
             py_max_color_coverage = 1.0
@@ -350,7 +350,7 @@ class DominantColors(_ImageBuiltin):
         if py_min_color_coverage is None or py_max_color_coverage is None:
             return
 
-        at_most = n.get_int_value()
+        at_most = n.value
 
         if at_most > 256:
             return
@@ -420,9 +420,12 @@ class DominantColors(_ImageBuiltin):
                             mask = mask | (pixels == i)
                         yield Image(mask.reshape(tuple(reversed(im.size))), "Grayscale")
                     else:
-                        yield Expression(out_palette_head, *prototype)
+                        yield Expression(
+                            Symbol(out_palette_head),
+                            *(MachineReal(c) for c in prototype)
+                        )
 
-        return Expression(SymbolList, *itertools.islice(result(), 0, at_most))
+        return to_mathics_list(*itertools.islice(result(), 0, at_most))
 
 
 class Lighter(Builtin):
@@ -442,8 +445,8 @@ class Lighter(Builtin):
      = -Graphics-
     """
 
-    summary_text = "make a color lighter"
     rules = {
         "Lighter[c_, f_]": "Blend[{c, White}, f]",
         "Lighter[c_]": "Lighter[c, 1/3]",
     }
+    summary_text = "make a color lighter"

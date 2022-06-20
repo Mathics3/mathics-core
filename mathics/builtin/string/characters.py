@@ -6,11 +6,10 @@ Characters in Strings
 
 from mathics.builtin.base import Builtin, Test
 
-from mathics.core.expression import Expression
 from mathics.core.atoms import String
-from mathics.core.symbols import SymbolList
-
 from mathics.core.attributes import listable, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression, to_mathics_list
 
 
 class Characters(Builtin):
@@ -36,21 +35,20 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
-    summary_text = "list the characters in a string"
     attributes = listable | protected
+    summary_text = "list the characters in a string"
 
     def apply(self, string, evaluation):
         "Characters[string_String]"
 
-        return Expression(SymbolList, *(String(c) for c in string.value))
+        return to_mathics_list(*string.value, elements_conversion_fn=String)
 
 
 class CharacterRange(Builtin):
     """
     <dl>
-    <dt>'CharacterRange["$a$", "$b$"]'
-        <dd>returns a list of the Unicode characters from $a$ to $b$
-        inclusive.
+      <dt>'CharacterRange["$a$", "$b$"]'
+      <dd>returns a list of the Unicode characters from $a$ to $b$ inclusive.
     </dl>
 
     >> CharacterRange["a", "e"]
@@ -59,12 +57,13 @@ class CharacterRange(Builtin):
      = {}
     """
 
-    summary_text = "range of characters with successive character codes"
     attributes = protected | read_protected
 
     messages = {
         "argtype": "Arguments `1` and `2` are not both strings of length 1.",
     }
+
+    summary_text = "range of characters with successive character codes"
 
     def apply(self, start, stop, evaluation):
         "CharacterRange[start_String, stop_String]"
@@ -74,16 +73,14 @@ class CharacterRange(Builtin):
             return
         start = ord(start.value[0])
         stop = ord(stop.value[0])
-        return Expression(
-            "List", *[String(chr(code)) for code in range(start, stop + 1)]
-        )
+        return ListExpression(*[String(chr(code)) for code in range(start, stop + 1)])
 
 
 class DigitQ(Builtin):
     """
     <dl>
-    <dt>'DigitQ[$string$]'
-    <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
+      <dt>'DigitQ[$string$]'
+      <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
 
     </dl>
 
@@ -101,19 +98,19 @@ class DigitQ(Builtin):
 
     """
 
-    summary_text = "test whether all the characters are digits"
     rules = {
         "DigitQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, DigitCharacter...], False, False]"
         ),
     }
+    summary_text = "test whether all the characters are digits"
 
 
 class LetterQ(Builtin):
     """
     <dl>
-    <dt>'LetterQ[$string$]'
-    <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
+      <dt>'LetterQ[$string$]'
+      <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
     </dl>
 
     >> LetterQ["m"]
@@ -135,19 +132,19 @@ class LetterQ(Builtin):
      = True
     """
 
-    summary_text = "test whether all the characters are letters"
     rules = {
         "LetterQ[string_]": (
             "If[StringQ[string], StringMatchQ[string, LetterCharacter...], False, False]"
         ),
     }
+    summary_text = "test whether all the characters are letters"
 
 
 class LowerCaseQ(Test):
     """
     <dl>
-    <dt>'LowerCaseQ[$s$]'
-        <dd>returns True if $s$ consists wholly of lower case characters.
+      <dt>'LowerCaseQ[$s$]'
+      <dd>returns True if $s$ consists wholly of lower case characters.
     </dl>
 
     >> LowerCaseQ["abc"]
@@ -175,8 +172,8 @@ class ToLowerCase(Builtin):
      = new york
     """
 
-    summary_text = "turn all the letters into lower case"
     attributes = listable | protected
+    summary_text = "turn all the letters into lower case"
 
     def apply(self, s, evaluation):
         "ToLowerCase[s_String]"
@@ -194,8 +191,8 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
-    summary_text = "turn all the letters into upper case"
     attributes = listable | protected
+    summary_text = "turn all the letters into upper case"
 
     def apply(self, s, evaluation):
         "ToUpperCase[s_String]"
