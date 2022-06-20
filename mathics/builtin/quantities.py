@@ -6,16 +6,19 @@ from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
+    Integer1,
     Real,
     Number,
 )
-from mathics.core.list import ListExpression
+from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRowBox
 
 from mathics.core.attributes import hold_rest, n_hold_rest, protected, read_protected
 
 from pint import UnitRegistry
+
+SymbolQuantity = Symbol("Quantity")
 
 ureg = UnitRegistry()
 Q_ = ureg.Quantity
@@ -101,9 +104,9 @@ class UnitConvert(Builtin):
 
             # Displaying the magnitude in Integer form if the convert rate is an Integer
             if q_mag - int(q_mag) > 0:
-                return Expression("Quantity", Real(q_mag), target)
+                return Expression(SymbolQuantity, Real(q_mag), target)
             else:
-                return Expression("Quantity", Integer(q_mag), target)
+                return Expression(SymbolQuantity, Integer(q_mag), target)
 
         if len(evaluation.out) > 0:
             return
@@ -205,7 +208,7 @@ class Quantity(Builtin):
         else:
             return Expression(
                 SymbolRowBox,
-                ListExpression("Quantity", "[", mag, ",", q_unit, "]"),
+                to_mathics_list(SymbolQuantity, "[", mag, ",", q_unit, "]"),
             )
 
     def apply_n(self, mag, unit, evaluation):
@@ -218,7 +221,7 @@ class Quantity(Builtin):
                     quantity = Q_(mag.leaves[i], unit.get_string_value().lower())
                     results.append(
                         Expression(
-                            "Quantity", quantity.magnitude, String(quantity.units)
+                            SymbolQuantity, quantity.magnitude, String(quantity.units)
                         )
                     )
                 return ListExpression(*results)
@@ -235,7 +238,7 @@ class Quantity(Builtin):
         if not isinstance(unit, String):
             return evaluation.message("Quantity", "unkunit", unit)
         else:
-            return self.apply_n(Integer(1), unit, evaluation)
+            return self.apply_n(Integer1, unit, evaluation)
 
 
 class QuantityQ(Test):
@@ -392,8 +395,8 @@ class QuantityMagnitude(Builtin):
     def apply_unit(self, expr, unit, evaluation):
         "QuantityMagnitude[expr_, unit_]"
 
-        def get_magnitude(leaves, targetUnit, evaluation):
-            quanity = Q_(leaves[0], leaves[1].get_string_value())
+        def get_magnitude(elements, targetUnit, evaluation):
+            quanity = Q_(elements[0], elements[1].get_string_value())
             converted_quantity = quanity.to(targetUnit)
             q_mag = converted_quantity.magnitude.evaluate(evaluation).get_float_value()
 
@@ -408,12 +411,12 @@ class QuantityMagnitude(Builtin):
 
         # Getting the target unit
         if unit.has_form("Quantity", None):
-            targetUnit = unit.leaves[1].get_string_value().lower()
+            targetUnit = unit.elements[1].get_string_value().lower()
         elif unit.has_form("List", None):
-            if not unit.leaves[0].has_form("Quantity", None):
+            if not unit.elements[0].has_form("Quantity", None):
                 return
             else:
-                targetUnit = unit.leaves[0].leaves[1].get_string_value().lower()
+                targetUnit = unit.elements[0].elements[1].get_string_value().lower()
         elif isinstance(unit, String):
             targetUnit = unit.get_string_value().lower()
         else:
@@ -422,10 +425,10 @@ class QuantityMagnitude(Builtin):
         # convert the quantity to the target unit and return the magnitude
         if expr.has_form("List", None):
             results = []
-            for i in range(len(expr.leaves)):
+            for i in range(len(expr.elements)):
                 results.append(
-                    get_magnitude(expr.leaves[i].leaves, targetUnit, evaluation)
+                    get_magnitude(expr.elements[i].elements, targetUnit, evaluation)
                 )
             return ListExpression(*results)
         else:
-            return get_magnitude(expr.leaves, targetUnit, evaluation)
+            return get_magnitude(expr.elements, targetUnit, evaluation)

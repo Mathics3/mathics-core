@@ -29,6 +29,8 @@ from mathics.core.systemsymbols import (
     SymbolXor,
 )
 
+SymbolEquivalent = Symbol("Equivalent")
+
 
 class Or(BinaryOperator):
     """
@@ -281,7 +283,7 @@ class Equivalent(BinaryOperator):
                 Expression(SymbolAnd, *[Expression(SymbolNot, arg) for arg in args]),
             ).evaluate(evaluation)
         else:
-            return Expression("Equivalent", *args)
+            return Expression(SymbolEquivalent, *args)
 
 
 class Xor(BinaryOperator):
@@ -342,7 +344,7 @@ class Xor(BinaryOperator):
             if len(elements) == 1:
                 return Expression(SymbolNot, elements[0])
             else:
-                return Expression(SymbolNot, Expression("Xor", *elements))
+                return Expression(SymbolNot, Expression(SymbolXor, *elements))
         else:
             return Symbol(repr(not flag))
 

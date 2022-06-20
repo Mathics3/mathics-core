@@ -3,6 +3,10 @@ from .helper import evaluate, session
 from mathics.builtin.base import BoxConstruct, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol
+
+SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
 
 
 class CustomBoxConstruct(BoxConstruct):
@@ -53,7 +57,7 @@ class CustomGraphicsBox(BoxConstruct):
         self.box_options = options.copy()
 
     def to_expression(self):
-        return Expression("CustomGraphicsBox", *self.elements)
+        return Expression(SymbolCustomGraphicsBox, *self.elements)
 
     def get_elements(self):
         return self._elements
