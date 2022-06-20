@@ -50,9 +50,9 @@ class ListExpression(Expression):
         # here...
         self._format_cache = None
 
-    # # Add this when it is safe to do.
-    # def __repr__(self) -> str:
-    #     return "<ListExpression: %s>" % self
+    # Add this when it is safe to do.
+    def __repr__(self) -> str:
+        return "<ListExpression: %s>" % self
 
     # @timeit
     def evaluate_elements(self, evaluation):
@@ -115,6 +115,17 @@ class ListExpression(Expression):
             self.evaluate_elements(evaluation)
 
         return self, False
+
+    def shallow_copy(self) -> "ListExpression":
+        """
+        For an Expression this does something with its cache.
+        Here this does not need that complication.
+        """
+        return ListExpression(
+            *self._elements, elements_properties=self.elements_properties
+        )
+
+    copy = shallow_copy
 
 
 def to_mathics_list(
