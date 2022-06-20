@@ -29,7 +29,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, to_expression
 from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -807,16 +807,9 @@ class _Chart(Builtin):
                 multiple_colors = True
 
             if not multiple_colors and not self.never_monochrome:
-                colors = [
-                    Expression(
-                        SymbolRGBColor, *(MachineReal(cc) for cc in mpl_colors[0])
-                    )
-                ]
+                colors = [to_expression(SymbolRGBColor, *mpl_colors[0])]
             else:
-                colors = [
-                    Expression(SymbolRGBColor, *(MachineReal(cc) for cc in c))
-                    for c in mpl_colors
-                ]
+                colors = [to_expression(SymbolRGBColor, *c) for c in mpl_colors]
             spread_colors = True
         else:
             return
