@@ -277,7 +277,7 @@ class Definition(Builtin):
                     Expression(
                         SymbolHoldForm,
                         Expression(
-                            up and SymbolUpSet or SymbolSet, lhs(rule.pattern.expr), r
+                            SymbolUpSet if up else SymbolSet, lhs(rule.pattern.expr), r
                         ),
                     )
                 )
@@ -513,7 +513,9 @@ class Information(PrefixOperator):
                 lines.append(
                     Expression(
                         SymbolHoldForm,
-                        Expression(up and "UpSet" or "Set", lhs(rule.pattern.expr), r),
+                        Expression(
+                            SymbolUpSet if up else SymbolSet, lhs(rule.pattern.expr), r
+                        ),
                     )
                 )
 

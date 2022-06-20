@@ -12,11 +12,16 @@ We intend to provide local and global optimization techniques, both numeric and 
 import sympy
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import from_python
+
+from mathics.core.atoms import IntegerM1, from_python
+from mathics.core.attributes import constant, protected, read_protected
 from mathics.core.convert import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.attributes import constant, protected, read_protected
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolRule
+
+SymbolMinimize = Symbol("Minimize")
 
 
 class Minimize(Builtin):
@@ -60,13 +65,11 @@ class Minimize(Builtin):
 
                 minimum_list.append([candidate[sympy_x], sympy_f.subs(candidate)])
 
-        return Expression(
-            "List",
+        return ListExpression(
             *(
-                Expression(
-                    "List",
+                ListExpression(
                     from_sympy(minimum[1]),
-                    Expression("List", (Expression("Rule", x, from_sympy(minimum[0])))),
+                    ListExpression((Expression(SymbolRule, x, from_sympy(minimum[0])))),
                 )
                 for minimum in minimum_list
             )
@@ -77,7 +80,7 @@ class Minimize(Builtin):
 
         head_name = vars.get_head_name()
         vars_or = vars
-        vars = vars.leaves
+        vars = vars.elements
         for var in vars:
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
@@ -133,15 +136,13 @@ class Minimize(Builtin):
             if positives_eigenvalues == len(eigenvals):
                 minimum_list.append(candidate)
 
-        return Expression(
-            "List",
+        return ListExpression(
             *(
-                Expression(
-                    "List",
+                ListExpression(
                     from_sympy(sympy_f.subs(minimum).simplify()),
                     [
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             from_sympy(list(minimum.keys())[i]),
                             from_sympy(list(minimum.values())[i]),
                         )
@@ -156,7 +157,7 @@ class Minimize(Builtin):
         "Minimize[f_List, vars_List]"
         head_name = vars.get_head_name()
         vars_or = vars
-        vars = vars.leaves
+        vars = vars.elements
         for var in vars:
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
@@ -168,7 +169,7 @@ class Minimize(Builtin):
                 return
 
         vars_sympy = [var.to_sympy() for var in vars]
-        constraints = [function for function in f.leaves]
+        constraints = [function for function in f.elements]
         objective_function = constraints[0].to_sympy()
 
         constraints = constraints[1:]
@@ -180,7 +181,7 @@ class Minimize(Builtin):
         h_variables = []
 
         for constraint in constraints:
-            left, right = constraint.leaves
+            left, right = constraint.elements
             head_name = constraint.get_head_name()
 
             left = left.to_sympy()
@@ -328,15 +329,13 @@ class Minimize(Builtin):
 
                 minimum_list.append(candidate)
 
-        return Expression(
-            "List",
+        return ListExpression(
             *(
-                Expression(
-                    "List",
+                ListExpression(
                     from_sympy(objective_function.subs(minimum).simplify()),
                     [
                         Expression(
-                            "Rule",
+                            SymbolRule,
                             from_sympy(list(minimum.keys())[i]),
                             from_sympy(list(minimum.values())[i]),
                         )
@@ -371,32 +370,34 @@ class Maximize(Builtin):
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"
 
-        dual_f = f.to_sympy() * -1
+        dual_f = f.to_sympy() * (-1)
 
         dual_solutions = (
-            Expression("Minimize", from_sympy(dual_f), vars).evaluate(evaluation).leaves
+            Expression(SymbolMinimize, from_sympy(dual_f), vars)
+            .evaluate(evaluation)
+            .elements
         )
 
         solutions = []
         for dual_solution in dual_solutions:
-            solution_elements = dual_solution.leaves
-            solutions.append([solution_elements[0] * -1, solution_elements[1]])
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
 
         return from_python(solutions)
 
     def apply_constraints(self, f, vars, evaluation):
         "Maximize[f_List, vars_]"
 
-        constraints = [function for function in f.leaves]
-        constraints[0] = from_sympy(constraints[0].to_sympy() * -1)
+        constraints = [function for function in f.elements]
+        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
 
         dual_solutions = (
-            Expression("Minimize", constraints, vars).evaluate(evaluation).leaves
+            Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
         )
 
         solutions = []
         for dual_solution in dual_solutions:
-            solution_elements = dual_solution.leaves
-            solutions.append([solution_elements[0] * -1, solution_elements[1]])
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
 
         return from_python(solutions)

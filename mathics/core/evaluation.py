@@ -417,8 +417,10 @@ class Evaluation(object):
 
         line = line_no - history_length
         while line > 0:
-            unset_in = self.definitions.unset("In", Expression(SymbolIn, line))
-            unset_out = self.definitions.unset("Out", Expression(SymbolOut, line))
+            unset_in = self.definitions.unset("In", Expression(SymbolIn, Integer(line)))
+            unset_out = self.definitions.unset(
+                "Out", Expression(SymbolOut, Integer(line))
+            )
             if not (unset_in or unset_out):
                 break
             line -= 1
