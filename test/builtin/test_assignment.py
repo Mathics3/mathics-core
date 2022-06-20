@@ -242,3 +242,33 @@ def test_predecrement():
 
 def test_assign_list():
     check_evaluation("G[x_Real]=x^2; a={G[x]}; {x=1.; a, x=.; a}", "{{1.}, {G[x]}}")
+
+
+def test_process_assign_other():
+    # FIXME: beef up check_evaluation so it allows regexps in matching.
+    # Then this code would be less fragile.
+    for prefix in ("", "System`"):
+        for kind, suffix in (
+            (
+                "Recursion",
+                "512; use the MATHICS_MAX_RECURSION_DEPTH environment variable to allow higher limits",
+            ),
+            ("Iteration", "Infinity"),
+        ):
+            limit = f"${kind}Limit"
+            check_evaluation(f"{prefix}{limit} = 511", "511")
+            check_evaluation(
+                f"{prefix}{limit} = 2",
+                "2",
+                expected_messages=[
+                    f"Cannot set {limit} to 2; value must be an integer between 20 and {suffix}."
+                ],
+            )
+        check_evaluation(f"{prefix}$ModuleNumber = 3", "3")
+        check_evaluation(
+            f"{prefix}$ModuleNumber = -1",
+            "-1",
+            expected_messages=[
+                "Cannot set $ModuleNumber to -1; value must be a positive integer."
+            ],
+        )

@@ -438,15 +438,15 @@ def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
-        process_assign_recursion_limit(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_recursion_limit(lhs, rhs, evaluation)
     elif lhs_name in ("System`$Line", "System`$HistoryLength"):
         process_assign_line_number_and_history_length(
             self, lhs, rhs, evaluation, tags, upset
         )
     elif lhs_name == "System`$IterationLimit":
-        process_assign_iteration_limit(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_iteration_limit(lhs, rhs, evaluation)
     elif lhs_name == "System`$ModuleNumber":
-        process_assign_module_number(self, lhs, rhs, evaluation, tags, upset)
+        process_assign_module_number(lhs, rhs, evaluation)
     elif lhs_name == "System`$MinPrecision":
         process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
     elif lhs_name == "System`$MaxPrecision":

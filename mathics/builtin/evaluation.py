@@ -11,9 +11,8 @@ from mathics.core.attributes import hold_all, hold_all_complete, protected
 class RecursionLimit(Predefined):
     """
     <dl>
-    <dt>'$RecursionLimit'
-        <dd>specifies the maximum allowable recursion depth after
-        which a calculation is terminated.
+      <dt>'$RecursionLimit'
+      <dd>specifies the maximum allowable recursion depth after which a calculation is terminated.
     </dl>
 
     Calculations terminated by '$RecursionLimit' return '$Aborted':

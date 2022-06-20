@@ -5,17 +5,13 @@ Forms of Assignment
 
 
 from mathics.builtin.base import Builtin, BinaryOperator
-from mathics.core.symbols import Symbol
-
+from mathics.builtin.assignments.internals import _SetOperator
+from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
+from mathics.core.definitions import PyMathicsLoadException
+from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import (
     SymbolFailed,
 )
-
-from mathics.core.definitions import PyMathicsLoadException
-
-from mathics.builtin.assignments.internals import _SetOperator
-
-from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
 
 
 class Set(BinaryOperator, _SetOperator):
@@ -95,11 +91,6 @@ class Set(BinaryOperator, _SetOperator):
     operator = "="
     precedence = 40
 
-    messages = {
-        "setraw": "Cannot assign to raw object `1`.",
-        "shape": "Lists `1` and `2` are not the same shape.",
-    }
-
     summary_text = "assign a value"
 
     def apply(self, lhs, rhs, evaluation):
@@ -112,9 +103,10 @@ class Set(BinaryOperator, _SetOperator):
 class SetDelayed(Set):
     """
     <dl>
-    <dt>'SetDelayed[$expr$, $value$]'
-    <dt>$expr$ := $value$
-        <dd>assigns $value$ to $expr$, without evaluating $value$.
+      <dt>'SetDelayed[$expr$, $value$]'
+
+      <dt>$expr$ := $value$
+      <dd>assigns $value$ to $expr$, without evaluating $value$.
     </dl>
 
     'SetDelayed' is like 'Set', except it has attribute 'HoldAll', thus it does not evaluate the right-hand side immediately, but evaluates it when needed.
@@ -159,7 +151,7 @@ class SetDelayed(Set):
         "lhs_ := rhs_"
 
         if self.assign(lhs, rhs, evaluation):
-            return Symbol("Null")
+            return SymbolNull
         else:
             return SymbolFailed
 
@@ -233,7 +225,7 @@ class TagSetDelayed(TagSet):
             return
 
         if self.assign_elementary(lhs, rhs, evaluation, tags=[name]):
-            return Symbol("Null")
+            return SymbolNull
         else:
             return SymbolFailed
 
