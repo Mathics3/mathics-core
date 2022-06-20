@@ -19,6 +19,7 @@ from mathics.builtin.base import (
     SympyFunction,
 )
 
+from mathics.core.element import BaseElement
 from mathics.core.expression import ElementsProperties, Expression, to_expression
 from mathics.core.atoms import (
     Complex,
@@ -333,9 +334,7 @@ class Plus(BinaryOperator, SympyFunction):
                 else:
                     return Expression(SymbolTimes, IntegerM1, *item.elements)
             elif isinstance(item, Number):
-                # FIXME: Isn't this is the wrong type? We should be
-                # returning an Expression,
-                return -item.to_sympy()
+                return from_sympy(-item.to_sympy())
             else:
                 return Expression(SymbolTimes, IntegerM1, item)
 
