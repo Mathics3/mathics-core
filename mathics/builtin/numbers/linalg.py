@@ -83,9 +83,6 @@ class Cross(Builtin):
      = Cross[{1, 2}, {3, 4, 5}]
     """
 
-    summary_text = "vector cross product"
-    rules = {"Cross[{x_, y_}]": "{-y, x}"}
-
     messages = {
         "nonn1": (
             "The arguments are expected to be vectors of equal length, "
@@ -93,6 +90,8 @@ class Cross(Builtin):
             "their length."
         )
     }
+    rules = {"Cross[{x_, y_}]": "{-y, x}"}
+    summary_text = "vector cross product"
 
     def apply(self, a, b, evaluation):
         "Cross[a_, b_]"
@@ -123,12 +122,12 @@ class DesignMatrix(Builtin):
      = {{1, f[2]}, {1, f[3]}, {1, f[5]}, {1, f[7]}}
     """
 
-    summary_text = "design matrix for a linear model"
     rules = {
         "DesignMatrix[m_, f_List, x_?AtomQ]": "DesignMatrix[m, {f}, ConstantArray[x, Length[f]]]",
         "DesignMatrix[m_, f_, x_?AtomQ]": "DesignMatrix[m, {f}, {x}]",
         "DesignMatrix[m_, f_List, x_List]": "Prepend[MapThread[Function[{ff, xx, rr}, ff /. xx -> rr], {f, x, Most[#]}], 1]& /@ m",
     }
+    summary_text = "design matrix for a linear model"
 
 
 class Det(Builtin):
@@ -187,13 +186,12 @@ class Eigenvalues(Builtin):
      = Eigenvalues[{{1, 0}, {0}}]
     """
 
-    summary_text = "eigenvalues of a matrix"
-    sympy_name = "eigenvalues"
-    mpmath_name = "eig"
-
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    mpmath_name = "eig"
+    summary_text = "eigenvalues of a matrix"
+    sympy_name = "eigenvalues"
 
     @staticmethod
     def mp_eig(mp_matrix) -> Expression:
@@ -251,7 +249,7 @@ class Eigenvalues(Builtin):
 
         eigenvalues = [v for (v, c) in eigenvalues for _ in range(c)]
 
-        return Expression("List", *eigenvalues)
+        return ListExpression(*eigenvalues)
 
 
 class Eigenvectors(Builtin):
@@ -279,13 +277,12 @@ class Eigenvectors(Builtin):
      = {{1, 7, 3}, {1, 1, 0}, {0, 0, 0}}
     """
 
-    summary_text = "list of matrix eigenvectors"
     messages = {
         "eigenvecnotimplemented": (
             "Eigenvectors is not yet implemented for the matrix `1`."
         )
     }
-
+    summary_text = "list of matrix eigenvectors"
     # TODO: Normalise the eigenvectors
 
     def apply(self, m, evaluation):
@@ -340,8 +337,8 @@ class Eigensystem(Builtin):
      = {{2, -1, 1}, {{1, 1, 1}, {1, -2, 1}, {-1, 0, 1}}}
     """
 
-    summary_text = "eigenvalues and corresponding eigenvectors of a matrix"
     rules = {"Eigensystem[m_]": "{Eigenvalues[m], Eigenvectors[m]}"}
+    summary_text = "eigenvalues and corresponding eigenvectors of a matrix"
 
 
 class FittedModel(Builtin):
@@ -352,7 +349,6 @@ class FittedModel(Builtin):
     </dl>
     """
 
-    summary_text = "fitted model"
     rules = {
         "FittedModel[x_List][s_String]": "s /. x",
         "FittedModel[x_List][y_]": '("Function" /. x)[y]',
@@ -362,6 +358,7 @@ class FittedModel(Builtin):
                 "]"}]
             """,
     }
+    summary_text = "fitted model"
 
 
 class Inverse(Builtin):
@@ -379,11 +376,11 @@ class Inverse(Builtin):
 
     """
 
-    summary_text = "inverse matrix"
     messages = {
         "sing": "The matrix `1` is singular.",
         "matsq": "Argument `1` at position 1 is not " "a non-empty square matrix.",
     }
+    summary_text = "inverse matrix"
 
     def apply(self, m, evaluation):
         "Inverse[m_List]"
@@ -439,11 +436,11 @@ class LeastSquares(Builtin):
      = LeastSquares[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
-    summary_text = "least square solver for linear problems"
     messages = {
         "underdetermined": "Solving for underdetermined system not implemented.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
+    summary_text = "least square solver for linear problems"
 
     def apply(self, m, b, evaluation):
         "LeastSquares[m_, b_]"
@@ -508,7 +505,6 @@ class LinearModelFit(Builtin):
      = {-0.142857, 0.214286, -0.0714286}
     """
 
-    summary_text = "fit a linear model to a dataset"
     # see the paper "Regression by linear combination of basis functions" by Risi Kondor for a good
     # summary of the math behind this
 
@@ -541,6 +537,7 @@ class LinearModelFit(Builtin):
             """,  # f is a Slot[] version of BasisFunctions
         "LinearModelFit[{m_?MatrixQ, v_}]": "LinearModelFit[{m, v}, Table[Slot[i], {i, Length[First[m]]}]]",
     }
+    summary_text = "fit a linear model to a dataset"
 
 
 class LinearSolve(Builtin):
@@ -572,7 +569,6 @@ class LinearSolve(Builtin):
      = LinearSolve[{{1, 2}, {3, 4}}, {1, {2}}]
     """
 
-    summary_text = "solves linear systems in matrix form"
     messages = {
         "lslc": (
             "Coefficient matrix and target vector(s) or matrix "
@@ -581,6 +577,7 @@ class LinearSolve(Builtin):
         "nosol": "Linear equation encountered that has no solution.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
+    summary_text = "solves linear systems in matrix form"
 
     def apply(self, m, b, evaluation):
         "LinearSolve[m_, b_]"
@@ -679,12 +676,12 @@ class MatrixPower(Builtin):
      = MatrixPower[{{1, 0}, {0}}, 2]
     """
 
-    summary_text = "power of a matrix"
     messages = {
         "matrixpowernotimplemented": "Matrix power not implemented for matrix `1`.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
         "matrixpowernotinvertible": "Matrix det == 0; not invertible",
     }
+    summary_text = "power of a matrix"
 
     def apply(self, m, power, evaluation):
         "MatrixPower[m_, power_]"
@@ -724,10 +721,10 @@ class MatrixRank(Builtin):
      = MatrixRank[{{1, 0}, {0}}]
     """
 
-    summary_text = "rank of a matrix"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    summary_text = "rank of a matrix"
 
     def apply(self, m, evaluation):
         "MatrixRank[m_]"
@@ -760,10 +757,10 @@ class NullSpace(Builtin):
      = NullSpace[{1, {2}}]
     """
 
-    summary_text = "generators for the null space of a matrix"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    summary_text = "generators for the null space of a matrix"
 
     def apply(self, m, evaluation):
         "NullSpace[m_]"
@@ -827,12 +824,6 @@ class Norm(Builtin):
      = 0
     """
 
-    summary_text = "norm of a vector or matrix"
-    rules = {
-        "Norm[m_?NumberQ]": "Abs[m]",
-        "Norm[m_?VectorQ, DirectedInfinity[1]]": "Max[Abs[m]]",
-    }
-
     messages = {
         "nvm": "The first Norm argument should be a number, vector, or matrix.",
         "ptype": (
@@ -842,6 +833,12 @@ class Norm(Builtin):
         ),
         "normnotimplemented": "Norm is not yet implemented for matrices.",
     }
+
+    rules = {
+        "Norm[m_?NumberQ]": "Abs[m]",
+        "Norm[m_?VectorQ, DirectedInfinity[1]]": "Max[Abs[m]]",
+    }
+    summary_text = "norm of a vector or matrix"
 
     def apply_single(self, m, evaluation):
         "Norm[m_]"
@@ -900,8 +897,8 @@ class Normalize(Builtin):
      = {}
     """
 
-    summary_text = "normalizes a vector"
     rules = {"Normalize[v_]": "Module[{norm = Norm[v]}, If[norm == 0, v, v / norm, v]]"}
+    summary_text = "normalizes a vector"
 
 
 class PseudoInverse(Builtin):
@@ -926,10 +923,10 @@ class PseudoInverse(Builtin):
     = PseudoInverse[{1, {2}}]
     """
 
-    summary_text = "Moore-Penrose pseudoinverse"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    summary_text = "Moore-Penrose pseudoinverse"
 
     def apply(self, m, evaluation):
         "PseudoInverse[m_]"
@@ -963,10 +960,10 @@ class RowReduce(Builtin):
      = RowReduce[{{1, 0}, {0}}]
     """
 
-    summary_text = "matrix reduced row-echelon form"
     messages = {
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix."
     }
+    summary_text = "matrix reduced row-echelon form"
 
     def apply(self, m, evaluation):
         "RowReduce[m_]"
@@ -993,11 +990,11 @@ class QRDecomposition(Builtin):
      = QRDecomposition[{1, {2}}]
     """
 
-    summary_text = "qr decomposition"
     messages = {
         "sympy": "Sympy is unable to perform the QR decomposition.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
+    summary_text = "qr decomposition"
 
     def apply(self, m, evaluation):
         "QRDecomposition[m_]"
@@ -1044,11 +1041,12 @@ class SingularValueDecomposition(Builtin):
     >> SingularValueDecomposition[{{1, 2, 0}, {2, 3, 0}, {3, 4, 1}}]
      = {{-3, 2, 0}, {2, -1, 0}, {1, -2, 1}}
     """
-    summary_text = "singular value decomposition"
+
     messages = {
         "nosymb": "Symbolic SVD is not implemented, performing numerically.",
         "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
     }
+    summary_text = "singular value decomposition"
 
     def apply(self, m, evaluation):
         "SingularValueDecomposition[m_]"
@@ -1086,9 +1084,8 @@ class Tr(Builtin):
      = a + e + i
     """
 
-    summary_text = "trace of a matrix"
-
     messages = {"matsq": "The matrix `1` is not square."}
+    summary_text = "trace of a matrix"
 
     # TODO: generalize to vectors and higher-rank tensors, and allow function arguments for application
 
@@ -1122,5 +1119,5 @@ class VectorAngle(Builtin):
      = 0
     """
 
-    summary_text = "angle between vectors"
     rules = {"VectorAngle[u_, v_]": "ArcCos[u.v / (Norm[u] Norm[v])]"}
+    summary_text = "angle between vectors"

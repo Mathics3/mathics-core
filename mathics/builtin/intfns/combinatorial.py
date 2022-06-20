@@ -10,6 +10,7 @@ It is closely related to many other areas of mathematics and has many applicatio
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
+
 from mathics.core.atoms import Integer
 from mathics.core.attributes import listable, numeric_function, orderless, protected
 from mathics.core.expression import Expression
@@ -106,17 +107,17 @@ class _BooleanDissimilarity(Builtin):
     @staticmethod
     def _to_bool_vector(u):
         def generate():
-            for leaf in u.leaves:
-                if isinstance(leaf, Integer):
-                    val = leaf.get_int_value()
+            for element in u.elements:
+                if isinstance(element, Integer):
+                    val = element.get_int_value()
                     if val in (0, 1):
                         yield val
                     else:
                         raise _NoBoolVector
-                elif isinstance(leaf, Symbol):
-                    if leaf is SymbolTrue:
+                elif isinstance(element, Symbol):
+                    if element is SymbolTrue:
                         yield 1
-                    elif leaf is SymbolFalse:
+                    elif element is SymbolFalse:
                         yield 0
                     else:
                         raise _NoBoolVector
@@ -130,7 +131,7 @@ class _BooleanDissimilarity(Builtin):
 
     def apply(self, u, v, evaluation):
         "%(name)s[u_List, v_List]"
-        if len(u.leaves) != len(v.leaves):
+        if len(u.elements) != len(v.elements):
             return
         py_u = _BooleanDissimilarity._to_bool_vector(u)
         if py_u is None:
@@ -160,7 +161,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
     summary_text = "simple matching dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(SymbolDivide, c_tf + c_ft, n)
+        return Expression(SymbolDivide, Integer(c_tf + c_ft), Integer(n))
 
 
 class JaccardDissimilarity(_BooleanDissimilarity):
@@ -179,7 +180,9 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(SymbolDivide, c_tf + c_ft, c_tt + c_ft + c_tf)
+        return Expression(
+            SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
+        )
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
@@ -198,7 +201,9 @@ class DiceDissimilarity(_BooleanDissimilarity):
     summary_text = "Dice dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(SymbolDivide, c_tf + c_ft, 2 * c_tt + c_ft + c_tf)
+        return Expression(
+            SymbolDivide, Integer(c_tf + c_ft), Integer(2 * c_tt + c_ft + c_tf)
+        )
 
 
 class YuleDissimilarity(_BooleanDissimilarity):
@@ -218,7 +223,9 @@ class YuleDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r_half = c_tf * c_ft
-        return Expression(SymbolDivide, 2 * r_half, c_tt * c_ff + r_half)
+        return Expression(
+            SymbolDivide, Integer(2 * r_half), Integer(c_tt * c_ff + r_half)
+        )
 
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
@@ -238,7 +245,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression(SymbolDivide, r, c_tt + r)
+        return Expression(SymbolDivide, Integer(r), Integer(c_tt + r))
 
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
@@ -257,7 +264,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     summary_text = "Russell-Rao dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(SymbolDivide, n - c_tt, n)
+        return Expression(SymbolDivide, Integer(n - c_tt), Integer(n))
 
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
@@ -277,7 +284,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression(SymbolDivide, r, c_tt + c_ff + r)
+        return Expression(SymbolDivide, Integer(r), Integer(c_tt + c_ff + r))
 
 
 class Subsets(Builtin):

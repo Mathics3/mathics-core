@@ -10,6 +10,15 @@ import numpy as np
 from itertools import product
 from typing import Optional
 
+
+from mathics.algorithm.integrators import (
+    apply_D_to_Integral,
+    _fubini,
+    _internal_adaptative_simpsons_rule,
+    decompose_domain,
+)
+
+
 from mathics.algorithm.series import (
     build_series,
     series_plus_series,
@@ -84,13 +93,6 @@ from mathics.core.systemsymbols import (
 
 
 import sympy
-
-from mathics.algorithm.integrators import (
-    apply_D_to_Integral,
-    _fubini,
-    _internal_adaptative_simpsons_rule,
-    decompose_domain,
-)
 
 
 class D(SympyFunction):
@@ -177,9 +179,6 @@ class D(SympyFunction):
     >> D[2x, 2x]
      = 0
     """
-    summary_text = "partial derivatives of scalar or vector functions"
-    sympy_name = "Derivative"
-
     messages = {
         "dvar": (
             "Multiple derivative specifier `1` does not have the form "
@@ -215,6 +214,8 @@ class D(SympyFunction):
             "Nest[Function[{t}, D[t, x]], expr, n]"
         ),
     }
+    summary_text = "partial derivatives of scalar or vector functions"
+    sympy_name = "Derivative"
 
     def apply(self, f, x, evaluation):
         "D[f_, x_?NotListQ]"
@@ -402,11 +403,10 @@ class Derivative(PostfixOperator, SympyFunction):
      = Hold[Derivative[1][Derivative[x][4]]]
     """
 
-    summary_text = "symbolic and numerical derivative functions"
+    attributes = n_hold_all
+    default_formats = False
     operator = "'"
     precedence = 670
-    attributes = n_hold_all
-
     rules = {
         "MakeBoxes[Derivative[n__Integer][f_], "
         "  form:StandardForm|TraditionalForm]": (
@@ -453,7 +453,7 @@ class Derivative(PostfixOperator, SympyFunction):
             Sequence @@ Table[{Slot[i], {n}[[i]]}, {i, 1, Length[{n}]}]]]&""",
     }
 
-    default_formats = False
+    summary_text = "symbolic and numerical derivative functions"
 
     def __init__(self, *args, **kwargs):
         super(Derivative, self).__init__(*args, **kwargs)
@@ -788,8 +788,8 @@ class Root(SympyFunction):
         "iidx": "Argument `1` at position 2 is out of bounds",
     }
 
-    sympy_name = "CRootOf"
     summary_text = "the i-th root of a polynomial."
+    sympy_name = "CRootOf"
 
     def apply(self, f, i, evaluation):
         "Root[f_, i_]"
@@ -943,7 +943,6 @@ class Solve(Builtin):
 
     """
 
-    summary_text = "find generic solutions for variables"
     messages = {
         "eqf": "`1` is not a well-formed equation.",
         "svars": 'Equations may not give solutions for all "solve" variables.',
@@ -958,6 +957,7 @@ class Solve(Builtin):
             "Cases[Solve[eqs, vars], {Rule[x_,y_Integer]}]"
         ),
     }
+    summary_text = "find generic solutions for variables"
 
     def apply(self, eqs, vars, evaluation):
         "Solve[eqs_, vars_]"
@@ -1179,16 +1179,17 @@ class Limit(Builtin):
      #> Limit[(1 + cos[x]) / x, x -> 0]
      = Limit[(1 + cos[x]) / x, x -> 0]
     """
-    summary_text = "directed and undirected limits"
-    attributes = listable | protected
 
-    options = {
-        "Direction": "1",
-    }
+    attributes = listable | protected
 
     messages = {
         "ldir": "Value of Direction -> `1` should be -1 or 1.",
     }
+    options = {
+        "Direction": "1",
+    }
+
+    summary_text = "directed and undirected limits"
 
     def apply(self, expr, x, x0, evaluation, options={}):
         "Limit[expr_, x_->x0_, OptionsPattern[Limit]]"
@@ -1245,16 +1246,15 @@ class DiscreteLimit(Builtin):
     >> DiscreteLimit[(n/(n + 2)) E^(-m/(m + 1)), {m -> Infinity, n -> Infinity}]
      = 1 / E
     """
-    summary_text = "limits of sequences including recurrence and number theory"
     attributes = listable | protected
-
-    options = {
-        "Trials": "5",
-    }
 
     messages = {
         "dltrials": "The value of Trials should be a positive integer",
     }
+    options = {
+        "Trials": "5",
+    }
+    summary_text = "limits of sequences including recurrence and number theory"
 
     def apply(self, f, n, n0, evaluation, options={}):
         "DiscreteLimit[f_, n_->n0_, OptionsPattern[DiscreteLimit]]"
@@ -1700,8 +1700,8 @@ class SeriesData(Builtin):
      = -x + a x ^ 2 + O[x] ^ 3
     """
 
-    summary_text = "power series of a variable about a point"
     precedence = 1000
+    summary_text = "power series of a variable about a point"
 
     def apply_reduce(self, x, x0, data, nummin, nummax, den, evaluation):
         """SeriesData[x_,x0_,data_,nummin_Integer, nummax_Integer, den_Integer]"""
@@ -1962,7 +1962,10 @@ class SeriesData(Builtin):
         data = new_data
         return Expression(
             SymbolPlus,
-            *[a * (x - x0) ** ((nummin + k) / den) for k, a in enumerate(data)],
+            *[
+                a * (x - x0) ** ((nummin + Integer(k)) / den)
+                for k, a in enumerate(data)
+            ],
         )
 
     def pre_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
@@ -2008,7 +2011,7 @@ class SeriesData(Builtin):
             Expression(SymbolPlus, *expansion),
             Expression(SymbolPower, Expression(SymbolO, variable), powers[-1]),
         )
-        return Expression(SymbolInfix, expansion, "+", 300, SymbolLeft)
+        return Expression(SymbolInfix, expansion, String("+"), Integer(300), SymbolLeft)
 
     def apply_makeboxes(self, x, x0, data, nmin, nmax, den, form, evaluation):
         """MakeBoxes[SeriesData[x_, x0_, data_List, nmin_Integer, nmax_Integer, den_Integer],
@@ -2053,7 +2056,6 @@ class NIntegrate(Builtin):
     # >> NIntegrate[x * y,{x, 0, 1}, {y, 0, 1}]
     # = 0.25
 
-    summary_text = "numerical integration in one or several variables"
     messages = {
         "bdmtd": "The Method option should be a built-in method name.",
         "inumr": (
@@ -2071,6 +2073,9 @@ class NIntegrate(Builtin):
         "cmpint": ("Integration over a complex domain is not " + "implemented yet"),
     }
 
+    methods = {
+        "Automatic": (None, False),
+    }
     options = {
         "Method": '"Automatic"',
         "Tolerance": "1*^-10",
@@ -2078,9 +2083,8 @@ class NIntegrate(Builtin):
         "MaxRecursion": "10",
     }
 
-    methods = {
-        "Automatic": (None, False),
-    }
+    summary_text = "numerical integration in one or several variables"
+
     try:
         # builtin integrators
         from mathics.algorithm.integrators import (
