@@ -120,7 +120,9 @@ class _GradientColorScheme:
     def color_data_function(self, name):
         colors = ListExpression(
             *[
-                Expression(SymbolRGBColor, *(MachineReal(c) for c in color))
+                to_expression(
+                    SymbolRGBColor, *color, elements_conversion_fn=MachineReal
+                )
                 for color in self.colors()
             ]
         )
@@ -1320,7 +1322,9 @@ class Histogram(Builtin):
                     )
 
                     last_x1 = 0
-                    style = Expression(SymbolRGBColor, *(MachineReal(c) for c in color))
+                    style = to_expression(
+                        SymbolRGBColor, *color, elements_conversion_fn=MachineReal
+                    )
 
                     for x0, x1, y in boxes():
                         yield Expression(

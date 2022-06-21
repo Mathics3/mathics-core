@@ -5,10 +5,12 @@ from mathics import settings
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String, from_python
+from mathics.core.attributes import hold_all, protected
 from mathics.core.evaluation import Output
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, strip_context
+from mathics.core.systemsymbols import SymbolSet
 
 try:
     from ipykernel.kernelbase import Kernel
@@ -26,7 +28,9 @@ except ImportError:
     # fallback to non-Manipulate-enabled build if we don't have ipywidgets installed.
     _ipywidgets = False
 
-from mathics.core.attributes import hold_all, protected
+
+SymbolModule = Symbol("Module")
+SymbolReleaseHold = Symbol("ReleaseHold")
 
 """
 A basic implementation of Manipulate[]. There is currently no support for Dynamic[] elements.
@@ -328,10 +332,11 @@ class Manipulate(Builtin):
             line_no = evaluation.definitions.get_line_no()
 
             vars = [
-                Expression("Set", Symbol(name), value) for name, value in kwargs.items()
+                Expression(SymbolSet, Symbol(name), value)
+                for name, value in kwargs.items()
             ]
             evaluatable = Expression(
-                "ReleaseHold", Expression("Module", ListExpression(*vars), expr)
+                SymbolReleaseHold, Expression(SymbolModule, ListExpression(*vars), expr)
             )
 
             result = evaluation.evaluate(evaluatable, timeout=settings.TIMEOUT)

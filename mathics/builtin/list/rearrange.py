@@ -27,6 +27,8 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolMap
 
+SymbolReverse = Symbol("Reverse")
+
 
 def _test_pair(test, a, b, evaluation, name):
     test_expr = Expression(test, a, b)
@@ -668,7 +670,9 @@ class Reverse(Builtin):
         if py_levels and py_levels[0] < 1:  # if py_level is not None, it's sorted
             py_levels = None
         if py_levels is None:
-            evaluation.message("Reverse", "ilsmp", Expression("Reverse", expr, levels))
+            evaluation.message(
+                "Reverse", "ilsmp", Expression(SymbolReverse, expr, levels)
+            )
         else:
             return Reverse._reverse(expr, 1, py_levels, evaluation)
 
