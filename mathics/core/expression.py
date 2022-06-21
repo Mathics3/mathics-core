@@ -25,7 +25,7 @@ from mathics.core.attributes import (
     orderless as ORDERLESS,
     sequence_hold as SEQUENCE_HOLD,
 )
-from mathics.core.convert import sympy_symbol_prefix, SympyExpression
+from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.element import ensure_context, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
@@ -1990,7 +1990,7 @@ def to_expression(
     # # to replace all calls of the form ListExpression(...) or
     # # to_expression("List", ...)
     # if head is SymbolList:
-    #    from mathics.core.list import to_mathics_list
+    #    from mathics.core.convert.expression import to_mathics_list
     #    return to_mathics_list(elements)
 
     elements_tuple, elements_properties = convert_expression_elements(

@@ -24,7 +24,8 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRGBColor
 

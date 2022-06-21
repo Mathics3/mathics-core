@@ -8,15 +8,15 @@ from mathics.builtin.base import Builtin, Test
 
 from mathics.core.atoms import String
 from mathics.core.attributes import listable, protected, read_protected
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 
 
 class Characters(Builtin):
     """
     <dl>
-    <dt>'Characters["$string$"]'
-        <dd>returns a list of the characters in $string$.
+      <dt>'Characters["$string$"]'
+      <dd>returns a list of the characters in $string$.
     </dl>
 
     >> Characters["abc"]

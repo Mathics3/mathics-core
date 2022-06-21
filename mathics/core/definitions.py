@@ -13,9 +13,9 @@ from typing import List, Optional
 
 from mathics.core.atoms import String
 from mathics.core.attributes import no_attributes
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
-from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,

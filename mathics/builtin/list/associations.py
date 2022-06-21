@@ -15,8 +15,8 @@ from mathics.builtin.box.inout import RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
 from mathics.core.attributes import hold_all_complete, protected
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
-from mathics.core.list import to_mathics_list
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAssociation,

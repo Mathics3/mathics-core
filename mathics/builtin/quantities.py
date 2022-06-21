@@ -2,7 +2,6 @@
 
 
 from mathics.builtin.base import Builtin, Test
-from mathics.core.expression import Expression
 from mathics.core.atoms import (
     String,
     Integer,
@@ -10,7 +9,9 @@ from mathics.core.atoms import (
     Real,
     Number,
 )
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRowBox
 

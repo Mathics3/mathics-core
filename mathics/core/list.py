@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
-from mathics.core.expression import Expression, convert_expression_elements
 
-from typing import Any, Callable, Optional, Tuple
+from typing import Optional, Tuple
 
-from mathics.core.atoms import from_python
 from mathics.core.element import ElementsProperties
+from mathics.core.expression import Expression
 from mathics.core.symbols import EvalMixin, SymbolList
 
 
@@ -133,23 +132,3 @@ class ListExpression(Expression):
         expr._sequences = self._sequences
         expr._format_cache = self._format_cache
         return expr
-
-
-def to_mathics_list(
-    *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
-) -> Expression:
-    """
-    This is an expression constructor for list that can be used when the elements are not Mathics
-    objects. For example:
-       to_mathics_list(1, 2, 3)
-       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
-    """
-    elements_tuple, elements_properties = convert_expression_elements(
-        elements, elements_conversion_fn
-    )
-    list_expression = ListExpression(
-        *elements_tuple, elements_properties=elements_properties
-    )
-    if is_literal:
-        list_expression.python_list = elements
-    return list_expression

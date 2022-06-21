@@ -23,7 +23,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolApply

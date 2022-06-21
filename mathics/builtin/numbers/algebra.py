@@ -28,7 +28,7 @@ from mathics.core.atoms import (
     Number,
 )
 from mathics.core.attributes import listable, protected
-from mathics.core.convert import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern

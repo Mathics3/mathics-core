@@ -925,8 +925,9 @@ def from_python(arg):
     convert backtick (context) symbols into some Python identifier
     symbol like underscore.
     """
+    from mathics.core.convert.expression import to_mathics_list
     from mathics.core.expression import Expression
-    from mathics.core.list import ListExpression, to_mathics_list
+    from mathics.core.list import ListExpression
 
     if isinstance(arg, BaseElement):
         return arg

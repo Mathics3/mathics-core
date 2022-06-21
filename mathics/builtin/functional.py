@@ -15,7 +15,7 @@ from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import flat, hold_all, n_hold_all, one_identity, protected
-from mathics.core.convert import SymbolFunction
+from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.symbols import Symbol
 
 

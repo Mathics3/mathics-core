@@ -59,7 +59,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.number import min_prec, dps
 
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 
 from mathics.core.attributes import (
     flat,

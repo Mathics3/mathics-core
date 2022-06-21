@@ -16,7 +16,7 @@ from mathics.builtin.lists import (
 )
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import hold_first, listable, protected
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import (
     Expression,

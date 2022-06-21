@@ -14,9 +14,10 @@ from mathics.core.atoms import (
     Integer1,
     String,
 )
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
-from mathics.core.symbols import Symbol, SymbolList
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 
 SymbolFromCharacterCode = Symbol("FromCharacterCode")
 SymbolToCharacterCode = Symbol("ToCharacterCode")

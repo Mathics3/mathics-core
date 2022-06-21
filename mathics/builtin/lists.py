@@ -68,17 +68,17 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, structure, to_expression
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Atom,
     Symbol,
     SymbolFalse,
-    SymbolList,
     SymbolPlus,
     SymbolTrue,
     strip_context,

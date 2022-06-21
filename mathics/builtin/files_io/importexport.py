@@ -29,7 +29,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import no_attributes, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import (
     Symbol,

@@ -22,7 +22,7 @@ from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression, SymbolCompiledFunction
-from mathics.core.list import to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlank,

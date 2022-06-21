@@ -21,6 +21,26 @@ from itertools import chain
 from mathics_scanner import TranslateError
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core import read
+from mathics.core.atoms import (
+    Complex,
+    Integer,
+    MachineReal,
+    Real,
+    String,
+    from_mpmath,
+    from_python,
+)
+from mathics.core.expression import BoxError, Expression, to_expression
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+    SymbolFailed,
+    SymbolHold,
+)
+
+from mathics.core.number import dps
 from mathics.core.read import (
     channel_to_stream,
     close_stream,
@@ -31,28 +51,6 @@ from mathics.core.read import (
     READ_TYPES,
     SymbolEndOfFile,
 )
-
-
-from mathics.core.expression import BoxError, Expression, to_expression
-from mathics.core.list import to_mathics_list
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    MachineReal,
-    Real,
-    String,
-    from_mpmath,
-    from_python,
-)
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-    SymbolFailed,
-    SymbolHold,
-)
-
-from mathics.core.number import dps
 from mathics.core.streams import (
     path_search,
     stream_manager,

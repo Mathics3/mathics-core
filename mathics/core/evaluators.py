@@ -17,7 +17,7 @@ from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 
 from mathics.core.attributes import (
     n_hold_all,

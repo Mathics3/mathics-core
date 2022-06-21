@@ -19,8 +19,9 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import (
     SymbolFailed,
     SymbolRule,

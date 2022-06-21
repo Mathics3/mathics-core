@@ -13,7 +13,7 @@ from mathics.core.element import (
     fully_qualified_symbol_name,
 )
 
-# I put this constants here instead of inside `mathics.core.convert`
+# I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
 
 sympy_symbol_prefix = "_Mathics_User_"

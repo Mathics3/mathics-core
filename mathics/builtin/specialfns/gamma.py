@@ -21,7 +21,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.number import min_prec, dps
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.evaluators import apply_N
 from mathics.core.symbols import Symbol, SymbolSequence

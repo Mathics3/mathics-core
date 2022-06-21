@@ -22,7 +22,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.expression import Expression, SymbolDefault, to_expression
 from mathics.core.list import ListExpression

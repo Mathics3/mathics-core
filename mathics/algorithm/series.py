@@ -8,7 +8,8 @@ from mathics.core.symbols import (
 
 from mathics.core.atoms import Integer, Integer0, Rational
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
 from mathics.core.systemsymbols import (
     SymbolComplexInfinity,

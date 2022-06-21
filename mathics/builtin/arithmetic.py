@@ -38,7 +38,7 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.convert import from_sympy, SympyExpression, sympy_symbol_prefix
+from mathics.core.convert.sympy import from_sympy, SympyExpression, sympy_symbol_prefix
 from mathics.core.expression import Expression, to_expression
 from mathics.core.list import ListExpression
 from mathics.core.number import min_prec, dps, SpecialValueError

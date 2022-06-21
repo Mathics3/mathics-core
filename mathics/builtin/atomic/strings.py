@@ -26,7 +26,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
