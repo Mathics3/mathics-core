@@ -588,7 +588,12 @@ Wheel::usage = "Wheel[n] constructs a wheel on n vertices, which is the join of 
 WriteGraph::usage = "WriteGraph[g,f] writes graph g to file f using an edge list representation."
 
 Begin["`private`"]
+(* While the below may have worked in Mathematica 4.2, in the current
+WMA and Mathics it fail
 PermutationQ[p_List] := (Sort[p] == Range[Length[p]])
+ *)
+(* See https://github.com/Mathics3/mathics-core/pull/275#issuecomment-1160856294 *)
+PermutationQ[p_List] := Module[{sorted=p[[1]]}, And@@Table[sorted==Sort[el],{el, p}]]
 
 Permute[l_List,p_?PermutationQ] := l [[ p ]]
 
