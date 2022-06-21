@@ -48,12 +48,11 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
-
-from mathics.core.expression import Expression, to_expression
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern

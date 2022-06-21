@@ -11,9 +11,10 @@ from random import random
 import mathics.builtin.colors.color_internals as colors
 from mathics.builtin.numpy_utils import array, stacked, vectorize
 from mathics.core.atoms import String
+from mathics.core.convert.expression import to_expression
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, to_expression
+from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolColorConvert
 
 

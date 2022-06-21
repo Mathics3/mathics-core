@@ -299,7 +299,8 @@ class Evaluation:
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
-        from mathics.core.expression import Expression, to_expression
+        from mathics.core.convert.expression import to_expression
+        from mathics.core.expression import Expression
         from mathics.core.rules import Rule
 
         self.start_time = time.time()

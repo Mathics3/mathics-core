@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 
@@ -7,7 +6,7 @@ import sympy
 
 import mathics.core.atoms as maa
 import mathics.core.symbols as mas
-import mathics.core.expression as mae
+import mathics.core.convert.expression as mae
 from mathics.core.parser.ast import Symbol, String, Number, Filename
 from mathics.core.number import machine_precision, reconstruct_digits
 

@@ -22,9 +22,10 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
+from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
-from mathics.core.expression import Expression, SymbolDefault, to_expression
+from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions

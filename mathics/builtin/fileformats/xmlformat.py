@@ -8,8 +8,8 @@ XML
 from mathics.builtin.base import Builtin
 from mathics.builtin.files_io.files import MathicsOpen
 from mathics.core.atoms import String, from_python
-from mathics.core.expression import Expression, to_expression
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolFailed
 

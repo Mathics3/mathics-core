@@ -38,8 +38,9 @@ from mathics.core.attributes import (
     orderless,
     protected,
 )
+from mathics.core.convert.expression import to_expression
 from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, to_expression
+from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (

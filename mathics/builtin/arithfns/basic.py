@@ -18,8 +18,6 @@ from mathics.builtin.base import (
     PrefixOperator,
     SympyFunction,
 )
-
-from mathics.core.expression import ElementsProperties, Expression, to_expression
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -35,6 +33,8 @@ from mathics.core.atoms import (
     String,
     from_mpmath,
 )
+from mathics.core.convert.expression import to_expression
+from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,

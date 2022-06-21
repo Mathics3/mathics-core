@@ -26,8 +26,8 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.expression import Expression, to_expression
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,
     PATH_VAR,

@@ -29,8 +29,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, to_expression
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (

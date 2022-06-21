@@ -30,8 +30,8 @@ from mathics.core.atoms import (
     from_mpmath,
     from_python,
 )
-from mathics.core.expression import BoxError, Expression, to_expression
-from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.expression import BoxError, Expression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,

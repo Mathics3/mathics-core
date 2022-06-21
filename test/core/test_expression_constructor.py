@@ -1,4 +1,5 @@
-from mathics.core.expression import Expression, to_expression, ElementsProperties
+from mathics.core.convert.expression import to_expression
+from mathics.core.expression import Expression, ElementsProperties
 from mathics.core.symbols import SymbolPlus
 from mathics.core.atoms import Integer, Integer1
 
