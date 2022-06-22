@@ -8,6 +8,8 @@ on:
 
 jobs:
   build:
+    env:
+      USE_CYTHON: 1
     runs-on: ubuntu-20.04
     strategy:
       matrix:

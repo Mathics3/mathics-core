@@ -102,7 +102,7 @@ try:
 except ImportError:
     pass
 else:
-    if not os.environ.get("NO_CYTHON", False):
+    if os.environ.get("USE_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
