@@ -19,7 +19,6 @@ from itertools import chain
 
 
 from mathics_scanner import TranslateError
-from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core import read
 from mathics.core.atoms import (
     Complex,
@@ -27,11 +26,12 @@ from mathics.core.atoms import (
     MachineReal,
     Real,
     String,
-    from_python,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
+from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,

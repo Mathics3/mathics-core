@@ -35,10 +35,10 @@ from mathics.core.atoms import (
     Rational,
     Real,
     String,
-    from_python,
 )
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy, SympyExpression, sympy_symbol_prefix
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

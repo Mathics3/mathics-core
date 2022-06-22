@@ -30,7 +30,6 @@ from mathics.core.atoms import (
     Integer,
     Integer1,
     String,
-    from_python,
 )
 from mathics.core.attributes import (
     flat,
@@ -39,6 +38,7 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (

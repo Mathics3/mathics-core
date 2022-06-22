@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Any, Callable, Union
 
-from mathics.core.atoms import from_python
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, convert_expression_elements
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList

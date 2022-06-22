@@ -10,7 +10,7 @@ from typing import Any, Callable, Iterable, Optional, Tuple
 from itertools import chain
 from bisect import bisect_left
 
-from mathics.core.atoms import from_python, Number, Integer, String
+from mathics.core.atoms import Integer, Number, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
@@ -26,6 +26,7 @@ from mathics.core.attributes import (
     sequence_hold as SEQUENCE_HOLD,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
+from mathics.core.convert.python import from_python
 from mathics.core.element import ensure_context, ElementsProperties
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt

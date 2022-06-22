@@ -19,9 +19,9 @@ from mathics.core.atoms import (
     Real,
     MachineReal,
     String,
-    from_python,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
