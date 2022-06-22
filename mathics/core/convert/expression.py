@@ -58,6 +58,10 @@ expression_constructor_map = {
 }
 
 
-def make_expression(self, head, *elements, **kwargs):
+def make_expression(head, *elements, **kwargs) -> Expression:
+    """
+    Use this to create the right kind of *customized* Expression, e.g. a ListExpression
+    for a given head.
+    """
     constructor_fn = expression_constructor_map.get(head, Expression)
     return constructor_fn(head, *elements, **kwargs)

@@ -5,9 +5,10 @@ Algorithms to access and manipulate elements in nested lists / expressions
 """
 
 from mathics.builtin.base import BoxExpression
+from mathics.core.atoms import Integer, Integer1
+from mathics.core.convert.expression import make_expression
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.atoms import Integer, Integer1
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
@@ -325,10 +326,12 @@ def walk_levels(
             )
         else:
             head = expr.head
-        leaves = []
-        for index, leaf in enumerate(expr.leaves):
-            leaf, leaf_depth = walk_levels(
-                leaf,
+
+        # FIXME: we could keep track of elements properties here.
+        elements = []
+        for index, element in enumerate(expr.elements):
+            element, element_depth = walk_levels(
+                element,
                 start,
                 stop,
                 current + 1,
@@ -337,10 +340,11 @@ def walk_levels(
                 include_pos,
                 cur_pos + [index + 1],
             )
-            if leaf_depth + 1 > depth:
-                depth = leaf_depth + 1
-            leaves.append(leaf)
-        new_expr = Expression(head, *leaves)
+            if element_depth + 1 > depth:
+                depth = element_depth + 1
+            elements.append(element)
+        new_expr = make_expression(head, *elements)
+
     if is_in_level(current, depth, start, stop):
         if include_pos:
             new_expr = callback(new_expr, cur_pos)
@@ -361,7 +365,7 @@ def python_levelspec(levelspec):
             return value
 
     if levelspec.has_form("List", None):
-        values = [value_to_level(leaf) for leaf in levelspec.leaves]
+        values = [value_to_level(element) for element in levelspec.elements]
         if len(values) == 1:
             return values[0], values[0]
         elif len(values) == 2:
@@ -454,17 +458,17 @@ def convert_seq(seq):
         else:
             start = value
     elif seq.has_form("List", 1, 2, 3):
-        if len(seq.leaves) == 1:
-            start = stop = seq.leaves[0].get_int_value()
+        if len(seq.elements) == 1:
+            start = stop = seq.elements[0].get_int_value()
             if stop is None:
                 return None
         else:
-            start = seq.leaves[0].get_int_value()
-            stop = seq.leaves[1].get_int_value()
+            start = seq.elements[0].get_int_value()
+            stop = seq.elements[1].get_int_value()
             if start is None or stop is None:
                 return None
-        if len(seq.leaves) == 3:
-            step = seq.leaves[2].get_int_value()
+        if len(seq.elements) == 3:
+            step = seq.elements[2].get_int_value()
             if step is None:
                 return None
     else:
@@ -482,12 +486,12 @@ def _drop_take_selector(name, seq, sliced):
         if isinstance(inner, Atom):
             py_slice = None
         else:
-            py_slice = python_seq(start, stop, step, len(inner.leaves))
+            py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             if stop is None:
                 stop = SymbolInfinity
             raise MessageException(name, name.lower(), start, stop, inner)
-        return sliced(inner.leaves, py_slice)
+        return sliced(inner.elements, py_slice)
 
     return select
 
@@ -537,13 +541,13 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     while curr_index[0] != 1:
         # If the end of the branch is reached, or no more elements to delete out
         if curr_index[-1] == len(tree[-1]) or n == 0:
-            leaves = tree[-1]
+            elements = tree[-1]
             tree.pop()
-            # check if some of the leaves was changed
+            # check if some of the elements was changed
             changed = any(changed_marks[-1])
             changed_marks.pop()
             if changed:
-                leaves = [leaf for leaf in leaves if leaf is not nothing]
+                elements = [element for element in elements if element is not nothing]
             curr_index.pop()
             if len(curr_index) == 0:
                 break
@@ -552,7 +556,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             changed_marks[-1][idx] = changed
             if changed:
                 head = tree[-1][curr_index[-1]].get_head()
-                tree[-1][idx] = Expression(head, *leaves)
+                tree[-1][idx] = make_expression(head, *elements)
             if len(curr_index) == 0:
                 break
             curr_index[-1] = curr_index[-1] + 1
