@@ -31,9 +31,9 @@ from mathics.core.atoms import (
     Rational,
     Real,
     String,
-    from_mpmath,
 )
 from mathics.core.convert.expression import to_expression
+from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (

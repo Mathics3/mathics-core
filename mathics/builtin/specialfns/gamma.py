@@ -16,14 +16,14 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Number,
-    from_mpmath,
     from_python,
 )
 from mathics.core.attributes import listable, numeric_function, protected
-from mathics.core.number import min_prec, dps
-from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.evaluators import apply_N
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.sympy import from_sympy
+from mathics.core.number import min_prec, dps
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
