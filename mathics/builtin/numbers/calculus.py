@@ -38,7 +38,6 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
-    from_python,
 )
 from mathics.core.attributes import (
     constant,
@@ -49,6 +48,7 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N

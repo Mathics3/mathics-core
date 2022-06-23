@@ -8,7 +8,7 @@ import mpmath
 
 
 from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.core.atoms import from_mpmath
+from mathics.core.convert.mpmath import from_mpmath
 
 
 class LerchPhi(_MPMathFunction):

@@ -18,7 +18,7 @@ from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via globa
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.string.operations import Hash
 
-from mathics.core.atoms import Integer, Real, String, from_python
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     listable,
     locked,
@@ -27,6 +27,7 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,

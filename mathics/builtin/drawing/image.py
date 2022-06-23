@@ -39,10 +39,10 @@ from mathics.core.atoms import (
     Rational,
     Real,
     SymbolDivide,
-    from_python,
 )
-from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify

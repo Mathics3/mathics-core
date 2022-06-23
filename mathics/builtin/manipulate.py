@@ -4,8 +4,9 @@
 from mathics import settings
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer, String, from_python
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import hold_all, protected
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Output
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

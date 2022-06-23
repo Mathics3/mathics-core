@@ -15,7 +15,6 @@ from mathics.core.atoms import (
     Integer10,
     Rational,
     SymbolDivide,
-    from_python,
 )
 from mathics.core.attributes import (
     listable,
@@ -25,6 +24,7 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.convert.sympy import from_sympy, SympyPrime
+from mathics.core.convert.python import from_python
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression

@@ -22,9 +22,9 @@ from mathics.core.atoms import (
     Integer0,
     IntegerM1,
     Real,
-    from_python,
 )
 from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolPower

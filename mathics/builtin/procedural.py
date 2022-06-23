@@ -15,8 +15,9 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
-from mathics.core.atoms import Integer1, from_python
+from mathics.core.atoms import Integer1
 from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
