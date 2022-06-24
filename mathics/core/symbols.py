@@ -616,8 +616,8 @@ class PredefinedSymbol(Symbol):
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
-        Used in Expression.do_format() to determine if we need to
-        (re)evaluate an expression.
+        Used in Expression.evaluate() and Expression.do_format() to
+        determine if we need to (re)evaluate an expression.
 
 
         We know that we won't need to reevaluate because these
@@ -658,6 +658,8 @@ format_symbols = system_symbols(
 SymbolFalse = PredefinedSymbol("System`False")
 SymbolList = PredefinedSymbol("System`List")
 SymbolTrue = PredefinedSymbol("System`True")
+SymbolNull = PredefinedSymbol("System`Null")
+
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")
@@ -673,7 +675,6 @@ SymbolMathMLForm = Symbol("MathMLForm")
 SymbolMaxPrecision = Symbol("$MaxPrecision")
 SymbolMinPrecision = Symbol("$MinPrecision")
 SymbolN = Symbol("System`N")
-SymbolNull = Symbol("System`Null")
 SymbolNumberForm = Symbol("System`NumberForm")
 SymbolOutputForm = Symbol("OutputForm")
 SymbolPlus = Symbol("Plus")
