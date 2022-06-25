@@ -131,7 +131,7 @@ class Pattern:
         return self.expr.get_elements()
 
     # Compatibily with old code. Deprecated, but remove after a little bit
-    get_elements = get_elements
+    get_leaves = get_elements
 
     def get_sort_key(self, pattern_sort=False):
         return self.expr.get_sort_key(pattern_sort=pattern_sort)

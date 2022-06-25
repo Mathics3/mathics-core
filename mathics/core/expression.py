@@ -195,13 +195,16 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     _sequences: Any
 
     def __init__(
-        self, head, *elements, elements_properties: Optional[ElementsProperties] = None
+        self,
+        head: BaseElement,
+        *elements,
+        elements_properties: Optional[ElementsProperties] = None
     ):
         self.options = None
         self.pattern_sequence = False
-        assert isinstance(head, BaseElement)
-        assert isinstance(elements, tuple)
-        assert all(isinstance(e, BaseElement) for e in elements)
+        # assert isinstance(head, BaseElement)
+        # assert isinstance(elements, tuple)
+        # assert all(isinstance(e, BaseElement) for e in elements)
 
         self._head = head
 
