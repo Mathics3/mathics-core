@@ -694,7 +694,7 @@ class SympyFunction(SympyObject):
         else:
             return PrecisionReal(sympy_fn.n(d))
 
-    def get_sympy_function(self, leaves=None):
+    def get_sympy_function(self, elements=None):
         if self.sympy_name:
             return getattr(sympy, self.sympy_name)
         return None
@@ -864,11 +864,11 @@ class BoxExpression(BuiltinElement):
     def flatten_with_respect_to_head(self, symbol):
         return self.to_expression().flatten_with_respect_to_head(symbol)
 
-    def get_option_values(self, leaves, **options):
+    def get_option_values(self, elements, **options):
         evaluation = options.get("evaluation", None)
         if evaluation:
             default = evaluation.definitions.get_options(self.get_name()).copy()
-            options = ListExpression(*leaves).get_option_values(evaluation)
+            options = ListExpression(*elements).get_option_values(evaluation)
             default.update(options)
         else:
             from mathics.core.parser import parse_builtin_rule
@@ -914,7 +914,7 @@ class PatternObject(BuiltinElement, Pattern):
                 self.error_args(len(expr.elements), *self.arg_counts)
         self.expr = expr
         self.head = Pattern.create(expr.head)
-        self.leaves = [Pattern.create(element) for element in expr.elements]
+        self.elements = [Pattern.create(element) for element in expr.elements]
 
     def error(self, tag, *args):
         raise PatternError(self.get_name(), tag, *args)

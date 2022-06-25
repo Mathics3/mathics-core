@@ -1121,7 +1121,7 @@ class Optional(BinaryOperator, PatternObject):
     ):
         if expression.has_form("Sequence", 0):
             if self.default is None:
-                if head is None:  # head should be given by match_leaf!
+                if head is None:  # head should be given by match_element!
                     default = None
                 else:
                     name = head.get_name()
