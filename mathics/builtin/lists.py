@@ -56,7 +56,6 @@ from mathics.core.atoms import (
     Number,
     Real,
     String,
-    from_python,
     machine_precision,
     min_prec,
 )
@@ -68,9 +67,10 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluators import apply_N
-from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt

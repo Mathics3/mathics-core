@@ -7,7 +7,7 @@ import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import from_mpmath
+from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.number import machine_precision, get_precision, PrecisionValueError
 from mathics.core.number import prec as _prec
 

@@ -31,9 +31,9 @@ from mathics.core.atoms import (
     Rational,
     Real,
     String,
-    from_mpmath,
 )
 from mathics.core.convert.expression import to_expression
+from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -398,11 +398,11 @@ class Plus(BinaryOperator, SympyFunction):
             else:
                 count = rest = None
                 if item.has_form("Times", None):
-                    for leaf in item.elements:
-                        if isinstance(leaf, Number):
-                            count = leaf.to_sympy()
+                    for element in item.elements:
+                        if isinstance(element, Number):
+                            count = element.to_sympy()
                             rest = item.get_mutable_elements()
-                            rest.remove(leaf)
+                            rest.remove(element)
                             if len(rest) == 1:
                                 rest = rest[0]
                             else:

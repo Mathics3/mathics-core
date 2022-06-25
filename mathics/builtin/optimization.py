@@ -13,8 +13,9 @@ import sympy
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.atoms import IntegerM1, from_python
+from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import constant, protected, read_protected
+from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

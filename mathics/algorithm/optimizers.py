@@ -14,11 +14,10 @@ from mathics.core.atoms import (
     Integer2,
     Integer3,
     Integer10,
-    MachineReal,
     Number,
     Real,
-    from_python,
 )
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import apply_N
 from mathics.core.expression import Expression

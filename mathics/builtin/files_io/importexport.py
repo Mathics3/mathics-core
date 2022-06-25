@@ -23,13 +23,11 @@ from mathics.builtin.base import (
 
 from mathics.builtin.pymimesniffer import magic
 
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    from_python,
-)
+from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import no_attributes, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import (
