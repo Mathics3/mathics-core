@@ -4,7 +4,7 @@ To get results:
 pytest -s test/package/test_combinatorica_benched.py
 ```
 
-These results are for 3.8.13:
+These results are for 3.8.13 and pyston 2.3.{3,4}:
 
 
 +--------------------------+-------------+-------------+-------------+-------------+
@@ -20,6 +20,7 @@ These results are for 3.8.13:
 |                          |             | 349.82 mss  |             |             |
 |                          |             | 496.11 mss  |             |             |
 |                          | pyston 2.3.4| 482.76 mss  |             |             |
+|                          |             | 488.66 mss  |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | permutations_1_1         |  4288.00 ms | 4291.00 ms  | 4365.00 ms  |  4266.00 ms |
 |                          |             | 4075.00 ms  |             |             |
@@ -30,6 +31,7 @@ These results are for 3.8.13:
 |                          |             | 1963.24 ms  |             |             |
 |                          |             | 1802.24 ms  |             |             |
 |                          | pyston 2.3.4| 1662.27 ms  |             |             |
+|                          |             | 1694.56 ms  |             |             |
 |                          | cython      | 3759.00 ms  |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | permutations_groups_1_2  | 31758.00 ms | 31581.00 ms | 34133.00 ms | 33578.00 ms |
@@ -40,6 +42,7 @@ These results are for 3.8.13:
 |                          |             | 13050.06 ms |             |             |
 |                          |             | 13094.36 ms |             |             |
 |                          | pyston 2.3.4| 12299.96 ms |             |             |
+|                          |             | 17864.45 ms |             |             |
 |                          | cython      | 27951.00 ms |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | inv_and_invn_vectors_1_3 |  2950.00 ms |  2935.00 ms |  3091.00 ms |  3008.00 ms |
@@ -49,6 +52,7 @@ These results are for 3.8.13:
 |                          |             |  1203.59 ms |             |             |
 |                          |             |  1199.87 ms |             |             |
 |                          |             |  1180.49 ms |             |             |
+|                          |             |  1628.33 ms |             |             |
 |                          | pyston 2.3.4|  1144.22 ms |             |             |
 |                          | cython      |  2608.00 ms |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
@@ -59,8 +63,8 @@ These results are for 3.8.13:
 |                          | pyston 2.3.3|  1437.00 ms |             |             |
 |                          |             |   634.27 ms |             |             |
 |                          |             |   632.33 ms |             |             |
-|                          |             |   611.04 ms |             |             |
 |                          | pyston 2.3.4|   602.56 ms |             |             |
+|                          |             |   610.03 ms |             |             |
 |                          | cython      |  1421.00    |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | combinations_1_5         |  2358.00 ms |  2336.00 ms |  2497.00 ms |  2440.00 ms |
@@ -72,6 +76,7 @@ These results are for 3.8.13:
 |                          |             |   938.90 ms |             |             |
 |                          |             |   936.48 ms |             |             |
 |                          | pyston 2.3.4|   881.52 ms |             |             |
+|                          |             |   894.48 ms |             |             |
 |                          | cython      |  2022.00 ms |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | 2_1_to_2_3               |   384.00 ms |   384.00 ms |   364.00 ms |   359.00 ms |
@@ -83,6 +88,7 @@ These results are for 3.8.13:
 |                          |             |   149.45 ms |             |             |
 |                          |             |   150.21 ms |             |             |
 |                          | pyston 2.3.4|   145.48 ms |             |             |
+|                          |             |   149.28 ms |             |             |
 |                          | cython      |   340.00 ms |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 | combinatorica_rest       |   491.00 ms |   487.00 ms |   495.00 ms |   483.00 ms |
@@ -93,13 +99,30 @@ These results are for 3.8.13:
 |                          |             |   348.63 ms |             |             |
 |                          |             |   340.22 ms |             |             |
 |                          |             |   150.21 ms |             |             |
-|                          | pyston 2.3.4|   180.66ms |             |             |
+|                          | pyston 2.3.4|   180.66 ms |             |             |
+|                          |             |   186.08 ms |             |             |
 |                          | cython      |   348.00 ms |             |             |
 +--------------------------+-------------+-------------+-------------+-------------+
 
 
+91b9e8b50992cd8ba6373daad669909d77bdaeec
+++++++++++++++++++++++++++++++++++++++++
+
+pyston 2.3.4
+
+::
+
+   load_combinatorica  488.61 ms
+   test_permutations_1_1  1694.56 ms
+   test_permutations_groups_1_2  12585.00 ms
+   test_inversions_and_inversion_vectors_1_3  1161.32 ms
+   test_special_classes_of_permutations_1_4  610.03 ms
+   test_combinations_1_5  894.48 ms
+   test_2_1_to_2_3  149.28 ms
+   test_combinatorica_rest  186.08 ms
+
 68a6bea9eca756b8319d3b168866c5d18e38216
--------
++++++++++++++++++++++++++++++++++++++++
 
 pyston 2.3.4 (with Cython) Note - a slowdown so not noted above
 
@@ -113,7 +136,7 @@ pyston 2.3.4 (with Cython) Note - a slowdown so not noted above
     test_combinations_1_5  1375.82 ms
     test_2_1_to_2_3  180.88 ms
     test_combinatorica_rest  248.94 ms
-
+xo
 
 pyston 2.3.4
 
