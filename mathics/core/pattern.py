@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.element import ensure_context, BaseElement
+from mathics.core.element import ensure_context
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol, system_symbols
 from mathics.core.systemsymbols import SymbolSequence
