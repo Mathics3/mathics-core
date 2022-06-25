@@ -201,29 +201,29 @@ class Format(Builtin):
     )
 
 
-def parenthesize(precedence, leaf, leaf_boxes, when_equal):
+def parenthesize(precedence, element, element_boxes, when_equal):
     from mathics.builtin import builtins_precedence
 
-    while leaf.has_form("HoldForm", 1):
-        leaf = leaf.leaves[0]
-    if leaf.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        leaf_prec = leaf.leaves[2].get_int_value()
-    elif leaf.has_form("PrecedenceForm", 2):
-        leaf_prec = leaf.leaves[1].get_int_value()
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].get_int_value()
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].get_int_value()
     else:
-        leaf_prec = builtins_precedence.get(leaf.get_head_name())
-    if precedence is not None and leaf_prec is not None:
-        if precedence > leaf_prec or (precedence == leaf_prec and when_equal):
+        element_prec = builtins_precedence.get(element.get_head_name())
+    if precedence is not None and element_prec is not None:
+        if precedence > element_prec or (precedence == element_prec and when_equal):
             return Expression(
                 SymbolRowBox,
-                ListExpression(String("("), leaf_boxes, String(")")),
+                ListExpression(String("("), element_boxes, String(")")),
             )
-    return leaf_boxes
+    return element_boxes
 
 
-def make_boxes_infix(leaves, ops, precedence, grouping, form):
+def make_boxes_infix(elements, ops, precedence, grouping, form):
     result = []
-    for index, leaf in enumerate(leaves):
+    for index, element in enumerate(elements):
         if index > 0:
             result.append(ops[index - 1])
         parenthesized = False
@@ -234,10 +234,10 @@ def make_boxes_infix(leaves, ops, precedence, grouping, form):
         elif grouping == "System`Right" and index == 0:
             parenthesized = True
 
-        leaf_boxes = MakeBoxes(leaf, form)
-        leaf = parenthesize(precedence, leaf, leaf_boxes, parenthesized)
+        element_boxes = MakeBoxes(element, form)
+        element = parenthesize(precedence, element, element_boxes, parenthesized)
 
-        result.append(leaf)
+        result.append(element)
     return Expression(SymbolRowBox, ListExpression(*result))
 
 
@@ -581,9 +581,9 @@ class MakeBoxes(Builtin):
     attributes = hold_all_complete
 
     rules = {
-        "MakeBoxes[Infix[head_[leaves___]], "
+        "MakeBoxes[Infix[head_[elements___]], "
         "    f:StandardForm|TraditionalForm|OutputForm|InputForm]": (
-            'MakeBoxes[Infix[head[leaves], StringForm["~`1`~", head]], f]'
+            'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
         ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
         "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
@@ -607,7 +607,7 @@ class MakeBoxes(Builtin):
             return expr.atom_to_boxes(f, evaluation)
         else:
             head = expr.head
-            leaves = expr.leaves
+            elements = expr.elements
 
             f_name = f.get_name()
             if f_name == "System`TraditionalForm":
@@ -623,7 +623,7 @@ class MakeBoxes(Builtin):
             head_boxes = to_boxes(head_boxes, evaluation)
             result = [head_boxes, to_boxes(String(left), evaluation)]
 
-            if len(leaves) > 1:
+            if len(elements) > 1:
                 row = []
                 if f_name in (
                     "System`InputForm",
@@ -633,16 +633,16 @@ class MakeBoxes(Builtin):
                     sep = ", "
                 else:
                     sep = ","
-                for index, leaf in enumerate(leaves):
+                for index, element in enumerate(elements):
                     if index > 0:
                         row.append(to_boxes(String(sep), evaluation))
                     row.append(
-                        to_boxes(MakeBoxes(leaf, f).evaluate(evaluation), evaluation)
+                        to_boxes(MakeBoxes(element, f).evaluate(evaluation), evaluation)
                     )
                 result.append(RowBox(*row))
-            elif len(leaves) == 1:
+            elif len(elements) == 1:
                 result.append(
-                    to_boxes(MakeBoxes(leaves[0], f).evaluate(evaluation), evaluation)
+                    to_boxes(MakeBoxes(elements[0], f).evaluate(evaluation), evaluation)
                 )
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
@@ -666,13 +666,13 @@ class MakeBoxes(Builtin):
 
         elements = expr.get_elements()
         if len(elements) == 1:
-            leaf = elements[0]
-            leaf_boxes = MakeBoxes(leaf, f)
-            leaf = parenthesize(precedence, leaf, leaf_boxes, True)
+            element = elements[0]
+            element_boxes = MakeBoxes(element, f)
+            element = parenthesize(precedence, element, element_boxes, True)
             if p.get_name() == "System`Postfix":
-                args = (leaf, h)
+                args = (element, h)
             else:
-                args = (h, leaf)
+                args = (h, element)
 
             return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
@@ -703,7 +703,7 @@ class MakeBoxes(Builtin):
         elements = expr.get_elements()
         if len(elements) > 1:
             if h.has_form("List", len(elements) - 1):
-                ops = [get_op(op) for op in h.leaves]
+                ops = [get_op(op) for op in h.elements]
             else:
                 ops = [get_op(h)] * (len(elements) - 1)
             return make_boxes_infix(elements, ops, precedence, grouping, f)
@@ -833,15 +833,15 @@ class GridBox(BoxConstruct):
     # TODO: elements in the GridBox should be stored as an array with
     # elements in its evaluated form.
 
-    def get_array(self, leaves, evaluation):
-        options = self.get_option_values(leaves=leaves[1:], evaluation=evaluation)
-        if not leaves:
+    def get_array(self, elements, evaluation):
+        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
+        if not elements:
             raise BoxConstructError
-        expr = leaves[0]
+        expr = elements[0]
         if not expr.has_form("List", None):
-            if not all(leaf.has_form("List", None) for leaf in expr.leaves):
+            if not all(element.has_form("List", None) for element in expr.elements):
                 raise BoxConstructError
-        items = [leaf.leaves for leaf in expr.leaves]
+        items = [element.elements for element in expr.elements]
         if not is_constant_list([len(row) for row in items]):
             raise BoxConstructError
         return items, options
@@ -981,7 +981,7 @@ class Grid(Builtin):
                             for item in row.elements
                         ),
                     )
-                    for row in array.leaves
+                    for row in array.elements
                 ),
             ),
             *options_to_rules(options),
@@ -1058,7 +1058,7 @@ class TableForm(Builtin):
             # return Expression(
             #    'GridBox', Expression('List', *(
             #        Expression('List', Expression('MakeBoxes', item, f))
-            #        for item in table.leaves)))
+            #        for item in table.elements)))
         else:
             new_depth = Expression(SymbolRule, SymbolTableDepth, Integer(depth - 2))
 
@@ -1074,10 +1074,10 @@ class TableForm(Builtin):
                         ListExpression(
                             *(
                                 Expression(SymbolMakeBoxes, transform_item(item), f)
-                                for item in row.leaves
+                                for item in row.elements
                             ),
                         )
-                        for row in table.leaves
+                        for row in table.elements
                     ),
                 )
             )
@@ -1511,7 +1511,7 @@ class Check(Builtin):
             messages = []
             for expr in exprs:
                 if expr.has_form("List", None):
-                    messages.extend(get_msg_list(expr.leaves))
+                    messages.extend(get_msg_list(expr.elements))
                 elif check_message(expr):
                     messages.append(expr)
                 else:
@@ -1625,7 +1625,7 @@ class Quiet(Builtin):
             elif expr.has_form("List", None):
                 all = False
                 messages = []
-                for item in expr.leaves:
+                for item in expr.elements:
                     if check_message(item):
                         messages.append(item)
                     else:
@@ -2438,7 +2438,7 @@ class _NumberForm(Builtin):
         elif py_value is not None and py_value > 0:
             return [py_value, py_value]
         elif value.has_form("List", 2):
-            nleft, nright = value.leaves
+            nleft, nright = value.elements
             py_left, py_right = nleft.get_int_value(), nright.get_int_value()
             if nleft.sameQ(SymbolInfinity):
                 nleft = 0
@@ -2502,7 +2502,7 @@ class _NumberForm(Builtin):
 
     def _check_List2str(self, value, msg, evaluation):
         if value.has_form("List", 2):
-            result = [leaf.get_string_value() for leaf in value.leaves]
+            result = [element.get_string_value() for element in value.elements]
             if None not in result:
                 return result
         return evaluation.message(self.get_name(), msg, value)

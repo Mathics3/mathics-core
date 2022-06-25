@@ -82,7 +82,7 @@ def sympy_factor(expr_sympy):
 
 def cancel(expr):
     if expr.has_form("Plus", None):
-        return Expression(SymbolPlus, *[cancel(leaf) for leaf in expr.leaves])
+        return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
     else:
         try:
             result = expr.to_sympy()

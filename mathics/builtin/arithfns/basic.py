@@ -398,11 +398,11 @@ class Plus(BinaryOperator, SympyFunction):
             else:
                 count = rest = None
                 if item.has_form("Times", None):
-                    for leaf in item.elements:
-                        if isinstance(leaf, Number):
-                            count = leaf.to_sympy()
+                    for element in item.elements:
+                        if isinstance(element, Number):
+                            count = element.to_sympy()
                             rest = item.get_mutable_elements()
-                            rest.remove(leaf)
+                            rest.remove(element)
                             if len(rest) == 1:
                                 rest = rest[0]
                             else:

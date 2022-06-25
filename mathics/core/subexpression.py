@@ -17,28 +17,28 @@ def _pspec_span_to_tuple(pspec, expr):
     """
     This function takes an expression and a Mathics
     `Span` Expression and returns a tuple with the positions
-    of the leaves.
+    of the elements.
     """
     start = 1
     stop = None
     step = 1
-    leaves = pspec.leaves
-    if len(leaves) > 3:
-        raise MessageException("Part", "span", leaves)
-    if len(leaves) > 0:
-        start = leaves[0].get_int_value()
-    if len(leaves) > 1:
-        stop = leaves[1].get_int_value()
+    elements = pspec.elements
+    if len(elements) > 3:
+        raise MessageException("Part", "span", elements)
+    if len(elements) > 0:
+        start = elements[0].get_int_value()
+    if len(elements) > 1:
+        stop = elements[1].get_int_value()
         if stop is None:
-            if leaves[1].get_name() == "System`All":
+            if elements[1].get_name() == "System`All":
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
         else:
-            stop = stop - 1 if stop > 0 else len(expr.leaves) + stop
+            stop = stop - 1 if stop > 0 else len(expr.elements) + stop
 
-    if len(pspec.leaves) > 2:
-        step = leaves[2].get_int_value()
+    if len(pspec.elements) > 2:
+        step = elements[2].get_int_value()
 
     if start is None or step is None:
         raise MessageException("Part", "span", pspec)
@@ -48,12 +48,12 @@ def _pspec_span_to_tuple(pspec, expr):
         raise MessageException("Part", "span", Integer(0))
 
     if start < 0:
-        start = len(expr.leaves) - start
+        start = len(expr.elements) - start
     else:
         start = start - 1
 
     if stop is None:
-        stop = 0 if step < 0 else len(expr.leaves) - 1
+        stop = 0 if step < 0 else len(expr.elements) - 1
 
     stop = stop + 1 if step > 0 else stop - 1
     return tuple(k for k in range(start, stop, step))
@@ -61,13 +61,13 @@ def _pspec_span_to_tuple(pspec, expr):
 
 class ExpressionPointer:
     """
-    This class represents a reference to a leaf in an expression.
+    This class represents a reference to a element in an expression.
     Supports a minimal part of the basic interface of `mathics.core.symbols.BaseElement`.
     """
 
     def __init__(self, expr, pos=None):
         """
-        Initializes a ExpressionPointer pointing to the leaf in position `pos`
+        Initializes a ExpressionPointer pointing to the element in position `pos`
         of `expr`.
 
         expr: can be an Expression, a Symbol, or another ExpressionPointer
@@ -109,24 +109,24 @@ class ExpressionPointer:
             return self.parent.head
         elif pos == 0:
             return self.parent.head.head
-        return self.parent.leaves[pos - 1].head
+        return self.parent.elements[pos - 1].head
 
     @head.setter
     def head(self, value):
         raise ValueError("ExpressionPointer.head is write protected.")
 
     @property
-    def leaves(self):
+    def elements(self):
         pos = self.position
         if pos is None:
-            return self.parent.leaves
+            return self.parent.elements
         elif pos == 0:
-            self.parent.head.leaves
-        return self.parent.leaves[pos - 1].leaves
+            self.parent.head.elements
+        return self.parent.elements[pos - 1].elements
 
-    @leaves.setter
-    def leaves(self, value):
-        raise ValueError("ExpressionPointer.leaves is write protected.")
+    @elements.setter
+    def elements(self, value):
+        raise ValueError("ExpressionPointer.elements is write protected.")
 
     def get_head_name(self):
         return self.head.get_name()
@@ -137,7 +137,7 @@ class ExpressionPointer:
             return self.parent.is_atom()
         elif pos == 0:
             return self.parent.head.is_atom()
-        return self.parent.leaves[pos - 1].is_atom()
+        return self.parent.elements[pos - 1].is_atom()
 
     def to_expression(self):
         parent = self.parent
@@ -148,11 +148,11 @@ class ExpressionPointer:
             else:
                 return parent.head.copy()
         else:
-            leaf = self.parent.leaves[p - 1]
-            if isinstance(leaf, Atom):
-                return leaf
+            element = self.parent.elements[p - 1]
+            if isinstance(element, Atom):
+                return element
             else:
-                return leaf.copy()
+                return element.copy()
 
     def replace(self, new):
         """
@@ -201,8 +201,8 @@ class SubExpression:
         `expr` can be an `Expression`, a `ExpressionPointer` or
         another `SubExpression`
         `pos` can be `None`, an integer value or an `Expression` that
-        indicates a subset of leaves in the original `Expression`.
-        If `pos` points out to a single whole leaf of `expr`, then
+        indicates a subset of elements in the original `Expression`.
+        If `pos` points out to a single whole element of `expr`, then
         returns an `ExpressionPointer`.
         """
         # If pos is a list, take the first element, and
@@ -223,7 +223,7 @@ class SubExpression:
             pos = None
         elif type(pos) is Expression:
             if pos.has_form("System`List", None):
-                tuple_pos = [i.get_int_value() for i in pos.leaves]
+                tuple_pos = [i.get_int_value() for i in pos.elements]
                 if any([i is None for i in tuple_pos]):
                     raise MessageException("Part", "pspec", pos)
                 pos = tuple_pos
@@ -252,7 +252,7 @@ class SubExpression:
         return (
             self.head.__str__()
             + "[\n"
-            + ",\n".join(["\t " + leaf.__str__() for leaf in self.leaves])
+            + ",\n".join(["\t " + element.__str__() for element in self.elements])
             + "\n\t]"
         )
 
@@ -276,20 +276,20 @@ class SubExpression:
 
     @elements.setter
     def elements(self, value):
-        raise ValueError("SubExpression.leaves is write protected.")
+        raise ValueError("SubExpression.elements is write protected.")
 
     @property
-    def leaves(self):
+    def elements(self):
         return self._elementsp
 
-    @leaves.setter
-    def leaves(self, value):
-        raise ValueError("SubExpression.leaves is write protected.")
+    @elements.setter
+    def elements(self, value):
+        raise ValueError("SubExpression.elements is write protected.")
 
     def to_expression(self):
         return Expression(
             self._headp.to_expression(),
-            *(leaf.to_expression() for leaf in self._elementsp)
+            *(element.to_expression() for element in self._elementsp)
         )
 
     def replace(self, new):
@@ -297,10 +297,10 @@ class SubExpression:
         Asigns `new` to the subexpression, according to the logic of `mathics.core.walk_parts`
         """
         if (new.has_form("List", None) or new.get_head_name() == "System`List") and len(
-            new.leaves
+            new.elements
         ) == len(self._elementsp):
-            for leaf, sub_new in zip(self._elementsp, new.leaves):
-                leaf.replace(sub_new)
+            for element, sub_new in zip(self._elementsp, new.elements):
+                element.replace(sub_new)
         else:
-            for leaf in self._elementsp:
-                leaf.replace(new)
+            for element in self._elementsp:
+                element.replace(new)
