@@ -209,8 +209,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         self._head = head
         self._elements = elements
         self.elements_properties = elements_properties
-        if elements_properties is None:
-            self._build_elements_properties()
+        #        if elements_properties is None:
+        #            self._build_elements_properties()
 
         self._sequences = None
         self._cache = None
@@ -1046,13 +1046,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # FIXME: see if we can preserve elements properties in eval_elements()
             recompute_properties = eval_elements()
 
-        new = Expression(
-            head,
-            *elements,
-            elements_properties=None
-            if recompute_properties
-            else self.elements_properties
-        )
+        if recompute_properties:
+            new = Expression(head, *elements, elements_properties=None)
+            new._build_elements_properties()
+        else:
+            new = Expression(
+                head, *elements, elements_properties=self.elements_properties
+            )
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
