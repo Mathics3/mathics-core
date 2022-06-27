@@ -248,6 +248,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Compute ElementsProperties and store in self.elements_properties
         """
 
+        self.elements_properties = ElementsProperties(False, False, False)
+        return
         # All of the properties start out optimistic (True) and are reset when that proves wrong.
         self.elements_properties = ElementsProperties(True, True, True)
 
