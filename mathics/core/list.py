@@ -36,11 +36,7 @@ class ListExpression(Expression):
         self._elements = elements
         self._is_literal = False
         self.python_list = None
-        self.elements_properties = (
-            self._build_elements_properties()
-            if elements_properties is None
-            else elements_properties
-        )
+        self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
         self._sequences = None
@@ -109,10 +105,10 @@ class ListExpression(Expression):
 
         if self.elements_properties is None:
             self._build_elements_properties()
-
         if not self.elements_properties.elements_fully_evaluated:
-            self.evaluate_elements(evaluation)
-
+            new = self.shallow_copy()
+            new.evaluate_elements(evaluation)
+            return new, False
         return self, False
 
     def shallow_copy(self) -> "ListExpression":
