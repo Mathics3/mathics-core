@@ -985,9 +985,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # @timeit
         def eval_elements():
-            recompute_properties = False
+            nonlocal recompute_properties
             # @timeit
             def eval_range(indices):
+                nonlocal recompute_properties
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
@@ -998,11 +999,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                             if id(element) != id(new_value):
                                 recompute_properties = True
                                 elements[index] = new_value
-                return recompute_properties
 
             # @timeit
             def rest_range(indices):
-                recompute_properties = False
+                nonlocal recompute_properties
                 if not HOLD_ALL_COMPLETE & attributes:
                     if self._no_symbol("System`Evaluate"):
                         return
@@ -1015,36 +1015,33 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                                 if id(new_value) != id(element):
                                     elements[index] = new_value
                                     recompute_properties = True
-                return recompute_properties
 
             if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
-                recompute_properties = rest_range(range(len(elements)))
+                rest_range(range(len(elements)))
             elif HOLD_FIRST & attributes:
-                recompute_properties = rest_range(
-                    range(0, min(1, len(elements)))
-                ) or eval_range(range(1, len(elements)))
+                rest_range(range(0, min(1, len(elements))))
+                eval_range(range(1, len(elements)))
             elif HOLD_REST & attributes:
-                recompute_properties = eval_range(
-                    range(0, min(1, len(elements)))
-                ) or rest_range(range(1, len(elements)))
+                eval_range(range(0, min(1, len(elements))))
+                rest_range(range(1, len(elements)))
             else:
-                recompute_properties = eval_range(range(len(elements)))
+                eval_range(range(len(elements)))
                 # rest_range(range(0, 0))
-            return recompute_properties
 
         # Step 2: Build a new expression. If it can be avoided, we take care not
         # to:
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
-        recompute_properties = False
+
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
         else:
             elements = self.get_mutable_elements()
             # FIXME: see if we can preserve elements properties in eval_elements()
-            recompute_properties = eval_elements()
+            recompute_properties = False
+            eval_elements()
 
         if recompute_properties:
             new = Expression(head, *elements, elements_properties=None)
