@@ -1034,13 +1034,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
-
+        recompute_properties = False
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
         else:
             elements = self.get_mutable_elements()
             # FIXME: see if we can preserve elements properties in eval_elements()
-            recompute_properties = False
             eval_elements()
 
         if recompute_properties:
