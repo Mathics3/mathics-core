@@ -208,20 +208,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._head = head
         self._elements = elements
-
-        # comment mmatera: I found that in certain cases, the elements_properties
-        # passed as the parameter does not matches with those we generate with build:elements_properties.
-        # This is the cause of the error in the test_series.py pytest.
-        # Once it be fixed, we can uncomment the following code and remove the previous line
-        # assert (elements_properties is None or
-        #        self.elements_properties == elements_properties), ("element properties do not match",
-        #                                                           self, (self.elements_properties,
-        #                                                                  elements_properties)
-        #                                                           )
-        # After things are clean we should not run _build_elements_properties. This is done
-        # when needed in self.rewrite_apply_eval()
-        # self.elements_properties = elements_properties
-        self._build_elements_properties()
+        self.elements_properties = elements_properties
+        #        if elements_properties is None:
+        #            self._build_elements_properties()
 
         self._sequences = None
         self._cache = None
@@ -467,7 +456,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 # then evaluating again will produce the same result
                 if not expr.is_uncertain_final_definitions(definitions):
                     break
-
                 # Here the names of the lookupname of the expression
                 # are stored. This is necesary for the implementation
                 # of the builtin `Return[]`
@@ -997,8 +985,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         # @timeit
         def eval_elements():
+            nonlocal recompute_properties
             # @timeit
             def eval_range(indices):
+                nonlocal recompute_properties
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
@@ -1010,15 +1000,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                                 recompute_properties = True
                                 elements[index] = new_value
 
-                if recompute_properties:
-                    self._build_elements_properties()
-
             # @timeit
             def rest_range(indices):
+                nonlocal recompute_properties
                 if not HOLD_ALL_COMPLETE & attributes:
                     if self._no_symbol("System`Evaluate"):
                         return
-                    recompute_properties = False
                     for index in indices:
                         element = elements[index]
                         if element.has_form("Evaluate", 1):
@@ -1028,9 +1015,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                                 if id(new_value) != id(element):
                                     elements[index] = new_value
                                     recompute_properties = True
-
-                    if recompute_properties:
-                        self._build_elements_properties()
 
             if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
@@ -1050,7 +1034,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # * evaluate elements,
         # * run to_python() on them in Expression construction, or
         # * convert Expression elements from a tuple to a list and back
-
+        recompute_properties = False
         if self.elements_properties.elements_fully_evaluated:
             elements = self._elements
         else:
@@ -1058,7 +1042,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # FIXME: see if we can preserve elements properties in eval_elements()
             eval_elements()
 
-        new = Expression(head, *elements, elements_properties=self.elements_properties)
+        if recompute_properties:
+            new = Expression(head, *elements, elements_properties=None)
+            new._build_elements_properties()
+        else:
+            new = Expression(
+                head, *elements, elements_properties=self.elements_properties
+            )
 
         # Step 3: Now, process the attributes of head
         # If there are sequence, flatten them if the attributes allow it.
