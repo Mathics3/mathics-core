@@ -37,7 +37,7 @@ def timeit(method):
                 name = kw.get("log_name", method.__name__.upper())
                 kw["log_time"][name] = elapsed
             else:
-                print("%r  %2.2f ms" % (method_name, elapsed))
+                print("@@@ %r  %2.2f ms" % (method_name, elapsed))
         # print(f"{date.today()}	{method_name} ends")
         return result
 
