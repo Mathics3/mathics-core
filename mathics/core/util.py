@@ -284,7 +284,7 @@ def robust_min(iterable):
     return minimum
 
 
-def re_from_keys(d: dict) -> "re":
+def re_from_keys(d: dict) -> re.Pattern:
     """Returns a regex that matches any of the keys of the dictionary"""
 
     # The keys are sorted to prevent shorter keys from obscuring longer keys

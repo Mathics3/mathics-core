@@ -27,14 +27,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
-from mathics.core.element import ensure_context, ElementsProperties
+from mathics.core.element import ensure_context, ElementsProperties, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     BaseElement,
-    EvalMixin,
     Monomial,
     NumericOperators,
     Symbol,
@@ -664,7 +663,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def get_option_values(
         self, evaluation, allow_symbols=False, stop_on_error=True
-    ) -> dict:
+    ) -> Optional[dict]:
         """
         Build a dictionary of options from an expression.
         For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)

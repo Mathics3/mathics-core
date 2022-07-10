@@ -20,6 +20,7 @@ sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
 
+# FIXME: his is repeated below
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -30,8 +31,8 @@ class NumericOperators:
 
     So for example, instead of writing in Python:
 
-        Expression(SymbolAbs, -8)
-        Expression(SybolPlus, 1, 2)
+        to_expression("Abs", -8)
+        Expression(SymbolPlus, Integer1, Integer2)
 
     you can instead have:
         abs(Integer(-8))
@@ -87,17 +88,6 @@ class NumericOperators:
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
         return None
-
-
-# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.FrozenSet[str]:
-    """
-    Return a frozenset of symbols from a list of names (strings).
-    We will use this in testing membership, so an immutable object is fine.
-
-    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
-    """
-    return frozenset(Symbol(s) for s in symbols)
 
 
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
@@ -625,6 +615,17 @@ class PredefinedSymbol(Symbol):
         removed.
         """
         return False
+
+
+# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
+def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
+    """
+    Return a frozenset of symbols from a list of names (strings).
+    We will use this in testing membership, so an immutable object is fine.
+
+    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    """
+    return frozenset(Symbol(s) for s in symbols)
 
 
 # The available formats.

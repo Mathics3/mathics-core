@@ -348,6 +348,13 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
+    def evaluate(self, evaluation) -> "BaseElement":
+        """
+        Evaluates the element.
+        Each subclass should decide what is right here.
+        """
+        raise NotImplementedError
+
     # FIXME the fact that we have to import all of these symbols means
     # modularity is broken somehwere.
     # And format really doesn't belong here.
@@ -582,3 +589,9 @@ class EvalMixin:
         do not need further evaluation.
         """
         return self.evaluate(evaluation), False
+
+    def sameQ(self, other) -> bool:
+        """Mathics SameQ
+        Each class should decide what is right here.
+        """
+        raise NotImplementedError
