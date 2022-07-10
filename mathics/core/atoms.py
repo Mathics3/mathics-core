@@ -34,7 +34,6 @@ from mathics.core.symbols import (
     system_symbols,
 )
 from mathics.core.systemsymbols import (
-    SymbolByteArray,
     SymbolComplex,
     SymbolMinus,
     SymbolRational,

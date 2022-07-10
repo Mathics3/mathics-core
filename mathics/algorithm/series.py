@@ -425,7 +425,13 @@ def series_derivative(series, x, x0, y, evaluation):
     """
     data, nmin, nmax, den = series
     coeffs = list(data.leaves)
-    if all([not coeff.has_symbol(y.get_name()) for coeff in coeffs]):
+    if all(
+        [
+            not coeff.has_symbol(y.get_name())
+            for coeff in coeffs
+            if hasattr(coeff, "has_symbol")
+        ]
+    ):
         dcoeffs = None
     else:
         dcoeffs = [Expression(SymbolD, coeff, y) for coeff in coeffs]

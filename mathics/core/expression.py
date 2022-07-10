@@ -27,14 +27,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
-from mathics.core.element import ensure_context, ElementsProperties
+from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     BaseElement,
-    EvalMixin,
     Monomial,
     NumericOperators,
     Symbol,
@@ -664,7 +663,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def get_option_values(
         self, evaluation, allow_symbols=False, stop_on_error=True
-    ) -> dict:
+    ) -> Optional[dict]:
         """
         Build a dictionary of options from an expression.
         For example Symbol("Integrate").get_option_values(evaluation, allow_symbols=True)
@@ -904,11 +903,24 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     return False
         return True
 
-    def has_symbol(self, symbol_name) -> bool:
-        if self._no_symbol(symbol_name):
+    def has_symbol(self, symbol_name: str) -> bool:
+        """
+        Return True if the expression contains ``symbol_name`` in its head or
+        any of its elements.
+
+        One place where we want to check for symbols is in to
+        determine whether an Expression cache needs to be
+        invalidated. Another place is in Series expansion.
+
+        Note that head in an M-Expression can be an expression.
+        Derivative and Series are like this.
+        """
+        if self._no_symbol(symbol_name) or not hasattr(self._head, "has_symbol"):
             return False
         return self._head.has_symbol(symbol_name) or any(
-            element.has_symbol(symbol_name) for element in self._elements
+            element.has_symbol(symbol_name)
+            for element in self._elements
+            if hasattr(element, "has_symbol")
         )
 
     @property
