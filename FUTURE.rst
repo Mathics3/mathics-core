@@ -49,7 +49,7 @@ place.
 Documentation
 -------------
 
-Sometime release 4.0.0, all of the code related to producing
+Sometime around release 4.0.0, all of the code related to producing
 documentation in LaTeX and in Mathics Django, and running doctests
 will be split off and put into its own git repository.
 
