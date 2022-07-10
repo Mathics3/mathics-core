@@ -332,22 +332,22 @@ class Graphics3DBox(GraphicsBox):
 
         return elements, axes, ticks, ticks_style, calc_dimensions, boxscale
 
-    def boxes_to_js(self, leaves=None, **options):
+    def boxes_to_js(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something javascript-ish
         We include enclosing script tagging.
         """
-        json_repr = self.boxes_to_json(leaves, **options)
+        json_repr = self.boxes_to_json(elements, **options)
         js = f"<graphics3d data='{json_repr}'/>"
         return js
 
-    def boxes_to_json(self, leaves=None, **options):
+    def boxes_to_json(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something JSON like.
         This can be used to embed in something else like MathML or Javascript.
 
         In contrast to to javascript or MathML, no enclosing tags are included.
         the caller will do that if it is needed.
         """
-        if not leaves:
+        if not elements:
             elements = self._elements
 
         (
