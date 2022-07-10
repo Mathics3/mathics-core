@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Type
 
 from mathics.core.attributes import no_attributes
 
@@ -429,7 +429,7 @@ class BaseElement(KeyComparable):
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
         pass
 
-    def get_precision(self) -> None:
+    def get_precision(self) -> Optional[float]:
         """Returns the default specification for precision in N and other
         numerical functions.  It is expected to be redefined in those
         classes that provide inexact arithmetic like PrecisionReal.
@@ -564,9 +564,6 @@ class EvalMixin:
     """
     Class associated to evaluable elements
     """
-
-    def evaluate(self, evaluation):
-        pass
 
     @property
     def is_literal(self) -> bool:

@@ -20,7 +20,7 @@ sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
 
-# FIXME: his is repeated below
+# FIXME: This is repeated below
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -294,9 +294,6 @@ class Atom(BaseElement):
         else:
             return heads == name
 
-    def has_symbol(self, symbol_name) -> bool:
-        return False
-
     @property
     def is_literal(self) -> bool:
         """
@@ -467,7 +464,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         else:
             return None if stop_on_error else {}
 
-    def has_symbol(self, symbol_name) -> bool:
+    def has_symbol(self, symbol_name: str) -> bool:
+        """
+        Return True if the Symbol is ``symbol_name``.
+        """
         return self.name == ensure_context(symbol_name)
 
     @property
