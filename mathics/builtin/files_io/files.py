@@ -1205,20 +1205,17 @@ class Close(Builtin):
     >> Close[StringToStream["123abc"]]
      = String
 
-    >> Close[OpenWrite[]]
+    >> file=Close[OpenWrite[]]
      = ...
 
-    #> Streams[] == (Close[OpenWrite[]]; Streams[])
-     = True
+    Closing a file doesn't delete it from the filesystem
+    >> DeleteFile[file];
 
     #> Close["abc"]
      : abc is not open.
      = Close[abc]
 
-    #> strm = OpenWrite[];
-    #> Close[strm];
-    #> Quiet[Close[strm]]
-     = Close[OutputStream[...]]
+    #> Clear[file]
     """
 
     summary_text = "close a stream"

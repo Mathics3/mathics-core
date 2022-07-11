@@ -48,13 +48,30 @@ def test_get_path_search():
 
 
 @pytest.mark.skipif(
-    sys.platform in ("win32",), reason="$Path does not work on Windows?"
+    sys.platform in ("win32",),
+    reason="Need to fix some sort of Unicode decode problem on Windows",
 )
-def test_temptream():
+def test_temp_stream():
     temp_filename = evaluate("Close[OpenWrite[BinaryFormat -> True]]").value
     assert osp.exists(
         temp_filename
+    ), f"temporary filename {temp_filename} should appear"
+    result = evaluate(f"""DeleteFile["{temp_filename}"]""").to_python()
+    assert result is None
+    assert not osp.exists(
+        temp_filename
     ), f"temporary filename {temp_filename} should not appear"
+
+
+@pytest.mark.skipif(
+    sys.platform in ("win32",),
+    reason="Need to fix some sort of Unicode decode problem on Windows",
+)
+def test_close():
+    temp_filename = evaluate("Close[OpenWrite[]]").value
+    assert osp.exists(
+        temp_filename
+    ), f"temporary filename {temp_filename} should appear"
     result = evaluate(f"""DeleteFile["{temp_filename}"]""").to_python()
     assert result is None
     assert not osp.exists(
