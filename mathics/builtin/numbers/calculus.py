@@ -688,7 +688,7 @@ class Integrate(SympyFunction):
         if prec is not None and isinstance(sympy_result, sympy.Integral):
             # TODO MaxExtraPrecision -> maxn
             sympy_result = sympy_result.evalf(dps(prec))
-        
+
         result = from_sympy(sympy_result)
         # If we obtain an atom (number or symbol)
         # just return...
