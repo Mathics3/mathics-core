@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
+from ...helper import check_evaluation
 import pytest
 
 list_test_assumptions_integrate = [
@@ -84,7 +84,7 @@ list_test_assumptions_simplify = [
     ("str_expr", "str_expected", "message"),
     list_test_assumptions_integrate,
 )
-@pytest.mark.xfail
+@pytest.mark.skip(reason="the Assumptions with Integrate is not fully working")
 def test_assumptions_integrate(str_expr, str_expected, message):
     check_evaluation(str_expr, str_expected)
 
@@ -93,6 +93,6 @@ def test_assumptions_integrate(str_expr, str_expected, message):
     ("str_expr", "str_expected", "message"),
     list_test_assumptions_simplify,
 )
-@pytest.mark.xfail
+@pytest.mark.skip(reason="the Assumptions with Simplify is not fully working")
 def test_assumptions_simplify(str_expr, str_expected, message):
     check_evaluation(str_expr, str_expected)

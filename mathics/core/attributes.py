@@ -83,7 +83,7 @@ attribute_string_to_number: Dict[str, int] = {
 }
 
 
-def attributes_bitset_to_list(attributes_bitset: int) -> Generator[int, None, None]:
+def attributes_bitset_to_list(attributes_bitset: int) -> Generator[str, None, None]:
     bit = 1
 
     while attributes_bitset >= bit:

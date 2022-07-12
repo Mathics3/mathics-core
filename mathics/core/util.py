@@ -1,10 +1,16 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import os
 import re
 import sys
 from itertools import chain
+
+# Remove "try"  below and adjust return type after Python 3.6 support is dropped.
+try:
+    from re import Pattern
+except ImportError:
+    Pattern = re._pattern_type
+
 
 FORMAT_RE = re.compile(r"\`(\d*)\`")
 
@@ -16,6 +22,7 @@ IS_PYPY = "__pypy__" in sys.builtin_module_names
 MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
 
 
+# FIXME: move this up out of mathics.core
 def timeit(method):
     """Add this as a decorator to time parts of the code.
 
@@ -44,6 +51,7 @@ def timeit(method):
     return timed
 
 
+# FIXME: move this up out of mathics.core
 class TimeitContextManager:
     """Add this as a context manager to time parts of the code.
 
@@ -284,7 +292,7 @@ def robust_min(iterable):
     return minimum
 
 
-def re_from_keys(d: dict) -> "re":
+def re_from_keys(d: dict) -> Pattern:
     """Returns a regex that matches any of the keys of the dictionary"""
 
     # The keys are sorted to prevent shorter keys from obscuring longer keys
