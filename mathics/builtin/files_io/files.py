@@ -1486,9 +1486,11 @@ class InputFileName_(Predefined):
 class InputStream(Builtin):
     """
     <dl>
-    <dt>'InputStream[$name$, $n$]'
-      <dd>represents an input stream.
+      <dt>'InputStream[$name$, $n$]'
+      <dd>represents an input stream for functions such as 'Read' or 'Find'.
     </dl>
+
+    'StringToStream' opens an input stream:
 
     >> stream = StringToStream["Mathics is cool!"]
      = ...
@@ -1503,7 +1505,7 @@ class OpenRead(_OpenAction):
     """
     <dl>
       <dt>'OpenRead["file"]'
-      <dd>opens a file and returns an InputStream.
+      <dd>opens a file and returns an 'InputStream'.
     </dl>
 
     >> OpenRead["ExampleData/EinsteinSzilLetter.txt"]
@@ -2558,13 +2560,12 @@ class Find(Read):
 class OutputStream(Builtin):
     """
     <dl>
-    <dt>'OutputStream[$name$, $n$]'
+      <dt>'OutputStream[$name$, $n$]'
       <dd>represents an output stream.
     </dl>
 
-    >> OpenWrite[]
-     = ...
-    >> Close[%]
+    By default, the list of Streams normally 'OutputStream' entries for 'stderr' and 'stdout'
+    >> Streams[]
      = ...
     """
 
@@ -2574,7 +2575,7 @@ class OutputStream(Builtin):
 class StringToStream(Builtin):
     """
     <dl>
-    <dt>'StringToStream[$string$]'
+      <dt>'StringToStream[$string$]'
       <dd>converts a $string$ to an open input stream.
     </dl>
 
@@ -2606,7 +2607,7 @@ class StringToStream(Builtin):
 class Streams(Builtin):
     """
     <dl>
-    <dt>'Streams[]'
+      <dt>'Streams[]'
       <dd>returns a list of all open streams.
     </dl>
 
@@ -2658,7 +2659,7 @@ class Streams(Builtin):
 class Record(Builtin):
     """
     <dl>
-    <dt>'Record'
+      <dt>'Record'
       <dd>is a data type for 'Read'.
     </dl>
     """
@@ -2669,7 +2670,7 @@ class Record(Builtin):
 class Word(Builtin):
     """
     <dl>
-    <dt>'Word'
+      <dt>'Word'
       <dd>is a data type for 'Read'.
     </dl>
     """
@@ -2680,7 +2681,7 @@ class Word(Builtin):
 class Write(Builtin):
     """
     <dl>
-    <dt>'Write[$channel$, $expr1$, $expr2$, ...]'
+      <dt>'Write[$channel$, $expr1$, $expr2$, ...]'
       <dd>writes the expressions to the output channel followed by a newline.
     </dl>
 
@@ -2724,7 +2725,7 @@ class Write(Builtin):
 class WriteString(Builtin):
     """
     <dl>
-    <dt>'WriteString[$stream$, $str1, $str2$, ... ]'
+      <dt>'WriteString[$stream$, $str1, $str2$, ... ]'
       <dd>writes the strings to the output stream.
     </dl>
 
