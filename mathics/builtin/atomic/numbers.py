@@ -36,7 +36,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (
@@ -627,7 +627,7 @@ class RealDigits(Builtin):
                 ).evaluate(evaluation)
             else:
                 if rational_no:
-                    n = apply_N(n, evaluation)
+                    n = eval_N(n, evaluation)
                 else:
                     return evaluation.message("RealDigits", "ndig", expr)
         py_n = abs(n.value)
@@ -646,7 +646,7 @@ class RealDigits(Builtin):
             )
         else:
             display_len = int(
-                apply_N(
+                eval_N(
                     Expression(
                         SymbolRound,
                         Expression(

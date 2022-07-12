@@ -26,7 +26,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.sympy import from_sympy, SympyPrime
 from mathics.core.convert.python import from_python
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
@@ -425,13 +425,13 @@ class MantissaExponent(Builtin):
             return expr
 
         if n_sympy.is_constant():
-            temp_n = apply_N(n, evaluation)
+            temp_n = eval_N(n, evaluation)
             py_n = temp_n.to_python()
         else:
             return expr
 
         if b_sympy.is_constant():
-            temp_b = apply_N(b, evaluation)
+            temp_b = eval_N(b, evaluation)
             py_b = temp_b.to_python()
         else:
             return expr
@@ -455,7 +455,7 @@ class MantissaExponent(Builtin):
             return expr
         # Handle Input with special cases such as PI and E
         if n_sympy.is_constant():
-            temp_n = apply_N(n, evaluation)
+            temp_n = eval_N(n, evaluation)
             py_n = temp_n.to_python()
         else:
             return expr

@@ -29,7 +29,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import hold_all, protected
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
@@ -947,7 +947,7 @@ class PieChart(_Chart):
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
         if not sector_origin.has_form("List", 2):
             return
-        sector_origin = apply_N(sector_origin, evaluation)
+        sector_origin = eval_N(sector_origin, evaluation)
 
         orientation = sector_origin.leaves[0]
         if (

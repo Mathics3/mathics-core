@@ -39,7 +39,7 @@ from mathics.core.attributes import (
     protected,
 )
 from mathics.core.convert.expression import to_expression
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
@@ -87,7 +87,7 @@ class _InequalityOperator(BinaryOperator):
             for item in items:
                 if not isinstance(item, Number):
                     # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    item = apply_N(item, evaluation, SymbolMaxPrecision)
+                    item = eval_N(item, evaluation, SymbolMaxPrecision)
                 n_items.append(item)
             items = n_items
         else:

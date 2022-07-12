@@ -47,7 +47,7 @@ Internals
 * ``Definition`` has a new property ``is_numeric``.
 * ``Symbol.is_numeric`` and  ``Expression.is_numeric`` now uses the attribute ``Definition.is_numeric`` to determine the returned value.
 * ``NIntegrate`` internal algorithms and interfaces to ``scipy`` were moved to ``mathics.algorithm.integrators`` and ``mathics.builtin.scipy_utils.integrators`` respectively.
-* ``N[Integrate[...]]`` now is evaluated as ``NIntegrate[...]`` 
+* ``N[Integrate[...]]`` now is evaluated as ``NIntegrate[...]``
 * To speed up attributes read, and RAM usage, attributes are now stored in a bitset instead of a tuple of strings.
 * Definitions for symbols ``CurrentContext`` and ``ContextPath[]`` are mirrored in the ``mathics.core.definitions.Definitions`` object for faster access.
 * ``FullForm[List[...]]`` now is shown as ``{...}`` according to the WL standard.
@@ -75,7 +75,7 @@ Speed improvements:
 * In ``Expression`` manipulation code, ``Symbol`` objects are now a singleton class. This avoids a lot of unnecessary string comparisons, and calls to ``ensure_context``.
 * Attributes are now stored in a bitset instead of a tuple of strings.
 * The ``Definitions`` object has two properties: ``current_contex`` and ``context_path``. This speeds up the lookup of symbols names.  These properties store their values into the corresponding symbols in the ``builtin`` definitions.
-* ``apply_N`` was add to speed up the then often-used built-in function ``N``.
+* ``eval_N`` was add to speed up the then often-used built-in function ``N``.
 
 
 Package update
@@ -105,7 +105,7 @@ Bugs
 * Some temporary files that were created are now removed from the filesystem. Issue #309.
 * There were a number of small changes/fixes involving ``NIntegrate`` and its Method options. ``Nintegrate`` tests have been expanded.
 * Fix a bug in handling arguments of pythonized expressions, that are produced by ``Compile`` when the llvmlite compiler fails.
-* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.  
+* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 * `N[Indeterminate]` now produces `Indeterminate` instead a `PrecisionReal(nan)`.
 
 

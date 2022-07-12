@@ -3,7 +3,7 @@
 import pytest
 
 from mathics.session import MathicsSession
-from mathics.core.evaluators import apply_N, apply_nvalues
+from mathics.core.evaluators import eval_N, apply_nvalues
 
 session = MathicsSession()
 evaluation = session.evaluation
@@ -44,11 +44,11 @@ def test_sameQ():
         ("N[b,_]=1.2`3;F[b, 2/9]", "5", "F[1.20`3, .222222]"),
     ],
 )
-def test_apply_N(str_expr, prec, str_expected):
+def test_eval_N(str_expr, prec, str_expected):
     expr_in = session.evaluate(f"Hold[{str_expr}]").leaves[0]
     prec = session.evaluate(prec)
     expr_expected = session.evaluate(str_expected)
-    result = apply_N(expr_in, evaluation, prec=prec)
+    result = eval_N(expr_in, evaluation, prec=prec)
     assert expr_expected.sameQ(result)
 
 
