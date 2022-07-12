@@ -93,7 +93,6 @@ Bugs
 ++++
 
 * ``First``, ``Rest`` and  ``Last`` now handle invalid arguments.
-* ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 *  ``Set*``: fixed issue #128.
 *  ``SameQ``: comparison with MachinePrecision only needs to be exact within the last bit Issue #148.
 * Fix a bug in ``Simplify`` that produced expressions of the form ``ConditionalExpression[_,{True}]``.
@@ -103,6 +102,8 @@ Bugs
 * Streams used in MathicsOpen are now freed and their file descriptors now released. Issue #326.
 * Some temporary files that were created are now removed from the filesystem. Issue #309.
 * There were a number of small changes/fixes involving ``NIntegrate`` and its Method options. ``Nintegrate`` tests have been expanded.
+* Fix a bug in handling arguments of pythonized expressions, that are produced by ``Compile`` when the llvmlite compiler fails.
+
 
 4.0.1
 -----

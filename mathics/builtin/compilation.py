@@ -154,7 +154,8 @@ class Compile(Builtin):
 
                 def _pythonized_mathics_expr(*x):
                     inner_evaluation = Evaluation(definitions=evaluation.definitions)
-                    vars = dict(list(zip(names, x[: len(names)])))
+                    x_mathics = (from_python(u) for u in x[: len(names)])
+                    vars = dict(list(zip(names, x_mathics)))
                     pyexpr = expr.replace_vars(vars)
                     pyexpr = apply_N(pyexpr, inner_evaluation)
                     res = pyexpr.to_python(n_evaluation=inner_evaluation)
