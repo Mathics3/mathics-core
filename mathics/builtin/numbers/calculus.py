@@ -52,7 +52,7 @@ from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
@@ -1327,7 +1327,7 @@ class _BaseFinder(Builtin):
         # This is needed to get the right messages
         options["_isfindmaximum"] = self.__class__ is FindMaximum
         # First, determine x0 and x
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         # deal with non 1D problems.
         if isinstance(x0, Expression) and x0._head is SymbolList:
             options["_x0"] = x0.elements
@@ -2230,8 +2230,8 @@ class NIntegrate(Builtin):
                         (lambda u: a - z + z / u, lambda u: z * u ** (-2.0))
                     )
                 elif a.is_numeric(evaluation) and b.is_numeric(evaluation):
-                    a = apply_N(a, evaluation).value
-                    b = apply_N(b, evaluation).value
+                    a = eval_N(a, evaluation).value
+                    b = eval_N(b, evaluation).value
                     subdomain2.append([a, b])
                     coordtransform.append(None)
                 else:
@@ -2318,7 +2318,7 @@ def is_zero(
     Check if val is zero upto the precision and accuracy goals
     """
     if not isinstance(val, Number):
-        val = apply_N(val, evaluation)
+        val = eval_N(val, evaluation)
     if not isinstance(val, Number):
         return False
     if val.is_zero:
@@ -2330,5 +2330,5 @@ def is_zero(
     if acc_goal:
         eps_expr = eps_expr + Integer10 ** (-acc_goal) / abs(val)
     threeshold_expr = Expression(SymbolLog, eps_expr)
-    threeshold: Real = apply_N(threeshold_expr, evaluation)
+    threeshold: Real = eval_N(threeshold_expr, evaluation)
     return threeshold.to_python() > 0

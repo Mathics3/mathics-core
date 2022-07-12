@@ -1,12 +1,10 @@
 # -*- coding: utf-8 -*-
-import sys
-
 from mathics.builtin import check_requires_list
 
 from mathics.core.atoms import Number, Real
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
@@ -36,7 +34,7 @@ def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None
     """
     acc_goal = opts.get("System`AccuracyGoal", None)
     if acc_goal:
-        acc_goal = apply_N(acc_goal, evaluation)
+        acc_goal = eval_N(acc_goal, evaluation)
         if acc_goal is SymbolAutomatic:
             acc_goal = Real(12.0)
         elif acc_goal is SymbolInfinity:
@@ -46,7 +44,7 @@ def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None
 
     prec_goal = opts.get("System`PrecisionGoal", None)
     if prec_goal:
-        prec_goal = apply_N(prec_goal, evaluation)
+        prec_goal = eval_N(prec_goal, evaluation)
         if prec_goal is SymbolAutomatic:
             prec_goal = Real(12.0)
         elif prec_goal is SymbolInfinity:
@@ -67,7 +65,7 @@ def get_tolerance_and_maxit(opts: dict, scale=0, evaluation: "Evaluation" = None
         maxit = 100
     else:
         if not isinstance(maxit_parm, Number):
-            maxit_parm = apply_N(maxit_parm, evaluation)
+            maxit_parm = eval_N(maxit_parm, evaluation)
         maxit = maxit_parm.get_int_value()
     return tol, maxit
 
@@ -111,7 +109,7 @@ def find_minimum_brent(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b
@@ -138,7 +136,7 @@ def find_minimum_golden(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b
@@ -167,7 +165,7 @@ def find_root1d_brenth(
     if boundary and len(boundary) == 2:
         a, b = sorted(u.to_python() for u in boundary)
     else:
-        x0 = apply_N(x0, evaluation)
+        x0 = eval_N(x0, evaluation)
         b = abs(x0.to_python())
         b = 1 if b == 0 else b
         a = -b

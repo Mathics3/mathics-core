@@ -21,7 +21,7 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression, SymbolCompiledFunction
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -157,7 +157,7 @@ class Compile(Builtin):
                     x_mathics = (from_python(u) for u in x[: len(names)])
                     vars = dict(list(zip(names, x_mathics)))
                     pyexpr = expr.replace_vars(vars)
-                    pyexpr = apply_N(pyexpr, inner_evaluation)
+                    pyexpr = eval_N(pyexpr, inner_evaluation)
                     res = pyexpr.to_python(n_evaluation=inner_evaluation)
                     return res
 

@@ -6,7 +6,7 @@ Functions for working with 3D graphics.
 """
 
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolN
 
@@ -339,7 +339,7 @@ class Cylinder(Builtin):
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
-            nradius = apply_N(radius, evaluation)
+            nradius = eval_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 

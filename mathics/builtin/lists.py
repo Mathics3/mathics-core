@@ -70,7 +70,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
@@ -1931,7 +1931,7 @@ class _PrecomputedDistances(PrecomputedDistances):
 
     def __init__(self, df, p, evaluation):
         distances_form = [df(p[i], p[j]) for i in range(len(p)) for j in range(i)]
-        distances = apply_N(ListExpression(*distances_form), evaluation)
+        distances = eval_N(ListExpression(*distances_form), evaluation)
         mpmath_distances = [_to_real_distance(d) for d in distances.elements]
         super(_PrecomputedDistances, self).__init__(mpmath_distances)
 
@@ -1947,7 +1947,7 @@ class _LazyDistances(LazyDistances):
 
     def _compute_distance(self, i, j):
         p = self._p
-        d = apply_N(self._df(p[i], p[j]), self._evaluation)
+        d = eval_N(self._df(p[i], p[j]), self._evaluation)
         return _to_real_distance(d)
 
 
