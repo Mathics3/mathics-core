@@ -242,6 +242,14 @@ class IRGenerator:
 
         return method(expr)
 
+    def _gen_Sqrt(self, expr):
+        if not expr.has_form("Sqrt", 1):
+            raise CompileError()
+        builder = self.builder
+        radicand = self._gen_ir(expr.get_elements()[0])
+        exponent = real_type(0.5)
+        return self.call_fp_intr("llvm.pow", [radicand, exponent])
+
     def _gen_If(self, expr):
         if not expr.has_form("If", 3):
             raise CompileError()

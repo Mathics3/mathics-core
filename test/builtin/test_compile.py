@@ -49,6 +49,7 @@ def test_pythonize_code():
         ("Sin[x]", 1.5, 0.997495),
         ("Exp[-x^2/2.]", 0.0, 1.0),
         ("Sqrt[x]", 1.0, 1.0),
+        ("BesselJ[0, x]", 0.0, 1.0),
     ]:
 
         expr = session.evaluate("Compile[{x}, " + str_expr + " ]")
@@ -56,7 +57,6 @@ def test_pythonize_code():
         assert len(expr.elements) == 3
         code = expr.elements[2]
         assert isinstance(code, CompiledCode)
-        print(code.cfunc)
         y = code.cfunc(x)
         assert abs(y - res) < 1.0e-6
 
