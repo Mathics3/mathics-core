@@ -25,6 +25,7 @@ from mathics.algorithm.series import (
     series_times_series,
     series_derivative,
 )
+from mathics.builtin.compile import expression_to_callable_and_args
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -59,7 +60,6 @@ from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
 
 from mathics.core.symbols import (
-    Atom,
     BaseElement,
     Symbol,
     SymbolFalse,
@@ -73,7 +73,6 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolAutomatic,
-    SymbolCompile,
     SymbolConditionalExpression,
     SymbolD,
     SymbolDerivative,
@@ -1483,7 +1482,7 @@ class FindRoot(_BaseFinder):
         "FindRoot[lhs_ == rhs_, {x_, xs_}, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, {x, xs}, opt]",
         "FindRoot[lhs_ == rhs_, x__, opt:OptionsPattern[]]": "FindRoot[lhs-rhs, x, opt]",
     }
-
+    messages = _BaseFinder.messages.copy()
     methods = {}
     summary_text = (
         "Looks for a root of an equation or a zero of a numerical expression."
@@ -1541,6 +1540,7 @@ class FindMinimum(_BaseFinder):
     """
 
     methods = {}
+    messages = _BaseFinder.messages.copy()
     summary_text = "local minimum optimization"
     try:
         from mathics.algorithm.optimizers import (
@@ -1588,6 +1588,7 @@ class FindMaximum(_BaseFinder):
     """
 
     methods = {}
+    messages = _BaseFinder.messages.copy()
     summary_text = "local maximum optimization"
     try:
         from mathics.algorithm.optimizers import native_local_optimizer_methods
@@ -2114,7 +2115,7 @@ class NIntegrate(Builtin):
 
         methods.update(scipy_nintegrate_methods)
         messages.update(scipy_nintegrate_messages)
-    except Exception as e:
+    except Exception:
         pass
 
     messages.update(
@@ -2172,12 +2173,9 @@ class NIntegrate(Builtin):
             evaluation.message("NIntegrate", "cmpint")
             return
 
-        intvars = ListExpression(*coords)
-        integrand = Expression(SymbolCompile, intvars, func).evaluate(evaluation)
+        integrand, cargs = expression_to_callable_and_args(func, coords, evaluation)
 
-        if len(integrand.elements) >= 3:
-            integrand = integrand.elements[2].cfunc
-        else:
+        if integrand is None:
             evaluation.message("inumer", func, domain)
             return
         results = []

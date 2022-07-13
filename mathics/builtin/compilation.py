@@ -12,6 +12,15 @@ from types import FunctionType
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
+
+from mathics.builtin.compile import (
+    expression_to_callable_and_args,
+    CompileError,
+    CompileDuplicateArgName,
+    CompileWrongArgType,
+)
+
+
 from mathics.core.atoms import (
     Integer,
     String,
@@ -20,16 +29,8 @@ from mathics.core.attributes import hold_all, protected
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression, SymbolCompiledFunction
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolBlank,
-    SymbolFunction,
-    SymbolInteger,
-    SymbolReal,
-)
 
 
 class Compile(Builtin):
@@ -87,9 +88,6 @@ class Compile(Builtin):
      =  CompiledFunction[{a, b}, a, -PythonizedCode-]
     """
 
-    summary_text = "compile an expression"
-    requires = ("llvmlite",)
-
     attributes = hold_all | protected
 
     messages = {
@@ -99,76 +97,28 @@ class Compile(Builtin):
         "fdup": "Duplicate parameter `1` found in `2`.",
     }
 
+    requires = ("llvmlite",)
+    summary_text = "compile an expression"
+
     def apply(self, vars, expr, evaluation):
         "Compile[vars_, expr_]"
-        from mathics.builtin.compile import (
-            _compile,
-            int_type,
-            real_type,
-            bool_type,
-            CompileArg,
-            CompileError,
-        )
-
-        # _Complex not implemented
-        permitted_types = {
-            Expression(SymbolBlank, SymbolInteger): int_type,
-            Expression(SymbolBlank, SymbolReal): real_type,
-            SymbolTrue: bool_type,
-            SymbolFalse: bool_type,
-        }
 
         if not vars.has_form("List", None):
             return evaluation.message("Compile", "invars")
-        args = []
-        names = []
-        for var in vars.get_elements():
-            if isinstance(var, Symbol):
-                symb = var
-                name = symb.get_name()
-                typ = real_type
-            elif var.has_form("List", 2):
-                symb, typ = var.get_elements()
-                if isinstance(symb, Symbol) and typ in permitted_types:
-                    name = symb.get_name()
-                    typ = permitted_types[typ]
-                else:
-                    return evaluation.message("Compile", "invar", var)
-            else:
-                return evaluation.message("Compile", "invar", var)
-
-            # check for duplicate names
-            if name in names:
-                return evaluation.message("Compile", "fdup", symb, vars)
-            else:
-                names.append(name)
-            args.append(CompileArg(name, typ))
 
         try:
-            cfunc = _compile(expr, args)
+            cfunc, args = expression_to_callable_and_args(
+                expr, vars.get_elements(), evaluation
+            )
+        except CompileDuplicateArgName as e:
+            # duplicated argument
+            evaluation.message("Compile", "fdup", e.symb, vars)
+            return None
+        except CompileWrongArgType as e:
+            evaluation.message("Compile", "invar", e.var)
+            return None
         except CompileError:
             cfunc = None
-
-        if cfunc is None:
-            try:
-
-                def _pythonized_mathics_expr(*x):
-                    inner_evaluation = Evaluation(definitions=evaluation.definitions)
-                    x_mathics = (from_python(u) for u in x[: len(names)])
-                    vars = dict(list(zip(names, x_mathics)))
-                    pyexpr = expr.replace_vars(vars)
-                    pyexpr = eval_N(pyexpr, inner_evaluation)
-                    res = pyexpr.to_python(n_evaluation=inner_evaluation)
-                    return res
-
-                # TODO: check if we can use numba to compile this...
-                cfunc = _pythonized_mathics_expr
-            except Exception:
-                cfunc = None
-        if cfunc is None:
-            evaluation.message("Compile", "comperr", expr)
-            args = to_mathics_list(*names, elements_conversion_fn=String)
-            return Expression(SymbolFunction, args, expr)
 
         code = CompiledCode(cfunc, args)
         arg_names = to_mathics_list(

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+
 try:
     import llvmlite
 
@@ -14,3 +15,5 @@ if has_llvmlite:
     from .compile import _compile
     from .base import CompileArg, CompileError
     from .types import *
+
+from .topython import *
