@@ -18,8 +18,7 @@ from typing import Optional, Callable, Tuple
 
 
 try:
-    from .compile import _compile
-    from .base import CompileArg, CompileError
+    from mathics.builtin.compile import _compile, CompileArg, CompileError
 
     use_llvm = True
     # _Complex not implemented

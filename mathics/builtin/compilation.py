@@ -13,13 +13,6 @@ from types import FunctionType
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
 
-from mathics.builtin.compile import (
-    expression_to_callable_and_args,
-    CompileError,
-    CompileDuplicateArgName,
-    CompileWrongArgType,
-)
-
 
 from mathics.core.atoms import (
     Integer,
@@ -27,6 +20,12 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import hold_all, protected
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.function import (
+    expression_to_callable_and_args,
+    CompileError,
+    CompileDuplicateArgName,
+    CompileWrongArgType,
+)
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
 from mathics.core.expression import Expression, SymbolCompiledFunction

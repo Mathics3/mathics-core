@@ -25,7 +25,7 @@ from mathics.algorithm.series import (
     series_times_series,
     series_derivative,
 )
-from mathics.builtin.compile import expression_to_callable_and_args
+from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 

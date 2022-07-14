@@ -34,7 +34,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.builtin.compile.topython import expression_to_callable_and_args
+from mathics.core.convert.function import expression_to_callable_and_args
 
 if has_llvmlite:
     from mathics.builtin.compile import (
@@ -66,7 +66,7 @@ def test_compile_code():
         assert abs(y - res) < 1.0e-6
 
 
-def test_pythonize_code_1():
+def test_builtin_fns_with_symbols_1():
     for str_expr, x, res in [
         ("Sin[x]", 1.5, 0.997495),
         ("Exp[-x^2/2.]", 0.0, 1.0),
