@@ -186,7 +186,8 @@ add_conversion_fn(Point3DBox, point_3d_box)
 
 def polygon_3d_box(self) -> list:
     """
-    Compact (lower-level) JSON formatting of a Polygont3DBox.
+    Compact (lower-level) JSON formatting of a Polygon3DBox.
+    This format follows an API understood by mathics_threejs_backend.
     """
     # TODO: account for line widths and style
     if self.vertex_colors is None:
