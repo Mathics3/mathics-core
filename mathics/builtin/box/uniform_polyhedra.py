@@ -10,13 +10,6 @@ from mathics.core.symbols import Symbol
 
 
 class UniformPolyhedron3DBox(_GraphicsElementBox):
-    """
-    <dl>
-    <dt>'UniformPolyedron3DBox[]'
-    <dd>
-    </dl>
-    """
-
     # Let's overwrite the default summary_text here,
     # to recover the spaces.
     summary_text = "box representation of a 3d uniform polyhedron"
