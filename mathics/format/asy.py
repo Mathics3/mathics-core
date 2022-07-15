@@ -3,6 +3,8 @@
 Format a Mathics object as an Asymptote string
 """
 
+import re
+
 from mathics.builtin.box.graphics import (
     _ArcBox,
     ArrowBox,
@@ -313,6 +315,9 @@ def cuboid3dbox(self, **options) -> str:
 
         i += 1
 
+    # Strip \n followed by blanks, since that can
+    # confuse "asy" inside mathicsccript and give syntax errors.
+    asy = re.sub(r"\n[ ]+", "", asy)
     # print(asy)
     return asy
 
