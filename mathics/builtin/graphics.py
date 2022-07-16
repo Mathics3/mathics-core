@@ -199,8 +199,8 @@ def _extract_graphics(graphics, format, evaluation):
 class Show(Builtin):
     """
     <dl>
-    <dt>'Show[$graphics$, $options$]'
-        <dd>shows a list of graphics with the specified options added.
+      <dt>'Show[$graphics$, $options$]'
+      <dd>shows a list of graphics with the specified options added.
     </dl>
 
     >> Show[{Plot[x, {x, 0, 10}], ListPlot[{1,2,3}]}]
@@ -370,9 +370,8 @@ class _Thickness(_Size):
 class AbsoluteThickness(_Thickness):
     """
     <dl>
-    <dt>'AbsoluteThickness[$p$]'
-        <dd>sets the line thickness for subsequent graphics primitives
-        to $p$ points.
+      <dt>'AbsoluteThickness[$p$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $p$ points.
     </dl>
 
     >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
@@ -381,211 +380,6 @@ class AbsoluteThickness(_Thickness):
 
     def get_thickness(self):
         return self.graphics.translate_absolute((self.value, 0))[0]
-
-
-class Thickness(_Thickness):
-    """
-    <dl>
-    <dt>'Thickness[$t$]'
-        <dd>sets the line thickness for subsequent graphics primitives
-        to $t$ times the size of the plot area.
-    </dl>
-
-    >> Graphics[{Thickness[0.2], Line[{{0, 0}, {0, 5}}]}, Axes->True, PlotRange->{{-5, 5}, {-5, 5}}]
-     = -Graphics-
-    """
-
-    summary_text = "line thicknesses"
-
-    def get_thickness(self):
-        return self.graphics.translate_relative(self.value)
-
-
-class Thin(Builtin):
-    """
-    <dl>
-    <dt>'Thin'
-        <dd>sets the line width for subsequent graphics primitives to 0.5pt.
-    </dl>
-    """
-
-    rules = {"Thin": "AbsoluteThickness[0.5]"}
-    summary_text = "make lines width thiner"
-
-
-class Thick(Builtin):
-    """
-    <dl>
-    <dt>'Thick'
-        <dd>sets the line width for subsequent graphics primitives to 2pt.
-    </dl>
-    """
-
-    rules = {"Thick": "AbsoluteThickness[2]"}
-    summary_text = "make lines width thicker"
-
-
-class PointSize(_Size):
-    """
-    <dl>
-      <dt>'PointSize[$t$]'
-      <dd>sets the diameter of points to $t$, which is relative to the overall width.
-    </dl>
-    'PointSize' can be used for both two- and three-dimensional graphics. The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
-
-    >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
-     = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
-
-    >> Table[Graphics3D[{PointSize[r], Point[{0, 0, 0}]}], {r, {0.05, 0.1, 0.8}}]
-    = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
-    """
-
-    summary_text = "relative sizes of points"
-
-    def get_absolute_size(self):
-        if self.graphics.view_width is None:
-            self.graphics.view_width = 400
-        if self.value is None:
-            self.value = DEFAULT_POINT_FACTOR
-        return self.graphics.view_width * self.value
-
-
-class FontColor(Builtin):
-    """
-    <dl>
-    <dt>'FontColor'
-        <dd>is an option for Style to set the font color.
-    </dl>
-    """
-
-    summary_text = "color of characters"
-
-
-class Offset(Builtin):
-    """
-    <dl>
-    <dt>'Offset[{$dx$, $dy$}, $position$]'
-    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
-    </dl>
-    """
-
-    summary_text = "offset by an absolute distance"
-
-
-class Rectangle(Builtin):
-    """
-    <dl>
-    <dt>'Rectangle[{$xmin$, $ymin$}]'
-        <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
-    <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
-        <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
-    </dl>
-
-    >> Graphics[Rectangle[]]
-     = -Graphics-
-
-    >> Graphics[{Blue, Rectangle[{0.5, 0}], Orange, Rectangle[{0, 0.5}]}]
-     = -Graphics-
-    """
-
-    rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
-    summary_text = "2D filled rectangle"
-
-
-class Disk(Builtin):
-    """
-    <dl>
-    <dt>'Disk[{$cx$, $cy$}, $r$]'
-        <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
-    <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
-        <dd>fills an ellipse.
-    <dt>'Disk[{$cx$, $cy$}]'
-        <dd>chooses radius 1.
-    <dt>'Disk[]'
-        <dd>chooses center '(0, 0)' and radius 1.
-    <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
-        <dd>is a sector from angle $t1$ to $t2$.
-    </dl>
-
-    >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]
-     = -Graphics-
-    The outer border can be drawn using 'EdgeForm':
-    >> Graphics[{EdgeForm[Black], Red, Disk[]}]
-     = -Graphics-
-
-    Disk can also draw sectors of circles and ellipses
-    >> Graphics[Disk[{0, 0}, 1, {Pi / 3, 2 Pi / 3}]]
-     = -Graphics-
-    >> Graphics[{Blue, Disk[{0, 0}, {1, 2}, {Pi / 3, 5 Pi / 3}]}]
-     = -Graphics-
-    """
-
-    rules = {"Disk[]": "Disk[{0, 0}]"}
-    summary_text = "filled circle, ellipse or arc"
-
-
-class Circle(Builtin):
-    """
-    <dl>
-      <dt>'Circle[{$cx$, $cy$}, $r$]'
-      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
-
-      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
-      <dd>draws an ellipse.
-
-      <dt>'Circle[{$cx$, $cy$}]'
-      <dd>chooses radius 1.
-
-      <dt>'Circle[]'
-      <dd>chooses center '(0, 0)' and radius 1.
-    </dl>
-
-    >> Graphics[{Red, Circle[{0, 0}, {2, 1}]}]
-     = -Graphics-
-    >> Graphics[{Circle[], Disk[{0, 0}, {1, 1}, {0, 2.1}]}]
-     = -Graphics-
-
-    Target practice:
-    >> Graphics[Circle[], Axes-> True]
-     = -Graphics-
-    """
-
-    rules = {"Circle[]": "Circle[{0, 0}]"}
-    summary_text = "empty circle, ellipse or arc"
-
-
-class Inset(Builtin):
-    """
-    <dl>
-    <dt>'Text[$obj$]'
-        <dd>represents an object $obj$ inset in a graphic.
-    <dt>'Text[$obj$, $pos$]'
-        <dd>represents an object $obj$ inset in a graphic at position $pos$.
-    <dt>'Text[$obj$, $pos$, $$]'
-        <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in
-            the enclosing graphic.
-    </dl>
-
-    """
-
-    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
-
-
-class Text(Inset):
-    """
-    <dl>
-    <dt>'Text["$text$", {$x$, $y$}]'
-        <dd>draws $text$ centered on position '{$x$, $y$}'.
-    </dl>
-
-    >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
-     = -Graphics-
-
-    #> Graphics[{Text[x, {0,0}]}]
-     = -Graphics-
-    """
-
-    summary_text = "arbitrary text or other expressions in 2D or 3D"
 
 
 class _Polyline(_GraphicsElementBox):
@@ -653,7 +447,32 @@ class Point(Builtin):
 
     """
 
-    summary_text = "a point or list of points in 2D or 3D"
+    summary_text = "point or list of points graphics object(s) in 2D or 3D"
+
+
+class PointSize(_Size):
+    """
+    <dl>
+      <dt>'PointSize[$t$]'
+      <dd>sets the diameter of points to $t$, which is relative to the overall width.
+    </dl>
+    'PointSize' can be used for both two- and three-dimensional graphics. The initial default pointsize is 0.008 for two-dimensional graphics and 0.01 for three-dimensional graphics.
+
+    >> Table[Graphics[{PointSize[r], Point[{0, 0}]}], {r, {0.02, 0.05, 0.1, 0.3}}]
+     = {-Graphics-, -Graphics-, -Graphics-, -Graphics-}
+
+    >> Table[Graphics3D[{PointSize[r], Point[{0, 0, 0}]}], {r, {0.05, 0.1, 0.8}}]
+    = {-Graphics3D-, -Graphics3D-, -Graphics3D-}
+    """
+
+    summary_text = "graphics directive specifying relative sizes of points"
+
+    def get_absolute_size(self):
+        if self.graphics.view_width is None:
+            self.graphics.view_width = 400
+        if self.value is None:
+            self.value = DEFAULT_POINT_FACTOR
+        return self.graphics.view_width * self.value
 
 
 # FIXME: We model points as line segments which
@@ -661,10 +480,11 @@ class Point(Builtin):
 class Line(Builtin):
     """
     <dl>
-    <dt>'Line[{$point_1$, $point_2$ ...}]'
-        <dd>represents the line primitive.
-    <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
-        <dd>represents a number of line primitives.
+      <dt>'Line[{$point_1$, $point_2$ ...}]'
+      <dd>represents the line primitive.
+
+      <dt>'Line[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dd>represents a number of line primitives.
     </dl>
 
     >> Graphics[Line[{{0,1},{0,0},{1,0},{1,1}}]]
@@ -674,7 +494,7 @@ class Line(Builtin):
     = -Graphics3D-
     """
 
-    summary_text = "a line joining a sequence of points in 2D or 3D"
+    summary_text = "line graphics object joining a sequence of points in 2D or 3D"
 
 
 def _svg_bezier(*segments):
@@ -815,18 +635,20 @@ class Arrow(Builtin):
 class Arrowheads(_GraphicsDirective):
     """
     <dl>
-    <dt>'Arrowheads[$s$]'
-        <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
-    <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
-        <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, ... $specn$.
-    <dt>'Arrowheads[{{$s$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn.
-    <dt>'Arrowheads[{{$s$, $pos$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for the arrow to
-        be on the line, $pos$ has to be between 0, i.e. the start for the line, and 1, i.e. the end
-        of the line).
-    <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
-        <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ using Graphics $g$.
+      <dt>'Arrowheads[$s$]'
+      <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
+
+      <dt>'Arrowheads[{$spec1$, $spec2$, ..., $specn$}]'
+      <dd>specifies that Arrow[] draws n arrows as defined by $spec1$, $spec2$, ... $specn$.
+
+      <dt>'Arrowheads[{{$s$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn.
+
+      <dt>'Arrowheads[{{$s$, $pos$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ (for the arrow to be on the line, $pos$ has to be between 0, i.e. the start for the line, and 1, i.e. the end of the line).
+
+      <dt>'Arrowheads[{{$s$, $pos$, $g$}}]'
+      <dd>specifies that one arrow of size $s$ should be drawn at position $pos$ using Graphics $g$.
     </dl>
 
     Arrows on both ends can be achieved using negative sizes:
@@ -845,13 +667,16 @@ class Arrowheads(_GraphicsDirective):
 
     default_size = 0.04
 
+    summary_text = (
+        "graphics directive specifying the form and placement of an arrowhead"
+    )
+
     symbolic_sizes = {
         "System`Tiny": 3,
         "System`Small": 5,
         "System`Medium": 9,
         "System`Large": 18,
     }
-    summary_text = "form and placement of arrowheads"
 
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
@@ -1061,33 +886,6 @@ def total_extent(extents):
             if ymax is None or y > ymax:
                 ymax = y
     return xmin, xmax, ymin, ymax
-
-
-class EdgeForm(Builtin):
-    """
-    <dl>
-    <dt> 'EdgeForm[$g$]'
-    <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
-    </dl>
-    >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
-     = -Graphics-
-
-    >> Graphics[{Style[Disk[],EdgeForm[{Thick,Red}]], Circle[{1,1}]}]
-     = -Graphics-
-    """
-
-    summary_text = "rendering properties for edges"
-
-
-class FaceForm(Builtin):
-    """
-    <dl>
-    <dt> 'FaceForm[$g$]'
-    <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
-    </dl>
-    """
-
-    summary_text = "rendering properties for faces"
 
 
 def _style(graphics, item):
@@ -1360,6 +1158,72 @@ class GraphicsElements(_GraphicsElements):
         self.pixel_width, self.pixel_height = pixel_width, pixel_height
 
 
+class Circle(Builtin):
+    """
+    <dl>
+      <dt>'Circle[{$cx$, $cy$}, $r$]'
+      <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
+
+      <dt>'Circle[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dd>draws an ellipse.
+
+      <dt>'Circle[{$cx$, $cy$}]'
+      <dd>chooses radius 1.
+
+      <dt>'Circle[]'
+      <dd>chooses center '(0, 0)' and radius 1.
+    </dl>
+
+    >> Graphics[{Red, Circle[{0, 0}, {2, 1}]}]
+     = -Graphics-
+    >> Graphics[{Circle[], Disk[{0, 0}, {1, 1}, {0, 2.1}]}]
+     = -Graphics-
+
+    Target practice:
+    >> Graphics[Circle[], Axes-> True]
+     = -Graphics-
+    """
+
+    rules = {"Circle[]": "Circle[{0, 0}]"}
+    summary_text = "empty circle, ellipse, or arc graphics primitive"
+
+
+class Disk(Builtin):
+    """
+    <dl>
+      <dt>'Disk[{$cx$, $cy$}, $r$]'
+      <dd>fills a circle with center '($cx$, $cy$)' and radius $r$.
+
+      <dt>'Disk[{$cx$, $cy$}, {$rx$, $ry$}]'
+      <dd>fills an ellipse.
+
+      <dt>'Disk[{$cx$, $cy$}]'
+      <dd>chooses radius 1.
+
+      <dt>'Disk[]'
+      <dd>chooses center '(0, 0)' and radius 1.
+
+      <dt>'Disk[{$x$, $y$}, ..., {$t1$, $t2$}]'
+      <dd>is a sector from angle $t1$ to $t2$.
+    </dl>
+
+    >> Graphics[{Blue, Disk[{0, 0}, {2, 1}]}]
+     = -Graphics-
+    The outer border can be drawn using 'EdgeForm':
+    >> Graphics[{EdgeForm[Black], Red, Disk[]}]
+     = -Graphics-
+
+    Disk can also draw sectors of circles and ellipses
+    >> Graphics[Disk[{0, 0}, 1, {Pi / 3, 2 Pi / 3}]]
+     = -Graphics-
+    >> Graphics[{Blue, Disk[{0, 0}, {1, 2}, {Pi / 3, 5 Pi / 3}]}]
+     = -Graphics-
+    """
+
+    rules = {"Disk[]": "Disk[{0, 0}]"}
+    summary_text = "create a filled circle, ellipse or arc graphics object"
+
+
 class Directive(Builtin):
     """
     <dl>
@@ -1372,48 +1236,194 @@ class Directive(Builtin):
     summary_text = "compound directive"
 
 
-class Tiny(Builtin):
+class EdgeForm(Builtin):
     """
     <dl>
-    <dt>'ImageSize' -> 'Tiny'
-        <dd>produces a tiny image.
+      <dt> 'EdgeForm[$g$]'
+      <dd> is a graphics directive that specifies that edges of filled graphics objects are to be drawn using the graphics directive or list of directives $g$.
+    </dl>
+    >> Graphics[{EdgeForm[{Thick, Green}], Disk[]}]
+     = -Graphics-
+
+    >> Graphics[{Style[Disk[],EdgeForm[{Thick,Red}]], Circle[{1,1}]}]
+     = -Graphics-
+    """
+
+    summary_text = "rendering properties for edges"
+
+
+class FaceForm(Builtin):
+    """
+    <dl>
+      <dt> 'FaceForm[$g$]'
+      <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $ g$.
     </dl>
     """
 
-    summary_text = "tiny size"
+    summary_text = "rendering properties for faces"
 
 
-class Small(Builtin):
+class FontColor(Builtin):
     """
     <dl>
-    <dt>'ImageSize' -> 'Small'
-        <dd>produces a small image.
+      <dt>'FontColor'
+      <dd>is an option for Style to set the font color.
     </dl>
     """
 
-    summary_text = "small size"
+    summary_text = "color of characters"
 
 
-class Medium(Builtin):
+class Inset(Builtin):
     """
     <dl>
-    <dt>'ImageSize' -> 'Medium'
-        <dd>produces a medium-sized image.
+      <dt>'Text[$obj$]'
+      <dd>represents an object $obj$ inset in a graphic.
+
+      <dt>'Text[$obj$, $pos$]'
+      <dd>represents an object $obj$ inset in a graphic at position $pos$.
+
+      <dt>'Text[$obj$, $pos$, $$]'
+      <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in             the enclosing graphic.
     </dl>
+
     """
 
-    summary_text = "medium size"
+    summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"
 
 
 class Large(Builtin):
     """
     <dl>
-    <dt>'ImageSize' -> 'Large'
-        <dd>produces a large image.
+      <dt>'ImageSize' -> 'Large'
+      <dd>produces a large image.
     </dl>
     """
 
-    summary_text = "large size"
+    summary_text = "large size style or option setting"
+
+
+class Medium(Builtin):
+    """
+    <dl>
+      <dt>'ImageSize' -> 'Medium'
+      <dd>produces a medium-sized image.
+    </dl>
+    """
+
+    summary_text = "medium size style or option setting"
+
+
+class Offset(Builtin):
+    """
+    <dl>
+    <dt>'Offset[{$dx$, $dy$}, $position$]'
+    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+    </dl>
+    """
+
+    summary_text = "offset a graphics object by a specified position"
+
+
+class Rectangle(Builtin):
+    """
+    <dl>
+      <dt>'Rectangle[{$xmin$, $ymin$}]'
+      <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
+
+      <dt>'Rectangle[{$xmin$, $ymin$}, {$xmax$, $ymax$}]
+      <dd>is a rectange extending from {$xmin$, $ymin$} to {$xmax$, $ymax$}.
+    </dl>
+
+    >> Graphics[Rectangle[]]
+     = -Graphics-
+
+    >> Graphics[{Blue, Rectangle[{0.5, 0}], Orange, Rectangle[{0, 0.5}]}]
+     = -Graphics-
+    """
+
+    rules = {"Rectangle[]": "Rectangle[{0, 0}]"}
+    summary_text = "create a 2D filled rectangle graphical object"
+
+
+class Small(Builtin):
+    """
+    <dl>
+      <dt>'ImageSize' -> 'Small'
+      <dd>produces a small image.
+    </dl>
+    """
+
+    summary_text = "small size style or option setting"
+
+
+class Text(Inset):
+    """
+    <dl>
+    <dt>'Text["$text$", {$x$, $y$}]'
+        <dd>draws $text$ centered on position '{$x$, $y$}'.
+    </dl>
+
+    >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
+     = -Graphics-
+
+    #> Graphics[{Text[x, {0,0}]}]
+     = -Graphics-
+    """
+
+    summary_text = "arbitrary text or other expressions in 2D or 3D"
+
+
+class Thick(Builtin):
+    """
+    <dl>
+      <dt>'Thick'
+      <dd>sets the line width for subsequent graphics primitives to 2pt.
+    </dl>
+    """
+
+    rules = {"Thick": "AbsoluteThickness[2]"}
+    summary_text = "graphics directive to make thicker lines"
+
+
+class Thin(Builtin):
+    """
+    <dl>
+    <dt>'Thin'
+        <dd>sets the line width for subsequent graphics primitives to 0.5pt.
+    </dl>
+    """
+
+    rules = {"Thin": "AbsoluteThickness[0.5]"}
+    summary_text = "graphics directive to make thinner lines"
+
+
+class Thickness(_Thickness):
+    """
+    <dl>
+      <dt>'Thickness[$t$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $t$ times the size of the plot area.
+    </dl>
+
+    >> Graphics[{Thickness[0.2], Line[{{0, 0}, {0, 5}}]}, Axes->True, PlotRange->{{-5, 5}, {-5, 5}}]
+     = -Graphics-
+    """
+
+    summary_text = "graphics directive to specify line thicknesses"
+
+    def get_thickness(self):
+        return self.graphics.translate_relative(self.value)
+
+
+class Tiny(Builtin):
+    """
+    <dl>
+      <dt>'ImageSize' -> 'Tiny'
+      <dd>produces a tiny image.
+    </dl>
+    """
+
+    summary_text = "tiny size style or option setting"
 
 
 element_heads = frozenset(
