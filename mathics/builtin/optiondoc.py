@@ -20,8 +20,8 @@ from mathics.builtin.base import Builtin
 class Automatic(Builtin):
     """
     <dl>
-    <dt>'Automatic'
-        <dd>is used to specify an automatically computed option value.
+      <dt>'Automatic'
+      <dd>is used to specify an automatically computed option value.
     </dl>
 
     'Automatic' is the default for 'PlotRange', 'ImageSize', and other
@@ -31,7 +31,7 @@ class Automatic(Builtin):
      = {Background :> Automatic, Exclusions :> Automatic, ImageSize :> Automatic, MaxRecursion :> Automatic, PlotRange :> Automatic, PlotRangePadding :> Automatic}
     """
 
-    summary_text = "choose the value automatically"
+    summary_text = "graph option value to choose parameters automatically"
 
 
 class Axes(Builtin):
@@ -51,7 +51,7 @@ class Axes(Builtin):
      = -Graphics-
     """
 
-    summary_text = "show the axes or not"
+    summary_text = "graph option which determines whether axes are shown"
 
 
 class Axis(Builtin):
@@ -65,7 +65,7 @@ class Axis(Builtin):
      = -Graphics-
     """
 
-    summary_text = "option to fill plot from curve to the axis"
+    summary_text = "graph option value to fill plot from curve to the axis"
 
 
 class Bottom(Builtin):
@@ -79,7 +79,7 @@ class Bottom(Builtin):
      = -Graphics-
     """
 
-    summary_text = "option to fill plot from curve to bottom"
+    summary_text = "graph option value to fill plot from curve to bottom"
 
 
 class ChartLabels(Builtin):
@@ -93,18 +93,18 @@ class ChartLabels(Builtin):
      = -Graphics-
     """
 
-    summary_text = "labels for a chart"
+    summary_text = "charting option specifying whether to label chart"
 
 
 class ChartLegends(Builtin):
     """
     <dl>
       <dt>'ChartLegends'
-      <dd>is a charting option.
+      <dd>is an option for charting functions that specifies the legends to be used for chart elements.
     </dl>
     """
 
-    summary_text = "legends for the chart"
+    summary_text = "chart option giving legends to a chart"
 
 
 class Filling(Builtin):
@@ -118,7 +118,7 @@ class Filling(Builtin):
      = -Graphics-
     """
 
-    summary_text = "Plot filling option"
+    summary_text = "Plot option for filling regions around its curve"
 
 
 class Full(Builtin):
@@ -129,7 +129,7 @@ class Full(Builtin):
     </dl>
     """
 
-    summary_text = "the full range"
+    summary_text = "graph option value for Mesh and PlotRange"
 
 
 class ImageSize(Builtin):
@@ -152,7 +152,7 @@ class ImageSize(Builtin):
      = -Graphics-
     """
 
-    summary_text = "size of the final picture"
+    summary_text = "image option specifying the size of the final picture"
 
 
 class Joined(Builtin):
@@ -166,7 +166,9 @@ class Joined(Builtin):
      = -Graphics-
     """
 
-    summary_text = "whether the data points are joint to make likes"
+    summary_text = (
+        "plot option indicating whether the data points are joined to make lines"
+    )
 
 
 class MaxRecursion(Builtin):
@@ -182,7 +184,7 @@ class MaxRecursion(Builtin):
      =  0.00972222
     """
 
-    summary_text = "maximum number of recursive subdivisions"
+    summary_text = "function option specifying the maximum number of recursive subdivisions the function can perform"
 
 
 class Mesh(Builtin):
@@ -208,7 +210,7 @@ class Mesh(Builtin):
     messages = {
         "ilevels": "`1` is not a valid mesh specification.",
     }
-    summary_text = "whether / how the mesh is shown"
+    summary_text = "charting option to indicate whether a mesh is shown"
 
 
 class PlotPoints(Builtin):
@@ -222,7 +224,7 @@ class PlotPoints(Builtin):
      = -Graphics-
     """
 
-    summary_text = "initial size for the set of sample points"
+    summary_text = "plot option given the initial size for the set of sample points"
 
 
 class PlotRange(Builtin):
@@ -246,7 +248,7 @@ class PlotRange(Builtin):
      = -Graphics-
     """
 
-    summary_text = "range to be plotted"
+    summary_text = "plot option giving the range to be plotted"
 
 
 class TicksStyle(Builtin):
@@ -266,7 +268,7 @@ class TicksStyle(Builtin):
      = -Graphics-
     """
 
-    summary_text = "format for ticks in a graphic"
+    summary_text = "graph option specifying the format of tick marks on axes"
 
 
 class Top(Builtin):
@@ -280,4 +282,4 @@ class Top(Builtin):
       = -Graphics-
     """
 
-    summary_text = "option to fill plot from curve to top"
+    summary_text = "graph option value to fill plot from curve to top"

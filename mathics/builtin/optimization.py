@@ -43,7 +43,7 @@ class Minimize(Builtin):
     """
 
     attributes = protected | read_protected
-    summary_text = "minimize a function"
+    summary_text = "compute the minimum of a function"
 
     def apply_onevariable(self, f, x, evaluation):
         "Minimize[f_?NotListQ, x_?NotListQ]"
@@ -351,8 +351,8 @@ class Minimize(Builtin):
 class Maximize(Builtin):
     """
     <dl>
-    <dt>'Maximize[$f$, $x$]'
-        <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
+      <dt>'Maximize[$f$, $x$]'
+      <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
     </dl>
 
     >> Maximize[-2 x^2 - 3 x + 5, x]
@@ -366,7 +366,7 @@ class Maximize(Builtin):
     """
 
     attributes = protected | read_protected
-    summary_text = "maximize a function"
+    summary_text = "compute the maximum of a function"
 
     def apply(self, f, vars, evaluation):
         "Maximize[f_?NotListQ, vars_]"
