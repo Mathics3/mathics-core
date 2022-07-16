@@ -1347,12 +1347,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         n_evaluation = kwargs.get("n_evaluation")
         head = self._head
+        if head is SymbolFunction:
+
+            from mathics.core.convert.function import expression_to_callable_and_args
+
+            vars, expr_fn = self.elements
+            return expression_to_callable_and_args(expr_fn, vars, n_evaluation)
+
         if n_evaluation is not None:
-            if head is SymbolFunction:
-                compiled = Expression(SymbolCompile, *(self._elements))
-                compiled = compiled.evaluate(n_evaluation)
-                if compiled.get_head() is SymbolCompiledFunction:
-                    return compiled.leaves[2].cfunc
             value = Expression(SymbolN, self).evaluate(n_evaluation)
             return value.to_python()
 

@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 from mathics.builtin import check_requires_list
+from mathics.core.convert.function import expression_to_callable_and_args
 
 from mathics.core.atoms import Number, Real
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import eval_N
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
-from mathics.core.utils import IS_PYPY
+from mathics.core.util import IS_PYPY
 
-SymbolCompile = Symbol("Compile")
 
 if IS_PYPY or not check_requires_list(["scipy", "numpy"]):
     raise ImportError
@@ -74,8 +72,8 @@ def compile_fn(f, x, opts, evaluation):
     """produces a compiled version of f, which is callable from Python"""
     if opts["_isfindmaximum"]:
         f = -f
-    comp_func = Expression(SymbolCompile, ListExpression(x), f).evaluate(evaluation)
-    return comp_func._elements[2].cfunc
+    cf, args = expression_to_callable_and_args(f, [x], evaluation)
+    return cf
 
 
 def process_result_1d_opt(result, opts, evaluation):
@@ -170,7 +168,7 @@ def find_root1d_brenth(
         b = 1 if b == 0 else b
         a = -b
 
-    if not isinstance(comp_fun(a), Number):
+    if not isinstance(comp_fun(a), float):
         evaluation.message("FindRoot", "nnum", x, x0)
         return SymbolFailed, False
 
