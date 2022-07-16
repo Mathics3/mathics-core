@@ -65,7 +65,7 @@ class Axis(Builtin):
      = -Graphics-
     """
 
-    summary_text = "fill to the axis"
+    summary_text = "option to fill plot from curve to the axis"
 
 
 class Bottom(Builtin):
@@ -79,7 +79,7 @@ class Bottom(Builtin):
      = -Graphics-
     """
 
-    summary_text = "align / fill at bottom"
+    summary_text = "option to fill plot from curve to bottom"
 
 
 class ChartLabels(Builtin):
@@ -110,15 +110,15 @@ class ChartLegends(Builtin):
 class Filling(Builtin):
     """
     <dl>
-      <dt>'Filling Top |Bottom|Axis'
-      <dd>is a an option to Plot to specify what filling to add under point, curves, and surfaces
+      <dt>'Filling -> [Top | Bottom| Axis]'
+      <dd>'Filling' is a an option to 'ListPlot', 'Plot' or 'Plot3D', and related functions that indicates what filling to add under point, curves, and surfaces.
     </dl>
 
     >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis]
      = -Graphics-
     """
 
-    summary_text = "whether / what kind of filling"
+    summary_text = "Plot filling option"
 
 
 class Full(Builtin):
@@ -271,13 +271,13 @@ class TicksStyle(Builtin):
 
 class Top(Builtin):
     """
-    <dl>
-    <dt>'Top'
-        <dd>is a possible value for the 'Filling' option.
-    </dl>
+     <dl>
+       <dt>'Top'
+       <dd>is a possible value for the 'Filling' option.
+     </dl>
 
-    >> ListLinePlot[Table[Sin[x], {x, -5, 5, 0.2}], Filling->Axis|Top|Bottom]
-     = -Graphics-
+    >> ListLinePlot[Table[Cos[x], {x, -5, 5, 0.2}], Filling->Top]
+      = -Graphics-
     """
 
-    summary_text = "align /fill at top"
+    summary_text = "option to fill plot from curve to top"
