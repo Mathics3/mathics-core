@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Special Functions
 
@@ -10,3 +12,7 @@ A number of special functions can be evaluated for arbitrary complex values of t
 For example, integral representations of functions are only valid when the integral exists, but the functions can usually be defined b by analytic continuation.
 
 """
+
+# This tells documentation how to sort this module
+# Here we are also hiding "specialfns" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.special-functions"

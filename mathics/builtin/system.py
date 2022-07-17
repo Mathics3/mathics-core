@@ -4,6 +4,8 @@
 Global System Information
 """
 
+sort_order = "mathics.builtin.global-system-information"
+
 import gc
 import os
 import platform

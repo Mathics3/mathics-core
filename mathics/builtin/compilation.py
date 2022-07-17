@@ -6,6 +6,8 @@ Code compilation allows Mathics functions to be run faster.
 When LLVM and Python libraries are available, compilation produces LLVM code.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.code-compilation"
 
 import ctypes
 from types import FunctionType

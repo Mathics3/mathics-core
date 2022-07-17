@@ -4,6 +4,10 @@
 Solving Recurrence Equations
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "moments" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.solving-recurrence-equations"
+
 
 import sympy
 

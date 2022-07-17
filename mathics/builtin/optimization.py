@@ -8,6 +8,8 @@ Optimization problems of sorts arise in all quantitative disciplines from comput
 We intend to provide local and global optimization techniques, both numeric and symbolic.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-optimization"
 
 import sympy
 
