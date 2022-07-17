@@ -163,6 +163,7 @@ setup(
         "mathics",
         "mathics.algorithm",
         "mathics.core",
+        "mathics.core.convert",
         "mathics.core.parser",
         "mathics.builtin",
         "mathics.builtin.arithfns",
