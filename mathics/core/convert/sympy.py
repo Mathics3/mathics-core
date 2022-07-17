@@ -7,6 +7,7 @@ Conversion to SymPy is handled directly in BaseElement descendants.
 
 import sympy
 
+from typing import Optional
 
 BasicSympy = sympy.Expr
 
@@ -35,13 +36,14 @@ from mathics.core.systemsymbols import (
     SymbolO,
     SymbolPiecewise,
     SymbolSlot,
+    SymbolUnequal,
 )
 
+from mathics.core.convert.matrix import matrix_data
 
 SymbolPrime = Symbol("Prime")
 SymbolRoot = Symbol("Root")
 SymbolRootSum = Symbol("RootSum")
-SymbolUnequal = Symbol("Unequal")
 
 
 def is_Cn_expr(name) -> bool:
@@ -53,6 +55,18 @@ def is_Cn_expr(name) -> bool:
     if n and n.isdigit():
         return True
     return False
+
+
+def to_sympy_matrix(data, **kwargs) -> Optional[sympy.MutableDenseMatrix]:
+    """Convert a Mathics matrix to one that can be used by Sympy.
+    None is returned if we can't convert to a Sympy matrix.
+    """
+    if not isinstance(data, list):
+        data = matrix_data(data)
+    try:
+        return sympy.Matrix(data)
+    except (TypeError, AssertionError, ValueError):
+        return None
 
 
 class SympyExpression(BasicSympy):

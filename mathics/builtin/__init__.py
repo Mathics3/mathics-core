@@ -174,12 +174,13 @@ disable_file_module_names = (
 
 for subdir in (
     "arithfns",
-    "atomic",
     "assignments",
+    "atomic",
     "box",
     "colors",
     "distance",
     "drawing",
+    "fileformats",
     "files_io",
     "intfns",
     "list",
@@ -188,7 +189,7 @@ for subdir in (
     "numbers",
     "specialfns",
     "string",
-    "fileformats",
+    "vectors",
 ):
     import_name = f"{__name__}.{subdir}"
 
