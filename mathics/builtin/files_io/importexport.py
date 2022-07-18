@@ -4,10 +4,6 @@
 Importing and Exporting
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "file_io" since this can erroneously appear at the top level.
-sort_order = "mathics.builtin.importing-and-exporting"
-
 import mimetypes
 import os
 import sys

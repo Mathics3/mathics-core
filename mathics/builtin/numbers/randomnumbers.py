@@ -347,20 +347,16 @@ class RandomInteger(Builtin):
 class RandomReal(Builtin):
     """
     <dl>
-      <dt>'RandomReal[{$min$, $max$}]'
-      <dd>yields a pseudorandom real number in the range from $min$ to $max$.
-
-      <dt>'RandomReal[$max$]'
-      <dd>yields a pseudorandom real number in the range from 0 to $max$.
-
-      <dt>'RandomReal[]'
-      <dd>yields a pseudorandom real number in the range from 0 to 1.
-
-      <dt>'RandomReal[$range$, $n$]'
-      <dd>gives a list of $n$ pseudorandom real numbers.
-
-      <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
-      <dd>gives an $n1$ x $n2$ array of pseudorandom real numbers.
+    <dt>'RandomReal[{$min$, $max$}]'
+        <dd>yields a pseudorandom real number in the range from $min$ to $max$.
+    <dt>'RandomReal[$max$]'
+        <dd>yields a pseudorandom real number in the range from 0 to $max$.
+    <dt>'RandomReal[]'
+        <dd>yields a pseudorandom real number in the range from 0 to 1.
+    <dt>'RandomReal[$range$, $n$]'
+        <dd>gives a list of $n$ pseudorandom real numbers.
+    <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
+        <dd>gives a nested list of pseudorandom real numbers.
     </dl>
 
     >> RandomReal[]

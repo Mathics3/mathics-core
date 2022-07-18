@@ -4,9 +4,6 @@
 Basic statistics
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "moments" since this erroneously appears at the top level.
-sort_order = "mathics.builtin.basic-statistics"
 
 from mathics.algorithm.introselect import introselect
 

@@ -4,9 +4,6 @@
 Special Moments
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "moements" since this can erroneously appear at the top level.
-sort_order = "mathics.builtin.special-moments"
 
 from mathics.builtin.base import Builtin
 

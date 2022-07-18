@@ -36,8 +36,6 @@ Options using 'OptionsPattern' and 'OptionValue':
 The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 """
 
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.rules-and-patterns"
 
 from mathics.algorithm.parts import python_levelspec
 

@@ -9,8 +9,5 @@ In Mathics vectors as are Lists.  one never needs to distinguish between row and
 
 Vectors can be long, dense, or sparse.
 
-Here are the grouping we have for Vector Operations:
+Here you find functions on Vectors.
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.operations-on-vectors"

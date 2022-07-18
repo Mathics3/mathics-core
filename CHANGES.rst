@@ -32,7 +32,6 @@ New Builtins
 * ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
-* ``Projection`` function.
 * ``LogGamma`` function.
 * ``NumericFunction``
 * Partial support for Graphics option ``Opacity``.

@@ -5,10 +5,6 @@ Plotting Data
 Plotting functions take a function as a parameter and data, often a range of points, as another parameter, and plot or show the function applied to the data.
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "drawing" since this erroneously appears at the top level.
-sort_order = "mathics.builtin.plotting-data"
-
 
 from math import sin, cos, pi, sqrt, isnan, isinf
 import itertools

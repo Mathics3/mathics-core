@@ -651,7 +651,7 @@ class Documentation:
 
     def get_tests(self):
         for part in self.parts:
-            for chapter in sorted_chapters(part.chapters):
+            for chapter in part.chapters:
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -730,20 +730,6 @@ class Documentation:
         return result
 
 
-def skip_module_doc(module, modules_seen):
-    return (
-        module.__doc__ is None
-        or module in modules_seen
-        or hasattr(module, "no_doc")
-        and module.no_doc
-    )
-
-
-def sorted_chapters(chapters: list) -> list:
-    "Return chapters sorted by title"
-    return sorted(chapters, key=lambda chapter: chapter.title)
-
-
 class MathicsMainDocumentation(Documentation):
     def __init__(self):
         self.doc_dir = settings.DOC_DIR
@@ -811,13 +797,15 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DocPart(self, title, is_reference=start)
             modules_seen = set()
-            for module in sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            ):
-                if skip_module_doc(module, modules_seen):
+            for module in modules:
+                # FIXME add an additional mechanism in the module
+                # to allow a docstring and indicate it is not to go in the
+                # user manual
+                # Note: this code assumes that all chapters with sections/doctests in them
+                # are documented (as it should be)!
+                if module.__doc__ is None:
+                    continue
+                if module in modules_seen:
                     continue
                 title, text = get_module_doc(module)
                 chapter = DocChapter(builtin_part, title, XMLDoc(text, title, None))
@@ -1149,7 +1137,7 @@ class DocPart:
     def __str__(self):
         return "%s\n\n%s" % (
             self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
+            "\n".join(str(chapter) for chapter in self.chapters),
         )
 
     def latex(
