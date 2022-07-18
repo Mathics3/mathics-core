@@ -58,10 +58,11 @@ class Cross(Builtin):
 class Norm(Builtin):
     """
     <dl>
-    <dt>'Norm[$m$, $l$]'
-        <dd>computes the l-norm of matrix m (currently only works for vectors!).
-    <dt>'Norm[$m$]'
-        <dd>computes the 2-norm of matrix m (currently only works for vectors!).
+      <dt>'Norm[$m$, $l$]'
+      <dd>computes the l-norm of matrix m (currently only works for vectors!).
+
+      <dt>'Norm[$m$]'
+      <dd>computes the 2-norm of matrix m (currently only works for vectors!).
     </dl>
 
     >> Norm[{1, 2, 3, 4}, 2]

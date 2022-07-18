@@ -412,8 +412,8 @@ class Im(SympyFunction):
 class Conjugate(_MPMathFunction):
     """
     <dl>
-    <dt>'Conjugate[$z$]'
-        <dd>returns the complex conjugate of the complex number $z$.
+      <dt>'Conjugate[$z$]'
+      <dd>returns the complex conjugate of the complex number $z$.
     </dl>
 
     >> Conjugate[3 + 4 I]
