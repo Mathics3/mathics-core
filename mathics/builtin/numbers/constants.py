@@ -6,6 +6,10 @@ Mathematical Constants
 Numeric, Arithmetic, or Symbolic constants like Pi, E, or Infinity.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-constants"
+
+
 import math
 import mpmath
 import numpy

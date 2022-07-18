@@ -7,6 +7,9 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.mathematical-functions"
+
 
 import sympy
 import mpmath

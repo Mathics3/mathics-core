@@ -4,6 +4,8 @@
 Constructing Lists
 
 Functions for constructing lists of various sizes and structure.
+
+See also Constructing Vectors.
 """
 
 from itertools import permutations

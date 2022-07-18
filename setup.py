@@ -187,6 +187,7 @@ setup(
         "mathics.builtin.scipy_utils",
         "mathics.builtin.specialfns",
         "mathics.builtin.string",
+        "mathics.builtin.vectors",
         "mathics.doc",
         "mathics.format",
     ],

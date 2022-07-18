@@ -20,6 +20,8 @@ If you assign a function to the global variable '$PreRead' it will be applied wi
 Similarly, if you assign a function to global variable '$Pre', it will be applied with the input before processing the input, the second step listed above.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.the-main-loop"
 
 from mathics.builtin.base import Builtin
 
