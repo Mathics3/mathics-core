@@ -5,6 +5,9 @@
 Functions for working with 3D graphics.
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.three-dimensional-graphics"
 
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression

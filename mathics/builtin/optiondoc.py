@@ -7,6 +7,9 @@ The various common Plot and Graphics options, along with the meaning of specific
 
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.drawing-options-and-option-values"
+
 # Until we have a better documentation system in place, we define classes for
 # options. They are Builtins, even though they largely aren't.
 #

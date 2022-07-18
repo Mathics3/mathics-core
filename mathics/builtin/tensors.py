@@ -209,9 +209,9 @@ class Dimensions(Builtin):
 class Dot(BinaryOperator):
     """
     <dl>
-    <dt>'Dot[$x$, $y$]'
-    <dt>'$x$ . $y$'
-        <dd>computes the vector dot product or matrix product $x$ . $y$.
+      <dt>'Dot[$x$, $y$]'
+      <dt>'$x$ . $y$'
+      <dd>computes the vector dot product or matrix product $x$ . $y$.
     </dl>
 
     Scalar product of vectors:
@@ -527,6 +527,8 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
+# Should be in Elements of Vectors, but we don't have this since other operations
+# are subsumed by Elements of Lists.
 class VectorQ(Builtin):
     """
     <dl>

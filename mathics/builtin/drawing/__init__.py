@@ -9,3 +9,6 @@ Showing something visually can be don in a number of ways:
   <li>Compute the points of the space using a function. This is done using functions like 'Plot' and 'ListPlot'.
 </ul>
 """
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.graphing-drawing-and-images"

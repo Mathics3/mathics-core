@@ -6,6 +6,9 @@ Uniform Polyhedra
 Uniform polyhedra is the grouping of platonic solids, Archimedean solids, and regular star polyhedra.
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this can erroneously appear at the top level.
+sort_order = "mathics.builtin.uniform-polyhedra"
 
 from mathics.builtin.base import Builtin
 
