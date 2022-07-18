@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Image[] and image related functions
+Image[] and image-related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
+
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.image-and-image-related-functions"
 
 from collections import defaultdict
 import base64
