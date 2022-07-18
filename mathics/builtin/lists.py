@@ -1231,49 +1231,6 @@ def get_tuples(items):
                 yield [item] + rest
 
 
-class UnitVector(Builtin):
-    """
-    <dl>
-    <dt>'UnitVector[$n$, $k$]'
-        <dd>returns the $n$-dimensional unit vector with a 1 in position $k$.
-    <dt>'UnitVector[$k$]'
-        <dd>is equivalent to 'UnitVector[2, $k$]'.
-    </dl>
-    >> UnitVector[2]
-     = {0, 1}
-    >> UnitVector[4, 3]
-     = {0, 0, 1, 0}
-    """
-
-    messages = {
-        "nokun": "There is no unit vector in direction `1` in `2` dimensions.",
-    }
-
-    rules = {
-        "UnitVector[k_Integer]": "UnitVector[2, k]",
-    }
-    summary_text = "unit vector along a coordinate direction"
-
-    def apply(self, n: Integer, k: Integer, evaluation):
-        "UnitVector[n_Integer, k_Integer]"
-
-        py_n = n.value
-        py_k = k.value
-        if py_n is None or py_k is None:
-            return
-        if not 1 <= py_k <= py_n:
-            evaluation.message("UnitVector", "nokun", k, n)
-            return
-
-        def item(i):
-            if i == py_k:
-                return Integer1
-            else:
-                return Integer0
-
-        return ListExpression(*(item(i) for i in range(1, py_n + 1)))
-
-
 class IntersectingQ(Builtin):
     """
     <dl>

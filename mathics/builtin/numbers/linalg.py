@@ -4,17 +4,18 @@
 Linear algebra
 """
 
+import mpmath
 import sympy
 from sympy import re, im
-from mpmath import mp
 
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0, Real
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.matrix import matrix_data
+from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
+from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -22,99 +23,11 @@ from mathics.core.symbols import (
 )
 
 
-def matrix_data(m):
-    if not m.has_form("List", None):
-        return None
-    if all(element.has_form("List", None) for element in m.elements):
-        result = [[item.to_sympy() for item in row.elements] for row in m.elements]
-        if not any(None in row for row in result):
-            return result
-    elif not any(element.has_form("List", None) for element in m.elements):
-        result = [item.to_sympy() for item in m.elements]
-        if None not in result:
-            return result
-
-
-def to_sympy_matrix(data, **kwargs):
-    """Convert a Mathics matrix to one that can be used by Sympy.
-    None is returned if we can't convert to a Sympy matrix.
-    """
-    if not isinstance(data, list):
-        data = matrix_data(data)
-    try:
-        return sympy.Matrix(data)
-    except (TypeError, AssertionError, ValueError):
-        return None
-
-
-def to_mpmath_matrix(data, **kwargs):
-    """Convert a Mathics matrix to one that can be used by mpmath.
-    None is returned if we can't convert to a mpmath matrix.
-    """
-
-    def mpmath_matrix_data(m):
-        if not m.has_form("List", None):
-            return None
-        if not all(element.has_form("List", None) for element in m.elements):
-            return None
-        return [[str(item) for item in row.elements] for row in m.elements]
-
-    if not isinstance(data, list):
-        data = mpmath_matrix_data(data)
-    try:
-        return mp.matrix(data)
-    except (TypeError, AssertionError, ValueError):
-        return None
-
-
-class Cross(Builtin):
-    """
-    <dl>
-    <dt>'Cross[$a$, $b$]'
-        <dd>computes the vector cross product of $a$ and $b$.
-    </dl>
-
-    >> Cross[{x1, y1, z1}, {x2, y2, z2}]
-     = {y1 z2 - y2 z1, -x1 z2 + x2 z1, x1 y2 - x2 y1}
-
-    >> Cross[{x, y}]
-     = {-y, x}
-
-    >> Cross[{1, 2}, {3, 4, 5}]
-     : The arguments are expected to be vectors of equal length, and the number of arguments is expected to be 1 less than their length.
-     = Cross[{1, 2}, {3, 4, 5}]
-    """
-
-    messages = {
-        "nonn1": (
-            "The arguments are expected to be vectors of equal length, "
-            "and the number of arguments is expected to be 1 less than "
-            "their length."
-        )
-    }
-    rules = {"Cross[{x_, y_}]": "{-y, x}"}
-    summary_text = "vector cross product"
-
-    def apply(self, a, b, evaluation):
-        "Cross[a_, b_]"
-        a = to_sympy_matrix(a)
-        b = to_sympy_matrix(b)
-
-        if a is None or b is None:
-            return evaluation.message("Cross", "nonn1")
-
-        try:
-            res = a.cross(b)
-        except sympy.ShapeError:
-            return evaluation.message("Cross", "nonn1")
-        return from_sympy(res)
-
-
 class DesignMatrix(Builtin):
     """
     <dl>
-    <dt>'DesignMatrix[$m$, $f$, $x$]'
-        <dd>returns the design matrix for a linear model $f$ in the variables $x$.
+      <dt>'DesignMatrix[$m$, $f$, $x$]'
+      <dd>returns the design matrix for a linear model $f$ in the variables $x$.
     </dl>
 
     >> DesignMatrix[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x]
@@ -135,8 +48,8 @@ class DesignMatrix(Builtin):
 class Det(Builtin):
     """
     <dl>
-    <dt>'Det[$m$]'
-        <dd>computes the determinant of the matrix $m$.
+      <dt>'Det[$m$]'
+      <dd>computes the determinant of the matrix $m$.
     </dl>
 
     >> Det[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -198,7 +111,7 @@ class Eigenvalues(Builtin):
     @staticmethod
     def mp_eig(mp_matrix) -> Expression:
         try:
-            _, ER = mp.eig(mp_matrix)
+            _, ER = mpmath.eig(mp_matrix)
         except:
             return None
 
@@ -874,35 +787,6 @@ class Norm(Builtin):
         return from_sympy(res)
 
 
-class Normalize(Builtin):
-    """
-    <dl>
-    <dt>'Normalize[$v$]'
-        <dd>calculates the normalized vector $v$.
-    <dt>'Normalize[$z$]'
-        <dd>calculates the normalized complex number $z$.
-    </dl>
-
-    >> Normalize[{1, 1, 1, 1}]
-     = {1 / 2, 1 / 2, 1 / 2, 1 / 2}
-
-    >> Normalize[1 + I]
-     = (1 / 2 + I / 2) Sqrt[2]
-
-    #> Normalize[0]
-     = 0
-
-    #> Normalize[{0}]
-     = {0}
-
-    #> Normalize[{}]
-     = {}
-    """
-
-    rules = {"Normalize[v_]": "Module[{norm = Norm[v]}, If[norm == 0, v, v / norm, v]]"}
-    summary_text = "normalizes a vector"
-
-
 class PseudoInverse(Builtin):
     """
     <dl>
@@ -1063,8 +947,8 @@ class SingularValueDecomposition(Builtin):
             # symbolic argument (not implemented)
             evaluation.message("SingularValueDecomposition", "nosymb")
 
-        U, S, V = mp.svd(matrix)
-        S = mp.diag(S)
+        U, S, V = mpmath.svd(matrix)
+        S = mpmath.diag(S)
         U_list = to_mathics_list(*U.tolist())
         S_list = to_mathics_list(*S.tolist())
         V_list = to_mathics_list(*V.tolist())
@@ -1074,8 +958,8 @@ class SingularValueDecomposition(Builtin):
 class Tr(Builtin):
     """
     <dl>
-    <dt>'Tr[$m$]'
-        <dd>computes the trace of the matrix $m$.
+      <dt>'Tr[$m$]'
+      <dd>computes the trace of the matrix $m$.
     </dl>
 
     >> Tr[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}]
@@ -1099,27 +983,3 @@ class Tr(Builtin):
             return evaluation.message("Tr", "matsq", m)
         tr = matrix.trace()
         return from_sympy(tr)
-
-
-class VectorAngle(Builtin):
-    """
-    <dl>
-    <dt>'VectorAngle[$u$, $v$]'
-        <dd>gives the angles between vectors $u$ and $v$
-    </dl>
-
-    >> VectorAngle[{1, 0}, {0, 1}]
-     = Pi / 2
-
-    >> VectorAngle[{1, 2}, {3, 1}]
-     = Pi / 4
-
-    >> VectorAngle[{1, 1, 0}, {1, 0, 1}]
-     = Pi / 3
-
-    #> VectorAngle[{0, 1}, {0, 1}]
-     = 0
-    """
-
-    rules = {"VectorAngle[u_, v_]": "ArcCos[u.v / (Norm[u] Norm[v])]"}
-    summary_text = "angle between vectors"
