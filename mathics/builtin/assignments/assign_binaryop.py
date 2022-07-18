@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Assignmment plus binary operator
+In-place binary assignment operator
 
 There are a number operators and functions that combine assignment with some sort of binary operator.
 
