@@ -177,7 +177,9 @@ def test_sameq(str_lhs, str_rhs, str_expected):
 def test_unsameq(str_expr, str_expected):
     print(str_expr)
     print(session.evaluate(str_expr))
-    check_evaluation(str_expr, str_expected, to_string_expr=True, to_string_expected=True)
+    check_evaluation(
+        str_expr, str_expected, to_string_expr=True, to_string_expected=True
+    )
 
 
 #  The following tests where generated automatically calling wolframscript -c

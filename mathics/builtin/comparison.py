@@ -389,7 +389,7 @@ class UnsameQ(_ComparisonOperator):
             return SymbolTrue
 
         for index, first_item in enumerate(items_sequence):
-            for second_item in items_sequence[index+1:]:
+            for second_item in items_sequence[index + 1 :]:
                 if first_item.sameQ(second_item):
                     return SymbolFalse
         return SymbolTrue
