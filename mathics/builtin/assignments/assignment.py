@@ -270,7 +270,7 @@ class LoadModule(Builtin):
             # reference manual where PackletManager appears first in
             # the list, it seems to be preferable to add this PyMathics
             # at the beginning.
-            context_path = evaluation.definitions.get_context_path()
+            context_path = list(evaluation.definitions.get_context_path())
             if "Pymathics`" not in context_path:
                 context_path.insert(0, "Pymathics`")
                 evaluation.definitions.set_context_path(context_path)
