@@ -7,6 +7,7 @@ Enhancements
 * ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
 * numeric overflows now do not affect the full evaluation, but instead just the element which produce it.
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
+* ``UnsameQ`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``
 * ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"``.
