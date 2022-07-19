@@ -163,9 +163,11 @@ def test_sameq(str_lhs, str_rhs, str_expected):
 # UnsameQ test
 @pytest.mark.parametrize(
     ("str_expr", "str_expected"),
-    [  # Symbol and symbol
+    [  # UnsameQ returns True with 0 or 1 arguments
         ("UnsameQ[]", "True"),
         ("UnsameQ[expr]", "True"),
+        # With 2 or more argments, UnsameQ returns True if all expressions are
+        # structurally distinct and False otherwise
         ("x =!= x", "False"),
         ("x =!= y", "True"),
         ("1 =!= 2 =!= 3 =!= 4", "True"),
