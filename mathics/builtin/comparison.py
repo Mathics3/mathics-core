@@ -728,10 +728,9 @@ class Unequal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or
-        'True' if $x$ and $y$ are known to be unequal.
-        Commutative properties apply so if $x$ != $y$ then
-        $y$ != $x$.
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+
+        Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
 
         For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
     </dl>
@@ -747,11 +746,11 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = 1 != 2 != x
 
     Strings are allowed:
-    Unequal["11", "11"]
+    >> Unequal["11", "11"]
      = False
 
     Comparision to mismatched types is True:
-    Unequal[11, "11"]
+    >> Unequal[11, "11"]
      = True
 
     Lists are compared based on their elements:
