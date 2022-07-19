@@ -528,6 +528,10 @@ def do_cmp(x1, x2) -> Optional[int]:
     s1 = x1.to_sympy()
     s2 = x2.to_sympy()
 
+    # return None if expression cannot be handled by SymPy
+    if s1 is None or s2 is None:
+        return None
+
     # Use internal comparisons only for Real which is uses
     # WL's interpretation of equal (which allows for slop
     # in the least significant digit of precision), and use
