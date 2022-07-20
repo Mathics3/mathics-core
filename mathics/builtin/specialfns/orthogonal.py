@@ -21,7 +21,7 @@ class ChebyshevT(_MPMathFunction):
      = 0.800143 + 1.08198 I
     """
 
-    nargs = 2
+    nargs = {2}
     sympy_name = "chebyshevt"
     mpmath_name = "chebyt"
     summary_text = "Chebyshev's polynomials of the first kind"
@@ -41,7 +41,7 @@ class ChebyshevU(_MPMathFunction):
      = 1.60029 + 0.721322 I
     """
 
-    nargs = 2
+    nargs = {2}
     sympy_name = "chebyshevu"
     mpmath_name = "chebyu"
     summary_text = "Chebyshev's polynomials of the second kind"
@@ -63,7 +63,7 @@ class GegenbauerC(_MPMathFunction):
 
     # TODO: Two argument renormalized form GegenbauerC[n, x]
 
-    nargs = 3
+    nargs = {3}
     sympy_name = "gegenbauer"
     mpmath_name = "gegenbauer"
     summary_text = "Gegenbauer's polynomials"
@@ -86,7 +86,7 @@ class HermiteH(_MPMathFunction):
      = 77.5291
     """
 
-    nargs = 2
+    nargs = {2}
     sympy_name = "hermite"
     mpmath_name = "hermite"
     summary_text = "Hermite's polynomials"
@@ -106,7 +106,7 @@ class JacobiP(_MPMathFunction):
      = 1410.02 + 5797.3 I
     """
 
-    nargs = 4
+    nargs = {4}
     sympy_name = "jacobi"
     mpmath_name = "jacobi"
     summary_text = "Jacobi's polynomials"
@@ -135,7 +135,7 @@ class LaguerreL(_MPMathFunction):
         "LaguerreL[n_, x_]": "LaguerreL[n, 0, x]",
     }
 
-    nargs = 3
+    nargs = {3}
     sympy_name = "laguerre_poly"
     mpmath_name = "laguerre"
     summary_text = "Laguerre's polynomials"
@@ -184,7 +184,7 @@ class LegendreP(_MPMathFunction):
         "Derivative[0,0,1][LegendreP]": "((LegendreP[1 + #1, #2, #3]*(1 + #1 - #2) + LegendreP[#1, #2, #3]*(-1 - #1)*#3)/(-1 + #3^2))&",
     }
 
-    nargs = 3
+    nargs = {3}
     sympy_name = "legendre"
     mpmath_name = "legenp"
     summary_text = "Legendre's polynomials of first kind"
@@ -227,7 +227,7 @@ class LegendreQ(_MPMathFunction):
         "Derivative[0,0,1][LegendreQ]": "((LegendreQ[1 + #1, #2, #3]*(1 + #1 - #2) + LegendreQ[#1, #2, #3]*(-1 - #1)*#3)/(-1 + #3^2))&",
     }
 
-    nargs = 3
+    nargs = {3}
     sympy_name = ""
     mpmath_name = "legenq"
     summary_text = "Legendre's polynomials of second kind"
@@ -256,7 +256,7 @@ class SphericalHarmonicY(_MPMathFunction):
      = -Sqrt[6] E ^ (I y) Sin[x] / (4 Sqrt[Pi])
     """
 
-    nargs = 4
+    nargs = {4}
     sympy_name = "Ynm"
     mpmath_name = "spherharm"
     summary_text = "3D Spherical Harmonic"
@@ -289,6 +289,6 @@ class SphericalHarmonicY(_MPMathFunction):
 #     = 1.12642 - 1.21017 I
 #    """
 #
-#    nargs = 3
+#    nargs = {3}
 #    sympy_name = ''
 #    mpmath_name = ''

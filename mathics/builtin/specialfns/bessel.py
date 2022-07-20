@@ -12,19 +12,19 @@ from mathics.core.number import machine_precision, get_precision, PrecisionValue
 from mathics.core.number import prec as _prec
 
 from mathics.core.attributes import (
-    listable,
-    n_hold_first,
-    numeric_function,
-    protected,
-    read_protected,
+    listable as LISTABLE,
+    n_hold_first as N_HOLD_FIRST,
+    numeric_function as NUMERIC_FUNCTION,
+    protected as PROTECTED,
+    read_protected as READ_PROTECTED,
 )
 
 
 class _Bessel(_MPMathFunction):
 
-    attributes = listable | numeric_function | protected | read_protected
+    attributes = LISTABLE | NUMERIC_FUNCTION | PROTECTED | READ_PROTECTED
 
-    nargs = 2
+    nargs = {2}
 
 
 class AiryAi(_MPMathFunction):
@@ -111,7 +111,7 @@ class AiryAiZero(Builtin):
 
     # TODO: 'AiryAiZero[$k$, $x0$]' - $k$th zero less than x0
 
-    attributes = listable | n_hold_first | numeric_function | protected | read_protected
+    attributes = LISTABLE | N_HOLD_FIRST | NUMERIC_FUNCTION | PROTECTED | READ_PROTECTED
 
     rules = {
         "AiryAi[AiryAiZero[k_]]": "0",
@@ -225,7 +225,7 @@ class AiryBiZero(Builtin):
 
     # TODO: 'AiryBiZero[$k$, $x0$]' - $k$th zero less than x0
 
-    attributes = listable | n_hold_first | numeric_function | protected | read_protected
+    attributes = LISTABLE | N_HOLD_FIRST | NUMERIC_FUNCTION | PROTECTED | READ_PROTECTED
 
     rules = {
         "AiryBi[AiryBiZero[z_]]": "0",

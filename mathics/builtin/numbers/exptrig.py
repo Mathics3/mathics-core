@@ -941,7 +941,7 @@ class Log(_MPMathFunction):
     """
 
     summary_text = "logarithm function"
-    nargs = 2
+    nargs = {2}
     mpmath_name = "log"
     sympy_name = "log"
 
