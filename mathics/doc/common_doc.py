@@ -651,7 +651,7 @@ class Documentation:
 
     def get_tests(self):
         for part in self.parts:
-            for chapter in sorted_chapters(part.chapters):
+            for chapter in part.chapters:
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -811,12 +811,7 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DocPart(self, title, is_reference=start)
             modules_seen = set()
-            for module in sorted(
-                modules,
-                key=lambda module: module.sort_order
-                if hasattr(module, "sort_order")
-                else module.__name__,
-            ):
+            for module in modules:
                 if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
