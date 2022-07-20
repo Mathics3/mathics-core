@@ -38,7 +38,7 @@ class Fibonacci(_MPMathFunction):
      = 280571172992510140037611932413038677189525
     """
 
-    nargs = 1
+    nargs = {1}
     attributes = listable | numeric_function | protected | read_protected
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
@@ -87,7 +87,7 @@ class StirlingS1(Builtin):
 
     attributes = listable | protected
 
-    nargs = 2
+    nargs = {2}
     summary_text = "Stirling numbers of the first kind"
     sympy_name = "functions.combinatorial.stirling"
     mpmath_name = "stirling1"
@@ -113,7 +113,7 @@ class StirlingS2(Builtin):
     """
 
     attributes = listable | protected
-    nargs = 2
+    nargs = {2}
     sympy_name = "functions.combinatorial.numbers.stirling"
     mpmath_name = "stirling2"
     summary_text = "Stirling numbers of the second kind"

@@ -538,7 +538,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     sympy_name = "Pow"
     mpmath_name = "power"
-    nargs = 2
+    nargs = {2}
 
     messages = {
         "infy": "Infinite expression `1` encountered.",

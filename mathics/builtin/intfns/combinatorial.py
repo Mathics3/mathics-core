@@ -57,7 +57,7 @@ class Binomial(_MPMathFunction):
 
     attributes = listable | numeric_function | protected
 
-    nargs = 2
+    nargs = {2}
     sympy_name = "binomial"
     mpmath_name = "binomial"
     summary_text = "binomial coefficients"

@@ -15,6 +15,16 @@ import sympy
 import mpmath
 from functools import lru_cache
 
+from mathics.core.attributes import (
+    hold_all as A_HOLD_ALL,
+    hold_rest as A_HOLD_REST,
+    listable as A_LISTABLE,
+    no_attributes as A_NO_ATTRIBUTES,
+    numeric_function as A_NUMERIC_FUNCTION,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
+)
+
 from mathics.core.evaluators import eval_N
 
 from mathics.builtin.base import (
@@ -72,15 +82,6 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 
-from mathics.core.attributes import (
-    hold_all,
-    hold_rest,
-    listable,
-    no_attributes,
-    numeric_function,
-    protected,
-)
-
 
 @lru_cache(maxsize=1024)
 def call_mpmath(mpmath_function, mpmath_args):
@@ -109,15 +110,15 @@ class _MPMathFunction(SympyFunction):
     # However hey are not correct for some derived classes, like
     # InverseErf or InverseErfc.
     # So those classes should expclicitly set/override this.
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     mpmath_name = None
 
-    nargs = 1
+    nargs = {1}
 
     @lru_cache(maxsize=1024)
     def get_mpmath_function(self, args):
-        if self.mpmath_name is None or len(args) != self.nargs:
+        if self.mpmath_name is None or len(args) not in self.nargs:
             return None
         return getattr(mpmath, self.mpmath_name)
 
@@ -352,7 +353,7 @@ class Re(SympyFunction):
     """
 
     summary_text = "real part"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
 
     def apply_complex(self, number, evaluation):
@@ -374,8 +375,8 @@ class Re(SympyFunction):
 class Im(SympyFunction):
     """
     <dl>
-    <dt>'Im[$z$]'
-        <dd>returns the imaginary component of the complex number $z$.
+      <dt>'Im[$z$]'
+      <dd>returns the imaginary component of the complex number $z$.
     </dl>
 
     >> Im[3+4I]
@@ -391,7 +392,7 @@ class Im(SympyFunction):
     """
 
     summary_text = "imaginary part"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     def apply_complex(self, number, evaluation):
         "Im[number_Complex]"
@@ -443,8 +444,8 @@ class Conjugate(_MPMathFunction):
 class Abs(_MPMathFunction):
     """
     <dl>
-    <dt>'Abs[$x$]'
-        <dd>returns the absolute value of $x$.
+      <dt>'Abs[$x$]'
+      <dd>returns the absolute value of $x$.
     </dl>
     >> Abs[-3]
      = 3
@@ -514,7 +515,7 @@ class Arg(_MPMathFunction):
         "Arg[DirectedInfinity[a_]]": "Arg[a]",
     }
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     options = {"Method": "Automatic"}
 
     numpy_name = "angle"  # for later
@@ -571,7 +572,7 @@ class Sign(SympyFunction):
     sympy_name = "sign"
     # mpmath_name = 'sign'
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     messages = {
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
@@ -675,7 +676,7 @@ class PossibleZeroQ(SympyFunction):
     """
 
     summary_text = "test whether an expression is estimated to be zero"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     sympy_name = "_iszero"
 
@@ -1186,7 +1187,7 @@ class Piecewise(SympyFunction):
     summary_text = "an arbitrary piecewise function"
     sympy_name = "Piecewise"
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     def apply(self, items, evaluation):
         "%(name)s[items__]"
@@ -1258,7 +1259,7 @@ class Boole(Builtin):
     """
 
     summary_text = "translate 'True' to 1, and 'False' to 0"
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     def apply(self, expr, evaluation):
         "%(name)s[expr_]"
@@ -1279,7 +1280,7 @@ class Assumptions(Predefined):
 
     summary_text = "assumptions used to simplify expressions"
     name = "$Assumptions"
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     rules = {
         "$Assumptions": "True",
     }
@@ -1307,7 +1308,7 @@ class Assuming(Builtin):
     """
 
     summary_text = "set assumptions during the evaluation"
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
 
     def apply_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"
@@ -1406,3 +1407,34 @@ class ConditionalExpression(Builtin):
             (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
         )
         return sympy.Piecewise(*sympy_cases)
+
+
+class BernoulliB(_MPMathFunction):
+    """
+    <dl>
+      <dt>'BernoulliB[$n$]'
+      <dd>represents the Bernouilli number B_$n$.
+
+      <dt>'BernouilliB[$n$, $x$]'
+      <dd>represents the Bernouilli polynomial B_$n[x]$.
+    </dl>
+
+    >> BernoulliB[42]
+     = 1520097643918070802691 / 1806
+
+    First five Bernoulli numbers:
+
+    >> Table[BernoulliB[k], {k, 0, 5}]
+     = {1, -1 / 2, 1 / 6, 0, -1 / 30, 0}
+
+    First five Bernoulli polynomials:
+
+    >> Table[BernoulliB[k, z], {k, 0, 3}]
+     = {1, -1 / 2 + z, 1 / 6 - z + z ^ 2, z / 2 - 3 z ^ 2 / 2 + z ^ 3}
+    """
+
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    mpmath_name = "bernoulli"
+    nargs = {1, 2}
+    summary_text = "Bernoulli number and function"
+    sympy_name = "bernoulli"
