@@ -343,7 +343,7 @@ class SameQ(_ComparisonOperator):
         return SymbolTrue
 
 
-class UnsameQ(BinaryOperator):
+class UnsameQ(_ComparisonOperator):
     """
     <dl>
       <dt>'UnsameQ[$x$, $y$]'
@@ -352,23 +352,44 @@ class UnsameQ(BinaryOperator):
       Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
     </dl>
 
-    >> a=!=a
+    >> a =!= a
      = False
-    >> 1=!=1.
+    >> 1 =!= 1.
+     = True
+
+    UnsameQ accepts any number of arguments and returns True if all expressions
+    are structurally distinct:
+    >> 1 =!= 2 =!= 3 =!= 4
+     = True
+
+    UnsameQ returns False if any expression is identical to another:
+    >> 1 =!= 2 =!= 1 =!= 4
+     = False
+
+    UnsameQ[] and UnsameQ[expr] return True:
+    >> UnsameQ[]
+     = True
+    >> UnsameQ[expr]
      = True
     """
 
+    grouping = "None"  # Indeterminate grouping: Neither left nor right
     operator = "=!="
     precedence = 290
+
     summary_text = "not literal symbolic identity"
 
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ =!= rhs_"
-
-        if lhs.sameQ(rhs):
-            return SymbolFalse
-        else:
+    def apply_list(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
             return SymbolTrue
+
+        for index, first_item in enumerate(items_sequence):
+            for second_item in items_sequence[index + 1 :]:
+                if first_item.sameQ(second_item):
+                    return SymbolFalse
+        return SymbolTrue
 
 
 class TrueQ(Builtin):
@@ -704,10 +725,9 @@ class Unequal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or
-        'True' if $x$ and $y$ are known to be unequal.
-        Commutative properties apply so if $x$ != $y$ then
-        $y$ != $x$.
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+
+        Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
 
         For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
     </dl>
@@ -723,11 +743,11 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = 1 != 2 != x
 
     Strings are allowed:
-    Unequal["11", "11"]
+    >> Unequal["11", "11"]
      = False
 
     Comparision to mismatched types is True:
-    Unequal[11, "11"]
+    >> Unequal[11, "11"]
      = True
 
     Lists are compared based on their elements:

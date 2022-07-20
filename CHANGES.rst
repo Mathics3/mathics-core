@@ -9,6 +9,7 @@ Enhancements
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
 * ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
+* ``UnsameQ`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"``.
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
@@ -26,14 +27,17 @@ Documentation
 New Builtins
 ============
 * Euler's ``Beta`` function.
+* ``Bernoulli``.
+* ``CatalanNumber`` (Integer arguments only).
 * ``Diagonal``. Issue #115.
 * ``EulerPhi``
 * ``$Echo``. Issue #42.
 * ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
-* ``LogGamma`` function.
+* ``LogGamma``.
 * ``NumericFunction``
+* ``Projection``.
 * Partial support for Graphics option ``Opacity``.
 * ``SeriesData`` operations was improved.
 * ``TraceEvaluation[]`` shows expression name calls and return values of it argument.

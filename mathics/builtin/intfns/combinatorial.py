@@ -9,7 +9,7 @@ It is closely related to many other areas of mathematics and has many applicatio
 
 
 from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, SympyFunction
 
 from mathics.core.atoms import Integer
 from mathics.core.attributes import listable, numeric_function, orderless, protected
@@ -57,10 +57,34 @@ class Binomial(_MPMathFunction):
 
     attributes = listable | numeric_function | protected
 
-    nargs = 2
+    nargs = {2}
     sympy_name = "binomial"
     mpmath_name = "binomial"
     summary_text = "binomial coefficients"
+
+
+class CatalanNumber(SympyFunction):
+    """
+    <dl>
+      <dt>'CatalanNumber[$n$]'
+      <dd>gives the $n$th Catalan number.
+    </dl>
+
+    A list of the first five Catalan numbers:
+    >> Table[CatalanNumber[n], {n, 1, 5}]
+     = {1, 2, 5, 14, 42}
+    """
+
+    attributes = numeric_function | protected
+
+    summary_text = "catalan number"
+    sympy_name = "catalan"
+
+    # We (and sympy) do not handle fractions or other non-integers
+    # right now.
+    def apply_integer(self, n, evaluation):
+        "CatalanNumber[n_Integer]"
+        return self.apply(n, evaluation)
 
 
 class Multinomial(Builtin):

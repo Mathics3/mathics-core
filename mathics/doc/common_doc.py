@@ -798,14 +798,7 @@ class MathicsMainDocumentation(Documentation):
             builtin_part = DocPart(self, title, is_reference=start)
             modules_seen = set()
             for module in modules:
-                # FIXME add an additional mechanism in the module
-                # to allow a docstring and indicate it is not to go in the
-                # user manual
-                # Note: this code assumes that all chapters with sections/doctests in them
-                # are documented (as it should be)!
-                if module.__doc__ is None:
-                    continue
-                if module in modules_seen:
+                if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
                 chapter = DocChapter(builtin_part, title, XMLDoc(text, title, None))

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation, session
 import pytest
+from test.helper import check_evaluation, session
 
 
 @pytest.mark.parametrize(
@@ -158,6 +158,30 @@ def test_sameq(str_lhs, str_rhs, str_expected):
     print(expr)
     print(session.evaluate(expr))
     check_evaluation(expr, str_expected, to_string_expr=True, to_string_expected=True)
+
+
+# UnsameQ test
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected"),
+    [  # UnsameQ returns True with 0 or 1 arguments
+        ("UnsameQ[]", "True"),
+        ("UnsameQ[expr]", "True"),
+        # With 2 or more argments, UnsameQ returns True if all expressions are
+        # structurally distinct and False otherwise
+        ("x =!= x", "False"),
+        ("x =!= y", "True"),
+        ("1 =!= 2 =!= 3 =!= 4", "True"),
+        ("1 =!= 2 =!= 1 =!= 4", "False"),
+        ("UnsameQ[10, 5, 2, 1, 0]", "True"),
+        ("UnsameQ[10, 5, 2, 1, 0, 0]", "False"),
+    ],
+)
+def test_unsameq(str_expr, str_expected):
+    print(str_expr)
+    print(session.evaluate(str_expr))
+    check_evaluation(
+        str_expr, str_expected, to_string_expr=True, to_string_expected=True
+    )
 
 
 #  The following tests where generated automatically calling wolframscript -c
