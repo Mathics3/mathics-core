@@ -619,7 +619,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         tz = None
         if isinstance(args, Expression):
             if args.get_head_name() in ("System`Rule", "System`DelayedRule"):
-                options[args.leaves[0].get_name()] = args.leaves[1]
+                options[args.elements[0].get_name()] = args.elements[1]
                 args = Expression(SymbolAbsoluteTime).evaluate(evaluation)
             elif args.get_head_name() == "System`DateObject":
                 datelist = args._elements[0]

@@ -55,7 +55,7 @@ def chop(expr, delta=10.0 ** (-10.0)):
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
-        return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.leaves])
+        return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.elements])
     return expr
 
 
@@ -228,7 +228,7 @@ class N(Builtin):
 
         # If options are passed, set the preference in evaluation, and call again
         # without options set.
-        # This also prevents to store this as an nvalue (nvalues always have two leaves).
+        # This also prevents to store this as an nvalue (nvalues always have two elements).
         preference = None
         # If a Method is passed, and the method is not either "Automatic" or
         # the last preferred method, according to evaluation._preferred_n_method,

@@ -113,31 +113,31 @@ class UnitConvert(Builtin):
             return
 
         if toUnit.has_form("Quantity", None):
-            targetUnit = toUnit.leaves[1].get_string_value().lower()
+            targetUnit = toUnit.elements[1].get_string_value().lower()
         elif toUnit.has_form("List", None):
-            if not toUnit.leaves[0].has_form("Quantity", None):
+            if not toUnit.elements[0].has_form("Quantity", None):
                 return
             else:
-                targetUnit = toUnit.leaves[0].leaves[1].get_string_value().lower()
+                targetUnit = toUnit.elements[0].elements[1].get_string_value().lower()
         elif isinstance(toUnit, String):
             targetUnit = toUnit.get_string_value().lower()
         else:
             return
         if expr.has_form("List", None):
             abc = []
-            for i in range(len(expr.leaves)):
-                abc.append(convert_unit(expr.leaves[i].leaves, targetUnit))
+            for i in range(len(expr.elements)):
+                abc.append(convert_unit(expr.elements[i].elements, targetUnit))
             return ListExpression(*abc)
         else:
-            return convert_unit(expr.leaves, targetUnit)
+            return convert_unit(expr.elements, targetUnit)
 
     def apply_base_unit(self, expr, evaluation):
         "UnitConvert[expr_]"
 
-        def convert_unit(leaves):
+        def convert_unit(elements):
 
-            mag = leaves[0]
-            unit = leaves[1].get_string_value()
+            mag = elements[0]
+            unit = elements[1].get_string_value()
 
             quantity = Q_(mag, unit)
             converted_quantity = quantity.to_base_units()
@@ -152,11 +152,11 @@ class UnitConvert(Builtin):
             return
         if expr.has_form("List", None):
             abc = []
-            for i in range(len(expr.leaves)):
-                abc.append(convert_unit(expr.leaves[i].leaves))
+            for i in range(len(expr.elements)):
+                abc.append(convert_unit(expr.elements[i].elements))
             return ListExpression(*abc)
         else:
-            return convert_unit(expr.leaves)
+            return convert_unit(expr.elements)
 
 
 class Quantity(Builtin):
@@ -218,8 +218,8 @@ class Quantity(Builtin):
         if self.validate(unit, evaluation):
             if mag.has_form("List", None):
                 results = []
-                for i in range(len(mag.leaves)):
-                    quantity = Q_(mag.leaves[i], unit.get_string_value().lower())
+                for i in range(len(mag.elements)):
+                    quantity = Q_(mag.elements[i], unit.get_string_value().lower())
                     results.append(
                         Expression(
                             SymbolQuantity, quantity.magnitude, String(quantity.units)
@@ -271,24 +271,24 @@ class QuantityQ(Test):
             else:
                 return True
 
-        def validate(leaves):
-            if len(leaves) < 1 or len(leaves) > 2:
+        def validate(elements):
+            if len(elements) < 1 or len(elements) > 2:
                 return False
-            elif len(leaves) == 1:
-                if validate_unit(leaves[0].get_string_value().lower()):
+            elif len(elements) == 1:
+                if validate_unit(elements[0].get_string_value().lower()):
                     return True
                 else:
                     return False
             else:
-                if isinstance(leaves[0], Number):
-                    if validate_unit(leaves[1].get_string_value().lower()):
+                if isinstance(elements[0], Number):
+                    if validate_unit(elements[1].get_string_value().lower()):
                         return True
                     else:
                         return False
                 else:
                     return False
 
-        return expr.get_head_name() == "System`Quantity" and validate(expr.leaves)
+        return expr.get_head_name() == "System`Quantity" and validate(expr.elements)
 
 
 class QuantityUnit(Builtin):
@@ -317,21 +317,21 @@ class QuantityUnit(Builtin):
     def apply(self, expr, evaluation):
         "QuantityUnit[expr_]"
 
-        def get_unit(leaves):
-            if len(leaves) == 1:
-                return leaves[0]
+        def get_unit(elements):
+            if len(elements) == 1:
+                return elements[0]
             else:
-                return leaves[1]
+                return elements[1]
 
         if len(evaluation.out) > 0:
             return
         if expr.has_form("List", None):
             results = []
-            for i in range(len(expr.leaves)):
-                results.append(get_unit(expr.leaves[i].leaves))
+            for i in range(len(expr.elements)):
+                results.append(get_unit(expr.elements[i].elements))
             return ListExpression(*results)
         else:
-            return get_unit(expr.leaves)
+            return get_unit(expr.elements)
 
 
 class QuantityMagnitude(Builtin):
@@ -377,21 +377,21 @@ class QuantityMagnitude(Builtin):
     def apply(self, expr, evaluation):
         "QuantityMagnitude[expr_]"
 
-        def get_magnitude(leaves):
-            if len(leaves) == 1:
+        def get_magnitude(elements):
+            if len(elements) == 1:
                 return 1
             else:
-                return leaves[0]
+                return elements[0]
 
         if len(evaluation.out) > 0:
             return
         if expr.has_form("List", None):
             results = []
-            for i in range(len(expr.leaves)):
-                results.append(get_magnitude(expr.leaves[i].leaves))
+            for i in range(len(expr.elements)):
+                results.append(get_magnitude(expr.elements[i].elements))
             return ListExpression(*results)
         else:
-            return get_magnitude(expr.leaves)
+            return get_magnitude(expr.elements)
 
     def apply_unit(self, expr, unit, evaluation):
         "QuantityMagnitude[expr_, unit_]"
