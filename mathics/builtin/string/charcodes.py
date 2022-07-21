@@ -241,22 +241,22 @@ class FromCharacterCode(Builtin):
 
         try:
             if n.has_form("List", None):
-                if not n.get_elements():
+                if not n.elements:
                     return String("")
                 # Mathematica accepts FromCharacterCode[{{100}, 101}],
                 # so to match this, just check the first element to see
                 # if we're dealing with nested lists.
-                elif n.get_elements()[0].has_form("List", None):
+                elif n.elements[0].has_form("List", None):
                     list_of_strings = []
-                    for element in n.get_elements():
+                    for element in n.elements:
                         if element.has_form("List", None):
-                            stringi = convert_codepoint_list(element.get_elements())
+                            stringi = convert_codepoint_list(element.elements)
                         else:
                             stringi = convert_codepoint_list([element])
                         list_of_strings.append(String(stringi))
                     return ListExpression(*list_of_strings)
                 else:
-                    return String(convert_codepoint_list(n.get_elements()))
+                    return String(convert_codepoint_list(n.elements))
             else:
                 pyn = n.get_int_value()
                 if not (isinstance(pyn, int) and pyn > 0 and pyn < sys.maxsize):

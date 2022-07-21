@@ -664,7 +664,7 @@ class MakeBoxes(Builtin):
 
         precedence = prec.get_int_value()
 
-        elements = expr.get_elements()
+        elements = expr.elements
         if len(elements) == 1:
             element = elements[0]
             element_boxes = MakeBoxes(element, f)
@@ -700,7 +700,7 @@ class MakeBoxes(Builtin):
         precedence = prec.get_int_value()
         grouping = grouping.get_name()
 
-        elements = expr.get_elements()
+        elements = expr.elements
         if len(elements) > 1:
             if h.has_form("List", len(elements) - 1):
                 ops = [get_op(op) for op in h.elements]
@@ -1411,7 +1411,7 @@ class Message(Builtin):
 def check_message(expr) -> bool:
     "checks if an expression is a valid message"
     if expr.has_form("MessageName", 2):
-        symbol, tag = expr.get_elements()
+        symbol, tag = expr.elements
         if symbol.get_name() and tag.get_string_value():
             return True
     return False

@@ -147,7 +147,7 @@ class ArrayQ(Builtin):
                     return False
                 level_dim = None
             else:
-                level_dim = len(expr.leaves)
+                level_dim = len(expr.elements)
 
             if len(dims) > level:
                 if dims[level] != level_dim:
@@ -155,8 +155,8 @@ class ArrayQ(Builtin):
             else:
                 dims.append(level_dim)
             if level_dim is not None:
-                for leaf in expr.leaves:
-                    if not check(level + 1, leaf):
+                for element in expr.elements:
+                    if not check(level + 1, element):
                         return False
             return True
 

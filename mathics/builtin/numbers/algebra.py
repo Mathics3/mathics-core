@@ -248,8 +248,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 return expr
         else:
             return Expression(
-                expr.head,
-                *[unconvert_subexprs(element) for element in expr.get_elements()]
+                expr.head, *[unconvert_subexprs(element) for element in expr.elements]
             )
 
     sympy_expr = convert_sympy(expr)
@@ -261,7 +260,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         ) in enumerate(sub_exprs):
             if not isinstance(sub_expr, Atom):
                 head = _expand(sub_expr.head)  # also expand head
-                elements = sub_expr.get_elements()
+                elements = sub_expr.elements
                 if target_pat:
                     elements = [
                         element
@@ -278,7 +277,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
                 if sub_expr.has_form(head, None):
-                    elements = sub_expr.get_elements()
+                    elements = sub_expr.elements
                     if target_pat:
                         elements = [
                             element
@@ -831,7 +830,7 @@ class CoefficientArrays(_CoefficientHandler):
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
-            var_exprs = varlist.get_elements()
+            var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
 
@@ -1051,7 +1050,7 @@ class Collect(_CoefficientHandler):
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
-            var_exprs = varlist.get_elements()
+            var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
 

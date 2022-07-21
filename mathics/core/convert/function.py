@@ -105,7 +105,7 @@ def expression_to_callable_and_args(
                 name = symb.get_name()
                 typ = real_type
             elif var.has_form("List", 2):
-                symb, typ = var.get_elements()
+                symb, typ = var.elements
                 if isinstance(symb, Symbol) and typ in permitted_types:
                     name = symb.get_name()
                     typ = permitted_types[typ]

@@ -209,7 +209,7 @@ class OptionValue(Builtin):
                 if f.get_head_name() in ("System`Rule", "System`RuleDelayed"):
                     f = ListExpression(f)
                 if f.get_head_name() == "System`List":
-                    for element in f.get_elements():
+                    for element in f.elements:
                         if isinstance(element, Symbol):
                             val = get_option(
                                 evaluation.definitions.get_options(element.get_name()),
@@ -326,7 +326,7 @@ class OptionQ(Test):
         if not expr.has_form("List", None):
             expr = [expr]
         else:
-            expr = expr.get_elements()
+            expr = expr.elements
         return all(
             e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
         )
@@ -359,7 +359,7 @@ class NotOptionQ(Test):
         if not expr.has_form("List", None):
             expr = [expr]
         else:
-            expr = expr.get_elements()
+            expr = expr.elements
         return not all(
             e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
         )

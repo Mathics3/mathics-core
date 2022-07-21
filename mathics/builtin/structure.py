@@ -835,7 +835,7 @@ class MapThread(Builtin):
         if not expr.has_form("List", None):
             return evaluation.message("MapThread", "list", 2, full_expr)
 
-        heads = expr.get_elements()
+        heads = expr.elements
 
         def walk(args, depth=0):
             "walk all trees concurrently and build result"

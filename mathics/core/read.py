@@ -147,7 +147,7 @@ def read_name_and_stream_from_channel(channel, evaluation):
     if strm is None:
         return None, None, None
 
-    name, n = strm.get_elements()
+    name, n = strm.elements
 
     stream = stream_manager.lookup_stream(n.get_int_value())
     if stream is None:
