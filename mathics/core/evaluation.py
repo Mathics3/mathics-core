@@ -433,7 +433,7 @@ class Evaluation:
         that it might have been wrapped in.
         """
         if eval_result.has_form(FORMATS, 1):
-            return eval_result.leaves[0]
+            return eval_result.elements[0]
 
         return eval_result
 
@@ -491,7 +491,7 @@ class Evaluation:
                 return []
         if not isinstance(value, Expression):
             return []
-        return value.leaves
+        return value.elements
 
     def message(self, symbol, tag, *args) -> None:
         from mathics.core.expression import Expression

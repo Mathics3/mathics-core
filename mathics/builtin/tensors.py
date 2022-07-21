@@ -70,8 +70,8 @@ def get_dimensions(expr, head=None):
             return []
         sub_dim = None
         sub = []
-        for leaf in expr.elements:
-            sub = get_dimensions(leaf, expr.head)
+        for element in expr.elements:
+            sub = get_dimensions(element, expr.head)
             if sub_dim is None:
                 sub_dim = sub
             else:
@@ -390,8 +390,8 @@ class Outer(Builtin):
                     return Expression(f, *(current + [item]))
             else:
                 elements = []
-                for leaf in item.elements:
-                    elements.append(rec(leaf, rest_lists, current))
+                for element in item.elements:
+                    elements.append(rec(element, rest_lists, current))
                 return Expression(head, *elements)
 
         return rec(lists[0], lists[1:], [])

@@ -202,7 +202,7 @@ class Atom(BaseElement):
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
 
-    The other kinds expression leaf is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
+    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
     """
 
     _head_name = ""

@@ -687,15 +687,15 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         return None
                     else:
                         continue
-                name = option.leaves[0].get_name()
-                if not name and isinstance(option.leaves[0], String):
-                    name = ensure_context(option.leaves[0].get_string_value())
+                name = option.elements[0].get_name()
+                if not name and isinstance(option.elements[0], String):
+                    name = ensure_context(option.elements[0].get_string_value())
                 if not name:
                     if stop_on_error:
                         return None
                     else:
                         continue
-                option_values[name] = option.leaves[1]
+                option_values[name] = option.elements[1]
         return option_values
 
     def get_sort_key(self, pattern_sort=False):
@@ -710,7 +710,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             3: 0/1:        0 for Pattern
             4: 0/1:        1 for Optional
             5: head / 0 for atoms
-            6: leaves / 0 for atoms
+            6: elements / 0 for atoms
             7: 0/1:        0 for Condition
             """
 
@@ -782,7 +782,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             elif head is SymbolOptionsPattern:
                 return [2, 40, 0, 1, 1, 0, head, self._elements, 1]
             else:
-                # Append [4] to leaves so that longer expressions have higher
+                # Append [4] to elements so that longer expressions have higher
                 # precedence
                 return [
                     2,

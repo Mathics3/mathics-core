@@ -1258,7 +1258,8 @@ class _Rectangular(Builtin):
             raise _NotRectangularException()
 
         transposed = [
-            [sleaf.elements[i] for sleaf in element.elements] for i in range(n_columns)
+            [element.elements[i] for element in element.elements]
+            for i in range(n_columns)
         ]
 
         return ListExpression(
@@ -1653,8 +1654,8 @@ class _Pad(Builtin):
         if isinstance(in_n, Symbol) and in_n.get_name() == "System`Automatic":
             py_n = _Pad._find_dims(in_l)
         elif in_n.get_head_name() == "System`List":
-            if all(isinstance(sleaf, Integer) for sleaf in in_n.elements):
-                py_n = [sleaf.get_int_value() for sleaf in in_n.elements]
+            if all(isinstance(element, Integer) for element in in_n.elements):
+                py_n = [element.get_int_value() for element in in_n.elements]
         elif isinstance(in_n, Integer):
             py_n = [in_n.get_int_value()]
 

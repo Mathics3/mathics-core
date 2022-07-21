@@ -231,7 +231,7 @@ class ColorTest(unittest.TestCase):
                         )
 
                         checked_components = [
-                            c.to_python() for c in checked_color.leaves
+                            c.to_python() for c in checked_color.elements
                         ]
                         if from_space == "CMYK":  # if cmyk, cmyk -> cmy
                             k = checked_components[3]

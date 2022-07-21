@@ -749,21 +749,21 @@ class Parser:
         return Node("Alternatives", expr1, expr2).flatten()
 
     def e_MessageName(self, expr1, token, p):
-        leaves = [expr1]
+        elements = [expr1]
         while self.next().tag == "MessageName":
             self.consume()
             token = self.next()
             if token.tag == "Symbol":
                 # silently convert Symbol to String
                 self.consume()
-                leaf = String(token.text)
+                element = String(token.text)
             elif token.tag == "String":
-                leaf = self.p_String(token)
+                element = self.p_String(token)
             else:
                 self.tokeniser.sntx_message(token.pos)
                 raise InvalidSyntaxError()
-            leaves.append(leaf)
-        return Node("MessageName", *leaves)
+            elements.append(element)
+        return Node("MessageName", *elements)
 
     # B methods
     #

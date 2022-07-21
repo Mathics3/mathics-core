@@ -69,15 +69,18 @@ def apply_nvalues(
 
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
-    # just apply `apply_nvalues` to each leaf and return the new list.
+    # just apply `apply_nvalues` to each element and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
-        leaves = expr.leaves
+        elements = expr.elements
 
         # FIXME: incorporate these lines into Expression call
         result = Expression(expr.head)
-        newleaves = [apply_nvalues(leaf, prec, evaluation) for leaf in expr.leaves]
+        new_elements = [
+            apply_nvalues(element, prec, evaluation) for element in expr.elements
+        ]
         result.elements = tuple(
-            newleaf if newleaf else leaf for leaf, newleaf in zip(leaves, newleaves)
+            new_element if new_element else element
+            for element, new_element in zip(elements, new_elements)
         )
         result._build_elements_properties()
         return result
@@ -111,35 +114,35 @@ def apply_nvalues(
     if isinstance(expr, Atom):
         return expr
     else:
-        # Otherwise, look at the attributes, determine over which leaves
+        # Otherwise, look at the attributes, determine over which elements
         # we need to apply `apply_nvalues`, and rebuild the expression with
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
-        leaves = expr.get_mutable_elements()
+        elements = expr.get_mutable_elements()
         if n_hold_all & attributes:
             eval_range = ()
         elif n_hold_first & attributes:
-            eval_range = range(1, len(leaves))
+            eval_range = range(1, len(elements))
         elif n_hold_rest & attributes:
-            if len(expr.leaves) > 0:
+            if len(expr.elements) > 0:
                 eval_range = (0,)
             else:
                 eval_range = ()
         else:
-            eval_range = range(len(leaves))
+            eval_range = range(len(elements))
 
         newhead = apply_nvalues(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            newleaf = apply_nvalues(leaves[index], prec, evaluation)
-            if newleaf:
-                leaves[index] = newleaf
+            new_element = apply_nvalues(elements[index], prec, evaluation)
+            if new_element:
+                elements[index] = new_element
 
         # FIXME: incorporate these 3 lines into Expression call
         result = Expression(head)
-        result.elements = tuple(leaves)
+        result.elements = tuple(elements)
         result._build_elements_properties()
         return result
 

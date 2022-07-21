@@ -55,7 +55,9 @@ def chop(expr, delta=10.0 ** (-10.0)):
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
-        return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.elements])
+        return Expression(
+            chop(expr.head), *[chop(element) for element in expr.elements]
+        )
     return expr
 
 
