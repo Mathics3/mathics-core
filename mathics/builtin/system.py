@@ -50,47 +50,6 @@ class Aborted(Predefined):
     name = "$Aborted"
 
 
-class ByteOrdering(Predefined):
-    """
-    <dl>
-      <dt>'ByteOrdering'
-      <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering
-    of bytes should be assumed for your computer system..
-    </dl>
-
-    X> ByteOrdering
-     = 1
-
-    #> ByteOrdering == -1 || ByteOrdering == 1
-     = True
-    """
-
-    summary_text = "ordering of the bits in a byte"
-    name = "ByteOrdering"
-    rules = {"ByteOrdering": "$ByteOrdering"}
-
-
-class ByteOrdering_(Predefined):
-    """
-    <dl>
-      <dt>'$ByteOrdering'
-      <dd>returns the native ordering of bytes in binary data on your computer system.
-    </dl>
-
-    X> $ByteOrdering
-     = 1
-
-    #> $ByteOrdering == -1 || $ByteOrdering == 1
-     = True
-    """
-
-    summary_text = "native machine byte ordering of the computer system"
-    name = "$ByteOrdering"
-
-    def evaluate(self, evaluation) -> Integer:
-        return Integer(1 if sys.byteorder == "big" else -1)
-
-
 class CommandLine(Predefined):
     """
     <dl>

@@ -36,7 +36,8 @@ from typing import Callable
 
 from mathics import builtin
 from mathics import settings
-from mathics.builtin import get_module_doc, check_requires_list
+from mathics.builtin import get_module_doc
+from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify

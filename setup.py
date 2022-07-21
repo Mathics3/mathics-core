@@ -169,6 +169,7 @@ setup(
         "mathics.builtin.arithfns",
         "mathics.builtin.assignments",
         "mathics.builtin.atomic",
+        "mathics.builtin.binary",
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.compile",
