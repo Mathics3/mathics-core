@@ -14,16 +14,16 @@ from mathics.core.atoms import Integer, Number, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
-    flat as FLAT,
-    hold_all as HOLD_ALL,
-    hold_all_complete as HOLD_ALL_COMPLETE,
-    hold_first as HOLD_FIRST,
-    hold_rest as HOLD_REST,
-    listable as LISTABLE,
-    no_attributes as NO_ATTRIBUTES,
-    numeric_function as NUMERIC_FUNCTION,
-    orderless as ORDERLESS,
-    sequence_hold as SEQUENCE_HOLD,
+    flat as A_FLAT,
+    hold_all as A_HOLD_ALL,
+    hold_all_complete as A_HOLD_ALL_COMPLETE,
+    hold_first as A_HOLD_FIRST,
+    hold_rest as A_HOLD_REST,
+    listable as A_LISTABLE,
+    no_attributes as A_NO_ATTRIBUTES,
+    numeric_function as A_NUMERIC_FUNCTION,
+    orderless as A_ORDERLESS,
+    sequence_hold as A_SEQUENCE_HOLD,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
@@ -631,7 +631,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 return (str(res),)
             elif res.has_form("List", None):
                 return set(str(a) for a in res._elements)
-        return NO_ATTRIBUTES
+        return A_NO_ATTRIBUTES
 
     def get_elements(self):
         # print("Use of get_elements is deprecated. Use elements instead.")
@@ -1015,7 +1015,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # @timeit
             def rest_range(indices):
                 nonlocal recompute_properties
-                if not HOLD_ALL_COMPLETE & attributes:
+                if not A_HOLD_ALL_COMPLETE & attributes:
                     if self._no_symbol("System`Evaluate"):
                         return
                     for index in indices:
@@ -1028,13 +1028,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                                     elements[index] = new_value
                                     recompute_properties = True
 
-            if (HOLD_ALL | HOLD_ALL_COMPLETE) & attributes:
+            if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
                 rest_range(range(len(elements)))
-            elif HOLD_FIRST & attributes:
+            elif A_HOLD_FIRST & attributes:
                 rest_range(range(0, min(1, len(elements))))
                 eval_range(range(1, len(elements)))
-            elif HOLD_REST & attributes:
+            elif A_HOLD_REST & attributes:
                 eval_range(range(0, min(1, len(elements))))
                 rest_range(range(1, len(elements)))
             else:
@@ -1066,7 +1066,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If there are sequence, flatten them if the attributes allow it.
         if (
             not new.elements_properties.is_flat
-            and not (SEQUENCE_HOLD | HOLD_ALL_COMPLETE) & attributes
+            and not (A_SEQUENCE_HOLD | A_HOLD_ALL_COMPLETE) & attributes
         ):
             # This step is applied to most of the expressions
             # and could be heavy for expressions with many elements (like long lists)
@@ -1086,7 +1086,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         for element in elements:
             element.unevaluated = False
 
-        # If HoldAllComplete Attribute (flag ``HOLD_ALL_COMPLETE``) is not set,
+        # If HoldAllComplete Attribute (flag ``A_HOLD_ALL_COMPLETE``) is not set,
         # and the expression has elements of the form  `Unevaluated[element]`
         # change them to `element` and set a flag `unevaluated=True`
         # If the evaluation fails, use this flag to restore back the initial form
@@ -1098,7 +1098,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # to recover a list of positions that (eventually)
         # must be marked again as Unevaluated.
 
-        if not HOLD_ALL_COMPLETE & attributes:
+        if not A_HOLD_ALL_COMPLETE & attributes:
             dirty_elements = None
 
             for index, element in enumerate(elements):
@@ -1113,14 +1113,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 elements = dirty_elements
                 new._build_elements_properties()
 
-        # If the Attribute ``Flat`` (flag ``FLAT``) is set, calls
+        # If the Attribute ``Flat`` (flag ``A_FLAT``) is set, calls
         # flatten with a callback that set elements as unevaluated
         # too.
         def flatten_callback(new_elements, old):
             for element in new_elements:
                 element.unevaluated = old.unevaluated
 
-        if FLAT & attributes:
+        if A_FLAT & attributes:
             new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
             if new.elements_properties is None:
                 new._build_elements_properties()
@@ -1128,7 +1128,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # If the attribute `Orderless` is set, sort the elements, according to the
         # `get_sort` criteria.
         # the most expensive part of this is to build the sort key.
-        if not new.elements_properties.is_ordered and (ORDERLESS & attributes):
+        if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
             new.sort()
 
         # Step 4:  Rebuild the ExpressionCache, which tracks which symbols
@@ -1139,7 +1139,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Step 5: Must we need to thread-rewrite the expression?
         #
         # Threading is needed when head has the ``Listable``
-        # Attribute (or flag ``LISTABLE``).
+        # Attribute (or flag ``A_LISTABLE``).
         # ``Expression.thread`` rewrites the expression:
         #  ``F[{a,b,c,...}]`` as:
         #  ``{F[a], F[b], F[c], ...}``.
@@ -1151,7 +1151,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # Right now, we do not make use of Python thread or hardware
         # threading.  Still, we need to perform this rewrite to
         # maintain correct semantic behavior.
-        if LISTABLE & attributes:
+        if A_LISTABLE & attributes:
             done, threaded = new.thread(evaluation)
             if done:
                 if threaded.sameQ(new):
@@ -1189,7 +1189,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         def rules():
             rules_names = set()
-            if not HOLD_ALL_COMPLETE & attributes:
+            if not A_HOLD_ALL_COMPLETE & attributes:
                 for element in elements:
                     if not isinstance(element, EvalMixin):
                         continue
@@ -1637,7 +1637,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
     def is_numeric(self, evaluation=None) -> bool:
         if evaluation:
-            if not NUMERIC_FUNCTION & evaluation.definitions.get_attributes(
+            if not A_NUMERIC_FUNCTION & evaluation.definitions.get_attributes(
                 self._head.get_name()
             ):
                 return False

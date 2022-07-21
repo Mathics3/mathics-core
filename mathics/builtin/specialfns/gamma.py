@@ -138,9 +138,9 @@ class Beta(_MPMathMultiFunction):
 class Factorial(PostfixOperator, _MPMathFunction):
     """
     <dl>
-    <dt>'Factorial[$n$]'
-    <dt>'$n$!'
-        <dd>computes the factorial of $n$.
+      <dt>'Factorial[$n$]'
+      <dt>'$n$!'
+      <dd>computes the factorial of $n$.
     </dl>
 
     >> 20!

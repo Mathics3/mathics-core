@@ -29,14 +29,17 @@ New Builtins
 * Euler's ``Beta`` function.
 * ``Bernoulli``.
 * ``CatalanNumber`` (Integer arguments only).
+* ``CompositeQ``.
 * ``Diagonal``. Issue #115.
+* ``Divisible``.
 * ``EulerPhi``
 * ``$Echo``. Issue #42.
 * ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
 * ``FindRoot`` (for the ``newton`` method) partially supports ``EvaluationMonitor`` and ``StepMonitor`` options.
 * ``FindMinimum`` and ``FindMaximum`` now have a minimal implementation for 1D problems and the use of scipy libraries when are available.
 * ``LogGamma``.
-* ``NumericFunction``
+* ``ModularInverse``.
+* ``NumericFunction``.
 * ``Projection``.
 * Partial support for Graphics option ``Opacity``.
 * ``SeriesData`` operations was improved.
