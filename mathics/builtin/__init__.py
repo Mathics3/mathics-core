@@ -34,7 +34,6 @@ from mathics.builtin.base import (
     SympyObject,
     Operator,
     PatternObject,
-    check_requires_list,
 )
 
 
@@ -176,6 +175,7 @@ for subdir in (
     "arithfns",
     "assignments",
     "atomic",
+    "binary",
     "box",
     "colors",
     "distance",

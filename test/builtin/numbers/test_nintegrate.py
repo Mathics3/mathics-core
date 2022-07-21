@@ -6,7 +6,7 @@ NIntegrate[] tests
 import importlib
 import pytest
 from test.helper import evaluate
-from mathics.builtin import check_requires_list
+from mathics.builtin.base import check_requires_list
 
 
 if check_requires_list(["scipy", "scipy.integrate"]):

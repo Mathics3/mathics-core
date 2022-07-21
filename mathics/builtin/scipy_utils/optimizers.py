@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from mathics.builtin import check_requires_list
+from mathics.builtin.base import check_requires_list
 from mathics.core.convert.function import expression_to_callable_and_args
 
 from mathics.core.atoms import Number, Real

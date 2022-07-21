@@ -1427,10 +1427,11 @@ class _BaseFinder(Builtin):
 class FindRoot(_BaseFinder):
     r"""
     <dl>
-    <dt>'FindRoot[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
-    <dt>'FindRoot[$lhs$ == $rhs$, {$x$, $x0$}]'
-        <dd>tries to solve the equation '$lhs$ == $rhs$'.
+      <dt>'FindRoot[$f$, {$x$, $x0$}]'
+      <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
+
+      <dt>'FindRoot[$lhs$ == $rhs$, {$x$, $x0$}]'
+      <dd>tries to solve the equation '$lhs$ == $rhs$'.
     </dl>
 
     'FindRoot' by default uses Newton\'s method, so the function of interest should have a first derivative.
