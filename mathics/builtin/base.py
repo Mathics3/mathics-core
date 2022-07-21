@@ -856,7 +856,7 @@ class BoxExpression(BuiltinElement):
 
     @leaves.setter
     def leaves(self, value):
-        raise ValueError("BoxExpression.leaves is write protected.")
+        raise ValueError("BoxExpression.elements is write protected.")
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self

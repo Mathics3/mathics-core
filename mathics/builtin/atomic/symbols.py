@@ -325,7 +325,7 @@ class Definition(Builtin):
                     def rhs(expr):
                         if expr.has_form("Infix", None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 
@@ -562,7 +562,7 @@ class Information(PrefixOperator):
                     def rhs(expr):
                         if expr.has_formf(SymbolInfix, None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 

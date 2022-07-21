@@ -106,10 +106,10 @@ def _parts_all_selector():
     def select(inner):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
-        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             raise MessageException("Part", "take", start, stop, inner)
-        return inner.leaves[py_slice]
+        return inner.elements[py_slice]
 
     return select
 
@@ -118,22 +118,22 @@ def _parts_span_selector(pspec):
     """
     Selector for `System`Span` part specification
     """
-    if len(pspec.leaves) > 3:
+    if len(pspec.elements) > 3:
         raise MessageException("Part", "span", pspec)
     start = 1
     stop = None
     step = 1
-    if len(pspec.leaves) > 0:
-        start = pspec.leaves[0].get_int_value()
-    if len(pspec.leaves) > 1:
-        stop = pspec.leaves[1].get_int_value()
+    if len(pspec.elements) > 0:
+        start = pspec.elements[0].get_int_value()
+    if len(pspec.elements) > 1:
+        stop = pspec.elements[1].get_int_value()
         if stop is None:
-            if pspec.leaves[1].get_name() == "System`All":
+            if pspec.elements[1].get_name() == "System`All":
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
-    if len(pspec.leaves) > 2:
-        step = pspec.leaves[2].get_int_value()
+    if len(pspec.elements) > 2:
+        step = pspec.elements[2].get_int_value()
 
     if start == 0 or stop == 0:
         # index 0 is undefined
@@ -145,10 +145,10 @@ def _parts_span_selector(pspec):
     def select(inner):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
-        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             raise MessageException("Part", "take", start, stop, inner)
-        return inner.leaves[py_slice]
+        return inner.elements[py_slice]
 
     return select
 
@@ -170,8 +170,8 @@ def _parts_sequence_selector(pspec):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
 
-        leaves = inner.leaves
-        n = len(leaves)
+        elements = inner.elements
+        n = len(elements)
 
         for index in indices:
             int_index = index.value
@@ -179,9 +179,9 @@ def _parts_sequence_selector(pspec):
             if int_index == 0:
                 yield inner.head
             elif 1 <= int_index <= n:
-                yield leaves[int_index - 1]
+                yield elements[int_index - 1]
             elif -n <= int_index <= -1:
-                yield leaves[int_index]
+                yield elements[int_index]
             else:
                 raise MessageException("Part", "partw", index, inner)
 
@@ -199,7 +199,7 @@ def _part_selectors(indices):
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
         elif index.has_form("List", None):
-            yield _parts_sequence_selector(index.leaves)
+            yield _parts_sequence_selector(index.elements)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
         else:

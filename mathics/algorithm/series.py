@@ -33,7 +33,7 @@ def same_monomial(expr, x, x0):
         return True
     if expr.get_head() is not SymbolPlus:
         return False
-    y, y0 = expr.leaves
+    y, y0 = expr.elements
     if y0.sameQ(x):
         if x0.sameQ(-y) or y.sameQ(-x0):
             return True
@@ -58,9 +58,9 @@ def same_monomial(expr, x, x0):
 #             power = 0
 #             reminder = None
 #     else:
-#         head, leaves = term.head, term.leaves
+#         head, elements = term.head, term.elements
 #         if head is SymbolPower:
-#             base, exponent = leaves
+#             base, exponent = elements
 #             head_exponent = exponent.get_head()
 #             if head_exponent is SymbolInteger:
 #                 power = exponent.to_float()
@@ -83,20 +83,20 @@ def same_monomial(expr, x, x0):
 #             coeffs_free = []
 #             coeffs_powers = []
 #             coeffs_x = []
-#             for leaf in leaves:
-#                 if x.sameQ(leaf):
+#             for element in elements:
+#                 if x.sameQ(elemnt):
 #                     coeffs_x.append(x)
-#                 elif isinstance(leaf, Atom):
-#                     coeffs_free.append(leaf)
-#                 elif leaf.get_head() is SymbolPower:
-#                     coeffs_powers.append(leaf)
+#                 elif isinstance(element, Atom):
+#                     coeffs_free.append(element)
+#                 elif element.get_head() is SymbolPower:
+#                     coeffs_powers.append(element)
 #                 else:
 #                     return None, None
 #             # All the factors are of the form x^k
-#             if all(x.sameQ(leaf.leaves[0]) for leaf in coeffs_powers):
+#             if all(x.sameQ(element.elements[0]) for element in coeffs_powers):
 #                 coeff = Expression(SymbolTimes, *coeffs_free)
 #                 power = len(coeffs_x)
-#                 exponents = [leaf.leaves[1] for leaf in coeffs_powers]
+#                 exponents = [element.elements[1] for element in coeffs_powers]
 #                 if not all(
 #                     isinstance(exponent, (Integer, Rational)) for exponent in exponents
 #                 ):
@@ -107,11 +107,11 @@ def same_monomial(expr, x, x0):
 #                 )
 #             # All the factors are of the form (x-x0)^k
 #             elif (
-#                 all(same_monomial(leaf.leaves[0], x, x0) for leaf in coeffs_powers)
+#                 all(same_monomial(element.elements[0], x, x0) for element in coeffs_powers)
 #                 and len(coeffs_x) == 0
 #             ):
 #                 coeff = Expression(SymbolTimes, *coeffs_free)
-#                 exponents = [leaf.leaves[1] for leaf in coeffs_powers]
+#                 exponents = [element.elements[1] for element in coeffs_powers]
 #                 if not all(
 #                     isinstance(exponent, (Integer, Rational)) for exponent in exponents
 #                 ):
@@ -128,10 +128,10 @@ def same_monomial(expr, x, x0):
 #         power = int(power) - nmin
 #         if power < 0:
 #             nmin = nmin + power
-#             newdata = [coef] + [Integer0 for i in range(1 - power)] + series[0].leaves
+#             newdata = [coef] + [Integer0 for i in range(1 - power)] + series[0].elements
 #         else:
 #             newdata = [
-#                 c + coeff if p == power else c for p, c in enumerate(series[0].leaves)
+#                 c + coeff if p == power else c for p, c in enumerate(series[0].elements)
 #             ]
 #         return (
 #             ListExpression(*newdata),
@@ -153,8 +153,8 @@ def series_plus_series(series1, series2):
 
     data1, nmin1, nmax1, den1 = series1
     data2, nmin2, nmax2, den2 = series2
-    data1 = data1.leaves
-    data2 = data2.leaves
+    data1 = data1.elements
+    data2 = data2.elements
 
     den = den1 * den2
     nmin1_ = nmin1 * int(den1 / den)
@@ -193,8 +193,8 @@ def series_times_series(series1, series2):
     """
     data1, nmin1, nmax1, den1 = series1
     data2, nmin2, nmax2, den2 = series2
-    data1 = data1.leaves
-    data2 = data2.leaves
+    data1 = data1.elements
+    data2 = data2.elements
     # maybe we should use the MCD
     den = den1 * den2
     offset1 = int(den1 / den)
@@ -230,7 +230,7 @@ def _series_times_rational_power(series, num_power, den_power):
     to a single series. None if it is not possible
     """
     data, nmin, nmax, den = series
-    data = data.leaves
+    data = data.elements
     # TODO: use the MCD
     den_ = den * den_power
     nmin_ = int(nmin * den_ / den + num_power * den_ / den_power)
@@ -251,7 +251,7 @@ def reduce_series_trailing_zeros(series):
     nmax
     """
     data, nmin, nmax, den = series
-    data = data.leaves
+    data = data.elements
     if len(data) == 0:
         return series
     i = 0
@@ -281,7 +281,7 @@ def reduce_series(series):
 
     def reduce_dataseries(series, factor):
         data, nmin, nmax, den = series
-        data = data.leaves
+        data = data.elements
         notdone = True
         while notdone:
             if (den % factor == 0) and (nmin % factor == 0) and (nmax % factor == 0):
@@ -324,7 +324,7 @@ def reduce_series_plus(series, terms, x, x0):
             other_terms.append(term)
             continue
         term_head = term.head
-        term_elements = term.leaves
+        term_elements = term.elements
         if term_head is SymbolSeriesData:
             y, y0, data, nummin, nummax, den = term_elements
             if not x.sameQ(y):
@@ -401,8 +401,8 @@ def build_series(f, x, x0, n, evaluation):
             return Expression(
                 f.get_head(),
                 *[
-                    build_series(leaf, x, x0, Integer(n), evaluation)
-                    for leaf in f.leaves
+                    build_series(element, x, x0, Integer(n), evaluation)
+                    for element in f.elements
                 ]
             )
         data.append(newcoeff)
@@ -424,7 +424,7 @@ def series_derivative(series, x, x0, y, evaluation):
     Evaluates the derivative of the series
     """
     data, nmin, nmax, den = series
-    coeffs = list(data.leaves)
+    coeffs = list(data.elements)
     if all(
         [
             not coeff.has_symbol(y.get_name())
