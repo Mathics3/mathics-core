@@ -109,7 +109,7 @@ class Compile(Builtin):
 
         try:
             cfunc, args = expression_to_callable_and_args(
-                expr, vars.get_elements(), evaluation
+                expr, vars.elements, evaluation
             )
         except CompileDuplicateArgName as e:
             # duplicated argument

@@ -43,7 +43,7 @@ def get_part(varlist, indices):
             if isinstance(cur, Atom):
                 raise PartDepthError(rest[0])
             pos = rest[0]
-            elements = cur.get_elements()
+            elements = cur.elements
             try:
                 if pos > 0:
                     part = elements[pos - 1]
@@ -572,7 +572,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(list(curr_element.get_elements()))
+            tree.append(list(curr_element.elements))
             changed_marks.append([False for s in tree[-1]])
             curr_index.append(0)
     return tree[0][0]
@@ -598,7 +598,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
     else:
         lsmin = levelspec[0]
         lsmax = levelspec[1]
-    tree = [expr.get_elements()]
+    tree = [expr.elements]
     curr_index = [0]
     found = []
     while len(tree) > 0:
@@ -620,6 +620,6 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(curr_element.get_elements())
+            tree.append(curr_element.elements)
             curr_index.append(0)
     return found

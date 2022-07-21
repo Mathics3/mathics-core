@@ -419,9 +419,6 @@ class GraphicsBox(BoxConstruct):
         self._elements = value
         return self._elements
 
-    def get_elements(self):
-        return self._elements
-
     def _get_image_size(self, options, graphics_options, max_width):
         inside_row = options.pop("inside_row", False)
         inside_list = options.pop("inside_list", False)

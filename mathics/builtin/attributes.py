@@ -221,7 +221,7 @@ class Protect(Builtin):
             symbols = [symbols]
         elif isinstance(symbols, Expression):
             if symbols.get_head_name() in ("System`Sequence", "System`List"):
-                symbols = symbols.get_elements()
+                symbols = symbols.elements
             else:
                 evaluation.message("Protect", "ssym", symbols)
                 return SymbolNull
@@ -273,7 +273,7 @@ class Unprotect(Builtin):
         if isinstance(symbols, Symbol):
             symbols = [symbols]
         elif isinstance(symbols, Expression):
-            symbols = symbols.get_elements()
+            symbols = symbols.elements
         elif isinstance(symbols, String):
             symbols = [symbols]
         else:
