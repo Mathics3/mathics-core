@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 
-from typing import Any, Optional, Tuple, Type
+from typing import Any, Optional, Tuple
 
 from mathics.core.attributes import no_attributes
 
