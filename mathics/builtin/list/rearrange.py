@@ -728,9 +728,9 @@ class Riffle(Builtin):
         "Riffle[list_List, sep_]"
 
         if sep.has_form("List", None):
-            result = riffle_lists(list.get_elements(), sep.elements)
+            result = riffle_lists(list.elements, sep.elements)
         else:
-            result = riffle_lists(list.get_elements(), [sep])
+            result = riffle_lists(list.elements, [sep])
 
         return list.restructure("List", result, evaluation, deps=(list, sep))
 

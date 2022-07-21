@@ -20,7 +20,7 @@ def single_real_arg(f):
     """
 
     def wrapped_f(self, expr):
-        elements = expr.get_elements()
+        elements = expr.elements
         if len(elements) != 1:
             raise CompileError()
         arg = self._gen_ir(elements[0])
@@ -41,7 +41,7 @@ def int_real_args(minargs):
 
     def wraps(f):
         def wrapped_f(self, expr):
-            elements = expr.get_elements()
+            elements = expr.elements
             if len(elements) < minargs:
                 raise CompileError()
             args = [self._gen_ir(element) for element in elements]
@@ -71,7 +71,7 @@ def int_args(f):
     """
 
     def wrapped_f(self, expr):
-        elements = expr.get_elements()
+        elements = expr.elements
         args = [self._gen_ir(element) for element in elements]
         for arg in args:
             if arg.type == void_type:
@@ -93,7 +93,7 @@ def bool_args(f):
     """
 
     def wrapped_f(self, expr):
-        elements = expr.get_elements()
+        elements = expr.elements
         args = [self._gen_ir(element) for element in elements]
         for arg in args:
             if arg.type == void_type:
@@ -247,7 +247,7 @@ class IRGenerator:
             raise CompileError()
 
         builder = self.builder
-        args = expr.get_elements()
+        args = expr.elements
 
         # condition
         cond = self._gen_ir(args[0])
@@ -307,7 +307,7 @@ class IRGenerator:
         return result
 
     def _gen_Return(self, expr):
-        elements = expr.get_elements()
+        elements = expr.elements
         if len(elements) != 1:
             raise CompileError()
 
@@ -347,7 +347,7 @@ class IRGenerator:
 
     def _gen_Power(self, expr):
         # TODO (int_type, int_type) power
-        elements = expr.get_elements()
+        elements = expr.elements
         if len(elements) != 2:
             raise CompileError()
 

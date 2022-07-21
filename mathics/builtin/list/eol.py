@@ -94,7 +94,7 @@ class Append(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain(expr.get_elements(), [item])),
+            list(chain(expr.elements, [item])),
             evaluation,
             deps=(expr, item),
         )
@@ -1086,7 +1086,7 @@ class Prepend(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain([item], expr.get_elements())),
+            list(chain([item], expr.elements)),
             evaluation,
             deps=(expr, item),
         )

@@ -59,9 +59,6 @@ class CustomGraphicsBox(BoxConstruct):
     def to_expression(self):
         return Expression(SymbolCustomGraphicsBox, *self.elements)
 
-    def get_elements(self):
-        return self._elements
-
     def apply_box(self, elems, evaluation, options):
         """System`MakeBoxes[System`Graphics[elems_, System`OptionsPattern[System`Graphics]],
         System`StandardForm|System`TraditionalForm|System`OutputForm]"""
@@ -89,6 +86,10 @@ class CustomGraphicsBox(BoxConstruct):
         return (
             "--custom graphics--: I should plot " + self.elements.__str__() + " items"
         )
+
+    @property
+    def elements(self):
+        return self._elements
 
 
 def test_custom_boxconstruct():

@@ -629,7 +629,7 @@ class BinaryRead(Builtin):
             return expr
 
         if typ.has_form("List", None):
-            types = typ.get_elements()
+            types = typ.elements
         else:
             types = [typ]
 
@@ -927,7 +927,7 @@ class BinaryWrite(Builtin):
 
         # Check Type
         if typ.has_form("List", None):
-            types = typ.get_elements()
+            types = typ.elements
         else:
             types = [typ]
 

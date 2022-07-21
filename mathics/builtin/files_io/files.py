@@ -219,7 +219,7 @@ class Close(Builtin):
         "Close[channel_]"
 
         if channel.has_form(("InputStream", "OutputStream"), 2):
-            [name, n] = channel.get_elements()
+            [name, n] = channel.elements
             py_n = n.get_int_value()
             stream = stream_manager.lookup_stream(py_n)
         else:
