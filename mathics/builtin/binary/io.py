@@ -921,7 +921,7 @@ class BinaryWrite(Builtin):
 
         # Check b
         if b.has_form("List", None):
-            pyb = b.leaves
+            pyb = b.elements
         else:
             pyb = [b]
 
@@ -953,9 +953,9 @@ class BinaryWrite(Builtin):
                 if isinstance(x, Real):
                     x = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
-                    if x.leaves[0].get_int_value() == 1:
+                    if x.elements[0].get_int_value() == 1:
                         x = float("+inf")
-                    elif x.leaves[0].get_int_value() == -1:
+                    elif x.elements[0].get_int_value() == -1:
                         x = float("-inf")
                     else:
                         x = None
@@ -968,7 +968,7 @@ class BinaryWrite(Builtin):
                 if isinstance(x, (Complex, Real, Integer)):
                     x = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
-                    x = x.leaves[0].to_python(n_evaluation=evaluation)
+                    x = x.elements[0].to_python(n_evaluation=evaluation)
 
                     # x*float('+inf') creates nan if x.real or x.imag are zero
                     x = complex(

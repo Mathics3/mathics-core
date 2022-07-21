@@ -45,7 +45,7 @@ def test_sameQ():
     ],
 )
 def test_eval_N(str_expr, prec, str_expected):
-    expr_in = session.evaluate(f"Hold[{str_expr}]").leaves[0]
+    expr_in = session.evaluate(f"Hold[{str_expr}]").elements[0]
     prec = session.evaluate(prec)
     expr_expected = session.evaluate(str_expected)
     result = eval_N(expr_in, evaluation, prec=prec)
@@ -79,9 +79,9 @@ def test_eval_N(str_expr, prec, str_expected):
 def test_apply_nvalues(str_expr, prec, str_expected, setup):
     if setup:
         session.evaluate(setup)
-    expr_in = session.evaluate(f"Hold[{str_expr}]").leaves[0]
+    expr_in = session.evaluate(f"Hold[{str_expr}]").elements[0]
     prec = session.evaluate(prec)
-    expr_expected = session.evaluate(f"Hold[{str_expected}]").leaves[0]
+    expr_expected = session.evaluate(f"Hold[{str_expected}]").elements[0]
     result = apply_nvalues(expr_in, prec, evaluation)
     session.evaluate("ClearAll[a,b,c]")
     assert expr_expected.sameQ(result)
@@ -111,8 +111,8 @@ def test_apply_nvalues(str_expr, prec, str_expected, setup):
 def test_numerify(str_expr, str_expected, setup):
     if setup:
         session.evaluate(setup)
-    expr_in = session.evaluate(f"Hold[{str_expr}]").leaves[0]
-    expr_expected = session.evaluate(f"Hold[{str_expected}]").leaves[0]
+    expr_in = session.evaluate(f"Hold[{str_expr}]").elements[0]
+    expr_expected = session.evaluate(f"Hold[{str_expected}]").elements[0]
     result = numerify(expr_in, evaluation)
     session.evaluate("ClearAll[a,b,c]")
     assert expr_expected.sameQ(result)

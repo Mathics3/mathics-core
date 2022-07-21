@@ -28,9 +28,9 @@ from mathics.core.atoms import Real, Integer, Rational
 def coords3D(value):
     if value.has_form("List", 3):
         result = (
-            value.leaves[0].round_to_float(),
-            value.leaves[1].round_to_float(),
-            value.leaves[2].round_to_float(),
+            value.elements[0].round_to_float(),
+            value.elements[1].round_to_float(),
+            value.elements[2].round_to_float(),
         )
         if None not in result:
             return result
@@ -42,8 +42,8 @@ class Coords3D:
         self.p = pos
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                if len(expr.leaves) > 1:
-                    self.p = coords3D(expr.leaves[1])
+                if len(expr.elements) > 1:
+                    self.p = coords3D(expr.elements[1])
             else:
                 self.p = coords3D(expr)
 

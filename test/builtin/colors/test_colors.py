@@ -343,7 +343,7 @@ class ColorTest(unittest.TestCase):
                 String(to_space),
             )
             .evaluate(self.evaluation)
-            .leaves
+            .elements
         ]
         self.assertEqual(len(components), len(to_components))
         for x, y in zip(components, to_components):

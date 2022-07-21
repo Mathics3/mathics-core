@@ -36,8 +36,8 @@ def convolve(in1, in2, fixed=True):
 
 def matrix_to_numpy(a):
     def matrix():
-        for y in a.leaves:
-            yield [x.round_to_float() for x in y.leaves]
+        for y in a.elements:
+            yield [x.round_to_float() for x in y.elements]
 
     return numpy.array(list(matrix()))
 

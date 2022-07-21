@@ -147,7 +147,7 @@ class Opacity(_GraphicsDirective):
         if isinstance(item, (int, float)):
             item = Expression(SymbolOpacity, MachineReal(item))
             super(Opacity, self).init(None, item)
-        self.opacity = item.leaves[0].to_python()
+        self.opacity = item.elements[0].to_python()
 
     def to_css(self):
         try:

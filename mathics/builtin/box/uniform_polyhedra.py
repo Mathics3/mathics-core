@@ -22,10 +22,10 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
 
-        if len(item.leaves) != 3:
+        if len(item.elements) != 3:
             raise BoxConstructError
 
-        points = item.leaves[1].to_python()
+        points = item.elements[1].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -33,8 +33,8 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
             raise BoxConstructError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.edge_length = item.leaves[2].to_python()
-        self.sub_type = item.leaves[0].to_python(string_quotes=False)
+        self.edge_length = item.elements[2].to_python()
+        self.sub_type = item.elements[0].to_python(string_quotes=False)
 
     def extent(self):
         result = []

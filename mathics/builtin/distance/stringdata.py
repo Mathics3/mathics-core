@@ -138,7 +138,9 @@ class _StringDistance(Builtin):
                     py_b = py_b.lower()
             return Integer(self._distance(py_a, py_b, lambda u, v: u == v))
         elif a.get_head_name() == "System`List" and b.get_head_name() == "System`List":
-            return Integer(self._distance(a.leaves, b.leaves, lambda u, v: u.sameQ(v)))
+            return Integer(
+                self._distance(a.elements, b.elements, lambda u, v: u.sameQ(v))
+            )
         else:
             return Expression(SymbolEditDistance, a, b)
 
@@ -260,7 +262,7 @@ class HammingDistance(Builtin):
     def apply_list(self, u, v, evaluation):
         "HammingDistance[u_List, v_List]"
         return HammingDistance._compute(
-            u.leaves, v.leaves, lambda x, y: x.sameQ(y), evaluation
+            u.elements, v.elements, lambda x, y: x.sameQ(y), evaluation
         )
 
     def apply_string(self, u, v, evaluation, options):

@@ -68,7 +68,7 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 
     # First look at user definitions:
     for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.leaves[1].__str__() == '"usage"':
+        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
             usagetext = rulemsg.replace.value
     if usagetext is not None:
         # Maybe, if htmltout is True, we should convert

@@ -639,8 +639,8 @@ class Put(BinaryOperator):
     def apply(self, exprs, filename, evaluation):
         "Put[exprs___, filename_String]"
         instream = to_expression("OpenWrite", filename).evaluate(evaluation)
-        if len(instream.leaves) == 2:
-            name, n = instream.leaves
+        if len(instream.elements) == 2:
+            name, n = instream.elements
         else:
             return  # opening failed
         result = self.apply_input(exprs, name, n, evaluation)
@@ -732,7 +732,7 @@ class PutAppend(BinaryOperator):
     def apply(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
-        if len(instream.leaves) == 2:
+        if len(instream.elements) == 2:
             name, n = instream.elements
         else:
             return  # opening failed
@@ -1027,14 +1027,14 @@ class Read(Builtin):
             Symbol("HoldExpression")
             if (
                 typ.get_head_name() == "System`Hold"
-                and typ.leaves[0].get_name() == "System`Expression"
+                and typ.elements[0].get_name() == "System`Expression"
             )
             else typ
             for typ in types
         )
         types = to_mathics_list(*types)
 
-        for typ in types.leaves:
+        for typ in types.elements:
             if typ not in READ_TYPES:
                 evaluation.message("Read", "readf", typ)
                 return SymbolFailed
@@ -1064,7 +1064,7 @@ class Read(Builtin):
         from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
         from mathics.core.parser import MathicsMultiLineFeeder, parse
 
-        for typ in types.leaves:
+        for typ in types.elements:
             try:
                 if typ is Symbol("Byte"):
                     tmp = stream.io.read(1)
@@ -1698,7 +1698,7 @@ class Write(Builtin):
         if strm is None:
             return
 
-        n = strm.leaves[1].get_int_value()
+        n = strm.elements[1].get_int_value()
         stream = stream_manager.lookup_stream(n)
 
         if stream is None or stream.io is None or stream.io.closed:
@@ -1775,7 +1775,7 @@ class WriteString(Builtin):
         if strm is None:
             return
 
-        stream = stream_manager.lookup_stream(strm.leaves[1].get_int_value())
+        stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
 
         if stream is None or stream.io is None or stream.io.closed:
             return None
