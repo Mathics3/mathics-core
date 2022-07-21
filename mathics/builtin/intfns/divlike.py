@@ -6,34 +6,57 @@ Division-Related Functions
 
 import sympy
 from itertools import combinations
-
+from sympy import Q, ask
 
 from mathics.builtin.base import Builtin, Test, SympyFunction
 from mathics.core.atoms import Integer
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.symbols import Symbol, SymbolTrue, SymbolFalse
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolComplexInfinity
 
 from mathics.core.attributes import (
-    flat,
-    listable,
-    numeric_function,
-    one_identity,
-    orderless,
-    protected,
+    flat as A_FLAT,
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    one_identity as A_ONE_IDENTITY,
+    orderless as A_ORDERLESS,
+    protected as A_PROTECTED,
 )
 
 SymbolQuotient = Symbol("Quotient")
 SymbolQuotientRemainder = Symbol("QuotientRemainder")
 
 
+class CompositeQ(Builtin):
+    """
+    <dl>
+      <dt>'CompositeQ[$n$]'
+      <dd>returns True if $n$ is a composite number
+    </dl>
+
+    <ul>
+      <li>A composite number is a positive number that is the product of two integers other than 1.
+      <li>For negative integer $n$, 'CompositeQ[$n$]' is effectively equivalent to 'CompositeQ[-$n$]'.
+    </ul>
+
+    >> Table[CompositeQ[n], {n, 0, 10}]
+     = {False, False, False, False, True, False, True, False, True, True, True}
+    """
+
+    summary_text = "test whether a number is composite"
+
+    def apply(self, n, evaluation):
+        "CompositeQ[n_Integer]"
+        return SymbolTrue if ask(Q.composite(n.value)) else SymbolFalse
+
+
 class CoprimeQ(Builtin):
     """
     <dl>
       <dt>'CoprimeQ[$x$, $y$]'
-        <dd>tests whether $x$ and $y$ are coprime by computing their greatest common divisor.
-      </dl>
+      <dd>tests whether $x$ and $y$ are coprime by computing their greatest common divisor.
+    </dl>
 
     >> CoprimeQ[7, 9]
      = True
@@ -58,7 +81,7 @@ class CoprimeQ(Builtin):
      = False
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether elements are coprime"
 
     def apply(self, args, evaluation):
@@ -72,6 +95,32 @@ class CoprimeQ(Builtin):
             return SymbolTrue
         else:
             return SymbolFalse
+
+
+class Divisible(Builtin):
+    """
+    <dl>
+      <dt>'Divisible[$n$, $m$]'
+      <dd>returns 'True' if $n$ is divisible by $m$, and 'False' otherwise.
+    </dl>
+
+    <ul>
+      <li>$n$ is divisible by $m$ if $n$ is the product of $m$ by an integer.
+      <li>'Divisible[$n$,$m$]' is effectively equivalent to 'Mod[$n$,$m$]==0'.
+
+    Test whether the number 10 is divisible by 2
+    >> Divisible[10, 2]
+     = True
+
+    But the other way around is False: 2 is not divisible by 10:
+    >> Divisible[2, 10]
+     = False
+    """
+
+    rules = {
+        "Divisible[n_, m_]": "Mod[n, m] == 0",
+    }
+    summary_text = "test whether one number is divisible by the other"
 
 
 class EvenQ(Test):
@@ -89,8 +138,8 @@ class EvenQ(Test):
      = False
     """
 
-    attributes = listable | protected
-    summary_text = "test whether elements are even numbers"
+    attributes = A_LISTABLE | A_PROTECTED
+    summary_text = "test whether one number is divisible by the other"
 
     def test(self, n):
         value = n.get_int_value()
@@ -116,7 +165,7 @@ class GCD(Builtin):
     'GCD' does not work for rational numbers and Gaussian integers yet.
     """
 
-    attributes = flat | listable | one_identity | orderless | protected
+    attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "greatest common divisor"
 
     def apply(self, ns, evaluation):
@@ -145,7 +194,7 @@ class LCM(Builtin):
      = 600
     """
 
-    attributes = flat | listable | one_identity | orderless | protected
+    attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "least common multiple"
 
     def apply(self, ns, evaluation):
@@ -164,8 +213,8 @@ class LCM(Builtin):
 class Mod(Builtin):
     """
     <dl>
-    <dt>'Mod[$x$, $m$]'
-        <dd>returns $x$ modulo $m$.
+      <dt>'Mod[$x$, $m$]'
+      <dd>returns $x$ modulo $m$.
     </dl>
 
     >> Mod[14, 6]
@@ -179,7 +228,7 @@ class Mod(Builtin):
      = Mod[5, 0]
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "the remainder in an integer division"
 
     def apply(self, n: Integer, m: Integer, evaluation):
@@ -190,6 +239,43 @@ class Mod(Builtin):
             evaluation.message("Mod", "divz", m)
             return
         return Integer(n % m)
+
+
+class ModularInverse(SympyFunction):
+    """
+    <dl>
+      <dt>'ModularInverse[$k$, $n$]'
+      <dd>returns $k$ modulo $n$.
+    </dl>
+
+    'ModularInverse[$k$,$n$]' gives the number $r$ such that the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
+
+
+    >> ModularInverse[2, 3]
+     = 2
+
+    The following is be True for all values $n$, $k$ which have a modular inverse:
+    >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
+     = True
+
+    # Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
+    >> ModularInverse[k, k]
+     = ModularInverse[2, 2]
+
+    #> Clear[k, n]
+    """
+
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    summary_text = "returns the modular inverse of $k$ modulo $n$"
+    sympy_name = "mod_inverse"
+
+    def apply_k_n(self, k: Integer, n: Integer, evaluation):
+        "ModularInverse[k_Integer, n_Integer]"
+        try:
+            r = sympy.mod_inverse(k.value, n.value)
+        except ValueError:
+            return
+        return Integer(r)
 
 
 class OddQ(Test):
@@ -205,7 +291,7 @@ class OddQ(Test):
      = False
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether elements are odd numbers"
 
     def test(self, n):
@@ -234,7 +320,7 @@ class PowerMod(Builtin):
     'PowerMod' does not support rational coefficients (roots) yet.
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
@@ -294,7 +380,7 @@ class PrimeQ(SympyFunction):
      = {False, True, True, False, True, False, True, False, False, False, True, False, True, False, False, False, True, False, True, False}
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "isprime"
     summary_text = "test whether elements are prime numbers"
 
@@ -333,7 +419,7 @@ class Quotient(Builtin):
      = -5
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     messages = {
         "infy": "Infinite expression `1` encountered.",
@@ -379,7 +465,7 @@ class QuotientRemainder(Builtin):
      = {2, 1.}
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     messages = {
         "divz": "The argument 0 in `1` should be nonzero.",
