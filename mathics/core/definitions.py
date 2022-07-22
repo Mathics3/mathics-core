@@ -618,6 +618,7 @@ class Definitions:
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         definition.attributes |= attribute
+
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
