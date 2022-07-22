@@ -917,7 +917,7 @@ def _importer_exporter_options(
     remaining_options = options.copy()
 
     if available_options and available_options.has_form("List", None):
-        for name in available_options.leaves:
+        for name in available_options.elements:
             if isinstance(name, String):
                 py_name = name.get_string_value()
             elif isinstance(name, Symbol):
@@ -1452,7 +1452,7 @@ class Import(Builtin):
                 if findfile is None:
                     tmpfile = True
                     stream = Expression(SymbolOpenWrite).evaluate(evaluation)
-                    findfile = stream.leaves[0]
+                    findfile = stream.elements[0]
                     if data is not None:
                         Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:

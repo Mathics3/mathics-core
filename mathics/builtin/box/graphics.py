@@ -1157,7 +1157,9 @@ class PointBox(_Polyline):
                 raise BoxConstructError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
-                if all(not leaf.has_form("List", None) for leaf in points.elements):
+                if all(
+                    not element.has_form("List", None) for element in points.elements
+                ):
                     points = ListExpression(points)
             self.do_init(graphics, points)
         else:
@@ -1196,11 +1198,11 @@ class PolygonBox(_Polyline):
             points = item.elements[0]
             self.do_init(graphics, points)
             self.vertex_colors = None
-            for leaf in item.elements[1:]:
-                if not leaf.has_form("Rule", 2):
+            for element in item.elements[1:]:
+                if not element.has_form("Rule", 2):
                     raise BoxConstructError
-                name = leaf.elements[0].get_name()
-                self.process_option(name, leaf.elements[1])
+                name = element.elements[0].get_name()
+                self.process_option(name, element.elements[1])
         else:
             raise BoxConstructError
 

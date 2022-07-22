@@ -117,14 +117,14 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             ("Sin", "Cos", "Tan", "Cot", "Sinh", "Cosh", "Tanh", "Coth"), 1
         ):
             head = expr.get_head()
-            theta = expr.leaves[0]
+            theta = expr.elements[0]
             if (target_pat is not None) and theta.is_free(target_pat, evaluation):
                 return expr
             if deep:
                 theta = _expand(theta)
 
             if theta.has_form("Plus", 2, None):
-                x, y = theta.leaves[0], Expression(SymbolPlus, *theta.leaves[1:])
+                x, y = theta.elements[0], Expression(SymbolPlus, *theta.elements[1:])
                 if head is SymbolSin:
                     a = Expression(
                         SymbolTimes,
@@ -326,12 +326,12 @@ def find_all_vars(expr):
         elif isinstance(e, Symbol):
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
-            for l in e.leaves:
+            for l in e.elements:
                 l_sympy = l.to_sympy()
                 if l_sympy is not None:
                     find_vars(l, l_sympy)
         elif e.has_form("Power", 2):
-            (a, b) = e.leaves  # a^b
+            (a, b) = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return
@@ -340,7 +340,7 @@ def find_all_vars(expr):
         elif not (isinstance(e, Atom)):
             variables.add(e)
 
-    exprs = expr.leaves if expr.has_form("List", None) else [expr]
+    exprs = expr.elements if expr.has_form("List", None) else [expr]
     for e in exprs:
         e_sympy = e.to_sympy()
         if e_sympy is not None:
@@ -642,7 +642,7 @@ class _CoefficientHandler(Builtin):
             ):
                 powers.append(term)
             elif term.has_form("Times", None):
-                for factor in term.leaves:
+                for factor in term.elements:
                     if factor.is_free(target_pat, evaluation):
                         coeffs.append(factor)
                     elif match(factor, target_pat, evaluation):
@@ -823,7 +823,7 @@ class CoefficientArrays(_CoefficientHandler):
         from mathics.algorithm.parts import walk_parts
 
         if polys.has_form("List", None):
-            list_polys = polys.leaves
+            list_polys = polys.elements
         else:
             list_polys = [polys]
 
@@ -938,7 +938,7 @@ class CoefficientList(Builtin):
 
     def apply(self, expr, form, evaluation):
         "CoefficientList[expr_, form_]"
-        vars = [form] if not form.has_form("List", None) else [v for v in form.leaves]
+        vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
 
         # check form is not a variable
         for v in vars:
@@ -983,7 +983,7 @@ class CoefficientList(Builtin):
                     ]
                 )
             elif form.has_form("List", 1):
-                form = form.leaves[0]
+                form = form.elements[0]
                 return Expression(
                     SymbolList,
                     *[
@@ -999,14 +999,14 @@ class CoefficientList(Builtin):
                     if not dims:
                         return from_sympy(poly.coeff_monomial(exponents))
 
-                    leaves = []
+                    elements = []
                     first_dim = dims[0]
                     for i in range(first_dim + 1):
                         exponents.append(i)
                         subs = _nth(poly, dims[1:], exponents)
-                        leaves.append(subs)
+                        elements.append(subs)
                         exponents.pop()
-                    result = ListExpression(*leaves)
+                    result = ListExpression(*elements)
                     return result
 
                 return _nth(sympy_poly, dimensions, [])
@@ -1188,8 +1188,8 @@ class Expand(_Expand):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
-            optname = target.leaves[0].get_name()
-            options[optname] = target.leaves[1]
+            optname = target.elements[0].get_name()
+            options[optname] = target.elements[1]
             target = None
 
         kwargs = self.convert_options(options, evaluation)
@@ -1248,8 +1248,8 @@ class ExpandAll(_Expand):
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
-            optname = target.leaves[0].get_name()
-            options[optname] = target.leaves[1]
+            optname = target.elements[0].get_name()
+            options[optname] = target.elements[1]
             target = None
 
         kwargs = self.convert_options(options, evaluation)
@@ -1358,7 +1358,7 @@ class Exponent(Builtin):
             #   fully_evaluated, flat, and is_ordered are all True
             return Expression(h, *[i for i in get_exponents_sorted(expr, form)])
         else:
-            exponents = [get_exponents_sorted(expr, var) for var in form.leaves]
+            exponents = [get_exponents_sorted(expr, var) for var in form.elements]
             # TODO: add ElementProperties in Expression interface refactor branch:
             #   fully_evaluated is True, flat is false, and is_ordered is probably True
             return ListExpression(*[Expression(h, *[i for i in s]) for s in exponents])
@@ -1461,7 +1461,7 @@ class FactorTermsList(Builtin):
         elif isinstance(expr, Number):
             return ListExpression(expr, Integer1)
 
-        for x in vars.leaves:
+        for x in vars.elements:
             if not (isinstance(x, Atom)):
                 return evaluation.message("CoefficientList", "ivar", x)
 
@@ -1472,7 +1472,7 @@ class FactorTermsList(Builtin):
 
         sympy_vars = [
             x.to_sympy()
-            for x in vars.leaves
+            for x in vars.elements
             if isinstance(x, Symbol) and sympy_expr.is_polynomial(x.to_sympy())
         ]
 
@@ -1870,9 +1870,9 @@ class PolynomialQ(Builtin):
         if var is SymbolNull:
             return SymbolTrue
         elif var.has_form("List", None):
-            if len(var.leaves) == 0:
+            if len(var.elements) == 0:
                 return evaluation.message("PolynomialQ", "novar")
-            sympy_var = [x.to_sympy() for x in var.leaves]
+            sympy_var = [x.to_sympy() for x in var.elements]
         else:
             sympy_var = [var.to_sympy()]
 

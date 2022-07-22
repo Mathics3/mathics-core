@@ -86,7 +86,7 @@ class Function(PostfixOperator):
         "Function[vars_, body_][args___]"
 
         if vars.has_form("List", None):
-            vars = vars.leaves
+            vars = vars.elements
         else:
             vars = [vars]
 
@@ -99,7 +99,9 @@ class Function(PostfixOperator):
             # this is not included in WL, and here does not have any impact, but it is needed for
             # translating the function to a compiled version.
             var_names = (
-                var.get_name() if isinstance(var, Symbol) else var.leaves[0].get_name()
+                var.get_name()
+                if isinstance(var, Symbol)
+                else var.elements[0].get_name()
                 for var in vars
             )
             vars = dict(list(zip(var_names, args[: len(vars)])))
@@ -112,7 +114,7 @@ class Function(PostfixOperator):
     def apply_named_attr(self, vars, body, attr, args, evaluation):
         "Function[vars_, body_, attr_][args___]"
         if vars.has_form("List", None):
-            vars = vars.leaves
+            vars = vars.elements
         else:
             vars = [vars]
 

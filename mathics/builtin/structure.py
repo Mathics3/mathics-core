@@ -101,12 +101,14 @@ class Sort(Builtin):
         else:
 
             class Key:
-                def __init__(self, leaf):
-                    self.leaf = leaf
+                def __init__(self, element):
+                    self.element = element
 
                 def __gt__(self, other):
                     return (
-                        not Expression(p, self.leaf, other.leaf).evaluate(evaluation)
+                        not Expression(p, self.element, other.element).evaluate(
+                            evaluation
+                        )
                         is SymbolTrue
                     )
 
@@ -602,17 +604,17 @@ class MapAt(Builtin):
                 j = m + i
             else:
                 raise PartRangeError
-            replace_leaf = new_elements[j]
-            if hasattr(replace_leaf, "head") and replace_leaf.head is Symbol(
+            replace_element = new_elements[j]
+            if hasattr(replace_element, "head") and replace_element.head is Symbol(
                 "System`Rule"
             ):
                 new_elements[j] = Expression(
                     SymbolRule,
-                    replace_leaf.elements[0],
-                    Expression(f, replace_leaf.elements[1]),
+                    replace_element.elements[0],
+                    Expression(f, replace_element.elements[1]),
                 )
             else:
-                new_elements[j] = Expression(f, replace_leaf)
+                new_elements[j] = Expression(f, replace_element)
             return new_elements
 
         a = args.to_python()
@@ -1090,7 +1092,7 @@ class Flatten(Builtin):
                     evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
                     return
 
-        # assign new indices to each leaf
+        # assign new indices to each element
         new_indices = {}
 
         def callback(expr, pos):
@@ -1104,31 +1106,31 @@ class Flatten(Builtin):
         # build new tree inserting nodes as needed
         elements = sorted(new_indices.items())
 
-        def insert_leaf(elements):
+        def insert_element(elements):
             # gather elements into groups with the same leading index
             # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
             # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
             leading_index = None
             grouped_elements = []
-            for index, leaf in elements:
+            for index, element in elements:
                 if index[0] == leading_index:
-                    grouped_elements[-1].append((index[1:], leaf))
+                    grouped_elements[-1].append((index[1:], element))
                 else:
                     leading_index = index[0]
-                    grouped_elements.append([(index[1:], leaf)])
+                    grouped_elements.append([(index[1:], element)])
             # for each group of elements we either insert them into the current level
             # or make a new level and recurse
             new_elements = []
             for group in grouped_elements:
-                if len(group[0][0]) == 0:  # bottom level leaf
+                if len(group[0][0]) == 0:  # bottom level element or leaf
                     assert len(group) == 1
                     new_elements.append(group[0][1])
                 else:
-                    new_elements.append(Expression(h, *insert_leaf(group)))
+                    new_elements.append(Expression(h, *insert_element(group)))
 
             return new_elements
 
-        return Expression(h, *insert_leaf(elements))
+        return Expression(h, *insert_element(elements))
 
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"

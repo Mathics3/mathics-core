@@ -68,7 +68,7 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 
     # First look at user definitions:
     for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.leaves[1].__str__() == '"usage"':
+        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
             usagetext = rulemsg.replace.value
     if usagetext is not None:
         # Maybe, if htmltout is True, we should convert
@@ -325,7 +325,7 @@ class Definition(Builtin):
                     def rhs(expr):
                         if expr.has_form("Infix", None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 
@@ -562,7 +562,7 @@ class Information(PrefixOperator):
                     def rhs(expr):
                         if expr.has_formf(SymbolInfix, None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 

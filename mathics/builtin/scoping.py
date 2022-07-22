@@ -24,13 +24,13 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     if not var_list.has_form("List", None):
         message("lvlist", var_list)
         return
-    vars = var_list.leaves
+    vars = var_list.elements
     scoping_vars = set()
     for var in vars:
         var_name = None
         if var.has_form("Set", 2):
-            var_name = var.leaves[0].get_name()
-            new_def = var.leaves[1]
+            var_name = var.elements[0].get_name()
+            new_def = var.elements[1]
             if evaluation:
                 new_def = new_def.evaluate(evaluation)
         elif isinstance(var, Symbol):
@@ -392,7 +392,7 @@ class Unique(Predefined):
             return evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
 
         # Check valid symbol variables
-        symbols = vars.leaves if vars.has_form("List", None) else [vars]
+        symbols = vars.elements if vars.has_form("List", None) else [vars]
         for symbol in symbols:
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()

@@ -618,7 +618,7 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
         if axes is SymbolTrue:
             axes = (True, True, True)
         elif axes.has_form("List", 3):
-            axes = (leaf is SymbolTrue for leaf in axes.leaves)
+            axes = (element is SymbolTrue for element in axes.elements)
         else:
             axes = (False, False, False)
         ticks_style = graphics_options.get("System`TicksStyle")
@@ -627,14 +627,14 @@ currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
 
         # FIXME: Doesn't handle GrayScale
         if ticks_style.has_form("List", 1, 2, 3):
-            ticks_style = ticks_style.leaves
+            ticks_style = ticks_style.elements
         elif ticks_style.has_form("RGBColor", None):
             ticks_style = [ticks_style] * 3
         else:
             ticks_style = []
 
         if axes_style.has_form("List", 1, 2, 3):
-            axes_style = axes_style.leaves
+            axes_style = axes_style.elements
         else:
             axes_style = [axes_style] * 3
 
@@ -725,10 +725,10 @@ class Cone3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
+        if len(item.elements) != 2:
             raise BoxConstructError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -736,7 +736,7 @@ class Cone3DBox(_GraphicsElementBox):
             raise BoxConstructError
 
         self.points = tuple(Coords3D(graphics, pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
@@ -773,10 +773,10 @@ class Cuboid3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 1:
+        if len(item.elements) != 1:
             raise BoxConstructError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -805,10 +805,10 @@ class Cylinder3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
+        if len(item.elements) != 2:
             raise BoxConstructError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -816,7 +816,7 @@ class Cylinder3DBox(_GraphicsElementBox):
             raise BoxConstructError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
@@ -922,10 +922,10 @@ class Sphere3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        if len(item.leaves) != 2:
+        if len(item.elements) != 2:
             raise BoxConstructError
 
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(isinstance(point, list) for point in points):
             points = [points]
         if not all(
@@ -935,7 +935,7 @@ class Sphere3DBox(_GraphicsElementBox):
             raise BoxConstructError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []
@@ -969,7 +969,7 @@ class Tube3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        points = item.leaves[0].to_python()
+        points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -977,7 +977,7 @@ class Tube3DBox(_GraphicsElementBox):
             raise BoxConstructError
 
         self.points = [Coords3D(graphics, pos=point) for point in points]
-        self.radius = item.leaves[1].to_python()
+        self.radius = item.elements[1].to_python()
 
     def extent(self):
         result = []

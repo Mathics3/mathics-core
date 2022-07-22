@@ -542,7 +542,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     for x in (x1, x2):
         # TODO: Send message General::nord
         if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.leaves[0], Complex)
+            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
         ):
             return None
 
@@ -575,7 +575,7 @@ def do_cmp(x1, x2) -> Optional[int]:
 class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
         to_sympy = super(_SympyComparison, self).to_sympy
-        if len(expr.leaves) > 2:
+        if len(expr.elements) > 2:
 
             def pairs(elements):
                 yield Expression(Symbol(expr.get_head_name()), *elements[:2])
@@ -584,7 +584,7 @@ class _SympyComparison(SympyFunction):
                     yield Expression(Symbol(expr.get_head_name()), *elements[:2])
                     elements = elements[1:]
 
-            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.leaves)])
+            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.elements)])
         return to_sympy(expr, **kwargs)
 
 

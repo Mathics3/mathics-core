@@ -175,7 +175,7 @@ class TagSet(Builtin, _SetOperator):
     >> UpValues[x]
      = {HoldPattern[f[x]] :> 2}
 
-    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of a leaf in $lhs$:
+    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
     >> x /: f[g[x]] = 3;
      : Tag x not found or too deep for an assigned rule.
     >> g /: f[g[x]] = 3;

@@ -178,7 +178,7 @@ def read_list_from_types(read_types):
         Symbol("HoldExpression")
         if (
             typ.get_head_name() == "System`Hold"
-            and typ.leaves[0].get_name() == "System`Expression"
+            and typ.elements[0].get_name() == "System`Expression"
         )
         else typ
         for typ in read_types

@@ -50,9 +50,9 @@ class SpecialValueError(Exception):
 def _get_float_inf(value, evaluation) -> Optional[float]:
     value = value.evaluate(evaluation)
     if value.has_form("DirectedInfinity", 1):
-        if value.leaves[0].get_int_value() == 1:
+        if value.elements[0].get_int_value() == 1:
             return float("inf")
-        elif value.leaves[0].get_int_value() == -1:
+        elif value.elements[0].get_int_value() == -1:
             return float("-inf")
         else:
             return None

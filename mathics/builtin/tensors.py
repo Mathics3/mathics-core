@@ -48,7 +48,7 @@ def get_default_distance(p):
                     SymbolFalse,
                 )
 
-            if all(all(is_boolean(e) for e in q.leaves) for q in p):
+            if all(all(is_boolean(e) for e in q.elements) for q in p):
                 return Symbol("JaccardDissimilarity")
         return Symbol("SquaredEuclideanDistance")
     elif all(isinstance(q, String) for q in p):
@@ -70,15 +70,15 @@ def get_dimensions(expr, head=None):
             return []
         sub_dim = None
         sub = []
-        for leaf in expr.leaves:
-            sub = get_dimensions(leaf, expr.head)
+        for element in expr.elements:
+            sub = get_dimensions(element, expr.head)
             if sub_dim is None:
                 sub_dim = sub
             else:
                 if sub_dim != sub:
                     sub = []
                     break
-        return [len(expr.leaves)] + sub
+        return [len(expr.elements)] + sub
 
 
 class ArrayDepth(Builtin):
@@ -306,15 +306,15 @@ class Inner(Builtin):
         def rec(i_cur, j_cur, i_rest, j_rest):
             evaluation.check_stopped()
             if i_rest:
-                leaves = []
+                elements = []
                 for i in range(1, i_rest[0] + 1):
-                    leaves.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
-                return Expression(head, *leaves)
+                    elements.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
+                return Expression(head, *elements)
             elif j_rest:
-                leaves = []
+                elements = []
                 for j in range(1, j_rest[0] + 1):
-                    leaves.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
-                return Expression(head, *leaves)
+                    elements.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
+                return Expression(head, *elements)
             else:
 
                 def summand(i):
@@ -323,7 +323,7 @@ class Inner(Builtin):
                     return Expression(f, part1, part2)
 
                 part = Expression(g, *[summand(i) for i in range(1, inner_dim + 1)])
-                # cur_expr.leaves.append(part)
+                # cur_expr.elements.append(part)
                 return part
 
         return rec([], [], m[:-1], n[1:])
@@ -389,10 +389,10 @@ class Outer(Builtin):
                 else:
                     return Expression(f, *(current + [item]))
             else:
-                leaves = []
-                for leaf in item.leaves:
-                    leaves.append(rec(leaf, rest_lists, current))
-                return Expression(head, *leaves)
+                elements = []
+                for element in item.elements:
+                    elements.append(rec(element, rest_lists, current))
+                return Expression(head, *elements)
 
         return rec(lists[0], lists[1:], [])
 
@@ -518,8 +518,8 @@ class Transpose(Builtin):
         "Transpose[m_?MatrixQ]"
 
         result = []
-        for row_index, row in enumerate(m.leaves):
-            for col_index, item in enumerate(row.leaves):
+        for row_index, row in enumerate(m.elements):
+            for col_index, item in enumerate(row.elements):
                 if row_index == 0:
                     result.append([item])
                 else:
