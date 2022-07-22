@@ -114,6 +114,7 @@ Bugs
 * Fix a bug in handling arguments of pythonized expressions, that are produced by ``Compile`` when the llvmlite compiler fails.
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 * `N[Indeterminate]` now produces `Indeterminate` instead a `PrecisionReal(nan)`.
+* Fix crash in ``NestWhile`` when supplying ``All`` as the fourth argument.
 
 
 
