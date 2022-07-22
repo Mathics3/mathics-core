@@ -1,0 +1,275 @@
+% -*- latex -*-
+%
+% This is ae top-level LaTeX file to be used in testing TeX building.
+% It includes testing.tex which you are to provide.
+% That file contains the things you want to test out, such as
+% asymptote examples.
+%
+% Often you start out with the auto-generated file "documentation.tex"
+% and then strip it down to the parts you want to scrutenize
+% The results of running this test are put in mathics-test.pdf
+%
+% To build this:
+%    make mathics-test.pdf
+
+\documentclass[index=totoc,fleqn,10pt,oneside,toc=flat]{scrbook}
+
+%\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{asymptote}
+\usepackage[hypertexnames=false]{hyperref} % make hyperref aware of chapter reset for built-in symbols
+% (http://tex.stackexchange.com/questions/6098/wrong-hyper-references-after-resetting-chapter-counter)
+\usepackage{listings}
+\usepackage{paralist}
+\usepackage{color}
+\usepackage{fullpage}
+\usepackage{graphics}
+\usepackage{textcomp}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathpazo}
+\usepackage[mathpazo]{flexisym}
+\usepackage{breqn}
+\usepackage{environ}
+\usepackage{multicol}
+\usepackage[]{colophon}
+\usepackage[k-tight]{minitoc}
+\setlength{\mtcindent}{0pt}
+\mtcsetformat{minitoc}{tocrightmargin}{2.55em plus 1fil}
+\newcommand{\multicolumnmtc}{3}
+\makeatletter
+\let\SV@mtc@verse\mtc@verse
+\let\SV@endmtc@verse\endmtc@verse
+\def\mtc@verse#1{\SV@mtc@verse#1\removelastskip%
+ \begin{multicols}{\multicolumnmtc}\raggedcolumns\leavevmode\unskip
+ \vskip -1.5ex \vskip -1\baselineskip}
+\def\endmtc@verse{\end{multicols}\SV@endmtc@verse}
+\makeatother
+
+\definecolor{message}{rgb}{0.8,0.4,0}
+\definecolor{print}{rgb}{0,0,1}
+\definecolor{definitions}{rgb}{0.96,0.96,0.94}
+\definecolor{subtitle}{rgb}{0.3,0.3,0.3}
+
+\definecolor{pythonstring}{rgb}{0,0.5,0}
+
+\title{
+    \includegraphics[height=0.1\linewidth]{logo-heptatom.pdf}
+    \includegraphics[height=0.08125\linewidth]{logo-text-nodrop.pdf}
+\\[.5em]
+  {\LARGE\color{subtitle}\textit{\textmd{A free, open-source alternative to Mathematica}}}
+  \par\textmd{\Large Mathics Core Version \MathicsCoreVersion}
+}
+\author{The Mathics Team}
+
+
+% Fix unicode mappings for listings
+% http://tex.stackexchange.com/questions/39640/typesetting-utf8-listings-with-german-umlaute
+\lstset{literate=%
+    {Ö}{{\"O}}1
+    {Ä}{{\"A}}1
+    {Ü}{{\"U}}1
+    {ß}{{\ss}}1
+    {ü}{{\"u}}1
+    {ä}{{\"a}}1
+    {ö}{{\"o}}1
+    {~}{{\textasciitilde}}1
+    {⧦}{{===}}1
+    {}{{=>}}1
+    {⇒}{{$\Rightarrow$}}1
+    {⊻}{{$\oplus$}}1
+    {…}{{...}}1
+    {∫}{{S}}1
+    {}{{d}}1
+}
+
+\setlength{\columnsep}{1cm}
+
+\makeatletter\newenvironment{definitions}{
+
+	\vspace{0.5em}%
+	\begin{lrbox}{\@tempboxa}\begin{minipage}{0.95\columnwidth}%
+	\nobreak\vspace{0.3em}%
+}{%
+	\nobreak%
+	\vspace{0.3em}%
+	\end{minipage}\end{lrbox}
+	\colorbox{definitions}{\usebox{\@tempboxa}}
+	\vspace{1em}%
+}\makeatother
+
+\newcommand{\dt}[1]{#1%
+\par%
+}
+\newcommand{\dd}[1]{{%
+\hangindent2em%
+\hangafter=0%
+#1%
+\par%
+}}
+
+% Unfortunately, this doesn't work with code segments:
+%\newenvironment{definitions}{\begin{description}}{\end{description}}
+%\newcommand{\dt}[1]{\item[#1]}
+%\newcommand{\dd}[1]{#1}
+
+\newcommand{\sectionstart}{}
+\newcommand{\sectionend}{}
+
+\newcommand{\subsectionstart}{}
+\newcommand{\subsectionend}{}
+
+\newcommand{\chapterstart}{
+}
+\newcommand{\chaptersections}{
+	\minitoc
+	\begin{multicols}{2}
+}
+\newcommand{\chapterend}{
+	\end{multicols}
+}
+
+\newcommand{\referencestart}{
+\setcounter{chapter}{0}
+%\def\thechapter{\Roman{chapter}}
+\renewcommand{\chaptersections}{
+	\minitoc
+	\begin{multicols*}{2}
+}
+\renewcommand{\chapterend}{
+	\end{multicols*}
+}
+}
+
+% don't use two columns in appendix
+\let\originalappendix\appendix
+\renewcommand{\appendix}{\originalappendix
+\renewcommand{\chaptersections}{
+}
+\renewcommand{\chapterend}{
+}
+}
+
+\newenvironment{chapterintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{chapterintroshort}{\par}{}
+
+\newenvironment{guidesectionintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{guidesectionintroshort}{\par}{}
+
+\newcommand{\codewidth}{0.9\columnwidth}
+
+\newenvironment{tests}{%
+	\begin{compactitem}[{%
+	\tiny\ttfamily $>>$
+	}]%
+}{%
+	\end{compactitem}%
+}
+\newenvironment{testcase}{%
+	\item%
+	\begin{minipage}[t]{\codewidth}
+	\begin{compactitem}[]%
+}{%
+	\end{compactitem}%
+	\end{minipage}
+	\vspace{1em}%
+}
+
+\newcommand{\test}[1]{%
+\item \begin{minipage}[t]{\codewidth}\begin{flushleft} {\ttfamily \bfseries #1} \end{flushleft} \end{minipage} \hfill \nobreak%
+}
+
+\newenvironment{testmessage}{\item
+\vspace{-0.5em}
+\begin{minipage}{\codewidth}
+\begin{dmath*}[indentstep={0em},compact]%
+\color{message}%
+}{%
+\end{dmath*}%
+\end{minipage}%
+}
+\newenvironment{testprint}{\item
+\vspace{-0.5em}
+\begin{minipage}{\codewidth}
+\begin{dmath*}[indentstep={0em},compact]%
+\color{print}%
+}{%
+\end{dmath*}%
+\end{minipage}%
+}
+
+\newenvironment{testresult}{%
+	\item%
+	\vspace{-0.5em}%
+	\begin{minipage}{\codewidth}%
+	\hbadness=10000
+	\begin{dmath*}[indentstep={0em},compact]%
+}{%
+	\end{dmath*}%
+	\end{minipage}%
+}
+\newenvironment{testresultlist}{%
+	\item%
+	\vspace{-0.5em}%
+	\begin{minipage}{\codewidth}%
+	\begin{dgroup*}[indentstep={0em},compact]%
+}{%
+	\end{dgroup*}%
+	\end{minipage}%
+}
+
+\newcommand{\code}[1]{\hbadness=10000{\ttfamily #1}}
+\newcommand{\codevar}[1]{{\rmfamily #1}}
+\newcommand{\console}[1]{\hbadness=10000{\ttfamily #1}}
+
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{1pt}
+
+\setlength{\mathindent}{0em}
+
+\raggedbottom
+
+\raggedcolumns
+
+\makeindex
+
+\hyphenation{assign-ments}
+
+\begin{document}
+\input{version-info.tex}
+
+\maketitle
+
+\dominitoc
+
+\setcounter{tocdepth}{0}
+\tableofcontents
+
+\lstset{
+%  inputencoding=utf8,
+  extendedchars=true,
+  breaklines=true,
+  breakatwhitespace=false,
+  showspaces=false,
+  basicstyle=\ttfamily
+}
+
+\lstdefinestyle{python}{language=Python,tabsize=2,basicstyle=\scriptsize\ttfamily,showstringspaces=false,stringstyle=\color{pythonstring},commentstyle=\ttfamily\color{pythonstring},frame=lines}
+
+\input{testing.tex}
+
+\printindex
+\begin{colophon}
+\begin{description}
+  \item[Mathics Core] \hfill \\ \MathicsCoreVersion
+  \item[Python] \hfill \\ \PythonVersion
+  \item[XeTeX] \hfill \\ \XeTeXVersion
+  \item[Asymptote] \hfill \\ \AsymptoteVersion
+  \item[Ghostscript] \hfill \\ \GhostscriptVersion
+\end{description}
+\end{colophon}
+\end{document}

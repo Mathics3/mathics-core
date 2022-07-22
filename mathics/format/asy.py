@@ -572,7 +572,7 @@ def polygonbox(self, **options) -> str:
     line_width = self.style.get_line_width(face_element=True)
     if self.vertex_colors is None:
         face_color = self.face_color
-        face_opacity_value = self.face_opacity.opacity
+        face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     else:
         face_color = None
         face_opacity_value = None
