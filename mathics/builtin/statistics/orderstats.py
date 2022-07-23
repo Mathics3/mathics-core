@@ -1,5 +1,7 @@
 """
 Order Statistics
+
+See <url>https://en.wikipedia.org/wiki/Order_statistic</url>
 """
 
 from mathics.algorithm.introselect import introselect
@@ -95,7 +97,7 @@ class Quantile(Builtin):
             numeric_x = x.evaluate(evaluation).numerify(evaluation)
 
             if isinstance(numeric_x, Integer):
-                results.append(ranked(numeric_x.get_int_value()))
+                results.append(ranked(numeric_x.value))
             else:
                 py_x = numeric_x.to_mpmath()
 
@@ -190,9 +192,8 @@ class RankedMax(Builtin):
 class RankedMin(Builtin):
     """
     <dl>
-    <dt>'RankedMin[$list$, $n$]'
-      <dd>returns the $n$th smallest element of $list$ (with $n$ = 1 yielding the smallest element,
-      $n$ = 2 yielding the second smallest element, and so on).
+      <dt>'RankedMin[$list$, $n$]'
+      <dd>returns the $n$th smallest element of $list$ (with $n$ = 1 yielding the smallest element, $n$ = 2 yielding the second smallest element, and so on).
     </dl>
 
     >> RankedMin[{482, 17, 181, -12}, 2]
