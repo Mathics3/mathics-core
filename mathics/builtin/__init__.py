@@ -185,9 +185,9 @@ for subdir in (
     "intfns",
     "list",
     "matrices",
-    "moments",
     "numbers",
     "specialfns",
+    "statistics",
     "string",
     "vectors",
 ):

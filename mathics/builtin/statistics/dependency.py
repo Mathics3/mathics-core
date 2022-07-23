@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
+# TODO: separate these wen we have more
 """
-Special Moments
+Dependency and Dispursion Statistics
 """
 
 # This tells documentation how to sort this module
@@ -98,41 +99,6 @@ class Covariance(Builtin):
             )
 
 
-class Kurtosis(Builtin):  # see https://en.wikipedia.org/wiki/Kurtosis
-    """
-    <dl>
-      <dt>'Kurtosis[$list$]'
-      <dd>gives the Pearson measure of kurtosis for $list$ (a measure of existing outliers).
-    </dl>
-
-    >> Kurtosis[{1.1, 1.2, 1.4, 2.1, 2.4}]
-     = 1.42098
-    """
-
-    rules = {
-        "Kurtosis[list_List]": "CentralMoment[list, 4] / (CentralMoment[list, 2] ^ 2)",
-    }
-    summary_text = "kurtosis coefficient"
-
-
-class Skewness(Builtin):  # see https://en.wikipedia.org/wiki/Skewness
-    """
-    <dl>
-    <dt>'Skewness[$list$]'
-      <dd>gives Pearson's moment coefficient of skewness for $list$ (a measure for estimating
-      the symmetry of a distribution).
-    </dl>
-
-    >> Skewness[{1.1, 1.2, 1.4, 2.1, 2.4}]
-     = 0.407041
-    """
-
-    rules = {
-        "Skewness[list_List]": "CentralMoment[list, 3] / (CentralMoment[list, 2] ^ (3 / 2))",
-    }
-    summary_text = "skewness coefficient"
-
-
 class StandardDeviation(_Rectangular):
     """
     <dl>
@@ -227,3 +193,9 @@ class Variance(_Rectangular):
                 Expression(SymbolDot, d, Expression(SymbolConjugate, d)),
                 Integer(len(l.elements) - 1),
             )
+
+
+# TODO for Dispersion:
+#  TrimmedVariance, WinsorizedVariance, StandardDeviation, MeanDeviation, MedianDeviation, QuartileDeviation, InterquartileRange, QnDispersion, SnDispersion, BiweightMidvariance
+# TODO for Dependency:
+#  Correlation, AbsoluteCorrelation, SpearmanRho,  KendallTau, HoeffdingD, GoodmanKruskalGamma, BlomqvistBeta, WilksW, PillaiTrace
