@@ -1,8 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.compile.types import int_type, real_type, bool_type
-
-
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
 from mathics.core.evaluators import eval_N
@@ -18,6 +15,7 @@ from typing import Optional, Callable, Tuple
 
 
 try:
+    from mathics.builtin.compile.types import int_type, real_type, bool_type
     from mathics.builtin.compile import _compile, CompileArg, CompileError
 
     use_llvm = True
