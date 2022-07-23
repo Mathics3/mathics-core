@@ -12,11 +12,13 @@ from mathics.core.attributes import listable, numeric_function, protected
 
 class Erf(_MPMathMultiFunction):
     """
+    Error function. See <url>https://en.wikipedia.org/wiki/Error_function</url>.
     <dl>
-    <dt>'Erf[$z$]'
-        <dd>returns the error function of $z$.
-    <dt>'Erf[$z0$, $z1$]'
-        <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
+      <dt>'Erf[$z$]'
+      <dd>returns the error function of $z$.
+
+      <dt>'Erf[$z0$, $z1$]'
+      <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
     </dl>
 
     'Erf[$x$]' is an odd function:
@@ -50,9 +52,11 @@ class Erf(_MPMathMultiFunction):
 
 class Erfc(_MPMathFunction):
     """
+    Complementary Error function. See <url>https://en.wikipedia.org/wiki/Error_function</url>.
+
     <dl>
-    <dt>'Erfc[$z$]'
-        <dd>returns the complementary error function of $z$.
+      <dt>'Erfc[$z$]'
+      <dd>returns the complementary error function of $z$.
     </dl>
 
     >> Erfc[-x] / 2
@@ -75,8 +79,8 @@ class Erfc(_MPMathFunction):
 class FresnelC(_MPMathFunction):
     """
     <dl>
-    <dt>'FresnelC[$z$]'
-        <dd>is the Fresnel C integral $C$($z$).
+      <dt>'FresnelC[$z$]'
+      <dd>is the Fresnel C integral $C$($z$).
     </dl>
 
     >> FresnelC[{0, Infinity}]
@@ -119,8 +123,8 @@ class FresnelS(_MPMathFunction):
 class InverseErf(_MPMathFunction):
     """
     <dl>
-    <dt>'InverseErf[$z$]'
-        <dd>returns the inverse error function of $z$.
+      <dt>'InverseErf[$z$]'
+      <dd>returns the inverse error function of $z$.
     </dl>
 
     >> InverseErf /@ {-1, 0, 1}

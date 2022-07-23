@@ -7,6 +7,7 @@ import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
+from mathics.core.atoms import Integer
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.number import machine_precision, get_precision, PrecisionValueError
 from mathics.core.number import prec as _prec
@@ -29,6 +30,7 @@ class _Bessel(_MPMathFunction):
 
 class AiryAi(_MPMathFunction):
     """
+     Airy function of the first kind. See <url>https://en.wikipedia.org/wiki/Airy_function</url>.
     <dl>
       <dt>'AiryAi[$x$]'
       <dd>returns the Airy function Ai($x$).
@@ -89,7 +91,7 @@ class AiryAiPrime(_MPMathFunction):
 class AiryAiZero(Builtin):
     """
     <dl>
-    <dt>'AiryAiZero[$k$]'
+      <dt>'AiryAiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Ai($z$).
     </dl>
 
@@ -132,7 +134,7 @@ class AiryAiZero(Builtin):
         else:
             p = _prec(d)
 
-        k_int = k.get_int_value()
+        k_int = k.value
 
         with mpmath.workprec(p):
             result = mpmath.airyaizero(k_int)
@@ -233,7 +235,7 @@ class AiryBiZero(Builtin):
 
     summary_text = "kth zero of the Airy's function Bi"
 
-    def apply_N(self, k, precision, evaluation):
+    def apply_N(self, k: Integer, precision, evaluation):
         "N[AiryBiZero[k_Integer], precision_]"
 
         try:
@@ -246,7 +248,7 @@ class AiryBiZero(Builtin):
         else:
             p = _prec(d)
 
-        k_int = k.get_int_value()
+        k_int = k.value
 
         with mpmath.workprec(p):
             result = mpmath.airybizero(k_int)
@@ -255,8 +257,9 @@ class AiryBiZero(Builtin):
 
 class AngerJ(_Bessel):
     """
+    Anger function. See <url>https://en.wikipedia.org/wiki/Anger_function</url>.
     <dl>
-    <dt>'AngerJ[$n$, $z$]'
+      <dt>'AngerJ[$n$, $z$]'
       <dd>returns the Anger function J_$n$($z$).
     </dl>
 
@@ -280,7 +283,7 @@ class AngerJ(_Bessel):
 class BesselI(_Bessel):
     """
 
-    Bessel function of the first kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url>.
+    Modified Bessel function of the first kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url>.
 
     <dl>
     <dt>'BesselI[$n$, $z$]'
@@ -445,7 +448,7 @@ class BesselYZero(_Bessel):
 class HankelH1(_Bessel):
     """
     <dl>
-    <dt>'HankelH1[$n$, $z$]'
+      <dt>'HankelH1[$n$, $z$]'
       <dd>returns the Hankel function of the first kind H_$n$^1 ($z$).
     </dl>
 
@@ -487,6 +490,8 @@ class HankelH2(_Bessel):
 
 class KelvinBei(_Bessel):
     """
+    Kelvin function bei. See <url>https://en.wikipedia.org/wiki/Kelvin_functions#bei(x)</url>.
+
     <dl>
       <dt>'KelvinBei[$z$]'
       <dd>returns the Kelvin function bei($z$).
@@ -520,6 +525,7 @@ class KelvinBei(_Bessel):
 
 class KelvinBer(_Bessel):
     """
+    Kelvin function ber. See <url>https://en.wikipedia.org/wiki/Kelvin_functions#ber(x)</url>.
     <dl>
       <dt>'KelvinBer[$z$]'
       <dd>returns the Kelvin function ber($z$).
@@ -553,6 +559,8 @@ class KelvinBer(_Bessel):
 
 class KelvinKei(_Bessel):
     """
+    Kelvin function kei. See <url>https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url>.
+
     <dl>
       <dt>'KelvinKei[$z$]'
       <dd>returns the Kelvin function kei($z$).
@@ -586,8 +594,10 @@ class KelvinKei(_Bessel):
 
 class KelvinKer(_Bessel):
     """
+    Kelvin function ker. See <url>https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url>.
+
     <dl>
-    <dt>'KelvinKer[$z$]'
+      <dt>'KelvinKer[$z$]'
       <dd>returns the Kelvin function ker($z$).
     <dt>'KelvinKer[$n$, $z$]'
       <dd>returns the Kelvin function ker_$n$($z$).
@@ -617,7 +627,7 @@ class KelvinKer(_Bessel):
 class SphericalBesselJ(_Bessel):
     """
 
-    Spherical Bessel function of the first kind. See <url>href="https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    Spherical Bessel function of the first kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>.
 
     <dl>
       <dt>'SphericalBesselJ[$n$, $z$]'
@@ -640,7 +650,7 @@ class SphericalBesselJ(_Bessel):
 
 class SphericalBesselY(_Bessel):
     """
-    Spherical Bessel function of the first kind. See <url>href="https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    Spherical Bessel function of the first kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>.
 
     <dl>
       <dt>'SphericalBesselY[$n$, $z$]'
@@ -663,7 +673,7 @@ class SphericalBesselY(_Bessel):
 class SphericalHankelH1(_Bessel):
     """
 
-    Spherical Bessel function of the first kind. See <url>href="https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    Spherical Bessel function of the first kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>.
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -683,7 +693,7 @@ class SphericalHankelH1(_Bessel):
 class SphericalHankelH2(_Bessel):
     """
 
-    Spherical Bessel function of the second kind. See <url>href="https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    Spherical Bessel function of the second kind. See <url>https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>.
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -702,6 +712,7 @@ class SphericalHankelH2(_Bessel):
 
 class StruveH(_Bessel):
     """
+    Struve functions H. See <url>https://en.wikipedia.org/wiki/Struve_function</url>.
     <dl>
       <dt>'StruveH[$n$, $z$]'
       <dd>returns the Struve function H_$n$($z$).
@@ -721,8 +732,9 @@ class StruveH(_Bessel):
 
 class StruveL(_Bessel):
     """
+    Modified Struve functions L. See <url>https://en.wikipedia.org/wiki/Struve_function</url>.
     <dl>
-    <dt>'StruveL[$n$, $z$]'
+      <dt>'StruveL[$n$, $z$]'
       <dd>returns the modified Struve function L_$n$($z$).
     </dl>
 
