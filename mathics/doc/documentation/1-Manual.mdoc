@@ -1256,13 +1256,13 @@ This implies that you should not store sensitive, private information in \Mathic
 
 If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command <con>Quit[]</con> or its alias, <con>Exit[]</con>.
 
-Normally, when you reload the current page in a browser using the default url, e.g <con>http:localhost:8000</con>, all of the previous input and output disappears, even though definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
+Normally, when you reload the current page in a browser using the default URL, e.g <con>http:localhost:8000</con>, all of the previous input and output disappears, even though definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
 
 However if you want a URL that will that records the input entered the <em>Generate Input Hash</em> button does this. The button looks like this:
 
 <imgpng src="generate-hash-button.png" title="Mathics Generate Input Hash Button" label="generate-input-hash-button">
 
-For example, assuming you have a \Mathics server running at port 8000 on <con>localhost</con>, and you enter the url <con>http://localhost:8000/#cXVlcmllcz14</con>, you should see a single line of input containing <con>x</con> entered.
+For example, assuming you have a \Mathics server running at port 8000 on <con>localhost</con>, and you enter the URL <con>http://localhost:8000/#cXVlcmllcz14</con>, you should see a single line of input containing <con>x</con> entered.
 
 Of course, what the value of this is when evaluated depends on whether <con>x</con> has been previously defined.
 
