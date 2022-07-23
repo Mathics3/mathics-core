@@ -43,7 +43,7 @@ class _BooleanDissimilarity(Builtin):
         def generate():
             for element in u.elements:
                 if isinstance(element, Integer):
-                    val = element.get_int_value()
+                    val = element.value
                     if val in (0, 1):
                         yield val
                     else:
@@ -85,11 +85,12 @@ class _NoBoolVector(Exception):
 
 class Binomial(_MPMathFunction):
     """
+    Binomcial Coefficient. See <url>https://en.wikipedia.org/wiki/Binomial_coefficient</url>.
+
     <dl>
       <dt>'Binomial[$n$, $k$]'
       <dd>gives the binomial coefficient $n$ choose $k$.
     </dl>
-    See also <url>https://en.wikipedia.org/wiki/Binomial_coefficient</url>.
 
     >> Binomial[5, 3]
      = 10
@@ -119,11 +120,12 @@ class Binomial(_MPMathFunction):
 
 class CatalanNumber(SympyFunction):
     """
+    Catalan Number. See <url>https://en.wikipedia.org/wiki/Catalan_number</url>.
+
     <dl>
       <dt>'CatalanNumber[$n$]'
       <dd>gives the $n$th Catalan number.
     </dl>
-    See also <url>https://en.wikipedia.org/wiki/Catalan_number</url>.
 
     A list of the first five Catalan numbers:
     >> Table[CatalanNumber[n], {n, 1, 5}]
@@ -137,20 +139,20 @@ class CatalanNumber(SympyFunction):
 
     # We (and sympy) do not handle fractions or other non-integers
     # right now.
-    def apply_integer(self, n, evaluation):
+    def apply_integer(self, n: Integer, evaluation):
         "CatalanNumber[n_Integer]"
         return self.apply(n, evaluation)
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
-    """
+    r"""
+    Sørensen–Dice coefficient. See <url>https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient<url>.
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
       <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
       which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is
       the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
     </dl>
-    See also <url>https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient<url>.
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
      = 1 / 2
@@ -166,11 +168,11 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
 class JaccardDissimilarity(_BooleanDissimilarity):
     """
+    Jaccard index. See <url>https://en.wikipedia.org/wiki/Jaccard_index</url>.
     <dl>
       <dt>'JaccardDissimilarity[$u$, $v$]'
       <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
     </dl>
-    See also <url>https://en.wikipedia.org/wiki/Jaccard_index</url>
 
     >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
      = 2 / 3
@@ -203,11 +205,11 @@ class MatchingDissimilarity(_BooleanDissimilarity):
 
 class Multinomial(Builtin):
     """
+    Multinomial distribution. See <url>https://en.wikipedia.org/wiki/Multinomial_distribution</url>.
     <dl>
       <dt>'Multinomial[$n1$, $n2$, ...]'
       <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
     </dl>
-    See also <url>https://en.wikipedia.org/wiki/Multinomial_distribution</url>.
 
     >> Multinomial[2, 3, 4, 5]
      = 2522520
@@ -455,6 +457,7 @@ class Subsets(Builtin):
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
+            # Note: "n" does not have to be an Integer.
             n_value = n.get_int_value()
             if n_value == 0:
                 return ListExpression(ListExpression())

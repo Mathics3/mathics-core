@@ -9,6 +9,8 @@ from mathics.core.atoms import Integer0
 
 class ChebyshevT(_MPMathFunction):
     """
+    Chebyshev polynomial of the first kind. See <url>https://en.wikipedia.org/wiki/Chebyshev_polynomials</url>.
+
     <dl>
     <dt>'ChebyshevT[$n$, $x$]'
       <dd>returns the Chebyshev polynomial of the first kind T_$n$($x$).
@@ -29,8 +31,10 @@ class ChebyshevT(_MPMathFunction):
 
 class ChebyshevU(_MPMathFunction):
     """
+    Chebyshev polynomial of the second kind. See <url>https://en.wikipedia.org/wiki/Chebyshev_polynomials</url>.
+
     <dl>
-    <dt>'ChebyshevU[$n$, $x$]'
+      <dt>'ChebyshevU[$n$, $x$]'
       <dd>returns the Chebyshev polynomial of the second kind U_$n$($x$).
     </dl>
 
@@ -49,8 +53,10 @@ class ChebyshevU(_MPMathFunction):
 
 class GegenbauerC(_MPMathFunction):
     """
+    Gegenbauer polynomials <url>https://en.wikipedia.org/wiki/Gegenbauer_polynomials</url>.
+
     <dl>
-    <dt>'GegenbauerC[$n$, $m$, $x$]'
+      <dt>'GegenbauerC[$n$, $m$, $x$]'
       <dd>returns the Gegenbauer polynomial C_$n$^($m$)($x$).
     </dl>
 
@@ -71,8 +77,9 @@ class GegenbauerC(_MPMathFunction):
 
 class HermiteH(_MPMathFunction):
     """
+    Hermite polynomial. See <url>https://en.wikipedia.org/wiki/Hermite_polynomials#Hermite_functions<url>.
     <dl>
-    <dt>'HermiteH[$n$, $x$]'
+      <dt>'HermiteH[$n$, $x$]'
       <dd>returns the Hermite polynomial H_$n$($x$).
     </dl>
 
@@ -94,8 +101,10 @@ class HermiteH(_MPMathFunction):
 
 class JacobiP(_MPMathFunction):
     """
+    Jacobi polynomials. See <url>https://en.wikipedia.org/wiki/Jacobi_polynomials</url>.
+
     <dl>
-    <dt>'JacobiP[$n$, $a$, $b$, $x$]'
+      <dt>'JacobiP[$n$, $a$, $b$, $x$]'
       <dd>returns the Jacobi polynomial P_$n$^($a$,$b$)($x$).
     </dl>
 
@@ -114,21 +123,24 @@ class JacobiP(_MPMathFunction):
 
 class LaguerreL(_MPMathFunction):
     """
-    <dl>
-    <dt>'LaguerreL[$n$, $x$]'
-      <dd>returns the Laguerre polynomial L_$n$($x$).
-    <dt>'LaguerreL[$n$, $a$, $x$]'
-      <dd>returns the generalised Laguerre polynomial L^$a$_$n$($x$).
-    </dl>
+    Laguerre polynomials. See <url>https://en.wikipedia.org/wiki/Laguerre_polynomials</url>.
 
-    >> LaguerreL[8, x]
-     = 1 - 8 x + 14 x ^ 2 - 28 x ^ 3 / 3 + 35 x ^ 4 / 12 - 7 x ^ 5 / 15 + 7 x ^ 6 / 180 - x ^ 7 / 630 + x ^ 8 / 40320
+     <dl>
+       <dt>'LaguerreL[$n$, $x$]'
+       <dd>returns the Laguerre polynomial L_$n$($x$).
 
-    >> LaguerreL[3/2, 1.7]
-     = -0.947134
+       <dt>'LaguerreL[$n$, $a$, $x$]'
+       <dd>returns the generalised Laguerre polynomial L^$a$_$n$($x$).
+     </dl>
 
-    >> LaguerreL[5, 2, x]
-     = 21 - 35 x + 35 x ^ 2 / 2 - 7 x ^ 3 / 2 + 7 x ^ 4 / 24 - x ^ 5 / 120
+     >> LaguerreL[8, x]
+      = 1 - 8 x + 14 x ^ 2 - 28 x ^ 3 / 3 + 35 x ^ 4 / 12 - 7 x ^ 5 / 15 + 7 x ^ 6 / 180 - x ^ 7 / 630 + x ^ 8 / 40320
+
+     >> LaguerreL[3/2, 1.7]
+      = -0.947134
+
+     >> LaguerreL[5, 2, x]
+      = 21 - 35 x + 35 x ^ 2 / 2 - 7 x ^ 3 / 2 + 7 x ^ 4 / 24 - x ^ 5 / 120
     """
 
     rules = {
@@ -149,9 +161,10 @@ class LaguerreL(_MPMathFunction):
 class LegendreP(_MPMathFunction):
     """
     <dl>
-    <dt>'LegendreP[$n$, $x$]'
+      <dt>'LegendreP[$n$, $x$]'
       <dd>returns the Legendre polynomial P_$n$($x$).
-    <dt>'LegendreP[$n$, $m$, $x$]'
+
+      <dt>'LegendreP[$n$, $m$, $x$]'
       <dd>returns the associated Legendre polynomial P^$m$_$n$($x$).
     </dl>
 
@@ -189,18 +202,19 @@ class LegendreP(_MPMathFunction):
     mpmath_name = "legenp"
     summary_text = "Legendre's polynomials of first kind"
 
-    def prepare_sympy(self, leaves):
-        if leaves[1] == Integer0:
-            return leaves[:1] + leaves[2:]
-        return leaves
+    def prepare_sympy(self, elements):
+        if elements[1] == Integer0:
+            return elements[:1] + elements[2:]
+        return elements
 
 
 class LegendreQ(_MPMathFunction):
     """
     <dl>
-    <dt>'LegendreQ[$n$, $x$]'
+      <dt>'LegendreQ[$n$, $x$]'
       <dd>returns the Legendre function of the second kind Q_$n$($x$).
-    <dt>'LegendreQ[$n$, $m$, $x$]'
+
+      <dt>'LegendreQ[$n$, $m$, $x$]'
       <dd>returns the associated Legendre function of the second Q^$m$_$n$($x$).
     </dl>
 
@@ -232,16 +246,16 @@ class LegendreQ(_MPMathFunction):
     mpmath_name = "legenq"
     summary_text = "Legendre's polynomials of second kind"
 
-    def prepare_sympy(self, leaves):
-        if leaves[1] == Integer0:
-            return leaves[:1] + leaves[2:]
-        return leaves
+    def prepare_sympy(self, elements):
+        if elements[1] == Integer0:
+            return elements[:1] + elements[2:]
+        return elements
 
 
 class SphericalHarmonicY(_MPMathFunction):
     """
     <dl>
-    <dt>'SphericalHarmonicY[$l$, $m$, $theta$, $phi$]'
+      <dt>'SphericalHarmonicY[$l$, $m$, $theta$, $phi$]'
       <dd>returns the spherical harmonic function Y_$l$^$m$(theta, phi).
     </dl>
 
@@ -274,8 +288,10 @@ class SphericalHarmonicY(_MPMathFunction):
 #
 # class ZernikeR(_MPMathFunction):
 #    """
+#     Zermike polynomials. See <url>https://en.wikipedia.org/wiki/Zernike_polynomials</url>.
+
 #    <dl>
-#    <dt>'ZernikeR[$n$, $m$,  $r$]'
+#      <dt>'ZernikeR[$n$, $m$,  $r$]'
 #      <dd>returns the radial Zernike polynomial R_$n$^$m$($r$).
 #    </dl>
 #
