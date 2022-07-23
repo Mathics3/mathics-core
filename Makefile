@@ -70,7 +70,7 @@ clean-cython:
 #: Remove Python cache files
 clean-cache:
 	find mathics -name *.py[co] -type f -delete; \
-	find mathics -name __pycache__ -type d -delete
+	find mathics -name __pycache__ -type d -delete || true
 
 #: Remove derived files
 clean: clean-cython clean-cache

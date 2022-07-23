@@ -13,7 +13,7 @@ all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
 doc-data $(DOC_TEX_DATA_PCL):
-	(cd ../.. && $(PYTHON) docpipeline.py --output --keep-going)
+	(cd ../.. && $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
 
 #: Build mathics PDF
 mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_TEX_DATA_PCL)
@@ -45,6 +45,7 @@ clean:
 	rm -f test-mathics.aux test-mathics.idx test-mathics.log test-mathics.mtc test-mathics.mtc* test-mathics.out test-mathics.toc || true
 	rm -f mathics.fdb_latexmk mathics.ilg mathics.ind mathics.maf mathics.pre || true
 	rm -f mathics_*.* || true
-	rm -f mathics-*.* documentation.tex $(DOC_TEX_DATA_PCL) || true
+	rm -f mathics-test.asy mathics-test.aux mathics-test.idx mathics-test.log mathics-test.mtc mathicsest.mtc* mathics-test.out mathics-test.toc || true
+	rm -f documentation.tex $(DOC_TEX_DATA_PCL) || true
 	rm -f mathics.pdf mathics.dvi test-mathics.pdf test-mathics.dvi || true
 	rm -f mathics-test.pdf mathics-test.dvi version-info.tex || true

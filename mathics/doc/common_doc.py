@@ -650,9 +650,13 @@ class Documentation:
 
         return None
 
-    def get_tests(self):
+    def get_tests(self, want_sorting=False):
         for part in self.parts:
-            for chapter in part.chapters:
+            if want_sorting:
+                chapter_collection_fn = lambda x: sorted_chapters(x)
+            else:
+                chapter_collection_fn = lambda x: x
+            for chapter in chapter_collection_fn(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -746,7 +750,7 @@ def sorted_chapters(chapters: list) -> list:
 
 
 class MathicsMainDocumentation(Documentation):
-    def __init__(self):
+    def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
         self.latex_file = settings.DOC_LATEX_FILE
         self.parts = []
@@ -812,7 +816,17 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DocPart(self, title, is_reference=start)
             modules_seen = set()
-            for module in modules:
+            if want_sorting:
+                module_collection_fn = lambda x: sorted(
+                    modules,
+                    key=lambda module: module.sort_order
+                    if hasattr(module, "sort_order")
+                    else module.__name__,
+                )
+            else:
+                module_collection_fn = lambda x: x
+
+            for module in module_collection_fn(modules):
                 if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
@@ -903,7 +917,7 @@ class MathicsMainDocumentation(Documentation):
             self.parts.append(part)
 
         # set keys of tests
-        for tests in self.get_tests():
+        for tests in self.get_tests(want_sorting=want_sorting):
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
@@ -1159,7 +1173,7 @@ class DocPart:
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in self.chapters
+                for chapter in sorted_chapters(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
             )
         )
@@ -1209,7 +1223,7 @@ class DocChapter:
             "\\chaptersections\n",
             "\n\n".join(
                 section.latex(doc_data, quiet)
-                for section in self.sections
+                for section in sorted(self.sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",
