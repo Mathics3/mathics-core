@@ -24,29 +24,6 @@ class Accumulate(Builtin):
     rules = {"Accumulate[head_]": "FoldList[Plus, head]"}
 
 
-class Mean(Builtin):
-    """
-    <dl>
-    <dt>'Mean[$list$]'
-      <dd>returns the statistical mean of $list$.
-    </dl>
-
-    >> Mean[{26, 64, 36}]
-     = 42
-
-    >> Mean[{1, 1, 2, 3, 5, 8}]
-     = 10 / 3
-
-    >> Mean[{a, b}]
-     = (a + b) / 2
-    """
-
-    summary_text = "mean of a list"
-    rules = {
-        "Mean[list_]": "Total[list] / Length[list]",
-    }
-
-
 class Total(Builtin):
     """
     <dl>

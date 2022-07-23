@@ -30,7 +30,7 @@ class _Bessel(_MPMathFunction):
 class AiryAi(_MPMathFunction):
     """
     <dl>
-    <dt>'AiryAi[$x$]'
+      <dt>'AiryAi[$x$]'
       <dd>returns the Airy function Ai($x$).
     </dl>
 
@@ -60,8 +60,8 @@ class AiryAi(_MPMathFunction):
 class AiryAiPrime(_MPMathFunction):
     """
     <dl>
-    <dt>'AiryAiPrime[$x$]'
-        <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
+      <dt>'AiryAiPrime[$x$]'
+      <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
     </dl>
 
     Exact values:

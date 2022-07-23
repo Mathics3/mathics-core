@@ -69,20 +69,24 @@ if CHECK_GRAMMAR:
 
 module_subdirs = (
     "arithfns",
-    "atomic",
     "assignments",
+    "atomic",
+    "binary",
     "box",
     "colors",
+    "compile",
     "distance",
     "drawing",
+    "fileformats",
     "files_io",
     "intfns",
     "list",
-    "moments",
+    "matrices",
     "numbers",
     "specialfns",
+    "statistics",
     "string",
-    "fileformats",
+    "vectors",
 )
 
 __py_files__ = [

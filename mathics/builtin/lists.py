@@ -18,7 +18,6 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.algorithm.introselect import introselect
 from mathics.algorithm.parts import (
     python_levelspec,
     walk_levels,
@@ -101,8 +100,6 @@ SymbolClusteringComponents = Symbol("ClusteringComponents")
 SymbolContainsOnly = Symbol("ContainsOnly")
 SymbolFindClusters = Symbol("FindClusters")
 SymbolKey = Symbol("Key")
-SymbolRankedMax = Symbol("RankedMax")
-SymbolRankedMin = Symbol("RankedMin")
 SymbolSplit = Symbol("Split")
 
 
@@ -1270,70 +1267,6 @@ class _Rectangular(Builtin):
         )
 
 
-class RankedMin(Builtin):
-    """
-    <dl>
-    <dt>'RankedMin[$list$, $n$]'
-      <dd>returns the $n$th smallest element of $list$ (with $n$ = 1 yielding the smallest element,
-      $n$ = 2 yielding the second smallest element, and so on).
-    </dl>
-
-    >> RankedMin[{482, 17, 181, -12}, 2]
-     = 17
-    """
-
-    messages = {
-        "intpm": "Expected positive integer at position 2 in ``.",
-        "rank": "The specified rank `1` is not between 1 and `2`.",
-    }
-    summary_text = "the n-th smallest item"
-
-    def apply(self, element, n: Integer, evaluation):
-        "RankedMin[element_List, n_Integer]"
-        py_n = n.value
-        if py_n < 1:
-            evaluation.message(
-                "RankedMin", "intpm", Expression(SymbolRankedMin, element, n)
-            )
-        elif py_n > len(element.elements):
-            evaluation.message("RankedMin", "rank", py_n, len(element.elements))
-        else:
-            return introselect(element.get_mutable_elements(), py_n - 1)
-
-
-class RankedMax(Builtin):
-    """
-    <dl>
-    <dt>'RankedMax[$list$, $n$]'
-      <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
-      $n$ = 2 yielding the second largest element, and so on).
-    </dl>
-
-    >> RankedMax[{482, 17, 181, -12}, 2]
-     = 181
-    """
-
-    messages = {
-        "intpm": "Expected positive integer at position 2 in ``.",
-        "rank": "The specified rank `1` is not between 1 and `2`.",
-    }
-    summary_text = "the n-th largest item"
-
-    def apply(self, element, n: Integer, evaluation):
-        "RankedMax[element_List, n_Integer]"
-        py_n = n.value
-        if py_n < 1:
-            evaluation.message(
-                "RankedMax", "intpm", Expression(SymbolRankedMax, element, n)
-            )
-        elif py_n > len(element.elements):
-            evaluation.message("RankedMax", "rank", py_n, len(element.elements))
-        else:
-            return introselect(
-                element.get_mutable_elements(), len(element.elements) - py_n
-            )
-
-
 class _RankedTake(Builtin):
     messages = {
         "intpm": "Expected non-negative integer at position `1` in `2`.",
@@ -1446,33 +1379,6 @@ class _RankedTakeLargest(_RankedTake):
         return heapq.nlargest(n, heap)
 
 
-class TakeLargest(_RankedTakeLargest):
-    """
-    <dl>
-    <dt>'TakeLargest[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ largest items in $list$.
-    </dl>
-
-    >> TakeLargest[{100, -1, 50, 10}, 2]
-     = {100, 50}
-
-    None, Null, Indeterminate and expressions with head Missing are ignored
-    by default:
-    >> TakeLargest[{-8, 150, Missing[abc]}, 2]
-     = {150, -8}
-
-    You may specify which items are ignored using the option ExcludedForms:
-    >> TakeLargest[{-8, 150, Missing[abc]}, 2, ExcludedForms -> {}]
-     = {Missing[abc], 150}
-    """
-
-    summary_text = "sublist of n largest elements"
-
-    def apply(self, element, n, evaluation, options):
-        "TakeLargest[element_List, n_, OptionsPattern[TakeLargest]]"
-        return self._compute(element, n, evaluation, options)
-
-
 class TakeLargestBy(_RankedTakeLargest):
     """
     <dl>
@@ -1495,26 +1401,6 @@ class TakeLargestBy(_RankedTakeLargest):
     def apply(self, element, f, n, evaluation, options):
         "TakeLargestBy[element_List, f_, n_, OptionsPattern[TakeLargestBy]]"
         return self._compute(element, n, evaluation, options, f=f)
-
-
-class TakeSmallest(_RankedTakeSmallest):
-    """
-    <dl>
-    <dt>'TakeSmallest[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ smallest items in $list$.
-    </dl>
-
-    For details on how to use the ExcludedForms option, see TakeLargest[].
-
-    >> TakeSmallest[{100, -1, 50, 10}, 2]
-     = {-1, 10}
-    """
-
-    summary_text = "sublist of n smallest elements"
-
-    def apply(self, element, n, evaluation, options):
-        "TakeSmallest[element_List, n_, OptionsPattern[TakeSmallest]]"
-        return self._compute(element, n, evaluation, options)
 
 
 class TakeSmallestBy(_RankedTakeSmallest):

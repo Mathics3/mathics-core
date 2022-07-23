@@ -1046,8 +1046,8 @@ class _MinMax(Builtin):
 class Max(_MinMax):
     """
     <dl>
-    <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
-        <dd>returns the expression with the greatest value among the $e_i$.
+      <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
+      <dd>returns the expression with the greatest value among the $e_i$.
     </dl>
 
     Maximum of a series of values:
