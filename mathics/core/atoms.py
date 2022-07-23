@@ -160,7 +160,7 @@ class Integer(Number):
         return -self if self < Integer0 else self
 
     @lru_cache()
-    def __init__(self, value) -> "Integer":
+    def __init__(self, value):
         super().__init__()
 
     def make_boxes(self, form) -> "_BoxedString":
@@ -851,7 +851,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
             return self.value == other.value
         return False
 
-    def get_string_value(self) -> str:
+    def get_string_value(self) -> Optional[str]:
         try:
             return self.value.decode("utf-8")
         except Exception:

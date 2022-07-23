@@ -4,6 +4,8 @@
 Division-Related Functions
 """
 
+from typing import List
+
 import sympy
 from itertools import combinations
 from sympy import Q, ask
@@ -197,7 +199,7 @@ class LCM(Builtin):
     attributes = A_FLAT | A_LISTABLE | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     summary_text = "least common multiple"
 
-    def apply(self, ns, evaluation):
+    def apply(self, ns: List[Integer], evaluation):
         "LCM[ns___Integer]"
 
         ns = ns.get_sequence()
