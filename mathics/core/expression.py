@@ -422,7 +422,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> typing.Type["BaseElement"]:
+    ) -> Optional[typing.Type["BaseElement"]]:
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
@@ -646,7 +646,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def get_head_name(self):
         return self._head.name if isinstance(self._head, Symbol) else ""
 
-    def get_lookup_name(self) -> bool:
+    def get_lookup_name(self) -> str:
         lookup_symbol = self._head
         while True:
             if isinstance(lookup_symbol, Symbol):
@@ -831,6 +831,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
 
     @property
+    def head(self):
+        return self._head
+
+    @head.setter
+    def head(self, value):
+        raise ValueError("Expression.head is write protected.")
+
+    @property
     def is_literal(self) -> bool:
         """
         True if the value doesn't change after evaluation, i.e. a
@@ -922,24 +930,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             for element in self._elements
             if hasattr(element, "has_symbol")
         )
-
-    @property
-    def head(self):
-        return self._head
-
-    @head.setter
-    def head(self, value):
-        raise ValueError("Expression.head is write protected.")
-
-    # Deprecated - remove eventually
-    @property
-    def leaves(self):
-        return self._elements
-
-    # Deprecated - remove eventually
-    @leaves.setter
-    def leaves(self, value):
-        raise ValueError("Expression.leaves is write protected.")
 
     def restructure(self, head, elements, evaluation, structure_cache=None, deps=None):
         """Faster equivalent of: Expression(head, *elements)
@@ -1385,7 +1375,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         from mathics.builtin import mathics_to_sympy
 
         if "convert_all_global_functions" in kwargs:
-            if len(self.leaves) > 0 and kwargs["convert_all_global_functions"]:
+            if len(self.elements) > 0 and kwargs["convert_all_global_functions"]:
                 if self.get_head_name().startswith("Global`"):
                     return self._as_sympy_function(**kwargs)
 

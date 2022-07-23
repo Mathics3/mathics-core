@@ -845,7 +845,7 @@ class Rational_(Builtin):
     summary_text = "head for rational numbers"
     name = "Rational"
 
-    def apply(self, n, m, evaluation):
+    def apply(self, n: Integer, m: Integer, evaluation):
         "%(name)s[n_Integer, m_Integer]"
 
         if m.value == 1:

@@ -31,8 +31,8 @@ from mathics.core.atoms import (
     SymbolDivide,
 )
 from mathics.core.attributes import (
-    listable,
-    protected,
+    listable as A_LISTABLE,
+    protected as A_PROTECTED,
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
@@ -212,7 +212,7 @@ class IntegerDigits(Builtin):
      = {0}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -279,7 +279,7 @@ class IntegerExponent(Builtin):
      = IntegerExponent[10, b]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -292,7 +292,7 @@ class IntegerExponent(Builtin):
 
     summary_text = "number of trailing 0s in a given base"
 
-    def apply_two_arg_integers(self, n, b, evaluation):
+    def apply_two_arg_integers(self, n: Integer, b: Integer, evaluation):
         "IntegerExponent[n_Integer, b_Integer]"
 
         py_n, py_b = n.value, b.value
@@ -309,7 +309,7 @@ class IntegerExponent(Builtin):
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
-    # def apply(self, n, b, evaluation):
+    # def apply(self, n: Integer, b: Integer, evaluation):
     #     "IntegerExponent[n_Integer, b_Integer]"
 
     #     py_n, py_b = n.to_python(), b.to_python()
@@ -367,7 +367,7 @@ class IntegerLength(Builtin):
      = True
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "base": "Base `1` is not an integer greater than 1.",
@@ -556,7 +556,7 @@ class RealDigits(Builtin):
 
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "realx": "The value `1` is not a real number.",
