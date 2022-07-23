@@ -1434,10 +1434,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # mutable. So we turn into a elements into list and use Python's
         # list sort method. Another approach would be to use sorted().
         elements = self.get_mutable_elements()
-        if pattern:
-            elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
-        else:
-            elements.sort()
+        try:
+            if pattern:
+                elements.sort(key=lambda e: e.get_sort_key(pattern_sort=True))
+            else:
+                elements.sort()
+        except Exception:
+            return
 
         # update `self._elements` and self._cache with the possible permuted order.
         self.elements = elements
