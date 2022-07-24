@@ -9,21 +9,21 @@ algorithms.
 
 """
 
-import sympy
 from typing import Optional
+
+import sympy
+
 from mathics.core.atoms import Number
+from mathics.core.attributes import n_hold_all as A_N_HOLD_ALL
+from mathics.core.attributes import n_hold_first as A_N_HOLD_FIRST
+from mathics.core.attributes import n_hold_rest as A_N_HOLD_REST
+from mathics.core.convert.sympy import from_sympy
+from mathics.core.definitions import PyMathicsLoadException
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.number import PrecisionValueError, get_precision
 from mathics.core.symbols import Atom, BaseElement
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
-from mathics.core.number import get_precision, PrecisionValueError
-from mathics.core.expression import Expression
-from mathics.core.evaluation import Evaluation
-from mathics.core.convert.sympy import from_sympy
-
-from mathics.core.attributes import (
-    n_hold_all,
-    n_hold_first,
-    n_hold_rest,
-)
 
 
 # FIXME: Add the two-argument form N[expr, n]
@@ -36,7 +36,7 @@ def eval_N(
     Equivalent to Expression(SymbolN, expression).evaluate(evaluation)
     """
     evaluated_expression = expression.evaluate(evaluation)
-    result = apply_nvalues(evaluated_expression, prec, evaluation)
+    result = eval_nvalues(evaluated_expression, prec, evaluation)
     if result is None:
         return expression
     if isinstance(result, Number):
@@ -44,7 +44,27 @@ def eval_N(
     return result.evaluate(evaluation)
 
 
-def apply_nvalues(
+def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
+    try:
+        evaluation.definitions.load_pymathics_module(module_name)
+    except (PyMathicsLoadException, ImportError):
+        raise
+    else:
+        # Add Pymathics` to $ContextPath so that when user does not
+        # have to qualify Pymathics variables and functions,
+        # as the those in the module just loaded.
+        # Follow the $ContextPath example in the WL
+        # reference manual where PackletManager appears first in
+        # the list, it seems to be preferable to add this PyMathics
+        # at the beginning.
+        context_path = list(evaluation.definitions.get_context_path())
+        if "Pymathics`" not in context_path:
+            context_path.insert(0, "Pymathics`")
+            evaluation.definitions.set_context_path(context_path)
+    return module_name
+
+
+def eval_nvalues(
     expr: BaseElement, prec: BaseElement, evaluation: Evaluation
 ) -> Optional[BaseElement]:
     """
@@ -69,14 +89,14 @@ def apply_nvalues(
 
     # If expr is a List, or a Rule (or maybe expressions with heads for
     # which we are sure do not have NValues or special attributes)
-    # just apply `apply_nvalues` to each element and return the new list.
+    # just apply `eval_nvalues` to each element and return the new list.
     if expr.get_head_name() in ("System`List", "System`Rule"):
         elements = expr.elements
 
         # FIXME: incorporate these lines into Expression call
         result = Expression(expr.head)
         new_elements = [
-            apply_nvalues(element, prec, evaluation) for element in expr.elements
+            eval_nvalues(element, prec, evaluation) for element in expr.elements
         ]
         result.elements = tuple(
             new_element if new_element else element
@@ -93,7 +113,7 @@ def apply_nvalues(
     # Here we look for the NValues associated to the
     # lookup_name of the expression.
     # If a rule is found and successfuly applied,
-    # reevaluate the result and apply `apply_nvalues` again.
+    # reevaluate the result and apply `eval_nvalues` again.
     # This should be implemented as a loop instead of
     # recursively.
     name = expr.get_lookup_name()
@@ -105,7 +125,7 @@ def apply_nvalues(
         if result is not None:
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
-                result = apply_nvalues(result, prec, evaluation)
+                result = eval_nvalues(result, prec, evaluation)
             return result
 
     # If we are here, is because there are not NValues that matches
@@ -115,16 +135,16 @@ def apply_nvalues(
         return expr
     else:
         # Otherwise, look at the attributes, determine over which elements
-        # we need to apply `apply_nvalues`, and rebuild the expression with
+        # we need to apply `eval_nvalues`, and rebuild the expression with
         # the results.
         attributes = expr.head.get_attributes(evaluation.definitions)
         head = expr.head
         elements = expr.get_mutable_elements()
-        if n_hold_all & attributes:
+        if A_N_HOLD_ALL & attributes:
             eval_range = ()
-        elif n_hold_first & attributes:
+        elif A_N_HOLD_FIRST & attributes:
             eval_range = range(1, len(elements))
-        elif n_hold_rest & attributes:
+        elif A_N_HOLD_REST & attributes:
             if len(expr.elements) > 0:
                 eval_range = (0,)
             else:
@@ -132,17 +152,17 @@ def apply_nvalues(
         else:
             eval_range = range(len(elements))
 
-        newhead = apply_nvalues(head, prec, evaluation)
+        newhead = eval_nvalues(head, prec, evaluation)
         head = head if newhead is None else newhead
 
         for index in eval_range:
-            new_element = apply_nvalues(elements[index], prec, evaluation)
+            new_element = eval_nvalues(elements[index], prec, evaluation)
             if new_element:
                 elements[index] = new_element
 
         # FIXME: incorporate these 3 lines into Expression call
         result = Expression(head)
-        result.elements = tuple(elements)
+        result.elements = elements
         result._build_elements_properties()
         return result
 
