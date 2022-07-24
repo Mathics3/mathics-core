@@ -2083,7 +2083,7 @@ class Image(Atom):
         if pattern_sort:
             return super(Image, self).get_sort_key(True)
         else:
-            return hash(self)
+            return [1, 3, SymbolImage, tuple(), 2, len(self.pixels), hash(self)]
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
