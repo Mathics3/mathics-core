@@ -245,13 +245,15 @@ class Mod(Builtin):
 
 class ModularInverse(SympyFunction):
     """
+    Modular multiplicative inverse.
+    See <url>https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url>.
+
     <dl>
       <dt>'ModularInverse[$k$, $n$]'
-      <dd>returns $k$ modulo $n$.
+      <dd>returns the modular inverse $k$^(-1) mod $n$.
     </dl>
 
-    'ModularInverse[$k$,$n$]' gives the number $r$ such that the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
-
+    'ModularInverse[$k$,$n$]' gives the smallest positive integer $r$ where the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
 
     >> ModularInverse[2, 3]
      = 2
@@ -260,7 +262,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    # Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
+    Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 
@@ -268,7 +270,7 @@ class ModularInverse(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
-    summary_text = "returns the modular inverse of $k$ modulo $n$"
+    summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 
     def apply_k_n(self, k: Integer, n: Integer, evaluation):
@@ -303,6 +305,9 @@ class OddQ(Test):
 
 class PowerMod(Builtin):
     """
+    Modular exponentiaion.
+    See <url>https://en.wikipedia.org/wiki/Modular_exponentiation</url>.
+
     <dl>
       <dt>'PowerMod[$x$, $y$, $m$]'
       <dd>computes $x$^$y$ modulo $m$.
@@ -327,7 +332,7 @@ class PowerMod(Builtin):
     messages = {
         "ninv": "`1` is not invertible modulo `2`.",
     }
-    summary_text = "modular powers and roots"
+    summary_text = "modular exponentiation"
 
     def apply(self, a: Integer, b: Integer, m: Integer, evaluation):
         "PowerMod[a_Integer, b_Integer, m_Integer]"
