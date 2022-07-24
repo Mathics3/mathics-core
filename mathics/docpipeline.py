@@ -14,20 +14,17 @@ import os.path as osp
 import pickle
 import re
 import sys
-
 from argparse import ArgumentParser
 from datetime import datetime
 
 import mathics
-
+from mathics import settings, version_string
+from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
+from mathics.core.evaluators import eval_load_module
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.builtin import builtins_dict
-
-from mathics import version_string
-from mathics import settings
-from mathics.doc.common_doc import MathicsMainDocumentation
+from mathics.doc.common_doc import MathicsMainDocumentation, PyMathicsDocumentation
 
 builtins = builtins_dict()
 
@@ -40,7 +37,7 @@ class TestOutput(Output):
 sep = "-" * 70 + "\n"
 
 # Global variables
-definitions = None
+definitions = Definitions(add_builtin=True)
 documentation = None
 check_partial_enlapsed_time = False
 logfile = None
@@ -224,6 +221,7 @@ def create_output(tests, doc_data, format="tex"):
 
 
 def test_chapters(
+    documentation,
     chapters: set,
     quiet=False,
     stop_on_failure=False,
@@ -319,6 +317,7 @@ def open_ensure_dir(f, *args, **kwargs):
 
 
 def test_all(
+    documentation,
     quiet=False,
     generate_output=True,
     stop_on_failure=False,
@@ -436,10 +435,8 @@ def extract_doc_from_source(quiet=False, reload=False):
 
 
 def main():
-    global definitions
     global logfile
     global check_partial_enlapsed_time
-    definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
     parser.add_argument(
@@ -451,27 +448,27 @@ def main():
     parser.add_argument(
         "--chapters",
         "-c",
+        action="append",
         dest="chapters",
         metavar="CHAPTER",
-        help="only test CHAPTER(s). "
-        "You can list multiple chapters by adding a comma (and no space) in between chapter names.",
+        help="only test CHAPTER(s). " "You can use this option multiple times.",
     )
     parser.add_argument(
         "--sections",
         "-s",
+        action="append",
         dest="sections",
         metavar="SECTION",
-        help="only test SECTION(s). "
-        "You can list multiple sections by adding a comma (and no space) in between section names.",
+        help="only test SECTION(s). " "You can use this option multiple times.",
     )
     parser.add_argument(
         "--exclude",
         "-X",
+        action="append",
         default="",
         dest="exclude",
         metavar="SECTION",
-        help="excude SECTION(s). "
-        "You can list multiple sections by adding a comma (and no space) in between section names.",
+        help="excude SECTION(s). " "You can use this option multiple times.",
     )
     parser.add_argument(
         "--logfile",
@@ -482,9 +479,9 @@ def main():
     )
     parser.add_argument(
         "--pymathics",
-        "-l",
+        "-p",
+        action="append",
         dest="pymathics",
-        action="store_true",
         help="also checks pymathics modules.",
     )
     parser.add_argument(
@@ -570,41 +567,51 @@ def main():
         logfile = open(args.logfilename, "wt")
 
     global documentation
-    documentation = MathicsMainDocumentation(want_sorting=args.want_sorting)
+    docs = [MathicsMainDocumentation(want_sorting=args.want_sorting)]
+    docs = []
+    if args.pymathics:
+        print(f"Including pymathics documentation for: {', '.join(args.pymathics)}")
+        pymathics_documentation = PyMathicsDocumentation()
+        evaluation = Evaluation(definitions, catch_interrupt=True, output=TestOutput())
+        for pymathics_module_name in args.pymathics:
+            try:
+                eval_load_module(f"pymathics.{pymathics_module_name}", evaluation)
+            except Exception:
+                continue
+            pymathics_documentation.load_pymathics_module(pymathics_module_name)
+        docs.append(pymathics_documentation)
+
     if args.sections:
-        sections = set(args.sections.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
-
-        test_sections(
-            sections,
-            stop_on_failure=args.stop_on_failure,
-            generate_output=args.output,
-            reload=args.reload,
-        )
-    elif args.chapters:
-        chapters = set(args.chapters.split(","))
-        if args.pymathics:  # in case the section is in a pymathics module...
-            documentation.load_pymathics_doc()
-
-        test_chapters(
-            chapters, stop_on_failure=args.stop_on_failure, reload=args.reload
-        )
-    else:
-        # if we want to check also the pymathics modules
-        if args.pymathics:
-            print("Building pymathics documentation object")
-            documentation.load_pymathics_doc()
-        elif args.doc_only:
-            extract_doc_from_source(
-                quiet=args.quiet,
+        sections = args.sections
+        for doc in docs:
+            test_sections(
+                doc,
+                sections,
+                stop_on_failure=args.stop_on_failure,
+                generate_output=args.output,
                 reload=args.reload,
             )
-        else:
-            excludes = set(args.exclude.split(","))
-            start_at = args.skip + 1
-            start_time = datetime.now()
+    elif args.chapters:
+        chapters = args.chapters
+        for doc in docs:
+            test_chapters(
+                documentation,
+                chapters,
+                stop_on_failure=args.stop_on_failure,
+                reload=args.reload,
+            )
+    elif args.doc_only:
+        extract_doc_from_source(
+            quiet=args.quiet,
+            reload=args.reload,
+        )
+    else:
+        excludes = set(args.exclude.split(","))
+        start_at = args.skip + 1
+        start_time = datetime.now()
+        for doc in docs:
             test_all(
+                doc,
                 quiet=args.quiet,
                 generate_output=args.output,
                 stop_on_failure=args.stop_on_failure,
@@ -615,7 +622,8 @@ def main():
                 want_sorting=args.want_sorting,
             )
             end_time = datetime.now()
-            print("Tests took ", end_time - start_time)
+        print("Tests took ", end_time - start_time)
+
     if logfile:
         logfile.close()
 
