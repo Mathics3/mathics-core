@@ -115,7 +115,7 @@ Bugs
 * ``N`` now handles arbitrary precision numbers when the number of digits is not specified.
 * `N[Indeterminate]` now produces `Indeterminate` instead a `PrecisionReal(nan)`.
 * Fix crash in ``NestWhile`` when supplying ``All`` as the fourth argument.
-
+* Fix the comparison between ``Image`` and other expressions.
 
 
 4.0.1

@@ -144,7 +144,27 @@ class KeyComparable:
     is the primative from which all other comparsions are based on.
     """
 
-    def get_sort_key(self):
+    # FIXME: return type should be a specific kind of Tuple, not a list.
+    def get_sort_key(self) -> list:
+        """
+        This returns a list (but should be a tuple) in a way that
+        it can be used to compare in expressions.
+
+        If ``expr`` is another expression,
+
+        `self.get_sort_key() <= expr.get_sort_key()`
+
+        implies that [self, expr] are canonically sorted.
+
+        The first element in the tuple represents a type category
+        of the element according to the following encoding
+
+          0: atom
+          1: Numeric expression
+          2: Algebraic / general Expression
+
+        The following elements of the list depend on the kind of element.
+        """
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:

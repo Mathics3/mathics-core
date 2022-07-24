@@ -698,7 +698,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 option_values[name] = option.elements[1]
         return option_values
 
-    def get_sort_key(self, pattern_sort=False):
+    # FIXME: return type should be a specific kind of Tuple, not a list.
+    def get_sort_key(self, pattern_sort=False) -> list:
 
         if pattern_sort:
             """
@@ -800,6 +801,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     1,
                 ]
         else:
+            """
+            General sort key structure:
+            0: 1/2:        Numeric / General Expression
+            1: 2/3         Special arithmetic (Times / Power) / General Expression
+            2: Element:        Head
+            3: tuple:        list of Elements
+            4: 1:        No clue...
+            """
             exps = {}
             head = self._head
             if head is SymbolTimes:
