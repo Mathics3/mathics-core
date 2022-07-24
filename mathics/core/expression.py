@@ -800,6 +800,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     1,
                 ]
         else:
+            """
+            General sort key structure:
+            0: 1/2:        Numeric / General Expression
+            1: 2/3         Special arithmetic (Times / Power) / General Expression
+            2: Element:        Head
+            3: tuple:        list of Elements
+            4: 1:        No clue...
+            """
             exps = {}
             head = self._head
             if head is SymbolTimes:

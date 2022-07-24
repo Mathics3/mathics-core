@@ -145,6 +145,23 @@ class KeyComparable:
     """
 
     def get_sort_key(self):
+        """
+        This method should provide a list in a way that
+        if ``expr`` is another expression,
+
+        `self.get_sort_key() <= expr.get_sort_key()`
+
+        implies that [self, expr] are canonically sorted.
+
+        The first element in the list is choosen according to
+        the type of element:
+
+        0: atom
+        1: Numeric expression
+        2: Algebraic / general Expression
+
+        The following elements of the list depend on the kind of element.
+        """
         raise NotImplementedError
 
     def __eq__(self, other) -> bool:
