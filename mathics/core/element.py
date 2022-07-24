@@ -144,7 +144,7 @@ class KeyComparable:
     is the primative from which all other comparsions are based on.
     """
 
-    def get_sort_key(self):
+    def get_sort_key(self) -> list:
         """
         This method should provide a list in a way that
         if ``expr`` is another expression,
