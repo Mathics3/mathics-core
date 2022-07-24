@@ -13,31 +13,12 @@ Support for approximate real numbers and exact real numbers represented in algeb
 import sympy
 
 from mathics.builtin.base import Builtin
-
+from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
+from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.evaluators import apply_nvalues
-
+from mathics.core.evaluators import eval_nvalues
 from mathics.core.expression import Expression
-
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    Integer0,
-    Rational,
-    Real,
-)
-
-
-from mathics.core.attributes import (
-    listable,
-    numeric_function,
-    protected,
-)
-
-from mathics.core.number import (
-    machine_epsilon,
-)
-
+from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
 
 
@@ -254,12 +235,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return apply_nvalues(expr, prec, evaluation)
+        return eval_nvalues(expr, prec, evaluation)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
+        return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):
