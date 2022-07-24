@@ -145,9 +145,9 @@ class KeyComparable:
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
-    def get_sort_key(self) -> list:
+    def get_sort_key(self) -> tuple:
         """
-        This returns a list (but should be a tuple) in a way that
+        This returns a tuple in a way that
         it can be used to compare in expressions.
 
         If ``expr`` is another expression,

@@ -821,7 +821,7 @@ class BoxExpression(BuiltinElement):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self):
+    def get_sort_key(self) -> tuple:
         return self.to_expression().get_sort_key()
 
     def get_string_value(self):
@@ -947,7 +947,7 @@ class PatternObject(BuiltinElement, Pattern):
     def get_match_count(self, vars={}):
         return (1, 1)
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         return self.expr.get_sort_key(pattern_sort=pattern_sort)
 
 
