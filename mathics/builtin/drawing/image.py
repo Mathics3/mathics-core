@@ -2079,6 +2079,7 @@ class Image(Atom):
     def default_format(self, evaluation, form):
         return "-Image-"
 
+    # FIXME: return type should be a specific kind of Tuple, not a list.
     def get_sort_key(self, pattern_sort=False) -> list:
         if pattern_sort:
             # If pattern_sort=True, returns the sort key that matches to an Atom.

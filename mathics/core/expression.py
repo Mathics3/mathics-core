@@ -698,6 +698,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 option_values[name] = option.elements[1]
         return option_values
 
+    # FIXME: return type should be a specific kind of Tuple, not a list.
     def get_sort_key(self, pattern_sort=False) -> list:
 
         if pattern_sort:
