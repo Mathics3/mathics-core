@@ -26,17 +26,20 @@ Things are such a mess, that it is too difficult to contemplate this right now.
 
 """
 
-import importlib
 import os.path as osp
+import importlib
 import pkgutil
 import re
+
 from os import getenv, listdir
 from types import ModuleType
 from typing import Callable
 
-from mathics import builtin, settings
+from mathics import builtin
+from mathics import settings
 from mathics.builtin import get_module_doc, is_builtin
 from mathics.builtin.base import Builtin, check_requires_list
+
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify

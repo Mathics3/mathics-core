@@ -14,16 +14,20 @@ import os.path as osp
 import pickle
 import re
 import sys
+
 from argparse import ArgumentParser
 from datetime import datetime
 
 import mathics
-from mathics import settings, version_string
-from mathics.builtin import builtins_dict
+
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.evaluators import eval_load_module
 from mathics.core.parser import MathicsSingleLineFeeder
+from mathics.builtin import builtins_dict
+
+from mathics import version_string
+from mathics import settings
 from mathics.doc.common_doc import MathicsMainDocumentation, PyMathicsDocumentation
 
 builtins = builtins_dict()
@@ -263,6 +267,7 @@ def test_chapters(
 
 
 def test_sections(
+    documentation,
     sections: set,
     quiet=False,
     stop_on_failure=False,
@@ -586,7 +591,7 @@ def main():
         for doc in docs:
             test_sections(
                 doc,
-                sections,
+                set(sections),
                 stop_on_failure=args.stop_on_failure,
                 generate_output=args.output,
                 reload=args.reload,
@@ -596,7 +601,7 @@ def main():
         for doc in docs:
             test_chapters(
                 documentation,
-                chapters,
+                set(chapters),
                 stop_on_failure=args.stop_on_failure,
                 reload=args.reload,
             )
@@ -621,7 +626,7 @@ def main():
                 excludes=excludes,
                 want_sorting=args.want_sorting,
             )
-            end_time = datetime.now()
+        end_time = datetime.now()
         print("Tests took ", end_time - start_time)
 
     if logfile:
