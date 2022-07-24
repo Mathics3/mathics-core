@@ -250,7 +250,7 @@ class ModularInverse(SympyFunction):
       <dd>returns $k$ modulo $n$.
     </dl>
 
-    'ModularInverse[$k$,$n$]' gives the number $r$ such that the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
+    'ModularInverse[$k$,$n$]' gives the smallest positive integer $r$ where the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
 
 
     >> ModularInverse[2, 3]
