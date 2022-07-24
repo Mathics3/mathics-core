@@ -150,20 +150,26 @@ class KeyComparable:
         This returns a tuple in a way that
         it can be used to compare in expressions.
 
-        If ``expr`` is another expression,
+        Returns a particular encoded list (better though would be a tuple) that is used
+        in ``Sort[]`` comparisons and in the ordering that occurs
+        in an M-Expression which has the ``Orderless`` property.
 
-        `self.get_sort_key() <= expr.get_sort_key()`
+        The encoded tuple/list is selected to have the property: when
+        compared against element ``expr`` in a compound expression, if
 
-        implies that [self, expr] are canonically sorted.
+           `self.get_sort_key() <= expr.get_sort_key()`
 
-        The first element in the tuple represents a type category
-        of the element according to the following encoding
+        then self comes before expr.
 
-          0: atom
-          1: Numeric expression
-          2: Algebraic / general Expression
+        The values in the positions of the list/tuple are used to indicate how comparison should be
+        treated for specific element classes.
 
-        The following elements of the list depend on the kind of element.
+        position  type class
+          0:      atom
+          1:      Numeric expression
+          2:      Algebraic / general Expression
+
+        Subsequent positions of the tuple/list depend on the kind of element.
         """
         raise NotImplementedError
 
