@@ -206,7 +206,7 @@ class Integer(Number):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return tuple((0, 0, self.value, 0, 1))
+            return (0, 0, self.value, 0, 1)
 
     def do_copy(self) -> "Integer":
         return Integer(self.value)
@@ -303,7 +303,7 @@ class Rational(Number):
             return super().get_sort_key(True)
         else:
             # HACK: otherwise "Bus error" when comparing 1==1.
-            return tuple((0, 0, sympy.Float(self.value), 0, 1))
+            return (0, 0, sympy.Float(self.value), 0, 1)
 
     def do_copy(self) -> "Rational":
         return Rational(self.value)
@@ -390,7 +390,7 @@ class Real(Number):
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super().get_sort_key(True)
-        return tuple((0, 0, self.value, 0, 1))
+        return (0, 0, self.value, 0, 1)
 
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
@@ -655,9 +655,7 @@ class Complex(Number):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return tuple(
-                (0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1)
-            )
+            return (0, 0, self.real.get_sort_key()[2], self.imag.get_sort_key()[2], 1)
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -776,7 +774,7 @@ class String(Atom, ImmutableValueMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return tuple((0, 1, self.value, 0, 1))
+            return (0, 1, self.value, 0, 1)
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -844,7 +842,7 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return tuple((0, 1, self.value, 0, 1))
+            return (0, 1, self.value, 0, 1)
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""

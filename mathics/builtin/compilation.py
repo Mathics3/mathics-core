@@ -162,7 +162,7 @@ class CompiledCode(Atom, ImmutableValueMixin):
         if pattern_sort:
             return super(CompiledCode, self).get_sort_key(True)
         else:
-            return tuple((0, 3, hex(id(self))))
+            return (0, 3, hex(id(self)))
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""

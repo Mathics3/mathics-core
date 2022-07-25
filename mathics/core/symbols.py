@@ -281,7 +281,7 @@ class Atom(BaseElement):
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return tuple((0, 0, 1, 1, 0, 0, 0, 1))
+            return (0, 0, 1, 1, 0, 0, 0, 1)
         else:
             raise NotImplementedError
 
@@ -519,15 +519,13 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if pattern_sort:
             return super(Symbol, self).get_sort_key(True)
         else:
-            return tuple(
-                (
-                    1 if self.is_numeric() else 2,
-                    2,
-                    Monomial({self.name: 1}),
-                    0,
-                    self.name,
-                    1,
-                )
+            return (
+                1 if self.is_numeric() else 2,
+                2,
+                Monomial({self.name: 1}),
+                0,
+                self.name,
+                1,
             )
 
     def user_hash(self, update) -> None:
