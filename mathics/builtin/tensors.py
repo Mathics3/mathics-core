@@ -8,6 +8,9 @@ In mathematics, a tensor is an algebraic object that describes a (multilinear) r
 There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
 
 Mathics represents tensors of vectors and matrices as lists; tensors of any rank can be handled.
+
+
+See also <url>https://en.wikipedia.org/wiki/Tensor</url>.
 """
 
 
@@ -494,13 +497,15 @@ class TranslationTransform(Builtin):
 
 class Transpose(Builtin):
     """
+    Transpose. See <url>https://en.wikipedia.org/wiki/Transpose</url>.
     <dl>
       <dt>'Tranpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
-    >> Transpose[{{1, 2, 3}, {4, 5, 6}}]
+    >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
      = {{1, 4}, {2, 5}, {3, 6}}
+
     >> MatrixForm[%]
      = 1   4
      .
@@ -508,6 +513,17 @@ class Transpose(Builtin):
      .
      . 3   6
 
+    >> matrix = {{1, 2}, {3, 4}, {5, 6}}; MatrixForm[Transpose[matrix]]
+     = 1   3   5
+     .
+     . 2   4   6
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+
+    >> Transpose[Transpose[matrix]] == matrix
+     = True
+
+    #> Clear[matrix, square]
     #> Transpose[x]
      = Transpose[x]
     """
