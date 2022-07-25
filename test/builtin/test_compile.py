@@ -200,7 +200,7 @@ class ArithmeticTest(CompileTest):
     def test_pow_real(self):
         self._test_binary_math("Power", mpmath.power)
 
-    @pytest.mark.skip(reason="LLVM compile produces float resutl instead of int")
+    @pytest.mark.skip(reason="LLVM compile produces float result instead of int")
     def test_pow_int(self):
         expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]

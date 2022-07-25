@@ -265,7 +265,7 @@ class StringInsert(Builtin):
         the $n_i$ are taken before any insertion is done.
 
       <dt>'StringInsert[{$s_1$, $s_2$, ...}, "$snew$", $n$]'
-      <dd>gives the list of resutls for each of the $s_i$.
+      <dd>gives the list of results for each of the $s_i$.
     </dl>
 
     >> StringInsert["noting", "h", 4]

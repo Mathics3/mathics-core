@@ -145,6 +145,8 @@ class KeyComparable:
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
+    # FIXME: Describe sensible, and easy to follow rules by which one
+    #        can create the kind of tuple for some new kind of element.
     def get_sort_key(self) -> list:
         """
 
@@ -161,13 +163,6 @@ class KeyComparable:
 
         The values in the positions of the list/tuple are used to indicate how comparison should be
         treated for specific element classes.
-
-        position  type class
-          0:      atom
-          1:      Numeric expression
-          2:      Algebraic / general Expression
-
-        Subsequent positions of the tuple/list depend on the kind of element.
         """
         raise NotImplementedError
 
