@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
 """
+Unit tests for mathics.builtins.numbers.calculus
+
+In parituclar:
+
 FindRoot[], FindMinimum[], NFindMaximum[] tests
+
 
 """
 import pytest
