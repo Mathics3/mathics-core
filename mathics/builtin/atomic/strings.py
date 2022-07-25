@@ -59,32 +59,54 @@ _regex_shortest = {
 }
 
 
+# A better thing to do would be to write a pymathics module that
+# covers all of the variations. Here we just give some minimal basics
+
+# Data taken from:
+#   https://unicode-org.github.io/cldr-staging/charts/37/summary/root.html
+# The uppercase letters often don't have the accents that lower-case
+# letters have. I don't understand, or I may have interpreted the charts wrong.
+#
 alphabet_descriptions = {
-    "English": {
-        "Lowercase": "abcdefghijklmnopqrstuvwxyz",
-        "Uppercase": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "Cyrillic": {
+        "Lowercase": r"абвгґдђѓеёєжзѕиіїйјклљмнњопрстћќуўфхцчџшщъыьэюя",
+        "Uppercase": r"АБВГҐДЂЃЕЁЄЖЗЅИІЇЙЈКЛЉМНЊОПРСТЋЌУЎФХЦЧЏШЩЪЫЬЭЮЯ",
     },
-    "Spanish": {
-        "Lowercase": "abcdefghijklmnñopqrstuvwxyz",
-        "Uppercase": "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
+    "English": {
+        "Lowercase": r"abcdefghijklmnopqrstuvwxyz",
+        "Uppercase": r"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    },
+    "French": {
+        "Lowercase": r"aàâæbcçdeéèêëfghiîïjklmnoôœpqrstuùûüvwxyÿz",
+        "Uppercase": r"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    },
+    "German": {
+        "Lowercase": r"aäbcdefghijklmnoöpqrsßtuüvwxyz",
+        "Uppercase": r"AÄBCDEFGHIJKLMNOÖPQRSTUÜVWXYZ",
     },
     "Greek": {
         "Lowercase": "αβγδεζηθικλμνξοπρστυφχψω",
         "Uppercase": "ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ",
     },
-    "Cyrillic": {
-        "Lowercase": "абвгґдђѓеёєжзѕиіїйјклљмнњопрстћќуўфхцчџшщъыьэюя",
-        "Uppercase": "АБВГҐДЂЃЕЁЄЖЗЅИІЇЙЈКЛЉМНЊОПРСТЋЌУЎФХЦЧЏШЩЪЫЬЭЮЯ",
+    "Italian": {
+        "Lowercase": "aàbcdeéèfghiìjklmnoóòpqrstuùvwxyz",
+        "Uppercase": r"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    },
+    "Spanish": {
+        "Lowercase": "aábcdeéfghiíjklmnñoópqrstuúüvwxyz",
+        "Uppercase": "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ",
+    },
+    "Swedish": {
+        "Lowercase": "aàbcdeéfghijklmnopqrstuvwxyzåäö",
+        "Uppercase": "ABCDEFGHIJKLMNOPQRSTUVWXYZÅÄÖ",
+    },
+    "Turkish": {
+        "Lowercase": "abcçdefgğhıiİjklmnoöprsştuüvyz",
+        "Uppercase": "ABCÇDEFGHIİJKLMNOÖPQRSŞTUÜVWXYZ",
     },
 }
 
 alphabet_alias = {
-    "English": "English",
-    "French": "English",
-    "German": "English",
-    "Spanish": "Spanish",
-    "Greek": "Greek",
-    "Cyrillic": "Cyrillic",
     "Russian": "Cyrillic",
 }
 
@@ -307,8 +329,8 @@ def mathics_split(patt, string, flags):
 class SystemCharacterEncoding(Predefined):
     """
     <dl>
-    <dt>$SystemCharacterEncoding
-    <dd>gives the default character encoding of the system.
+      <dt>$SystemCharacterEncoding
+      <dd>gives the default character encoding of the system.
     </dl>
     """
 
@@ -391,8 +413,8 @@ def to_python_encoding(encoding):
 class CharacterEncodings(Predefined):
     """
     <dl>
-    <dt>'$CharacterEncodings'
-    <dd>stores the list of available character encodings.
+      <dt>'$CharacterEncodings'
+      <dd>stores the list of available character encodings.
     </dl>
     """
 
@@ -463,8 +485,11 @@ class Alphabet(Builtin):
     >> Alphabet[]
      = {a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z}
     >> Alphabet["German"]
-     = {a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z}
+     = {a, ä, b, c, d, e, f, g, h, i, j, k, l, m, n, o, ö, p, q, r, s, ß, t, u, ü, v, w, x, y, z}
 
+    Some languages are aliases. "Russian" is the same letter set as "Cyrillic"
+    >> Alphabet["Russian"] == Alphabet["Cyrillic"]
+     = True
     """
 
     messages = {
@@ -479,8 +504,8 @@ class Alphabet(Builtin):
 
     def apply(self, alpha, evaluation):
         """Alphabet[alpha_String]"""
-        alphakey = alpha.get_string_value()
-        alphakey = alphabet_alias[alphakey]
+        alphakey = alpha.value
+        alphakey = alphabet_alias.get(alphakey, alphakey)
         if alphakey is None:
             evaluation.message("Alphabet", "nalph", alpha)
             return
@@ -545,8 +570,8 @@ class LetterNumber(Builtin):
 
     def apply_alpha_str(self, chars: List[Any], alpha: String, evaluation):
         "LetterNumber[chars_, alpha_String]"
-        alphakey = alpha.get_string_value()
-        alphakey = alphabet_alias.get(alphakey, None)
+        alphakey = alpha.value
+        alphakey = alphabet_alias.get(alphakey, alphakey)
         if alphakey is None:
             evaluation.message("LetterNumber", "nalph", alpha)
             return
