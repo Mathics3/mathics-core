@@ -246,11 +246,11 @@ class Mod(Builtin):
 class ModularInverse(SympyFunction):
     """
     Modular multiplicative inverse.
-    See <url>https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</ul>.
+    See <url>https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url>.
 
     <dl>
       <dt>'ModularInverse[$k$, $n$]'
-      <dd>returns the modular inverse $k^(-1)$ mod $n$.
+      <dd>returns the modular inverse $k$^(-1) mod $n$.
     </dl>
 
     'ModularInverse[$k$,$n$]' gives the smallest positive integer $r$ where the remainder of the division of $r$ x $k$ by $n$ is equal to 1.
@@ -262,7 +262,7 @@ class ModularInverse(SympyFunction):
     >> k = 2; n = 3; Mod[ModularInverse[k, n] * k, n] == 1
      = True
 
-    # Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
+    Some modular inverses just do not exists. For example when $k$ is a multple of $n$:
     >> ModularInverse[k, k]
      = ModularInverse[2, 2]
 
