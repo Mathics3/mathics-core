@@ -3,6 +3,7 @@
 NIntegrate[] tests
 
 """
+import importlib
 import pytest
 from test.helper import evaluate
 from mathics.builtin.base import check_requires_list

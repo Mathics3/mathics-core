@@ -27,7 +27,6 @@ Things are such a mess, that it is too difficult to contemplate this right now.
 """
 
 import os.path as osp
-import importlib
 import pkgutil
 import re
 
@@ -37,9 +36,8 @@ from typing import Callable
 
 from mathics import builtin
 from mathics import settings
-from mathics.builtin import get_module_doc, is_builtin
-from mathics.builtin.base import Builtin, check_requires_list
-
+from mathics.builtin import get_module_doc
+from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
@@ -757,7 +755,7 @@ class MathicsMainDocumentation(Documentation):
         self.latex_file = settings.DOC_LATEX_FILE
         self.parts = []
         self.parts_by_slug = {}
-        self.pymathics_docs_loaded = []
+        self.pymathics_doc_loaded = False
         self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
         self.title = "Overview"
         files = listdir(self.doc_dir)
@@ -994,10 +992,22 @@ class MathicsMainDocumentation(Documentation):
         )
         section.subsections.append(subsection)
 
-    def load_pymathics_doc(self, pymathics_modules: list):
+    def load_pymathics_doc(self):
+        if self.pymathics_doc_loaded:
+            return
+        from mathics.settings import default_pymathics_modules
+
         pymathicspart = None
+        # Look the "Pymathics Modules" part, and if it does not exist, create it.
+        for part in self.parts:
+            if part.title == "Pymathics Modules":
+                pymathicspart = part
+        if pymathicspart is None:
+            pymathicspart = DocPart(self, "Pymathics Modules", is_reference=True)
+            self.parts.append(pymathicspart)
+
         # For each module, create the documentation object and load the chapters in the pymathics part.
-        for pymmodule in pymathics_modules:
+        for pymmodule in default_pymathics_modules:
             pymathicsdoc = PyMathicsDocumentation(pymmodule)
             for part in pymathicsdoc.parts:
                 for ch in part.chapters:
@@ -1010,64 +1020,108 @@ class MathicsMainDocumentation(Documentation):
 
 
 class PyMathicsDocumentation(Documentation):
-    def __init__(self):
-        self.doc_data_file = settings.get_doc_tex_data_path(should_be_readable=True)
-        self.doc_dir = settings.DOC_DIR
-        self.latex_file = settings.DOC_LATEX_FILE
+    def __init__(self, module=None):
+        self.title = "Overview"
         self.parts = []
         self.parts_by_slug = {}
+        self.doc_dir = None
+        self.doc_data_file = None
+        self.latex_file = None
         self.symbols = {}
-        self.title = "Overview"
+        if module is None:
+            return
 
-    def load_pymathics_module(self, module_name: str):
-        """
-        Load pymathics module `module_name` and extract
-        symbols.
-        """
-        # Load the module and verify that is smells like a pymathics module
-        full_module_name = f"pymathics.{module_name}"
+        import importlib
+
+        # Load the module and verifies it is a pymathics module
         try:
-            pymathicsmodule = importlib.import_module(full_module_name)
+            self.pymathicsmodule = importlib.import_module(module)
         except ImportError:
-            print(f"Module {module_name} does not exist")
+            print("Module does not exist")
+            self.pymathicsmodule = None
+            self.parts = []
             return
 
-        if not hasattr(pymathicsmodule, "pymathics_version_data"):
-            print(
-                f"{full_module_name} does not have pymathics_version_data; it it a pymathics module?"
-            )
+        try:
+            if "name" in self.pymathicsmodule.pymathics_version_data:
+                self.name = self.version = self.pymathicsmodule.pymathics_version_data[
+                    "name"
+                ]
+            else:
+                self.name = (self.pymathicsmodule.__package__)[10:]
+            self.version = self.pymathicsmodule.pymathics_version_data["version"]
+            self.author = self.pymathicsmodule.pymathics_version_data["author"]
+        except (AttributeError, KeyError, IndexError):
+            print(module + " is not a pymathics module.")
+            self.pymathicsmodule = None
+            self.parts = []
             return
 
-        pymathics_version_data = pymathicsmodule.pymathics_version_data
-        if not isinstance(pymathics_version_data, dict):
-            print(
-                f"{full_module_name}.pymathics_version_data is not a Python dictionary; it it a pymathics module?"
-            )
-            return
+        # Paths
+        self.doc_dir = self.pymathicsmodule.__path__[0] + "/doc/"
+        self.doc_data_file = self.doc_dir + "tex/data"
+        self.latex_file = self.doc_dir + "tex/documentation.tex"
 
-        for field in ("version", "author", "name"):
-            if field not in pymathics_version_data:
-                print(
-                    f"{full_module_name}.pymathics_version_data does not contain a '{field}' field; it it a pymathics module?"
-                )
-                return
+        # Load the dictionary of mathics symbols defined in the module
+        self.symbols = {}
+        from mathics.builtin import is_builtin, Builtin
 
-        print(f"adding symbols for {full_module_name}")
-        for name in dir(pymathicsmodule):
-            var = getattr(pymathicsmodule, name)
+        print("loading symbols")
+        for name in dir(self.pymathicsmodule):
+            var = getattr(self.pymathicsmodule, name)
             if (
                 hasattr(var, "__module__")
+                and var.__module__ != "mathics.builtin.base"
                 and is_builtin(var)
                 and not name.startswith("_")
+                and var.__module__[: len(self.pymathicsmodule.__name__)]
+                == self.pymathicsmodule.__name__
             ):  # nopep8
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     self.symbols[instance.get_name()] = instance
+        # Defines de default first part, in case we are building an independent documentation module.
+        self.title = "Overview"
+        self.parts = []
+        self.parts_by_slug = {}
+        try:
+            files = listdir(self.doc_dir)
+            files.sort()
+        except FileNotFoundError:
+            self.doc_dir = ""
+            self.doc_data_file = ""
+            self.latex_file = ""
+            files = []
+        appendix = []
+        for file in files:
+            part_title = file[2:]
+            if part_title.endswith(".mdoc"):
+                part_title = part_title[: -len(".mdoc")]
+                part = DocPart(self, part_title)
+                text = open(self.doc_dir + file, "rb").read().decode("utf8")
+                text = filter_comments(text)
+                chapters = CHAPTER_RE.findall(text)
+                for title, text in chapters:
+                    chapter = DocChapter(part, title)
+                    text += '<section title=""></section>'
+                    sections = SECTION_RE.findall(text)
+                    for pre_text, title, text in sections:
+                        if not chapter.doc:
+                            chapter.doc = XMLDoc(pre_text)
+                        if title:
+                            section = DocSection(chapter, title, text)
+                            chapter.sections.append(section)
+                    part.chapters.append(chapter)
+                if file[0].isdigit():
+                    self.parts.append(part)
+                else:
+                    part.is_appendix = True
+                    appendix.append(part)
 
-        # Build module documentation
+        # Builds the automatic documentation
         builtin_part = DocPart(self, "Pymathics Modules", is_reference=True)
-        title, text = get_module_doc(pymathicsmodule)
-        chapter = DocChapter(builtin_part, title, XMLDoc(text, title))
+        title, text = get_module_doc(self.pymathicsmodule)
+        chapter = DocChapter(builtin_part, title, XMLDoc(text))
         for name in self.symbols:
             instance = self.symbols[name]
             installed = check_requires_list(getattr(instance, "requires", []))
@@ -1082,6 +1136,8 @@ class PyMathicsDocumentation(Documentation):
         builtin_part.chapters.append(chapter)
         self.parts.append(builtin_part)
         # Adds possible appendices
+        for part in appendix:
+            self.parts.append(part)
 
         # set keys of tests
         for tests in self.get_tests():

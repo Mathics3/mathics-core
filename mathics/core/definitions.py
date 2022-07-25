@@ -1,12 +1,11 @@
 # -*- coding: utf-8 -*-
 
-
-import base64
-import bisect
-import inspect
-import os
 import pickle
+
+import os
+import base64
 import re
+import bisect
 
 from collections import defaultdict
 
@@ -175,14 +174,6 @@ class Definitions:
             loaded_module = importlib.import_module(module)
 
         builtins_by_module[loaded_module.__name__] = []
-
-        if not hasattr(loaded_module, "pymathics_version_data"):
-            raise PyMathicsLoadException(module)
-
-        # FIXME: use the more qualified name after docpipeline.py is corrected.
-        # loaded_module_context = f"Pymathics`{loaded_module.pymathics_version_data['name']}`"
-        loaded_module_context = "Pymathics`"
-
         vars = set(
             loaded_module.__all__
             if hasattr(loaded_module, "__all__")
@@ -190,10 +181,12 @@ class Definitions:
         )
 
         newsymbols = {}
+        if not ("pymathics_version_data" in vars):
+            raise PyMathicsLoadException(module)
         for name in vars - set(("pymathics_version_data", "__version__")):
             var = getattr(loaded_module, name)
             if (
-                inspect.isclass(var)
+                hasattr(var, "__module__")
                 and is_builtin(var)
                 and not name.startswith("_")
                 and var.__module__[: len(loaded_module.__name__)]
@@ -202,7 +195,7 @@ class Definitions:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     if not var.context:
-                        var.context = loaded_module_context
+                        var.context = "Pymathics`"
                     symbol_name = instance.get_name()
                     builtins_by_module[loaded_module.__name__].append(instance)
                     newsymbols[symbol_name] = instance
@@ -218,7 +211,7 @@ class Definitions:
         if onload:
             onload(self)
 
-        return loaded_module, loaded_module_context
+        return loaded_module
 
     def clear_pymathics_modules(self):
         from mathics.builtin import builtins_by_module

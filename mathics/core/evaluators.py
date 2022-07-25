@@ -46,20 +46,21 @@ def eval_N(
 
 def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
     try:
-        _, context_name = evaluation.definitions.load_pymathics_module(module_name)
+        evaluation.definitions.load_pymathics_module(module_name)
     except (PyMathicsLoadException, ImportError):
         raise
-
-    # Add to the beginning of $ContextPath a module-specific path under the Pymathics`
-    # namespace.
-    # By doing this, Pymathics variables and functions are available using a short name.
-    # Similar to PackletManager, in WMA, the name is added at the beginning so that when
-    # two short names are the same the Pymthathics name takes precedence.
-    context_path = list(evaluation.definitions.get_context_path())
-
-    if context_name not in context_path:
-        context_path.insert(0, context_name)
-        evaluation.definitions.set_context_path(context_path)
+    else:
+        # Add Pymathics` to $ContextPath so that when user does not
+        # have to qualify Pymathics variables and functions,
+        # as the those in the module just loaded.
+        # Follow the $ContextPath example in the WL
+        # reference manual where PackletManager appears first in
+        # the list, it seems to be preferable to add this PyMathics
+        # at the beginning.
+        context_path = list(evaluation.definitions.get_context_path())
+        if "Pymathics`" not in context_path:
+            context_path.insert(0, "Pymathics`")
+            evaluation.definitions.set_context_path(context_path)
     return module_name
 
 
