@@ -1124,9 +1124,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             if new.elements_properties is None:
                 new._build_elements_properties()
 
-        # If the attribute `Orderless` is set, sort the elements, according to the
-        # `get_sort` criteria.
-        # the most expensive part of this is to build the sort key.
+        # If the attribute ``Orderless`` is set, sort the elements, according to the
+        # element's ``get_sort_key()`` method.
+        # Sorting can be time consuming which is why we note this in ``elements_properties``.
+        # Checking for sortedness takes O(n) while sorting take O(n log n).
         if not new.elements_properties.is_ordered and (A_ORDERLESS & attributes):
             new.sort()
 
