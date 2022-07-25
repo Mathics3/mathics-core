@@ -4,19 +4,15 @@ Tests for mathics.core.drawing.image:
 
 Image[] and image related functions.
 """
-import importlib
 import os
 import pytest
 
 from test.helper import evaluate
+from mathics.builtin.base import check_requires_list
 from mathics.core.symbols import SymbolNull
 
-# From How to check if a Python module exists without importing it:
-# https://stackoverflow.com/a/14050282/546218
-skimage_module = importlib.util.find_spec("skimage")
-
 image_tests = [('img = Import["ExampleData/lena.tif"];', None, "")]
-if skimage_module is not None:
+if check_requires_list(["skimage"]):
     image_tests += [
         ("BinaryImageQ[img]", "False", ""),
         ("BinaryImageQ[Binarize[img]]", "True", ""),

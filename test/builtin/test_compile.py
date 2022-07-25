@@ -1,18 +1,16 @@
+import io
+import itertools
+import math
+import random
 import sys
 import unittest
-import mpmath
-import itertools
-import random
-import io
-import math
-
-
 from test.helper import session
 
+import mpmath
+import pytest
 
-from mathics.builtin.compile import has_llvmlite
 from mathics.builtin.compilation import CompiledCode
-
+from mathics.builtin.compile import has_llvmlite
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -21,9 +19,9 @@ from mathics.core.atoms import (
     MachineReal,
     String,
 )
+from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolPower
-
 from mathics.core.systemsymbols import (
     SymbolCos,
     SymbolEqual,
@@ -33,17 +31,14 @@ from mathics.core.systemsymbols import (
     SymbolUnequal,
 )
 
-
-from mathics.core.convert.function import expression_to_callable_and_args
-
 if has_llvmlite:
     from mathics.builtin.compile import (
-        _compile,
         CompileArg,
+        CompileError,
+        _compile,
+        bool_type,
         int_type,
         real_type,
-        bool_type,
-        CompileError,
     )
 
 
@@ -205,7 +200,7 @@ class ArithmeticTest(CompileTest):
     def test_pow_real(self):
         self._test_binary_math("Power", mpmath.power)
 
-    @unittest.expectedFailure
+    @pytest.mark.skip(reason="LLVM compile produces float result instead of int")
     def test_pow_int(self):
         expr = Expression(SymbolPower, Symbol("x"), Symbol("y"))
         args = [CompileArg("System`x", int_type), CompileArg("System`y", int_type)]
@@ -350,7 +345,7 @@ class FlowControlTest(CompileTest):
         cfunc = _compile(expr, args)
         self.assertTypeEqual(cfunc(1), 1)
 
-    @unittest.expectedFailure
+    @pytest.mark.skip(reason="LLVM cannot compile Print[]")
     def test_print(self):
         expr = Expression(Symbol("Print"), String("Hello world"))
         cfunc = _compile(expr, [])

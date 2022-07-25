@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from builtins ... algebra.py
+Unit tests for mathics.builtins.numbers.algebra
 """
+from test.helper import check_evaluation
+
 import pytest
-from .helper import check_evaluation
 
 
 def test_coefficient():
