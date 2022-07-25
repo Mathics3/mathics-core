@@ -1691,7 +1691,7 @@ class Dispatch(Atom):
         self._elements = None
         self._head = SymbolDispatch
 
-    def get_sort_key(self):
+    def get_sort_key(self) -> tuple:
         return self.src.get_sort_key()
 
     def get_atom_name(self):

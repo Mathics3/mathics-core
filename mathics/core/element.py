@@ -145,8 +145,10 @@ class KeyComparable:
     """
 
     # FIXME: return type should be a specific kind of Tuple, not a list.
-    def get_sort_key(self) -> list:
+    def get_sort_key(self) -> tuple:
         """
+        This returns a tuple in a way that
+        it can be used to compare in expressions.
 
         Returns a particular encoded list (better though would be a tuple) that is used
         in ``Sort[]`` comparisons and in the ordering that occurs
