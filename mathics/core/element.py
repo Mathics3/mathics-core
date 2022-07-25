@@ -149,6 +149,8 @@ class KeyComparable:
     #        can create the kind of tuple for some new kind of element.
     def get_sort_key(self) -> list:
         """
+        This returns a tuple in a way that
+        it can be used to compare in expressions.
 
         Returns a particular encoded list (better though would be a tuple) that is used
         in ``Sort[]`` comparisons and in the ordering that occurs

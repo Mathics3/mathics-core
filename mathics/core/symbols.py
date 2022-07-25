@@ -279,9 +279,9 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return [0, 0, 1, 1, 0, 0, 0, 1]
+            return (0, 0, 1, 1, 0, 0, 0, 1)
         else:
             raise NotImplementedError
 
@@ -515,18 +515,18 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_name(self) -> str:
         return self.name
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super(Symbol, self).get_sort_key(True)
         else:
-            return [
+            return (
                 1 if self.is_numeric() else 2,
                 2,
                 Monomial({self.name: 1}),
                 0,
                 self.name,
                 1,
-            ]
+            )
 
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))

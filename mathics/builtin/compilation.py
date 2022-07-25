@@ -158,11 +158,11 @@ class CompiledCode(Atom, ImmutableValueMixin):
     def default_format(self, evaluation, form):
         return str(self)
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super(CompiledCode, self).get_sort_key(True)
         else:
-            return hex(id(self))
+            return (0, 3, hex(id(self)))
 
     def sameQ(self, rhs) -> bool:
         """Mathics SameQ"""

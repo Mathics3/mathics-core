@@ -698,8 +698,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 option_values[name] = option.elements[1]
         return option_values
 
-    # FIXME: return type should be a specific kind of Tuple, not a list.
-    def get_sort_key(self, pattern_sort=False) -> list:
+    # FIXME: return type should be a specific kind of Tuple, not a tuple.
+    def get_sort_key(self, pattern_sort=False) -> tuple:
 
         if pattern_sort:
             """
@@ -729,7 +729,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 else:
                     pattern += 20
             if pattern > 0:
-                return [
+                return (
                     2,
                     pattern,
                     1,
@@ -738,34 +738,33 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     head.get_sort_key(True),
                     tuple(element.get_sort_key(True) for element in self._elements),
                     1,
-                ]
-
+                )
             if head is SymbolPatternTest:
                 if len(self._elements) != 2:
-                    return [3, 0, 0, 0, 0, head, self._elements, 1]
-                sub = self._elements[0].get_sort_key(True)
+                    return (3, 0, 0, 0, 0, head, self._elements, 1)
+                sub = list(self._elements[0].get_sort_key(True))
                 sub[2] = 0
-                return sub
+                return tuple(sub)
             elif head is SymbolCondition:
                 if len(self._elements) != 2:
-                    return [3, 0, 0, 0, 0, head, self._elements, 1]
-                sub = self._elements[0].get_sort_key(True)
+                    return (3, 0, 0, 0, 0, head, self._elements, 1)
+                sub = list(self._elements[0].get_sort_key(True))
                 sub[7] = 0
-                return sub
+                return tuple(sub)
             elif head is SymbolPattern:
                 if len(self._elements) != 2:
-                    return [3, 0, 0, 0, 0, head, self._elements, 1]
-                sub = self._elements[1].get_sort_key(True)
+                    return (3, 0, 0, 0, 0, head, self._elements, 1)
+                sub = list(self._elements[1].get_sort_key(True))
                 sub[3] = 0
-                return sub
+                return tuple(sub)
             elif head is SymbolOptional:
                 if len(self._elements) not in (1, 2):
-                    return [3, 0, 0, 0, 0, head, self._elements, 1]
-                sub = self._elements[0].get_sort_key(True)
+                    return (3, 0, 0, 0, 0, head, self._elements, 1)
+                sub = list(self._elements[0].get_sort_key(True))
                 sub[4] = 1
-                return sub
+                return tuple(sub)
             elif head is SymbolAlternatives:
-                min_key = [4]
+                min_key = (4,)
                 min = None
                 for element in self._elements:
                     key = element.get_sort_key(True)
@@ -774,18 +773,18 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                         min_key = key
                 if min is None:
                     # empty alternatives -> very restrictive pattern
-                    return [2, 1]
+                    return (2, 1)
                 return min_key
             elif head is SymbolVerbatim:
                 if len(self._elements) != 1:
-                    return [3, 0, 0, 0, 0, head, self._elements, 1]
+                    return (3, 0, 0, 0, 0, head, self._elements, 1)
                 return self._elements[0].get_sort_key(True)
             elif head is SymbolOptionsPattern:
-                return [2, 40, 0, 1, 1, 0, head, self._elements, 1]
+                return (2, 40, 0, 1, 1, 0, head, self._elements, 1)
             else:
-                # Append [4] to elements so that longer expressions have higher
+                # Append (4,) to elements so that longer expressions have higher
                 # precedence
-                return [
+                return (
                     2,
                     0,
                     1,
@@ -795,11 +794,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     tuple(
                         chain(
                             (element.get_sort_key(True) for element in self._elements),
-                            ([4],),
+                            ((4,),),
                         )
                     ),
                     1,
-                ]
+                )
         else:
             """
             General sort key structure:
@@ -827,7 +826,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 if var and exp is not None:
                     exps[var] = exps.get(var, 0) + exp
             if exps:
-                return [
+                return (
                     1 if self.is_numeric() else 2,
                     2,
                     Monomial(exps),
@@ -835,9 +834,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     head,
                     self._elements,
                     1,
-                ]
+                )
             else:
-                return [1 if self.is_numeric() else 2, 3, head, self._elements, 1]
+                return (1 if self.is_numeric() else 2, 3, head, self._elements, 1)
 
     @property
     def head(self):
