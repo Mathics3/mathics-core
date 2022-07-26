@@ -27,12 +27,13 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import (
-    String,
-    StringFromPython,
     Integer,
+    Number,
     Real,
     MachineReal,
     PrecisionReal,
+    String,
+    StringFromPython,
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
@@ -212,7 +213,8 @@ def parenthesize(precedence, element, element_boxes, when_equal):
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].get_int_value()
     # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, Integer) and element.value < 0:
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        print("element is a signed number")
         element_prec = precedence
     else:
         element_prec = builtins_precedence.get(element.get_head_name())
