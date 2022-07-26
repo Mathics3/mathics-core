@@ -4,11 +4,14 @@ Symbols for some (but not all) Mathics primitive names
 
 We put all of this in one place to make it easy to find most of them.
 
-There are other Symbols, that those for True and False that are needed in the Symbol class,
-so those are defined there.
+There are other Symbols, such as those for True and False that are
+needed in the Symbol class. So those are defined there, not here.
 
-Other modules may also define Symbols where are to be lesser-used, or
-is will probably only be use in the module where it is defined.
+Other modules may also define Symbols which are thought to be
+lesser-used, or is will probably only be use in the module where it is
+defined. Over time, as we find more uses of these, they are sometimes
+moved here.
+
 """
 
 
