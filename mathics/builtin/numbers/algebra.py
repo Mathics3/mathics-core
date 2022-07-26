@@ -601,7 +601,7 @@ class _CoefficientHandler(Builtin):
             if isinstance(pf, Symbol):
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
-                        powers[i] = Integer(1)
+                        powers[i] = Integer1
                         return powers
             if pf.has_form("Sqrt", 1):
                 for i, pat in enumerate(var_pats):
@@ -624,7 +624,7 @@ class _CoefficientHandler(Builtin):
             else:
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
-                        powers[i] = Integer(1)
+                        powers[i] = Integer1
                         return powers
             return powers
 
@@ -640,6 +640,8 @@ class _CoefficientHandler(Builtin):
             # and the rest.
             if term.is_free(target_pat, evaluation):
                 coeffs.append(term)
+            elif match(term, target_pat, evaluation):
+                return None, term
             elif (
                 isinstance(term, Symbol)
                 or term.has_form("Power", 2)

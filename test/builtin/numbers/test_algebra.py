@@ -9,6 +9,7 @@ import pytest
 
 def test_collect():
     for str_expr, str_expected in [
+        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])"),
         ("Collect[ 1+ a x + b x^3 + Cos[t] x, x]", "1 + (a + Cos[t]) x + b x^3"),
         ("Collect[ q[0, x] q[0, y] + 1, q[0, x]]", "1 + q[0, x] q[0, y]"),  # Issue #285
         (
