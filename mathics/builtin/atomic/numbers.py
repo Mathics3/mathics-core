@@ -35,7 +35,7 @@ from mathics.core.attributes import (
     protected as A_PROTECTED,
 )
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.python import from_python
+from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -45,11 +45,7 @@ from mathics.core.number import (
     machine_precision,
     machine_epsilon,
 )
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
@@ -966,11 +962,11 @@ class NumericQ(Builtin):
         "argx": "NumericQ called with `1` arguments; 1 argument is expected.",
         "set": "Cannot set `1` to `2`; the lhs argument must be a symbol and the rhs must be True or False.",
     }
-    summary_text = "test whether an exprssion is a number"
+    summary_text = "test whether an expression is a number"
 
     def apply(self, expr, evaluation):
         "NumericQ[expr_]"
-        return SymbolTrue if expr.is_numeric(evaluation) else SymbolFalse
+        return from_bool(expr.is_numeric(evaluation))
 
 
 class Precision(Builtin):

@@ -26,8 +26,8 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
-    Symbol_Context,
-    Symbol_ContextPath,
+    SymbolContext,
+    SymbolContextPath,
     SymbolFailed,
     SymbolOptions,
 )
@@ -104,7 +104,7 @@ class Clear(Builtin):
         for symbol in symbols:
             if isinstance(symbol, Symbol):
                 symbol_name = symbol.get_name()
-                if symbol in (Symbol_Context, Symbol_ContextPath):
+                if symbol in (SymbolContext, SymbolContextPath):
                     evaluation.message(self.get_name(), "spsym", symbol)
                     continue
                 names = [symbol_name]

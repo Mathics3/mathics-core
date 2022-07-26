@@ -27,11 +27,11 @@ from mathics.core.atoms import (
 from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
-    SymbolFalse,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
@@ -1115,8 +1115,8 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
 
     def _search(patts, str, flags, matched):
         if any(re.search(p, str, flags=flags) for p in patts):
-            return SymbolTrue if matched else SymbolFalse
-        return SymbolFalse if matched else SymbolTrue
+            return from_bool(matched)
+        return from_bool(not matched)
 
     # Check string validity and perform regex searchhing
     if string.has_form("List", None):
