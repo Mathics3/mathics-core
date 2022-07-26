@@ -13,6 +13,8 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
+from typing import Optional, Tuple, Union
+
 from mathics.algorithm.simplify import default_complexity_function
 
 from mathics.builtin.base import Builtin
@@ -30,6 +32,8 @@ from mathics.core.atoms import (
 from mathics.core.attributes import listable, protected
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
@@ -327,10 +331,10 @@ def find_all_vars(expr):
         elif isinstance(e, Symbol):
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
-            for l in e.elements:
-                l_sympy = l.to_sympy()
-                if l_sympy is not None:
-                    find_vars(l, l_sympy)
+            for lv in e.elements:
+                lv_sympy = lv.to_sympy()
+                if lv_sympy is not None:
+                    find_vars(lv, lv_sympy)
         elif e.has_form("Power", 2):
             (a, b) = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
@@ -572,7 +576,17 @@ class Coefficient(Builtin):
 
 
 class _CoefficientHandler(Builtin):
-    def coeff_power_internal(self, expr, var_exprs, filt, evaluation, form="expr"):
+    def coeff_power_internal(
+        self,
+        expr: BaseElement,
+        var_exprs: list,
+        filt: BaseElement,
+        evaluation: Evaluation,
+        form: str = "expr",
+    ) -> list:
+        """
+        This method returns a list of terms grouped by different powers of the expressions in var_expr.
+        """
         from mathics.builtin.patterns import match
 
         if len(var_exprs) == 0:
@@ -588,21 +602,24 @@ class _CoefficientHandler(Builtin):
             var_pats = [Pattern.create(var) for var in var_exprs]
 
         # ###### Auxiliary functions #########
-        def key_powers(lst):
+        def key_powers(lst: list) -> Union[int, float]:
             key = Expression(SymbolPlus, *lst)
             key = key.evaluate(evaluation)
             if key.is_numeric(evaluation):
                 return key.to_python()
             return 0
 
-        def powers_list(pf):
+        def powers_list(pf: Optional[Expression]) -> list:
+            """
+            Build a list of exponents associated to each indeterminate.
+            """
             powers = [Integer0 for i, p in enumerate(var_pats)]
             if pf is None:
                 return powers
             if isinstance(pf, Symbol):
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
-                        powers[i] = Integer(1)
+                        powers[i] = Integer1
                         return powers
             if pf.has_form("Sqrt", 1):
                 for i, pat in enumerate(var_pats):
@@ -622,9 +639,14 @@ class _CoefficientHandler(Builtin):
                         SymbolPlus, *[c[i] for c in contrib]
                     ).evaluate(evaluation)
                 return powers
+            else:
+                for i, pat in enumerate(var_pats):
+                    if match(pf, pat, evaluation):
+                        powers[i] = Integer1
+                        return powers
             return powers
 
-        def split_coeff_pow(term):
+        def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
             """
             This function factorizes term in a coefficent free
             of powers of the target variables, and a factor with
@@ -636,6 +658,8 @@ class _CoefficientHandler(Builtin):
             # and the rest.
             if term.is_free(target_pat, evaluation):
                 coeffs.append(term)
+            elif match(term, target_pat, evaluation):
+                return None, term
             elif (
                 isinstance(term, Symbol)
                 or term.has_form("Power", 2)
@@ -1669,7 +1693,11 @@ class Simplify(Builtin):
         # Now, try to simplify using sympy
         complexity_function = options.get("System`ComplexityFunction", None)
         if complexity_function is None or complexity_function is SymbolAutomatic:
-            complexity_function = lambda x: default_complexity_function(from_sympy(x))
+
+            def _default_complexity_function(x):
+                return default_complexity_function(from_sympy(x))
+
+            complexity_function = _default_complexity_function
         else:
             if isinstance(complexity_function, (Expression, Symbol)):
                 _complexity_function = complexity_function
