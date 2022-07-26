@@ -34,6 +34,7 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
 )
+from mathics.core.convert.python import from_bool
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
 from mathics.core.list import ListExpression
@@ -117,7 +118,7 @@ class TraceEvaluationVariable(Builtin):
 
     def apply_get(self, evaluation):
         "%(name)s"
-        return SymbolTrue if evaluation.definitions.trace_evaluation else SymbolFalse
+        return from_bool(evaluation.definitions.trace_evaluation)
 
     def apply_set(self, value, evaluation):
         "%(name)s = value_"

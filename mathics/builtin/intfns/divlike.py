@@ -12,6 +12,7 @@ from sympy import Q, ask
 
 from mathics.builtin.base import Builtin, Test, SympyFunction
 from mathics.core.atoms import Integer
+from mathics.core.convert.python import from_bool
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
@@ -50,7 +51,7 @@ class CompositeQ(Builtin):
 
     def apply(self, n, evaluation):
         "CompositeQ[n_Integer]"
-        return SymbolTrue if ask(Q.composite(n.value)) else SymbolFalse
+        return from_bool(ask(Q.composite(n.value)))
 
 
 class CoprimeQ(Builtin):
