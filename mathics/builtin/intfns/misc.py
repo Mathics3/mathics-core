@@ -1,6 +1,7 @@
 from mathics.builtin.arithmetic import _MPMathFunction
 
 from mathics.core.attributes import (
+    listable as A_LISTABLE,
     numeric_function as A_NUMERIC_FUNCTION,
     protected as A_PROTECTED,
     read_protected as A_READ_PROTECTED,
@@ -31,7 +32,7 @@ class BernoulliB(_MPMathFunction):
      = {1, -1 / 2 + z, 1 / 6 - z + z ^ 2, z / 2 - 3 z ^ 2 / 2 + z ^ 3}
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_PROTECTED | A_LISTABLE
     mpmath_name = "bernoulli"
     nargs = {1, 2}
     summary_text = "Bernoulli number and function"
