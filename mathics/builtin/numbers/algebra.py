@@ -621,6 +621,11 @@ class _CoefficientHandler(Builtin):
                         SymbolPlus, *[c[i] for c in contrib]
                     ).evaluate(evaluation)
                 return powers
+            else:
+                for i, pat in enumerate(var_pats):
+                    if match(pf, pat, evaluation):
+                        powers[i] = Integer(1)
+                        return powers
             return powers
 
         def split_coeff_pow(term):
