@@ -13,7 +13,7 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union
 
 from mathics.algorithm.simplify import default_complexity_function
 
@@ -601,7 +601,7 @@ class _CoefficientHandler(Builtin):
             var_pats = [Pattern.create(var) for var in var_exprs]
 
         # ###### Auxiliary functions #########
-        def key_powers(lst: list) -> int:
+        def key_powers(lst: list) -> Union[int, float]:
             key = Expression(SymbolPlus, *lst)
             key = key.evaluate(evaluation)
             if key.is_numeric(evaluation):
