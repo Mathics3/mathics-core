@@ -186,7 +186,7 @@ class EulerPhi(SympyFunction):
         = {1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16}
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = listable | protected
     summary_text = "Euler totient function"
     sympy_name = "totient"
 

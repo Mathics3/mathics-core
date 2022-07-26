@@ -25,6 +25,7 @@ from mathics.core.attributes import (
     one_identity as A_ONE_IDENTITY,
     orderless as A_ORDERLESS,
     protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
 )
 
 SymbolQuotient = Symbol("Quotient")
@@ -47,6 +48,7 @@ class CompositeQ(Builtin):
      = {False, False, False, False, True, False, True, False, True, True, True}
     """
 
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "test whether a number is composite"
 
     def apply(self, n, evaluation):
@@ -120,6 +122,7 @@ class Divisible(Builtin):
      = False
     """
 
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     rules = {
         "Divisible[n_, m_]": "Mod[n, m] == 0",
     }
@@ -270,7 +273,7 @@ class ModularInverse(SympyFunction):
     #> Clear[k, n]
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_PROTECTED
     summary_text = "returns the modular inverse $k^(-1)$ mod $n$"
     sympy_name = "mod_inverse"
 

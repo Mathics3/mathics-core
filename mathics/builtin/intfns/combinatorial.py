@@ -19,6 +19,7 @@ from mathics.core.attributes import (
     numeric_function as A_NUMERIC_FUNCTION,
     orderless as A_ORDERLESS,
     protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -132,7 +133,7 @@ class CatalanNumber(SympyFunction):
      = {1, 2, 5, 14, 42}
     """
 
-    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     summary_text = "catalan number"
     sympy_name = "catalan"
