@@ -27,13 +27,15 @@ from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import (
-    String,
-    StringFromPython,
     Integer,
+    Number,
     Real,
     MachineReal,
     PrecisionReal,
+    String,
+    StringFromPython,
 )
+from mathics.core.convert.python import from_bool
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
 from mathics.core.list import ListExpression
@@ -117,7 +119,7 @@ class TraceEvaluationVariable(Builtin):
 
     def apply_get(self, evaluation):
         "%(name)s"
-        return SymbolTrue if evaluation.definitions.trace_evaluation else SymbolFalse
+        return from_bool(evaluation.definitions.trace_evaluation)
 
     def apply_set(self, value, evaluation):
         "%(name)s = value_"
@@ -206,10 +208,14 @@ def parenthesize(precedence, element, element_boxes, when_equal):
 
     while element.has_form("HoldForm", 1):
         element = element.elements[0]
+
     if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].get_int_value()
+        element_prec = element.elements[2].value
     elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].get_int_value()
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
     else:
         element_prec = builtins_precedence.get(element.get_head_name())
     if precedence is not None and element_prec is not None:

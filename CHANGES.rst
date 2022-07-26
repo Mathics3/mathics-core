@@ -117,6 +117,7 @@ Bugs
 * Fix crash in ``NestWhile`` when supplying ``All`` as the fourth argument.
 * Fix the comparison between ``Image`` and other expressions.
 * Fix an issue that prevented that `Collect` handles properly polynomials on expressions (issue #285).
+* Fix a bug in formatting expressions of the form ``(-1)^a`` without the parenthesis (issue #332).
 
 4.0.1
 -----

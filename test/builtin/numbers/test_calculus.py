@@ -62,6 +62,12 @@ else:
     ]
 
 
+tests_for_integrate = [
+    (r"Integrate[Sec[x]*Tan[x],x]", "1 / Cos[x]", "issue #346"),
+    (r"Integrate[Sin[x]/(3 + Cos[x])^2,x]", "1 / (3 + Cos[x])", "issue #346"),
+]
+
+
 @pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_findminimum)
 def test_findminimum(str_expr: str, str_expected: str, msg: str, message=""):
     result = evaluate(str_expr)
@@ -74,6 +80,16 @@ def test_findminimum(str_expr: str, str_expected: str, msg: str, message=""):
 
 @pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_findroot)
 def test_findroot(str_expr: str, str_expected: str, msg: str, message=""):
+    result = evaluate(str_expr)
+    expected = evaluate(str_expected)
+    if msg:
+        assert result == expected, msg
+    else:
+        assert result == expected
+
+
+@pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_integrate)
+def test_integrate(str_expr: str, str_expected: str, msg: str, message=""):
     result = evaluate(str_expr)
     expected = evaluate(str_expected)
     if msg:

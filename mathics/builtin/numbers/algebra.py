@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     Number,
 )
 from mathics.core.attributes import listable, protected
+from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
@@ -1906,14 +1907,14 @@ class PolynomialQ(Builtin):
 
         sympy_expr = expr.to_sympy()
         sympy_result = sympy_expr.is_polynomial(*[x for x in sympy_var])
-        return SymbolTrue if sympy_result else SymbolFalse
+        return from_bool(sympy_result)
 
 
 class PowerExpand(Builtin):
     """
     <dl>
-    <dt>'PowerExpand[$expr$]'
-        <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
+      <dt>'PowerExpand[$expr$]'
+      <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
     </dl>
 
     >> PowerExpand[(a ^ b) ^ c]
