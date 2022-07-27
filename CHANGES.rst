@@ -17,7 +17,9 @@ Enhancements
 * Allow scipy and skimage to be optional. In particular:
    - Revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available.
 * Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
+* Compatibility with the default way in which WMA sorts expressions was improved: Now expressions with fewer elements come first (issue #458).
 
+  
 Documentation
 .............
 

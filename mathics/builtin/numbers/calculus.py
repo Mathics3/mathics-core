@@ -580,7 +580,7 @@ class Integrate(SympyFunction):
      = f[b] - f[a]
     and,
     >> D[Integrate[f[u, x],{u, a[x], b[x]}], x]
-     = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] - f[a[x], x] a'[x] + f[b[x], x] b'[x]
+     = Integrate[Derivative[0, 1][f][u, x], {u, a[x], b[x]}] + f[b[x], x] b'[x] - f[a[x], x] a'[x]
     >> N[Integrate[Sin[Exp[-x^2 /2 ]],{x,1,2}]]
      = 0.330804
     """

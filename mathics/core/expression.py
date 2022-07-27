@@ -836,7 +836,14 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     1,
                 )
             else:
-                return (1 if self.is_numeric() else 2, 3, head, self._elements, 1)
+                return (
+                    1 if self.is_numeric() else 2,
+                    3,
+                    head,
+                    len(self._elements),
+                    self._elements,
+                    1,
+                )
 
     @property
     def head(self):
