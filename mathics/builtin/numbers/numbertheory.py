@@ -7,29 +7,22 @@ Number theoretic functions
 import mpmath
 import sympy
 
-
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer10,
-    Rational,
-    SymbolDivide,
-)
+from mathics.core.atoms import Integer, Integer0, Integer10, Rational, SymbolDivide
 from mathics.core.attributes import (
-    listable,
-    numeric_function,
-    orderless,
-    protected,
-    read_protected,
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    orderless as A_ORDERLESS,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
 )
-from mathics.core.convert.sympy import from_sympy, SympyPrime
-from mathics.core.convert.python import from_python
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool, from_python
+from mathics.core.convert.sympy import SympyPrime, from_sympy
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolFalse
 from mathics.core.systemsymbols import (
     SymbolCeiling,
     SymbolComplex,
@@ -38,15 +31,16 @@ from mathics.core.systemsymbols import (
     SymbolRe,
 )
 
-SymbolFractionalPart = Symbol("FractionalPart")
-SymbolMantissaExponent = Symbol("MantissaExponent")
+SymbolFractionalPart = Symbol("System`FractionalPart")
+SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 
 class ContinuedFraction(SympyFunction):
     """
+    Continued faction. See <url>https://en.wikipedia.org/wiki/Continued_fraction</url>
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
-      <dd>generate the first $n$ terms in the continued fraction reprentation of $x$.
+      <dd>generate the first $n$ terms in the continued fraction representation of $x$.
 
       <dt>'ContinuedFraction[$x$]'
       <dd>the complete continued fraction representation for a rational or quadradic irrational number.
@@ -62,7 +56,7 @@ class ContinuedFraction(SympyFunction):
      = {8, {2, 1, 2, 1, 2, 16}}
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "continued fraction expansion"
     sympy_name = "continued_fraction"
 
@@ -103,7 +97,7 @@ class Divisors(Builtin):
 
     # TODO: support GaussianIntegers
     # e.g. Divisors[2, GaussianIntegers -> True]
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "integer divisors"
 
     def apply(self, n, evaluation):
@@ -133,7 +127,7 @@ class Divisors(Builtin):
 #    'ExtendedGCD' does not work for rational numbers and Gaussian integers yet
 #    """
 #
-#    attributes = listable | protected
+#    attributes = A_LISTABLE | A_PROTECTED
 #
 #    def apply(self, ns, evaluation):
 #        'ExtendedGCD[ns___Integer]'
@@ -142,7 +136,7 @@ class Divisors(Builtin):
 #        result = 0
 #        coeff = []
 #        for n in ns:
-#            value = n.get_int_value()
+#            value = n.value
 #            if value is None:
 #                return
 #            new_result, c1, c2 = sympy.gcdex(result, value)
@@ -154,39 +148,37 @@ class Divisors(Builtin):
 
 class EulerPhi(SympyFunction):
     """
-        <dl>
-          <dt>'EulerPhi[$n$]'
-          <dd>returns the Euler totient function .
-        </dl>
-
-    EulerPhi is also known as the Euler totient function or phi function.
+    Euler's totient function. See <url>https://en.wikipedia.org/wiki/Euler%27s_totient_function</url>
+    This function counts positive integers up to n that are relatively prime to n.
     It is typically used in cryptography and in many applications in elementary number theory.
+    <dl>
+      <dt>'EulerPhi[$n$]'
+      <dd>returns the Euler totient function .
+    </dl>
 
-    EulerPhi[n] counts positive integers up to n that are relatively prime to n.
+    Compute the Euler totient function:
+    >> EulerPhi[9]
+    = 6
 
-        Compute the Euler totient function:
-        >> EulerPhi[9]
-        = 6
+    'EulerPhi' of a negative integer is same as its positive counterpart:
+    >> EulerPhi[-11] == EulerPhi[11]
+    = True
 
-        'EulerPhi' of a negative integer is same as its positive counterpart:
-        >> EulerPhi[-11] == EulerPhi[11]
-        = True
+    Large arguments are computed quickly:
+    >> EulerPhi[40!]
+    = 121343746763281707274905415180804423680000000000
 
-        Large arguments are computed quickly:
-        >> EulerPhi[40!]
-        = 121343746763281707274905415180804423680000000000
+    'EulerPhi' threads over lists:
+    >> EulerPhi[Range[1, 17, 2]]
+    = {1, 2, 4, 6, 6, 10, 12, 8, 16}
+    Above, we get consecutive even numbers when the input is prime.
 
-        'EulerPhi' threads over lists:
-        >> EulerPhi[Range[1, 17, 2]]
-        = {1, 2, 4, 6, 6, 10, 12, 8, 16}
-        Above, we get consecutive even numbers when the input is prime.
-
-        Compare the results above with:
-        >> EulerPhi[Range[1, 17]]
-        = {1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16}
+    Compare the results above with:
+    >> EulerPhi[Range[1, 17]]
+    = {1, 1, 2, 2, 4, 2, 6, 4, 6, 4, 10, 4, 12, 6, 8, 8, 16}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "Euler totient function"
     sympy_name = "totient"
 
@@ -212,7 +204,7 @@ class FactorInteger(Builtin):
      = {{2, 1}, {3, 1}, {5, 1}, {67, 1}, {2011, -1}}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "list of prime factors and exponents"
 
     # TODO: GausianIntegers option
@@ -290,7 +282,7 @@ class FractionalPart(Builtin):
      = -8769956796 + Pi ^ 20
     """
 
-    attributes = listable | numeric_function | read_protected | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_READ_PROTECTED | A_PROTECTED
     summary_text = "fractional part of a number"
 
     def apply(self, n, evaluation):
@@ -327,7 +319,7 @@ class FromContinuedFraction(SympyFunction):
      = 225 / 157
     """
 
-    attributes = numeric_function | protected
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
 
     summary_text = "reconstructs a number from its continued fraction representation"
     sympy_name = "continued_fraction_reduce"
@@ -402,7 +394,7 @@ class MantissaExponent(Builtin):
      = {0, 0}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     messages = {
         "realx": "The value `1` is not a real number",
         "rbase": "Base `1` is not a real number greater than 1.",
@@ -531,7 +523,7 @@ class PartitionsP(SympyFunction):
      = {0, 0, 1, 1, 2, 3, 5, 7, 11, 15, 22, 30, 42, 56, 77}
     """
 
-    attributes = listable | numeric_function | orderless | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
     summary_text = "number of unrestricted partitions"
     sympy_name = "npartitions"
 
@@ -569,7 +561,7 @@ class Prime(SympyFunction):
      = {Prime[0], 2, Prime[1.2], 5}
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     summary_text = "n-esim prime number"
 
     def apply(self, n, evaluation):
@@ -605,7 +597,7 @@ class PrimePi(SympyFunction):
      = 1
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_name = "primepi"
     summary_text = "amount of prime numbers less than or equal"
     sympy_name = "ntheory.primepi"
@@ -641,7 +633,7 @@ class PrimePowerQ(Builtin):
      = False
     """
 
-    attributes = listable | protected | read_protected
+    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     rules = {
         "PrimePowerQ[1]": "False",
     }
@@ -669,24 +661,23 @@ class PrimePowerQ(Builtin):
         "PrimePowerQ[n_]"
         n = n.get_int_value()
         if n is None:
-            return Symbol("False")
+            return SymbolFalse
 
         n = abs(n)
-        if len(sympy.factorint(n)) == 1:
-            return Symbol("True")
-        else:
-            return Symbol("False")
+        return from_bool(len(sympy.factorint(n)) == 1)
 
 
 class RandomPrime(Builtin):
     """
     <dl>
-    <dt>'RandomPrime[{$imin$, $imax}]'
-        <dd>gives a random prime between $imin$ and $imax$.
-    <dt>'RandomPrime[$imax$]'
-        <dd>gives a random prime between 2 and $imax$.
-    <dt>'RandomPrime[$range$, $n$]'
-        <dd>gives a list of $n$ random primes in $range$.
+      <dt>'RandomPrime[{$imin$, $imax}]'
+      <dd>gives a random prime between $imin$ and $imax$.
+
+      <dt>'RandomPrime[$imax$]'
+      <dd>gives a random prime between 2 and $imax$.
+
+      <dt>'RandomPrime[$range$, $n$]'
+      <dd>gives a list of $n$ random primes in $range$.
     </dl>
 
     >> RandomPrime[{14, 17}]

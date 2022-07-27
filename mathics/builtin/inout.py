@@ -4,14 +4,12 @@
 Input and Output
 """
 
-import re
 import mpmath
+import re
 
 import typing
-from typing import Any
+from typing import Any, Optional
 
-
-from mathics.builtin.box.inout import RowBox, to_boxes, _BoxedString
 
 from mathics.builtin.base import (
     BoxConstruct,
@@ -21,24 +19,37 @@ from mathics.builtin.base import (
     Operator,
     Predefined,
 )
-from mathics.builtin.tensors import get_dimensions
+from mathics.builtin.box.inout import RowBox, to_boxes, _BoxedString
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
+from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import (
     Integer,
-    Number,
     Real,
     MachineReal,
     PrecisionReal,
     String,
     StringFromPython,
 )
+from mathics.core.attributes import (
+    hold_all as A_HOLD_ALL,
+    hold_all_complete as A_HOLD_ALL_COMPLETE,
+    hold_first as A_HOLD_FIRST,
+    protected as A_PROTECTED,
+)
 from mathics.core.convert.python import from_bool
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
+from mathics.core.evaluation import Message as EvaluationMessage
 from mathics.core.list import ListExpression
+from mathics.core.number import (
+    dps,
+    convert_base,
+    machine_precision,
+    reconstruct_digits,
+)
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -60,16 +71,6 @@ from mathics.core.systemsymbols import (
     SymbolRule,
     SymbolRuleDelayed,
 )
-from mathics.core.number import (
-    dps,
-    convert_base,
-    machine_precision,
-    reconstruct_digits,
-)
-
-from mathics.core.evaluation import Message as EvaluationMessage
-
-from mathics.core.attributes import hold_all, hold_all_complete, hold_first, protected
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
@@ -149,7 +150,7 @@ class TraceEvaluation(Builtin):
      = ...
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     options = {
         "System`ShowTimeBySteps": "False",
     }
@@ -420,9 +421,9 @@ def number_form(expr, n, f, evaluation, options):
 
     left_padding = 0
     max_sign_len = max(len(options["NumberSigns"][0]), len(options["NumberSigns"][1]))
-    l = len(sign_prefix) + len(left) + len(right) - max_sign_len
-    if l < n:
-        left_padding = n - l
+    i = len(sign_prefix) + len(left) + len(right) - max_sign_len
+    if i < n:
+        left_padding = n - i
     elif len(sign_prefix) < max_sign_len:
         left_padding = max_sign_len - len(sign_prefix)
     left_padding = left_padding * options["NumberPadding"][0]
@@ -584,7 +585,7 @@ class MakeBoxes(Builtin):
     >> \\( a, b \\)
      = RowBox[{a, ,, b}]
     """
-    attributes = hold_all_complete
+    attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
         "MakeBoxes[Infix[head_[elements___]], "
@@ -1045,7 +1046,7 @@ class TableForm(Builtin):
         dims = len(get_dimensions(table, head=SymbolList))
         depth = self.get_option(options, "TableDepth", evaluation)
         depth = expr_min((Integer(dims), depth))
-        depth = depth.get_int_value()
+        depth = depth.value
         if depth is None:
             evaluation.message(self.get_name(), "int")
             return
@@ -1399,7 +1400,7 @@ class Message(Builtin):
      : Hello you, Mr 007!
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "name": "Message name `1` is not of the form symbol::name or symbol::name::language."
@@ -1494,7 +1495,7 @@ class Check(Builtin):
      = err
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "argmu": "Check called with 1 argument; 2 or more arguments are expected.",
@@ -1596,7 +1597,7 @@ class Quiet(Builtin):
      = Quiet[x + x, {a::b}, {a::b}]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "anmlist": (
@@ -1705,7 +1706,7 @@ class Off(Builtin):
     #> On[Power::infy, Power::indet, Syntax::com]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "turn off a message for printing"
 
     def apply(self, expr, evaluation):
@@ -1751,7 +1752,7 @@ class On(Builtin):
     #> On[f::x]
      : Message f::x not found.
     """
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "turn on a message for printing"
 
     def apply(self, expr, evaluation):
@@ -1794,7 +1795,7 @@ class MessageName(BinaryOperator):
      = MessageName[a, "b"]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     default_formats = False
     formats: typing.Dict[str, Any] = {}
     messages = {"messg": "Message cannot be set to `1`. It must be set to a string."}
@@ -2240,7 +2241,7 @@ class PythonForm(Builtin):
         try:
             # from trepan.api import debug; debug()
             python_equivalent = expr.to_python(python_form=True)
-        except:
+        except Exception:
             return
         return StringFromPython(python_equivalent)
 
@@ -2265,13 +2266,12 @@ class SympyForm(Builtin):
 
     summary_text = "translate expressions to SymPy"
 
-    def apply_sympy(self, expr, evaluation) -> Expression:
+    def apply_sympy(self, expr, evaluation) -> Optional[Expression]:
         "MakeBoxes[expr_, SympyForm]"
 
         try:
-            # from trepan.api import debug; debug()
             sympy_equivalent = expr.to_sympy()
-        except:
+        except Exception:
             return
         return StringFromPython(sympy_equivalent)
 
@@ -2529,10 +2529,11 @@ class _NumberForm(Builtin):
 class NumberForm(_NumberForm):
     """
     <dl>
-    <dt>'NumberForm[$expr$, $n$]'
-        <dd>prints a real number $expr$ with $n$-digits of precision.
-    <dt>'NumberForm[$expr$, {$n$, $f$}]'
-        <dd>prints with $n$-digits and $f$ digits to the right of the decimal point.
+      <dt>'NumberForm[$expr$, $n$]'
+      <dd>prints a real number $expr$ with $n$-digits of precision.
+
+      <dt>'NumberForm[$expr$, {$n$, $f$}]'
+      <dd>prints with $n$-digits and $f$ digits to the right of the decimal point.
     </dl>
 
     >> NumberForm[N[Pi], 10]
@@ -2750,7 +2751,6 @@ class NumberForm(_NumberForm):
      = 142.3
     """
 
-    summary_text = "print at most a number of digits of all approximate real numbers in the expression"
     options = {
         "DigitBlock": "Infinity",
         "ExponentFunction": "Automatic",
@@ -2763,6 +2763,7 @@ class NumberForm(_NumberForm):
         "NumberSigns": '{"-", ""}',
         "SignPadding": "False",
     }
+    summary_text = "print at most a number of digits of all approximate real numbers in the expression"
 
     @staticmethod
     def default_ExponentFunction(value):
@@ -2881,8 +2882,8 @@ class NumberForm(_NumberForm):
 class BaseForm(Builtin):
     """
     <dl>
-    <dt>'BaseForm[$expr$, $n$]'
-        <dd>prints numbers in $expr$ in base $n$.
+      <dt>'BaseForm[$expr$, $n$]'
+      <dd>prints numbers in $expr$ in base $n$.
     </dl>
 
     >> BaseForm[33, 2]
@@ -2942,10 +2943,10 @@ class BaseForm(Builtin):
             x = expr.to_sympy()
             p = reconstruct_digits(expr.get_precision())
         elif isinstance(expr, MachineReal):
-            x = expr.get_float_value()
+            x = expr.value
             p = reconstruct_digits(machine_precision)
         elif isinstance(expr, Integer):
-            x = expr.get_int_value()
+            x = expr.value
             p = 0
         else:
             return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
