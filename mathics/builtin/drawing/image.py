@@ -2088,7 +2088,7 @@ class Image(Atom):
             # but with a `2` instead of `1` in the 5th position,
             # and adding two extra fields: the length in the 5th position,
             # and a hash in the 6th place.
-            return (1, 3, SymbolImage, tuple(), 2, len(self.pixels), hash(self))
+            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""

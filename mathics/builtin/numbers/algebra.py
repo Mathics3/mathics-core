@@ -1256,8 +1256,7 @@ class ExpandAll(_Expand):
      = Sin[x ^ 2 + 2 x y + y ^ 2]
 
     >> ExpandAll[Sin[(x+y)^2], Trig->True]
-     = -Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2]
-
+     = Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2] - Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2]
     'ExpandAll' also expands heads
     >> ExpandAll[((1 + x)(1 + y))[x]]
      = (1 + x + y + x y)[x]
