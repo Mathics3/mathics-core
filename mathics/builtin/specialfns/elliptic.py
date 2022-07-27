@@ -12,6 +12,7 @@ from mathics.core.attributes import (
     protected as A_PROTECTED,
 )
 from mathics.builtin.base import SympyFunction
+from mathics.core.atoms import Integer
 from mathics.core.convert.sympy import from_sympy
 
 import sympy
@@ -40,18 +41,31 @@ class EllipticE(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    messages = {
+        "argt": "EllipticE called with `` arguments; 1 or 2 arguments are expected.",
+    }
     summary_text = "elliptic integral of the second kind E(ϕ|m)"
     sympy_name = "elliptic_e"
+
+    def apply_default(self, args, evaluation):
+        "%(name)s[args___]"
+        evaluation.message("EllipticE", "argt", Integer(len(args.elements)))
 
     def apply_m(self, m, evaluation):
         "%(name)s[m_]"
         sympy_arg = m.numerify(evaluation).to_sympy()
-        return from_sympy(sympy.elliptic_e(sympy_arg))
+        try:
+            return from_sympy(sympy.elliptic_e(sympy_arg))
+        except:
+            return
 
     def apply_phi_m(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
         sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
-        return from_sympy(sympy.elliptic_e(*sympy_args))
+        try:
+            return from_sympy(sympy.elliptic_e(*sympy_args))
+        except:
+            return
 
 
 class EllipticF(SympyFunction):
@@ -71,13 +85,23 @@ class EllipticF(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    messages = {
+        "argx": "EllipticF called with `` arguments; 1 argument is expected.",
+    }
     summary_text = "elliptic integral F(ϕ|m)"
     sympy_name = "elliptic_f"
+
+    def apply_default(self, args, evaluation):
+        "%(name)s[args___]"
+        evaluation.message("EllipticE", "argx", Integer(len(args.elements)))
 
     def apply(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
         sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
-        return from_sympy(sympy.elliptic_f(*sympy_args))
+        try:
+            return from_sympy(sympy.elliptic_f(*sympy_args))
+        except:
+            return
 
 
 class EllipticK(SympyFunction):
@@ -100,14 +124,24 @@ class EllipticK(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_LISTABLE | A_PROTECTED
+    messages = {
+        "argx": "EllipticE called with `` arguments; 1 argument is expected.",
+    }
     summary_text = "elliptic integral of the first kind K(m)"
     sympy_name = "elliptic_k"
 
+    def apply_default(self, args, evaluation):
+        "%(name)s[args___]"
+        evaluation.message("EllipticK", "argx", Integer(len(m.elements)))
+
     def apply(self, m, evaluation):
-        "%(name)s[m__]"
+        "%(name)s[m_]"
         args = m.numerify(evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
-        return from_sympy(sympy.elliptic_k(*sympy_args))
+        try:
+            return from_sympy(sympy.elliptic_k(*sympy_args))
+        except:
+            return
 
 
 class EllipticPi(SympyFunction):
@@ -127,18 +161,32 @@ class EllipticPi(SympyFunction):
     """
 
     attributes = A_NUMERIC_FUNCTION | A_PROTECTED
+    messages = {
+        "argt": "EllipticPi called with `` arguments; 2 or 3 arguments are expected.",
+    }
     summary_text = "elliptic integral of the third kind P(n|m)"
     sympy_name = "elliptic_pi"
+
+    def apply_default(self, args, evaluation):
+        "%(name)s[args___]"
+        evaluation.message("EllipticPi", "argt", Integer(len(args.elements)))
 
     def apply_n_m(self, n, m, evaluation):
         "%(name)s[n_, m_]"
         sympy_n = m.numerify(evaluation).to_sympy()
         sympy_m = n.numerify(evaluation).to_sympy()
-        return from_sympy(sympy.elliptic_pi(sympy_n, sympy_m))
+        try:
+            return from_sympy(sympy.elliptic_pi(sympy_n, sympy_m))
+        except:
+            return
 
     def apply_n_phi_m(self, n, phi, m, evaluation):
         "%(name)s[n_, phi_, m_]"
         sympy_n = m.numerify(evaluation).to_sympy()
         sympy_phi = m.numerify(evaluation).to_sympy()
         sympy_m = n.numerify(evaluation).to_sympy()
-        return from_sympy(sympy.elliptic_pi(sympy_n, sympy_phi, sympy_m))
+        try:
+            result = from_sympy(sympy.elliptic_pi(sympy_n, sympy_phi, sympy_m))
+            return result
+        except:
+            return
