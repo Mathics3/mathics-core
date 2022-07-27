@@ -77,7 +77,7 @@ class GegenbauerC(_MPMathFunction):
 
 class HermiteH(_MPMathFunction):
     """
-    Hermite polynomial. See <url>https://en.wikipedia.org/wiki/Hermite_polynomials#Hermite_functions<url>.
+    Hermite polynomial. See <url>https://en.wikipedia.org/wiki/Hermite_polynomials#Hermite_functions</url>.
     <dl>
       <dt>'HermiteH[$n$, $x$]'
       <dd>returns the Hermite polynomial H_$n$($x$).
