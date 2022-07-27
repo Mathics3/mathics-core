@@ -187,7 +187,6 @@ class EllipticPi(SympyFunction):
         sympy_m = n.numerify(evaluation).to_sympy()
         try:
             result = from_sympy(sympy.elliptic_pi(sympy_n, sympy_phi, sympy_m))
-            print(result)
             return result
         except:
             return
