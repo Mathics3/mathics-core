@@ -672,7 +672,10 @@ class SympyFunction(SympyObject):
         args = z.numerify(evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
         sympy_fn = getattr(sympy, self.sympy_name)
-        return from_sympy(sympy_fn(*sympy_args))
+        try:
+            return from_sympy(sympy_fn(*sympy_args))
+        except:
+            return
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
