@@ -6,8 +6,7 @@ import sympy
 from functools import total_ordering
 import importlib
 from itertools import chain
-import typing
-from typing import Any, Callable, Iterable, List, Optional, cast
+from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 
 from mathics.builtin.exceptions import (
@@ -23,6 +22,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
 from mathics.core.convert.expression import to_expression
+from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.expression import Expression, SymbolDefault
@@ -35,8 +35,6 @@ from mathics.core.symbols import (
     Symbol,
     ensure_context,
     strip_context,
-    SymbolFalse,
-    SymbolTrue,
 )
 from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, SymbolRule
 
@@ -174,15 +172,15 @@ class Builtin:
     ```
     """
 
-    name: typing.Optional[str] = None
+    name: Optional[str] = None
     context: str = ""
     abstract: bool = False
     attributes: int = protected
     is_numeric: bool = False
-    rules: typing.Dict[str, Any] = {}
-    formats: typing.Dict[str, Any] = {}
-    messages: typing.Dict[str, Any] = {}
-    options: typing.Dict[str, Any] = {}
+    rules: Dict[str, Any] = {}
+    formats: Dict[str, Any] = {}
+    messages: Dict[str, Any] = {}
+    options: Dict[str, Any] = {}
     defaults = {}
 
     def __new__(cls, *args, **kwargs):
@@ -409,10 +407,10 @@ class Builtin:
             return shortname
         return cls.context + shortname
 
-    def get_operator(self) -> typing.Optional[str]:
+    def get_operator(self) -> Optional[str]:
         return None
 
-    def get_operator_display(self) -> typing.Optional[str]:
+    def get_operator_display(self) -> Optional[str]:
         return None
 
     def get_functions(self, prefix="apply", is_pymodule=False):
@@ -535,17 +533,17 @@ class AtomBuiltin(Builtin):
 
 
 class Operator(Builtin):
-    operator: typing.Optional[str] = None
-    precedence: typing.Optional[int] = None
+    operator: Optional[str] = None
+    precedence: Optional[int] = None
     precedence_parse = None
     needs_verbatim = False
 
     default_formats = True
 
-    def get_operator(self) -> typing.Optional[str]:
+    def get_operator(self) -> Optional[str]:
         return self.operator
 
-    def get_operator_display(self) -> typing.Optional[str]:
+    def get_operator_display(self) -> Optional[str]:
         if hasattr(self, "operator_display"):
             return self.operator_display
         else:
@@ -561,7 +559,7 @@ class Predefined(Builtin):
 
 
 class SympyObject(Builtin):
-    sympy_name: typing.Optional[str] = None
+    sympy_name: Optional[str] = None
 
     mathics_to_sympy = {}
 
@@ -574,7 +572,7 @@ class SympyObject(Builtin):
     def is_constant(self) -> bool:
         return False
 
-    def get_sympy_names(self) -> typing.List[str]:
+    def get_sympy_names(self) -> List[str]:
         if self.sympy_name:
             return [self.sympy_name]
         return []
@@ -657,15 +655,10 @@ class BinaryOperator(Operator):
 
 
 class Test(Builtin):
-    def apply(self, expr, evaluation) -> Symbol:
+    def apply(self, expr, evaluation) -> Optional[Symbol]:
         "%(name)s[expr_]"
-        tst = self.test(expr)
-        if tst:
-            return SymbolTrue
-        elif tst is False:
-            return SymbolFalse
-        else:
-            return
+        test_expr = self.test(expr)
+        return None if test_expr is None else from_bool(bool(test_expr))
 
 
 class SympyFunction(SympyObject):
@@ -905,7 +898,7 @@ class PatternArgumentError(PatternError):
 class PatternObject(BuiltinElement, Pattern):
     needs_verbatim = True
 
-    arg_counts: typing.List[int] = []
+    arg_counts: List[int] = []
 
     def init(self, expr):
         super().init(expr)
@@ -968,7 +961,7 @@ class CountableInteger:
     # _support_infinity to False.
     _finite: bool
     _upper_limit: bool
-    _integer: typing.Union[str, int]
+    _integer: Union[str, int]
     _support_infinity = False
 
     def __init__(self, value="Infinity", upper_limit=True):

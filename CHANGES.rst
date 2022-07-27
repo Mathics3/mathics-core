@@ -19,12 +19,15 @@ Enhancements
 * Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
 * Compatibility with the default way in which WMA sorts expressions was improved: Now expressions with fewer elements come first (issue #458).
 
-  
+
 Documentation
 .............
 
 * "Testing Expressions" section added
 * "Representation of Numbers" section added
+* "Descriptive Statistics" section added and "Moments" folded into that
+* Many More URL references
+* Chapter and Sections are now in alphabetical order
 
 New Builtins
 ============
@@ -34,6 +37,10 @@ New Builtins
 * ``CompositeQ``.
 * ``Diagonal``. Issue #115.
 * ``Divisible``.
+* ``EllipticE``
+* ``EllipticF``
+* ``EllipticK``
+* ``EllipticPhi``
 * ``EulerPhi``
 * ``$Echo``. Issue #42.
 * ``FindRoot`` was improved for supporting numerical derivatives Issue #67, as well as the use of scipy libraries when are available.
