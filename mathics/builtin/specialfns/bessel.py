@@ -30,7 +30,7 @@ class _Bessel(_MPMathFunction):
 
 class AiryAi(_MPMathFunction):
     """
-     Airy function of the first kind. See <url>https://en.wikipedia.org/wiki/Airy_function</url>.
+    <url>:Airy function of the first kind: https://en.wikipedia.org/wiki/Airy_function</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyai</url>, <url>:WMA: https://reference.wolfram.com/language/ref/AiryAi.html</url>)
     <dl>
       <dt>'AiryAi[$x$]'
       <dd>returns the Airy function Ai($x$).

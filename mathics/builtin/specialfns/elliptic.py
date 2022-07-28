@@ -24,8 +24,8 @@ class EllipticE(SympyFunction):
       <dt>'EllipticE[$m$]'
       <dd>computes the complete elliptic integral $E$($m$).
 
-      <dt>'EllipticE[ϕ|$m$]'
-      <dd>computes the complete elliptic integral of the second kind $E$($m$|$ϕ$).
+      <dt>'EllipticE[phi|$m$]'
+      <dd>computes the complete elliptic integral of the second kind $E$($m$|phi).
     </dl>
 
     Elliptic curves give Pi / 2 when evaluated at zero:
@@ -132,7 +132,7 @@ class EllipticK(SympyFunction):
 
     def apply_default(self, args, evaluation):
         "%(name)s[args___]"
-        evaluation.message("EllipticK", "argx", Integer(len(m.elements)))
+        evaluation.message("EllipticK", "argx", Integer(len(args.elements)))
 
     def apply(self, m, evaluation):
         "%(name)s[m_]"

@@ -9,7 +9,7 @@ One thing to note is that the technical literature often contains several confli
 
 A number of special functions can be evaluated for arbitrary complex values of their arguments. However defining relations may apply only for some special choices of arguments. Here, the full function corresponds to an extension or "analytic continuation" of the defining relation.
 
-For example, integral representations of functions are only valid when the integral exists, but the functions can usually be defined b by analytic continuation.
+For example, integral representations of functions are only valid when the integral exists, but the functions can usually be defined by analytic continuation.
 
 """
 

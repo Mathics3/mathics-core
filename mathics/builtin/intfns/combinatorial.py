@@ -86,7 +86,7 @@ class _NoBoolVector(Exception):
 
 class Binomial(_MPMathFunction):
     """
-    Binomcial Coefficient. See <url>https://en.wikipedia.org/wiki/Binomial_coefficient</url>.
+    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>)
 
     <dl>
       <dt>'Binomial[$n$, $k$]'
@@ -121,7 +121,11 @@ class Binomial(_MPMathFunction):
 
 class CatalanNumber(SympyFunction):
     """
-    Catalan Number. See <url>https://en.wikipedia.org/wiki/Catalan_number</url>.
+    Catalan Number:
+    <ul>
+      <li><url>:Wikipedia: <url>https://en.wikipedia.org/wiki/Catalan_number</url>
+      <li><url>:SymPy: <url>https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>
+    </ul>
 
     <dl>
       <dt>'CatalanNumber[$n$]'
