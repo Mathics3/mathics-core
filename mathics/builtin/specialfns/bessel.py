@@ -628,7 +628,7 @@ class KelvinKer(_Bessel):
 class SphericalBesselJ(_Bessel):
     """
 
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
       <dt>'SphericalBesselJ[$n$, $z$]'
@@ -651,7 +651,7 @@ class SphericalBesselJ(_Bessel):
 
 class SphericalBesselY(_Bessel):
     """
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.yn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselY.html</url>)
 
     <dl>
       <dt>'SphericalBesselY[$n$, $z$]'
