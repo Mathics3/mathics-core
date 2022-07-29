@@ -1068,11 +1068,10 @@ class Transliterate(Builtin):
         <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
-    ASCII translateration examples can be found in:
+    ASCII translateration examples:
     <ul>
-      <li><url>https://en.wikipedia.org/wiki/Iliad,</url>
-      <li><url>https://en.wikipedia.org/wiki/Russian_language</url>, and
-      <li><url>https://en.wikipedia.org/wiki/Hiragana</url>
+      <li><url>:Russian language: https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
+      <li><url>:Hiragana: https://en.wikipedia.org/wiki/Hiragana#Table_of_hiragana</url>
     </ul>
     """
 
