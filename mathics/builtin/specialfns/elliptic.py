@@ -1,9 +1,8 @@
 """
-Elliptic Integrals
+<url>:Elliptic Integrals: https://en.wikipedia.org/wiki/Elliptic_integral</url>
 
 In integral calculus, an elliptic integral is one of a number of related functions defined as the value of certain integral. Their name originates from their originally arising in connection with the problem of finding the arc length of an ellipse. These functions often are used in cryptography to encode and decode messages.
 
-See <url>https://en.wikipedia.org/wiki/Elliptic_integral</url>.
 """
 
 from mathics.core.attributes import (
@@ -25,7 +24,7 @@ class EllipticE(SympyFunction):
       <dd>computes the complete elliptic integral $E$($m$).
 
       <dt>'EllipticE[phi|$m$]'
-      <dd>computes the complete elliptic integral of the second kind $E$($m$|phi).
+      <dd>computes the complete elliptic integral of the second kind $E$($m$|$phi$).
     </dl>
 
     Elliptic curves give Pi / 2 when evaluated at zero:
