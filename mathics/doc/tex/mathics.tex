@@ -134,10 +134,10 @@
 }
 \newcommand{\chaptersections}{
 	\minitoc
-	\begin{multicols}{2}
+	%\begin{multicols}{2}
 }
 \newcommand{\chapterend}{
-	\end{multicols}
+	%\end{multicols}
 }
 
 \newcommand{\referencestart}{
@@ -145,10 +145,10 @@
 %\def\thechapter{\Roman{chapter}}
 \renewcommand{\chaptersections}{
 	\minitoc
-	\begin{multicols*}{2}
+	%\begin{multicols*}{2}
 }
 \renewcommand{\chapterend}{
-	\end{multicols*}
+	%\end{multicols*}
 }
 }
 
@@ -161,10 +161,18 @@
 }
 }
 
-\newenvironment{chapterintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{chapterintro}{
+  % \begin{multicols}{2}
+}{
+%\end{multicols}
+}
 \newenvironment{chapterintroshort}{\par}{}
 
-\newenvironment{guidesectionintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{guidesectionintro}{
+  % \begin{multicols}{2}
+}{
+  % \end{multicols}
+}
 \newenvironment{guidesectionintroshort}{\par}{}
 
 \newcommand{\codewidth}{0.9\columnwidth}
