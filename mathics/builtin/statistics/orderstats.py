@@ -1,7 +1,5 @@
 """
-Order Statistics
-
-See <url>https://en.wikipedia.org/wiki/Order_statistic</url>
+<url>:Order Statistics: https://en.wikipedia.org/wiki/Order_statistic</url>
 """
 
 from mathics.algorithm.introselect import introselect
@@ -142,7 +140,7 @@ class Quantile(Builtin):
 class Quartiles(Builtin):
     """
     <dl>
-    <dt>'Quartiles[$list$]'
+      <dt>'Quartiles[$list$]'
       <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
     </dl>
 
@@ -159,7 +157,7 @@ class Quartiles(Builtin):
 class RankedMax(Builtin):
     """
     <dl>
-    <dt>'RankedMax[$list$, $n$]'
+      <dt>'RankedMax[$list$, $n$]'
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
       $n$ = 2 yielding the second largest element, and so on).
     </dl>

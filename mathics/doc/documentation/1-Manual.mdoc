@@ -1,10 +1,10 @@
 <chapter title="Introduction">
 
-\Mathics---to be pronounced like "Mathematics" without the "emat"---is a general-purpose computer algebra system (CAS). It is meant to be a free, open-source alternative to \Mathematica. It is free both as in "free beer" and as in "freedom". Mathics can be run \Mathics locally, and to facilitate installation of the vast amount of software need to run this, there is a docker image available. See <url>https://hub.docker.com/r/mathicsorg/mathics</url>.
+\Mathics---to be pronounced like "Mathematics" without the "emat"---is a general-purpose computer algebra system (CAS). It is meant to be a free, open-source alternative to \Mathematica. It is free both as in "free beer" and as in "freedom". Mathics can be run \Mathics locally, and to facilitate installation of the vast amount of software need to run this, there is a <url>:docker image available on dockerhub: https://hub.docker.com/r/mathicsorg/mathics</url>.
 
-The programming language of \Mathics is meant to resemble \Wolfram\'s famous \Mathematica as much as possible. However, \Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; yet, it is an alternative for educational purposes. It also invites community development at all levels.
+The programming language of \Mathics is meant to resemble the \Wolfram Language as much as possible. However, \Mathics is in no way affiliated or supported by \Wolfram. \Mathics will probably never have the power to compete with \Mathematica in industrial applications; it is an alternative though. It also invites community development at all levels.
 
-See <url>https://mathics-development-guide.readthedocs.io/en/latest/installing/index.html</url> for the most recent instructions for installing from PyPI, source, or from <i>docker</i>.
+See the <url>:installation instructions: https://mathics-development-guide.readthedocs.io/en/latest/installing/index.html</url> for the most recent instructions for installing from PyPI, or the source.
 
 For implementation details see <url>https://mathics-development-guide.readthedocs.io/en/latest/</url>.
 
@@ -13,12 +13,13 @@ For implementation details see <url>https://mathics-development-guide.readthedoc
 
 <ul>
   <li>It is not open source.
-  <li>Its development is tightly controled and centralized.
+  <li>Its development is tightly controlled and centralized, and as such
+  <li>it can't hook into different kinds open-source packages that have independently developed algorithms and methods
 </ul>
 
-The last point some may find and advantage.
+The second point some may find and advantage.
 
-Even if you are willing to pay hundreds of dollars for the software, would will not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
+However, even if you are willing to pay hundreds of dollars for the software, you would will not be able to see what\'s going on "inside" the program if that is your interest. That\'s what free, open-source, and community-supported software is for!
 
 \Mathics aims at combining the best of both worlds: the beauty of \Mathematica backed by a free, extensible Python core which includes a rich set of Python tools including:
 
@@ -29,7 +30,7 @@ Even if you are willing to pay hundreds of dollars for the software, would will 
   <li>optionally <url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
-Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However can be used as a tool for quick explorations and to educate people who might later switch to \Mathematica.
+Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However can be used as a tool for exploration and education.
 
 </section>
 

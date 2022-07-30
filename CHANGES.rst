@@ -1121,8 +1121,8 @@ New features
 - ``BaseForm``
 - ``DeleteDuplicates``
 - Depth, Operate Through and other Structure related functions
-- Changes to ``MatrixForm``/``TableForm`` printing
-- Use interruptingcow to limit evaluation time
+- Changes to ``MatrixForm`` and ``TableForm`` printing
+- Use interrupting COW to limit evaluation time
 - Character Code functions
 
 Bugs fixed
@@ -1135,6 +1135,7 @@ Bugs fixed
 0.5
 ---
 
+- Compatability with Sage 5, SymPy 0.7, Cython 0.15, Django 1.2
 - 3D graphics and plots using WebGL in the browser and Asymptote in TeX output
 - Plot: adaptive sampling
 - MathJax 2.0 and line breaking
