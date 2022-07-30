@@ -30,14 +30,14 @@
 \usepackage{asymptote}
 \usepackage[hypertexnames=false]{hyperref} % make hyperref aware of chapter reset for built-in symbols
 % (http://tex.stackexchange.com/questions/6098/wrong-hyper-references-after-resetting-chapter-counter)
-\usepackage{listings}
-\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{color}
 \usepackage{fullpage}
 \usepackage{graphics}
+\usepackage{listings}
+\usepackage{paralist}
 \usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amssymb}
 \usepackage{mathpazo}
 \usepackage[mathpazo]{flexisym}
 \usepackage{breqn}
@@ -198,25 +198,30 @@
 \item \begin{minipage}[t]{\codewidth}\begin{flushleft} {\ttfamily \bfseries #1} \end{flushleft} \end{minipage} \hfill \nobreak%
 }
 
+% Test case error message output
 \newenvironment{testmessage}{\item
 \begin{minipage}{\codewidth}
-  \begin{ttfamily}
+  \begin{ttfamily}%
     \vspace{0.1em}%
     \color{message}%
 }{%
   \end{ttfamily}%
 \end{minipage}%
 }
+% Test case print output
 \newenvironment{testprint}{\item
   \vspace{-0.5em}
   \begin{minipage}{\codewidth}
-    \begin{dmath*}[indentstep={0em},compact]%
+    \begin{ttfamily}%
+      \vspace{0.1em}%
+      \tiny%
       \color{print}%
 }{%
-    \end{dmath*}%
+    \end{ttfamily}%
 \end{minipage}%
 }
 
+% Test case output; the ... in (Out[x]= ... )
 \newenvironment{testresult}{%
 	\item%
 	\vspace{-0.5em}%
