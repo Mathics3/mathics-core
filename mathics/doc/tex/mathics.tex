@@ -201,18 +201,19 @@
 \newenvironment{testmessage}{\item
 \begin{minipage}{\codewidth}
   \begin{ttfamily}
+    \vspace{0.1em}%
     \color{message}%
 }{%
   \end{ttfamily}%
 \end{minipage}%
 }
 \newenvironment{testprint}{\item
-\vspace{-0.5em}
-\begin{minipage}{\codewidth}
-\begin{dmath*}[indentstep={0em},compact]%
-\color{print}%
+  \vspace{-0.5em}
+  \begin{minipage}{\codewidth}
+    \begin{dmath*}[indentstep={0em},compact]%
+      \color{print}%
 }{%
-\end{dmath*}%
+    \end{dmath*}%
 \end{minipage}%
 }
 
