@@ -23,10 +23,10 @@ Even if you are willing to pay hundreds of dollars for the software, would will 
 \Mathics aims at combining the best of both worlds: the beauty of \Mathematica backed by a free, extensible Python core which includes a rich set of Python tools including:
 
 <ul>
-  <li>mpmath <url>https://mpmath.org/</url> for floating-point arithmetic with arbitrary precision,
-  <li>numpy <url>https://numpy.org/numpy</url> for numeric computation,
-  <li>sympy <url>https://sympy.org</url> for symbolic mathematics, and
-  <li>optionally scipy <url>https://www.scipy.org/</url> for Scientific calculations.
+  <li><url>:mpmath: https://mpmath.org/</url> for floating-point arithmetic with arbitrary precision,
+  <li><url>:numpy: https://numpy.org/numpy</url> for numeric computation,
+  <li><url>:SymPy: https://sympy.org</url> for symbolic mathematics, and
+  <li>optionally <url>:SciPy: https://www.scipy.org/</url> for Scientific calculations.
 </ul>
 
 Performance of \Mathics is not, right now, practical in large-scale projects and calculations. However can be used as a tool for quick explorations and to educate people who might later switch to \Mathematica.
@@ -34,6 +34,7 @@ Performance of \Mathics is not, right now, practical in large-scale projects and
 </section>
 
 <section title="What does \Mathics offer?">
+
 Some of the features of \Mathics are:
 <ul>
   <li>a powerful functional programming language,
@@ -49,28 +50,32 @@ Some of the features of \Mathics are:
 
 </section>
 
+<section title="History">
+The version alpha version of \Mathics was done in 2011 by Jan Pöschko. He worked on it for a couple of years to about v0.5 which had 386 built-in symbols.
+
+After that Angus Griffith took over primary leadership and rewrote the parser to pretty much the stage it is in now. He and later Ben Jones worked on it from 2013 to about 2017 to the v1.0 release. Towards the end of this period Bernhard Liebl worked on this mostly focused on graphics.
+
+A <url>:docker image of the v.9 release: https://hub.docker.com/r/arkadi/mathics</url> can be found on dockerhub.
+
+The project was largely abandoned in its Python 2.7 state around 2017. Subsequently it was picked up by the current developers. A list of authors and contributors can be found in the
+<url>:<con>AUTHORS.txt</con>: https://github.com/Mathics-3/mathics/blob/master/AUTHORS.txt</url> file.
+</section>
+
 <section title="What is missing?">
-There are lots of ways in which \Mathics could still be improved.
+There are lots of ways in which \Mathics could still be improved. <url>:<con>FUTURE.rst</con>: https://github.com/Mathics-3/mathics/blob/master/FUTURE.txt</url> has the current roadmap.
 
-Most notably, performance is still slow. Although there are various ways to speed up Python, some serious work is need in \Mathics, to speed it up. This will be addressed in the future.
+While we always could use Python programming help, there are numerous other ways where we could use assistance.
 
-Apart from performance issues, \Mathics has about about half of the features and libraries of \Mathematica.
+<ul>
+<li>Ensure this document is complete and accurate. We could use help to ensure all of the Builtin functions described properly and fully, and that they have link to corresponding Wiki, Sympy, WMA and/or mpath links.
+Are the builtin summaries and examples clear and useful</li>
+<li>We could use help in LaTeX styling, and going over this document to remove overful boxes and things of that nature. We could also use help and our use of Asymptote. The are some graphics primitives such as for polyhedra that haven't been implemented. Similar graphics options are sometimes missing in Aymptote that we have available in other graphics backends.</li>
 
-Graphics has always been lagging and in the future we intend to decouple Graphics better so that the rich set of graphics packages that are out there can be more easily used.
+<li>write a grpahics backend favorite graphics backend: it could be a javascript library like jsiddle</li>
 
+<li>Consider donating via <url>:Github Sponsors: https://github.com/sponsors</url> or some other mechanism.</li>
+</ul>
 </section>
-
-<section title="Who is behind it?">
-\Mathics was created by Jan Pöschko in 2011. From 2013 to about 2017 it had been maintained mostly by Angus Griffith and Ben Jones. Since then, a number of others have been people involved in \Mathics; the list can be found in the <con>AUTHORS.txt</con> file, <url>https://github.com/Mathics-3/mathics/blob/master/AUTHORS.txt</url>.
-
-If you have any ideas on how to improve \Mathics or even want to help out yourself, please contact us!
-
-\skip
-Welcome to \Mathics, have fun!
-</section>
-
-</chapter>
-
 
 </chapter>
 
