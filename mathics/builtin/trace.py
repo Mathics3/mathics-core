@@ -153,8 +153,8 @@ class TraceBuiltins(_TraceBase):
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
-     = 1 + x + x ^ 2
+    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+     = x ^ 2
     """
 
     definitions_copy: Definitions

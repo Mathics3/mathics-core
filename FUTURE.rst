@@ -1,10 +1,9 @@
+*One can always dream...*
+
 .. contents::
 
 2022 Roadmap
 =============
-
-*One can always dream...*
-
 
 Code reorganization and Refactoring
 -----------------------------------
