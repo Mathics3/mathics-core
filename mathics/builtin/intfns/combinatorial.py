@@ -2,11 +2,9 @@
 """
 Combinatorial Functions
 
-Combinatorics is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
+<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
 
 It is closely related to many other areas of Mathematics and has many applications ranging from logic to statistical physics, from evolutionary biology to computer science, etc.
-
-See also <url>https://en.wikipedia.org/wiki/Combinatorics</url>.
 """
 
 
@@ -86,7 +84,7 @@ class _NoBoolVector(Exception):
 
 class Binomial(_MPMathFunction):
     """
-    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>)
+    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Binomial.html</url>)
 
     <dl>
       <dt>'Binomial[$n$, $k$]'
@@ -121,10 +119,7 @@ class Binomial(_MPMathFunction):
 
 class CatalanNumber(SympyFunction):
     """
-    Catalan Number:
-    <ul>
-      <li><url>:Wikipedia: <url>https://en.wikipedia.org/wiki/Catalan_number</url>
-      <li><url>:SymPy: <url>https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>
+    <url>:Catalan Number: https://en.wikipedia.org/wiki/Catalan_number</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
     </ul>
 
     <dl>
@@ -151,7 +146,7 @@ class CatalanNumber(SympyFunction):
 
 class DiceDissimilarity(_BooleanDissimilarity):
     r"""
-    Sørensen–Dice coefficient. See <url>https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient<url>.
+    <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
       <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
@@ -173,7 +168,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
 
 class JaccardDissimilarity(_BooleanDissimilarity):
     """
-    Jaccard index. See <url>https://en.wikipedia.org/wiki/Jaccard_index</url>.
+    <url>:Jaccard index: https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
       <dt>'JaccardDissimilarity[$u$, $v$]'
       <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
@@ -186,6 +181,7 @@ class JaccardDissimilarity(_BooleanDissimilarity):
     summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
+
         return Expression(
             SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
         )
@@ -210,7 +206,7 @@ class MatchingDissimilarity(_BooleanDissimilarity):
 
 class Multinomial(Builtin):
     """
-    Multinomial distribution. See <url>https://en.wikipedia.org/wiki/Multinomial_distribution</url>.
+    <url>:Multinomial distribution: https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
     <dl>
       <dt>'Multinomial[$n1$, $n2$, ...]'
       <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.

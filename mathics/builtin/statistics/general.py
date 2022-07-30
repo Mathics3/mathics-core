@@ -12,7 +12,7 @@ from mathics.builtin.base import Builtin
 
 class CentralMoment(Builtin):
     """
-    Central moment. See <url>https://en.wikipedia.org/wiki/Central_moment</url>.
+    <url>:Central moment: https://en.wikipedia.org/wiki/Central_moment</url> (<url>:WMA: https://reference.wolfram.com/language/ref/CentralMoment.html</url>)
 
     <dl>
       <dt>'CentralMoment[$list$, $r$]'
