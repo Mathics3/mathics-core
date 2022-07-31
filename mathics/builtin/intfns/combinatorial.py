@@ -120,7 +120,6 @@ class Binomial(_MPMathFunction):
 class CatalanNumber(SympyFunction):
     """
     <url>:Catalan Number: https://en.wikipedia.org/wiki/Catalan_number</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
-    </ul>
 
     <dl>
       <dt>'CatalanNumber[$n$]'

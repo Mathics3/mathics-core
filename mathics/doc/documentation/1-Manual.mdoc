@@ -581,7 +581,9 @@ Here, 'N' is applied to 'x' before the actual matching, simply yielding 'x'. Wit
   >> {1, 2} /. x_Integer :> N[x]
   = {1., 2.}
 
-While 'ReplaceAll' and 'ReplaceRepeated' simply take the first possible match into account, 'ReplaceList' returns a list of all possible matches. This can be used to get all subsequences of a list, for instance:
+'ReplaceAll' and 'ReplaceRepeated' take the first possible match.
+However 'ReplaceList' returns a list of all possible matches.
+This can be used to get all subsequences of a list, for instance:
 
   >> ReplaceList[{a, b, c}, {___, x__, ___} -> {x}]
   = {{a}, {a, b}, {a, b, c}, {b}, {b, c}, {c}}
@@ -1162,7 +1164,8 @@ We can still see the original form by using 'InputForm':
 We want to combine 'Dice' objects using the '+' operator:
   >> Dice[a___] + Dice[b___] ^:= Dice[Sequence @@ {a, b}]
 
-The '^:=' ('UpSetDelayed') tells \Mathics to associate this rule with 'Dice' instead of 'Plus', which is protected---we would have to unprotect it first:
+The '^:=' ('UpSetDelayed') tells \Mathics to associate this rule with 'Dice' instead of 'Plus'.
+'Plus' is protected---we would have to unprotect it first:
   >> Dice[a___] + Dice[b___] := Dice[Sequence @@ {a, b}]
   : Tag Plus in Dice[a___] + Dice[b___] is Protected.
    = $Failed
@@ -1295,7 +1298,7 @@ There are some keyboard commands you can use in the Django-based Web interface o
 
 Of special note is the last item on the list: right-click to open the MathJax menu. Under "Math Setting"/"Zoom Trigger",  if the zoom trigger is set to a value other then "No Zoom", then when that trigger is applied on MathML formatted output, the MathML formula pop up a window for the formula. The window can show the formula larger. Also, this is a way to see output that is too large to fit on the display since the window allows for scrolling.
 
-Keyboard commands behavior depends the browser used, the operating system, desktop settings, and customization. We hook into the desktop "Open the current document" and "Save the current document" functions that many desktops provide. For example see: <url>https://help.ubuntu.com/community/KeyboardShortcuts#Finding_keyboard_shortcuts</url>
+Keyboard commands behavior depends the browser used, the operating system, desktop settings, and customization. We hook into the desktop "Open the current document" and "Save the current document" functions that many desktops provide. For example see: <url>:Finding keyboard shortcuts: https://help.ubuntu.com/community/KeyboardShortcuts#Finding_keyboard_shortcuts</url>
 
 Often, these shortcut keyboard command are only recognized when a text field has focus; otherwise,the browser might do some browser-specific actions, like setting a bookmark etc.
 

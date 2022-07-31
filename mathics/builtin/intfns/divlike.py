@@ -249,8 +249,7 @@ class Mod(Builtin):
 
 class ModularInverse(SympyFunction):
     """
-    Modular multiplicative inverse.
-    See <url>https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url>.
+    <url>:Modular multiplicative inverse: https://en.wikipedia.org/wiki/Modular_multiplicative_inverse</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.mod_inverse</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ModularInverse.html</url>)
 
     <dl>
       <dt>'ModularInverse[$k$, $n$]'

@@ -1691,12 +1691,9 @@ class Series(Builtin):
 class SeriesData(Builtin):
     """
     <dl>
-    <dt>'SeriesData[...]'
-    <dd>Represents a series expansion
+      <dt>'SeriesData[...]'
+      <dd>Represents a series expansion
     </dl>
-
-    TODO:
-    - Implement sum, product and composition of series
 
     Sum of two series:
     >> Series[Cosh[x],{x,0,2}] + Series[Sinh[x],{x,0,3}]
@@ -1709,6 +1706,8 @@ class SeriesData(Builtin):
     >> D[Series[Exp[-a x],{x,0,2}],a]
      = -x + a x ^ 2 + O[x] ^ 3
     """
+
+    # TODO: Implement sum, product and composition of series
 
     precedence = 1000
     summary_text = "power series of a variable about a point"
