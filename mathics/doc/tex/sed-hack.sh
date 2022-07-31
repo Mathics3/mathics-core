@@ -5,6 +5,6 @@ sed -i -e s/“/\`\`/ documentation.tex
 sed -i -e s/”/''/ documentation.tex
 sed -i -e s/”/''/ documentation.tex
 sed -i -e s/′/\'/ documentation.tex
-sed -i -e s/μ/\\\\mu/ documentation.tex
+sed -i -e s/μ/$\\\\mu$/ documentation.tex
 sed -i -e s/–/--/ documentation.tex
-sed -i -e s/Φ/\\\\Phi/ documentation.tex
+sed -i -e s/Φ/$\\\\Phi$/ documentation.tex
