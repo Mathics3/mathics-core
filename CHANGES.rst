@@ -153,9 +153,9 @@ Incompatible changes
 
 The following changes were motivated by a need to speed up the interpreter.
 
-#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be coverted to an element.
+#. ``Expression`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be converted to an element.
   Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
-#. Expressions which are lists are a new kind of class, ``ListExpression``. As with expressions, the constructor requires valid elements, not something convertable to an element. Use ``to_mathics_list``
+#. Expressions which are lists are a new kind of class, ``ListExpression``. As with expressions, the constructor requires valid elements, not something convertible to an element. Use ``to_mathics_list``
 
 
 -----------------
