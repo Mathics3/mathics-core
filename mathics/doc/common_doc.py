@@ -1177,10 +1177,14 @@ class DocPart:
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
+        if self.is_reference:
+            chapter_fn = sorted_chapters
+        else:
+            chapter_fn = lambda x: x
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in sorted_chapters(self.chapters)
+                for chapter in chapter_fn(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
             )
         )
