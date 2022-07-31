@@ -1,20 +1,27 @@
 CHANGES
 =======
 
+This release starts to address some of the peformance problems and terminology confusion that goes back to the very beginning.
+As a result, this release is not API compatible with prior releases.
+
+In conjunction in this release, we start refactoring some of the core classes and modules to start to get this to look and act more like other interpreters, and to follow more current Python practice.
+
+More work will continue in subsequent releases.
+
 Enhancements
 ============
 
 * ``D`` acts over ``Integrate`` and  ``NIntegrate``. Issue #130.
 * numeric overflows now do not affect the full evaluation, but instead just the element which produce it.
 * ``SameQ`` (``===``) handles chaining, e.g. ``a == b == c`` or ``SameQ[a, b, c]``
-* ``Simplify`` handles properly expressions of the form ``Simplify[0^a]`` Issue #167.
+* ``Simplify`` handles expressions of the form ``Simplify[0^a]`` Issue #167.
 * ``Simplify`` and ``FullSimplify`` support optional parameters ``Assumptions`` and ``ComplexityFunction``
 * ``UnsameQ`` (``=!=``) handles chaining, e.g. ``a =!= b =!= c`` or ``UnsameQ[a, b, c]``
 * The order of the context name resolution (and ``$ContextPath``) switched putting ``"System`"`` before ``"Global`"``.
 * In assignment to messages associated with symbols, the attribute ``Protected`` is not having into account, following the standard in WMA. With this and the above change, Combinatorical 2.0 works as written.
 * ``Share[]`` performs an explicit call to the Python garbage collection and returns the amount of memory free.
-* Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MatML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
-* Allow scipy and skimage to be optional. In particular:
+* Improving the compatibility of ``TeXForm`` and ``MathMLForm`` outputs with WMA. MathML tags around numbers appear as "<mn>" tags instead of "<mtext>", except in the case of ``InputForm`` expressions. In TeXForm some quotes around strings have been removed to conform to WMA. It is not clear whether this is the correct behavior.
+* Allow ``scipy`` and ``skimage`` to be optional. In particular:
    - Revise ``Nintegrate[]`` to use ``Method="Internal"`` when scipy isn't available.
 * Pyston up to versions from 2.2 to 2.3.4 are supported as are PyPy versions from 3.7-7.3.9.0 up 3.9-7.3.9. However those Python interpreters may have limitations and limitations on packages that they support.
 * Compatibility with the default way in which WMA sorts expressions was improved: Now expressions with fewer elements come first (issue #458).
@@ -26,8 +33,10 @@ Documentation
 * "Testing Expressions" section added
 * "Representation of Numbers" section added
 * "Descriptive Statistics" section added and "Moments" folded into that
-* Many More URL references
+* Many More URL references. ``<url>`` now supoprts link txt
 * Chapter and Sections are now in alphabetical order
+* Two column mode was removed in most sections so the printed PDF looks nicer
+* Printed Error message output in test examples is in typewriter font and doesn't drop inter-word spaces
 
 New Builtins
 ============
@@ -84,6 +93,8 @@ Internals
 * ``N[_,_,Method->method]`` was reworked. Issue #137.
 * The methods  ``boxes_to_*`` were moved to ``BoxExpression``.
 * remove ``flatten_*`` from the ``Atom`` interface.
+* Inexplicably, what the rest of the world calls a "nodes" in a tree or or in WMA "elements" in a tree had been called a "leaves". We now use the proper term "element".
+* Lots of predefined ``Symbol``s have been added. Many appear in the module ``mathics.core.systemsymbols``.
 
 Speed improvements:
 ...................
@@ -97,7 +108,7 @@ Speed improvements:
 Package update
 ++++++++++++++
 
-- SymPy 1.10
+- SymPy 1.10.1
 
 Compatibility
 +++++++++++++
@@ -127,6 +138,19 @@ Bugs
 * Fix the comparison between ``Image`` and other expressions.
 * Fix an issue that prevented that `Collect` handles properly polynomials on expressions (issue #285).
 * Fix a bug in formatting expressions of the form ``(-1)^a`` without the parenthesis (issue #332).
+
+Incompatible changes
+--------------------
+
+The following changes were motivated by a need to speed up the interpreter.
+
+* ``Expession`` arguments differ. The first parameter has to be a ``Symbol`` while the remaining arguments have to be some sort of ``BaseElement`` rather than something that can be coverted to an element.
+  Properties for the collection of elements can be specified when they are known. To get the old behavior, use ``to_expression``
+* Expressions which are lists are a new kind of class, ``ListExpression``. As with expressions, the constructor requires valid elements, not something convertable to an element. Use ``to_mathics_list``
+
+
+
+
 
 4.0.1
 -----
