@@ -213,9 +213,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._sequences = None
         self._cache = None
-        # comment @mmatera: this cache should be useful in BoxConstruct, but not
-        # here...
-        self._format_cache = None
 
     def __getnewargs__(self):
         return (self._head, self._elements)
@@ -347,7 +344,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         expr.options = self.options
         expr.original = self
         expr._sequences = self._sequences
-        expr._format_cache = self._format_cache
         return expr
 
     def default_format(self, evaluation, form) -> str:

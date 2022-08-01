@@ -513,24 +513,21 @@ def do_format_complex(
 def do_format_expression(
     element: BaseElement, evaluation: Evaluation, form: Symbol
 ) -> BaseElement:
-    # not sure how much useful is this format_cache
-    if element._format_cache is None:
-        element._format_cache = {}
-    if isinstance(form, str):
+    # # not sure how much useful is this format_cache
+    # if element._format_cache is None:
+    #    element._format_cache = {}
 
-        raise Exception("do_format_expression\n", form, " should be a Symbol")
-        form = Symbol(form)
-
-    last_evaluated_time, expr = element._format_cache.get(form, (None, None))
-    if last_evaluated_time is not None and expr is not None:
-        symbolname = expr.get_name()
-        if symbolname != "":
-            if not evaluation.definitions.is_uncertain_final_value(
-                last_evaluated_time, set((symbolname,))
-            ):
-                return expr
+    # last_evaluated_time, expr = element._format_cache.get(form, (None, None))
+    # if last_evaluated_time is not None and expr is not None:
+    # if True
+    #    symbolname = expr.get_name()
+    #    if symbolname != "":
+    #        if not evaluation.definitions.is_uncertain_final_value(
+    #            last_evaluated_time, set((symbolname,))
+    #        ):
+    #            return expr
     expr = do_format_element(element, evaluation, form)
-    element._format_cache[form] = (evaluation.definitions.now, expr)
+    # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
 
 
