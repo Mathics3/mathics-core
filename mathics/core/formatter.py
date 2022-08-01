@@ -324,7 +324,7 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-
+    assert isinstance(form, Symbol)
     do_format = element_formatters.get(type(element), do_format_element)
     expr = do_format(element, evaluation, form)
     result = Expression(SymbolMakeBoxes, expr, form)
@@ -352,11 +352,11 @@ def do_format_element(element, evaluation, form):
     superfluous enclosing formats.
     """
 
-    if isinstance(form, str):
-        form = Symbol(form)
+    assert isinstance(form, Symbol)
     formats = format_symbols
     evaluation.inc_recursion_depth()
     try:
+        assert isinstance(element, BaseElement), element
         expr = element
         head = element.get_head()
         elements = element.get_elements()

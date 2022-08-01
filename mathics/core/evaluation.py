@@ -32,6 +32,7 @@ from mathics.core.symbols import (
     SymbolMathMLForm,
     SymbolNull,
     SymbolOutputForm,
+    SymbolStandardForm,
     SymbolTeXForm,
 )
 
@@ -457,11 +458,11 @@ class Evaluation:
             result = format_element(expr, self, SymbolOutputForm)
         elif format == "xml":
             result = format_element(
-                Expression("StandardForm", self, expr), SymbolMathMLForm
+                Expression(SymbolStandardForm, expr), self, SymbolMathMLForm
             )
         elif format == "tex":
             result = format_element(
-                Expression("StandardForm", self, expr), SymbolTeXForm
+                Expression(SymbolStandardForm, expr), self, SymbolTeXForm
             )
         elif format == "unformatted":
             self.exc_result = None

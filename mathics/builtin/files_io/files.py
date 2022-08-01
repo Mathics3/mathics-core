@@ -752,7 +752,7 @@ class PutAppend(BinaryOperator):
             return
 
         text = [
-            str(do_format(e, evaluation, "System`OutputForm").__str__())
+            str(do_format(e, evaluation, SymbolOutputForm).__str__())
             for e in exprs.get_sequence()
         ]
         text = "\n".join(text) + "\n"
