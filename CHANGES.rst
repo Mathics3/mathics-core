@@ -4,6 +4,15 @@ CHANGES
 =======
 
 
+Internals
+---------
+
+
+#. ``format`` and ``do_format`` methods were removed from the interface of
+   ``BaseElement``, becoming non-member functions.
+#. The class ``BoxElement`` was introduced as a base for boxing elements.
+
+
 5.0.0
 ------
 

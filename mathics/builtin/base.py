@@ -25,6 +25,7 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
+from mathics.core.element import BoxElement
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.number import get_precision, PrecisionValueError
@@ -717,7 +718,7 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxExpression(BuiltinElement):
+class BoxExpression(BuiltinElement, BoxElement):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #

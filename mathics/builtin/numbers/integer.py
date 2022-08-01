@@ -10,12 +10,13 @@ import string
 
 
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Integer0, String, SymbolPlus, SymbolTimes
+from mathics.core.atoms import Integer, Integer0, String
 from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import SymbolPlus, SymbolTimes
 
 
 class Floor(SympyFunction):

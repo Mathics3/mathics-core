@@ -36,17 +36,21 @@ from mathics.builtin.graphics import (
     coords,
 )
 
+
 from mathics.core.atoms import (
     Integer,
     Real,
     String,
 )
+
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic
+
+from mathics.core.formatter import format_element
 
 from mathics.format.asy_fns import asy_color, asy_number
 
@@ -1066,7 +1070,9 @@ class InsetBox(_GraphicsElementBox):
             if len(item.elements) not in (1, 2, 3):
                 raise BoxConstructError
             content = item.elements[0]
-            self.content = content.format(graphics.evaluation, "TraditionalForm")
+            self.content = format_element(
+                content, graphics.evaluation, "TraditionalForm"
+            )
             if len(item.elements) > 1:
                 self.pos = Coords(graphics, item.elements[1])
             else:

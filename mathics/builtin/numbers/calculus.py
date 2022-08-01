@@ -25,7 +25,8 @@ from mathics.algorithm.series import (
     series_times_series,
     series_derivative,
 )
-from mathics.core.convert.function import expression_to_callable_and_args
+
+
 from mathics.builtin.base import Builtin, PostfixOperator, SympyFunction
 from mathics.builtin.scoping import dynamic_scoping
 
@@ -50,11 +51,13 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
+from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
@@ -2027,7 +2030,7 @@ class SeriesData(Builtin):
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
-        return expansion.format(evaluation, form.get_name())
+        return format_element(expansion, evaluation, form.get_name())
 
 
 class NIntegrate(Builtin):

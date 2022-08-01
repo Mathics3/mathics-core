@@ -28,12 +28,14 @@ from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
+from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
     SymbolTrue,
 )
+
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolFailed,
@@ -41,6 +43,7 @@ from mathics.core.systemsymbols import (
     SymbolInputForm,
     SymbolOutputForm,
 )
+
 
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError
@@ -855,7 +858,7 @@ class ToString(Builtin):
     def apply_form(self, value, form, evaluation, options):
         "ToString[value_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
-        text = value.format(evaluation, form.get_name(), encoding=encoding)
+        text = format_element(value, evaluation, form.get_name(), encoding=encoding)
         text = text.boxes_to_text(evaluation=evaluation)
         return String(text)
 

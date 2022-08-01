@@ -41,7 +41,6 @@ from mathics.core.systemsymbols import (
     SymbolMessageName,
     SymbolOut,
     SymbolOverflow,
-    SymbolStandardForm,
     SymbolStringForm,
     SymbolThrow,
 )
@@ -441,6 +440,8 @@ class Evaluation:
         self.stopped = True
 
     def format_output(self, expr, format=None):
+        from mathics.core.formatter import format_element
+
         if format is None:
             format = self.format
 
@@ -450,13 +451,15 @@ class Evaluation:
         from mathics.core.expression import Expression, BoxError
 
         if format == "text":
-            result = expr.format(self, "System`OutputForm")
+            result = format_element(expr, self, "System`OutputForm")
         elif format == "xml":
-            result = Expression(SymbolStandardForm, expr).format(
-                self, "System`MathMLForm"
+            result = format_element(
+                Expression("StandardForm", self, expr), "System`MathMLForm"
             )
         elif format == "tex":
-            result = Expression(SymbolStandardForm, expr).format(self, "System`TeXForm")
+            result = format_element(
+                Expression("StandardForm", self, expr), "System`TeXForm"
+            )
         elif format == "unformatted":
             self.exc_result = None
             return expr

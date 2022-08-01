@@ -77,7 +77,7 @@ from mathics.core.symbols import (
     SymbolList,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch, SymbolRowBox
+from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch
 
 SymbolDefault = Symbol("Default")
 
@@ -1701,10 +1701,12 @@ class Dispatch(Atom):
         return "dispatch"
 
     def atom_to_boxes(self, f, evaluation):
-        elements = self.src.format(evaluation, f.get_name())
-        return Expression(
-            SymbolRowBox,
-            ListExpression(String("Dispatch"), String("["), elements, String("]")),
+        from mathics.core.formatter import format_element, _BoxedString
+        from mathics.builtin.box.inout import RowBox
+
+        box_element = format_element(self.src, evaluation, f.get_name())
+        return RowBox(
+            _BoxedString("Dispatch"), _BoxedString("["), box_element, _BoxedString("]")
         )
 
 

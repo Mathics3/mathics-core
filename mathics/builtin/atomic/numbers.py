@@ -28,7 +28,6 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
-    SymbolDivide,
 )
 from mathics.core.attributes import (
     listable as A_LISTABLE,
@@ -45,7 +44,7 @@ from mathics.core.number import (
     machine_precision,
     machine_epsilon,
 )
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,

@@ -358,26 +358,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             ),
         )
 
-    def do_format(self, evaluation, form):
-        if self._format_cache is None:
-            self._format_cache = {}
-        if isinstance(form, str):
-
-            raise Exception("Expression.do_format\n", form, " should be a Symbol")
-            form = Symbol(form)
-
-        last_evaluated_time, expr = self._format_cache.get(form, (None, None))
-        if last_evaluated_time is not None and expr is not None:
-            symbolname = expr.get_name()
-            if symbolname != "":
-                if not evaluation.definitions.is_uncertain_final_value(
-                    last_evaluated_time, set((symbolname,))
-                ):
-                    return expr
-        expr = super().do_format(evaluation, form)
-        self._format_cache[form] = (evaluation.definitions.now, expr)
-        return expr
-
     @property
     def elements(self):
         return self._elements
@@ -1003,6 +983,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # @timeit
         def eval_elements():
             nonlocal recompute_properties
+
             # @timeit
             def eval_range(indices):
                 nonlocal recompute_properties

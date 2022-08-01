@@ -42,13 +42,12 @@ from mathics.core.atoms import (
     MachineReal,
     Rational,
     Real,
-    SymbolDivide,
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
 SymbolColorQuantize = Symbol("ColorQuantize")

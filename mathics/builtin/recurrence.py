@@ -13,12 +13,12 @@ import sympy
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.atoms import IntegerM1, SymbolPlus, SymbolTimes
+from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import constant
 from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 
