@@ -747,7 +747,7 @@ class ToBoxes(Builtin):
         form_name = form.get_name()
         if form_name is None:
             evaluation.message("ToBoxes", "boxfmt", form)
-        boxes = format_element(expr, evaluation, form_name)
+        boxes = format_element(expr, evaluation, form)
         return boxes
 
 

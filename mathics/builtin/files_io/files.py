@@ -23,6 +23,7 @@ from mathics.core import read
 from mathics.core.atoms import (
     Integer,
     String,
+    SymbolString,
 )
 from mathics.core.attributes import protected, read_protected
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -49,6 +50,7 @@ from mathics.core.systemsymbols import (
     SymbolReal,
     SymbolFailed,
     SymbolHold,
+    SymbolOutputForm,
 )
 
 
@@ -62,7 +64,6 @@ TMP_DIR = tempfile.gettempdir()
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolPath = Symbol("$Path")
-SymbolString = Symbol("String")
 
 # TODO: Improve docs for these Read[] arguments.
 
@@ -1784,7 +1785,7 @@ class WriteString(Builtin):
 
         exprs = []
         for expri in expr.get_sequence():
-            result = format_element(expri, evaluation, "System`OutputForm")
+            result = format_element(expri, evaluation, SymbolOutputForm)
             try:
                 result = result.boxes_to_text(evaluation=evaluation)
             except BoxError:

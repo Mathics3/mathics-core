@@ -34,10 +34,11 @@ from mathics.core.rules import Rule, BuiltinRule, Pattern
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
+    SymbolHoldForm,
     ensure_context,
     strip_context,
 )
-from mathics.core.systemsymbols import SymbolHoldForm, SymbolMessageName, SymbolRule
+from mathics.core.systemsymbols import SymbolMessageName, SymbolRule
 
 
 def check_requires_list(requires: list) -> bool:

@@ -46,7 +46,9 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolFullForm,
     SymbolList,
+    SymbolOutputForm,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
@@ -925,7 +927,7 @@ class StringRiffle(Builtin):
         result = left
         for i in range(len(liststr.elements)):
             text = format_element(
-                liststr.elements[i], evaluation, "System`OutputForm"
+                liststr.elements[i], evaluation, SymbolOutputForm
             ).boxes_to_text(evaluation=evaluation)
             if i == len(liststr.elements) - 1:
                 result += text + right

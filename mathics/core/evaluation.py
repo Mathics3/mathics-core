@@ -28,14 +28,17 @@ from mathics.core.interrupt import (
 
 from mathics.core.symbols import (
     Symbol,
+    SymbolFullForm,
+    SymbolMathMLForm,
     SymbolNull,
+    SymbolOutputForm,
+    SymbolTeXForm,
 )
 
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolBreak,
     SymbolContinue,
-    SymbolFullForm,
     SymbolHold,
     SymbolIn,
     SymbolMessageName,
@@ -451,14 +454,14 @@ class Evaluation:
         from mathics.core.expression import Expression, BoxError
 
         if format == "text":
-            result = format_element(expr, self, "System`OutputForm")
+            result = format_element(expr, self, SymbolOutputForm)
         elif format == "xml":
             result = format_element(
-                Expression("StandardForm", self, expr), "System`MathMLForm"
+                Expression("StandardForm", self, expr), SymbolMathMLForm
             )
         elif format == "tex":
             result = format_element(
-                Expression("StandardForm", self, expr), "System`TeXForm"
+                Expression("StandardForm", self, expr), SymbolTeXForm
             )
         elif format == "unformatted":
             self.exc_result = None

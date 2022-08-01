@@ -34,6 +34,7 @@ from mathics.core.symbols import (
 COMPARE_PREC = 50
 
 SymbolI = Symbol("I")
+SymbolString = Symbol("String")
 
 SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = system_symbols("InputForm", "FullForm")
 
@@ -240,7 +241,7 @@ class Rational(Number):
     def atom_to_boxes(self, f, evaluation):
         from mathics.core.formatter import format_element
 
-        return format_element(self, evaluation, f.get_name())
+        return format_element(self, evaluation, f)
 
     def to_sympy(self, **kwargs):
         return self.value
@@ -578,7 +579,7 @@ class Complex(Number):
     def atom_to_boxes(self, f, evaluation):
         from mathics.core.formatter import format_element
 
-        return format_element(self, evaluation, f.get_name())
+        return format_element(self, evaluation, f)
 
     def __str__(self) -> str:
         return str(self.to_sympy())

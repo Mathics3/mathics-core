@@ -1704,7 +1704,7 @@ class Dispatch(Atom):
         from mathics.core.formatter import format_element, _BoxedString
         from mathics.builtin.box.inout import RowBox
 
-        box_element = format_element(self.src, evaluation, f.get_name())
+        box_element = format_element(self.src, evaluation, f)
         return RowBox(
             _BoxedString("Dispatch"), _BoxedString("["), box_element, _BoxedString("]")
         )

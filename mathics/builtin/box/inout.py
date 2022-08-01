@@ -3,7 +3,7 @@
 from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.atoms import Atom, String
+from mathics.core.atoms import Atom, String, SymbolString
 from mathics.core.attributes import hold_all_complete, protected, read_protected
 from mathics.core.element import BoxElement
 from mathics.core.evaluation import Evaluation
@@ -12,17 +12,15 @@ from mathics.core.formatter import (
     _BoxedString,
 )
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
+from mathics.core.symbols import Symbol, SymbolMakeBoxes
 from mathics.core.systemsymbols import SymbolRowBox
 
-SymbolString = Symbol("System`String")
 SymbolStandardForm = Symbol("System`StandardForm")
 SymbolFractionBox = Symbol("System`FractionBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSqrtBox = Symbol("System`SqrtBox")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:

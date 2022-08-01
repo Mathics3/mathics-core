@@ -2030,7 +2030,7 @@ class SeriesData(Builtin):
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         expansion = self.pre_makeboxes(x, x0, data, nmin, nmax, den, form, evaluation)
-        return format_element(expansion, evaluation, form.get_name())
+        return format_element(expansion, evaluation, form)
 
 
 class NIntegrate(Builtin):

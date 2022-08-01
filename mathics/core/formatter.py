@@ -4,11 +4,16 @@ from typing import Any, Callable
 import re
 
 
+from mathics.core.atoms import SymbolString, SymbolI, String, Integer, Rational, Complex
 from mathics.core.element import BaseElement, BoxElement, EvalMixin
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import (
     Symbol,
     SymbolMakeBoxes,
     Atom,
+    SymbolDivide,
     SymbolFalse,
     SymbolFullForm,
     SymbolGraphics,
@@ -18,24 +23,15 @@ from mathics.core.symbols import (
     SymbolNumberForm,
     SymbolOutputForm,
     SymbolPostfix,
+    SymbolPlus,
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolStandardForm,
+    SymbolTimes,
     SymbolTrue,
     format_symbols,
 )
-from mathics.core.atoms import String, Integer, Rational, Complex
-from mathics.core.expression import Expression
-from mathics.core.parser import is_symbol_name
-
-SymbolComplex = Symbol("Complex")
-SymbolDivide = Symbol("Divide")
-SymbolI = Symbol("I")
-SymbolMinus = Symbol("Minus")
-SymbolPlus = Symbol("Plus")
-SymbolRational = Symbol("Rational")
-SymbolTimes = Symbol("Times")
-SymbolString = Symbol("String")
+from mathics.core.systemsymbols import SymbolMinus, SymbolComplex, SymbolRational
 
 
 # key is str: (to_xxx name, value) is formatter function to call
@@ -322,17 +318,13 @@ class _BoxedString(BoxElement):
 element_formatters = {}
 
 
-# Not sure if this belongs here (in the core side) or to the builtin side.
-# Let's try to put this here
-
-
-def format_element(element, evaluation, form, **kwargs) -> BaseElement:
+def format_element(
+    element: BaseElement, evaluation: Evaluation, form: Symbol, **kwargs
+) -> BaseElement:
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-
-    if isinstance(form, str):
-        form = Symbol(form)
+    assert isinstance(form, Symbol)
 
     do_format = element_formatters.get(type(element), do_format_element)
     expr = do_format(element, evaluation, form)
@@ -344,7 +336,7 @@ def format_element(element, evaluation, form, **kwargs) -> BaseElement:
     elif isinstance(result_box, String):
         return _BoxedString(result_box.value)
     else:
-        return format_element(element, evaluation, "FullForm", **kwargs)
+        return format_element(element, evaluation, SymbolFullForm, **kwargs)
 
 
 # do_format_*

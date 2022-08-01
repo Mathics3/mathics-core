@@ -245,6 +245,13 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
+    # Deprecated: use mathics.core.formatter.format_element
+    def format(self, evaluation, form, **kwargs) -> "BoxElement":
+        from mathics.core.formatter import format_element
+        from mathics.core.symbol import Symbol
+
+        return format_element(self, evaluation, Symbol(form), **kwargs)
+
     def get_atoms(self, include_heads=True):
         """
         Returns a list of atoms that appears in the expression.
