@@ -211,6 +211,8 @@ setup(
             "autoload/formats/*/Export.m",
             "packages/*/*.m",
             "packages/*/Kernel/init.m",
+            "requirements-cython.txt",
+            "requirements-full.txt",
         ],
         "mathics.doc": ["documentation/*.mdoc", "xml/data"],
         "mathics.builtin.pymimesniffer": ["mimetypes.xml"],
