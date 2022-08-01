@@ -324,7 +324,6 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-    assert isinstance(form, Symbol)
     do_format = element_formatters.get(type(element), do_format_element)
     expr = do_format(element, evaluation, form)
     result = Expression(SymbolMakeBoxes, expr, form)
@@ -341,22 +340,24 @@ def format_element(
 # do_format_*
 
 
-def do_format(element, evaluation, form):
+def do_format(
+    element: BaseElement, evaluation: Evaluation, form: Symbol
+) -> BaseElement:
     do_format_method = element_formatters.get(type(element), do_format_element)
     return do_format_method(element, evaluation, form)
 
 
-def do_format_element(element, evaluation, form):
+def do_format_element(
+    element: BaseElement, evaluation: Evaluation, form: Symbol
+) -> BaseElement:
     """
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
 
-    assert isinstance(form, Symbol)
     formats = format_symbols
     evaluation.inc_recursion_depth()
     try:
-        assert isinstance(element, BaseElement), element
         expr = element
         head = element.get_head()
         elements = element.get_elements()
@@ -456,9 +457,9 @@ def do_format_element(element, evaluation, form):
         evaluation.dec_recursion_depth()
 
 
-def do_format_rational(element, evaluation, form) -> "Expression":
-
-    assert isinstance(form, Symbol)
+def do_format_rational(
+    element: BaseElement, evaluation: Evaluation, form: Symbol
+) -> BaseElement:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -481,9 +482,9 @@ def do_format_rational(element, evaluation, form) -> "Expression":
         return do_format_expression(result, evaluation, form)
 
 
-def do_format_complex(element, evaluation, form) -> "Expression":
-    assert isinstance(form, Symbol)
-
+def do_format_complex(
+    element: BaseElement, evaluation: Evaluation, form: Symbol
+) -> BaseElement:
     if form is SymbolFullForm:
         return do_format_expression(
             Expression(
@@ -509,7 +510,9 @@ def do_format_complex(element, evaluation, form) -> "Expression":
     return do_format_expression(Expression(SymbolHoldForm, result), evaluation, form)
 
 
-def do_format_expression(element, evaluation, form):
+def do_format_expression(
+    element: BaseElement, evaluation: Evaluation, form: Symbol
+) -> BaseElement:
     # not sure how much useful is this format_cache
     if element._format_cache is None:
         element._format_cache = {}
