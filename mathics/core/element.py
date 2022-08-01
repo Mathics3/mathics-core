@@ -250,7 +250,9 @@ class BaseElement(KeyComparable):
         from mathics.core.formatter import format_element
         from mathics.core.symbol import Symbol
 
-        return format_element(self, evaluation, Symbol(form), **kwargs)
+        if isinstance(form, str):
+            form = Symbol(form)
+        return format_element(self, evaluation, form, **kwargs)
 
     def get_atoms(self, include_heads=True):
         """

@@ -324,7 +324,6 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-    assert isinstance(form, Symbol)
 
     do_format = element_formatters.get(type(element), do_format_element)
     expr = do_format(element, evaluation, form)
