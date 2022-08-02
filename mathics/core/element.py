@@ -247,7 +247,7 @@ class BaseElement(KeyComparable):
 
     def format(self, evaluation, form, **kwargs) -> "BoxElement":
         from mathics.core.formatter import format_element
-        from mathics.core.symbol import Symbol
+        from mathics.core.symbols import Symbol
 
         if isinstance(form, str):
             form = Symbol(form)
