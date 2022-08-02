@@ -245,7 +245,6 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
-    # Deprecated: use mathics.core.formatter.format_element
     def format(self, evaluation, form, **kwargs) -> "BoxElement":
         from mathics.core.formatter import format_element
         from mathics.core.symbol import Symbol

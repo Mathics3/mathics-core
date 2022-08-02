@@ -8,6 +8,7 @@ from mathics.core.atoms import SymbolString, SymbolI, String, Integer, Rational,
 from mathics.core.element import BaseElement, BoxElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import (
     Symbol,
@@ -384,9 +385,9 @@ def do_format_element(
                     SymbolHoldForm,
                     Expression(
                         SymbolPostfix,
-                        Expression(SymbolList, elements[0]),
-                        "..",
-                        170,
+                        ListExpression(elements[0]),
+                        String(".."),
+                        Integer(170),
                     ),
                 )
             else:
@@ -398,8 +399,8 @@ def do_format_element(
                     Expression(
                         SymbolPostfix,
                         Expression(SymbolList, elements[0]),
-                        "...",
-                        170,
+                        String("..."),
+                        Integer(170),
                     ),
                 )
             else:

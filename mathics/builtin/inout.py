@@ -27,6 +27,7 @@ from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import (
     Integer,
+    Integer1,
     Real,
     PrecisionReal,
     MachineReal,
@@ -65,8 +66,10 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
+    SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
+    SymbolNone,
     SymbolQuiet,
     SymbolRow,
     SymbolRowBox,
@@ -76,10 +79,10 @@ from mathics.core.systemsymbols import (
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
-SymbolNumberForm = Symbol("NumberForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolSuperscriptBox = Symbol("SuperscriptBox")
-SymbolSubscriptBox = Symbol("SubscriptBox")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolOutputForm = Symbol("System`OutputForm")
+SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
+SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
 class TraceEvaluationVariable(Builtin):
@@ -709,6 +712,10 @@ class MakeBoxes(Builtin):
         precedence = prec.get_int_value()
         grouping = grouping.get_name()
 
+        if isinstance(expr, Atom):
+            evaluation.message("Infix", "normal", Integer1)
+            return None
+
         elements = expr.elements
         if len(elements) > 1:
             if h.has_form("List", len(elements) - 1):
@@ -1285,6 +1292,9 @@ class Infix(Builtin):
      = ab
     """
 
+    messages = {
+        "normal": "Nonatomic expression expected at position `1`",
+    }
     summary_text = "infix form"
 
 
