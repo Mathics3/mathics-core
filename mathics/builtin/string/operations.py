@@ -46,15 +46,15 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
-    SymbolFullForm,
     SymbolList,
-    SymbolOutputForm,
     SymbolTrue,
 )
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
+    SymbolFullForm,
+    SymbolOutputForm,
 )
 
 

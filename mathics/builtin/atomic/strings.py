@@ -33,8 +33,6 @@ from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
-    SymbolInputForm,
-    SymbolOutputForm,
     SymbolTrue,
 )
 
@@ -42,6 +40,8 @@ from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolFailed,
     SymbolDirectedInfinity,
+    SymbolInputForm,
+    SymbolOutputForm,
 )
 
 

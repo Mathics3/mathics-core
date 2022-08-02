@@ -22,18 +22,21 @@ from mathics.core.symbols import (
     SymbolHoldForm,
     SymbolList,
     SymbolNumberForm,
-    SymbolOutputForm,
     SymbolPostfix,
     SymbolPlus,
     SymbolRepeated,
     SymbolRepeatedNull,
-    SymbolStandardForm,
     SymbolTimes,
     SymbolTrue,
     format_symbols,
 )
-from mathics.core.systemsymbols import SymbolMinus, SymbolComplex, SymbolRational
-
+from mathics.core.systemsymbols import (
+    SymbolComplex,
+    SymbolMinus,
+    SymbolOutputForm,
+    SymbolRational,
+    SymbolStandardForm,
+)
 
 # key is str: (to_xxx name, value) is formatter function to call
 format2fn: dict = {}

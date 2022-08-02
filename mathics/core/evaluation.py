@@ -28,24 +28,24 @@ from mathics.core.interrupt import (
 
 from mathics.core.symbols import (
     Symbol,
-    SymbolFullForm,
-    SymbolMathMLForm,
     SymbolNull,
-    SymbolOutputForm,
-    SymbolStandardForm,
-    SymbolTeXForm,
 )
 
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolBreak,
     SymbolContinue,
+    SymbolFullForm,
     SymbolHold,
     SymbolIn,
+    SymbolMathMLForm,
     SymbolMessageName,
     SymbolOut,
+    SymbolOutputForm,
     SymbolOverflow,
+    SymbolStandardForm,
     SymbolStringForm,
+    SymbolTeXForm,
     SymbolThrow,
 )
 

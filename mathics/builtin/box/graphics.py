@@ -47,8 +47,8 @@ from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
 from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolTrue, SymbolTraditionalForm
-from mathics.core.systemsymbols import SymbolAutomatic
+from mathics.core.symbols import Symbol, SymbolTrue
+from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 
 from mathics.core.formatter import format_element
 

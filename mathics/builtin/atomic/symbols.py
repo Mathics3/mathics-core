@@ -38,7 +38,6 @@ from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
     SymbolHoldForm,
-    SymbolInputForm,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
@@ -51,6 +50,7 @@ from mathics.core.systemsymbols import (
     SymbolFormat,
     SymbolGrid,
     SymbolInfix,
+    SymbolInputForm,
     SymbolOptions,
     SymbolRule,
     SymbolSet,

@@ -70,6 +70,7 @@ from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolMessageName,
     SymbolNone,
+    SymbolOutputForm,
     SymbolQuiet,
     SymbolRow,
     SymbolRowBox,
@@ -80,7 +81,6 @@ from mathics.core.systemsymbols import (
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 SymbolNumberForm = Symbol("System`NumberForm")
-SymbolOutputForm = Symbol("System`OutputForm")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 

@@ -13,9 +13,8 @@ from mathics.core.formatter import (
 )
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolMakeBoxes
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.systemsymbols import SymbolRowBox, SymbolStandardForm
 
-SymbolStandardForm = Symbol("System`StandardForm")
 SymbolFractionBox = Symbol("System`FractionBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
