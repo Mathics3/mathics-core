@@ -91,7 +91,6 @@ def test_asy_arrowbox():
 
 
 def test_asy_bezier_curve():
-
     expression = Expression(
         SymbolGraphics,
         Expression(
@@ -107,6 +106,20 @@ def test_asy_bezier_curve():
 
     matches = re.match(r"// BezierCurveBox\nimport graph;", inner_asy)
     # TODO: Match line and arrowbox
+    assert matches
+
+
+def test_asy_rectanglebox():
+    expression = Expression(
+        SymbolGraphics,
+        ListExpression(
+            Expression(Symbol("Rectangle"), ListExpression(Integer0, Integer0))
+        ),
+    )
+    asy = get_asy(expression)
+    inner_asy = extract_asy_body(asy)
+
+    matches = re.match(r"// RectangleBox\n", inner_asy)
     assert matches
 
 
