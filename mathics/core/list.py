@@ -41,9 +41,6 @@ class ListExpression(Expression):
         # FIXME: get rid of this junk
         self._sequences = None
         self._cache = None
-        # comment @mmatera: this cache should be useful in BoxConstruct, but not
-        # here...
-        self._format_cache = None
 
     # Add this when it is safe to do.
     def __repr__(self) -> str:
@@ -126,5 +123,4 @@ class ListExpression(Expression):
         expr.options = self.options
         expr.original = self
         expr._sequences = self._sequences
-        expr._format_cache = self._format_cache
         return expr

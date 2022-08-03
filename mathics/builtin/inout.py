@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     Operator,
     Predefined,
 )
-from mathics.builtin.box.inout import RowBox, to_boxes, _BoxedString
+from mathics.builtin.box.inout import RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
@@ -27,12 +27,14 @@ from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import (
     Integer,
+    Integer1,
     Real,
-    MachineReal,
     PrecisionReal,
+    MachineReal,
     String,
     StringFromPython,
 )
+
 from mathics.core.attributes import (
     hold_all as A_HOLD_ALL,
     hold_all_complete as A_HOLD_ALL_COMPLETE,
@@ -40,9 +42,10 @@ from mathics.core.attributes import (
     protected as A_PROTECTED,
 )
 from mathics.core.convert.python import from_bool
-from mathics.core.element import EvalMixin
+from mathics.core.element import EvalMixin, BoxElement
 from mathics.core.expression import Expression, BoxError
 from mathics.core.evaluation import Message as EvaluationMessage
+from mathics.core.formatter import _BoxedString, format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import (
     dps,
@@ -63,8 +66,11 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
+    SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
+    SymbolNone,
+    SymbolOutputForm,
     SymbolQuiet,
     SymbolRow,
     SymbolRowBox,
@@ -74,10 +80,9 @@ from mathics.core.systemsymbols import (
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
-SymbolNumberForm = Symbol("NumberForm")
-SymbolOutputForm = Symbol("OutputForm")
-SymbolSuperscriptBox = Symbol("SuperscriptBox")
-SymbolSubscriptBox = Symbol("SubscriptBox")
+SymbolNumberForm = Symbol("System`NumberForm")
+SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
+SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
 class TraceEvaluationVariable(Builtin):
@@ -608,7 +613,7 @@ class MakeBoxes(Builtin):
     def apply_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
-        if isinstance(expr, BoxConstruct):
+        if isinstance(expr, BoxElement):
             expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
@@ -707,6 +712,10 @@ class MakeBoxes(Builtin):
         precedence = prec.get_int_value()
         grouping = grouping.get_name()
 
+        if isinstance(expr, Atom):
+            evaluation.message("Infix", "normal", Integer1)
+            return None
+
         elements = expr.elements
         if len(elements) > 1:
             if h.has_form("List", len(elements) - 1):
@@ -745,7 +754,7 @@ class ToBoxes(Builtin):
         form_name = form.get_name()
         if form_name is None:
             evaluation.message("ToBoxes", "boxfmt", form)
-        boxes = expr.format(evaluation, form_name)
+        boxes = format_element(expr, evaluation, form)
         return boxes
 
 
@@ -1283,6 +1292,9 @@ class Infix(Builtin):
      = ab
     """
 
+    messages = {
+        "normal": "Nonatomic expression expected at position `1`",
+    }
     summary_text = "infix form"
 
 

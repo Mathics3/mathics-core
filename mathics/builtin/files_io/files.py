@@ -14,21 +14,23 @@ import os.path as osp
 
 
 from mathics_scanner import TranslateError
+
+import mathics
+from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
+from mathics.builtin.base import MessageException
+
 from mathics.core import read
 from mathics.core.atoms import (
     Integer,
     String,
+    SymbolString,
 )
+from mathics.core.attributes import protected, read_protected
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
+from mathics.core.formatter import format_element, do_format
 from mathics.core.parser import MathicsFileLineFeeder, parse
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolHold,
-)
-
 from mathics.core.read import (
     channel_to_stream,
     close_stream,
@@ -43,12 +45,14 @@ from mathics.core.streams import (
     path_search,
     stream_manager,
 )
-import mathics
-from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
-from mathics.builtin.base import MessageException
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.systemsymbols import (
+    SymbolReal,
+    SymbolFailed,
+    SymbolHold,
+    SymbolOutputForm,
+)
 
-from mathics.core.attributes import protected, read_protected
-from mathics.core.systemsymbols import SymbolReal
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
@@ -60,12 +64,11 @@ TMP_DIR = tempfile.gettempdir()
 SymbolInputStream = Symbol("InputStream")
 SymbolOutputStream = Symbol("OutputStream")
 SymbolPath = Symbol("$Path")
-SymbolString = Symbol("String")
 
 # TODO: Improve docs for these Read[] arguments.
 
-### FIXME: All of this is related to Read[]
-### it can be moved somewhere else.
+# ## FIXME: All of this is related to Read[]
+# ## it can be moved somewhere else.
 
 
 class Input_(Predefined):
@@ -749,7 +752,7 @@ class PutAppend(BinaryOperator):
             return
 
         text = [
-            str(e.do_format(evaluation, "System`OutputForm").__str__())
+            str(do_format(e, evaluation, SymbolOutputForm).__str__())
             for e in exprs.get_sequence()
         ]
         text = "\n".join(text) + "\n"
@@ -1782,7 +1785,7 @@ class WriteString(Builtin):
 
         exprs = []
         for expri in expr.get_sequence():
-            result = expri.format(evaluation, "System`OutputForm")
+            result = format_element(expri, evaluation, SymbolOutputForm)
             try:
                 result = result.boxes_to_text(evaluation=evaluation)
             except BoxError:

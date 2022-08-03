@@ -217,9 +217,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         self._sequences = None
         self._cache = None
-        # comment @mmatera: this cache should be useful in BoxConstruct, but not
-        # here...
-        self._format_cache = None
 
     def __getnewargs__(self):
         return (self._head, self._elements)
@@ -351,7 +348,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         expr.options = self.options
         expr.original = self
         expr._sequences = self._sequences
-        expr._format_cache = self._format_cache
         return expr
 
     def default_format(self, evaluation, form) -> str:
@@ -361,26 +357,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 [element.default_format(evaluation, form) for element in self._elements]
             ),
         )
-
-    def do_format(self, evaluation, form):
-        if self._format_cache is None:
-            self._format_cache = {}
-        if isinstance(form, str):
-
-            raise Exception("Expression.do_format\n", form, " should be a Symbol")
-            form = Symbol(form)
-
-        last_evaluated_time, expr = self._format_cache.get(form, (None, None))
-        if last_evaluated_time is not None and expr is not None:
-            symbolname = expr.get_name()
-            if symbolname != "":
-                if not evaluation.definitions.is_uncertain_final_value(
-                    last_evaluated_time, set((symbolname,))
-                ):
-                    return expr
-        expr = super().do_format(evaluation, form)
-        self._format_cache[form] = (evaluation.definitions.now, expr)
-        return expr
 
     @property
     def elements(self):

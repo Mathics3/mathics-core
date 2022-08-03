@@ -207,7 +207,7 @@ def unroll_conditions(lhs):
     else:
         condition = condition[0]
     condition = Expression(SymbolCondition, lhs, condition)
-    lhs._format_cache = None
+    # lhs._format_cache = None
     return lhs, condition
 
 
@@ -708,7 +708,7 @@ class _SetOperator:
             name = lhs.name
         else:
             name = lhs.get_head_name()
-        lhs._format_cache = None
+        # lhs._format_cache = None
         try:
             # Deal with direct assignation to properties of
             # the definition object
@@ -721,7 +721,7 @@ class _SetOperator:
             return False
 
     def assign(self, lhs, rhs, evaluation):
-        lhs._format_cache = None
+        # lhs._format_cache = None
         defs = evaluation.definitions
         if lhs.get_head_name() == "System`List":
             if not (rhs.get_head_name() == "System`List") or len(lhs.elements) != len(

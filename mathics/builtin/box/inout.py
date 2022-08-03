@@ -3,33 +3,32 @@
 from mathics.builtin.base import BoxExpression
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.atoms import Atom, String
+from mathics.core.atoms import Atom, String, SymbolString
 from mathics.core.attributes import hold_all_complete, protected, read_protected
+from mathics.core.element import BoxElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
-from mathics.core.formatter import encode_mathml, encode_tex, extra_operators
+from mathics.core.formatter import (
+    _BoxedString,
+)
 from mathics.core.list import ListExpression
-from mathics.core.parser import is_symbol_name
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolRowBox
+from mathics.core.symbols import Symbol, SymbolMakeBoxes
+from mathics.core.systemsymbols import SymbolRowBox, SymbolStandardForm
 
-SymbolString = Symbol("System`String")
-SymbolStandardForm = Symbol("System`StandardForm")
 SymbolFractionBox = Symbol("System`FractionBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSqrtBox = Symbol("System`SqrtBox")
-SymbolMakeBoxes = Symbol("System`MakeBoxes")
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
+def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
     """
     This function takes the expression ``x``
-    and tries to reduce it to a ``BoxExpression``
+    and tries to reduce it to a ``BoxElement``
     expression unsing an evaluation object.
     """
-    if isinstance(x, BoxExpression):
+    if isinstance(x, BoxElement):
         return x
     if isinstance(x, String):
         x = _BoxedString(x.value, **options)
@@ -41,170 +40,11 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxExpression:
         if not x.has_form("MakeBoxes", None):
             x = Expression(SymbolMakeBoxes, x)
         x_boxed = x.evaluate(evaluation)
-        if isinstance(x_boxed, BoxExpression):
+        if isinstance(x_boxed, BoxElement):
             return x_boxed
         if isinstance(x_boxed, Atom):
             return to_boxes(x_boxed, evaluation, options)
     raise Exception(x, "cannot be boxed.")
-
-
-class _BoxedString(BoxExpression):
-    value: str
-    box_options: dict
-    options = {
-        "System`ShowStringCharacters": "False",
-    }
-
-    def init(self, string: str, **options):
-        #
-        self.value = string
-        self.box_options = {
-            "System`ShowStringCharacters": SymbolFalse,
-        }
-        self.box_options.update(options)
-
-    def __repr__(self):
-        return self.value
-
-    def __str__(self):
-        return self.value
-
-    def boxes_to_text(self, **options):
-        value = self.value
-        if value.startswith('"') and value.endswith('"'):  # nopep8
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-
-            if not show_string_characters:
-                value = value[1:-1]
-        return value
-
-    def boxes_to_mathml(self, **options) -> str:
-        from mathics.builtin import display_operators_set as operators
-
-        text = self.value
-
-        number_as_text = options.get("number_as_text", None)
-        if number_as_text is None:
-            number_as_text = self.box_options.get("number_as_text", False)
-
-        def render(format, string):
-            encoded_text = encode_mathml(string)
-            return format % encoded_text
-
-        if text.startswith('"') and text.endswith('"'):
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-
-            if show_string_characters:
-                return render("<ms>%s</ms>", text[1:-1])
-            else:
-                outtext = ""
-                for line in text[1:-1].split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-        elif (
-            text
-            and not number_as_text
-            and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
-        ):
-            return render("<mn>%s</mn>", text)
-        else:
-            if text in operators or text in extra_operators:
-                if text == "\u2146":
-                    return render(
-                        '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
-                    )
-                if text == "\u2062":
-                    return render(
-                        '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
-                    )
-                return render("<mo>%s</mo>", text)
-            elif is_symbol_name(text):
-                return render("<mi>%s</mi>", text)
-            else:
-                outtext = ""
-                for line in text.split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-
-    def boxes_to_tex(self, **options) -> str:
-        text = self.value
-
-        def render(format, string, in_text=False):
-            return format % encode_tex(string, in_text)
-
-        if text.startswith('"') and text.endswith('"'):
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-            # In WMA, ``TeXForm`` never adds quotes to
-            # strings, even if ``InputForm`` or ``FullForm``
-            # is required, to so get the standard WMA behaviour,
-            # this option is set to False:
-            # show_string_characters = False
-
-            if show_string_characters:
-                return render(r'\text{"%s"}', text[1:-1], in_text=True)
-            else:
-                return render(r"\text{%s}", text[1:-1], in_text=True)
-        elif text and text[0] in "0123456789-.":
-            return render("%s", text)
-        else:
-            # FIXME: this should be done in a better way.
-            if text == "\u2032":
-                return "'"
-            elif text == "\u2032\u2032":
-                return "''"
-            elif text == "\u2062":
-                return " "
-            elif text == "\u221e":
-                return r"\infty "
-            elif text == "\u00d7":
-                return r"\times "
-            elif text in ("(", "[", "{"):
-                return render(r"\left%s", text)
-            elif text in (")", "]", "}"):
-                return render(r"\right%s", text)
-            elif text == "\u301a":
-                return r"\left[\left["
-            elif text == "\u301b":
-                return r"\right]\right]"
-            elif text == "," or text == ", ":
-                return text
-            elif text == "\u222b":
-                return r"\int"
-            # Tolerate WL or Unicode DifferentialD
-            elif text in ("\u2146", "\U0001D451"):
-                return r"\, d"
-            elif text == "\u2211":
-                return r"\sum"
-            elif text == "\u220f":
-                return r"\prod"
-            elif len(text) > 1:
-                return render(r"\text{%s}", text, in_text=True)
-            else:
-                return render("%s", text)
-
-    def get_head(self) -> Symbol:
-        return SymbolString
-
-    def get_head_name(self) -> str:
-        return "System`String"
-
-    def get_string_value(self) -> str:
-        return self.value
-
-    def to_expression(self) -> String:
-        return String(self.value)
 
 
 class ButtonBox(BoxExpression):
@@ -278,8 +118,7 @@ class SubscriptBox(BoxExpression):
     def init(self, a, b, **options):
         self.box_options = options.copy()
         if not (
-            isinstance(a, (String, BoxExpression))
-            and isinstance(b, (String, BoxExpression))
+            isinstance(a, (String, BoxElement)) and isinstance(b, (String, BoxElement))
         ):
             raise Exception((a, b), "are not boxes")
         self.base = a
@@ -343,9 +182,9 @@ class SubsuperscriptBox(BoxExpression):
     def init(self, a, b, c, **options):
         self.box_options = options.copy()
         if not (
-            isinstance(a, BoxExpression)
-            and isinstance(b, BoxExpression)
-            and isinstance(c, BoxExpression)
+            isinstance(a, BoxElement)
+            and isinstance(b, BoxElement)
+            and isinstance(c, BoxElement)
         ):
             raise Exception((a, b, c), "are not boxes")
         self.base = a
@@ -415,7 +254,7 @@ class SuperscriptBox(BoxExpression):
 
     def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not (isinstance(a, BoxExpression) and isinstance(b, BoxExpression)):
+        if not (isinstance(a, BoxElement) and isinstance(b, BoxElement)):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -499,26 +338,26 @@ class RowBox(BoxExpression):
         return result
 
     def init(self, *items, **kwargs):
-        # TODO: check that each element is an string or a BoxExpression
+        # TODO: check that each element is an string or a BoxElement
         self.box_options = {}
         if isinstance(items[0], Expression):
             if len(items) != 1:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxExpression"
+                    items, "is not a List[] or a list of Strings or BoxElement"
                 )
             if items[0].has_form("List", None):
                 items = items[0]._elements
             else:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxExpression"
+                    items, "is not a List[] or a list of Strings or BoxElement"
                 )
 
         def check_item(item):
             if isinstance(item, String):
                 return _BoxedString(item.value)
-            if not isinstance(item, BoxExpression):
+            if not isinstance(item, BoxElement):
                 raise Exception(
-                    item, "is not a List[] or a list of Strings or BoxExpression"
+                    item, "is not a List[] or a list of Strings or BoxElement"
                 )
             return item
 
@@ -541,7 +380,7 @@ class RowBox(BoxExpression):
         """
         if self._elements is None:
             items = tuple(
-                item.to_expression() if isinstance(item, BoxExpression) else item
+                item.to_expression() if isinstance(item, BoxElement) else item
                 for item in self.items
             )
 

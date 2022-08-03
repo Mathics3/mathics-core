@@ -1,5 +1,7 @@
 # from .helper import session
 from mathics.session import MathicsSession
+from mathics.core.symbols import Symbol
+from mathics.core.formatter import format_element
 import os
 
 session = MathicsSession()
@@ -644,7 +646,7 @@ def load_tests(key):
             # MATHML_STRICT is True
             if key != "mathml" or MATHML_STRICT:
                 fragile = False
-            full_test = (expr, tst, form, msg)
+            full_test = (expr, tst, Symbol(form), msg)
             if fragile or must_be:
                 fragile_tests.append(full_test)
             else:

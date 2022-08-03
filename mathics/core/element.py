@@ -229,130 +229,6 @@ class BaseElement(KeyComparable):
                 return result, True
         return self, False
 
-    # FIXME the fact that we have to import all of these symbols means
-    # modularity is broken somehwere.
-    # And do_format really doesn't belong here.
-    def do_format(self, evaluation, form):
-        """
-        Applies formats associated to the expression and removes
-        superfluous enclosing formats.
-        """
-        from mathics.core.symbols import (
-            Atom,
-            Symbol,
-            SymbolFullForm,
-            SymbolGraphics,
-            SymbolGraphics3D,
-            SymbolHoldForm,
-            SymbolList,
-            SymbolNumberForm,
-            SymbolOutputForm,
-            SymbolPostfix,
-            SymbolRepeated,
-            SymbolRepeatedNull,
-            SymbolStandardForm,
-            format_symbols,
-        )
-        from mathics.builtin.base import BoxExpression
-
-        if isinstance(form, str):
-            form = Symbol(form)
-        formats = format_symbols
-        evaluation.inc_recursion_depth()
-        try:
-            expr = self
-            head = self.get_head()
-            elements = self.get_elements()
-            include_form = False
-            # If the expression is enclosed by a Format
-            # takes the form from the expression and
-            # removes the format from the expression.
-            if head in formats and len(elements) == 1:
-                expr = elements[0]
-                if not (form is SymbolOutputForm and head is SymbolStandardForm):
-                    form = head
-                    include_form = True
-
-            # If form is Fullform, return it without changes
-            if form is SymbolFullForm:
-                if include_form:
-                    expr = self.create_expression(form, expr)
-                return expr
-            # Repeated and RepeatedNull confuse the formatter,
-            # so we need to hardlink their format rules:
-            if head is SymbolRepeated:
-                if len(elements) == 1:
-                    return self.create_expression(
-                        SymbolHoldForm,
-                        self.create_expression(
-                            SymbolPostfix,
-                            self.create_expression(SymbolList, elements[0]),
-                            "..",
-                            170,
-                        ),
-                    )
-                else:
-                    return self.create_expression(SymbolHoldForm, expr)
-            elif head is SymbolRepeatedNull:
-                if len(elements) == 1:
-                    return self.create_expression(
-                        SymbolHoldForm,
-                        self.create_expression(
-                            SymbolPostfix,
-                            self.create_expression(SymbolList, elements[0]),
-                            "...",
-                            170,
-                        ),
-                    )
-                else:
-                    return self.create_expression(SymbolHoldForm, expr)
-
-            # If expr is not an atom, looks for formats in its definition
-            # and apply them.
-            def format_expr(expr):
-                if not (isinstance(expr, Atom)) and not (isinstance(expr.head, Atom)):
-                    # expr is of the form f[...][...]
-                    return None
-                name = expr.get_lookup_name()
-                formats = evaluation.definitions.get_formats(name, form.get_name())
-                for rule in formats:
-                    result = rule.apply(expr, evaluation)
-                    if result is not None and result != expr:
-                        return result.evaluate(evaluation)
-                return None
-
-            formatted = format_expr(expr) if isinstance(expr, EvalMixin) else None
-            if formatted is not None:
-                result = formatted.do_format(evaluation, form)
-                if include_form:
-                    result = self.create_expression(form, result)
-                return result
-
-            # If the expression is still enclosed by a Format,
-            # iterate.
-            # If the expression is not atomic or of certain
-            # specific cases, iterate over the elements.
-            head = expr.get_head()
-            if head in formats:
-                expr = expr.do_format(evaluation, form)
-            elif (
-                head is not SymbolNumberForm
-                and not isinstance(expr, (Atom, BoxExpression))
-                and head not in (SymbolGraphics, SymbolGraphics3D)
-            ):
-                # print("Not inside graphics or numberform, and not is atom")
-                new_elements = [
-                    element.do_format(evaluation, form) for element in expr.elements
-                ]
-                expr = self.create_expression(
-                    expr.head.do_format(evaluation, form), *new_elements
-                )
-            if include_form:
-                expr = self.create_expression(form, expr)
-            return expr
-        finally:
-            evaluation.dec_recursion_depth()
-
     def equal2(self, rhs: Any) -> Optional[bool]:
         """
         Mathics two-argument Equal (==)
@@ -369,41 +245,13 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
-    def evaluate(self, evaluation) -> "BaseElement":
-        """
-        Evaluates the element.
-        Each subclass should decide what is right here.
-        """
-        raise NotImplementedError
-
-    # FIXME the fact that we have to import all of these symbols means
-    # modularity is broken somehwere.
-    # And format really doesn't belong here.
-    def format(self, evaluation, form, **kwargs) -> "BaseElement":
-        """
-        Applies formats associated to the expression, and then calls Makeboxes
-        """
-        from mathics.core.symbols import (
-            Symbol,
-            SymbolMakeBoxes,
-        )
-        from mathics.core.atoms import String
-        from mathics.builtin.base import BoxExpression
-        from mathics.builtin.box.inout import _BoxedString
+    def format(self, evaluation, form, **kwargs) -> "BoxElement":
+        from mathics.core.formatter import format_element
+        from mathics.core.symbols import Symbol
 
         if isinstance(form, str):
             form = Symbol(form)
-
-        expr = self.do_format(evaluation, form)
-        result = self.create_expression(SymbolMakeBoxes, expr, form)
-        result_box = result.evaluate(evaluation)
-
-        if isinstance(result_box, BoxExpression):
-            return result_box
-        elif isinstance(result_box, String):
-            return _BoxedString(result_box.value)
-        else:
-            return self.format(evaluation, "FullForm", **kwargs)
+        return format_element(self, evaluation, form, **kwargs)
 
     def get_atoms(self, include_heads=True):
         """
@@ -598,7 +446,7 @@ class EvalMixin:
         """
         return False
 
-    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple["BaseElement", bool]:
         """
         Performs a since rewrite/apply/eval step used in
         evaluation.
@@ -613,3 +461,12 @@ class EvalMixin:
         Each class should decide what is right here.
         """
         raise NotImplementedError
+
+
+class BoxElement(ImmutableValueMixin, BaseElement):
+    """
+    The base class for all the boxed
+    elements
+    """
+
+    pass
