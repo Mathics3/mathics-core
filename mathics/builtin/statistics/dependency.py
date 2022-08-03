@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# TODO: separate these wen we have more
+# TODO: separate these when we have more
 """
 Dependency and Dispursion Statistics
 """
@@ -15,7 +15,7 @@ from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
 from mathics.core.atoms import Integer
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolDivide, SymbolTimes
+from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
 
 SymbolConjugate = Symbol("Conjugate")
@@ -27,6 +27,8 @@ SymbolVariance = Symbol("Variance")
 
 class Correlation(Builtin):
     """
+    <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
+    <url>
     <dl>
       <dt>'Correlation[$a$, $b$]'
       <dd>computes Pearson's correlation of two equal-sized vectors $a$ and $b$.
@@ -56,17 +58,14 @@ class Correlation(Builtin):
         else:
             da = Expression(SymbolStandardDeviation, a)
             db = Expression(SymbolStandardDeviation, b)
-            return Expression(
-                SymbolDivide,
-                Expression(SymbolCovariance, a, b),
-                Expression(SymbolTimes, da, db),
-            )
+            return Expression(SymbolCovariance, a, b) / (da * db)
 
 
 class Covariance(Builtin):
     """
+    <url>:Covariance: https://en.wikipedia.org/wiki/Covariance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Covariance.html</url>)
     <dl>
-    <dt>'Covariance[$a$, $b$]'
+      <dt>'Covariance[$a$, $b$]'
       <dd>computes the covariance between the equal-sized vectors $a$ and $b$.
     </dl>
 
@@ -101,6 +100,7 @@ class Covariance(Builtin):
 
 class StandardDeviation(_Rectangular):
     """
+    <url>:Standard deviation: https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>:WMA: https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
       <dt>'StandardDeviation[$list$]'
       <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
@@ -145,6 +145,7 @@ class StandardDeviation(_Rectangular):
 
 class Variance(_Rectangular):
     """
+    <url>:Variance: https://en.wikipedia.org/wiki/Variance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
       <dt>'Variance[$list$]'
       <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
