@@ -89,6 +89,21 @@ class Definitions:
     - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the same symbol.
     """
 
+    __slots__ = (
+        "builtin",
+        "user",
+        "pymathics",
+        "definitions_cache",
+        "lookup_cache",
+        "proxy",
+        "now",
+        "_packages",
+        "current_context",
+        "context_path",
+        "trace_evaluation",
+        "timing_trace_evaluation",
+    )
+
     def __init__(
         self, add_builtin=False, builtin_filename=None, extension_modules=[]
     ) -> None:
@@ -804,6 +819,25 @@ class Definition:
     The ``Rule``s are internally organized in terms of the context of application in
     ``ownvalues``, ``upvalues``,  ``downvalues``,  ``subvalues``, ``nvalues``,  ``format``, etc.
     """
+
+    __slots__ = (
+        "name",
+        "rules",
+        "downvalues",
+        "ownvalues",
+        "subvalues",
+        "upvalues",
+        "formatvalues",
+        "messages",
+        "attributes",
+        "options",
+        "nvalues",
+        "defaultvalues",
+        "builtin",
+        "is_numeric",
+        "changed",
+        "change_timestamp",
+    )
 
     def __init__(
         self,
