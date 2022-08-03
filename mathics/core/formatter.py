@@ -157,6 +157,17 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
     format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
 
 
+#
+#   Comment from Rocky:
+#   " More scalable and more comprehensible is doing it inside a module for a particular form like we did for formatter. See [Aspect-Oriented Programming](https://en.wikipedia.org/wiki/Aspect-oriented_programming)
+#
+# Adding a method on the base class which does a lookup on the class I think is a good thing and the way to go. And it more closely maintains API compatibility, were it not for the fact that the form should be a Symbol rather than a str.
+# But in the short term we can do the same as we did for Expression and allow either a str or a Symbol and do the checking inside the .format() routine. Then eventually we'll remove the check."
+#  Also, moving the implementation of boxes_to_mathml / boxes_to_tex etc to specific module would be a following step.
+#
+#
+
+
 class _BoxedString(BoxElement):
     value: str
     box_options: dict

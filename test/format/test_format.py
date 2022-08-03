@@ -646,7 +646,7 @@ def load_tests(key):
             # MATHML_STRICT is True
             if key != "mathml" or MATHML_STRICT:
                 fragile = False
-            full_test = (expr, tst, form, msg)
+            full_test = (expr, tst, Symbol(form), msg)
             if fragile or must_be:
                 fragile_tests.append(full_test)
             else:
@@ -666,7 +666,7 @@ if fragile_tests:
     @pytest.mark.xfail
     def test_makeboxes_text_fragile(str_expr, str_expected, form, msg):
         result = session.evaluate(str_expr)
-        format_result = format_element(result, session.evaluation, Symbol(form))
+        format_result = format_element(result, session.evaluation, form)
         if msg:
             assert (
                 format_result.boxes_to_text(evaluation=session.evaluation)
@@ -683,7 +683,7 @@ if fragile_tests:
 )
 def test_makeboxes_text(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
-    format_result = format_element(result, session.evaluation, Symbol(form))
+    format_result = format_element(result, session.evaluation, form)
     if msg:
         assert (
             format_result.boxes_to_text(evaluation=session.evaluation) == str_expected
@@ -704,7 +704,7 @@ if fragile_tests:
     @pytest.mark.xfail
     def test_makeboxes_tex_fragile(str_expr, str_expected, form, msg):
         result = session.evaluate(str_expr)
-        format_result = format_element(result, session.evaluation, Symbol(form))
+        format_result = format_element(result, session.evaluation, form)
         if msg:
             assert (
                 format_result.boxes_to_tex(
@@ -723,7 +723,7 @@ if fragile_tests:
 )
 def test_makeboxes_tex(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
-    format_result = format_element(result, session.evaluation, Symbol(form))
+    format_result = format_element(result, session.evaluation, form)
     if msg:
         assert (
             format_result.boxes_to_tex(
@@ -747,7 +747,7 @@ if fragile_tests:
     @pytest.mark.xfail
     def test_makeboxes_mathml_fragile(str_expr, str_expected, form, msg):
         result = session.evaluate(str_expr)
-        format_result = format_element(result, session.evaluation, Symbol(form))
+        format_result = format_element(result, session.evaluation, form)
         if msg:
             assert (
                 format_result.boxes_to_tex(evaluation=session.evaluation)
@@ -764,7 +764,7 @@ if fragile_tests:
 )
 def test_makeboxes_mathml(str_expr, str_expected, form, msg):
     result = session.evaluate(str_expr)
-    format_result = format_element(result, session.evaluation, Symbol(form))
+    format_result = format_element(result, session.evaluation, form)
     if msg:
         assert (
             format_result.boxes_to_mathml(evaluation=session.evaluation) == str_expected
