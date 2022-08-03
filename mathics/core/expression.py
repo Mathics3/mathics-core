@@ -96,8 +96,8 @@ class BoxError(Exception):
 #   or (2) None, if the current expression has not yet been evaluated (i.e. is new or
 #   changed).
 # symbols: (1) a set of symbols occuring in this expression's head, its elements'
-#   heads, any of its sub expressions' heads or as Symbol leaves somewhere (maybe deep
-#   down) in the expression tree start by this expressions' leaves, or (2) None, if no
+#   heads, any of its sub expressions' heads or as Symbol elements somewhere (maybe deep
+#   down) in the expression tree start by this expressions' elements, or (2) None, if no
 #   information on which symbols are contained in this expression is available
 # sequences: (1) a list of element indices that indicate the position of all Sequence
 #   heads that are either in the element's head or any of the indicated elements's sub
@@ -118,7 +118,7 @@ class ExpressionCache:
         return ExpressionCache(self.time, self.symbols, self.sequences)
 
     def sliced(self, lower, upper):
-        # indicates that the Expression's leaves have been slices with
+        # indicates that the Expression's elements have been slices with
         # the given indices.
 
         seq = self.sequences
@@ -135,14 +135,14 @@ class ExpressionCache:
         return ExpressionCache(self.time, self.symbols, new_sequences)
 
     def reordered(self):
-        # indicates that the Expression's leaves have been reordered
-        # or reduced (i.e. that the leaves have changed, but that
+        # indicates that the Expression's elements have been reordered
+        # or reduced (i.e. that the elements have changed, but that
         # no new element instances were added).
 
         sequences = self.sequences
 
         # note that we keep sequences == [], since they are fine even
-        # after having reordered leaves.
+        # after having reordered elements.
         if sequences:
             sequences = None
 
@@ -189,9 +189,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         - elements_properties -- properties of the collection of elements
     """
 
-    head: "Symbol"
-    leaves: typing.List[Any]
+    _head: BaseElement
+    _elements: typing.List[BaseElement]
     _sequences: Any
+    _cache: typing.Optional[ExpressionCache]
+    elements_properties: typing.Optional[ElementsProperties]
+    options: typing.Optional[tuple]
+    pattern_sequence: bool
 
     def __init__(
         self,
@@ -1003,6 +1007,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # @timeit
         def eval_elements():
             nonlocal recompute_properties
+
             # @timeit
             def eval_range(indices):
                 nonlocal recompute_properties
@@ -1329,7 +1334,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return expr
 
     def slice(self, head, py_slice, evaluation):
-        # faster equivalent to: Expression(head, *self.leaves[py_slice])
+        # faster equivalent to: Expression(head, *self.elements[py_slice])
         return structure(head, self, evaluation).slice(self, py_slice)
 
     def to_mpmath(self):
