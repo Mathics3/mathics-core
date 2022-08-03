@@ -4,6 +4,15 @@ CHANGES
 =======
 
 
+Internals
+---------
+
+* `Definitions` and `Definition` classes use now `__slot__` instead of
+  `__dict__` to store their attributes. This seems to provide an improvement
+  of ~10% in the access to the rules.
+
+
+
 5.0.0
 ------
 
