@@ -1,6 +1,14 @@
 """
-<url>:Order Statistics: https://en.wikipedia.org/wiki/Order_statistic</url>
+Order Statistics
+
+In statistics, an <url>:order statistic: https://en.wikipedia.org/wiki/Order_statistic</url> gives the $k$-th smmallest value.
+
+Together with <url>:rank statistics: https://en.wikipedia.org/wiki/Ranking</url> these are fundamental tools in non-parametric statistics and inference.
+
+Important special cases of order statistics are finding minimum and maximum value of a sample and sample quantiles.
 """
+
+from mpmath import floor as mpfloor, ceil as mpceil
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
@@ -21,40 +29,42 @@ SymbolRankedMin = Symbol("RankedMin")
 
 class Quantile(Builtin):
     """
-        In statistics and probability, quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities, or dividing the observations in a sample in the same way.
+    <url>:Quantile: https://en.wikipedia.org/wiki/Quantile</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Quantile.html</url>)
+    In statistics and probability, quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities, or dividing the observations in a sample in the same way.
 
-        Quantile is also known as value at risk (VaR) or fractile.
-        <dl>
-          <dt>'Quantile[$list$, $q$]'
-          <dd>returns the $q$th quantile of $list$.
+    Quantile is also known as value at risk (VaR) or fractile.
+    <dl>
+      <dt>'Quantile[$list$, $q$]'
+      <dd>returns the $q$th quantile of $list$.
 
-          <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
-          <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
-          <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.
+      <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
+      <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
 
-          If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
+      <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.
 
-          Otherwise, the result is 's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', with the indices taken to be 1 or n if they are out of range.
+      If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.
 
-    The default choice of parameters is '{{0,0},{1,0}}'.
-        </dl>
+      Otherwise, the result is 's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', with the indices taken to be 1 or n if they are out of range.
 
-        Common choices of parameters include:
-        <ul>
-        <li>'{{0, 0}, {1, 0}}' inverse empirical CDF (default)
-        <li>'{{0, 0}, {0, 1}}' linear interpolation (California method)
-        </ul>
+      The default choice of parameters is '{{0,0},{1,0}}'.
+    </dl>
 
-        'Quantile[list,q]' always gives a result equal to an element of list.
+    Common choices of parameters include:
+    <ul>
+      <li>'{{0, 0}, {1, 0}}' inverse empirical CDF (default)
+      <li>'{{0, 0}, {0, 1}}' linear interpolation (California method)
+     </ul>
 
-        >> Quantile[Range[11], 1/3]
-         = 4
+    'Quantile[list,q]' always gives a result equal to an element of list.
 
-        >> Quantile[Range[16], 1/4]
-         = 4
+    >> Quantile[Range[11], 1/3]
+     = 4
 
-        >> Quantile[{1, 2, 3, 4, 5, 6, 7}, {1/4, 3/4}]
-         = {2, 6}
+    >> Quantile[Range[16], 1/4]
+     = 4
+
+    >> Quantile[{1, 2, 3, 4, 5, 6, 7}, {1/4, 3/4}]
+     = {2, 6}
     """
 
     messages = {
@@ -86,11 +96,7 @@ class Quantile(Builtin):
                 evaluation.message("Quantile", "nquan", q)
                 return
 
-            x = Expression(
-                SymbolPlus,
-                a,
-                Expression(SymbolTimes, Expression(SymbolPlus, Integer(n), b), q),
-            )
+            x = (Integer(n) + b) * q + a
 
             numeric_x = x.evaluate(evaluation).numerify(evaluation)
 
@@ -101,8 +107,6 @@ class Quantile(Builtin):
 
                 if py_x is None:
                     return
-
-                from mpmath import floor as mpfloor, ceil as mpceil
 
                 if c.get_int_value() == 1 and d.get_int_value() == 0:  # k == 1?
                     results.append(ranked(int(mpceil(py_x))))
@@ -328,4 +332,4 @@ class TakeSmallest(_RankedTakeSmallest):
         return self._compute(element, n, evaluation, options)
 
 
-# TODO: MinMax, Quantile, Quartiles
+# TODO: MinMax
