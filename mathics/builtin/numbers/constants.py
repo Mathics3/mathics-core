@@ -203,9 +203,10 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
+    <url>:Catalan's constant: https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Catalan.html</url>)
     <dl>
-    <dt>'Catalan'
-        <dd>is Catalan's constant with numerical value \u2243 0.915966.
+      <dt>'Catalan'
+      <dd>is Catalan's constant with numerical value \u2243 0.915966.
     </dl>
 
     >> Catalan // N
@@ -223,9 +224,10 @@ class Catalan(_MPMathConstant, _SympyConstant):
 
 class ComplexInfinity(_SympyConstant):
     """
+    <url>:Complex Infinity: https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
     <dl>
-    <dt>'ComplexInfinity'
-        <dd>represents an infinite complex quantity of undetermined direction.
+      <dt>'ComplexInfinity'
+      <dd>represents an infinite complex quantity of undetermined direction.
     </dl>
 
     >> 1 / ComplexInfinity
@@ -254,6 +256,7 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:Degree (angle): https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Degree.html</url>)
     <dl>
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
@@ -315,9 +318,10 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:Euler's number: https://en.wikipedia.org/wiki/E_(mathematical_constant)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#exp1</url>, <url>:WMA: https://reference.wolfram.com/language/ref/E.html</url>)
     <dl>
-    <dt>'E'
-        <dd>is the constant \u2107 with numerical value \u2243 2.71828.
+      <dt>'E'
+      <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
     >> N[E]
@@ -341,7 +345,7 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
-    <dl>
+    <url>:Euler's constant: https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.EulerGamma</url>, <url>:WMA: https://reference.wolfram.com/language/ref/EulerGamma.html</url>)    <dl>
       <dt>'EulerGamma'
       <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
     </dl>
