@@ -365,6 +365,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class Glaisher(_MPMathConstant):
     """
+    <url>:Glaisher–Kinkelin constant: https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Glaisher.html</url>)
     <dl>
       <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
@@ -377,12 +378,13 @@ class Glaisher(_MPMathConstant):
      # 1.2824271291006219541941391071304678916931152343750
     """
 
-    summary_text = "Glaiser's constant A ≃ 1.282"
+    summary_text = "Glaisher's constant A ≃ 1.282"
     mpmath_name = "glaisher"
 
 
 class GoldenRatio(_MPMathConstant, _SympyConstant):
     """
+    <url>:Golden ratio: https://en.wikipedia.org/wiki/Golden_ratio</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#golden-ratio-phi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/GoldenRatio.html</url>)
     <dl>
       <dt>'GoldenRatio'
       <dd>is the golden ratio, \u03D5 = (1+Sqrt[5])/2.
@@ -402,8 +404,8 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 class Indeterminate(_SympyConstant):
     """
     <dl>
-    <dt>'Indeterminate'
-        <dd>represents an indeterminate result.
+      <dt>'Indeterminate'
+      <dd>represents an indeterminate result.
     </dl>
 
     >> 0^0
@@ -425,8 +427,8 @@ class Indeterminate(_SympyConstant):
 class Infinity(_SympyConstant):
     """
     <dl>
-    <dt>'Infinity'
-        <dd>a symbol that represents an infinite real quantity.
+      <dt>'Infinity'
+      <dd>a symbol that represents an infinite real quantity.
     </dl>
 
     >> 1 / Infinity
@@ -501,41 +503,6 @@ class Overflow(Builtin):
     summary_text = "overflow in numeric evaluation"
 
 
-class Underflow(Builtin):
-    """
-    <dl>
-      <dt>'Overflow[]'
-      <dd>represents a number too small to be represented by Mathics.
-    </dl>
-
-    >> 1 / Overflow[]
-     = Underflow[]
-    >> 5 * Underflow[]
-     = 5 Underflow[]
-    >> % // N
-     = 0.
-    Underflow[] is kept symbolic in operations against integer numbers,
-    but taken as 0. in numeric evaluations:
-    >> 1 - Underflow[]
-     = 1 - Underflow[]
-    >> % // N
-     = 1.
-    #
-    # TODO: handle this kind of expressions where precision may be
-    # lost:
-    # >> Exp[-1000.]
-    #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
-    #  = Underflow[]
-    """
-
-    rules = {
-        "Power[Underflow[], -1]": "Overflow[]",
-        "x_Real + Underflow[]": "x",
-        "Underflow[] * x_Real": "0.",
-    }
-    summary_text = "underflow in numeric evaluation"
-
-
 class Pi(_MPMathConstant, _SympyConstant):
     """
      <dl>
@@ -567,3 +534,39 @@ class Pi(_MPMathConstant, _SympyConstant):
     rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
     summary_text = "pi \u03c0 ≃ 3.1416"
     sympy_name = "pi"
+
+
+class Underflow(Builtin):
+    """
+    <dl>
+      <dt>'Overflow[]'
+      <dd>represents a number too small to be represented by Mathics.
+    </dl>
+
+    >> 1 / Overflow[]
+     = Underflow[]
+    >> 5 * Underflow[]
+     = 5 Underflow[]
+    >> % // N
+     = 0.
+    Underflow[] is kept symbolic in operations against integer numbers,
+    but taken as 0. in numeric evaluations:
+    >> 1 - Underflow[]
+     = 1 - Underflow[]
+    >> % // N
+     = 1.
+    """
+
+    #
+    # TODO: handle this kind of expressions where precision may be
+    # lost:
+    # >> Exp[-1000.]
+    #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
+    #  = Underflow[]
+
+    rules = {
+        "Power[Underflow[], -1]": "Overflow[]",
+        "x_Real + Underflow[]": "x",
+        "Underflow[] * x_Real": "0.",
+    }
+    summary_text = "underflow in numeric evaluation"
