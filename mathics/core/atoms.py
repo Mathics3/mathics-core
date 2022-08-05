@@ -441,7 +441,7 @@ class MachineReal(Real):
         return self.value
 
     def make_boxes(self, form):
-        from mathics.builtin.inout import number_form
+        from mathics.core.formatter import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
@@ -527,7 +527,7 @@ class PrecisionReal(Real):
         return self.value._prec + 1.0
 
     def make_boxes(self, form):
-        from mathics.builtin.inout import number_form
+        from mathics.core.formatter import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         return number_form(

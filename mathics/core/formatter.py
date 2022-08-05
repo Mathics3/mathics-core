@@ -1,10 +1,20 @@
 import inspect
+import mpmath
 import typing
-from typing import Any, Callable
+from typing import Any, Callable, Tuple, Optional
 import re
 
 
-from mathics.core.atoms import SymbolString, SymbolI, String, Integer, Rational, Complex
+from mathics.core.atoms import (
+    SymbolString,
+    SymbolI,
+    String,
+    Integer,
+    Rational,
+    Real,
+    Complex,
+)
+from mathics.core.number import dps
 from mathics.core.element import BaseElement, BoxElement, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -155,6 +165,215 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
 
     # Finally register the mapping: (Builtin-class, conversion name) -> conversion_function.
     format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
+
+
+def int_to_s_exp(expr: BaseElement, n: int) -> Tuple[str, int, bool]:
+    n = expr.get_int_value()
+    if n < 0:
+        nonnegative = 0
+        s = str(-n)
+    else:
+        nonnegative = 1
+        s = str(n)
+    exp = len(s) - 1
+    return s, exp, nonnegative
+
+
+def real_to_s_exp(expr: BaseElement, n: Optional[int]) -> Tuple[str, int, bool]:
+    if expr.is_zero:
+        s = "0"
+        if expr.is_machine_precision():
+            exp = 0
+        else:
+            p = expr.get_precision()
+            exp = -dps(p)
+        nonnegative = 1
+    else:
+        if n is None:
+            if expr.is_machine_precision():
+                value = expr.get_float_value()
+                s = repr(value)
+            else:
+                with mpmath.workprec(expr.get_precision()):
+                    value = expr.to_mpmath()
+                    s = mpmath.nstr(value, dps(expr.get_precision()) + 1)
+        else:
+            with mpmath.workprec(expr.get_precision()):
+                value = expr.to_mpmath()
+                s = mpmath.nstr(value, n)
+
+        # sign prefix
+        if s[0] == "-":
+            assert value < 0
+            nonnegative = 0
+            s = s[1:]
+        else:
+            assert value >= 0
+            nonnegative = 1
+
+        # exponent (exp is actual, pexp is printed)
+        if "e" in s:
+            s, exp = s.split("e")
+            exp = int(exp)
+            if len(s) > 1 and s[1] == ".":
+                # str(float) doesn't always include '.' if 'e' is present.
+                s = s[0] + s[2:].rstrip("0")
+        else:
+            exp = s.index(".") - 1
+            s = s[: exp + 1] + s[exp + 2 :].rstrip("0")
+
+            # consume leading '0's.
+            i = 0
+            while s[i] == "0":
+                i += 1
+                exp -= 1
+            s = s[i:]
+
+        # add trailing zeros for precision reals
+        if n is not None and not expr.is_machine_precision() and len(s) < n:
+            s = s + "0" * (n - len(s))
+    return s, exp, nonnegative
+
+
+def number_form(
+    expr: BaseElement, n: int, f: int, evaluation: Optional[Evaluation], options: dict
+) -> Optional[BoxElement]:
+    """
+    Converts a Real or Integer instance to Boxes.
+
+    n digits of precision with f (can be None) digits after the decimal point.
+    evaluation (can be None) is used for messages.
+
+    The allowed options are python versions of the options permitted to
+    NumberForm and must be supplied. See NumberForm or Real.make_boxes
+    for correct option examples.
+    """
+
+    assert isinstance(n, int) and n > 0 or n is None
+    assert f is None or (isinstance(f, int) and f >= 0)
+
+    is_int = False
+    if isinstance(expr, Integer):
+        assert n is not None
+        s, exp, nonnegative = int_to_s_exp(expr, n)
+        if f is None:
+            is_int = True
+    elif isinstance(expr, Real):
+        if n is not None:
+            n = min(n, dps(expr.get_precision()) + 1)
+        s, exp, nonnegative = real_to_s_exp(expr, n)
+        if n is None:
+            n = len(s)
+    else:
+        raise ValueError("Expected Real or Integer.")
+
+    assert isinstance(n, int) and n > 0
+
+    sign_prefix = options["NumberSigns"][nonnegative]
+
+    # round exponent to ExponentStep
+    rexp = (exp // options["ExponentStep"]) * options["ExponentStep"]
+
+    if is_int:
+        # integer never uses scientific notation
+        pexp = ""
+    else:
+        method = options["ExponentFunction"]
+        pexp = method(Integer(rexp)).get_int_value()
+        if pexp is not None:
+            exp -= pexp
+            pexp = str(pexp)
+        else:
+            pexp = ""
+
+    # pad right with '0'.
+    if len(s) < exp + 1:
+        if evaluation is not None:
+            evaluation.message("NumberForm", "sigz")
+        # TODO NumberPadding?
+        s = s + "0" * (1 + exp - len(s))
+    # pad left with '0'.
+    if exp < 0:
+        s = "0" * (-exp) + s
+        exp = 0
+
+    # left and right of NumberPoint
+    left, right = s[: exp + 1], s[exp + 1 :]
+
+    def _round(number, ndigits):
+        """
+        python round() for integers but with correct rounding.
+        e.g. `_round(14225, -1)` is `14230` not `14220`.
+        """
+        assert isinstance(ndigits, int)
+        assert ndigits < 0
+        assert isinstance(number, int)
+        assert number >= 0
+        number += 5 * int(10 ** -(1 + ndigits))
+        number //= int(10**-ndigits)
+        return number
+
+    # pad with NumberPadding
+    if f is not None:
+        if len(right) < f:
+            # pad right
+            right = right + (f - len(right)) * options["NumberPadding"][1]
+        elif len(right) > f:
+            # round right
+            tmp = int(left + right)
+            tmp = _round(tmp, f - len(right))
+            tmp = str(tmp)
+            left, right = tmp[: exp + 1], tmp[exp + 1 :]
+
+    def split_string(s, start, step):
+        if start > 0:
+            yield s[:start]
+        for i in range(start, len(s), step):
+            yield s[i : i + step]
+
+    # insert NumberSeparator
+    digit_block = options["DigitBlock"]
+    if digit_block[0] != 0:
+        left = split_string(left, len(left) % digit_block[0], digit_block[0])
+        left = options["NumberSeparator"][0].join(left)
+    if digit_block[1] != 0:
+        right = split_string(right, 0, digit_block[1])
+        right = options["NumberSeparator"][1].join(right)
+
+    left_padding = 0
+    max_sign_len = max(len(options["NumberSigns"][0]), len(options["NumberSigns"][1]))
+    i = len(sign_prefix) + len(left) + len(right) - max_sign_len
+    if i < n:
+        left_padding = n - i
+    elif len(sign_prefix) < max_sign_len:
+        left_padding = max_sign_len - len(sign_prefix)
+    left_padding = left_padding * options["NumberPadding"][0]
+
+    # insert NumberPoint
+    if options["SignPadding"]:
+        prefix = sign_prefix + left_padding
+    else:
+        prefix = left_padding + sign_prefix
+
+    if is_int:
+        s = prefix + left
+    else:
+        s = prefix + left + options["NumberPoint"] + right
+
+    # base
+    base = "10"
+
+    # build number
+    method = options["NumberFormat"]
+    if options["_Form"] in ("System`InputForm", "System`FullForm"):
+        return method(
+            _BoxedString(s, number_as_text=True),
+            _BoxedString(base, number_as_text=True),
+            _BoxedString(pexp, number_as_text=True),
+            options,
+        )
+    else:
+        return method(_BoxedString(s), _BoxedString(base), _BoxedString(pexp), options)
 
 
 #
