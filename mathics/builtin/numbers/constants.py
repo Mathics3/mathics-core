@@ -203,9 +203,11 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
+    <url>:Catalan's constant: https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Catalan.html</url>)
+
     <dl>
-    <dt>'Catalan'
-        <dd>is Catalan's constant with numerical value \u2243 0.915966.
+      <dt>'Catalan'
+      <dd>is Catalan's constant with numerical value \u2243 0.915966.
     </dl>
 
     >> Catalan // N
@@ -223,9 +225,10 @@ class Catalan(_MPMathConstant, _SympyConstant):
 
 class ComplexInfinity(_SympyConstant):
     """
+    <url>:Complex Infinity: https://en.wikipedia.org/wiki/Infinity#Complex_analysis</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html?highlight=zoo#complexinfinity</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ComplexInfinity.html</url>)
     <dl>
-    <dt>'ComplexInfinity'
-        <dd>represents an infinite complex quantity of undetermined direction.
+      <dt>'ComplexInfinity'
+      <dd>represents an infinite complex quantity of undetermined direction.
     </dl>
 
     >> 1 / ComplexInfinity
@@ -254,6 +257,8 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:Degree (angle): https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Degree.html</url>)
+
     <dl>
       <dt>'Degree'
       <dd>is the number of radians in one degree. It has a numerical value of \u03c0 / 180.
@@ -315,9 +320,11 @@ class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:Euler's number: https://en.wikipedia.org/wiki/E_(mathematical_constant)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#exp1</url>, <url>:WMA: https://reference.wolfram.com/language/ref/E.html</url>)
+
     <dl>
-    <dt>'E'
-        <dd>is the constant \u2107 with numerical value \u2243 2.71828.
+      <dt>'E'
+      <dd>is the constant \u2107 with numerical value \u2243 2.71828.
     </dl>
 
     >> N[E]
@@ -341,6 +348,8 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:Euler's constant: https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.EulerGamma</url>, <url>:WMA: https://reference.wolfram.com/language/ref/EulerGamma.html</url>)
+
     <dl>
       <dt>'EulerGamma'
       <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
@@ -361,6 +370,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class Glaisher(_MPMathConstant):
     """
+    <url>:Glaisher–Kinkelin constant: https://en.wikipedia.org/wiki/Glaisher%E2%80%93Kinkelin_constant</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#glaisher-s-constant-glaisher</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Glaisher.html</url>)
     <dl>
       <dt>'Glaisher'
       <dd>is Glaisher's constant, with numerical value \u2243 1.28243.
@@ -373,12 +383,14 @@ class Glaisher(_MPMathConstant):
      # 1.2824271291006219541941391071304678916931152343750
     """
 
-    summary_text = "Glaiser's constant A ≃ 1.282"
+    summary_text = "Glaisher's constant A ≃ 1.282"
     mpmath_name = "glaisher"
 
 
 class GoldenRatio(_MPMathConstant, _SympyConstant):
     """
+    <url>:Golden ratio: https://en.wikipedia.org/wiki/Golden_ratio</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#golden-ratio-phi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/GoldenRatio.html</url>)
+
     <dl>
       <dt>'GoldenRatio'
       <dd>is the golden ratio, \u03D5 = (1+Sqrt[5])/2.
@@ -397,9 +409,10 @@ class GoldenRatio(_MPMathConstant, _SympyConstant):
 
 class Indeterminate(_SympyConstant):
     """
+    <url>:Indeterminate form: https://en.wikipedia.org/wiki/Indeterminate_form</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.NaN</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Indeterminate.html</url>)
     <dl>
-    <dt>'Indeterminate'
-        <dd>represents an indeterminate result.
+      <dt>'Indeterminate'
+      <dd>represents an indeterminate result.
     </dl>
 
     >> 0^0
@@ -420,9 +433,11 @@ class Indeterminate(_SympyConstant):
 
 class Infinity(_SympyConstant):
     """
+    <url>:Infinity: https://en.wikipedia.org/wiki/Infinity</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Infinity</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Infinity.html</url>)
+
     <dl>
-    <dt>'Infinity'
-        <dd>a symbol that represents an infinite real quantity.
+      <dt>'Infinity'
+      <dd>a symbol that represents an infinite real quantity.
     </dl>
 
     >> 1 / Infinity
@@ -458,6 +473,7 @@ class Infinity(_SympyConstant):
 
 class Khinchin(_MPMathConstant):
     """
+    <url>:Khinchin's constant: https://en.wikipedia.org/wiki/Khinchin%27s_constant</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/constants.html#mpmath.mp.khinchin</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Khinchin.html</url>)
     <dl>
       <dt>'Khinchin'
       <dd>is Khinchin's constant, with numerical value \u2243 2.68545.
@@ -476,6 +492,8 @@ class Khinchin(_MPMathConstant):
 
 class Overflow(Builtin):
     """
+    Overflow (<url>:WMA: https://reference.wolfram.com/language/ref/Overflow.html</url>)
+
     <dl>
       <dt>'Overflow[]'
       <dd>represents a number too large to be represented by Mathics.
@@ -497,8 +515,45 @@ class Overflow(Builtin):
     summary_text = "overflow in numeric evaluation"
 
 
+class Pi(_MPMathConstant, _SympyConstant):
+    """
+    <url>:Pi, \u03c0: https://en.wikipedia.org/wiki/Pi</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/core.html#sympy.core.numbers.Pi</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Pi.html</url>)
+
+    <dl>
+      <dt>'Pi'
+      <dd>is the constant \u03c0.
+    </dl>
+
+    >> N[Pi]
+     = 3.14159
+
+    Pi to a numeric precision of 20 digits:
+    >> N[Pi, 20]
+     = 3.1415926535897932385
+
+    Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics uses!
+
+    Use numpy to compute Pi to 20 digits:
+    >> N[Pi, 20, Method->"numpy"]
+     = 3.1415...
+
+    "sympy" is the default method.
+
+    >> Attributes[Pi]
+     = {Constant, Protected, ReadProtected}
+    """
+
+    mpmath_name = "pi"
+    numpy_name = "pi"
+    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
+    summary_text = "Pi, \u03c0 ≃ 3.1416"
+    sympy_name = "pi"
+
+
 class Underflow(Builtin):
     """
+    <url>:Arithmetic underflow: https://en.wikipedia.org/wiki/Arithmetic_underflow</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Underflow.html</url>)
+
     <dl>
       <dt>'Overflow[]'
       <dd>represents a number too small to be represented by Mathics.
@@ -516,13 +571,14 @@ class Underflow(Builtin):
      = 1 - Underflow[]
     >> % // N
      = 1.
+    """
+
     #
     # TODO: handle this kind of expressions where precision may be
     # lost:
     # >> Exp[-1000.]
     #  : Exp[-1000.] is too small to represent as a normalized machine number; precision may be lost.
     #  = Underflow[]
-    """
 
     rules = {
         "Power[Underflow[], -1]": "Overflow[]",
@@ -530,36 +586,3 @@ class Underflow(Builtin):
         "Underflow[] * x_Real": "0.",
     }
     summary_text = "underflow in numeric evaluation"
-
-
-class Pi(_MPMathConstant, _SympyConstant):
-    """
-     <dl>
-       <dt>'Pi'
-       <dd>is the constant \u03c0.
-     </dl>
-
-     >> N[Pi]
-      = 3.14159
-
-     Pi to a numeric precision of 20 digits:
-     >> N[Pi, 20]
-      = 3.1415926535897932385
-
-     Note that the above is not the same thing as the number of digits <i>after</i> the decimal point. This may differ from similar concepts from other mathematical libraries, including those which Mathics uses!
-
-     Use numpy to compute Pi to 20 digits:
-     >> N[Pi, 20, Method->"numpy"]
-      = 3.1415...
-
-    "sympy" is the default method.
-
-     >> Attributes[Pi]
-      = {Constant, Protected, ReadProtected}
-    """
-
-    mpmath_name = "pi"
-    numpy_name = "pi"
-    rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
-    summary_text = "pi \u03c0 ≃ 3.1416"
-    sympy_name = "pi"
