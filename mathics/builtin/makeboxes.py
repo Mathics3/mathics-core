@@ -296,7 +296,9 @@ class MakeBoxes(Builtin):
         if isinstance(expr, Atom):
             if hasattr(expr, "atom_to_boxes"):
                 return expr.atom_to_boxes(f, evaluation)
-            assert False, "never reached?"
+            # This if for the future, when "atom_to_boxes"
+            # is going to not be a mandatory part of
+            # the atom interface.
             return format_element(expr, evaluation, f)
         else:
             head = expr.head
