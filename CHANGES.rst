@@ -3,6 +3,11 @@
 CHANGES
 =======
 
+5.0.2
+-----
+
+Get in `requirements-cython.txt`` into tarball
+
 
 5.0.1
 -----
