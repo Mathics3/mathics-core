@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 
-r"""
-Exponential, Trigonometric and Hyperbolic Functions
-
-\Mathics basically supports all important trigonometric and hyperbolic functions.
+"""
+Exponential and Trigonometric Functions
 
 Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
 """
@@ -31,12 +29,8 @@ from mathics.core.symbols import Symbol, SymbolPower
 from mathics.core.systemsymbols import SymbolCos, SymbolE, SymbolSin
 
 SymbolArcCos = Symbol("ArcCos")
-SymbolArcCosh = Symbol("ArcCosh")
 SymbolArcSin = Symbol("ArcSin")
-SymbolArcSinh = Symbol("ArcSinh")
 SymbolArcTan = Symbol("ArcTan")
-SymbolCosh = Symbol("Cosh")
-SymbolSinh = Symbol("Sinh")
 
 
 class Fold:
@@ -356,32 +350,6 @@ class ArcCos(_MPMathFunction):
     }
 
 
-class ArcCosh(_MPMathFunction):
-    """
-    <dl>
-      <dt>'ArcCosh[$z$]'
-      <dd>returns the inverse hyperbolic cosine of $z$.
-    </dl>
-
-    >> ArcCosh[0]
-     = I / 2 Pi
-    >> ArcCosh[0.]
-     = 0. + 1.5708 I
-    >> ArcCosh[0.00000000000000000000000000000000000000]
-     = 1.5707963267948966192313216916397514421 I
-    #> ArcCosh[1.4]
-     = 0.867015
-    """
-
-    summary_text = "inverse hyperbolic cosine function"
-    sympy_name = "acosh"
-    mpmath_name = "acosh"
-
-    rules = {
-        "Derivative[1][ArcCosh]": "1/(Sqrt[#-1]*Sqrt[#+1])&",
-    }
-
-
 class ArcCot(_MPMathFunction):
     """
     <dl>
@@ -403,36 +371,6 @@ class ArcCot(_MPMathFunction):
         "Derivative[1][ArcCot]": "-1/(1+#^2)&",
         "ArcCot[0]": "Pi / 2",
         "ArcCot[1]": "Pi / 4",
-    }
-
-
-class ArcCoth(_MPMathFunction):
-    """
-    <dl>
-      <dt>'ArcCoth[$z$]'
-      <dd>returns the inverse hyperbolic cotangent of $z$.
-    </dl>
-
-    >> ArcCoth[0]
-     = I / 2 Pi
-    >> ArcCoth[1]
-     = Infinity
-    >> ArcCoth[0.0]
-     = 0. + 1.5708 I
-    >> ArcCoth[0.5]
-     = 0.549306 - 1.5708 I
-
-    #> ArcCoth[0.000000000000000000000000000000000000000]
-     = 1.57079632679489661923132169163975144210 I
-    """
-
-    summary_text = "inverse hyperbolic cotangent function"
-    sympy_name = "acoth"
-    mpmath_name = "acoth"
-
-    rules = {
-        "ArcCoth[z:0.0]": "N[I / 2 Pi, Precision[1+z]]",
-        "Derivative[1][ArcCoth]": "1/(1-#^2)&",
     }
 
 
@@ -463,37 +401,6 @@ class ArcCsc(_MPMathFunction):
         if len(expr.elements) == 1:
             return Expression(
                 SymbolArcSin, Expression(SymbolPower, expr.elements[0], Integer(-1))
-            ).to_sympy()
-
-
-class ArcCsch(_MPMathFunction):
-    """
-    <dl>
-      <dt>'ArcCsch[$z$]'
-      <dd>returns the inverse hyperbolic cosecant of $z$.
-    </dl>
-
-    >> ArcCsch[0]
-     = ComplexInfinity
-    >> ArcCsch[1.0]
-     = 0.881374
-    """
-
-    mpmath_name = "acsch"
-
-    rules = {
-        "ArcCsch[0]": "ComplexInfinity",
-        "ArcCsch[0.]": "ComplexInfinity",
-        "Derivative[1][ArcCsch]": "-1 / (Sqrt[1+1/#^2] * #^2) &",
-    }
-
-    summary_text = "inverse hyperbolic cosecant function"
-    sympy_name = ""
-
-    def to_sympy(self, expr, **kwargs):
-        if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcSinh, Expression(SymbolPower, expr.elements[0], IntegerM1)
             ).to_sympy()
 
 
@@ -528,39 +435,6 @@ class ArcSec(_MPMathFunction):
             ).to_sympy()
 
 
-class ArcSech(_MPMathFunction):
-    """
-    <dl>
-      <dt>'ArcSech[$z$]'
-      <dd>returns the inverse hyperbolic secant of $z$.
-    </dl>
-
-    >> ArcSech[0]
-     = Infinity
-    >> ArcSech[1]
-     = 0
-    >> ArcSech[0.5]
-     = 1.31696
-    """
-
-    mpmath_name = "asech"
-
-    rules = {
-        "ArcSech[0]": "Infinity",
-        "ArcSech[0.]": "Indeterminate",
-        "Derivative[1][ArcSech]": "-1 / (# * Sqrt[(1-#)/(1+#)] (1+#)) &",
-    }
-
-    summary_text = "inverse hyperbolic secant function"
-    sympy_name = ""
-
-    def to_sympy(self, expr, **kwargs):
-        if len(expr.elements) == 1:
-            return Expression(
-                SymbolArcCosh, Expression(SymbolPower, expr.elements[0], IntegerM1)
-            ).to_sympy()
-
-
 class ArcSin(_MPMathFunction):
     """
     <dl>
@@ -584,30 +458,6 @@ class ArcSin(_MPMathFunction):
 
     summary_text = "inverse sine function"
     sympy_name = "asin"
-
-
-class ArcSinh(_MPMathFunction):
-    """
-    <dl>
-      <dt>'ArcSinh[$z$]'
-      <dd>returns the inverse hyperbolic sine of $z$.
-    </dl>
-
-    >> ArcSinh[0]
-     = 0
-    >> ArcSinh[0.]
-     = 0.
-    >> ArcSinh[1.0]
-     = 0.881374
-    """
-
-    summary_text = "inverse hyperbolic sine function"
-    sympy_name = "asinh"
-    mpmath_name = "asinh"
-
-    rules = {
-        "Derivative[1][ArcSinh]": "1/Sqrt[1+#^2]&",
-    }
 
 
 class ArcTan(_MPMathFunction):
@@ -657,36 +507,6 @@ class ArcTan(_MPMathFunction):
     sympy_name = "atan"
 
 
-class ArcTanh(_MPMathFunction):
-    """
-    <dl>
-    <dt>'ArcTanh[$z$]'
-        <dd>returns the inverse hyperbolic tangent of $z$.
-    </dl>
-
-    >> ArcTanh[0]
-     = 0
-    >> ArcTanh[1]
-     = Infinity
-    >> ArcTanh[0]
-     = 0
-    >> ArcTanh[.5 + 2 I]
-     = 0.0964156 + 1.12656 I
-    >> ArcTanh[2 + I]
-     = ArcTanh[2 + I]
-    """
-
-    mpmath_name = "atanh"
-    numpy_name = "arctanh"
-
-    rules = {
-        "Derivative[1][ArcTanh]": "1/(1-#^2)&",
-    }
-
-    summary_text = "inverse hyperbolic tangent function"
-    sympy_name = "atanh"
-
-
 class Cos(_MPMathFunction):
     """
     <dl>
@@ -714,26 +534,6 @@ class Cos(_MPMathFunction):
     summary_text = "cosine function"
 
 
-class Cosh(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Cosh[$z$]'
-      <dd>returns the hyperbolic cosine of $z$.
-    </dl>
-
-    >> Cosh[0]
-     = 1
-    """
-
-    mpmath_name = "cosh"
-
-    rules = {
-        "Derivative[1][Cosh]": "Sinh[#]&",
-    }
-
-    summary_text = "hyperbolic cosine function"
-
-
 class Cot(_MPMathFunction):
     """
     <dl>
@@ -755,28 +555,6 @@ class Cot(_MPMathFunction):
     }
 
     summary_text = "cotangent function"
-
-
-class Coth(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Coth[$z$]'
-      <dd>returns the hyperbolic cotangent of $z$.
-    </dl>
-
-    >> Coth[0]
-     = ComplexInfinity
-    """
-
-    mpmath_name = "coth"
-
-    rules = {
-        "Coth[0]": "ComplexInfinity",
-        "Coth[0.]": "ComplexInfinity",
-        "Derivative[1][Coth]": "-Csch[#1]^2&",
-    }
-
-    summary_text = "hyperbolic cotangent function"
 
 
 class Csc(_MPMathFunction):
@@ -807,35 +585,6 @@ class Csc(_MPMathFunction):
         if len(expr.elements) == 1:
             return Expression(
                 SymbolPower, Expression(SymbolSin, expr.elements[0]), Integer(-1)
-            ).to_sympy()
-
-
-class Csch(_MPMathFunction):
-    """
-    <dl>
-    <dt>'Csch[$z$]'
-        <dd>returns the hyperbolic cosecant of $z$.
-    </dl>
-
-    >> Csch[0]
-     = ComplexInfinity
-    """
-
-    mpmath_name = "csch"
-
-    rules = {
-        "Csch[0]": "ComplexInfinity",
-        "Csch[0.]": "ComplexInfinity",
-        "Derivative[1][Csch]": "-Coth[#1] Csch[#1]&",
-    }
-
-    summary_text = "hyperbolic cosecant function"
-    sympy_name = ""
-
-    def to_sympy(self, expr, **kwargs):
-        if len(expr.elements) == 1:
-            return Expression(
-                SymbolPower, Expression(SymbolSinh, expr.elements[0]), IntegerM1
             ).to_sympy()
 
 
@@ -884,7 +633,7 @@ class Haversine(_MPMathFunction):
      = -1.15082 + 0.869405 I
     """
 
-    summary_text = "haversine function"
+    summary_text = "Haversine function"
     rules = {"Haversine[z_]": "Power[Sin[z/2], 2]"}
 
 
@@ -906,7 +655,7 @@ class InverseHaversine(_MPMathFunction):
      = 1.76459 + 2.33097 I
     """
 
-    summary_text = "inverse haversine function"
+    summary_text = "inverse Haversine function"
     rules = {"InverseHaversine[z_]": "2 * ArcSin[Sqrt[z]]"}
 
 
@@ -1067,32 +816,6 @@ class Sec(_MPMathFunction):
             ).to_sympy()
 
 
-class Sech(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Sech[$z$]'
-      <dd>returns the hyperbolic secant of $z$.
-    </dl>
-
-    >> Sech[0]
-     = 1
-    """
-
-    mpmath_name = "sech"
-
-    rules = {
-        "Derivative[1][Sech]": "-Sech[#1] Tanh[#1]&",
-    }
-    summary_text = "hyperbolic secant function"
-    sympy_name = ""
-
-    def to_sympy(self, expr, **kwargs):
-        if len(expr.elements) == 1:
-            return Expression(
-                SymbolPower, Expression(SymbolCosh, expr.elements[0]), IntegerM1
-            ).to_sympy()
-
-
 class Sin(_MPMathFunction):
     """
     <dl>
@@ -1128,25 +851,6 @@ class Sin(_MPMathFunction):
     }
 
 
-class Sinh(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Sinh[$z$]'
-      <dd>returns the hyperbolic sine of $z$.
-    </dl>
-
-    >> Sinh[0]
-     = 0
-    """
-
-    summary_text = "hyperbolic sine function"
-    mpmath_name = "sinh"
-
-    rules = {
-        "Derivative[1][Sinh]": "Cosh[#]&",
-    }
-
-
 class Tan(_MPMathFunction):
     """
     <dl>
@@ -1170,23 +874,4 @@ class Tan(_MPMathFunction):
         "Tan[(1/2) * Pi]": "ComplexInfinity",
         "Tan[0]": "0",
         "Derivative[1][Tan]": "Sec[#]^2&",
-    }
-
-
-class Tanh(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Tanh[$z$]'
-      <dd>returns the hyperbolic tangent of $z$.
-    </dl>
-
-    >> Tanh[0]
-     = 0
-    """
-
-    summary_text = "hyperbolic tangent function"
-    mpmath_name = "tanh"
-
-    rules = {
-        "Derivative[1][Tanh]": "Sech[#1]^2&",
     }

@@ -28,6 +28,7 @@ from mathics.core.symbols import (
     SymbolTrue,
     system_symbols,
 )
+from mathics.core.systemsymbols import SymbolInfinity
 
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
@@ -561,6 +562,8 @@ class Complex(Number):
         self = super().__new__(cls)
         if isinstance(real, Complex) or not isinstance(real, Number):
             raise ValueError("Argument 'real' must be a real number.")
+        if imag is SymbolInfinity:
+            return SymbolI * SymbolInfinity
         if isinstance(imag, Complex) or not isinstance(imag, Number):
             raise ValueError("Argument 'imag' must be a real number.")
 
