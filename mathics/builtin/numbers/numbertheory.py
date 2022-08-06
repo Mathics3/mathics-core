@@ -37,7 +37,7 @@ SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 class ContinuedFraction(SympyFunction):
     """
-    Continued faction. See <url>https://en.wikipedia.org/wiki/Continued_fraction</url>
+    <url>:Continued fraction: https://en.wikipedia.org/wiki/Continued_fraction</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
@@ -148,8 +148,8 @@ class Divisors(Builtin):
 
 class EulerPhi(SympyFunction):
     """
-    Euler's totient function. See <url>https://en.wikipedia.org/wiki/Euler%27s_totient_function</url>
-    This function counts positive integers up to n that are relatively prime to n.
+    <url>:Euler's totient function: https://en.wikipedia.org/wiki/Euler%27s_totient_function</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.totient</url>, <url>:WMA: https://reference.wolfram.com/language/ref/EulerPhi.html</url>)
+    This function counts positive integers up to $n$ that are relatively prime to $n$.
     It is typically used in cryptography and in many applications in elementary number theory.
     <dl>
       <dt>'EulerPhi[$n$]'

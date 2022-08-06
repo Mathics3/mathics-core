@@ -11,6 +11,9 @@ import subprocess
 import sys
 
 from argparse import ArgumentParser
+from mpmath import __version__ as mpmathVersion
+from numpy import __version__ as NumPyVersion
+from sympy import __version__ as SymPyVersion
 
 import mathics
 
@@ -75,6 +78,9 @@ def get_versions():
     versions = {
         "MathicsCoreVersion": __version__,
         "PythonVersion": sys.version,
+        "NumPyVersion": NumPyVersion,
+        "SymPyVersion": SymPyVersion,
+        "mpmathVersion": mpmathVersion,
     }
 
     for name, cmd, field in (

@@ -13,7 +13,7 @@ all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
 doc-data $(DOC_TEX_DATA_PCL):
-	(cd ../.. && $(PYTHON) docpipeline.py --output --keep-going --want-sorting) && ./sed-hack.sh
+	(cd ../.. && $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
 
 #: Build mathics PDF
 mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_TEX_DATA_PCL)
@@ -21,7 +21,7 @@ mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pd
 
 #: File containing version information
 version-info.tex: doc2latex.py
-	$(PYTHON) doc2latex.py
+	$(PYTHON) doc2latex.py && $(BASH) ./sed-hack.sh
 
 #: Build test PDF
 mathics-test.pdf: mathics-test.tex testing.tex

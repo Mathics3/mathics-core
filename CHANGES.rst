@@ -29,7 +29,7 @@ Hyperbolic functions were split off form trigonometry and exponential functions.
 Bugs
 ++++
 
-#. Creating a complex number fom Infinity no longer crashes and returns 'I * Infinity'
+#. Creating a complex number from Infinity no longer crashes and returns 'I * Infinity'
 
 5.0.0
 ------

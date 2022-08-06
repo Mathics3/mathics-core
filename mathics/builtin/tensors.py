@@ -3,14 +3,11 @@
 """
 Tensors
 
-In mathematics, a tensor is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
+A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
 
 There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
 
 Mathics represents tensors of vectors and matrices as lists; tensors of any rank can be handled.
-
-
-See also <url>https://en.wikipedia.org/wiki/Tensor</url>.
 """
 
 
@@ -87,9 +84,8 @@ def get_dimensions(expr, head=None):
 class ArrayDepth(Builtin):
     """
     <dl>
-    <dt>'ArrayDepth[$a$]'
-        <dd>returns the depth of the non-ragged array $a$, defined as
-        'Length[Dimensions[$a$]]'.
+      <dt>'ArrayDepth[$a$]'
+      <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
     </dl>
 
     >> ArrayDepth[{{a,b},{c,d}}]
@@ -335,9 +331,8 @@ class Inner(Builtin):
 class Outer(Builtin):
     """
     <dl>
-    <dt>'Outer[$f$, $x$, $y$]'
-        <dd>computes a generalised outer product of $x$ and $y$, using
-        the function $f$ in place of multiplication.
+      <dt>'Outer[$f$, $x$, $y$]'
+      <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
     </dl>
 
     >> Outer[f, {a, b}, {1, 2, 3}]
@@ -497,7 +492,8 @@ class TranslationTransform(Builtin):
 
 class Transpose(Builtin):
     """
-    Transpose. See <url>https://en.wikipedia.org/wiki/Transpose</url>.
+    <url>:Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
+
     <dl>
       <dt>'Tranpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.

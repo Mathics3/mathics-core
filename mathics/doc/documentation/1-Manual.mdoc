@@ -81,7 +81,7 @@ Make sure the builtin summaries and examples clear and useful.</li>
 </chapter>
 
 
-<chapter title="Language Tutorials">
+<chapter title="Language Tutorial">
 
 The following sections are introductions to the basic principles of the language of \Mathics. A few examples and functions are presented. Only their most common usages are listed; for a full description of a Symbols possible arguments, options, etc., see its entry in the Reference of Built-in Symbols.
 
@@ -385,7 +385,7 @@ Lists can be used to assign values to multiple variables at once:
   >> b
   = 2
 
-Many operations, like addition and multiplication, "thread" over lists, i.e. lists are combined element-wise:
+Operations like addition and multiplication, "thread" over lists; lists are combined element-wise:
 
   >> {1, 2, 3} + {4, 5, 6}
   = {5, 7, 9}
@@ -801,7 +801,7 @@ There are several methods to display expressions in 2-D:
   >> Subscript[a, 1, 2] // TeXForm
   = a_{1,2}
 
-If you want even more low-level control of how expressions are displayed, you can override 'MakeBoxes':
+If you want even more low-level control over expression display, override 'MakeBoxes':
 
   >> MakeBoxes[b, StandardForm] = "c";
   >> b
@@ -1265,9 +1265,11 @@ This implies that you should not store sensitive, private information in \Mathic
 
 If you are using a public terminal, to erase all your definitions and close the browser window. When you use \Mathics in a browser, use the command <con>Quit[]</con> or its alias, <con>Exit[]</con>.
 
-Normally, when you reload the current page in a browser using the default URL, e.g <con>http:localhost:8000</con>, all of the previous input and output disappears, even though definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
+When you reload the current page in a browser using the default URL, e.g <con>http:localhost:8000</con>, all of the previous input and output disappears.
 
-However if you want a URL that will that records the input entered the <em>Generate Input Hash</em> button does this. The button looks like this:
+On the other hand, Definitions as described above do not, unless <con>Quit[]</con> or <con>Exit[]</con> is entered as described above.
+
+If you want a URL that will that records the input entered the <em>Generate Input Hash</em> button does this. The button looks like this:
 
 <imgpng src="generate-hash-button.png" title="Mathics Generate Input Hash Button" label="generate-input-hash-button">
 
