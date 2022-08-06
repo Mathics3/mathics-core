@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import os
 import re
 import sys
 from itertools import chain
@@ -16,8 +15,11 @@ FORMAT_RE = re.compile(r"\`(\d*)\`")
 
 IS_PYPY = "__pypy__" in sys.builtin_module_names
 
-# A small, simple timing tool
-MIN_ELAPSE_REPORT = int(os.environ.get("MIN_ELAPSE_REPORT", "0"))
+
+def dict_with_escaped_keys(d: dict) -> dict:
+    """Takes a dictionary and returns a copy of it where the keys are escaped
+    with re.escape"""
+    return {re.escape(k): v for k, v in d.items()}
 
 
 def interpolate_string(text, get_param) -> str:
@@ -67,6 +69,14 @@ def permutations(items, without_duplicates=True):
         for sub in permutations(items[:index] + items[index + 1 :]):
             yield [item] + sub
             # already_taken.add(item)
+
+
+def re_from_keys(d: dict) -> Pattern:
+    """Returns a regex that matches any of the keys of the dictionary"""
+
+    # The keys are sorted to prevent shorter keys from obscuring longer keys
+    # when pattern matching
+    return re.compile("|".join(sorted(d.keys(), key=lambda k: (-len(k), k))))
 
 
 def subsets(items, min, max, included=None, less_first=False):
@@ -194,58 +204,3 @@ def unicode_superscript(value) -> str:
         return chr(value)
 
     return "".join(repl_char(c) for c in value)
-
-
-try:
-    from inspect import signature
-
-    def _python_function_arguments(f):
-        return signature(f).parameters.keys()
-
-except ImportError:  # py2, pypy
-    from inspect import getargspec
-
-    def _python_function_arguments(f):
-        return getargspec(f).args
-
-
-if sys.version_info >= (3, 4, 0):
-    _cython_function_arguments = _python_function_arguments
-elif sys.version_info[0] >= 3:  # py3.3
-
-    def _cython_function_arguments(f):
-        return f.__code__.co_varnames
-
-else:  # py2
-
-    def _cython_function_arguments(f):
-        return f.func_code.co_varnames
-
-
-def function_arguments(f):
-    try:
-        return _python_function_arguments(f)
-    except (TypeError, ValueError):
-        return _cython_function_arguments(f)
-
-
-def robust_min(iterable):
-    minimum = None
-    for i in iterable:
-        if minimum is None or i < minimum:
-            minimum = i
-    return minimum
-
-
-def re_from_keys(d: dict) -> Pattern:
-    """Returns a regex that matches any of the keys of the dictionary"""
-
-    # The keys are sorted to prevent shorter keys from obscuring longer keys
-    # when pattern matching
-    return re.compile("|".join(sorted(d.keys(), key=lambda k: (-len(k), k))))
-
-
-def dict_with_escaped_keys(d: dict) -> dict:
-    """Takes a dictionary and returns a copy of it where the keys are escaped
-    with re.escape"""
-    return {re.escape(k): v for k, v in d.items()}
