@@ -53,7 +53,7 @@ from mathics.core.systemsymbols import (
     SymbolUnevaluated,
 )
 
-# from mathics.core.util import timeit
+# from mathics.timing import timeit
 
 SymbolBlankSequence = Symbol("System`BlankSequence")
 SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
