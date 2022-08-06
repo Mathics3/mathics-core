@@ -300,7 +300,10 @@ class InverseGudermannian(Builtin):
     >> InverseGudermannian[-.5] ==  -InverseGudermannian[.5]
      = True
 
-    >> Plot[InverseGudermannian[x], {x, -10, 10}]
+    InverseGudermannian is 0 at multiples of 8 Pi:
+     = 0
+
+    >> Plot[InverseGudermannian[x], {x, -2 Pi, 2 Pi}]
      = -Graphics-
     """
 
