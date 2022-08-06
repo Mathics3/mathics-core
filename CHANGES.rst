@@ -4,14 +4,32 @@ CHANGES
 =======
 
 
+5.0.1
+-----
+
+Mostly a release to fix a Python packaging problem.
+
 Internals
----------
++++++++++
 
 
 #. ``format`` and ``do_format`` methods were removed from the interface of
    ``BaseElement``, becoming non-member functions.
 #. The class ``BoxElement`` was introduced as a base for boxing elements.
 
+New Builtin
++++++++++++
+#. 'Inverse Gudermannian'.
+
+Documentation
++++++++++++++
+
+Hyperbolic functions were split off form trigonometry and exponential functions. More url links were added.
+
+Bugs
+++++
+
+#. Creating a complex number fom Infinity no longer crashes and returns 'I * Infinity'
 
 5.0.0
 ------

@@ -241,7 +241,7 @@ class Coth(_MPMathFunction):
 
 class Gudermannian(Builtin):
     """
-    <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Indeterminate.html<url></url>)
+    <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
       <dt>'Gudermannian[$z$]'
        <dd>returns the Gudermannian function $gd$($z$).
@@ -250,7 +250,7 @@ class Gudermannian(Builtin):
     >> Gudermannian[4.2]
      = 1.54081
 
-    'Gudermannian[-$z$]' == - 'Gudermannian[$z$]'. So:
+    'Gudermannian[-$z$]' == - 'Gudermannian[$z$]':
 
     >> Gudermannian[-4.2] ==  -Gudermannian[4.2]
      = True
@@ -282,6 +282,34 @@ class Gudermannian(Builtin):
     }
 
     summary_text = "Gudermannian function gd(z)"
+
+
+class InverseGudermannian(Builtin):
+    """
+    <url>:Inverse Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/InverseGudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/InverseGudermannian.html</url>)
+    <dl>
+      <dt>'InverseGudermannian[$z$]'
+       <dd>returns the inverse Gudermannian function $gd$^-1($z$).
+    </dl>
+
+    >> InverseGudermannian[.5]
+     = 0.522238
+
+    'InverseGudermannian[-$z$]' == -'InversGudermannian[$z$]':
+
+    >> InverseGudermannian[-.5] ==  -InverseGudermannian[.5]
+     = True
+
+    >> Plot[InverseGudermannian[x], {x, -10, 10}]
+     = -Graphics-
+    """
+
+    rules = {
+        "InverseGudermannian[z_]": "Log[Tan[Pi/4 + z/2]]",
+        # Derivative[1][InverseGudermannian] := Sec[#] &;
+    }
+
+    summary_text = "inverse Gudermannian function gd^-1(z)"
 
 
 class Sech(_MPMathFunction):
