@@ -1,13 +1,14 @@
 """
 Angular Momentum
 
-<url>:Angular momentum: https://en.wikipedia.org/wiki/Angular_momentum</url> in physics is the rotational analog of linear momentum. It is an important quantity in physics because it is a conserved quantity—the total angular momentum of a closed system remains constant.
+<url>:Angular momentum: https://en.wikipedia.org/wiki/Angular_momentum</url> in physics is the rotational analog of linear momentum. It is an important quantity in physics because it is a conserved quantity the total angular momentum of a closed system remains constant.
 """
+
+from typing import List
 
 from sympy.physics.matrices import msigma
 from sympy.physics.quantum.cg import CG
 from sympy.physics.wigner import wigner_3j, wigner_6j
-from typing import List
 
 from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
@@ -26,11 +27,11 @@ from mathics.core.attributes import (
 
 class ClebschGordan(SympyFunction):
     """
-    <url>:Clebsch–Gordan coefficients matrices: https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ClebschGordan</url>)
+    <url>:Clebsch Gordan coefficients matrices: https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ClebschGordan</url>)
 
     <dl>
       <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
-      <dd>returns the Clebsch–Gordan coefficient for the decomposition of in terms of |$j$, $m$> in terms of $j2$, $m2$.
+      <dd>returns the Clebsch-Gordan coefficient for the decomposition of in terms of |$j$, $m$> in terms of $j2$, $m2$.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
@@ -43,7 +44,7 @@ class ClebschGordan(SympyFunction):
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "Clebsch–Gordan coefficient"
+    summary_text = "Clebsch-Gordan coefficient"
     sympy_name = "physics.quantum.cg.CG"
 
     def apply(
@@ -152,7 +153,7 @@ class ThreeJSymbol(SympyFunction):
 
     <dl>
       <dt>'ThreeJSymbol[{$j1, $m1}, {$j2$, $m2$}, {$j3$, $m3$}]'
-      <dd>returns the values of the Wigner 3‐$j$ symbol. .
+      <dd>returns the values of the Wigner 3-$j$ symbol.
     </dl>
 
     Compare with SymPy examples:
