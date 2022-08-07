@@ -18,7 +18,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
+    # listable as A_LISTABLE,
     # numeric_function as A_NUMERIC_FUNCTION,
     protected as A_PROTECTED,
     read_protected as A_READ_PROTECTED,
@@ -74,11 +74,11 @@ class PauliMatrix(SympyFunction):
       <dd>returns the $k$th Pauli spin matrix).
     </dl>
 
-    >> PauliMatrix[Range[3]]
+    >> Table[PauliMatrix[i], {i, 1, 3}]
      = {{{0, 1}, {1, 0}}, {{0, -I}, {I, 0}}, {{1, 0}, {0, -1}}}
     """
 
-    attributes = A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_PROTECTED | A_READ_PROTECTED
     messages = {
         "pauli": "PauliMatrix parameter k=`` is not in the range 1..3.",
     }
@@ -86,7 +86,7 @@ class PauliMatrix(SympyFunction):
     sympy_name = "physics.matrices.msigma"
 
     def apply(self, k: Integer, evaluation: Evaluation):
-        "PauliMatrix[k_Integer]"
+        "PauliMatrix[k_]"
         py_k = k.value
         if 1 <= py_k <= 3:
             return from_sympy(msigma(py_k))
