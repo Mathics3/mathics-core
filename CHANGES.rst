@@ -6,11 +6,18 @@ CHANGES
 5.0.3dev0
 ----------
 
+New Builtins
++++++++++++
+#. ``ClebschGordan``
+#. ``PauliMatrix``
+#. ``SixJSymbol``
+#. ``ThreeJSymbol``
+
+
 Enhancements
 ++++++++++++
 
 #. Vector restriction on ``Norm[]`` removed. "Frobinius" p-form allowed.
-
 
 5.0.2
 -----

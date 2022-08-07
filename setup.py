@@ -184,6 +184,7 @@ setup(
         "mathics.builtin.numpy_utils",
         "mathics.builtin.pymimesniffer",
         "mathics.builtin.pympler",
+        "mathics.builtin.quantum_mechanics",
         "mathics.builtin.scipy_utils",
         "mathics.builtin.specialfns",
         "mathics.builtin.statistics",

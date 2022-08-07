@@ -186,6 +186,7 @@ for subdir in (
     "list",
     "matrices",
     "numbers",
+    "quantum_mechanics",
     "specialfns",
     "statistics",
     "string",
