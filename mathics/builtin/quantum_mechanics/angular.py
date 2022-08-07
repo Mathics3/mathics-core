@@ -27,11 +27,11 @@ from mathics.core.attributes import (
 
 class ClebschGordan(SympyFunction):
     """
-    <url>:Clebsch Gordan coefficients matrices: https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ClebschGordan</url>)
+    <url>:Clebsch-Gordan coefficients matrices: https://en.wikipedia.org/wiki/Clebsch%E2%80%93Gordan_coefficients</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/cg.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ClebschGordan</url>)
 
     <dl>
       <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
-      <dd>returns the Clebsch-Gordan coefficient for the decomposition of in terms of |$j$, $m$> in terms of $j2$, $m2$.
+      <dd>returns the Clebsch-Gordan coefficient for the decomposition of in terms of |$j$, $m$|$j2$, $m2$>.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
@@ -103,13 +103,19 @@ class SixJSymbol(SympyFunction):
       <dd>returns the values of the Wigner 6-$j$ symbol.
     </dl>
 
-    >> SixJSymbol[{3,3,3}, {3,3,3}]
-     = -1 / 14
+    >> SixJSymbol[{1, 2, 3}, {1, 2, 3}]
+     = 1 / 105
 
-    >> SixJSymbol[{5,5,5}, {5,5,5}]
-     = 1 / 52
+    Symmetric under permutations:
+
+    >> % == SixJSymbol[{3, 2, 1}, {3, 2, 1}]
+     = True
+
+    >> SixJSymbol[{1, 2, 3}, {1, 2, 3}] == SixJSymbol[{2, 1, 3}, {2, 1, 3}]
+     = True
 
     Compare with WMA example:
+
     >> SixJSymbol[{1, 2, 3}, {2, 1, 2}] == 1 / (5 Sqrt[21])
      = True
 
@@ -120,7 +126,8 @@ class SixJSymbol(SympyFunction):
 
     attributes = A_PROTECTED | A_READ_PROTECTED
     messages = {
-        "sixjsymbol": "Parameter `` of `` has value ``; SixJSymbol cannot handle symbols yet.",
+        "6jsymbol_symbol": "Parameter `` of `` has value ``; SixJSymbol cannot handle symbols yet.",
+        "6jsymbol_value": "SixJSymbol values `` `` must be integer or half integer and fulfill the triangle relation",
     }
 
     # WMA docs say Ricah 6-j symbol, but Wigner 6-j sees to be more likely, and that is what
@@ -139,12 +146,20 @@ class SixJSymbol(SympyFunction):
                 return
             for element in triple.elements:
                 if isinstance(element, Symbol):
-                    evaluation.message("SixJSymbol", "sixjsymbol", i, triple, element)
+                    evaluation.message(
+                        "SixJSymbol", "6jsymbol_symbol", i, triple, element
+                    )
                     return
                 py_element = element.to_sympy()
                 sympy_js.append(py_element)
 
-        return from_sympy(wigner_6j(*sympy_js))
+        try:
+            result = wigner_6j(*sympy_js)
+        except ValueError:
+            evaluation.message("SixJSymbol", "6jsymbol_value", j13, j46)
+            return
+
+        return from_sympy(result)
 
 
 class ThreeJSymbol(SympyFunction):
