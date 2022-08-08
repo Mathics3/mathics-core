@@ -6,7 +6,7 @@ CHANGES
 5.0.2
 -----
 
-Get in `requirements-cython.txt`` into tarball
+Get in `requirements-cython.txt`` into tarball. Issue #483
 
 
 5.0.1
@@ -100,7 +100,7 @@ Documentation
 #. "Representation of Numbers" section added.
 #. "Descriptive Statistics" section added and "Moments" folded into that.
 #. Many More URL references. ``<url>`` now supports link text.
-#. Referecne Chapter and Sections are now in alphabetical order
+#. Reference Chapter and Sections are now in alphabetical order
 #. Two-column mode was removed in most sections so the printed PDF looks nicer.
 #. Printed Error message output in test examples is in typewriter font and doesn't drop inter-word spaces.
 
