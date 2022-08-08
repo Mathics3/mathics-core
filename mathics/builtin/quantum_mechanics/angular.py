@@ -175,6 +175,11 @@ class ThreeJSymbol(SympyFunction):
     >> ThreeJSymbol[{2, 0}, {6, 0}, {4, 0}]
      = Sqrt[715] / 143
 
+    Symmetric under permutations:
+
+    >> % == ThreeJSymbol[{2, 0}, {4, 0}, {6, 0}] == ThreeJSymbol[{4, 0}, {2, 0}, {6, 0}]
+     = True
+
     >> ThreeJSymbol[{2, 0}, {6, 0}, {4, 1}]
      = 0
 
@@ -186,12 +191,14 @@ class ThreeJSymbol(SympyFunction):
      = True
 
     Result 0 returned for unphysical cases:
-    >>ThreeJSymbol[{1, 2, 3}, {4, 5, 12}]
+    >> ThreeJSymbol[{1, 2}, {3, 4}, {5, 12}]
+     = 0
     """
 
     attributes = A_PROTECTED | A_READ_PROTECTED
     messages = {
-        "threejsymbol": "Parameter `` of `` has value ``; ThreeJSymbol cannot handle symbols yet.",
+        "3jsymbol_symbol": "Parameter `` of `` has value ``; ThreeJSymbol cannot handle symbols yet.",
+        "3jsymbol_value": "ThreJSymbol values ``, ``, `` must be integer or half integer and fulfill the triangle relation",
     }
     summary_text = "values of the Wigner 3-j symbol"
     sympy_name = "physics.wigner.wigner_3j"
@@ -217,4 +224,10 @@ class ThreeJSymbol(SympyFunction):
                 # rather than pairs if (j, m).
                 sympy_js[j * 3 + i] = py_element
 
-        return from_sympy(wigner_3j(*sympy_js))
+        try:
+            result = wigner_3j(*sympy_js)
+        except ValueError:
+            evaluation.message("ThreeJSymbol", "3jsymbol_value", j12, j34, j56)
+            return
+
+        return from_sympy(result)
