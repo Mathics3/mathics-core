@@ -32,7 +32,7 @@ class ClebschGordan(SympyFunction):
 
     <dl>
       <dt>'ClebschGordan[{$j1$, $m1$}, {$j2$, $m2$}, {$j$ $m$}]'
-      <dd>returns the Clebsch-Gordan coefficient for the decomposition of in terms of |$j$, $m$|$j2$, $m2$>.
+      <dd>returns the Clebsch-Gordan coefficient for the decomposition of |$j$,$m$> in terms of |$j1$, $m$>, |$j2$, $m2$>.
     </dl>
 
     >> ClebschGordan[{3 / 2, 3 / 2}, {1 / 2, -1 / 2}, {1, 1}]
@@ -42,7 +42,7 @@ class ClebschGordan(SympyFunction):
     >> ClebschGordan[{1/2, -1/2}, {1/2, -1/2}, {1, -1}]
      = 1
 
-    >> 'ClebschGordan[{1/2, -1/2}, {1, 0}, {1/2, -1/2}]
+    >> ClebschGordan[{1/2, -1/2}, {1, 0}, {1/2, -1/2}]
      = -Sqrt[3] / 3
 
     Compare with WMA example:
