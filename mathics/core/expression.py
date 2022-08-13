@@ -49,7 +49,10 @@ from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolCondition,
     SymbolDirectedInfinity,
+    SymbolFunction,
+    SymbolPattern,
     SymbolSequence,
+    SymbolSlot,
     SymbolUnevaluated,
 )
 
@@ -57,15 +60,12 @@ from mathics.core.systemsymbols import (
 
 SymbolBlankSequence = Symbol("System`BlankSequence")
 SymbolBlankNullSequence = Symbol("System`BlankNullSequence")
-SymbolCompile = Symbol("Compile")
-SymbolCompiledFunction = Symbol("CompiledFunction")
-SymbolDefault = Symbol("Default")
-SymbolFunction = Symbol("Function")
+SymbolCompiledFunction = Symbol("System`CompiledFunction")
+SymbolDefault = Symbol("System`Default")
+SymbolEvaluate = Symbol("System`Evaluate")
 SymbolOptional = Symbol("Optional")
 SymbolOptionsPattern = Symbol("OptionsPattern")
-SymbolPattern = Symbol("Pattern")
 SymbolPatternTest = Symbol("PatternTest")
-SymbolSlot = Symbol("Slot")
 SymbolSlotSequence = Symbol("SlotSequence")
 SymbolVerbatim = Symbol("Verbatim")
 
@@ -289,11 +289,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         return self.restructure(self._head, flattened, evaluation)
 
-    def _no_symbol(self, symbol_name):
-        # if this return True, it's safe to say that self.elements or its
-        # sub elements contain no Symbol with symbol_name. if this returns
-        # False, such a Symbol might or might not exist.
-
+    def _does_not_contain_symbol(self, symbol_name: str) -> bool:
+        """
+        Return True if all of elements (at any level) under self cannot contain
+        a ``symbol_name``. Otherwise return False if there might be ``symbol``
+        name under the elements of ``self``.
+        """
         cache = self._cache
         if cache is None:
             return False
@@ -564,7 +565,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         if level == 0:
             return self
-        if self._no_symbol(head.get_name()):
+        if self._does_not_contain_symbol(head.get_name()):
             return self
         sub_level = level - 1
         do_flatten = False
@@ -918,7 +919,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Note that head in an M-Expression can be an expression.
         Derivative and Series are like this.
         """
-        if self._no_symbol(symbol_name) or not hasattr(self._head, "has_symbol"):
+        if self._does_not_contain_symbol(symbol_name) or not hasattr(
+            self._head, "has_symbol"
+        ):
             return False
         return self._head.has_symbol(symbol_name) or any(
             element.has_symbol(symbol_name)
@@ -1002,7 +1005,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             def rest_range(indices):
                 nonlocal recompute_properties
                 if not A_HOLD_ALL_COMPLETE & attributes:
-                    if self._no_symbol("System`Evaluate"):
+                    if self._does_not_contain_symbol("System`Evaluate"):
                         return
                     for index in indices:
                         element = elements[index]
