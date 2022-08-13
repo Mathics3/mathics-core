@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from mathics.core.util import timeit
+from mathics.timing import timeit
 from ..helper import evaluate, check_evaluation, reset_session
 import pytest
 
