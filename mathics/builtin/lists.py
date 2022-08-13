@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
 List Functions - Miscellaneous
+
+Functions here will eventually get moved to more suitable subsections.
 """
 
 import heapq
@@ -66,7 +68,6 @@ from mathics.core.attributes import (
     read_protected,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression, structure
@@ -805,67 +806,6 @@ class LeafCount(Builtin):
 
         walk_levels(expr[0], start=-1, stop=-1, heads=True, callback=callback)
         return Integer(len(elements))
-
-
-class Position(Builtin):
-    """
-    <dl>
-    <dt>'Position[$expr$, $patt$]'
-        <dd>returns the list of positions for which $expr$ matches $patt$.
-    <dt>'Position[$expr$, $patt$, $ls$]'
-        <dd>returns the positions on levels specified by levelspec $ls$.
-    </dl>
-
-    >> Position[{1, 2, 2, 1, 2, 3, 2}, 2]
-     = {{2}, {3}, {5}, {7}}
-
-    Find positions upto 3 levels deep
-    >> Position[{1 + Sin[x], x, (Tan[x] - y)^2}, x, 3]
-     = {{1, 2, 1}, {2}}
-
-    Find all powers of x
-    >> Position[{1 + x^2, x y ^ 2,  4 y,  x ^ z}, x^_]
-     = {{1, 2}, {4}}
-
-    Use Position as an operator
-    >> Position[_Integer][{1.5, 2, 2.5}]
-     = {{2}}
-    """
-
-    options = {"Heads": "True"}
-
-    rules = {
-        "Position[pattern_][expr_]": "Position[expr, pattern]",
-    }
-    summary_text = "positions of matching elements"
-
-    def apply_invalidlevel(self, patt, expr, ls, evaluation, options={}):
-        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
-
-        return evaluation.message("Position", "level", ls)
-
-    def apply_level(self, expr, patt, ls, evaluation, options={}):
-        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
-        OptionsPattern[Position]]"""
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            return evaluation.message("Position", "level", ls)
-
-        from mathics.builtin.patterns import Matcher
-
-        match = Matcher(patt).match
-        result = []
-
-        def callback(level, pos):
-            if match(level, evaluation):
-                result.append(pos)
-            return level
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        walk_levels(expr, start, stop, heads=heads, callback=callback, include_pos=True)
-        return from_python(result)
 
 
 class _IterationFunction(Builtin):
