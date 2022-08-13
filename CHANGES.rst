@@ -3,6 +3,15 @@
 CHANGES
 =======
 
+5.0.3dev0
+----------
+
+Enhancements
+++++++++++++
+
+#. Vector restriction on ``Norm[]`` removed. "Frobinius" p-form allowed.
+
+
 5.0.2
 -----
 
