@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests for mathics.atomic.numbers
+Unit tests for mathics.builtin.atomic.numbers
 
-In particular, RealDigits.
+In particular, RealDigits[] and N[]
 """
 
 from test.helper import check_evaluation

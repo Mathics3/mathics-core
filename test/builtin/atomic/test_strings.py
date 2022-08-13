@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from mathics.builtins.atomic.strings.
+Unit tests from mathics.builtin.atomic.strings.
 
 In particular, Alphabet
 """
