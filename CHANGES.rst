@@ -4,10 +4,11 @@ CHANGES
 =======
 
 5.0.3dev0
-----------
+---------
 
 New Builtins
 +++++++++++
+
 #. ``ClebschGordan``
 #. ``PauliMatrix``
 #. ``SixJSymbol``
