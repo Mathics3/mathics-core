@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import reprlib
 from typing import Optional, Tuple
 
 from mathics.core.element import ElementsProperties
@@ -21,7 +22,10 @@ class ListExpression(Expression):
     """
 
     def __init__(
-        self, *elements, elements_properties: Optional[ElementsProperties] = None
+        self,
+        *elements,
+        elements_properties: Optional[ElementsProperties] = None,
+        is_literal: Optional[bool] = False,
     ):
         self.options = None
         self.pattern_sequence = False
@@ -34,7 +38,10 @@ class ListExpression(Expression):
         #          from trepan.api import debug; debug()
 
         self._elements = elements
-        self._is_literal = False
+        # TODO: consider adding _is_literal as an elements property.
+        self._is_literal = (
+            is_literal if is_literal else all(e.is_literal for e in elements)
+        )
         self.python_list = None
         self.elements_properties = elements_properties
 
@@ -42,9 +49,21 @@ class ListExpression(Expression):
         self._sequences = None
         self._cache = None
 
-    # Add this when it is safe to do.
+    def __getitem__(self, index: int):
+        """
+        Allows ListExpression elements to accessed via [], e.g.
+        ListExpression[Integer1, Integer0][0] == Integer1
+        """
+        return self._elements[index]
+
     def __repr__(self) -> str:
-        return "<ListExpression: %s>" % self
+        """(reprlib.repr)-limited display or ListExpression"""
+        list_data = reprlib.repr(self._elements)
+        return f"<ListExpression: {list_data}>"
+
+    def __str__(self) -> str:
+        """str() representation of ListExpression. May be longer than repr()"""
+        return f"<ListExpression: {self._elements}>"
 
     # @timeit
     def evaluate_elements(self, evaluation):
