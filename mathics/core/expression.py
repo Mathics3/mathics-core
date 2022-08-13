@@ -258,6 +258,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 self.elements_properties.elements_fully_evaluated = False
             if isinstance(element, Expression):
                 self.elements_properties.is_flat = False
+                if element.elements_properties is None:
+                    if hasattr(self, "_is_literal"):
+                        self._is_literal = False
+                    element._build_elements_properties()
                 if self.elements_properties.elements_fully_evaluated:
                     self._elements_fully_evaluated = (
                         element.elements_properties.elements_fully_evaluated
@@ -269,6 +273,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 except Exception:
                     self.elements_properties.is_ordered = False
             last_element = element
+
+        if self.is_literal:
+            assert self.elements_properties.elements_fully_evaluated
 
     def _flatten_sequence(self, sequence, evaluation) -> "Expression":
         indices = self.sequences()
@@ -1951,6 +1958,9 @@ def convert_expression_elements(
             elements_properties.elements_fully_evaluated = False
         if isinstance(converted_elt, Expression):
             elements_properties.is_flat = False
+            if converted_elt.elements_properties is None:
+                converted_elt._build_elements_properties()
+
             if elements_properties.elements_fully_evaluated:
                 elements_properties.elements_fully_evaluated = (
                     converted_elt.elements_properties.elements_fully_evaluated
