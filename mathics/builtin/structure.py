@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Structural Operations
+Structural Operations on Expressions
+
+Structural transformations on lists, and general symbolic expressions.
 """
 
 from typing import Iterable
