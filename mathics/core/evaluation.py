@@ -500,12 +500,12 @@ class Evaluation:
             return []
         return value.elements
 
-    def message(self, symbol, tag, *args) -> None:
+    def message(self, symbol_name: str, tag, *args) -> None:
         from mathics.core.expression import Expression
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
         # System`MyBuiltin)
-        symbol = ensure_context(symbol)
+        symbol = ensure_context(symbol_name)
         quiet_messages = set(self.get_quiet_messages())
 
         pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))

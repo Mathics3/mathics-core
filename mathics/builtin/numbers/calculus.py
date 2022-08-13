@@ -222,15 +222,19 @@ class D(SympyFunction):
 
     def apply(self, f, x, evaluation):
         "D[f_, x_?NotListQ]"
+
+        # Handle partial derivative special cases:
+        #   (dx / dx) == 1 and
+        #   dx / d(expression not containing x) == 0
+
+        if f == x:
+            return Integer1
+
         x_pattern = Pattern.create(x)
         if f.is_free(x_pattern, evaluation):
             return Integer0
-        elif f == x:
-            return Integer1
-        elif isinstance(f, Atom):  # Shouldn't happen
-            1 / 0
-            return
-        # So, this is not an atom...
+
+        # f is neither x nor does it not contain x
 
         head = f.get_head()
         if head is SymbolPlus:
@@ -344,7 +348,7 @@ class D(SympyFunction):
         "D[expr_, {x_, other___}]"
 
         arg = ListExpression(x, *other.get_sequence())
-        evaluation.message(SymbolD, "dvar", arg)
+        evaluation.message("D", "dvar", arg)
         return Expression(SymbolD, expr, arg)
 
 

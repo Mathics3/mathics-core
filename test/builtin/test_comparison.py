@@ -4,7 +4,7 @@ from test.helper import check_evaluation, session
 
 
 @pytest.mark.parametrize(
-    ("str_expr", "str_expected", "fail_msg"),
+    ("str_expr", "str_expected", "assert_fail_message"),
     [
         # Equal (==)
         (
@@ -99,12 +99,17 @@ from test.helper import check_evaluation, session
         ("g[1]!=g[1]==g[2]", "False", "This evaluates first the inequality"),
     ],
 )
-def test_compare_many_members(str_expr: str, str_expected: str, fail_msg: str):
+def test_compare_many_members(
+    str_expr: str, str_expected: str, assert_fail_message: str
+):
     #    if str_expr is None:
     #        reset_session()
     result = session.evaluate(f"ToString[{str_expr}]").value
     print("result:", result)
-    assert result == str_expected  # , fail_msg
+    if assert_fail_message:
+        assert result == str_expected, assert_fail_message
+    else:
+        assert result == str_expected
 
 
 # SameQ test
