@@ -228,9 +228,9 @@ class D(SympyFunction):
         elif f == x:
             return Integer1
         elif isinstance(f, Atom):  # Shouldn't happen
-            1 / 0
-            return
-        # So, this is not an atom...
+            raise TypeError(f"D[] function slot {f} is an instance of an Atom")
+
+        # f is not a pattern, nor an Atom, and f != x
 
         head = f.get_head()
         if head is SymbolPlus:
@@ -344,7 +344,7 @@ class D(SympyFunction):
         "D[expr_, {x_, other___}]"
 
         arg = ListExpression(x, *other.get_sequence())
-        evaluation.message(SymbolD, "dvar", arg)
+        evaluation.message("D", "dvar", arg)
         return Expression(SymbolD, expr, arg)
 
 

@@ -9,7 +9,7 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 """
 import pytest
-from test.helper import evaluate
+from test.helper import evaluate, check_evaluation
 from mathics.builtin.base import check_requires_list
 
 
@@ -68,31 +68,61 @@ tests_for_integrate = [
 ]
 
 
-@pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_findminimum)
-def test_findminimum(str_expr: str, str_expected: str, msg: str, message=""):
+@pytest.mark.parametrize(
+    "str_expr, str_expected, assert_fail_message", tests_for_findminimum
+)
+def test_findminimum(
+    str_expr: str, str_expected: str, assert_fail_message: str, message=""
+):
     result = evaluate(str_expr)
     expected = evaluate(str_expected)
-    if msg:
-        assert result == expected, msg
+    if assert_fail_message:
+        assert result == expected, assert_fail_message
     else:
         assert result == expected
 
 
-@pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_findroot)
-def test_findroot(str_expr: str, str_expected: str, msg: str, message=""):
+@pytest.mark.parametrize(
+    "str_expr, str_expected, assert_fail_message", tests_for_findroot
+)
+def test_findroot(
+    str_expr: str, str_expected: str, assert_fail_message: str, message=""
+):
     result = evaluate(str_expr)
     expected = evaluate(str_expected)
-    if msg:
-        assert result == expected, msg
+    if assert_fail_message:
+        assert result == expected, assert_fail_message
     else:
         assert result == expected
 
 
-@pytest.mark.parametrize("str_expr, str_expected, msg", tests_for_integrate)
-def test_integrate(str_expr: str, str_expected: str, msg: str, message=""):
+@pytest.mark.parametrize(
+    "str_expr, str_expected, assert_fail_message", tests_for_integrate
+)
+def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
     result = evaluate(str_expr)
     expected = evaluate(str_expected)
-    if msg:
-        assert result == expected, msg
+    if assert_fail_message:
+        assert result == expected, assert_fail_message
     else:
         assert result == expected
+
+
+@pytest.mark.parametrize(
+    "str_expr, str_expected, expected_messages",
+    [
+        (
+            "D[{y, -x}[2], {x, y}]",
+            "D[{y, -x}[2], {x, y}]",
+            [
+                "Multiple derivative specifier {x, y} does not have the form {variable, n}, where n is a non-negative machine integer."
+            ],
+        ),
+    ],  # Issue #502
+)
+def test_D(str_expr: str, str_expected: str, expected_messages):
+    check_evaluation(
+        str_expr=str_expr,
+        str_expected=str_expected,
+        expected_messages=expected_messages,
+    )

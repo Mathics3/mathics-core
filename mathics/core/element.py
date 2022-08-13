@@ -11,7 +11,7 @@ from typing import Any, Optional, Tuple
 from mathics.core.attributes import no_attributes
 
 
-def ensure_context(name, context="System`") -> str:
+def ensure_context(name: str, context="System`") -> str:
     assert isinstance(name, str)
     assert name != ""
     if "`" in name:
