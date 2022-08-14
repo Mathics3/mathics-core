@@ -1302,7 +1302,7 @@ class ReplacePart(Builtin):
                     replace_value = replace.evaluate(evaluation)
                 else:
                     replace_value = replace
-                set_part(new_expr, position, replace_value)
+                new_expr = set_part(new_expr, position, replace_value)
             except PartError:
                 pass
 

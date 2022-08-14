@@ -4,9 +4,11 @@
 Algorithms to access and manipulate elements in nested lists / expressions
 """
 
+from typing import List
+
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.convert.expression import make_expression
-from mathics.core.element import BoxElement
+from mathics.core.element import BaseElement, BoxElement
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
@@ -60,10 +62,11 @@ def get_part(varlist, indices):
     return rec(varlist, indices).copy()
 
 
-def set_part(varlist, indices, newval):
+def set_part(varlist, indices: List[int], newval) -> BaseElement:
     "Simple part replacement. indices must be a list of python integers."
 
-    def rec(cur, rest):
+    # FIXME: make sure send back copies, and do not mutate the original
+    def rec(cur, rest) -> BaseElement:
         if len(rest) > 1:
             pos = rest[0]
             if isinstance(cur, Atom):
@@ -77,7 +80,8 @@ def set_part(varlist, indices, newval):
                     part = cur.elements[pos]
             except IndexError:
                 raise PartRangeError
-            return rec(part, rest[1:])
+            rec(part, rest[1:])
+            return cur
         elif len(rest) == 1:
             pos = rest[0]
             if isinstance(cur, Atom):
@@ -91,8 +95,9 @@ def set_part(varlist, indices, newval):
                     cur.set_element(pos, newval)
             except IndexError:
                 raise PartRangeError
+            return cur
 
-    rec(varlist, indices)
+    return rec(varlist, indices)
 
 
 def _parts_all_selector():
