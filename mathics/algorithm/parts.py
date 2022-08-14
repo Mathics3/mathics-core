@@ -101,7 +101,10 @@ def set_part(expression, indices: List[int], newval) -> BaseElement:
                     # below, we make use of the fact that a
                     # ``ListExpression``'s Head is ``SymbolList``.
                     head = expression.head
-                    if newval == SymbolList and head != SymbolList:
+                    if head == newval:
+                        # Nothing to modify
+                        pass
+                    elif newval == SymbolList and head != SymbolList:
                         expression = ListExpression(*expression.elements)
                     elif newval not in (SymbolList,) and head in (SymbolList,):
                         expression = Expression(newval, *expression.elements)
