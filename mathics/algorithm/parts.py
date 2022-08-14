@@ -58,42 +58,50 @@ def get_part(varlist: BaseElement, indices: List[int]) -> BaseElement:
 
 
 def set_part(varlist, indices: List[int], newval) -> BaseElement:
-    "Simple part replacement. indices must be a list of python integers."
+    """Replace the part of ``varlist`` specified by ``indicies`` with the single
+    ``newval`` value. Return the modified compound expression.
+    """
 
-    def rec(cur, rest) -> BaseElement:
-        if len(rest) > 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+    def set_subpart(varlist, indices: List[int]) -> BaseElement:
+        """Recursive work-horse portion of ``set_part()`` that replaces pieces
+        of ``varlist`` with outer variable ``newval`` based on ``indices``.
+        ``varlist`` and ``indices`` are smaller parts of the corresponding variables at the outer level.
+        """
+        if len(indices) > 1:
+            pos = indices[0]
+            if isinstance(varlist, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = cur.elements[pos - 1]
+                    part = varlist.elements[pos - 1]
                 elif pos == 0:
-                    part = cur.get_head()
+                    part = varlist.get_head()
                 else:
-                    part = cur.elements[pos]
+                    part = varlist.elements[pos]
             except IndexError:
                 raise PartRangeError
-            rec(part, rest[1:])
-            return cur
-        elif len(rest) == 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+            set_subpart(part, indices[1:])
+            return varlist
+        elif len(indices) == 1:
+            pos = indices[0]
+            if isinstance(varlist, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    cur.set_element(pos - 1, newval)
+                    varlist.set_element(pos - 1, newval)
                 elif pos == 0:
                     if newval == SymbolList:
-                        cur = ListExpression(cur._elements)
-                    cur.set_head(newval)
+                        varlist = ListExpression(varlist._elements)
+                    # If we have other types of specialized compound expressions
+                    # this might be detected as "elif" here.
+                    varlist.set_head(newval)
                 else:
-                    cur.set_element(pos, newval)
+                    varlist.set_element(pos, newval)
             except IndexError:
                 raise PartRangeError
-            return cur
+            return varlist
 
-    return rec(varlist, indices)
+    return set_subpart(varlist, indices)
 
 
 def _parts_all_selector():
