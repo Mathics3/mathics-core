@@ -25,83 +25,95 @@ from mathics.builtin.exceptions import (
 SymbolNothing = Symbol("Nothing")
 
 
-def get_part(varlist: BaseElement, indices: List[int]) -> BaseElement:
-    """Extract part of ``varlist`` specified by ``indicies`` and
+def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
+    """Extract part of ``expression`` specified by ``indicies`` and
     return that.
     """
 
-    def get_subpart(varlist: BaseElement, indices: List[int]) -> BaseElement:
+    def get_subpart(expression: BaseElement, indices: List[int]) -> BaseElement:
         """Recursive work-horse portion of ``get_part()`` that extracts pieces
-        of ``varlist`` based on ``indices``. ``varlist`` and ``indices``
+        of ``expression`` based on ``indices``. ``expression`` and ``indices``
         are smaller parts of the corresponding variables at the outer level.
         """
         if not indices:
-            return varlist
+            return expression
 
-        if isinstance(varlist, Atom):
+        if isinstance(expression, Atom):
             raise PartDepthError(indices[0])
 
         pos = indices[0]
-        elements = varlist.elements
+        elements = expression.elements
         try:
             if pos > 0:
                 part = elements[pos - 1]
             elif pos == 0:
-                part = varlist.get_head()
+                part = expression.get_head()
             else:
                 part = elements[pos]
         except IndexError:
             raise PartRangeError
         return get_subpart(part, indices[1:])
 
-    return get_subpart(varlist, indices).copy()
+    return get_subpart(expression, indices).copy()
 
 
-def set_part(varlist, indices: List[int], newval) -> BaseElement:
-    """Replace the part of ``varlist`` specified by ``indicies`` with the single
+def set_part(expression, indices: List[int], newval) -> BaseElement:
+    """Replace all parts of ``expression`` specified by ``indicies`` with the
     ``newval`` value. Return the modified compound expression.
     """
 
-    def set_subpart(varlist, indices: List[int]) -> BaseElement:
+    def set_subpart(expression, indices: List[int]) -> BaseElement:
         """Recursive work-horse portion of ``set_part()`` that replaces pieces
-        of ``varlist`` with outer variable ``newval`` based on ``indices``.
-        ``varlist`` and ``indices`` are smaller parts of the corresponding variables at the outer level.
+        of ``expression`` with outer variable ``newval`` based on ``indices``.
+        ``expression`` and ``indices`` are smaller parts of the corresponding variables at the outer level.
         """
         if len(indices) > 1:
             pos = indices[0]
-            if isinstance(varlist, Atom):
+            if isinstance(expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = varlist.elements[pos - 1]
+                    part = expression.elements[pos - 1]
                 elif pos == 0:
-                    part = varlist.get_head()
+                    part = expression.get_head()
                 else:
-                    part = varlist.elements[pos]
+                    part = expression.elements[pos]
             except IndexError:
                 raise PartRangeError
             set_subpart(part, indices[1:])
-            return varlist
+            return expression
         elif len(indices) == 1:
             pos = indices[0]
-            if isinstance(varlist, Atom):
+            if isinstance(expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    varlist.set_element(pos - 1, newval)
+                    expression.set_element(pos - 1, newval)
                 elif pos == 0:
-                    if newval == SymbolList:
-                        varlist = ListExpression(varlist._elements)
-                    # If we have other types of specialized compound expressions
-                    # this might be detected as "elif" here.
-                    varlist.set_head(newval)
+                    # We may have to replace the entire ``expression``
+                    # variable when changing position 0 or Head. This
+                    # happens when the before and after are
+                    # class objects are different.
+
+                    # Right now, we need to only worry about
+                    # converting between ``Expression`` and
+                    # ``ListExpression`` or vice vera.  In the code
+                    # below, we make use of the fact that a
+                    # ``ListExpression``'s Head is ``SymbolList``.
+                    head = expression.head
+                    if newval == SymbolList and head != SymbolList:
+                        expression = ListExpression(*expression.elements)
+                    elif newval not in (SymbolList,) and head in (SymbolList,):
+                        expression = Expression(newval, *expression.elements)
+                    else:
+                        expression.set_head(newval)
                 else:
-                    varlist.set_element(pos, newval)
+                    expression.set_element(pos, newval)
             except IndexError:
                 raise PartRangeError
-            return varlist
+            return expression
 
-    return set_subpart(varlist, indices)
+    return set_subpart(expression, indices)
 
 
 def _parts_all_selector():
