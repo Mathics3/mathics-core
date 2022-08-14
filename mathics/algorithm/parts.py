@@ -10,7 +10,8 @@ from mathics.core.atoms import Integer, Integer1
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElement
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
@@ -23,49 +24,42 @@ from mathics.builtin.exceptions import (
 
 SymbolNothing = Symbol("Nothing")
 
-# TODO: delete me
-# def join_lists(lists):
-#    """
-#    flatten a list of list.
-#    Maybe there are better, standard options, like
-#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
-#    In any case, is not used in the following code.
-#    """
-#    new_list = []
-#    for list in lists:
-#        new_list.extend(list)
-#    return new_list
 
+def get_part(varlist: BaseElement, indices: List[int]) -> BaseElement:
+    """Extract part of ``varlist`` specified by ``indicies`` and
+    return that.
+    """
 
-def get_part(varlist, indices):
-    "Simple part extraction. indices must be a list of python integers."
+    def get_subpart(varlist: BaseElement, indices: List[int]) -> BaseElement:
+        """Recursive work-horse portion of ``get_part()`` that extracts pieces
+        of ``varlist`` based on ``indices``. ``varlist`` and ``indices``
+        are smaller parts of the corresponding variables at the outer level.
+        """
+        if not indices:
+            return varlist
 
-    def rec(cur, rest):
-        if rest:
-            if isinstance(cur, Atom):
-                raise PartDepthError(rest[0])
-            pos = rest[0]
-            elements = cur.elements
-            try:
-                if pos > 0:
-                    part = elements[pos - 1]
-                elif pos == 0:
-                    part = cur.get_head()
-                else:
-                    part = elements[pos]
-            except IndexError:
-                raise PartRangeError
-            return rec(part, rest[1:])
-        else:
-            return cur
+        if isinstance(varlist, Atom):
+            raise PartDepthError(indices[0])
 
-    return rec(varlist, indices).copy()
+        pos = indices[0]
+        elements = varlist.elements
+        try:
+            if pos > 0:
+                part = elements[pos - 1]
+            elif pos == 0:
+                part = varlist.get_head()
+            else:
+                part = elements[pos]
+        except IndexError:
+            raise PartRangeError
+        return get_subpart(part, indices[1:])
+
+    return get_subpart(varlist, indices).copy()
 
 
 def set_part(varlist, indices: List[int], newval) -> BaseElement:
     "Simple part replacement. indices must be a list of python integers."
 
-    # FIXME: make sure send back copies, and do not mutate the original
     def rec(cur, rest) -> BaseElement:
         if len(rest) > 1:
             pos = rest[0]
@@ -90,6 +84,8 @@ def set_part(varlist, indices: List[int], newval) -> BaseElement:
                 if pos > 0:
                     cur.set_element(pos - 1, newval)
                 elif pos == 0:
+                    if newval == SymbolList:
+                        cur = ListExpression(cur._elements)
                     cur.set_head(newval)
                 else:
                     cur.set_element(pos, newval)
