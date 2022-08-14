@@ -230,7 +230,7 @@ def _part_selectors(indices):
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
-        elif index.has_form("List", None):
+        elif isinstance(index, ListExpression):
             yield _parts_sequence_selector(index.elements)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
@@ -396,6 +396,8 @@ def python_levelspec(levelspec):
         else:
             return value
 
+    # FIXME: Something in ExportString prevents using isinstance(levelspec, ListExpression).
+    # Track this down and fix.
     if levelspec.has_form("List", None):
         values = [value_to_level(element) for element in levelspec.elements]
         if len(values) == 1:
