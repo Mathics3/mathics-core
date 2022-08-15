@@ -24,6 +24,7 @@ from mathics.core.attributes import (
     protected as A_PROTECTED,
 )
 
+from mathics.core.element import BaseElement
 from mathics.core.evaluators import eval_N
 
 from mathics.builtin.base import (
@@ -52,6 +53,7 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy, SympyExpression, sympy_symbol_prefix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import min_prec, dps, SpecialValueError
@@ -442,6 +444,7 @@ class Conjugate(_MPMathFunction):
 
 class Abs(_MPMathFunction):
     """
+    <url>:Abolute value: https://en.wikipedia.org/wiki/Absolute_value</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Abs</url>)
     <dl>
       <dt>'Abs[$x$]'
       <dd>returns the absolute value of $x$.
@@ -449,23 +452,33 @@ class Abs(_MPMathFunction):
     >> Abs[-3]
      = 3
 
-    'Abs' returns the magnitude of complex numbers:
-    >> Abs[3 + I]
-     = Sqrt[10]
-    >> Abs[3.0 + I]
-     = 3.16228
     >> Plot[Abs[x], {x, -4, 4}]
      = -Graphics-
 
-    #> Abs[I]
-     = 1
-    #> Abs[a - b]
-     = Abs[a - b]
+    'Abs' returns the magnitude of complex numbers:
 
-    #> Abs[Sqrt[3]]
-     = Sqrt[3]
+    >> Abs[I]
+     = 1
+
+    >> Abs[3 + I]
+     = Sqrt[10]
+
+    >> Abs[3.0 + I]
+     = 3.16228
+
+    All of the below evaluate to Infinity:
+
+    >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
+     = True
     """
 
+    # TODO: figure out how to get:
+    # rules = {
+    #     "Abs[Undefined]": "Undefined",
+    #     "Abs[ ArcTan[ComplexInfinity] ] : "Pi/2",
+    #     "Abs[ Conjugate[x_] ]": "Abs[x]",
+    # }
+    # from symja_android_library/symja_android_library/rules/AbsRules.m
     summary_text = "absolute value of a number"
     sympy_name = "Abs"
     mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
