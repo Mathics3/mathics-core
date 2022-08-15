@@ -111,5 +111,5 @@ def test_custom_graphicsbox_constructor():
     formatted = session.format_result().boxes_to_mathml()
     assert (
         formatted
-        == "--custom graphics--: I should plot (<Expression: System`Circle[System`List[0, 0], 1]>,) items"
+        == "--custom graphics--: I should plot (<Expression: System`Circle[<ListExpression: (<Integer: 0>, <Integer: 0>)>, 1]>,) items"
     )

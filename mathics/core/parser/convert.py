@@ -1,25 +1,41 @@
 # -*- coding: utf-8 -*-
+"""
+Conversion from AST node to Mathic BaseElement objects
+"""
 
+from typing import Tuple
 
 from math import log10
 import sympy
 
-import mathics.core.atoms as maa
-import mathics.core.symbols as mas
-import mathics.core.convert.expression as mae
-from mathics.core.parser.ast import Symbol, String, Number, Filename
+from mathics.core.atoms import (
+    Integer,
+    MachineReal,
+    PrecisionReal,
+    Rational,
+    String,
+)
+
+from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.number import machine_precision, reconstruct_digits
+from mathics.core.parser.ast import (
+    Symbol as AST_Symbol,
+    String as AST_String,
+    Number as AST_Number,
+    Filename as AST_Filename,
+)
+from mathics.core.symbols import Symbol, SymbolList
 
 
 class GenericConverter:
     def do_convert(self, node):
-        if isinstance(node, Symbol):
+        if isinstance(node, AST_Symbol):
             return self.convert_Symbol(node)
-        elif isinstance(node, String):
+        elif isinstance(node, AST_String):
             return self.convert_String(node)
-        elif isinstance(node, Number):
+        elif isinstance(node, AST_Number):
             return self.convert_Number(node)
-        elif isinstance(node, Filename):
+        elif isinstance(node, AST_Filename):
             return self.convert_Filename(node)
         else:
             head = self.do_convert(node.head)
@@ -30,17 +46,17 @@ class GenericConverter:
     def string_escape(s):
         return s.encode("raw_unicode_escape").decode("unicode_escape")
 
-    def convert_Symbol(self, node: Symbol):
+    def convert_Symbol(self, node: AST_Symbol) -> Tuple[str, str]:
         if node.context is not None:
             return "Symbol", node.context + "`" + node.value
         else:
             return "Lookup", node.value
 
-    def convert_String(self, node: String):
+    def convert_String(self, node: AST_String) -> Tuple[str, str]:
         value = self.string_escape(node.value)
         return "String", value
 
-    def convert_Filename(self, node: Filename):
+    def convert_Filename(self, node: AST_Filename):
         s = node.value
         if s.startswith('"'):
             assert s.endswith('"')
@@ -49,7 +65,7 @@ class GenericConverter:
         s = s.replace("\\", "\\\\")
         return "String", s
 
-    def convert_Number(self, node: Number):
+    def convert_Number(self, node: AST_Number) -> tuple:
         s = node.value
         sign = node.sign
         base = node.base
@@ -164,24 +180,24 @@ class Converter(GenericConverter):
         result = GenericConverter.do_convert(self, node)
         return getattr(self, "_make_" + result[0])(*result[1:])
 
-    def _make_Symbol(self, s):
-        return mas.Symbol(s)
+    def _make_Symbol(self, s: str) -> Symbol:
+        return Symbol(s)
 
-    def _make_Lookup(self, s):
+    def _make_Lookup(self, s: str) -> Symbol:
         value = self.definitions.lookup_name(s)
-        return mas.Symbol(value)
+        return Symbol(value)
 
-    def _make_String(self, s):
-        return maa.String(s)
+    def _make_String(self, s: str) -> String:
+        return String(s)
 
-    def _make_Integer(self, x):
-        return maa.Integer(x)
+    def _make_Integer(self, x) -> Integer:
+        return Integer(x)
 
-    def _make_Rational(self, x, y):
-        return maa.Rational(x, y)
+    def _make_Rational(self, x, y) -> Rational:
+        return Rational(x, y)
 
     def _make_MachineReal(self, x):
-        return maa.MachineReal(x)
+        return MachineReal(x)
 
     def _make_PrecisionReal(self, value, prec):
         if value[0] == "Rational":
@@ -192,10 +208,13 @@ class Converter(GenericConverter):
             x = value[1]
         else:
             assert False
-        return maa.PrecisionReal(sympy.Float(x, prec))
+        return PrecisionReal(sympy.Float(x, prec))
 
-    def _make_Expression(self, head, children):
-        return mae.to_expression(head, *children)
+    def _make_Expression(self, head: Symbol, children: list):
+        if head == SymbolList:
+            return to_mathics_list(*children)
+
+        return to_expression(head, *children)
 
 
 converter = Converter()
