@@ -230,7 +230,10 @@ def _part_selectors(indices):
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
-        elif isinstance(index, ListExpression):
+        # FIXME: test/package/test_combinatorica.py in the benchmarking+futher-improvements
+        # fails with the below test. Isolate and fix.
+        # elif isinstance(index, ListExpression):
+        elif index.has_form("List", None):
             yield _parts_sequence_selector(index.elements)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
