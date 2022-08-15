@@ -5,7 +5,7 @@ from typing import Optional, Tuple
 
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import Expression
-from mathics.core.symbols import EvalMixin, SymbolList
+from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 
 class ListExpression(Expression):
@@ -126,6 +126,14 @@ class ListExpression(Expression):
             new.evaluate_elements(evaluation)
             return new, False
         return self, False
+
+    def set_head(self, head: Symbol):
+        """
+        Change the Head of an Expression.
+        Unless this is a ListExpression, this is forbidden here.
+        """
+        if head != SymbolList:
+            raise TypeError("Attempt to modify the Head of a ListExpression")
 
     def shallow_copy(self) -> "ListExpression":
         """

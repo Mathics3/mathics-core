@@ -1291,7 +1291,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
 
         return self._rebuild_cache().sequences
 
-    def set_head(self, head):
+    def set_head(self, head: Symbol):
+        """
+        Change the Head of a ListExpression.
+        Unless this is a ListExpression, this is forbidden here.
+        """
+        if head == SymbolList:
+            raise TypeError("Attempt to turn an Expression into a ListExpression")
         self._head = head
         self._cache = None
 

@@ -4,11 +4,14 @@
 Algorithms to access and manipulate elements in nested lists / expressions
 """
 
+from typing import List
+
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.convert.expression import make_expression
-from mathics.core.element import BoxElement
+from mathics.core.element import BaseElement, BoxElement
 from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
@@ -21,78 +24,107 @@ from mathics.builtin.exceptions import (
 
 SymbolNothing = Symbol("Nothing")
 
-# TODO: delete me
-# def join_lists(lists):
-#    """
-#    flatten a list of list.
-#    Maybe there are better, standard options, like
-#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
-#    In any case, is not used in the following code.
-#    """
-#    new_list = []
-#    for list in lists:
-#        new_list.extend(list)
-#    return new_list
+
+def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
+    """Extract part of ``expression`` specified by ``indicies`` and
+    return that.
+    """
+
+    def get_subpart(sub_expression: BaseElement, sub_indices: List[int]) -> BaseElement:
+        """Recursive work-horse portion of ``get_part()`` that extracts pieces
+        of ``sub_expression`` as directed by ``sub_indices``.
+
+        The variables ``sub_expression`` and ``sub_indices`` are smaller parts of
+        ``expression`` and ``indices`` respectively, which are defined in the outer level.
+        """
+        if not sub_indices:
+            return sub_expression
+
+        if isinstance(sub_expression, Atom):
+            raise PartDepthError(sub_indices[0])
+
+        pos = sub_indices[0]
+        elements = sub_expression.elements
+        try:
+            if pos > 0:
+                part = elements[pos - 1]
+            elif pos == 0:
+                part = sub_expression.get_head()
+            else:
+                part = elements[pos]
+        except IndexError:
+            raise PartRangeError
+        return get_subpart(part, sub_indices[1:])
+
+    return get_subpart(expression, indices).copy()
 
 
-def get_part(varlist, indices):
-    "Simple part extraction. indices must be a list of python integers."
+def set_part(expression, indices: List[int], new_atom: Atom) -> BaseElement:
+    """Replace all parts of ``expression`` specified by ``indicies`` with
+    ``new_atom`. Return the modified compound expression.
+    """
 
-    def rec(cur, rest):
-        if rest:
-            if isinstance(cur, Atom):
-                raise PartDepthError(rest[0])
-            pos = rest[0]
-            elements = cur.elements
-            try:
-                if pos > 0:
-                    part = elements[pos - 1]
-                elif pos == 0:
-                    part = cur.get_head()
-                else:
-                    part = elements[pos]
-            except IndexError:
-                raise PartRangeError
-            return rec(part, rest[1:])
-        else:
-            return cur
+    def set_subpart(sub_expression, sub_indices: List[int]) -> BaseElement:
+        """
+        Recursive work-horse portion of ``set_part()`` that replaces those pieces
+        of ``sub_expression`` with outer variable ``new_atom`` as directed by ``sub_indices``.
 
-    return rec(varlist, indices).copy()
-
-
-def set_part(varlist, indices, newval):
-    "Simple part replacement. indices must be a list of python integers."
-
-    def rec(cur, rest):
-        if len(rest) > 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+        The variables ``sub_expression`` and ``sub_indices`` are smaller parts of
+        ``expression`` and ``indices`` respectively, which are defined in the outer level.
+        """
+        if len(sub_indices) > 1:
+            pos = sub_indices[0]
+            if isinstance(sub_expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = cur.elements[pos - 1]
+                    part = sub_expression.elements[pos - 1]
                 elif pos == 0:
-                    part = cur.get_head()
+                    part = sub_expression.get_head()
                 else:
-                    part = cur.elements[pos]
+                    part = sub_expression.elements[pos]
             except IndexError:
                 raise PartRangeError
-            return rec(part, rest[1:])
-        elif len(rest) == 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+            set_subpart(part, sub_indices[1:])
+            return sub_expression
+        elif len(sub_indices) == 1:
+            pos = sub_indices[0]
+            if isinstance(sub_expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    cur.set_element(pos - 1, newval)
+                    sub_expression.set_element(pos - 1, new_atom)
                 elif pos == 0:
-                    cur.set_head(newval)
+                    # We may have to replace the entire ``expression``
+                    # variable when changing position 0 or Head. This
+                    # happens when the before and after are
+                    # class objects are different.
+
+                    # Right now, we need to only worry about
+                    # converting between ``Expression`` and
+                    # ``ListExpression`` or vice vera.  In the code
+                    # below, we make use of the fact that a
+                    # ``ListExpression``'s Head is ``SymbolList``.
+                    head = sub_expression.head
+                    if head == new_atom:
+                        # Nothing to modify
+                        pass
+                    elif new_atom == SymbolList and head != SymbolList:
+                        sub_expression = ListExpression(*sub_expression.elements)
+                    elif new_atom not in (SymbolList,) and head in (SymbolList,):
+                        sub_expression = Expression(new_atom, *sub_expression.elements)
+                    else:
+                        # Both ``head`` and ``new_atom`` should be the head of
+                        # an Expression and not some specialization of that.
+                        # Here, we can set or change the head element.
+                        sub_expression.set_head(new_atom)
                 else:
-                    cur.set_element(pos, newval)
+                    sub_expression.set_element(pos, new_atom)
             except IndexError:
                 raise PartRangeError
+            return sub_expression
 
-    rec(varlist, indices)
+    return set_subpart(expression, indices)
 
 
 def _parts_all_selector():
