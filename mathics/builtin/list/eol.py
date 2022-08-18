@@ -25,7 +25,7 @@ from mathics.algorithm.parts import (
     walk_parts,
 )
 
-from mathics.builtin.box.inout import RowBox
+from mathics.builtin.box.layout import RowBox
 from mathics.builtin.exceptions import InvalidLevelspecError, PartError
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer, Integer0, Integer1, String

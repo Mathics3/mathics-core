@@ -59,7 +59,6 @@ from mathics.core.systemsymbols import (
 )
 
 from mathics.core.formatter import lookup_method
-from mathics.format.asy_fns import asy_bezier
 
 from mathics.core.attributes import protected, read_protected
 
@@ -842,6 +841,8 @@ class _BezierCurve:
         return draw
 
     def make_draw_asy(self, pen):
+        from mathics.format.asy_fns import asy_bezier
+
         def draw(points):
             for path in asy_bezier((self.spline_degree, points)):
                 yield "draw(%s, %s);" % (path, pen)

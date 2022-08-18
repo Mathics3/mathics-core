@@ -19,7 +19,7 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.builtin.box.inout import _BoxedString
+from mathics.builtin.box.layout import _BoxedString
 
 from mathics.builtin.base import (
     BinaryOperator,

@@ -45,14 +45,11 @@ from mathics.core.atoms import (
 
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.formatter import lookup_method
+from mathics.core.formatter import format_element, lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 
-from mathics.core.formatter import format_element
-
-from mathics.format.asy_fns import asy_color, asy_number
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
@@ -688,26 +685,7 @@ class GraphicsBox(BoxConstruct):
         return ticks, ticks_small, origin_x
 
     def boxes_to_mathml(self, elements=None, **options) -> str:
-
-        # FIXME: SVG is the only thing we can convert MathML into.
-        # Handle other graphics formats.
-        svg_body = self.boxes_to_svg(elements, **options)
-
-        # mglyph, which is what we have been using, is bad because MathML standard changed.
-        # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.
-        # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
-        template = (
-            '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
-            # '<mglyph  src="data:image/svg+xml;base64,%s"/>'
-        )
-        # print(svg_body)
-        mathml = template % (
-            int(self.width),
-            int(self.height),
-            base64.b64encode(svg_body.encode("utf8")).decode("utf8"),
-        )
-        # print("boxes_to_mathml", mathml)
-        return mathml
+        return lookup_method(self, "mathml")(self, elements, **options)
 
     def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
@@ -735,76 +713,10 @@ class GraphicsBox(BoxConstruct):
         However right now the only LaTeX support for graphics is via Asymptote and
         that seems to be the package of choice in general for LaTeX.
         """
-
-        if not elements:
-            elements = self._elements
-            fields = self._prepare_elements(elements, options, max_width=450)
-            if len(fields) == 2:
-                elements, calc_dimensions = fields
-            else:
-                elements, calc_dimensions = fields[0], fields[-2]
-
-        fields = calc_dimensions()
-        if len(fields) == 8:
-            xmin, xmax, ymin, ymax, w, h, width, height = fields
-            elements.view_width = w
-
-        else:
-            assert len(fields) == 9
-            xmin, xmax, ymin, ymax, _, _, _, width, height = fields
-            elements.view_width = width
-
-        asy_completely_visible = "\n".join(
-            lookup_method(element, "asy")(element)
-            for element in elements.elements
-            if element.is_completely_visible
-        )
-
-        asy_regular = "\n".join(
-            lookup_method(element, "asy")(element)
-            for element in elements.elements
-            if not element.is_completely_visible
-        )
-
-        asy_box = "box((%s,%s), (%s,%s))" % (
-            asy_number(xmin),
-            asy_number(ymin),
-            asy_number(xmax),
-            asy_number(ymax),
-        )
-
-        if self.background_color is not None:
-            color, opacity = asy_color(self.background_color)
-            asy_background = "filldraw(%s, %s);" % (asy_box, color)
-        else:
-            asy_background = ""
-
-        tex = r"""
-\begin{asy}
-usepackage("amsmath");
-size(%scm, %scm);
-%s
-%s
-clip(%s);
-%s
-\end{asy}
-""" % (
-            asy_number(width / 60),
-            asy_number(height / 60),
-            asy_background,
-            asy_regular,
-            asy_box,
-            asy_completely_visible,
-        )
-
-        return tex
+        return lookup_method(self, "tex")(self, elements, **options)
 
     def boxes_to_text(self, elements=None, **options) -> str:
-        if not elements:
-            elements = self._elements
-
-        self._prepare_elements(elements, options)  # to test for Box errors
-        return "-Graphics-"
+        return lookup_method(self, "text")(self, elements, **options)
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
         axes = graphics_options.get("System`Axes")

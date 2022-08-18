@@ -35,7 +35,7 @@ from mathics.builtin.base import (
     Test,
 )
 
-from mathics.builtin.box.inout import RowBox
+from mathics.builtin.box.layout import RowBox
 
 from mathics.builtin.exceptions import (
     InvalidLevelspecError,

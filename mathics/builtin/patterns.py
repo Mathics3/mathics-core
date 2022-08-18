@@ -1702,7 +1702,7 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.core.formatter import format_element, _BoxedString
-        from mathics.builtin.box.inout import RowBox
+        from mathics.builtin.box.layout import RowBox
 
         box_element = format_element(self.src, evaluation, f)
         return RowBox(

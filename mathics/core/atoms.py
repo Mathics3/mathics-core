@@ -62,7 +62,7 @@ def _ExponentFunction(value):
 
 
 def _NumberFormat(man, base, exp, options):
-    from mathics.builtin.box.inout import RowBox, SuperscriptBox
+    from mathics.builtin.box.layout import RowBox, SuperscriptBox
     from mathics.core.formatter import _BoxedString
 
     if exp.get_string_value():
