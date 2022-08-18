@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from mathics.builtin.base import BoxExpression
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String, SymbolString
@@ -20,6 +21,14 @@ SymbolSubscriptBox = Symbol("System`SubscriptBox")
 SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSqrtBox = Symbol("System`SqrtBox")
+
+
+# this temporarily replace the _BoxedString class
+def _boxed_string(string: str, **options):
+    from mathics.builtin.box.inout import StyleBox
+    from mathics.core.atoms import String
+
+    return StyleBox(String(string), **options)
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
@@ -58,6 +67,157 @@ class ButtonBox(BoxExpression):
 
     attributes = protected | read_protected
     summary_text = "box construct for buttons"
+
+
+# Right now this seems to be used only in GridBox.
+def is_constant_list(list):
+    if list:
+        return all(item == list[0] for item in list[1:])
+    return True
+
+
+class GridBox(BoxExpression):
+    r"""
+    <dl>
+    <dt>'GridBox[{{...}, {...}}]'
+        <dd>is a box construct that represents a sequence of boxes
+        arranged in a grid.
+    </dl>
+    #> Grid[{{a,bc},{d,e}}, ColumnAlignments:>Symbol["Rig"<>"ht"]]
+     = a   bc
+     .
+     . d   e
+    #> TeXForm@Grid[{{a,bc},{d,e}}, ColumnAlignments->Left]
+     = \begin{array}{ll} a & \text{bc}\\ d & e\end{array}
+    #> TeXForm[TableForm[{{a,b},{c,d}}]]
+     = \begin{array}{cc} a & b\\ c & d\end{array}
+    # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
+    #  = ...
+    """
+    options = {"ColumnAlignments": "Center"}
+    summary_text = "low-level representation of an arbitrary 2D layout"
+
+    # TODO: elements in the GridBox should be stored as an array with
+    # elements in its evaluated form.
+
+    def get_array(self, elements, evaluation):
+        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
+        if not elements:
+            raise BoxConstructError
+        expr = elements[0]
+        if not expr.has_form("List", None):
+            if not all(element.has_form("List", None) for element in expr.elements):
+                raise BoxConstructError
+        items = [element.elements for element in expr.elements]
+        if not is_constant_list([len(row) for row in items]):
+            raise BoxConstructError
+        return items, options
+
+    def boxes_to_tex(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
+        evaluation = box_options.get("evaluation")
+        items, options = self.get_array(elements, evaluation)
+        new_box_options = box_options.copy()
+        new_box_options["inside_list"] = True
+        column_alignments = options["System`ColumnAlignments"].get_name()
+        try:
+            column_alignments = {
+                "System`Center": "c",
+                "System`Left": "l",
+                "System`Right": "r",
+            }[column_alignments]
+        except KeyError:
+            # invalid column alignment
+            raise BoxConstructError
+        column_count = 0
+        for row in items:
+            column_count = max(column_count, len(row))
+        result = r"\begin{array}{%s} " % (column_alignments * column_count)
+        for index, row in enumerate(items):
+            result += " & ".join(
+                item.evaluate(evaluation).boxes_to_tex(**new_box_options)
+                for item in row
+            )
+            if index != len(items) - 1:
+                result += "\\\\ "
+        result += r"\end{array}"
+        return result
+
+    def boxes_to_mathml(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
+        evaluation = box_options.get("evaluation")
+        items, options = self.get_array(elements, evaluation)
+        attrs = {}
+        column_alignments = options["System`ColumnAlignments"].get_name()
+        try:
+            attrs["columnalign"] = {
+                "System`Center": "center",
+                "System`Left": "left",
+                "System`Right": "right",
+            }[column_alignments]
+        except KeyError:
+            # invalid column alignment
+            raise BoxConstructError
+        joined_attrs = " ".join(f'{name}="{value}"' for name, value in attrs.items())
+        result = f"<mtable {joined_attrs}>\n"
+        new_box_options = box_options.copy()
+        new_box_options["inside_list"] = True
+        for row in items:
+            result += "<mtr>"
+            for item in row:
+                result += f"<mtd {joined_attrs}>{item.evaluate(evaluation).boxes_to_mathml(**new_box_options)}</mtd>"
+            result += "</mtr>\n"
+        result += "</mtable>"
+        return result
+
+    def boxes_to_text(self, elements=None, **box_options) -> str:
+        if not elements:
+            elements = self._elements
+        evaluation = box_options.get("evaluation")
+        items, options = self.get_array(elements, evaluation)
+        result = ""
+        if not items:
+            return ""
+        widths = [0] * len(items[0])
+        cells = [
+            [
+                item.evaluate(evaluation).boxes_to_text(**box_options).splitlines()
+                for item in row
+            ]
+            for row in items
+        ]
+        for row in cells:
+            for index, cell in enumerate(row):
+                if index >= len(widths):
+                    raise BoxConstructError
+                for line in cell:
+                    widths[index] = max(widths[index], len(line))
+        for row_index, row in enumerate(cells):
+            if row_index > 0:
+                result += "\n"
+            k = 0
+            while True:
+                line_exists = False
+                line = ""
+                for cell_index, cell in enumerate(row):
+                    if len(cell) > k:
+                        line_exists = True
+                        text = cell[k]
+                    else:
+                        text = ""
+                    line += text
+                    if cell_index < len(row) - 1:
+                        line += " " * (widths[cell_index] - len(text))
+                        # if cell_index < len(row) - 1:
+                        line += "   "
+                if line_exists:
+                    result += line + "\n"
+                else:
+                    break
+                k += 1
+        return result
 
 
 class InterpretationBox(BoxExpression):
@@ -254,7 +414,9 @@ class SuperscriptBox(BoxExpression):
 
     def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not (isinstance(a, BoxElement) and isinstance(b, BoxElement)):
+        if not (
+            isinstance(a, (BoxElement, String)) and isinstance(b, (BoxElement, String))
+        ):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -454,7 +616,7 @@ class StyleBox(BoxExpression):
     summary_text = "associate boxes with styles"
 
     def boxes_to_text(self, **options):
-        options.pop("evaluation")
+        options.pop("evaluation", None)
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
@@ -479,6 +641,12 @@ class StyleBox(BoxExpression):
     def apply_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, **options)
+
+    def get_string_value(self):
+        box = self.boxes
+        if isinstance(box, (String, _BoxedString)):
+            return box.value
+        return None
 
     def init(self, boxes, style=None, **options):
         # This implementation superseeds Expresion.process_style_box
