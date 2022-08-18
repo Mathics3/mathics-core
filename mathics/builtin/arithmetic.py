@@ -244,10 +244,10 @@ def create_infix(items, operator, prec, grouping):
 class DirectedInfinity(SympyFunction):
     """
     <dl>
-    <dt>'DirectedInfinity[$z$]'
-        <dd>represents an infinite multiple of the complex number $z$.
-    <dt>'DirectedInfinity[]'
-        <dd>is the same as 'ComplexInfinity'.
+      <dt>'DirectedInfinity[$z$]'
+      <dd>represents an infinite multiple of the complex number $z$.
+      <dt>'DirectedInfinity[]'
+      <dd>is the same as 'ComplexInfinity'.
     </dl>
 
     >> DirectedInfinity[1]
@@ -335,8 +335,8 @@ class DirectedInfinity(SympyFunction):
 class Re(SympyFunction):
     """
     <dl>
-    <dt>'Re[$z$]'
-        <dd>returns the real component of the complex number $z$.
+      <dt>'Re[$z$]'
+      <dd>returns the real component of the complex number $z$.
     </dl>
 
     >> Re[3+4I]
@@ -473,10 +473,10 @@ class Abs(_MPMathFunction):
 
 class Arg(_MPMathFunction):
     """
-     <dl>
-       <dt>'Arg'[$z$, $method_option$]
-       <dd>returns the argument of a complex value $z$.
-     </dl>
+    <dl>
+      <dt>'Arg'[$z$, $method_option$]
+      <dd>returns the argument of a complex value $z$.
+    </dl>
 
     <ul>
          <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
@@ -542,8 +542,8 @@ class Arg(_MPMathFunction):
 class Sign(SympyFunction):
     """
     <dl>
-    <dt>'Sign[$x$]'
-        <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
+      <dt>'Sign[$x$]'
+      <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
     </dl>
 
     >> Sign[19]
@@ -600,8 +600,8 @@ class Sign(SympyFunction):
 class I(Predefined):
     """
     <dl>
-    <dt>'I'
-        <dd>represents the imaginary number 'Sqrt[-1]'.
+      <dt>'I'
+      <dd>represents the imaginary number 'Sqrt[-1]'.
     </dl>
 
     >> I^2
@@ -708,8 +708,8 @@ class PossibleZeroQ(SympyFunction):
 class RealNumberQ(Test):
     """
     <dl>
-    <dt>'RealNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
+      <dt>'RealNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
     >> RealNumberQ[10]
@@ -733,8 +733,8 @@ class RealNumberQ(Test):
 class Integer_(Builtin):
     """
     <dl>
-    <dt>'Integer'
-        <dd>is the head of integers.
+      <dt>'Integer'
+      <dd>is the head of integers.
     </dl>
 
     >> Head[5]
@@ -752,8 +752,8 @@ class Integer_(Builtin):
 class Real_(Builtin):
     """
     <dl>
-    <dt>'Real'
-        <dd>is the head of real (inexact) numbers.
+      <dt>'Real'
+      <dd>is the head of real (inexact) numbers.
     </dl>
 
     >> x = 3. ^ -20;
@@ -826,10 +826,10 @@ class Real_(Builtin):
 class Rational_(Builtin):
     """
     <dl>
-    <dt>'Rational'
-        <dd>is the head of rational numbers.
-    <dt>'Rational[$a$, $b$]'
-        <dd>constructs the rational number $a$ / $b$.
+      <dt>'Rational'
+      <dd>is the head of rational numbers.
+      <dt>'Rational[$a$, $b$]'
+      <dd>constructs the rational number $a$ / $b$.
     </dl>
 
     >> Head[1/2]
@@ -857,10 +857,10 @@ class Rational_(Builtin):
 class Complex_(Builtin):
     """
     <dl>
-    <dt>'Complex'
-        <dd>is the head of complex numbers.
-    <dt>'Complex[$a$, $b$]'
-        <dd>constructs the complex number '$a$ + I $b$'.
+      <dt>'Complex'
+      <dd>is the head of complex numbers.
+      <dt>'Complex[$a$, $b$]'
+      <dd>constructs the complex number '$a$ + I $b$'.
     </dl>
 
     >> Head[2 + 3*I]
@@ -1076,14 +1076,14 @@ class Sum(_IterationFunction, SympyFunction):
 class Product(_IterationFunction, SympyFunction):
     """
     <dl>
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
-        <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
-    <dt>'Product[$expr$, {$i$, $imax$}]'
-        <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
-        <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-        <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
+      <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
+      <dt>'Product[$expr$, {$i$, $imax$}]'
+      <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
+      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
+      <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>
 
     >> Product[k, {k, 1, 10}]
@@ -1245,7 +1245,7 @@ class Piecewise(SympyFunction):
 class Boole(Builtin):
     """
     <dl>
-    <dt>'Boole[expr]'
+      <dt>'Boole[expr]'
       <dd>returns 1 if expr is True and 0 if expr is False.
     </dl>
 
@@ -1293,7 +1293,7 @@ class Assumptions(Predefined):
 class Assuming(Builtin):
     """
     <dl>
-    <dt>'Assuming[$cond$, $expr$]'
+      <dt>'Assuming[$cond$, $expr$]'
       <dd>Evaluates $expr$ assuming the conditions $cond$.
     </dl>
     >> $Assumptions = { x > 0 }
