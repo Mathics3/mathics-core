@@ -13,17 +13,8 @@ from math import sqrt
 
 from mathics.core.evaluators import eval_N
 
-from mathics.builtin.base import (
-    Builtin,
-    BoxConstructError,
-)
+from mathics.builtin.base import Builtin
 
-from mathics.builtin.drawing.graphics_internals import (
-    _GraphicsDirective,
-    _GraphicsElementBox,
-    GLOBALS,
-    get_class,
-)
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
     Opacity,
@@ -37,6 +28,14 @@ from mathics.builtin.colors.color_directives import (
     XYZColor,
 )
 
+
+from mathics.builtin.drawing.graphics_internals import (
+    _GraphicsDirective,
+    _GraphicsElementBox,
+    GLOBALS,
+    get_class,
+)
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import (

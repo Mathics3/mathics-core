@@ -7,7 +7,7 @@ import html
 import json
 import numbers
 
-from mathics.builtin.base import BoxConstructError
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.graphics import (
     GraphicsBox,
     ArrowBox,

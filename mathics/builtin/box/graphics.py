@@ -6,11 +6,7 @@ Boxing Routines for 2D Graphics
 import base64
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
-from mathics.builtin.base import (
-    BoxConstruct,
-    BoxConstructError,
-)
-
+from mathics.builtin.base import BoxExpression
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
     ColorError,
@@ -18,7 +14,7 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
-
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.graphics import (
     Arrowheads,
     Coords,
@@ -394,7 +390,7 @@ class DiskBox(_ArcBox):
     summary_text = "internal box representation for 'Disk' elements"
 
 
-class GraphicsBox(BoxConstruct):
+class GraphicsBox(BoxExpression):
     """
     <dl>
     <dt>'GraphicsBox[...]'

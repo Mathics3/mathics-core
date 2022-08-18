@@ -1,6 +1,6 @@
 from .helper import evaluate, session
 
-from mathics.builtin.base import BoxConstruct, Predefined
+from mathics.builtin.base import BoxExpression, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
@@ -9,7 +9,7 @@ from mathics.core.symbols import Symbol
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
 
 
-class CustomBoxConstruct(BoxConstruct):
+class CustomBoxExpression(BoxExpression):
     def __init__(self, evaluation):
         super().__init__(evaluation=evaluation)
         self._elements = [1, 2, 3]
@@ -17,17 +17,17 @@ class CustomBoxConstruct(BoxConstruct):
     def boxes_to_text(self, leaves=None, **options):
         if not leaves:
             leaves = self.elements
-        return "CustomBoxConstruct<<" + self.elements.__str__() + ">>"
+        return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
     def boxes_to_mathml(self, leaves=None, **options):
         if not leaves:
             leaves = self.elements
-        return "CustomBoxConstruct<<" + self.elements.__str__() + ">>"
+        return "CustomBoxExpression<<" + self.elements.__str__() + ">>"
 
     def boxes_to_tex(self, leaves=None, **options):
         if not leaves:
             leaves = self.elements
-        return "CustomBoxConstruct<<" + int(self.elements) + ">>"
+        return "CustomBoxExpression<<" + int(self.elements) + ">>"
 
 
 class CustomAtom(Predefined):
@@ -42,10 +42,10 @@ class CustomAtom(Predefined):
 
     def apply_to_boxes(self, evaluation):
         "System`MakeBoxes[System`CustomAtom, StandardForm|TraditionalForm|OutputForm|InputForm]"
-        return CustomBoxConstruct(evaluation=evaluation)
+        return CustomBoxExpression(evaluation=evaluation)
 
 
-class CustomGraphicsBox(BoxConstruct):
+class CustomGraphicsBox(BoxExpression):
     """"""
 
     options = GRAPHICS_OPTIONS
@@ -98,7 +98,7 @@ def test_custom_boxconstruct():
     instance_custom_atom.contribute(defs, is_pymodule=True)
     evaluate("MakeBoxes[CustomAtom, InputForm]")
     formatted = session.format_result().boxes_to_mathml()
-    assert formatted == "CustomBoxConstruct<<[1, 2, 3]>>"
+    assert formatted == "CustomBoxExpression<<[1, 2, 3]>>"
 
 
 def test_custom_graphicsbox_constructor():

@@ -9,11 +9,9 @@ from math import atan2, cos, exp, pi, radians, sin, sqrt
 
 from mathics.builtin.colors.color_internals import convert_color
 
-from mathics.builtin.base import (
-    Builtin,
-    BoxConstructError,
-)
+from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.core.atoms import (
     Integer,
     Real,

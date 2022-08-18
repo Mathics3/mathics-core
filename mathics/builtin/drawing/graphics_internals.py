@@ -6,10 +6,10 @@
 
 from mathics.builtin.base import (
     BuiltinElement,
-    BoxConstruct,
-    BoxConstructError,
+    BoxExpression,
     split_name,
 )
+from mathics.builtin.exceptions import BoxConstructError
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
@@ -52,7 +52,7 @@ class _GraphicsDirective(BuiltinElement):
         return klass(graphics, item)
 
 
-class _GraphicsElementBox(BoxConstruct):
+class _GraphicsElementBox(BoxExpression):
     def init(self, graphics, item=None, style=None, opacity=1.0):
         if item is not None and not item.has_form(self.get_name(), None):
             raise BoxConstructError

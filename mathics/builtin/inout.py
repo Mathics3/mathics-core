@@ -12,8 +12,7 @@ from typing import Any, Optional
 
 
 from mathics.builtin.base import (
-    BoxConstruct,
-    BoxConstructError,
+    BoxExpression,
     Builtin,
     BinaryOperator,
     Operator,
@@ -21,6 +20,7 @@ from mathics.builtin.base import (
 )
 from mathics.builtin.box.inout import RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
+from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.tensors import get_dimensions
@@ -66,10 +66,8 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
-    SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
-    SymbolNone,
     SymbolOutputForm,
     SymbolQuiet,
     SymbolRow,
@@ -821,7 +819,7 @@ def is_constant_list(list):
 
 # TODO: Inheritance of options["ColumnAlignments"] prevents us from
 # putting this in mathics.builtin.box. Figure out what's up here.
-class GridBox(BoxConstruct):
+class GridBox(BoxExpression):
     r"""
     <dl>
     <dt>'GridBox[{{...}, {...}}]'
