@@ -6,6 +6,7 @@ import re
 
 from mathics.core.atoms import SymbolString, SymbolI, String, Integer, Rational, Complex
 from mathics.core.element import BaseElement, BoxElement, EvalMixin
+from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -464,7 +465,9 @@ def do_format_element(
             ]
             expr_head = expr.head
             do_format = element_formatters.get(type(expr_head), do_format_element)
-            expr = Expression(do_format(expr_head, evaluation, form), *new_elements)
+            head = do_format(expr_head, evaluation, form)
+            expr = to_expression_with_specialization(head, *new_elements)
+
         if include_form:
             expr = Expression(form, expr)
         return expr

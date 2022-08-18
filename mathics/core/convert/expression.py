@@ -33,6 +33,21 @@ def to_expression(
     return Expression(head, *elements_tuple, elements_properties=elements_properties)
 
 
+def to_expression_with_specialization(
+    head: Union[str, Symbol],
+    *elements: Any,
+    elements_conversion_fn: Callable = from_python
+) -> Union[ListExpression, Expression]:
+    """
+    This expression constructor will figure out what the right kind of
+    expression to use is, e.g. either Expression or ListExpression.
+    """
+    if head is SymbolList:
+        return ListExpression(*elements)
+    else:
+        return Expression(head, *elements)
+
+
 def to_mathics_list(
     *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
 ) -> Expression:

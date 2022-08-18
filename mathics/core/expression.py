@@ -5,8 +5,7 @@ import sympy
 import math
 import time
 
-import typing
-from typing import Any, Callable, Iterable, Optional, Tuple
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
 from itertools import chain
 from bisect import bisect_left
 
@@ -31,6 +30,7 @@ from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
+from mathics.core.structure import LinkedStructure
 from mathics.core.symbols import (
     Atom,
     BaseElement,
@@ -190,11 +190,11 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     """
 
     _head: BaseElement
-    _elements: typing.List[BaseElement]
+    _elements: List[BaseElement]
     _sequences: Any
-    _cache: typing.Optional[ExpressionCache]
-    elements_properties: typing.Optional[ElementsProperties]
-    options: typing.Optional[tuple]
+    _cache: Optional[ExpressionCache]
+    elements_properties: Optional[ElementsProperties]
+    options: Optional[tuple]
     pattern_sequence: bool
 
     def __init__(
@@ -208,6 +208,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # assert isinstance(head, BaseElement)
         # assert isinstance(elements, tuple)
         # assert all(isinstance(e, BaseElement) for e in elements)
+        # if head is SymbolList:
+        #     from trepan.api import debug; debug()
 
         self._head = head
         self._elements = elements
@@ -410,7 +412,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
     def evaluate(
         self,
         evaluation: Evaluation,
-    ) -> Optional[typing.Type["BaseElement"]]:
+    ) -> Optional[Type["BaseElement"]]:
         """
         Apply transformation rules and expression evaluation to ``evaluation`` via
         ``rewrite_apply_eval_step()`` until that method tells us to stop,
@@ -570,6 +572,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                  on flattening pass a negative number.
         pattern_only: if True, just apply to elements that are pattern_sequence (see ExpressionPattern.get_wrappings)
         """
+        from mathics.core.convert.expression import to_expression_with_specialization
+
         if level == 0:
             return self
         if self._does_not_contain_symbol(head.get_name()):
@@ -596,7 +600,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     new_elements.extend(new_element._elements)
                 else:
                     new_elements.append(element)
-            return Expression(self._head, *new_elements)
+            return to_expression_with_specialization(self._head, *new_elements)
         else:
             return self
 
@@ -954,7 +958,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         s = structure(head, deps, evaluation, structure_cache=structure_cache)
         return s(list(elements))
 
-    def rewrite_apply_eval_step(self, evaluation) -> typing.Tuple["Expression", bool]:
+    def rewrite_apply_eval_step(self, evaluation) -> Tuple["Expression", bool]:
         """Perform a single rewrite/apply/eval step of the bigger
         Expression.evaluate() process.
 
@@ -1296,7 +1300,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         Change the Head of a ListExpression.
         Unless this is a ListExpression, this is forbidden here.
         """
-        if head == SymbolList:
+        if head is SymbolList:
             raise TypeError("Attempt to turn an Expression into a ListExpression")
         self._head = head
         self._cache = None
@@ -1460,10 +1464,13 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             self._cache = self._cache.reordered()
 
     def do_apply_rules(self, rules, evaluation, level=0, options=None):
-        """for rule in rules:
-        result = rule.apply(self, evaluation, fully=False)
-        if result is not None:
-            return result"""
+        """
+        for rule in rules:
+           result = rule.apply(self, evaluation, fully=False)
+           if result is not None:
+            return result
+        """
+        from mathics.core.convert.expression import to_expression_with_specialization
 
         # to be able to access it inside inner function
         new_applied = [False]
@@ -1476,8 +1483,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return new
 
         def descend(expr):
-            return Expression(
-                expr._head, *[apply_element(element) for element in expr._elements]
+            return to_expression_with_specialization(
+                expr.head, *[apply_element(element) for element in expr._elements]
             )
 
         if options is None:  # default ReplaceAll mode; replace breadth first
@@ -1598,7 +1605,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             *[element.replace_slots(slots, evaluation) for element in self._elements]
         )
 
-    def thread(self, evaluation, head=None) -> typing.Tuple[bool, "Expression"]:
+    def thread(self, evaluation, head=None) -> Tuple[bool, "Expression"]:
         """
         Thread over expressions with head as Head:
         Thread[F[{a,b},{c,d}, G[z,q]],G] -> newexpr = G[F[{a, b}, {c, d}, z], F[{a, b}, {c, d}, q]]
@@ -1780,91 +1787,6 @@ def _is_neutral_head(head, cache, evaluation):
     return _is_neutral_symbol(head.get_name(), cache, evaluation)
 
 
-class Structure:
-    """
-    Structure helps implementations make the ExpressionCache not invalidate across simple commands
-    such as Take[], Most[], etc. without this, constant reevaluation of lists happens, which results
-    in quadratic runtimes for command like Fold[#1+#2&, Range[x]].
-
-    A good performance test case for Structure: x = Range[50000]; First[Timing[Partition[x, 15, 1]]]
-    """
-
-    def __call__(self, elements):
-        # create an Expression with the given list "elements" as elements.
-        # NOTE: the caller guarantees that "elements" only contains items that are from "origins".
-        raise NotImplementedError
-
-    def filter(self, expr, cond):
-        # create an Expression with a subset of "expr".elements (picked out by the filter "cond").
-        # NOTE: the caller guarantees that "expr" is from "origins".
-        raise NotImplementedError
-
-    def slice(self, expr, py_slice):
-        # create an Expression, using the given slice of "expr".elements as elements.
-        # NOTE: the caller guarantees that "expr" is from "origins".
-        raise NotImplementedError
-
-
-class UnlinkedStructure(Structure):
-    """
-    UnlinkedStructure produces Expressions that are not linked to "origins" in terms of cache.
-    This produces the same thing as doing Expression(head, *elements).
-    """
-
-    def __init__(self, head):
-        self._head = head
-        self._cache = None
-
-    def __call__(self, elements):
-        expr = Expression(self._head)
-        expr.elements = elements
-        return expr
-
-    def filter(self, expr, cond):
-        return self([element for element in expr.elements if cond(element)])
-
-    def slice(self, expr, py_slice):
-        elements = expr.elements
-        lower, upper, step = py_slice.indices(len(elements))
-        if step != 1:
-            raise ValueError("Structure.slice only supports slice steps of 1")
-        return self(elements[lower:upper])
-
-
-class LinkedStructure(Structure):
-    """
-    LinkedStructure produces Expressions that are linked to "origins" in terms of cache. This
-    carries over information from the cache of the originating Expressions into the Expressions
-    that are newly created.
-    """
-
-    def __init__(self, head, cache):
-        self._head = head
-        self._cache = cache
-
-    def __call__(self, elements):
-        expr = Expression(self._head)
-        expr.elements = tuple(elements)
-        expr._cache = self._cache.reordered()
-        return expr
-
-    def filter(self, expr, cond):
-        return self([element for element in expr.elements if cond(element)])
-
-    def slice(self, expr, py_slice):
-        elements = expr.elements
-        lower, upper, step = py_slice.indices(len(elements))
-        if step != 1:
-            raise ValueError("Structure.slice only supports slice steps of 1")
-
-        new = Expression(self._head)
-        new.elements = elements[lower:upper]
-        if expr._cache:
-            new._cache = expr._cache.sliced(lower, upper)
-
-        return new
-
-
 def structure(head, origins, evaluation, structure_cache=None):
     """
     Creates a Structure for building Expressions with head "head" and elements
@@ -1876,6 +1798,7 @@ def structure(head, origins, evaluation, structure_cache=None):
     manufactured using that Structure), or a list of Expressions (i.e. all elements
     must originate from one of the listed Expressions).
     """
+    from mathics.core.structure import Structure, UnlinkedStructure
 
     if isinstance(head, (str,)):
         head = Symbol(head)
