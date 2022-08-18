@@ -3,7 +3,6 @@
 Boxing Routines for 2D Graphics
 """
 
-import base64
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
 from mathics.builtin.base import (
@@ -53,6 +52,7 @@ from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
+
 
 # Note: has to come before _ArcBox
 class _RoundBox(_GraphicsElementBox):

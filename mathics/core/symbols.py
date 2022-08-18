@@ -684,6 +684,7 @@ SymbolUpSet = Symbol("UpSet")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolTimes = Symbol("Times")
 
+
 # NumericOperators uses some of the Symbols above.
 class NumericOperators:
     """

@@ -3,7 +3,6 @@
 Boxing Routines for 3D Graphics
 """
 
-import html
 import json
 import numbers
 

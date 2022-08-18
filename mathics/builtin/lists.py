@@ -951,7 +951,7 @@ class _IterationFunction(Builtin):
             cont = Expression(compare_type, index, imax).evaluate(evaluation)
             if cont is SymbolFalse:
                 break
-            if not cont is SymbolTrue:
+            if cont is not SymbolTrue:
                 if self.throw_iterb:
                     evaluation.message(self.get_name(), "iterb")
                 return

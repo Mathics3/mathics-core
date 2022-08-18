@@ -12,8 +12,6 @@ from typing import Any, Optional
 
 
 from mathics.builtin.base import (
-    BoxConstruct,
-    BoxConstructError,
     Builtin,
     BinaryOperator,
     Operator,
@@ -66,10 +64,8 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
-    SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
-    SymbolNone,
     SymbolOutputForm,
     SymbolQuiet,
     SymbolRow,

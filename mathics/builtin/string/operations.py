@@ -53,7 +53,6 @@ from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
-    SymbolFullForm,
     SymbolOutputForm,
 )
 

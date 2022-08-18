@@ -9,7 +9,7 @@ from mathics.builtin.base import BoxExpression
 from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.atoms import Atom, String, SymbolString
+from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
 from mathics.core.element import BoxElement
 from mathics.core.evaluation import Evaluation
