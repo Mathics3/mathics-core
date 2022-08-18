@@ -10,6 +10,7 @@ import html
 
 from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.layout import (
+    _BoxedString,
     GridBox,
     RowBox,
     SubscriptBox,
@@ -112,6 +113,7 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
+add_conversion_fn(_BoxedString, string)
 
 
 def fractionbox(self, **options) -> str:
