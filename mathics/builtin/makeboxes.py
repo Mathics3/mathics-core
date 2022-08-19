@@ -329,11 +329,11 @@ class BoxForms_(Predefined):
 class MakeBoxes(Builtin):
     """
     <dl>
-    <dt>'MakeBoxes[$expr$]'
-        <dd>is a low-level formatting primitive that converts $expr$
+      <dt>'MakeBoxes[$expr$]'
+      <dd>is a low-level formatting primitive that converts $expr$
         to box form, without evaluating it.
-    <dt>'\\( ... \\)'
-        <dd>directly inputs box objects.
+      <dt>'\\( ... \\)'
+      <dd>directly inputs box objects.
     </dl>
 
     String representation of boxes
@@ -598,8 +598,8 @@ class MakeBoxes(Builtin):
 class ToBoxes(Builtin):
     """
     <dl>
-    <dt>'ToBoxes[$expr$]'
-        <dd>evaluates $expr$ and converts the result to box form.
+      <dt>'ToBoxes[$expr$]'
+      <dd>evaluates $expr$ and converts the result to box form.
     </dl>
 
     Unlike 'MakeBoxes', 'ToBoxes' evaluates its argument:

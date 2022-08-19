@@ -35,8 +35,8 @@ from mathics.core.systemsymbols import (
 class Message(Builtin):
     """
     <dl>
-    <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
-        <dd>displays the specified message, replacing placeholders in
+      <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
+      <dd>displays the specified message, replacing placeholders in
         the message text with the corresponding expressions.
     </dl>
 
@@ -76,10 +76,10 @@ def check_message(expr) -> bool:
 class Check(Builtin):
     """
     <dl>
-    <dt>'Check[$expr$, $failexpr$]'
-        <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
-    <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
-        <dd>checks only for the specified messages.
+      <dt>'Check[$expr$, $failexpr$]'
+      <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
+      <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
+      <dd>checks only for the specified messages.
     </dl>
 
     Return err when a message is generated:
@@ -208,14 +208,14 @@ class Check(Builtin):
 class Quiet(Builtin):
     """
     <dl>
-    <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
-        <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
-    <dt>'Quiet[$expr$, All]'
-        <dd>evaluates $expr$, without any messages being displayed.
-    <dt>'Quiet[$expr$, None]'
-        <dd>evaluates $expr$, without all messages being displayed.
-    <dt>'Quiet[$expr$, $off$, $on$]'
-        <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
+      <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
+      <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
+      <dt>'Quiet[$expr$, All]'
+      <dd>evaluates $expr$, without any messages being displayed.
+      <dt>'Quiet[$expr$, None]'
+      <dd>evaluates $expr$, without all messages being displayed.
+      <dt>'Quiet[$expr$, $off$, $on$]'
+      <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
     </dl>
 
     Evaluate without generating messages:
@@ -336,8 +336,8 @@ class Quiet(Builtin):
 class Off(Builtin):
     """
     <dl>
-    <dt>'Off[$symbol$::$tag$]'
-        <dd>turns a message off so it is no longer printed.
+      <dt>'Off[$symbol$::$tag$]'
+      <dd>turns a message off so it is no longer printed.
     </dl>
 
     >> Off[Power::infy]
@@ -383,8 +383,8 @@ class Off(Builtin):
 class On(Builtin):
     """
     <dl>
-    <dt>'On[$symbol$::$tag$]'
-        <dd>turns a message on for printing.
+      <dt>'On[$symbol$::$tag$]'
+      <dd>turns a message on for printing.
     </dl>
 
     >> Off[Power::infy]
@@ -430,9 +430,9 @@ class On(Builtin):
 class MessageName(BinaryOperator):
     """
     <dl>
-    <dt>'MessageName[$symbol$, $tag$]'
-    <dt>'$symbol$::$tag$'
-        <dd>identifies a message.
+      <dt>'MessageName[$symbol$, $tag$]'
+      <dt>'$symbol$::$tag$'
+      <dd>identifies a message.
     </dl>
 
     'MessageName' is the head of message IDs of the form 'symbol::tag'.
@@ -473,8 +473,8 @@ class MessageName(BinaryOperator):
 class Syntax(Builtin):
     r"""
     <dl>
-    <dt>'Syntax'
-        <dd>is a symbol to which all syntax messages are assigned.
+      <dt>'Syntax'
+      <dd>is a symbol to which all syntax messages are assigned.
     </dl>
 
     >> 1 +
@@ -577,8 +577,8 @@ class Syntax(Builtin):
 class General(Builtin):
     """
     <dl>
-    <dt>'General'
-        <dd>is a symbol to which all general-purpose messages are assigned.
+      <dt>'General'
+      <dd>is a symbol to which all general-purpose messages are assigned.
     </dl>
 
     >> General::argr

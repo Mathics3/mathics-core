@@ -67,8 +67,8 @@ class Format(Builtin):
 class Row(Builtin):
     """
     <dl>
-    <dt>'Row[{$expr$, ...}]'
-        <dd>formats several expressions inside a 'RowBox'.
+      <dt>'Row[{$expr$, ...}]'
+      <dd>formats several expressions inside a 'RowBox'.
     </dl>
     """
 
@@ -97,8 +97,8 @@ class Row(Builtin):
 class Grid(Builtin):
     """
     <dl>
-    <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
-        <dd>formats several expressions inside a 'GridBox'.
+      <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
+      <dd>formats several expressions inside a 'GridBox'.
     </dl>
 
     >> Grid[{{a, b}, {c, d}}]
@@ -132,8 +132,8 @@ class Grid(Builtin):
 class Superscript(Builtin):
     """
     <dl>
-    <dt>'Superscript[$x$, $y$]'
-        <dd>displays as $x$^$y$.
+      <dt>'Superscript[$x$, $y$]'
+      <dd>displays as $x$^$y$.
     </dl>
 
     >> Superscript[x,3] // TeXForm
@@ -151,8 +151,8 @@ class Superscript(Builtin):
 class Subscript(Builtin):
     """
     <dl>
-    <dt>'Subscript[$a$, $i$]'
-        <dd>displays as $a_i$.
+      <dt>'Subscript[$a$, $i$]'
+      <dd>displays as $a_i$.
     </dl>
 
     >> Subscript[x,1,2,3] // TeXForm
@@ -175,8 +175,8 @@ class Subscript(Builtin):
 class Subsuperscript(Builtin):
     """
     <dl>
-    <dt>'Subsuperscript[$a$, $b$, $c$]'
-        <dd>displays as $a_b^c$.
+      <dt>'Subsuperscript[$a$, $b$, $c$]'
+      <dd>displays as $a_b^c$.
     </dl>
 
     >> Subsuperscript[a, b, c] // TeXForm
@@ -195,8 +195,8 @@ class Subsuperscript(Builtin):
 class Postfix(BinaryOperator):
     """
     <dl>
-    <dt>'$x$ // $f$'
-        <dd>is equivalent to '$f$[$x$]'.
+      <dt>'$x$ // $f$'
+      <dd>is equivalent to '$f$[$x$]'.
     </dl>
 
     >> b // a
@@ -219,8 +219,8 @@ class Postfix(BinaryOperator):
 class Prefix(BinaryOperator):
     """
     <dl>
-    <dt>'$f$ @ $x$'
-        <dd>is equivalent to '$f$[$x$]'.
+      <dt>'$f$ @ $x$'
+      <dd>is equivalent to '$f$[$x$]'.
     </dl>
 
     >> a @ b
@@ -253,8 +253,8 @@ class Prefix(BinaryOperator):
 class Infix(Builtin):
     """
     <dl>
-    <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
-        <dd>displays $expr$ with the infix operator $oper$, with
+      <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
+      <dd>displays $expr$ with the infix operator $oper$, with
         precedence $prec$ and associativity $assoc$.
     </dl>
 
@@ -293,8 +293,8 @@ class Infix(Builtin):
 class NonAssociative(Builtin):
     """
     <dl>
-    <dt>'NonAssociative'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'NonAssociative'
+      <dd>is used with operator formatting constructs to specify a
         non-associative operator.
     </dl>
     """
@@ -305,8 +305,8 @@ class NonAssociative(Builtin):
 class Left(Builtin):
     """
     <dl>
-    <dt>'Left'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'Left'
+      <dd>is used with operator formatting constructs to specify a
         left-associative operator.
     </dl>
     """
@@ -317,8 +317,8 @@ class Left(Builtin):
 class Right(Builtin):
     """
     <dl>
-    <dt>'Right'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'Right'
+      <dd>is used with operator formatting constructs to specify a
         right-associative operator.
     </dl>
     """
@@ -329,8 +329,8 @@ class Right(Builtin):
 class Center(Builtin):
     """
     <dl>
-    <dt>'Center'
-        <dd>is used with the 'ColumnAlignments' option to 'Grid' or
+      <dt>'Center'
+      <dd>is used with the 'ColumnAlignments' option to 'Grid' or
         'TableForm' to specify a centered column.
     </dl>
     """
@@ -341,27 +341,27 @@ class Center(Builtin):
 class Style(Builtin):
     """
     <dl>
-    <dt>'Style[$expr$, options]'
-    <dd>displays $expr$ formatted using the specified option settings.
-    <dt>'Style[$expr$, "style"]'
-    <dd> uses the option settings for the specified style in the current notebook.
-    <dt>'Style[$expr$, $color$]'
-    <dd>displays using the specified color.
-    <dt>'Style[$expr$, $Bold$]'
-    <dd>displays with fonts made bold.
-    <dt>'Style[$expr$, $Italic$]'
-    <dd>displays with fonts made italic.
-    <dt>'Style[$expr$, $Underlined$]'
-    <dd>displays with fonts underlined.
-    <dt>'Style[$expr$, $Larger$]
-    <dd>displays with fonts made larger.
-    <dt>'Style[$expr$, $Smaller$]'
-    <dd>displays with fonts made smaller.
-    <dt>'Style[$expr$, $n$]'
-    <dd>displays with font size n.
-    <dt>'Style[$expr$, $Tiny$]'
-    <dt>'Style[$expr$, $Small$]', etc.
-    <dd>display with fonts that are tiny, small, etc.
+      <dt>'Style[$expr$, options]'
+      <dd>displays $expr$ formatted using the specified option settings.
+      <dt>'Style[$expr$, "style"]'
+      <dd> uses the option settings for the specified style in the current notebook.
+      <dt>'Style[$expr$, $color$]'
+      <dd>displays using the specified color.
+      <dt>'Style[$expr$, $Bold$]'
+      <dd>displays with fonts made bold.
+      <dt>'Style[$expr$, $Italic$]'
+      <dd>displays with fonts made italic.
+      <dt>'Style[$expr$, $Underlined$]'
+      <dd>displays with fonts underlined.
+      <dt>'Style[$expr$, $Larger$]
+      <dd>displays with fonts made larger.
+      <dt>'Style[$expr$, $Smaller$]'
+      <dd>displays with fonts made smaller.
+      <dt>'Style[$expr$, $n$]'
+      <dd>displays with font size n.
+      <dt>'Style[$expr$, $Tiny$]'
+      <dt>'Style[$expr$, $Small$]', etc.
+      <dd>display with fonts that are tiny, small, etc.
     </dl>
     """
 
@@ -379,8 +379,8 @@ class Style(Builtin):
 class Precedence(Builtin):
     """
     <dl>
-    <dt>'Precedence[$op$]'
-        <dd>returns the precedence of the built-in operator $op$.
+      <dt>'Precedence[$op$]'
+      <dd>returns the precedence of the built-in operator $op$.
     </dl>
 
     >> Precedence[Plus]

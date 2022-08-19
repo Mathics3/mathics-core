@@ -59,8 +59,8 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
 class ButtonBox(BoxExpression):
     """
     <dl>
-    <dt>'ButtonBox[$boxes$]'
-        <dd> is a low-level box construct that represents a button in a
+      <dt>'ButtonBox[$boxes$]'
+      <dd> is a low-level box construct that represents a button in a
     notebook expression.
     </dl>
     """
@@ -79,8 +79,8 @@ def is_constant_list(list):
 class GridBox(BoxExpression):
     r"""
     <dl>
-    <dt>'GridBox[{{...}, {...}}]'
-        <dd>is a box construct that represents a sequence of boxes
+      <dt>'GridBox[{{...}, {...}}]'
+      <dd>is a box construct that represents a sequence of boxes
         arranged in a grid.
     </dl>
     #> Grid[{{a,bc},{d,e}}, ColumnAlignments:>Symbol["Rig"<>"ht"]]
@@ -223,8 +223,8 @@ class GridBox(BoxExpression):
 class InterpretationBox(BoxExpression):
     """
     <dl>
-    <dt>'InterpretationBox[{...}, expr]'
-        <dd> is a low-level box construct that displays as
+      <dt>'InterpretationBox[{...}, expr]'
+      <dd> is a low-level box construct that displays as
     boxes but is interpreted on input as expr.
     </dl>
 
@@ -251,8 +251,8 @@ class InterpretationBox(BoxExpression):
 class SubscriptBox(BoxExpression):
     """
     <dl>
-    <dt>'SubscriptBox[$a$, $b$]'
-        <dd>is a box construct that represents $a_b$.
+      <dt>'SubscriptBox[$a$, $b$]'
+      <dd>is a box construct that represents $a_b$.
     </dl>
 
     >> MakeBoxes[x_{3}]
@@ -321,8 +321,8 @@ class SubscriptBox(BoxExpression):
 class SubsuperscriptBox(BoxExpression):
     """
     <dl>
-    <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
-        <dd>is a box construct that represents $a_b^c$.
+      <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
+      <dd>is a box construct that represents $a_b^c$.
     </dl>
     """
 
@@ -394,8 +394,8 @@ class SubsuperscriptBox(BoxExpression):
 class SuperscriptBox(BoxExpression):
     """
     <dl>
-    <dt>'SuperscriptBox[$a$, $b$]'
-        <dd>is a box construct that represents $a^b$.
+      <dt>'SuperscriptBox[$a$, $b$]'
+      <dd>is a box construct that represents $a^b$.
     </dl>
 
     """
@@ -481,8 +481,8 @@ class SuperscriptBox(BoxExpression):
 class RowBox(BoxExpression):
     """
     <dl>
-    <dt>'RowBox[{...}]'
-        <dd>is a box construct that represents a sequence of boxes
+      <dt>'RowBox[{...}]'
+      <dd>is a box construct that represents a sequence of boxes
         arranged in a horizontal row.
     </dl>
     """
@@ -602,11 +602,11 @@ class RowBox(BoxExpression):
 class StyleBox(BoxExpression):
     """
     <dl>
-    <dt>'StyleBox[boxes, options]'
-        <dd> is a low-level representation of boxes
+      <dt>'StyleBox[boxes, options]'
+      <dd> is a low-level representation of boxes
      to be shown with the specified option settings.
-    <dt>'StyleBox[boxes, style]'
-        <dd> uses the option setting for the specified style in
+      <dt>'StyleBox[boxes, style]'
+      <dd> uses the option setting for the specified style in
     the current notebook.
     </dl>
     """
@@ -675,8 +675,8 @@ class StyleBox(BoxExpression):
 class TagBox(BoxExpression):
     """
     <dl>
-    <dt>'TagBox[boxes, tag]'
-        <dd> is a low-level box construct that displays as
+      <dt>'TagBox[boxes, tag]'
+      <dd> is a low-level box construct that displays as
     boxes but is interpreted on input as expr
     </dl>
     """
@@ -688,8 +688,8 @@ class TagBox(BoxExpression):
 class TemplateBox(BoxExpression):
     """
     <dl>
-    <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
-        <dd>is a low-level box structure that parameterizes the display and evaluation of the boxes $box_i$ .
+      <dt>'TemplateBox[{$box_1$, $box_2$,...}, tag]'
+      <dd>is a low-level box structure that parameterizes the display and evaluation of the boxes $box_i$ .
     </dl>
     """
 
@@ -700,8 +700,8 @@ class TemplateBox(BoxExpression):
 class TooltipBox(BoxExpression):
     """
     <dl>
-    <dt>'TooltipBox[{...}]'
-        <dd>undocumented...
+      <dt>'TooltipBox[{...}]'
+      <dd>undocumented...
     </dl>
     """
 
@@ -711,8 +711,8 @@ class TooltipBox(BoxExpression):
 class FractionBox(BoxExpression):
     """
     <dl>
-    <dt>'FractionBox[$x$, $y$]'
-        <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
+      <dt>'FractionBox[$x$, $y$]'
+      <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
     </dl>
     """
 
@@ -772,10 +772,10 @@ class FractionBox(BoxExpression):
 class SqrtBox(BoxExpression):
     """
     <dl>
-    <dt>'SqrtBox[$x$]'
-        <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
-    <dt>'SqrtBox[$x$, $y$]'
-        <dd> represents $\\sqrt[y]{x}$.
+      <dt>'SqrtBox[$x$]'
+      <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
+      <dt>'SqrtBox[$x$, $y$]'
+      <dd> represents $\\sqrt[y]{x}$.
     </dl>
     """
 
