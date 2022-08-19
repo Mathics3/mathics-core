@@ -45,6 +45,7 @@ class ArcCosh(_MPMathFunction):
     mpmath_name = "acosh"
 
     rules = {
+        "ArcCosh[Undefined]": "Undefined",
         "Derivative[1][ArcCosh]": "1/(Sqrt[#-1]*Sqrt[#+1])&",
     }
 
@@ -74,6 +75,7 @@ class ArcCoth(_MPMathFunction):
     mpmath_name = "acoth"
 
     rules = {
+        "ArcCoth[Undefined]": "Undefined",
         "ArcCoth[z:0.0]": "N[I / 2 Pi, Precision[1+z]]",
         "Derivative[1][ArcCoth]": "1/(1-#^2)&",
     }
@@ -95,6 +97,7 @@ class ArcCsch(_MPMathFunction):
     mpmath_name = "acsch"
 
     rules = {
+        "ArcCsch[Undefined]": "Undefined",
         "ArcCsch[0]": "ComplexInfinity",
         "ArcCsch[0.]": "ComplexInfinity",
         "Derivative[1][ArcCsch]": "-1 / (Sqrt[1+1/#^2] * #^2) &",
@@ -128,6 +131,7 @@ class ArcSech(_MPMathFunction):
     mpmath_name = "asech"
 
     rules = {
+        "ArcSech[Undefined]": "Undefined",
         "ArcSech[0]": "Infinity",
         "ArcSech[0.]": "Indeterminate",
         "Derivative[1][ArcSech]": "-1 / (# * Sqrt[(1-#)/(1+#)] (1+#)) &",
@@ -163,6 +167,7 @@ class ArcSinh(_MPMathFunction):
     mpmath_name = "asinh"
 
     rules = {
+        "ArcSinh[Undefined]": "Undefined",
         "Derivative[1][ArcSinh]": "1/Sqrt[1+#^2]&",
     }
 
@@ -170,8 +175,8 @@ class ArcSinh(_MPMathFunction):
 class ArcTanh(_MPMathFunction):
     """
     <dl>
-    <dt>'ArcTanh[$z$]'
-        <dd>returns the inverse hyperbolic tangent of $z$.
+      <dt>'ArcTanh[$z$]'
+      <dd>returns the inverse hyperbolic tangent of $z$.
     </dl>
 
     >> ArcTanh[0]
@@ -190,6 +195,7 @@ class ArcTanh(_MPMathFunction):
     numpy_name = "arctanh"
 
     rules = {
+        "ArcTanh[Undefined]": "Undefined",
         "Derivative[1][ArcTanh]": "1/(1-#^2)&",
     }
 
@@ -211,6 +217,7 @@ class Cosh(_MPMathFunction):
     mpmath_name = "cosh"
 
     rules = {
+        "Cosh[Undefined]": "Undefined",
         "Derivative[1][Cosh]": "Sinh[#]&",
     }
 
@@ -231,6 +238,7 @@ class Coth(_MPMathFunction):
     mpmath_name = "coth"
 
     rules = {
+        "Coth[Undefined]": "Undefined",
         "Coth[0]": "ComplexInfinity",
         "Coth[0.]": "ComplexInfinity",
         "Derivative[1][Coth]": "-Csch[#1]^2&",
@@ -244,7 +252,7 @@ class Gudermannian(Builtin):
     <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
       <dt>'Gudermannian[$z$]'
-       <dd>returns the Gudermannian function $gd$($z$).
+      <dd>returns the Gudermannian function $gd$($z$).
     </dl>
 
     >> Gudermannian[4.2]
@@ -289,7 +297,7 @@ class InverseGudermannian(Builtin):
     <url>:Inverse Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/InverseGudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/InverseGudermannian.html</url>)
     <dl>
       <dt>'InverseGudermannian[$z$]'
-       <dd>returns the inverse Gudermannian function $gd$^-1($z$).
+      <dd>returns the inverse Gudermannian function $gd$^-1($z$).
     </dl>
 
     >> InverseGudermannian[.5]
@@ -330,6 +338,7 @@ class Sech(_MPMathFunction):
 
     rules = {
         "Derivative[1][Sech]": "-Sech[#1] Tanh[#1]&",
+        "Sech[Undefined]": "Undefined",
     }
     summary_text = "hyperbolic secant function"
     sympy_name = ""
@@ -357,6 +366,7 @@ class Sinh(_MPMathFunction):
 
     rules = {
         "Derivative[1][Sinh]": "Cosh[#]&",
+        "Sinh[Undefined]": "Undefined",
     }
 
 
@@ -376,4 +386,5 @@ class Tanh(_MPMathFunction):
 
     rules = {
         "Derivative[1][Tanh]": "Sech[#1]^2&",
+        "Tanh[Undefined]": "Undefined",
     }
