@@ -112,7 +112,6 @@ class _MPMathFunction(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     mpmath_name = None
-
     nargs = {1}
 
     @lru_cache(maxsize=1024)
@@ -241,13 +240,386 @@ def create_infix(items, operator, prec, grouping):
         )
 
 
+class Abs(_MPMathFunction):
+    """
+    <url>:Absolute value: https://en.wikipedia.org/wiki/Absolute_value</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Abs</url>)
+
+    <dl>
+      <dt>'Abs[$x$]'
+      <dd>returns the absolute value of $x$.
+    </dl>
+
+    >> Abs[-3]
+     = 3
+
+    >> Plot[Abs[x], {x, -4, 4}]
+     = -Graphics-
+
+    'Abs' returns the magnitude of complex numbers:
+    >> Abs[3 + I]
+     = Sqrt[10]
+    >> Abs[3.0 + I]
+     = 3.16228
+
+    All of the below evaluate to Infinity:
+
+    >> Abs[Infinity] == Abs[I Infinity] == Abs[ComplexInfinity]
+     = True
+    """
+
+    mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
+    rules = {
+        "Abs[Undefined]": "Undefined",
+    }
+    summary_text = "absolute value of a number"
+    sympy_name = "Abs"
+
+
+class Arg(_MPMathFunction):
+    """
+    <dl>
+      <dt>'Arg'[$z$, $method_option$]
+      <dd>returns the argument of a complex value $z$.
+    </dl>
+
+    <ul>
+         <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
+         <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
+         <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
+         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
+         <li>'Arg'[0] is 0.
+    </ul>
+
+     >> Arg[-3]
+      = Pi
+
+     Same as above using sympy's method:
+     >> Arg[-3, Method->"sympy"]
+      = Pi
+
+    >> Arg[1-I]
+     = -Pi / 4
+
+    Arg evaluate the direction of DirectedInfinity quantities by
+    the Arg of they arguments:
+    >> Arg[DirectedInfinity[1+I]]
+     = Pi / 4
+    >> Arg[DirectedInfinity[]]
+     = 1
+    Arg for 0 is assumed to be 0:
+    >> Arg[0]
+     = 0
+    """
+
+    summary_text = "phase of a complex number"
+    rules = {
+        "Arg[0]": "0",
+        "Arg[DirectedInfinity[]]": "1",
+        "Arg[DirectedInfinity[a_]]": "Arg[a]",
+    }
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    options = {"Method": "Automatic"}
+
+    numpy_name = "angle"  # for later
+    mpmath_name = "arg"
+    sympy_name = "arg"
+
+    def apply(self, z, evaluation, options={}):
+        "%(name)s[z_, OptionsPattern[%(name)s]]"
+        if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
+            return Integer0
+        preference = self.get_option(options, "Method", evaluation).get_string_value()
+        if preference is None or preference == "Automatic":
+            return super(Arg, self).apply(z, evaluation)
+        elif preference == "mpmath":
+            return _MPMathFunction.apply(self, z, evaluation)
+        elif preference == "sympy":
+            return SympyFunction.apply(self, z, evaluation)
+        # TODO: add NumpyFunction
+        evaluation.message(
+            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
+        )
+        return
+
+
+class Assuming(Builtin):
+    """
+    <dl>
+      <dt>'Assuming[$cond$, $expr$]'
+      <dd>Evaluates $expr$ assuming the conditions $cond$.
+    </dl>
+    >> $Assumptions = { x > 0 }
+     = {x > 0}
+    >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]
+     = x ^ 2 y
+    >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
+     = Undefined
+    >> ConditionalExpression[y x ^ 2, y > 0]//Simplify
+     = ConditionalExpression[x ^ 2 y, y > 0]
+    """
+
+    summary_text = "set assumptions during the evaluation"
+    attributes = A_HOLD_REST | A_PROTECTED
+
+    def apply_assuming(self, assumptions, expr, evaluation):
+        "Assuming[assumptions_, expr_]"
+        assumptions = assumptions.evaluate(evaluation)
+        if assumptions is SymbolTrue:
+            cond = []
+        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
+            cond = [assumptions]
+        else:
+            cond = assumptions.elements
+        cond = tuple(cond) + get_assumptions_list(evaluation)
+        list_cond = ListExpression(*cond)
+        # TODO: reduce the list of predicates
+        return dynamic_scoping(
+            lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
+        )
+
+
+class Assumptions(Predefined):
+    """
+    <dl>
+      <dt>'$Assumptions'
+      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
+    </dl>
+    """
+
+    summary_text = "assumptions used to simplify expressions"
+    name = "$Assumptions"
+    attributes = A_NO_ATTRIBUTES
+    rules = {
+        "$Assumptions": "True",
+    }
+
+    messages = {
+        "faas": "Assumptions should not be False.",
+        "baas": "Bad formed assumption.",
+    }
+
+
+class Boole(Builtin):
+    """
+    <dl>
+      <dt>'Boole[expr]'
+      <dd>returns 1 if expr is True and 0 if expr is False.
+    </dl>
+
+    >> Boole[2 == 2]
+     = 1
+    >> Boole[7 < 5]
+     = 0
+    >> Boole[a == 7]
+     = Boole[a == 7]
+    """
+
+    summary_text = "translate 'True' to 1, and 'False' to 0"
+    attributes = A_LISTABLE | A_PROTECTED
+
+    def apply(self, expr, evaluation):
+        "%(name)s[expr_]"
+        if expr is SymbolTrue:
+            return Integer1
+        elif expr is SymbolFalse:
+            return Integer0
+        return None
+
+
+class Complex_(Builtin):
+    """
+    <dl>
+      <dt>'Complex'
+      <dd>is the head of complex numbers.
+
+      <dt>'Complex[$a$, $b$]'
+      <dd>constructs the complex number '$a$ + I $b$'.
+    </dl>
+
+    >> Head[2 + 3*I]
+     = Complex
+    >> Complex[1, 2/3]
+     = 1 + 2 I / 3
+    >> Abs[Complex[3, 4]]
+     = 5
+
+    #> OutputForm[Complex[2.0 ^ 40, 3]]
+     = 1.09951×10^12 + 3. I
+    #> InputForm[Complex[2.0 ^ 40, 3]]
+     = 1.099511627776*^12 + 3.*I
+
+    #> -2 / 3 - I
+     = -2 / 3 - I
+
+    #> Complex[10, 0]
+     = 10
+
+    #> 0. + I
+     = 0. + 1. I
+
+    #> 1 + 0 I
+     = 1
+    #> Head[%]
+     = Integer
+
+    #> Complex[0.0, 0.0]
+     = 0. + 0. I
+    #> 0. I
+     = 0.
+    #> 0. + 0. I
+     = 0.
+
+    #> 1. + 0. I
+     = 1.
+    #> 0. + 1. I
+     = 0. + 1. I
+
+    ## Check Nesting Complex
+    #> Complex[1, Complex[0, 1]]
+     = 0
+    #> Complex[1, Complex[1, 0]]
+     = 1 + I
+    #> Complex[1, Complex[1, 1]]
+     = I
+    """
+
+    summary_text = "head for complex numbers"
+    name = "Complex"
+
+    def apply(self, r, i, evaluation):
+        "%(name)s[r_?NumberQ, i_?NumberQ]"
+
+        if isinstance(r, Complex) or isinstance(i, Complex):
+            sym_form = r.to_sympy() + sympy.I * i.to_sympy()
+            r, i = sym_form.simplify().as_real_imag()
+            r, i = from_sympy(r), from_sympy(i)
+        return Complex(r, i)
+
+
+class ConditionalExpression(Builtin):
+    """
+    <dl>
+      <dt>'ConditionalExpression[$expr$, $cond$]'
+      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ evaluates to $False$.
+    </dl>
+
+    >> ConditionalExpression[x^2, True]
+     = x ^ 2
+
+     >> ConditionalExpression[x^2, False]
+     = Undefined
+
+    >> f = ConditionalExpression[x^2, x>0]
+     = ConditionalExpression[x ^ 2, x > 0]
+    >> f /. x -> 2
+     = 4
+    >> f /. x -> -2
+     = Undefined
+    'ConditionalExpression' uses assumptions to evaluate the condition:
+    >> $Assumptions = x > 0;
+    >> ConditionalExpression[x ^ 2, x>0]//Simplify
+     = x ^ 2
+    >> $Assumptions = True;
+    # >> ConditionalExpression[ConditionalExpression[s,x>a], x<b]
+    # = ConditionalExpression[s, And[x>a, x<b]]
+    """
+
+    summary_text = "expression defined under condition"
+    sympy_name = "Piecewise"
+
+    rules = {
+        "ConditionalExpression[expr_, True]": "expr",
+        "ConditionalExpression[expr_, False]": "Undefined",
+        "ConditionalExpression[ConditionalExpression[expr_, cond1_], cond2_]": "ConditionalExpression[expr, And@@Flatten[{cond1, cond2}]]",
+        "ConditionalExpression[expr1_, cond_] + expr2_": "ConditionalExpression[expr1+expr2, cond]",
+        "ConditionalExpression[expr1_, cond_]  expr2_": "ConditionalExpression[expr1 expr2, cond]",
+        "ConditionalExpression[expr1_, cond_]^expr2_": "ConditionalExpression[expr1^expr2, cond]",
+        "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
+    }
+
+    def apply_generic(self, expr, cond, evaluation):
+        "ConditionalExpression[expr_, cond_]"
+        # What we need here is a way to evaluate
+        # cond as a predicate, using assumptions.
+        # Let's delegate this to the And (and Or) symbols...
+        if not isinstance(cond, Atom) and cond._head is SymbolList:
+            cond = Expression(SymbolAnd, *(cond.elements))
+        else:
+            cond = Expression(SymbolAnd, cond)
+        if cond is None:
+            return
+        if cond is SymbolTrue:
+            return expr
+        if cond is SymbolFalse:
+            return SymbolUndefined
+        return
+
+    def to_sympy(self, expr, **kwargs):
+        elements = expr.elements
+        if len(elements) != 2:
+            return
+        expr, cond = elements
+
+        sympy_cond = None
+        if isinstance(cond, Symbol):
+            if cond is SymbolTrue:
+                sympy_cond = True
+            elif cond is SymbolFalse:
+                sympy_cond = False
+        if sympy_cond is None:
+            sympy_cond = cond.to_sympy(**kwargs)
+            if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
+                return
+
+        sympy_cases = (
+            (expr.to_sympy(**kwargs), sympy_cond),
+            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
+        )
+        return sympy.Piecewise(*sympy_cases)
+
+
+class Conjugate(_MPMathFunction):
+    """
+    <dl>
+      <dt>'Conjugate[$z$]'
+      <dd>returns the complex conjugate of the complex number $z$.
+    </dl>
+
+    >> Conjugate[3 + 4 I]
+     = 3 - 4 I
+
+    >> Conjugate[3]
+     = 3
+
+    >> Conjugate[a + b * I]
+     = Conjugate[a] - I Conjugate[b]
+
+    >> Conjugate[{{1, 2 + I 4, a + I b}, {I}}]
+     = {{1, 2 - 4 I, Conjugate[a] - I Conjugate[b]}, {-I}}
+
+    ## Issue #272
+    #> {Conjugate[Pi], Conjugate[E]}
+     = {Pi, E}
+
+    >> Conjugate[1.5 + 2.5 I]
+     = 1.5 - 2.5 I
+    """
+
+    mpmath_name = "conj"
+    rules = {
+        "Conjugate[Undefined]": "Undefined",
+    }
+    summary_text = "complex conjugation"
+
+
 class DirectedInfinity(SympyFunction):
     """
     <dl>
-    <dt>'DirectedInfinity[$z$]'
-        <dd>represents an infinite multiple of the complex number $z$.
-    <dt>'DirectedInfinity[]'
-        <dd>is the same as 'ComplexInfinity'.
+      <dt>'DirectedInfinity[$z$]'
+      <dd>represents an infinite multiple of the complex number $z$.
+      <dt>'DirectedInfinity[]'
+      <dd>is the same as 'ComplexInfinity'.
     </dl>
 
     >> DirectedInfinity[1]
@@ -332,43 +704,24 @@ class DirectedInfinity(SympyFunction):
             return sympy.zoo
 
 
-class Re(SympyFunction):
+class I(Predefined):
     """
     <dl>
-    <dt>'Re[$z$]'
-        <dd>returns the real component of the complex number $z$.
+      <dt>'I'
+      <dd>represents the imaginary number 'Sqrt[-1]'.
     </dl>
 
-    >> Re[3+4I]
-     = 3
-
-    >> Plot[{Cos[a], Re[E^(I a)]}, {a, 0, 2 Pi}]
-     = -Graphics-
-
-    #> Im[0.5 + 2.3 I]
-     = 2.3
-    #> % // Precision
-     = MachinePrecision
+    >> I^2
+     = -1
+    >> (3+I)*(3-I)
+     = 10
     """
 
-    summary_text = "real part"
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    sympy_name = "re"
+    summary_text = "imaginary unit"
+    python_equivalent = 1j
 
-    def apply_complex(self, number, evaluation):
-        "Re[number_Complex]"
-
-        return number.real
-
-    def apply_number(self, number, evaluation):
-        "Re[number_?NumberQ]"
-
-        return number
-
-    def apply(self, number, evaluation):
-        "Re[number_]"
-
-        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
+    def evaluate(self, evaluation):
+        return Complex(Integer0, Integer1)
 
 
 class Im(SympyFunction):
@@ -409,212 +762,23 @@ class Im(SympyFunction):
         return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
 
 
-class Conjugate(_MPMathFunction):
+class Integer_(Builtin):
     """
     <dl>
-      <dt>'Conjugate[$z$]'
-      <dd>returns the complex conjugate of the complex number $z$.
+      <dt>'Integer'
+      <dd>is the head of integers.
     </dl>
 
-    >> Conjugate[3 + 4 I]
-     = 3 - 4 I
+    >> Head[5]
+     = Integer
 
-    >> Conjugate[3]
-     = 3
-
-    >> Conjugate[a + b * I]
-     = Conjugate[a] - I Conjugate[b]
-
-    >> Conjugate[{{1, 2 + I 4, a + I b}, {I}}]
-     = {{1, 2 - 4 I, Conjugate[a] - I Conjugate[b]}, {-I}}
-
-    ## Issue #272
-    #> {Conjugate[Pi], Conjugate[E]}
-     = {Pi, E}
-
-    >> Conjugate[1.5 + 2.5 I]
-     = 1.5 - 2.5 I
+    ## Test large Integer comparison bug
+    #> {a, b} = {2^10000, 2^10000 + 1}; {a == b, a < b, a <= b}
+     = {False, True, True}
     """
 
-    summary_text = "complex conjugation"
-    mpmath_name = "conj"
-
-
-class Abs(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Abs[$x$]'
-      <dd>returns the absolute value of $x$.
-    </dl>
-    >> Abs[-3]
-     = 3
-
-    'Abs' returns the magnitude of complex numbers:
-    >> Abs[3 + I]
-     = Sqrt[10]
-    >> Abs[3.0 + I]
-     = 3.16228
-    >> Plot[Abs[x], {x, -4, 4}]
-     = -Graphics-
-
-    #> Abs[I]
-     = 1
-    #> Abs[a - b]
-     = Abs[a - b]
-
-    #> Abs[Sqrt[3]]
-     = Sqrt[3]
-    """
-
-    summary_text = "absolute value of a number"
-    sympy_name = "Abs"
-    mpmath_name = "fabs"  # mpmath actually uses python abs(x) / x.__abs__()
-
-
-class Arg(_MPMathFunction):
-    """
-     <dl>
-       <dt>'Arg'[$z$, $method_option$]
-       <dd>returns the argument of a complex value $z$.
-     </dl>
-
-    <ul>
-         <li>'Arg'[$z$] is left unevaluated if $z$ is not a numeric quantity.
-         <li>'Arg'[$z$] gives the phase angle of $z$ in radians.
-         <li>The result from 'Arg'[$z$] is always between -Pi and +Pi.
-         <li>'Arg'[$z$] has a branch cut discontinuity in the complex $z$ plane running from -Infinity to 0.
-         <li>'Arg'[0] is 0.
-    </ul>
-
-     >> Arg[-3]
-      = Pi
-
-     Same as above using sympy's method:
-     >> Arg[-3, Method->"sympy"]
-      = Pi
-
-    >> Arg[1-I]
-     = -Pi / 4
-
-    Arg evaluate the direction of DirectedInfinity quantities by
-    the Arg of they arguments:
-    >> Arg[DirectedInfinity[1+I]]
-     = Pi / 4
-    >> Arg[DirectedInfinity[]]
-     = 1
-    Arg for 0 is assumed to be 0:
-    >> Arg[0]
-     = 0
-    """
-
-    summary_text = "phase of a complex number"
-    rules = {
-        "Arg[0]": "0",
-        "Arg[DirectedInfinity[]]": "1",
-        "Arg[DirectedInfinity[a_]]": "Arg[a]",
-    }
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-    options = {"Method": "Automatic"}
-
-    numpy_name = "angle"  # for later
-    mpmath_name = "arg"
-    sympy_name = "arg"
-
-    def apply(self, z, evaluation, options={}):
-        "%(name)s[z_, OptionsPattern[%(name)s]]"
-        if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
-            return Integer0
-        preference = self.get_option(options, "Method", evaluation).get_string_value()
-        if preference is None or preference == "Automatic":
-            return super(Arg, self).apply(z, evaluation)
-        elif preference == "mpmath":
-            return _MPMathFunction.apply(self, z, evaluation)
-        elif preference == "sympy":
-            return SympyFunction.apply(self, z, evaluation)
-        # TODO: add NumpyFunction
-        evaluation.message(
-            "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
-        )
-        return
-
-
-class Sign(SympyFunction):
-    """
-    <dl>
-    <dt>'Sign[$x$]'
-        <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
-    </dl>
-
-    >> Sign[19]
-     = 1
-    >> Sign[-6]
-     = -1
-    >> Sign[0]
-     = 0
-    >> Sign[{-5, -10, 15, 20, 0}]
-     = {-1, -1, 1, 1, 0}
-    #> Sign[{1, 2.3, 4/5, {-6.7, 0}, {8/9, -10}}]
-     = {1, 1, 1, {-1, 0}, {1, -1}}
-    >> Sign[3 - 4*I]
-     = 3 / 5 - 4 I / 5
-    #> Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]
-     = True
-    #> Sign[4, 5, 6]
-     : Sign called with 3 arguments; 1 argument is expected.
-     = Sign[4, 5, 6]
-    #> Sign["20"]
-     = Sign[20]
-    """
-
-    summary_text = "complex sign of a number"
-    sympy_name = "sign"
-    # mpmath_name = 'sign'
-
-    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
-
-    messages = {
-        "argx": "Sign called with `1` arguments; 1 argument is expected.",
-    }
-
-    def apply(self, x, evaluation):
-        "%(name)s[x_]"
-        # Sympy and mpmath do not give the desired form of complex number
-        if isinstance(x, Complex):
-            return Expression(
-                SymbolTimes,
-                x,
-                Expression(SymbolPower, Expression(SymbolAbs, x), IntegerM1),
-            )
-
-        sympy_x = x.to_sympy()
-        if sympy_x is None:
-            return None
-        return super().apply(x, evaluation)
-
-    def apply_error(self, x, seqs, evaluation):
-        "Sign[x_, seqs__]"
-        return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
-
-
-class I(Predefined):
-    """
-    <dl>
-    <dt>'I'
-        <dd>represents the imaginary number 'Sqrt[-1]'.
-    </dl>
-
-    >> I^2
-     = -1
-    >> (3+I)*(3-I)
-     = 10
-    """
-
-    summary_text = "imaginary unit"
-    python_equivalent = 1j
-
-    def evaluate(self, evaluation):
-        return Complex(Integer0, Integer1)
+    summary_text = "head for integer numbers"
+    name = "Integer"
 
 
 class NumberQ(Test):
@@ -636,6 +800,99 @@ class NumberQ(Test):
 
     def test(self, expr):
         return isinstance(expr, Number)
+
+
+class Piecewise(SympyFunction):
+    """
+    <dl>
+      <dt>'Piecewise[{{expr1, cond1}, ...}]'
+      <dd>represents a piecewise function.
+
+      <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
+      <dd>represents a piecewise function with default 'expr'.
+    </dl>
+
+    Heaviside function
+    >> Piecewise[{{0, x <= 0}}, 1]
+     = Piecewise[{{0, x <= 0}}, 1]
+
+    ## D[%, x]
+    ## Piecewise({{0, Or[x < 0, x > 0]}}, Indeterminate).
+
+    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], x]
+     = Piecewise[{{x, x <= 0}}, -x]
+
+    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], {x, -1, 2}]
+     = -1
+
+    Piecewise defaults to 0 if no other case is matching.
+    >> Piecewise[{{1, False}}]
+     = 0
+
+    >> Plot[Piecewise[{{Log[x], x > 0}, {x*-0.5, x < 0}}], {x, -1, 1}]
+     = -Graphics-
+
+    >> Piecewise[{{0 ^ 0, False}}, -1]
+     = -1
+    """
+
+    summary_text = "an arbitrary piecewise function"
+    sympy_name = "Piecewise"
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    def apply(self, items, evaluation):
+        "%(name)s[items__]"
+        result = self.to_sympy(
+            Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
+        )
+        if result is None:
+            return
+        if not isinstance(result, sympy.Piecewise):
+            result = from_sympy(result)
+            return result
+
+    def to_sympy(self, expr, **kwargs):
+        elements = expr.elements
+        evaluation = kwargs.get("evaluation", None)
+        if len(elements) not in (1, 2):
+            return
+
+        sympy_cases = []
+        for case in elements[0].elements:
+            if case.get_head_name() != "System`List":
+                return
+            if len(case.elements) != 2:
+                return
+            then, cond = case.elements
+            if evaluation:
+                cond = evaluate_predicate(cond, evaluation)
+
+            sympy_cond = None
+            if isinstance(cond, Symbol):
+                if cond is SymbolTrue:
+                    sympy_cond = True
+                elif cond is SymbolFalse:
+                    sympy_cond = False
+            if sympy_cond is None:
+                sympy_cond = cond.to_sympy(**kwargs)
+                if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
+                    return
+
+            sympy_cases.append((then.to_sympy(**kwargs), sympy_cond))
+
+        if len(elements) == 2:  # default case
+            sympy_cases.append((elements[1].to_sympy(**kwargs), True))
+        else:
+            sympy_cases.append((Integer0.to_sympy(**kwargs), True))
+
+        return sympy.Piecewise(*sympy_cases)
+
+    def from_sympy(self, sympy_name, args):
+        # Hack to get around weird sympy.Piecewise 'otherwise' behaviour
+        if str(args[-1].elements[1]).startswith("System`_True__Dummy_"):
+            args[-1].elements[1] = SymbolTrue
+        return Expression(self.get_name(), args)
 
 
 class PossibleZeroQ(SympyFunction):
@@ -705,55 +962,160 @@ class PossibleZeroQ(SympyFunction):
         return from_python(result)
 
 
-class RealNumberQ(Test):
+class Product(_IterationFunction, SympyFunction):
     """
     <dl>
-    <dt>'RealNumberQ[$expr$]'
-        <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
+      <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
+
+      <dt>'Product[$expr$, {$i$, $imax$}]'
+      <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
+
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
+      <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
+
+      <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
+      <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>
 
-    >> RealNumberQ[10]
-     = True
-    >> RealNumberQ[4.0]
-     = True
-    >> RealNumberQ[1+I]
-     = False
-    >> RealNumberQ[0 * I]
-     = True
-    >> RealNumberQ[0.0 * I]
-     = True
+    >> Product[k, {k, 1, 10}]
+     = 3628800
+    >> 10!
+     = 3628800
+    >> Product[x^k, {k, 2, 20, 2}]
+     = x ^ 110
+    >> Product[2 ^ i, {i, 1, n}]
+     = 2 ^ (n / 2 + n ^ 2 / 2)
+    >> Product[f[i], {i, 1, 7}]
+     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
+
+    Symbolic products involving the factorial are evaluated:
+    >> Product[k, {k, 3, n}]
+     = n! / 2
+
+    Evaluate the $n$th primorial:
+    >> primorial[0] = 1;
+    >> primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
+    >> primorial[12]
+     = 7420738134810
+
+    ## Used to be a bug in sympy, but now it is solved exactly!
+    ## Again a bug in sympy - regressions between 0.7.3 and 0.7.6 (and 0.7.7?)
+    ## #> Product[1 + 1 / i ^ 2, {i, Infinity}]
+    ##  = 1 / ((-I)! I!)
     """
 
-    summary_text = "test whether an expression is a real number"
+    summary_text = "discrete product"
+    throw_iterb = False
 
-    def test(self, expr):
-        return isinstance(expr, (Integer, Rational, Real))
+    sympy_name = "Product"
+
+    rules = _IterationFunction.rules.copy()
+    rules.update(
+        {
+            "MakeBoxes[Product[f_, {i_, a_, b_, 1}],"
+            "  form:StandardForm|TraditionalForm]": (
+                r'RowBox[{SubsuperscriptBox["\\[Product]",'
+                r'  RowBox[{MakeBoxes[i, form], "=", MakeBoxes[a, form]}],'
+                r"  MakeBoxes[b, form]], MakeBoxes[f, form]}]"
+            ),
+        }
+    )
+
+    def get_result(self, items):
+        return Expression(SymbolTimes, *items)
+
+    def to_sympy(self, expr, **kwargs):
+        if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
+            index = expr.elements[1]
+            try:
+                e_kwargs = kwargs.copy()
+                e_kwargs["convert_all_global_functions"] = True
+                e = expr.elements[0].to_sympy(**e_kwargs)
+                i = index.elements[0].to_sympy(**kwargs)
+                start = index.elements[1].to_sympy(**kwargs)
+                stop = index.elements[2].to_sympy(**kwargs)
+
+                return sympy.product(e, (i, start, stop))
+            except ZeroDivisionError:
+                pass
 
 
-class Integer_(Builtin):
+class Rational_(Builtin):
     """
     <dl>
-    <dt>'Integer'
-        <dd>is the head of integers.
+      <dt>'Rational'
+      <dd>is the head of rational numbers.
+      <dt>'Rational[$a$, $b$]'
+      <dd>constructs the rational number $a$ / $b$.
     </dl>
 
-    >> Head[5]
-     = Integer
+    >> Head[1/2]
+     = Rational
 
-    ## Test large Integer comparison bug
-    #> {a, b} = {2^10000, 2^10000 + 1}; {a == b, a < b, a <= b}
-     = {False, True, True}
+    >> Rational[1, 2]
+     = 1 / 2
+
+    #> -2/3
+     = -2 / 3
     """
 
-    summary_text = "head for integer numbers"
-    name = "Integer"
+    summary_text = "head for rational numbers"
+    name = "Rational"
+
+    def apply(self, n: Integer, m: Integer, evaluation):
+        "%(name)s[n_Integer, m_Integer]"
+
+        if m.value == 1:
+            return n
+        else:
+            return Rational(n.value, m.value)
+
+
+class Re(SympyFunction):
+    """
+    <dl>
+      <dt>'Re[$z$]'
+      <dd>returns the real component of the complex number $z$.
+    </dl>
+
+    >> Re[3+4I]
+     = 3
+
+    >> Plot[{Cos[a], Re[E^(I a)]}, {a, 0, 2 Pi}]
+     = -Graphics-
+
+    #> Im[0.5 + 2.3 I]
+     = 2.3
+    #> % // Precision
+     = MachinePrecision
+    """
+
+    summary_text = "real part"
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+    sympy_name = "re"
+
+    def apply_complex(self, number, evaluation):
+        "Re[number_Complex]"
+
+        return number.real
+
+    def apply_number(self, number, evaluation):
+        "Re[number_?NumberQ]"
+
+        return number
+
+    def apply(self, number, evaluation):
+        "Re[number_]"
+
+        return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
 
 
 class Real_(Builtin):
     """
     <dl>
-    <dt>'Real'
-        <dd>is the head of real (inexact) numbers.
+      <dt>'Real'
+      <dd>is the head of real (inexact) numbers.
     </dl>
 
     >> x = 3. ^ -20;
@@ -823,104 +1185,87 @@ class Real_(Builtin):
     name = "Real"
 
 
-class Rational_(Builtin):
+class RealNumberQ(Test):
     """
     <dl>
-    <dt>'Rational'
-        <dd>is the head of rational numbers.
-    <dt>'Rational[$a$, $b$]'
-        <dd>constructs the rational number $a$ / $b$.
+      <dt>'RealNumberQ[$expr$]'
+      <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
     </dl>
 
-    >> Head[1/2]
-     = Rational
-
-    >> Rational[1, 2]
-     = 1 / 2
-
-    #> -2/3
-     = -2 / 3
+    >> RealNumberQ[10]
+     = True
+    >> RealNumberQ[4.0]
+     = True
+    >> RealNumberQ[1+I]
+     = False
+    >> RealNumberQ[0 * I]
+     = True
+    >> RealNumberQ[0.0 * I]
+     = True
     """
 
-    summary_text = "head for rational numbers"
-    name = "Rational"
+    summary_text = "test whether an expression is a real number"
 
-    def apply(self, n: Integer, m: Integer, evaluation):
-        "%(name)s[n_Integer, m_Integer]"
-
-        if m.value == 1:
-            return n
-        else:
-            return Rational(n.value, m.value)
+    def test(self, expr):
+        return isinstance(expr, (Integer, Rational, Real))
 
 
-class Complex_(Builtin):
+class Sign(SympyFunction):
     """
     <dl>
-    <dt>'Complex'
-        <dd>is the head of complex numbers.
-    <dt>'Complex[$a$, $b$]'
-        <dd>constructs the complex number '$a$ + I $b$'.
+      <dt>'Sign[$x$]'
+      <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.
     </dl>
 
-    >> Head[2 + 3*I]
-     = Complex
-    >> Complex[1, 2/3]
-     = 1 + 2 I / 3
-    >> Abs[Complex[3, 4]]
-     = 5
-
-    #> OutputForm[Complex[2.0 ^ 40, 3]]
-     = 1.09951×10^12 + 3. I
-    #> InputForm[Complex[2.0 ^ 40, 3]]
-     = 1.099511627776*^12 + 3.*I
-
-    #> -2 / 3 - I
-     = -2 / 3 - I
-
-    #> Complex[10, 0]
-     = 10
-
-    #> 0. + I
-     = 0. + 1. I
-
-    #> 1 + 0 I
+    >> Sign[19]
      = 1
-    #> Head[%]
-     = Integer
-
-    #> Complex[0.0, 0.0]
-     = 0. + 0. I
-    #> 0. I
-     = 0.
-    #> 0. + 0. I
-     = 0.
-
-    #> 1. + 0. I
-     = 1.
-    #> 0. + 1. I
-     = 0. + 1. I
-
-    ## Check Nesting Complex
-    #> Complex[1, Complex[0, 1]]
+    >> Sign[-6]
+     = -1
+    >> Sign[0]
      = 0
-    #> Complex[1, Complex[1, 0]]
-     = 1 + I
-    #> Complex[1, Complex[1, 1]]
-     = I
+    >> Sign[{-5, -10, 15, 20, 0}]
+     = {-1, -1, 1, 1, 0}
+    #> Sign[{1, 2.3, 4/5, {-6.7, 0}, {8/9, -10}}]
+     = {1, 1, 1, {-1, 0}, {1, -1}}
+    >> Sign[3 - 4*I]
+     = 3 / 5 - 4 I / 5
+    #> Sign[1 - 4*I] == (1/17 - 4 I/17) Sqrt[17]
+     = True
+    #> Sign[4, 5, 6]
+     : Sign called with 3 arguments; 1 argument is expected.
+     = Sign[4, 5, 6]
+    #> Sign["20"]
+     = Sign[20]
     """
 
-    summary_text = "head for complex numbers"
-    name = "Complex"
+    summary_text = "complex sign of a number"
+    sympy_name = "sign"
+    # mpmath_name = 'sign'
 
-    def apply(self, r, i, evaluation):
-        "%(name)s[r_?NumberQ, i_?NumberQ]"
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-        if isinstance(r, Complex) or isinstance(i, Complex):
-            sym_form = r.to_sympy() + sympy.I * i.to_sympy()
-            r, i = sym_form.simplify().as_real_imag()
-            r, i = from_sympy(r), from_sympy(i)
-        return Complex(r, i)
+    messages = {
+        "argx": "Sign called with `1` arguments; 1 argument is expected.",
+    }
+
+    def apply(self, x, evaluation):
+        "%(name)s[x_]"
+        # Sympy and mpmath do not give the desired form of complex number
+        if isinstance(x, Complex):
+            return Expression(
+                SymbolTimes,
+                x,
+                Expression(SymbolPower, Expression(SymbolAbs, x), IntegerM1),
+            )
+
+        sympy_x = x.to_sympy()
+        if sympy_x is None:
+            return None
+        return super().apply(x, evaluation)
+
+    def apply_error(self, x, seqs, evaluation):
+        "Sign[x_, seqs__]"
+        return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 
 
 class Sum(_IterationFunction, SympyFunction):
@@ -1071,338 +1416,3 @@ class Sum(_IterationFunction, SympyFunction):
 
             if None not in bounds:
                 return sympy.summation(f_sympy, bounds)
-
-
-class Product(_IterationFunction, SympyFunction):
-    """
-    <dl>
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
-        <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
-    <dt>'Product[$expr$, {$i$, $imax$}]'
-        <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
-        <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
-    <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
-        <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
-    </dl>
-
-    >> Product[k, {k, 1, 10}]
-     = 3628800
-    >> 10!
-     = 3628800
-    >> Product[x^k, {k, 2, 20, 2}]
-     = x ^ 110
-    >> Product[2 ^ i, {i, 1, n}]
-     = 2 ^ (n / 2 + n ^ 2 / 2)
-    >> Product[f[i], {i, 1, 7}]
-     = f[1] f[2] f[3] f[4] f[5] f[6] f[7]
-
-    Symbolic products involving the factorial are evaluated:
-    >> Product[k, {k, 3, n}]
-     = n! / 2
-
-    Evaluate the $n$th primorial:
-    >> primorial[0] = 1;
-    >> primorial[n_Integer] := Product[Prime[k], {k, 1, n}];
-    >> primorial[12]
-     = 7420738134810
-
-    ## Used to be a bug in sympy, but now it is solved exactly!
-    ## Again a bug in sympy - regressions between 0.7.3 and 0.7.6 (and 0.7.7?)
-    ## #> Product[1 + 1 / i ^ 2, {i, Infinity}]
-    ##  = 1 / ((-I)! I!)
-    """
-
-    summary_text = "discrete product"
-    throw_iterb = False
-
-    sympy_name = "Product"
-
-    rules = _IterationFunction.rules.copy()
-    rules.update(
-        {
-            "MakeBoxes[Product[f_, {i_, a_, b_, 1}],"
-            "  form:StandardForm|TraditionalForm]": (
-                r'RowBox[{SubsuperscriptBox["\\[Product]",'
-                r'  RowBox[{MakeBoxes[i, form], "=", MakeBoxes[a, form]}],'
-                r"  MakeBoxes[b, form]], MakeBoxes[f, form]}]"
-            ),
-        }
-    )
-
-    def get_result(self, items):
-        return Expression(SymbolTimes, *items)
-
-    def to_sympy(self, expr, **kwargs):
-        if expr.has_form("Product", 2) and expr.elements[1].has_form("List", 3):
-            index = expr.elements[1]
-            try:
-                e_kwargs = kwargs.copy()
-                e_kwargs["convert_all_global_functions"] = True
-                e = expr.elements[0].to_sympy(**e_kwargs)
-                i = index.elements[0].to_sympy(**kwargs)
-                start = index.elements[1].to_sympy(**kwargs)
-                stop = index.elements[2].to_sympy(**kwargs)
-
-                return sympy.product(e, (i, start, stop))
-            except ZeroDivisionError:
-                pass
-
-
-class Piecewise(SympyFunction):
-    """
-    <dl>
-      <dt>'Piecewise[{{expr1, cond1}, ...}]'
-      <dd>represents a piecewise function.
-
-      <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
-      <dd>represents a piecewise function with default 'expr'.
-    </dl>
-
-    Heaviside function
-    >> Piecewise[{{0, x <= 0}}, 1]
-     = Piecewise[{{0, x <= 0}}, 1]
-
-    ## D[%, x]
-    ## Piecewise({{0, Or[x < 0, x > 0]}}, Indeterminate).
-
-    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], x]
-     = Piecewise[{{x, x <= 0}}, -x]
-
-    >> Integrate[Piecewise[{{1, x <= 0}, {-1, x > 0}}], {x, -1, 2}]
-     = -1
-
-    Piecewise defaults to 0 if no other case is matching.
-    >> Piecewise[{{1, False}}]
-     = 0
-
-    >> Plot[Piecewise[{{Log[x], x > 0}, {x*-0.5, x < 0}}], {x, -1, 1}]
-     = -Graphics-
-
-    >> Piecewise[{{0 ^ 0, False}}, -1]
-     = -1
-    """
-
-    summary_text = "an arbitrary piecewise function"
-    sympy_name = "Piecewise"
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-
-    def apply(self, items, evaluation):
-        "%(name)s[items__]"
-        result = self.to_sympy(
-            Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
-        )
-        if result is None:
-            return
-        if not isinstance(result, sympy.Piecewise):
-            result = from_sympy(result)
-            return result
-
-    def to_sympy(self, expr, **kwargs):
-        elements = expr.elements
-        evaluation = kwargs.get("evaluation", None)
-        if len(elements) not in (1, 2):
-            return
-
-        sympy_cases = []
-        for case in elements[0].elements:
-            if case.get_head_name() != "System`List":
-                return
-            if len(case.elements) != 2:
-                return
-            then, cond = case.elements
-            if evaluation:
-                cond = evaluate_predicate(cond, evaluation)
-
-            sympy_cond = None
-            if isinstance(cond, Symbol):
-                if cond is SymbolTrue:
-                    sympy_cond = True
-                elif cond is SymbolFalse:
-                    sympy_cond = False
-            if sympy_cond is None:
-                sympy_cond = cond.to_sympy(**kwargs)
-                if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
-                    return
-
-            sympy_cases.append((then.to_sympy(**kwargs), sympy_cond))
-
-        if len(elements) == 2:  # default case
-            sympy_cases.append((elements[1].to_sympy(**kwargs), True))
-        else:
-            sympy_cases.append((Integer0.to_sympy(**kwargs), True))
-
-        return sympy.Piecewise(*sympy_cases)
-
-    def from_sympy(self, sympy_name, args):
-        # Hack to get around weird sympy.Piecewise 'otherwise' behaviour
-        if str(args[-1].elements[1]).startswith("System`_True__Dummy_"):
-            args[-1].elements[1] = SymbolTrue
-        return Expression(self.get_name(), args)
-
-
-class Boole(Builtin):
-    """
-    <dl>
-    <dt>'Boole[expr]'
-      <dd>returns 1 if expr is True and 0 if expr is False.
-    </dl>
-
-    >> Boole[2 == 2]
-     = 1
-    >> Boole[7 < 5]
-     = 0
-    >> Boole[a == 7]
-     = Boole[a == 7]
-    """
-
-    summary_text = "translate 'True' to 1, and 'False' to 0"
-    attributes = A_LISTABLE | A_PROTECTED
-
-    def apply(self, expr, evaluation):
-        "%(name)s[expr_]"
-        if expr is SymbolTrue:
-            return Integer1
-        elif expr is SymbolFalse:
-            return Integer0
-        return None
-
-
-class Assumptions(Predefined):
-    """
-    <dl>
-      <dt>'$Assumptions'
-      <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
-    </dl>
-    """
-
-    summary_text = "assumptions used to simplify expressions"
-    name = "$Assumptions"
-    attributes = A_NO_ATTRIBUTES
-    rules = {
-        "$Assumptions": "True",
-    }
-
-    messages = {
-        "faas": "Assumptions should not be False.",
-        "baas": "Bad formed assumption.",
-    }
-
-
-class Assuming(Builtin):
-    """
-    <dl>
-    <dt>'Assuming[$cond$, $expr$]'
-      <dd>Evaluates $expr$ assuming the conditions $cond$.
-    </dl>
-    >> $Assumptions = { x > 0 }
-     = {x > 0}
-    >> Assuming[y>0, ConditionalExpression[y x^2, y>0]//Simplify]
-     = x ^ 2 y
-    >> Assuming[Not[y>0], ConditionalExpression[y x^2, y>0]//Simplify]
-     = Undefined
-    >> ConditionalExpression[y x ^ 2, y > 0]//Simplify
-     = ConditionalExpression[x ^ 2 y, y > 0]
-    """
-
-    summary_text = "set assumptions during the evaluation"
-    attributes = A_HOLD_REST | A_PROTECTED
-
-    def apply_assuming(self, assumptions, expr, evaluation):
-        "Assuming[assumptions_, expr_]"
-        assumptions = assumptions.evaluate(evaluation)
-        if assumptions is SymbolTrue:
-            cond = []
-        elif isinstance(assumptions, Symbol) or not assumptions.has_form("List", None):
-            cond = [assumptions]
-        else:
-            cond = assumptions.elements
-        cond = tuple(cond) + get_assumptions_list(evaluation)
-        list_cond = ListExpression(*cond)
-        # TODO: reduce the list of predicates
-        return dynamic_scoping(
-            lambda ev: expr.evaluate(ev), {"System`$Assumptions": list_cond}, evaluation
-        )
-
-
-class ConditionalExpression(Builtin):
-    """
-    <dl>
-      <dt>'ConditionalExpression[$expr$, $cond$]'
-      <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ evaluates to $False$.
-    </dl>
-
-    >> ConditionalExpression[x^2, True]
-     = x ^ 2
-
-     >> ConditionalExpression[x^2, False]
-     = Undefined
-
-    >> f = ConditionalExpression[x^2, x>0]
-     = ConditionalExpression[x ^ 2, x > 0]
-    >> f /. x -> 2
-     = 4
-    >> f /. x -> -2
-     = Undefined
-    'ConditionalExpression' uses assumptions to evaluate the condition:
-    >> $Assumptions = x > 0;
-    >> ConditionalExpression[x ^ 2, x>0]//Simplify
-     = x ^ 2
-    >> $Assumptions = True;
-    # >> ConditionalExpression[ConditionalExpression[s,x>a], x<b]
-    # = ConditionalExpression[s, And[x>a, x<b]]
-    """
-
-    summary_text = "expression defined under condition"
-    sympy_name = "Piecewise"
-
-    rules = {
-        "ConditionalExpression[expr_, True]": "expr",
-        "ConditionalExpression[expr_, False]": "Undefined",
-        "ConditionalExpression[ConditionalExpression[expr_, cond1_], cond2_]": "ConditionalExpression[expr, And@@Flatten[{cond1, cond2}]]",
-        "ConditionalExpression[expr1_, cond_] + expr2_": "ConditionalExpression[expr1+expr2, cond]",
-        "ConditionalExpression[expr1_, cond_]  expr2_": "ConditionalExpression[expr1 expr2, cond]",
-        "ConditionalExpression[expr1_, cond_]^expr2_": "ConditionalExpression[expr1^expr2, cond]",
-        "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
-    }
-
-    def apply_generic(self, expr, cond, evaluation):
-        "ConditionalExpression[expr_, cond_]"
-        # What we need here is a way to evaluate
-        # cond as a predicate, using assumptions.
-        # Let's delegate this to the And (and Or) symbols...
-        if not isinstance(cond, Atom) and cond._head is SymbolList:
-            cond = Expression(SymbolAnd, *(cond.elements))
-        else:
-            cond = Expression(SymbolAnd, cond)
-        if cond is None:
-            return
-        if cond is SymbolTrue:
-            return expr
-        if cond is SymbolFalse:
-            return SymbolUndefined
-        return
-
-    def to_sympy(self, expr, **kwargs):
-        elements = expr.elements
-        if len(elements) != 2:
-            return
-        expr, cond = elements
-
-        sympy_cond = None
-        if isinstance(cond, Symbol):
-            if cond is SymbolTrue:
-                sympy_cond = True
-            elif cond is SymbolFalse:
-                sympy_cond = False
-        if sympy_cond is None:
-            sympy_cond = cond.to_sympy(**kwargs)
-            if not (sympy_cond.is_Relational or sympy_cond.is_Boolean):
-                return
-
-        sympy_cases = (
-            (expr.to_sympy(**kwargs), sympy_cond),
-            (sympy.Symbol(sympy_symbol_prefix + "System`Undefined"), True),
-        )
-        return sympy.Piecewise(*sympy_cases)

@@ -166,19 +166,19 @@ class Fold:
 class AnglePath(Builtin):
     """
     <dl>
-    <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
-        <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
+      <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
+      <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
         the turns given by angles $phi1$, $phi2$, ... and using distance 1 for each step.
-    <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
-        <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for the respective steps.
-    <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
-        <dd>starts with direction $phi0$ instead of 0.
-    <dt>'AnglePath[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
-        <dd>starts at {$x, $y} instead of {0, 0}.
-    <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
-        <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
-    <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
-        <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the
+      <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
+      <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for the respective steps.
+      <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
+      <dd>starts with direction $phi0$ instead of 0.
+      <dt>'AnglePath[{$x$, $y$}, {$phi1$, $phi2$, ...}]'
+      <dd>starts at {$x, $y} instead of {0, 0}.
+      <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
+      <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
+      <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
+      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the
         initial direction of the turtle.
     </dl>
 
@@ -327,8 +327,8 @@ class AnglePathFold(Fold):
 class ArcCos(_MPMathFunction):
     """
     <dl>
-    <dt>'ArcCos[$z$]'
-        <dd>returns the inverse cosine of $z$.
+      <dt>'ArcCos[$z$]'
+      <dd>returns the inverse cosine of $z$.
     </dl>
 
     >> ArcCos[1]
@@ -344,9 +344,10 @@ class ArcCos(_MPMathFunction):
     mpmath_name = "acos"
 
     rules = {
-        "Derivative[1][ArcCos]": "-1/Sqrt[1-#^2]&",
         "ArcCos[0]": "Pi / 2",
         "ArcCos[1]": "0",
+        "ArcCos[Undefined]": "Undefined",
+        "Derivative[1][ArcCos]": "-1/Sqrt[1-#^2]&",
     }
 
 
@@ -368,9 +369,10 @@ class ArcCot(_MPMathFunction):
     mpmath_name = "acot"
 
     rules = {
-        "Derivative[1][ArcCot]": "-1/(1+#^2)&",
         "ArcCot[0]": "Pi / 2",
         "ArcCot[1]": "Pi / 4",
+        "ArcCot[Undefined]": "Undefined",
+        "Derivative[1][ArcCot]": "-1/(1+#^2)&",
     }
 
 
@@ -392,9 +394,10 @@ class ArcCsc(_MPMathFunction):
     mpmath_name = "acsc"
 
     rules = {
-        "Derivative[1][ArcCsc]": "-1 / (Sqrt[1 - 1/#^2] * #^2)&",
+        "ArcCsc[Undefined]": "Undefined",
         "ArcCsc[0]": "ComplexInfinity",
         "ArcCsc[1]": "Pi / 2",
+        "Derivative[1][ArcCsc]": "-1 / (Sqrt[1 - 1/#^2] * #^2)&",
     }
 
     def to_sympy(self, expr, **kwargs):
@@ -420,9 +423,10 @@ class ArcSec(_MPMathFunction):
     mpmath_name = "asec"
 
     rules = {
-        "Derivative[1][ArcSec]": "1 / (Sqrt[1 - 1/#^2] * #^2)&",
         "ArcSec[0]": "ComplexInfinity",
         "ArcSec[1]": "0",
+        "ArcSec[Undefined]": "Undefined",
+        "Derivative[1][ArcSec]": "1 / (Sqrt[1 - 1/#^2] * #^2)&",
     }
 
     summary_text = "inverse secant function"
@@ -438,8 +442,8 @@ class ArcSec(_MPMathFunction):
 class ArcSin(_MPMathFunction):
     """
     <dl>
-    <dt>'ArcSin[$z$]'
-        <dd>returns the inverse sine of $z$.
+      <dt>'ArcSin[$z$]'
+      <dd>returns the inverse sine of $z$.
     </dl>
 
     >> ArcSin[0]
@@ -451,9 +455,10 @@ class ArcSin(_MPMathFunction):
     mpmath_name = "asin"
 
     rules = {
-        "Derivative[1][ArcSin]": "1/Sqrt[1-#^2]&",
         "ArcSin[0]": "0",
         "ArcSin[1]": "Pi / 2",
+        "ArcSin[Undefined]": "Undefined",
+        "Derivative[1][ArcSin]": "1/Sqrt[1-#^2]&",
     }
 
     summary_text = "inverse sine function"
@@ -463,8 +468,8 @@ class ArcSin(_MPMathFunction):
 class ArcTan(_MPMathFunction):
     """
     <dl>
-    <dt>'ArcTan[$z$]'
-        <dd>returns the inverse tangent of $z$.
+      <dt>'ArcTan[$z$]'
+      <dd>returns the inverse tangent of $z$.
     </dl>
 
     >> ArcTan[1]
@@ -496,11 +501,14 @@ class ArcTan(_MPMathFunction):
     mpmath_name = "atan"
 
     rules = {
-        "ArcTan[1]": "Pi/4",
         "ArcTan[0]": "0",
-        "Derivative[1][ArcTan]": "1/(1+#^2)&",
+        "ArcTan[1]": "Pi/4",
+        "ArcTan[Undefined]": "Undefined",
+        "ArcTan[Undefined, x_]": "Undefined",
+        "ArcTan[y_, Undefined]": "Undefined",
         "ArcTan[x_?RealNumberQ, y_?RealNumberQ]": """If[x == 0, If[y == 0, 0, If[y > 0, Pi/2, -Pi/2]], If[x > 0,
             ArcTan[y/x], If[y >= 0, ArcTan[y/x] + Pi, ArcTan[y/x] - Pi]]]""",
+        "Derivative[1][ArcTan]": "1/(1+#^2)&",
     }
 
     summary_text = "inverse tangent function"
@@ -510,8 +518,8 @@ class ArcTan(_MPMathFunction):
 class Cos(_MPMathFunction):
     """
     <dl>
-    <dt>'Cos[$z$]'
-        <dd>returns the cosine of $z$.
+      <dt>'Cos[$z$]'
+      <dd>returns the cosine of $z$.
     </dl>
 
     >> Cos[3 Pi]
@@ -524,10 +532,11 @@ class Cos(_MPMathFunction):
     mpmath_name = "cos"
 
     rules = {
-        "Cos[Pi]": "-1",
-        "Cos[n_Integer * Pi]": "(-1)^n",
         "Cos[(1/2) * Pi]": "0",
         "Cos[0]": "1",
+        "Cos[Pi]": "-1",
+        "Cos[Undefined]": "Undefined",
+        "Cos[n_Integer * Pi]": "(-1)^n",
         "Derivative[1][Cos]": "-Sin[#]&",
     }
 
@@ -550,8 +559,9 @@ class Cot(_MPMathFunction):
     mpmath_name = "cot"
 
     rules = {
-        "Derivative[1][Cot]": "-Csc[#]^2&",
         "Cot[0]": "ComplexInfinity",
+        "Cot[Undefined]": "Undefined",
+        "Derivative[1][Cot]": "-Csc[#]^2&",
     }
 
     summary_text = "cotangent function"
@@ -575,8 +585,9 @@ class Csc(_MPMathFunction):
     mpmath_name = "csc"
 
     rules = {
-        "Derivative[1][Csc]": "-Cot[#] Csc[#]&",
         "Csc[0]": "ComplexInfinity",
+        "Csc[Undefined]": "Undefined",
+        "Derivative[1][Csc]": "-Cot[#] Csc[#]&",
     }
 
     summary_text = "cosecant function"
@@ -662,8 +673,8 @@ class InverseHaversine(_MPMathFunction):
 class Log(_MPMathFunction):
     """
     <dl>
-    <dt>'Log[$z$]'
-        <dd>returns the natural logarithm of $z$.
+      <dt>'Log[$z$]'
+      <dd>returns the natural logarithm of $z$.
     </dl>
 
     >> Log[{0, 1, E, E * E, E ^ 3, E ^ x}]
@@ -695,13 +706,14 @@ class Log(_MPMathFunction):
     sympy_name = "log"
 
     rules = {
+        "Derivative[1][Log]": "1/#&",
         "Log[0.]": "Indeterminate",
         "Log[0]": "DirectedInfinity[-1]",
-        "Log[Overflow[]]": "Overflow[]",
         "Log[1]": "0",
         "Log[E]": "1",
         "Log[E^x_Integer]": "x",
-        "Derivative[1][Log]": "1/#&",
+        "Log[Overflow[]]": "Overflow[]",
+        "Log[Undefined]": "Undefined",
         "Log[x_?InexactNumberQ]": "Log[E, x]",
     }
 
@@ -717,8 +729,8 @@ class Log(_MPMathFunction):
 class Log2(Builtin):
     """
     <dl>
-    <dt>'Log2[$z$]'
-        <dd>returns the base-2 logarithm of $z$.
+      <dt>'Log2[$z$]'
+      <dd>returns the base-2 logarithm of $z$.
     </dl>
 
     >> Log2[4 ^ 8]
@@ -740,8 +752,8 @@ class Log2(Builtin):
 class Log10(Builtin):
     """
     <dl>
-    <dt>'Log10[$z$]'
-        <dd>returns the base-10 logarithm of $z$.
+      <dt>'Log10[$z$]'
+      <dd>returns the base-10 logarithm of $z$.
     </dl>
 
     >> Log10[1000]
@@ -763,8 +775,8 @@ class Log10(Builtin):
 class LogisticSigmoid(Builtin):
     """
     <dl>
-    <dt>'LogisticSigmoid[$z$]'
-        <dd>returns the logistic sigmoid of $z$.
+      <dt>'LogisticSigmoid[$z$]'
+      <dd>returns the logistic sigmoid of $z$.
     </dl>
 
     >> LogisticSigmoid[0.5]
@@ -789,8 +801,8 @@ class LogisticSigmoid(Builtin):
 class Sec(_MPMathFunction):
     """
     <dl>
-    <dt>'Sec[$z$]'
-        <dd>returns the secant of $z$.
+      <dt>'Sec[$z$]'
+      <dd>returns the secant of $z$.
     </dl>
 
     >> Sec[0]
@@ -843,11 +855,12 @@ class Sin(_MPMathFunction):
     mpmath_name = "sin"
 
     rules = {
+        "Derivative[1][Sin]": "Cos[#]&",
         "Sin[Pi]": "0",
         "Sin[n_Integer*Pi]": "0",
         "Sin[(1/2) * Pi]": "1",
         "Sin[0]": "0",
-        "Derivative[1][Sin]": "Cos[#]&",
+        "Sin[Undefined]": "Undefined",
     }
 
 
@@ -867,11 +880,12 @@ class Tan(_MPMathFunction):
      = 1.63312×10^16
     """
 
-    summary_text = "tangent function"
     mpmath_name = "tan"
 
     rules = {
+        "Derivative[1][Tan]": "Sec[#]^2&",
         "Tan[(1/2) * Pi]": "ComplexInfinity",
         "Tan[0]": "0",
-        "Derivative[1][Tan]": "Sec[#]^2&",
+        "Tan[Undefined]": "Undefined",
     }
+    summary_text = "tangent function"

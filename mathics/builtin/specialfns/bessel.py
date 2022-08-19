@@ -303,6 +303,10 @@ class BesselI(_Bessel):
     }
 
     mpmath_name = "besseli"
+    rules = {
+        "BesselI[Undefined, x_]": "Undefined",
+        "BesselI[y_, Undefined]": "Undefined",
+    }
     sympy_name = "besseli"
     summary_text = "Bessel's function of the second kind"
 
@@ -340,6 +344,8 @@ class BesselJ(_Bessel):
 
     mpmath_name = "besselj"
     rules = {
+        "BesselJ[Undefined, x_]": "Undefined",
+        "BesselJ[y_, Undefined]": "Undefined",
         "Derivative[0,1][BesselJ]": "(BesselJ[#1- 1, #2] / 2 - BesselJ[#1 + 1, #2] / 2)&",
     }
 
@@ -366,6 +372,8 @@ class BesselK(_Bessel):
     mpmath_name = "besselk"
 
     rules = {
+        "BesselK[Undefined, x_]": "Undefined",
+        "BesselK[y_, Undefined]": "Undefined",
         "Derivative[0, 1][BesselK]": "((-BesselK[-1 + #1, #2] - BesselK[1 + #1, #2])/2)&",
     }
 
@@ -401,6 +409,10 @@ class BesselY(_Bessel):
     }
 
     mpmath_name = "bessely"
+    rules = {
+        "BesselY[Undefined, x_]": "Undefined",
+        "BesselY[y_, Undefined]": "Undefined",
+    }
     summary_text = "Bessel's function of the second kind"
     sympy_name = "bessely"
 
@@ -727,6 +739,10 @@ class StruveH(_Bessel):
     """
 
     mpmath_name = "struveh"
+    rules = {
+        "StruveH[Undefined, x_]": "Undefined",
+        "StruveH[y_, Undefined]": "Undefined",
+    }
     summary_text = "Struvel's function H"
     sympy_name = ""
 
@@ -747,6 +763,10 @@ class StruveL(_Bessel):
     """
 
     mpmath_name = "struvel"
+    rules = {
+        "StruveL[Undefined, x_]": "Undefined",
+        "StruveL[y_, Undefined]": "Undefined",
+    }
     summary_text = "Struvel's function L"
     sympy_name = ""
 

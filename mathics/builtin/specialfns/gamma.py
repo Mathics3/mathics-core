@@ -325,6 +325,9 @@ class Gamma(_MPMathMultiFunction):
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
         "Gamma[1 + z_]": "z!",
+        "Gamma[Undefined]": "Undefined",
+        "Gamma[x_, Undefined]": "Undefined",
+        "Gamma[Undefined, y_]": "Undefined",
         "Derivative[1][Gamma]": "(Gamma[#1]*PolyGamma[0, #1])&",
         "Derivative[1, 0][Gamma]": "(Gamma[#1, #2]*Log[#2] + MeijerG[{{}, {1, 1}}, {{0, 0, #1}, {}}, #2])&",
         "Derivative[0, 1][Gamma]": "(-(#2^(-1 + #1)/E^#2))&",
@@ -433,8 +436,13 @@ class PolyGamma(_MPMathMultiFunction):
         2: "psi",
     }
 
-    summary_text = "polygamma function"
+    rules = {
+        "PolyGamma[Undefined]": "Undefined",
+        "PolyGamma[Undefined, x_]": "Undefined",
+        "PolyGamma[y_, Undefined]": "Undefined",
+    }
 
+    summary_text = "polygamma function"
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 
 
@@ -455,6 +463,12 @@ class StieltjesGamma(SympyFunction):
     """
 
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    rules = {
+        "StieltjesGamma[Undefined]": "Undefined",
+        "StieltjesGamma[Undefined, x_]": "Undefined",
+        "StieltjesGamma[y_, Undefined]": "Undefined",
+    }
 
     summary_text = "Stieltjes' function"
     sympy_name = "stieltjes"

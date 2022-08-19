@@ -459,11 +459,11 @@ def number_form(expr, n, f, evaluation, options):
 class MakeBoxes(Builtin):
     """
     <dl>
-    <dt>'MakeBoxes[$expr$]'
-        <dd>is a low-level formatting primitive that converts $expr$
+      <dt>'MakeBoxes[$expr$]'
+      <dd>is a low-level formatting primitive that converts $expr$
         to box form, without evaluating it.
-    <dt>'\\( ... \\)'
-        <dd>directly inputs box objects.
+      <dt>'\\( ... \\)'
+      <dd>directly inputs box objects.
     </dl>
 
     String representation of boxes
@@ -728,8 +728,8 @@ class MakeBoxes(Builtin):
 class ToBoxes(Builtin):
     """
     <dl>
-    <dt>'ToBoxes[$expr$]'
-        <dd>evaluates $expr$ and converts the result to box form.
+      <dt>'ToBoxes[$expr$]'
+      <dd>evaluates $expr$ and converts the result to box form.
     </dl>
 
     Unlike 'MakeBoxes', 'ToBoxes' evaluates its argument:
@@ -757,8 +757,8 @@ class ToBoxes(Builtin):
 class BoxData(Builtin):
     """
     <dl>
-    <dt>'BoxData[...]'
-        <dd>is a low-level representation of the contents of a typesetting
+      <dt>'BoxData[...]'
+      <dd>is a low-level representation of the contents of a typesetting
     cell.
     </dl>
     """
@@ -769,8 +769,8 @@ class BoxData(Builtin):
 class TextData(Builtin):
     """
     <dl>
-    <dt>'TextData[...]'
-        <dd>is a low-level representation of the contents of a textual
+      <dt>'TextData[...]'
+      <dd>is a low-level representation of the contents of a textual
     cell.
     </dl>
     """
@@ -781,8 +781,8 @@ class TextData(Builtin):
 class Row(Builtin):
     """
     <dl>
-    <dt>'Row[{$expr$, ...}]'
-        <dd>formats several expressions inside a 'RowBox'.
+      <dt>'Row[{$expr$, ...}]'
+      <dd>formats several expressions inside a 'RowBox'.
     </dl>
     """
 
@@ -811,8 +811,8 @@ class Row(Builtin):
 class Grid(Builtin):
     """
     <dl>
-    <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
-        <dd>formats several expressions inside a 'GridBox'.
+      <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
+      <dd>formats several expressions inside a 'GridBox'.
     </dl>
 
     >> Grid[{{a, b}, {c, d}}]
@@ -849,8 +849,8 @@ SymbolTableDepth = Symbol("TableDepth")
 class TableForm(Builtin):
     """
     <dl>
-    <dt>'TableForm[$expr$]'
-        <dd>displays $expr$ as a table.
+      <dt>'TableForm[$expr$]'
+      <dd>displays $expr$ as a table.
     </dl>
 
     >> TableForm[Array[a, {3,2}],TableDepth->1]
@@ -941,8 +941,8 @@ class TableForm(Builtin):
 class MatrixForm(TableForm):
     """
     <dl>
-    <dt>'MatrixForm[$m$]'
-        <dd>displays a matrix $m$, hiding the underlying list
+      <dt>'MatrixForm[$m$]'
+      <dd>displays a matrix $m$, hiding the underlying list
         structure.
     </dl>
 
@@ -979,8 +979,8 @@ class MatrixForm(TableForm):
 class Superscript(Builtin):
     """
     <dl>
-    <dt>'Superscript[$x$, $y$]'
-        <dd>displays as $x$^$y$.
+      <dt>'Superscript[$x$, $y$]'
+      <dd>displays as $x$^$y$.
     </dl>
 
     >> Superscript[x,3] // TeXForm
@@ -998,8 +998,8 @@ class Superscript(Builtin):
 class Subscript(Builtin):
     """
     <dl>
-    <dt>'Subscript[$a$, $i$]'
-        <dd>displays as $a_i$.
+      <dt>'Subscript[$a$, $i$]'
+      <dd>displays as $a_i$.
     </dl>
 
     >> Subscript[x,1,2,3] // TeXForm
@@ -1022,8 +1022,8 @@ class Subscript(Builtin):
 class Subsuperscript(Builtin):
     """
     <dl>
-    <dt>'Subsuperscript[$a$, $b$, $c$]'
-        <dd>displays as $a_b^c$.
+      <dt>'Subsuperscript[$a$, $b$, $c$]'
+      <dd>displays as $a_b^c$.
     </dl>
 
     >> Subsuperscript[a, b, c] // TeXForm
@@ -1042,8 +1042,8 @@ class Subsuperscript(Builtin):
 class Postfix(BinaryOperator):
     """
     <dl>
-    <dt>'$x$ // $f$'
-        <dd>is equivalent to '$f$[$x$]'.
+      <dt>'$x$ // $f$'
+      <dd>is equivalent to '$f$[$x$]'.
     </dl>
 
     >> b // a
@@ -1066,8 +1066,8 @@ class Postfix(BinaryOperator):
 class Prefix(BinaryOperator):
     """
     <dl>
-    <dt>'$f$ @ $x$'
-        <dd>is equivalent to '$f$[$x$]'.
+      <dt>'$f$ @ $x$'
+      <dd>is equivalent to '$f$[$x$]'.
     </dl>
 
     >> a @ b
@@ -1100,8 +1100,8 @@ class Prefix(BinaryOperator):
 class Infix(Builtin):
     """
     <dl>
-    <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
-        <dd>displays $expr$ with the infix operator $oper$, with
+      <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
+      <dd>displays $expr$ with the infix operator $oper$, with
         precedence $prec$ and associativity $assoc$.
     </dl>
 
@@ -1140,8 +1140,8 @@ class Infix(Builtin):
 class NonAssociative(Builtin):
     """
     <dl>
-    <dt>'NonAssociative'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'NonAssociative'
+      <dd>is used with operator formatting constructs to specify a
         non-associative operator.
     </dl>
     """
@@ -1152,8 +1152,8 @@ class NonAssociative(Builtin):
 class Left(Builtin):
     """
     <dl>
-    <dt>'Left'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'Left'
+      <dd>is used with operator formatting constructs to specify a
         left-associative operator.
     </dl>
     """
@@ -1164,8 +1164,8 @@ class Left(Builtin):
 class Right(Builtin):
     """
     <dl>
-    <dt>'Right'
-        <dd>is used with operator formatting constructs to specify a
+      <dt>'Right'
+      <dd>is used with operator formatting constructs to specify a
         right-associative operator.
     </dl>
     """
@@ -1176,8 +1176,8 @@ class Right(Builtin):
 class Center(Builtin):
     """
     <dl>
-    <dt>'Center'
-        <dd>is used with the 'ColumnAlignments' option to 'Grid' or
+      <dt>'Center'
+      <dd>is used with the 'ColumnAlignments' option to 'Grid' or
         'TableForm' to specify a centered column.
     </dl>
     """
@@ -1188,8 +1188,8 @@ class Center(Builtin):
 class StringForm(Builtin):
     """
     <dl>
-    <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
-        <dd>displays the string $str$, replacing placeholders in $str$
+      <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
+      <dd>displays the string $str$, replacing placeholders in $str$
         with the corresponding expressions.
     </dl>
 
@@ -1237,8 +1237,8 @@ class StringForm(Builtin):
 class Message(Builtin):
     """
     <dl>
-    <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
-        <dd>displays the specified message, replacing placeholders in
+      <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
+      <dd>displays the specified message, replacing placeholders in
         the message text with the corresponding expressions.
     </dl>
 
@@ -1278,10 +1278,10 @@ def check_message(expr) -> bool:
 class Check(Builtin):
     """
     <dl>
-    <dt>'Check[$expr$, $failexpr$]'
-        <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
-    <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
-        <dd>checks only for the specified messages.
+      <dt>'Check[$expr$, $failexpr$]'
+      <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
+      <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
+      <dd>checks only for the specified messages.
     </dl>
 
     Return err when a message is generated:
@@ -1410,14 +1410,14 @@ class Check(Builtin):
 class Quiet(Builtin):
     """
     <dl>
-    <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
-        <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
-    <dt>'Quiet[$expr$, All]'
-        <dd>evaluates $expr$, without any messages being displayed.
-    <dt>'Quiet[$expr$, None]'
-        <dd>evaluates $expr$, without all messages being displayed.
-    <dt>'Quiet[$expr$, $off$, $on$]'
-        <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
+      <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
+      <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
+      <dt>'Quiet[$expr$, All]'
+      <dd>evaluates $expr$, without any messages being displayed.
+      <dt>'Quiet[$expr$, None]'
+      <dd>evaluates $expr$, without all messages being displayed.
+      <dt>'Quiet[$expr$, $off$, $on$]'
+      <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
     </dl>
 
     Evaluate without generating messages:
@@ -1538,8 +1538,8 @@ class Quiet(Builtin):
 class Off(Builtin):
     """
     <dl>
-    <dt>'Off[$symbol$::$tag$]'
-        <dd>turns a message off so it is no longer printed.
+      <dt>'Off[$symbol$::$tag$]'
+      <dd>turns a message off so it is no longer printed.
     </dl>
 
     >> Off[Power::infy]
@@ -1585,8 +1585,8 @@ class Off(Builtin):
 class On(Builtin):
     """
     <dl>
-    <dt>'On[$symbol$::$tag$]'
-        <dd>turns a message on for printing.
+      <dt>'On[$symbol$::$tag$]'
+      <dd>turns a message on for printing.
     </dl>
 
     >> Off[Power::infy]
@@ -1632,9 +1632,9 @@ class On(Builtin):
 class MessageName(BinaryOperator):
     """
     <dl>
-    <dt>'MessageName[$symbol$, $tag$]'
-    <dt>'$symbol$::$tag$'
-        <dd>identifies a message.
+      <dt>'MessageName[$symbol$, $tag$]'
+      <dt>'$symbol$::$tag$'
+      <dd>identifies a message.
     </dl>
 
     'MessageName' is the head of message IDs of the form 'symbol::tag'.
@@ -1675,8 +1675,8 @@ class MessageName(BinaryOperator):
 class Syntax(Builtin):
     r"""
     <dl>
-    <dt>'Syntax'
-        <dd>is a symbol to which all syntax messages are assigned.
+      <dt>'Syntax'
+      <dd>is a symbol to which all syntax messages are assigned.
     </dl>
 
     >> 1 +
@@ -1779,8 +1779,8 @@ class Syntax(Builtin):
 class General(Builtin):
     """
     <dl>
-    <dt>'General'
-        <dd>is a symbol to which all general-purpose messages are assigned.
+      <dt>'General'
+      <dd>is a symbol to which all general-purpose messages are assigned.
     </dl>
 
     >> General::argr
@@ -1874,8 +1874,8 @@ class General(Builtin):
 class Echo_(Predefined):
     """
     <dl>
-    <dt>'$Echo'
-        <dd>gives a list of files and pipes to which all input is echoed.
+      <dt>'$Echo'
+      <dd>gives a list of files and pipes to which all input is echoed.
 
     </dl>
     """
@@ -1889,8 +1889,8 @@ class Echo_(Predefined):
 class Print(Builtin):
     """
     <dl>
-    <dt>'Print[$expr$, ...]'
-        <dd>prints each $expr$ in string form.
+      <dt>'Print[$expr$, ...]'
+      <dd>prints each $expr$ in string form.
     </dl>
 
     >> Print["Hello world!"]
@@ -1917,8 +1917,8 @@ class Print(Builtin):
 class FullForm(Builtin):
     """
     <dl>
-    <dt>'FullForm[$expr$]'
-        <dd>displays the underlying form of $expr$.
+      <dt>'FullForm[$expr$]'
+      <dd>displays the underlying form of $expr$.
     </dl>
 
     >> FullForm[a + b * c]
@@ -1935,8 +1935,8 @@ class FullForm(Builtin):
 class StandardForm(Builtin):
     """
     <dl>
-    <dt>'StandardForm[$expr$]'
-        <dd>displays $expr$ in the default form.
+      <dt>'StandardForm[$expr$]'
+      <dd>displays $expr$ in the default form.
     </dl>
 
     >> StandardForm[a + b * c]
@@ -1956,8 +1956,8 @@ class StandardForm(Builtin):
 class TraditionalForm(Builtin):
     """
     <dl>
-    <dt>'TraditionalForm[$expr$]'
-        <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
+      <dt>'TraditionalForm[$expr$]'
+      <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
            function evaluations are represented by brackets instead of square brackets.
     </dl>
 
@@ -1972,8 +1972,8 @@ class TraditionalForm(Builtin):
 class InputForm(Builtin):
     r"""
     <dl>
-    <dt>'InputForm[$expr$]'
-        <dd>displays $expr$ in an unambiguous form suitable for input.
+      <dt>'InputForm[$expr$]'
+      <dd>displays $expr$ in an unambiguous form suitable for input.
     </dl>
 
     >> InputForm[a + b * c]
@@ -1995,8 +1995,8 @@ class InputForm(Builtin):
 class OutputForm(Builtin):
     """
     <dl>
-    <dt>'OutputForm[$expr$]'
-        <dd>displays $expr$ in a plain-text form.
+      <dt>'OutputForm[$expr$]'
+      <dd>displays $expr$ in a plain-text form.
     </dl>
 
     >> OutputForm[f'[x]]
@@ -2015,8 +2015,8 @@ class OutputForm(Builtin):
 class MathMLForm(Builtin):
     """
     <dl>
-    <dt>'MathMLForm[$expr$]'
-        <dd>displays $expr$ as a MathML expression.
+      <dt>'MathMLForm[$expr$]'
+      <dd>displays $expr$ as a MathML expression.
     </dl>
 
     >> MathMLForm[HoldForm[Sqrt[a^3]]]
@@ -2134,8 +2134,8 @@ class SympyForm(Builtin):
 class TeXForm(Builtin):
     r"""
     <dl>
-    <dt>'TeXForm[$expr$]'
-        <dd>displays $expr$ using TeX math mode commands.
+      <dt>'TeXForm[$expr$]'
+      <dd>displays $expr$ using TeX math mode commands.
     </dl>
 
     >> TeXForm[HoldForm[Sqrt[a^3]]]
@@ -2181,27 +2181,27 @@ class TeXForm(Builtin):
 class Style(Builtin):
     """
     <dl>
-    <dt>'Style[$expr$, options]'
-    <dd>displays $expr$ formatted using the specified option settings.
-    <dt>'Style[$expr$, "style"]'
-    <dd> uses the option settings for the specified style in the current notebook.
-    <dt>'Style[$expr$, $color$]'
-    <dd>displays using the specified color.
-    <dt>'Style[$expr$, $Bold$]'
-    <dd>displays with fonts made bold.
-    <dt>'Style[$expr$, $Italic$]'
-    <dd>displays with fonts made italic.
-    <dt>'Style[$expr$, $Underlined$]'
-    <dd>displays with fonts underlined.
-    <dt>'Style[$expr$, $Larger$]
-    <dd>displays with fonts made larger.
-    <dt>'Style[$expr$, $Smaller$]'
-    <dd>displays with fonts made smaller.
-    <dt>'Style[$expr$, $n$]'
-    <dd>displays with font size n.
-    <dt>'Style[$expr$, $Tiny$]'
-    <dt>'Style[$expr$, $Small$]', etc.
-    <dd>display with fonts that are tiny, small, etc.
+      <dt>'Style[$expr$, options]'
+      <dd>displays $expr$ formatted using the specified option settings.
+      <dt>'Style[$expr$, "style"]'
+      <dd> uses the option settings for the specified style in the current notebook.
+      <dt>'Style[$expr$, $color$]'
+      <dd>displays using the specified color.
+      <dt>'Style[$expr$, $Bold$]'
+      <dd>displays with fonts made bold.
+      <dt>'Style[$expr$, $Italic$]'
+      <dd>displays with fonts made italic.
+      <dt>'Style[$expr$, $Underlined$]'
+      <dd>displays with fonts underlined.
+      <dt>'Style[$expr$, $Larger$]
+      <dd>displays with fonts made larger.
+      <dt>'Style[$expr$, $Smaller$]'
+      <dd>displays with fonts made smaller.
+      <dt>'Style[$expr$, $n$]'
+      <dd>displays with font size n.
+      <dt>'Style[$expr$, $Tiny$]'
+      <dt>'Style[$expr$, $Small$]', etc.
+      <dd>display with fonts that are tiny, small, etc.
     </dl>
     """
 
@@ -2219,8 +2219,8 @@ class Style(Builtin):
 class Precedence(Builtin):
     """
     <dl>
-    <dt>'Precedence[$op$]'
-        <dd>returns the precedence of the built-in operator $op$.
+      <dt>'Precedence[$op$]'
+      <dd>returns the precedence of the built-in operator $op$.
     </dl>
 
     >> Precedence[Plus]
