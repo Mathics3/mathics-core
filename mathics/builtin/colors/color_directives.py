@@ -129,8 +129,8 @@ def _euclidean_distance(a, b):
 class Opacity(_GraphicsDirective):
     """
     <dl>
-    <dt>'Opacity[$level$]'
-    <dd> is a graphics directive that sets the opacity to $level$.
+      <dt>'Opacity[$level$]'
+      <dd> is a graphics directive that sets the opacity to $level$.
     </dl>
     >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
      = -Graphics-
@@ -245,8 +245,8 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 class CMYKColor(_ColorObject):
     """
     <dl>
-    <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
-        <dd>represents a color with the specified cyan, magenta,
+      <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
+      <dd>represents a color with the specified cyan, magenta,
         yellow and black components.
     </dl>
 
@@ -469,11 +469,11 @@ class ColorError(BoxConstructError):
 class GrayLevel(_ColorObject):
     """
     <dl>
-    <dt>'GrayLevel[$g$]'
-        <dd>represents a shade of gray specified by $g$, ranging from
+      <dt>'GrayLevel[$g$]'
+      <dd>represents a shade of gray specified by $g$, ranging from
         0 (black) to 1 (white).
-    <dt>'GrayLevel[$g$, $a$]'
-        <dd>represents a shade of gray specified by $g$ with opacity $a$.
+      <dt>'GrayLevel[$g$, $a$]'
+      <dd>represents a shade of gray specified by $g$ with opacity $a$.
     </dl>
     """
 
@@ -543,8 +543,8 @@ class Hue(_ColorObject):
 class LABColor(_ColorObject):
     """
     <dl>
-    <dt>'LABColor[$l$, $a$, $b$]'
-        <dd>represents a color with the specified lightness, red/green and yellow/blue
+      <dt>'LABColor[$l$, $a$, $b$]'
+      <dd>represents a color with the specified lightness, red/green and yellow/blue
         components in the CIE 1976 L*a*b* (CIELAB) color space.
     </dl>
     """
@@ -557,8 +557,8 @@ class LABColor(_ColorObject):
 class LCHColor(_ColorObject):
     """
     <dl>
-    <dt>'LCHColor[$l$, $c$, $h$]'
-        <dd>represents a color with the specified lightness, chroma and hue
+      <dt>'LCHColor[$l$, $c$, $h$]'
+      <dd>represents a color with the specified lightness, chroma and hue
         components in the CIELCh CIELab cube color space.
     </dl>
     """
@@ -571,8 +571,8 @@ class LCHColor(_ColorObject):
 class LUVColor(_ColorObject):
     """
     <dl>
-    <dt>'LCHColor[$l$, $u$, $v$]'
-        <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
+      <dt>'LCHColor[$l$, $u$, $v$]'
+      <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
     </dl>
     """
 
@@ -584,8 +584,8 @@ class LUVColor(_ColorObject):
 class RGBColor(_ColorObject):
     """
     <dl>
-    <dt>'RGBColor[$r$, $g$, $b$]'
-        <dd>represents a color with the specified red, green and blue
+      <dt>'RGBColor[$r$, $g$, $b$]'
+      <dd>represents a color with the specified red, green and blue
         components.
     </dl>
 
@@ -610,8 +610,8 @@ class RGBColor(_ColorObject):
 class XYZColor(_ColorObject):
     """
     <dl>
-    <dt>'XYZColor[$x$, $y$, $z$]'
-        <dd>represents a color with the specified components in the CIE 1931 XYZ color space.
+      <dt>'XYZColor[$x$, $y$, $z$]'
+      <dd>represents a color with the specified components in the CIE 1931 XYZ color space.
     </dl>
     """
 

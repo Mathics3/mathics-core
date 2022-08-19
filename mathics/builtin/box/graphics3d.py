@@ -34,8 +34,8 @@ from mathics.format.asy_fns import asy_create_pens, asy_number
 class Graphics3DBox(GraphicsBox):
     """
     <dl>
-    <dt>'Graphics3DBox[{...}]'
-    <dd>a box structure for Graphics3D elements.
+      <dt>'Graphics3DBox[{...}]'
+      <dd>a box structure for Graphics3D elements.
     </dl>
     Routines which get called when Boxing (adding formatting and bounding-box information)
     a Graphics3D object.

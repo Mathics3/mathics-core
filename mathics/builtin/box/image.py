@@ -6,8 +6,8 @@ from mathics.builtin.base import BoxExpression
 class ImageBox(BoxExpression):
     """
     <dl>
-    <dt>'ImageBox[...]'
-    <dd>is a box structure for an image element.
+      <dt>'ImageBox[...]'
+      <dd>is a box structure for an image element.
     </dl>
     Routines which get called when Boxing (adding formatting and bounding-box information)
     an Image object.

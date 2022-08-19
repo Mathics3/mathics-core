@@ -425,10 +425,10 @@ class _Polyline(_GraphicsElementBox):
 class Point(Builtin):
     """
     <dl>
-    <dt>'Point[{$point_1$, $point_2$ ...}]'
-        <dd>represents the point primitive.
-    <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
-        <dd>represents a number of point primitives.
+      <dt>'Point[{$point_1$, $point_2$ ...}]'
+      <dd>represents the point primitive.
+      <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
+      <dd>represents a number of point primitives.
     </dl>
 
     Points are rendered if possible as circular regions. Their diameters can be specified using 'PointSize'.
@@ -533,8 +533,8 @@ def _svg_bezier(*segments):
 class FilledCurve(Builtin):
     """
     <dl>
-    <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
-        <dd>represents a filled curve.
+      <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
+      <dd>represents a filled curve.
     </dl>
 
     >> Graphics[FilledCurve[{Line[{{0, 0}, {1, 1}, {2, 0}}]}]]
@@ -577,14 +577,14 @@ class Polygon(Builtin):
 class RegularPolygon(Builtin):
     """
     <dl>
-    <dt>'RegularPolygon[$n$]'
-        <dd>gives the regular polygon with $n$ edges.
-    <dt>'RegularPolygon[$r$, $n$]'
-        <dd>gives the regular polygon with $n$ edges and radius $r$.
-    <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
-        <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
-    <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
-        <dd>gives the regular polygon centered at the position {$x, $y}.
+      <dt>'RegularPolygon[$n$]'
+      <dd>gives the regular polygon with $n$ edges.
+      <dt>'RegularPolygon[$r$, $n$]'
+      <dd>gives the regular polygon with $n$ edges and radius $r$.
+      <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
+      <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
+      <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
+      <dd>gives the regular polygon centered at the position {$x, $y}.
     </dl>
 
     >> Graphics[RegularPolygon[5]]
@@ -1228,8 +1228,8 @@ class Disk(Builtin):
 class Directive(Builtin):
     """
     <dl>
-    <dt> 'Directive'[$g_1$, $g_2$, ...]
-    <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
+      <dt> 'Directive'[$g_1$, $g_2$, ...]
+      <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
     </dl>
     """
 
@@ -1318,8 +1318,8 @@ class Medium(Builtin):
 class Offset(Builtin):
     """
     <dl>
-    <dt>'Offset[{$dx$, $dy$}, $position$]'
-    <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
+      <dt>'Offset[{$dx$, $dy$}, $position$]'
+      <dd>gives the position of a graphical object obtained by starting at the specified $position$ and then moving by absolute offset {$dx$,$dy$}.
     </dl>
     """
 
@@ -1361,8 +1361,8 @@ class Small(Builtin):
 class Text(Inset):
     """
     <dl>
-    <dt>'Text["$text$", {$x$, $y$}]'
-        <dd>draws $text$ centered on position '{$x$, $y$}'.
+      <dt>'Text["$text$", {$x$, $y$}]'
+      <dd>draws $text$ centered on position '{$x$, $y$}'.
     </dl>
 
     >> Graphics[{Text["First", {0, 0}], Text["Second", {1, 1}]}, Axes->True, PlotRange->{{-2, 2}, {-2, 2}}]
@@ -1390,8 +1390,8 @@ class Thick(Builtin):
 class Thin(Builtin):
     """
     <dl>
-    <dt>'Thin'
-        <dd>sets the line width for subsequent graphics primitives to 0.5pt.
+      <dt>'Thin'
+      <dd>sets the line width for subsequent graphics primitives to 0.5pt.
     </dl>
     """
 

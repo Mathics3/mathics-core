@@ -36,8 +36,8 @@ class _GraphicsDirective(BuiltinElement):
         if not instance.__doc__:
             instance.__doc__ = f"""
                 <dl>
-                <dt>'{cls.get_name()}[...]'
-                <dd>is a graphics directive that sets {cls.get_name().lower()[:3]}
+                  <dt>'{cls.get_name()}[...]'
+                  <dd>is a graphics directive that sets {cls.get_name().lower()[:3]}
                 </dl>
                 """
         return instance
