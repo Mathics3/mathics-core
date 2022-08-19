@@ -35,7 +35,7 @@ from mathics.builtin.drawing.graphics_internals import (
     GLOBALS,
     get_class,
 )
-from mathics.builtin.exceptions import BoxConstructError
+from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import (
@@ -83,7 +83,7 @@ GRAPHICS_OPTIONS = {
 DEFAULT_POINT_FACTOR = 0.005
 
 
-class CoordinatesError(BoxConstructError):
+class CoordinatesError(BoxExpressionError):
     pass
 
 
@@ -137,7 +137,7 @@ def cut(value):
 def _to_float(x):
     x = x.round_to_float()
     if x is None:
-        raise BoxConstructError
+        raise BoxExpressionError
     return x
 
 
@@ -147,7 +147,7 @@ def _data_and_options(elements, defined_options):
     for element in elements:
         if element.get_head_name() == "System`Rule":
             if len(element.elements) != 2:
-                raise BoxConstructError
+                raise BoxExpressionError
             name, value = element.elements
             name_head = name.get_head_name()
             if name_head == "System`Symbol":
@@ -155,7 +155,7 @@ def _data_and_options(elements, defined_options):
             elif name_head == "System`String":
                 py_name = "System`" + name.get_string_value()
             else:  # unsupported name type
-                raise BoxConstructError
+                raise BoxExpressionError
             options[py_name] = value
         else:
             data.append(element)
@@ -359,9 +359,9 @@ class _Size(_GraphicsDirective):
         elif value is not None:
             self.value = value
         else:
-            raise BoxConstructError
+            raise BoxExpressionError
         if self.value < 0:
-            raise BoxConstructError
+            raise BoxExpressionError
 
 
 class _Thickness(_Size):
@@ -386,7 +386,7 @@ class AbsoluteThickness(_Thickness):
 class _Polyline(_GraphicsElementBox):
     def do_init(self, graphics, points):
         if not points.has_form("List", None):
-            raise BoxConstructError
+            raise BoxExpressionError
         if (
             points.elements
             and points.elements[0].has_form("List", None)
@@ -405,7 +405,7 @@ class _Polyline(_GraphicsElementBox):
             if element.has_form("List", None):
                 lines.append(element.elements)
             else:
-                raise BoxConstructError
+                raise BoxExpressionError
         self.lines = [
             [graphics.coords(graphics, point) for point in line] for line in lines
         ]
@@ -515,7 +515,7 @@ def _svg_bezier(*segments):
         while p:
             n = min(max_degree, len(p))  # 1, 2, or 3
             if n < 1:
-                raise BoxConstructError
+                raise BoxExpressionError
             yield forms[n - 1] + " ".join("%f,%f" % xy for xy in p[:n])
             p = p[n:]
 
@@ -682,7 +682,7 @@ class Arrowheads(_GraphicsDirective):
     def init(self, graphics, item=None):
         super(Arrowheads, self).init(graphics, item)
         if len(item.elements) != 1:
-            raise BoxConstructError
+            raise BoxExpressionError
         self.spec = item.elements[0]
 
     def _arrow_size(self, s, extent):
@@ -701,7 +701,7 @@ class Arrowheads(_GraphicsDirective):
                 for head in elements:
                     spec = head.elements
                     if len(spec) not in (2, 3):
-                        raise BoxConstructError
+                        raise BoxExpressionError
                     size_spec = spec[0]
                     if (
                         isinstance(size_spec, Symbol)
@@ -711,18 +711,18 @@ class Arrowheads(_GraphicsDirective):
                     elif size_spec.is_numeric():
                         s = self._arrow_size(size_spec, extent)
                     else:
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     if len(spec) == 3 and custom_arrow:
                         graphics = spec[2]
                         if graphics.get_head_name() != "System`Graphics":
-                            raise BoxConstructError
+                            raise BoxExpressionError
                         arrow = custom_arrow(graphics)
                     else:
                         arrow = default_arrow
 
                     if not isinstance(spec[1], (Real, Rational, Integer)):
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     yield s, _to_float(spec[1]), arrow
             else:
@@ -899,7 +899,7 @@ def _style(graphics, item):
             graphics, edge=head is SymbolEdgeForm, face=head is SymbolFaceForm
         )
         if len(item.elements) > 1:
-            raise BoxConstructError
+            raise BoxExpressionError
         if item.elements:
             if item.elements[0].has_form("List", None):
                 for dir in item.elements[0].elements:
@@ -907,7 +907,7 @@ def _style(graphics, item):
             else:
                 style.append(item.elements[0], allow_forms=False)
     else:
-        raise BoxConstructError
+        raise BoxExpressionError
     return style
 
 
@@ -1024,16 +1024,16 @@ class _GraphicsElements:
                 elif head is Symbol("System`Rule") and len(spec.elements) == 2:
                     option, expr = spec.elements
                     if not isinstance(option, Symbol):
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     name = option.get_name()
                     create = style_options.get(name, None)
                     if create is None:
-                        raise BoxConstructError
+                        raise BoxExpressionError
 
                     new_style.set_option(name, create(style.graphics, expr))
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
             return new_style
 
         def convert(content, style):
@@ -1050,7 +1050,7 @@ class _GraphicsElements:
                     style.append(item)
                 elif head is Symbol("System`StyleBox"):
                     if len(item.elements) < 1:
-                        raise BoxConstructError
+                        raise BoxExpressionError
                     for element in convert(
                         item.elements[0], stylebox_style(style, item.elements[1:])
                     ):
@@ -1069,8 +1069,7 @@ class _GraphicsElements:
                     for element in convert(item, style):
                         yield element
                 else:
-                    print(item, " of type ", type(item), " is not a box.")
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
         self.elements = list(convert(content, self.style_class(self)))
 

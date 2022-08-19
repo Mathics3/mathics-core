@@ -11,7 +11,7 @@ from mathics.builtin.colors.color_internals import convert_color
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.builtin.exceptions import BoxConstructError
+from mathics.builtin.exceptions import BoxExpressionError
 from mathics.core.atoms import (
     Integer,
     Real,
@@ -462,7 +462,7 @@ class ColorDistance(Builtin):
             return
 
 
-class ColorError(BoxConstructError):
+class ColorError(BoxExpressionError):
     pass
 
 

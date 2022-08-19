@@ -7,7 +7,7 @@ import html
 import json
 import numbers
 
-from mathics.builtin.exceptions import BoxConstructError
+from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.box.graphics import (
     GraphicsBox,
     ArrowBox,
@@ -43,7 +43,7 @@ class Graphics3DBox(GraphicsBox):
 
     def _prepare_elements(self, leaves, options, max_width=None):
         if not leaves:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.graphics_options = self.get_option_values(leaves[1:], **options)
 
@@ -221,13 +221,13 @@ class Graphics3DBox(GraphicsBox):
         else:
             boxratios = boxratios
         if not isinstance(boxratios, list) or len(boxratios) != 3:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         plot_range = self.graphics_options["System`PlotRange"].to_python()
         if plot_range == "System`Automatic":
             plot_range = ["System`Automatic"] * 3
         if not isinstance(plot_range, list) or len(plot_range) != 3:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         elements = Graphics3DElements(leaves[0], evaluation)
 
@@ -250,7 +250,7 @@ class Graphics3DBox(GraphicsBox):
                     xmin = elements.translate((xmin, 0, 0))[0]
                     xmax = elements.translate((xmax, 0, 0))[0]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
                 if plot_range[1] == "System`Automatic":
                     if ymin is None and ymax is None:
@@ -264,7 +264,7 @@ class Graphics3DBox(GraphicsBox):
                     ymin = elements.translate((0, ymin, 0))[1]
                     ymax = elements.translate((0, ymax, 0))[1]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
 
                 if plot_range[2] == "System`Automatic":
                     if zmin is None and zmax is None:
@@ -278,9 +278,9 @@ class Graphics3DBox(GraphicsBox):
                     zmin = elements.translate((0, 0, zmin))[2]
                     zmax = elements.translate((0, 0, zmax))[2]
                 else:
-                    raise BoxConstructError
+                    raise BoxExpressionError
             except (ValueError, TypeError):
-                raise BoxConstructError
+                raise BoxExpressionError
 
             boxscale = [1.0, 1.0, 1.0]
             if boxratios[0] != "System`Automatic":
@@ -726,14 +726,14 @@ class Cone3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
         if len(item.elements) != 2:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(graphics, pos=point) for point in points)
         self.radius = item.elements[1].to_python()
@@ -774,14 +774,14 @@ class Cuboid3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
         if len(item.elements) != 1:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
 
@@ -806,14 +806,14 @@ class Cylinder3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
         if len(item.elements) != 2:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         points = item.elements[0].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
         self.radius = item.elements[1].to_python()
@@ -923,7 +923,7 @@ class Sphere3DBox(_GraphicsElementBox):
             Opacity, face_element=True
         )
         if len(item.elements) != 2:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         points = item.elements[0].to_python()
         if not all(isinstance(point, list) for point in points):
@@ -932,7 +932,7 @@ class Sphere3DBox(_GraphicsElementBox):
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
         self.radius = item.elements[1].to_python()
@@ -974,7 +974,7 @@ class Tube3DBox(_GraphicsElementBox):
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = [Coords3D(graphics, pos=point) for point in points]
         self.radius = item.elements[1].to_python()
