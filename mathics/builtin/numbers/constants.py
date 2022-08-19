@@ -568,7 +568,6 @@ class Undefined(Builtin):
      = Undefined
     >> Attributes[Undefined]
      = {Protected}
-    >>
     """
 
     attributes = A_PROTECTED
