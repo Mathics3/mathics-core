@@ -22,7 +22,12 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
 )
-from mathics.core.attributes import constant, protected, read_protected
+from mathics.core.attributes import (
+    constant as A_CONSTANT,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
+)
+
 from mathics.core.number import get_precision, PrecisionValueError, machine_precision
 from mathics.core.symbols import (
     Atom,
@@ -75,7 +80,7 @@ def sympy_constant(fn, d=None):
 
 class _Constant_Common(Predefined):
     is_numeric = True
-    attributes = constant | protected | read_protected
+    attributes = A_CONSTANT | A_PROTECTED | A_READ_PROTECTED
     nargs = {0}
     options = {"Method": "Automatic"}
 
@@ -548,6 +553,25 @@ class Pi(_MPMathConstant, _SympyConstant):
     rules = {"MakeBoxes[Pi,(StandardForm|TraditionalForm)]": '"\\[Pi]"'}
     summary_text = "Pi, \u03c0 ≃ 3.1416"
     sympy_name = "pi"
+
+
+class Undefined(Builtin):
+    """
+    Undefined symbol/value (<url>:WMA: https://reference.wolfram.com/language/ref/Undefined.html</url>)
+
+    <dl>
+      <dt>'Undefined[]'
+      <dd>a symbol that represents a quantity with no defined value.
+    </dl>
+
+    >> ConditionalExpression[a, False]
+     = Undefined
+    >> Attributes[Undefined]
+     = {Protected}
+    """
+
+    attributes = A_PROTECTED
+    summary_text = "undefined value"
 
 
 class Underflow(Builtin):

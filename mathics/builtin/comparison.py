@@ -453,8 +453,8 @@ class BooleanQ(Builtin):
 class Inequality(Builtin):
     """
     <dl>
-    <dt>'Inequality'
-        <dd>is the head of expressions involving different inequality
+      <dt>'Inequality'
+      <dd>is the head of expressions involving different inequality
         operators (at least temporarily). Thus, it is possible to
         write chains of inequalities.
     </dl>
@@ -822,10 +822,10 @@ class Less(_ComparisonOperator, _SympyComparison):
 
 class LessEqual(_ComparisonOperator, _SympyComparison):
     """
-     <dl>
-       <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
-       <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
-     </dl>
+    <dl>
+      <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
+      <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
+    </dl>
 
     LessEqual operator can be chained:
     >> LessEqual[1, 3, 3, 2]
@@ -915,8 +915,8 @@ class Positive(Builtin):
 class Negative(Builtin):
     """
     <dl>
-    <dt>'Negative[$x$]'
-        <dd>returns 'True' if $x$ is a negative real number.
+      <dt>'Negative[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number.
     </dl>
     >> Negative[0]
      = False
@@ -964,8 +964,8 @@ class NonNegative(Builtin):
 class NonPositive(Builtin):
     """
     <dl>
-    <dt>'NonPositive[$x$]'
-        <dd>returns 'True' if $x$ is a negative real number or zero.
+      <dt>'NonPositive[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number or zero.
     </dl>
 
     >> {Negative[0], NonPositive[0]}

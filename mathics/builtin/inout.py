@@ -39,16 +39,14 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 SymbolNumberForm = Symbol("System`NumberForm")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
-
-
 SymbolTableDepth = Symbol("TableDepth")
 
 
 class TableForm(Builtin):
     """
     <dl>
-    <dt>'TableForm[$expr$]'
-        <dd>displays $expr$ as a table.
+      <dt>'TableForm[$expr$]'
+      <dd>displays $expr$ as a table.
     </dl>
 
     >> TableForm[Array[a, {3,2}],TableDepth->1]
@@ -139,8 +137,8 @@ class TableForm(Builtin):
 class MatrixForm(TableForm):
     """
     <dl>
-    <dt>'MatrixForm[$m$]'
-        <dd>displays a matrix $m$, hiding the underlying list
+      <dt>'MatrixForm[$m$]'
+      <dd>displays a matrix $m$, hiding the underlying list
         structure.
     </dl>
 
@@ -177,8 +175,8 @@ class MatrixForm(TableForm):
 class StringForm(Builtin):
     """
     <dl>
-    <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
-        <dd>displays the string $str$, replacing placeholders in $str$
+      <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
+      <dd>displays the string $str$, replacing placeholders in $str$
         with the corresponding expressions.
     </dl>
 
@@ -226,8 +224,8 @@ class StringForm(Builtin):
 class Echo_(Predefined):
     """
     <dl>
-    <dt>'$Echo'
-        <dd>gives a list of files and pipes to which all input is echoed.
+      <dt>'$Echo'
+      <dd>gives a list of files and pipes to which all input is echoed.
 
     </dl>
     """
@@ -241,8 +239,8 @@ class Echo_(Predefined):
 class Print(Builtin):
     """
     <dl>
-    <dt>'Print[$expr$, ...]'
-        <dd>prints each $expr$ in string form.
+      <dt>'Print[$expr$, ...]'
+      <dd>prints each $expr$ in string form.
     </dl>
 
     >> Print["Hello world!"]
@@ -269,8 +267,8 @@ class Print(Builtin):
 class FullForm(Builtin):
     """
     <dl>
-    <dt>'FullForm[$expr$]'
-        <dd>displays the underlying form of $expr$.
+      <dt>'FullForm[$expr$]'
+      <dd>displays the underlying form of $expr$.
     </dl>
 
     >> FullForm[a + b * c]
@@ -287,8 +285,8 @@ class FullForm(Builtin):
 class StandardForm(Builtin):
     """
     <dl>
-    <dt>'StandardForm[$expr$]'
-        <dd>displays $expr$ in the default form.
+      <dt>'StandardForm[$expr$]'
+      <dd>displays $expr$ in the default form.
     </dl>
 
     >> StandardForm[a + b * c]
@@ -308,8 +306,8 @@ class StandardForm(Builtin):
 class TraditionalForm(Builtin):
     """
     <dl>
-    <dt>'TraditionalForm[$expr$]'
-        <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
+      <dt>'TraditionalForm[$expr$]'
+      <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
            function evaluations are represented by brackets instead of square brackets.
     </dl>
 
@@ -324,8 +322,8 @@ class TraditionalForm(Builtin):
 class InputForm(Builtin):
     r"""
     <dl>
-    <dt>'InputForm[$expr$]'
-        <dd>displays $expr$ in an unambiguous form suitable for input.
+      <dt>'InputForm[$expr$]'
+      <dd>displays $expr$ in an unambiguous form suitable for input.
     </dl>
 
     >> InputForm[a + b * c]
@@ -347,8 +345,8 @@ class InputForm(Builtin):
 class OutputForm(Builtin):
     """
     <dl>
-    <dt>'OutputForm[$expr$]'
-        <dd>displays $expr$ in a plain-text form.
+      <dt>'OutputForm[$expr$]'
+      <dd>displays $expr$ in a plain-text form.
     </dl>
 
     >> OutputForm[f'[x]]
@@ -367,8 +365,8 @@ class OutputForm(Builtin):
 class MathMLForm(Builtin):
     """
     <dl>
-    <dt>'MathMLForm[$expr$]'
-        <dd>displays $expr$ as a MathML expression.
+      <dt>'MathMLForm[$expr$]'
+      <dd>displays $expr$ as a MathML expression.
     </dl>
 
     >> MathMLForm[HoldForm[Sqrt[a^3]]]
@@ -486,8 +484,8 @@ class SympyForm(Builtin):
 class TeXForm(Builtin):
     r"""
     <dl>
-    <dt>'TeXForm[$expr$]'
-        <dd>displays $expr$ using TeX math mode commands.
+      <dt>'TeXForm[$expr$]'
+      <dd>displays $expr$ using TeX math mode commands.
     </dl>
 
     >> TeXForm[HoldForm[Sqrt[a^3]]]

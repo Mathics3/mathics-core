@@ -91,8 +91,8 @@ class Attributes(Builtin):
 class SetAttributes(Builtin):
     """
     <dl>
-    <dt>'SetAttributes'[$symbol$, $attrib$]
-        <dd>adds $attrib$ to the list of $symbol$'s attributes.
+      <dt>'SetAttributes'[$symbol$, $attrib$]
+      <dd>adds $attrib$ to the list of $symbol$'s attributes.
     </dl>
 
     >> SetAttributes[f, Flat]
@@ -142,8 +142,8 @@ class SetAttributes(Builtin):
 class ClearAttributes(Builtin):
     """
     <dl>
-    <dt>'ClearAttributes'[$symbol$, $attrib$]
-        <dd>removes $attrib$ from $symbol$'s attributes.
+      <dt>'ClearAttributes'[$symbol$, $attrib$]
+      <dd>removes $attrib$ from $symbol$'s attributes.
     </dl>
 
     >> SetAttributes[f, Flat]
@@ -307,8 +307,8 @@ class Unprotect(Builtin):
 class Protected(Predefined):
     """
     <dl>
-    <dt>'Protected'
-        <dd>is an attribute that prevents values on a symbol from
+      <dt>'Protected'
+      <dd>is an attribute that prevents values on a symbol from
         being modified.
     </dl>
 
@@ -350,8 +350,8 @@ class Protected(Predefined):
 class ReadProtected(Predefined):
     """
     <dl>
-    <dt>'ReadProtected'
-        <dd>is an attribute that prevents values on a symbol from
+      <dt>'ReadProtected'
+      <dd>is an attribute that prevents values on a symbol from
         being read.
     </dl>
 
@@ -372,8 +372,8 @@ class ReadProtected(Predefined):
 class Locked(Predefined):
     """
     <dl>
-    <dt>'Locked'
-        <dd>is an attribute that prevents attributes on a symbol from
+      <dt>'Locked'
+      <dd>is an attribute that prevents attributes on a symbol from
         being modified.
     </dl>
 
@@ -400,8 +400,8 @@ class Locked(Predefined):
 class Flat(Predefined):
     """
     <dl>
-    <dt>'Flat'
-        <dd>is an attribute that specifies that nested occurrences of
+      <dt>'Flat'
+      <dd>is an attribute that specifies that nested occurrences of
         a function should be automatically flattened.
     </dl>
 
@@ -444,8 +444,8 @@ class Flat(Predefined):
 
 class Orderless(Predefined):
     """<dl>
-        <dt>'Orderless'
-        <dd>is an attribute that can be assigned to a symbol $f$ to
+      <dt>'Orderless'
+      <dd>is an attribute that can be assigned to a symbol $f$ to
         indicate that the elements $ei$ in expressions of the form
         $f$[$e1$, $e2$, ...] should automatically be sorted into
         canonical order. This property is accounted for in pattern
@@ -475,8 +475,8 @@ class Orderless(Predefined):
 class OneIdentity(Predefined):
     """
     <dl>
-    <dt>'OneIdentity'
-        <dd>is an attribute specifying that '$f$[$x$]' should be treated
+      <dt>'OneIdentity'
+      <dd>is an attribute specifying that '$f$[$x$]' should be treated
         as equivalent to $x$ in pattern matching.
     </dl>
 
@@ -495,8 +495,8 @@ class OneIdentity(Predefined):
 class SequenceHold(Predefined):
     """
     <dl>
-    <dt>'SequenceHold'
-        <dd>is an attribute that prevents 'Sequence' objects from being
+      <dt>'SequenceHold'
+      <dd>is an attribute that prevents 'Sequence' objects from being
         spliced into a function's arguments.
     </dl>
 
@@ -522,8 +522,8 @@ class SequenceHold(Predefined):
 class HoldFirst(Predefined):
     """
     <dl>
-    <dt>'HoldFirst'
-        <dd>is an attribute specifying that the first argument of a
+      <dt>'HoldFirst'
+      <dd>is an attribute specifying that the first argument of a
         function should be left unevaluated.
     </dl>
 
@@ -537,8 +537,8 @@ class HoldFirst(Predefined):
 class HoldRest(Predefined):
     """
     <dl>
-    <dt>'HoldRest'
-        <dd>is an attribute specifying that all but the first argument
+      <dt>'HoldRest'
+      <dd>is an attribute specifying that all but the first argument
         of a function should be left unevaluated.
     </dl>
 
@@ -554,8 +554,8 @@ class HoldRest(Predefined):
 class HoldAll(Predefined):
     """
     <dl>
-    <dt>'HoldAll'
-        <dd>is an attribute specifying that all arguments of a
+      <dt>'HoldAll'
+      <dd>is an attribute specifying that all arguments of a
         function should be left unevaluated.
     </dl>
 
@@ -569,8 +569,8 @@ class HoldAll(Predefined):
 class HoldAllComplete(Predefined):
     """
     <dl>
-    <dt>'HoldAllComplete'
-        <dd>is an attribute that includes the effects of 'HoldAll' and
+      <dt>'HoldAllComplete'
+      <dd>is an attribute that includes the effects of 'HoldAll' and
         'SequenceHold', and also protects the function from being
         affected by the upvalues of any arguments.
     </dl>
@@ -591,8 +591,8 @@ class HoldAllComplete(Predefined):
 class NHoldAll(Predefined):
     """
     <dl>
-    <dt>'NHoldAll'
-        <dd>is an attribute that protects all arguments of a
+      <dt>'NHoldAll'
+      <dd>is an attribute that protects all arguments of a
         function from numeric evaluation.
     </dl>
 
@@ -609,8 +609,8 @@ class NHoldAll(Predefined):
 class NHoldFirst(Predefined):
     """
     <dl>
-    <dt>'NHoldFirst'
-        <dd>is an attribute that protects the first argument of a
+      <dt>'NHoldFirst'
+      <dd>is an attribute that protects the first argument of a
         function from numeric evaluation.
     </dl>
     """
@@ -621,8 +621,8 @@ class NHoldFirst(Predefined):
 class NHoldRest(Predefined):
     """
     <dl>
-    <dt>'NHoldRest'
-        <dd>is an attribute that protects all but the first argument
+      <dt>'NHoldRest'
+      <dd>is an attribute that protects all but the first argument
         of a function from numeric evaluation.
     </dl>
     """
@@ -633,8 +633,8 @@ class NHoldRest(Predefined):
 class Listable(Predefined):
     """
     <dl>
-    <dt>'Listable'
-        <dd>is an attribute specifying that a function should be
+      <dt>'Listable'
+      <dd>is an attribute specifying that a function should be
         automatically applied to each element of a list.
     </dl>
 
@@ -653,8 +653,8 @@ class Listable(Predefined):
 class Constant(Predefined):
     """
     <dl>
-    <dt>'Constant'
-        <dd>is an attribute that indicates that a symbol is a constant.
+      <dt>'Constant'
+      <dd>is an attribute that indicates that a symbol is a constant.
     </dl>
 
     Mathematical constants like 'E' have attribute 'Constant':
@@ -674,8 +674,8 @@ class Constant(Predefined):
 class NumericFunction(Predefined):
     """
     <dl>
-    <dt>'NumericFunction'
-        <dd>is an attribute that indicates that a symbol is the head of a numeric function.
+      <dt>'NumericFunction'
+      <dd>is an attribute that indicates that a symbol is the head of a numeric function.
     </dl>
 
     Mathematical functions like 'Sqrt' have attribute 'NumericFunction':
