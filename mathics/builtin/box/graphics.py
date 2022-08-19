@@ -148,8 +148,8 @@ class _ArcBox(_RoundBox):
 class ArrowBox(_Polyline):
     """
     <dl>
-    <dt>'ArrowBox[...]'
-    <dd>is a box structure for 'Arrow' elements.
+      <dt>'ArrowBox[...]'
+      <dd>is a box structure for 'Arrow' elements.
     </dl>
     """
 
@@ -348,8 +348,8 @@ class ArrowBox(_Polyline):
 class BezierCurveBox(_Polyline):
     """
     <dl>
-    <dt>'BezierCurveBox[...]'
-    <dd>is a box structure for a 'BezierCurve' element.
+      <dt>'BezierCurveBox[...]'
+      <dd>is a box structure for a 'BezierCurve' element.
     </dl>
     """
 
@@ -370,8 +370,8 @@ class BezierCurveBox(_Polyline):
 class CircleBox(_ArcBox):
     """
     <dl>
-    <dt>'CircleBox[...]'
-    <dd>box structure for a 'Circle' element.
+      <dt>'CircleBox[...]'
+      <dd>box structure for a 'Circle' element.
     </dl>
     """
 
@@ -382,8 +382,8 @@ class CircleBox(_ArcBox):
 class DiskBox(_ArcBox):
     """
     <dl>
-    <dt>'DiskBox[...]'
-    <dd>box structure for a 'Disk' element.
+      <dt>'DiskBox[...]'
+      <dd>box structure for a 'Disk' element.
     </dl>
     """
 
@@ -394,8 +394,8 @@ class DiskBox(_ArcBox):
 class GraphicsBox(BoxConstruct):
     """
     <dl>
-    <dt>'GraphicsBox[...]'
-    <dd>box structure holding a 'Graphics' object.
+      <dt>'GraphicsBox[...]'
+      <dd>box structure holding a 'Graphics' object.
     </dl>
 
     Boxing method which get called when Boxing (adding formatting and bounding-box information)
@@ -874,8 +874,8 @@ class GraphicsBox(BoxConstruct):
 class FilledCurveBox(_GraphicsElementBox):
     """
     <dl>
-    <dt>'FilledCurveBox[...]'
-    <dd>is a box structure for 'FilledCurve' elements.
+      <dt>'FilledCurveBox[...]'
+      <dd>is a box structure for 'FilledCurve' elements.
     </dl>
     """
 
@@ -1037,12 +1037,12 @@ class LineBox(_Polyline):
 class PointBox(_Polyline):
     """
     <dl>
-    <dt>'PointBox'[{$x$, $y$}]
-    <dd> a box construction representing a point in a Graphic.
-    <dt>'PointBox'[{$x$, $y$, $z$}]
-    <dd> represents a point in a Graphic3D.
-    <dt>'PointBox'[{$p_1$, $p_2$,...}]
-    <dd> represents a set of points.
+      <dt>'PointBox'[{$x$, $y$}]
+      <dd> a box construction representing a point in a Graphic.
+      <dt>'PointBox'[{$x$, $y$, $z$}]
+      <dd> represents a point in a Graphic3D.
+      <dt>'PointBox'[{$p_1$, $p_2$,...}]
+      <dd> represents a set of points.
     </dl>
     ## Boxing methods for a list of Point.
     ##

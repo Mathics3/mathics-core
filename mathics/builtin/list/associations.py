@@ -306,8 +306,8 @@ class Lookup(Builtin):
 class Missing(Builtin):
     """
     <dl>
-    <dd>'Missing[]'
-    <dt> represents a data that is misssing.
+      <dd>'Missing[]'
+      <dt> represents a data that is misssing.
     </dl>
     >> ElementData["Meitnerium","MeltingPoint"]
      = Missing[NotAvailable]

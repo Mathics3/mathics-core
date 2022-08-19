@@ -118,8 +118,8 @@ class All(Predefined):
 class ContainsOnly(Builtin):
     """
     <dl>
-    <dt>'ContainsOnly[$list1$, $list2$]'
-        <dd>yields True if $list1$ contains only elements that appear in $list2$.
+      <dt>'ContainsOnly[$list1$, $list2$]'
+      <dd>yields True if $list1$ contains only elements that appear in $list2$.
     </dl>
 
     >> ContainsOnly[{b, a, a}, {a, b, c}]
@@ -213,12 +213,12 @@ class ContainsOnly(Builtin):
 class Delete(Builtin):
     """
     <dl>
-    <dt>'Delete[$expr$, $i$]'
-        <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
-    <dt>'Delete[$expr$, {$m$, $n$, ...}]'
-        <dd>deletes the element at position {$m$, $n$, ...}.
-    <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
-        <dd>deletes the elements at several positions.
+      <dt>'Delete[$expr$, $i$]'
+      <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
+      <dt>'Delete[$expr$, {$m$, $n$, ...}]'
+      <dd>deletes the element at position {$m$, $n$, ...}.
+      <dt>'Delete[$expr$, {{$m1$, $n1$, ...}, {$m2$, $n2$, ...}, ...}]'
+      <dd>deletes the elements at several positions.
     </dl>
 
     Delete the element at position 3:
@@ -355,8 +355,8 @@ class Delete(Builtin):
 class Failure(Builtin):
     """
     <dl>
-    <dt>Failure[$tag$, $assoc$]
-        <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
+      <dt>Failure[$tag$, $assoc$]
+      <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
     </dl>
     """
 
@@ -373,10 +373,10 @@ class Failure(Builtin):
 class Key(Builtin):
     """
     <dl>
-    <dt>Key[$key$]
-        <dd> represents a key used to access a value in an association.
-    <dt>Key[$key$][$assoc$]
-        <dd>
+      <dt>Key[$key$]
+      <dd> represents a key used to access a value in an association.
+      <dt>Key[$key$][$assoc$]
+      <dd>
     </dl>
     """
 
@@ -389,22 +389,22 @@ class Key(Builtin):
 class Level(Builtin):
     """
     <dl>
-    <dt>'Level[$expr$, $levelspec$]'
-    <dd>gives a list of all subexpressions of $expr$ at the
+      <dt>'Level[$expr$, $levelspec$]'
+      <dd>gives a list of all subexpressions of $expr$ at the
         level(s) specified by $levelspec$.
     </dl>
 
     Level uses standard level specifications:
 
     <dl>
-    <dt>$n$
-        <dd>levels 1 through $n$
-    <dt>'Infinity'
-        <dd>all levels from level 1
-    <dt>'{$n$}'
-        <dd>level $n$ only
-    <dt>'{$m$, $n$}'
-        <dd>levels $m$ through $n$
+      <dt>$n$
+      <dd>levels 1 through $n$
+      <dt>'Infinity'
+      <dd>all levels from level 1
+      <dt>'{$n$}'
+      <dd>level $n$ only
+      <dt>'{$m$, $n$}'
+      <dd>levels $m$ through $n$
     </dl>
 
     Level 0 corresponds to the whole expression.
@@ -466,8 +466,8 @@ class Level(Builtin):
 class LevelQ(Test):
     """
     <dl>
-    <dt>'LevelQ[$expr$]'
-        <dd>tests whether $expr$ is a valid level specification.
+      <dt>'LevelQ[$expr$]'
+      <dd>tests whether $expr$ is a valid level specification.
     </dl>
 
     >> LevelQ[2]
@@ -493,9 +493,9 @@ class LevelQ(Test):
 class List(Builtin):
     """
     <dl>
-    <dt>'List[$e1$, $e2$, ..., $ei$]'
-    <dt>'{$e1$, $e2$, ..., $ei$}'
-        <dd>represents a list containing the elements $e1$...$ei$.
+      <dt>'List[$e1$, $e2$, ..., $ei$]'
+      <dt>'{$e1$, $e2$, ..., $ei$}'
+      <dd>represents a list containing the elements $e1$...$ei$.
     </dl>
 
     'List' is the head of lists:
@@ -530,8 +530,8 @@ class List(Builtin):
 class ListQ(Test):
     """
     <dl>
-    <dt>'ListQ[$expr$]'
-        <dd>tests whether $expr$ is a 'List'.
+      <dt>'ListQ[$expr$]'
+      <dd>tests whether $expr$ is a 'List'.
     </dl>
 
     >> ListQ[{1, 2, 3}]
@@ -551,8 +551,8 @@ class ListQ(Test):
 class NotListQ(Test):
     """
     <dl>
-    <dt>'NotListQ[$expr$]'
-        <dd>returns true if $expr$ is not a list.
+      <dt>'NotListQ[$expr$]'
+      <dd>returns true if $expr$ is not a list.
     </dl>
     """
 
@@ -596,8 +596,8 @@ def list_boxes(items, f, evaluation, open=None, close=None):
 class None_(Predefined):
     """
     <dl>
-    <dt>'None'
-        <dd>is a possible value for 'Span' and 'Quiet'.
+      <dt>'None'
+      <dd>is a possible value for 'Span' and 'Quiet'.
     </dl>
     """
 
@@ -608,10 +608,10 @@ class None_(Predefined):
 class Split(Builtin):
     """
     <dl>
-    <dt>'Split[$list$]'
-        <dd>splits $list$ into collections of consecutive identical elements.
-    <dt>'Split[$list$, $test$]'
-        <dd>splits $list$ based on whether the function $test$ yields
+      <dt>'Split[$list$]'
+      <dd>splits $list$ into collections of consecutive identical elements.
+      <dt>'Split[$list$, $test$]'
+      <dd>splits $list$ based on whether the function $test$ yields
         'True' on consecutive elements.
     </dl>
 
@@ -678,8 +678,8 @@ class Split(Builtin):
 class SplitBy(Builtin):
     """
     <dl>
-    <dt>'SplitBy[$list$, $f$]'
-        <dd>splits $list$ into collections of consecutive elements
+      <dt>'SplitBy[$list$, $f$]'
+      <dd>splits $list$ into collections of consecutive elements
         that give the same result when $f$ is applied.
     </dl>
 
@@ -746,8 +746,8 @@ class SplitBy(Builtin):
 class LeafCount(Builtin):
     """
     <dl>
-    <dt>'LeafCount[$expr$]'
-        <dd>returns the total number of indivisible subexpressions in $expr$.
+      <dt>'LeafCount[$expr$]'
+      <dd>returns the total number of indivisible subexpressions in $expr$.
     </dl>
 
     >> LeafCount[1 + x + y^a]
@@ -1015,8 +1015,8 @@ class _IterationFunction(Builtin):
 class Join(Builtin):
     """
     <dl>
-    <dt>'Join[$l1$, $l2$]'
-        <dd>concatenates the lists $l1$ and $l2$.
+      <dt>'Join[$l1$, $l2$]'
+      <dd>concatenates the lists $l1$ and $l2$.
     </dl>
 
     'Join' concatenates lists:
@@ -1109,8 +1109,8 @@ def get_tuples(items):
 class IntersectingQ(Builtin):
     """
     <dl>
-    <dt>'IntersectingQ[$a$, $b$]'
-    <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
+      <dt>'IntersectingQ[$a$, $b$]'
+      <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
     </dl>
     """
 
@@ -1121,8 +1121,8 @@ class IntersectingQ(Builtin):
 class DisjointQ(Test):
     """
     <dl>
-    <dt>'DisjointQ[$a$, $b$]'
-    <dd>gives True if $a and $b are disjoint, or False if $a and $b have any common elements.
+      <dt>'DisjointQ[$a$, $b$]'
+      <dd>gives True if $a and $b are disjoint, or False if $a and $b have any common elements.
     </dl>
     """
 
@@ -1133,11 +1133,11 @@ class DisjointQ(Test):
 class Fold(Builtin):
     """
     <dl>
-    <dt>'Fold[$f$, $x$, $list$]'
-        <dd>returns the result of iteratively applying the binary
+      <dt>'Fold[$f$, $x$, $list$]'
+      <dd>returns the result of iteratively applying the binary
         operator $f$ to each element of $list$, starting with $x$.
-    <dt>'Fold[$f$, $list$]'
-        <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
+      <dt>'Fold[$f$, $list$]'
+      <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
     >> Fold[Plus, 5, {1, 1, 1}]
@@ -1156,12 +1156,12 @@ class Fold(Builtin):
 class FoldList(Builtin):
     """
     <dl>
-    <dt>'FoldList[$f$, $x$, $list$]'
-        <dd>returns a list starting with $x$, where each element is
+      <dt>'FoldList[$f$, $x$, $list$]'
+      <dd>returns a list starting with $x$, where each element is
         the result of applying the binary operator $f$ to the previous
         result and the next element of $list$.
-    <dt>'FoldList[$f$, $list$]'
-        <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
+      <dt>'FoldList[$f$, $list$]'
+      <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
     </dl>
 
     >> FoldList[f, x, {1, 2, 3}]
@@ -1322,8 +1322,8 @@ class _RankedTakeLargest(_RankedTake):
 class TakeLargestBy(_RankedTakeLargest):
     """
     <dl>
-    <dt>'TakeLargestBy[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ largest items in $list$
+      <dt>'TakeLargestBy[$list$, $f$, $n$]'
+      <dd>returns the a sorted list of the $n$ largest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>
 
@@ -1346,8 +1346,8 @@ class TakeLargestBy(_RankedTakeLargest):
 class TakeSmallestBy(_RankedTakeSmallest):
     """
     <dl>
-    <dt>'TakeSmallestBy[$list$, $f$, $n$]'
-        <dd>returns the a sorted list of the $n$ smallest items in $list$
+      <dt>'TakeSmallestBy[$list$, $f$, $n$]'
+      <dd>returns the a sorted list of the $n$ smallest items in $list$
         using $f$ to retrieve the items' keys to compare them.
     </dl>
 
@@ -1559,19 +1559,19 @@ class _Pad(Builtin):
 class PadLeft(_Pad):
     """
     <dl>
-    <dt>'PadLeft[$list$, $n$]'
-        <dd>pads $list$ to length $n$ by adding 0 on the left.
-    <dt>'PadLeft[$list$, $n$, $x$]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the left.
-    <dt>'PadLeft[$list$, {$n1$, $n2, ...}, $x$]'
-        <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the left.
-    <dt>'PadLeft[$list$, $n$, $x$, $m$]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
-    <dt>'PadLeft[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ...
+      <dt>'PadLeft[$list$, $n$]'
+      <dd>pads $list$ to length $n$ by adding 0 on the left.
+      <dt>'PadLeft[$list$, $n$, $x$]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the left.
+      <dt>'PadLeft[$list$, {$n1$, $n2, ...}, $x$]'
+      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the left.
+      <dt>'PadLeft[$list$, $n$, $x$, $m$]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
+      <dt>'PadLeft[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ...
          on levels 1, 2, ... on the right.
-    <dt>'PadLeft[$list$]'
-        <dd>turns the ragged list $list$ into a regular list by adding 0 on the left.
+      <dt>'PadLeft[$list$]'
+      <dd>turns the ragged list $list$ into a regular list by adding 0 on the left.
     </dl>
 
     >> PadLeft[{1, 2, 3}, 5]
@@ -1595,19 +1595,19 @@ class PadLeft(_Pad):
 class PadRight(_Pad):
     """
     <dl>
-    <dt>'PadRight[$list$, $n$]'
-        <dd>pads $list$ to length $n$ by adding 0 on the right.
-    <dt>'PadRight[$list$, $n$, $x$]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the right.
-    <dt>'PadRight[$list$, {$n1$, $n2, ...}, $x$]'
-        <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the right.
-    <dt>'PadRight[$list$, $n$, $x$, $m$]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
-    <dt>'PadRight[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-        <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ...
+      <dt>'PadRight[$list$, $n$]'
+      <dd>pads $list$ to length $n$ by adding 0 on the right.
+      <dt>'PadRight[$list$, $n$, $x$]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the right.
+      <dt>'PadRight[$list$, {$n1$, $n2, ...}, $x$]'
+      <dd>pads $list$ to lengths $n1$, $n2$ at levels 1, 2, ... respectively by adding $x$ on the right.
+      <dt>'PadRight[$list$, $n$, $x$, $m$]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
+      <dt>'PadRight[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
+      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ...
          on levels 1, 2, ... on the left.
-    <dt>'PadRight[$list$]'
-        <dd>turns the ragged list $list$ into a regular list by adding 0 on the right.
+      <dt>'PadRight[$list$]'
+      <dd>turns the ragged list $list$ into a regular list by adding 0 on the right.
     </dl>
 
     >> PadRight[{1, 2, 3}, 5]
@@ -1873,11 +1873,11 @@ class _Cluster(Builtin):
 class FindClusters(_Cluster):
     """
     <dl>
-    <dt>'FindClusters[$list$]'
-        <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
+      <dt>'FindClusters[$list$]'
+      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
         automatically.
-    <dt>'FindClusters[$list$, $k$]'
-        <dd>returns a list of $k$ clusters formed from the elements of $list$.
+      <dt>'FindClusters[$list$, $k$]'
+      <dd>returns a list of $k$ clusters formed from the elements of $list$.
     </dl>
 
     >> FindClusters[{1, 2, 20, 10, 11, 40, 19, 42}]
@@ -1952,12 +1952,12 @@ class FindClusters(_Cluster):
 class ClusteringComponents(_Cluster):
     """
     <dl>
-    <dt>'ClusteringComponents[$list$]'
-        <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
+      <dt>'ClusteringComponents[$list$]'
+      <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
         element shows the index of the cluster in which the corresponding element in $list$
         ended up.
-    <dt>'ClusteringComponents[$list$, $k$]'
-        <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
+      <dt>'ClusteringComponents[$list$, $k$]'
+      <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
         each element shows the index of the cluster in which the corresponding element in
         $list$ ended up.
     </dl>
