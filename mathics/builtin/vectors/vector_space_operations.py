@@ -4,12 +4,63 @@
 Vector Space Operations
 """
 
-from mathics.builtin.base import Builtin
+from sympy.physics.quantum import TensorProduct
+
+from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Complex, Integer, Integer0, Integer1, Real
+from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolDot, SymbolConjugate
+from mathics.core.attributes import (
+    # listable as A_LISTABLE,
+    # numeric_function as A_NUMERIC_FUNCTION,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
+)
+
+
+class KroneckerProduct(SympyFunction):
+    """
+    <url>:Kronecker product: https://en.wikipedia.org/wiki/Kronecker_product</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/quantum/tensorproduct.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>)
+
+    <dl>
+      <dt>'KroneckerProduct[$m1$, $m2$, ...]'
+      <dd>returns the Kronecker product of the arrays $mi$
+    </dl>
+
+    Show symbolically how the Kronecker product works on two two-dimensional arrays:
+
+    >> a = {{a11, a12}, {a21, a22}}; b = {{b11, b12}, {b21, b22}};
+    >> KroneckerProduct[a, b]
+     = {{a11 b11, a11 b12, a12 b11, a12 b12}, {a11 b21, a11 b22, a12 b21, a12 b22}, {a21 b11, a21 b12, a22 b11, a22 b12}, {a21 b21, a21 b22, a22 b21, a22 b22}}
+
+    Now do the same with discrete values:
+
+    >> a = {{0, 1}, {-1, 0}}; b = {{1, 2}, {3, 4}};
+
+    >> KroneckerProduct[a, b] // MatrixForm
+     = 0    0    1   2
+     .
+     .  0    0    3   4
+     .
+     . -1   -2   0   0
+     .
+     . -3   -4   0   0
+
+    #> Clear[a, b];
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "Kronecker product"
+    sympy_name = "physics.quantum.TensorProduct"
+
+    def apply(self, mi: ListExpression, evaluation: Evaluation):
+        "KroneckerProduct[mi__]"
+        sympy_mi = [to_sympy_matrix(m) for m in mi.elements]
+        return from_sympy(TensorProduct(*sympy_mi))
 
 
 class Normalize(Builtin):
@@ -170,4 +221,4 @@ class VectorAngle(Builtin):
     summary_text = "angle between vectors"
 
 
-# TODO: Orthogonalize, KroneckerProduct
+# TODO: Orthogonalize
