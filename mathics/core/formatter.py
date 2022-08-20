@@ -108,7 +108,15 @@ extra_operators = set(
 )
 
 
-def lookup_method(self, format: str, module_fn_name=None) -> Callable:
+def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
+    """
+    Translates a box structure ``boxes`` to a file format ``format``.
+
+    """
+    return lookup_method(boxes, format)(boxes, **options)
+
+
+def lookup_method(self, format: str) -> Callable:
     """
     Find a conversion method for `format` in self's class method resolution order.
     """

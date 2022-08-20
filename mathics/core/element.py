@@ -469,17 +469,19 @@ class BoxElementMixin(ImmutableValueMixin):
     elements
     """
 
-    def boxes_to_text(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
+    def boxes_to_format(self, format: str, **options: dict) -> str:
+        from mathics.core.formatter import boxes_to_format
 
-        return lookup_method(self, "text")(self, **options)
+        return boxes_to_format(self, format, **options)
 
-    def boxes_to_tex(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
+    def boxes_to_mathml(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("mathml", **options)
 
-        return lookup_method(self, "tex")(self, **options)
+    def boxes_to_tex(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("tex", **options)
 
-    def boxes_to_mathml(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
-
-        return lookup_method(self, "mathml")(self, **options)
+    def boxes_to_text(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("text", **options)
