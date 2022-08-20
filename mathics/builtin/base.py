@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 
 from mathics.builtin.exceptions import (
-    BoxConstructError,
+    BoxExpressionError,
     MessageException,
 )
 
@@ -868,13 +868,13 @@ class BoxExpression(BuiltinElement, BoxElement):
         return default
 
     def boxes_to_text(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
     def boxes_to_mathml(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
     def boxes_to_tex(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
 
 class PatternError(Exception):

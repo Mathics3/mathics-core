@@ -12,8 +12,7 @@ from typing import Any, Optional
 
 
 from mathics.builtin.base import (
-    BoxConstruct,
-    BoxConstructError,
+    BoxExpression,
     Builtin,
     BinaryOperator,
     Operator,
@@ -21,6 +20,7 @@ from mathics.builtin.base import (
 )
 from mathics.builtin.box.inout import RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
+from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.tensors import get_dimensions
@@ -66,10 +66,8 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
-    SymbolInfix,
     SymbolMakeBoxes,
     SymbolMessageName,
-    SymbolNone,
     SymbolOutputForm,
     SymbolQuiet,
     SymbolRow,
@@ -821,7 +819,7 @@ def is_constant_list(list):
 
 # TODO: Inheritance of options["ColumnAlignments"] prevents us from
 # putting this in mathics.builtin.box. Figure out what's up here.
-class GridBox(BoxConstruct):
+class GridBox(BoxExpression):
     r"""
     <dl>
       <dt>'GridBox[{{...}, {...}}]'
@@ -852,14 +850,14 @@ class GridBox(BoxConstruct):
     def get_array(self, elements, evaluation):
         options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
         if not elements:
-            raise BoxConstructError
+            raise BoxExpressionError
         expr = elements[0]
         if not expr.has_form("List", None):
             if not all(element.has_form("List", None) for element in expr.elements):
-                raise BoxConstructError
+                raise BoxExpressionError
         items = [element.elements for element in expr.elements]
         if not is_constant_list([len(row) for row in items]):
-            raise BoxConstructError
+            raise BoxExpressionError
         return items, options
 
     def boxes_to_tex(self, elements=None, **box_options) -> str:
@@ -878,7 +876,7 @@ class GridBox(BoxConstruct):
             }[column_alignments]
         except KeyError:
             # invalid column alignment
-            raise BoxConstructError
+            raise BoxExpressionError
         column_count = 0
         for row in items:
             column_count = max(column_count, len(row))
@@ -908,7 +906,7 @@ class GridBox(BoxConstruct):
             }[column_alignments]
         except KeyError:
             # invalid column alignment
-            raise BoxConstructError
+            raise BoxExpressionError
         joined_attrs = " ".join(f'{name}="{value}"' for name, value in attrs.items())
         result = f"<mtable {joined_attrs}>\n"
         new_box_options = box_options.copy()
@@ -940,7 +938,7 @@ class GridBox(BoxConstruct):
         for row in cells:
             for index, cell in enumerate(row):
                 if index >= len(widths):
-                    raise BoxConstructError
+                    raise BoxExpressionError
                 for line in cell:
                     widths[index] = max(widths[index], len(line))
         for row_index, row in enumerate(cells):
