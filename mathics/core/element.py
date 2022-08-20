@@ -469,4 +469,17 @@ class BoxElement(ImmutableValueMixin, BaseElement):
     elements
     """
 
-    pass
+    def boxes_to_text(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
+
+        return lookup_method(self, "text")(self, **options)
+
+    def boxes_to_tex(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
+
+        return lookup_method(self, "tex")(self, **options)
+
+    def boxes_to_mathml(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
+
+        return lookup_method(self, "mathml")(self, **options)

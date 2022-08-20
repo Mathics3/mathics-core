@@ -19,7 +19,6 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.builtin.box.layout import _BoxedString
 
 from mathics.builtin.base import (
     BinaryOperator,
@@ -194,7 +193,7 @@ class StringDrop(Builtin):
 
     def apply_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
         if isinstance(n, Integer):
             pos = n.value
@@ -212,7 +211,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
 
         if ni.value == 0 or nf.value == 0:
@@ -234,7 +233,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
         if ni.value == 0:
             return evaluation.message("StringDrop", "drop", ni, ni)
@@ -249,7 +248,7 @@ class StringDrop(Builtin):
 
     def apply(self, string, something, evaluation):
         "StringDrop[string_,something___]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
         return evaluation.message("StringDrop", "mseqs")
 
@@ -478,7 +477,7 @@ class StringJoin(BinaryOperator):
         else:
             items = items.get_sequence()
         for item in items:
-            if not isinstance(item, (String, _BoxedString)):
+            if not isinstance(item, String):
                 evaluation.message("StringJoin", "string")
                 return
             result += item.value
@@ -509,7 +508,7 @@ class StringLength(Builtin):
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
-        if not isinstance(str, (String, _BoxedString)):
+        if not isinstance(str, String):
             evaluation.message("StringLength", "string")
             return
         return Integer(len(str.value))
@@ -896,11 +895,10 @@ class StringRiffle(Builtin):
         elif len(separators) == 1:
             if separators[0].has_form("List", None):
                 if len(separators[0].elements) != 3 or any(
-                    not isinstance(s, (String, _BoxedString))
-                    for s in separators[0].elements
+                    not isinstance(s, String) for s in separators[0].elements
                 ):
                     return evaluation.message("StringRiffle", "string", Integer(2), exp)
-            elif not isinstance(separators[0], (String, _BoxedString)):
+            elif not isinstance(separators[0], String):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string

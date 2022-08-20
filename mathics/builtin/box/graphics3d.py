@@ -392,16 +392,6 @@ class Graphics3DBox(GraphicsBox):
 
         return json_repr
 
-    def boxes_to_mathml(self, elements=None, **options) -> str:
-        """Turn the Graphics3DBox into a MathML string"""
-        return lookup_method(self, "mathml")(self, elements, **options)
-
-    def boxes_to_tex(self, elements=None, **options):
-        return lookup_method(self, "tex")(self, elements, **options)
-
-    def boxes_to_text(self, elements=None, **options):
-        return lookup_method(self, "text")(self, elements, **options)
-
     def create_axes(
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale
     ):

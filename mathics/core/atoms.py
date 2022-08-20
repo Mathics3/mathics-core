@@ -63,7 +63,6 @@ def _ExponentFunction(value):
 
 def _NumberFormat(man, base, exp, options):
     from mathics.builtin.box.layout import RowBox, SuperscriptBox
-    from mathics.core.formatter import _BoxedString
 
     if exp.get_string_value():
         if options["_Form"] in (
@@ -71,11 +70,11 @@ def _NumberFormat(man, base, exp, options):
             "System`StandardForm",
             "System`FullForm",
         ):
-            return RowBox(man, _BoxedString("*^"), exp)
+            return RowBox(man, String("*^"), exp)
         else:
             return RowBox(
                 man,
-                _BoxedString(options["NumberMultiplier"]),
+                String(options["NumberMultiplier"]),
                 SuperscriptBox(base, exp),
             )
     else:
@@ -156,12 +155,12 @@ class Integer(Number):
     def __init__(self, value):
         super().__init__()
 
-    def make_boxes(self, form) -> "_BoxedString":
-        from mathics.core.formatter import _BoxedString
+    def make_boxes(self, form) -> "String":
+        from mathics.builtin.box.layout import _boxed_string
 
         if form in ("System`InputForm", "System`FullForm"):
-            return _BoxedString(str(self.value), number_as_text=True)
-        return _BoxedString(str(self.value))
+            return _boxed_string(str(self.value), number_as_text=True)
+        return String(str(self.value))
 
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
@@ -706,34 +705,32 @@ class String(Atom, ImmutableValueMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import _BoxedString
+        from mathics.builtin.box.layout import _boxed_string
 
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
-            inner = inner.replace("\\", "\\\\")
-            return _BoxedString(
-                '"' + inner + '"', **{"System`ShowStringCharacters": SymbolTrue}
-            )
-        return _BoxedString('"' + inner + '"')
+            inner = '"' + inner.replace("\\", "\\\\") + '"'
+            return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
+        return String('"' + inner + '"')
 
-    # These methods are going to be reformulated in terms of lookup_method soon
-    def boxes_to_mathml(self, **options):
-        from mathics.core.formatter import _BoxedString
+    # These methods belongs to the interface of BoxElement,
+    # but we can not inherit that class. In any case, they are going
+    # to disapear soon.
 
-        box = _BoxedString(self.value)
-        return box.boxes_to_mathml(**options)
+    def boxes_to_text(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
 
-    def boxes_to_tex(self, **options):
-        from mathics.core.formatter import _BoxedString
+        return lookup_method(self, "text")(self, **options)
 
-        box = _BoxedString(self.value)
-        return box.boxes_to_tex(**options)
+    def boxes_to_tex(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
 
-    def boxes_to_text(self, **options):
-        from mathics.core.formatter import _BoxedString
+        return lookup_method(self, "tex")(self, **options)
 
-        box = _BoxedString(self.value)
-        return box.boxes_to_text(**options)
+    def boxes_to_mathml(self, **options) -> str:
+        from mathics.core.formatter import lookup_method
+
+        return lookup_method(self, "mathml")(self, **options)
 
     def do_copy(self) -> "String":
         return String(self.value)
@@ -797,10 +794,8 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def __str__(self) -> str:
         return base64.b64encode(self.value).decode("utf8")
 
-    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
-        from mathics.core.formatter import _BoxedString
-
-        res = _BoxedString('""' + self.__str__() + '""')
+    def atom_to_boxes(self, f, evaluation) -> "String":
+        res = String('""' + self.__str__() + '""')
         return res
 
     def do_copy(self) -> "ByteArrayAtom":

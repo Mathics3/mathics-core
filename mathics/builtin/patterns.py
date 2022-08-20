@@ -1701,13 +1701,11 @@ class Dispatch(Atom):
         return "dispatch"
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element, _BoxedString
         from mathics.builtin.box.layout import RowBox
+        from mathics.core.formatter import format_element
 
         box_element = format_element(self.src, evaluation, f)
-        return RowBox(
-            _BoxedString("Dispatch"), _BoxedString("["), box_element, _BoxedString("]")
-        )
+        return RowBox(String("Dispatch"), String("["), box_element, String("]"))
 
 
 class DispatchAtom(AtomBuiltin):

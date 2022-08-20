@@ -8,7 +8,6 @@ from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
-    _BoxedString,
     GridBox,
     RowBox,
     StyleBox,
@@ -38,7 +37,6 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
-add_conversion_fn(_BoxedString, string)
 
 
 def fractionbox(self, **options) -> str:
