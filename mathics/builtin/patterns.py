@@ -85,9 +85,9 @@ SymbolDefault = Symbol("Default")
 class Rule_(BinaryOperator):
     """
     <dl>
-    <dt>'Rule[$x$, $y$]'
-    <dt>'$x$ -> $y$'
-        <dd>represents a rule replacing $x$ with $y$.
+      <dt>'Rule[$x$, $y$]'
+      <dt>'$x$ -> $y$'
+      <dd>represents a rule replacing $x$ with $y$.
     </dl>
 
     >> a+b+c /. c->d
@@ -116,9 +116,9 @@ class Rule_(BinaryOperator):
 class RuleDelayed(BinaryOperator):
     """
     <dl>
-    <dt>'RuleDelayed[$x$, $y$]'
-    <dt>'$x$ :> $y$'
-        <dd>represents a rule replacing $x$ with $y$, with $y$ held
+      <dt>'RuleDelayed[$x$, $y$]'
+      <dt>'$x$ :> $y$'
+      <dd>represents a rule replacing $x$ with $y$, with $y$ held
         unevaluated.
     </dl>
 
@@ -193,17 +193,17 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 class Replace(Builtin):
     """
     <dl>
-    <dt>'Replace[$expr$, $x$ -> $y$]'
-        <dd>yields the result of replacing $expr$ with $y$ if it
+      <dt>'Replace[$expr$, $x$ -> $y$]'
+      <dd>yields the result of replacing $expr$ with $y$ if it
         matches the pattern $x$.
-    <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
-        <dd>replaces only subexpressions at levels specified through
+      <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
+      <dd>replaces only subexpressions at levels specified through
         $levelspec$.
-    <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
-        <dd>performs replacement with multiple rules, yielding a
+      <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
+      <dd>performs replacement with multiple rules, yielding a
         single result expression.
-    <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
-        <dd>returns a list containing the result of performing each
+      <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
+      <dd>returns a list containing the result of performing each
         set of replacements.
     </dl>
 
@@ -277,15 +277,15 @@ class Replace(Builtin):
 class ReplaceAll(BinaryOperator):
     """
     <dl>
-    <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
-    <dt>'$expr$ /. $x$ -> $y$'
-        <dd>yields the result of replacing all subexpressions of
+      <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
+      <dt>'$expr$ /. $x$ -> $y$'
+      <dd>yields the result of replacing all subexpressions of
         $expr$ matching the pattern $x$ with $y$.
-    <dt>'$expr$ /. {$x$ -> $y$, ...}'
-        <dd>performs replacement with multiple rules, yielding a
+      <dt>'$expr$ /. {$x$ -> $y$, ...}'
+      <dd>performs replacement with multiple rules, yielding a
         single result expression.
-    <dt>'$expr$ /. {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}'
-        <dd>returns a list containing the result of performing each
+      <dt>'$expr$ /. {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}'
+      <dd>returns a list containing the result of performing each
         set of replacements.
     </dl>
 
@@ -345,9 +345,9 @@ class ReplaceAll(BinaryOperator):
 class ReplaceRepeated(BinaryOperator):
     """
     <dl>
-    <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
-    <dt>'$expr$ //. $x$ -> $y$'
-        <dd>repeatedly applies the rule '$x$ -> $y$' to $expr$ until
+      <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
+      <dt>'$expr$ //. $x$ -> $y$'
+      <dd>repeatedly applies the rule '$x$ -> $y$' to $expr$ until
         the result no longer changes.
     </dl>
 
@@ -423,8 +423,8 @@ class ReplaceRepeated(BinaryOperator):
 class ReplaceList(Builtin):
     """
     <dl>
-    <dt>'ReplaceList[$expr$, $rules$]'
-        <dd>returns a list of all possible results of applying $rules$
+      <dt>'ReplaceList[$expr$, $rules$]'
+      <dd>returns a list of all possible results of applying $rules$
         to $expr$.
     </dl>
 
@@ -490,9 +490,9 @@ class ReplaceList(Builtin):
 class PatternTest(BinaryOperator, PatternObject):
     """
     <dl>
-    <dt>'PatternTest[$pattern$, $test$]'
-    <dt>'$pattern$ ? $test$'
-        <dd>constrains $pattern$ to match $expr$ only if the
+      <dt>'PatternTest[$pattern$, $test$]'
+      <dt>'$pattern$ ? $test$'
+      <dd>constrains $pattern$ to match $expr$ only if the
         evaluation of '$test$[$expr$]' yields 'True'.
     </dl>
 
@@ -703,9 +703,9 @@ class PatternTest(BinaryOperator, PatternObject):
 class Alternatives(BinaryOperator, PatternObject):
     """
     <dl>
-    <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
-    <dt>'$p1$ | $p2$ | ... | $p_i$'
-        <dd>is a pattern that matches any of the patterns '$p1$, $p2$,
+      <dt>'Alternatives[$p1$, $p2$, ..., $p_i$]'
+      <dt>'$p1$ | $p2$ | ... | $p_i$'
+      <dd>is a pattern that matches any of the patterns '$p1$, $p2$,
         ...., $p_i$'.
     </dl>
 
@@ -758,10 +758,10 @@ class _StopGeneratorExcept(StopGenerator):
 class Except(PatternObject):
     """
     <dl>
-    <dt>'Except[$c$]'
-        <dd>represents a pattern object that matches any expression except those matching $c$.
-    <dt>'Except[$c$, $p$]'
-        <dd>represents a pattern object that matches $p$ but not $c$.
+      <dt>'Except[$c$]'
+      <dd>represents a pattern object that matches any expression except those matching $c$.
+      <dt>'Except[$c$, $p$]'
+      <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
 
     >> Cases[{x, a, b, x, c}, Except[x]]
@@ -830,8 +830,8 @@ def match(expr, form, evaluation):
 class MatchQ(Builtin):
     """
     <dl>
-    <dt>'MatchQ[$expr$, $form$]'
-        <dd>tests whether $expr$ matches $form$.
+      <dt>'MatchQ[$expr$, $form$]'
+      <dd>tests whether $expr$ matches $form$.
     </dl>
 
     >> MatchQ[123, _Integer]
@@ -863,8 +863,8 @@ class MatchQ(Builtin):
 class Verbatim(PatternObject):
     """
     <dl>
-    <dt>'Verbatim[$expr$]'
-        <dd>prevents pattern constructs in $expr$ from taking effect,
+      <dt>'Verbatim[$expr$]'
+      <dd>prevents pattern constructs in $expr$ from taking effect,
         allowing them to match themselves.
     </dl>
 
@@ -894,8 +894,8 @@ class Verbatim(PatternObject):
 class HoldPattern(PatternObject):
     """
     <dl>
-    <dt>'HoldPattern[$expr$]'
-        <dd>is equivalent to $expr$ for pattern matching, but
+      <dt>'HoldPattern[$expr$]'
+      <dd>is equivalent to $expr$ for pattern matching, but
         maintains it in an unevaluated form.
     </dl>
 
@@ -927,14 +927,14 @@ class HoldPattern(PatternObject):
 class Pattern_(PatternObject):
     """
     <dl>
-    <dt>'Pattern[$symb$, $patt$]'
-    <dt>'$symb$ : $patt$'
-        <dd>assigns the name $symb$ to the pattern $patt$.
-    <dt>'$symb$_$head$'
-        <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__'
+      <dt>'Pattern[$symb$, $patt$]'
+      <dt>'$symb$ : $patt$'
+      <dd>assigns the name $symb$ to the pattern $patt$.
+      <dt>'$symb$_$head$'
+      <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__'
         and '___').
-    <dt>'$symb$ : $patt$ : $default$'
-        <dd>is a pattern with name $symb$ and default value $default$,
+      <dt>'$symb$ : $patt$ : $default$'
+      <dd>is a pattern with name $symb$ and default value $default$,
         equivalent to 'Optional[$patt$ : $symb$, $default$]'.
     </dl>
 
@@ -1045,9 +1045,9 @@ class Pattern_(PatternObject):
 class Optional(BinaryOperator, PatternObject):
     """
     <dl>
-    <dt>'Optional[$patt$, $default$]'
-    <dt>'$patt$ : $default$'
-        <dd>is a pattern which matches $patt$, which if omitted
+      <dt>'Optional[$patt$, $default$]'
+      <dt>'$patt$ : $default$'
+      <dd>is a pattern which matches $patt$, which if omitted
         should be replaced by $default$.
     </dl>
 
@@ -1185,12 +1185,12 @@ class _Blank(PatternObject):
 class Blank(_Blank):
     """
     <dl>
-    <dt>'Blank[]'
-    <dt>'_'
-        <dd>represents any single expression in a pattern.
-    <dt>'Blank[$h$]'
-    <dt>'_$h$'
-        <dd>represents any expression with head $h$.
+      <dt>'Blank[]'
+      <dt>'_'
+      <dd>represents any single expression in a pattern.
+      <dt>'Blank[$h$]'
+      <dt>'_$h$'
+      <dd>represents any expression with head $h$.
     </dl>
 
     >> MatchQ[a + b, _]
@@ -1231,13 +1231,13 @@ class Blank(_Blank):
 class BlankSequence(_Blank):
     """
     <dl>
-    <dt>'BlankSequence[]'
-    <dt>'__'
-        <dd>represents any non-empty sequence of expression elements in
+      <dt>'BlankSequence[]'
+      <dt>'__'
+      <dd>represents any non-empty sequence of expression elements in
         a pattern.
-    <dt>'BlankSequence[$h$]'
-    <dt>'__$h$'
-        <dd>represents any sequence of elements, all of which have head $h$.
+      <dt>'BlankSequence[$h$]'
+      <dt>'__$h$'
+      <dd>represents any sequence of elements, all of which have head $h$.
     </dl>
 
     Use a 'BlankSequence' pattern to stand for a non-empty sequence of
@@ -1295,9 +1295,9 @@ class BlankSequence(_Blank):
 class BlankNullSequence(_Blank):
     """
     <dl>
-    <dt>'BlankNullSequence[]'
-    <dt>'___'
-        <dd>represents any sequence of expression elements in a pattern,
+      <dt>'BlankNullSequence[]'
+      <dt>'___'
+      <dd>represents any sequence of expression elements in a pattern,
         including an empty sequence.
     </dl>
 
@@ -1348,8 +1348,8 @@ class BlankNullSequence(_Blank):
 class Repeated(PostfixOperator, PatternObject):
     """
     <dl>
-    <dt>'Repeated[$pattern$]'
-        <dd>matches one or more occurrences of $pattern$.
+      <dt>'Repeated[$pattern$]'
+      <dd>matches one or more occurrences of $pattern$.
     </dl>
 
     >> a_Integer.. // FullForm
@@ -1434,8 +1434,8 @@ class Repeated(PostfixOperator, PatternObject):
 class RepeatedNull(Repeated):
     """
     <dl>
-    <dt>'RepeatedNull[$pattern$]'
-        <dd>matches zero or more occurrences of $pattern$.
+      <dt>'RepeatedNull[$pattern$]'
+      <dd>matches zero or more occurrences of $pattern$.
     </dl>
 
     >> a___Integer...//FullForm
@@ -1463,8 +1463,8 @@ class RepeatedNull(Repeated):
 class Shortest(Builtin):
     """
     <dl>
-    <dt>'Shortest[$pat$]'
-    <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
+      <dt>'Shortest[$pat$]'
+      <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
     </dl>
 
     >> StringCases["aabaaab", Shortest["a" ~~ __ ~~ "b"]]
@@ -1480,8 +1480,8 @@ class Shortest(Builtin):
 class Longest(Builtin):
     """
     <dl>
-    <dt>'Longest[$pat$]'
-    <dd>is a pattern object that matches the longest sequence consistent with the pattern $p$.
+      <dt>'Longest[$pat$]'
+      <dd>is a pattern object that matches the longest sequence consistent with the pattern $p$.
     </dl>
     >> StringCases["aabaaab", Longest["a" ~~ __ ~~ "b"]]
      = {aabaaab}
@@ -1496,9 +1496,9 @@ class Longest(Builtin):
 class Condition(BinaryOperator, PatternObject):
     """
     <dl>
-    <dt>'Condition[$pattern$, $expr$]'
-    <dt>'$pattern$ /; $expr$'
-        <dd>places an additional constraint on $pattern$ that only
+      <dt>'Condition[$pattern$, $expr$]'
+      <dt>'$pattern$ /; $expr$'
+      <dd>places an additional constraint on $pattern$ that only
         allows it to match if $expr$ evaluates to 'True'.
     </dl>
 
@@ -1549,13 +1549,13 @@ class Condition(BinaryOperator, PatternObject):
 class OptionsPattern(PatternObject):
     """
     <dl>
-    <dt>'OptionsPattern[$f$]'
-        <dd>is a pattern that stands for a sequence of options given
+      <dt>'OptionsPattern[$f$]'
+      <dd>is a pattern that stands for a sequence of options given
         to a function, with default values taken from 'Options[$f$]'.
         The options can be of the form '$opt$->$value$' or
         '$opt$:>$value$', and might be in arbitrarily nested lists.
-    <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
-        <dd>takes explicit default values from the given list. The
+      <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
+      <dd>takes explicit default values from the given list. The
         list may also contain symbols $f$, for which 'Options[$f$]' is
         taken into account; it may be arbitrarily nested.
         'OptionsPattern[{}]' does not use any default values.
@@ -1702,7 +1702,7 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.core.formatter import format_element, _BoxedString
-        from mathics.builtin.box.inout import RowBox
+        from mathics.builtin.box.layout import RowBox
 
         box_element = format_element(self.src, evaluation, f)
         return RowBox(
@@ -1713,8 +1713,8 @@ class Dispatch(Atom):
 class DispatchAtom(AtomBuiltin):
     """
     <dl>
-    <dt>'Dispatch[$rulelist$]'
-        <dd>Introduced for compatibility. Currently, it just return $rulelist$.
+      <dt>'Dispatch[$rulelist$]'
+      <dd>Introduced for compatibility. Currently, it just return $rulelist$.
             In the future, it should return an optimized DispatchRules atom,
             containing an optimized set of rules.
     </dl>

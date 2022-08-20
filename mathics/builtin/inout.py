@@ -11,7 +11,7 @@ from mathics.builtin.base import (
     Builtin,
     Predefined,
 )
-from mathics.builtin.box.inout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.tensors import get_dimensions

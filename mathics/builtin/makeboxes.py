@@ -9,7 +9,7 @@ import mpmath
 
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.box.inout import _boxed_string, RowBox, to_boxes
+from mathics.builtin.box.layout import _boxed_string, RowBox, to_boxes
 from mathics.core.atoms import (
     Integer,
     Integer1,

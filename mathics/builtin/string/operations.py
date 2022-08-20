@@ -19,7 +19,7 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.builtin.box.inout import _BoxedString
+from mathics.builtin.box.layout import _BoxedString
 
 from mathics.builtin.base import (
     BinaryOperator,
@@ -53,7 +53,6 @@ from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
-    SymbolFullForm,
     SymbolOutputForm,
 )
 
@@ -448,8 +447,8 @@ class StringInsert(Builtin):
 class StringJoin(BinaryOperator):
     """
     <dl>
-    <dt>'StringJoin["$s1$", "$s2$", ...]'
-        <dd>returns the concatenation of the strings $s1$, $s2$,  .
+      <dt>'StringJoin["$s1$", "$s2$", ...]'
+      <dd>returns the concatenation of the strings $s1$, $s2$,  .
     </dl>
 
     >> StringJoin["a", "b", "c"]
@@ -519,13 +518,13 @@ class StringLength(Builtin):
 class StringPosition(Builtin):
     """
     <dl>
-    <dt>'StringPosition["$string$", $patt$]'
+      <dt>'StringPosition["$string$", $patt$]'
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
-    <dt>'StringPosition["$string$", $patt$, $n$]'
+      <dt>'StringPosition["$string$", $patt$, $n$]'
       <dd>returns the first $n$ matches only.
-    <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
+      <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
       <dd>matches multiple patterns.
-    <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
+      <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
       <dd>returns a list of matches for multiple strings.
     </dl>
 
@@ -675,15 +674,15 @@ class StringPosition(Builtin):
 class StringReplace(_StringFind):
     """
     <dl>
-    <dt>'StringReplace["$string$", "$a$"->"$b$"]'
-        <dd>replaces each occurrence of $old$ with $new$ in $string$.
-    <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
-        <dd>performs multiple replacements of each $si$ by the
+      <dt>'StringReplace["$string$", "$a$"->"$b$"]'
+      <dd>replaces each occurrence of $old$ with $new$ in $string$.
+      <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
+      <dd>performs multiple replacements of each $si$ by the
         corresponding $spi$ in $string$.
-    <dt>'StringReplace["$string$", $srules$, $n$]'
-        <dd>only performs the first $n$ replacements.
-    <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
-        <dd>performs the replacements specified by $srules$ on a list
+      <dt>'StringReplace["$string$", $srules$, $n$]'
+      <dd>only performs the first $n$ replacements.
+      <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
+      <dd>performs the replacements specified by $srules$ on a list
         of strings.
     </dl>
 
@@ -794,7 +793,7 @@ class StringReverse(Builtin):
     <dl>
       <dt>'StringReverse["$string$"]'
       <dd>reverses the order of the characters in "string".
-      </dl>
+    </dl>
 
       >> StringReverse["live"]
        = evil
@@ -811,11 +810,11 @@ class StringReverse(Builtin):
 class StringRiffle(Builtin):
     """
     <dl>
-    <dt>'StringRiffle[{s1, s2, s3, ...}]'
+      <dt>'StringRiffle[{s1, s2, s3, ...}]'
       <dd>returns a new string by concatenating all the $si$, with spaces inserted between them.
-    <dt>'StringRiffle[list, sep]'
+      <dt>'StringRiffle[list, sep]'
       <dd>inserts the separator $sep$ between all elements in $list$.
-    <dt>'StringRiffle[list, {"left", "sep", "right"}]'
+      <dt>'StringRiffle[list, {"left", "sep", "right"}]'
       <dd>use $left$ and $right$ as delimiters after concatenation.
 
     ## These 2 forms are not currently implemented

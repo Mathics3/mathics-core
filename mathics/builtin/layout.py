@@ -15,7 +15,7 @@ from mathics.builtin.base import (
     BinaryOperator,
     Operator,
 )
-from mathics.builtin.box.inout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules

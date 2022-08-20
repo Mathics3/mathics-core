@@ -1,8 +1,12 @@
 # -*- coding: utf-8 -*-
 
 
-class BoxConstructError(Exception):
+class BoxExpressionError(Exception):
     pass
+
+
+# Backward compatibility
+BoxConstructError = BoxExpressionError
 
 
 class InvalidLevelspecError(Exception):

@@ -10,7 +10,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 
 from mathics.builtin.exceptions import (
-    BoxConstructError,
+    BoxExpressionError,
     MessageException,
 )
 
@@ -216,9 +216,13 @@ class Builtin:
         # Set the default context
         if not self.context:
             self.context = "Pymathics`" if is_pymodule else "System`"
-
         name = self.get_name()
         options = {}
+
+        # - 'Strict': warn and fail with unsupported options
+        # - 'Warn': warn about unsupported options, but continue
+        # - 'Ignore': allow unsupported options, do not warn
+
         option_syntax = "Warn"
 
         for option, value in self.options.items():
@@ -239,22 +243,18 @@ class Builtin:
         # in your Builtin's 'options', you can specify the exact behaviour
         # using one of the following values:
 
-        # - 'Strict': warn and fail with unsupported options
-        # - 'Warn': warn about unsupported options, but continue
-        # - 'Ignore': allow unsupported options, do not warn
-
         if option_syntax in ("Strict", "Warn", "System`Strict", "System`Warn"):
 
             def check_options(options_to_check, evaluation):
-                name = self.get_name()
+                option_name = self.get_name()
                 for key, value in options_to_check.items():
                     short_key = strip_context(key)
                     if not has_option(options, short_key, evaluation):
                         evaluation.message(
-                            name,
+                            option_name,
                             "optx",
                             Expression(SymbolRule, String(short_key), value),
-                            strip_context(name),
+                            strip_context(option_name),
                         )
                         if option_syntax in ("Strict", "System`Strict"):
                             return False
@@ -358,16 +358,6 @@ class Builtin:
             )
         )
 
-        options = {}
-        for option, value in self.options.items():
-            option = ensure_context(option)
-            options[option] = parse_builtin_rule(value)
-            if option.startswith("System`"):
-                # Create a definition for the option's symbol.
-                # Otherwise it'll be created in Global` when it's
-                # used, so it won't work.
-                if option not in definitions.builtin:
-                    definitions.builtin[option] = Definition(name=name)
         defaults = []
         for spec, value in self.defaults.items():
             value = parse_builtin_rule(value)
@@ -878,13 +868,13 @@ class BoxExpression(BuiltinElement, BoxElement):
         return default
 
     def boxes_to_text(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
     def boxes_to_mathml(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
     def boxes_to_tex(self, elements, **options) -> str:
-        raise BoxConstructError
+        raise BoxExpressionError
 
 
 class PatternError(Exception):

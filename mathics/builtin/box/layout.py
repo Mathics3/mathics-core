@@ -1,10 +1,15 @@
 # -*- coding: utf-8 -*-
 
+"""
+Formatting constructs are represented as a hierarchy of low-level symbolic "boxes".
+The routines here assist in boxing at the bottom of the hierarchy. At the other end, the top level, we have a Notebook which is just a collection of Expressions usually contained in boxes.
+"""
+
 from mathics.builtin.base import BoxExpression
 from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.atoms import Atom, String, SymbolString
+from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
 from mathics.core.element import BoxElement
 from mathics.core.evaluation import Evaluation
@@ -25,7 +30,7 @@ SymbolSqrtBox = Symbol("System`SqrtBox")
 
 # this temporarily replace the _BoxedString class
 def _boxed_string(string: str, **options):
-    from mathics.builtin.box.inout import StyleBox
+    from mathics.builtin.box.layout import StyleBox
     from mathics.core.atoms import String
 
     return StyleBox(String(string), **options)
@@ -60,8 +65,7 @@ class ButtonBox(BoxExpression):
     """
     <dl>
       <dt>'ButtonBox[$boxes$]'
-      <dd> is a low-level box construct that represents a button in a
-    notebook expression.
+      <dd> is a low-level box construct that represents a button in a notebook expression.
     </dl>
     """
 
@@ -80,17 +84,20 @@ class GridBox(BoxExpression):
     r"""
     <dl>
       <dt>'GridBox[{{...}, {...}}]'
-      <dd>is a box construct that represents a sequence of boxes
-        arranged in a grid.
+      <dd>is a box construct that represents a sequence of boxes arranged in a grid.
     </dl>
+
     #> Grid[{{a,bc},{d,e}}, ColumnAlignments:>Symbol["Rig"<>"ht"]]
      = a   bc
      .
      . d   e
+
     #> TeXForm@Grid[{{a,bc},{d,e}}, ColumnAlignments->Left]
      = \begin{array}{ll} a & \text{bc}\\ d & e\end{array}
+
     #> TeXForm[TableForm[{{a,b},{c,d}}]]
      = \begin{array}{cc} a & b\\ c & d\end{array}
+
     # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
     #  = ...
     """
@@ -482,8 +489,7 @@ class RowBox(BoxExpression):
     """
     <dl>
       <dt>'RowBox[{...}]'
-      <dd>is a box construct that represents a sequence of boxes
-        arranged in a horizontal row.
+      <dd>is a box construct that represents a sequence of boxes arranged in a horizontal row.
     </dl>
     """
 
