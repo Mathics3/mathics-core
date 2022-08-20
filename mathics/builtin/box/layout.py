@@ -28,6 +28,14 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSqrtBox = Symbol("System`SqrtBox")
 
 
+# this temporarily replace the _BoxedString class
+def _boxed_string(string: str, **options):
+    from mathics.builtin.box.layout import StyleBox
+    from mathics.core.atoms import String
+
+    return StyleBox(String(string), **options)
+
+
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
     """
     This function takes the expression ``x``
@@ -72,8 +80,6 @@ def is_constant_list(list):
     return True
 
 
-# TODO: Inheritance of options["ColumnAlignments"] prevents us from
-# putting this in mathics.builtin.box. Figure out what's up here.
 class GridBox(BoxExpression):
     r"""
     <dl>
@@ -415,7 +421,9 @@ class SuperscriptBox(BoxExpression):
 
     def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not (isinstance(a, BoxElement) and isinstance(b, BoxElement)):
+        if not (
+            isinstance(a, (BoxElement, String)) and isinstance(b, (BoxElement, String))
+        ):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -614,7 +622,7 @@ class StyleBox(BoxExpression):
     summary_text = "associate boxes with styles"
 
     def boxes_to_text(self, **options):
-        options.pop("evaluation")
+        options.pop("evaluation", None)
         _options = self.box_options.copy()
         _options.update(options)
         options = _options
@@ -639,6 +647,12 @@ class StyleBox(BoxExpression):
     def apply_style(self, boxes, style, evaluation, options):
         """StyleBox[boxes_, style_String, OptionsPattern[]]"""
         return StyleBox(boxes, style=style, **options)
+
+    def get_string_value(self):
+        box = self.boxes
+        if isinstance(box, (String, _BoxedString)):
+            return box.value
+        return None
 
     def init(self, boxes, style=None, **options):
         # This implementation superseeds Expresion.process_style_box

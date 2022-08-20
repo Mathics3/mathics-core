@@ -120,9 +120,8 @@ def lookup_method(self, format: str, module_fn_name=None) -> Callable:
         if format_fn is not None:
             # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
             return format_fn
-    raise RuntimeError(
-        f"Can't find formatter {format_fn.__name__} for {type(self).__name__}"
-    )
+    error_msg = f"Can't find formatter {format} for {type(self).__name__}"
+    raise RuntimeError(error_msg)
 
 
 def add_conversion_fn(cls, module_fn_name=None) -> None:
@@ -277,7 +276,7 @@ class _BoxedString(BoxElement):
             # show_string_characters = False
 
             if show_string_characters:
-                return render(r'\text{"%s"}', text[1:-1], in_text=True)
+                return render(r"\text{``%s''}", text[1:-1], in_text=True)
             else:
                 return render(r"\text{%s}", text[1:-1], in_text=True)
         elif text and text[0] in "0123456789-.":

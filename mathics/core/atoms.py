@@ -442,7 +442,7 @@ class MachineReal(Real):
         return self.value
 
     def make_boxes(self, form):
-        from mathics.builtin.inout import number_form
+        from mathics.builtin.makeboxes import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         if form in ("System`InputForm", "System`FullForm"):
@@ -528,7 +528,7 @@ class PrecisionReal(Real):
         return self.value._prec + 1.0
 
     def make_boxes(self, form):
-        from mathics.builtin.inout import number_form
+        from mathics.builtin.makeboxes import number_form
 
         _number_form_options["_Form"] = form  # passed to _NumberFormat
         return number_form(
@@ -715,6 +715,25 @@ class String(Atom, ImmutableValueMixin):
                 '"' + inner + '"', **{"System`ShowStringCharacters": SymbolTrue}
             )
         return _BoxedString('"' + inner + '"')
+
+    # These methods are going to be reformulated in terms of lookup_method soon
+    def boxes_to_mathml(self, **options):
+        from mathics.core.formatter import _BoxedString
+
+        box = _BoxedString(self.value)
+        return box.boxes_to_mathml(**options)
+
+    def boxes_to_tex(self, **options):
+        from mathics.core.formatter import _BoxedString
+
+        box = _BoxedString(self.value)
+        return box.boxes_to_tex(**options)
+
+    def boxes_to_text(self, **options):
+        from mathics.core.formatter import _BoxedString
+
+        box = _BoxedString(self.value)
+        return box.boxes_to_text(**options)
 
     def do_copy(self) -> "String":
         return String(self.value)
