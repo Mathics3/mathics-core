@@ -12,7 +12,7 @@ from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import hold_all_complete, protected, read_protected
-from mathics.core.element import BoxElement
+from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -33,13 +33,13 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
+def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     """
     This function takes the expression ``x``
-    and tries to reduce it to a ``BoxElement``
+    and tries to reduce it to a ``BoxElementMixin``
     expression unsing an evaluation object.
     """
-    if isinstance(x, (String, BoxElement)):
+    if isinstance(x, BoxElementMixin):
         return x
     if isinstance(x, Atom):
         x = x.atom_to_boxes(SymbolStandardForm, evaluation)
@@ -48,7 +48,7 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElement:
         if not x.has_form("MakeBoxes", None):
             x = Expression(SymbolMakeBoxes, x)
         x_boxed = x.evaluate(evaluation)
-        if isinstance(x_boxed, BoxElement):
+        if isinstance(x_boxed, BoxElementMixin):
             return x_boxed
         if isinstance(x_boxed, Atom):
             return to_boxes(x_boxed, evaluation, options)
@@ -196,9 +196,7 @@ class SubscriptBox(BoxExpression):
 
     def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not (
-            isinstance(a, (String, BoxElement)) and isinstance(b, (String, BoxElement))
-        ):
+        if not (isinstance(a, BoxElementMixin) and isinstance(b, BoxElementMixin)):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.subindex = b
@@ -233,7 +231,7 @@ class SubsuperscriptBox(BoxExpression):
 
     def init(self, a, b, c, **options):
         self.box_options = options.copy()
-        if not all(isinstance(x, (String, BoxElement)) for x in (a, b, c)):
+        if not all(isinstance(x, BoxElementMixin) for x in (a, b, c)):
             raise Exception((a, b, c), "are not boxes")
         self.base = a
         self.subindex = b
@@ -271,7 +269,7 @@ class SuperscriptBox(BoxExpression):
 
     def init(self, a, b, **options):
         self.box_options = options.copy()
-        if not all(isinstance(x, (String, BoxElement)) for x in (a, b)):
+        if not all(isinstance(x, BoxElementMixin) for x in (a, b)):
             raise Exception((a, b), "are not boxes")
         self.base = a
         self.superindex = b
@@ -304,26 +302,26 @@ class RowBox(BoxExpression):
         return result
 
     def init(self, *items, **kwargs):
-        # TODO: check that each element is an string or a BoxElement
+        # TODO: check that each element is an string or a BoxElementMixin
         self.box_options = {}
         if isinstance(items[0], Expression):
             if len(items) != 1:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxElement"
+                    items, "is not a List[] or a list of Strings or BoxElementMixin"
                 )
             if items[0].has_form("List", None):
                 items = items[0]._elements
             else:
                 raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxElement"
+                    items, "is not a List[] or a list of Strings or BoxElementMixin"
                 )
 
         def check_item(item):
             if isinstance(item, String):
                 return item
-            if not isinstance(item, BoxElement):
+            if not isinstance(item, BoxElementMixin):
                 raise Exception(
-                    item, "is not a List[] or a list of Strings or BoxElement"
+                    item, "is not a List[] or a list of Strings or BoxElementMixin"
                 )
             return item
 
@@ -346,7 +344,7 @@ class RowBox(BoxExpression):
         """
         if self._elements is None:
             items = tuple(
-                item.to_expression() if isinstance(item, BoxElement) else item
+                item.to_expression() if isinstance(item, BoxElementMixin) else item
                 for item in self.items
             )
 

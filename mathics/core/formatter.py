@@ -5,7 +5,7 @@ import re
 
 
 from mathics.core.atoms import SymbolI, String, Integer, Rational, Complex
-from mathics.core.element import BaseElement, BoxElement, EvalMixin
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -168,7 +168,7 @@ def format_element(
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
         return result_box
-    if isinstance(result_box, BoxElement):
+    if isinstance(result_box, BoxElementMixin):
         return result_box
     else:
         return format_element(element, evaluation, SymbolFullForm, **kwargs)
@@ -274,7 +274,7 @@ def do_format_element(
             expr = do_format(expr, evaluation, form)
         elif (
             head is not SymbolNumberForm
-            and not isinstance(expr, (Atom, BoxElement))
+            and not isinstance(expr, (Atom, BoxElementMixin))
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             # print("Not inside graphics or numberform, and not is atom")

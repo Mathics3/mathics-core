@@ -245,7 +245,7 @@ class BaseElement(KeyComparable):
             return self == rhs
         return None
 
-    def format(self, evaluation, form, **kwargs) -> "BoxElement":
+    def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
         from mathics.core.formatter import format_element
         from mathics.core.symbols import Symbol
 
@@ -463,7 +463,7 @@ class EvalMixin:
         raise NotImplementedError
 
 
-class BoxElement(ImmutableValueMixin, BaseElement):
+class BoxElementMixin(ImmutableValueMixin):
     """
     The base class for all the boxed
     elements

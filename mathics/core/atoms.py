@@ -12,7 +12,7 @@ from typing import Any, Optional
 from functools import lru_cache
 
 
-from mathics.core.element import ImmutableValueMixin
+from mathics.core.element import ImmutableValueMixin, BoxElementMixin
 from mathics.core.number import (
     dps,
     prec,
@@ -691,7 +691,7 @@ class Complex(Number):
         return real_zero and imag_zero
 
 
-class String(Atom, ImmutableValueMixin):
+class String(Atom, BoxElementMixin):
     value: str
     class_head_name = "System`String"
 
@@ -713,25 +713,6 @@ class String(Atom, ImmutableValueMixin):
             return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
         return String('"' + inner + '"')
 
-    # These methods belongs to the interface of BoxElement,
-    # but we can not inherit that class. In any case, they are going
-    # to disapear soon.
-
-    def boxes_to_text(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
-
-        return lookup_method(self, "text")(self, **options)
-
-    def boxes_to_tex(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
-
-        return lookup_method(self, "tex")(self, **options)
-
-    def boxes_to_mathml(self, **options) -> str:
-        from mathics.core.formatter import lookup_method
-
-        return lookup_method(self, "mathml")(self, **options)
-
     def do_copy(self) -> "String":
         return String(self.value)
 
@@ -751,6 +732,9 @@ class String(Atom, ImmutableValueMixin):
 
     def get_string_value(self) -> str:
         return self.value
+
+    def to_expression(self):
+        return self
 
     def to_sympy(self, **kwargs):
         return None
