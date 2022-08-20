@@ -14,5 +14,5 @@ for module_name in __py_files__:
     except Exception as e:
         print(e)
         print(f"    Not able to load {module_name}. Check your installation.")
-        print(f"    mathics.format loads from {__file__[:-11]}")
+        print(f"    mathics.format loads from {osp.dirname(__file__)}")
         exit(-1)

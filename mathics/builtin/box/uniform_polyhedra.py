@@ -1,9 +1,8 @@
 from mathics.builtin.box.graphics3d import Coords3D
 
-from mathics.builtin.base import BoxConstructError
-
 from mathics.builtin.colors.color_directives import _ColorObject, Opacity
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
+from mathics.builtin.exceptions import BoxExpressionError
 
 import numbers
 from mathics.core.symbols import Symbol
@@ -23,14 +22,14 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
         )
 
         if len(item.elements) != 3:
-            raise BoxConstructError
+            raise BoxExpressionError
 
         points = item.elements[1].to_python()
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
         ):
-            raise BoxConstructError
+            raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
         self.edge_length = item.elements[2].to_python()

@@ -57,8 +57,7 @@ class ButtonBox(BoxExpression):
     """
     <dl>
       <dt>'ButtonBox[$boxes$]'
-      <dd> is a low-level box construct that represents a button in a
-    notebook expression.
+      <dd> is a low-level box construct that represents a button in a notebook expression.
     </dl>
     """
 
@@ -79,8 +78,7 @@ class GridBox(BoxExpression):
     r"""
     <dl>
       <dt>'GridBox[{{...}, {...}}]'
-      <dd>is a box construct that represents a sequence of boxes
-        arranged in a grid.
+      <dd>is a box construct that represents a sequence of boxes arranged in a grid.
     </dl>
 
     #> Grid[{{a,bc},{d,e}}, ColumnAlignments:>Symbol["Rig"<>"ht"]]
@@ -483,8 +481,7 @@ class RowBox(BoxExpression):
     """
     <dl>
       <dt>'RowBox[{...}]'
-      <dd>is a box construct that represents a sequence of boxes
-        arranged in a horizontal row.
+      <dd>is a box construct that represents a sequence of boxes arranged in a horizontal row.
     </dl>
     """
 
