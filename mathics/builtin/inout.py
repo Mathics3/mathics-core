@@ -12,13 +12,12 @@ from typing import Any, Optional
 
 
 from mathics.builtin.base import (
-    BoxExpression,
     Builtin,
     BinaryOperator,
     Operator,
     Predefined,
 )
-from mathics.builtin.box.inout import RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.lists import list_boxes
@@ -808,163 +807,6 @@ class Row(Builtin):
                 item = to_boxes(item, evaluation)
                 result.append(item)
             return RowBox(*result)
-
-
-# Right now this seems to be used only in GridBox.
-def is_constant_list(list):
-    if list:
-        return all(item == list[0] for item in list[1:])
-    return True
-
-
-# TODO: Inheritance of options["ColumnAlignments"] prevents us from
-# putting this in mathics.builtin.box. Figure out what's up here.
-class GridBox(BoxExpression):
-    r"""
-    <dl>
-      <dt>'GridBox[{{...}, {...}}]'
-      <dd>is a box construct that represents a sequence of boxes
-        arranged in a grid.
-    </dl>
-
-    #> Grid[{{a,bc},{d,e}}, ColumnAlignments:>Symbol["Rig"<>"ht"]]
-     = a   bc
-     .
-     . d   e
-
-    #> TeXForm@Grid[{{a,bc},{d,e}}, ColumnAlignments->Left]
-     = \begin{array}{ll} a & \text{bc}\\ d & e\end{array}
-
-    #> TeXForm[TableForm[{{a,b},{c,d}}]]
-     = \begin{array}{cc} a & b\\ c & d\end{array}
-
-    # >> MathMLForm[TableForm[{{a,b},{c,d}}]]
-    #  = ...
-    """
-    options = {"ColumnAlignments": "Center"}
-    summary_text = "low-level representation of an arbitrary 2D layout"
-
-    # TODO: elements in the GridBox should be stored as an array with
-    # elements in its evaluated form.
-
-    def get_array(self, elements, evaluation):
-        options = self.get_option_values(elements=elements[1:], evaluation=evaluation)
-        if not elements:
-            raise BoxExpressionError
-        expr = elements[0]
-        if not expr.has_form("List", None):
-            if not all(element.has_form("List", None) for element in expr.elements):
-                raise BoxExpressionError
-        items = [element.elements for element in expr.elements]
-        if not is_constant_list([len(row) for row in items]):
-            raise BoxExpressionError
-        return items, options
-
-    def boxes_to_tex(self, elements=None, **box_options) -> str:
-        if not elements:
-            elements = self._elements
-        evaluation = box_options.get("evaluation")
-        items, options = self.get_array(elements, evaluation)
-        new_box_options = box_options.copy()
-        new_box_options["inside_list"] = True
-        column_alignments = options["System`ColumnAlignments"].get_name()
-        try:
-            column_alignments = {
-                "System`Center": "c",
-                "System`Left": "l",
-                "System`Right": "r",
-            }[column_alignments]
-        except KeyError:
-            # invalid column alignment
-            raise BoxExpressionError
-        column_count = 0
-        for row in items:
-            column_count = max(column_count, len(row))
-        result = r"\begin{array}{%s} " % (column_alignments * column_count)
-        for index, row in enumerate(items):
-            result += " & ".join(
-                item.evaluate(evaluation).boxes_to_tex(**new_box_options)
-                for item in row
-            )
-            if index != len(items) - 1:
-                result += "\\\\ "
-        result += r"\end{array}"
-        return result
-
-    def boxes_to_mathml(self, elements=None, **box_options) -> str:
-        if not elements:
-            elements = self._elements
-        evaluation = box_options.get("evaluation")
-        items, options = self.get_array(elements, evaluation)
-        attrs = {}
-        column_alignments = options["System`ColumnAlignments"].get_name()
-        try:
-            attrs["columnalign"] = {
-                "System`Center": "center",
-                "System`Left": "left",
-                "System`Right": "right",
-            }[column_alignments]
-        except KeyError:
-            # invalid column alignment
-            raise BoxExpressionError
-        joined_attrs = " ".join(f'{name}="{value}"' for name, value in attrs.items())
-        result = f"<mtable {joined_attrs}>\n"
-        new_box_options = box_options.copy()
-        new_box_options["inside_list"] = True
-        for row in items:
-            result += "<mtr>"
-            for item in row:
-                result += f"<mtd {joined_attrs}>{item.evaluate(evaluation).boxes_to_mathml(**new_box_options)}</mtd>"
-            result += "</mtr>\n"
-        result += "</mtable>"
-        return result
-
-    def boxes_to_text(self, elements=None, **box_options) -> str:
-        if not elements:
-            elements = self._elements
-        evaluation = box_options.get("evaluation")
-        items, options = self.get_array(elements, evaluation)
-        result = ""
-        if not items:
-            return ""
-        widths = [0] * len(items[0])
-        cells = [
-            [
-                item.evaluate(evaluation).boxes_to_text(**box_options).splitlines()
-                for item in row
-            ]
-            for row in items
-        ]
-        for row in cells:
-            for index, cell in enumerate(row):
-                if index >= len(widths):
-                    raise BoxExpressionError
-                for line in cell:
-                    widths[index] = max(widths[index], len(line))
-        for row_index, row in enumerate(cells):
-            if row_index > 0:
-                result += "\n"
-            k = 0
-            while True:
-                line_exists = False
-                line = ""
-                for cell_index, cell in enumerate(row):
-                    if len(cell) > k:
-                        line_exists = True
-                        text = cell[k]
-                    else:
-                        text = ""
-                    line += text
-                    if cell_index < len(row) - 1:
-                        line += " " * (widths[cell_index] - len(text))
-                        # if cell_index < len(row) - 1:
-                        line += "   "
-                if line_exists:
-                    result += line + "\n"
-                else:
-                    break
-                k += 1
-        return result
 
 
 class Grid(Builtin):

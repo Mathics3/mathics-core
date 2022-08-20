@@ -152,10 +152,13 @@ class Definitions:
             self.user = {}
             self.clear_cache()
 
+        # This loads all the formatting functions
+        import mathics.format
+
         # FIXME load dynamically as we do other things
-        import mathics.format.asy  # noqa
-        import mathics.format.json  # noqa
-        import mathics.format.svg  # noqa
+        # import mathics.format.asy  # noqa
+        # import mathics.format.json  # noqa
+        # import mathics.format.svg  # noqa
 
     def load_pymathics_module(self, module, remove_on_quit=True):
         """

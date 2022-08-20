@@ -3,7 +3,6 @@
 Boxing Routines for 3D Graphics
 """
 
-import html
 import json
 import numbers
 
@@ -28,7 +27,6 @@ from mathics.builtin.drawing.graphics3d import (
 from mathics.builtin.drawing.graphics_internals import get_class
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.formatter import lookup_method
-from mathics.format.asy_fns import asy_create_pens, asy_number
 
 
 class Graphics3DBox(GraphicsBox):
@@ -396,220 +394,13 @@ class Graphics3DBox(GraphicsBox):
 
     def boxes_to_mathml(self, elements=None, **options) -> str:
         """Turn the Graphics3DBox into a MathML string"""
-        json_repr = self.boxes_to_json(elements, **options)
-        mathml = f'<graphics3d data="{html.escape(json_repr)}" />'
-        mathml = f"<mtable><mtr><mtd>{mathml}</mtd></mtr></mtable>"
-        return mathml
+        return lookup_method(self, "mathml")(self, elements, **options)
 
     def boxes_to_tex(self, elements=None, **options):
-        if not elements:
-            elements = self._elements
-
-        (
-            elements,
-            axes,
-            ticks,
-            ticks_style,
-            calc_dimensions,
-            boxscale,
-        ) = self._prepare_elements(elements, options, max_width=450)
-
-        elements._apply_boxscaling(boxscale)
-
-        format_fn = lookup_method(elements, "asy")
-        if format_fn is not None:
-            asy = format_fn(elements)
-        else:
-            asy = elements.to_asy()
-
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
-
-        # TODO: Intelligently place the axes on the longest non-middle edge.
-        # See algorithm used by web graphics in mathics/web/media/graphics.js
-        # for details of this. (Projection to sceen etc).
-
-        # Choose axes placement (boundbox edge vertices)
-        axes_indices = []
-        if axes[0]:
-            axes_indices.append(0)
-        if axes[1]:
-            axes_indices.append(6)
-        if axes[2]:
-            axes_indices.append(8)
-
-        # Draw boundbox and axes
-        boundbox_asy = ""
-        boundbox_lines = self.get_boundbox_lines(xmin, xmax, ymin, ymax, zmin, zmax)
-
-        for i, line in enumerate(boundbox_lines):
-            if i in axes_indices:
-                pen = asy_create_pens(
-                    edge_color=RGBColor(components=(0, 0, 0, 1)), stroke_width=1.5
-                )
-            else:
-                pen = asy_create_pens(
-                    edge_color=RGBColor(components=(0.4, 0.4, 0.4, 1)), stroke_width=1
-                )
-
-            path = "--".join(["(%.5g,%.5g,%.5g)" % coords for coords in line])
-            boundbox_asy += "draw((%s), %s);\n" % (path, pen)
-
-        # TODO: Intelligently draw the axis ticks such that they are always
-        # directed inward and choose the coordinate direction which makes the
-        # ticks the longest. Again, details in mathics/web/media/graphics.js
-
-        # Draw axes ticks
-        ticklength = 0.05 * max([xmax - xmin, ymax - ymin, zmax - zmin])
-        pen = asy_create_pens(
-            edge_color=RGBColor(components=(0, 0, 0, 1)), stroke_width=1.2
-        )
-        for xi in axes_indices:
-            if xi < 4:  # x axis
-                for i, tick in enumerate(ticks[0][0]):
-                    line = [
-                        (tick, boundbox_lines[xi][0][1], boundbox_lines[xi][0][2]),
-                        (
-                            tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2] + ticklength,
-                        ),
-                    ]
-
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[0][2][i],
-                        (tick, boundbox_lines[xi][0][1], boundbox_lines[xi][0][2]),
-                        "S",
-                    )
-
-                for small_tick in ticks[0][1]:
-                    line = [
-                        (
-                            small_tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2],
-                        ),
-                        (
-                            small_tick,
-                            boundbox_lines[xi][0][1],
-                            boundbox_lines[xi][0][2] + 0.5 * ticklength,
-                        ),
-                    ]
-
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-            if 4 <= xi < 8:  # y axis
-                for i, tick in enumerate(ticks[1][0]):
-                    line = [
-                        (boundbox_lines[xi][0][0], tick, boundbox_lines[xi][0][2]),
-                        (
-                            boundbox_lines[xi][0][0],
-                            tick,
-                            boundbox_lines[xi][0][2] - ticklength,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[1][2][i],
-                        (boundbox_lines[xi][0][0], tick, boundbox_lines[xi][0][2]),
-                        "NW",
-                    )
-
-                for small_tick in ticks[1][1]:
-                    line = [
-                        (
-                            boundbox_lines[xi][0][0],
-                            small_tick,
-                            boundbox_lines[xi][0][2],
-                        ),
-                        (
-                            boundbox_lines[xi][0][0],
-                            small_tick,
-                            boundbox_lines[xi][0][2] - 0.5 * ticklength,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-            if 8 <= xi:  # z axis
-                for i, tick in enumerate(ticks[2][0]):
-                    line = [
-                        (boundbox_lines[xi][0][0], boundbox_lines[xi][0][1], tick),
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1] + ticklength,
-                            tick,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-                    boundbox_asy += 'label("{0}",{1},{2});\n'.format(
-                        ticks[2][2][i],
-                        (boundbox_lines[xi][0][0], boundbox_lines[xi][0][1], tick),
-                        "W",
-                    )
-                for small_tick in ticks[2][1]:
-                    line = [
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1],
-                            small_tick,
-                        ),
-                        (
-                            boundbox_lines[xi][0][0],
-                            boundbox_lines[xi][0][1] + 0.5 * ticklength,
-                            small_tick,
-                        ),
-                    ]
-                    path = "--".join(
-                        ["({0},{1},{2})".format(*coords) for coords in line]
-                    )
-                    boundbox_asy += "draw(({0}), {1});\n".format(path, pen)
-
-        (height, width) = (400, 400)  # TODO: Proper size
-        tex = r"""
-\begin{{asy}}
-import three;
-import solids;
-size({0}cm, {1}cm);
-currentprojection=perspective({2[0]},{2[1]},{2[2]});
-currentlight=light(rgb(0.5,0.5,1), specular=red, (2,0,2), (2,2,2), (0,2,2));
-{3}
-{4}
-\end{{asy}}
-""".format(
-            asy_number(width / 60),
-            asy_number(height / 60),
-            # Rescale viewpoint
-            [
-                vp * max([xmax - xmin, ymax - ymin, zmax - zmin])
-                for vp in self.viewpoint
-            ],
-            asy,
-            boundbox_asy,
-        )
-        return tex
+        return lookup_method(self, "tex")(self, elements, **options)
 
     def boxes_to_text(self, elements=None, **options):
-        if not elements:
-            elements = self._elements
-        return "-Graphics3D-"
+        return lookup_method(self, "text")(self, elements, **options)
 
     def create_axes(
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale

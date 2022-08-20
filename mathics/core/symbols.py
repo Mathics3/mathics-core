@@ -398,7 +398,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self.name
 
     def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
-        from mathics.builtin.box.inout import _BoxedString
+        from mathics.builtin.box.layout import _BoxedString
 
         return _BoxedString(evaluation.definitions.shorten_name(self.name))
 
@@ -683,6 +683,7 @@ SymbolSequence = Symbol("System`Sequence")
 SymbolUpSet = Symbol("UpSet")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolTimes = Symbol("Times")
+
 
 # NumericOperators uses some of the Symbols above.
 class NumericOperators:

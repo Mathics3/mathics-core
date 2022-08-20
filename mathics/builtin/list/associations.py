@@ -11,7 +11,7 @@ from mathics.builtin.base import (
     Builtin,
     Test,
 )
-from mathics.builtin.box.inout import RowBox
+from mathics.builtin.box.layout import RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
 from mathics.core.attributes import hold_all_complete, protected
@@ -306,8 +306,8 @@ class Lookup(Builtin):
 class Missing(Builtin):
     """
     <dl>
-    <dd>'Missing[]'
-    <dt> represents a data that is misssing.
+      <dd>'Missing[]'
+      <dt> represents a data that is misssing.
     </dl>
     >> ElementData["Meitnerium","MeltingPoint"]
      = Missing[NotAvailable]
