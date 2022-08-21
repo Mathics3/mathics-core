@@ -4,7 +4,7 @@ from mathics.builtin import modules, sanity_check, is_builtin, Builtin
 
 
 @pytest.mark.skipif(
-    os.environ.get("LINT"), reason="Lint checking done only when specified"
+    not os.environ.get("LINT"), reason="Lint checking done only when specified"
 )
 def test_check_duplicated():
     msg = ""
