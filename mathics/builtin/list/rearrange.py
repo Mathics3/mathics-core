@@ -500,8 +500,8 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    summary_text = "join lists together at any level"
     attributes = flat | one_identity | protected
+    summary_text = "join lists together at any level"
 
     def apply(self, lists, evaluation):
         "Join[lists___]"
