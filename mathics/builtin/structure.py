@@ -57,12 +57,12 @@ SymbolSortBy = Symbol("SortBy")
 class SortBy(Builtin):
     """
     <dl>
-    <dt>'SortBy[$list$, $f$]'
-    <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
+      <dt>'SortBy[$list$, $f$]'
+      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
     extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
     according to their natural order (without applying $f).
-    <dt>'SortBy[$f$]'
-    <dd>creates an operator function that, when applied, sorts by $f.
+      <dt>'SortBy[$f$]'
+      <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
 
     >> SortBy[{{5, 1}, {10, -1}}, Last]
@@ -129,14 +129,14 @@ class SortBy(Builtin):
 class BinarySearch(Builtin):
     """
     <dl>
-    <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
-        <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
+      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
+      <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
         exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have
         to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$
         need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
 
-    <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
-        <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
+      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
+      <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
         needs to yield a sorted sequence if applied to the elements of $l.
     </dl>
 
@@ -218,8 +218,8 @@ class BinarySearch(Builtin):
 class PatternsOrderedQ(Builtin):
     """
     <dl>
-    <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
-        <dd>returns 'True' if pattern $patt1$ would be applied before
+      <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
+      <dd>returns 'True' if pattern $patt1$ would be applied before
         $patt2$ according to canonical pattern ordering.
     </dl>
 
@@ -245,8 +245,8 @@ class PatternsOrderedQ(Builtin):
 class OrderedQ(Builtin):
     """
     <dl>
-    <dt>'OrderedQ[{$a$, $b$}]'
-        <dd>is 'True' if $a$ sorts before $b$ according to canonical
+      <dt>'OrderedQ[{$a$, $b$}]'
+      <dd>is 'True' if $a$ sorts before $b$ according to canonical
         ordering.
     </dl>
 
@@ -272,8 +272,8 @@ class OrderedQ(Builtin):
 class Order(Builtin):
     """
     <dl>
-    <dt>'Order[$x$, $y$]'
-        <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
+      <dt>'Order[$x$, $y$]'
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
         -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
     </dl>
 
@@ -300,29 +300,6 @@ class Order(Builtin):
             return Integer(-1)
         else:
             return Integer0
-
-
-class Head(Builtin):
-    """
-    <dl>
-    <dt>'Head[$expr$]'
-        <dd>returns the head of the expression or atom $expr$.
-    </dl>
-
-    >> Head[a * b]
-     = Times
-    >> Head[6]
-     = Integer
-    >> Head[x]
-     = Symbol
-    """
-
-    summary_text = "the head of the expression"
-
-    def apply(self, expr, evaluation):
-        "Head[expr_]"
-
-        return expr.get_head()
 
 
 class ApplyLevel(BinaryOperator):
