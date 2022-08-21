@@ -6,6 +6,7 @@ Boxing Routines for 2D Graphics
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
 from mathics.builtin.base import BoxExpression
+
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
     ColorError,
@@ -680,9 +681,6 @@ class GraphicsBox(BoxExpression):
 
         return ticks, ticks_small, origin_x
 
-    def boxes_to_mathml(self, elements=None, **options) -> str:
-        return lookup_method(self, "mathml")(self, elements, **options)
-
     def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
@@ -700,19 +698,6 @@ class GraphicsBox(BoxExpression):
         format_fn = lookup_method(self, "svg")
         svg_body = format_fn(self, elements, data=data, **options)
         return svg_body
-
-    def boxes_to_tex(self, elements=None, **options) -> str:
-        """This is the top-level function that converts a Mathics Expression
-        in to something suitable for LaTeX.  (Yes, the name "tex" is
-        perhaps misleading of vague.)
-
-        However right now the only LaTeX support for graphics is via Asymptote and
-        that seems to be the package of choice in general for LaTeX.
-        """
-        return lookup_method(self, "tex")(self, elements, **options)
-
-    def boxes_to_text(self, elements=None, **options) -> str:
-        return lookup_method(self, "text")(self, elements, **options)
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
         axes = graphics_options.get("System`Axes")

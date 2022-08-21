@@ -152,7 +152,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{Hola!}",
             "System`TraditionalForm": "\\text{Hola!}",
-            "System`InputForm": "\\text{Hola!}",
+            "System`InputForm": "\\text{``Hola!''}",
             "System`OutputForm": "\\text{Hola!}",
         },
     },
@@ -177,7 +177,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{π is a trascendental number}",
             "System`TraditionalForm": "\\text{π is a trascendental number}",
-            "System`InputForm": "\\text{π is a trascendental number}",
+            "System`InputForm": "\\text{``π is a trascendental number''}",
             "System`OutputForm": "\\text{π is a trascendental number}",
         },
     },
@@ -198,7 +198,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{-4.32}",
             "System`TraditionalForm": "\\text{-4.32}",
-            "System`InputForm": "\\text{-4.32}",
+            "System`InputForm": "\\text{``-4.32''}",
             "System`OutputForm": "\\text{-4.32}",
         },
     },
@@ -323,7 +323,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
             "System`TraditionalForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
-            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{Spanish}, \text{Hola!}\right\}, \left\{\text{Portuguese}, \text{Olà!}\right\}, \left\{\text{English}, \text{Hi!}\right\}\right\}\right]",
+            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{``Spanish''}, \text{``Hola!''}\right\}, \left\{\text{``Portuguese''}, \text{``Olà!''}\right\}, \left\{\text{``English''}, \text{``Hi!''}\right\}\right\}\right]",
             "System`OutputForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
         },
         "mathml": {

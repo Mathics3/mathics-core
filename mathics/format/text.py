@@ -8,7 +8,6 @@ from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
-    _BoxedString,
     GridBox,
     RowBox,
     StyleBox,
@@ -22,8 +21,13 @@ from mathics.builtin.box.layout import (
 from mathics.core.atoms import String
 from mathics.core.formatter import (
     add_conversion_fn,
+    lookup_method,
 )
 from mathics.core.symbols import Atom, SymbolTrue
+
+
+def boxes_to_text(boxes, **options) -> str:
+    return lookup_method(boxes, "text")(boxes, **options)
 
 
 def string(self, **options) -> str:
@@ -38,15 +42,14 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
-add_conversion_fn(_BoxedString, string)
 
 
 def fractionbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    num_text = self.num.boxes_to_text(**options)
-    den_text = self.den.boxes_to_text(**options)
+    num_text = boxes_to_text(self.num, **options)
+    den_text = boxes_to_text(self.den, **options)
     if isinstance(self.num, RowBox):
         num_text = f"({num_text})"
     if isinstance(self.den, RowBox):
@@ -69,7 +72,8 @@ def gridbox(self, elements=None, **box_options) -> str:
     widths = [0] * len(items[0])
     cells = [
         [
-            item.evaluate(evaluation).boxes_to_text(**box_options).splitlines()
+            # TODO: check if this evaluation is necesary.
+            boxes_to_text(item.evaluate(evaluation), **box_options).splitlines()
             for item in row
         ]
         for row in items
@@ -115,10 +119,10 @@ def sqrtbox(self, **options) -> str:
     options = _options
     if self.index:
         return "Sqrt[%s,%s]" % (
-            self.radicand.boxes_to_text(**options),
-            self.index.boxes_to_text(**options),
+            boxes_to_text(self.radicand, **options),
+            boxes_to_text(self.index, **options),
         )
-    return "Sqrt[%s]" % (self.radicand.boxes_to_text(**options))
+    return "Sqrt[%s]" % (boxes_to_text(self.radicand, **options))
 
 
 add_conversion_fn(SqrtBox, sqrtbox)
@@ -128,15 +132,10 @@ def superscriptbox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    if isinstance(self.superindex, Atom):
-        return "%s^%s" % (
-            self.base.boxes_to_text(**options),
-            self.superindex.boxes_to_text(**options),
-        )
-
-    return "%s^(%s)" % (
-        self.base.boxes_to_text(**options),
-        self.superindex.boxes_to_text(**options),
+    fmt_str = "%s^%s" if isinstance(self.superindex, Atom) else "%s^(%s)"
+    return fmt_str % (
+        boxes_to_text(self.base, **options),
+        boxes_to_text(self.superindex, **options),
     )
 
 
@@ -148,8 +147,8 @@ def subscriptbox(self, **options) -> str:
     _options.update(options)
     options = _options
     return "Subscript[%s, %s]" % (
-        self.base.boxes_to_text(**options),
-        self.subindex.boxes_to_text(**options),
+        boxes_to_text(self.base, **options),
+        boxes_to_text(self.subindex, **options),
     )
 
 
@@ -161,9 +160,9 @@ def subsuperscriptbox(self, **options) -> str:
     _options.update(options)
     options = _options
     return "Subsuperscript[%s, %s, %s]" % (
-        self.base.boxes_to_text(**options),
-        self.subindex.boxes_to_text(**options),
-        self.superindex.boxes_to_text(**options),
+        boxes_to_text(self.base, **options),
+        boxes_to_text(self.subindex, **options),
+        boxes_to_text(self.superindex, **options),
     )
 
 
@@ -174,7 +173,7 @@ def rowbox(self, elements=None, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return "".join([element.boxes_to_text(**options) for element in self.items])
+    return "".join([boxes_to_text(element, **options) for element in self.items])
 
 
 add_conversion_fn(RowBox, rowbox)
@@ -185,7 +184,7 @@ def stylebox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return self.boxes.boxes_to_text(**options)
+    return boxes_to_text(self.boxes, **options)
 
 
 add_conversion_fn(StyleBox, stylebox)

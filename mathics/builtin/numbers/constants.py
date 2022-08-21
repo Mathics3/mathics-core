@@ -560,7 +560,7 @@ class Undefined(Builtin):
     Undefined symbol/value (<url>:WMA: https://reference.wolfram.com/language/ref/Undefined.html</url>)
 
     <dl>
-      <dt>'Undefined[]'
+      <dt>'Undefined'
       <dd>a symbol that represents a quantity with no defined value.
     </dl>
 

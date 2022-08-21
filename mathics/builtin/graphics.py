@@ -28,7 +28,6 @@ from mathics.builtin.colors.color_directives import (
     XYZColor,
 )
 
-
 from mathics.builtin.drawing.graphics_internals import (
     _GraphicsDirective,
     _GraphicsElementBox,

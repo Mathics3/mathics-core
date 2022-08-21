@@ -1012,64 +1012,6 @@ class _IterationFunction(Builtin):
         return to_expression(name, to_expression(name, expr, *sequ), first)
 
 
-class Join(Builtin):
-    """
-    <dl>
-      <dt>'Join[$l1$, $l2$]'
-      <dd>concatenates the lists $l1$ and $l2$.
-    </dl>
-
-    'Join' concatenates lists:
-    >> Join[{a, b}, {c, d, e}]
-     = {a, b, c, d, e}
-    >> Join[{{a, b}, {c, d}}, {{1, 2}, {3, 4}}]
-     = {{a, b}, {c, d}, {1, 2}, {3, 4}}
-
-    The concatenated expressions may have any head:
-    >> Join[a + b, c + d, e + f]
-     = a + b + c + d + e + f
-
-    However, it must be the same for all expressions:
-    >> Join[a + b, c * d]
-     : Heads Plus and Times are expected to be the same.
-     = Join[a + b, c d]
-
-    #> Join[x, y]
-     = Join[x, y]
-    #> Join[x + y, z]
-     = Join[x + y, z]
-    #> Join[x + y, y z, a]
-     : Heads Plus and Times are expected to be the same.
-     = Join[x + y, y z, a]
-    #> Join[x, y + z, y z]
-     = Join[x, y + z, y z]
-    """
-
-    attributes = flat | one_identity | protected
-    summary_text = "join lists together at any level"
-
-    def apply(self, lists, evaluation):
-        "Join[lists___]"
-
-        result = []
-        head = None
-        sequence = lists.get_sequence()
-
-        for list in sequence:
-            if isinstance(list, Atom):
-                return
-            if head is not None and list.get_head() != head:
-                evaluation.message("Join", "heads", head, list.get_head())
-                return
-            head = list.get_head()
-            result.extend(list.elements)
-
-        if result:
-            return sequence[0].restructure(head, result, evaluation, deps=sequence)
-        else:
-            return ListExpression()
-
-
 class Insert(Builtin):
     """
     <dl>
