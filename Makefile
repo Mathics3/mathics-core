@@ -62,6 +62,12 @@ install:
 check: pytest gstest doctest
 
 
+# Check manifest, lint, etc
+check-lint:
+	$(PYTHON) admin-tools/build_and_check_manifest.py
+
+check-full: check-lint check
+
 #: Remove Cython-derived files
 clean-cython:
 	find mathics -name "*.so" -type f -delete; \

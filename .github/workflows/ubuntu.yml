@@ -29,4 +29,4 @@ jobs:
         make develop-full
     - name: Test Mathics
       run: |
-        make -j3 check
+        make -j3 check-full

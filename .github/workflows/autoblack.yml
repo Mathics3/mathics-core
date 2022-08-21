@@ -30,5 +30,3 @@ jobs:
           git checkout $GITHUB_HEAD_REF
           git commit -am "fixup: Format Python code with Black"
           git push
-      - name: check_manifest
-        run: ./admin-tools/build_and_check_manifest.py
