@@ -10,7 +10,6 @@ import html
 
 from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.layout import (
-    _BoxedString,
     GridBox,
     RowBox,
     SubscriptBox,
@@ -25,7 +24,7 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 
 
 from mathics.core.atoms import String
-from mathics.core.element import BoxElement
+from mathics.core.element import BoxElementMixin
 from mathics.core.formatter import (
     lookup_method as lookup_conversion_method,
     add_conversion_fn,
@@ -72,7 +71,7 @@ def string(self, **options) -> str:
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
-    if isinstance(self, BoxElement):
+    if isinstance(self, BoxElementMixin):
         if number_as_text is None:
             number_as_text = options.get("number_as_text", False)
 
@@ -113,7 +112,6 @@ def string(self, **options) -> str:
 
 
 add_conversion_fn(String, string)
-add_conversion_fn(_BoxedString, string)
 
 
 def fractionbox(self, **options) -> str:

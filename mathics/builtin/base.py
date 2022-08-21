@@ -10,7 +10,6 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 
 from mathics.builtin.exceptions import (
-    BoxExpressionError,
     MessageException,
 )
 
@@ -25,7 +24,7 @@ from mathics.core.convert.expression import to_expression
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
-from mathics.core.element import BoxElement
+from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.number import get_precision, PrecisionValueError
@@ -709,13 +708,11 @@ class SympyFunction(SympyObject):
         return sympy_expr
 
 
-class BoxExpression(BuiltinElement, BoxElement):
+class BoxExpression(BuiltinElement, BoxElementMixin):
     # This is the base class for the "Final form"
     # of formatted expressions.
     #
-    # The idea is that this class and their subclasses implement
-    # methods of the form ``boxes_to_*`` that now are in ``mathics.core.Expression``.
-    # Also, these objects should not be evaluated, so in the evaluation process should be
+    # These objects should not be evaluated, so in the evaluation process should be
     # considered "inert". However, it could happend that an Expression having them as an element
     # be evaluable, and try to apply rules. For example,
     # InputForm[ToBoxes[a+b]]
@@ -866,15 +863,6 @@ class BoxExpression(BuiltinElement, BoxElement):
                 option = ensure_context(option)
                 default[option] = parse_builtin_rule(value)
         return default
-
-    def boxes_to_text(self, elements, **options) -> str:
-        raise BoxExpressionError
-
-    def boxes_to_mathml(self, elements, **options) -> str:
-        raise BoxExpressionError
-
-    def boxes_to_tex(self, elements, **options) -> str:
-        raise BoxExpressionError
 
 
 class PatternError(Exception):

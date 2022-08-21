@@ -492,7 +492,7 @@ class TeXForm(Builtin):
      = \sqrt{a^3}
 
     #> {"hi","you"} //InputForm //TeXForm
-     = \left\{\text{hi}, \text{you}\right\}
+     = \left\{\text{``hi''}, \text{``you''}\right\}
 
     #> TeXForm[a+b*c]
      = a+b c

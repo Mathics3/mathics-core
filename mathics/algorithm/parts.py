@@ -8,7 +8,7 @@ from typing import List
 
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.convert.expression import make_expression
-from mathics.core.element import BaseElement, BoxElement
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
@@ -341,7 +341,7 @@ def walk_levels(
     include_pos=False,
     cur_pos=[],
 ):
-    if isinstance(expr, BoxElement):
+    if isinstance(expr, BoxElementMixin):
         expr = expr.to_expression()
     if isinstance(expr, Atom):
         depth = 0
