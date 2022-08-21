@@ -4,19 +4,17 @@ from typing import Any, Callable
 import re
 
 
-from mathics.core.atoms import SymbolString, SymbolI, String, Integer, Rational, Complex
-from mathics.core.element import BaseElement, BoxElement, EvalMixin
+from mathics.core.atoms import SymbolI, String, Integer, Rational, Complex
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import (
     Symbol,
     SymbolMakeBoxes,
     Atom,
     SymbolDivide,
-    SymbolFalse,
     SymbolFullForm,
     SymbolGraphics,
     SymbolGraphics3D,
@@ -28,7 +26,6 @@ from mathics.core.symbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolTimes,
-    SymbolTrue,
     format_symbols,
 )
 from mathics.core.systemsymbols import (
@@ -111,7 +108,15 @@ extra_operators = set(
 )
 
 
-def lookup_method(self, format: str, module_fn_name=None) -> Callable:
+def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytearray]
+    """
+    Translates a box structure ``boxes`` to a file format ``format``.
+
+    """
+    return lookup_method(boxes, format)(boxes, **options)
+
+
+def lookup_method(self, format: str) -> Callable:
     """
     Find a conversion method for `format` in self's class method resolution order.
     """
@@ -120,6 +125,17 @@ def lookup_method(self, format: str, module_fn_name=None) -> Callable:
         if format_fn is not None:
             # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
             return format_fn
+    # backward compatibility
+    boxes_to_method = getattr(self, f"boxes_to_{format}", None)
+    if getattr(BoxElementMixin, f"boxes_to_{format}") is boxes_to_method:
+        boxes_to_method = None
+    if boxes_to_method:
+
+        def ret_fn(box, elements=None, **opts):
+            return boxes_to_method(elements, **opts)
+
+        return ret_fn
+
     error_msg = f"Can't find formatter {format} for {type(self).__name__}"
     raise RuntimeError(error_msg)
 
@@ -157,179 +173,6 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
     format2fn[(conversion_type, cls)] = module_dict[module_fn_name]
 
 
-#
-#   Comment from Rocky:
-#   " More scalable and more comprehensible is doing it inside a module for a particular form like we did for formatter. See [Aspect-Oriented Programming](https://en.wikipedia.org/wiki/Aspect-oriented_programming)
-#
-# Adding a method on the base class which does a lookup on the class I think is a good thing and the way to go. And it more closely maintains API compatibility, were it not for the fact that the form should be a Symbol rather than a str.
-# But in the short term we can do the same as we did for Expression and allow either a str or a Symbol and do the checking inside the .format() routine. Then eventually we'll remove the check."
-#  Also, moving the implementation of boxes_to_mathml / boxes_to_tex etc to specific module would be a following step.
-#
-#
-
-
-class _BoxedString(BoxElement):
-    value: str
-    box_options: dict
-    options = {
-        "System`ShowStringCharacters": "False",
-    }
-
-    @property
-    def head(self):
-        return SymbolString
-
-    def __init__(self, string: str, **options):
-        self.value = string
-        self.box_options = {
-            "System`ShowStringCharacters": SymbolFalse,
-        }
-        self.box_options.update(options)
-
-    def __repr__(self):
-        return self.value
-
-    def __str__(self):
-        return self.value
-
-    def boxes_to_text(self, **options):
-        value = self.value
-        if value.startswith('"') and value.endswith('"'):  # nopep8
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-
-            if not show_string_characters:
-                value = value[1:-1]
-        return value
-
-    def boxes_to_mathml(self, **options) -> str:
-        from mathics.builtin import display_operators_set as operators
-
-        text = self.value
-
-        number_as_text = options.get("number_as_text", None)
-        if number_as_text is None:
-            number_as_text = self.box_options.get("number_as_text", False)
-
-        def render(format, string):
-            encoded_text = encode_mathml(string)
-            return format % encoded_text
-
-        if text.startswith('"') and text.endswith('"'):
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-
-            if show_string_characters:
-                return render("<ms>%s</ms>", text[1:-1])
-            else:
-                outtext = ""
-                for line in text[1:-1].split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-        elif (
-            text
-            and not number_as_text
-            and ("0" <= text[0] <= "9" or text[0] in (".", "-"))
-        ):
-            return render("<mn>%s</mn>", text)
-        else:
-            if text in operators or text in extra_operators:
-                if text == "\u2146":
-                    return render(
-                        '<mo form="prefix" lspace="0.2em" rspace="0">%s</mo>', text
-                    )
-                if text == "\u2062":
-                    return render(
-                        '<mo form="prefix" lspace="0" rspace="0.2em">%s</mo>', text
-                    )
-                return render("<mo>%s</mo>", text)
-            elif is_symbol_name(text):
-                return render("<mi>%s</mi>", text)
-            else:
-                outtext = ""
-                for line in text.split("\n"):
-                    outtext += render("<mtext>%s</mtext>", line)
-                return outtext
-
-    def boxes_to_tex(self, **options) -> str:
-        text = self.value
-
-        def render(format, string, in_text=False):
-            return format % encode_tex(string, in_text)
-
-        if text.startswith('"') and text.endswith('"'):
-            show_string_characters = options.get("show_string_characters", None)
-            if show_string_characters is None:
-                show_string_characters = (
-                    self.box_options["System`ShowStringCharacters"] is SymbolTrue
-                )
-            # In WMA, ``TeXForm`` never adds quotes to
-            # strings, even if ``InputForm`` or ``FullForm``
-            # is required, to so get the standard WMA behaviour,
-            # this option is set to False:
-            # show_string_characters = False
-
-            if show_string_characters:
-                return render(r"\text{``%s''}", text[1:-1], in_text=True)
-            else:
-                return render(r"\text{%s}", text[1:-1], in_text=True)
-        elif text and text[0] in "0123456789-.":
-            return render("%s", text)
-        else:
-            # FIXME: this should be done in a better way.
-            if text == "\u2032":
-                return "'"
-            elif text == "\u2032\u2032":
-                return "''"
-            elif text == "\u2062":
-                return " "
-            elif text == "\u221e":
-                return r"\infty "
-            elif text == "\u00d7":
-                return r"\times "
-            elif text in ("(", "[", "{"):
-                return render(r"\left%s", text)
-            elif text in (")", "]", "}"):
-                return render(r"\right%s", text)
-            elif text == "\u301a":
-                return r"\left[\left["
-            elif text == "\u301b":
-                return r"\right]\right]"
-            elif text == "," or text == ", ":
-                return text
-            elif text == "\u222b":
-                return r"\int"
-            # Tolerate WL or Unicode DifferentialD
-            elif text in ("\u2146", "\U0001D451"):
-                return r"\, d"
-            elif text == "\u2211":
-                return r"\sum"
-            elif text == "\u220f":
-                return r"\prod"
-            elif len(text) > 1:
-                return render(r"\text{%s}", text, in_text=True)
-            else:
-                return render("%s", text)
-
-    def get_head(self) -> Symbol:
-        return SymbolString
-
-    def get_head_name(self) -> str:
-        return "System`String"
-
-    def get_string_value(self) -> str:
-        return self.value
-
-    def to_expression(self) -> String:
-        return String(self.value)
-
-
 element_formatters = {}
 
 
@@ -339,15 +182,13 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-    do_format = element_formatters.get(type(element), do_format_element)
     expr = do_format(element, evaluation, form)
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
-
-    if isinstance(result_box, BoxElement):
+    if isinstance(result_box, String):
         return result_box
-    elif isinstance(result_box, String):
-        return _BoxedString(result_box.value)
+    if isinstance(result_box, BoxElementMixin):
+        return result_box
     else:
         return format_element(element, evaluation, SymbolFullForm, **kwargs)
 
@@ -452,7 +293,7 @@ def do_format_element(
             expr = do_format(expr, evaluation, form)
         elif (
             head is not SymbolNumberForm
-            and not isinstance(expr, (Atom, BoxElement))
+            and not isinstance(expr, (Atom, BoxElementMixin))
             and head not in (SymbolGraphics, SymbolGraphics3D)
         ):
             # print("Not inside graphics or numberform, and not is atom")

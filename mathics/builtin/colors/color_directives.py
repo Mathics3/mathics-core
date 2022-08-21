@@ -7,9 +7,8 @@ There are many different way to specify color; we support all of the color forma
 from math import atan2, cos, exp, pi, radians, sin, sqrt
 
 
-from mathics.builtin.colors.color_internals import convert_color
-
 from mathics.builtin.base import Builtin
+from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
 from mathics.builtin.exceptions import BoxExpressionError
 from mathics.core.atoms import (

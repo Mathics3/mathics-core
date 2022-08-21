@@ -916,10 +916,10 @@ class CoefficientArrays(_CoefficientHandler):
 class CoefficientList(Builtin):
     """
     <dl>
-    <dt>'CoefficientList[poly, var]'
-        <dd>returns a list of coefficients of powers of $var$ in $poly$, starting with power 0.
-    <dt>'CoefficientList[poly, {var1, var2, ...}]'
-        <dd>returns an array of coefficients of the $vari$.
+      <dt>'CoefficientList[poly, var]'
+      <dd>returns a list of coefficients of powers of $var$ in $poly$, starting with power 0.
+      <dt>'CoefficientList[poly, {var1, var2, ...}]'
+      <dd>returns an array of coefficients of the $vari$.
     </dl>
 
     ## Form 1 CoefficientList[poly, var]
@@ -1042,13 +1042,13 @@ class CoefficientList(Builtin):
 class Collect(_CoefficientHandler):
     """
     <dl>
-    <dt>'Collect[$expr$, $x$]'
-    <dd> Expands $expr$ and collect together terms having the same power of $x$.
-    <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
-    <dd> Expands $expr$ and collect together terms having the same powers of
+      <dt>'Collect[$expr$, $x$]'
+      <dd> Expands $expr$ and collect together terms having the same power of $x$.
+      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
+      <dd> Expands $expr$ and collect together terms having the same powers of
          $x_1$, $x_2$, ....
-    <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
-    <dd> After collect the terms, applies $filter$ to each coefficient.
+      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
+      <dd> After collect the terms, applies $filter$ to each coefficient.
     </dl>
 
     >> Collect[(x+y)^3, y]
@@ -1085,8 +1085,8 @@ class Collect(_CoefficientHandler):
 class Denominator(Builtin):
     """
     <dl>
-    <dt>'Denominator[$expr$]'
-        <dd>gives the denominator in $expr$.
+      <dt>'Denominator[$expr$]'
+      <dd>gives the denominator in $expr$.
     </dl>
 
     >> Denominator[a / b]
@@ -1297,8 +1297,8 @@ class ExpandAll(_Expand):
 class ExpandDenominator(_Expand):
     """
     <dl>
-    <dt>'ExpandDenominator[$expr$]'
-        <dd>expands out negative integer powers and products of sums in $expr$.
+      <dt>'ExpandDenominator[$expr$]'
+      <dd>expands out negative integer powers and products of sums in $expr$.
     </dl>
 
     >> ExpandDenominator[(a + b) ^ 2 / ((c + d)^2 (e + f))]
@@ -1328,10 +1328,10 @@ class ExpandDenominator(_Expand):
 class Exponent(Builtin):
     """
     <dl>
-    <dt>'Exponent[expr, form]'
-        <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
-    <dt>'Exponent[expr, form, h]'
-        <dd>applies $h$ to the set of exponents with which $form$ appears in $expr$.
+      <dt>'Exponent[expr, form]'
+      <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
+      <dt>'Exponent[expr, form, h]'
+      <dd>applies $h$ to the set of exponents with which $form$ appears in $expr$.
     </dl>
 
     >> Exponent[5 x^2 - 3 x + 7, x]
@@ -1391,8 +1391,8 @@ class Exponent(Builtin):
 class Factor(Builtin):
     """
     <dl>
-    <dt>'Factor[$expr$]'
-        <dd>factors the polynomial expression $expr$.
+      <dt>'Factor[$expr$]'
+      <dd>factors the polynomial expression $expr$.
     </dl>
 
     >> Factor[x ^ 2 + 2 x + 1]
@@ -1718,10 +1718,10 @@ class Simplify(Builtin):
 class FullSimplify(Simplify):
     """
     <dl>
-    <dt>'FullSimplify[$expr$]'
-        <dd>simplifies $expr$ using an extended set of simplification rules.
-    <dt>'FullSimplify[$expr$, $assump$]'
-        <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
+      <dt>'FullSimplify[$expr$]'
+      <dd>simplifies $expr$ using an extended set of simplification rules.
+      <dt>'FullSimplify[$expr$, $assump$]'
+      <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
     TODO: implement the extension. By now, this does the same than Simplify...
 
@@ -2003,18 +2003,3 @@ class Variables(Builtin):
         variables = ListExpression(*variables)
         variables.sort()  # MMA doesn't do this
         return variables
-
-
-class UpTo(Builtin):
-    """
-    <dl>
-    <dt>'UpTo[$n$]'
-    <dd>is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
-    </dl>
-    """
-
-    messages = {
-        "innf": "Expected non-negative integer or infinity at position 1 in ``.",
-        "argx": "UpTo expects 1 argument, `1` arguments were given.",
-    }
-    summary_text = "a certain number of elements, or as many as are available"

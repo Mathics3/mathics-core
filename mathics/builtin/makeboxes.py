@@ -23,7 +23,7 @@ from mathics.core.attributes import (
     hold_all_complete as A_HOLD_ALL_COMPLETE,
     read_protected as A_READ_PROTECTED,
 )
-from mathics.core.element import BoxElement
+from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
@@ -479,7 +479,7 @@ class MakeBoxes(Builtin):
     def apply_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
-        if isinstance(expr, BoxElement):
+        if isinstance(expr, BoxElementMixin):
             expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)
