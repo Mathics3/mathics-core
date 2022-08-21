@@ -54,15 +54,30 @@ def check_manifest():
     status_OK = True
     builtins_by_name = generate_avaliable_builtins_names()
     with open("SYMBOLS_MANIFEST.txt", "r") as f_in:
-        for key in sorted(key for key in builtins_by_name):
-            name = f_in.readline()
-            found = builtins_by_name.pop(name[:-1], None)
-            if found is None:
-                print(f"{name} not found in any module.")
-                status_OK = False
+        manifest_symbols = {name[:-1]: "OK" for name in f_in.readlines()}
+    # Check that all the Symbols in the manifest are available
+    # in the library
+    for name in manifest_symbols:
+        found = builtins_by_name.get(name, None)
+        if found is None:
+            print(f"{name} not found in any module.")
+            status_OK = False
     assert (
         status_OK
     ), "Some symbols were removed. Please check and update the manifest accordingly."
+
+    # Check for new symbols:
+    rebuild_manifest = False
+    for key in builtins_by_name:
+        found = manifest_symbols.get(key, None)
+        if found is None:
+            print(f"{name} not found in the manifest.")
+            # TODO: Add the new symbols to CHANGES.rst
+            rebuild_manifest = True
+
+    if rebuild_manifest:
+        build_builtin_manifest()
+        print("SYMBOLS_MANIFEST was updated.")
 
 
 if __name__ == "__main__":
