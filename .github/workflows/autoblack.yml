@@ -20,6 +20,8 @@ jobs:
         run: pip install 'black==22.3.0'
       - name: Run black --check .
         run: black --check .
+      - name: check_manifest
+        run: ./admin-tools/build_and_check_manifest.py
       - name: If needed, commit black changes to the pull request
         if: failure()
         run: |
