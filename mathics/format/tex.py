@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as mathml code
+Format a Mathics object as (La)TeX code
 """
 
 import re
