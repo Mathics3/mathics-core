@@ -448,7 +448,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_head(self) -> "Symbol":
         return Symbol("Symbol")
 
-    def get_head_name(self):
+    def get_head_name(self) -> str:
         return "System`Symbol"
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):

@@ -859,6 +859,7 @@ class Root(SympyFunction):
 
 class Solve(Builtin):
     """
+    <url>:Equation solving: https://en.wikipedia.org/wiki/Equation_solving</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/solvers/solvers.html#module-sympy.solvers</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Solve.html</url>)
     <dl>
       <dt>'Solve[$equation$, $vars$]'
       <dd>attempts to solve $equation$ for the variables $vars$.
@@ -881,6 +882,7 @@ class Solve(Builtin):
     Contradiction:
     >> Solve[x + 1 == x, x]
      = {}
+
     Tautology:
     >> Solve[x ^ 2 == x ^ 2, x]
      = {{}}
@@ -896,11 +898,13 @@ class Solve(Builtin):
      = {{x -> Pi / 2}, {x -> 3 Pi / 2}}
 
     Solve can only solve equations with respect to symbols or functions:
+
     >> Solve[f[x + y] == 3, f[x + y]]
      = {{f[x + y] -> 3}}
     >> Solve[a + b == 2, a + b]
      : a + b is not a valid variable.
      = Solve[a + b == 2, a + b]
+
     This happens when solving with respect to an assigned symbol:
     >> x = 3;
     >> Solve[x == 2, x]
@@ -918,12 +922,12 @@ class Solve(Builtin):
     >> eqs /. sol // Simplify
      = {{True, True}, {True, True}, {True, True}, {True, True}}
 
-    An underdetermined system:
+    Solve when given an underdetermined system:
     >> Solve[x^2 == 1 && z^2 == -1, {x, y, z}]
      : Equations may not give solutions for all "solve" variables.
      = {{x -> -1, z -> -I}, {x -> -1, z -> I}, {x -> 1, z -> -I}, {x -> 1, z -> I}}
 
-    Domain specification:
+    Examples using specifying the Domain in solutions:
     >> Solve[x^2 == -1, x, Reals]
      = {}
     >> Solve[x^2 == 1, x, Reals]
@@ -932,29 +936,6 @@ class Solve(Builtin):
      = {{x -> -I}, {x -> I}}
     >> Solve[4 - 4 * x^2 - x^4 + x^6 == 0, x, Integers]
      = {{x -> -1}, {x -> 1}}
-
-    #> Solve[x^2 +1 == 0, x] // FullForm
-     = {{Rule[x, Complex[0, -1]]},{Rule[x, Complex[0, 1]]}}
-
-    #> Solve[x^5==x,x]
-     = {{x -> -1}, {x -> 0}, {x -> 1}, {x -> -I}, {x -> I}}
-
-    #> Solve[g[x] == 0, x]
-     = Solve[g[x] == 0, x]
-    ## (should use inverse functions, actually!)
-    #> Solve[g[x] + h[x] == 0, x]
-     = Solve[g[x] + h[x] == 0, x]
-
-    #> Solve[Sin(x) == 1, x]
-     = {{x -> 1 / Sin}}
-
-    #> Solve[E == 1, E]
-     : E is not a valid variable.
-     = Solve[False, E]
-    #> Solve[False, Pi]
-     : Pi is not a valid variable.
-     = Solve[False, Pi]
-
     """
 
     messages = {
@@ -962,6 +943,9 @@ class Solve(Builtin):
         "svars": 'Equations may not give solutions for all "solve" variables.',
     }
 
+    # FIXME: the problem with removing the domain parameter from the outside
+    # is that the we can't make use of this information inside
+    # the evaluation method where it is may be needed.
     rules = {
         "Solve[eqs_, vars_, Complexes]": "Solve[eqs, vars]",
         "Solve[eqs_, vars_, Reals]": (
@@ -991,20 +975,19 @@ class Solve(Builtin):
 
                 evaluation.message("Solve", "ivar", vars_original)
                 return
-        eqs_original = eqs
         if eqs.get_head_name() in ("System`List", "System`And"):
-            eqs = eqs.elements
+            eq_list = eqs.elements
         else:
-            eqs = [eqs]
+            eq_list = [eqs]
         sympy_eqs = []
         sympy_denoms = []
-        for eq in eqs:
+        for eq in eq_list:
             if eq is SymbolTrue:
                 pass
             elif eq is SymbolFalse:
                 return ListExpression()
             elif not eq.has_form("Equal", 2):
-                return evaluation.message("Solve", "eqf", eqs_original)
+                return evaluation.message("Solve", "eqf", eqs)
             else:
                 left, right = eq.elements
                 left = left.to_sympy()
@@ -1031,7 +1014,7 @@ class Solve(Builtin):
         vars_sympy = []
         for var, var_sympy in zip(all_vars, all_vars_sympy):
             pattern = Pattern.create(var)
-            if not eqs_original.is_free(pattern, evaluation):
+            if not eqs.is_free(pattern, evaluation):
                 vars.append(var)
                 vars_sympy.append(var_sympy)
 
