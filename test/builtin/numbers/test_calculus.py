@@ -126,3 +126,57 @@ def test_D(str_expr: str, str_expected: str, expected_messages):
         str_expected=str_expected,
         expected_messages=expected_messages,
     )
+
+
+@pytest.mark.parametrize(
+    "str_expr, str_expected, expected_messages",
+    [
+        (
+            "Solve[x^2 +1 == 0, x]",
+            "{{x -> -I}, {x -> I}}",
+            [],
+        ),
+        (
+            "Solve[x^5==x,x]",
+            "{{x -> -1}, {x -> 0}, {x -> 1}, {x -> -I}, {x -> I}}",
+            [],
+        ),
+        (
+            "Solve[g[x] == 0, x]",
+            "Solve[g[x] == 0, x]",
+            [],
+        ),
+        (
+            ## FIXME: should use inverse functions?
+            "Solve[g[x] + h[x] == 0, x]",
+            "Solve[g[x] + h[x] == 0, x]",
+            [],
+        ),
+        (
+            "Solve[Sin(x) == 1, x]",
+            "{{x -> 1 / Sin}}",
+            [],
+        ),
+        (
+            "Solve[E == 1, E]",
+            "Solve[False, E]",
+            ["E is not a valid variable."],
+        ),
+        (
+            "Solve[E == 1, E]",
+            "Solve[False, E]",
+            ["E is not a valid variable."],
+        ),
+        (
+            "Solve[False, Pi]",
+            "Solve[False, Pi]",
+            ["Pi is not a valid variable."],
+        ),
+    ],
+)
+def test_Solve(str_expr: str, str_expected: str, expected_messages):
+    check_evaluation(
+        str_expr=str_expr,
+        str_expected=str_expected,
+        expected_messages=expected_messages,
+    )
