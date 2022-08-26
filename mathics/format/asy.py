@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as an Asymptote string
+Lower-level format of Mathics objects as Asymptote strings.
 """
 
 import re

@@ -48,7 +48,7 @@ DOC_SYSTEM_TEX_DATA_PATH = os.environ.get(
 )
 
 DOC_DIR = osp.join(ROOT_DIR, "doc", "documentation")
-DOC_LATEX_FILE = osp.join(ROOT_DIR, "doc", "tex", "documentation.tex")
+DOC_LATEX_FILE = osp.join(ROOT_DIR, "doc", "latex", "documentation.tex")
 
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False

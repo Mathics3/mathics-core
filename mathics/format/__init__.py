@@ -1,3 +1,26 @@
+"""
+Lower-level formatting routines.
+
+Built-in Lower-level formatting includes Asymptote, MathML, SVG,
+threejs, and plain text.  We hope and expect other formatting to other
+kinds backend renderers like matplotlib, can be done by following the
+pattern used here.
+
+These routines typically get called in formatting Mathics Box objects.
+
+Although there higher level *Forms* (e.g. TeXForm, MathMLForm)
+typically cause very specific formatters to get called, (e.g. latex, mathml),
+the two concepts and levels are a little bit different.
+
+For example, in graphics there may be several different kinds of
+renderers, SVG, PNG for a particular kind of graphics Box, the
+front-end deciding which render to use for a that kind of Box.
+The Box however is created via a particular high-level Form.
+
+As another example, front-end may decide to use MathJaX to render
+TeXForm if the front-end supports this and the user so desires that.
+"""
+
 import os.path as osp
 import glob
 import importlib

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as an SVG string
+Lower-level formatter of Mathics objects as SVG strings.
 """
 
 from mathics.builtin.box.graphics import (

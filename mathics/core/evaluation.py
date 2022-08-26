@@ -460,7 +460,7 @@ class Evaluation:
             result = format_element(
                 Expression(SymbolStandardForm, expr), self, SymbolMathMLForm
             )
-        elif format == "tex":
+        elif format == "latex":
             result = format_element(
                 Expression(SymbolStandardForm, expr), self, SymbolTeXForm
             )

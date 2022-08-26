@@ -9,4 +9,4 @@ all: latex
 
 #: Forward the call to tex, Whatever it is you want to do
 %:
-	$(MAKE) -C tex $@
+	$(MAKE) -C latex $@

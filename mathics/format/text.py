@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as plain text 
+Lower-level formatter Mathics objects as plain text.
 """
 
 
