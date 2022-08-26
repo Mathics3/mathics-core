@@ -59,11 +59,10 @@ from mathics.core.atoms import (
     machine_precision,
     min_prec,
 )
+
 from mathics.core.attributes import (
-    flat,
     hold_all,
     locked,
-    one_identity,
     protected,
     read_protected,
 )
@@ -1070,53 +1069,6 @@ class DisjointQ(Test):
 
     rules = {"DisjointQ[a_List, b_List]": "Not[IntersectingQ[a, b]]"}
     summary_text = "test whether two lists do not have common elements"
-
-
-class Fold(Builtin):
-    """
-    <dl>
-      <dt>'Fold[$f$, $x$, $list$]'
-      <dd>returns the result of iteratively applying the binary
-        operator $f$ to each element of $list$, starting with $x$.
-      <dt>'Fold[$f$, $list$]'
-      <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
-    </dl>
-
-    >> Fold[Plus, 5, {1, 1, 1}]
-     = 8
-    >> Fold[f, 5, {1, 2, 3}]
-     = f[f[f[5, 1], 2], 3]
-    """
-
-    rules = {
-        "Fold[exp_, x_, head_]": "Module[{list = Level[head, 1], res = x, i = 1}, Do[res = exp[res, list[[i]]], {i, 1, Length[list]}]; res]",
-        "Fold[exp_, head_] /; Length[head] > 0": "Fold[exp, First[head], Rest[head]]",
-    }
-    summary_text = "iterative application of a binary operation over elements of a list"
-
-
-class FoldList(Builtin):
-    """
-    <dl>
-      <dt>'FoldList[$f$, $x$, $list$]'
-      <dd>returns a list starting with $x$, where each element is
-        the result of applying the binary operator $f$ to the previous
-        result and the next element of $list$.
-      <dt>'FoldList[$f$, $list$]'
-      <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
-    </dl>
-
-    >> FoldList[f, x, {1, 2, 3}]
-     = {x, f[x, 1], f[f[x, 1], 2], f[f[f[x, 1], 2], 3]}
-    >> FoldList[Times, {1, 2, 3}]
-     = {1, 2, 6}
-    """
-
-    rules = {
-        "FoldList[exp_, x_, head_]": "Module[{i = 1}, Head[head] @@ Prepend[Table[Fold[exp, x, Take[head, i]], {i, 1, Length[head]}], x]]",
-        "FoldList[exp_, head_]": "If[Length[head] == 0, head, FoldList[exp, First[head], Rest[head]]]",
-    }
-    summary_text = "list of the results of applying a binary operation interatively over elements of a list"
 
 
 class _NotRectangularException(Exception):

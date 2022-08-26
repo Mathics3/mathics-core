@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Exponential and Trigonometric Functions
+Trigonometric Functions
 
 Numerical values and derivatives can be computed; however, most special exact values and simplification rules are not implemented yet.
 """
@@ -21,12 +21,11 @@ from mathics.core.atoms import (
     IntegerM1,
     Real,
 )
-from mathics.core.attributes import listable, numeric_function, protected
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolPower
-from mathics.core.systemsymbols import SymbolCos, SymbolE, SymbolSin
+from mathics.core.systemsymbols import SymbolCos, SymbolSin
 
 SymbolArcCos = Symbol("ArcCos")
 SymbolArcSin = Symbol("ArcSin")
@@ -599,37 +598,6 @@ class Csc(_MPMathFunction):
             ).to_sympy()
 
 
-class Exp(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Exp[$z$]'
-      <dd>returns the exponential function of $z$.
-    </dl>
-
-    >> Exp[1]
-     = E
-    >> Exp[10.0]
-     = 22026.5
-    >> Exp[x] //FullForm
-     = Power[E, x]
-
-    >> Plot[Exp[x], {x, 0, 3}]
-     = -Graphics-
-    #> Exp[1.*^20]
-     : Overflow occurred in computation.
-     = Overflow[]
-    """
-
-    rules = {
-        "Exp[x_]": "E ^ x",
-        "Derivative[1][Exp]": "Exp",
-    }
-    summary_text = "exponential function"
-
-    def from_sympy(self, sympy_name, elements):
-        return Expression(SymbolPower, SymbolE, elements[0])
-
-
 class Haversine(_MPMathFunction):
     """
     <dl>
@@ -668,134 +636,6 @@ class InverseHaversine(_MPMathFunction):
 
     summary_text = "inverse Haversine function"
     rules = {"InverseHaversine[z_]": "2 * ArcSin[Sqrt[z]]"}
-
-
-class Log(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Log[$z$]'
-      <dd>returns the natural logarithm of $z$.
-    </dl>
-
-    >> Log[{0, 1, E, E * E, E ^ 3, E ^ x}]
-     = {-Infinity, 0, 1, 2, 3, Log[E ^ x]}
-    >> Log[0.]
-     = Indeterminate
-    >> Plot[Log[x], {x, 0, 5}]
-     = -Graphics-
-
-    #> Log[1000] / Log[10] // Simplify
-     = 3
-
-    #> Log[1.4]
-     = 0.336472
-
-    #> Log[Exp[1.4]]
-     = 1.4
-
-    #> Log[-1.4]
-     = 0.336472 + 3.14159 I
-
-    #> N[Log[10], 30]
-     = 2.30258509299404568401799145468
-    """
-
-    summary_text = "logarithm function"
-    nargs = {2}
-    mpmath_name = "log"
-    sympy_name = "log"
-
-    rules = {
-        "Derivative[1][Log]": "1/#&",
-        "Log[0.]": "Indeterminate",
-        "Log[0]": "DirectedInfinity[-1]",
-        "Log[1]": "0",
-        "Log[E]": "1",
-        "Log[E^x_Integer]": "x",
-        "Log[Overflow[]]": "Overflow[]",
-        "Log[Undefined]": "Undefined",
-        "Log[x_?InexactNumberQ]": "Log[E, x]",
-    }
-
-    def prepare_sympy(self, elements):
-        if len(elements) == 2:
-            elements = [elements[1], elements[0]]
-        return elements
-
-    def get_mpmath_function(self, args):
-        return lambda base, x: mpmath.log(x, base)
-
-
-class Log2(Builtin):
-    """
-    <dl>
-      <dt>'Log2[$z$]'
-      <dd>returns the base-2 logarithm of $z$.
-    </dl>
-
-    >> Log2[4 ^ 8]
-     = 16
-    >> Log2[5.6]
-     = 2.48543
-    >> Log2[E ^ 2]
-     = 2 / Log[2]
-    """
-
-    summary_text = "base-2 logarithm function"
-    attributes = listable | numeric_function | protected
-
-    rules = {
-        "Log2[x_]": "Log[2, x]",
-    }
-
-
-class Log10(Builtin):
-    """
-    <dl>
-      <dt>'Log10[$z$]'
-      <dd>returns the base-10 logarithm of $z$.
-    </dl>
-
-    >> Log10[1000]
-     = 3
-    >> Log10[{2., 5.}]
-     = {0.30103, 0.69897}
-    >> Log10[E ^ 3]
-     = 3 / Log[10]
-    """
-
-    summary_text = "base-10 logarithm function"
-    attributes = listable | numeric_function | protected
-
-    rules = {
-        "Log10[x_]": "Log[10, x]",
-    }
-
-
-class LogisticSigmoid(Builtin):
-    """
-    <dl>
-      <dt>'LogisticSigmoid[$z$]'
-      <dd>returns the logistic sigmoid of $z$.
-    </dl>
-
-    >> LogisticSigmoid[0.5]
-     = 0.622459
-
-    >> LogisticSigmoid[0.5 + 2.3 I]
-     = 1.06475 + 0.808177 I
-
-    >> LogisticSigmoid[{-0.2, 0.1, 0.3}]
-     = {0.450166, 0.524979, 0.574443}
-
-    #> LogisticSigmoid[I Pi]
-     = LogisticSigmoid[I Pi]
-    """
-
-    summary_text = "logistic function"
-    attributes = listable | numeric_function | protected
-
-    rules = {"LogisticSigmoid[z_?NumberQ]": "1 / (1 + Exp[-z])"}
 
 
 class Sec(_MPMathFunction):

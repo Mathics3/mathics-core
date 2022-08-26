@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 
-"""Functional Programming
-
-Functional programming is a programming paradigm where programs are constructed by applying and composing functions.
-This is term is often used in contrast to Procedural programming.
-
-It is made richer by expressions like $f$[$x$] being treating as symbolic data.
 """
+Function Application
+"""
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.function-application"
+
 
 from itertools import chain
 
@@ -14,7 +14,11 @@ from itertools import chain
 from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
-from mathics.core.attributes import flat, hold_all, n_hold_all, one_identity, protected
+from mathics.core.attributes import (
+    hold_all as A_HOLD_ALL,
+    n_hold_all as A_N_HOLD_ALL,
+    protected as A_PROTECTED,
+)
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.symbols import Symbol
 
@@ -22,13 +26,15 @@ from mathics.core.symbols import Symbol
 class Function(PostfixOperator):
     """
     <dl>
-    <dt>'Function[$body$]'
-    <dt>'$body$ &'
-        <dd>represents a pure function with parameters '#1', '#2', etc.
-    <dt>'Function[{$x1$, $x2$, ...}, $body$]'
-        <dd>represents a pure function with parameters $x1$, $x2$, etc.
-    <dt>'Function[{$x1$, $x2$, ...}, $body$, $attr$]'
-        <dd>assume that the function has the attributes $attr$.
+      <dt>'Function[$body$]'
+      <dt>'$body$ &'
+      <dd>represents a pure function with parameters '#1', '#2', etc.
+
+      <dt>'Function[{$x1$, $x2$, ...}, $body$]'
+      <dd>represents a pure function with parameters $x1$, $x2$, etc.
+
+      <dt>'Function[{$x1$, $x2$, ...}, $body$, $attr$]'
+      <dd>assume that the function has the attributes $attr$.
     </dl>
 
     >> f := # ^ 2 &
@@ -66,7 +72,7 @@ class Function(PostfixOperator):
 
     operator = "&"
     precedence = 90
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "slot": "`1` should contain a positive integer.",
@@ -158,7 +164,7 @@ class Slot(Builtin):
      = #0
     """
 
-    attributes = n_hold_all | protected
+    attributes = A_N_HOLD_ALL | A_PROTECTED
     rules = {
         "Slot[]": "Slot[1]",
         "MakeBoxes[Slot[n_Integer?NonNegative],"
@@ -190,7 +196,7 @@ class SlotSequence(Builtin):
      = ##1
     """
 
-    attributes = n_hold_all | protected
+    attributes = A_N_HOLD_ALL | A_PROTECTED
 
     rules = {
         "SlotSequence[]": "SlotSequence[1]",
@@ -198,60 +204,3 @@ class SlotSequence(Builtin):
         "f:StandardForm|TraditionalForm|InputForm|OutputForm]": ('"##" <> ToString[n]'),
     }
     summary_text = "the full sequence of arguments of a pure function"
-
-
-class Composition(Builtin):
-    """
-    <dl>
-    <dt>'Composition[$f$, $g$]'
-        <dd>returns the composition of two functions $f$ and $g$.
-    </dl>
-
-    >> Composition[f, g][x]
-     = f[g[x]]
-    >> Composition[f, g, h][x, y, z]
-     = f[g[h[x, y, z]]]
-    >> Composition[]
-     = Identity
-    >> Composition[][x]
-     = x
-    >> Attributes[Composition]
-     = {Flat, OneIdentity, Protected}
-    >> Composition[f, Composition[g, h]]
-     = Composition[f, g, h]
-    """
-
-    attributes = flat | one_identity | protected
-
-    rules = {
-        "Composition[]": "Identity",
-    }
-    summary_text = "the composition of two or more functions"
-
-    def apply(self, functions, args, evaluation):
-        "Composition[functions__][args___]"
-
-        functions = functions.get_sequence()
-        args = args.get_sequence()
-        result = Expression(functions[-1], *args)
-        for f in reversed(functions[:-1]):
-            result = Expression(f, result)
-        return result
-
-
-class Identity(Builtin):
-    """
-    <dl>
-      <dt>'Identity[$x$]'
-      <dd>is the identity function, which returns $x$ unchanged.
-    </dl>
-    X> Identity[x]
-     = x
-    X> Identity[x, y]
-     = Identity[x, y]
-    """
-
-    rules = {
-        "Identity[x_]": "x",
-    }
-    summary_text = "the identity function"

@@ -182,6 +182,7 @@ for subdir in (
     "drawing",
     "fileformats",
     "files_io",
+    "functional",
     "intfns",
     "list",
     "matrices",

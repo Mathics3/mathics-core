@@ -11,19 +11,27 @@ New Builtins
 
 #. ``$BoxForms``
 #. ``ClebschGordan``
+#. ``Kurtosis``
 #. ``PauliMatrix``
 #. ``SixJSymbol``
+#. ``Skewness``
 #. ``ThreeJSymbol``
+
+Documentation
++++++++++++++
+
+#. "Functional Programming" section split out.
+#. "Exponential Functional" split out from "Trigonometry Functions"
 
 
 Internals
 +++++++++
 
-#. `boxes_to_` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the `mathics.format` submodule, and implemented in a more scalable way.
-#. `mathics.builtin.inout` was splitted in several modules (`inout`, `messages`, `layout`, `makeboxes`) in order to improve the documentation.
+#. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
+#. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 
 
-   
+
 Enhancements
 ++++++++++++
 
