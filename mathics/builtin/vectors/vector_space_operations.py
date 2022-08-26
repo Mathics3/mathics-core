@@ -58,7 +58,7 @@ class KroneckerProduct(SympyFunction):
     sympy_name = "physics.quantum.TensorProduct"
 
     def apply(self, mi: ListExpression, evaluation: Evaluation):
-        "KroneckerProduct[mi__]"
+        "KroneckerProduct[mi__List]"
         sympy_mi = [to_sympy_matrix(m) for m in mi.elements]
         return from_sympy(TensorProduct(*sympy_mi))
 
