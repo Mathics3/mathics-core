@@ -1,6 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as (La)TeX code
+Lower-level formatter of Mathics objects as (AMS)LaTeX strings.
+
+AMS LaTeX is LaTeX with addition mathematical symbols, which
+we may make use of via the mathics-scanner tables.
+
+LaTeX formatting is usually initiated in Mathics via TeXForm[].
+
+TeXForm in WMA is slightly vague misleading since the output is
+typically LaTeX rather than Plain TeX. In Mathics we also assume
+AMS the additional Mathematical Symbols exist.
 """
 
 import re
@@ -136,8 +145,8 @@ def fractionbox(self, **options) -> str:
     _options.update(options)
     options = _options
     return "\\frac{%s}{%s}" % (
-        lookup_conversion_method(self.num, "tex")(self.num, **options),
-        lookup_conversion_method(self.den, "tex")(self.den, **options),
+        lookup_conversion_method(self.num, "latex")(self.num, **options),
+        lookup_conversion_method(self.den, "latex")(self.den, **options),
     )
 
 
@@ -146,7 +155,7 @@ add_conversion_fn(FractionBox, fractionbox)
 
 def gridbox(self, elements=None, **box_options) -> str:
     def boxes_to_tex(box, **options):
-        return lookup_conversion_method(box, "tex")(box, **options)
+        return lookup_conversion_method(box, "latex")(box, **options)
 
     if not elements:
         elements = self._elements
@@ -187,10 +196,10 @@ def sqrtbox(self, **options):
     options = _options
     if self.index:
         return "\\sqrt[%s]{%s}" % (
-            lookup_conversion_method(self.radicand, "tex")(self.radicand, **options),
-            lookup_conversion_method(self.index, "tex")(self.index, **options),
+            lookup_conversion_method(self.radicand, "latex")(self.radicand, **options),
+            lookup_conversion_method(self.index, "latex")(self.index, **options),
         )
-    return "\\sqrt{%s}" % lookup_conversion_method(self.radicand, "tex")(
+    return "\\sqrt{%s}" % lookup_conversion_method(self.radicand, "latex")(
         self.radicand, **options
     )
 
@@ -202,7 +211,7 @@ def superscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "tex")
+    base_to_tex = lookup_conversion_method(self.base, "latex")
     tex1 = base_to_tex(self.base, **options)
 
     sup_string = self.superindex.get_string_value()
@@ -213,7 +222,7 @@ def superscriptbox(self, **options):
         return "%s''" % tex1
     else:
         base = self.tex_block(tex1, True)
-        superidx_to_tex = lookup_conversion_method(self.superindex, "tex")
+        superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
         superindx = self.tex_block(superidx_to_tex(self.superindex, **options), True)
         if isinstance(self.superindex, (String, StyleBox)):
             return "%s^%s" % (
@@ -234,8 +243,8 @@ def subscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "tex")
-    subidx_to_tex = lookup_conversion_method(self.subindex, "tex")
+    base_to_tex = lookup_conversion_method(self.base, "latex")
+    subidx_to_tex = lookup_conversion_method(self.subindex, "latex")
     return "%s_%s" % (
         self.tex_block(base_to_tex(self.base, **options), True),
         self.tex_block(subidx_to_tex(self.subindex, **options)),
@@ -249,9 +258,9 @@ def subsuperscriptbox(self, **options):
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    base_to_tex = lookup_conversion_method(self.base, "tex")
-    subidx_to_tex = lookup_conversion_method(self.subindex, "tex")
-    superidx_to_tex = lookup_conversion_method(self.superindex, "tex")
+    base_to_tex = lookup_conversion_method(self.base, "latex")
+    subidx_to_tex = lookup_conversion_method(self.subindex, "latex")
+    superidx_to_tex = lookup_conversion_method(self.superindex, "latex")
 
     return "%s_%s^%s" % (
         self.tex_block(base_to_tex(self.base, **options), True),
@@ -269,7 +278,7 @@ def rowbox(self, **options) -> str:
     options = _options
     return "".join(
         [
-            lookup_conversion_method(element, "tex")(element, **options)
+            lookup_conversion_method(element, "latex")(element, **options)
             for element in self.items
         ]
     )
@@ -282,7 +291,7 @@ def stylebox(self, **options) -> str:
     _options = self.box_options.copy()
     _options.update(options)
     options = _options
-    return lookup_conversion_method(self.boxes, "tex")(self.boxes, **options)
+    return lookup_conversion_method(self.boxes, "latex")(self.boxes, **options)
 
 
 add_conversion_fn(StyleBox, stylebox)
@@ -290,8 +299,7 @@ add_conversion_fn(StyleBox, stylebox)
 
 def graphicsbox(self, elements=None, **options) -> str:
     """This is the top-level function that converts a Mathics Expression
-    in to something suitable for LaTeX.  (Yes, the name "tex" is
-    perhaps misleading of vague.)
+    in to something suitable for AMSLaTeX.
 
     However right now the only LaTeX support for graphics is via Asymptote and
     that seems to be the package of choice in general for LaTeX.

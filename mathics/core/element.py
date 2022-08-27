@@ -480,7 +480,7 @@ class BoxElementMixin(ImmutableValueMixin):
 
     def boxes_to_tex(self, **options: dict) -> str:
         """For compatibility deprecated"""
-        return self.boxes_to_format("tex", **options)
+        return self.boxes_to_format("latex", **options)
 
     def boxes_to_text(self, **options: dict) -> str:
         """For compatibility deprecated"""

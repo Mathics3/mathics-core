@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as mathml code
-"""
+Lower-level formatter of Mathics objects as MathML strings.
 
+MathML formatting is usually initiated in Mathics via MathMLForm[].
+"""
 
 import base64
 import html

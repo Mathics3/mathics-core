@@ -200,7 +200,7 @@ def test_tests(
 
 
 # FIXME: move this to common routine
-def create_output(tests, doc_data, format="tex"):
+def create_output(tests, doc_data, format="latex"):
     definitions.reset_user_definitions()
     for test in tests.tests:
         if test.private:

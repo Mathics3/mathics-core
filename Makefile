@@ -96,7 +96,7 @@ gstest:
 	(cd examples/symbolic_logic/gries_schneider && $(PYTHON) test_gs.py)
 
 
-#: Create data that is used to in Django docs and to build TeX PDF
+#: Create data that is used to in Django docs and to build LaTeX PDF
 doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
 	$(PYTHON) mathics/docpipeline.py --output --keep-going
 
@@ -110,8 +110,8 @@ doctest:
 	SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
-texdoc doc:
-	(cd mathics/doc/tex && $(MAKE) doc)
+latexdoc texdoc doc:
+	(cd mathics/doc/latex && $(MAKE) doc)
 
 #: Remove ChangeLog
 rmChangeLog:

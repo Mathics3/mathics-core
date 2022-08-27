@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-""" Asymptote-related functions"""
+"""
+Asymptote-related functions
+"""
 
 from itertools import chain
 

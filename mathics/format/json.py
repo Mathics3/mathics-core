@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Format a Mathics object as JSON data
+Lower-level formatter Mathics objects as JSON data.
+
+Right now this happens mostly for graphics primitives.
 """
 
 from mathics.builtin.graphics import PointSize
