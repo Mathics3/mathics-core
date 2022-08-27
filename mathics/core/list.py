@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
-from mathics.core.expression import Expression, convert_expression_elements
 
-from typing import Any, Callable, Optional, Tuple
+import reprlib
+from typing import Optional, Tuple
 
-from mathics.core.atoms import from_python
 from mathics.core.element import ElementsProperties
-from mathics.core.symbols import EvalMixin, SymbolList
+from mathics.core.expression import Expression
+from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
 
 class ListExpression(Expression):
@@ -22,7 +22,10 @@ class ListExpression(Expression):
     """
 
     def __init__(
-        self, *elements, elements_properties: Optional[ElementsProperties] = None
+        self,
+        *elements,
+        elements_properties: Optional[ElementsProperties] = None,
+        is_literal: Optional[bool] = False,
     ):
         self.options = None
         self.pattern_sequence = False
@@ -35,24 +38,32 @@ class ListExpression(Expression):
         #          from trepan.api import debug; debug()
 
         self._elements = elements
-        self._is_literal = False
-        self.python_list = None
-        self.elements_properties = (
-            self._build_elements_properties()
-            if elements_properties is None
-            else elements_properties
+        # TODO: consider adding _is_literal as an elements property.
+        self._is_literal = (
+            is_literal if is_literal else all(e.is_literal for e in elements)
         )
+        self.python_list = None
+        self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
         self._sequences = None
         self._cache = None
-        # comment @mmatera: this cache should be useful in BoxConstruct, but not
-        # here...
-        self._format_cache = None
 
-    # Add this when it is safe to do.
+    def __getitem__(self, index: int):
+        """
+        Allows ListExpression elements to accessed via [], e.g.
+        ListExpression[Integer1, Integer0][0] == Integer1
+        """
+        return self._elements[index]
+
     def __repr__(self) -> str:
-        return "<ListExpression: %s>" % self
+        """(reprlib.repr)-limited display or ListExpression"""
+        list_data = reprlib.repr(self._elements)
+        return f"<ListExpression: {list_data}>"
+
+    def __str__(self) -> str:
+        """str() representation of ListExpression. May be longer than repr()"""
+        return f"<ListExpression: {self._elements}>"
 
     # @timeit
     def evaluate_elements(self, evaluation):
@@ -110,11 +121,19 @@ class ListExpression(Expression):
 
         if self.elements_properties is None:
             self._build_elements_properties()
-
         if not self.elements_properties.elements_fully_evaluated:
-            self.evaluate_elements(evaluation)
-
+            new = self.shallow_copy()
+            new.evaluate_elements(evaluation)
+            return new, False
         return self, False
+
+    def set_head(self, head: Symbol):
+        """
+        Change the Head of an Expression.
+        Unless this is a ListExpression, this is forbidden here.
+        """
+        if head != SymbolList:
+            raise TypeError("Attempt to modify the Head of a ListExpression")
 
     def shallow_copy(self) -> "ListExpression":
         """
@@ -131,25 +150,4 @@ class ListExpression(Expression):
         expr.options = self.options
         expr.original = self
         expr._sequences = self._sequences
-        expr._format_cache = self._format_cache
         return expr
-
-
-def to_mathics_list(
-    *elements: Any, elements_conversion_fn: Callable = from_python, is_literal=False
-) -> Expression:
-    """
-    This is an expression constructor for list that can be used when the elements are not Mathics
-    objects. For example:
-       to_mathics_list(1, 2, 3)
-       to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
-    """
-    elements_tuple, elements_properties = convert_expression_elements(
-        elements, elements_conversion_fn
-    )
-    list_expression = ListExpression(
-        *elements_tuple, elements_properties=elements_properties
-    )
-    if is_literal:
-        list_expression.python_list = elements
-    return list_expression

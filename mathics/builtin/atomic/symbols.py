@@ -31,12 +31,13 @@ from mathics.core.attributes import (
 )
 
 from mathics.core.expression import Expression
-
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 
 from mathics.core.symbols import (
     Symbol,
+    SymbolHoldForm,
     SymbolFalse,
     SymbolNull,
     SymbolTrue,
@@ -48,7 +49,6 @@ from mathics.core.systemsymbols import (
     SymbolDefinition,
     SymbolFormat,
     SymbolGrid,
-    SymbolHoldForm,
     SymbolInfix,
     SymbolInputForm,
     SymbolOptions,
@@ -68,7 +68,7 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 
     # First look at user definitions:
     for rulemsg in ruleusage:
-        if rulemsg.pattern.expr.leaves[1].__str__() == '"usage"':
+        if rulemsg.pattern.expr.elements[1].__str__() == '"usage"':
             usagetext = rulemsg.replace.value
     if usagetext is not None:
         # Maybe, if htmltout is True, we should convert
@@ -102,10 +102,11 @@ def _get_usage_string(symbol, evaluation, is_long_form: bool, htmlout=False):
 class Context(Builtin):
     r"""
     <dl>
-    <dt>'Context[$symbol$]'
-        <dd>yields the name of the context where $symbol$ is defined in.
-    <dt>'Context[]'
-        <dd>returns the value of '$Context'.
+      <dt>'Context[$symbol$]'
+      <dd>yields the name of the context where $symbol$ is defined in.
+
+      <dt>'Context[]'
+      <dd>returns the value of '$Context'.
     </dl>
 
     >> Context[a]
@@ -325,7 +326,7 @@ class Definition(Builtin):
                     def rhs(expr):
                         if expr.has_form("Infix", None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 
@@ -562,7 +563,7 @@ class Information(PrefixOperator):
                     def rhs(expr):
                         if expr.has_formf(SymbolInfix, None):
                             expr = Expression(
-                                Expression(SymbolHoldForm, expr.head), *expr.leaves
+                                Expression(SymbolHoldForm, expr.head), *expr.elements
                             )
                         return Expression(SymbolInputForm, expr)
 

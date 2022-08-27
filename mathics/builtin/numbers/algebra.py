@@ -13,6 +13,8 @@ There are a number of built-in functions that perform:
 </ul>
 """
 
+from typing import Optional, Tuple, Union
+
 from mathics.algorithm.simplify import default_complexity_function
 
 from mathics.builtin.base import Builtin
@@ -28,7 +30,10 @@ from mathics.core.atoms import (
     Number,
 )
 from mathics.core.attributes import listable, protected
-from mathics.core.convert import from_sympy, sympy_symbol_prefix
+from mathics.core.convert.python import from_bool
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
+from mathics.core.element import BaseElement
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
@@ -82,7 +87,7 @@ def sympy_factor(expr_sympy):
 
 def cancel(expr):
     if expr.has_form("Plus", None):
-        return Expression(SymbolPlus, *[cancel(leaf) for leaf in expr.leaves])
+        return Expression(SymbolPlus, *[cancel(element) for element in expr.elements])
     else:
         try:
             result = expr.to_sympy()
@@ -117,14 +122,14 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
             ("Sin", "Cos", "Tan", "Cot", "Sinh", "Cosh", "Tanh", "Coth"), 1
         ):
             head = expr.get_head()
-            theta = expr.leaves[0]
+            theta = expr.elements[0]
             if (target_pat is not None) and theta.is_free(target_pat, evaluation):
                 return expr
             if deep:
                 theta = _expand(theta)
 
             if theta.has_form("Plus", 2, None):
-                x, y = theta.leaves[0], Expression(SymbolPlus, *theta.leaves[1:])
+                x, y = theta.elements[0], Expression(SymbolPlus, *theta.elements[1:])
                 if head is SymbolSin:
                     a = Expression(
                         SymbolTimes,
@@ -248,8 +253,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
                 return expr
         else:
             return Expression(
-                expr.head,
-                *[unconvert_subexprs(element) for element in expr.get_elements()]
+                expr.head, *[unconvert_subexprs(element) for element in expr.elements]
             )
 
     sympy_expr = convert_sympy(expr)
@@ -261,7 +265,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         ) in enumerate(sub_exprs):
             if not isinstance(sub_expr, Atom):
                 head = _expand(sub_expr.head)  # also expand head
-                elements = sub_expr.get_elements()
+                elements = sub_expr.elements
                 if target_pat:
                     elements = [
                         element
@@ -278,7 +282,7 @@ def expand(expr, numer=True, denom=False, deep=False, **kwargs):
         for i, sub_expr in enumerate(sub_exprs):
             for head in threaded_heads:
                 if sub_expr.has_form(head, None):
-                    elements = sub_expr.get_elements()
+                    elements = sub_expr.elements
                     if target_pat:
                         elements = [
                             element
@@ -327,12 +331,12 @@ def find_all_vars(expr):
         elif isinstance(e, Symbol):
             variables.add(e)
         elif e.has_form(("Plus", "Times"), None):
-            for l in e.leaves:
-                l_sympy = l.to_sympy()
-                if l_sympy is not None:
-                    find_vars(l, l_sympy)
+            for lv in e.elements:
+                lv_sympy = lv.to_sympy()
+                if lv_sympy is not None:
+                    find_vars(lv, lv_sympy)
         elif e.has_form("Power", 2):
-            (a, b) = e.leaves  # a^b
+            (a, b) = e.elements  # a^b
             a_sympy, b_sympy = a.to_sympy(), b.to_sympy()
             if a_sympy is None or b_sympy is None:
                 return
@@ -341,7 +345,7 @@ def find_all_vars(expr):
         elif not (isinstance(e, Atom)):
             variables.add(e)
 
-    exprs = expr.leaves if expr.has_form("List", None) else [expr]
+    exprs = expr.elements if expr.has_form("List", None) else [expr]
     for e in exprs:
         e_sympy = e.to_sympy()
         if e_sympy is not None:
@@ -572,7 +576,17 @@ class Coefficient(Builtin):
 
 
 class _CoefficientHandler(Builtin):
-    def coeff_power_internal(self, expr, var_exprs, filt, evaluation, form="expr"):
+    def coeff_power_internal(
+        self,
+        expr: BaseElement,
+        var_exprs: list,
+        filt: BaseElement,
+        evaluation: Evaluation,
+        form: str = "expr",
+    ) -> list:
+        """
+        This method returns a list of terms grouped by different powers of the expressions in var_expr.
+        """
         from mathics.builtin.patterns import match
 
         if len(var_exprs) == 0:
@@ -588,21 +602,24 @@ class _CoefficientHandler(Builtin):
             var_pats = [Pattern.create(var) for var in var_exprs]
 
         # ###### Auxiliary functions #########
-        def key_powers(lst):
+        def key_powers(lst: list) -> Union[int, float]:
             key = Expression(SymbolPlus, *lst)
             key = key.evaluate(evaluation)
             if key.is_numeric(evaluation):
                 return key.to_python()
             return 0
 
-        def powers_list(pf):
+        def powers_list(pf: Optional[Expression]) -> list:
+            """
+            Build a list of exponents associated to each indeterminate.
+            """
             powers = [Integer0 for i, p in enumerate(var_pats)]
             if pf is None:
                 return powers
             if isinstance(pf, Symbol):
                 for i, pat in enumerate(var_pats):
                     if match(pf, pat, evaluation):
-                        powers[i] = Integer(1)
+                        powers[i] = Integer1
                         return powers
             if pf.has_form("Sqrt", 1):
                 for i, pat in enumerate(var_pats):
@@ -622,9 +639,14 @@ class _CoefficientHandler(Builtin):
                         SymbolPlus, *[c[i] for c in contrib]
                     ).evaluate(evaluation)
                 return powers
+            else:
+                for i, pat in enumerate(var_pats):
+                    if match(pf, pat, evaluation):
+                        powers[i] = Integer1
+                        return powers
             return powers
 
-        def split_coeff_pow(term):
+        def split_coeff_pow(term) -> Tuple[Optional[list], Optional[list]]:
             """
             This function factorizes term in a coefficent free
             of powers of the target variables, and a factor with
@@ -636,6 +658,8 @@ class _CoefficientHandler(Builtin):
             # and the rest.
             if term.is_free(target_pat, evaluation):
                 coeffs.append(term)
+            elif match(term, target_pat, evaluation):
+                return None, term
             elif (
                 isinstance(term, Symbol)
                 or term.has_form("Power", 2)
@@ -643,7 +667,7 @@ class _CoefficientHandler(Builtin):
             ):
                 powers.append(term)
             elif term.has_form("Times", None):
-                for factor in term.leaves:
+                for factor in term.elements:
                     if factor.is_free(target_pat, evaluation):
                         coeffs.append(factor)
                     elif match(factor, target_pat, evaluation):
@@ -824,14 +848,14 @@ class CoefficientArrays(_CoefficientHandler):
         from mathics.algorithm.parts import walk_parts
 
         if polys.has_form("List", None):
-            list_polys = polys.leaves
+            list_polys = polys.elements
         else:
             list_polys = [polys]
 
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
-            var_exprs = varlist.get_elements()
+            var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
 
@@ -892,10 +916,10 @@ class CoefficientArrays(_CoefficientHandler):
 class CoefficientList(Builtin):
     """
     <dl>
-    <dt>'CoefficientList[poly, var]'
-        <dd>returns a list of coefficients of powers of $var$ in $poly$, starting with power 0.
-    <dt>'CoefficientList[poly, {var1, var2, ...}]'
-        <dd>returns an array of coefficients of the $vari$.
+      <dt>'CoefficientList[poly, var]'
+      <dd>returns a list of coefficients of powers of $var$ in $poly$, starting with power 0.
+      <dt>'CoefficientList[poly, {var1, var2, ...}]'
+      <dd>returns an array of coefficients of the $vari$.
     </dl>
 
     ## Form 1 CoefficientList[poly, var]
@@ -939,7 +963,7 @@ class CoefficientList(Builtin):
 
     def apply(self, expr, form, evaluation):
         "CoefficientList[expr_, form_]"
-        vars = [form] if not form.has_form("List", None) else [v for v in form.leaves]
+        vars = [form] if not form.has_form("List", None) else [v for v in form.elements]
 
         # check form is not a variable
         for v in vars:
@@ -984,7 +1008,7 @@ class CoefficientList(Builtin):
                     ]
                 )
             elif form.has_form("List", 1):
-                form = form.leaves[0]
+                form = form.elements[0]
                 return Expression(
                     SymbolList,
                     *[
@@ -1000,14 +1024,14 @@ class CoefficientList(Builtin):
                     if not dims:
                         return from_sympy(poly.coeff_monomial(exponents))
 
-                    leaves = []
+                    elements = []
                     first_dim = dims[0]
                     for i in range(first_dim + 1):
                         exponents.append(i)
                         subs = _nth(poly, dims[1:], exponents)
-                        leaves.append(subs)
+                        elements.append(subs)
                         exponents.pop()
-                    result = ListExpression(*leaves)
+                    result = ListExpression(*elements)
                     return result
 
                 return _nth(sympy_poly, dimensions, [])
@@ -1018,13 +1042,13 @@ class CoefficientList(Builtin):
 class Collect(_CoefficientHandler):
     """
     <dl>
-    <dt>'Collect[$expr$, $x$]'
-    <dd> Expands $expr$ and collect together terms having the same power of $x$.
-    <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
-    <dd> Expands $expr$ and collect together terms having the same powers of
+      <dt>'Collect[$expr$, $x$]'
+      <dd> Expands $expr$ and collect together terms having the same power of $x$.
+      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
+      <dd> Expands $expr$ and collect together terms having the same powers of
          $x_1$, $x_2$, ....
-    <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
-    <dd> After collect the terms, applies $filter$ to each coefficient.
+      <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
+      <dd> After collect the terms, applies $filter$ to each coefficient.
     </dl>
 
     >> Collect[(x+y)^3, y]
@@ -1051,7 +1075,7 @@ class Collect(_CoefficientHandler):
         if isinstance(varlist, Symbol):
             var_exprs = [varlist]
         elif varlist.has_form("List", None):
-            var_exprs = varlist.get_elements()
+            var_exprs = varlist.elements
         else:
             var_exprs = [varlist]
 
@@ -1061,8 +1085,8 @@ class Collect(_CoefficientHandler):
 class Denominator(Builtin):
     """
     <dl>
-    <dt>'Denominator[$expr$]'
-        <dd>gives the denominator in $expr$.
+      <dt>'Denominator[$expr$]'
+      <dd>gives the denominator in $expr$.
     </dl>
 
     >> Denominator[a / b]
@@ -1189,8 +1213,8 @@ class Expand(_Expand):
         "Expand[expr_, target_, OptionsPattern[Expand]]"
 
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
-            optname = target.leaves[0].get_name()
-            options[optname] = target.leaves[1]
+            optname = target.elements[0].get_name()
+            options[optname] = target.elements[1]
             target = None
 
         kwargs = self.convert_options(options, evaluation)
@@ -1232,8 +1256,7 @@ class ExpandAll(_Expand):
      = Sin[x ^ 2 + 2 x y + y ^ 2]
 
     >> ExpandAll[Sin[(x+y)^2], Trig->True]
-     = -Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2]
-
+     = Cos[x ^ 2] Cos[2 x y] Sin[y ^ 2] + Cos[x ^ 2] Cos[y ^ 2] Sin[2 x y] + Cos[2 x y] Cos[y ^ 2] Sin[x ^ 2] - Sin[x ^ 2] Sin[2 x y] Sin[y ^ 2]
     'ExpandAll' also expands heads
     >> ExpandAll[((1 + x)(1 + y))[x]]
      = (1 + x + y + x y)[x]
@@ -1249,8 +1272,8 @@ class ExpandAll(_Expand):
     def apply_patt(self, expr, target, evaluation, options):
         "ExpandAll[expr_, target_, OptionsPattern[Expand]]"
         if target.get_head_name() in ("System`Rule", "System`DelayedRule"):
-            optname = target.leaves[0].get_name()
-            options[optname] = target.leaves[1]
+            optname = target.elements[0].get_name()
+            options[optname] = target.elements[1]
             target = None
 
         kwargs = self.convert_options(options, evaluation)
@@ -1274,8 +1297,8 @@ class ExpandAll(_Expand):
 class ExpandDenominator(_Expand):
     """
     <dl>
-    <dt>'ExpandDenominator[$expr$]'
-        <dd>expands out negative integer powers and products of sums in $expr$.
+      <dt>'ExpandDenominator[$expr$]'
+      <dd>expands out negative integer powers and products of sums in $expr$.
     </dl>
 
     >> ExpandDenominator[(a + b) ^ 2 / ((c + d)^2 (e + f))]
@@ -1305,10 +1328,10 @@ class ExpandDenominator(_Expand):
 class Exponent(Builtin):
     """
     <dl>
-    <dt>'Exponent[expr, form]'
-        <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
-    <dt>'Exponent[expr, form, h]'
-        <dd>applies $h$ to the set of exponents with which $form$ appears in $expr$.
+      <dt>'Exponent[expr, form]'
+      <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
+      <dt>'Exponent[expr, form, h]'
+      <dd>applies $h$ to the set of exponents with which $form$ appears in $expr$.
     </dl>
 
     >> Exponent[5 x^2 - 3 x + 7, x]
@@ -1359,7 +1382,7 @@ class Exponent(Builtin):
             #   fully_evaluated, flat, and is_ordered are all True
             return Expression(h, *[i for i in get_exponents_sorted(expr, form)])
         else:
-            exponents = [get_exponents_sorted(expr, var) for var in form.leaves]
+            exponents = [get_exponents_sorted(expr, var) for var in form.elements]
             # TODO: add ElementProperties in Expression interface refactor branch:
             #   fully_evaluated is True, flat is false, and is_ordered is probably True
             return ListExpression(*[Expression(h, *[i for i in s]) for s in exponents])
@@ -1368,8 +1391,8 @@ class Exponent(Builtin):
 class Factor(Builtin):
     """
     <dl>
-    <dt>'Factor[$expr$]'
-        <dd>factors the polynomial expression $expr$.
+      <dt>'Factor[$expr$]'
+      <dd>factors the polynomial expression $expr$.
     </dl>
 
     >> Factor[x ^ 2 + 2 x + 1]
@@ -1462,7 +1485,7 @@ class FactorTermsList(Builtin):
         elif isinstance(expr, Number):
             return ListExpression(expr, Integer1)
 
-        for x in vars.leaves:
+        for x in vars.elements:
             if not (isinstance(x, Atom)):
                 return evaluation.message("CoefficientList", "ivar", x)
 
@@ -1473,7 +1496,7 @@ class FactorTermsList(Builtin):
 
         sympy_vars = [
             x.to_sympy()
-            for x in vars.leaves
+            for x in vars.elements
             if isinstance(x, Symbol) and sympy_expr.is_polynomial(x.to_sympy())
         ]
 
@@ -1669,7 +1692,11 @@ class Simplify(Builtin):
         # Now, try to simplify using sympy
         complexity_function = options.get("System`ComplexityFunction", None)
         if complexity_function is None or complexity_function is SymbolAutomatic:
-            complexity_function = lambda x: default_complexity_function(from_sympy(x))
+
+            def _default_complexity_function(x):
+                return default_complexity_function(from_sympy(x))
+
+            complexity_function = _default_complexity_function
         else:
             if isinstance(complexity_function, (Expression, Symbol)):
                 _complexity_function = complexity_function
@@ -1691,10 +1718,10 @@ class Simplify(Builtin):
 class FullSimplify(Simplify):
     """
     <dl>
-    <dt>'FullSimplify[$expr$]'
-        <dd>simplifies $expr$ using an extended set of simplification rules.
-    <dt>'FullSimplify[$expr$, $assump$]'
-        <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
+      <dt>'FullSimplify[$expr$]'
+      <dd>simplifies $expr$ using an extended set of simplification rules.
+      <dt>'FullSimplify[$expr$, $assump$]'
+      <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
     TODO: implement the extension. By now, this does the same than Simplify...
 
@@ -1871,22 +1898,22 @@ class PolynomialQ(Builtin):
         if var is SymbolNull:
             return SymbolTrue
         elif var.has_form("List", None):
-            if len(var.leaves) == 0:
+            if len(var.elements) == 0:
                 return evaluation.message("PolynomialQ", "novar")
-            sympy_var = [x.to_sympy() for x in var.leaves]
+            sympy_var = [x.to_sympy() for x in var.elements]
         else:
             sympy_var = [var.to_sympy()]
 
         sympy_expr = expr.to_sympy()
         sympy_result = sympy_expr.is_polynomial(*[x for x in sympy_var])
-        return SymbolTrue if sympy_result else SymbolFalse
+        return from_bool(sympy_result)
 
 
 class PowerExpand(Builtin):
     """
     <dl>
-    <dt>'PowerExpand[$expr$]'
-        <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
+      <dt>'PowerExpand[$expr$]'
+      <dd>expands out powers of the form '(x^y)^z' and '(x*y)^z' in $expr$.
     </dl>
 
     >> PowerExpand[(a ^ b) ^ c]
@@ -1976,18 +2003,3 @@ class Variables(Builtin):
         variables = ListExpression(*variables)
         variables.sort()  # MMA doesn't do this
         return variables
-
-
-class UpTo(Builtin):
-    """
-    <dl>
-    <dt>'UpTo[$n$]'
-    <dd>is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
-    </dl>
-    """
-
-    messages = {
-        "innf": "Expected non-negative integer or infinity at position 1 in ``.",
-        "argx": "UpTo expects 1 argument, `1` arguments were given.",
-    }
-    summary_text = "a certain number of elements, or as many as are available"

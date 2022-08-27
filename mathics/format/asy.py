@@ -3,6 +3,8 @@
 Format a Mathics object as an Asymptote string
 """
 
+import re
+
 from mathics.builtin.box.graphics import (
     _ArcBox,
     ArrowBox,
@@ -89,7 +91,7 @@ class _ASYTransform:
         return self._template % (" * ".join(self.transforms), asy)
 
 
-def arcbox(self, **options) -> str:
+def arcbox(self: _ArcBox, **options) -> str:
     """
     Aymptote formatting for an arc of a circle or an ellipse.
     """
@@ -128,7 +130,7 @@ def arcbox(self, **options) -> str:
 
         return arc_path
 
-    l = self.style.get_line_width(face_element=self.face_element)
+    stroke_width = self.style.get_line_width(face_element=self.face_element)
     edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
     face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
 
@@ -137,7 +139,7 @@ def arcbox(self, **options) -> str:
         face_color=self.face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
-        stroke_width=l,
+        stroke_width=stroke_width,
         is_face_element=self.face_element,
     )
     command = "filldraw" if self.face_element else "draw"
@@ -151,7 +153,7 @@ def arcbox(self, **options) -> str:
 add_conversion_fn(_ArcBox, arcbox)
 
 
-def arrow_box(self, **options) -> str:
+def arrow_box(self: ArrowBox, **options) -> str:
     width = self.style.get_line_width(face_element=False)
     edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
     pen = asy_create_pens(
@@ -221,9 +223,9 @@ def arrow3dbox(self, **options) -> str:
 add_conversion_fn(Arrow3DBox)
 
 
-def bezier_curve_box(self, **options) -> str:
+def bezier_curve_box(self: BezierCurveBox, **options) -> str:
     """
-    Asymptote formatter for BezerCurveBox.
+    Asymptote formatter for BezierCurveBox.
     """
     line_width = self.style.get_line_width(face_element=False)
     edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
@@ -250,7 +252,7 @@ def bezier_curve_box(self, **options) -> str:
 add_conversion_fn(BezierCurveBox, bezier_curve_box)
 
 
-def cone3dbox(self, **options) -> str:
+def cone3dbox(self: Cone3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
@@ -288,7 +290,7 @@ def cone3dbox(self, **options) -> str:
 add_conversion_fn(Cone3DBox)
 
 
-def cuboid3dbox(self, **options) -> str:
+def cuboid3dbox(self: Cuboid3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
@@ -313,6 +315,9 @@ def cuboid3dbox(self, **options) -> str:
 
         i += 1
 
+    # Strip \n followed by blanks, since that can
+    # confuse "asy" inside mathicsccript and give syntax errors.
+    asy = re.sub(r"\n[ ]+", "", asy)
     # print(asy)
     return asy
 
@@ -320,7 +325,7 @@ def cuboid3dbox(self, **options) -> str:
 add_conversion_fn(Cuboid3DBox)
 
 
-def cylinder3dbox(self, **options) -> str:
+def cylinder3dbox(self: Cylinder3DBox, **options) -> str:
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
     opacity = self.face_opacity
     color_str = build_3d_pen_color(face_color, opacity)
@@ -384,7 +389,7 @@ def graphics_elements(self, **options) -> str:
     for element in self.elements:
         try:
             format_fn = lookup_method(element, "asy")
-        except:
+        except Exception:
             # Note error and continue
             result.append(f"""unhandled {element}""")
             continue
@@ -404,7 +409,7 @@ graphics3delements = graphics_elements
 add_conversion_fn(Graphics3DElements)
 
 
-def insetbox(self, **options) -> str:
+def inset_box(self, **options) -> str:
     """Asymptote formatting for boxing an Inset in a graphic."""
     x, y = self.pos.pos()
     opacity_value = self.opacity.opacity if self.opacity else None
@@ -422,7 +427,7 @@ label("$%s$", (%s,%s), (%s,%s), %s);\n""" % (
     return asy
 
 
-add_conversion_fn(InsetBox)
+add_conversion_fn(InsetBox, inset_box)
 
 
 def line3dbox(self, **options) -> str:
@@ -444,7 +449,7 @@ def line3dbox(self, **options) -> str:
 add_conversion_fn(Line3DBox)
 
 
-def linebox(self) -> str:
+def line_box(self: LineBox) -> str:
     line_width = self.style.get_line_width(face_element=False)
     edge_opacity_value = self.edge_opacity.opacity if self.edge_opacity else None
     pen = asy_create_pens(
@@ -460,10 +465,10 @@ def linebox(self) -> str:
     return asy
 
 
-add_conversion_fn(LineBox)
+add_conversion_fn(LineBox, line_box)
 
 
-def point3dbox(self, **options) -> str:
+def point3dbox(self: Point3DBox, **options) -> str:
     """
     Aymptote 3D formatter for Point3DBox
     """
@@ -496,7 +501,7 @@ def point3dbox(self, **options) -> str:
 add_conversion_fn(Point3DBox)
 
 
-def pointbox(self, **options) -> str:
+def pointbox(self: PointBox, **options) -> str:
 
     point_size, _ = self.style.get_style(PointSize, face_element=False)
     if point_size is None:
@@ -525,11 +530,14 @@ def pointbox(self, **options) -> str:
 add_conversion_fn(PointBox)
 
 
-def polygon3dbox(self, **options) -> str:
-    l = self.style.get_line_width(face_element=True)
+def polygon_3d_box(self: Polygon3DBox, **options) -> str:
+    """
+    Asymptote formatting of a Polygon3DBox.
+    """
+    stroke_width = self.style.get_line_width(face_element=True)
     if self.vertex_colors is None:
         face_color = self.face_color
-        face_opacity_value = self.face_opacity.opacity
+        face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     else:
         face_color = None
         face_opacity_value = None
@@ -540,7 +548,7 @@ def polygon3dbox(self, **options) -> str:
         face_color=face_color,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
-        stroke_width=l,
+        stroke_width=stroke_width,
         is_face_element=True,
     )
 
@@ -557,14 +565,14 @@ def polygon3dbox(self, **options) -> str:
     return asy
 
 
-add_conversion_fn(Polygon3DBox)
+add_conversion_fn(Polygon3DBox, polygon_3d_box)
 
 
-def polygonbox(self, **options) -> str:
+def polygonbox(self: PolygonBox, **options) -> str:
     line_width = self.style.get_line_width(face_element=True)
     if self.vertex_colors is None:
         face_color = self.face_color
-        face_opacity_value = self.face_opacity.opacity
+        face_opacity_value = self.face_opacity.opacity if self.face_opacity else None
     else:
         face_color = None
         face_opacity_value = None
@@ -614,7 +622,7 @@ def polygonbox(self, **options) -> str:
 add_conversion_fn(PolygonBox)
 
 
-def rectanglebox(self, **options) -> str:
+def rectanglebox(self: RectangleBox, **options) -> str:
     line_width = self.style.get_line_width(face_element=True)
     x1, y1 = self.p1.pos()
     x2, y2 = self.p2.pos()
@@ -623,10 +631,10 @@ def rectanglebox(self, **options) -> str:
     pens = asy_create_pens(
         self.edge_color,
         self.face_color,
-        line_width,
-        is_face_element=True,
         edge_opacity=edge_opacity_value,
         face_opacity=face_opacity_value,
+        stroke_width=line_width,
+        is_face_element=True,
     )
     x1, x2, y1, y2 = asy_number(x1), asy_number(x2), asy_number(y1), asy_number(y2)
     asy = "// RectangleBox\n"
@@ -648,7 +656,7 @@ def rectanglebox(self, **options) -> str:
 add_conversion_fn(RectangleBox)
 
 
-def _roundbox(self):
+def _roundbox(self: _RoundBox):
     x, y = self.c.pos()
     rx, ry = self.r.pos()
     rx -= x
@@ -678,7 +686,7 @@ def _roundbox(self):
 add_conversion_fn(_RoundBox)
 
 
-def sphere3dbox(self, **options) -> str:
+def sphere3dbox(self: Sphere3DBox, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
@@ -696,7 +704,7 @@ def sphere3dbox(self, **options) -> str:
 add_conversion_fn(Sphere3DBox)
 
 
-def tube3dbox(self, **options) -> str:
+def tube_3d_box(self: Tube3DBox, **options) -> str:
     if not (hasattr(self.graphics, "tube_import_added") and self.tube_import_added):
 
         self.graphics.tube_import_added = True
@@ -720,10 +728,10 @@ def tube3dbox(self, **options) -> str:
     return asy
 
 
-add_conversion_fn(Tube3DBox)
+add_conversion_fn(Tube3DBox, tube_3d_box)
 
 
-def uniformpolyhedron3dbox(self, **options) -> str:
+def uniform_polyhedron_3d_box(self: RectangleBox, **options) -> str:
     # l = self.style.get_line_width(face_element=True)
 
     face_color = self.face_color.to_js() if self.face_color else (1, 1, 1)
@@ -741,4 +749,4 @@ def uniformpolyhedron3dbox(self, **options) -> str:
     )
 
 
-add_conversion_fn(UniformPolyhedron3DBox)
+add_conversion_fn(UniformPolyhedron3DBox, uniform_polyhedron_3d_box)

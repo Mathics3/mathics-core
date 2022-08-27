@@ -2,17 +2,23 @@
 """
 Combinatorial Functions
 
-Combinatorics is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
+<url>:Combinatorics: https://en.wikipedia.org/wiki/Combinatorics</url> is an area of mathematics primarily concerned with counting, both as a means and an end in obtaining results, and certain properties of finite structures.
 
-It is closely related to many other areas of mathematics and has many applications ranging from logic to statistical physics, from evolutionary biology to computer science, etc.
+It is closely related to many other areas of Mathematics and has many applications ranging from logic to statistical physics, from evolutionary biology to computer science, etc.
 """
 
 
 from mathics.builtin.arithmetic import _MPMathFunction
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, SympyFunction
 
 from mathics.core.atoms import Integer
-from mathics.core.attributes import listable, numeric_function, orderless, protected
+from mathics.core.attributes import (
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    orderless as A_ORDERLESS,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -30,86 +36,13 @@ SymbolBinomial = Symbol("Binomial")
 SymbolSubsets = Symbol("Subsets")
 
 
-class Binomial(_MPMathFunction):
-    """
-    <dl>
-      <dt>'Binomial[$n$, $k$]'
-      <dd>gives the binomial coefficient $n$ choose $k$.
-    </dl>
-
-    >> Binomial[5, 3]
-     = 10
-
-    'Binomial' supports inexact numbers:
-    >> Binomial[10.5,3.2]
-     = 165.286
-
-    Some special cases:
-    >> Binomial[10, -2]
-     = 0
-    >> Binomial[-10.5, -3.5]
-     = 0.
-
-    ## TODO should be ComplexInfinity but mpmath returns +inf
-    #> Binomial[-10, -3.5]
-     = Infinity
-    """
-
-    attributes = listable | numeric_function | protected
-
-    nargs = 2
-    sympy_name = "binomial"
-    mpmath_name = "binomial"
-    summary_text = "binomial coefficients"
-
-
-class Multinomial(Builtin):
-    """
-    <dl>
-      <dt>'Multinomial[$n1$, $n2$, ...]'
-      <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
-    </dl>
-
-    >> Multinomial[2, 3, 4, 5]
-     = 2522520
-    >> Multinomial[]
-     = 1
-    Multinomial is expressed in terms of 'Binomial':
-    >> Multinomial[a, b, c]
-     = Binomial[a, a] Binomial[a + b, b] Binomial[a + b + c, c]
-    'Multinomial[$n$-$k$, $k$]' is equivalent to 'Binomial[$n$, $k$]'.
-    >> Multinomial[2, 3]
-     = 10
-    """
-
-    attributes = listable | numeric_function | orderless | protected
-    summary_text = "multinomial coefficients"
-
-    def apply(self, values, evaluation):
-        "Multinomial[values___]"
-
-        values = values.get_sequence()
-        elements = []
-        total = []
-        for value in values:
-            total.append(value)
-            elements.append(
-                Expression(SymbolBinomial, Expression(SymbolPlus, *total), value)
-            )
-        return Expression(SymbolTimes, *elements)
-
-
-class _NoBoolVector(Exception):
-    pass
-
-
 class _BooleanDissimilarity(Builtin):
     @staticmethod
     def _to_bool_vector(u):
         def generate():
             for element in u.elements:
                 if isinstance(element, Integer):
-                    val = element.get_int_value()
+                    val = element.value
                     if val in (0, 1):
                         yield val
                     else:
@@ -145,53 +78,79 @@ class _BooleanDissimilarity(Builtin):
         return self._compute(len(py_u), *counts)
 
 
-class MatchingDissimilarity(_BooleanDissimilarity):
+class _NoBoolVector(Exception):
+    pass
+
+
+class Binomial(_MPMathFunction):
     """
+    <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Binomial.html</url>)
+
     <dl>
-    <dt>'MatchingDissimilarity[$u$, $v$]'
-      <dd>returns the Matching dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / n, where n is len($u$) and c_ij is the number of
-      occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      <dt>'Binomial[$n$, $k$]'
+      <dd>gives the binomial coefficient $n$ choose $k$.
     </dl>
 
-    >> MatchingDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
-     = 4 / 7
+    >> Binomial[5, 3]
+     = 10
+
+    'Binomial' supports inexact numbers:
+    >> Binomial[10.5,3.2]
+     = 165.286
+
+    Some special cases:
+    >> Binomial[10, -2]
+     = 0
+    >> Binomial[-10.5, -3.5]
+     = 0.
+
+    ## TODO should be ComplexInfinity but mpmath returns +inf
+    #> Binomial[-10, -3.5]
+     = Infinity
     """
 
-    summary_text = "simple matching dissimilarity"
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(SymbolDivide, Integer(c_tf + c_ft), Integer(n))
+    nargs = {2}
+    sympy_name = "binomial"
+    mpmath_name = "binomial"
+    summary_text = "binomial coefficients"
 
 
-class JaccardDissimilarity(_BooleanDissimilarity):
+class CatalanNumber(SympyFunction):
     """
+    <url>:Catalan Number: https://en.wikipedia.org/wiki/Catalan_number</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#sympy.functions.combinatorial.numbers.catalan</url>, <url>:WMA: https://reference.wolfram.com/language/ref/CatalanNumber.html</url>)
+
     <dl>
-    <dt>'JaccardDissimilarity[$u$, $v$]'
-      <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where n is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      <dt>'CatalanNumber[$n$]'
+      <dd>gives the $n$th Catalan number.
     </dl>
 
-    >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
-     = 2 / 3
+    A list of the first five Catalan numbers:
+    >> Table[CatalanNumber[n], {n, 1, 5}]
+     = {1, 2, 5, 14, 42}
     """
 
-    summary_text = "Jaccard dissimilarity"
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
-    def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        return Expression(
-            SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
-        )
+    summary_text = "catalan number"
+    sympy_name = "catalan"
+
+    # We (and sympy) do not handle fractions or other non-integers
+    # right now.
+    def apply_integer(self, n: Integer, evaluation):
+        "CatalanNumber[n_Integer]"
+        return self.apply(n, evaluation)
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
-    """
+    r"""
+    <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
       <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where n is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is
+      the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
     </dl>
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -206,46 +165,99 @@ class DiceDissimilarity(_BooleanDissimilarity):
         )
 
 
-class YuleDissimilarity(_BooleanDissimilarity):
+class JaccardDissimilarity(_BooleanDissimilarity):
     """
+    <url>:Jaccard index: https://en.wikipedia.org/wiki/Jaccard_index</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.distance.jaccard.html</url>, <url>:WMA: https://reference.wolfram.com/language/ref/JaccardDissimilarity.html</url>)
     <dl>
-      <dt>'YuleDissimilarity[$u$, $v$]'
-      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as R / (c_tt * c_ff + R / 2) where n is len($u$), c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and R = 2 * c_tf * c_ft.
+      <dt>'JaccardDissimilarity[$u$, $v$]'
+      <dd>returns the Jaccard-Needham dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
     </dl>
 
-    >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
-     = 6 / 5
+    >> JaccardDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
+     = 2 / 3
     """
 
-    summary_text = "Yule dissimilarity"
+    summary_text = "Jaccard dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
-        r_half = c_tf * c_ft
+
         return Expression(
-            SymbolDivide, Integer(2 * r_half), Integer(c_tt * c_ff + r_half)
+            SymbolDivide, Integer(c_tf + c_ft), Integer(c_tt + c_ft + c_tf)
         )
 
 
-class SokalSneathDissimilarity(_BooleanDissimilarity):
+class MatchingDissimilarity(_BooleanDissimilarity):
     """
     <dl>
-      <dt>'SokalSneathDissimilarity[$u$, $v$]'
-      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as R / (c_tt + R) where n is len($u$), c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and R = 2 * (c_tf + c_ft).
+      <dt>'MatchingDissimilarity[$u$, $v$]'
+      <dd>returns the Matching dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / $n$, where $n$ is len($u$) and c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$.
     </dl>
 
-    >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
-     = 4 / 5
+    >> MatchingDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
+     = 4 / 7
     """
 
-    summary_text = "Sokal-Sneat dissimilarity"
+    summary_text = "simple matching dissimilarity"
+
+    def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
+        return Expression(SymbolDivide, Integer(c_tf + c_ft), Integer(n))
+
+
+class Multinomial(Builtin):
+    """
+    <url>:Multinomial distribution: https://en.wikipedia.org/wiki/Multinomial_distribution</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Multinomial.html</url>)
+    <dl>
+      <dt>'Multinomial[$n1$, $n2$, ...]'
+      <dd>gives the multinomial coefficient '($n1$+$n2$+...)!/($n1$!$n2$!...)'.
+    </dl>
+
+    >> Multinomial[2, 3, 4, 5]
+     = 2522520
+    >> Multinomial[]
+     = 1
+    Multinomial is expressed in terms of 'Binomial':
+    >> Multinomial[a, b, c]
+     = Binomial[a, a] Binomial[a + b, b] Binomial[a + b + c, c]
+    'Multinomial[$n$-$k$, $k$]' is equivalent to 'Binomial[$n$, $k$]'.
+    >> Multinomial[2, 3]
+     = 10
+    """
+
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ORDERLESS | A_PROTECTED
+    summary_text = "multinomial coefficients"
+
+    def apply(self, values, evaluation):
+        "Multinomial[values___]"
+
+        values = values.get_sequence()
+        elements = []
+        total = []
+        for value in values:
+            total.append(value)
+            elements.append(
+                Expression(SymbolBinomial, Expression(SymbolPlus, *total), value)
+            )
+        return Expression(SymbolTimes, *elements)
+
+
+class RogersTanimotoDissimilarity(_BooleanDissimilarity):
+    """
+    <dl>
+      <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
+      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
+      which is defined as $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is
+      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, and $R$ = 2 * (c_tf + c_ft).
+    </dl>
+
+    >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
+     = 8 / 11
+    """
+
+    summary_text = "Rogers-Tanimoto dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression(SymbolDivide, Integer(r), Integer(c_tt + r))
+        return Expression(SymbolDivide, Integer(r), Integer(c_tt + c_ff + r))
 
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
@@ -267,24 +279,23 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
         return Expression(SymbolDivide, Integer(n - c_tt), Integer(n))
 
 
-class RogersTanimotoDissimilarity(_BooleanDissimilarity):
+class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
     <dl>
-      <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
-      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as R / (c_tt + c_ff + R) where n is len($u$), c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n, and R = 2 * (c_tf + c_ft).
+      <dt>'SokalSneathDissimilarity[$u$, $v$]'
+      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
+      which is defined as $R$ / (c_tt + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, and R = 2 * (c_tf + c_ft).
     </dl>
 
-    >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
-     = 8 / 11
+    >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
+     = 4 / 5
     """
 
-    summary_text = "Rogers-Tanimoto dissimilarity"
+    summary_text = "Sokal-Sneath dissimilarity"
 
     def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
         r = 2 * (c_tf + c_ft)
-        return Expression(SymbolDivide, Integer(r), Integer(c_tt + c_ff + r))
+        return Expression(SymbolDivide, Integer(r), Integer(c_tt + r))
 
 
 class Subsets(Builtin):
@@ -429,16 +440,16 @@ class Subsets(Builtin):
 
     summary_text = "list all the subsets"
 
-    def apply(self, list, evaluation):
+    def apply_list(self, list, evaluation):
         "Subsets[list_]"
 
         return (
             evaluation.message("Subsets", "normal", Expression(SymbolSubsets, list))
             if isinstance(list, Atom)
-            else self.apply_1(list, Integer(len(list.elements)), evaluation)
+            else self.apply_list_n(list, Integer(len(list.elements)), evaluation)
         )
 
-    def apply_1(self, list, n, evaluation):
+    def apply_list_n(self, list, n, evaluation):
         "Subsets[list_, n_]"
 
         expr = Expression(SymbolSubsets, list, n)
@@ -446,6 +457,7 @@ class Subsets(Builtin):
             return evaluation.message("Subsets", "normal", expr)
         else:
             head_t = list.head
+            # Note: "n" does not have to be an Integer.
             n_value = n.get_int_value()
             if n_value == 0:
                 return ListExpression(ListExpression())
@@ -460,7 +472,7 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_2(self, list, n, evaluation):
+    def apply_list_pattern(self, list, n, evaluation):
         "Subsets[list_, Pattern[n,_List|All|DirectedInfinity[1]]]"
 
         expr = Expression(SymbolSubsets, list, n)
@@ -470,7 +482,7 @@ class Subsets(Builtin):
         else:
             head_t = list.head
             if n.get_name() == "System`All" or n.has_form("DirectedInfinity", 1):
-                return self.apply(list, evaluation)
+                return self.apply_list(list, evaluation)
 
             n_len = len(n.elements)
 
@@ -534,9 +546,29 @@ class Subsets(Builtin):
 
             return ListExpression(*nested_list)
 
-    def apply_3(self, list, n, spec, evaluation):
+    def apply_atom_pattern(self, list, n, spec, evaluation):
         "Subsets[list_?AtomQ, Pattern[n,_List|All|DirectedInfinity[1]], spec_]"
 
         return evaluation.message(
             "Subsets", "normal", Expression(SymbolSubsets, list, n, spec)
+        )
+
+
+class YuleDissimilarity(_BooleanDissimilarity):
+    """
+    <dl>
+      <dt>'YuleDissimilarity[$u$, $v$]'
+      <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as R / (c_tt * c_ff + R / 2) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$<$n$, and $R$ = 2 * c_tf * c_ft.
+    </dl>
+
+    >> YuleDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
+     = 6 / 5
+    """
+
+    summary_text = "Yule dissimilarity"
+
+    def _compute(self, n, c_ff, c_ft, c_tf, c_tt):
+        r_half = c_tf * c_ft
+        return Expression(
+            SymbolDivide, Integer(2 * r_half), Integer(c_tt * c_ff + r_half)
         )

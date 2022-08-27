@@ -36,7 +36,8 @@ from typing import Callable
 
 from mathics import builtin
 from mathics import settings
-from mathics.builtin import get_module_doc, check_requires_list
+from mathics.builtin import get_module_doc
+from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
 from mathics.doc.utils import slugify
@@ -79,7 +80,9 @@ PYTHON_RE = re.compile(r"(?s)<python>(.*?)</python>")
 LATEX_CHAR_RE = re.compile(r"(?<!\\)(\^)")
 
 QUOTATIONS_RE = re.compile(r"\"([\w\s,]*?)\"")
-HYPERTEXT_RE = re.compile(r"(?s)<(?P<tag>em|url)>(?P<content>.*?)</(?P=tag)>")
+HYPERTEXT_RE = re.compile(
+    r"(?s)<(?P<tag>em|url)>(\s*:(?P<text>.*?):\s*)?(?P<content>.*?)</(?P=tag)>"
+)
 
 OUTSIDE_ASY_RE = re.compile(r"(?s)((?:^|\\end\{asy\}).*?(?:$|\\begin\{asy\}))")
 LATEX_TEXT_RE = re.compile(
@@ -361,6 +364,7 @@ def escape_latex(text):
             ("\u03b8", r"$\theta$"),
             ("\u03bc", r"$\mu$"),
             ("\u03c0", r"$\pi$"),
+            ("\u03d5", r"$\phi$"),
             ("\u2107", r"$\mathrm{e}$"),
             ("\u222b", r"\int"),
             ("\u2243", r"$\simeq$"),
@@ -421,7 +425,11 @@ def escape_latex(text):
         if tag == "em":
             return r"\emph{%s}" % content
         elif tag == "url":
-            return "\\url{%s}" % content
+            text = match.group("text")
+            if text is None:
+                return "\\url{%s}" % content
+            else:
+                return "\\href{%s}{%s}" % (content, text)
 
     text = QUOTATIONS_RE.sub(repl_quotation, text)
     text = HYPERTEXT_RE.sub(repl_hypertext, text)
@@ -649,9 +657,13 @@ class Documentation:
 
         return None
 
-    def get_tests(self):
+    def get_tests(self, want_sorting=False):
         for part in self.parts:
-            for chapter in part.chapters:
+            if want_sorting:
+                chapter_collection_fn = lambda x: sorted_chapters(x)
+            else:
+                chapter_collection_fn = lambda x: x
+            for chapter in chapter_collection_fn(part.chapters):
                 tests = chapter.doc.get_tests()
                 if tests:
                     yield Tests(part.title, chapter.title, "", tests)
@@ -730,8 +742,22 @@ class Documentation:
         return result
 
 
+def skip_module_doc(module, modules_seen):
+    return (
+        module.__doc__ is None
+        or module in modules_seen
+        or hasattr(module, "no_doc")
+        and module.no_doc
+    )
+
+
+def sorted_chapters(chapters: list) -> list:
+    "Return chapters sorted by title"
+    return sorted(chapters, key=lambda chapter: chapter.title)
+
+
 class MathicsMainDocumentation(Documentation):
-    def __init__(self):
+    def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
         self.latex_file = settings.DOC_LATEX_FILE
         self.parts = []
@@ -797,15 +823,18 @@ class MathicsMainDocumentation(Documentation):
 
             builtin_part = DocPart(self, title, is_reference=start)
             modules_seen = set()
-            for module in modules:
-                # FIXME add an additional mechanism in the module
-                # to allow a docstring and indicate it is not to go in the
-                # user manual
-                # Note: this code assumes that all chapters with sections/doctests in them
-                # are documented (as it should be)!
-                if module.__doc__ is None:
-                    continue
-                if module in modules_seen:
+            if want_sorting:
+                module_collection_fn = lambda x: sorted(
+                    modules,
+                    key=lambda module: module.sort_order
+                    if hasattr(module, "sort_order")
+                    else module.__name__,
+                )
+            else:
+                module_collection_fn = lambda x: x
+
+            for module in module_collection_fn(modules):
+                if skip_module_doc(module, modules_seen):
                     continue
                 title, text = get_module_doc(module)
                 chapter = DocChapter(builtin_part, title, XMLDoc(text, title, None))
@@ -895,7 +924,7 @@ class MathicsMainDocumentation(Documentation):
             self.parts.append(part)
 
         # set keys of tests
-        for tests in self.get_tests():
+        for tests in self.get_tests(want_sorting=want_sorting):
             for test in tests.tests:
                 test.key = (tests.part, tests.chapter, tests.section, test.index)
 
@@ -1137,7 +1166,7 @@ class DocPart:
     def __str__(self):
         return "%s\n\n%s" % (
             self.title,
-            "\n".join(str(chapter) for chapter in self.chapters),
+            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
         )
 
     def latex(
@@ -1148,10 +1177,14 @@ class DocPart:
         `output` is not used here but passed along to the bottom-most
         level in getting expected test results.
         """
+        if self.is_reference:
+            chapter_fn = sorted_chapters
+        else:
+            chapter_fn = lambda x: x
         result = "\n\n\\part{%s}\n\n" % escape_latex(self.title) + (
             "\n\n".join(
                 chapter.latex(doc_data, quiet, filter_sections=filter_sections)
-                for chapter in self.chapters
+                for chapter in chapter_fn(self.chapters)
                 if not filter_chapters or chapter.title in filter_chapters
             )
         )
@@ -1201,7 +1234,7 @@ class DocChapter:
             "\\chaptersections\n",
             "\n\n".join(
                 section.latex(doc_data, quiet)
-                for section in self.sections
+                for section in sorted(self.sections)
                 if not filter_sections or section.title in filter_sections
             ),
             "\n\\chapterend\n",

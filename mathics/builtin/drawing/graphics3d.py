@@ -5,8 +5,11 @@
 Functions for working with 3D graphics.
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.three-dimensional-graphics"
 
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolN
 
@@ -25,9 +28,9 @@ from mathics.core.atoms import Real, Integer, Rational
 def coords3D(value):
     if value.has_form("List", 3):
         result = (
-            value.leaves[0].round_to_float(),
-            value.leaves[1].round_to_float(),
-            value.leaves[2].round_to_float(),
+            value.elements[0].round_to_float(),
+            value.elements[1].round_to_float(),
+            value.elements[2].round_to_float(),
         )
         if None not in result:
             return result
@@ -39,8 +42,8 @@ class Coords3D:
         self.p = pos
         if expr is not None:
             if expr.has_form("Offset", 1, 2):
-                if len(expr.leaves) > 1:
-                    self.p = coords3D(expr.leaves[1])
+                if len(expr.elements) > 1:
+                    self.p = coords3D(expr.elements[1])
             else:
                 self.p = coords3D(expr)
 
@@ -238,7 +241,7 @@ class Cone(Builtin):
     def apply_check(self, positions, radius, evaluation):
         "Cone[positions_List, radius_]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cone", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
@@ -294,7 +297,7 @@ class Cuboid(Builtin):
     def apply_check(self, positions, evaluation):
         "Cuboid[positions_List]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cuboid", "oddn", positions)
 
@@ -335,11 +338,11 @@ class Cylinder(Builtin):
     def apply_check(self, positions, radius, evaluation):
         "Cylinder[positions_List, radius_]"
 
-        if len(positions.get_elements()) % 2 == 1:
+        if len(positions.elements) % 2 == 1:
             # The number of points is odd, so abort.
             evaluation.error("Cylinder", "oddn", positions)
         if not isinstance(radius, (Integer, Rational, Real)):
-            nradius = apply_N(radius, evaluation)
+            nradius = eval_N(radius, evaluation)
             if not isinstance(nradius, (Integer, Rational, Real)):
                 evaluation.error("Cylinder", "nrr", radius)
 

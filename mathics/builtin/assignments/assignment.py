@@ -4,14 +4,13 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.assignments.internals import _SetOperator
+from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
 from mathics.core.definitions import PyMathicsLoadException
+from mathics.core.evaluators import eval_load_module
 from mathics.core.symbols import SymbolNull
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-)
+from mathics.core.systemsymbols import SymbolFailed
 
 
 class Set(BinaryOperator, _SetOperator):
@@ -175,7 +174,7 @@ class TagSet(Builtin, _SetOperator):
     >> UpValues[x]
      = {HoldPattern[f[x]] :> 2}
 
-    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of a leaf in $lhs$:
+    The symbol $f$ must appear as the ultimate head of $lhs$ or as the head of an element in $lhs$:
     >> x /: f[g[x]] = 3;
      : Tag x not found or too deep for an assigned rule.
     >> g /: f[g[x]] = 3;
@@ -255,23 +254,11 @@ class LoadModule(Builtin):
     def apply(self, module, evaluation):
         "LoadModule[module_String]"
         try:
-            evaluation.definitions.load_pymathics_module(module.value)
+            eval_load_module(module.value, evaluation)
         except PyMathicsLoadException:
             evaluation.message(self.name, "notmathicslib", module)
             return SymbolFailed
         except ImportError:
             evaluation.message(self.get_name(), "notfound", module)
             return SymbolFailed
-        else:
-            # Add Pymathics` to $ContextPath so that when user don't
-            # have to qualify Pymathics variables and functions,
-            # as the those in the module just loaded.
-            # Following the example of $ContextPath in the WL
-            # reference manual where PackletManager appears first in
-            # the list, it seems to be preferable to add this PyMathics
-            # at the beginning.
-            context_path = evaluation.definitions.get_context_path()
-            if "Pymathics`" not in context_path:
-                context_path.insert(0, "Pymathics`")
-                evaluation.definitions.set_context_path(context_path)
         return module

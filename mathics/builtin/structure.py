@@ -1,17 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Structural Operations
-"""
+Structural Operations on Expressions
 
-from typing import Iterable
+Structural transformations on lists, and general symbolic expressions.
+"""
 
 from mathics.builtin.base import (
     Builtin,
     Predefined,
     BinaryOperator,
-    MessageException,
 )
-from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -19,23 +17,17 @@ from mathics.core.atoms import (
     Rational,
 )
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
 from mathics.core.rules import Pattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    SymbolNull,
     SymbolFalse,
     SymbolTrue,
 )
 
-from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap, SymbolRule
+from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap
 
-from mathics.builtin.lists import (
-    python_levelspec,
-    walk_levels,
-    List,
-)
+from mathics.builtin.lists import walk_levels
 
 import platform
 
@@ -46,82 +38,19 @@ else:
 
     bytecount_support = True
 
-SymbolMapThread = Symbol("MapThread")
 SymbolOperate = Symbol("Operate")
 SymbolSortBy = Symbol("SortBy")
-
-
-class Sort(Builtin):
-    """
-    <dl>
-      <dt>'Sort[$list$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering.
-
-      <dt>'Sort[$list$, $p$]'
-      <dd>sorts using $p$ to determine the order of two elements.
-    </dl>
-
-    >> Sort[{4, 1.0, a, 3+I}]
-     = {1., 3 + I, 4, a}
-
-    Sort uses 'OrderedQ' to determine ordering by default.
-    You can sort patterns according to their precedence using 'PatternsOrderedQ':
-    >> Sort[{items___, item_, OptionsPattern[], item_symbol, item_?test}, PatternsOrderedQ]
-     = {item_symbol, item_ ? test, item_, items___, OptionsPattern[]}
-
-    When sorting patterns, values of atoms do not matter:
-    >> Sort[{a, b/;t}, PatternsOrderedQ]
-     = {b /; t, a}
-    >> Sort[{2+c_, 1+b__}, PatternsOrderedQ]
-     = {2 + c_, 1 + b__}
-    >> Sort[{x_ + n_*y_, x_ + y_}, PatternsOrderedQ]
-     = {x_ + n_ y_, x_ + y_}
-
-    #> Sort[{x_, y_}, PatternsOrderedQ]
-     = {x_, y_}
-    """
-
-    summary_text = "sort lexicographically or with any comparison function"
-
-    def apply(self, list, evaluation):
-        "Sort[list_]"
-
-        if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
-        else:
-            new_elements = sorted(list.elements)
-            return list.restructure(list.head, new_elements, evaluation)
-
-    def apply_predicate(self, list, p, evaluation):
-        "Sort[list_, p_]"
-
-        if isinstance(list, Atom):
-            evaluation.message("Sort", "normal")
-        else:
-
-            class Key:
-                def __init__(self, leaf):
-                    self.leaf = leaf
-
-                def __gt__(self, other):
-                    return (
-                        not Expression(p, self.leaf, other.leaf).evaluate(evaluation)
-                        is SymbolTrue
-                    )
-
-            new_elements = sorted(list.elements, key=Key)
-            return list.restructure(list.head, new_elements, evaluation)
 
 
 class SortBy(Builtin):
     """
     <dl>
-    <dt>'SortBy[$list$, $f$]'
-    <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
+      <dt>'SortBy[$list$, $f$]'
+      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
     extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
     according to their natural order (without applying $f).
-    <dt>'SortBy[$f$]'
-    <dd>creates an operator function that, when applied, sorts by $f.
+      <dt>'SortBy[$f$]'
+      <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
 
     >> SortBy[{{5, 1}, {10, -1}}, Last]
@@ -188,14 +117,14 @@ class SortBy(Builtin):
 class BinarySearch(Builtin):
     """
     <dl>
-    <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
-        <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
+      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
+      <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
         exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have
         to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$
         need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
 
-    <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
-        <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
+      <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
+      <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
         needs to yield a sorted sequence if applied to the elements of $l.
     </dl>
 
@@ -277,8 +206,8 @@ class BinarySearch(Builtin):
 class PatternsOrderedQ(Builtin):
     """
     <dl>
-    <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
-        <dd>returns 'True' if pattern $patt1$ would be applied before
+      <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
+      <dd>returns 'True' if pattern $patt1$ would be applied before
         $patt2$ according to canonical pattern ordering.
     </dl>
 
@@ -304,8 +233,8 @@ class PatternsOrderedQ(Builtin):
 class OrderedQ(Builtin):
     """
     <dl>
-    <dt>'OrderedQ[{$a$, $b$}]'
-        <dd>is 'True' if $a$ sorts before $b$ according to canonical
+      <dt>'OrderedQ[{$a$, $b$}]'
+      <dd>is 'True' if $a$ sorts before $b$ according to canonical
         ordering.
     </dl>
 
@@ -331,8 +260,8 @@ class OrderedQ(Builtin):
 class Order(Builtin):
     """
     <dl>
-    <dt>'Order[$x$, $y$]'
-        <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
+      <dt>'Order[$x$, $y$]'
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
         -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
     </dl>
 
@@ -361,29 +290,6 @@ class Order(Builtin):
             return Integer0
 
 
-class Head(Builtin):
-    """
-    <dl>
-    <dt>'Head[$expr$]'
-        <dd>returns the head of the expression or atom $expr$.
-    </dl>
-
-    >> Head[a * b]
-     = Times
-    >> Head[6]
-     = Integer
-    >> Head[x]
-     = Symbol
-    """
-
-    summary_text = "the head of the expression"
-
-    def apply(self, expr, evaluation):
-        "Head[expr_]"
-
-        return expr.get_head()
-
-
 class ApplyLevel(BinaryOperator):
     """
     <dl>
@@ -406,511 +312,6 @@ class ApplyLevel(BinaryOperator):
     }
 
     summary_text = "apply a function to a list, at the top level"
-
-
-class Apply(BinaryOperator):
-    """
-    <dl>
-      <dt>'Apply[$f$, $expr$]'
-
-      <dt>'$f$ @@ $expr$'
-      <dd>replaces the head of $expr$ with $f$.
-
-      <dt>'Apply[$f$, $expr$, $levelspec$]'
-      <dd>applies $f$ on the parts specified by $levelspec$.
-    </dl>
-
-    >> f @@ {1, 2, 3}
-     = f[1, 2, 3]
-    >> Plus @@ {1, 2, 3}
-     = 6
-
-    The head of $expr$ need not be 'List':
-    >> f @@ (a + b + c)
-     = f[a, b, c]
-
-    Apply on level 1:
-    >> Apply[f, {a + b, g[c, d, e * f], 3}, {1}]
-     = {f[a, b], f[c, d, e f], 3}
-    The default level is 0:
-    >> Apply[f, {a, b, c}, {0}]
-     = f[a, b, c]
-
-    Range of levels, including negative level (counting from bottom):
-    >> Apply[f, {{{{{a}}}}}, {2, -3}]
-     = {{f[f[{a}]]}}
-
-    Convert all operations to lists:
-    >> Apply[List, a + b * c ^ e * f[g], {0, Infinity}]
-     = {a, {b, {g}, {c, e}}}
-
-    #> Apply[f, {a, b, c}, x+y]
-     : Level specification x + y is not of the form n, {n}, or {m, n}.
-     = Apply[f, {a, b, c}, x + y]
-    """
-
-    summary_text = "apply a function to a list, at specified levels"
-    operator = "@@"
-    precedence = 620
-    grouping = "Right"
-
-    options = {
-        "Heads": "False",
-    }
-
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Apply[f_, expr_, ls_, OptionsPattern[Apply]]"
-
-        evaluation.message("Apply", "level", ls)
-
-    def apply(self, f, expr, ls, evaluation, options={}):
-        """Apply[f_, expr_, Optional[Pattern[ls, _?LevelQ], {0}],
-        OptionsPattern[Apply]]"""
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            evaluation.message("Apply", "level", ls)
-            return
-
-        def callback(level):
-            if isinstance(level, Atom):
-                return level
-            else:
-                return Expression(f, *level.elements)
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
-
-        return result
-
-
-class Map(BinaryOperator):
-    """
-    <dl>
-      <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
-      <dd>applies $f$ to each part on the first level of $expr$.
-
-      <dt>'Map[$f$, $expr$, $levelspec$]'
-      <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
-    </dl>
-
-    >> f /@ {1, 2, 3}
-     = {f[1], f[2], f[3]}
-    >> #^2& /@ {1, 2, 3, 4}
-     = {1, 4, 9, 16}
-
-    Map $f$ on the second level:
-    >> Map[f, {{a, b}, {c, d, e}}, {2}]
-     = {{f[a], f[b]}, {f[c], f[d], f[e]}}
-
-    Include heads:
-    >> Map[f, a + b + c, Heads->True]
-     = f[Plus][f[a], f[b], f[c]]
-
-    #> Map[f, expr, a+b, Heads->True]
-     : Level specification a + b is not of the form n, {n}, or {m, n}.
-     = Map[f, expr, a + b, Heads -> True]
-    """
-
-    summary_text = "map a function over a list, at specified levels"
-    operator = "/@"
-    precedence = 620
-    grouping = "Right"
-
-    options = {
-        "Heads": "False",
-    }
-
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Map[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        evaluation.message("Map", "level", ls)
-
-    def apply_level(self, f, expr, ls, evaluation, options={}):
-        """Map[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
-        OptionsPattern[Map]]"""
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
-            return
-
-        def callback(level):
-            return Expression(f, level)
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
-
-        return result
-
-
-class MapAt(Builtin):
-    """
-    <dl>
-      <dt>'MapAt[$f$, $expr$, $n$]'
-      <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
-
-      <dt>'MapAt[f, $exp$r, {$i$, $j$ ...}]'
-      <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
-
-      <dt>'MapAt[$f$,$pos$]'
-      <dd>represents an operator form of MapAt that can be applied to an expression.
-    </dl>
-
-    Map $f$ onto the part at position 2:
-    >> MapAt[f, {a, b, c, d}, 2]
-     = {a, f[b], c, d}
-
-    Map $f$ onto multiple parts:
-    >> MapAt[f, {a, b, c, d}, {{1}, {4}}]
-     = {f[a], b, c, f[d]}
-
-    Map $f$ onto the at the end:
-    >> MapAt[f, {a, b, c, d}, -1]
-     = {a, b, c, f[d]}
-
-     Map $f$ onto an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4, "e" -> 5|>, 3]
-     = {a -> 1, b -> 2, c -> f[3], d -> 4, e -> 5}
-
-    Use negative position in an association:
-    >> MapAt[f, <|"a" -> 1, "b" -> 2, "c" -> 3, "d" -> 4|>, -3]
-     = {a -> 1, b -> f[2], c -> 3, d -> 4}
-
-    Use the operator form of MapAt:
-    >> MapAt[f, 1][{a, b, c, d}]
-     = {f[a], b, c, d}
-    """
-
-    summary_text = "map a function at particular positions"
-    rules = {
-        "MapAt[f_, pos_][expr_]": "MapAt[f, expr, pos]",
-    }
-
-    def apply(self, f, expr, args, evaluation, options={}):
-        "MapAt[f_, expr_, args_]"
-
-        m = len(expr.elements)
-
-        def map_at_one(i, elements):
-            if 1 <= i <= m:
-                j = i - 1
-            elif -m <= i <= -1:
-                j = m + i
-            else:
-                raise PartRangeError
-            replace_leaf = new_elements[j]
-            if hasattr(replace_leaf, "head") and replace_leaf.head is Symbol(
-                "System`Rule"
-            ):
-                new_elements[j] = Expression(
-                    SymbolRule,
-                    replace_leaf.elements[0],
-                    Expression(f, replace_leaf.elements[1]),
-                )
-            else:
-                new_elements[j] = Expression(f, replace_leaf)
-            return new_elements
-
-        a = args.to_python()
-        if isinstance(a, int):
-            new_elements = list(expr.elements)
-            new_elements = map_at_one(a, new_elements)
-            return List(*new_elements)
-        elif isinstance(a, list):
-            new_elements = list(expr.elements)
-            for item in a:
-                if len(item) == 1 and isinstance(item[0], int):
-                    new_elements = map_at_one(item[0], new_elements)
-            return List(*new_elements)
-
-
-class Scan(Builtin):
-    """
-    <dl>
-      <dt>'Scan[$f$, $expr$]'
-      <dd>applies $f$ to each element of $expr$ and returns 'Null'.
-
-      <dt>'Scan[$f$, $expr$, $levelspec$]
-      <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
-    </dl>
-
-    >> Scan[Print, {1, 2, 3}]
-     | 1
-     | 2
-     | 3
-
-    #> Scan[Print, f[g[h[x]]], 2]
-     | h[x]
-     | g[h[x]]
-
-    #> Scan[Print][{1, 2}]
-     | 1
-     | 2
-
-    #> Scan[Return, {1, 2}]
-     = 1
-    """
-
-    summary_text = "scan over every element of a list, applying a function"
-    options = {
-        "Heads": "False",
-    }
-
-    rules = {
-        "Scan[f_][expr_]": "Scan[f, expr]",
-    }
-
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "Scan[f_, expr_, ls_, OptionsPattern[Map]]"
-
-        return evaluation.message("Map", "level", ls)
-
-    def apply_level(self, f, expr, ls, evaluation, options={}):
-        """Scan[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
-        OptionsPattern[Map]]"""
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            evaluation.message("Map", "level", ls)
-            return
-
-        def callback(level):
-            Expression(f, level).evaluate(evaluation)
-            return level
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(expr, start, stop, heads=heads, callback=callback)
-
-        return SymbolNull
-
-
-class MapIndexed(Builtin):
-    """
-    <dl>
-      <dt>'MapIndexed[$f$, $expr$]'
-      <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
-
-      <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
-      <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
-    </dl>
-
-    >> MapIndexed[f, {a, b, c}]
-     = {f[a, {1}], f[b, {2}], f[c, {3}]}
-
-    Include heads (index 0):
-    >> MapIndexed[f, {a, b, c}, Heads->True]
-     = f[List, {0}][f[a, {1}], f[b, {2}], f[c, {3}]]
-
-    Map on levels 0 through 1 (outer expression gets index '{}'):
-    >> MapIndexed[f, a + b + c * d, {0, 1}]
-     = f[f[a, {1}] + f[b, {2}] + f[c d, {3}], {}]
-
-    Get the positions of atoms in an expression (convert operations to 'List' first
-    to disable 'Listable' functions):
-    >> expr = a + b * f[g] * c ^ e;
-    >> listified = Apply[List, expr, {0, Infinity}];
-    >> MapIndexed[#2 &, listified, {-1}]
-     = {{1}, {{2, 1}, {{2, 2, 1}}, {{2, 3, 1}, {2, 3, 2}}}}
-    Replace the heads with their positions, too:
-    >> MapIndexed[#2 &, listified, {-1}, Heads -> True]
-     = {0}[{1}, {2, 0}[{2, 1}, {2, 2, 0}[{2, 2, 1}], {2, 3, 0}[{2, 3, 1}, {2, 3, 2}]]]
-    The positions are given in the same format as used by 'Extract'.
-    Thus, mapping 'Extract' on the indices given by 'MapIndexed' re-constructs the original expression:
-    >> MapIndexed[Extract[expr, #2] &, listified, {-1}, Heads -> True]
-     = a + b f[g] c ^ e
-
-    #> MapIndexed[f, {1, 2}, a+b]
-     : Level specification a + b is not of the form n, {n}, or {m, n}.
-     = MapIndexed[f, {1, 2}, a + b]
-    """
-
-    summary_text = "map a function, including index information"
-    options = {
-        "Heads": "False",
-    }
-
-    def apply_invalidlevel(self, f, expr, ls, evaluation, options={}):
-        "MapIndexed[f_, expr_, ls_, OptionsPattern[MapIndexed]]"
-
-        evaluation.message("MapIndexed", "level", ls)
-
-    def apply_level(self, f, expr, ls, evaluation, options={}):
-        """MapIndexed[f_, expr_, Optional[Pattern[ls, _?LevelQ], {1}],
-        OptionsPattern[MapIndexed]]"""
-
-        try:
-            start, stop = python_levelspec(ls)
-        except InvalidLevelspecError:
-            evaluation.message("MapIndexed", "level", ls)
-            return
-
-        def callback(level, pos: Iterable):
-            return Expression(
-                f, level, to_mathics_list(*pos, elements_conversion_fn=Integer)
-            )
-
-        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
-        result, depth = walk_levels(
-            expr, start, stop, heads=heads, callback=callback, include_pos=True
-        )
-
-        return result
-
-
-class MapThread(Builtin):
-    """
-    <dl>
-      <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
-      <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
-
-      <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
-      <dd>applies $f$ at level $n$.
-    </dl>
-
-    >> MapThread[f, {{a, b, c}, {1, 2, 3}}]
-     = {f[a, 1], f[b, 2], f[c, 3]}
-
-    >> MapThread[f, {{{a, b}, {c, d}}, {{e, f}, {g, h}}}, 2]
-     = {{f[a, e], f[b, f]}, {f[c, g], f[d, h]}}
-
-    #> MapThread[f, {{a, b}, {c, d}}, {1}]
-     : Non-negative machine-sized integer expected at position 3 in MapThread[f, {{a, b}, {c, d}}, {1}].
-     = MapThread[f, {{a, b}, {c, d}}, {1}]
-
-    #> MapThread[f, {{a, b}, {c, d}}, 2]
-     : Object {a, b} at position {2, 1} in MapThread[f, {{a, b}, {c, d}}, 2] has only 1 of required 2 dimensions.
-     = MapThread[f, {{a, b}, {c, d}}, 2]
-
-    #> MapThread[f, {{a}, {b, c}}]
-     : Incompatible dimensions of objects at positions {2, 1} and {2, 2} of MapThread[f, {{a}, {b, c}}]; dimensions are 1 and 2.
-     = MapThread[f, {{a}, {b, c}}]
-
-    #> MapThread[f, {}]
-     = {}
-
-    #> MapThread[f, {a, b}, 0]
-     = f[a, b]
-    #> MapThread[f, {a, b}, 1]
-     :  Object a at position {2, 1} in MapThread[f, {a, b}, 1] has only 0 of required 1 dimensions.
-     = MapThread[f, {a, b}, 1]
-
-    ## Behaviour extends MMA
-    #> MapThread[f, {{{a, b}, {c}}, {{d, e}, {f}}}, 2]
-     = {{f[a, d], f[b, e]}, {f[c, f]}}
-    """
-
-    summary_text = "map a function across corresponding elements in multiple lists"
-    messages = {
-        "intnm": "Non-negative machine-sized integer expected at position `2` in `1`.",
-        "mptc": "Incompatible dimensions of objects at positions {2, `1`} and {2, `2`} of `3`; dimensions are `4` and `5`.",
-        "mptd": "Object `1` at position {2, `2`} in `3` has only `4` of required `5` dimensions.",
-        "list": "List expected at position `2` in `1`.",
-    }
-
-    def apply(self, f, expr, evaluation):
-        "MapThread[f_, expr_]"
-
-        return self.apply_n(f, expr, None, evaluation)
-
-    def apply_n(self, f, expr, n, evaluation):
-        "MapThread[f_, expr_, n_]"
-
-        if n is None:
-            n = 1
-            full_expr = Expression(SymbolMapThread, f, expr)
-        else:
-            full_expr = Expression(SymbolMapThread, f, expr, n)
-            n = n.get_int_value()
-
-        if n is None or n < 0:
-            return evaluation.message("MapThread", "intnm", full_expr, 3)
-
-        if expr.has_form("List", 0):
-            return ListExpression()
-        if not expr.has_form("List", None):
-            return evaluation.message("MapThread", "list", 2, full_expr)
-
-        heads = expr.get_elements()
-
-        def walk(args, depth=0):
-            "walk all trees concurrently and build result"
-            if depth == n:
-                return Expression(f, *args)
-            else:
-                dim = None
-                for i, arg in enumerate(args):
-                    if not arg.has_form("List", None):
-                        raise MessageException(
-                            "MapThread", "mptd", heads[i], i + 1, full_expr, depth, n
-                        )
-                    if dim is None:
-                        dim = len(arg.elements)
-                    if dim != len(arg.elements):
-                        raise MessageException(
-                            "MapThread",
-                            "mptc",
-                            1,
-                            i + 1,
-                            full_expr,
-                            dim,
-                            len(arg.elements),
-                        )
-                return ListExpression(
-                    *[
-                        walk([arg.elements[i] for arg in args], depth + 1)
-                        for i in range(dim)
-                    ]
-                )
-
-        try:
-            return walk(heads)
-        except MessageException as e:
-            return e.message(evaluation)
-
-
-class Thread(Builtin):
-    """
-    <dl>
-      <dt>'Thread[$f$[$args$]]'
-      <dd>threads $f$ over any lists that appear in $args$.
-
-      <dt>'Thread[$f$[$args$], $h$]'
-      <dd>threads over any parts with head $h$.
-    </dl>
-
-    >> Thread[f[{a, b, c}]]
-     = {f[a], f[b], f[c]}
-    >> Thread[f[{a, b, c}, t]]
-     = {f[a, t], f[b, t], f[c, t]}
-    >> Thread[f[a + b + c], Plus]
-     = f[a] + f[b] + f[c]
-
-    Functions with attribute 'Listable' are automatically threaded over lists:
-    >> {a, b, c} + {d, e, f} + g
-     = {a + d + g, b + e + g, c + f + g}
-    """
-
-    messages = {
-        "tdlen": "Objects of unequal length cannot be combined.",
-    }
-
-    rules = {
-        "Thread[f_[args___]]": "Thread[f[args], List]",
-    }
-
-    summary_text = '"thread" a function across lists that appear in its arguments'
-
-    def apply(self, f, args, h, evaluation):
-        "Thread[f_[args___], h_]"
-
-        args = args.get_sequence()
-        expr = Expression(f, *args)
-        threaded, result = expr.thread(evaluation, head=h)
-        return result
 
 
 class FreeQ(Builtin):
@@ -1089,7 +490,7 @@ class Flatten(Builtin):
                     evaluation.message("Flatten", "fldep", s, n, max_depth, expr)
                     return
 
-        # assign new indices to each leaf
+        # assign new indices to each element
         new_indices = {}
 
         def callback(expr, pos):
@@ -1103,31 +504,31 @@ class Flatten(Builtin):
         # build new tree inserting nodes as needed
         elements = sorted(new_indices.items())
 
-        def insert_leaf(elements):
+        def insert_element(elements):
             # gather elements into groups with the same leading index
             # e.g. [((0, 0), a), ((0, 1), b), ((1, 0), c), ((1, 1), d)]
             # -> [[(0, a), (1, b)], [(0, c), (1, d)]]
             leading_index = None
             grouped_elements = []
-            for index, leaf in elements:
+            for index, element in elements:
                 if index[0] == leading_index:
-                    grouped_elements[-1].append((index[1:], leaf))
+                    grouped_elements[-1].append((index[1:], element))
                 else:
                     leading_index = index[0]
-                    grouped_elements.append([(index[1:], leaf)])
+                    grouped_elements.append([(index[1:], element)])
             # for each group of elements we either insert them into the current level
             # or make a new level and recurse
             new_elements = []
             for group in grouped_elements:
-                if len(group[0][0]) == 0:  # bottom level leaf
+                if len(group[0][0]) == 0:  # bottom level element or leaf
                     assert len(group) == 1
                     new_elements.append(group[0][1])
                 else:
-                    new_elements.append(Expression(h, *insert_leaf(group)))
+                    new_elements.append(Expression(h, *insert_element(group)))
 
             return new_elements
 
-        return Expression(h, *insert_leaf(elements))
+        return Expression(h, *insert_element(elements))
 
     def apply(self, expr, n, h, evaluation):
         "Flatten[expr_, n_, h_]"

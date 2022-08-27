@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 
+# TODO: separate these when we have more
 """
-Special Moments
+Dependency and Dispursion Statistics
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "moements" since this can erroneously appear at the top level.
+sort_order = "mathics.builtin.special-moments"
 
 from mathics.builtin.base import Builtin
 
@@ -11,7 +15,7 @@ from mathics.builtin.lists import _Rectangular, _NotRectangularException
 
 from mathics.core.atoms import Integer
 from mathics.core.expression import Expression
-from mathics.core.symbols import Symbol, SymbolDivide, SymbolTimes
+from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
 
 SymbolConjugate = Symbol("Conjugate")
@@ -23,6 +27,8 @@ SymbolVariance = Symbol("Variance")
 
 class Correlation(Builtin):
     """
+    <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
+    <url>
     <dl>
       <dt>'Correlation[$a$, $b$]'
       <dd>computes Pearson's correlation of two equal-sized vectors $a$ and $b$.
@@ -52,17 +58,14 @@ class Correlation(Builtin):
         else:
             da = Expression(SymbolStandardDeviation, a)
             db = Expression(SymbolStandardDeviation, b)
-            return Expression(
-                SymbolDivide,
-                Expression(SymbolCovariance, a, b),
-                Expression(SymbolTimes, da, db),
-            )
+            return Expression(SymbolCovariance, a, b) / (da * db)
 
 
 class Covariance(Builtin):
     """
+    <url>:Covariance: https://en.wikipedia.org/wiki/Covariance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Covariance.html</url>)
     <dl>
-    <dt>'Covariance[$a$, $b$]'
+      <dt>'Covariance[$a$, $b$]'
       <dd>computes the covariance between the equal-sized vectors $a$ and $b$.
     </dl>
 
@@ -95,43 +98,9 @@ class Covariance(Builtin):
             )
 
 
-class Kurtosis(Builtin):  # see https://en.wikipedia.org/wiki/Kurtosis
-    """
-    <dl>
-      <dt>'Kurtosis[$list$]'
-      <dd>gives the Pearson measure of kurtosis for $list$ (a measure of existing outliers).
-    </dl>
-
-    >> Kurtosis[{1.1, 1.2, 1.4, 2.1, 2.4}]
-     = 1.42098
-    """
-
-    rules = {
-        "Kurtosis[list_List]": "CentralMoment[list, 4] / (CentralMoment[list, 2] ^ 2)",
-    }
-    summary_text = "kurtosis coefficient"
-
-
-class Skewness(Builtin):  # see https://en.wikipedia.org/wiki/Skewness
-    """
-    <dl>
-    <dt>'Skewness[$list$]'
-      <dd>gives Pearson's moment coefficient of skewness for $list$ (a measure for estimating
-      the symmetry of a distribution).
-    </dl>
-
-    >> Skewness[{1.1, 1.2, 1.4, 2.1, 2.4}]
-     = 0.407041
-    """
-
-    rules = {
-        "Skewness[list_List]": "CentralMoment[list, 3] / (CentralMoment[list, 2] ^ (3 / 2))",
-    }
-    summary_text = "skewness coefficient"
-
-
 class StandardDeviation(_Rectangular):
     """
+    <url>:Standard deviation: https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>:WMA: https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
       <dt>'StandardDeviation[$list$]'
       <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
@@ -176,6 +145,7 @@ class StandardDeviation(_Rectangular):
 
 class Variance(_Rectangular):
     """
+    <url>:Variance: https://en.wikipedia.org/wiki/Variance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
       <dt>'Variance[$list$]'
       <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
@@ -224,3 +194,9 @@ class Variance(_Rectangular):
                 Expression(SymbolDot, d, Expression(SymbolConjugate, d)),
                 Integer(len(l.elements) - 1),
             )
+
+
+# TODO for Dispersion:
+#  TrimmedVariance, WinsorizedVariance, StandardDeviation, MeanDeviation, MedianDeviation, QuartileDeviation, InterquartileRange, QnDispersion, SnDispersion, BiweightMidvariance
+# TODO for Dependency:
+#  Correlation, AbsoluteCorrelation, SpearmanRho,  KendallTau, HoeffdingD, GoodmanKruskalGamma, BlomqvistBeta, WilksW, PillaiTrace

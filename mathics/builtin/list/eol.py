@@ -13,10 +13,7 @@ from mathics.builtin.base import (
     Builtin,
     MessageException,
 )
-from mathics.builtin.box.inout import RowBox
-from mathics.builtin.exceptions import InvalidLevelspecError, PartError
 
-from mathics.builtin.lists import list_boxes
 from mathics.algorithm.parts import (
     _drop_span_selector,
     _parts,
@@ -28,17 +25,21 @@ from mathics.algorithm.parts import (
     walk_parts,
 )
 
-
+from mathics.builtin.box.layout import RowBox
+from mathics.builtin.exceptions import InvalidLevelspecError, PartError
+from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
-    hold_first,
-    hold_rest,
-    n_hold_rest,
-    protected,
-    read_protected,
+    hold_first as A_HOLD_FIRST,
+    hold_rest as A_HOLD_REST,
+    n_hold_rest as A_N_HOLD_REST,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
 )
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.rules import Rule
 from mathics.core.symbols import Atom, Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -52,12 +53,12 @@ from mathics.core.systemsymbols import (
     SymbolSet,
 )
 
-SymbolAppendTo = Symbol("AppendTo")
-SymbolDeleteCases = Symbol("DeleteCases")
-SymbolDrop = Symbol("Drop")
-SymbolPrepend = Symbol("Prepend")
-SymbolPrependTo = Symbol("PrependTo")
-SymbolTake = Symbol("Take")
+SymbolAppendTo = Symbol("System`AppendTo")
+SymbolDeleteCases = Symbol("System`DeleteCases")
+SymbolDrop = Symbol("System`Drop")
+SymbolPrepend = Symbol("System`Prepend")
+SymbolPrependTo = Symbol("System`PrependTo")
+SymbolTake = Symbol("System`Take")
 
 
 class Append(Builtin):
@@ -93,7 +94,7 @@ class Append(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain(expr.get_elements(), [item])),
+            list(chain(expr.elements, [item])),
             evaluation,
             deps=(expr, item),
         )
@@ -102,8 +103,8 @@ class Append(Builtin):
 class AppendTo(Builtin):
     """
     <dl>
-    <dt>'AppendTo[$s$, $elem$]'
-        <dd>append $elem$ to value of $s$ and sets $s$ to the result.
+      <dt>'AppendTo[$s$, $elem$]'
+      <dd>append $elem$ to value of $s$ and sets $s$ to the result.
     </dl>
 
     >> s = {};
@@ -128,7 +129,7 @@ class AppendTo(Builtin):
      = AppendTo[a, b]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
@@ -286,7 +287,7 @@ class Count(Builtin):
 class DeleteCases(Builtin):
     """
     <dl>
-     <dt>'DeleteCases[$list$, $pattern$]'
+      <dt>'DeleteCases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that do not match $pattern$.
 
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
@@ -476,25 +477,25 @@ class First(Builtin):
 class FirstCase(Builtin):
     """
     <dl>
-    <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
-        <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
+      <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
+      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
 
-    <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
-        <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
-    <dt> FirstCase[$expr$, $pattern$, $default$]
-         <dd> gives $default$ if no element matching $pattern$ is found.
+      <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
+      <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
+      <dt> FirstCase[$expr$, $pattern$, $default$]
+      <dd> gives $default$ if no element matching $pattern$ is found.
 
-    <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$] \
-         <dd>finds only objects that appear on levels specified by $levelspec$.
+      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$] \
+      <dd>finds only objects that appear on levels specified by $levelspec$.
 
-    <dt>FirstCase[$pattern$]
-        <dd>represents an operator form of FirstCase that can be applied to an expression.
+      <dt>FirstCase[$pattern$]
+      <dd>represents an operator form of FirstCase that can be applied to an expression.
     </dl>
 
 
     """
 
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     options = Cases.options
     rules = {
         'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
@@ -521,7 +522,7 @@ class Extract(Builtin):
      = {{a, b}, d}
     """
 
-    attributes = n_hold_rest | protected
+    attributes = A_N_HOLD_REST | A_PROTECTED
 
     rules = {
         "Extract[expr_, list_List]": "Part[expr, Sequence @@ list]",
@@ -935,7 +936,7 @@ class Part(Builtin):
      = {1, 2, 3, 4}[[3 ;; 1]]
     """
 
-    attributes = n_hold_rest | protected | read_protected
+    attributes = A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
     summary_text = "get/set any part of an expression"
 
     def apply_makeboxes(self, list, i, f, evaluation):
@@ -1047,14 +1048,76 @@ class Pick(Builtin):
         return self._do(items, sel, lambda s: match(s, evaluation), evaluation)
 
 
+class Position(Builtin):
+    """
+    <dl>
+      <dt>'Position[$expr$, $patt$]'
+      <dd>returns the list of positions for which $expr$ matches $patt$.
+
+      <dt>'Position[$expr$, $patt$, $ls$]'
+      <dd>returns the positions on levels specified by levelspec $ls$.
+    </dl>
+
+    >> Position[{1, 2, 2, 1, 2, 3, 2}, 2]
+     = {{2}, {3}, {5}, {7}}
+
+    Find positions upto 3 levels deep
+    >> Position[{1 + Sin[x], x, (Tan[x] - y)^2}, x, 3]
+     = {{1, 2, 1}, {2}}
+
+    Find all powers of x
+    >> Position[{1 + x^2, x y ^ 2,  4 y,  x ^ z}, x^_]
+     = {{1, 2}, {4}}
+
+    Use Position as an operator
+    >> Position[_Integer][{1.5, 2, 2.5}]
+     = {{2}}
+    """
+
+    options = {"Heads": "True"}
+
+    rules = {
+        "Position[pattern_][expr_]": "Position[expr, pattern]",
+    }
+    summary_text = "positions of matching elements"
+
+    def apply_invalidlevel(self, patt, expr, ls, evaluation, options={}):
+        "Position[expr_, patt_, ls_, OptionsPattern[Position]]"
+
+        return evaluation.message("Position", "level", ls)
+
+    def apply_level(self, expr, patt, ls, evaluation, options={}):
+        """Position[expr_, patt_, Optional[Pattern[ls, _?LevelQ], {0, DirectedInfinity[1]}],
+        OptionsPattern[Position]]"""
+
+        try:
+            start, stop = python_levelspec(ls)
+        except InvalidLevelspecError:
+            return evaluation.message("Position", "level", ls)
+
+        from mathics.builtin.patterns import Matcher
+
+        match = Matcher(patt).match
+        result = []
+
+        def callback(level, pos):
+            if match(level, evaluation):
+                result.append(pos)
+            return level
+
+        heads = self.get_option(options, "Heads", evaluation) is SymbolTrue
+        walk_levels(expr, start, stop, heads=heads, callback=callback, include_pos=True)
+        return from_python(result)
+
+
 class Prepend(Builtin):
     """
     <dl>
-     <dt>'Prepend[$expr$, $item$]'
-     <dd>returns $expr$ with $item$ prepended to its elements.
+      <dt>'Prepend[$expr$, $item$]'
+      <dd>returns $expr$ with $item$ prepended to its elements.
 
-     <dt>'Prepend[$expr$]'
-     <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
+      <dt>'Prepend[$expr$]'
+      <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
     </dl>
 
     'Prepend' is similar to 'Append', but adds $item$ to the beginning
@@ -1085,7 +1148,7 @@ class Prepend(Builtin):
 
         return expr.restructure(
             expr.head,
-            list(chain([item], expr.get_elements())),
+            list(chain([item], expr.elements)),
             evaluation,
             deps=(expr, item),
         )
@@ -1131,7 +1194,7 @@ class PrependTo(Builtin):
      =  PrependTo[x, {3, 4}]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "rvalue": "`1` is not a variable with a value, so its value cannot be changed.",
@@ -1239,7 +1302,7 @@ class ReplacePart(Builtin):
                     replace_value = replace.evaluate(evaluation)
                 else:
                     replace_value = replace
-                set_part(new_expr, position, replace_value)
+                new_expr = set_part(new_expr, position, replace_value)
             except PartError:
                 pass
 
@@ -1461,3 +1524,7 @@ class UpTo(Builtin):
         "argx": "UpTo expects 1 argument, `1` arguments were given.",
     }
     summary_text = "a certain number of elements, or as many as are available"
+
+
+# TODO: ArrayRules, BinLists, Ordering, Position, SelectFirst,
+#       TakeDrop, TakeList, TakeWhile

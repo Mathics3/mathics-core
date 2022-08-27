@@ -257,7 +257,7 @@ class _RandomBase(Builtin):
 
     def _size_to_python(self, domain, size, evaluation):
         is_proper_spec = size.get_head_name() == "System`List" and all(
-            n.is_numeric(evaluation) for n in size.leaves
+            n.is_numeric(evaluation) for n in size.elements
         )
 
         py_size = size.to_python() if is_proper_spec else None
@@ -347,16 +347,20 @@ class RandomInteger(Builtin):
 class RandomReal(Builtin):
     """
     <dl>
-    <dt>'RandomReal[{$min$, $max$}]'
-        <dd>yields a pseudorandom real number in the range from $min$ to $max$.
-    <dt>'RandomReal[$max$]'
-        <dd>yields a pseudorandom real number in the range from 0 to $max$.
-    <dt>'RandomReal[]'
-        <dd>yields a pseudorandom real number in the range from 0 to 1.
-    <dt>'RandomReal[$range$, $n$]'
-        <dd>gives a list of $n$ pseudorandom real numbers.
-    <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
-        <dd>gives a nested list of pseudorandom real numbers.
+      <dt>'RandomReal[{$min$, $max$}]'
+      <dd>yields a pseudorandom real number in the range from $min$ to $max$.
+
+      <dt>'RandomReal[$max$]'
+      <dd>yields a pseudorandom real number in the range from 0 to $max$.
+
+      <dt>'RandomReal[]'
+      <dd>yields a pseudorandom real number in the range from 0 to 1.
+
+      <dt>'RandomReal[$range$, $n$]'
+      <dd>gives a list of $n$ pseudorandom real numbers.
+
+      <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
+      <dd>gives an $n1$ x $n2$ array of pseudorandom real numbers.
     </dl>
 
     >> RandomReal[]
@@ -593,17 +597,17 @@ class _RandomSelection(_RandomBase):
     def apply(self, domain, size, evaluation):
         """%(name)s[domain_, size_]"""
         if domain.get_head_name() == "System`Rule":  # elements and weights
-            err, py_weights = self._weights_to_python(domain.leaves[0], evaluation)
+            err, py_weights = self._weights_to_python(domain.elements[0], evaluation)
             if py_weights is None:
                 return err
-            elements = domain.leaves[1].leaves
-            if domain.leaves[1].get_head_name() != "System`List" or len(
+            elements = domain.elements[1].elements
+            if domain.elements[1].get_head_name() != "System`List" or len(
                 py_weights
             ) != len(elements):
                 return evaluation.message(self.get_name(), "wghtv", domain)
         elif domain.get_head_name() == "System`List":  # only elements
             py_weights = None
-            elements = domain.leaves
+            elements = domain.elements
         else:
             return evaluation.message(self.get_name(), "lrwl", domain)
         err, py_size = self._size_to_python(domain, size, evaluation)
@@ -625,17 +629,17 @@ class _RandomSelection(_RandomBase):
         # we need to normalize weights as numpy.rand.randchoice expects this and as we can limit
         # accuracy problems with very large or very small weights by normalizing with sympy
         is_proper_spec = weights.get_head_name() == "System`List" and all(
-            w.is_numeric(evaluation) for w in weights.leaves
+            w.is_numeric(evaluation) for w in weights.elements
         )
 
         if (
-            is_proper_spec and len(weights.leaves) > 1
+            is_proper_spec and len(weights.elements) > 1
         ):  # normalize before we lose accuracy
             norm_weights = Expression(
                 SymbolDivide, weights, Expression(SymbolTotal, weights)
             ).evaluate(evaluation)
             if norm_weights is None or not all(
-                w.is_numeric(evaluation) for w in norm_weights.leaves
+                w.is_numeric(evaluation) for w in norm_weights.elements
             ):
                 return evaluation.message(self.get_name(), "wghtv", weights), None
             weights = norm_weights

@@ -26,8 +26,8 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
-    Symbol_Context,
-    Symbol_ContextPath,
+    SymbolContext,
+    SymbolContextPath,
     SymbolFailed,
     SymbolOptions,
 )
@@ -104,7 +104,7 @@ class Clear(Builtin):
         for symbol in symbols:
             if isinstance(symbol, Symbol):
                 symbol_name = symbol.get_name()
-                if symbol in (Symbol_Context, Symbol_ContextPath):
+                if symbol in (SymbolContext, SymbolContextPath):
                     evaluation.message(self.get_name(), "spsym", symbol)
                     continue
                 names = [symbol_name]
@@ -251,10 +251,10 @@ class Unset(PostfixOperator):
 
         head = expr.get_head()
         if head in SYSTEM_SYMBOL_VALUES:
-            if len(expr.leaves) != 1:
-                evaluation.message_args(expr.get_head_name(), len(expr.leaves), 1)
+            if len(expr.elements) != 1:
+                evaluation.message_args(expr.get_head_name(), len(expr.elements), 1)
                 return SymbolFailed
-            symbol = expr.leaves[0].get_name()
+            symbol = expr.elements[0].get_name()
             if not symbol:
                 evaluation.message(expr.get_head_name(), "fnsym", expr)
                 return SymbolFailed

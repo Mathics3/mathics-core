@@ -1,9 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Unit tests from builtins ... algebra.py
+Unit tests for mathics.builtins.numbers.algebra
 """
+from test.helper import check_evaluation
+
 import pytest
-from .helper import check_evaluation
+
+
+def test_collect():
+    for str_expr, str_expected in [
+        ("Collect[q[x] + q[x] q[y],q[x]]", "q[x] (1 + q[y])"),
+        ("Collect[ 1+ a x + b x^3 + Cos[t] x, x]", "1 + (a + Cos[t]) x + b x^3"),
+        ("Collect[ q[0, x] q[0, y] + 1, q[0, x]]", "1 + q[0, x] q[0, y]"),  # Issue #285
+        (
+            "Collect[a x + b y + c x y^2 + p y x^2 + d x^2 y, {x, y}]",
+            "a x + b y + c x y ^ 2 + x ^ 2 y (d + p)",
+        ),
+    ]:
+        check_evaluation(str_expr, str_expected)
 
 
 def test_coefficient():

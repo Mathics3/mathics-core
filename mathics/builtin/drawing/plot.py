@@ -5,6 +5,10 @@ Plotting Data
 Plotting functions take a function as a parameter and data, often a range of points, as another parameter, and plot or show the function applied to the data.
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.plotting-data"
+
 
 from math import sin, cos, pi, sqrt, isnan, isinf
 import itertools
@@ -25,12 +29,13 @@ from mathics.core.atoms import (
     Integer,
     Integer0,
     Integer1,
-    from_python,
 )
 from mathics.core.attributes import hold_all, protected
-from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
+from mathics.core.evaluators import eval_N
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlend,
@@ -76,12 +81,12 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
         color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
         if not color_data.has_form("ColorDataFunction", 4):
             return
-        name, kind, interval, blend = color_data.leaves
+        name, kind, interval, blend = color_data.elements
         if not isinstance(kind, String) or kind.get_string_value() != "Gradients":
             return
         if not interval.has_form("List", 2):
             return
-        x0, x1 = (x.round_to_float() for x in interval.leaves)
+        x0, x1 = (x.round_to_float() for x in interval.elements)
     else:
         blend = color_function
         x0 = 0.0
@@ -90,13 +95,13 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
     xd = x1 - x0
     offsets = [MachineReal(x0 + float(xd * i) / float(n - 1)) for i in range(n)]
     colors = Expression(SymbolMap, blend, ListExpression(*offsets)).evaluate(evaluation)
-    if len(colors.leaves) != n:
+    if len(colors.elements) != n:
         return
 
     from mathics.builtin.colors.color_directives import expression_to_color, ColorError
 
     try:
-        objects = [expression_to_color(x) for x in colors.leaves]
+        objects = [expression_to_color(x) for x in colors.elements]
         if any(x is None for x in objects):
             return None
         return [x.to_rgba()[:3] for x in objects]
@@ -309,7 +314,7 @@ def compile_quiet_function(expr, arg_names, evaluation, expect_list):
         value = dynamic_scoping(quiet_expr.evaluate, vars, evaluation)
         if expect_list:
             if value.has_form("List", None):
-                value = [extract_pyreal(item) for item in value.leaves]
+                value = [extract_pyreal(item) for item in value.elements]
                 if any(item is None for item in value):
                     return None
                 return value
@@ -763,16 +768,16 @@ class _Chart(Builtin):
 
         points = points.evaluate(evaluation)
 
-        if points.get_head_name() != "System`List" or not points.leaves:
+        if points.get_head_name() != "System`List" or not points.elements:
             return
 
-        if points.leaves[0].get_head_name() == "System`List":
+        if points.elements[0].get_head_name() == "System`List":
             if not all(
-                group.get_head_name() == "System`List" for group in points.leaves
+                group.get_head_name() == "System`List" for group in points.elements
             ):
                 return
             multiple_colors = True
-            groups = points.leaves
+            groups = points.elements
         else:
             multiple_colors = False
             groups = [points]
@@ -787,7 +792,7 @@ class _Chart(Builtin):
                 return float(x.get_int_value())
             return x.round_to_float(evaluation=evaluation)
 
-        data = [[to_number(x) for x in group.leaves] for group in groups]
+        data = [[to_number(x) for x in group.elements] for group in groups]
 
         chart_style = self.get_option(options, "ChartStyle", evaluation)
         if (
@@ -797,7 +802,7 @@ class _Chart(Builtin):
             chart_style = String("Automatic")
 
         if chart_style.get_head_name() == "System`List":
-            colors = chart_style.leaves
+            colors = chart_style.elements
             spread_colors = False
         elif isinstance(chart_style, String):
             if chart_style.get_string_value() == "Automatic":
@@ -870,7 +875,7 @@ class _Chart(Builtin):
 
         if has_chart_legends:
             grid = Expression(
-                SymbolGrid, ListExpression(*list(legends(chart_legends.leaves)))
+                SymbolGrid, ListExpression(*list(legends(chart_legends.elements)))
             )
             chart = Expression(SymbolRow, ListExpression(chart, grid))
 
@@ -946,9 +951,9 @@ class PieChart(_Chart):
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
         if not sector_origin.has_form("List", 2):
             return
-        sector_origin = apply_N(sector_origin, evaluation)
+        sector_origin = eval_N(sector_origin, evaluation)
 
-        orientation = sector_origin.leaves[0]
+        orientation = sector_origin.elements[0]
         if (
             isinstance(orientation, Symbol)
             and orientation.get_name() == "System`Automatic"
@@ -956,10 +961,10 @@ class PieChart(_Chart):
             sector_phi = pi
             sector_sign = -1.0
         elif orientation.has_form("List", 2) and isinstance(
-            orientation.leaves[1], String
+            orientation.elements[1], String
         ):
-            sector_phi = orientation.leaves[0].round_to_float()
-            clock_name = orientation.leaves[1].get_string_value()
+            sector_phi = orientation.elements[0].round_to_float()
+            clock_name = orientation.elements[1].get_string_value()
             if clock_name == "Clockwise":
                 sector_sign = -1.0
             elif clock_name == "Counterclockwise":
@@ -980,14 +985,14 @@ class PieChart(_Chart):
         if not sector_spacing.has_form("List", 2):
             return
         segment_spacing = 0.0  # not yet implemented; needs real arc graphics
-        radius_spacing = max(0.0, min(1.0, sector_spacing.leaves[1].round_to_float()))
+        radius_spacing = max(0.0, min(1.0, sector_spacing.elements[1].round_to_float()))
 
         def vector2(x, y) -> ListExpression:
             return ListExpression(Real(x), Real(y))
 
         def radii():
             outer = 2.0
-            inner = sector_origin.leaves[1].round_to_float()
+            inner = sector_origin.elements[1].round_to_float()
             n = len(data)
 
             d = (outer - inner) / n
@@ -1054,7 +1059,7 @@ class PieChart(_Chart):
 
         chart_labels = self.get_option(options, "ChartLabels", evaluation)
         if chart_labels.get_head_name() == "System`List":
-            graphics.extend(list(labels(chart_labels.leaves)))
+            graphics.extend(list(labels(chart_labels.elements)))
 
         options["System`PlotRange"] = ListExpression(
             vector2(-2.0, 2.0), vector2(-2.0, 2.0)
@@ -1192,7 +1197,7 @@ class BarChart(_Chart):
 
         chart_labels = self.get_option(options, "ChartLabels", evaluation)
         if chart_labels.get_head_name() == "System`List":
-            graphics.extend(list(labels(chart_labels.leaves)))
+            graphics.extend(list(labels(chart_labels.elements)))
             y_range[0] = -0.4  # room for labels at the bottom
 
         # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
@@ -1244,13 +1249,13 @@ class Histogram(Builtin):
         if spec and len(spec) not in (1, 2):
             return
 
-        if points.get_head_name() != "System`List" or not points.leaves:
+        if points.get_head_name() != "System`List" or not points.elements:
             return
 
-        if points.leaves[0].get_head_name() == "System`List":
-            if not all(q.get_head_name() == "System`List" for q in points.leaves):
+        if points.elements[0].get_head_name() == "System`List":
+            if not all(q.get_head_name() == "System`List" for q in points.elements):
                 return
-            input = points.leaves
+            input = points.elements
         else:
             input = [points]
 
@@ -1260,7 +1265,7 @@ class Histogram(Builtin):
                 if y is not None:
                     yield y
 
-        matrix = [list(to_numbers(data.leaves)) for data in input]
+        matrix = [list(to_numbers(data.elements)) for data in input]
         minima = [min(data) for data in matrix]
         maxima = [max(data) for data in matrix]
         max_bins = max(len(data) for data in matrix)
@@ -1419,7 +1424,7 @@ class Histogram(Builtin):
                     Distribution(data, bspec.get_int_value()) for data in matrix
                 ]
                 return graphics(distributions)
-            elif bspec.get_head_name() == "System`List" and len(bspec.leaves) == 1:
+            elif bspec.get_head_name() == "System`List" and len(bspec.elements) == 1:
                 bin_width = bspec[0].to_mpmath()
                 distributions = [
                     Distribution(data, int(mpceil(span / bin_width))) for data in matrix
@@ -2162,7 +2167,7 @@ class Plot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
-            functions = functions.leaves
+            functions = functions.elements
         else:
             functions = [functions]
         return functions
@@ -2220,14 +2225,14 @@ class ParametricPlot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", 2) and not (
-            functions.leaves[0].has_form("List", None)
-            or functions.leaves[1].has_form("List", None)
+            functions.elements[0].has_form("List", None)
+            or functions.elements[1].has_form("List", None)
         ):
             # One function given
             functions = [functions]
         else:
             # Multiple Functions
-            functions = functions.leaves
+            functions = functions.elements
         return functions
 
     def get_plotrange(self, plotrange, start, stop):
@@ -2297,7 +2302,7 @@ class PolarPlot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
-            functions = functions.leaves
+            functions = functions.elements
         else:
             functions = [functions]
         return functions
@@ -2477,7 +2482,7 @@ class Plot3D(_Plot3D):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
-            return functions.leaves
+            return functions.elements
         else:
             return [functions]
 
@@ -2578,18 +2583,18 @@ class DensityPlot(_Plot3D):
                 SymbolColorData, String(color_function.get_string_value())
             ).evaluate(evaluation)
             if func.has_form("ColorDataFunction", 4):
-                color_function_min = func.leaves[2].leaves[0].round_to_float()
-                color_function_max = func.leaves[2].leaves[1].round_to_float()
+                color_function_min = func.elements[2].elements[0].round_to_float()
+                color_function_max = func.elements[2].elements[1].round_to_float()
                 color_function = Expression(
                     SymbolFunction,
-                    Expression(func.leaves[3], Expression(SymbolSlot, Integer1)),
+                    Expression(func.elements[3], Expression(SymbolSlot, Integer1)),
                 )
             else:
                 evaluation.message("DensityPlot", "color", func)
                 return
         if color_function.has_form("ColorDataFunction", 4):
-            color_function_min = color_function.leaves[2].leaves[0].round_to_float()
-            color_function_max = color_function.leaves[2].leaves[1].round_to_float()
+            color_function_min = color_function.elements[2].elements[0].round_to_float()
+            color_function_max = color_function.elements[2].elements[1].round_to_float()
 
         color_function_scaling = color_function_scaling is SymbolTrue
         v_range = v_max - v_min
@@ -2598,7 +2603,7 @@ class DensityPlot(_Plot3D):
             v_range = 1
 
         if color_function.has_form("ColorDataFunction", 4):
-            color_func = color_function.leaves[3]
+            color_func = color_function.elements[3]
         else:
             color_func = color_function
         if (

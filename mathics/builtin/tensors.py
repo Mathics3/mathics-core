@@ -3,7 +3,7 @@
 """
 Tensors
 
-In mathematics, a tensor is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
+A <url>:tensor: https://en.wikipedia.org/wiki/Tensor</url> is an algebraic object that describes a (multilinear) relationship between sets of algebraic objects related to a vector space. Objects that tensors may map between include vectors and scalars, and even other tensors.
 
 There are many types of tensors, including scalars and vectors (which are the simplest tensors), dual vectors, multilinear maps between vector spaces, and even some operations such as the dot product. Tensors are defined independent of any basis, although they are often referred to by their components in a basis related to a particular coordinate system.
 
@@ -48,7 +48,7 @@ def get_default_distance(p):
                     SymbolFalse,
                 )
 
-            if all(all(is_boolean(e) for e in q.leaves) for q in p):
+            if all(all(is_boolean(e) for e in q.elements) for q in p):
                 return Symbol("JaccardDissimilarity")
         return Symbol("SquaredEuclideanDistance")
     elif all(isinstance(q, String) for q in p):
@@ -70,23 +70,22 @@ def get_dimensions(expr, head=None):
             return []
         sub_dim = None
         sub = []
-        for leaf in expr.leaves:
-            sub = get_dimensions(leaf, expr.head)
+        for element in expr.elements:
+            sub = get_dimensions(element, expr.head)
             if sub_dim is None:
                 sub_dim = sub
             else:
                 if sub_dim != sub:
                     sub = []
                     break
-        return [len(expr.leaves)] + sub
+        return [len(expr.elements)] + sub
 
 
 class ArrayDepth(Builtin):
     """
     <dl>
-    <dt>'ArrayDepth[$a$]'
-        <dd>returns the depth of the non-ragged array $a$, defined as
-        'Length[Dimensions[$a$]]'.
+      <dt>'ArrayDepth[$a$]'
+      <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
     </dl>
 
     >> ArrayDepth[{{a,b},{c,d}}]
@@ -147,7 +146,7 @@ class ArrayQ(Builtin):
                     return False
                 level_dim = None
             else:
-                level_dim = len(expr.leaves)
+                level_dim = len(expr.elements)
 
             if len(dims) > level:
                 if dims[level] != level_dim:
@@ -155,8 +154,8 @@ class ArrayQ(Builtin):
             else:
                 dims.append(level_dim)
             if level_dim is not None:
-                for leaf in expr.leaves:
-                    if not check(level + 1, leaf):
+                for element in expr.elements:
+                    if not check(level + 1, element):
                         return False
             return True
 
@@ -209,9 +208,9 @@ class Dimensions(Builtin):
 class Dot(BinaryOperator):
     """
     <dl>
-    <dt>'Dot[$x$, $y$]'
-    <dt>'$x$ . $y$'
-        <dd>computes the vector dot product or matrix product $x$ . $y$.
+      <dt>'Dot[$x$, $y$]'
+      <dt>'$x$ . $y$'
+      <dd>computes the vector dot product or matrix product $x$ . $y$.
     </dl>
 
     Scalar product of vectors:
@@ -306,15 +305,15 @@ class Inner(Builtin):
         def rec(i_cur, j_cur, i_rest, j_rest):
             evaluation.check_stopped()
             if i_rest:
-                leaves = []
+                elements = []
                 for i in range(1, i_rest[0] + 1):
-                    leaves.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
-                return Expression(head, *leaves)
+                    elements.append(rec(i_cur + [i], j_cur, i_rest[1:], j_rest))
+                return Expression(head, *elements)
             elif j_rest:
-                leaves = []
+                elements = []
                 for j in range(1, j_rest[0] + 1):
-                    leaves.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
-                return Expression(head, *leaves)
+                    elements.append(rec(i_cur, j_cur + [j], i_rest, j_rest[1:]))
+                return Expression(head, *elements)
             else:
 
                 def summand(i):
@@ -323,7 +322,7 @@ class Inner(Builtin):
                     return Expression(f, part1, part2)
 
                 part = Expression(g, *[summand(i) for i in range(1, inner_dim + 1)])
-                # cur_expr.leaves.append(part)
+                # cur_expr.elements.append(part)
                 return part
 
         return rec([], [], m[:-1], n[1:])
@@ -332,9 +331,8 @@ class Inner(Builtin):
 class Outer(Builtin):
     """
     <dl>
-    <dt>'Outer[$f$, $x$, $y$]'
-        <dd>computes a generalised outer product of $x$ and $y$, using
-        the function $f$ in place of multiplication.
+      <dt>'Outer[$f$, $x$, $y$]'
+      <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
     </dl>
 
     >> Outer[f, {a, b}, {1, 2, 3}]
@@ -389,10 +387,10 @@ class Outer(Builtin):
                 else:
                     return Expression(f, *(current + [item]))
             else:
-                leaves = []
-                for leaf in item.leaves:
-                    leaves.append(rec(leaf, rest_lists, current))
-                return Expression(head, *leaves)
+                elements = []
+                for element in item.elements:
+                    elements.append(rec(element, rest_lists, current))
+                return Expression(head, *elements)
 
         return rec(lists[0], lists[1:], [])
 
@@ -494,13 +492,16 @@ class TranslationTransform(Builtin):
 
 class Transpose(Builtin):
     """
+    <url>:Transpose: https://en.wikipedia.org/wiki/Transpose</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Transpose.html</url>)
+
     <dl>
       <dt>'Tranpose[$m$]'
       <dd>transposes rows and columns in the matrix $m$.
     </dl>
 
-    >> Transpose[{{1, 2, 3}, {4, 5, 6}}]
+    >> square = {{1, 2, 3}, {4, 5, 6}}; Transpose[square]
      = {{1, 4}, {2, 5}, {3, 6}}
+
     >> MatrixForm[%]
      = 1   4
      .
@@ -508,6 +509,17 @@ class Transpose(Builtin):
      .
      . 3   6
 
+    >> matrix = {{1, 2}, {3, 4}, {5, 6}}; MatrixForm[Transpose[matrix]]
+     = 1   3   5
+     .
+     . 2   4   6
+
+    Transpose is its own inverse. Transposing a matrix twice will give you back the same thing you started out with:
+
+    >> Transpose[Transpose[matrix]] == matrix
+     = True
+
+    #> Clear[matrix, square]
     #> Transpose[x]
      = Transpose[x]
     """
@@ -518,8 +530,8 @@ class Transpose(Builtin):
         "Transpose[m_?MatrixQ]"
 
         result = []
-        for row_index, row in enumerate(m.leaves):
-            for col_index, item in enumerate(row.leaves):
+        for row_index, row in enumerate(m.elements):
+            for col_index, item in enumerate(row.elements):
                 if row_index == 0:
                     result.append([item])
                 else:
@@ -527,6 +539,8 @@ class Transpose(Builtin):
         return ListExpression(*[ListExpression(*row) for row in result])
 
 
+# Should be in Elements of Vectors, but we don't have this since other operations
+# are subsumed by Elements of Lists.
 class VectorQ(Builtin):
     """
     <dl>

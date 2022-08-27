@@ -1,0 +1,191 @@
+# -*- coding: utf-8 -*-
+
+"""
+Mathematical Operations
+"""
+
+from typing import Optional
+import sympy
+
+from mathics.builtin.base import Builtin
+from mathics.core.atoms import Integer, Real, String
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
+
+from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.symbols import Symbol
+
+
+def eval_2_Norm(m: Expression, evaluation: Evaluation) -> Optional[Expression]:
+    """
+    2-Norm[] evaluation function
+    """
+    sympy_m = to_sympy_matrix(m)
+    if sympy_m is None:
+        return evaluation.message("Norm", "nvm")
+
+    return from_sympy(sympy_m.norm())
+
+
+def eval_p_norm(
+    m: Expression, p: Expression, evaluation: Evaluation
+) -> Optional[Expression]:
+    """
+    p2-Norm[] evaluation function
+    """
+    if isinstance(p, Symbol):
+        sympy_p = p.to_sympy()
+    elif isinstance(p, String):
+        sympy_p = p.value
+        if sympy_p == "Frobenius":
+            sympy_p = "fro"
+    elif isinstance(p, (Real, Integer)) and p.to_python() >= 1:
+        sympy_p = p.to_sympy()
+    else:
+        return evaluation.message("Norm", "ptype", p)
+
+    if sympy_p is None:
+        return
+    matrix = to_sympy_matrix(m)
+
+    if matrix is None:
+        return evaluation.message("Norm", "nvm")
+    if len(matrix) == 0:
+        return
+
+    try:
+        res = matrix.norm(sympy_p)
+    except NotImplementedError:
+        return evaluation.message("Norm", "normnotimplemented")
+
+    return from_sympy(res)
+
+
+class Cross(Builtin):
+    """
+    <url>:Cross product: https://en.wikipedia.org/wiki/Cross_product</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/vector/api/functions.html#sympy.physics.vector.functions.cross</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Cross.html</url>)
+
+    <dl>
+      <dt>'Cross[$a$, $b$]'
+      <dd>computes the vector cross product of $a$ and $b$.
+    </dl>
+
+    Three-dimensional cross product:
+
+    >> Cross[{x1, y1, z1}, {x2, y2, z2}]
+     = {y1 z2 - y2 z1, -x1 z2 + x2 z1, x1 y2 - x2 y1}
+
+    Cross is antisymmetric, so:
+
+    >> Cross[{x, y}]
+     = {-y, x}
+
+    Graph two-Dimensional cross product:
+
+    >> v1 = {1, Sqrt[3]}; v2 = Cross[v1]
+     = {-Sqrt[3], 1}
+
+    Visualize this:
+    >> Graphics[{Arrow[{{0, 0}, v1}], Red, Arrow[{{0, 0}, v2}]}, Axes -> True]
+     = -Graphics-
+
+    #> Clear[v1, v2];
+
+    >> Cross[{1, 2}, {3, 4, 5}]
+     : The arguments are expected to be vectors of equal length, and the number of arguments is expected to be 1 less than their length.
+     = Cross[{1, 2}, {3, 4, 5}]
+    """
+
+    messages = {
+        "nonn1": (
+            "The arguments are expected to be vectors of equal length, "
+            "and the number of arguments is expected to be 1 less than "
+            "their length."
+        )
+    }
+    rules = {"Cross[{x_, y_}]": "{-y, x}"}
+    summary_text = "vector cross product"
+
+    def apply(self, a, b, evaluation):
+        "Cross[a_, b_]"
+        a = to_sympy_matrix(a)
+        b = to_sympy_matrix(b)
+
+        if a is None or b is None:
+            return evaluation.message("Cross", "nonn1")
+
+        try:
+            res = a.cross(b)
+        except sympy.ShapeError:
+            return evaluation.message("Cross", "nonn1")
+        return from_sympy(res)
+
+
+class Norm(Builtin):
+    """
+    <url>:Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Norm.html</url>)
+
+    <dl>
+      <dt>'Norm[$m$, $p$]'
+      <dd>computes the p-norm of matrix m.
+
+      <dt>'Norm[$m$]'
+     <dd>computes the 2-norm of matrix m.
+    </dl>
+
+    The Norm of of a vector is its Euclidian distance:
+    >> Norm[{x, y, z}]
+     = Sqrt[Abs[x] ^ 2 + Abs[y] ^ 2 + Abs[z] ^ 2]
+
+    By default, 2-norm is used for vectors, but you can be explicit:
+    >> Norm[{3, 4}, 2]
+     = 5
+
+    The 1-norm is the sum of the values:
+    >> Norm[{10, 100, 200}, 1]
+     = 310
+
+    >> Norm[{x, y, z}, Infinity]
+     = Max[{Abs[x], Abs[y], Abs[z]}]
+
+    >> Norm[{-100, 2, 3, 4}, Infinity]
+     = 100
+
+    For complex numbers, 'Norm[$z$]' is 'Abs[$z$]':
+    >> Norm[1 + I]
+     = Sqrt[2]
+    so the norm is always real even when the input is complex.
+
+
+    'Norm'[$m$,"Frobenius"] gives the Frobenius norm of $m$:
+    >> Norm[Array[Subscript[a, ##] &, {2, 2}], "Frobenius"]
+     = Sqrt[Abs[Subscript[a, 1, 1]] ^ 2 + Abs[Subscript[a, 1, 2]] ^ 2 + Abs[Subscript[a, 2, 1]] ^ 2 + Abs[Subscript[a, 2, 2]] ^ 2]
+
+    """
+
+    messages = {
+        "nvm": "The first Norm argument should be a number, vector, or matrix.",
+        "ptype": (
+            "The second argument of Norm, `1`, should be a symbol, Infinity, "
+            "or an integer or real number not less than 1 for vector p-norms; "
+            'or 1, 2, Infinity, or "Frobenius" for matrix norms.'
+        ),
+        "normnotimplemented": "Norm is not yet implemented for matrices.",
+    }
+
+    rules = {
+        "Norm[m_?NumberQ]": "Abs[m]",
+        "Norm[m_?VectorQ, DirectedInfinity[1]]": "Max[Abs[m]]",
+    }
+    summary_text = "norm of a vector or matrix"
+
+    def apply_two_norm(self, m, evaluation):
+        "Norm[m_]"
+        return eval_2_Norm(m, evaluation)
+
+    def apply_p_norm(self, m, p, evaluation):
+        "Norm[m_, p_]"
+        return eval_p_norm(m, p, evaluation)
+
+
+# TODO: Curl, Div

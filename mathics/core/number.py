@@ -7,7 +7,7 @@ import mpmath
 from math import log, ceil
 import string
 
-import typing
+from typing import List, Optional
 
 from mathics.core.symbols import (
     SymbolMinPrecision,
@@ -47,19 +47,19 @@ class SpecialValueError(Exception):
         self.name = name
 
 
-def _get_float_inf(value, evaluation) -> typing.Optional[float]:
+def _get_float_inf(value, evaluation) -> Optional[float]:
     value = value.evaluate(evaluation)
     if value.has_form("DirectedInfinity", 1):
-        if value.leaves[0].get_int_value() == 1:
+        if value.elements[0].get_int_value() == 1:
             return float("inf")
-        elif value.leaves[0].get_int_value() == -1:
+        elif value.elements[0].get_int_value() == -1:
             return float("-inf")
         else:
             return None
     return value.round_to_float(evaluation)
 
 
-def get_precision(value, evaluation, show_messages=True) -> typing.Optional[float]:
+def get_precision(value, evaluation, show_messages=True) -> Optional[float]:
     """
     Returns the ``float`` in the interval     [``$MinPrecision``, ``$MaxPrecision``] closest to ``value``.
     If ``value`` does not belongs to that interval, and ``show_messages`` is True, a Message warning is shown.
@@ -92,7 +92,7 @@ def get_precision(value, evaluation, show_messages=True) -> typing.Optional[floa
         raise PrecisionValueError()
 
 
-def get_type(value) -> typing.Optional[str]:
+def get_type(value) -> Optional[str]:
     if isinstance(value, sympy.Integer):
         return "z"
     elif isinstance(value, sympy.Rational):
@@ -185,7 +185,7 @@ def convert_base(x, base, precision=10) -> str:
         raise TypeError(x)
 
 
-def convert_int_to_digit_list(x, base) -> typing.List[int]:
+def convert_int_to_digit_list(x, base) -> List[int]:
     if x == 0:
         return [0]
 

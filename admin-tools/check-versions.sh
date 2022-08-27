@@ -12,6 +12,7 @@ if ! source ./pyenv-versions ; then
     exit $?
 fi
 
+cd ..
 for version in $PYVERSIONS; do
     echo --- $version ---
     if ! pyenv local $version ; then

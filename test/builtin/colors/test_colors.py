@@ -11,9 +11,10 @@ from random import random
 import mathics.builtin.colors.color_internals as colors
 from mathics.builtin.numpy_utils import array, stacked, vectorize
 from mathics.core.atoms import String
+from mathics.core.convert.expression import to_expression
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression, to_expression
+from mathics.core.expression import Expression
 from mathics.core.systemsymbols import SymbolColorConvert
 
 
@@ -230,7 +231,7 @@ class ColorTest(unittest.TestCase):
                         )
 
                         checked_components = [
-                            c.to_python() for c in checked_color.leaves
+                            c.to_python() for c in checked_color.elements
                         ]
                         if from_space == "CMYK":  # if cmyk, cmyk -> cmy
                             k = checked_components[3]
@@ -342,7 +343,7 @@ class ColorTest(unittest.TestCase):
                 String(to_space),
             )
             .evaluate(self.evaluation)
-            .leaves
+            .elements
         ]
         self.assertEqual(len(components), len(to_components))
         for x, y in zip(components, to_components):

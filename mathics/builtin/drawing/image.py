@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Image[] and image related functions
+Image[] and image-related functions
 
 Note that you (currently) need scikit-image installed in order for this module to work.
 """
+
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.image-and-image-related-functions"
 
 from collections import defaultdict
 import base64
@@ -38,12 +42,12 @@ from mathics.core.atoms import (
     MachineReal,
     Rational,
     Real,
-    SymbolDivide,
-    from_python,
 )
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
-from mathics.core.list import to_mathics_list, ListExpression
-from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
 SymbolColorQuantize = Symbol("ColorQuantize")
@@ -2074,11 +2078,16 @@ class Image(Atom):
     def default_format(self, evaluation, form):
         return "-Image-"
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
+            # If pattern_sort=True, returns the sort key that matches to an Atom.
             return super(Image, self).get_sort_key(True)
         else:
-            return hash(self)
+            # If pattern is False, return a sort_key for the expression `Image[]`,
+            # but with a `2` instead of `1` in the 5th position,
+            # and adding two extra fields: the length in the 5th position,
+            # and a hash in the 6th place.
+            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""

@@ -147,7 +147,7 @@ def read_name_and_stream_from_channel(channel, evaluation):
     if strm is None:
         return None, None, None
 
-    name, n = strm.get_elements()
+    name, n = strm.elements
 
     stream = stream_manager.lookup_stream(n.get_int_value())
     if stream is None:
@@ -178,7 +178,7 @@ def read_list_from_types(read_types):
         Symbol("HoldExpression")
         if (
             typ.get_head_name() == "System`Hold"
-            and typ.leaves[0].get_name() == "System`Expression"
+            and typ.elements[0].get_name() == "System`Expression"
         )
         else typ
         for typ in read_types

@@ -1,5 +1,7 @@
 # from .helper import session
 from mathics.session import MathicsSession
+from mathics.core.symbols import Symbol
+from mathics.core.formatter import format_element
 import os
 
 session = MathicsSession()
@@ -150,7 +152,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{Hola!}",
             "System`TraditionalForm": "\\text{Hola!}",
-            "System`InputForm": "\\text{Hola!}",
+            "System`InputForm": "\\text{``Hola!''}",
             "System`OutputForm": "\\text{Hola!}",
         },
     },
@@ -175,7 +177,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{π is a trascendental number}",
             "System`TraditionalForm": "\\text{π is a trascendental number}",
-            "System`InputForm": "\\text{π is a trascendental number}",
+            "System`InputForm": "\\text{``π is a trascendental number''}",
             "System`OutputForm": "\\text{π is a trascendental number}",
         },
     },
@@ -196,7 +198,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\text{-4.32}",
             "System`TraditionalForm": "\\text{-4.32}",
-            "System`InputForm": "\\text{-4.32}",
+            "System`InputForm": "\\text{``-4.32''}",
             "System`OutputForm": "\\text{-4.32}",
         },
     },
@@ -321,7 +323,7 @@ all_test = {
         "tex": {
             "System`StandardForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
             "System`TraditionalForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
-            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{Spanish}, \text{Hola!}\right\}, \left\{\text{Portuguese}, \text{Olà!}\right\}, \left\{\text{English}, \text{Hi!}\right\}\right\}\right]",
+            "System`InputForm": r"\text{Grid}\left[\left\{\left\{\text{``Spanish''}, \text{``Hola!''}\right\}, \left\{\text{``Portuguese''}, \text{``Olà!''}\right\}, \left\{\text{``English''}, \text{``Hi!''}\right\}\right\}\right]",
             "System`OutputForm": "\\begin{array}{cc} \\text{Spanish} & \\text{Hola!}\\\\ \\text{Portuguese} & \\text{Olà!}\\\\ \\text{English} & \\text{Hi!}\\end{array}",
         },
         "mathml": {
@@ -644,7 +646,7 @@ def load_tests(key):
             # MATHML_STRICT is True
             if key != "mathml" or MATHML_STRICT:
                 fragile = False
-            full_test = (expr, tst, form, msg)
+            full_test = (expr, tst, Symbol(form), msg)
             if fragile or must_be:
                 fragile_tests.append(full_test)
             else:

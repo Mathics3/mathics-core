@@ -4,10 +4,14 @@
 Algorithms to access and manipulate elements in nested lists / expressions
 """
 
-from mathics.builtin.base import BoxExpression
-from mathics.core.expression import Expression
-from mathics.core.symbols import Atom, Symbol
+from typing import List
+
 from mathics.core.atoms import Integer, Integer1
+from mathics.core.convert.expression import make_expression
+from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
@@ -20,78 +24,107 @@ from mathics.builtin.exceptions import (
 
 SymbolNothing = Symbol("Nothing")
 
-# TODO: delete me
-# def join_lists(lists):
-#    """
-#    flatten a list of list.
-#    Maybe there are better, standard options, like
-#    https://stackoverflow.com/questions/952914/how-to-make-a-flat-list-out-of-a-list-of-lists.
-#    In any case, is not used in the following code.
-#    """
-#    new_list = []
-#    for list in lists:
-#        new_list.extend(list)
-#    return new_list
+
+def get_part(expression: BaseElement, indices: List[int]) -> BaseElement:
+    """Extract part of ``expression`` specified by ``indicies`` and
+    return that.
+    """
+
+    def get_subpart(sub_expression: BaseElement, sub_indices: List[int]) -> BaseElement:
+        """Recursive work-horse portion of ``get_part()`` that extracts pieces
+        of ``sub_expression`` as directed by ``sub_indices``.
+
+        The variables ``sub_expression`` and ``sub_indices`` are smaller parts of
+        ``expression`` and ``indices`` respectively, which are defined in the outer level.
+        """
+        if not sub_indices:
+            return sub_expression
+
+        if isinstance(sub_expression, Atom):
+            raise PartDepthError(sub_indices[0])
+
+        pos = sub_indices[0]
+        elements = sub_expression.elements
+        try:
+            if pos > 0:
+                part = elements[pos - 1]
+            elif pos == 0:
+                part = sub_expression.get_head()
+            else:
+                part = elements[pos]
+        except IndexError:
+            raise PartRangeError
+        return get_subpart(part, sub_indices[1:])
+
+    return get_subpart(expression, indices).copy()
 
 
-def get_part(varlist, indices):
-    "Simple part extraction. indices must be a list of python integers."
+def set_part(expression, indices: List[int], new_atom: Atom) -> BaseElement:
+    """Replace all parts of ``expression`` specified by ``indicies`` with
+    ``new_atom`. Return the modified compound expression.
+    """
 
-    def rec(cur, rest):
-        if rest:
-            if isinstance(cur, Atom):
-                raise PartDepthError(rest[0])
-            pos = rest[0]
-            elements = cur.get_elements()
-            try:
-                if pos > 0:
-                    part = elements[pos - 1]
-                elif pos == 0:
-                    part = cur.get_head()
-                else:
-                    part = elements[pos]
-            except IndexError:
-                raise PartRangeError
-            return rec(part, rest[1:])
-        else:
-            return cur
+    def set_subpart(sub_expression, sub_indices: List[int]) -> BaseElement:
+        """
+        Recursive work-horse portion of ``set_part()`` that replaces those pieces
+        of ``sub_expression`` with outer variable ``new_atom`` as directed by ``sub_indices``.
 
-    return rec(varlist, indices).copy()
-
-
-def set_part(varlist, indices, newval):
-    "Simple part replacement. indices must be a list of python integers."
-
-    def rec(cur, rest):
-        if len(rest) > 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+        The variables ``sub_expression`` and ``sub_indices`` are smaller parts of
+        ``expression`` and ``indices`` respectively, which are defined in the outer level.
+        """
+        if len(sub_indices) > 1:
+            pos = sub_indices[0]
+            if isinstance(sub_expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    part = cur.elements[pos - 1]
+                    part = sub_expression.elements[pos - 1]
                 elif pos == 0:
-                    part = cur.get_head()
+                    part = sub_expression.get_head()
                 else:
-                    part = cur.elements[pos]
+                    part = sub_expression.elements[pos]
             except IndexError:
                 raise PartRangeError
-            return rec(part, rest[1:])
-        elif len(rest) == 1:
-            pos = rest[0]
-            if isinstance(cur, Atom):
+            set_subpart(part, sub_indices[1:])
+            return sub_expression
+        elif len(sub_indices) == 1:
+            pos = sub_indices[0]
+            if isinstance(sub_expression, Atom):
                 raise PartDepthError
             try:
                 if pos > 0:
-                    cur.set_element(pos - 1, newval)
+                    sub_expression.set_element(pos - 1, new_atom)
                 elif pos == 0:
-                    cur.set_head(newval)
+                    # We may have to replace the entire ``expression``
+                    # variable when changing position 0 or Head. This
+                    # happens when the before and after are
+                    # class objects are different.
+
+                    # Right now, we need to only worry about
+                    # converting between ``Expression`` and
+                    # ``ListExpression`` or vice vera.  In the code
+                    # below, we make use of the fact that a
+                    # ``ListExpression``'s Head is ``SymbolList``.
+                    head = sub_expression.head
+                    if head == new_atom:
+                        # Nothing to modify
+                        pass
+                    elif new_atom == SymbolList and head != SymbolList:
+                        sub_expression = ListExpression(*sub_expression.elements)
+                    elif new_atom not in (SymbolList,) and head in (SymbolList,):
+                        sub_expression = Expression(new_atom, *sub_expression.elements)
+                    else:
+                        # Both ``head`` and ``new_atom`` should be the head of
+                        # an Expression and not some specialization of that.
+                        # Here, we can set or change the head element.
+                        sub_expression.set_head(new_atom)
                 else:
-                    cur.set_element(pos, newval)
+                    sub_expression.set_element(pos, new_atom)
             except IndexError:
                 raise PartRangeError
+            return sub_expression
 
-    rec(varlist, indices)
+    return set_subpart(expression, indices)
 
 
 def _parts_all_selector():
@@ -105,10 +138,10 @@ def _parts_all_selector():
     def select(inner):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
-        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             raise MessageException("Part", "take", start, stop, inner)
-        return inner.leaves[py_slice]
+        return inner.elements[py_slice]
 
     return select
 
@@ -117,22 +150,22 @@ def _parts_span_selector(pspec):
     """
     Selector for `System`Span` part specification
     """
-    if len(pspec.leaves) > 3:
+    if len(pspec.elements) > 3:
         raise MessageException("Part", "span", pspec)
     start = 1
     stop = None
     step = 1
-    if len(pspec.leaves) > 0:
-        start = pspec.leaves[0].get_int_value()
-    if len(pspec.leaves) > 1:
-        stop = pspec.leaves[1].get_int_value()
+    if len(pspec.elements) > 0:
+        start = pspec.elements[0].get_int_value()
+    if len(pspec.elements) > 1:
+        stop = pspec.elements[1].get_int_value()
         if stop is None:
-            if pspec.leaves[1].get_name() == "System`All":
+            if pspec.elements[1].get_name() == "System`All":
                 stop = None
             else:
                 raise MessageException("Part", "span", pspec)
-    if len(pspec.leaves) > 2:
-        step = pspec.leaves[2].get_int_value()
+    if len(pspec.elements) > 2:
+        step = pspec.elements[2].get_int_value()
 
     if start == 0 or stop == 0:
         # index 0 is undefined
@@ -144,10 +177,10 @@ def _parts_span_selector(pspec):
     def select(inner):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
-        py_slice = python_seq(start, stop, step, len(inner.leaves))
+        py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             raise MessageException("Part", "take", start, stop, inner)
-        return inner.leaves[py_slice]
+        return inner.elements[py_slice]
 
     return select
 
@@ -169,8 +202,8 @@ def _parts_sequence_selector(pspec):
         if isinstance(inner, Atom):
             raise MessageException("Part", "partd")
 
-        leaves = inner.leaves
-        n = len(leaves)
+        elements = inner.elements
+        n = len(elements)
 
         for index in indices:
             int_index = index.value
@@ -178,9 +211,9 @@ def _parts_sequence_selector(pspec):
             if int_index == 0:
                 yield inner.head
             elif 1 <= int_index <= n:
-                yield leaves[int_index - 1]
+                yield elements[int_index - 1]
             elif -n <= int_index <= -1:
-                yield leaves[int_index]
+                yield elements[int_index]
             else:
                 raise MessageException("Part", "partw", index, inner)
 
@@ -197,8 +230,11 @@ def _part_selectors(indices):
             yield _parts_span_selector(index)
         elif index.get_name() == "System`All":
             yield _parts_all_selector()
+        # FIXME: test/package/test_combinatorica.py in the benchmarking+futher-improvements
+        # fails with the below test. Isolate and fix.
+        # elif isinstance(index, ListExpression):
         elif index.has_form("List", None):
-            yield _parts_sequence_selector(index.leaves)
+            yield _parts_sequence_selector(index.elements)
         elif isinstance(index, Integer):
             yield _parts_sequence_selector(index), lambda x: x[0]
         else:
@@ -305,7 +341,7 @@ def walk_levels(
     include_pos=False,
     cur_pos=[],
 ):
-    if isinstance(expr, BoxExpression):
+    if isinstance(expr, BoxElementMixin):
         expr = expr.to_expression()
     if isinstance(expr, Atom):
         depth = 0
@@ -325,10 +361,12 @@ def walk_levels(
             )
         else:
             head = expr.head
-        leaves = []
-        for index, leaf in enumerate(expr.leaves):
-            leaf, leaf_depth = walk_levels(
-                leaf,
+
+        # FIXME: we could keep track of elements properties here.
+        elements = []
+        for index, element in enumerate(expr.elements):
+            element, element_depth = walk_levels(
+                element,
                 start,
                 stop,
                 current + 1,
@@ -337,10 +375,11 @@ def walk_levels(
                 include_pos,
                 cur_pos + [index + 1],
             )
-            if leaf_depth + 1 > depth:
-                depth = leaf_depth + 1
-            leaves.append(leaf)
-        new_expr = Expression(head, *leaves)
+            if element_depth + 1 > depth:
+                depth = element_depth + 1
+            elements.append(element)
+        new_expr = make_expression(head, *elements)
+
     if is_in_level(current, depth, start, stop):
         if include_pos:
             new_expr = callback(new_expr, cur_pos)
@@ -360,8 +399,10 @@ def python_levelspec(levelspec):
         else:
             return value
 
+    # FIXME: Something in ExportString prevents using isinstance(levelspec, ListExpression).
+    # Track this down and fix.
     if levelspec.has_form("List", None):
-        values = [value_to_level(leaf) for leaf in levelspec.leaves]
+        values = [value_to_level(element) for element in levelspec.elements]
         if len(values) == 1:
             return values[0], values[0]
         elif len(values) == 2:
@@ -454,17 +495,17 @@ def convert_seq(seq):
         else:
             start = value
     elif seq.has_form("List", 1, 2, 3):
-        if len(seq.leaves) == 1:
-            start = stop = seq.leaves[0].get_int_value()
+        if len(seq.elements) == 1:
+            start = stop = seq.elements[0].get_int_value()
             if stop is None:
                 return None
         else:
-            start = seq.leaves[0].get_int_value()
-            stop = seq.leaves[1].get_int_value()
+            start = seq.elements[0].get_int_value()
+            stop = seq.elements[1].get_int_value()
             if start is None or stop is None:
                 return None
-        if len(seq.leaves) == 3:
-            step = seq.leaves[2].get_int_value()
+        if len(seq.elements) == 3:
+            step = seq.elements[2].get_int_value()
             if step is None:
                 return None
     else:
@@ -482,12 +523,12 @@ def _drop_take_selector(name, seq, sliced):
         if isinstance(inner, Atom):
             py_slice = None
         else:
-            py_slice = python_seq(start, stop, step, len(inner.leaves))
+            py_slice = python_seq(start, stop, step, len(inner.elements))
         if py_slice is None:
             if stop is None:
                 stop = SymbolInfinity
             raise MessageException(name, name.lower(), start, stop, inner)
-        return sliced(inner.leaves, py_slice)
+        return sliced(inner.elements, py_slice)
 
     return select
 
@@ -537,13 +578,13 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
     while curr_index[0] != 1:
         # If the end of the branch is reached, or no more elements to delete out
         if curr_index[-1] == len(tree[-1]) or n == 0:
-            leaves = tree[-1]
+            elements = tree[-1]
             tree.pop()
-            # check if some of the leaves was changed
+            # check if some of the elements was changed
             changed = any(changed_marks[-1])
             changed_marks.pop()
             if changed:
-                leaves = [leaf for leaf in leaves if leaf is not nothing]
+                elements = [element for element in elements if element is not nothing]
             curr_index.pop()
             if len(curr_index) == 0:
                 break
@@ -552,7 +593,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             changed_marks[-1][idx] = changed
             if changed:
                 head = tree[-1][curr_index[-1]].get_head()
-                tree[-1][idx] = Expression(head, *leaves)
+                tree[-1][idx] = make_expression(head, *elements)
             if len(curr_index) == 0:
                 break
             curr_index[-1] = curr_index[-1] + 1
@@ -568,7 +609,7 @@ def deletecases_with_levelspec(expr, pattern, evaluation, levelspec=1, n=-1):
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(list(curr_element.get_elements()))
+            tree.append(list(curr_element.elements))
             changed_marks.append([False for s in tree[-1]])
             curr_index.append(0)
     return tree[0][0]
@@ -594,7 +635,7 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
     else:
         lsmin = levelspec[0]
         lsmax = levelspec[1]
-    tree = [expr.get_elements()]
+    tree = [expr.elements]
     curr_index = [0]
     found = []
     while len(tree) > 0:
@@ -616,6 +657,6 @@ def find_matching_indices_with_levelspec(expr, pattern, evaluation, levelspec=1,
             curr_index[-1] = curr_index[-1] + 1
             continue
         else:
-            tree.append(curr_element.get_elements())
+            tree.append(curr_element.elements)
             curr_index.append(0)
     return found

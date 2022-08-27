@@ -7,6 +7,9 @@ There are a number of functions for testing Expressions.
 Functions that "ask a question" have names that end in "Q". They return 'True' for an explicit answer, and 'False' otherwise.
 """
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.testing-expressions"
+
 from typing import Optional, Any
 
 import sympy
@@ -38,8 +41,9 @@ from mathics.core.attributes import (
     orderless,
     protected,
 )
-from mathics.core.evaluators import apply_N
-from mathics.core.expression import Expression, to_expression
+from mathics.core.convert.expression import to_expression
+from mathics.core.evaluators import eval_N
+from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
@@ -86,7 +90,7 @@ class _InequalityOperator(BinaryOperator):
             for item in items:
                 if not isinstance(item, Number):
                     # TODO: use $MaxExtraPrecision insterad of hard-coded 50
-                    item = apply_N(item, evaluation, SymbolMaxPrecision)
+                    item = eval_N(item, evaluation, SymbolMaxPrecision)
                 n_items.append(item)
             items = n_items
         else:
@@ -342,7 +346,7 @@ class SameQ(_ComparisonOperator):
         return SymbolTrue
 
 
-class UnsameQ(BinaryOperator):
+class UnsameQ(_ComparisonOperator):
     """
     <dl>
       <dt>'UnsameQ[$x$, $y$]'
@@ -351,23 +355,44 @@ class UnsameQ(BinaryOperator):
       Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
     </dl>
 
-    >> a=!=a
+    >> a =!= a
      = False
-    >> 1=!=1.
+    >> 1 =!= 1.
+     = True
+
+    UnsameQ accepts any number of arguments and returns True if all expressions
+    are structurally distinct:
+    >> 1 =!= 2 =!= 3 =!= 4
+     = True
+
+    UnsameQ returns False if any expression is identical to another:
+    >> 1 =!= 2 =!= 1 =!= 4
+     = False
+
+    UnsameQ[] and UnsameQ[expr] return True:
+    >> UnsameQ[]
+     = True
+    >> UnsameQ[expr]
      = True
     """
 
+    grouping = "None"  # Indeterminate grouping: Neither left nor right
     operator = "=!="
     precedence = 290
+
     summary_text = "not literal symbolic identity"
 
-    def apply(self, lhs, rhs, evaluation):
-        "lhs_ =!= rhs_"
-
-        if lhs.sameQ(rhs):
-            return SymbolFalse
-        else:
+    def apply_list(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
             return SymbolTrue
+
+        for index, first_item in enumerate(items_sequence):
+            for second_item in items_sequence[index + 1 :]:
+                if first_item.sameQ(second_item):
+                    return SymbolFalse
+        return SymbolTrue
 
 
 class TrueQ(Builtin):
@@ -428,8 +453,8 @@ class BooleanQ(Builtin):
 class Inequality(Builtin):
     """
     <dl>
-    <dt>'Inequality'
-        <dd>is the head of expressions involving different inequality
+      <dt>'Inequality'
+      <dd>is the head of expressions involving different inequality
         operators (at least temporarily). Thus, it is possible to
         write chains of inequalities.
     </dl>
@@ -517,7 +542,7 @@ def do_cmp(x1, x2) -> Optional[int]:
     for x in (x1, x2):
         # TODO: Send message General::nord
         if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.leaves[0], Complex)
+            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
         ):
             return None
 
@@ -550,7 +575,7 @@ def do_cmp(x1, x2) -> Optional[int]:
 class _SympyComparison(SympyFunction):
     def to_sympy(self, expr, **kwargs):
         to_sympy = super(_SympyComparison, self).to_sympy
-        if len(expr.leaves) > 2:
+        if len(expr.elements) > 2:
 
             def pairs(elements):
                 yield Expression(Symbol(expr.get_head_name()), *elements[:2])
@@ -559,7 +584,7 @@ class _SympyComparison(SympyFunction):
                     yield Expression(Symbol(expr.get_head_name()), *elements[:2])
                     elements = elements[1:]
 
-            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.leaves)])
+            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.elements)])
         return to_sympy(expr, **kwargs)
 
 
@@ -703,10 +728,9 @@ class Unequal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or
-        'True' if $x$ and $y$ are known to be unequal.
-        Commutative properties apply so if $x$ != $y$ then
-        $y$ != $x$.
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+
+        Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
 
         For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
     </dl>
@@ -722,11 +746,11 @@ class Unequal(_EqualityOperator, _SympyComparison):
      = 1 != 2 != x
 
     Strings are allowed:
-    Unequal["11", "11"]
+    >> Unequal["11", "11"]
      = False
 
     Comparision to mismatched types is True:
-    Unequal[11, "11"]
+    >> Unequal[11, "11"]
      = True
 
     Lists are compared based on their elements:
@@ -798,10 +822,10 @@ class Less(_ComparisonOperator, _SympyComparison):
 
 class LessEqual(_ComparisonOperator, _SympyComparison):
     """
-     <dl>
-       <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
-       <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
-     </dl>
+    <dl>
+      <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
+      <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
+    </dl>
 
     LessEqual operator can be chained:
     >> LessEqual[1, 3, 3, 2]
@@ -891,8 +915,8 @@ class Positive(Builtin):
 class Negative(Builtin):
     """
     <dl>
-    <dt>'Negative[$x$]'
-        <dd>returns 'True' if $x$ is a negative real number.
+      <dt>'Negative[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number.
     </dl>
     >> Negative[0]
      = False
@@ -940,8 +964,8 @@ class NonNegative(Builtin):
 class NonPositive(Builtin):
     """
     <dl>
-    <dt>'NonPositive[$x$]'
-        <dd>returns 'True' if $x$ is a negative real number or zero.
+      <dt>'NonPositive[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number or zero.
     </dl>
 
     >> {Negative[0], NonPositive[0]}
@@ -1022,8 +1046,8 @@ class _MinMax(Builtin):
 class Max(_MinMax):
     """
     <dl>
-    <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
-        <dd>returns the expression with the greatest value among the $e_i$.
+      <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
+      <dd>returns the expression with the greatest value among the $e_i$.
     </dl>
 
     Maximum of a series of values:

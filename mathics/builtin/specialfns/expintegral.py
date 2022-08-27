@@ -20,7 +20,7 @@ class ExpIntegralE(_MPMathFunction):
     """
 
     summary_text = "exponential integral function of order n"
-    nargs = 2
+    nargs = {2}
     sympy_name = "expint"
     mpmath_name = "expint"
 
@@ -94,6 +94,6 @@ class ProductLog(_MPMathFunction):
 #     = 1.12642 - 1.21017 I
 #    """
 #
-#    nargs = 3
+#    nargs = {3}
 #    sympy_name = ''
 #    mpmath_name = ''

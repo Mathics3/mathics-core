@@ -14,7 +14,8 @@ from mathics_scanner import TranslateError
 
 from mathics import settings
 
-from mathics.core.atoms import from_python, Integer, String
+from mathics.core.atoms import Integer, String
+from mathics.core.convert.python import from_python
 from mathics.core.element import KeyComparable, ensure_context
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -37,11 +38,14 @@ from mathics.core.systemsymbols import (
     SymbolFullForm,
     SymbolHold,
     SymbolIn,
+    SymbolMathMLForm,
     SymbolMessageName,
     SymbolOut,
+    SymbolOutputForm,
     SymbolOverflow,
     SymbolStandardForm,
     SymbolStringForm,
+    SymbolTeXForm,
     SymbolThrow,
 )
 
@@ -299,7 +303,8 @@ class Evaluation:
         exception type of result like $Aborted, Overflow, Break, or Continue.
         If none of the above applies self.exc_result is Null
         """
-        from mathics.core.expression import Expression, to_expression
+        from mathics.core.convert.expression import to_expression
+        from mathics.core.expression import Expression
         from mathics.core.rules import Rule
 
         self.start_time = time.time()
@@ -431,7 +436,7 @@ class Evaluation:
         that it might have been wrapped in.
         """
         if eval_result.has_form(FORMATS, 1):
-            return eval_result.leaves[0]
+            return eval_result.elements[0]
 
         return eval_result
 
@@ -439,6 +444,8 @@ class Evaluation:
         self.stopped = True
 
     def format_output(self, expr, format=None):
+        from mathics.core.formatter import format_element
+
         if format is None:
             format = self.format
 
@@ -448,13 +455,15 @@ class Evaluation:
         from mathics.core.expression import Expression, BoxError
 
         if format == "text":
-            result = expr.format(self, "System`OutputForm")
+            result = format_element(expr, self, SymbolOutputForm)
         elif format == "xml":
-            result = Expression(SymbolStandardForm, expr).format(
-                self, "System`MathMLForm"
+            result = format_element(
+                Expression(SymbolStandardForm, expr), self, SymbolMathMLForm
             )
         elif format == "tex":
-            result = Expression(SymbolStandardForm, expr).format(self, "System`TeXForm")
+            result = format_element(
+                Expression(SymbolStandardForm, expr), self, SymbolTeXForm
+            )
         elif format == "unformatted":
             self.exc_result = None
             return expr
@@ -489,14 +498,14 @@ class Evaluation:
                 return []
         if not isinstance(value, Expression):
             return []
-        return value.leaves
+        return value.elements
 
-    def message(self, symbol, tag, *args) -> None:
+    def message(self, symbol_name: str, tag, *args) -> None:
         from mathics.core.expression import Expression
 
         # Allow evaluation.message('MyBuiltin', ...) (assume
         # System`MyBuiltin)
-        symbol = ensure_context(symbol)
+        symbol = ensure_context(symbol_name)
         quiet_messages = set(self.get_quiet_messages())
 
         pattern = Expression(SymbolMessageName, Symbol(symbol), String(tag))
@@ -532,7 +541,7 @@ class Evaluation:
         self.output.out(self.out[-1])
 
     def print_out(self, text) -> None:
-        from mathics.core.atoms import from_python
+        from mathics.core.convert.python import from_python
 
         if self.definitions.trace_evaluation:
             self.definitions.trace_evaluation = False

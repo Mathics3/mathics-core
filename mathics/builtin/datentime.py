@@ -16,12 +16,14 @@ from datetime import datetime, timedelta
 import dateutil.parser
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.atoms import Integer, Real, String, from_python
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
+from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
-from mathics.core.expression import Expression, to_expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -617,7 +619,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         tz = None
         if isinstance(args, Expression):
             if args.get_head_name() in ("System`Rule", "System`DelayedRule"):
-                options[args.leaves[0].get_name()] = args.leaves[1]
+                options[args.elements[0].get_name()] = args.elements[1]
                 args = Expression(SymbolAbsoluteTime).evaluate(evaluation)
             elif args.get_head_name() == "System`DateObject":
                 datelist = args._elements[0]

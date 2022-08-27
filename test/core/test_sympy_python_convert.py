@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 
-
+import random
 import sympy
+import sys
+import unittest
+
 from mathics.core.symbols import Symbol
 from mathics.core.atoms import (
-    from_python,
     Complex,
     Integer,
     Integer0,
@@ -14,7 +16,8 @@ from mathics.core.atoms import (
     Real,
     String,
 )
-from mathics.core.convert import from_sympy
+from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import SymbolPlus
@@ -25,9 +28,6 @@ from mathics.core.systemsymbols import (
     SymbolIntegrate,
     SymbolSin,
 )
-import random
-import sys
-import unittest
 
 
 class SympyConvert(unittest.TestCase):

@@ -11,10 +11,6 @@ import zlib
 
 from mathics.algorithm.parts import python_seq, convert_seq
 
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-)
 
 from mathics.builtin.atomic.strings import (
     _StringFind,
@@ -23,14 +19,17 @@ from mathics.builtin.atomic.strings import (
     mathics_split,
     to_regex,
 )
-from mathics.builtin.box.inout import _BoxedString
+
+from mathics.builtin.base import (
+    BinaryOperator,
+    Builtin,
+)
 
 from mathics.core.atoms import (
     ByteArrayAtom,
     Integer,
     Integer1,
     String,
-    from_python,
 )
 from mathics.core.attributes import (
     flat,
@@ -39,7 +38,9 @@ from mathics.core.attributes import (
     protected,
     read_protected,
 )
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
+from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -51,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
+    SymbolOutputForm,
 )
 
 
@@ -191,7 +193,7 @@ class StringDrop(Builtin):
 
     def apply_with_n(self, string, n, evaluation):
         "StringDrop[string_,n_Integer]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
         if isinstance(n, Integer):
             pos = n.value
@@ -209,7 +211,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni_nf(self, string, ni, nf, evaluation):
         "StringDrop[string_,{ni_Integer,nf_Integer}]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
 
         if ni.value == 0 or nf.value == 0:
@@ -231,7 +233,7 @@ class StringDrop(Builtin):
 
     def apply_with_ni(self, string, ni, evaluation):
         "StringDrop[string_,{ni_Integer}]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse", string)
         if ni.value == 0:
             return evaluation.message("StringDrop", "drop", ni, ni)
@@ -246,7 +248,7 @@ class StringDrop(Builtin):
 
     def apply(self, string, something, evaluation):
         "StringDrop[string_,something___]"
-        if not isinstance(string, (String, _BoxedString)):
+        if not isinstance(string, String):
             return evaluation.message("StringDrop", "strse")
         return evaluation.message("StringDrop", "mseqs")
 
@@ -265,7 +267,7 @@ class StringInsert(Builtin):
         the $n_i$ are taken before any insertion is done.
 
       <dt>'StringInsert[{$s_1$, $s_2$, ...}, "$snew$", $n$]'
-      <dd>gives the list of resutls for each of the $s_i$.
+      <dd>gives the list of results for each of the $s_i$.
     </dl>
 
     >> StringInsert["noting", "h", 4]
@@ -444,8 +446,8 @@ class StringInsert(Builtin):
 class StringJoin(BinaryOperator):
     """
     <dl>
-    <dt>'StringJoin["$s1$", "$s2$", ...]'
-        <dd>returns the concatenation of the strings $s1$, $s2$,  .
+      <dt>'StringJoin["$s1$", "$s2$", ...]'
+      <dd>returns the concatenation of the strings $s1$, $s2$,  .
     </dl>
 
     >> StringJoin["a", "b", "c"]
@@ -475,7 +477,7 @@ class StringJoin(BinaryOperator):
         else:
             items = items.get_sequence()
         for item in items:
-            if not isinstance(item, (String, _BoxedString)):
+            if not isinstance(item, String):
                 evaluation.message("StringJoin", "string")
                 return
             result += item.value
@@ -506,7 +508,7 @@ class StringLength(Builtin):
 
     def apply(self, str, evaluation):
         "StringLength[str_]"
-        if not isinstance(str, (String, _BoxedString)):
+        if not isinstance(str, String):
             evaluation.message("StringLength", "string")
             return
         return Integer(len(str.value))
@@ -515,13 +517,13 @@ class StringLength(Builtin):
 class StringPosition(Builtin):
     """
     <dl>
-    <dt>'StringPosition["$string$", $patt$]'
+      <dt>'StringPosition["$string$", $patt$]'
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
-    <dt>'StringPosition["$string$", $patt$, $n$]'
+      <dt>'StringPosition["$string$", $patt$, $n$]'
       <dd>returns the first $n$ matches only.
-    <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
+      <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
       <dd>matches multiple patterns.
-    <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
+      <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
       <dd>returns a list of matches for multiple strings.
     </dl>
 
@@ -671,15 +673,15 @@ class StringPosition(Builtin):
 class StringReplace(_StringFind):
     """
     <dl>
-    <dt>'StringReplace["$string$", "$a$"->"$b$"]'
-        <dd>replaces each occurrence of $old$ with $new$ in $string$.
-    <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
-        <dd>performs multiple replacements of each $si$ by the
+      <dt>'StringReplace["$string$", "$a$"->"$b$"]'
+      <dd>replaces each occurrence of $old$ with $new$ in $string$.
+      <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
+      <dd>performs multiple replacements of each $si$ by the
         corresponding $spi$ in $string$.
-    <dt>'StringReplace["$string$", $srules$, $n$]'
-        <dd>only performs the first $n$ replacements.
-    <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
-        <dd>performs the replacements specified by $srules$ on a list
+      <dt>'StringReplace["$string$", $srules$, $n$]'
+      <dd>only performs the first $n$ replacements.
+      <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
+      <dd>performs the replacements specified by $srules$ on a list
         of strings.
     </dl>
 
@@ -790,7 +792,7 @@ class StringReverse(Builtin):
     <dl>
       <dt>'StringReverse["$string$"]'
       <dd>reverses the order of the characters in "string".
-      </dl>
+    </dl>
 
       >> StringReverse["live"]
        = evil
@@ -807,11 +809,11 @@ class StringReverse(Builtin):
 class StringRiffle(Builtin):
     """
     <dl>
-    <dt>'StringRiffle[{s1, s2, s3, ...}]'
+      <dt>'StringRiffle[{s1, s2, s3, ...}]'
       <dd>returns a new string by concatenating all the $si$, with spaces inserted between them.
-    <dt>'StringRiffle[list, sep]'
+      <dt>'StringRiffle[list, sep]'
       <dd>inserts the separator $sep$ between all elements in $list$.
-    <dt>'StringRiffle[list, {"left", "sep", "right"}]'
+      <dt>'StringRiffle[list, {"left", "sep", "right"}]'
       <dd>use $left$ and $right$ as delimiters after concatenation.
 
     ## These 2 forms are not currently implemented
@@ -893,11 +895,10 @@ class StringRiffle(Builtin):
         elif len(separators) == 1:
             if separators[0].has_form("List", None):
                 if len(separators[0].elements) != 3 or any(
-                    not isinstance(s, (String, _BoxedString))
-                    for s in separators[0].elements
+                    not isinstance(s, String) for s in separators[0].elements
                 ):
                     return evaluation.message("StringRiffle", "string", Integer(2), exp)
-            elif not isinstance(separators[0], (String, _BoxedString)):
+            elif not isinstance(separators[0], String):
                 return evaluation.message("StringRiffle", "string", Integer(2), exp)
 
         # Validate list of string
@@ -922,11 +923,9 @@ class StringRiffle(Builtin):
         # Getting all together
         result = left
         for i in range(len(liststr.elements)):
-            text = (
-                liststr.elements[i]
-                .format(evaluation, "System`OutputForm")
-                .boxes_to_text(evaluation=evaluation)
-            )
+            text = format_element(
+                liststr.elements[i], evaluation, SymbolOutputForm
+            ).boxes_to_text(evaluation=evaluation)
             if i == len(liststr.elements) - 1:
                 result += text + right
             else:

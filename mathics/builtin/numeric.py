@@ -13,31 +13,12 @@ Support for approximate real numbers and exact real numbers represented in algeb
 import sympy
 
 from mathics.builtin.base import Builtin
-
-from mathics.core.convert import from_sympy
-from mathics.core.evaluators import apply_nvalues
-
+from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
+from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.convert.sympy import from_sympy
+from mathics.core.evaluators import eval_nvalues
 from mathics.core.expression import Expression
-
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    Integer0,
-    Rational,
-    Real,
-)
-
-
-from mathics.core.attributes import (
-    listable,
-    numeric_function,
-    protected,
-)
-
-from mathics.core.number import (
-    machine_epsilon,
-)
-
+from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
 
 
@@ -55,7 +36,9 @@ def chop(expr, delta=10.0 ** (-10.0)):
             imag = Integer0
         return Complex(real, imag)
     elif isinstance(expr, Expression):
-        return Expression(chop(expr.head), *[chop(leaf) for leaf in expr.leaves])
+        return Expression(
+            chop(expr.head), *[chop(element) for element in expr.elements]
+        )
     return expr
 
 
@@ -228,7 +211,7 @@ class N(Builtin):
 
         # If options are passed, set the preference in evaluation, and call again
         # without options set.
-        # This also prevents to store this as an nvalue (nvalues always have two leaves).
+        # This also prevents to store this as an nvalue (nvalues always have two elements).
         preference = None
         # If a Method is passed, and the method is not either "Automatic" or
         # the last preferred method, according to evaluation._preferred_n_method,
@@ -252,12 +235,12 @@ class N(Builtin):
                 preference_queue.pop()
                 return result
 
-        return apply_nvalues(expr, prec, evaluation)
+        return eval_nvalues(expr, prec, evaluation)
 
     def apply_N(self, expr, evaluation):
         """N[expr_]"""
         # TODO: Specialize for atoms
-        return apply_nvalues(expr, SymbolMachinePrecision, evaluation)
+        return eval_nvalues(expr, SymbolMachinePrecision, evaluation)
 
 
 class Rationalize(Builtin):

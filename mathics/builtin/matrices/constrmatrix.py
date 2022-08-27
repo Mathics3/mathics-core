@@ -35,8 +35,8 @@ class DiagonalMatrix(Builtin):
         "DiagonalMatrix[list_List]"
 
         result = []
-        n = len(list.leaves)
-        for index, item in enumerate(list.leaves):
+        n = len(list.elements)
+        for index, item in enumerate(list.elements):
             row = [Integer0] * n
             row[index] = item
             result.append(ListExpression(*row))

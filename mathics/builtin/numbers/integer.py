@@ -10,11 +10,17 @@ import string
 
 
 from mathics.builtin.base import Builtin, SympyFunction
-from mathics.core.atoms import Integer, Integer0, String, SymbolPlus, SymbolTimes
-from mathics.core.attributes import listable, numeric_function, protected
-from mathics.core.convert import from_sympy
+from mathics.core.atoms import Integer, Integer0, String
+from mathics.core.attributes import (
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    protected as A_PROTECTED,
+)
+from mathics.core.convert.sympy import from_sympy
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.list import ListExpression
+from mathics.core.symbols import SymbolPlus, SymbolTimes
 
 
 class Floor(SympyFunction):
@@ -52,7 +58,7 @@ class Floor(SympyFunction):
      = -10
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     rules = {"Floor[x_, a_]": "Floor[x / a] * a"}
     sympy_name = "floor"
     summary_text = "closest smaller integer"
@@ -67,8 +73,8 @@ class Floor(SympyFunction):
 class Ceiling(SympyFunction):
     """
     <dl>
-       <dt>'Ceiling[$x$]'
-       <dd>gives the smallest integer greater than or equal to $x$.
+      <dt>'Ceiling[$x$]'
+      <dd>gives the smallest integer greater than or equal to $x$.
     </dl>
 
     >> Ceiling[1.2]
@@ -81,7 +87,7 @@ class Ceiling(SympyFunction):
      = 2 + I
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     rules = {"Ceiling[x_, a_]": "Ceiling[x / a] * a"}
     summary_text = "closest larger integer"
 
@@ -110,7 +116,7 @@ class BitLength(Builtin):
      = 0
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "length of the binary representation"
 
     def apply(self, n, evaluation):
@@ -145,12 +151,12 @@ def _pad(symbols, length, fill):  # pads "symbols" to length "length" using "fil
 class IntegerString(Builtin):
     """
     <dl>
-    <dt>'IntegerString[$n$]'
-        <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
-    <dt>'IntegerString[$n$, $b$]'
-        <dd>returns the base $b$ representation of integer $x$ as string. $x$'s sign is ignored.
-    <dt>'IntegerString[$n$, $b$, $length$]'
-        <dd>returns a string of length $length$. If the number is too short, the string gets padded
+      <dt>'IntegerString[$n$]'
+      <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
+      <dt>'IntegerString[$n$, $b$]'
+      <dd>returns the base $b$ representation of integer $x$ as string. $x$'s sign is ignored.
+      <dt>'IntegerString[$n$, $b$, $length$]'
+      <dd>returns a string of length $length$. If the number is too short, the string gets padded
         with 0 on the left. If the number is too long, the $length$ least significant digits are
         returned.
     </dl>
@@ -182,7 +188,7 @@ class IntegerString(Builtin):
         2: lambda number: bin(abs(number))[2:],
         # oct() changed definition for Python 3
     }
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     list_of_symbols = string.digits + string.ascii_letters
     messages = {
         "basf": "Base `` must be an integer in the range from 2 to 36.",
@@ -232,17 +238,100 @@ class _IntBaseBuiltin(Builtin):
             return base
 
 
+# This class is duplicated. Check what is the right one, or merge...
+
+
+class IntegerDigits(Builtin):
+    """
+    <dl>
+      <dt>'IntegerDigits[$n$]'
+      <dd>returns a list of the base-10 digits in the integer $n$.
+      <dt>'IntegerDigits[$n$, $base$]'
+      <dd>returns a list of the base-$base$ digits in $n$.
+      <dt>'IntegerDigits[$n$, $base$, $length$]'
+      <dd>returns a list of length $length$, truncating or padding with zeroes on the left as necessary.
+    </dl>
+
+    >> IntegerDigits[76543]
+     = {7, 6, 5, 4, 3}
+
+    The sign of $n$ is discarded:
+    >> IntegerDigits[-76543]
+     = {7, 6, 5, 4, 3}
+
+    >> IntegerDigits[15, 16]
+     = {15}
+    >> IntegerDigits[1234, 16]
+     = {4, 13, 2}
+    >> IntegerDigits[1234, 10, 5]
+     = {0, 1, 2, 3, 4}
+
+    #> IntegerDigits[1000, 10]
+     = {1, 0, 0, 0}
+
+    #> IntegerDigits[0]
+     = {0}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    messages = {
+        "int": "Integer expected at position 1 in `1`",
+        "ibase": "Base `1` is not an integer greater than 1.",
+    }
+
+    rules = {
+        "IntegerDigits[n_]": "IntegerDigits[n, 10]",
+    }
+
+    summary_text = "digits of an integer in any base"
+
+    def apply_len(self, n, base, length, evaluation):
+        "IntegerDigits[n_, base_, length_]"
+
+        if not (isinstance(length, Integer) and length.get_int_value() >= 0):
+            return evaluation.message("IntegerDigits", "intnn")
+
+        return self.apply(n, base, evaluation, nr_elements=length.get_int_value())
+
+    def apply(self, n, base, evaluation, nr_elements=None):
+        "IntegerDigits[n_, base_]"
+
+        if not (isinstance(n, Integer)):
+            return evaluation.message(
+                "IntegerDigits", "int", Expression(SymbolIntegerDigits, n, base)
+            )
+
+        if not (isinstance(base, Integer) and base.get_int_value() > 1):
+            return evaluation.message("IntegerDigits", "ibase", base)
+
+        if nr_elements == 0:
+            # trivial case: we don't want any digits
+            return ListExpression()
+
+        # Note: above we checked that n and b are Integers, so we can use x.value.
+        digits = convert_int_to_digit_list(n.value, base.value)
+
+        if nr_elements is not None:
+            if len(digits) >= nr_elements:
+                # Truncate, preserving the digits on the right
+                digits = digits[-nr_elements:]
+            else:
+                # Pad with zeroes
+                digits = [0] * (nr_elements - len(digits)) + digits
+
+        return to_mathics_list(*digits, element_conversion_fn=Integer)
+
+
 class IntegerDigits(_IntBaseBuiltin):
     """
     <dl>
-    <dt>'IntegerDigits[$n$]'
-        <dd>returns the decimal representation of integer $x$ as list of digits. $x$'s sign is ignored.
-    <dt>'IntegerDigits[$n$, $b$]'
-        <dd>returns the base $b$ representation of integer $x$ as list of digits. $x$'s sign is ignored.
-    <dt>'IntegerDigits[$n$, $b$, $length$]'
-        <dd>returns a list of length $length$. If the number is too short, the list gets padded
-        with 0 on the left. If the number is too long, the $length$ least significant digits are
-        returned.
+      <dt>'IntegerDigits[$n$]'
+      <dd>returns the decimal representation of integer $x$ as list of digits. $x$'s sign is ignored.
+      <dt>'IntegerDigits[$n$, $b$]'
+      <dd>returns the base $b$ representation of integer $x$ as list of digits. $x$'s sign is ignored.
+      <dt>'IntegerDigits[$n$, $b$, $length$]'
+      <dd>returns a list of length $length$. If the number is too short, the list gets padded with 0 on the left. If the number is too long, the $length$ least significant digits are returned.
     </dl>
 
     >> IntegerDigits[12345]
@@ -261,12 +350,11 @@ class IntegerDigits(_IntBaseBuiltin):
      = {12, 6, 18, 5}
     """
 
-    summary_text = "list of digits of a number"
+    _padding = [Integer0]
     rules = {
         "IntegerDigits[n_Integer]": "IntegerDigits[n, 10]",
     }
-
-    _padding = [Integer0]
+    summary_text = "list of digits of a number"
 
     def apply_n_b(self, n, b, evaluation):
         "IntegerDigits[n_Integer, b_Integer]"
@@ -306,12 +394,12 @@ class IntegerDigits(_IntBaseBuiltin):
 class DigitCount(_IntBaseBuiltin):
     """
     <dl>
-    <dt>'DigitCount[$n$, $b$, $d$]'
-        <dd>returns the number of times digit $d$ occurs in the base $b$ representation of $n$.
-    <dt>'DigitCount[$n$, $b$]'
-        <dd>returns a list indicating the number of times each digit occurs in the base $b$ representation of $n$.
-    <dt>'DigitCount[$n$, $b$]'
-        <dd>returns a list indicating the number of times each digit occurs in the decimal representation of $n$.
+      <dt>'DigitCount[$n$, $b$, $d$]'
+      <dd>returns the number of times digit $d$ occurs in the base $b$ representation of $n$.
+      <dt>'DigitCount[$n$, $b$]'
+      <dd>returns a list indicating the number of times each digit occurs in the base $b$ representation of $n$.
+      <dt>'DigitCount[$n$, $b$]'
+      <dd>returns a list indicating the number of times each digit occurs in the decimal representation of $n$.
     </dl>
 
     >> DigitCount[1022]
@@ -360,10 +448,10 @@ class DigitCount(_IntBaseBuiltin):
 class IntegerReverse(_IntBaseBuiltin):
     """
     <dl>
-    <dt>'IntegerReverse[$n$]'
-        <dd>returns the integer that has the reverse decimal representation of $x$ without sign.
-    <dt>'IntegerReverse[$n$, $b$]'
-        <dd>returns the integer that has the reverse base $b$ represenation of $x$ without sign.
+      <dt>'IntegerReverse[$n$]'
+      <dd>returns the integer that has the reverse decimal representation of $x$ without sign.
+      <dt>'IntegerReverse[$n$, $b$]'
+      <dd>returns the integer that has the reverse base $b$ represenation of $x$ without sign.
     </dl>
 
     >> IntegerReverse[1234]
@@ -393,11 +481,11 @@ class IntegerReverse(_IntBaseBuiltin):
 class FromDigits(Builtin):
     """
     <dl>
-    <dt>'FromDigits[$l$]'
-        <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of
+      <dt>'FromDigits[$l$]'
+      <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of
         digits or a string.
-    <dt>'FromDigits[$l$, $b$]'
-        <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of
+      <dt>'FromDigits[$l$, $b$]'
+      <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of
         digits or a string.
     </dl>
 
@@ -460,8 +548,10 @@ class FromDigits(Builtin):
         "FromDigits[l_, b_]"
         if l.get_head_name() == "System`List":
             value = Integer0
-            for leaf in l.leaves:
-                value = Expression(SymbolPlus, Expression(SymbolTimes, value, b), leaf)
+            for element in l.elements:
+                value = Expression(
+                    SymbolPlus, Expression(SymbolTimes, value, b), element
+                )
             return value
         elif isinstance(l, String):
             value = FromDigits._parse_string(l.get_string_value(), b)

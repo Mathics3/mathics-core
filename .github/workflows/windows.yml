@@ -8,8 +8,6 @@ on:
 
 jobs:
   build:
-    env:
-      NO_CYTHON: 1
     runs-on: windows-latest
     strategy:
       matrix:

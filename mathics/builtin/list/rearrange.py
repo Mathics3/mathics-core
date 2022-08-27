@@ -500,8 +500,8 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    summary_text = "join lists together at any level"
     attributes = flat | one_identity | protected
+    summary_text = "join lists together at any level"
 
     def apply(self, lists, evaluation):
         "Join[lists___]"
@@ -728,9 +728,9 @@ class Riffle(Builtin):
         "Riffle[list_List, sep_]"
 
         if sep.has_form("List", None):
-            result = riffle_lists(list.get_elements(), sep.elements)
+            result = riffle_lists(list.elements, sep.elements)
         else:
-            result = riffle_lists(list.get_elements(), [sep])
+            result = riffle_lists(list.elements, [sep])
 
         return list.restructure("List", result, evaluation, deps=(list, sep))
 

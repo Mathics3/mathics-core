@@ -30,14 +30,14 @@
 \usepackage{asymptote}
 \usepackage[hypertexnames=false]{hyperref} % make hyperref aware of chapter reset for built-in symbols
 % (http://tex.stackexchange.com/questions/6098/wrong-hyper-references-after-resetting-chapter-counter)
-\usepackage{listings}
-\usepackage{paralist}
+\usepackage{amsmath}
+\usepackage{amssymb}
 \usepackage{color}
 \usepackage{fullpage}
 \usepackage{graphics}
+\usepackage{listings}
+\usepackage{paralist}
 \usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amssymb}
 \usepackage{mathpazo}
 \usepackage[mathpazo]{flexisym}
 \usepackage{breqn}
@@ -134,10 +134,10 @@
 }
 \newcommand{\chaptersections}{
 	\minitoc
-	\begin{multicols}{2}
+	%\begin{multicols}{2}
 }
 \newcommand{\chapterend}{
-	\end{multicols}
+	%\end{multicols}
 }
 
 \newcommand{\referencestart}{
@@ -145,10 +145,10 @@
 %\def\thechapter{\Roman{chapter}}
 \renewcommand{\chaptersections}{
 	\minitoc
-	\begin{multicols*}{2}
+	%\begin{multicols*}{2}
 }
 \renewcommand{\chapterend}{
-	\end{multicols*}
+	%\end{multicols*}
 }
 }
 
@@ -161,10 +161,18 @@
 }
 }
 
-\newenvironment{chapterintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{chapterintro}{
+  % \begin{multicols}{2}
+}{
+%\end{multicols}
+}
 \newenvironment{chapterintroshort}{\par}{}
 
-\newenvironment{guidesectionintro}{\begin{multicols}{2}}{\end{multicols}}
+\newenvironment{guidesectionintro}{
+  % \begin{multicols}{2}
+}{
+  % \end{multicols}
+}
 \newenvironment{guidesectionintroshort}{\par}{}
 
 \newcommand{\codewidth}{0.9\columnwidth}
@@ -190,25 +198,30 @@
 \item \begin{minipage}[t]{\codewidth}\begin{flushleft} {\ttfamily \bfseries #1} \end{flushleft} \end{minipage} \hfill \nobreak%
 }
 
+% Test case error message output
 \newenvironment{testmessage}{\item
-\vspace{-0.5em}
 \begin{minipage}{\codewidth}
-\begin{dmath*}[indentstep={0em},compact]%
-\color{message}%
+  \begin{ttfamily}%
+    \vspace{0.1em}%
+    \color{message}%
 }{%
-\end{dmath*}%
+  \end{ttfamily}%
 \end{minipage}%
 }
+% Test case print output
 \newenvironment{testprint}{\item
-\vspace{-0.5em}
-\begin{minipage}{\codewidth}
-\begin{dmath*}[indentstep={0em},compact]%
-\color{print}%
+  \vspace{-0.5em}
+  \begin{minipage}{\codewidth}
+    \begin{ttfamily}%
+      \vspace{0.1em}%
+      \tiny%
+      \color{print}%
 }{%
-\end{dmath*}%
+    \end{ttfamily}%
 \end{minipage}%
 }
 
+% Test case output; the ... in (Out[x]= ... )
 \newenvironment{testresult}{%
 	\item%
 	\vspace{-0.5em}%
@@ -274,6 +287,9 @@
 \begin{description}
   \item[Mathics Core] \hfill \\ \MathicsCoreVersion
   \item[Python] \hfill \\ \PythonVersion
+  \item[mpmath] \hfill \\ \mpmathVersion
+  \item[NumpyPy] \hfill \\ \NumPyVersion
+  \item[SymPy] \hfill \\ \SymPyVersion
   \item[XeTeX] \hfill \\ \XeTeXVersion
   \item[Asymptote] \hfill \\ \AsymptoteVersion
   \item[Ghostscript] \hfill \\ \GhostscriptVersion

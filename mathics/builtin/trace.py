@@ -10,10 +10,17 @@ With this, it may be possible for both users and implementers to follow how Math
 
 
 from mathics.builtin.base import Builtin
-from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolTrue, SymbolFalse, SymbolNull
+
+
+from mathics.core.attributes import (
+    hold_all as A_HOLD_ALL,
+    protected as A_PROTECTED,
+)
+from mathics.core.convert.python import from_bool
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
+from mathics.core.rules import BuiltinRule
+from mathics.core.symbols import strip_context, SymbolTrue, SymbolFalse, SymbolNull
 
 from time import time
 from collections import defaultdict
@@ -153,8 +160,8 @@ class TraceBuiltins(_TraceBase):
     You can have results ordered by name, or time.
 
     Trace an expression and list the result by time from highest to lowest.
-    >> TraceBuiltins[Plus @@ {1, x, x x}, SortBy->"time"]
-     = 1 + x + x ^ 2
+    >> TraceBuiltins[Times[x, x], SortBy->"time"]
+     = x ^ 2
     """
 
     definitions_copy: Definitions
@@ -299,3 +306,93 @@ class TraceBuiltinsVariable(Builtin):
             evaluation.message("$TraceBuiltins", "bool", value)
 
         return value
+
+
+class TraceEvaluationVariable(Builtin):
+    """
+    <dl>
+      <dt>'$TraceEvaluation'
+      <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.
+    </dl>
+
+    >> $TraceEvaluation = True
+     | ...
+     = True
+
+    >> a + a
+     | ...
+     = 2 a
+
+    Setting it to 'False' again recovers the normal behaviour:
+    >> $TraceEvaluation = False
+     | ...
+     = False
+    >> $TraceEvaluation
+     = False
+
+    >> a + a
+     = 2 a
+    '$TraceEvaluation' cannot be set to a non-boolean value.
+    >> $TraceEvaluation = x
+     : x should be True or False.
+     = x
+    """
+
+    name = "$TraceEvaluation"
+
+    messages = {"bool": "`1` should be True or False."}
+
+    value = SymbolFalse
+
+    summary_text = "enable or disable displaying the steps to get the result"
+
+    def apply_get(self, evaluation):
+        "%(name)s"
+        return from_bool(evaluation.definitions.trace_evaluation)
+
+    def apply_set(self, value, evaluation):
+        "%(name)s = value_"
+        if value is SymbolTrue:
+            evaluation.definitions.trace_evaluation = True
+        elif value is SymbolFalse:
+            evaluation.definitions.trace_evaluation = False
+        else:
+            evaluation.message("$TraceEvaluation", "bool", value)
+
+        return value
+
+
+class TraceEvaluation(Builtin):
+    """
+    <dl>
+      <dt>'TraceEvaluation[$expr$]'
+      <dd>Evaluate $expr$ and print each step of the evaluation.
+    </dl>
+
+    >> TraceEvaluation[(x + x)^2]
+     | ...
+     = ...
+
+    >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
+     | ...
+     = ...
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    options = {
+        "System`ShowTimeBySteps": "False",
+    }
+    summary_text = "trace the succesive evaluations"
+
+    def apply(self, expr, evaluation, options):
+        "TraceEvaluation[expr_, OptionsPattern[]]"
+        curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
+        evaluation.definitions.trace_evaluation = True
+        evaluation.definitions.timing_trace_evaluation = (
+            options["System`ShowTimeBySteps"] is SymbolTrue
+        )
+        result = expr.evaluate(evaluation)
+        evaluation.definitions.trace_evaluation = curr_trace_evaluation
+        evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
+        return result

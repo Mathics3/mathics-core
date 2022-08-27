@@ -11,15 +11,13 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
     PrefixOperator,
     SympyFunction,
 )
-
-from mathics.core.expression import ElementsProperties, Expression, to_expression
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -33,8 +31,10 @@ from mathics.core.atoms import (
     Rational,
     Real,
     String,
-    from_mpmath,
 )
+from mathics.core.convert.expression import to_expression
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -59,7 +59,7 @@ from mathics.core.systemsymbols import (
 )
 from mathics.core.number import min_prec, dps
 
-from mathics.core.convert import from_sympy
+from mathics.core.convert.sympy import from_sympy
 
 from mathics.core.attributes import (
     flat,
@@ -398,11 +398,11 @@ class Plus(BinaryOperator, SympyFunction):
             else:
                 count = rest = None
                 if item.has_form("Times", None):
-                    for leaf in item.elements:
-                        if isinstance(leaf, Number):
-                            count = leaf.to_sympy()
+                    for element in item.elements:
+                        if isinstance(element, Number):
+                            count = element.to_sympy()
                             rest = item.get_mutable_elements()
-                            rest.remove(leaf)
+                            rest.remove(element)
                             if len(rest) == 1:
                                 rest = rest[0]
                             else:
@@ -517,7 +517,7 @@ class Power(BinaryOperator, _MPMathFunction):
     #> (3/2+1/2I)^2
      = 2 + 3 I / 2
     #> I ^ I
-     = -1 ^ (I / 2)
+     = (-1) ^ (I / 2)
 
     #> 2 ^ 2.0
      = 4.
@@ -538,7 +538,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     sympy_name = "Pow"
     mpmath_name = "power"
-    nargs = 2
+    nargs = {2}
 
     messages = {
         "infy": "Infinite expression `1` encountered.",
@@ -585,7 +585,7 @@ class Power(BinaryOperator, _MPMathFunction):
             if isinstance(y, Number):
                 y_err = y
             else:
-                y_err = apply_N(y, evaluation)
+                y_err = eval_N(y, evaluation)
             if isinstance(y_err, Number):
                 py_y = y_err.round_to_float(permit_complex=True).real
                 if py_y > 0:

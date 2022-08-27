@@ -13,9 +13,9 @@ from typing import List, Optional
 
 from mathics.core.atoms import String
 from mathics.core.attributes import no_attributes
+from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
-from mathics.core.list import to_mathics_list
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -152,10 +152,13 @@ class Definitions:
             self.user = {}
             self.clear_cache()
 
+        # This loads all the formatting functions
+        import mathics.format
+
         # FIXME load dynamically as we do other things
-        import mathics.format.asy  # noqa
-        import mathics.format.json  # noqa
-        import mathics.format.svg  # noqa
+        # import mathics.format.asy  # noqa
+        # import mathics.format.json  # noqa
+        # import mathics.format.svg  # noqa
 
     def load_pymathics_module(self, module, remove_on_quit=True):
         """
@@ -429,7 +432,7 @@ class Definitions:
         packages = self.get_ownvalue("System`$Packages")
         packages = packages.replace
         assert packages.has_form("System`List", None)
-        packages = [c.get_string_value() for c in packages.leaves]
+        packages = [c.get_string_value() for c in packages.elements]
         return packages
 
         # return sorted({name.split("`")[0] for name in self.get_names()})
@@ -618,6 +621,7 @@ class Definitions:
     def set_attribute(self, name, attribute) -> None:
         definition = self.get_user_definition(self.lookup_name(name))
         definition.attributes |= attribute
+
         self.mark_changed(definition)
         self.clear_definitions_cache(name)
 
@@ -773,15 +777,15 @@ def get_tag_position(pattern, name) -> Optional[str]:
         head_name = pattern.get_head_name()
         if head_name == name:
             return "down"
-        elif head_name == "System`N" and len(pattern.leaves) == 2:
+        elif head_name == "System`N" and len(pattern.elements) == 2:
             return "n"
-        elif head_name == "System`Condition" and len(pattern.leaves) > 0:
-            return get_tag_position(pattern.leaves[0], name)
+        elif head_name == "System`Condition" and len(pattern.elements) > 0:
+            return get_tag_position(pattern.elements[0], name)
         elif pattern.get_lookup_name() == name:
             return "sub"
         else:
-            for leaf in pattern.leaves:
-                if leaf.get_lookup_name() == name:
+            for element in pattern.elements:
+                if element.get_lookup_name() == name:
                     return "up"
         return None
 

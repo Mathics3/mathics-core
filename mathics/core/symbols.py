@@ -13,13 +13,14 @@ from mathics.core.element import (
     fully_qualified_symbol_name,
 )
 
-# I put this constants here instead of inside `mathics.core.convert`
+# I put this constants here instead of inside `mathics.core.convert.sympy`
 # to avoid a circular reference. Maybe they should be in its own module.
 
 sympy_symbol_prefix = "_Mathics_User_"
 sympy_slot_prefix = "_Mathics_Slot_"
 
 
+# FIXME: This is repeated below
 class NumericOperators:
     """
     This is a mixin class for Element-like objects that might have numeric values.
@@ -30,8 +31,8 @@ class NumericOperators:
 
     So for example, instead of writing in Python:
 
-        Expression(SymbolAbs, -8)
-        Expression(SybolPlus, 1, 2)
+        to_expression("Abs", -8)
+        Expression(SymbolPlus, Integer1, Integer2)
 
     you can instead have:
         abs(Integer(-8))
@@ -87,17 +88,6 @@ class NumericOperators:
             value = value.round()
             return value.get_float_value(permit_complex=permit_complex)
         return None
-
-
-# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.FrozenSet[str]:
-    """
-    Return a frozenset of symbols from a list of names (strings).
-    We will use this in testing membership, so an immutable object is fine.
-
-    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
-    """
-    return frozenset(Symbol(s) for s in symbols)
 
 
 # system_symbols_dict({'SomeSymbol': ...}) -> {Symbol('System`SomeSymbol'): ...}
@@ -212,7 +202,7 @@ class Atom(BaseElement):
     Atom is not a directly-mentioned WL entity, although conceptually
     it very much seems to exist.
 
-    The other kinds expression leaf is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
+    The other kinds expression element is a Builtin, e.g. `ByteArray``, `CompiledCode`` or ``Image``.
     """
 
     _head_name = ""
@@ -289,9 +279,9 @@ class Atom(BaseElement):
     #        1/0
     #        return None if stop_on_error else {}
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
-            return [0, 0, 1, 1, 0, 0, 0, 1]
+            return (0, 0, 1, 1, 0, 0, 0, 1)
         else:
             raise NotImplementedError
 
@@ -303,9 +293,6 @@ class Atom(BaseElement):
             return name in heads
         else:
             return heads == name
-
-    def has_symbol(self, symbol_name) -> bool:
-        return False
 
     @property
     def is_literal(self) -> bool:
@@ -410,10 +397,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def __str__(self) -> str:
         return self.name
 
-    def atom_to_boxes(self, f, evaluation) -> "_BoxedString":
-        from mathics.builtin.box.inout import _BoxedString
+    def atom_to_boxes(self, f, evaluation) -> "String":
+        from mathics.core.atoms import String
 
-        return _BoxedString(evaluation.definitions.shorten_name(self.name))
+        return String(evaluation.definitions.shorten_name(self.name))
 
     def default_format(self, evaluation, form) -> str:
         return self.name
@@ -461,7 +448,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_head(self) -> "Symbol":
         return Symbol("Symbol")
 
-    def get_head_name(self):
+    def get_head_name(self) -> str:
         return "System`Symbol"
 
     def get_option_values(self, evaluation, allow_symbols=False, stop_on_error=True):
@@ -477,7 +464,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         else:
             return None if stop_on_error else {}
 
-    def has_symbol(self, symbol_name) -> bool:
+    def has_symbol(self, symbol_name: str) -> bool:
+        """
+        Return True if the Symbol is ``symbol_name``.
+        """
         return self.name == ensure_context(symbol_name)
 
     @property
@@ -525,18 +515,18 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def get_name(self) -> str:
         return self.name
 
-    def get_sort_key(self, pattern_sort=False):
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super(Symbol, self).get_sort_key(True)
         else:
-            return [
+            return (
                 1 if self.is_numeric() else 2,
                 2,
                 Monomial({self.name: 1}),
                 0,
                 self.name,
                 1,
-            ]
+            )
 
     def user_hash(self, update) -> None:
         update(b"System`Symbol>" + self.name.encode("utf8"))
@@ -627,6 +617,17 @@ class PredefinedSymbol(Symbol):
         return False
 
 
+# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
+def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
+    """
+    Return a frozenset of symbols from a list of names (strings).
+    We will use this in testing membership, so an immutable object is fine.
+
+    In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
+    """
+    return frozenset(Symbol(s) for s in symbols)
+
+
 # The available formats.
 
 format_symbols = system_symbols(
@@ -666,27 +667,23 @@ SymbolFullForm = Symbol("FullForm")
 SymbolGraphics = Symbol("System`Graphics")
 SymbolGraphics3D = Symbol("System`Graphics3D")
 SymbolHoldForm = Symbol("System`HoldForm")
-SymbolInputForm = Symbol("InputForm")
 SymbolMachinePrecision = Symbol("MachinePrecision")
 SymbolMakeBoxes = Symbol("System`MakeBoxes")
-SymbolMathMLForm = Symbol("MathMLForm")
 SymbolMaxPrecision = Symbol("$MaxPrecision")
 SymbolMinPrecision = Symbol("$MinPrecision")
 SymbolN = Symbol("System`N")
 SymbolNull = Symbol("System`Null")
 SymbolNumberForm = Symbol("System`NumberForm")
-SymbolOutputForm = Symbol("OutputForm")
 SymbolPlus = Symbol("Plus")
 SymbolPostfix = Symbol("System`Postfix")
 SymbolPower = Symbol("Power")
 SymbolRepeated = Symbol("System`Repeated")
 SymbolRepeatedNull = Symbol("System`RepeatedNull")
 SymbolSequence = Symbol("System`Sequence")
-SymbolStandardForm = Symbol("StandardForm")
 SymbolUpSet = Symbol("UpSet")
 SymbolTeXForm = Symbol("TeXForm")
 SymbolTimes = Symbol("Times")
-SymbolTraditionalForm = Symbol("TraditionalForm")
+
 
 # NumericOperators uses some of the Symbols above.
 class NumericOperators:

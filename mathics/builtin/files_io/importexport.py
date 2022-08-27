@@ -4,6 +4,10 @@
 Importing and Exporting
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "file_io" since this can erroneously appear at the top level.
+sort_order = "mathics.builtin.importing-and-exporting"
+
 import mimetypes
 import os
 import sys
@@ -23,13 +27,12 @@ from mathics.builtin.base import (
 
 from mathics.builtin.pymimesniffer import magic
 
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    from_python,
-)
+from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import no_attributes, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_python
+from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import (
     Symbol,
@@ -914,7 +917,7 @@ def _importer_exporter_options(
     remaining_options = options.copy()
 
     if available_options and available_options.has_form("List", None):
-        for name in available_options.leaves:
+        for name in available_options.elements:
             if isinstance(name, String):
                 py_name = name.get_string_value()
             elif isinstance(name, Symbol):
@@ -1449,7 +1452,7 @@ class Import(Builtin):
                 if findfile is None:
                     tmpfile = True
                     stream = Expression(SymbolOpenWrite).evaluate(evaluation)
-                    findfile = stream.leaves[0]
+                    findfile = stream.elements[0]
                     if data is not None:
                         Expression(SymbolWriteString, data).evaluate(evaluation)
                     else:

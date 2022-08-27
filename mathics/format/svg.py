@@ -161,7 +161,7 @@ add_conversion_fn(ArrowBox, arrow_box)
 
 def bezier_curve_box(self, **options) -> str:
     """
-    Asymptote formatter for BezerCurveBox.
+    SVG formatter for BezierCurveBox.
     """
     line_width = self.style.get_line_width(face_element=False)
     style = create_css(

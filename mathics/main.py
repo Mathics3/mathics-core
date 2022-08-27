@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import argparse
@@ -35,14 +35,14 @@ def show_echo(query, evaluation):
     if not isinstance(echovar, Expression) or not echovar.has_form("List", None):
         return
 
-    for leaf in echovar.elements:
-        if isinstance(leaf, String) and leaf.get_string_value() == "stdout":
+    for element in echovar.elements:
+        if isinstance(element, String) and element.value == "stdout":
             stream = stream_manager.lookup_stream(1)
         else:
-            strm = channel_to_stream(leaf, mode="w")
+            strm = channel_to_stream(element, mode="w")
             if strm is None:
                 continue
-            stream = stream_manager.lookup_stream(strm.leaves[1].get_int_value())
+            stream = stream_manager.lookup_stream(strm.elements[1].value)
             if stream is None or stream.io is None or stream.io.closed:
                 continue
         stream.io.write(query + "\n")

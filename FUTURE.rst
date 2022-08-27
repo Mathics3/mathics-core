@@ -1,7 +1,83 @@
-For the Future
-==============
-
 *One can always dream...*
+
+.. contents::
+
+2022 Roadmap
+=============
+
+Code reorganization and Refactoring
+-----------------------------------
+
+This has been the biggest impediment to doing just about anything else.
+
+Boxing and Formatting
++++++++++++++++++++++
+
+We will isolate and make more scalable how boxing and top-level formatting is done. This will happen right after release 5.0.0
+
+API Expansion
++++++++++++++
+
+We have an API for graphics3d which is largely used for many Graphics 3D objects like spheres and regular polyhedra. However, this needs to get expanded for Plotting.
+
+An API for JSON 2D plotting is needed too.
+
+Execution Performance
+----------------------
+
+While we have made a start on this in 5.0, much more is needed.
+
+We have only gone over the top-level evaluation for compound expressions.
+The following evaluation phases need to be gone over and revised:
+
+* pattern-matching and rewrite rules
+* apply steps
+
+With respect to top-level evaluation, we have only scratched the surface of what can be done with evaluation specialization. We currently have a kind of specialization for Lists. Possibly the same is needed for Associations.
+
+This work will continue after the 5.0.0 release. We expect plotting will be faster by the next release or major release.
+
+Being able to run existing WMA packages
+----------------------------------------
+
+Sadly, Mathics cannot run most of the open-source WMA packages.
+
+In particular we would like to see the following run:
+
+* Rubi
+* KnotTheory
+
+This is a longer-term goal.
+
+Documentation System
+--------------------
+
+The current home-grown documentation should be replaced with Sphynx and autodoc.
+
+Compilation
+-----------
+
+Complation is a rather unsophisticated process by trying to speed up Python code using llvmlite. The gains here will always be small compared the kinds of gains a compiler can get. However in order to even be able to contemplate writing a compiler (let alone say a JIT compiler), the code base needs to be made to work more like a traditional interpreter. Some work will be needed just to be able or create a sequence of instructions to run.
+
+Right now the interpreter is strictly a tree interperter.
+
+Simpiler Things
+---------------
+
+There have been a number of things that have been deferred:
+
+* Using unicode symbols in output
+* Making StandardOutput of polynomials match WMA
+* Finish reorganizing Builtin Functions so that the structure matches is more logical
+* Adding more Graphics Primitives
+* Working on Jupyter integrations
+
+In some cases like the first two items these are easy, and more important things have prevented doing this. In some cases like the last two, there are more foundational work that should be done first.
+
+
+2021 Roadmap
+=============
+
 
 Graphics3D
 ----------
@@ -49,7 +125,7 @@ place.
 Documentation
 -------------
 
-Sometime release 4.0.0, all of the code related to producing
+Sometime around release 4.0.0, all of the code related to producing
 documentation in LaTeX and in Mathics Django, and running doctests
 will be split off and put into its own git repository.
 

@@ -7,9 +7,17 @@ import bisect
 import math
 
 from mpmath import fsum
-from mathics.core.util import robust_min
 
-# publications used for this file:
+
+def robust_min(iterable):
+    minimum = None
+    for i in iterable:
+        if minimum is None or i < minimum:
+            minimum = i
+    return minimum
+
+
+# Publications used for this file:
 
 # [Kurita1991] Takito Kurita: "An Efficient Agglomerative Clustering Algorithm Using A Heap", Pattern Recognition,
 # Volume 24 Issue 3, 1991.

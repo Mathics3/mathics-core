@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     env:
-      NO_CYTHON: 1
       LDFLAGS: "-L/usr/local/opt/llvm@11/lib"
       CPPFLAGS: "-I/usr/local/opt/llvm@11/include"
     runs-on: macos-latest

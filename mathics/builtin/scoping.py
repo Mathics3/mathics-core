@@ -1,8 +1,15 @@
 # -*- coding: utf-8 -*-
+"""
+Scoping Constructs
+"""
 
 
 from mathics.builtin.assignments.internals import get_symbol_list
-from mathics.core.attributes import hold_all, protected
+from mathics.core.attributes import (
+    hold_all as A_HOLD_ALL,
+    protected as A_PROTECTED,
+    attribute_string_to_number,
+)
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import (
     String,
@@ -24,13 +31,13 @@ def get_scoping_vars(var_list, msg_symbol="", evaluation=None):
     if not var_list.has_form("List", None):
         message("lvlist", var_list)
         return
-    vars = var_list.leaves
+    vars = var_list.elements
     scoping_vars = set()
     for var in vars:
         var_name = None
         if var.has_form("Set", 2):
-            var_name = var.leaves[0].get_name()
-            new_def = var.leaves[1]
+            var_name = var.elements[0].get_name()
+            new_def = var.elements[1]
             if evaluation:
                 new_def = new_def.evaluate(evaluation)
         elif isinstance(var, Symbol):
@@ -73,37 +80,37 @@ class With(Builtin):
     """
     <dl>
 
-    <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
-        <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
+      <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
     </dl>
 
-    >> n = 10
-     = 10
+    ## >> n = 10
+    ##  = 10
 
-    Evaluate an expression with x locally set to 5:
+    ## Evaluate an expression with x locally set to 5:
 
-    'With' works even without evaluation:
-    >> With[{x = a}, (1 + x^2) &]
-     = 1 + a ^ 2&
+    ## 'With' works even without evaluation:
+    ## >> With[{x = a}, (1 + x^2) &]
+    ##  = 1 + a ^ 2&
 
-    Use 'With' to insert values into held expressions
-    >> With[{x=y}, Hold[x]]
-     = Hold[y]
+    ## Use 'With' to insert values into held expressions
+    ## >> With[{x=y}, Hold[x]]
+    ##  = Hold[y]
 
-    >> Table[With[{i=j}, Hold[i]],{j,1,4}]
-     = {Hold[1], Hold[2], Hold[3], Hold[4]}
-    >> x=5; With[{x=x}, Hold[x]]
-     = Hold[5]
-    >> {Block[{x = 3}, Hold[x]], With[{x = 3}, Hold[x]]}
-     = {Hold[x], Hold[3]}
-    >> x=.; ReleaseHold /@ %
-     = {x, 3}
-    >> With[{e = y}, Function[{x,y}, e*x*y]]
-     = Function[{x$, y$}, y x$ y$]
+    ## >> Table[With[{i=j}, Hold[i]],{j,1,4}]
+    ##  = {Hold[1], Hold[2], Hold[3], Hold[4]}
+    ## >> x=5; With[{x=x}, Hold[x]]
+    ##  = Hold[5]
+    ## >> {Block[{x = 3}, Hold[x]], With[{x = 3}, Hold[x]]}
+    ##  = {Hold[x], Hold[3]}
+    ## >> x=.; ReleaseHold /@ %
+    ##  = {x, 3}
+    ## >> With[{e = y}, Function[{x,y}, e*x*y]]
+    ##  = Function[{x$, y$}, y x$ y$]
 
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "lvsym": (
@@ -129,13 +136,11 @@ class With(Builtin):
 class Block(Builtin):
     """
     <dl>
-    <dt>'Block[{$x$, $y$, ...}, $expr$]'
-        <dd>temporarily removes the definitions of the given
-        variables, evaluates $expr$, and restores the original
-        definitions afterwards.
-    <dt>'Block[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
-        <dd>assigns temporary values to the variables during the
-        evaluation of $expr$.
+      <dt>'Block[{$x$, $y$, ...}, $expr$]'
+      <dd>temporarily removes the definitions of the given variables, evaluates $expr$, and restores the original definitions afterwards.
+
+      <dt>'Block[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dd>assigns temporary values to the variables during the evaluation of $expr$.
     </dl>
 
     >> n = 10
@@ -148,21 +153,22 @@ class Block(Builtin):
     Values assigned to block variables are evaluated at the beginning of the block.
     Keep in mind that the result of 'Block' is evaluated again, so a returned block variable
     will get its original value.
+
     >> Block[{x = n+2, n}, {x, n}]
      = {12, 10}
 
-    If the variable specification is not of the described form, an error message is raised:
+    If the variable specification is not of the described form, an error message is raised.
     >> Block[{x + y}, x]
      : Local variable specification contains x + y, which is not a symbol or an assignment to a symbol.
-     = x
+      = x
 
     Variable names may not appear more than once:
     >> Block[{x, x}, x]
-     : Duplicate local variable x found in local variable specification.
-     = x
+      : Duplicate local variable x found in local variable specification.
+      = x
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "lvsym": (
@@ -184,20 +190,32 @@ class Block(Builtin):
         return result
 
 
-class ModuleNumber(Predefined):
+class ModuleNumber_(Predefined):
     """
     <dl>
-    <dt>'$ModuleNumber'
-        <dd>is the current "serial number" to be used for local module variables.
+      <dt>'$ModuleNumber'
+      <dd>is the current "serial number" to be used for local module variables.
     </dl>
 
-    >> Unprotect[$ModuleNumber]
-    >> $ModuleNumber = 20;
-    >> Module[{x}, x]
-     = x$20
 
-    >> $ModuleNumber = x;
-     : Cannot set $ModuleNumber to x; value must be a positive integer.
+    <ul>
+      <li>'$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
+      <li> a Mathics session starts with '$ModuleNumber' set to 1.
+      <li> You can reset $ModuleNumber to a positive machine integer, but if you do so, naming conflicts may lead to inefficiencies.
+    </li>
+
+    ## Fixme: go over and adjuset
+    ## Each use of 'Module' increments '$ModuleNumber':
+    ## >> {$ModuleNumber, Module[{y}, y], $ModuleNumber}
+    ##  = {..., ...}
+
+    ## FIXME and go over
+    ## You can reset $ModuleNumber:
+    ## >> $ModuleNumber = 17; {Module[{x}, x], $ModuleNumber}
+    ##  = {x$17, 18}
+    ##
+    ## >> $ModuleNumber = x;
+    ## : Cannot set $ModuleNumber to x; value must be a positive integer.
     """
 
     name = "$ModuleNumber"
@@ -217,42 +235,40 @@ class ModuleNumber(Predefined):
 class Module(Builtin):
     """
     <dl>
-    <dt>'Module[{$vars$}, $expr$]'
-        <dd>localizes variables by giving them a temporary name of the
-        form 'name$number', where number is the current value of
-        '$ModuleNumber'. Each time a module is evaluated,
-        '$ModuleNumber' is incremented.
+      <dt>'Module[{$vars$}, $expr$]'
+      <dd>localizes variables by giving them a temporary name of the form 'name$number', where number is the current value of '$ModuleNumber'. Each time a module is evaluated, '$ModuleNumber' is incremented.
     </dl>
 
-    >> x = 10;
-    >> Module[{x=x}, x=x+1; x]
-     = 11
-    >> x
-     = 10
-    >> t === Module[{t}, t]
-     = False
+    ## FIXME: fix and go over
+    ## >> x = 10;
+    ## >> Module[{x=x}, x=x+1; x]
+    ##  = 11
+    ## >> x
+    ##  = 10
+    ## >> t === Module[{t}, t]
+    ## = False
 
-    Initial values are evaluated immediately:
-    >> Module[{t=x}, x = x + 1; t]
-     = 10
-    >> x
-     = 11
+    ## Initial values are evaluated immediately:
+    ## >> Module[{t=x}, x = x + 1; t]
+    ##  = 10
+    ## >> x
+    ##  = 11
 
-    Variables inside other scoping constructs are not affected by the renaming of 'Module':
-    >> Module[{a}, Block[{a}, a]]
-     = a
-    >> Module[{a}, Block[{}, a]]
-     = a$5
+    ## Variables inside other scoping constructs are not affected by the renaming of 'Module':
+    ## >> Module[{a}, Block[{a}, a]]
+    ##  = a
+    ## >> Module[{a}, Block[{}, a]]
+    ##  = a$5
 
-    #> Module[{n = 3}, Module[{b = n * 5}, b * 7]]
-     = 105
+    ## #> Module[{n = 3}, Module[{b = n * 5}, b * 7]]
+    ##  = 105
 
-    #> Module[{a = 3}, Module[{c = If[ToString[Head[a]] == "Integer", a * 5, Abort[]]}, c]]
-     = 15
+    ## #> Module[{a = 3}, Module[{c = If[ToString[Head[a]] == "Integer", a * 5, Abort[]]}, c]]
+    ## = 15
 
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "lvsym": (
@@ -288,77 +304,80 @@ class Module(Builtin):
 class Unique(Predefined):
     """
     <dl>
-    <dt>'Unique[]'
-        <dd>generates a new symbol and gives a name of the form '$number'.
-    <dt>'Unique[x]'
-        <dd>generates a new symbol and gives a name of the form 'x$number'.
-    <dt>'Unique[{x, y, ...}]'
-        <dd>generates a list of new symbols.
-    <dt>'Unique["xxx"]'
-        <dd>generates a new symbol and gives a name of the form 'xxxnumber'.
+      <dt>'Unique[]'
+      <dd>generates a new symbol and gives a name of the form '$number'.
+
+      <dt>'Unique[x]'
+      <dd>generates a new symbol and gives a name of the form 'x$number'.
+
+      <dt>'Unique[{x, y, ...}]'
+      <dd>generates a list of new symbols.
+
+      <dt>'Unique["xxx"]'
+      <dd>generates a new symbol and gives a name of the form 'xxxnumber'.
     </dl>
 
     Create a unique symbol with no particular name:
     >> Unique[]
-     = $1
+    = $1
 
     >> Unique[sym]
-     = sym$1
+    = sym$1
 
     Create a unique symbol whose name begins with x:
     >> Unique["x"]
-     = x2
+    = x2
 
     #> $3 = 3;
     #> Unique[]
-     = $4
+    = $4
 
     #> Unique[{}]
-     = {}
+    = {}
 
     #> Unique[{x, x}]
      = {x$2, x$3}
 
-    Each use of Unique[symbol] increments $ModuleNumber:
-    >> {$ModuleNumber, Unique[x], $ModuleNumber}
-     = {4, x$4, 5}
+    ## Each use of Unique[symbol] increments $ModuleNumber:
+    ## >> {$ModuleNumber, Unique[x], $ModuleNumber}
+    ##  = ...
 
-    Unique[symbol] creates symbols in the same way Module does:
-    >> {Module[{x}, x], Unique[x]}
-     = {x$5, x$6}
+    ## Unique[symbol] creates symbols in the same way Module does:
+    ## >> {Module[{x}, x], Unique[x]}
+    ##  = ...
 
-    Unique with more arguments
-    >> Unique[{x, "s"}, Flat ^ Listable ^ Orderless]
-     : Flat ^ Listable ^ Orderless is not a known attribute.
-     = Unique[{x, s}, Flat ^ Listable ^ Orderless]
+    ## Unique with more arguments
+    ## >> Unique[{x, "s"}, Flat ^ Listable ^ Orderless]
+    ## : Flat ^ Listable ^ Orderless is not a known attribute.
+    ## = Unique[{x, s}, Flat ^ Listable ^ Orderless]
 
-    Unique call without symbol argument
-    >> Unique[x + y]
-     : x + y is not a symbol or a valid symbol name.
-     = Unique[x + y]
+    ## Unique call without symbol argument
+    ## >> Unique[x + y]
+    ## : x + y is not a symbol or a valid symbol name.
+    ##  = Unique[x + y]
 
-    #> Unique[1]
-     : 1 is not a symbol or a valid symbol name.
-     = Unique[1]
+    ## #> Unique[1]
+    ## : 1 is not a symbol or a valid symbol name.
+    ## = Unique[1]
 
-    #> Unique[{m, "s", n}, {Flat, Listable, Orderless}]
-     = {m$7, s5, n$8}
+    ## #> Unique[{m, "s", n}, {Flat, Listable, Orderless}]
+    ##  = {m$7, s5, n$8}
 
-    #> Attributes[{m$7, s5, n$8}]
-     = {{Flat, Listable, Orderless}, {Flat, Listable, Orderless}, {Flat, Listable, Orderless}}
+    ## #> Attributes[{m$7, s5, n$8}]
+    ##  = {{Flat, Listable, Orderless}, {Flat, Listable, Orderless}, {Flat, Listable, Orderless}}
 
-    #> Unique[{x, "s", 1}, {Flat ^ Listable ^ Orderless}]
-     : 1 is not a symbol or a valid symbol name.
-     = Unique[{x, s, 1}, {Flat ^ Listable ^ Orderless}]
+    ## #> Unique[{x, "s", 1}, {Flat ^ Listable ^ Orderless}]
+    ##  : 1 is not a symbol or a valid symbol name.
+    ## = Unique[{x, s, 1}, {Flat ^ Listable ^ Orderless}]
 
-    #> Unique[{"s"}, Flat]
-     = {s6}
+    ## #> Unique[{"s"}, Flat]
+    ## = {s6}
 
-    #> Attributes[s6]
-     = {Flat}
+    ## #> Attributes[s6]
+    ##  = {Flat}
     """
 
-    attributes = protected
+    attributes = A_PROTECTED
     messages = {
         "usym": "`1` is not a symbol or a valid symbol name.",
         "argrx": "Unique called with `1` arguments; 0 or 1 argument are expected.",
@@ -392,7 +411,7 @@ class Unique(Predefined):
             return evaluation.message("Unique", "argrx", Integer(len(attributes) + 1))
 
         # Check valid symbol variables
-        symbols = vars.leaves if vars.has_form("List", None) else [vars]
+        symbols = vars.elements if vars.has_form("List", None) else [vars]
         for symbol in symbols:
             if not isinstance(symbol, Symbol):
                 text = symbol.get_string_value()
@@ -423,7 +442,9 @@ class Unique(Predefined):
                 list.append(Symbol(new_name))
         for symbol in list:
             for att in attrs:
-                evaluation.definitions.set_attribute(symbol.get_name(), att)
+                evaluation.definitions.set_attribute(
+                    symbol.get_name(), attribute_string_to_number.get(att, 0)
+                )
 
         if vars.has_form("List", None):
             return ListExpression(*list)
@@ -439,8 +460,8 @@ class Contexts(Builtin):
     </dl>
 
     ## this assignment makes sure that a definition in Global` exists
-    >> x = 5;
-    X> Contexts[] // InputForm
+    ## >> x = 5;
+    ## X> Contexts[] // InputForm
     """
 
     summary_text = "list all the defined contexts"
@@ -483,7 +504,7 @@ class Context_(Predefined):
     summary_text = "the current context"
 
 
-class ContextPath(Predefined):
+class ContextPath_(Predefined):
     """
     <dl>
       <dt>'$ContextPath'
@@ -492,14 +513,14 @@ class ContextPath(Predefined):
 
     X> $ContextPath // InputForm
 
-    #> x`x = 1; x
-     = x
-    #> $ContextPath = {"x`"};
-    #> x
-     = 1
-    #> System`$ContextPath
-     = {x`}
-    #> $ContextPath = {"System`", "Global`"};
+    ## #> x`x = 1; x
+    ##  = x
+    ## #> $ContextPath = {"x`"};
+    ## #> x
+    ##  = 1
+    ## #> System`$ContextPath
+    ##  = {x`}
+    ## #> $ContextPath = {"System`", "Global`"};
     """
 
     messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
@@ -519,21 +540,21 @@ class Begin(Builtin):
 
     >> Begin["test`"]
      = test`
-    X> {$Context, $ContextPath}
-    >> Context[newsymbol]
-     = test`
+    ## X> {$Context, $ContextPath}
+    ## >> Context[newsymbol]
+    ##  = test`
     >> End[]
      = test`
     >> End[]
      : No previous context defined.
      = Global`
 
-    #> Begin["`test`"]
-     = Global`test`
-    #> Context[]
-     = Global`test`
-    #> End[]
-     = Global`test`
+    ## #> Begin["`test`"]
+    ##  = Global`test`
+    ## #> Context[]
+    ##  = Global`test`
+    ## #> End[]
+    ##  = Global`test`
     """
 
     rules = {
@@ -583,12 +604,10 @@ class BeginPackage(Builtin):
       <dd>starts the package given by $context$.
     </dl>
 
-    The $context$ argument must be a valid context name.
-    'BeginPackage' changes the values of '$Context' and
-    '$ContextPath', setting the current context to $context$.
+    The $context$ argument must be a valid context name. 'BeginPackage' changes the values of '$Context' and '$ContextPath', setting the current context to $context$.
 
-    >> BeginPackage["test`"]
-     = test`
+    ## >> BeginPackage["test`"]
+    ##  = test`
     """
 
     messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
@@ -644,7 +663,7 @@ class EndPackage(Builtin):
 class ContextStack(Builtin):
     """
     <dl>
-      <dt>'System`Private`$ContextStack'
+        <dt>'System`Private`$ContextStack'
         <dd>is an internal variable tracking the values of '$Context'
         saved by 'Begin' and 'BeginPackage'.
     </dl>
@@ -656,6 +675,7 @@ class ContextStack(Builtin):
     rules = {
         "System`Private`$ContextStack": "{}",
     }
+    summary_text = "internal variable tracking $Context values"
 
 
 class ContextPathStack(Builtin):
@@ -672,3 +692,4 @@ class ContextPathStack(Builtin):
     rules = {
         "System`Private`$ContextPathStack": "{}",
     }
+    summary_text = "internal variable tracking $ContextPath values"

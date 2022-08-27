@@ -4,6 +4,8 @@
 Constructing Lists
 
 Functions for constructing lists of various sizes and structure.
+
+See also Constructing Vectors.
 """
 
 from itertools import permutations
@@ -16,11 +18,11 @@ from mathics.builtin.lists import (
 )
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import hold_first, listable, protected
-from mathics.core.convert import from_sympy
+from mathics.core.convert.expression import to_expression
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
 from mathics.core.expression import (
     Expression,
-    to_expression,
     structure,
 )
 from mathics.core.list import ListExpression

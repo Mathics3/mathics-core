@@ -28,27 +28,23 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
-    SymbolDivide,
-    from_python,
 )
 from mathics.core.attributes import (
-    listable,
-    protected,
+    listable as A_LISTABLE,
+    protected as A_PROTECTED,
 )
-from mathics.core.evaluators import apply_N
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool, from_python
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
-from mathics.core.list import ListExpression, to_mathics_list
+from mathics.core.list import ListExpression
 from mathics.core.number import (
     dps,
     convert_int_to_digit_list,
     machine_precision,
     machine_epsilon,
 )
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
     SymbolInfinity,
@@ -178,89 +174,6 @@ class ExactNumberQ(Test):
         return isinstance(expr, Number) and not expr.is_inexact()
 
 
-class IntegerDigits(Builtin):
-    """
-    <dl>
-    <dt>'IntegerDigits[$n$]'
-        <dd>returns a list of the base-10 digits in the integer $n$.
-    <dt>'IntegerDigits[$n$, $base$]'
-        <dd>returns a list of the base-$base$ digits in $n$.
-    <dt>'IntegerDigits[$n$, $base$, $length$]'
-        <dd>returns a list of length $length$, truncating or padding
-        with zeroes on the left as necessary.
-    </dl>
-
-    >> IntegerDigits[76543]
-     = {7, 6, 5, 4, 3}
-
-    The sign of $n$ is discarded:
-    >> IntegerDigits[-76543]
-     = {7, 6, 5, 4, 3}
-
-    >> IntegerDigits[15, 16]
-     = {15}
-    >> IntegerDigits[1234, 16]
-     = {4, 13, 2}
-    >> IntegerDigits[1234, 10, 5]
-     = {0, 1, 2, 3, 4}
-
-    #> IntegerDigits[1000, 10]
-     = {1, 0, 0, 0}
-
-    #> IntegerDigits[0]
-     = {0}
-    """
-
-    attributes = listable | protected
-
-    messages = {
-        "int": "Integer expected at position 1 in `1`",
-        "ibase": "Base `1` is not an integer greater than 1.",
-    }
-
-    rules = {
-        "IntegerDigits[n_]": "IntegerDigits[n, 10]",
-    }
-
-    summary_text = "digits of an integer in any base"
-
-    def apply_len(self, n, base, length, evaluation):
-        "IntegerDigits[n_, base_, length_]"
-
-        if not (isinstance(length, Integer) and length.get_int_value() >= 0):
-            return evaluation.message("IntegerDigits", "intnn")
-
-        return self.apply(n, base, evaluation, nr_elements=length.get_int_value())
-
-    def apply(self, n, base, evaluation, nr_elements=None):
-        "IntegerDigits[n_, base_]"
-
-        if not (isinstance(n, Integer)):
-            return evaluation.message(
-                "IntegerDigits", "int", Expression(SymbolIntegerDigits, n, base)
-            )
-
-        if not (isinstance(base, Integer) and base.get_int_value() > 1):
-            return evaluation.message("IntegerDigits", "ibase", base)
-
-        if nr_elements == 0:
-            # trivial case: we don't want any digits
-            return ListExpression()
-
-        # Note: above we checked that n and b are Integers, so we can use x.value.
-        digits = convert_int_to_digit_list(n.value, base.value)
-
-        if nr_elements is not None:
-            if len(digits) >= nr_elements:
-                # Truncate, preserving the digits on the right
-                digits = digits[-nr_elements:]
-            else:
-                # Pad with zeroes
-                digits = [0] * (nr_elements - len(digits)) + digits
-
-        return to_mathics_list(*digits, element_conversion_fn=Integer)
-
-
 class IntegerExponent(Builtin):
     """
     <dl>
@@ -278,7 +191,7 @@ class IntegerExponent(Builtin):
      = IntegerExponent[10, b]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "int": "Integer expected at position 1 in `1`",
@@ -291,7 +204,7 @@ class IntegerExponent(Builtin):
 
     summary_text = "number of trailing 0s in a given base"
 
-    def apply_two_arg_integers(self, n, b, evaluation):
+    def apply_two_arg_integers(self, n: Integer, b: Integer, evaluation):
         "IntegerExponent[n_Integer, b_Integer]"
 
         py_n, py_b = n.value, b.value
@@ -308,7 +221,7 @@ class IntegerExponent(Builtin):
 
     # FIXME: If WMA supports things other than Integers, the below code might
     # be useful as a starting point.
-    # def apply(self, n, b, evaluation):
+    # def apply(self, n: Integer, b: Integer, evaluation):
     #     "IntegerExponent[n_Integer, b_Integer]"
 
     #     py_n, py_b = n.to_python(), b.to_python()
@@ -366,7 +279,7 @@ class IntegerLength(Builtin):
      = True
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "base": "Base `1` is not an integer greater than 1.",
@@ -555,7 +468,7 @@ class RealDigits(Builtin):
 
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "realx": "The value `1` is not a real number.",
@@ -626,7 +539,7 @@ class RealDigits(Builtin):
                 ).evaluate(evaluation)
             else:
                 if rational_no:
-                    n = apply_N(n, evaluation)
+                    n = eval_N(n, evaluation)
                 else:
                     return evaluation.message("RealDigits", "ndig", expr)
         py_n = abs(n.value)
@@ -645,7 +558,7 @@ class RealDigits(Builtin):
             )
         else:
             display_len = int(
-                apply_N(
+                eval_N(
                     Expression(
                         SymbolRound,
                         Expression(
@@ -800,8 +713,8 @@ class MaxPrecision(Predefined):
 class MachineEpsilon_(Predefined):
     """
     <dl>
-    <dt>'$MachineEpsilon'
-        <dd>is the distance between '1.0' and the next
+      <dt>'$MachineEpsilon'
+      <dd>is the distance between '1.0' and the next
             nearest representable machine-precision number.
     </dl>
 
@@ -927,8 +840,8 @@ class MinPrecision(Builtin):
 class NumericQ(Builtin):
     """
     <dl>
-    <dt>'NumericQ[$expr$]'
-        <dd>tests whether $expr$ represents a numeric quantity.
+      <dt>'NumericQ[$expr$]'
+      <dd>tests whether $expr$ represents a numeric quantity.
     </dl>
 
     >> NumericQ[2]
@@ -965,18 +878,18 @@ class NumericQ(Builtin):
         "argx": "NumericQ called with `1` arguments; 1 argument is expected.",
         "set": "Cannot set `1` to `2`; the lhs argument must be a symbol and the rhs must be True or False.",
     }
-    summary_text = "test whether an exprssion is a number"
+    summary_text = "test whether an expression is a number"
 
     def apply(self, expr, evaluation):
         "NumericQ[expr_]"
-        return SymbolTrue if expr.is_numeric(evaluation) else SymbolFalse
+        return from_bool(expr.is_numeric(evaluation))
 
 
 class Precision(Builtin):
     """
     <dl>
-    <dt>'Precision[$expr$]'
-        <dd>examines the number of significant digits of $expr$.
+      <dt>'Precision[$expr$]'
+      <dd>examines the number of significant digits of $expr$.
     </dl>
     This is rather a proof-of-concept than a full implementation.
     Precision of compound expression is not supported yet.

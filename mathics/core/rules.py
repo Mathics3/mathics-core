@@ -1,14 +1,22 @@
-#!/usr/bin/env python3
 # cython: language_level=3
 # -*- coding: utf-8 -*-
+
+from inspect import signature
 
 from mathics.core.element import KeyComparable
 from mathics.core.expression import Expression
 from mathics.core.symbols import strip_context
 from mathics.core.pattern import Pattern, StopGenerator
-from mathics.core.util import function_arguments
 
 from itertools import chain
+
+
+def _python_function_arguments(f):
+    return signature(f).parameters.keys()
+
+
+def function_arguments(f):
+    return _python_function_arguments(f)
 
 
 class StopGenerator_BaseRule(StopGenerator):
@@ -99,8 +107,9 @@ class BaseRule(KeyComparable):
     def do_replace(self):
         raise NotImplementedError
 
-    def get_sort_key(self):
-        return (self.system, self.pattern.get_sort_key(True))
+    def get_sort_key(self) -> tuple:
+        # FIXME: check if this makes sense:
+        return tuple((self.system, self.pattern.get_sort_key(True)))
 
 
 class Rule(BaseRule):

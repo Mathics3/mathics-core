@@ -16,14 +16,18 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
     Number,
-    from_mpmath,
-    from_python,
 )
-from mathics.core.attributes import listable, numeric_function, protected
-from mathics.core.number import min_prec, dps
-from mathics.core.convert import from_sympy
+from mathics.core.attributes import (
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    protected as A_PROTECTED,
+)
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
-from mathics.core.evaluators import apply_N
+from mathics.core.evaluators import eval_N
+from mathics.core.number import min_prec, dps
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -51,7 +55,7 @@ class Beta(_MPMathMultiFunction):
     """
 
     summary_text = "Euler's Beta function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     mpmath_names = {
         2: "beta",  # two arguments
         3: "betainc",  # three arguments
@@ -124,7 +128,7 @@ class Beta(_MPMathMultiFunction):
         else:
             prec = min_prec(*args)
             d = dps(prec)
-            args = [apply_N(arg, evaluation, Integer(d)) for arg in args]
+            args = [eval_N(arg, evaluation, Integer(d)) for arg in args]
             with mpmath.workprec(prec):
                 mpmath_args = [x.to_mpmath() for x in args]
                 if None in mpmath_args:
@@ -138,9 +142,9 @@ class Beta(_MPMathMultiFunction):
 class Factorial(PostfixOperator, _MPMathFunction):
     """
     <dl>
-    <dt>'Factorial[$n$]'
-    <dt>'$n$!'
-        <dd>computes the factorial of $n$.
+      <dt>'Factorial[$n$]'
+      <dt>'$n$!'
+      <dd>computes the factorial of $n$.
     </dl>
 
     >> 20!
@@ -164,12 +168,12 @@ class Factorial(PostfixOperator, _MPMathFunction):
      = 1
     """
 
-    summary_text = "factorial"
-    attributes = numeric_function | protected
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
 
+    mpmath_name = "factorial"
     operator = "!"
     precedence = 610
-    mpmath_name = "factorial"
+    summary_text = "factorial"
 
 
 class Factorial2(PostfixOperator, _MPMathFunction):
@@ -196,7 +200,7 @@ class Factorial2(PostfixOperator, _MPMathFunction):
      = 3.35237
     """
 
-    attributes = numeric_function | protected
+    attributes = A_NUMERIC_FUNCTION | A_PROTECTED
     operator = "!!"
     precedence = 610
     mpmath_name = "fac2"
@@ -321,6 +325,9 @@ class Gamma(_MPMathMultiFunction):
     rules = {
         "Gamma[z_, x0_, x1_]": "Gamma[z, x0] - Gamma[z, x1]",
         "Gamma[1 + z_]": "z!",
+        "Gamma[Undefined]": "Undefined",
+        "Gamma[x_, Undefined]": "Undefined",
+        "Gamma[Undefined, y_]": "Undefined",
         "Derivative[1][Gamma]": "(Gamma[#1]*PolyGamma[0, #1])&",
         "Derivative[1, 0][Gamma]": "(Gamma[#1, #2]*Log[#2] + MeijerG[{{}, {1, 1}}, {{0, 0, #1}, {}}, #2])&",
         "Derivative[0, 1][Gamma]": "(-(#2^(-1 + #1)/E^#2))&",
@@ -394,15 +401,15 @@ class Pochhammer(SympyFunction):
      = 6652800
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    sympy_name = "RisingFactorial"
-    summary_text = "Pochhammer's symbols"
     rules = {
         "Pochhammer[a_, n_]": "Gamma[a + n] / Gamma[a]",
         "Derivative[1,0][Pochhammer]": "(Pochhammer[#1, #2]*(-PolyGamma[0, #1] + PolyGamma[0, #1 + #2]))&",
         "Derivative[0,1][Pochhammer]": "(Pochhammer[#1, #2]*PolyGamma[0, #1 + #2])&",
     }
+    summary_text = "Pochhammer's symbols"
+    sympy_name = "RisingFactorial"
 
 
 class PolyGamma(_MPMathMultiFunction):
@@ -422,15 +429,20 @@ class PolyGamma(_MPMathMultiFunction):
     >> PolyGamma[3, 5]
      = -22369 / 3456 + Pi ^ 4 / 15
     """
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     mpmath_names = {
         1: "digamma",  # 1 argument
         2: "psi",
     }
 
-    summary_text = "polygamma function"
+    rules = {
+        "PolyGamma[Undefined]": "Undefined",
+        "PolyGamma[Undefined, x_]": "Undefined",
+        "PolyGamma[y_, Undefined]": "Undefined",
+    }
 
+    summary_text = "polygamma function"
     sympy_names = {1: "digamma", 2: "polygamma"}  # 1 argument
 
 
@@ -450,7 +462,13 @@ class StieltjesGamma(SympyFunction):
     ##  = ...
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
+
+    rules = {
+        "StieltjesGamma[Undefined]": "Undefined",
+        "StieltjesGamma[Undefined, x_]": "Undefined",
+        "StieltjesGamma[y_, Undefined]": "Undefined",
+    }
 
     summary_text = "Stieltjes' function"
     sympy_name = "stieltjes"

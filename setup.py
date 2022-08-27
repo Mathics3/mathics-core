@@ -102,7 +102,7 @@ try:
 except ImportError:
     pass
 else:
-    if not os.environ.get("NO_CYTHON", False):
+    if os.environ.get("USE_CYTHON", False):
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
@@ -163,29 +163,34 @@ setup(
         "mathics",
         "mathics.algorithm",
         "mathics.core",
+        "mathics.core.convert",
         "mathics.core.parser",
         "mathics.builtin",
         "mathics.builtin.arithfns",
         "mathics.builtin.assignments",
         "mathics.builtin.atomic",
+        "mathics.builtin.binary",
         "mathics.builtin.box",
         "mathics.builtin.colors",
         "mathics.builtin.compile",
         "mathics.builtin.distance",
         "mathics.builtin.drawing",
-        "mathics.builtin.list",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
+        "mathics.builtin.functional",
         "mathics.builtin.intfns",
+        "mathics.builtin.list",
         "mathics.builtin.matrices",
-        "mathics.builtin.moments",
         "mathics.builtin.numbers",
         "mathics.builtin.numpy_utils",
         "mathics.builtin.pymimesniffer",
         "mathics.builtin.pympler",
+        "mathics.builtin.quantum_mechanics",
         "mathics.builtin.scipy_utils",
         "mathics.builtin.specialfns",
+        "mathics.builtin.statistics",
         "mathics.builtin.string",
+        "mathics.builtin.vectors",
         "mathics.doc",
         "mathics.format",
     ],
@@ -208,6 +213,8 @@ setup(
             "autoload/formats/*/Export.m",
             "packages/*/*.m",
             "packages/*/Kernel/init.m",
+            "requirements-cython.txt",
+            "requirements-full.txt",
         ],
         "mathics.doc": ["documentation/*.mdoc", "xml/data"],
         "mathics.builtin.pymimesniffer": ["mimetypes.xml"],

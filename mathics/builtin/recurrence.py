@@ -4,17 +4,21 @@
 Solving Recurrence Equations
 """
 
+# This tells documentation how to sort this module
+# Here we are also hiding "moments" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.solving-recurrence-equations"
+
 
 import sympy
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.atoms import IntegerM1, SymbolPlus, SymbolTimes
+from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import constant
-from mathics.core.convert import sympy_symbol_prefix, from_sympy
+from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Atom, Symbol
+from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 
@@ -31,7 +35,7 @@ class RSolve(Builtin):
 
     No boundary conditions gives two general paramaters:
     >> RSolve[{a[n + 2] == a[n]}, a, n]
-     = {{a -> (Function[{n}, C[0] + C[1] -1 ^ n])}}
+     = {{a -> (Function[{n}, C[0] + C[1] (-1) ^ n])}}
 
     Include one boundary condition:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1}, a, n]
@@ -42,7 +46,7 @@ class RSolve(Builtin):
 
     Geta "pure function" solution for a with two boundary conditions:
     >> RSolve[{a[n + 2] == a[n], a[0] == 1, a[1] == 4}, a, n]
-     = {{a -> (Function[{n}, 5 / 2 - 3 -1 ^ n / 2])}}
+     = {{a -> (Function[{n}, 5 / 2 - 3 (-1) ^ n / 2])}}
     """
 
     messages = {

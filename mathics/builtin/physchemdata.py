@@ -15,8 +15,8 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import (
     Integer,
     String,
-    from_python,
 )
+from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, strip_context
 

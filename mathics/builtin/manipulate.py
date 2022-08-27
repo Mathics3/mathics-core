@@ -4,8 +4,9 @@
 from mathics import settings
 
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import Integer, String, from_python
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import hold_all, protected
+from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Output
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -127,10 +128,12 @@ class _WidgetInstantiator:
         # convert the rules given us by ManipulateParameter[] into a dict. note: duplicate keys
         # will be overwritten, the latest one wins.
         kwargs = {"evaluation": evaluation}
-        for rule in expr.leaves:
-            if rule.get_head_name() != "System`Rule" or len(rule.leaves) != 2:
+        for rule in expr.elements:
+            if rule.get_head_name() != "System`Rule" or len(rule.elements) != 2:
                 return False
-            kwargs[strip_context(rule.leaves[0].to_python()).lower()] = rule.leaves[1]
+            kwargs[strip_context(rule.elements[0].to_python()).lower()] = rule.elements[
+                1
+            ]
         widget = kwargs["type"].get_string_value()
         del kwargs["type"]
         getattr(self, "_add_%s_widget" % widget.lower())(**kwargs)  # create the widget
@@ -197,19 +200,21 @@ class _WidgetInstantiator:
 
     def _add_options_widget(self, symbol, options, default, label, evaluation):
         formatted_options = []
-        for i, option in enumerate(options.leaves):
+        for i, option in enumerate(options.elements):
             data = evaluation.format_output(option, format="text")
             formatted_options.append((data, i))
 
         default_index = 0
-        for i, option in enumerate(options.leaves):
+        for i, option in enumerate(options.elements):
             if option.sameQ(default):
                 default_index = i
 
         widget = _create_widget(
             ToggleButtons, options=formatted_options, value=default_index
         )
-        self._add_widget(widget, symbol.get_name(), lambda j: options.leaves[j], label)
+        self._add_widget(
+            widget, symbol.get_name(), lambda j: options.elements[j], label
+        )
 
     def _add_widget(self, widget, name, parse, label):
         if not widget.description:
