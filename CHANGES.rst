@@ -11,6 +11,7 @@ New Builtins
 
 #. ``$BoxForms``
 #. ``ClebschGordan``
+#. ``Curl`` (2-D and 3-D vector forms only)
 #. ``Kurtosis``
 #. ``PauliMatrix``
 #. ``SixJSymbol``
