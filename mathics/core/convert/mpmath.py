@@ -8,7 +8,6 @@ from mathics.core.atoms import (
     MachineReal,
     PrecisionReal,
 )
-from mathics.core.symbols import SymbolList
 
 
 @lru_cache(maxsize=1024)

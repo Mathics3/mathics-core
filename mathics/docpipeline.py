@@ -28,6 +28,7 @@ from mathics.builtin import builtins_dict
 from mathics import version_string
 from mathics import settings
 from mathics.doc.common_doc import MathicsMainDocumentation
+from mathics.timing import show_lru_cache_statistics
 
 builtins = builtins_dict()
 
@@ -544,6 +545,11 @@ def main():
         default=MAX_TESTS,
         help="run only  N tests",
     )
+    parser.add_argument(
+        "--show-statistics",
+        action="store_true",
+        help="print cache statistics",
+    )
     # FIXME: there is some weird interacting going on with
     # mathics when tests in sorted order. Some of the Plot
     # show a noticeable 2 minute delay in processing.
@@ -618,6 +624,8 @@ def main():
             print("Tests took ", end_time - start_time)
     if logfile:
         logfile.close()
+    if args.show_statistics:
+        show_lru_cache_statistics()
 
 
 if __name__ == "__main__":

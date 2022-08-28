@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+"""
+Conversions between Python and Mathics
+"""
+
 from typing import Any
 from mathics.core.number import get_type
 
