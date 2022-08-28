@@ -14,9 +14,11 @@ from typing import Optional
 import sympy
 
 from mathics.core.atoms import Number
-from mathics.core.attributes import n_hold_all as A_N_HOLD_ALL
-from mathics.core.attributes import n_hold_first as A_N_HOLD_FIRST
-from mathics.core.attributes import n_hold_rest as A_N_HOLD_REST
+from mathics.core.attributes import (
+    n_hold_all as A_N_HOLD_ALL,
+    n_hold_first as A_N_HOLD_FIRST,
+    n_hold_rest as A_N_HOLD_REST,
+)
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.evaluation import Evaluation
