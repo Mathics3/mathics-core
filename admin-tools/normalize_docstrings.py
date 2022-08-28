@@ -2,16 +2,21 @@
 
 
 """
-This program ensures the indentation inside docstrings.
+This program ensures a consistent indentation <dd>, and <dt> inside <dl> in docstrings.
 """
 
+import filecmp
+import os
 import re
 import sys
-import os
-import shutil
 
 
-def process_file(filename: str) -> int:
+def rewrite_dl_tags(filename: str) -> int:
+    """
+    Look for <dl>, <dd>, and <dt> tags and rewrite them
+    using a consistent set of indentation.
+    0 is returned there was no error.
+    """
     new_lines = []
     with open(filename, "r") as f_in:
         for line in f_in.readlines():
@@ -21,20 +26,26 @@ def process_file(filename: str) -> int:
             line = re.sub(r"^[ ]*[<]dd[>]", r"      <dd>", line)
             new_lines.append(line)
 
-    # backup the file
-    shutil.copyfile(filename, filename + "~")
-    with open(filename, "w") as f_out:
+    rewritten_file = filename + ".rewritten"
+    with open(rewritten_file, "w") as f_out:
         for line in new_lines:
             f_out.write(line)
+        if filecmp.cmp(rewritten_file, filename):
+            print(f"No change; removing temporary {rewritten_file}")
+        else:
+            backup_file = filename + "~"
+            print(f"File changed, backing up {filename} to {backup_file}")
+            os.rename(filename, backup_file)
+            os.rename(rewritten_file, filename)
     return 0
 
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        print("This tool applies basic rules to normalize the format of docstrings")
+        print(__doc__)
         print("usage:")
-        print("clean_docstring  [filename]")
-        exit(-1)
+        print(f"  {__file__} [Mathics-module-containing-builtins]")
+        quit(-1)
     filename = sys.argv[1]
-    print(f"normalizing {filename}. Backup in {filename}~")
-    process_file(filename)
+    print(f"Checking <dl>, <dd>, and <dt> indentation on {filename}.")
+    quit(rewrite_dl_tags(filename))

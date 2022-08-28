@@ -1,19 +1,18 @@
 import pytest
 
-from mathics.doc.common_doc import MathicsMainDocumentation, XMLDoc
-
 import glob
 import importlib
 import pkgutil
+import os
 import os.path as osp
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 
 from mathics.builtin.base import Builtin
-
 from mathics import __file__ as mathics_initfile_path
 
-mathics_path = mathics_initfile_path[:-12]
+# Get file system path name for mathics.builtin
+mathics_path = osp.dirname(mathics_initfile_path)
 mathics_builtins_path = mathics_path + "/builtin"
 
 CHECK_GRAMMAR = False
@@ -179,11 +178,14 @@ def is_builtin(var: object) -> bool:
     )
 
 
+@pytest.mark.skipif(
+    not os.environ.get("MATHICS_LINT"),
+    reason="Checking done only when MATHICS_LINT=t specified",
+)
 @pytest.mark.parametrize(
     ("module_name",),
     [(module_name,) for module_name in modules],
 )
-# @pytest.mark.xfail
 def test_summary_text_available(module_name):
     """
     Checks that each Builtin has its summary_text property.

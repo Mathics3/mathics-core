@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mathics.builtin import modules, sanity_check, is_builtin, Builtin
+from mathics.builtin import modules, is_builtin, Builtin
 import sys
 
 
