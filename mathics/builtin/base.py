@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3
 
+import importlib
 import re
 import sympy
-from functools import total_ordering
-import importlib
+
+from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
@@ -652,6 +653,15 @@ class Test(Builtin):
         return None if test_expr is None else from_bool(bool(test_expr))
 
 
+@lru_cache()
+def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
+    """
+    Wrapper to run a SymPy function with a cache.
+    TODO: hook into SymPyTracing -> True
+    """
+    return sympy_fn(*sympy_args)
+
+
 class SympyFunction(SympyObject):
     def apply(self, z, evaluation):
         # Note: we omit a docstring here, so as not to confuse
@@ -665,7 +675,7 @@ class SympyFunction(SympyObject):
         sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
-            return from_sympy(sympy_fn(*sympy_args))
+            return from_sympy(run_sympy(sympy_fn, *sympy_args))
         except:
             return
 

@@ -82,7 +82,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-@lru_cache(maxsize=1024)
+@lru_cache(maxsize=4096)
 def call_mpmath(mpmath_function, mpmath_args):
     try:
         return mpmath_function(*mpmath_args)
@@ -183,20 +183,6 @@ class _MPMathFunction(SympyFunction):
                 if isinstance(result, (mpmath.mpc, mpmath.mpf)):
                     result = from_mpmath(result, d)
         return result
-
-    def call_mpmath(self, mpmath_function, mpmath_args):
-        try:
-            return mpmath_function(*mpmath_args)
-        except ValueError as exc:
-            text = str(exc)
-            if text == "gamma function pole":
-                return SymbolComplexInfinity
-            else:
-                raise
-        except ZeroDivisionError:
-            return
-        except SpecialValueError as exc:
-            return Symbol(exc.name)
 
 
 class _MPMathMultiFunction(_MPMathFunction):

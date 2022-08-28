@@ -13,10 +13,10 @@ Precision is not "guarded" through the evaluation process. Only integer precisio
 However, things like 'N[Pi, 100]' should work as expected.
 """
 
-import sympy
 import mpmath
-from functools import lru_cache
+import sympy
 
+from functools import lru_cache
 
 from mathics.builtin.base import Builtin, Predefined, Test
 
@@ -57,7 +57,7 @@ SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
 
 
-@lru_cache(maxsize=1024)
+@lru_cache()
 def log_n_b(py_n, py_b) -> int:
     return int(mpmath.ceil(mpmath.log(py_n, py_b))) if py_n != 0 and py_n != 1 else 1
 

@@ -150,7 +150,7 @@ class Integer(Number):
     def abs(self) -> "Integer":
         return -self if self < Integer0 else self
 
-    @lru_cache()
+    @lru_cache(maxsize=1024)
     def __init__(self, value):
         super().__init__()
 
@@ -232,7 +232,7 @@ class Rational(Number):
     class_head_name = "System`Rational"
 
     # Think about: Do we ever need this on a __new__ since that does the same thing?
-    @lru_cache()
+    @lru_cache(maxsize=1024)
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
