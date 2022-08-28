@@ -96,7 +96,6 @@ class Integer(Number):
     value: int
     class_head_name = "System`Integer"
 
-    # Think about: Do we ever need this on a __new__ since that does the same thing?
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
     def __new__(cls, value) -> "Integer":

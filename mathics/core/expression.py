@@ -262,21 +262,37 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         values = []
         for element in self._elements:
             # Test for the three properties mentioned above.
-            if element.is_literal:
-                values.append(element.value)
-            else:
-                self.elements_properties.elements_fully_evaluated = False
+
+            # First we test for not flatness, and elements_fully_evaluated
             if isinstance(element, Expression):
+
+                # "self" can't be flat.
                 self.elements_properties.is_flat = False
+
+                # "elements_properties" only exists for Expression types
+                # If we haven't set element.elements properties, compute that...
                 if element.elements_properties is None:
                     if hasattr(self, "_is_literal"):
                         self._is_literal = False
                     element._build_elements_properties()
+
+                # and now possibly adjust self.elements_properties.elements_fully_evaluted
                 if self.elements_properties.elements_fully_evaluated:
                     self._elements_fully_evaluated = (
                         element.elements_properties.elements_fully_evaluated
                     )
 
+            if element.is_literal:
+                values.append(element.value)
+            else:
+                # FIXME: uncommenting this out messes up formatting.
+                # File "mathics-core/mathics/core/formatter.py", line 135, in ret_fn
+                # return boxes_to_method(elements, **opts)
+                # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
+                # Why?
+                self.elements_properties.elements_fully_evaluated = False
+
+            # Test for ordered property
             if self.elements_properties.is_ordered and last_element is not None:
                 try:
                     self.elements_properties.is_ordered = last_element <= element
@@ -284,6 +300,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     self.elements_properties.is_ordered = False
             last_element = element
 
+        # self.is_literal should only be True for ListExpression. However
+        # However we have still some Expression(ListSymbol, ...) around?
         if self.is_literal:
             assert self.elements_properties.elements_fully_evaluated
             self.value = tuple(values)
