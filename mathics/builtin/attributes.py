@@ -78,7 +78,7 @@ class Attributes(Builtin):
         "Attributes[expr_]"
 
         if isinstance(expr, String):
-            expr = Symbol(expr.get_string_value())
+            expr = Symbol(expr.value)
         name = expr.get_lookup_name()
 
         attributes = attributes_bitset_to_list(

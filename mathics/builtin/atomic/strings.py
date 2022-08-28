@@ -586,7 +586,7 @@ class LetterNumber(Builtin):
             return
         # TODO: handle Uppercase
         if isinstance(chars, String):
-            py_chars = chars.get_string_value()
+            py_chars = chars.value
             if len(py_chars) == 1:
                 # FIXME generalize ord("a")
                 res = alphabet["Lowercase"].find(py_chars) + 1
@@ -615,7 +615,7 @@ class LetterNumber(Builtin):
 
         start_ord = ord("a") - 1
         if isinstance(chars, String):
-            py_chars = chars.get_string_value()
+            py_chars = chars.value
             if len(py_chars) == 1:
                 # FIXME generalize ord("a")
                 return letter_number([py_chars[0]], start_ord)[0]
@@ -765,11 +765,11 @@ class StringRepeat(Builtin):
 
     def apply(self, s, n, expression, evaluation):
         "StringRepeat[s_String, n_]"
-        py_n = n.get_int_value() if isinstance(n, Integer) else 0
+        py_n = n.value if isinstance(n, Integer) else 0
         if py_n < 1:
             evaluation.message("StringRepeat", "intp", 2, expression)
         else:
-            return String(s.get_string_value() * py_n)
+            return String(s.value * py_n)
 
     def apply_truncated(self, s, n, m, expression, evaluation):
         "StringRepeat[s_String, n_Integer, m_Integer]"
@@ -782,7 +782,7 @@ class StringRepeat(Builtin):
         elif py_m < 1:
             evaluation.message("StringRepeat", "intp", 3, expression)
         else:
-            py_s = s.get_string_value()
+            py_s = s.value
             py_n = min(1 + py_m // len(py_s), py_n)
 
             return String((py_s * py_n)[:py_m])
@@ -982,7 +982,7 @@ class ToExpression(Builtin):
             if isinstance(inp, String):
 
                 # TODO: turn the below up into a function and call that.
-                s = inp.get_string_value()
+                s = inp.value
                 short_s = s[:15] + "..." if len(s) > 16 else s
                 with io.StringIO(s) as f:
                     f.name = """ToExpression['%s']""" % short_s
@@ -1058,7 +1058,7 @@ class RemoveDiacritics(Builtin):
     def apply(self, s, evaluation):
         "RemoveDiacritics[s_String]"
         return String(
-            unicodedata.normalize("NFKD", s.get_string_value())
+            unicodedata.normalize("NFKD", s.value)
             .encode("ascii", "ignore")
             .decode("ascii")
         )
@@ -1095,7 +1095,7 @@ class Transliterate(Builtin):
         "Transliterate[s_String]"
         from unidecode import unidecode
 
-        return String(unidecode(s.get_string_value()))
+        return String(unidecode(s.value))
 
 
 def _pattern_search(name, string, patt, evaluation, options, matched):

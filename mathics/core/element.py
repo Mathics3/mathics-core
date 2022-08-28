@@ -337,7 +337,7 @@ class BaseElement(KeyComparable):
             rules.append(rule)
         return rules
 
-    def get_sequence(self):
+    def get_sequence(self) -> list:
         """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 

@@ -660,8 +660,12 @@ class SympyFunction(SympyObject):
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        args = z.numerify(evaluation).get_sequence()
-        sympy_args = [a.to_sympy() for a in args]
+        if z.is_literal:
+            sympy_args = [z.value]
+        else:
+            args = z.numerify(evaluation).get_sequence()
+            sympy_args = [a.to_sympy() for a in args]
+
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
             return from_sympy(sympy_fn(*sympy_args))
@@ -727,6 +731,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
+        # This should not be here.
         article = (
             "an "
             if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
@@ -741,8 +746,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if not instance.__doc__:
             instance.__doc__ = rf"""
             <dl>
-            <dt>'{instance.get_name()}'
-            <dd> box structure.
+              <dt>'{instance.get_name()}'
+              <dd> box structure.
             </dl>
             """
 
@@ -763,10 +768,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
-
-        Think about: We will say that a BoxExpression can't change.
         """
-        return True
+        return False
 
     @property
     def elements(self):

@@ -26,11 +26,16 @@ def to_expression(
     #    from mathics.core.convert.expression import to_mathics_list
     #    return to_mathics_list(elements)
 
-    elements_tuple, elements_properties = convert_expression_elements(
+    elements_tuple, elements_properties, literal_values = convert_expression_elements(
         elements, elements_conversion_fn
     )
 
-    return Expression(head, *elements_tuple, elements_properties=elements_properties)
+    return Expression(
+        head,
+        *elements_tuple,
+        elements_properties=elements_properties,
+        literal_values=literal_values
+    )
 
 
 def to_expression_with_specialization(
@@ -57,14 +62,14 @@ def to_mathics_list(
        to_mathics_list(1, 2, 3)
        to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
     """
-    elements_tuple, elements_properties = convert_expression_elements(
+    elements_tuple, elements_properties, values = convert_expression_elements(
         elements, elements_conversion_fn
     )
     list_expression = ListExpression(
         *elements_tuple, elements_properties=elements_properties
     )
     if is_literal:
-        list_expression.python_list = elements
+        list_expression.value = elements
     return list_expression
 
 

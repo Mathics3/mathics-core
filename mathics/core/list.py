@@ -19,17 +19,25 @@ class ListExpression(Expression):
 
     Keyword Arguments:
         - element_properties -- properties of the collection of elements
+        - literal_values -- if this is not None, then it is a tuple of Python values
     """
 
     def __init__(
         self,
         *elements,
         elements_properties: Optional[ElementsProperties] = None,
-        is_literal: Optional[bool] = False,
+        literal_values: Optional[tuple] = None,
     ):
         self.options = None
         self.pattern_sequence = False
         self._head = SymbolList
+
+        if literal_values is not None:
+            import inspect
+
+            curframe = inspect.currentframe()
+            call_frame = inspect.getouterframes(curframe, 2)
+            print("caller name:", call_frame[1][3])
 
         # For debugging
         # from mathics.core.symbols import BaseElement
@@ -38,11 +46,21 @@ class ListExpression(Expression):
         #          from trepan.api import debug; debug()
 
         self._elements = elements
-        # TODO: consider adding _is_literal as an elements property.
-        self._is_literal = (
-            is_literal if is_literal else all(e.is_literal for e in elements)
-        )
-        self.python_list = None
+        self.value = literal_values
+
+        # Check for literalness if it is not known
+        if literal_values is None:
+            self._is_literal = True
+            values = []
+            for element in elements:
+                if element.is_literal:
+                    values.append(element.value)
+                else:
+                    self._is_literal = False
+                    break
+            if self._is_literal:
+                self.value = tuple(values)
+
         self.elements_properties = elements_properties
 
         # FIXME: get rid of this junk
@@ -84,11 +102,11 @@ class ListExpression(Expression):
             self._elements = tuple(elements)
 
             # TODO: we could have a specialized version of this
-            # that keeps self.python_list up to date when that is
+            # that keeps self.value up to date when that is
             # easy to do. That is left of some future time to
             # decide whether doing this this is warranted.
             self._build_elements_properties()
-            self.python_list = None
+            self.value = None
 
     @property
     def is_literal(self) -> bool:

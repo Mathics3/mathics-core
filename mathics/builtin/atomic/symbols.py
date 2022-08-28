@@ -718,7 +718,7 @@ class Symbol_(Builtin):
 
         from mathics.core.parser import is_symbol_name
 
-        text = string.get_string_value()
+        text = string.value
         if is_symbol_name(text):
             return Symbol(evaluation.definitions.lookup_name(string.value))
         else:
