@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-"""
-Lower-level formatter of Mathics objects as (AMS)LaTeX strings.
+"""Lower-level formatter of Mathics objects as (AMS)LaTeX strings.
 
 AMS LaTeX is LaTeX with addition mathematical symbols, which
 we may make use of via the mathics-scanner tables.
 
 LaTeX formatting is usually initiated in Mathics via TeXForm[].
 
-TeXForm in WMA is slightly vague misleading since the output is
-typically LaTeX rather than Plain TeX. In Mathics we also assume
-AMS the additional Mathematical Symbols exist.
+TeXForm in WMA is slightly vague or misleading since the output is
+typically LaTeX rather than Plain TeX. In Mathics, we also assume AMS
+LaTeX or more specifically that we the additional AMS Mathematical
+Symbols exist.
 """
 
 import re

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Lower-level formatter Mathics objects as JSON data.
+Lower-level formatter of Mathics objects as JSON data.
 
 Right now this happens mostly for graphics primitives.
 """

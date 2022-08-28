@@ -8,17 +8,20 @@ pattern used here.
 
 These routines typically get called in formatting Mathics Box objects.
 
-Although there higher level *Forms* (e.g. TeXForm, MathMLForm)
-typically cause very specific formatters to get called, (e.g. latex, mathml),
-the two concepts and levels are a little bit different.
+The higher level *Forms* (e.g. TeXForm, MathMLForm) typically cause
+specific formatters to get called, (e.g. latex, mathml). However, the
+two concepts and levels are a little bit different. A given From can
+cause invoke of several formatters, which the front-end can influence
+based on its capabilities and back-end renders available to it.
 
-For example, in graphics there may be several different kinds of
-renderers, SVG, PNG for a particular kind of graphics Box, the
-front-end deciding which render to use for a that kind of Box.
-The Box however is created via a particular high-level Form.
+For example, in graphics we may be several different kinds of
+renderers, SVG, or Asymptote for a particular kind of graphics Box.
+The front-end nees to decides which format it better suited for it.
+The Box, however, is created via a particular high-level Form.
 
 As another example, front-end may decide to use MathJaX to render
 TeXForm if the front-end supports this and the user so desires that.
+
 """
 
 import os.path as osp
