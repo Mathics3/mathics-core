@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Callable, Union
+from typing import Any, Callable, Type, Union
 
 from mathics.core.convert.python import from_python
+from mathics.core.element import BaseElement
 from mathics.core.expression import Expression, convert_expression_elements
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
+
+
+def make_expression(head, *elements, **kwargs) -> Expression:
+    """
+    Use this to create the right kind of *customized* Expression, e.g. a ListExpression
+    for a given head.
+    """
+    constructor_fn = expression_constructor_map.get(head, Expression)
+    return constructor_fn(head, *elements, **kwargs)
 
 
 def to_expression(
@@ -73,15 +83,38 @@ def to_mathics_list(
     return list_expression
 
 
+def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
+    """
+    Convert Mathics arguments, such as the arguments in an evaluation
+    method a Python list that is suitable for feeding as arguments
+    into SymPy, NumPy, or mpmath.
+
+    We make use of fast conversions for literals.
+    """
+    return (
+        tuple(mathics_args.value)
+        if mathics_args.is_literal
+        else mathics_args.numerify(evaluation).get_sequence()
+    )
+
+
+def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
+    """
+    Convert Mathics arguments, such as the arguments in an evaluation
+    method a Python list that is sutiable for feeding as arguments
+    into SymPy.
+
+    We make use of fast conversions for literals.
+    """
+    if mathics_args.is_literal:
+        sympy_args = [mathics_args.value]
+    else:
+        args = mathics_args.numerify(evaluation).get_sequence()
+        sympy_args = [a.to_sympy() for a in args]
+
+    return sympy_args
+
+
 expression_constructor_map = {
     SymbolList: lambda head, *args, **kwargs: ListExpression(*args, **kwargs)
 }
-
-
-def make_expression(head, *elements, **kwargs) -> Expression:
-    """
-    Use this to create the right kind of *customized* Expression, e.g. a ListExpression
-    for a given head.
-    """
-    constructor_fn = expression_constructor_map.get(head, Expression)
-    return constructor_fn(head, *elements, **kwargs)

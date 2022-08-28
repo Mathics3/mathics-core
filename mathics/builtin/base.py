@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
-from mathics.core.convert.expression import to_expression
+from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
@@ -654,18 +654,15 @@ class Test(Builtin):
 
 class SympyFunction(SympyObject):
     def apply(self, z, evaluation):
-        #
+        # Note: we omit a docstring here, so as not to confuse
+        # function signature collector ``contribute``.
+
         # Generic apply method that uses the class sympy_name.
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        if z.is_literal:
-            sympy_args = [z.value]
-        else:
-            args = z.numerify(evaluation).get_sequence()
-            sympy_args = [a.to_sympy() for a in args]
-
+        sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
             return from_sympy(sympy_fn(*sympy_args))

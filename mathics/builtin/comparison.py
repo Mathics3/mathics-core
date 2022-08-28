@@ -34,14 +34,14 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    flat,
-    listable,
-    numeric_function,
-    one_identity,
-    orderless,
-    protected,
+    flat as A_FLAT,
+    listable as A_LISTABLE,
+    numeric_function as A_NUMERIC_FUNCTION,
+    one_identity as A_ONE_IDENTITY,
+    orderless as A_ORDERLESS,
+    protected as A_PROTECTED,
 )
-from mathics.core.convert.expression import to_expression
+from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.number import dps
@@ -94,7 +94,7 @@ class _InequalityOperator(BinaryOperator):
                 n_items.append(item)
             items = n_items
         else:
-            items = items.numerify(evaluation).get_sequence()
+            items = to_numeric_args(items, evaluation)
         return items
 
 
@@ -904,7 +904,7 @@ class Positive(Builtin):
      = {False, True}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
@@ -934,7 +934,7 @@ class Negative(Builtin):
      = {True, False}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
@@ -953,7 +953,7 @@ class NonNegative(Builtin):
      = {False, True}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
@@ -972,7 +972,7 @@ class NonPositive(Builtin):
      = {False, True}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
@@ -1000,7 +1000,9 @@ def expr_min(elements):
 
 class _MinMax(Builtin):
 
-    attributes = flat | numeric_function | one_identity | orderless | protected
+    attributes = (
+        A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
+    )
 
     def apply(self, items, evaluation):
         "%(name)s[items___]"
