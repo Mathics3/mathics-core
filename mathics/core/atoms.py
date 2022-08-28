@@ -8,8 +8,8 @@ import re
 import sympy
 import typing
 
-from typing import Any, Optional
 from functools import lru_cache
+from typing import Any, Optional
 
 
 from mathics.core.element import ImmutableValueMixin, BoxElementMixin
@@ -98,6 +98,7 @@ class Integer(Number):
     value: int
     class_head_name = "System`Integer"
 
+    # Think about: Do we ever need this on a __new__ since that does the same thing?
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
     def __new__(cls, value) -> "Integer":
@@ -232,6 +233,7 @@ IntegerM1 = Integer(-1)
 class Rational(Number):
     class_head_name = "System`Rational"
 
+    # Think about: Do we ever need this on a __new__ since that does the same thing?
     @lru_cache()
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)

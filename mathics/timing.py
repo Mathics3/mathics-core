@@ -59,3 +59,20 @@ class TimeitContextManager:
         elapsed = (te - self.ts) * 1000
         if elapsed > MIN_ELAPSE_REPORT:
             print("%r  %2.2f ms" % (self.name, elapsed))
+
+
+def show_lru_cache_statistics():
+    """
+    Print statistics from LRU caches (@lru_cache of functools)
+    """
+    from mathics.core.atoms import Integer, Rational
+    from mathics.builtin.arithmetic import call_mpmath, _MPMathFunction
+    from mathics.builtin.atomic.numbers import log_n_b
+    from mathics.core.convert.mpmath import from_mpmath
+
+    print(f"call_mpmath         {call_mpmath.cache_info()}")
+    print(f"log_n_b             {log_n_b.cache_info()}")
+    print(f"from_mpmath         {from_mpmath.cache_info()}")
+    print(f"get_mpmath_function {_MPMathFunction.get_mpmath_function.cache_info()}")
+    print(f"Integer             {Integer.__init__.cache_info()}")
+    print(f"Rational            {Rational.__new__.cache_info()}")

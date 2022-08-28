@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import atexit
 import locale
 import os
 import re
@@ -13,16 +14,16 @@ import os.path as osp
 from mathics import settings
 from mathics import version_string, license_string, __version__
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
+from mathics.core.atoms import String
 from mathics.core.definitions import autoload_files, Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.expression import Expression
 from mathics.core.parser import MathicsFileLineFeeder, MathicsLineFeeder
+from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import strip_context, SymbolNull
-
-from mathics.core.read import channel_to_stream
 from mathics.core.streams import stream_manager
-from mathics.core.atoms import String
+from mathics.timing import show_lru_cache_statistics
 
 
 def get_srcdir():
@@ -332,6 +333,11 @@ Please contribute to Mathics!""",
         action="store_true",
     )
 
+    argparser.add_argument(
+        "--show-statistics",
+        action="store_true",
+        help="print cache statistics",
+    )
     args, script_args = argparser.parse_known_args()
 
     quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
@@ -347,12 +353,14 @@ Please contribute to Mathics!""",
 
     if args.trace_builtins:
         BuiltinRule.do_replace = traced_do_replace
-        import atexit
 
         def dump_tracing_stats():
             TraceBuiltins.dump_tracing_stats(sort_by="count", evaluation=None)
 
         atexit.register(dump_tracing_stats)
+
+    if args.show_statistics:
+        atexit.register(show_lru_cache_statistics)
 
     definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
     definitions.set_line_no(0)

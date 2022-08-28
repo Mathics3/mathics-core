@@ -1,8 +1,8 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-# Note: docstring is flowed in documentation. Line breaks in the docstring will appear in the
-# printed output, so be carful not to add then mid-sentence.
+# Note: docstring is not flowed in documentation. Line breaks in the docstring will appear in the
+# printed output, so be careful not to add them mid-sentence.
 
 """
 Representation of Numbers
