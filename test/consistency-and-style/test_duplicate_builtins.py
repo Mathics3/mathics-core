@@ -1,10 +1,16 @@
+"""
+Checks that builtin functions do not get redefined.
+
+In the past when reorganizing builtin functions we sometimes
+had missing or duplicate build-in functions definitions.
+"""
 import pytest
 import os
-from mathics.builtin import modules, sanity_check, is_builtin, Builtin
+from mathics.builtin import modules, is_builtin, Builtin
 
 
 @pytest.mark.skipif(
-    not os.environ.get("LINT"), reason="Lint checking done only when specified"
+    not os.environ.get("MATHICS_LINT"), reason="Lint checking done only when specified"
 )
 def test_check_duplicated():
     msg = ""

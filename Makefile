@@ -9,12 +9,30 @@ PYTHON ?= python3
 PIP ?= pip3
 RM  ?= rm
 
-.PHONY: all build \
-   check clean clean-cython \
-   develop dist doctest doc-data djangotest \
-   gstest pytest \
+.PHONY: \
+   all \
+   build \
+   check \
+   check-builtin-manifest \
+   check-consistency-and-style \
+   check-full \
+   clean \
+   clean-cache \
+   clean-cython \
+   develop \
+   develop-full \
+   develop-full-cython \
+   dist \
+   doc \
+   doctest \
+   doc-data \
+   djangotest \
+   gstest \
+   latexdoc \
+   pytest \
    rmChangeLog \
-   test
+   test \
+   texdoc
 
 SANDBOX	?=
 ifeq ($(OS),Windows_NT)
@@ -59,14 +77,19 @@ dist:
 install:
 	$(PYTHON) setup.py install
 
+#: Run the most extensive set of tests
 check: pytest gstest doctest
 
 
-# Check manifest, lint, etc
-check-lint:
+#: Build and check manifest of Builtins
+check-builtin-manifest:
 	$(PYTHON) admin-tools/build_and_check_manifest.py
 
-check-full: check-lint check
+#: Run pytest consistency and style checks
+check-consistency-and-style:
+	MATHICS_LINT=t $(PYTHON) -m pytest test/consistency-and-style
+
+check-full: check-builtin-manifest check-builtin-manifest check
 
 #: Remove Cython-derived files
 clean-cython:
@@ -99,11 +122,6 @@ gstest:
 #: Create data that is used to in Django docs and to build LaTeX PDF
 doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
 	$(PYTHON) mathics/docpipeline.py --output --keep-going
-
-#: Run tests that appear in docstring in the code.
-doctest-workaround:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py --exclude=NIntegrate,MaxRecursion
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py --sections=NIntegrate,MaxRecursion
 
 #: Run tests that appear in docstring in the code.
 doctest:
