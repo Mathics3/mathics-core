@@ -27,6 +27,7 @@ from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression, SymbolDefault
+from mathics.core.formatter import format2fn
 from mathics.core.list import ListExpression
 from mathics.core.number import get_precision, PrecisionValueError
 from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
@@ -388,6 +389,19 @@ class Builtin:
         makeboxes_def = definitions.builtin["System`MakeBoxes"]
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
+
+        if isinstance(self, BoxElementMixin):
+            # Backward compatibility:
+            # `boxes_to_` methods defined in a BoxElements are
+            # added as conversion functions.
+            prefix_boxes_to = "boxes_to_"
+            for name in dir(self):
+                if name.startswith(prefix_boxes_to):
+                    function = getattr(self.__class__, name)
+                    if getattr(BoxElementMixin, name, None) is function:
+                        continue
+                    type_name = name[len(prefix_boxes_to) :]
+                    format2fn[(type_name, self.__class__)] = function
 
     @classmethod
     def get_name(cls, short=False) -> str:

@@ -125,16 +125,6 @@ def lookup_method(self, format: str) -> Callable:
         if format_fn is not None:
             # print(f"format function: {format_fn.__name__} for {type(self).__name__}")
             return format_fn
-    # backward compatibility
-    boxes_to_method = getattr(self, f"boxes_to_{format}", None)
-    if getattr(BoxElementMixin, f"boxes_to_{format}") is boxes_to_method:
-        boxes_to_method = None
-    if boxes_to_method:
-
-        def ret_fn(box, elements=None, **opts):
-            return boxes_to_method(elements, **opts)
-
-        return ret_fn
 
     error_msg = f"Can't find formatter {format} for {type(self).__name__}"
     raise RuntimeError(error_msg)
@@ -159,7 +149,8 @@ def add_conversion_fn(cls, module_fn_name=None) -> None:
     fr = inspect.currentframe().f_back
     module_dict = fr.f_globals
 
-    # The last part of the module name is expected to be the conversion routine.
+    # The last part of the module name is expected
+    # to be the conversion routine.
     conversion_type = module_dict["__name__"].split(".")[-1]
 
     # Derive the conversion function from the passed-in class argument,
