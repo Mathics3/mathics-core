@@ -835,7 +835,7 @@ class ToString(Builtin):
     >> "U" <> ToString[2]
      = U2
     >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f\\left[x\\right] \\, dx
+     = \int f\left[x\right] \, dx
 
     Ask for an specific encoding:
     >> ToString[\[Pi], CharacterEncoding->"ASCII"]
