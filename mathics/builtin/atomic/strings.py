@@ -839,6 +839,7 @@ class ToString(Builtin):
     >> ToString[Integrate[f[x],x], TeXForm]
      = \\int f\\left[x\\right] \\, dx
 
+    Ask for an specific encoding:
     >> ToString[\[Pi], CharacterEncoding->"ASCII"]
      = Pi
 
