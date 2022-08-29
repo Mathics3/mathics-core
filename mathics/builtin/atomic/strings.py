@@ -42,8 +42,6 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInputForm,
     SymbolOutputForm,
-    SymbolRule,
-    SymbolRuleDelayed,
 )
 
 
@@ -816,7 +814,7 @@ class String_(Builtin):
 
 
 class ToString(Builtin):
-    """
+    r"""
     <dl>
       <dt>'ToString[$expr$]'
       <dd>returns a string representation of $expr$.
@@ -872,7 +870,7 @@ class ToString(Builtin):
             evaluation.message("$CharacterEncoding", "charcode", character_encoding)
             encoding = "Unicode"
 
-        if not encoding in _encodings:
+        if encoding not in _encodings:
             evaluation.message("$CharacterEncoding", "charcode", character_encoding)
             encoding = "Unicode"
 
