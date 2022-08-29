@@ -681,7 +681,7 @@ class GraphicsBox(BoxExpression):
 
         return ticks, ticks_small, origin_x
 
-    def boxes_to_svg(self, elements=None, **options) -> str:
+    def _boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
         """
