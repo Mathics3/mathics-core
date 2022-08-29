@@ -334,17 +334,6 @@ class Graphics3DBox(GraphicsBox):
 
         return elements, axes, ticks, ticks_style, calc_dimensions, boxscale
 
-    def boxes_to_js(self, elements=None, **options):
-        """Turn the Graphics3DBox to into a something javascript-ish
-        We include enclosing script tagging.
-        """
-        if elements:
-            options["elements"] = elements
-
-        json_repr = boxes_to_format(self, "json", **options)
-        js = f"<graphics3d data='{json_repr}'/>"
-        return js
-
     def create_axes(
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale
     ):
