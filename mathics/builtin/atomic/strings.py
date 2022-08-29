@@ -839,6 +839,9 @@ class ToString(Builtin):
     >> ToString[Integrate[f[x],x], TeXForm]
      = \\int f\\left[x\\right] \\, dx
 
+    >> ToString[\[Pi], CharacterEncoding->"ASCII"]
+     = Pi
+
     """
 
     options = {
@@ -858,18 +861,7 @@ class ToString(Builtin):
         return self.apply_form(value, SymbolOutputForm, evaluation, options)
 
     def apply_form(self, value, form, evaluation, options):
-        "ToString[value_, form_, OptionsPattern[ToString]]"
-
-        # For some reason, the rule for `apply_default` is never used.
-        # This handles the case where an options is placed instead
-        # of form.
-        if isinstance(form, Expression) and form.head in (
-            SymbolRule,
-            SymbolRuleDelayed,
-        ):
-            options[form.elements[0].name] = form.elements[1]
-            form = SymbolOutputForm
-
+        "ToString[value_, form_Symbol, OptionsPattern[ToString]]"
         # This handles the character encoding option. It is delegated
         # to the formatter.
         character_encoding = options["System`CharacterEncoding"]
