@@ -345,60 +345,6 @@ class Graphics3DBox(GraphicsBox):
         js = f"<graphics3d data='{json_repr}'/>"
         return js
 
-    def __boxes_to_json(self, elements=None, **options):
-        """Turn the Graphics3DBox to into a something JSON like.
-        This can be used to embed in something else like MathML or Javascript.
-
-        In contrast to to javascript or MathML, no enclosing tags are included.
-        the caller will do that if it is needed.
-        """
-        if not elements:
-            elements = self._elements
-
-        (
-            elements,
-            axes,
-            ticks,
-            ticks_style,
-            calc_dimensions,
-            boxscale,
-        ) = self._prepare_elements(elements, options)
-
-        js_ticks_style = [s.to_js() for s in ticks_style]
-
-        elements._apply_boxscaling(boxscale)
-
-        xmin, xmax, ymin, ymax, zmin, zmax, boxscale, w, h = calc_dimensions()
-        elements.view_width = w
-
-        # FIXME: json is the only thing we can convert MathML into.
-        # Handle other graphics formats.
-        format_fn = lookup_method(elements, "json")
-
-        json_repr = json.dumps(
-            {
-                "elements": format_fn(elements, **options),
-                "axes": {
-                    "hasaxes": axes,
-                    "ticks": ticks,
-                    "ticks_style": js_ticks_style,
-                },
-                "extent": {
-                    "xmin": xmin,
-                    "xmax": xmax,
-                    "ymin": ymin,
-                    "ymax": ymax,
-                    "zmin": zmin,
-                    "zmax": zmax,
-                },
-                "lighting": self.lighting,
-                "viewpoint": self.viewpoint,
-                "protocol": "1.1",
-            }
-        )
-
-        return json_repr
-
     def create_axes(
         self, elements, graphics_options, xmin, xmax, ymin, ymax, zmin, zmax, boxscale
     ):
