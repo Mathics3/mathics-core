@@ -252,10 +252,10 @@ def filled_curve_box(self, **options):
 add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
-def graphics_box(self, leaves=None, **options) -> str:
+def graphics_box(self, elements=None, **options) -> str:
 
-    if not leaves:
-        leaves = self._elements
+    if not elements:
+        elements = self._elements
 
     data = options.get("data", None)
     if data:
@@ -267,11 +267,13 @@ def graphics_box(self, leaves=None, **options) -> str:
             ymax,
             self.boxwidth,
             self.boxheight,
-            width,
-            height,
+            self.width,
+            self.height,
         ) = data
     else:
-        elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
+        elements, calc_dimensions = self._prepare_elements(
+            elements, options, neg_y=True
+        )
         (
             xmin,
             xmax,
@@ -279,8 +281,8 @@ def graphics_box(self, leaves=None, **options) -> str:
             ymax,
             self.boxwidth,
             self.boxheight,
-            width,
-            height,
+            self.width,
+            self.height,
         ) = calc_dimensions()
 
     elements.view_width = self.boxwidth

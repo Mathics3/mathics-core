@@ -27,6 +27,7 @@ from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
 from mathics.core.formatter import (
+    boxes_to_format,
     lookup_method as lookup_conversion_method,
     add_conversion_fn,
 )
@@ -276,7 +277,7 @@ add_conversion_fn(StyleBox, stylebox)
 def graphicsbox(self, elements=None, **options) -> str:
     # FIXME: SVG is the only thing we can convert MathML into.
     # Handle other graphics formats.
-    svg_body = self.boxes_to_svg(elements, **options)
+    svg_body = boxes_to_format(self, "svg", elements=elements, **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
     # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.

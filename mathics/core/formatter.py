@@ -113,7 +113,15 @@ def boxes_to_format(boxes, format, **options) -> str:  # Maybe Union[str, bytear
     Translates a box structure ``boxes`` to a file format ``format``.
 
     """
-    return lookup_method(boxes, format)(boxes, **options)
+    try:
+        return lookup_method(boxes, format)(boxes, **options)
+    except RecursionError:
+        # This is just for debugging.
+        return (
+            f"{type(boxes)} failed to be render "
+            f"in format <<  {format} >> with "
+            f"options={options}"
+        )
 
 
 def lookup_method(self, format: str) -> Callable:
