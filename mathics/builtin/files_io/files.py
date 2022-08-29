@@ -29,7 +29,7 @@ from mathics.core.attributes import protected, read_protected
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
-from mathics.core.formatter import format_element, do_format
+from mathics.core.formatter import boxes_to_format, do_format, format_element
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     channel_to_stream,
@@ -1787,7 +1787,7 @@ class WriteString(Builtin):
         for expri in expr.get_sequence():
             result = format_element(expri, evaluation, SymbolOutputForm)
             try:
-                result = result.boxes_to_text(evaluation=evaluation)
+                result = boxes_to_format(result, "text", evaluation=evaluation)
             except BoxError:
                 return evaluation.message(
                     "General",

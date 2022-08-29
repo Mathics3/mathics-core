@@ -41,7 +41,7 @@ from mathics.core.atoms import (
 
 from mathics.core.attributes import hold_all, protected, read_protected
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element, lookup_method
+from mathics.core.formatter import boxes_to_format, format_element, lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
@@ -681,7 +681,7 @@ class GraphicsBox(BoxExpression):
 
         return ticks, ticks_small, origin_x
 
-    def boxes_to_svg(self, elements=None, **options) -> str:
+    def _boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
         """
@@ -983,8 +983,8 @@ class InsetBox(_GraphicsElementBox):
             self.content = self.content.atom_to_boxes(
                 SymbolStandardForm, evaluation=self.graphics.evaluation
             )
-        self.content_text = self.content.boxes_to_text(
-            evaluation=self.graphics.evaluation
+        self.content_text = boxes_to_format(
+            self.content, "text", evaluation=self.graphics.evaluation
         )
 
     def extent(self):

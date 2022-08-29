@@ -131,8 +131,8 @@ def lookup_method(self, format: str) -> Callable:
         boxes_to_method = None
     if boxes_to_method:
 
-        def ret_fn(box, elements=None, **opts):
-            return boxes_to_method(elements, **opts)
+        def ret_fn(box, **opts):
+            return boxes_to_method(**opts)
 
         return ret_fn
 

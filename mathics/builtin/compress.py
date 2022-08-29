@@ -6,6 +6,7 @@ import zlib
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import String
+from mathics.core.formatter import boxes_to_format
 
 
 class Compress(Builtin):
@@ -31,8 +32,8 @@ class Compress(Builtin):
             string = '"' + expr.value + '"'
         else:
             string = expr.format(evaluation, "System`FullForm")
-            string = string.boxes_to_text(
-                evaluation=evaluation, show_string_characters=True
+            string = boxes_to_format(
+                string, "text", evaluation=evaluation, show_string_characters=True
             )
         string = string.encode("utf-8")
 

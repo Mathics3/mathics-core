@@ -484,9 +484,21 @@ class BoxElementMixin(ImmutableValueMixin):
 
         return boxes_to_format(self, format, **options)
 
+    def boxes_to_js(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("js", **options)
+
+    def boxes_to_json(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("json", **options)
+
     def boxes_to_mathml(self, **options: dict) -> str:
         """For compatibility deprecated"""
         return self.boxes_to_format("mathml", **options)
+
+    def boxes_to_svg(self, **options: dict) -> str:
+        """For compatibility deprecated"""
+        return self.boxes_to_format("svg", **options)
 
     def boxes_to_tex(self, **options: dict) -> str:
         """For compatibility deprecated"""

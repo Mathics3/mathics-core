@@ -28,7 +28,7 @@ from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
-from mathics.core.formatter import format_element
+from mathics.core.formatter import boxes_to_format, format_element
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
@@ -42,6 +42,8 @@ from mathics.core.systemsymbols import (
     SymbolDirectedInfinity,
     SymbolInputForm,
     SymbolOutputForm,
+    SymbolRule,
+    SymbolRuleDelayed,
 )
 
 
@@ -857,10 +859,33 @@ class ToString(Builtin):
 
     def apply_form(self, value, form, evaluation, options):
         "ToString[value_, form_, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
+
+        # For some reason, the rule for `apply_default` is never used.
+        # This handles the case where an options is placed instead
+        # of form.
+        if isinstance(form, Expression) and form.head in (
+            SymbolRule,
+            SymbolRuleDelayed,
+        ):
+            options[form.elements[0].name] = form.elements[1]
+            form = SymbolOutputForm
+
+        # This handles the character encoding option. It is delegated
+        # to the formatter.
+        character_encoding = options["System`CharacterEncoding"]
+        if isinstance(character_encoding, String):
+            encoding = character_encoding.value
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", character_encoding)
+            encoding = "Unicode"
+
+        if not encoding in _encodings:
+            evaluation.message("$CharacterEncoding", "charcode", character_encoding)
+            encoding = "Unicode"
+
         text = format_element(value, evaluation, form, encoding=encoding)
-        text = text.boxes_to_text(evaluation=evaluation)
-        return String(text)
+        result = boxes_to_format(text, "text", evaluation=evaluation, encoding=encoding)
+        return String(result)
 
 
 # This isn't your normal Box class. We'll keep this here rather than
@@ -886,7 +911,7 @@ class InterpretedBox(PrefixOperator):
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
+        reinput = boxes_to_format(boxes, "text")
         return Expression(SymbolToExpression, reinput).evaluate(evaluation)
 
 

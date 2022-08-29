@@ -27,9 +27,10 @@ from mathics.builtin.drawing.graphics3d import (
 from mathics.builtin.drawing.graphics_internals import get_class
 
 
-from mathics.core.formatter import lookup_method
+
 from mathics.core.evaluators import eval_N
 from mathics.core.symbols import Symbol, SymbolTrue
+
 
 
 class Graphics3DBox(GraphicsBox):
@@ -337,11 +338,14 @@ class Graphics3DBox(GraphicsBox):
         """Turn the Graphics3DBox to into a something javascript-ish
         We include enclosing script tagging.
         """
-        json_repr = self.boxes_to_json(elements, **options)
+        if elements:
+            options["elements"] = elements
+
+        json_repr = boxes_to_format(self, "json", **options)
         js = f"<graphics3d data='{json_repr}'/>"
         return js
 
-    def boxes_to_json(self, elements=None, **options):
+    def __boxes_to_json(self, elements=None, **options):
         """Turn the Graphics3DBox to into a something JSON like.
         This can be used to embed in something else like MathML or Javascript.
 

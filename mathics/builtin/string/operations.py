@@ -40,7 +40,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
-from mathics.core.formatter import format_element
+from mathics.core.formatter import boxes_to_format, format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -923,9 +923,11 @@ class StringRiffle(Builtin):
         # Getting all together
         result = left
         for i in range(len(liststr.elements)):
-            text = format_element(
-                liststr.elements[i], evaluation, SymbolOutputForm
-            ).boxes_to_text(evaluation=evaluation)
+            text = boxes_to_format(
+                format_element(liststr.elements[i], evaluation, SymbolOutputForm),
+                "text",
+                evaluation=evaluation,
+            )
             if i == len(liststr.elements) - 1:
                 result += text + right
             else:

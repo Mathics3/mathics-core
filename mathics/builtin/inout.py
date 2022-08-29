@@ -20,6 +20,7 @@ from mathics.core.atoms import Integer, String, StringFromPython
 
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
+from mathics.core.formatter import boxes_to_format
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -392,7 +393,7 @@ class MathMLForm(Builtin):
 
         boxes = MakeBoxes(expr).evaluate(evaluation)
         try:
-            mathml = boxes.boxes_to_mathml(evaluation=evaluation)
+            mathml = boxes_to_format(boxes, "mathml", evaluation=evaluation)
         except BoxError:
             evaluation.message(
                 "General",
@@ -513,8 +514,8 @@ class TeXForm(Builtin):
             # Here we set ``show_string_characters`` to False, to reproduce
             # the standard behaviour in WMA. Remove this parameter to recover the
             # quotes in InputForm and FullForm
-            tex = boxes.boxes_to_tex(
-                show_string_characters=False, evaluation=evaluation
+            tex = boxes_to_format(
+                boxes, "latex", show_string_characters=False, evaluation=evaluation
             )
 
             # Replace multiple newlines by a single one e.g. between asy-blocks

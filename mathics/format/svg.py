@@ -118,11 +118,11 @@ def arcbox(self, **options) -> str:
         if closed:
             yield "Z"
 
-    l = self.style.get_line_width(face_element=self.face_element)
+    lw = self.style.get_line_width(face_element=self.face_element)
     style = create_css(
         self.edge_color,
         self.face_color,
-        stroke_width=l,
+        stroke_width=lw,
         edge_opacity=self.edge_opacity,
         face_opacity=self.face_opacity,
     )
@@ -267,8 +267,8 @@ def graphics_box(self, leaves=None, **options) -> str:
             ymax,
             self.boxwidth,
             self.boxheight,
-            width,
-            height,
+            self.width,
+            self.height,
         ) = data
     else:
         elements, calc_dimensions = self._prepare_elements(leaves, options, neg_y=True)
@@ -279,8 +279,8 @@ def graphics_box(self, leaves=None, **options) -> str:
             ymax,
             self.boxwidth,
             self.boxheight,
-            width,
-            height,
+            self.width,
+            self.height,
         ) = calc_dimensions()
 
     elements.view_width = self.boxwidth
