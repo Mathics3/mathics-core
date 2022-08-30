@@ -65,6 +65,8 @@ SymbolPre = Symbol("System`$Pre")
 SymbolPrePrint = Symbol("System`$PrePrint")
 SymbolPost = Symbol("System`$Post")
 
+CHARACTER_ENCODING = settings.SYSTEM_CHARACTER_ENCODING
+
 
 def _thread_target(request, queue) -> None:
     try:
@@ -471,9 +473,9 @@ class Evaluation:
             raise ValueError
 
         try:
-            # With the new implementation, if result is not a ``BoxConstruct``
+            # With the new implementation, if result is not a ``BoxElementMixin`` or ``String``
             # then we should raise a BoxError here.
-            boxes = result.boxes_to_text(evaluation=self)
+            boxes = result.boxes_to_text(evaluation=self, encoding=CHARACTER_ENCODING)
         except BoxError:
             self.message(
                 "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)
