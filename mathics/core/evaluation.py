@@ -237,13 +237,26 @@ class Output:
 
 class Evaluation:
     def __init__(
-        self, definitions=None, output=None, format="text", catch_interrupt=True
+        self,
+        definitions=None,
+        output=None,
+        format="text",
+        catch_interrupt=True,
+        encoding=CHARACTER_ENCODING,
     ) -> None:
         from mathics.core.definitions import Definitions
 
         if definitions is None:
             definitions = Definitions()
         self.definitions = definitions
+
+        # The idea here is to say to evaluation
+        # which encoding use for the formatted output.
+        # By now, there is an issue in mathics_scanner that
+        # fails to translate \[Tilde] to "~" which makes
+        # several tests to fail.
+
+        self.encoding = "Unicode"  # encoding
         self.recursion_depth = 0
         self.timeout = False
         self.timeout_queue = []
@@ -475,7 +488,7 @@ class Evaluation:
         try:
             # With the new implementation, if result is not a ``BoxElementMixin`` or ``String``
             # then we should raise a BoxError here.
-            boxes = result.boxes_to_text(evaluation=self, encoding=CHARACTER_ENCODING)
+            boxes = result.boxes_to_text(evaluation=self, encoding=self.encoding)
         except BoxError:
             self.message(
                 "General", "notboxes", Expression(SymbolFullForm, result).evaluate(self)
