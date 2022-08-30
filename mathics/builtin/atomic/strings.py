@@ -28,7 +28,7 @@ from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
-from mathics.core.formatter import format_element
+from mathics.core.formatter import boxes_to_format, format_element
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
@@ -814,7 +814,7 @@ class String_(Builtin):
 
 
 class ToString(Builtin):
-    """
+    r"""
     <dl>
       <dt>'ToString[$expr$]'
       <dd>returns a string representation of $expr$.
@@ -835,7 +835,12 @@ class ToString(Builtin):
     >> "U" <> ToString[2]
      = U2
     >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f\\left[x\\right] \\, dx
+     = \int f\left[x\right] \, dx
+
+    >> ToString["\[Integral]", CharacterEncoding->"UTF-8"]
+     = ∫
+    >> ToString["\[Integral]", CharacterEncoding->"ASCII"]
+     = \[Integral]
 
     """
 
@@ -856,11 +861,23 @@ class ToString(Builtin):
         return self.apply_form(value, SymbolOutputForm, evaluation, options)
 
     def apply_form(self, value, form, evaluation, options):
-        "ToString[value_, form_, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
-        text = format_element(value, evaluation, form, encoding=encoding)
-        text = text.boxes_to_text(evaluation=evaluation)
-        return String(text)
+        "ToString[value_, form_Symbol, OptionsPattern[ToString]]"
+        # This handles the character encoding option. It is delegated
+        # to the formatter.
+        character_encoding = options["System`CharacterEncoding"]
+        if isinstance(character_encoding, String):
+            encoding = character_encoding.value
+        else:
+            evaluation.message("$CharacterEncoding", "charcode", character_encoding)
+            encoding = "Unicode"
+
+        if encoding not in _encodings:
+            evaluation.message("$CharacterEncoding", "charcode", character_encoding)
+            encoding = "Unicode"
+
+        text = format_element(value, evaluation, form, encoding=character_encoding)
+        result = boxes_to_format(text, "text", evaluation=evaluation, encoding=encoding)
+        return String(result)
 
 
 # This isn't your normal Box class. We'll keep this here rather than
@@ -886,7 +903,7 @@ class InterpretedBox(PrefixOperator):
         # handle these expressions.
         # In the first place, this should handle different kind
         # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
+        reinput = boxes_to_format(boxes, "text")
         return Expression(SymbolToExpression, reinput).evaluate(evaluation)
 
 
