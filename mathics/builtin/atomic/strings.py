@@ -837,10 +837,14 @@ class ToString(Builtin):
     >> ToString[Integrate[f[x],x], TeXForm]
      = \int f\left[x\right] \, dx
 
-    >> ToString["\[Integral]", CharacterEncoding->"UTF-8"]
-     = ∫
-    >> ToString["\[Integral]", CharacterEncoding->"ASCII"]
-     = \[Integral]
+    By means of the option `CharacterEncoding` we can control
+    the way in which characters are encoding:
+    >> ToString["\[Integral]f(x)\[DifferentialD]x", CharacterEncoding->"UTF-8"]
+     = ∫f(x)𝑑x
+    When the option is set to "ASCII", Unicode characters are mapped
+    to their named form.
+    >> ToString["\[Integral]f(x)\[DifferentialD]x", CharacterEncoding->"ASCII"]
+     = \[Integral]f(x)\[DifferentialD]x
 
     """
 
