@@ -12,13 +12,42 @@ However this repository contains just the Python modules for WL Built-in functio
 
 The home page for Mathics is https://mathics.org where you will find a list of screenshots and components making up the system.
 
-If you want to install everything locally, see the `Mathics omnibus repository <https://github.com/Mathics3/mathics-omnibus>`_.
+Installing
+----------
+
+Installing locally, requires a number of dependencies and OS package dependencies.
+
+See the `Installing Mathics <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ for instructions on installing Mathics3.
+
+Running:
+--------
+
+Mathics3, the core library comes with a very simple command-line program called ``mathics``::
+
+  $ mathics
+
+  Mathics 5.0.3dev0
+  on CPython 3.8.12 (heads/v2.3.4.1_release:4a6b4d3504, Jun  3 2022, 15:46:12)
+  using SymPy 1.10.1, mpmath 1.2.1, numpy 1.23.1, cython 0.29.30
+
+  Copyright (C) 2011-2022 The Mathics Team.
+  This program comes with ABSOLUTELY NO WARRANTY.
+  This is free software, and you are welcome to redistribute it
+  under certain conditions.
+  See the documentation for the full license.
+
+  Quit by evaluating Quit[] or by pressing CONTROL-D.
+
+  In[1]:=
+
+Type ``mathics --help`` for options that can be provided.
+
+For a more featureful frontend, see `mathicsscript
+<https://pypi.org/project/mathicsscript/>`_.
+
+For a Django front-end based web front-end see `<https://pypi.org/project/Mathics-Django/>`_.
 
 
-Installing and Running
-----------------------
-
-See the `read the docs guide <https://mathics-development-guide.readthedocs.io/en/latest/>`_ for instructions on `installing <https://mathics-development-guide.readthedocs.io/en/latest/installing.html>`_ and `running <https://mathics-development-guide.readthedocs.io/en/latest/running.html>`_.
 
 Contributing
 ------------
