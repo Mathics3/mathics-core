@@ -387,8 +387,8 @@ all_test = {
             "System`OutputForm": "<mrow><mi>Integrate</mi> <mo>[</mo> <mrow><mrow><mi>F</mi> <mo>[</mo> <mi>x</mi> <mo>]</mo></mrow> <mtext>,&nbsp;</mtext> <mrow><mo>{</mo> <mrow><mi>x</mi> <mtext>,&nbsp;</mtext> <mi>a</mi> <mtext>,&nbsp;</mtext> <mrow><mi>g</mi> <mo>[</mo> <mi>b</mi> <mo>]</mo></mrow></mrow> <mo>}</mo></mrow></mrow> <mo>]</mo></mrow>",
         },
         "latex": {
-            "System`StandardForm": "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \uf74cx",
-            "System`TraditionalForm": "\\int_a^{g\\left(b\\right)} F\\left(x\\right) \uf74cx",
+            "System`StandardForm": "\\int_a^{g\\left[b\\right]} F\\left[x\\right] \, dx",
+            "System`TraditionalForm": "\\int_a^{g\\left(b\\right)} F\\left(x\\right) \, dx",
             "System`InputForm": "\\text{Integrate}\\left[F\\left[x\\right], \\left\\{x, a, g\\left[b\\right]\\right\\}\\right]",
             "System`OutputForm": "\\text{Integrate}\\left[F\\left[x\\right], \\left\\{x, a, g\\left[b\\right]\\right\\}\\right]",
         },

@@ -39,6 +39,33 @@ from mathics.core.symbols import SymbolTrue
 from mathics.format.asy_fns import asy_color, asy_create_pens, asy_number
 
 
+# mathics_scanner does not generates this table in a way that we can load it here.
+# When it get fixed, we can use that table instead of this one:
+
+amstex_operators = {
+    "\u2032": "'",
+    "\u2032\u2032": "''",
+    "\u2062": " ",
+    "\u221e": r"\infty ",
+    "\u00d7": r"\times ",
+    "(": r"\left(",
+    "[": r"\left[",
+    "{": r"\left\{",
+    ")": r"\right)",
+    "]": r"\right]",
+    "}": r"\right\}",
+    "\u301a": r"\left[\left[",
+    "\u301b": r"\right]\right]",
+    ",": ",",
+    ", ": ", ",
+    "\u222b": r"\int",
+    "\u2146": r"\, d",
+    "\uF74C": r"\, d",
+    "\U0001D451": r"\, d",
+    "\u2211": r"\sum",
+    "\u220f": r"\prod",
+}
+
 TEX_REPLACE = {
     "{": r"\{",
     "}": r"\}",
@@ -51,6 +78,10 @@ TEX_REPLACE = {
     "^": r"{}^{\wedge}",
     "~": r"\sim{}",
     "|": r"\vert{}",
+    "\u222b": r"\int ",
+    "\u2146": r"\, d",
+    "\uF74C": r"\, d",
+    "\U0001D451": r"\, d",
 }
 TEX_TEXT_REPLACE = TEX_REPLACE.copy()
 TEX_TEXT_REPLACE.update(
@@ -61,6 +92,8 @@ TEX_TEXT_REPLACE.update(
         "|": r"$\vert$",
         "\\": r"$\backslash$",
         "^": r"${}^{\wedge}$",
+        "\u222b": r"$\int$ ",
+        "\uF74C": r"\, d",
     }
 )
 TEX_REPLACE_RE = re.compile("([" + "".join([re.escape(c) for c in TEX_REPLACE]) + "])")
@@ -101,36 +134,9 @@ def string(self, **options) -> str:
     elif text and text[0] in "0123456789-.":
         return render("%s", text)
     else:
-        # FIXME: this should be done in a better way.
-        if text == "\u2032":
-            return "'"
-        elif text == "\u2032\u2032":
-            return "''"
-        elif text == "\u2062":
-            return " "
-        elif text == "\u221e":
-            return r"\infty "
-        elif text == "\u00d7":
-            return r"\times "
-        elif text in ("(", "[", "{"):
-            return render(r"\left%s", text)
-        elif text in (")", "]", "}"):
-            return render(r"\right%s", text)
-        elif text == "\u301a":
-            return r"\left[\left["
-        elif text == "\u301b":
-            return r"\right]\right]"
-        elif text == "," or text == ", ":
-            return text
-        elif text == "\u222b":
-            return r"\int"
-        # Tolerate WL or Unicode DifferentialD
-        elif text in ("\u2146", "\U0001D451"):
-            return r"\, d"
-        elif text == "\u2211":
-            return r"\sum"
-        elif text == "\u220f":
-            return r"\prod"
+        op_string = amstex_operators.get(text, None)
+        if op_string:
+            return op_string
         elif len(text) > 1:
             return render(r"\text{%s}", text, in_text=True)
         else:
