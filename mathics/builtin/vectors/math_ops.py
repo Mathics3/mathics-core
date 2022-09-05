@@ -7,8 +7,9 @@ Mathematical Operations
 from typing import Optional
 import sympy
 
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Real, String
+from mathics.core.attributes import protected as A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 
@@ -121,6 +122,47 @@ class Cross(Builtin):
         return from_sympy(res)
 
 
+class Curl(SympyFunction):
+    """
+    <url>:Curl: https://en.wikipedia.org/wiki/Curl_(mathematics)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/vector/api/vectorfunctions.html#sympy.vector.curl</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
+
+    <dl>
+      <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
+      <dd>returns the curl $df2$/$dx1$ - $df1$/$dx2$
+
+      <dt>'Curl[{$f1$, $f2$, $f3} {$x1$, $x2$, $x3}]'
+      <dd>returns the curl ($df3$/$dx2$ - $df2$/$dx3$, $dx3$/$df$3 - $df3$/$dx1$, $df2$/$df1$ - $df1$/$dx2$)
+    </dl>
+
+    Two-dimensional 'Curl':
+
+    >> Curl[{y, -x}, {x, y}]
+     = -2
+
+    >> v[x_, y_] := {Cos[x] Sin[y], Cos[y] Sin[x]}
+    >> Curl[v[x, y], {x, y}]
+     = 0
+
+    Three-dimensional 'Curl':
+    >> Curl[{y, -x, 2 z}, {x, y, z}]
+     = {0, 0, -2}
+
+    #> Clear[v];
+    """
+
+    attributes = A_PROTECTED
+    rules = {
+        "Curl[{f1_, f2_}, {x1_, x2_}]": " D[f2, x1] - D[f1, x2]",
+        "Curl[{f1_, f2_, f3_}, {x1_, x2_, x3_}]": """{
+           D[f3, x2] - D[f2, x3],
+           D[f1, x3] - D[f3, x1],
+           D[f2, x1] - D[f1, x2]
+         }""",
+    }
+    summary_text = "curl vector operator"
+    sympy_name = "curl"
+
+
 class Norm(Builtin):
     """
     <url>:Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Norm.html</url>)
@@ -188,4 +230,4 @@ class Norm(Builtin):
         return eval_p_norm(m, p, evaluation)
 
 
-# TODO: Curl, Div
+# TODO: Div
