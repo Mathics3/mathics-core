@@ -7,6 +7,7 @@ from mathics_scanner import (
     InvalidSyntaxError,
     Tokeniser,
     TranslateError,
+    is_symbol_name,
 )
 
 from mathics.core.parser.ast import Node, Number, Symbol, String, Filename
@@ -326,6 +327,12 @@ class Parser:
                 fmt = Symbol("StandardForm")
             elif len(children) == 1:
                 fmt = children[0]
+                if type(fmt) is String:
+                    fmt_name = fmt.value
+                    if is_symbol_name(fmt_name):
+                        fmt = Symbol(fmt_name)
+                    else:
+                        fmt = Node("Removed", Symbol("$$Failure"))
             else:
                 fmt = Node("RowBox", Node("List", *children))
             rest = self.p_LeftRowBox(token)
