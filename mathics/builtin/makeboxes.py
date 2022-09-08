@@ -372,7 +372,6 @@ class MakeBoxes(Builtin):
     >> \\(a + b\\)
      = RowBox[{a, +, b}]
 
-    This fails because is not properly parsed. Check in Mathics-scanner.
     >> \\(TraditionalForm \\` a + b\\)
      = FormBox[RowBox[{a, +, b}], TraditionalForm]
 
