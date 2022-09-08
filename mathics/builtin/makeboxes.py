@@ -369,13 +369,10 @@ class MakeBoxes(Builtin):
     #> (a <> b)[x]
      : String expected.
      = (a <> b)[x]
-    """
-
-    # TODO: Convert operators to appropriate representations e.g. 'Plus' to '+'
-    """
     >> \\(a + b\\)
      = RowBox[{a, +, b}]
 
+    This fails because is not properly parsed. Check in Mathics-scanner.
     >> \\(TraditionalForm \\` a + b\\)
      = FormBox[RowBox[{a, +, b}], TraditionalForm]
 
