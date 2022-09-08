@@ -315,9 +315,7 @@ class Parser:
             self.bracket_depth += 1
 
         token = self.next()
-        while token.tag not in ("RightRowBox", "OtherscriptBox"):
-            if token.tag in "FormBox":
-                break
+        while token.tag not in ("RightRowBox", "OtherscriptBox", "FormBox"):
             newnode = self.parse_box(0)
             children.append(newnode)
             token = self.next()
