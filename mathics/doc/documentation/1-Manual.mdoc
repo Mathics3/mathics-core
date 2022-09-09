@@ -199,8 +199,8 @@ The result of the previous query to \Mathics can be accessed by '%':
 \Mathics handles relative ('Precision') and absolute ('Accuracy') uncertanties in numerical quantities. 'Precision' is set by adding a single reversed quote $`$
 and the numerical value of the precision right after the last digit of the mantissa. For example,
 
-  >> a = 3.1416`4
-   = 3.142
+  >> a = 3.1416`3
+   = 3.14
 
 set $a$ with a number having a relative uncertainty of $10^{-3}$, in a way that this number is numerically equivalent to $3.1413`4$:
 
@@ -210,8 +210,14 @@ set $a$ with a number having a relative uncertainty of $10^{-3}$, in a way that 
 We can recover the precision of the number by using  'Precision' 
 
     >> Precision[a]
-     = 4.
+     = 3.
 
+Up to the precision, $a$ is equivalent to $\pi$, so
+
+    >> Pi - a 
+     = 0.
+    >> Pi == a
+     = True
 
 In a similar way, 'Accuracy' is set by adding a double reversed quote $``$
 and the numerical value of the accuracy right after the last digit of the mantissa. For example,

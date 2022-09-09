@@ -241,6 +241,10 @@ class _EqualityOperator(_InequalityOperator):
         max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
+        # try to convert the exact arguments in inexact numbers.
+        args = [
+            item if item.is_inexact() else eval_N(item, evaluation) for item in args
+        ]
         for x, y in self.get_pairs(args):
             c = self.equal2(x, y, max_extra_prec)
             if c is None:
@@ -630,11 +634,15 @@ class Equal(_EqualityOperator, _SympyComparison):
     >> Pi ^ E == E ^ Pi
      = False
 
-    ## TODO needs better precision tracking
-    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000001111111
-    ##  = True
-    ## #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000010000000
-    ##  = False
+    Compare an exact expression against an approximate real number:
+    >> Pi == 3.1415``4
+     = True
+
+    #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000000000001
+     = True
+
+    #> 2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000010000000
+     = False
 
     Real values are considered equal if they only differ in their last digits:
     >> 0.739085133215160642 == 0.739085133215160641
