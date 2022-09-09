@@ -114,6 +114,9 @@ class GenericConverter:
                     prec10,
                 )
             else:
+                # "0`3"->0
+                if node.value == "0":
+                    return "Integer", 0
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),

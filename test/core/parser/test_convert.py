@@ -78,7 +78,10 @@ class ConvertTests(unittest.TestCase):
         self.check("1.5`", Real("1.5"))
         self.check("0.0", Real(0))
         self.check("-1.5`", Real("-1.5"))
-
+        self.check("0`3", Integer(0))
+        self.check("0``3", "0.000`3")
+        self.check("0.`3", "0.000`3")
+        self.check("0.``3", "0.000``3")
         self.check("0.00000000000000000", "0.")
         self.check("0.000000000000000000`", "0.")
         self.check("0.000000000000000000", "0.``18")
