@@ -30,7 +30,11 @@ Internals
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-# ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number. 
+
+Bugs
+++++
+
+# ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 
 
 Enhancements
