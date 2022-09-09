@@ -102,8 +102,13 @@ class GenericConverter:
             elif suffix == "":
                 return "MachineReal", sign * float(s)
             elif suffix.startswith("`"):
+                # A double Reversed Prime ("``") represents a fixed accuracy
+                # (absolute uncertainty).
                 acc = float(suffix[1:])
                 x = float(s)
+                # For 0, a finite absolute precision even if
+                # the number is an integer, it is stored as a
+                # PrecisionReal number.
                 if x == 0:
                     prec10 = acc
                 else:
@@ -114,6 +119,12 @@ class GenericConverter:
                     prec10,
                 )
             else:
+                # A single Reversed Prime ("`") represents a fixed precision
+                # (relative uncertainty).
+                # For 0, a finite relative precision reduces to no uncertainty,
+                # so ``` 0`3 === 0 ``` and  ``` 0.`3 === 0.`4 ```
+                if node.value == "0":
+                    return "Integer", 0
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),
