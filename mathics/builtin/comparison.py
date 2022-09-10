@@ -117,8 +117,8 @@ class _EqualityOperator(_InequalityOperator):
             return None
         if len(lhs.elements) != len(rhs.elements):
             return
-        for l, r in zip(lhs.elements, rhs.elements):
-            tst = self.equal2(l, r, max_extra_prec)
+        for le, re in zip(lhs.elements, rhs.elements):
+            tst = self.equal2(le, re, max_extra_prec)
             # If the there are a pair of corresponding elements
             # that are not equals, then we are not able to decide
             # about the equality.
@@ -237,14 +237,16 @@ class _EqualityOperator(_InequalityOperator):
 
     def apply_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
+
         args = args.get_sequence()
         max_extra_prec = SymbolMaxExtraPrecision.evaluate(evaluation).get_int_value()
         if type(max_extra_prec) is not int:
             max_extra_prec = COMPARE_PREC
         # try to convert the exact arguments in inexact numbers.
-        args = [
-            item if item.is_inexact() else eval_N(item, evaluation) for item in args
-        ]
+        if any(arg.is_inexact() for arg in args):
+            args = [
+                item if item.is_inexact() else eval_N(item, evaluation) for item in args
+            ]
         for x, y in self.get_pairs(args):
             c = self.equal2(x, y, max_extra_prec)
             if c is None:

@@ -169,7 +169,7 @@ class Accuracy(Builtin):
      = Infinity
 
     For Complex numbers, the accuracy is the smaller of the accuracies of its real and imaginary parts:
-    >> Accuracy[1.00`2 + 2.00`3 I]
+    >> Accuracy[1.00`2 + 2.00`2 I]
      = 1.
 
     Accuracy of expressions is given by the minimum accuracy of its elements:
