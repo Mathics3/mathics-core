@@ -308,9 +308,14 @@ class Parser:
     def p_LeftRowBox(self, token):
         self.consume()
         children = []
-        # If this does not happend, it would be because
-        # it was called when a `FormBox` was found.
-        if token.tag == "LeftRowBox":
+        # If this does not happen, it would be because
+        # it was called when a `FormBox` (or any other)
+        # was found. More generally, we could use
+        # ``token.tag == "LeftRowBox"
+        # if there were other Tokens with a
+        # similar behaviour (see bellow).
+
+        if token.tag != "FormBox":
             self.box_depth += 1
             self.bracket_depth += 1
 
@@ -320,6 +325,21 @@ class Parser:
             children.append(newnode)
             token = self.next()
 
+        # FormBox token has a particular behaviour: if it is found inside
+        # a RowBox, it splits the Rowbox in two pieces: the part at the
+        # left is taken as a "Format" and the part at the right is parsed
+        # as the Box to be formatted, in a way that
+        # \(a_1, a_2 ... \` b_1 b_2 ... \) is parsed as
+        # FormBox[RowBox[{b_1, b_2,...}], RowBox[a_1, a_2, ...]]
+        # This kind of parsing is not supported by the standard mechanism,
+        # so we need to processing it here instead of using a p_FormBox
+        # method.
+        # The strategy to deal with is that, when a "FormBox" tag is found,
+        # the collected elements are used to build the second argument of the
+        # output, and then the method is called again to parse the rest of the
+        # box as it had started at the "FormBox" tag. In this new call,
+        # neither `self.box_depth` or `self.bracket_depth` are going to be
+        # incremented, but are decremented at the end of the child expression.
         if token.tag == "FormBox":
             if len(children) == 0:
                 fmt = Symbol("StandardForm")
@@ -330,7 +350,7 @@ class Parser:
                     if is_symbol_name(fmt_name):
                         fmt = Symbol(fmt_name)
                     else:
-                        fmt = Node("Removed", Symbol("$$Failure"))
+                        fmt = Node("Removed", String("$$Failure"))
             else:
                 fmt = Node("RowBox", Node("List", *children))
             rest = self.p_LeftRowBox(token)
