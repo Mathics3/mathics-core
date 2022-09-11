@@ -261,9 +261,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         last_element = None
         values = []
         for element in self._elements:
-            # Test for the three properties mentioned above.
+            # Test for the literalness, and the three properties mentioned above
+            if element.is_literal:
+                values.append(element.value)
+            else:
+                self.elements_properties.elements_fully_evaluated = False
 
-            # First we test for not flatness, and elements_fully_evaluated
             if isinstance(element, Expression):
 
                 # "self" can't be flat.

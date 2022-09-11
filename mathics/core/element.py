@@ -338,9 +338,7 @@ class BaseElement(KeyComparable):
         return rules
 
     def get_sequence(self) -> Union[tuple, list]:
-        """If self has return that, otherwise turn self into a
-        tuple() and return that"""
-
+        """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
         # FIXME: using the below test causes:
