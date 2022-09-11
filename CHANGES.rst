@@ -31,7 +31,7 @@ Internals
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. mpmath conversion now supports a new parameter to set the accuracy of the number.
+#. `from_mpmath` conversion now supports a new parameter ``acc`` to set the accuracy of the number.
 
 
 Bugs

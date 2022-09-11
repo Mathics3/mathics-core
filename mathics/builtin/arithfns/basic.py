@@ -428,7 +428,7 @@ class Plus(BinaryOperator, SympyFunction):
                     number = mpmath.fsum(numbers)
                     number = from_mpmath(number)
                 else:
-                    # For a sum, what is relevant is the minimun accuracy of the terms
+                    # For a sum, what is relevant is the minimum accuracy of the terms
                     acc = (
                         Expression(SymbolAccuracy, ListExpression(*items))
                         .evaluate(evaluation)

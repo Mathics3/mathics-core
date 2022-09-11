@@ -161,7 +161,7 @@ class Accuracy(Builtin):
      = 1.50298
 
     Notice that the value is not exactly equal to the obtained in WMA: This is due to the different way in which
-    Precision is handled in Sympy.
+    Precision is handled in SymPy.
 
     Accuracy for exact atoms is $Infinity$:
     >> Accuracy[1]
