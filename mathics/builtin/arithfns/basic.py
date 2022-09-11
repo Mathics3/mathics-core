@@ -430,7 +430,7 @@ class Plus(BinaryOperator, SympyFunction):
                 else:
                     # For a sum, what is relevant is the minimum accuracy of the terms
                     acc = (
-                        Expression(SymbolAccuracy, ListExpression(*items))
+                        Expression(SymbolAccuracy, ListExpression(items))
                         .evaluate(evaluation)
                         .to_python()
                     )
