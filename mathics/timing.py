@@ -68,11 +68,14 @@ def show_lru_cache_statistics():
     from mathics.core.atoms import Integer, Rational
     from mathics.builtin.arithmetic import call_mpmath, _MPMathFunction
     from mathics.builtin.atomic.numbers import log_n_b
+    from mathics.builtin.base import run_sympy
     from mathics.core.convert.mpmath import from_mpmath
 
+    print(f"Integer             {Integer.__init__.cache_info()}")
+    print(f"Rational            {Rational.__new__.cache_info()}")
     print(f"call_mpmath         {call_mpmath.cache_info()}")
     print(f"log_n_b             {log_n_b.cache_info()}")
     print(f"from_mpmath         {from_mpmath.cache_info()}")
     print(f"get_mpmath_function {_MPMathFunction.get_mpmath_function.cache_info()}")
-    print(f"Integer             {Integer.__init__.cache_info()}")
-    print(f"Rational            {Rational.__new__.cache_info()}")
+
+    print(f"run_sympy           {run_sympy.cache_info()}")

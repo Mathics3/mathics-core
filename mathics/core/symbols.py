@@ -296,11 +296,11 @@ class Atom(BaseElement):
 
     @property
     def is_literal(self) -> bool:
-        """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
+        """True if the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. That is why, in contrast to
+        `is_uncertain_final_definitions()` we don't need a
+        `definitions` parameter.
 
         Most Atoms, like Numbers and Strings, do not need evaluation
         or reevaluation. However some kinds of Atoms like Symbols do
@@ -309,7 +309,7 @@ class Atom(BaseElement):
         it might is literal in general.
 
         """
-        return True
+        return False
 
     def is_uncertain_final_definitions(self, definitions) -> bool:
         """
@@ -369,7 +369,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name, sympy_dummy=None):
+    def __new__(cls, name, sympy_dummy=None, value=None):
         """
         Allocate an object ensuring that for a given `name` we get back the same object.
         """
@@ -379,6 +379,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
+            self.value = value
             cls.defined_symbols[name] = self
         return self
 
@@ -473,12 +474,13 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     @property
     def is_literal(self) -> bool:
         """
-        True if the value can't change, i.e. a value is set and it does not
-        depend on definition bindings. That is why, in contrast to
-        `is_uncertain_final_definitions()` we don't need a `definitions`
-        parameter.
+        In general, for Atoms its value can change and might not have a Python
+        representation. Symbol is an example of this.
 
-        Here, we have to be pessimistic and return False.
+        So Here, we have to be pessimistic and return False. A number of
+        subclasses, like Integer, Real, String, change the value returned
+        to True.
+
         """
         return False
 
@@ -656,9 +658,9 @@ format_symbols = system_symbols(
 # more of the below and in systemsymbols
 # PredefineSymbol.
 
-SymbolFalse = PredefinedSymbol("System`False")
+SymbolFalse = PredefinedSymbol("System`False", value=False)
 SymbolList = PredefinedSymbol("System`List")
-SymbolTrue = PredefinedSymbol("System`True")
+SymbolTrue = PredefinedSymbol("System`True", value=True)
 
 SymbolAbs = Symbol("Abs")
 SymbolDivide = Symbol("Divide")

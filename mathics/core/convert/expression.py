@@ -1,10 +1,20 @@
 # -*- coding: utf-8 -*-
-from typing import Any, Callable, Union
+from typing import Any, Callable, Type, Union
 
 from mathics.core.convert.python import from_python
+from mathics.core.element import BaseElement
 from mathics.core.expression import Expression, convert_expression_elements
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
+
+
+def make_expression(head, *elements, **kwargs) -> Expression:
+    """
+    Use this to create the right kind of *customized* Expression, e.g. a ListExpression
+    for a given head.
+    """
+    constructor_fn = expression_constructor_map.get(head, Expression)
+    return constructor_fn(head, *elements, **kwargs)
 
 
 def to_expression(
@@ -26,11 +36,16 @@ def to_expression(
     #    from mathics.core.convert.expression import to_mathics_list
     #    return to_mathics_list(elements)
 
-    elements_tuple, elements_properties = convert_expression_elements(
+    elements_tuple, elements_properties, literal_values = convert_expression_elements(
         elements, elements_conversion_fn
     )
 
-    return Expression(head, *elements_tuple, elements_properties=elements_properties)
+    return Expression(
+        head,
+        *elements_tuple,
+        elements_properties=elements_properties,
+        literal_values=literal_values
+    )
 
 
 def to_expression_with_specialization(
@@ -57,26 +72,49 @@ def to_mathics_list(
        to_mathics_list(1, 2, 3)
        to_mathics_list(1, 2, 3, elements_conversion_fn=Integer, is_literal=True)
     """
-    elements_tuple, elements_properties = convert_expression_elements(
+    elements_tuple, elements_properties, values = convert_expression_elements(
         elements, elements_conversion_fn
     )
     list_expression = ListExpression(
         *elements_tuple, elements_properties=elements_properties
     )
     if is_literal:
-        list_expression.python_list = elements
+        list_expression.value = elements
     return list_expression
+
+
+def to_numeric_args(mathics_args: Type[BaseElement], evaluation) -> list:
+    """
+    Convert Mathics arguments, such as the arguments in an evaluation
+    method a Python list that is suitable for feeding as arguments
+    into SymPy, NumPy, or mpmath.
+
+    We make use of fast conversions for literals.
+    """
+    return (
+        tuple(mathics_args.value)
+        if mathics_args.is_literal
+        else mathics_args.numerify(evaluation).get_sequence()
+    )
+
+
+def to_numeric_sympy_args(mathics_args: Type[BaseElement], evaluation) -> list:
+    """
+    Convert Mathics arguments, such as the arguments in an evaluation
+    method a Python list that is sutiable for feeding as arguments
+    into SymPy.
+
+    We make use of fast conversions for literals.
+    """
+    if mathics_args.is_literal:
+        sympy_args = [mathics_args.value]
+    else:
+        args = mathics_args.numerify(evaluation).get_sequence()
+        sympy_args = [a.to_sympy() for a in args]
+
+    return sympy_args
 
 
 expression_constructor_map = {
     SymbolList: lambda head, *args, **kwargs: ListExpression(*args, **kwargs)
 }
-
-
-def make_expression(head, *elements, **kwargs) -> Expression:
-    """
-    Use this to create the right kind of *customized* Expression, e.g. a ListExpression
-    for a given head.
-    """
-    constructor_fn = expression_constructor_map.get(head, Expression)
-    return constructor_fn(head, *elements, **kwargs)

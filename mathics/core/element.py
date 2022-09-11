@@ -6,7 +6,7 @@ Here we have the base class and related function for element inside an Expressio
 """
 
 
-from typing import Any, Optional, Tuple
+from typing import Any, Optional, Tuple, Union
 
 from mathics.core.attributes import no_attributes
 
@@ -337,10 +337,16 @@ class BaseElement(KeyComparable):
             rules.append(rule)
         return rules
 
-    def get_sequence(self):
-        """Convert's a Mathics Sequence into a Python's list of elements"""
+    def get_sequence(self) -> Union[tuple, list]:
+        """If self has return that, otherwise turn self into a
+        tuple() and return that"""
+
         from mathics.core.symbols import SymbolSequence
 
+        # FIXME: using the below test causes:
+        # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
+        # Why?
+        # if hasattr(self, "element"):
         if self.get_head() is SymbolSequence:
             return self.elements
         else:

@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3
 
+import importlib
 import re
 import sympy
-from functools import total_ordering
-import importlib
+
+from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
@@ -20,7 +21,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
-from mathics.core.convert.expression import to_expression
+from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
@@ -652,19 +653,29 @@ class Test(Builtin):
         return None if test_expr is None else from_bool(bool(test_expr))
 
 
+@lru_cache()
+def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
+    """
+    Wrapper to run a SymPy function with a cache.
+    TODO: hook into SymPyTracing -> True
+    """
+    return sympy_fn(*sympy_args)
+
+
 class SympyFunction(SympyObject):
     def apply(self, z, evaluation):
-        #
+        # Note: we omit a docstring here, so as not to confuse
+        # function signature collector ``contribute``.
+
         # Generic apply method that uses the class sympy_name.
         # to call the corresponding sympy function. Arguments are
         # converted to python and the result is converted from sympy
         #
         # "%(name)s[z__]"
-        args = z.numerify(evaluation).get_sequence()
-        sympy_args = [a.to_sympy() for a in args]
+        sympy_args = to_numeric_sympy_args(z, evaluation)
         sympy_fn = getattr(sympy, self.sympy_name)
         try:
-            return from_sympy(sympy_fn(*sympy_args))
+            return from_sympy(run_sympy(sympy_fn, *sympy_args))
         except:
             return
 
@@ -727,6 +738,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
+        # This should not be here.
         article = (
             "an "
             if instance.get_name()[0].lower() in ("a", "e", "i", "o", "u")
@@ -741,8 +753,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         if not instance.__doc__:
             instance.__doc__ = rf"""
             <dl>
-            <dt>'{instance.get_name()}'
-            <dd> box structure.
+              <dt>'{instance.get_name()}'
+              <dd> box structure.
             </dl>
             """
 
@@ -763,10 +775,8 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         depend on definition bindings. That is why, in contrast to
         `is_uncertain_final_definitions()` we don't need a `definitions`
         parameter.
-
-        Think about: We will say that a BoxExpression can't change.
         """
-        return True
+        return False
 
     @property
     def elements(self):

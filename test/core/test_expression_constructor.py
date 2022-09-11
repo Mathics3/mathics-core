@@ -12,14 +12,14 @@ def test_expression_constructor():
 
     # The below will convert 1 Integer(1) multiple times
     # and discover that the arguments are flat, fully evaluated, and ordered.
-    ones = [1] * 50
+    ones = [1] * 20
     e1 = to_expression(SymbolPlus, *ones)
     attribute_check(e1, "e1")
 
     e1a = to_expression("Plus", *ones)
     attribute_check(e1a, "e1a")
 
-    integer_ones = [Integer1] * 50
+    integer_ones = [Integer1] * 20
     e2 = Expression(SymbolPlus, *integer_ones)
     e2._build_elements_properties()
     attribute_check(e2, "e2")

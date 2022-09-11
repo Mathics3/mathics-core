@@ -368,12 +368,12 @@ class Plus(BinaryOperator, SympyFunction):
     def apply(self, items, evaluation):
         "Plus[items___]"
 
-        items = items.numerify(evaluation).get_sequence()
+        items_tuple = items.numerify(evaluation).get_sequence()
         elements = []
         last_item = last_count = None
 
-        prec = min_prec(*items)
-        is_machine_precision = any(item.is_machine_precision() for item in items)
+        prec = min_prec(*items_tuple)
+        is_machine_precision = any(item.is_machine_precision() for item in items_tuple)
         numbers = []
 
         def append_last():
@@ -392,7 +392,7 @@ class Plus(BinaryOperator, SympyFunction):
                             Expression(SymbolTimes, from_sympy(last_count), last_item)
                         )
 
-        for item in items:
+        for item in items_tuple:
             if isinstance(item, Number):
                 numbers.append(item)
             else:

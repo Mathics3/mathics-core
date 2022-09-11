@@ -6,11 +6,9 @@ import math
 import mpmath
 import re
 import sympy
-import typing
 
 from functools import lru_cache
-from typing import Any, Optional
-
+from typing import Optional, Type, Union
 
 from mathics.core.element import ImmutableValueMixin, BoxElementMixin
 from mathics.core.number import (
@@ -98,7 +96,6 @@ class Integer(Number):
     value: int
     class_head_name = "System`Integer"
 
-    # Think about: Do we ever need this on a __new__ since that does the same thing?
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
     def __new__(cls, value) -> "Integer":
@@ -152,7 +149,7 @@ class Integer(Number):
     def abs(self) -> "Integer":
         return -self if self < Integer0 else self
 
-    @lru_cache()
+    @lru_cache(maxsize=1024)
     def __init__(self, value):
         super().__init__()
 
@@ -178,7 +175,7 @@ class Integer(Number):
     def to_python(self, *args, **kwargs):
         return self.value
 
-    def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
+    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
         if d is None:
             d = self.value.bit_length()
             if d <= machine_precision:
@@ -234,7 +231,7 @@ class Rational(Number):
     class_head_name = "System`Rational"
 
     # Think about: Do we ever need this on a __new__ since that does the same thing?
-    @lru_cache()
+    @lru_cache(maxsize=1024)
     def __new__(cls, numerator, denominator=1) -> "Rational":
         self = super().__new__(cls)
         self.value = sympy.Rational(numerator, denominator)
@@ -254,7 +251,7 @@ class Rational(Number):
     def to_python(self, *args, **kwargs) -> float:
         return float(self.value)
 
-    def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
+    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
         else:
@@ -309,6 +306,7 @@ class Rational(Number):
 RationalOneHalf = Rational(1, 2)
 
 
+# This has to come before Complex
 class Real(Number):
     class_head_name = "System`Real"
 
@@ -381,6 +379,7 @@ class Real(Number):
         update(b"System`Real>" + str(self.to_sympy().n(dps(_prec))).encode("utf8"))
 
 
+# Has to come before PrecisionReal
 class MachineReal(Real):
     """
     Machine precision real number.
@@ -388,14 +387,20 @@ class MachineReal(Real):
     Stored internally as a python float.
     """
 
-    value: float
-
     def __new__(cls, value) -> "MachineReal":
         self = Number.__new__(cls)
         self.value = float(value)
         if math.isinf(self.value) or math.isnan(self.value):
             raise OverflowError
         return self
+
+    @property
+    def is_literal(self) -> bool:
+        """For a Real, the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
 
     def to_python(self, *args, **kwargs) -> float:
         return self.value
@@ -489,16 +494,19 @@ class PrecisionReal(Real):
         self.value = sympy.Float(value)
         return self
 
-    def to_python(self, *args, **kwargs):
-        return float(self.value)
+    @property
+    def is_literal(self) -> bool:
+        """For a PrecisionReal, the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
 
-    def to_sympy(self, *args, **kwargs):
-        return self.value
+    @property
+    def is_zero(self) -> bool:
+        return self.value == 0.0
 
-    def to_mpmath(self):
-        return mpmath.mpf(self.value)
-
-    def round(self, d=None) -> typing.Union["MachineReal", "PrecisionReal"]:
+    def round(self, d=None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
             return MachineReal(float(self.value))
         else:
@@ -545,9 +553,91 @@ class PrecisionReal(Real):
     def __neg__(self) -> "PrecisionReal":
         return PrecisionReal(-self.value)
 
+    def to_python(self, *args, **kwargs):
+        return float(self.value)
+
+    def to_sympy(self, *args, **kwargs):
+        return self.value
+
+    def to_mpmath(self):
+        return mpmath.mpf(self.value)
+
+
+class ByteArrayAtom(Atom, ImmutableValueMixin):
+    value: str
+    class_head_name = "System`ByteArrayAtom"
+
+    # We use __new__ here to unsure that two ByteArrayAtom's that have the same value
+    # return the same object.
+    def __new__(cls, value):
+        self = super().__new__(cls)
+        if type(value) in (bytes, bytearray):
+            self.value = value
+        elif type(value) is list:
+            self.value = bytearray(list)
+        elif type(value) is str:
+            self.value = base64.b64decode(value)
+        else:
+            raise Exception("value does not belongs to a valid type")
+        return self
+
+    def __str__(self) -> str:
+        return base64.b64encode(self.value).decode("utf8")
+
+    def atom_to_boxes(self, f, evaluation) -> "String":
+        res = String('""' + self.__str__() + '""')
+        return res
+
+    def do_copy(self) -> "ByteArrayAtom":
+        return ByteArrayAtom(self.value)
+
+    def default_format(self, evaluation, form) -> str:
+        value = self.value
+        return '"' + value.__str__() + '"'
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        if pattern_sort:
+            return super().get_sort_key(True)
+        else:
+            return (0, 1, self.value, 0, 1)
+
     @property
-    def is_zero(self) -> bool:
-        return self.value == 0.0
+    def is_literal(self) -> bool:
+        """For an ByteArrayAtom, the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
+
+    def sameQ(self, other) -> bool:
+        """Mathics SameQ"""
+        # FIX: check
+        if isinstance(other, ByteArrayAtom):
+            return self.value == other.value
+        return False
+
+    def get_string_value(self) -> Optional[str]:
+        try:
+            return self.value.decode("utf-8")
+        except Exception:
+            return None
+
+    def to_sympy(self, **kwargs):
+        return None
+
+    def to_python(self, *args, **kwargs) -> str:
+        return self.value
+
+    def __hash__(self):
+        return hash(("ByteArrayAtom", self.value))
+
+    def user_hash(self, update):
+        # hashing a String is the one case where the user gets the untampered
+        # hash value of the string's text. this corresponds to MMA behavior.
+        update(self.value)
+
+    def __getnewargs__(self):
+        return (self.value,)
 
 
 class Complex(Number):
@@ -556,8 +646,8 @@ class Complex(Number):
     """
 
     class_head_name = "System`Complex"
-    real: Any
-    imag: Any
+    real: Type[Number]
+    imag: Type[Number]
 
     def __new__(cls, real, imag):
         self = super().__new__(cls)
@@ -693,6 +783,227 @@ class Complex(Number):
         return real_zero and imag_zero
 
 
+class Integer(Number):
+    value: int
+    class_head_name = "System`Integer"
+
+    # We use __new__ here to unsure that two Integer's that have the same value
+    # return the same object.
+    def __new__(cls, value) -> "Integer":
+        n = int(value)
+        self = super(Integer, cls).__new__(cls)
+        self.value = n
+        return self
+
+    def __eq__(self, other) -> bool:
+        return (
+            self.value == other.value
+            if isinstance(other, Integer)
+            else super().__eq__(other)
+        )
+
+    def __le__(self, other) -> bool:
+        return (
+            self.value <= other.value
+            if isinstance(other, Integer)
+            else super().__le__(other)
+        )
+
+    def __lt__(self, other) -> bool:
+        return (
+            self.value < other.value
+            if isinstance(other, Integer)
+            else super().__lt__(other)
+        )
+
+    def __ge__(self, other) -> bool:
+        return (
+            self.value >= other.value
+            if isinstance(other, Integer)
+            else super().__ge__(other)
+        )
+
+    def __gt__(self, other) -> bool:
+        return (
+            self.value > other.value
+            if isinstance(other, Integer)
+            else super().__gt__(other)
+        )
+
+    def __ne__(self, other) -> bool:
+        return (
+            self.value != other.value
+            if isinstance(other, Integer)
+            else super().__ne__(other)
+        )
+
+    def abs(self) -> "Integer":
+        return -self if self < Integer0 else self
+
+    @lru_cache()
+    def __init__(self, value):
+        super().__init__()
+
+    def atom_to_boxes(self, f, evaluation):
+        return self.make_boxes(f.get_name())
+
+    def default_format(self, evaluation, form) -> str:
+        return str(self.value)
+
+    @property
+    def is_literal(self) -> bool:
+        """For an Integer, the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
+
+    def make_boxes(self, form) -> "String":
+        from mathics.builtin.box.layout import _boxed_string
+
+        if form in ("System`InputForm", "System`FullForm"):
+            return _boxed_string(str(self.value), number_as_text=True)
+        return String(str(self.value))
+
+    def to_sympy(self, **kwargs):
+        return sympy.Integer(self.value)
+
+    def to_mpmath(self):
+        return mpmath.mpf(self.value)
+
+    def to_python(self, *args, **kwargs):
+        return self.value
+
+    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
+        if d is None:
+            d = self.value.bit_length()
+            if d <= machine_precision:
+                return MachineReal(float(self.value))
+            else:
+                # machine_precision / log_2(10) + 1
+                d = machine_digits
+        return PrecisionReal(sympy.Float(self.value, d))
+
+    def get_int_value(self) -> int:
+        return self.value
+
+    def sameQ(self, other) -> bool:
+        """Mathics SameQ"""
+        return isinstance(other, Integer) and self.value == other.value
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        if pattern_sort:
+            return super().get_sort_key(True)
+        else:
+            return (0, 0, self.value, 0, 1)
+
+    def do_copy(self) -> "Integer":
+        return Integer(self.value)
+
+    def __hash__(self):
+        return hash(("Integer", self.value))
+
+    def user_hash(self, update):
+        update(b"System`Integer>" + str(self.value).encode("utf8"))
+
+    def __getnewargs__(self):
+        return (self.value,)
+
+    def __neg__(self) -> "Integer":
+        return Integer(-self.value)
+
+    @property
+    def is_zero(self) -> bool:
+        return self.value == 0
+
+
+Integer0 = Integer(0)
+Integer1 = Integer(1)
+Integer2 = Integer(2)
+Integer3 = Integer(3)
+Integer310 = Integer(310)
+Integer10 = Integer(10)
+IntegerM1 = Integer(-1)
+
+
+class Rational(Number):
+    class_head_name = "System`Rational"
+
+    @lru_cache()
+    def __new__(cls, numerator, denominator=1) -> "Rational":
+        self = super().__new__(cls)
+        self.value = sympy.Rational(numerator, denominator)
+        return self
+
+    def atom_to_boxes(self, f, evaluation):
+        from mathics.core.formatter import format_element
+
+        return format_element(self, evaluation, f)
+
+    def to_sympy(self, **kwargs):
+        return self.value
+
+    def to_mpmath(self):
+        return mpmath.mpf(self.value)
+
+    def to_python(self, *args, **kwargs) -> float:
+        return float(self.value)
+
+    def round(self, d=None) -> Union["MachineReal", "PrecisionReal"]:
+        if d is None:
+            return MachineReal(float(self.value))
+        else:
+            return PrecisionReal(self.value.n(d))
+
+    def sameQ(self, other) -> bool:
+        """Mathics SameQ"""
+        return isinstance(other, Rational) and self.value == other.value
+
+    def numerator(self) -> "Integer":
+        return Integer(self.value.as_numer_denom()[0])
+
+    def denominator(self) -> "Integer":
+        return Integer(self.value.as_numer_denom()[1])
+
+    def default_format(self, evaluation, form) -> str:
+        return "Rational[%s, %s]" % self.value.as_numer_denom()
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        if pattern_sort:
+            return super().get_sort_key(True)
+        else:
+            # HACK: otherwise "Bus error" when comparing 1==1.
+            return (0, 0, sympy.Float(self.value), 0, 1)
+
+    def do_copy(self) -> "Rational":
+        return Rational(self.value)
+
+    def __hash__(self):
+        return hash(("Rational", self.value))
+
+    def user_hash(self, update) -> None:
+        update(
+            b"System`Rational>" + ("%s>%s" % self.value.as_numer_denom()).encode("utf8")
+        )
+
+    def __getnewargs__(self):
+        return (self.numerator().get_int_value(), self.denominator().get_int_value())
+
+    def __neg__(self) -> "Rational":
+        return Rational(
+            -self.numerator().get_int_value(), self.denominator().get_int_value()
+        )
+
+    @property
+    def is_zero(self) -> bool:
+        return (
+            self.numerator().is_zero
+        )  # (implicit) and not (self.denominator().is_zero)
+
+
+RationalOneHalf = Rational(1, 2)
+
+
 class String(Atom, BoxElementMixin):
     value: str
     class_head_name = "System`String"
@@ -728,12 +1039,20 @@ class String(Atom, BoxElementMixin):
         else:
             return (0, 1, self.value, 0, 1)
 
+    def get_string_value(self) -> str:
+        return self.value
+
+    @property
+    def is_literal(self) -> bool:
+        """For a String, the value can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
+
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
         return isinstance(other, String) and self.value == other.value
-
-    def get_string_value(self) -> str:
-        return self.value
 
     def to_expression(self):
         return self
@@ -754,75 +1073,6 @@ class String(Atom, BoxElementMixin):
         # hashing a String is the one case where the user gets the untampered
         # hash value of the string's text. this corresponds to MMA behavior.
         update(self.value.encode("utf8"))
-
-    def __getnewargs__(self):
-        return (self.value,)
-
-
-class ByteArrayAtom(Atom, ImmutableValueMixin):
-    value: str
-    class_head_name = "System`ByteArrayAtom"
-
-    # We use __new__ here to unsure that two ByteArrayAtom's that have the same value
-    # return the same object.
-    def __new__(cls, value):
-        self = super().__new__(cls)
-        if type(value) in (bytes, bytearray):
-            self.value = value
-        elif type(value) is list:
-            self.value = bytearray(list)
-        elif type(value) is str:
-            self.value = base64.b64decode(value)
-        else:
-            raise Exception("value does not belongs to a valid type")
-        return self
-
-    def __str__(self) -> str:
-        return base64.b64encode(self.value).decode("utf8")
-
-    def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String('""' + self.__str__() + '""')
-        return res
-
-    def do_copy(self) -> "ByteArrayAtom":
-        return ByteArrayAtom(self.value)
-
-    def default_format(self, evaluation, form) -> str:
-        value = self.value
-        return '"' + value.__str__() + '"'
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 1, self.value, 0, 1)
-
-    def sameQ(self, other) -> bool:
-        """Mathics SameQ"""
-        # FIX: check
-        if isinstance(other, ByteArrayAtom):
-            return self.value == other.value
-        return False
-
-    def get_string_value(self) -> Optional[str]:
-        try:
-            return self.value.decode("utf-8")
-        except Exception:
-            return None
-
-    def to_sympy(self, **kwargs):
-        return None
-
-    def to_python(self, *args, **kwargs) -> str:
-        return self.value
-
-    def __hash__(self):
-        return hash(("ByteArrayAtom", self.value))
-
-    def user_hash(self, update):
-        # hashing a String is the one case where the user gets the untampered
-        # hash value of the string's text. this corresponds to MMA behavior.
-        update(self.value)
 
     def __getnewargs__(self):
         return (self.value,)
