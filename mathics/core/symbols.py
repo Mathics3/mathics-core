@@ -369,7 +369,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name, **opts):
+    def __new__(cls, name, sympy_dummy=None, value=None):
         """
         Allocate an object ensuring that for a given `name` we get back the same object.
         """
@@ -387,8 +387,25 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # a different class for this kind of symbols.
             # Also, sympy_dummy should be stored as the
             # value attribute.
-            sympy_dummy = opts.get("sympy_dummy", None)
             self.sympy_dummy = sympy_dummy
+
+            # This is something that still I do not undestand:
+            # here we are adding another attribute to this class,
+            # which is not clear where is it going to be used, but
+            # which can be different to None just four specific instances:
+            #  * ``System`True``  ->   True
+            #  * ``System`False`` -> False
+            #  * ``System`I``    -> 1j
+            #  * ``System`Null`` -> None
+            #
+            # My guess is that this property should be set for
+            # ``PredefinedSymbol`` but not for general symbols.
+            #
+            # Like it is now, it looks so misterious as
+            # self.sympy_dummy, for which I have to dig into the
+            # code to see even what type of value should be expected
+            # for it.
+            self.value = value
             cls.defined_symbols[name] = self
         return self
 
@@ -603,10 +620,6 @@ class PredefinedSymbol(Symbol):
     a list of known Symbol names or where the name might get deleted,
     this never occurs here.
     """
-
-    def __init__(self, name, **opts):
-        if "value" in opts:
-            self.value = opts["value"]
 
     @property
     def is_literal(self) -> bool:

@@ -30,8 +30,6 @@ Internals
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. ``Symbol.__new__`` now accepts arbitrary optional parameters.
-#. ``PredefinedSymbol.__init__`` now accepts a ``value`` parameter.
 
 
 Bugs
