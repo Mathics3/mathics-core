@@ -32,15 +32,15 @@ class ListExpression(Expression):
         self.pattern_sequence = False
         self._head = SymbolList
 
-        if literal_values is not None:
-            import inspect
+        # For debugging:
 
-            # Uncomment for debugging.
-            # curframe = inspect.currentframe()
-            # call_frame = inspect.getouterframes(curframe, 2)
-            # print("caller name:", call_frame[1][3])
+        # if literal_values is not None:
+        #     import inspect
 
-        # For debugging
+        #     curframe = inspect.currentframe()
+        #     call_frame = inspect.getouterframes(curframe, 2)
+        #     print("caller name:", call_frame[1][3])
+
         # from mathics.core.symbols import BaseElement
         # for element in elements:
         #     if not isinstance(element, BaseElement):
