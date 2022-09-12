@@ -35,9 +35,10 @@ class ListExpression(Expression):
         if literal_values is not None:
             import inspect
 
-            curframe = inspect.currentframe()
-            call_frame = inspect.getouterframes(curframe, 2)
-            print("caller name:", call_frame[1][3])
+            # Uncomment for debugging.
+            # curframe = inspect.currentframe()
+            # call_frame = inspect.getouterframes(curframe, 2)
+            # print("caller name:", call_frame[1][3])
 
         # For debugging
         # from mathics.core.symbols import BaseElement
