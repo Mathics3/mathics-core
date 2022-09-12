@@ -150,7 +150,7 @@ class Accuracy(Builtin):
     """
     <dl>
       <dt>'Accuracy[$x$]'
-      <dd>examines the number of significant digits of $expr$ to the right of the the decimal point in the number x.
+      <dd>examines the number of significant digits of $expr$ after the decimal point in the number x.
     </dl>
     This is rather a proof-of-concept than a full implementation.
 

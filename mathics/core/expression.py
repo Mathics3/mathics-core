@@ -300,7 +300,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     self.elements_properties.is_ordered = False
             last_element = element
 
-        # self.is_literal should only be True for ListExpression. However
+        # self.is_literal should only be True for ListExpression.
         # However we have still some Expression(ListSymbol, ...) around?
         if self.is_literal:
             assert self.elements_properties.elements_fully_evaluated
