@@ -369,7 +369,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name, sympy_dummy=None, value=None):
+    def __new__(cls, name, **opts):
         """
         Allocate an object ensuring that for a given `name` we get back the same object.
         """
@@ -378,8 +378,17 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is None:
             self = super(Symbol, cls).__new__(cls)
             self.name = name
+            # TODO: revise how we convert sympy.Dummy
+            # symbols.
+            #
+            # In some cases, SymPy returns a sympy.Dummy
+            # object. It is converted to Mathics as a
+            # Symbol. However, we probably should have
+            # a different class for this kind of symbols.
+            # Also, sympy_dummy should be stored as the
+            # value attribute.
+            sympy_dummy = opts.get("sympy_dummy", None)
             self.sympy_dummy = sympy_dummy
-            self.value = value
             cls.defined_symbols[name] = self
         return self
 
@@ -546,6 +555,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is rhs
 
     def to_python(self, *args, **kwargs):
+        # TODO: consider to return self.value if available.
+        # For general symbols, one possibility would be to
+        # return a sympy symbol, also stored in value.
+
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
@@ -590,6 +603,10 @@ class PredefinedSymbol(Symbol):
     a list of known Symbol names or where the name might get deleted,
     this never occurs here.
     """
+
+    def __init__(self, name, **opts):
+        if "value" in opts:
+            self.value = opts["value"]
 
     @property
     def is_literal(self) -> bool:
