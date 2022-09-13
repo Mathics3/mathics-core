@@ -28,6 +28,7 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
+    Complex,
 )
 from mathics.core.attributes import (
     listable as A_LISTABLE,
@@ -143,6 +144,74 @@ def convert_float_base(x, base, precision=10):
         return int_part
     else:
         raise TypeError(x)
+
+
+class Accuracy(Builtin):
+    """
+    <dl>
+      <dt>'Accuracy[$x$]'
+      <dd>examines the number of significant digits of $expr$ after the decimal point in the number x.
+    </dl>
+    This is rather a proof-of-concept than a full implementation.
+
+
+    Accuracy of a real number is estimated from its value and its precision:
+
+    >> Accuracy[3.1416`2]
+     = 1.50298
+
+    Notice that the value is not exactly equal to the obtained in WMA: This is due to the different way in which
+    Precision is handled in SymPy.
+
+    Accuracy for exact atoms is $Infinity$:
+    >> Accuracy[1]
+     = Infinity
+    >> Accuracy[A]
+     = Infinity
+
+    For Complex numbers, the accuracy is the smaller of the accuracies of its real and imaginary parts:
+    >> Accuracy[1.00`2 + 2.00`2 I]
+     = 1.
+
+    Accuracy of expressions is given by the minimum accuracy of its elements:
+    >> Accuracy[F[1, Pi, A]]
+     = Infinity
+    >> Accuracy[F[1.3, Pi, A]]
+     = 14.8861
+
+    """
+
+    summary_text = "find the accuracy of a number"
+
+    def apply(self, z, evaluation):
+        "Accuracy[z_]"
+        if isinstance(z, Real):
+            if z.is_zero:
+                return MachineReal(dps(z.get_precision()))
+            z_f = z.to_python()
+            log10_z = mpmath.log((-z_f if z_f < 0 else z_f), 10)
+            return MachineReal(dps(z.get_precision()) - log10_z)
+
+        if isinstance(z, Complex):
+            acc_real = self.apply(z.real, evaluation)
+            acc_imag = self.apply(z.imag, evaluation)
+            if acc_real is SymbolInfinity:
+                return acc_imag
+            if acc_imag is SymbolInfinity:
+                return acc_real
+            return Real(min(acc_real.to_python(), acc_imag.to_python()))
+
+        if isinstance(z, Expression):
+            result = None
+            for element in z.elements:
+                candidate = self.apply(element, evaluation)
+                if isinstance(candidate, Real):
+                    candidate_f = candidate.to_python()
+                    if result is None or candidate_f < result:
+                        result = candidate_f
+            if result is not None:
+                return Real(result)
+        return SymbolInfinity
 
 
 class ExactNumberQ(Test):
@@ -929,10 +998,29 @@ class Precision(Builtin):
 
     def apply(self, z, evaluation):
         "Precision[z_]"
+        if isinstance(z, Real):
+            if z.is_zero:
+                return MachineReal(0.0)
+            return MachineReal(dps(z.get_precision()))
 
-        if not z.is_inexact():
-            return SymbolInfinity
-        elif z.to_sympy().is_zero:
-            return Real(0)
-        else:
-            return Real(dps(z.get_precision()))
+        if isinstance(z, Complex):
+            prec_real = self.apply(z.real, evaluation)
+            prec_imag = self.apply(z.imag, evaluation)
+            if prec_real is SymbolInfinity:
+                return prec_imag
+            if prec_imag is SymbolInfinity:
+                return prec_real
+
+            return Real(min(prec_real.to_python(), prec_imag.to_python()))
+
+        if isinstance(z, Expression):
+            result = None
+            for element in z.elements:
+                candidate = self.apply(element, evaluation)
+                if isinstance(candidate, Real):
+                    candidate_f = candidate.to_python()
+                    if result is None or candidate_f < result:
+                        result = candidate_f
+            if result is not None:
+                return Real(result)
+        return SymbolInfinity

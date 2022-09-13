@@ -533,7 +533,7 @@ class PrecisionReal(Real):
         return diff < 0.5**prec
 
     def get_precision(self) -> float:
-        """Returns the default specification for precision in N and other numerical functions."""
+        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
         return self.value._prec + 1.0
 
     def make_boxes(self, form):

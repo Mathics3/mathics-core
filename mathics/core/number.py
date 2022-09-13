@@ -4,7 +4,7 @@
 import sympy
 import mpmath
 
-from math import log, ceil
+from math import log, log2, ceil
 import string
 
 from typing import List, Optional
@@ -15,8 +15,7 @@ from mathics.core.symbols import (
     SymbolMachinePrecision,
 )
 
-C = log(10, 2)  # ~ 3.3219280948873626
-
+C = log2(10)  # ~ 3.3219280948873626
 
 # Number of bits of machine precision.
 # Note this is a float, not an int.
