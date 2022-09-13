@@ -32,6 +32,7 @@ Internals
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. ``Symbol.to_python`` now returns `self` except for `True`, `False` and `None`. The use of the parameter  `n_evaluation` was marked as deprecated. 
 
+
 Bugs
 ++++
 
