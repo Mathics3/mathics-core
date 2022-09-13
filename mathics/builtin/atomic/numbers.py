@@ -185,6 +185,11 @@ class Accuracy(Builtin):
      >> 0``2
       = 0.00
 
+    In compound expressions, the 'Accuracy' is fixed by the number with
+    the lowest 'Accuracy':
+    >> Accuracy[{{1, 1.`},{1.``5, 1.``10}}]
+     = 5.
+
     See also <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
     """
 
@@ -968,9 +973,7 @@ class Precision(Builtin):
       <dd>examines the number of significant digits of $expr$.
     </dl>
 
-    <i>This is rather a proof-of-concept than a full implementation.
-
-    Precision of compound expression is not supported yet.</i>
+    <i>This is rather a proof-of-concept than a full implementation.</i>
 
     The precision of an exact number, e.g. an Integer, is 'Infinity':
 
@@ -990,6 +993,12 @@ class Precision(Builtin):
     Precision of a machine‐precision number is 'MachinePrecision':
     >> Precision[0.5]
      = MachinePrecision
+
+    In compound expressions, the 'Precision' is fixed by the number with
+    the lowest 'Precision':
+    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+     = 5.
+
 
     See also <url>:'Accuracy': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
