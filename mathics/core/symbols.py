@@ -392,10 +392,9 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # This is something that still I do not undestand:
             # here we are adding another attribute to this class,
             # which is not clear where is it going to be used, but
-            # which can be different to None just four specific instances:
+            # which can be different to None just three specific instances:
             #  * ``System`True``  ->   True
             #  * ``System`False`` -> False
-            #  * ``System`I``    -> 1j
             #  * ``System`Null`` -> None
             #
             # My guess is that this property should be set for
