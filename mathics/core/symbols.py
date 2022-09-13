@@ -378,7 +378,32 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is None:
             self = super(Symbol, cls).__new__(cls)
             self.name = name
+            # TODO: revise how we convert sympy.Dummy
+            # symbols.
+            #
+            # In some cases, SymPy returns a sympy.Dummy
+            # object. It is converted to Mathics as a
+            # Symbol. However, we probably should have
+            # a different class for this kind of symbols.
+            # Also, sympy_dummy should be stored as the
+            # value attribute.
             self.sympy_dummy = sympy_dummy
+
+            # This is something that still I do not undestand:
+            # here we are adding another attribute to this class,
+            # which is not clear where is it going to be used, but
+            # which can be different to None just three specific instances:
+            #  * ``System`True``  ->   True
+            #  * ``System`False`` -> False
+            #  * ``System`Null`` -> None
+            #
+            # My guess is that this property should be set for
+            # ``PredefinedSymbol`` but not for general symbols.
+            #
+            # Like it is now, it looks so misterious as
+            # self.sympy_dummy, for which I have to dig into the
+            # code to see even what type of value should be expected
+            # for it.
             self.value = value
             cls.defined_symbols[name] = self
         return self
@@ -546,6 +571,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is rhs
 
     def to_python(self, *args, **kwargs):
+        # TODO: consider to return self.value if available.
+        # For general symbols, one possibility would be to
+        # return a sympy symbol, also stored in value.
+
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
