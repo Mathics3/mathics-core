@@ -175,3 +175,19 @@ def test_n():
         ("N[1.01234567890123456789`, 2] // Precision", "MachinePrecision"),
     ):
         check_evaluation(str_expr, str_expected)
+
+
+def test_precision():
+    for str_expr, str_expected in (
+        ("0`4", "0"),
+        ("Precision[0.0]", "MachinePrecision"),
+        ("Precision[0.000000000000000000000000000000000000]", "0."),
+        ("Precision[-0.0]", "MachinePrecision"),
+        ("Precision[-0.000000000000000000000000000000000000]", "0."),
+        ("1.0000000000000000 // Precision", "MachinePrecision"),
+        ("1.00000000000000000 // Precision", "17."),
+        (" 0.4 + 2.4 I // Precision", "MachinePrecision"),
+        ("Precision[2 + 3 I]", "Infinity"),
+        ('Precision["abc"]', "Infinity"),
+    ):
+        check_evaluation(str_expr, str_expected)

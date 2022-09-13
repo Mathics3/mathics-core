@@ -148,12 +148,13 @@ def convert_float_base(x, base, precision=10):
 
 class Accuracy(Builtin):
     """
+    <url>:Accuracy: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Accuracy: https://reference.wolfram.com/language/ref/Accuracy.html</url>)
+
     <dl>
       <dt>'Accuracy[$x$]'
       <dd>examines the number of significant digits of $expr$ after the decimal point in the number x.
     </dl>
-    This is rather a proof-of-concept than a full implementation.
-
+    <i>This is rather a proof-of-concept than a full implementation.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
 
@@ -176,9 +177,15 @@ class Accuracy(Builtin):
     Accuracy of expressions is given by the minimum accuracy of its elements:
     >> Accuracy[F[1, Pi, A]]
      = Infinity
+
     >> Accuracy[F[1.3, Pi, A]]
      = 14.8861
 
+    'Accuracy' for the value 0 is a fixed-precision Real number:
+     >> 0``2
+      = 0.00
+
+    See also <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
     """
 
     summary_text = "find the accuracy of a number"
@@ -954,40 +961,37 @@ class NumericQ(Builtin):
 
 class Precision(Builtin):
     """
+    <url>:Precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Precision: https://reference.wolfram.com/language/ref/Precision.html</url>)
+
     <dl>
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-    This is rather a proof-of-concept than a full implementation.
-    Precision of compound expression is not supported yet.
+
+    <i>This is rather a proof-of-concept than a full implementation.
+
+    Precision of compound expression is not supported yet.</i>
+
+    The precision of an exact number, e.g. an Integer, is 'Infinity':
+
     >> Precision[1]
      = Infinity
+
+    A fraction is an exact number too, so its Precision is 'Infinity':
+
     >> Precision[1/2]
      = Infinity
+
+    Numbers entered in the form $digits$`$p$ are taken to have precision $p$:
+
+    >> Precision[1.23`10]
+     = 10.
+
+    Precision of a machine‐precision number is 'MachinePrecision':
     >> Precision[0.5]
      = MachinePrecision
 
-    #> Precision[0.0]
-     = MachinePrecision
-    #> Precision[0.000000000000000000000000000000000000]
-     = 0.
-    #> Precision[-0.0]
-     = MachinePrecision
-    #> Precision[-0.000000000000000000000000000000000000]
-     = 0.
-
-    #> 1.0000000000000000 // Precision
-     = MachinePrecision
-    #> 1.00000000000000000 // Precision
-     = 17.
-
-    #> 0.4 + 2.4 I // Precision
-     = MachinePrecision
-    #> Precision[2 + 3 I]
-     = Infinity
-
-    #> Precision["abc"]
-     = Infinity
+    See also <url>:'Accuracy': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
 
     rules = {
