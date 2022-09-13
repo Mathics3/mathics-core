@@ -110,7 +110,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         # This loads all the formatting functions.
-        # Needs to be early because it can be used in
+        # It needs to be early because it can be used in
         # messages during the builtins loading.
         import mathics.format
 
