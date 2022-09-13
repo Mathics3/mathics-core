@@ -28,6 +28,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,
@@ -830,9 +831,10 @@ class FileDate(Builtin):
             return
 
         # Offset for system epoch
-        epochtime = Expression(
+        epochtime_expr = Expression(
             SymbolAbsoluteTime, String(time.strftime("%Y-%m-%d %H:%M", time.gmtime(0)))
-        ).to_python(n_evaluation=evaluation)
+        )
+        epochtime = eval_N(epochtime_expr, evaluation).to_python()
         result += epochtime
 
         return to_expression("DateList", Real(result))
@@ -2149,7 +2151,7 @@ class SetFileDate(Builtin):
         )
 
         stattime = to_expression("AbsoluteTime", from_python(py_datelist))
-        stattime = stattime.to_python(n_evaluation=evaluation)
+        stattime = eval_N(stattime, evaluation).to_python()
 
         stattime -= epochtime
 

@@ -44,7 +44,7 @@ from mathics.core.expression import Expression
 from mathics.core.formatter import format_element, lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
+from mathics.core.systemsymbols import SymbolAll, SymbolAutomatic, SymbolTraditionalForm
 
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
@@ -471,10 +471,7 @@ class GraphicsBox(BoxExpression):
             raise BoxExpressionError
         self.graphics_options = self.get_option_values(elements[1:], **options)
         background = self.graphics_options["System`Background"]
-        if (
-            isinstance(background, Symbol)
-            and background.get_name() == "System`Automatic"
-        ):
+        if background is SymbolAutomatic:
             self.background_color = None
         else:
             self.background_color = _ColorObject.create(background)
@@ -484,8 +481,8 @@ class GraphicsBox(BoxExpression):
         )
 
         plot_range = self.graphics_options["System`PlotRange"].to_python()
-        if plot_range == "System`Automatic":
-            plot_range = ["System`Automatic", "System`Automatic"]
+        if plot_range == SymbolAutomatic:
+            plot_range = [SymbolAutomatic, SymbolAutomatic]
 
         if not isinstance(plot_range, list) or len(plot_range) != 2:
             raise BoxExpressionError
@@ -509,7 +506,7 @@ class GraphicsBox(BoxExpression):
             """
 
             # always need to compute extent if size aspect is automatic
-            if "System`Automatic" in plot_range or size_aspect is None:
+            if SymbolAutomatic in plot_range or size_aspect is None:
                 xmin, xmax, ymin, ymax = elements.extent()
             else:
                 xmin = xmax = ymin = ymax = None
@@ -517,7 +514,7 @@ class GraphicsBox(BoxExpression):
             if (
                 final_pass
                 and any(x for x in axes)
-                and plot_range != ["System`Automatic", "System`Automatic"]
+                and plot_range != [SymbolAutomatic, SymbolAutomatic]
             ):
                 # Take into account the dimensions of axes and axes labels
                 # (they should be displayed completely even when a specific
@@ -541,7 +538,7 @@ class GraphicsBox(BoxExpression):
                 return min, max
 
             try:
-                if plot_range[0] == "System`Automatic":
+                if plot_range[0] is SymbolAutomatic:
                     if xmin is None and xmax is None:
                         xmin = 0
                         xmax = 1
@@ -560,7 +557,7 @@ class GraphicsBox(BoxExpression):
                 else:
                     raise BoxExpressionError
 
-                if plot_range[1] == "System`Automatic":
+                if plot_range[1] is SymbolAutomatic:
                     if ymin is None and ymax is None:
                         ymin = 0
                         ymax = 1

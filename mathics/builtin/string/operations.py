@@ -56,11 +56,12 @@ from mathics.core.systemsymbols import (
 )
 
 
-SymbolStringInsert = Symbol("StringInsert")
-SymbolStringJoin = Symbol("StringJoin")
-SymbolStringPosition = Symbol("StringPosition")
-SymbolStringRiffle = Symbol("StringRiffle")
-SymbolStringSplit = Symbol("StringSplit")
+SymbolStringInsert = Symbol("System`StringInsert")
+SymbolStringJoin = Symbol("System`StringJoin")
+SymbolStringPosition = Symbol("System`StringPosition")
+SymbolStringRiffle = Symbol("System`StringRiffle")
+SymbolStringSplit = Symbol("System`StringSplit")
+SymbolWhitespaceCharacter = Symbol("System`WhitespaceCharacter")
 
 
 class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
@@ -1046,7 +1047,7 @@ class StringSplit(Builtin):
                 for x in result
                 # Remove the empty matches only if we aren't splitting by
                 # whitespace because Python's RegEx matches " " as ""
-                if x != "" or patts[0].to_python() in ("", "System`WhitespaceCharacter")
+                if x != "" or patts[0].to_python() in ("", SymbolWhitespaceCharacter)
             ],
             evaluation,
         )

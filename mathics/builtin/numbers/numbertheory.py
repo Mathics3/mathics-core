@@ -494,8 +494,15 @@ class NextPrime(Builtin):
 
     def apply(self, n, k, evaluation):
         "NextPrime[n_?NumberQ, k_Integer]"
-        py_k = k.to_python(n_evaluation=evaluation)
-        py_n = n.to_python(n_evaluation=evaluation)
+
+        def to_int_value(x):
+            if isinstance(x, Integer):
+                return x.value
+
+            return round(eval_N(x, evaluation).to_python())
+
+        py_k = to_int_value(k)
+        py_n = n.value
 
         if py_k >= 0:
             return Integer(sympy.ntheory.nextprime(py_n, py_k))
@@ -606,7 +613,7 @@ class PrimePi(SympyFunction):
 
     def apply(self, n, evaluation):
         "PrimePi[n_?NumericQ]"
-        result = sympy.ntheory.primepi(n.to_python(n_evaluation=evaluation))
+        result = sympy.ntheory.primepi(eval_N(n, evaluation).to_python())
         return Integer(result)
 
 

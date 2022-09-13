@@ -17,6 +17,7 @@ from functools import reduce
 from mathics.builtin.base import Builtin
 from mathics.builtin.numpy_utils import instantiate_elements, stack
 from mathics.core.atoms import Integer, String, Real, Complex
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull
@@ -497,7 +498,7 @@ class RandomComplex(Builtin):
 
     @staticmethod
     def to_complex(value, evaluation):
-        result = value.to_python(n_evaluation=evaluation)
+        result = eval_N(value, evaluation).to_python()
         if isinstance(result, (float, int)):
             result = complex(result)
         if isinstance(result, complex):
@@ -644,9 +645,7 @@ class _RandomSelection(_RandomBase):
                 return evaluation.message(self.get_name(), "wghtv", weights), None
             weights = norm_weights
 
-        py_weights = (
-            weights.to_python(n_evaluation=evaluation) if is_proper_spec else None
-        )
+        py_weights = eval_N(weights, evaluation).to_python() if is_proper_spec else None
         if (py_weights is None) or (
             not all(isinstance(w, (int, float)) and w >= 0 for w in py_weights)
         ):

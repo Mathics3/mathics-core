@@ -38,6 +38,8 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
+    SymbolAll,
+    SymbolAutomatic,
     SymbolBlend,
     SymbolColorData,
     SymbolEdgeForm,
@@ -47,6 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolGrid,
     SymbolMessageName,
     SymbolMap,
+    SymbolNone,
     SymbolQuiet,
     SymbolPoint,
     SymbolPolygon,
@@ -60,13 +63,18 @@ from mathics.core.systemsymbols import (
 RealPoint6 = Real(0.6)
 RealPoint2 = Real(0.2)
 
-SymbolColorDataFunction = Symbol("ColorDataFunction")
-SymbolDisk = Symbol("Disk")
-SymbolFaceForm = Symbol("FaceForm")
-SymbolHue = Symbol("Hue")
-SymbolLine = Symbol("Line")
-SymbolRectangle = Symbol("Rectangle")
-SymbolText = Symbol("Text")
+SymbolAxis = Symbol("System`Axis")
+SymbolBottom = Symbol("System`Bottom")
+SymbolColorDataFunction = Symbol("System`ColorDataFunction")
+SymbolDisk = Symbol("System`Disk")
+SymbolFaceForm = Symbol("System`FaceForm")
+SymbolFull = Symbol("System`Full")
+SymbolHue = Symbol("System`Hue")
+SymbolLine = Symbol("System`Line")
+SymbolRectangle = Symbol("System`Rectangle")
+SymbolText = Symbol("System`Text")
+SymbolTop = Symbol("System`Top")
+
 
 try:
     from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
@@ -363,9 +371,9 @@ def automatic_plot_range(values):
 
 
 def get_plot_range(values, all_values, option):
-    if option == "System`Automatic":
+    if option is SymbolAutomatic:
         result = automatic_plot_range(values)
-    elif option == "System`All":
+    elif option is SymbolAll:
         if not all_values:
             result = [0, 1]
         else:
@@ -454,7 +462,7 @@ class _Plot(Builtin):
 
         # PlotRange Option
         def check_range(range):
-            if range in ("System`Automatic", "System`All"):
+            if range in (SymbolAutomatic, SymbolAll):
                 return True
             if isinstance(range, list) and len(range) == 2:
                 if isinstance(range[0], numbers.Real) and isinstance(  # noqa
@@ -464,31 +472,27 @@ class _Plot(Builtin):
             return False
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = plotrange_option.to_python(n_evaluation=evaluation)
+        plotrange = eval_N(plotrange_option, evaluation).to_python()
         x_range, y_range = self.get_plotrange(plotrange, start, stop)
         if not check_range(x_range) or not check_range(y_range):
             evaluation.message(self.get_name(), "prng", plotrange_option)
-            x_range, y_range = [start, stop], "Automatic"
+            x_range, y_range = [start, stop], SymbolAutomatic
 
         # x_range and y_range are now either Automatic, All, or of the form [min, max]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
+        assert x_range in (SymbolAutomatic, SymbolAll) or isinstance(x_range, list)
+        assert y_range in (SymbolAutomatic, SymbolAll) or isinstance(y_range, list)
 
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
         mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
+        if mesh not in [SymbolNone, SymbolFull, SymbolAll]:
             evaluation.message("Mesh", "ilevels", mesh_option)
-            mesh = "System`None"
+            mesh = SymbolNone
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
         plotpoints = plotpoints_option.to_python()
-        if plotpoints == "System`None":
+        if plotpoints == SymbolNone:
             plotpoints = 57
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
             return evaluation.message(self.get_name(), "ppts", plotpoints)
@@ -498,7 +502,7 @@ class _Plot(Builtin):
         maxrecursion_option = self.get_option(options, "MaxRecursion", evaluation)
         maxrecursion = maxrecursion_option.to_python()
         try:
-            if maxrecursion == "System`Automatic":
+            if maxrecursion == SymbolAutomatic:
                 maxrecursion = 3
             elif maxrecursion == float("inf"):
                 maxrecursion = max_recursion_limit
@@ -524,18 +528,18 @@ class _Plot(Builtin):
         def check_exclusion(excl):
             if isinstance(excl, list):
                 return all(check_exclusion(e) for e in excl)
-            if excl == "System`Automatic":
+            if excl == SymbolAutomatic:
                 return True
             if not isinstance(excl, numbers.Real):
                 return False
             return True
 
         exclusions_option = self.get_option(options, "Exclusions", evaluation)
-        exclusions = exclusions_option.to_python(n_evaluation=evaluation)
+        exclusions = eval_N(exclusions_option, evaluation).to_python()
         # TODO Turn expressions into points E.g. Sin[x] == 0 becomes 0, 2 Pi...
 
-        if exclusions in ["System`None", ["System`None"]]:
-            exclusions = "System`None"
+        if exclusions in [SymbolNone, [SymbolNone]]:
+            exclusions = SymbolNone
         elif not isinstance(exclusions, list):
             exclusions = [exclusions]
 
@@ -546,10 +550,10 @@ class _Plot(Builtin):
 
             else:
                 evaluation.message(self.get_name(), "invexcl", exclusions_option)
-                exclusions = ["System`Automatic"]
+                exclusions = [SymbolAutomatic]
 
         # exclusions is now either 'None' or a list of reals and 'Automatic'
-        assert exclusions == "System`None" or isinstance(exclusions, list)
+        assert exclusions is SymbolNone or isinstance(exclusions, list)
 
         # constants to generate colors
         hue = 0.67
@@ -614,7 +618,7 @@ class _Plot(Builtin):
             ymin, ymax = automatic_plot_range([yy for xx, yy in base_points])
             yscale = 1.0 / zero_to_one(ymax - ymin)
 
-            if mesh == "System`Full":
+            if mesh is SymbolFull:
                 for line in points:
                     tmp_mesh_points.extend(line)
 
@@ -635,9 +639,9 @@ class _Plot(Builtin):
                         return line, xi + 1, True
                 return line, xi + 1, False
 
-            if exclusions != "System`None":
+            if exclusions is not SymbolNone:
                 for excl in exclusions:
-                    if excl != "System`Automatic":
+                    if excl is not SymbolAutomatic:
                         l, xi, split_required = find_excl(excl)
                         if split_required:
                             xvalues.insert(l + 1, xvalues[l][xi:])
@@ -697,7 +701,7 @@ class _Plot(Builtin):
                             i += incr
                         i += 1
 
-            if exclusions == "System`None":  # Join all the Lines
+            if exclusions == SymbolNone:  # Join all the Lines
                 points = [[(xx, yy) for line in points for xx, yy in line]]
 
             graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
@@ -706,11 +710,11 @@ class _Plot(Builtin):
             for line in points:
                 plot_points.extend(line)
 
-            if mesh == "System`All":
+            if mesh == SymbolAll:
                 for line in points:
                     tmp_mesh_points.extend(line)
 
-            if mesh != "System`None":
+            if mesh != SymbolNone:
                 mesh_points.append(tmp_mesh_points)
 
             function_hues.append(hue)
@@ -1189,8 +1193,8 @@ class BarChart(_Chart):
 
         graphics = list(rectangles()) + list(axes())
 
-        x_range = "System`All"
-        y_range = "System`All"
+        x_range = SymbolAll
+        y_range = SymbolAll
 
         x_range = list(get_plot_range(x_coords, x_coords, x_range))
         y_range = list(get_plot_range(y_coords, y_coords, y_range))
@@ -1402,8 +1406,8 @@ class Histogram(Builtin):
                 color = colors[i % len(colors)]
                 graphics.extend(list(chain(*[distribution.graphics(color)])))
 
-            x_range = "System`All"
-            y_range = "System`All"
+            x_range = SymbolAll
+            y_range = SymbolAll
 
             x_range = list(get_plot_range(x_coords, x_coords, x_range))
             y_range = list(get_plot_range(y_coords, y_coords, y_range))
@@ -1479,13 +1483,13 @@ class _ListPlot(Builtin):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
-        all_points = points.to_python(n_evaluation=evaluation)
+        all_points = eval_N(points, evaluation).to_python()
         # FIXME: arrange forself to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
 
         # PlotRange Option
         def check_range(range):
-            if range in ("System`Automatic", "System`All"):
+            if range in (SymbolAutomatic, SymbolAll):
                 return True
             if isinstance(range, list) and len(range) == 2:
                 if isinstance(range[0], numbers.Real) and isinstance(  # noqa
@@ -1495,39 +1499,31 @@ class _ListPlot(Builtin):
             return False
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = plotrange_option.to_python(n_evaluation=evaluation)
-        if plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
-        elif plotrange == "System`Automatic":
-            plotrange = ["System`Automatic", "System`Automatic"]
+        plotrange = eval_N(plotrange_option, evaluation).to_python()
+        if plotrange is SymbolAll:
+            plotrange = [SymbolAll, SymbolAll]
+        elif plotrange is SymbolAutomatic:
+            plotrange = [SymbolAutomatic, SymbolAutomatic]
         elif isinstance(plotrange, numbers.Real):
             plotrange = [[-plotrange, plotrange], [-plotrange, plotrange]]
         elif isinstance(plotrange, list) and len(plotrange) == 2:
             if all(isinstance(pr, numbers.Real) for pr in plotrange):
-                plotrange = ["System`All", plotrange]
+                plotrange = [SymbolAll, plotrange]
             elif all(check_range(pr) for pr in plotrange):
                 pass
         else:
             evaluation.message(self.get_name(), "prng", plotrange_option)
-            plotrange = ["System`Automatic", "System`Automatic"]
+            plotrange = [SymbolAutomatic, SymbolAutomatic]
 
         x_range, y_range = plotrange[0], plotrange[1]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
-        )
+        assert x_range in (SymbolAutomatic, SymbolAll) or isinstance(x_range, list)
+        assert y_range in (SymbolAutomatic, SymbolAll) or isinstance(y_range, list)
 
         # Filling option
         # TODO: Fill between corresponding points in two datasets:
         filling_option = self.get_option(options, "Filling", evaluation)
-        filling = filling_option.to_python(n_evaluation=evaluation)
-        if filling in [
-            "System`Top",
-            "System`Bottom",
-            "System`Axis",
-        ] or isinstance(  # noqa
+        filling = eval_N(filling_option, evaluation).to_python()
+        if filling in [SymbolTop, SymbolBottom, SymbolAxis,] or isinstance(  # noqa
             filling, numbers.Real
         ):
             pass
@@ -1602,12 +1598,12 @@ class _ListPlot(Builtin):
             x_range,
         )
 
-        if filling == "System`Axis":
+        if filling is SymbolAxis:
             # TODO: Handle arbitary axis intercepts
             filling = 0.0
-        elif filling == "System`Bottom":
+        elif filling is SymbolBottom:
             filling = y_range[0]
-        elif filling == "System`Top":
+        elif filling == SymbolTop:
             filling = y_range[1]
 
         hue = 0.67
@@ -1720,9 +1716,9 @@ class _Plot3D(Builtin):
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
         mesh = mesh_option.to_python()
-        if mesh not in ["System`None", "System`Full", "System`All"]:
+        if mesh not in [SymbolNone, SymbolFull, SymbolAll]:
             evaluation.message("Mesh", "ilevels", mesh_option)
-            mesh = "System`Full"
+            mesh = SymbolFull
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
@@ -1733,7 +1729,7 @@ class _Plot3D(Builtin):
                 return True
             return False
 
-        if plotpoints == "System`None":
+        if plotpoints is SymbolNone:
             plotpoints = [7, 7]
         elif check_plotpoints(plotpoints):
             plotpoints = [plotpoints, plotpoints]
@@ -2032,7 +2028,7 @@ class _Plot3D(Builtin):
 
             # add the mesh
             mesh_points = []
-            if mesh == "System`Full":
+            if mesh is SymbolFull:
                 for xi in range(plotpoints[0] + 1):
                     xval = xstart + xi / numx * (xstop - xstart)
                     mesh_row = []
@@ -2090,7 +2086,7 @@ class _Plot3D(Builtin):
                     for mesh_line in mesh_points
                     if not any(x[2] is None for x in mesh_line)
                 ]
-            elif mesh == "System`All":
+            elif mesh is SymbolAll:
                 mesh_points = set()
                 for t in triangles:
                     mesh_points.add((t[0], t[1]) if t[1] > t[0] else (t[1], t[0]))
@@ -2175,19 +2171,19 @@ class Plot(_Plot):
     def get_plotrange(self, plotrange, start, stop):
         x_range = y_range = None
         if isinstance(plotrange, numbers.Real):
-            plotrange = ["System`Full", [-plotrange, plotrange]]
-        if plotrange == "System`Automatic":
-            plotrange = ["System`Full", "System`Automatic"]
-        elif plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
+            plotrange = [SymbolFull, [-plotrange, plotrange]]
+        if plotrange is SymbolAutomatic:
+            plotrange = [SymbolFull, SymbolAutomatic]
+        elif plotrange is SymbolAll:
+            plotrange = [SymbolAll, SymbolAll]
         if isinstance(plotrange, list) and len(plotrange) == 2:
             if isinstance(plotrange[0], numbers.Real) and isinstance(  # noqa
                 plotrange[1], numbers.Real
             ):
-                x_range, y_range = "System`Full", plotrange
+                x_range, y_range = SymbolFull, plotrange
             else:
                 x_range, y_range = plotrange
-            if x_range == "System`Full":
+            if x_range is SymbolFull:
                 x_range = [start, stop]
         return x_range, y_range
 
@@ -2239,10 +2235,10 @@ class ParametricPlot(_Plot):
         x_range = y_range = None
         if isinstance(plotrange, numbers.Real):
             plotrange = [[-plotrange, plotrange], [-plotrange, plotrange]]
-        if plotrange == "System`Automatic":
-            plotrange = ["System`Automatic", "System`Automatic"]
-        elif plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
+        if plotrange is SymbolAutomatic:
+            plotrange = [SymbolAutomatic, SymbolAutomatic]
+        elif plotrange == SymbolAll:
+            plotrange = [SymbolAll, SymbolAll]
         if isinstance(plotrange, list) and len(plotrange) == 2:
             if isinstance(plotrange[0], numbers.Real) and isinstance(  # noqa
                 plotrange[1], numbers.Real
@@ -2311,10 +2307,10 @@ class PolarPlot(_Plot):
         x_range = y_range = None
         if isinstance(plotrange, numbers.Real):
             plotrange = [[-plotrange, plotrange], [-plotrange, plotrange]]
-        if plotrange == "System`Automatic":
-            plotrange = ["System`Automatic", "System`Automatic"]
-        elif plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
+        if plotrange is SymbolAutomatic:
+            plotrange = [SymbolAutomatic, SymbolAutomatic]
+        elif plotrange is SymbolAll:
+            plotrange = [SymbolAll, SymbolAll]
         if isinstance(plotrange, list) and len(plotrange) == 2:
             if isinstance(plotrange[0], numbers.Real) and isinstance(  # noqa
                 plotrange[1], numbers.Real

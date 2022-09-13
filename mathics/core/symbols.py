@@ -546,6 +546,13 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self is rhs
 
     def to_python(self, *args, **kwargs):
+        # TODO: If we could neglect the parameters,
+        # a cleaner implementation would be
+        # to_python_dict = {"System`True": True,
+        #                   "System`False": False,
+        #                   "System`None": None}
+        # return to_python_dict.get(self.name, self)
+
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
@@ -554,13 +561,20 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return None
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
+            import warnings
+            from mathics.core.evaluators import eval_N
+
+            warnings.warn(
+                "use instead eval_N(obj, evaluation).to_python()", DeprecationWarning
+            )
+            value = eval_N(self, n_evaluation)
+            if value is not self:
+                return value.to_python()
 
         if kwargs.get("python_form", False):
             return self.to_sympy(**kwargs)
         else:
-            return self.name
+            return self
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy

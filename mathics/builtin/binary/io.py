@@ -14,6 +14,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 
 from mathics.core.systemsymbols import (
@@ -968,7 +969,7 @@ class BinaryWrite(Builtin):
                 if isinstance(x, (Complex, Real, Integer)):
                     x = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
-                    x = x.elements[0].to_python(n_evaluation=evaluation)
+                    x = eval_N(x.elements[0], evaluation).to_python()
 
                     # x*float('+inf') creates nan if x.real or x.imag are zero
                     x = complex(
