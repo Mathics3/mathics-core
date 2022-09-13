@@ -108,6 +108,12 @@ class Definitions:
         )
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
+
+        # This loads all the formatting functions.
+        # Needs to be early because it can be used in
+        # messages during the builtins loading.
+        import mathics.format
+
         if add_builtin:
             from mathics.builtin import modules, contribute
             from mathics.settings import ROOT_DIR
@@ -151,14 +157,6 @@ class Definitions:
             self.builtin.update(self.user)
             self.user = {}
             self.clear_cache()
-
-        # This loads all the formatting functions
-        import mathics.format
-
-        # FIXME load dynamically as we do other things
-        # import mathics.format.asy  # noqa
-        # import mathics.format.json  # noqa
-        # import mathics.format.svg  # noqa
 
     def load_pymathics_module(self, module, remove_on_quit=True):
         """

@@ -341,10 +341,6 @@ class BaseElement(KeyComparable):
         """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
-        # FIXME: using the below test causes:
-        # TypeError: boxes_to_text() takes 1 positional argument but 2 were given
-        # Why?
-        # if hasattr(self, "element"):
         if self.get_head() is SymbolSequence:
             return self.elements
         else:
