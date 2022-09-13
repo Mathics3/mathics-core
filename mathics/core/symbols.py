@@ -596,22 +596,12 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if value is not self:
                 return value.to_python()
 
-        if python_form:
-            # TODO: consider to return self.value if available.
-            # For general symbols, one possibility would be to
-            # return a sympy symbol, also stored in value.
-
-            # Also, why we need this parameter? If the idea is
-            # that to_python returns native (builtin) Python types,
-            # then to get a sympy object, we should use to_sympy.
-            return self.to_sympy(**kwargs)
-        else:
-            # For general symbols, the default behaviour is
-            # to return a 'str'. The reason seems to be
-            # that native (builtin) Python types
-            # are better for being used as keys in
-            # dictionaries.
-            return self.name
+        # For general symbols, the default behaviour is
+        # to return a 'str'. The reason seems to be
+        # that native (builtin) Python types
+        # are better for being used as keys in
+        # dictionaries.
+        return self.name
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy
