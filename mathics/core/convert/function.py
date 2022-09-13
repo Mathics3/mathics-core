@@ -74,7 +74,7 @@ def expression_to_callable(
                 vars = dict(list(zip([a.name for a in args], x_mathics)))
                 pyexpr = expr.replace_vars(vars)
                 pyexpr = eval_N(pyexpr, inner_evaluation)
-                res = pyexpr.to_python(n_evaluation=inner_evaluation)
+                res = pyexpr.to_python()
                 return res
 
             # TODO: check if we can use numba to compile this...
