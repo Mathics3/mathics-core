@@ -609,3 +609,40 @@ def test_cmp2_no_pass(str_lhs, str_rhs, str_expected):
         check_evaluation(
             expr, str_expected, to_string_expr=False, to_string_expected=False
         )
+
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "message"),
+    [
+        ("3.1416==3.14`2", True, None),
+        ("3.14`2==3.1416", True, None),
+        ("3.1416`4==3.14`2", True, None),
+        ("3.14`2==3.1416`4", True, None),
+        ("Pi==3.14`2", True, None),
+        ("3.14`2==Pi", True, None),
+        ("0`==0", True, None),
+        ("0`3==0", True, None),
+        ("0`===0.", True, None),
+        ("0`2===0", True, None),
+        ("0`2===0.", False, None),
+        ("0.`==0.", True, None),
+        (
+            "2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000000000001",
+            "True",
+            "",
+        ),
+        (
+            "2^^1.000000000000000000000000000000000000000000000000000000000000 ==  2^^1.000000000000000000000000000000000000000000000000000010000000",
+            "False",
+            None,
+        ),
+    ],
+)
+def test_cmp_compare_numbers(str_expr, str_expected, message):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        failure_message=message,
+        to_string_expr=True,
+        to_string_expected=True,
+    )

@@ -46,6 +46,7 @@ from mathics.core.symbols import (
     SymbolTimes,
 )
 from mathics.core.systemsymbols import (
+    SymbolAccuracy,
     SymbolBlank,
     SymbolComplexInfinity,
     SymbolDirectedInfinity,
@@ -427,10 +428,16 @@ class Plus(BinaryOperator, SympyFunction):
                     number = mpmath.fsum(numbers)
                     number = from_mpmath(number)
                 else:
+                    # For a sum, what is relevant is the minimum accuracy of the terms
+                    acc = (
+                        Expression(SymbolAccuracy, ListExpression(items))
+                        .evaluate(evaluation)
+                        .to_python()
+                    )
                     with mpmath.workprec(prec):
                         numbers = [item.to_mpmath() for item in numbers]
                         number = mpmath.fsum(numbers)
-                        number = from_mpmath(number, dps(prec))
+                        number = from_mpmath(number, acc=acc)
             else:
                 number = from_sympy(sum(item.to_sympy() for item in numbers))
         else:
