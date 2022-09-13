@@ -597,6 +597,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 return value.to_python()
 
         if python_form:
+            1 / 0
             # TODO: consider to return self.value if available.
             # For general symbols, one possibility would be to
             # return a sympy symbol, also stored in value.
