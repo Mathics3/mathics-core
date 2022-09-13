@@ -194,7 +194,7 @@ def test_accuracy():
         # Returns the accuracy of ``` 3.2`3 ```
         ('Accuracy[F["a", 2, 3.2`3]]', "2.49482"),
         ('Accuracy[{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}]', "2.49482"),
-        # Anoter case of issues with rounding. In Mathics, this returns
+        # Another case of issues with rounding. In Mathics, this returns
         # 2.67776
         # ('Accuracy[{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}]', '3.'),
     ):
