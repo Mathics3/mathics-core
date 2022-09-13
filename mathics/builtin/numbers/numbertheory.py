@@ -498,10 +498,18 @@ class NextPrime(Builtin):
         def to_int_value(x):
             if isinstance(x, Integer):
                 return x.value
-
-            return round(eval_N(x, evaluation).to_python())
+            x = eval_N(x, evaluation)
+            if isinstance(x, Integer):
+                return x.value
+            elif isinstance(x, Real):
+                return round(x.value)
+            else:
+                return None
 
         py_k = to_int_value(k)
+        if py_k is None:
+            return None
+
         py_n = n.value
 
         if py_k >= 0:

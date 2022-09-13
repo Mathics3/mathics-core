@@ -422,10 +422,20 @@ class BaseElement(KeyComparable):
         # __hash__ might only hash a sample of the data available.
         raise NotImplementedError
 
-    def to_sympy(self, **kwargs):
+    def to_python(self, *args, **kwargs):
+        # Returns a native builtin Python object
+        # something in (int, float, complex, str, tuple, list or dict.).
+        # (See discussions in
+        #  https://github.com/Mathics3/mathics-core/discussions/550
+        # and
+        # https://github.com/Mathics3/mathics-core/pull/551
+        #
         raise NotImplementedError
 
     def to_mpmath(self):
+        raise NotImplementedError
+
+    def to_sympy(self, **kwargs):
         raise NotImplementedError
 
 

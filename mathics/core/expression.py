@@ -1382,7 +1382,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         """
         from mathics.builtin.base import mathics_to_python
 
-        n_evaluation = kwargs.get("n_evaluation")
+        n_evaluation = kwargs.get("n_evaluation", None)
+        assert n_evaluation is None
+
         head = self._head
         if head is SymbolFunction:
 
@@ -1416,6 +1418,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             #         keywords=[],
             #         )
             return py_obj
+
+        # Notice that in this case, `to_python` returns a Mathics Expression object,
+        # instead of a builtin native object.
         return self
 
     def to_sympy(self, **kwargs):

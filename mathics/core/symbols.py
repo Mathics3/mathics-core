@@ -584,6 +584,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             return False
         if self is SymbolNull:
             return None
+
+        # This was introduced before `mathics.core.evaluators.eval_N`
+        # provided a simple way to convert an expression into a number.
+        # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
             import warnings
@@ -596,10 +600,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if value is not self:
                 return value.to_python()
 
-        if kwargs.get("python_form", False):
-            return self.to_sympy(**kwargs)
-        else:
-            return self
+        return self
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy

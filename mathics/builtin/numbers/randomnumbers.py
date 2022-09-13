@@ -22,6 +22,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull
 
+
 SymbolRandomComplex = Symbol("RandomComplex")
 SymbolRandomReal = Symbol("RandomReal")
 SymbolTotal = Symbol("Total")
@@ -498,11 +499,21 @@ class RandomComplex(Builtin):
 
     @staticmethod
     def to_complex(value, evaluation):
-        result = eval_N(value, evaluation).to_python()
-        if isinstance(result, (float, int)):
-            result = complex(result)
-        if isinstance(result, complex):
-            return result
+        result = eval_N(value, evaluation)
+
+        if hasattr(result, "value"):
+            result_value = result.value
+        else:
+            # TODO: result.value does not work, because
+            # Complex does not have a ``value`` attribute.
+            # Otherwise, we could return here ``None``.
+            result_value = result.to_python()
+
+        if isinstance(result_value, (float, int)):
+            return complex(result_value)
+        if isinstance(result_value, complex):
+            return result_value
+
         return None
 
     def apply(self, zmin, zmax, evaluation):
