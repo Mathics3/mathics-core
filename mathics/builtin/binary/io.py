@@ -14,6 +14,7 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 
 from mathics.core.systemsymbols import (
@@ -941,6 +942,7 @@ class BinaryWrite(Builtin):
 
         # Write to stream
         i = 0
+        # TODO: please, modularize me.
         while i < len(pyb):
             x = pyb[i]
             # Types are "repeated as many times as necessary"
@@ -948,61 +950,68 @@ class BinaryWrite(Builtin):
 
             # Coerce x
             if t == "TerminatedString":
-                x = x.get_string_value() + "\x00"
+                x_py = x.get_string_value() + "\x00"
             elif t.startswith("Real"):
                 if isinstance(x, Real):
-                    x = x.to_python()
+                    x_py = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
                     if x.elements[0].get_int_value() == 1:
-                        x = float("+inf")
+                        x_py = float("+inf")
                     elif x.elements[0].get_int_value() == -1:
-                        x = float("-inf")
+                        x_py = float("-inf")
                     else:
-                        x = None
-                elif isinstance(x, Symbol) and x.get_name() == "System`Indeterminate":
-                    x = float("nan")
+                        x_py = None
+                elif x is SymbolIndeterminate:
+                    x_py = float("nan")
                 else:
-                    x = None
-                assert x is None or isinstance(x, float)
+                    x_py = None
+                assert x_py is None or isinstance(x_py, float)
             elif t.startswith("Complex"):
                 if isinstance(x, (Complex, Real, Integer)):
-                    x = x.to_python()
+                    x_py = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
-                    x = x.elements[0].to_python(n_evaluation=evaluation)
+                    x_py = eval_N(x.elements[0], evaluation).to_python()
 
                     # x*float('+inf') creates nan if x.real or x.imag are zero
-                    x = complex(
-                        x.real * float("+inf") if x.real != 0 else 0,
-                        x.imag * float("+inf") if x.imag != 0 else 0,
+                    x_py = complex(
+                        x_py.real * float("+inf") if x_py.real != 0 else 0,
+                        x_py.imag * float("+inf") if x_py.imag != 0 else 0,
                     )
-                elif isinstance(x, Symbol) and x.get_name() == "System`Indeterminate":
-                    x = complex(float("nan"), float("nan"))
+                elif x is SymbolIndeterminate:
+                    x_py = complex(float("nan"), float("nan"))
                 else:
-                    x = None
+                    x_py = None
             elif t.startswith("Character"):
                 if isinstance(x, Integer):
-                    x = [String(char) for char in str(x.get_int_value())]
-                    pyb = list(chain(pyb[:i], x, pyb[i + 1 :]))
+                    x_list = [String(char) for char in str(x.get_int_value())]
+                    pyb = list(chain(pyb[:i], x_list, pyb[i + 1 :]))
                     x = pyb[i]
-                if isinstance(x, String) and len(x.get_string_value()) > 1:
-                    x = [String(char) for char in x.get_string_value()]
-                    pyb = list(chain(pyb[:i], x, pyb[i + 1 :]))
+                    assert isinstance(x, String)
+                if isinstance(x, String) and len(x.value) > 1:
+                    x_list = [String(char) for char in x.value]
+                    pyb = list(chain(pyb[:i], x_list, pyb[i + 1 :]))
                     x = pyb[i]
-                x = x.get_string_value()
+                    assert isinstance(x, String)
+                    x_py = x.value
+                else:
+                    # Not sure what happens here...
+                    # TODO: Check...
+                    x_py = x.get_string_value()
             elif t == "Byte" and isinstance(x, String):
-                if len(x.get_string_value()) > 1:
-                    x = [String(char) for char in x.get_string_value()]
-                    pyb = list(chain(pyb[:i], x, pyb[i + 1 :]))
+                if len(x.value) > 1:
+                    x_list = [String(char) for char in x.value]
+                    pyb = list(chain(pyb[:i], x_list, pyb[i + 1 :]))
                     x = pyb[i]
-                x = ord(x.get_string_value())
+                assert isinstance(x, String)
+                x_py = ord(x.value)
             else:
-                x = x.get_int_value()
+                x_py = x.get_int_value()
 
-            if x is None:
+            if x_py is None:
                 return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
 
             try:
-                self.writers[t](stream.io, x)
+                self.writers[t](stream.io, x_py)
             except struct.error:
                 return evaluation.message(SymbolBinaryWrite, "nocoerce", b)
             i += 1

@@ -570,25 +570,47 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """Mathics SameQ"""
         return self is rhs
 
-    def to_python(self, *args, **kwargs):
-        # TODO: consider to return self.value if available.
-        # For general symbols, one possibility would be to
-        # return a sympy symbol, also stored in value.
-
+    def to_python(self, *args, python_form: bool = False, **kwargs):
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
             return False
         if self is SymbolNull:
             return None
+
+        # This was introduced before `mathics.core.evaluators.eval_N`
+        # provided a simple way to convert an expression into a number.
+        # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
+            import warnings
 
-        if kwargs.get("python_form", False):
+            warnings.warn(
+                "use instead ``eval_N(obj, evaluation).to_python()``",
+                DeprecationWarning,
+            )
+
+            from mathics.core.evaluators import eval_N
+
+            value = eval_N(self, n_evaluation)
+            if value is not self:
+                return value.to_python()
+
+        if python_form:
+            # TODO: consider to return self.value if available.
+            # For general symbols, one possibility would be to
+            # return a sympy symbol, also stored in value.
+
+            # Also, why we need this parameter? If the idea is
+            # that to_python returns native (builtin) Python types,
+            # then to get a sympy object, we should use to_sympy.
             return self.to_sympy(**kwargs)
         else:
+            # For general symbols, the default behaviour is
+            # to return a 'str'. The reason seems to be
+            # that native (builtin) Python types
+            # are better for being used as keys in
+            # dictionaries.
             return self.name
 
     def to_sympy(self, **kwargs):
