@@ -379,7 +379,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             self = super(Symbol, cls).__new__(cls)
             self.name = name
             self.sympy_dummy = sympy_dummy
-            # self.value = value
+            self.value = value
             cls.defined_symbols[name] = self
         return self
 
