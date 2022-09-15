@@ -175,3 +175,45 @@ def test_n():
         ("N[1.01234567890123456789`, 2] // Precision", "MachinePrecision"),
     ):
         check_evaluation(str_expr, str_expected)
+
+
+def test_accuracy():
+    for str_expr, str_expected in (
+        ("0`4", "0"),
+        ("Accuracy[0.0]", "15."),
+        ("Accuracy[0.000000000000000000000000000000000000]", "36."),
+        ("Accuracy[-0.0]", "15."),
+        # In WMA, this gives 36. Seems to be a rounding  issue
+        # ("Accuracy[-0.000000000000000000000000000000000000]", "36."),
+        ("1.0000000000000000 // Accuracy", "15."),
+        ("1.00000000000000000 // Accuracy", "17."),
+        # Returns the accuracy of ```2.4```
+        (" 0.4 + 2.4 I // Accuracy", "14.6198"),
+        ("Accuracy[2 + 3 I]", "Infinity"),
+        ('Accuracy["abc"]', "Infinity"),
+        # Returns the accuracy of ``` 3.2`3 ```
+        ('Accuracy[F["a", 2, 3.2`3]]', "2.49482"),
+        ('Accuracy[{{a, 2, 3.2`},{2.1`5, 3.2`3, "a"}}]', "2.49482"),
+        # Another case of issues with rounding. In Mathics, this returns
+        # 2.67776
+        # ('Accuracy[{{a, 2, 3.2`},{2.1``3, 3.2``5, "a"}}]', '3.'),
+    ):
+        check_evaluation(str_expr, str_expected)
+
+
+def test_precision():
+    for str_expr, str_expected in (
+        ("0`4", "0"),
+        ("Precision[0.0]", "MachinePrecision"),
+        ("Precision[0.000000000000000000000000000000000000]", "0."),
+        ("Precision[-0.0]", "MachinePrecision"),
+        ("Precision[-0.000000000000000000000000000000000000]", "0."),
+        ("1.0000000000000000 // Precision", "MachinePrecision"),
+        ("1.00000000000000000 // Precision", "17."),
+        (" 0.4 + 2.4 I // Precision", "MachinePrecision"),
+        ("Precision[2 + 3 I]", "Infinity"),
+        ('Precision["abc"]', "Infinity"),
+        ('Precision[F["a", 2, 3.2`3]]', "3."),
+        ('Precision[{{a,2,3.2`},{2.1`5, 2.`3, "a"}}]', "3."),
+    ):
+        check_evaluation(str_expr, str_expected)
