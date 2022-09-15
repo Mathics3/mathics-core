@@ -148,20 +148,20 @@ def convert_float_base(x, base, precision=10):
 
 class Accuracy(Builtin):
     """
+    <url>:Accuracy: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Accuracy: https://reference.wolfram.com/language/ref/Accuracy.html</url>)
+
     <dl>
       <dt>'Accuracy[$x$]'
       <dd>examines the number of significant digits of $expr$ after the decimal point in the number x.
     </dl>
-    This is rather a proof-of-concept than a full implementation.
-
+    <i>This is rather a proof-of-concept than a full implementation.</i>
 
     Accuracy of a real number is estimated from its value and its precision:
 
     >> Accuracy[3.1416`2]
      = 1.50298
 
-    Notice that the value is not exactly equal to the obtained in WMA: This is due to the different way in which
-    Precision is handled in SymPy.
+    Notice that the value is not exactly equal to the obtained in WMA: This is due to the different way in which 'Precision' is handled in SymPy.
 
     Accuracy for exact atoms is $Infinity$:
     >> Accuracy[1]
@@ -176,9 +176,20 @@ class Accuracy(Builtin):
     Accuracy of expressions is given by the minimum accuracy of its elements:
     >> Accuracy[F[1, Pi, A]]
      = Infinity
+
     >> Accuracy[F[1.3, Pi, A]]
      = 14.8861
 
+    'Accuracy' for the value 0 is a fixed-precision Real number:
+     >> 0``2
+      = 0.00
+
+    In compound expressions, the 'Accuracy' is fixed by the number with
+    the lowest 'Accuracy':
+    >> Accuracy[{{1, 1.`},{1.``5, 1.``10}}]
+     = 5.
+
+    See also <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
     """
 
     summary_text = "find the accuracy of a number"
@@ -954,40 +965,41 @@ class NumericQ(Builtin):
 
 class Precision(Builtin):
     """
+    <url>:Precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Precision: https://reference.wolfram.com/language/ref/Precision.html</url>)
+
     <dl>
       <dt>'Precision[$expr$]'
       <dd>examines the number of significant digits of $expr$.
     </dl>
-    This is rather a proof-of-concept than a full implementation.
-    Precision of compound expression is not supported yet.
+
+    <i>This is rather a proof-of-concept than a full implementation.</i>
+
+    The precision of an exact number, e.g. an Integer, is 'Infinity':
+
     >> Precision[1]
      = Infinity
+
+    A fraction is an exact number too, so its Precision is 'Infinity':
+
     >> Precision[1/2]
      = Infinity
+
+    Numbers entered in the form $digits$`$p$ are taken to have precision $p$:
+
+    >> Precision[1.23`10]
+     = 10.
+
+    Precision of a machine‐precision number is 'MachinePrecision':
     >> Precision[0.5]
      = MachinePrecision
 
-    #> Precision[0.0]
-     = MachinePrecision
-    #> Precision[0.000000000000000000000000000000000000]
-     = 0.
-    #> Precision[-0.0]
-     = MachinePrecision
-    #> Precision[-0.000000000000000000000000000000000000]
-     = 0.
+    In compound expressions, the 'Precision' is fixed by the number with
+    the lowest 'Precision':
+    >> Precision[{{1, 1.`},{1.`5, 1.`10}}]
+     = 5.
 
-    #> 1.0000000000000000 // Precision
-     = MachinePrecision
-    #> 1.00000000000000000 // Precision
-     = 17.
 
-    #> 0.4 + 2.4 I // Precision
-     = MachinePrecision
-    #> Precision[2 + 3 I]
-     = Infinity
-
-    #> Precision["abc"]
-     = Infinity
+    See also <url>:'Accuracy': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
 
     rules = {
