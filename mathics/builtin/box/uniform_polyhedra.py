@@ -1,3 +1,4 @@
+from mathics.builtin.box.graphics import convert_to_symbols_and_native_python
 from mathics.builtin.box.graphics3d import Coords3D
 
 from mathics.builtin.colors.color_directives import _ColorObject, Opacity
@@ -24,7 +25,7 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
         if len(item.elements) != 3:
             raise BoxExpressionError
 
-        points = item.elements[1].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[1])
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -32,8 +33,8 @@ class UniformPolyhedron3DBox(_GraphicsElementBox):
             raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.edge_length = item.elements[2].to_python()
-        self.sub_type = item.elements[0].to_python(string_quotes=False)
+        self.edge_length = convert_to_symbols_and_native_python(item.elements[2])
+        self.sub_type = convert_to_symbols_and_native_python(item.elements[0])
 
     def extent(self):
         result = []

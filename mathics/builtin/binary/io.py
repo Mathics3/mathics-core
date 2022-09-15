@@ -971,6 +971,7 @@ class BinaryWrite(Builtin):
                     x_py = x.to_python()
                 elif x.has_form("DirectedInfinity", 1):
                     x_py = eval_N(x.elements[0], evaluation).to_python()
+
                     # x*float('+inf') creates nan if x.real or x.imag are zero
                     x_py = complex(
                         x_py.real * float("+inf") if x_py.real != 0 else 0,

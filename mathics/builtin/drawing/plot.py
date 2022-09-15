@@ -16,6 +16,7 @@ import numbers
 import palettable
 
 from mathics.builtin.base import Builtin
+from mathics.builtin.box.graphics import convert_to_symbols_and_native_python
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
@@ -471,8 +472,10 @@ class _Plot(Builtin):
                     return True
             return False
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
+        plotrange_option = eval_N(
+            self.get_option(options, "PlotRange", evaluation), evaluation
+        )
+        plotrange = convert_to_symbols_and_native_python(plotrange_option)
         x_range, y_range = self.get_plotrange(plotrange, start, stop)
         if not check_range(x_range) or not check_range(y_range):
             evaluation.message(self.get_name(), "prng", plotrange_option)
@@ -484,14 +487,14 @@ class _Plot(Builtin):
 
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
+        mesh = convert_to_symbols_and_native_python(mesh_option)
         if mesh not in [SymbolNone, SymbolFull, SymbolAll]:
             evaluation.message("Mesh", "ilevels", mesh_option)
             mesh = SymbolNone
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
+        plotpoints = convert_to_symbols_and_native_python(plotpoints_option)
         if plotpoints == SymbolNone:
             plotpoints = 57
         if not (isinstance(plotpoints, int) and plotpoints >= 2):
@@ -500,7 +503,7 @@ class _Plot(Builtin):
         # MaxRecursion Option
         max_recursion_limit = 15
         maxrecursion_option = self.get_option(options, "MaxRecursion", evaluation)
-        maxrecursion = maxrecursion_option.to_python()
+        maxrecursion = convert_to_symbols_and_native_python(maxrecursion_option)
         try:
             if maxrecursion == SymbolAutomatic:
                 maxrecursion = 3
@@ -534,8 +537,10 @@ class _Plot(Builtin):
                 return False
             return True
 
-        exclusions_option = self.get_option(options, "Exclusions", evaluation)
-        exclusions = eval_N(exclusions_option, evaluation).to_python()
+        exclusions_option = eval_N(
+            self.get_option(options, "Exclusions", evaluation), evaluation
+        )
+        exclusions = convert_to_symbols_and_native_python(exclusions_option)
         # TODO Turn expressions into points E.g. Sin[x] == 0 becomes 0, 2 Pi...
 
         if exclusions in [SymbolNone, [SymbolNone]]:
@@ -1483,7 +1488,7 @@ class _ListPlot(Builtin):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
-        all_points = eval_N(points, evaluation).to_python()
+        all_points = convert_to_symbols_and_native_python(eval_N(points, evaluation))
         # FIXME: arrange forself to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
 
@@ -1498,8 +1503,10 @@ class _ListPlot(Builtin):
                     return True
             return False
 
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
+        plotrange_option = eval_N(
+            self.get_option(options, "PlotRange", evaluation), evaluation
+        )
+        plotrange = convert_to_symbols_and_native_python(plotrange_option)
         if plotrange is SymbolAll:
             plotrange = [SymbolAll, SymbolAll]
         elif plotrange is SymbolAutomatic:
@@ -1521,8 +1528,10 @@ class _ListPlot(Builtin):
 
         # Filling option
         # TODO: Fill between corresponding points in two datasets:
-        filling_option = self.get_option(options, "Filling", evaluation)
-        filling = eval_N(filling_option, evaluation).to_python()
+        filling_option = eval_N(
+            self.get_option(options, "Filling", evaluation), evaluation
+        )
+        filling = convert_to_symbols_and_native_python(filling_option)
         if filling in [SymbolTop, SymbolBottom, SymbolAxis,] or isinstance(  # noqa
             filling, numbers.Real
         ):
@@ -1533,7 +1542,7 @@ class _ListPlot(Builtin):
 
         # Joined Option
         joined_option = self.get_option(options, "Joined", evaluation)
-        joined = joined_option.to_python()
+        joined = convert_to_symbols_and_native_python(joined_option)
         if joined not in [True, False]:
             evaluation.message(plot_name, "joind", joined_option, expr)
             joined = False
@@ -1715,14 +1724,14 @@ class _Plot3D(Builtin):
 
         # Mesh Option
         mesh_option = self.get_option(options, "Mesh", evaluation)
-        mesh = mesh_option.to_python()
+        mesh = convert_to_symbols_and_native_python(mesh_option)
         if mesh not in [SymbolNone, SymbolFull, SymbolAll]:
             evaluation.message("Mesh", "ilevels", mesh_option)
             mesh = SymbolFull
 
         # PlotPoints Option
         plotpoints_option = self.get_option(options, "PlotPoints", evaluation)
-        plotpoints = plotpoints_option.to_python()
+        plotpoints = convert_to_symbols_and_native_python(plotpoints_option)
 
         def check_plotpoints(steps):
             if isinstance(steps, int) and steps > 0:
@@ -1745,7 +1754,7 @@ class _Plot3D(Builtin):
 
         # MaxRecursion Option
         maxrec_option = self.get_option(options, "MaxRecursion", evaluation)
-        max_depth = maxrec_option.to_python()
+        max_depth = convert_to_symbols_and_native_python(maxrec_option)
         if isinstance(max_depth, int):
             if max_depth < 0:
                 max_depth = 0

@@ -13,6 +13,7 @@ from mathics.builtin.box.graphics import (
     LineBox,
     PointBox,
     PolygonBox,
+    convert_to_symbols_and_native_python,
 )
 from mathics.builtin.colors.color_directives import _ColorObject, Opacity, RGBColor
 
@@ -33,8 +34,8 @@ from mathics.core.evaluators import eval_N
 from mathics.core.formatter import lookup_method
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolAll,
     SymbolAutomatic,
+    SymbolNone,
 )
 
 
@@ -68,7 +69,9 @@ class Graphics3DBox(GraphicsBox):
 
         # TODO: Handle ImageScaled[], and Scaled[]
         lighting_option = self.graphics_options["System`Lighting"]
-        lighting = lighting_option.to_python()  # can take symbols or strings
+        lighting = convert_to_symbols_and_native_python(
+            lighting_option
+        )  # can take symbols or strings
         self.lighting = []
 
         if lighting is SymbolAutomatic:
@@ -188,7 +191,9 @@ class Graphics3DBox(GraphicsBox):
 
         # ViewPoint Option
         viewpoint_option = self.graphics_options["System`ViewPoint"]
-        viewpoint = eval_N(viewpoint_option, evaluation).to_python()
+        viewpoint = convert_to_symbols_and_native_python(
+            eval_N(viewpoint_option, evaluation)
+        )
 
         if isinstance(viewpoint, list) and len(viewpoint) == 3:
             if all(isinstance(x, numbers.Real) for x in viewpoint):
@@ -217,9 +222,11 @@ class Graphics3DBox(GraphicsBox):
         self.viewpoint = viewpoint
 
         # TODO Aspect Ratio
-        # aspect_ratio = self.graphics_options['AspectRatio'].to_python()
+        # aspect_ratio = convert_to_symbols_and_native_python(self.graphics_options['AspectRatio'])
 
-        boxratios = self.graphics_options["System`BoxRatios"].to_python()
+        boxratios = convert_to_symbols_and_native_python(
+            self.graphics_options["System`BoxRatios"]
+        )
         if boxratios is SymbolAutomatic:
             boxratios = [SymbolAutomatic] * 3
         else:
@@ -227,7 +234,9 @@ class Graphics3DBox(GraphicsBox):
         if not isinstance(boxratios, list) or len(boxratios) != 3:
             raise BoxExpressionError
 
-        plot_range = self.graphics_options["System`PlotRange"].to_python()
+        plot_range = convert_to_symbols_and_native_python(
+            self.graphics_options["System`PlotRange"]
+        )
         if plot_range is SymbolAutomatic:
             plot_range = [SymbolAutomatic] * 3
         if not isinstance(plot_range, list) or len(plot_range) != 3:
@@ -515,7 +524,7 @@ class Cone3DBox(_GraphicsElementBox):
         if len(item.elements) != 2:
             raise BoxExpressionError
 
-        points = item.elements[0].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[0])
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -523,7 +532,7 @@ class Cone3DBox(_GraphicsElementBox):
             raise BoxExpressionError
 
         self.points = tuple(Coords3D(graphics, pos=point) for point in points)
-        self.radius = item.elements[1].to_python()
+        self.radius = convert_to_symbols_and_native_python(item.elements[1])
 
     def extent(self):
         result = []
@@ -563,7 +572,7 @@ class Cuboid3DBox(_GraphicsElementBox):
         if len(item.elements) != 1:
             raise BoxExpressionError
 
-        points = item.elements[0].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[0])
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -595,7 +604,7 @@ class Cylinder3DBox(_GraphicsElementBox):
         if len(item.elements) != 2:
             raise BoxExpressionError
 
-        points = item.elements[0].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[0])
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -603,7 +612,7 @@ class Cylinder3DBox(_GraphicsElementBox):
             raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.elements[1].to_python()
+        self.radius = convert_to_symbols_and_native_python(item.elements[1])
 
     def extent(self):
         result = []
@@ -712,7 +721,7 @@ class Sphere3DBox(_GraphicsElementBox):
         if len(item.elements) != 2:
             raise BoxExpressionError
 
-        points = item.elements[0].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[0])
         if not all(isinstance(point, list) for point in points):
             points = [points]
         if not all(
@@ -722,7 +731,7 @@ class Sphere3DBox(_GraphicsElementBox):
             raise BoxExpressionError
 
         self.points = tuple(Coords3D(pos=point) for point in points)
-        self.radius = item.elements[1].to_python()
+        self.radius = convert_to_symbols_and_native_python(item.elements[1])
 
     def extent(self):
         result = []
@@ -756,7 +765,7 @@ class Tube3DBox(_GraphicsElementBox):
         self.edge_opacity, self.face_opacity = style.get_style(
             Opacity, face_element=True
         )
-        points = item.elements[0].to_python()
+        points = convert_to_symbols_and_native_python(item.elements[0])
         if not all(
             len(point) == 3 and all(isinstance(p, numbers.Real) for p in point)
             for point in points
@@ -764,7 +773,7 @@ class Tube3DBox(_GraphicsElementBox):
             raise BoxExpressionError
 
         self.points = [Coords3D(graphics, pos=point) for point in points]
-        self.radius = item.elements[1].to_python()
+        self.radius = convert_to_symbols_and_native_python(item.elements[1])
 
     def extent(self):
         result = []

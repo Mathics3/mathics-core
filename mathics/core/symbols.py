@@ -600,7 +600,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             if value is not self:
                 return value.to_python()
 
-        return self
+        return self.name
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy

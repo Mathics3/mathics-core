@@ -3,6 +3,7 @@
 Boxing Routines for 2D Graphics
 """
 
+from typing import Any, Optional, Union
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
 from mathics.builtin.base import BoxExpression
@@ -36,19 +37,67 @@ from mathics.builtin.graphics import (
 from mathics.core.atoms import (
     Integer,
     Real,
+    Complex,
     String,
 )
 
 from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.formatter import format_element, lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import SymbolAll, SymbolAutomatic, SymbolTraditionalForm
+from mathics.core.systemsymbols import (
+    SymbolAutomatic,
+    SymbolDirectedInfinity,
+    SymbolComplexInfinity,
+    SymbolInfinity,
+    SymbolTraditionalForm,
+)
 
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
+
+
+def convert_to_symbols_and_native_python(
+    expr: BaseElement,
+) -> Optional[Union[Symbol, list, int, float, complex, str]]:
+    """
+    This function takes a Mathics element and convert it to a nested list
+    of symbols and native python types (str, int, float, complex).
+    When a translation is not possible (for instance, expressions with
+    a head different from "Symbol`List") the element is replaced by
+    (Python's) None.
+    """
+    if isinstance(expr, Symbol):
+        # This converts System`True, System`False and System`Null
+        # to its fixed value. However, this is the problem on
+        # setting by default the value of the symbols as `None`:
+        if hasattr(expr, "value") and expr.value is not None:
+            return expr.value
+        if expr in (SymbolInfinity, SymbolComplexInfinity):
+            return float("inf")
+        # otherwise, returns the symbol.
+        return expr
+    if isinstance(expr, (Real, Complex)):
+        # For these classes, even if available,
+        # value could not be a Python native builtin.
+        return expr.to_python()
+    # Integers and String are equivalent to their values:
+    if isinstance(expr, (Integer, String)):
+        return expr.value
+    # If expr is a List, iterate over elements.
+    if expr.has_form("List", None):
+        return [
+            convert_to_symbols_and_native_python(element) for element in expr.elements
+        ]
+    if expr.has_form("DirectedInfinity", 1):
+        direction = expr._elements[0]
+        if isinstance(direction, (Integer, Real, Complex)):
+            return float("inf") * direction.to_python()
+    # Otherwise, return None:
+    return None
 
 
 # Note: has to come before _ArcBox
@@ -480,8 +529,9 @@ class GraphicsBox(BoxExpression):
             options, self.graphics_options, max_width
         )
 
-        plot_range = self.graphics_options["System`PlotRange"].to_python()
-        if plot_range == SymbolAutomatic:
+        plot_range_opt = self.graphics_options["System`PlotRange"]
+        plot_range = convert_to_symbols_and_native_python(plot_range_opt)
+        if plot_range is SymbolAutomatic:
             plot_range = [SymbolAutomatic, SymbolAutomatic]
 
         if not isinstance(plot_range, list) or len(plot_range) != 2:
@@ -1049,7 +1099,6 @@ class PointBox(_Polyline):
 
         if item is not None:
             if len(item.elements) != 1:
-                print("item:", item)
                 raise BoxExpressionError
             points = item.elements[0]
             if points.has_form("List", None) and len(points.elements) != 0:
