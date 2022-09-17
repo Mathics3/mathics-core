@@ -11,7 +11,11 @@ from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String
-from mathics.core.attributes import hold_all_complete, protected, read_protected
+from mathics.core.attributes import (
+    hold_all_complete as A_HOLD_ALL_COMPLETE,
+    protected as A_PROTECTED,
+    read_protected as A_READ_PROTECTED,
+)
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -26,7 +30,7 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSqrtBox = Symbol("System`SqrtBox")
 
 
-# this temporarily replace the _BoxedString class
+# this temporarily replaces the _BoxedString class
 def _boxed_string(string: str, **options):
     from mathics.core.atoms import String
 
@@ -87,7 +91,7 @@ class ButtonBox(BoxExpression):
     </dl>
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "box construct for buttons"
 
 
@@ -155,7 +159,7 @@ class InterpretationBox(BoxExpression):
      = 8
     """
 
-    attributes = hold_all_complete | protected | read_protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "box associated to an input expression"
 
     def apply_to_expression(boxexpr, form, evaluation):
@@ -180,7 +184,7 @@ class SubscriptBox(BoxExpression):
      = SubscriptBox[x, 3]
     """
 
-    #    attributes =  Protected | ReadProtected
+    #    attributes =  A_PROTECTED | A_READ_PROTECTED
 
     options = {
         "MultilineFunction": "Automatic",
@@ -352,20 +356,39 @@ class RowBox(BoxExpression):
         return self._elements
 
 
+class ShowStringCharacters(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
+    <dl>
+      <dt>'ShowStringCharacters'
+      <dd>is an option for Cell that directs whether to display '"' in strings.
+    </dl>
+
+    <ul>
+    <li>'ShowStringCharacters' is usually 'False' for output cells and 'True' for input cells.
+    <li>'ShowStringCharacters' is often set in styles rather than in individual cells.
+    </ul>
+
+    <i>This option can sometimes be output, but currently it is not interpreted.</i>
+    """
+
+    summary_text = "cell option directing wither show show quotes around strings"
+
+
 class StyleBox(BoxExpression):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/StyleBox.html</url>
     <dl>
       <dt>'StyleBox[boxes, options]'
-      <dd> is a low-level representation of boxes
-     to be shown with the specified option settings.
+      <dd> is a low-level representation of boxes  to be shown with the specified option settings.
+
       <dt>'StyleBox[boxes, style]'
-      <dd> uses the option setting for the specified style in
-    the current notebook.
+      <dd> uses the option setting for the specified style in the current notebook.
     </dl>
     """
 
     options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "associate boxes with styles"
 
     def apply_options(self, boxes, evaluation, options):
@@ -413,7 +436,7 @@ class TagBox(BoxExpression):
     </dl>
     """
 
-    attributes = hold_all_complete | protected | read_protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "box tag with a head"
 
 
@@ -425,7 +448,7 @@ class TemplateBox(BoxExpression):
     </dl>
     """
 
-    attributes = hold_all_complete | protected | read_protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED | A_READ_PROTECTED
     summary_text = "parametrized box"
 
 

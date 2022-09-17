@@ -2,7 +2,7 @@
 
 
 """
-Low level Format definitions 
+Low level Format definitions
 """
 
 import mpmath
@@ -318,6 +318,9 @@ class BoxForms_(Predefined):
       <dt>
       <dd>$BoxForms is the list of box formats.
     </dl>
+
+    >> $BoxForms
+     = ...
     """
 
     attributes = A_READ_PROTECTED

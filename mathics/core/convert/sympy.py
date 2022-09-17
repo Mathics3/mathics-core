@@ -206,6 +206,7 @@ def from_sympy(expr):
             name = str(expr)
             if isinstance(expr, sympy.Dummy):
                 name = name + ("__Dummy_%d" % expr.dummy_index)
+                # Probably, this should be the value attribute
                 return Symbol(name, sympy_dummy=expr)
             if is_Cn_expr(name):
                 return Expression(SymbolC, Integer(int(name[1:])))

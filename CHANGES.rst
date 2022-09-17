@@ -9,6 +9,7 @@ CHANGES
 New Builtins
 +++++++++++
 
+#. ``Accuracy``
 #. ``$BoxForms``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
@@ -30,6 +31,9 @@ Internals
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
+#. `from_mpmath` conversion now supports a new parameter ``acc`` to set the accuracy of the number.
+
+
 
 Bugs
 ++++
@@ -41,6 +45,10 @@ Enhancements
 ++++++++++++
 
 #. Vector restriction on ``Norm[]`` removed. "Frobinius" p-form allowed.
+#. Better handling of comparisons with finite precision numbers.
+#. Improved implementation for  ``Precision``.
+
+
 
 5.0.2
 -----
