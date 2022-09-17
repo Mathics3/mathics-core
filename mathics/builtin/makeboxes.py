@@ -309,7 +309,7 @@ def number_form(expr, n, f, evaluation, options):
 
 # TODO: Differently from the current implementation, MakeBoxes should only
 # accept as its format field the symbols in `$BoxForms`. This is something to
-# fix in a following step.
+# fix in a following step, changing the way in which Format and MakeBoxes work.
 
 
 class BoxForms_(Predefined):
@@ -372,89 +372,8 @@ class MakeBoxes(Builtin):
     #> (a <> b)[x]
      : String expected.
      = (a <> b)[x]
-    >> \(a + b\)
-     = RowBox[{a, +, b}]
-
-    >> \(TraditionalForm \` a + b\)
-     = FormBox[RowBox[{a, +, b}], TraditionalForm]
-
-    >> \(x \/ \(y + z\)\)
-     =  FractionBox[x, RowBox[{y, +, z}]]
     """
 
-    # TODO: Constructing boxes from Real
-    """
-    ## Test Real MakeBoxes
-    #> MakeBoxes[1.4]
-     = 1.4`
-    #> MakeBoxes[1.4`]
-     = 1.4`
-    #> MakeBoxes[1.5`20]
-     = 1.5`20.
-    #> MakeBoxes[1.4`20]
-     = 1.4`20.
-    #> MakeBoxes[1.5``20]
-     = 1.5`20.1760912591
-    #> MakeBoxes[-1.4]
-     = RowBox[{-, 1.4`}]
-    #> MakeBoxes[34.*^3]
-     = 34000.`
-
-    #> MakeBoxes[0`]
-     = 0.`
-    #> MakeBoxes[0`3]
-     = 0
-    #> MakeBoxes[0``30]
-     = 0.``30.
-    #> MakeBoxes[0.`]
-     = 0.`
-    #> MakeBoxes[0.`3]
-     = 0.`
-    #> MakeBoxes[0.``30]
-     = 0.``30.
-
-    #> MakeBoxes[14]
-     = 14
-    #> MakeBoxes[-14]
-     = RowBox[{-, 14}]
-    """
-
-    # TODO: Correct precedence
-    """
-    >> \\(x \\/ y + z\\)
-     = RowBox[{FractionBox[x, y], +, z}]
-    >> \\(x \\/ (y + z)\\)
-     = FractionBox[x, RowBox[{(, RowBox[{y, +, z}], )}]]
-
-    #> \\( \\@ a + b \\)
-     = RowBox[{SqrtBox[a], +, b}]
-    """
-
-    # FIXME: Don't insert spaces with brackets
-    """
-    #> \\(c (1 + x)\\)
-     = RowBox[{c, RowBox[{(, RowBox[{1, +, x}], )}]}]
-    """
-
-    # TODO: Required MakeExpression
-    """
-    #> \\!\\(x \\^ 2\\)
-     = x ^ 2
-    #> FullForm[%]
-     = Power[x, 2]
-    """
-
-    # TODO: Fix Infix operators
-    """
-    >> MakeBoxes[1 + 1]
-     = RowBox[{1, +, 1}]
-    """
-
-    # TODO: Parsing of special characters (like commas)
-    """
-    >> \\( a, b \\)
-     = RowBox[{a, ,, b}]
-    """
     attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
