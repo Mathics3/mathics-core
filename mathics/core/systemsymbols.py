@@ -24,6 +24,7 @@ from mathics.core.symbols import Symbol
 
 # This list is sorted in alphabetic order.
 SymbolAborted = Symbol("System`$Aborted")
+SymbolAccuracy = Symbol("System`Accuracy")
 SymbolAll = Symbol("System`All")
 SymbolAlternatives = Symbol("System`Alternatives")
 SymbolAnd = Symbol("System`And")

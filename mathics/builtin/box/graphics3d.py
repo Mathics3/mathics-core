@@ -25,8 +25,11 @@ from mathics.builtin.drawing.graphics3d import (
 )
 
 from mathics.builtin.drawing.graphics_internals import get_class
-from mathics.core.symbols import Symbol, SymbolTrue
+
+
 from mathics.core.formatter import lookup_method
+from mathics.core.evaluators import eval_N
+from mathics.core.symbols import Symbol, SymbolTrue
 
 
 class Graphics3DBox(GraphicsBox):
@@ -182,7 +185,7 @@ class Graphics3DBox(GraphicsBox):
 
         # ViewPoint Option
         viewpoint_option = self.graphics_options["System`ViewPoint"]
-        viewpoint = viewpoint_option.to_python(n_evaluation=evaluation)
+        viewpoint = eval_N(viewpoint_option, evaluation).to_python()
 
         if isinstance(viewpoint, list) and len(viewpoint) == 3:
             if all(isinstance(x, numbers.Real) for x in viewpoint):

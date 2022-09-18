@@ -112,7 +112,7 @@ class GenericConverter:
                 if x == 0:
                     prec10 = acc
                 else:
-                    prec10 = acc + log10(x)
+                    prec10 = acc + log10(abs(x))
                 return (
                     "PrecisionReal",
                     ("DecimalString", str("-" + s if sign == -1 else s)),

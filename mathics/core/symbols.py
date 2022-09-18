@@ -378,7 +378,32 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is None:
             self = super(Symbol, cls).__new__(cls)
             self.name = name
+            # TODO: revise how we convert sympy.Dummy
+            # symbols.
+            #
+            # In some cases, SymPy returns a sympy.Dummy
+            # object. It is converted to Mathics as a
+            # Symbol. However, we probably should have
+            # a different class for this kind of symbols.
+            # Also, sympy_dummy should be stored as the
+            # value attribute.
             self.sympy_dummy = sympy_dummy
+
+            # This is something that still I do not undestand:
+            # here we are adding another attribute to this class,
+            # which is not clear where is it going to be used, but
+            # which can be different to None just three specific instances:
+            #  * ``System`True``  ->   True
+            #  * ``System`False`` -> False
+            #  * ``System`Null`` -> None
+            #
+            # My guess is that this property should be set for
+            # ``PredefinedSymbol`` but not for general symbols.
+            #
+            # Like it is now, it looks so misterious as
+            # self.sympy_dummy, for which I have to dig into the
+            # code to see even what type of value should be expected
+            # for it.
             self.value = value
             cls.defined_symbols[name] = self
         return self
@@ -545,22 +570,38 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """Mathics SameQ"""
         return self is rhs
 
-    def to_python(self, *args, **kwargs):
+    def to_python(self, *args, python_form: bool = False, **kwargs):
         if self is SymbolTrue:
             return True
         if self is SymbolFalse:
             return False
         if self is SymbolNull:
             return None
+
+        # This was introduced before `mathics.core.evaluators.eval_N`
+        # provided a simple way to convert an expression into a number.
+        # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
         if n_evaluation is not None:
-            value = self.create_expression(SymbolN, self).evaluate(n_evaluation)
-            return value.to_python()
+            import warnings
 
-        if kwargs.get("python_form", False):
-            return self.to_sympy(**kwargs)
-        else:
-            return self.name
+            warnings.warn(
+                "use instead ``eval_N(obj, evaluation).to_python()``",
+                DeprecationWarning,
+            )
+
+            from mathics.core.evaluators import eval_N
+
+            value = eval_N(self, n_evaluation)
+            if value is not self:
+                return value.to_python()
+
+        # For general symbols, the default behaviour is
+        # to return a 'str'. The reason seems to be
+        # that native (builtin) Python types
+        # are better for being used as keys in
+        # dictionaries.
+        return self.name
 
     def to_sympy(self, **kwargs):
         from mathics.builtin import mathics_to_sympy

@@ -439,9 +439,14 @@ class PythonForm(Builtin):
     def apply_python(self, expr, evaluation) -> Expression:
         "MakeBoxes[expr_, PythonForm]"
 
+        def build_python_form(expr):
+            if isinstance(expr, Symbol):
+                return expr.to_sympy()
+            return expr.to_python()
+
         try:
             # from trepan.api import debug; debug()
-            python_equivalent = expr.to_python(python_form=True)
+            python_equivalent = build_python_form(expr)
         except Exception:
             return
         return StringFromPython(python_equivalent)
