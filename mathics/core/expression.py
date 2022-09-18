@@ -1394,7 +1394,17 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             return expression_to_callable_and_args(expr_fn, vars, n_evaluation)
 
         if n_evaluation is not None:
-            value = Expression(SymbolN, self).evaluate(n_evaluation)
+            from mathics.core.evaluators import eval_N
+            import warnings
+
+            warnings.warn(
+                (
+                    "use of expr.to_python(n_evaluation) is deprecated."
+                    "Use instead eval_N(expr, evaluation).to_python()"
+                ),
+                DeprecationWarning,
+            )
+            value = eval_N(self, n_evaluation)
             return value.to_python()
 
         if head is SymbolDirectedInfinity and len(self._elements) == 1:
