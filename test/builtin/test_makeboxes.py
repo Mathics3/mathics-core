@@ -1,8 +1,16 @@
 # -*- coding: utf-8 -*-
+import os
 import pytest
 from test.helper import check_evaluation, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
+
+DEBUG = int(os.environ.get("DEBUG", "0")) == 1  # To set to True, set ENV var to "1"
+
+if DEBUG:
+    skip_or_fail = pytest.mark.xfail
+else:
+    skip_or_fail = pytest.mark.skip
 
 # 15 tests
 @pytest.mark.parametrize(
@@ -14,7 +22,7 @@ from mathics_scanner.errors import IncompleteSyntaxError
 )
 def test_makeboxes_real(str_expr, str_expected, msg):
     """
-    # TODO: Constructing boxes from Real
+    # Constructing boxes from Real
     """
     check_evaluation(
         str_expr,
@@ -45,10 +53,10 @@ def test_makeboxes_real(str_expr, str_expected, msg):
         (r"MakeBoxes[-14]", r"RowBox[{-, 14}]", None),
     ],
 )
-@pytest.mark.xfail
+@skip_or_fail
 def test_makeboxes_real_fail(str_expr, str_expected, msg):
     """
-    # TODO: Constructing boxes from Real
+    # TODO: Constructing boxes from Real which are currently failing
     """
     check_evaluation(
         str_expr,
@@ -69,7 +77,7 @@ def test_makeboxes_real_fail(str_expr, str_expected, msg):
     ],
 )
 def test_makeboxes_precedence(str_expr, str_expected, msg):
-    """ """
+    """Test precedence in string-like boxes"""
     check_evaluation(
         str_expr,
         str_expected,
@@ -91,9 +99,9 @@ def test_makeboxes_precedence(str_expr, str_expected, msg):
         ),
     ],
 )
-@pytest.mark.xfail
+@skip_or_fail
 def test_makeboxes_precedence_fail(str_expr, str_expected, msg):
-    """ """
+    """TODO: fix the parsing for testing precedence in string-like boxes ("""
     check_evaluation(
         str_expr,
         str_expected,
@@ -114,7 +122,6 @@ def test_makeboxes_precedence_fail(str_expr, str_expected, msg):
     ],
 )
 def test_makeboxes_representation(str_expr, str_expected, msg):
-    """ """
     check_evaluation(
         str_expr,
         str_expected,
@@ -137,9 +144,8 @@ def test_makeboxes_representation(str_expr, str_expected, msg):
         ),
     ],
 )
-@pytest.mark.xfail
+@skip_or_fail
 def test_makeboxes_representation_fail(str_expr, str_expected, msg):
-    """ """
     check_evaluation(
         str_expr,
         str_expected,
@@ -162,7 +168,6 @@ def test_makeboxes_representation_fail(str_expr, str_expected, msg):
     ],
 )
 def test_makeboxes_others(str_expr, str_expected, msg):
-    """ """
     check_evaluation(
         str_expr,
         str_expected,
@@ -183,15 +188,12 @@ def test_makeboxes_others(str_expr, str_expected, msg):
             r"FIXME: Don't insert spaces with brackets",
         ),
         (r"\!\(x \^ 2\)", r"x ^ 2", "Required MakeExpression"),
-        #
         (r"FullForm[%]", r"Power[x, 2]", "Required MakeExpression"),
-        #
         (r"MakeBoxes[1 + 1]", r"RowBox[{1, +, 1}]", "TODO: Fix Infix operators"),
     ],
 )
-@pytest.mark.xfail
+@skip_or_fail
 def test_makeboxes_others_fail(str_expr, str_expected, msg):
-    """ """
     check_evaluation(
         str_expr,
         str_expected,
