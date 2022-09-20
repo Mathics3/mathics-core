@@ -30,20 +30,26 @@ if check_requires_list(["scipy", "scipy.integrate"]):
     tests_for_nintegrate = sum(
         [
             [
-                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], [])
+                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
                 for tst in generic_tests_for_nintegrate
             ]
             for method in methods
         ],
         [
             (
+                r'NIntegrate[1., {x,0,1}, Method->"Quadrature"]',
+                "1.",
+                "Check that the library is already loaded.",
+                [],
+            ),
+            (
                 r'NIntegrate[1., {x,0,1}, Method->"NotAMethod"]',
                 "1.",
                 None,
                 [
-                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`}. Using `Automatic`"
+                    r"The Method option should be a built-in method name in {`Automatic`, `Internal`, `Simpson`, `NQuadrature`, `Quadrature`, `Romberg`}. Using `Automatic`"
                 ],
-            )
+            ),
         ],
     )
 else:
