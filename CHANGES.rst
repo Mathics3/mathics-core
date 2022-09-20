@@ -38,7 +38,8 @@ Internals
 Bugs
 ++++
 
-# ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+#. ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+#. `RowBox` now have an `elements` attribute, in a way that expressions like `Part[RowBox[{"a"}],1]` does not raises an unhandled exception.
 
 
 Enhancements
