@@ -97,7 +97,9 @@ def check_evaluation(
         msgs = list(expected_messages)
         expected_len = len(msgs)
         got_len = len(outs)
-        assert expected_len == got_len, f"expected {expected_len}; got {got_len}"
+        assert (
+            expected_len == got_len
+        ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for (out, msg) in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")
