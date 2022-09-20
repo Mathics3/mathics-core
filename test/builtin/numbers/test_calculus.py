@@ -64,8 +64,18 @@ if check_requires_list(["scipy", "scipy.integrate"]):
 
 else:
     tests_for_findminimum = [
-        (r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]", r"True", ""),
-        (r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]", r"True", ""),
+        (
+            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
+        (
+            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
     ]
     tests_for_findroot = [
         (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}], {x->_Real}]", r"True", ""),

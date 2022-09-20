@@ -54,8 +54,8 @@ if check_requires_list(["scipy", "scipy.integrate"]):
     )
 else:
     tests_for_nintegrate = [
-        (r"NIntegrate[x^2, {x,0,1}]", r"1/3.", ""),
-        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}]", r"1/9.", ""),
+        (r"NIntegrate[x^2, {x,0,1}]", r"1/3.", "", None),
+        (r"NIntegrate[x^2 y^2, {y,0,1}, {x,0,1}]", r"1/9.", "", None),
         # FIXME: this can integrate to Infinity
         # (r"NIntegrate[x^2 y^(-.5), {x,0,1},{y,0,1}]", r"1.", ""),
         (
