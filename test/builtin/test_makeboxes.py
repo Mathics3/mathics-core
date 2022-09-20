@@ -12,6 +12,40 @@ if DEBUG:
 else:
     skip_or_fail = pytest.mark.skip
 
+
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "fail_msg", "msgs"),
+    [
+        ('rb=RowBox[{"a", "b"}]; rb[[1]]', "{a, b}", None, []),
+        ("rb[[0]]", "RowBox", None, []),
+        (
+            "rb[[2]]",
+            "RowBox[{a, b}][[2]]",
+            None,
+            ["Part 2 of RowBox[{a, b}] does not exist."],
+        ),
+        ('fb=FractionBox["1", "2"]; fb[[0]]', "FractionBox", None, []),
+        ("fb[[1]]", "1", None, []),
+        ('sb=StyleBox["string", "Section"]; sb[[0]]', "StyleBox", None, []),
+        ("sb[[1]]", "string", None, []),
+        # FIXME: <<RowBox object does not have the attribute "restructure">>
+        # ('rb[[All, 1]]', "{a, b}", "\"a\"", []),
+        # ('fb[[All]][[1]]','1', None, []),
+        # ('sb[[All]][[1]]','string', None, []),
+    ],
+)
+def test_part_boxes(str_expr, str_expected, fail_msg, msgs):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=fail_msg,
+        expected_messages=msgs,
+    )
+
+
 # 15 tests
 @pytest.mark.parametrize(
     ("str_expr", "str_expected", "msg"),

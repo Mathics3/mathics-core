@@ -305,6 +305,13 @@ class RowBox(BoxExpression):
         result = RowBox(*items)
         return result
 
+    @property
+    def elements(self):
+        return self.to_expression().elements
+
+    def get_head(self):
+        return SymbolRowBox
+
     def init(self, *items, **kwargs):
         # TODO: check that each element is an string or a BoxElementMixin
         self.box_options = {}
@@ -352,8 +359,8 @@ class RowBox(BoxExpression):
                 for item in self.items
             )
 
-            self._elements = Expression(SymbolRowBox, ListExpression(*items))
-        return self._elements
+            self._elements = ListExpression(*items)
+        return Expression(SymbolRowBox, self._elements)
 
 
 class ShowStringCharacters(Builtin):
