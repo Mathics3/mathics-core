@@ -745,7 +745,7 @@ class RandomSample(_RandomSelection):
      = {{1, 2}, {}, a}
     >> SeedRandom[42]
     >> RandomSample[Range[10]]
-     = {9, 2, 6, 1, 8, 3, 10, 5, 4, 7
+     = {9, 2, 6, 1, 8, 3, 10, 5, 4, 7}
     >> SeedRandom[42]
     >> RandomSample[Range[100], {2, 3}]
      = {{84, 54, 71}, {46, 45, 40}}
