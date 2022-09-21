@@ -253,7 +253,7 @@ class _RandomBase(Builtin):
         ),
     }
     rules = {
-        "%(name)s[spec_]": "%(name)s[spec, {Length[spec]}]",
+        "%(name)s[spec_]": "%(name)s[spec, {1}]",
         "%(name)s[spec_, n_Integer]": "%(name)s[spec, {n}]",
     }
 
@@ -753,6 +753,11 @@ class RandomSample(_RandomSelection):
     >> RandomSample[Range[100] -> Range[100], 5]
      = {62, 98, 86, 78, 40}
     """
+
+    rules = {
+        "%(name)s[spec_]": "%(name)s[spec, {Length[spec]}]",
+        "%(name)s[spec_, n_Integer]": "%(name)s[spec, {n}]",
+    }
 
     _replace = False
     summary_text = "pick a sample at random from a list"
