@@ -681,23 +681,16 @@ class GraphicsBox(BoxExpression):
 
         return ticks, ticks_small, origin_x
 
-    def _boxes_to_svg(self, elements=None, **options) -> str:
+    def boxes_to_svg(self, elements=None, **options) -> str:
         """This is the top-level function that converts a Mathics Expression
         in to something suitable for SVG rendering.
+
+        This method is kept by backward compatibility.
         """
-        if not elements:
-            elements = self._elements
+        # Delegates the work to mathics.format.svg.graphics_box
+        from mathics.format.svg import graphics_box as svg_graphics_box
 
-        elements, calc_dimensions = self._prepare_elements(
-            elements, options, neg_y=True
-        )
-        xmin, xmax, ymin, ymax, w, h, self.width, self.height = calc_dimensions()
-        data = (elements, xmin, xmax, ymin, ymax, w, h, self.width, self.height)
-        elements.view_width = w
-
-        format_fn = lookup_method(self, "svg")
-        svg_body = format_fn(self, elements, data=data, **options)
-        return svg_body
+        return svg_graphics_box(self, elements=elements, **options)
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
         axes = graphics_options.get("System`Axes")

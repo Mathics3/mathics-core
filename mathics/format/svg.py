@@ -253,7 +253,6 @@ add_conversion_fn(FilledCurveBox, filled_curve_box)
 
 
 def graphics_box(self, elements=None, **options) -> str:
-
     if not elements:
         elements = self._elements
 
@@ -285,7 +284,7 @@ def graphics_box(self, elements=None, **options) -> str:
             self.height,
         ) = calc_dimensions()
 
-    elements.view_width = self.boxwidth
+    elements.view_width = self.width
 
     format_fn = lookup_method(elements, "svg")
     if format_fn is not None:
