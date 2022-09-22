@@ -3,7 +3,6 @@
 Boxing Routines for 3D Graphics
 """
 
-import json
 import numbers
 
 from mathics.builtin.exceptions import BoxExpressionError
@@ -27,10 +26,8 @@ from mathics.builtin.drawing.graphics3d import (
 from mathics.builtin.drawing.graphics_internals import get_class
 
 
-
 from mathics.core.evaluators import eval_N
 from mathics.core.symbols import Symbol, SymbolTrue
-
 
 
 class Graphics3DBox(GraphicsBox):
