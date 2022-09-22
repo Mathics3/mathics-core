@@ -60,8 +60,8 @@ def test_alphabet(str_expr, str_expected, fail_msg, warnings):
             ],
         ),
         (
-            r'ToString["\[Integral]", TeXForm]',
-            r'"\\text{∫}"',  # Should be '\\int'
+            r'ToString["\[Integral] f(x) \[DifferentialD]x", TeXForm]',
+            r'"\\text{$\int$  f(x) \, dx}"',
             None,
             None,
         ),
