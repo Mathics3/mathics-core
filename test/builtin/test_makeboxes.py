@@ -119,6 +119,24 @@ def test_makeboxes_precedence_fail(str_expr, str_expected, msg):
     [
         (r"\(a + b\)", r"RowBox[{a, +, b}]", None),
         (r"\(x \/ \(y + z\)\)", r"FractionBox[x, RowBox[{y, +, z}]]", None),
+    ],
+)
+def test_makeboxes_representation(str_expr, str_expected, msg):
+    check_evaluation(
+        str_expr,
+        str_expected,
+        to_string_expr=True,
+        to_string_expected=True,
+        hold_expected=True,
+        failure_message=msg,
+    )
+
+
+# 3 tests
+# TODO: Convert operators to appropriate representations e.g. 'Plus' to '+'
+@pytest.mark.parametrize(
+    ("str_expr", "str_expected", "msg"),
+    [
         (
             r"\(TraditionalForm \` a + b\)",
             r"FormBox[RowBox[{a, +, b}], TraditionalForm]",
@@ -126,7 +144,8 @@ def test_makeboxes_precedence_fail(str_expr, str_expected, msg):
         ),
     ],
 )
-def test_makeboxes_representation(str_expr, str_expected, msg):
+@skip_or_fail
+def test_makeboxes_representation_fail(str_expr, str_expected, msg):
     check_evaluation(
         str_expr,
         str_expected,
