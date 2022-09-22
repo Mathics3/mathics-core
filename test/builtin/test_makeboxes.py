@@ -451,7 +451,7 @@ def test_makeboxes_custom(str_expr, str_expected, msg):
         ),
         #
         (
-            r'MakeBoxes[InputForm[G[F[1., "l"]], .2], StandardForm]',
+            r'MakeBoxes[InputForm[G[F[1., "l"], .2]], StandardForm]',
             (
                 r'InterpretationBox[StyleBox["{\"In\", GG[{F[1.], \"In\"}, 0.2]}", '
                 r"ShowStringCharacters->True, NumberMarks->True], "
@@ -459,6 +459,15 @@ def test_makeboxes_custom(str_expr, str_expected, msg):
                 r"AutoDelete->True]"
             ),
             "MakeBoxes, InputForm",
+        ),
+        #
+        (
+            r'MakeBoxes[OutputForm[G[F[1., "l"], .2]], StandardForm]',
+            (
+                r'InterpretationBox[PaneBox["\"{Out, GG[{F[1.], Out}, 0.2]}\""],'
+                r'OutputForm[G[F[1.`, "l"], 0.2`]], Editable->False]'
+            ),
+            "MakeBoxes, OutputForm",
         ),
         #
         (
