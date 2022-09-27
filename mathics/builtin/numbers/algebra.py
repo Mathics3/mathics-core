@@ -430,8 +430,9 @@ class Apart(Builtin):
 
         expr_sympy = expr.to_sympy()
         var_sympy = var.to_sympy()
+        # If the expression cannot be handled by Sympy, just return it.
         if expr_sympy is None or var_sympy is None:
-            return None
+            return expr
 
         try:
             result = sympy.apart(expr_sympy, var_sympy)
@@ -1429,8 +1430,9 @@ class Factor(Builtin):
         "Factor[expr_]"
 
         expr_sympy = expr.to_sympy()
+        # If the expression cannot be handled by Sympy, just return it.
         if expr_sympy is None:
-            return None
+            return expr
 
         try:
             return from_sympy(sympy_factor(expr_sympy))
