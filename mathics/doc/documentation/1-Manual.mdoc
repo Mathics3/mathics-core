@@ -860,20 +860,6 @@ This will even apply to 'TeXForm', because 'TeXForm' implies 'StandardForm':
 Except some other form is applied first:
   >> b // OutputForm // TeXForm
   = b
-'MakeBoxes' for another form:
-
-  >> MakeBoxes[b, TeXForm] = "d";
-  >> b // TeXForm
-  = d
-You can cause a much bigger mess by overriding 'MakeBoxes' than by sticking to 'Format', e.g. generate invalid XML:
-
-  >> MakeBoxes[c, MathMLForm] = "<not closed";
-  >> c // MathMLForm
-  = <not closed
-
-However, this will not affect formatting of expressions involving 'c':
-  >> c + 1 // MathMLForm
-  = ...
 
 That\'s because 'MathMLForm' will, when not overridden for a special case, call 'StandardForm' first.
 'Format' will produce escaped output:
