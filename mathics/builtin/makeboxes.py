@@ -56,7 +56,7 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
-def parenthesize(precedence, element, element_boxes, when_equal):
+def parenthesize(precedence, element, f, when_equal):
     from mathics.builtin import builtins_precedence
 
     while element.has_form("HoldForm", 1):
@@ -66,6 +66,7 @@ def parenthesize(precedence, element, element_boxes, when_equal):
         element_prec = element.elements[2].value
     elif element.has_form("PrecedenceForm", 2):
         element_prec = element.elements[1].value
+        element = element.elements[0]
     # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
     elif isinstance(element, (Integer, Real)) and element.value < 0:
         element_prec = precedence
@@ -75,29 +76,9 @@ def parenthesize(precedence, element, element_boxes, when_equal):
         if precedence > element_prec or (precedence == element_prec and when_equal):
             return Expression(
                 SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
+                ListExpression(String("("), MakeBoxes(element, f), String(")")),
             )
-    return element_boxes
-
-
-def make_boxes_infix(elements, ops, precedence, grouping, form):
-    result = []
-    for index, element in enumerate(elements):
-        if index > 0:
-            result.append(ops[index - 1])
-        parenthesized = False
-        if grouping == "System`NonAssociative":
-            parenthesized = True
-        elif grouping == "System`Left" and index > 0:
-            parenthesized = True
-        elif grouping == "System`Right" and index == 0:
-            parenthesized = True
-
-        element_boxes = MakeBoxes(element, form)
-        element = parenthesize(precedence, element, element_boxes, parenthesized)
-
-        result.append(element)
-    return Expression(SymbolRowBox, ListExpression(*result))
+    return MakeBoxes(element, f)
 
 
 def real_to_s_exp(expr, n):
@@ -377,16 +358,11 @@ class MakeBoxes(Builtin):
     attributes = A_HOLD_ALL_COMPLETE
 
     rules = {
-        "MakeBoxes[Infix[head_[elements___]], "
-        "    f:StandardForm|TraditionalForm|OutputForm|InputForm]": (
-            'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
-        ),
         "MakeBoxes[expr_]": "MakeBoxes[expr, StandardForm]",
         "MakeBoxes[(form:StandardForm|TraditionalForm|OutputForm|TeXForm|"
         "MathMLForm)[expr_], StandardForm|TraditionalForm]": ("MakeBoxes[expr, form]"),
         "MakeBoxes[(form:StandardForm|OutputForm|MathMLForm|TeXForm)[expr_], OutputForm]": "MakeBoxes[expr, form]",
         "MakeBoxes[(form:FullForm|InputForm)[expr_], StandardForm|TraditionalForm|OutputForm]": "StyleBox[MakeBoxes[expr, form], ShowStringCharacters->True]",
-        "MakeBoxes[PrecedenceForm[expr_, prec_], f_]": "MakeBoxes[expr, f]",
         "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
             "StyleBox[MakeBoxes[expr, f], "
             "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
@@ -414,7 +390,7 @@ class MakeBoxes(Builtin):
             # Parenthesize infix operators at the head of expressions,
             # like (a + b)[x], but not f[a] in f[a][b].
             #
-            head_boxes = parenthesize(670, head, MakeBoxes(head, f), False)
+            head_boxes = parenthesize(670, head, f, False)
             head_boxes = head_boxes.evaluate(evaluation)
             head_boxes = to_boxes(head_boxes, evaluation)
             result = [head_boxes, to_boxes(String(left), evaluation)]
@@ -442,75 +418,6 @@ class MakeBoxes(Builtin):
                 )
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
-
-    def apply_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
-        StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        precedence = prec.get_int_value()
-        boxes = MakeBoxes(expr)
-        return parenthesize(precedence, expr, boxes, True)
-
-    def apply_postprefix(self, p, expr, h, prec, f, evaluation):
-        """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, prec_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        if not isinstance(h, String):
-            h = MakeBoxes(h, f)
-
-        precedence = prec.get_int_value()
-
-        elements = expr.elements
-        if len(elements) == 1:
-            element = elements[0]
-            element_boxes = MakeBoxes(element, f)
-            element = parenthesize(precedence, element, element_boxes, True)
-            if p.get_name() == "System`Postfix":
-                args = (element, h)
-            else:
-                args = (h, element)
-
-            return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
-        else:
-            return MakeBoxes(expr, f).evaluate(evaluation)
-
-    def apply_infix(self, expr, h, prec, grouping, f, evaluation):
-        """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        def get_op(op):
-            if not isinstance(op, String):
-                op = MakeBoxes(op, f)
-            else:
-                op_value = op.get_string_value()
-                if f.get_name() == "System`InputForm" and op_value in ["*", "^"]:
-                    pass
-                elif (
-                    f.get_name() in ("System`InputForm", "System`OutputForm")
-                    and not op_value.startswith(" ")
-                    and not op_value.endswith(" ")
-                ):
-                    op = String(" " + op_value + " ")
-            return op
-
-        precedence = prec.get_int_value()
-        grouping = grouping.get_name()
-
-        if isinstance(expr, Atom):
-            evaluation.message("Infix", "normal", Integer1)
-            return None
-
-        elements = expr.elements
-        if len(elements) > 1:
-            if h.has_form("List", len(elements) - 1):
-                ops = [get_op(op) for op in h.elements]
-            else:
-                ops = [get_op(h)] * (len(elements) - 1)
-            return make_boxes_infix(elements, ops, precedence, grouping, f)
-        elif len(elements) == 1:
-            return MakeBoxes(elements[0], f)
-        else:
-            return MakeBoxes(expr, f)
 
 
 class ToBoxes(Builtin):

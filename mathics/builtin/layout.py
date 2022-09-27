@@ -17,17 +17,36 @@ from mathics.builtin.base import (
 )
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.lists import list_boxes
-from mathics.builtin.makeboxes import MakeBoxes
+from mathics.builtin.makeboxes import MakeBoxes, parenthesize
 from mathics.builtin.options import options_to_rules
 
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import Atom, Real, String
 
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes
+from mathics.core.systemsymbols import SymbolMakeBoxes, SymbolRowBox
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
+
+
+def make_boxes_infix(elements, ops, precedence, grouping, form):
+    result = []
+    for index, element in enumerate(elements):
+        if index > 0:
+            result.append(ops[index - 1])
+        parenthesized = False
+        if grouping == "System`NonAssociative":
+            parenthesized = True
+        elif grouping == "System`Left" and index > 0:
+            parenthesized = True
+        elif grouping == "System`Right" and index == 0:
+            parenthesized = True
+
+        element = parenthesize(precedence, element, form, parenthesized)
+
+        result.append(element)
+    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 class Format(Builtin):
@@ -192,7 +211,34 @@ class Subsuperscript(Builtin):
     summary_text = "format an expression with a subscript and a superscript"
 
 
-class Postfix(BinaryOperator):
+class _PostPrefix(BinaryOperator):
+    """
+    Base class for Prefix and Postfix. Holds the apply_makeboxes method.
+    """
+
+    def apply_makeboxes(self, p, expr, h, prec, f, evaluation):
+        """MakeBoxes[(p:%(name)s)[expr_, h_, prec_:None],
+        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        if not isinstance(h, String):
+            h = MakeBoxes(h, f)
+
+        precedence = prec.get_int_value()
+
+        elements = expr.elements
+        if len(elements) == 1:
+            element = elements[0]
+            element = parenthesize(precedence, element, f, True)
+            if self.get_name() == "System`Postfix":
+                args = (element, h)
+            else:
+                args = (h, element)
+            return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
+        else:
+            return MakeBoxes(expr, f).evaluate(evaluation)
+
+
+class Postfix(_PostPrefix):
     """
     <dl>
       <dt>'$x$ // $f$'
@@ -216,7 +262,7 @@ class Postfix(BinaryOperator):
     summary_text = "postfix form"
 
 
-class Prefix(BinaryOperator):
+class Prefix(_PostPrefix):
     """
     <dl>
       <dt>'$f$ @ $x$'
@@ -287,7 +333,53 @@ class Infix(Builtin):
     messages = {
         "normal": "Nonatomic expression expected at position `1`",
     }
+
+    rules = {
+        "MakeBoxes[Infix[head_[elements___]], "
+        "    f:StandardForm|TraditionalForm|OutputForm|InputForm]": (
+            'MakeBoxes[Infix[head[elements], StringForm["~`1`~", head]], f]'
+        ),
+    }
+
     summary_text = "infix form"
+
+    def apply_makeboxes(self, expr, h, prec, grouping, f, evaluation):
+        """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
+        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        def get_op(op):
+            if not isinstance(op, String):
+                op = MakeBoxes(op, f)
+            else:
+                op_value = op.get_string_value()
+                if f.get_name() == "System`InputForm" and op_value in ["*", "^"]:
+                    pass
+                elif (
+                    f.get_name() in ("System`InputForm", "System`OutputForm")
+                    and not op_value.startswith(" ")
+                    and not op_value.endswith(" ")
+                ):
+                    op = String(" " + op_value + " ")
+            return op
+
+        precedence = prec.get_int_value()
+        grouping = grouping.get_name()
+
+        if isinstance(expr, Atom):
+            evaluation.message("Infix", "normal", Integer1)
+            return None
+
+        elements = expr.elements
+        if len(elements) > 1:
+            if h.has_form("List", len(elements) - 1):
+                ops = [get_op(op) for op in h.elements]
+            else:
+                ops = [get_op(h)] * (len(elements) - 1)
+            return make_boxes_infix(elements, ops, precedence, grouping, f)
+        elif len(elements) == 1:
+            return MakeBoxes(elements[0], f)
+        else:
+            return MakeBoxes(expr, f)
 
 
 class NonAssociative(Builtin):
@@ -412,3 +504,34 @@ class Precedence(Builtin):
             else:
                 precedence = 670
         return Real(precedence)
+
+
+class PrecedenceForm(Builtin):
+    """
+    <dl>
+    <dt>'PrecedenceForm'[$expr$, $prec$]
+    <dd> prints with $expr$ parenthesized as it would be if it contained an operator with precedence $prec$.
+    </dl>
+
+    The sum is associative, so
+    >> (a + b) + c
+     = a + b + c
+    However, if we want to preserve the parenthesis, we can sorround $a+b$ with `PrecedenceForm` and a low value of the precedence:
+    >>  PrecedenceForm[a+b, 2]+c
+     =  c + (a + b)
+    >> Precedence[Plus]
+     = 310.
+    With a $prec$  value larger than the precedence of Plus, parenthesis are not displayed:
+    >>  PrecedenceForm[a + b, 700] + c
+    =  c + a + b
+    >> {PrecedenceForm[a+b,2], PrecedenceForm[a+b, 700]}
+     = {a + b, a + b}
+    """
+
+    usage = "print parenthesis according to the specified precedence"
+
+    def apply_makeboxes(self, expr, prec, f, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, prec_],
+        (f:StandardForm|TraditionalForm|OutputForm|InputForm)]"""
+        precedence = prec.get_int_value()
+        return MakeBoxes(expr, f).evaluate(evaluation)

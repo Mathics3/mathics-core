@@ -32,7 +32,7 @@ Internals
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. `from_mpmath` conversion now supports a new parameter ``acc`` to set the accuracy of the number.
-
+#. Tiding up ``MakeBoxes`` rules.
 
 
 Bugs
@@ -40,7 +40,8 @@ Bugs
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
-
+# ``PrecedenceForm`` now behaves according to the WL specifications.
+   
 
 Enhancements
 ++++++++++++
