@@ -2230,13 +2230,13 @@ if "Pyston" not in sys.version:
     class WordCloud(Builtin):
         """
         <dl>
-        <dt>'WordCloud[{$word1$, $word2$, ...}]'
+          <dt>'WordCloud[{$word1$, $word2$, ...}]'
           <dd>Gives a word cloud with the given list of words.
-        <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
+          <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
           <dd>Gives a word cloud with the words weighted using the given weights.
-        <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
+          <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
           <dd>Also gives a word cloud with the words weighted using the given weights.
-        <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
+          <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
           <dd>Gives a word cloud with the words weighted using the given weights.
         </dl>
 
