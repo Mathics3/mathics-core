@@ -149,8 +149,13 @@ class DamerauLevenshteinDistance(_StringDistance):
     """
     <dl>
       <dt>'DamerauLevenshteinDistance[$a$, $b$]'
-      <dd>returns the Damerau-Levenshtein distance of $a$ and $b$, which is defined as the minimum number of transpositions, insertions, deletions and substitutions needed to transform one into the other. In contrast to EditDistance, DamerauLevenshteinDistance counts transposition of adjacent items (e.g. "ab" into "ba") as one operation of change.
+      <dd>returns the Damerau-Levenshtein distance of $a$ and $b$.
     </dl>
+
+    The Damereau-Levenshtein distance is defined as the minimum number of transpositions, insertions,
+    deletions and substitutions needed to transform one into the other. In contrast to 'EditDistance',
+    'DamerauLevenshteinDistance' counts transposition of adjacent items
+    (e.g. "ab" into "ba") as one operation of change.
 
     >> DamerauLevenshteinDistance["kitten", "kitchen"]
      = 2
