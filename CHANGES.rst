@@ -18,6 +18,8 @@ New Builtins
 #. ``SixJSymbol``
 #. ``Skewness``
 #. ``ThreeJSymbol``
+#. ``$PrintForms``
+
 
 Documentation
 +++++++++++++
