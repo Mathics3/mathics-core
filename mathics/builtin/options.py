@@ -27,9 +27,8 @@ from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 class Options(Builtin):
     """
     <dl>
-    <dt>'Options[$f$]'
-        <dd>gives a list of optional arguments to $f$ and their
-        default values.
+      <dt>'Options[$f$]'
+      <dd>gives a list of optional arguments to $f$ and their default values.
     </dl>
 
     You can assign values to 'Options' to specify options.
@@ -111,16 +110,14 @@ class Options(Builtin):
 class OptionValue(Builtin):
     """
     <dl>
-    <dt>'OptionValue[$name$]'
-        <dd>gives the value of the option $name$ as specified in a
-        call to a function with 'OptionsPattern'.
-    <dt>'OptionValue[$f$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$.
-    <dt>'OptionValue[$f$, $optvals$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$,
-            extracting the values from $optvals$ if available.
-    <dt>'OptionValue[..., $list$]'
-        <dd>recover the value of the options in $list$ .
+      <dt>'OptionValue[$name$]'
+      <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
+      <dt>'OptionValue[$f$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$.
+      <dt>'OptionValue[$f$, $optvals$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
+      <dt>'OptionValue[..., $list$]'
+      <dd>recover the value of the options in $list$ .
     </dl>
 
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[a]}
@@ -235,12 +232,12 @@ class OptionValue(Builtin):
 class Default(Builtin):
     """
     <dl>
-    <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted parameter of $f$.
-    <dt>'Default[$f$, $k$]'
-        <dd>gives the default value for a parameter on the $k$th position.
-    <dt>'Default[$f$, $k$, $n$]'
-        <dd>gives the default value for the $k$th parameter out of $n$.
+      <dt>'Default[$f$]'
+      <dd>gives the default value for an omitted parameter of $f$.
+      <dt>'Default[$f$, $k$]'
+      <dd>gives the default value for a parameter on the $k$th position.
+      <dt>'Default[$f$, $k$, $n$]'
+      <dd>gives the default value for the $k$th parameter out of $n$.
     </dl>
 
     Assign values to 'Default' to specify default values.
@@ -287,9 +284,8 @@ class Default(Builtin):
 class OptionQ(Test):
     """
     <dl>
-    <dt>'OptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ has the form of a valid option
-        specification.
+      <dt>'OptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ has the form of a valid option specification.
     </dl>
 
     Examples of option specifications:
@@ -335,9 +331,8 @@ class OptionQ(Test):
 class NotOptionQ(Test):
     """
     <dl>
-    <dt>'NotOptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ does not have the form of a valid
-        option specification.
+      <dt>'NotOptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ does not have the form of a valid option specification.
     </dl>
 
     >> NotOptionQ[x]
@@ -368,10 +363,10 @@ class NotOptionQ(Test):
 class FilterRules(Builtin):
     """
     <dl>
-    <dt>'FilterRules[$rules$, $pattern$]'
-        <dd>gives those $rules$ that have a left side that matches $pattern$.
-    <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
-        <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+      <dt>'FilterRules[$rules$, $pattern$]'
+      <dd>gives those $rules$ that have a left side that matches $pattern$.
+      <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
+      <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
     </dl>
 
     >> FilterRules[{x -> 100, y -> 1000}, x]

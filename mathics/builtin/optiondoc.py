@@ -193,9 +193,9 @@ class MaxRecursion(Builtin):
 class Mesh(Builtin):
     """
     <dl>
-       <dt>'Mesh'
+      <dt>'Mesh'
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that specifies the mesh to be drawn. The default is 'Mesh->None'.
-     </dl>
+    </dl>
 
     >> Plot[Sin[Cos[x^2]],{x,-4,4},Mesh->All]
      = -Graphics-
@@ -221,7 +221,7 @@ class PlotPoints(Builtin):
     <dl>
       <dt>'PlotPoints $n$'
       <dd>A number specifies how many initial sample points to use.
-     </dl>
+    </dl>
 
     >> Plot[Sin[Cos[x^2]],{x,-4,4}, PlotPoints->22]
      = -Graphics-

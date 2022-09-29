@@ -296,9 +296,7 @@ class SameQ(_ComparisonOperator):
     <dl>
       <dt>'SameQ[$x$, $y$]'
       <dt>'$x$ === $y$'
-      <dd>returns 'True' if $x$ and $y$ are structurally identical.
-      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
-
+      <dd>returns 'True' if $x$ and $y$ are structurally identical. Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
     </dl>
 
     <ul>
@@ -357,8 +355,7 @@ class UnsameQ(_ComparisonOperator):
     <dl>
       <dt>'UnsameQ[$x$, $y$]'
       <dt>'$x$ =!= $y$'
-      <dd>returns 'True' if $x$ and $y$ are not structurally identical.
-      Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
+      <dd>returns 'True' if $x$ and $y$ are not structurally identical. Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
     </dl>
 
     >> a =!= a
@@ -460,9 +457,7 @@ class Inequality(Builtin):
     """
     <dl>
       <dt>'Inequality'
-      <dd>is the head of expressions involving different inequality
-        operators (at least temporarily). Thus, it is possible to
-        write chains of inequalities.
+      <dd>is the head of expressions involving different inequality operators (at least temporarily). Thus, it is possible to write chains of inequalities.
     </dl>
 
     >> a < b <= c
@@ -599,15 +594,7 @@ class Equal(_EqualityOperator, _SympyComparison):
     <dl>
       <dt>'Equal[$x$, $y$]'
       <dt>'$x$ == $y$'
-      <dd>is 'True' if $x$ and $y$ are known to be equal, or
-        'False' if $x$ and $y$ are known to be unequal, in which case
-        case, 'Not[$x$ == $y$]' will be 'True'.
-
-        Commutative properties apply, so if $x$ == $y$ then $y$ == $x$.
-
-        For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
-
-        For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
+      <dd>is 'True' if $x$ and $y$ are known to be equal, or 'False' if $x$ and $y$ are known to be unequal, in which case case, 'Not[$x$ == $y$]' will be 'True'.  Commutative properties apply, so if $x$ == $y$ then $y$ == $x$.  For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].  For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
       <dt>'$x$ == $y$ == $z$ == ...'
       <dd> express a chain of equalities.
     </dl>
@@ -733,11 +720,7 @@ class Unequal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
-
-        Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
-
-        For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.  Commutative properties apply so if $x$ != $y$ then $y$ != $x$.  For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
     </dl>
 
     >> 1 != 1.
@@ -875,8 +858,7 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
       <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
-      <dd>yields 'True' if $x$ is known to be greater than or equal
-        to $y$.
+      <dd>yields 'True' if $x$ is known to be greater than or equal to $y$.
     </dl>
     """
 

@@ -245,8 +245,7 @@ class CMYKColor(_ColorObject):
     """
     <dl>
       <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
-      <dd>represents a color with the specified cyan, magenta,
-        yellow and black components.
+      <dd>represents a color with the specified cyan, magenta, yellow and black components.
     </dl>
 
     >> Graphics[MapIndexed[{CMYKColor @@ #1, Disk[2*#2 ~Join~ {0}]} &, IdentityMatrix[4]], ImageSize->Small]
@@ -263,7 +262,6 @@ class ColorDistance(Builtin):
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
       <dd>returns a measure of color distance between the colors $c1$ and $c2$.
-
       <dt>'ColorDistance[$list$, $c2$]'
       <dd>returns a list of color distances between the colors in $list$ and $c2$.
     </dl>
@@ -469,8 +467,7 @@ class GrayLevel(_ColorObject):
     """
     <dl>
       <dt>'GrayLevel[$g$]'
-      <dd>represents a shade of gray specified by $g$, ranging from
-        0 (black) to 1 (white).
+      <dd>represents a shade of gray specified by $g$, ranging from 0 (black) to 1 (white).
       <dt>'GrayLevel[$g$, $a$]'
       <dd>represents a shade of gray specified by $g$ with opacity $a$.
     </dl>
@@ -486,13 +483,10 @@ class Hue(_ColorObject):
     <dl>
       <dt>'Hue[$h$, $s$, $l$, $a$]'
       <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
-
       <dt>'Hue[$h$, $s$, $l$]'
       <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
-
       <dt>'Hue[$h$, $s$]'
       <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
-
       <dt>'Hue[$h$]'
       <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
     </dl>
@@ -543,8 +537,7 @@ class LABColor(_ColorObject):
     """
     <dl>
       <dt>'LABColor[$l$, $a$, $b$]'
-      <dd>represents a color with the specified lightness, red/green and yellow/blue
-        components in the CIE 1976 L*a*b* (CIELAB) color space.
+      <dd>represents a color with the specified lightness, red/green and yellow/blue components in the CIE 1976 L*a*b* (CIELAB) color space.
     </dl>
     """
 
@@ -557,8 +550,7 @@ class LCHColor(_ColorObject):
     """
     <dl>
       <dt>'LCHColor[$l$, $c$, $h$]'
-      <dd>represents a color with the specified lightness, chroma and hue
-        components in the CIELCh CIELab cube color space.
+      <dd>represents a color with the specified lightness, chroma and hue components in the CIELCh CIELab cube color space.
     </dl>
     """
 
@@ -584,8 +576,7 @@ class RGBColor(_ColorObject):
     """
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
-      <dd>represents a color with the specified red, green and blue
-        components.
+      <dd>represents a color with the specified red, green and blue components.
     </dl>
 
     >> Graphics[MapIndexed[{RGBColor @@ #1, Disk[2*#2 ~Join~ {0}]} &, IdentityMatrix[3]], ImageSize->Small]

@@ -53,11 +53,10 @@ if _ELEMENT_DATA is None:
 class ElementData(Builtin):
     """
     <dl>
-    <dt>'ElementData["$name$", "$property$"]'
-        <dd>gives the value of the $property$ for the chemical
-        specified by $name$.
-    <dt>'ElementData[$n$, "$property$"]'
-        <dd>gives the value of the $property$ for the $n$th chemical element.
+      <dt>'ElementData["$name$", "$property$"]'
+      <dd>gives the value of the $property$ for the chemical specified by $name$.
+      <dt>'ElementData[$n$, "$property$"]'
+      <dd>gives the value of the $property$ for the $n$th chemical element.
     </dl>
 
     >> ElementData[74]

@@ -148,11 +148,8 @@ class _StringDistance(Builtin):
 class DamerauLevenshteinDistance(_StringDistance):
     """
     <dl>
-    <dt>'DamerauLevenshteinDistance[$a$, $b$]'
-        <dd>returns the Damerau-Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
-        transpositions, insertions, deletions and substitutions needed to transform one into the other.
-        In contrast to EditDistance, DamerauLevenshteinDistance counts transposition of adjacent items (e.g.
-        "ab" into "ba") as one operation of change.
+      <dt>'DamerauLevenshteinDistance[$a$, $b$]'
+      <dd>returns the Damerau-Levenshtein distance of $a$ and $b$, which is defined as the minimum number of transpositions, insertions, deletions and substitutions needed to transform one into the other. In contrast to EditDistance, DamerauLevenshteinDistance counts transposition of adjacent items (e.g. "ab" into "ba") as one operation of change.
     </dl>
 
     >> DamerauLevenshteinDistance["kitten", "kitchen"]
@@ -188,10 +185,8 @@ class DamerauLevenshteinDistance(_StringDistance):
 class EditDistance(_StringDistance):
     """
     <dl>
-    <dt>'EditDistance[$a$, $b$]'
-        <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of
-        insertions, deletions and substitutions on the constituents of $a$ and $b$ needed to transform
-        one into the other.
+      <dt>'EditDistance[$a$, $b$]'
+      <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of insertions, deletions and substitutions on the constituents of $a$ and $b$ needed to transform one into the other.
     </dl>
 
     >> EditDistance["kitten", "kitchen"]
@@ -227,9 +222,8 @@ class EditDistance(_StringDistance):
 class HammingDistance(Builtin):
     """
     <dl>
-    <dt>'HammingDistance[$u$, $v$]'
-      <dd>returns the Hamming distance between $u$ and $v$, i.e. the number of different elements.
-      $u$ and $v$ may be lists or strings.
+      <dt>'HammingDistance[$u$, $v$]'
+      <dd>returns the Hamming distance between $u$ and $v$, i.e. the number of different elements. $u$ and $v$ may be lists or strings.
     </dl>
 
     >> HammingDistance[{1, 0, 1, 0}, {1, 0, 0, 1}]

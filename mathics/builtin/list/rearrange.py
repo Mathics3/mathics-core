@@ -331,7 +331,6 @@ class Complement(_SetOperation):
     <dl>
       <dt>'Complement[$all$, $e1$, $e2$, ...]'
       <dd>returns an expression containing the elements in the set $all$ that are not in any of $e1$, $e2$, etc.
-
       <dt>'Complement[$all$, $e1$, $e2$, ..., SameTest->$test$]'
       <dd>applies $test$ to the elements in $all$ and each of the $ei$ to determine equality.
     </dl>
@@ -376,11 +375,8 @@ class DeleteDuplicates(_GatherOperation):
     <dl>
       <dt>'DeleteDuplicates[$list$]'
       <dd>deletes duplicates from $list$.
-
       <dt>'DeleteDuplicates[$list$, $test$]'
-      <dd>deletes elements from $list$ based on whether the function $test$ yields 'True' on pairs of elements.
-
-      DeleteDuplicates does not change the order of the remaining elements.
+      <dd>deletes elements from $list$ based on whether the function $test$ yields 'True' on pairs of elements.  DeleteDuplicates does not change the order of the remaining elements.
     </dl>
 
     >> DeleteDuplicates[{1, 7, 8, 4, 3, 4, 1, 9, 9, 2, 1}]
@@ -405,7 +401,6 @@ class Gather(_GatherOperation):
     <dl>
       <dt>'Gather[$list$, $test$]'
       <dd>gathers elements of $list$ into sub lists of items that are the same according to $test$.
-
       <dt>'Gather[$list$]'
       <dd>gathers elements of $list$ into sub lists of items that are the same.
     </dl>
@@ -428,7 +423,6 @@ class GatherBy(_GatherOperation):
     <dl>
       <dt>'GatherBy[$list$, $f$]'
       <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical.
-
       <dt>'GatherBy[$list$, {$f$, $g$, ...}]'
       <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical. Then, gathers these sub lists again into sub sub lists, that are identical under $g.
     </dl>
@@ -530,7 +524,6 @@ class Partition(Builtin):
     <dl>
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
-
       <dt>'Parition[$list$, $n$, $d$]'
       <dd>partitions $list$ into sublists of length $n$ which overlap $d$ indicies.
     </dl>
@@ -592,10 +585,8 @@ class Reverse(Builtin):
     <dl>
       <dt>'Reverse[$expr$]'
       <dd>reverses the order of $expr$'s items (on the top level)
-
       <dt>'Reverse[$expr$, $n$]'
       <dd>reverses the order of items in $expr$ on level $n$
-
       <dt>'Reverse[$expr$, {$n1$, $n2$, ...}]'
       <dd>reverses the order of items in $expr$ on levels $n1$, $n2$, ...
     </dl>
@@ -695,7 +686,6 @@ class Riffle(Builtin):
     <dl>
       <dt>'Riffle[$list$, $x$]'
       <dd>inserts a copy of $x$ between each element of $list$.
-
       <dt>'Riffle[{$a1$, $a2$, ...}, {$b1$, $b2$, ...}]'
       <dd>interelements the elements of both lists, returning '{$a1$, $b1$, $a2$, $b2$, ...}'.
     </dl>
@@ -740,10 +730,8 @@ class RotateLeft(_Rotate):
     <dl>
       <dt>'RotateLeft[$expr$]'
       <dd>rotates the items of $expr$' by one item to the left.
-
       <dt>'RotateLeft[$expr$, $n$]'
       <dd>rotates the items of $expr$' by $n$ items to the left.
-
       <dt>'RotateLeft[$expr$, {$n1$, $n2$, ...}]'
       <dd>rotates the items of $expr$' by $n1$ items to the left at the first level, by $n2$ items to the left at the second level, and so on.
     </dl>
@@ -767,10 +755,8 @@ class RotateRight(_Rotate):
     <dl>
       <dt>'RotateRight[$expr$]'
       <dd>rotates the items of $expr$' by one item to the right.
-
       <dt>'RotateRight[$expr$, $n$]'
       <dd>rotates the items of $expr$' by $n$ items to the right.
-
       <dt>'RotateRight[$expr$, {$n1$, $n2$, ...}]'
       <dd>rotates the items of $expr$' by $n1$ items to the right at the first level, by $n2$ items to the right at the second level, and so on.
     </dl>
@@ -794,7 +780,6 @@ class Tally(_GatherOperation):
     <dl>
       <dt>'Tally[$list$]'
       <dd>counts and returns the number of occurences of objects and returns the result as a list of pairs {object, count}.
-
       <dt>'Tally[$list$, $test$]'
       <dd>counts the number of occurences of  objects and uses $test to determine if two objects should be counted in the same bin.
     </dl>

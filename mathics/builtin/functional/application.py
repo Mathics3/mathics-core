@@ -29,10 +29,8 @@ class Function(PostfixOperator):
       <dt>'Function[$body$]'
       <dt>'$body$ &'
       <dd>represents a pure function with parameters '#1', '#2', etc.
-
       <dt>'Function[{$x1$, $x2$, ...}, $body$]'
       <dd>represents a pure function with parameters $x1$, $x2$, etc.
-
       <dt>'Function[{$x1$, $x2$, ...}, $body$, $attr$]'
       <dd>assume that the function has the attributes $attr$.
     </dl>
@@ -138,12 +136,12 @@ class Function(PostfixOperator):
 class Slot(Builtin):
     """
     <dl>
-    <dt>'#$n$'
-        <dd>represents the $n$th argument to a pure function.
-        <dt>'#'
-        <dd>is short-hand for '#1'.
-        <dt>'#0'
-        <dd>represents the pure function itself.
+      <dt>'#$n$'
+      <dd>represents the $n$th argument to a pure function.
+      <dt>'#'
+      <dd>is short-hand for '#1'.
+      <dt>'#0'
+      <dd>represents the pure function itself.
     </dl>
 
     X> #
@@ -178,10 +176,10 @@ class Slot(Builtin):
 class SlotSequence(Builtin):
     """
     <dl>
-    <dt>'##'
-        <dd>is the sequence of arguments supplied to a pure function.
-    <dt>'##$n$'
-        <dd>starts with the $n$th argument.
+      <dt>'##'
+      <dd>is the sequence of arguments supplied to a pure function.
+      <dt>'##$n$'
+      <dd>starts with the $n$th argument.
     </dl>
 
     >> Plus[##]& [1, 2, 3]

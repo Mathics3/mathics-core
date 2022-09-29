@@ -103,10 +103,7 @@ class StandardDeviation(_Rectangular):
     <url>:Standard deviation: https://en.wikipedia.org/wiki/Standard_deviation</url> (<url>:WMA: https://reference.wolfram.com/language/ref/StandardDeviation.html</url>)
     <dl>
       <dt>'StandardDeviation[$list$]'
-      <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
-
-      StandardDeviation[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield
-      {StandardDeviation[{$a1$, $b1$, ...}, StandardDeviation[{$a2$, $b2$, ...}], ...}.
+      <dd>computes the standard deviation of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.  StandardDeviation[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield {StandardDeviation[{$a1$, $b1$, ...}, StandardDeviation[{$a2$, $b2$, ...}], ...}.
     </dl>
 
     >> StandardDeviation[{1, 2, 3}]
@@ -148,9 +145,7 @@ class Variance(_Rectangular):
     <url>:Variance: https://en.wikipedia.org/wiki/Variance</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Variance.html</url>)
     <dl>
       <dt>'Variance[$list$]'
-      <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.
-
-      Variance[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield {Variance[{$a1$, $b1$, ...}, Variance[{$a2$, $b2$, ...}], ...}.
+      <dd>computes the variance of $list. $list$ may consist of numerical values or symbols. Numerical values may be real or complex.  Variance[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}] will yield {Variance[{$a1$, $b1$, ...}, Variance[{$a2$, $b2$, ...}], ...}.
     </dl>
 
     >> Variance[{1, 2, 3}]

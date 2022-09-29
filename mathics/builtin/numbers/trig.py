@@ -166,8 +166,7 @@ class AnglePath(Builtin):
     """
     <dl>
       <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
-      <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
-        the turns given by angles $phi1$, $phi2$, ... and using distance 1 for each step.
+      <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through the turns given by angles $phi1$, $phi2$, ... and using distance 1 for each step.
       <dt>'AnglePath[{{$r1$, $phi1$}, {$r2$, $phi2$}, ...}]'
       <dd>instead of using 1 as distance, use $r1$, $r2$, ... as distances for the respective steps.
       <dt>'AnglePath[$phi0$, {$phi1$, $phi2$, ...}]'
@@ -177,8 +176,7 @@ class AnglePath(Builtin):
       <dt>'AnglePath[{{$x$, $y$}, $phi0$}, {$phi1$, $phi2$, ...}]'
       <dd>specifies initial position {$x$, $y$} and initial direction $phi0$.
       <dt>'AnglePath[{{$x$, $y$}, {$dx$, $dy$}}, {$phi1$, $phi2$, ...}]'
-      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the
-        initial direction of the turtle.
+      <dd>specifies initial position {$x$, $y$} and a slope {$dx$, $dy$} that is understood to be the initial direction of the turtle.
     </dl>
 
     >> AnglePath[{90 Degree, 90 Degree, 90 Degree, 90 Degree}]

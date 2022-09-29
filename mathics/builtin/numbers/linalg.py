@@ -76,10 +76,7 @@ class Eigenvalues(Builtin):
     """
     <dl>
       <dt>'Eigenvalues[$m$]'
-      <dd>computes the eigenvalues of the matrix $m$.
-      By default Sympy's routine is used. Sometimes this is slow and
-      less good than the corresponding mpmath routine. Use option Method->"mpmath" if you want
-      to use mpmath's routine instead.
+      <dd>computes the eigenvalues of the matrix $m$. By default Sympy's routine is used. Sometimes this is slow and less good than the corresponding mpmath routine. Use option Method->"mpmath" if you want to use mpmath's routine instead.
     </dl>
 
     Numeric eigenvalues are sorted in order of decreasing absolute value:
@@ -170,8 +167,8 @@ class Eigenvalues(Builtin):
 class Eigenvectors(Builtin):
     """
     <dl>
-    <dt>'Eigenvectors[$m$]'
-        <dd>computes the eigenvectors of the matrix $m$.
+      <dt>'Eigenvectors[$m$]'
+      <dd>computes the eigenvectors of the matrix $m$.
     </dl>
 
     >> Eigenvectors[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -244,8 +241,8 @@ class Eigenvectors(Builtin):
 class Eigensystem(Builtin):
     """
     <dl>
-    <dt>'Eigensystem[$m$]'
-        <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
+      <dt>'Eigensystem[$m$]'
+      <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
     </dl>
 
     >> Eigensystem[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -259,8 +256,8 @@ class Eigensystem(Builtin):
 class FittedModel(Builtin):
     """
     <dl>
-    <dd>'FittedModel[...]'
-    <dt> Result of a linear fit
+      <dd>'FittedModel[...]'
+      <dt> Result of a linear fit
     </dl>
     """
 
@@ -279,8 +276,8 @@ class FittedModel(Builtin):
 class Inverse(Builtin):
     """
     <dl>
-    <dt>'Inverse[$m$]'
-        <dd>computes the inverse of the matrix $m$.
+      <dt>'Inverse[$m$]'
+      <dd>computes the inverse of the matrix $m$.
     </dl>
 
     >> Inverse[{{1, 2, 0}, {2, 3, 0}, {3, 4, 1}}]
@@ -323,9 +320,8 @@ class Inverse(Builtin):
 class LeastSquares(Builtin):
     """
     <dl>
-    <dt>'LeastSquares[$m$, $b$]'
-        <dd>computes the least squares solution to $m$ $x$ = $b$, finding
-        an $x$ that solves for $b$ optimally.
+      <dt>'LeastSquares[$m$, $b$]'
+      <dd>computes the least squares solution to $m$ $x$ = $b$, finding an $x$ that solves for $b$ optimally.
     </dl>
 
     >> LeastSquares[{{1, 2}, {2, 3}, {5, 6}}, {1, 5, 3}]
@@ -379,8 +375,8 @@ class LeastSquares(Builtin):
 class LinearModelFit(Builtin):
     """
     <dl>
-    <dt>'LinearModelFit[$m$, $f$, $x$]'
-        <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
+      <dt>'LinearModelFit[$m$, $f$, $x$]'
+      <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
     </dl>
 
     >> m = LinearModelFit[{{2, 1}, {3, 4}, {5, 3}, {7, 6}}, x, x];
@@ -458,9 +454,8 @@ class LinearModelFit(Builtin):
 class LinearSolve(Builtin):
     """
     <dl>
-    <dt>'LinearSolve[$matrix$, $right$]'
-        <dd>solves the linear equation system '$matrix$ . $x$ = $right$'
-        and returns one corresponding solution $x$.
+      <dt>'LinearSolve[$matrix$, $right$]'
+      <dd>solves the linear equation system '$matrix$ . $x$ = $right$' and returns one corresponding solution $x$.
     </dl>
 
     >> LinearSolve[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}, {1, 2, 3}]
@@ -531,8 +526,8 @@ class LinearSolve(Builtin):
 class MatrixExp(Builtin):
     """
     <dl>
-    <dt>'MatrixExp[$m$]'
-        <dd>computes the exponential of the matrix $m$.
+      <dt>'MatrixExp[$m$]'
+      <dd>computes the exponential of the matrix $m$.
     </dl>
 
     >> MatrixExp[{{0, 2}, {0, 1}}]
@@ -573,8 +568,8 @@ class MatrixExp(Builtin):
 class MatrixPower(Builtin):
     """
     <dl>
-    <dt>'MatrixPower[$m$, $n$]'
-        <dd>computes the $n$th power of a matrix $m$.
+      <dt>'MatrixPower[$m$, $n$]'
+      <dd>computes the $n$th power of a matrix $m$.
     </dl>
 
     >> MatrixPower[{{1, 2}, {1, 1}}, 10]
@@ -620,8 +615,8 @@ class MatrixPower(Builtin):
 class MatrixRank(Builtin):
     """
     <dl>
-    <dt>'MatrixRank[$matrix$]'
-        <dd>returns the rank of $matrix$.
+      <dt>'MatrixRank[$matrix$]'
+      <dd>returns the rank of $matrix$.
     </dl>
 
     >> MatrixRank[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}]
@@ -654,8 +649,8 @@ class MatrixRank(Builtin):
 class NullSpace(Builtin):
     """
     <dl>
-    <dt>'NullSpace[$matrix$]'
-        <dd>returns a list of vectors that span the nullspace of $matrix$.
+      <dt>'NullSpace[$matrix$]'
+      <dd>returns a list of vectors that span the nullspace of $matrix$.
     </dl>
 
     >> NullSpace[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}]
@@ -693,9 +688,8 @@ class NullSpace(Builtin):
 class PseudoInverse(Builtin):
     """
     <dl>
-    <dt>'PseudoInverse[$m$]'
-        <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
-        If $m$ is invertible, the pseudoinverse equals the inverse.
+      <dt>'PseudoInverse[$m$]'
+      <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$. If $m$ is invertible, the pseudoinverse equals the inverse.
     </dl>
 
     >> PseudoInverse[{{1, 2}, {2, 3}, {3, 4}}]
@@ -730,8 +724,8 @@ class PseudoInverse(Builtin):
 class RowReduce(Builtin):
     """
     <dl>
-    <dt>'RowReduce[$matrix$]'
-        <dd>returns the reduced row-echelon form of $matrix$.
+      <dt>'RowReduce[$matrix$]'
+      <dd>returns the reduced row-echelon form of $matrix$.
     </dl>
 
     >> RowReduce[{{1, 0, a}, {1, 1, b}}]
@@ -767,8 +761,8 @@ class RowReduce(Builtin):
 class QRDecomposition(Builtin):
     """
     <dl>
-    <dt>'QRDecomposition[$m$]'
-        <dd>computes the QR decomposition of the matrix $m$.
+      <dt>'QRDecomposition[$m$]'
+      <dd>computes the QR decomposition of the matrix $m$.
     </dl>
 
     >> QRDecomposition[{{1, 2}, {3, 4}, {5, 6}}]

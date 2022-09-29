@@ -1045,8 +1045,7 @@ class Collect(_CoefficientHandler):
       <dt>'Collect[$expr$, $x$]'
       <dd> Expands $expr$ and collect together terms having the same power of $x$.
       <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
-      <dd> Expands $expr$ and collect together terms having the same powers of
-         $x_1$, $x_2$, ....
+      <dd> Expands $expr$ and collect together terms having the same powers of $x_1$, $x_2$, ....
       <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
       <dd> After collect the terms, applies $filter$ to each coefficient.
     </dl>

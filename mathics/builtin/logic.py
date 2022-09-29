@@ -35,11 +35,9 @@ SymbolEquivalent = Symbol("Equivalent")
 class Or(BinaryOperator):
     """
     <dl>
-    <dt>'Or[$expr1$, $expr2$, ...]'
-    <dt>'$expr1$ || $expr2$ || ...'
-        <dd>evaluates each expression in turn, returning 'True'
-        as soon as an expression evaluates to 'True'. If all
-        expressions evaluate to 'False', 'Or' returns 'False'.
+      <dt>'Or[$expr1$, $expr2$, ...]'
+      <dt>'$expr1$ || $expr2$ || ...'
+      <dd>evaluates each expression in turn, returning 'True' as soon as an expression evaluates to 'True'. If all expressions evaluate to 'False', 'Or' returns 'False'.
     </dl>
 
     >> False || True
@@ -84,11 +82,9 @@ class Or(BinaryOperator):
 class And(BinaryOperator):
     """
     <dl>
-    <dt>'And[$expr1$, $expr2$, ...]'
-    <dt>'$expr1$ && $expr2$ && ...'
-        <dd>evaluates each expression in turn, returning 'False'
-        as soon as an expression evaluates to 'False'. If all
-        expressions evaluate to 'True', 'And' returns 'True'.
+      <dt>'And[$expr1$, $expr2$, ...]'
+      <dt>'$expr1$ && $expr2$ && ...'
+      <dd>evaluates each expression in turn, returning 'False' as soon as an expression evaluates to 'False'. If all expressions evaluate to 'True', 'And' returns 'True'.
     </dl>
 
     >> True && True && False
@@ -133,9 +129,9 @@ class And(BinaryOperator):
 class Not(PrefixOperator):
     """
     <dl>
-    <dt>'Not[$expr$]'
-    <dt>'!$expr$'
-        <dd>negates the logical expression $expr$.
+      <dt>'Not[$expr$]'
+      <dt>'!$expr$'
+      <dd>negates the logical expression $expr$.
     </dl>
 
     >> !True
@@ -160,9 +156,9 @@ class Not(PrefixOperator):
 class Nand(Builtin):
     """
     <dl>
-    <dt>'Nand[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BC $expr2$ \u22BC ...
-        <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
+      <dt>'Nand[$expr1$, $expr2$, ...]'
+      <dt>$expr1$ \u22BC $expr2$ \u22BC ...
+      <dd> Implements the logical NAND function.  The same as 'Not[And['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nand[True, False]
      = True
@@ -178,9 +174,9 @@ class Nand(Builtin):
 class Nor(Builtin):
     """
     <dl>
-    <dt>'Nor[$expr1$, $expr2$, ...]'
-    <dt>$expr1$ \u22BD $expr2$ \u22BD ...
-        <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
+      <dt>'Nor[$expr1$, $expr2$, ...]'
+      <dt>$expr1$ \u22BD $expr2$ \u22BD ...
+      <dd>Implements the logical NOR function.  The same as 'Not[Or['$expr1$, $expr2$, ...']]'
     </dl>
     >> Nor[True, False]
      = False
@@ -196,12 +192,9 @@ class Nor(Builtin):
 class Implies(BinaryOperator):
     """
     <dl>
-    <dt>'Implies[$expr1$, $expr2$]'
-    <dt>$expr1$ \u21D2 $expr2$
-        <dd>evaluates each expression in turn, returning 'True'
-        as soon as the first expression evaluates to 'False'. If the
-        first expression evaluates to 'True', 'Implies' returns the
-        second expression.
+      <dt>'Implies[$expr1$, $expr2$]'
+      <dt>$expr1$ \u21D2 $expr2$
+      <dd>evaluates each expression in turn, returning 'True' as soon as the first expression evaluates to 'False'. If the first expression evaluates to 'True', 'Implies' returns the second expression.
     </dl>
 
     >> Implies[False, a]
@@ -237,9 +230,7 @@ class Equivalent(BinaryOperator):
     <dl>
       <dt>'Equivalent[$expr1$, $expr2$, ...]'
       <dt>$expr1$ \u29E6 $expr2$ \u29E6 ...
-
-      <dd>is equivalent to
-        ($expr1$ && $expr2$ && ...) || (!$expr1$ && !$expr2$ && ...)
+      <dd>is equivalent to ($expr1$ && $expr2$ && ...) || (!$expr1$ && !$expr2$ && ...)
     </dl>
 
     >> Equivalent[True, True, False]
@@ -291,10 +282,7 @@ class Xor(BinaryOperator):
     <dl>
       <dt>'Xor[$expr1$, $expr2$, ...]'
       <dt>$expr1$ \u22BB $expr2$ \u22BB ...
-
-      <dd>evaluates each expression in turn, returning 'True'
-        as soon as not all expressions evaluate to the same value. If all
-        expressions evaluate to the same value, 'Xor' returns 'False'.
+      <dd>evaluates each expression in turn, returning 'True' as soon as not all expressions evaluate to the same value. If all expressions evaluate to the same value, 'Xor' returns 'False'.
     </dl>
 
     >> Xor[False, True]
@@ -365,8 +353,8 @@ class True_(Predefined):
 class False_(Predefined):
     """
     <dl>
-    <dt>'False'
-        <dd>represents the Boolean false value.
+      <dt>'False'
+      <dd>represents the Boolean false value.
     </dl>
     """
 
@@ -418,12 +406,12 @@ class _ManyTrue(Builtin):
 class NoneTrue(_ManyTrue):
     """
     <dl>
-    <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
-    <dt>'NoneTrue[$list$, $test$, $level$]'
-        <dd>returns True if no application of $test$ to items of $list$ at $level$ evaluates to True.
-    <dt>'NoneTrue[$test$]'
-        <dd>gives an operator that may be applied to expressions.
+      <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
+      <dt>'NoneTrue[$list$, $test$, $level$]'
+      <dd>returns True if no application of $test$ to items of $list$ at $level$ evaluates to True.
+      <dt>'NoneTrue[$test$]'
+      <dd>gives an operator that may be applied to expressions.
     </dl>
 
     >> NoneTrue[{1, 3, 5}, EvenQ]
@@ -449,12 +437,12 @@ class NoneTrue(_ManyTrue):
 class AnyTrue(_ManyTrue):
     """
     <dl>
-    <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if any application of $test$ to $expr1$, $expr2$, ... evaluates to True.
-    <dt>'AnyTrue[$list$, $test$, $level$]'
-        <dd>returns True if any application of $test$ to items of $list$ at $level$ evaluates to True.
-    <dt>'AnyTrue[$test$]'
-        <dd>gives an operator that may be applied to expressions.
+      <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dd>returns True if any application of $test$ to $expr1$, $expr2$, ... evaluates to True.
+      <dt>'AnyTrue[$list$, $test$, $level$]'
+      <dd>returns True if any application of $test$ to items of $list$ at $level$ evaluates to True.
+      <dt>'AnyTrue[$test$]'
+      <dd>gives an operator that may be applied to expressions.
     </dl>
 
     >> AnyTrue[{1, 3, 5}, EvenQ]
@@ -480,12 +468,12 @@ class AnyTrue(_ManyTrue):
 class AllTrue(_ManyTrue):
     """
     <dl>
-    <dt>'AllTrue[{$expr1$, $expr2$, ...}, $test$]'
-        <dd>returns True if all applications of $test$ to $expr1$, $expr2$, ... evaluate to True.
-    <dt>'AllTrue[$list$, $test$, $level$]'
-        <dd>returns True if all applications of $test$ to items of $list$ at $level$ evaluate to True.
-    <dt>'AllTrue[$test$]'
-        <dd>gives an operator that may be applied to expressions.
+      <dt>'AllTrue[{$expr1$, $expr2$, ...}, $test$]'
+      <dd>returns True if all applications of $test$ to $expr1$, $expr2$, ... evaluate to True.
+      <dt>'AllTrue[$list$, $test$, $level$]'
+      <dd>returns True if all applications of $test$ to items of $list$ at $level$ evaluate to True.
+      <dt>'AllTrue[$test$]'
+      <dd>gives an operator that may be applied to expressions.
     </dl>
 
     >> AllTrue[{2, 4, 6}, EvenQ]

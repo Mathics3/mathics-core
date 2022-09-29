@@ -80,11 +80,9 @@ class Hash(Builtin):
     <dl>
       <dt>'Hash[$expr$]'
       <dd>returns an integer hash for the given $expr$.
-
       <dt>'Hash[$expr$, $type$]'
       <dd>returns an integer hash of the specified $type$ for the given $expr$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
-
       <dt>'Hash[$expr$, $type$, $format$]'
       <dd>Returns the hash in the specified format.
     </dl>
@@ -158,13 +156,10 @@ class StringDrop(Builtin):
     <dl>
       <dt>'StringDrop["$string$", $n$]'
       <dd>gives $string$ with the first $n$ characters dropped.
-
       <dt>'StringDrop["$string$", -$n$]'
       <dd>gives $string$ with the last $n$ characters dropped.
-
       <dt>'StringDrop["$string$", {$n$}]'
       <dd>gives $string$ with the $n$th character dropped.
-
       <dt>'StringDrop["$string$", {$m$, $n$}]'
       <dd>gives $string$ with the characters $m$ through $n$ dropped.
     </dl>
@@ -258,14 +253,10 @@ class StringInsert(Builtin):
     <dl>
       <dt>'StringInsert["$string$", "$snew$", $n$]'
       <dd>yields a string with $snew$ inserted starting at position $n$ in $string$.
-
       <dt>'StringInsert["$string$", "$snew$", -$n$]'
       <dd>inserts a at position $n$ from the end of "$string$".
-
       <dt>'StringInsert["$string$", "$snew$", {$n_1$, $n_2$, ...}]'
-      <dd>inserts a copy of $snew$ at each position $n_i$ in $string$;
-        the $n_i$ are taken before any insertion is done.
-
+      <dd>inserts a copy of $snew$ at each position $n_i$ in $string$; the $n_i$ are taken before any insertion is done.
       <dt>'StringInsert[{$s_1$, $s_2$, ...}, "$snew$", $n$]'
       <dd>gives the list of results for each of the $s_i$.
     </dl>
@@ -676,13 +667,11 @@ class StringReplace(_StringFind):
       <dt>'StringReplace["$string$", "$a$"->"$b$"]'
       <dd>replaces each occurrence of $old$ with $new$ in $string$.
       <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
-      <dd>performs multiple replacements of each $si$ by the
-        corresponding $spi$ in $string$.
+      <dd>performs multiple replacements of each $si$ by the corresponding $spi$ in $string$.
       <dt>'StringReplace["$string$", $srules$, $n$]'
       <dd>only performs the first $n$ replacements.
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
-      <dd>performs the replacements specified by $srules$ on a list
-        of strings.
+      <dd>performs the replacements specified by $srules$ on a list of strings.
     </dl>
 
     StringReplace replaces all occurrences of one substring with another:
@@ -814,13 +803,11 @@ class StringRiffle(Builtin):
       <dt>'StringRiffle[list, sep]'
       <dd>inserts the separator $sep$ between all elements in $list$.
       <dt>'StringRiffle[list, {"left", "sep", "right"}]'
-      <dd>use $left$ and $right$ as delimiters after concatenation.
-
-    ## These 2 forms are not currently implemented
-    ## <dt>'StringRiffle[{{s11, s12, ...}, {s21, s22, ...}, ...}]'
-    ##   <dd>returns a new string by concatenating the $sij$, and inserting spaces at the lowest level and newlines at the higher level.
-    ## <dt>'StringRiffle[list, sep1, sep2, ...]'
-    ##   <dd>inserts separator $sepi$ between elements of list at level i.
+      <dd>use $left$ and $right$ as delimiters after concatenation.  ## These 2 forms are not currently implemented
+      ## <dt>'StringRiffle[{{s11, s12, ...}, {s21, s22, ...}, ...}]'
+      ##   <dd>returns a new string by concatenating the $sij$, and inserting spaces at the lowest level and newlines at the higher level.
+      ## <dt>'StringRiffle[list, sep1, sep2, ...]'
+      ##   <dd>inserts separator $sepi$ between elements of list at level i.
     </dl>
 
     >> StringRiffle[{"a", "b", "c", "d", "e"}]
@@ -939,13 +926,10 @@ class StringSplit(Builtin):
     <dl>
       <dt>'StringSplit[$s$]'
       <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
-
       <dt>'StringSplit[$s$, $pattern$]'
       <dd>splits $s$ into substrings separated by delimiters matching the string expression $pattern$.
-
       <dt>'StringSplit[$s$, {$p_1$, $p_2$, ...}]'
       <dd>splits $s$ at any of the $p_i$ patterns.
-
       <dt>'StringSplit[{$s_1$, $s_2$, ...}, {$d_1$, $d_2$, ...}]'
       <dd>returns a list with the result of applying the function to each element.
     </dl>
@@ -1057,19 +1041,14 @@ class StringTake(Builtin):
     <dl>
       <dt>'StringTake["$string$", $n$]'
       <dd>gives the first $n$ characters in $string$.
-
       <dt>'StringTake["$string$", -$n$]'
       <dd>gives the last $n$ characters in $string$.
-
       <dt>'StringTake["$string$", {$n$}]'
       <dd>gives the $n$th character in $string$.
-
       <dt>'StringTake["$string$", {$m$, $n$}]'
       <dd>gives characters $m$ through $n$ in $string$.
-
       <dt>'StringTake["$string$", {$m$, $n$, $s$}]'
       <dd>gives characters $m$ through $n$ in steps of $s$.
-
       <dt>'StringTake[{$s1$, $s2$, ...} $spec$}]'
       <dd>gives the list of results for each of the $si$.
     </dl>

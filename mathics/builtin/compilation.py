@@ -39,7 +39,6 @@ class Compile(Builtin):
     <dl>
       <dt>'Compile[{$x1$, $x2$, ...}, $expr$]'
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
-
       <dt>'Compile[{{$x1$, $t1$} {$x2$, $t1$} ...}, $expr$]'
       <dd>Compiles assuming each $xi$ matches type $ti$.
     </dl>

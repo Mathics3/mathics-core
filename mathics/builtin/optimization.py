@@ -30,8 +30,8 @@ SymbolMinimize = Symbol("Minimize")
 class Minimize(Builtin):
     """
     <dl>
-    <dt>'Minimize[$f$, $x$]'
-        <dd>compute the minimum of $f$ respect $x$ that change between $a$ and $b$
+      <dt>'Minimize[$f$, $x$]'
+      <dd>compute the minimum of $f$ respect $x$ that change between $a$ and $b$
     </dl>
 
     >> Minimize[2 x^2 - 3 x + 5, x]

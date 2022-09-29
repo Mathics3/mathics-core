@@ -36,8 +36,7 @@ class Message(Builtin):
     """
     <dl>
       <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
-      <dd>displays the specified message, replacing placeholders in
-        the message text with the corresponding expressions.
+      <dd>displays the specified message, replacing placeholders in the message text with the corresponding expressions.
     </dl>
 
     >> a::b = "Hello world!"

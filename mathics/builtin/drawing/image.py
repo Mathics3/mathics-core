@@ -345,11 +345,11 @@ class ImageMultiply(_ImageArithmetic):
 class RandomImage(_ImageBuiltin):
     """
     <dl>
-    <dt>'RandomImage[$max$]'
+      <dt>'RandomImage[$max$]'
       <dd>creates an image of random pixels with values 0 to $max$.
-    <dt>'RandomImage[{$min$, $max$}]'
+      <dt>'RandomImage[{$min$, $max$}]'
       <dd>creates an image of random pixels with values $min$ to $max$.
-    <dt>'RandomImage[..., $size$]'
+      <dt>'RandomImage[..., $size$]'
       <dd>creates an image of the given $size$.
     </dl>
 
@@ -420,7 +420,6 @@ class ImageResize(_ImageBuiltin):
     <dl>
       <dt>'ImageResize[$image$, $width$]'
       <dd>
-
       <dt>'ImageResize[$image$, {$width$, $height$}]'
       <dd>
     </dl>
@@ -604,11 +603,11 @@ class ImageResize(_ImageBuiltin):
 class ImageReflect(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageReflect[$image$]'
+      <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
-    <dt>'ImageReflect[$image$, $side$]'
+      <dt>'ImageReflect[$image$, $side$]'
       <dd>Flips $image$ so that $side$ is interchanged with its opposite.
-    <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
+      <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
       <dd>Flips $image$ so that $side_1$ is interchanged with $side_2$.
     </dl>
 
@@ -681,9 +680,9 @@ class ImageReflect(_ImageBuiltin):
 class ImageRotate(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageRotate[$image$]'
+      <dt>'ImageRotate[$image$]'
       <dd>Rotates $image$ 90 degrees counterclockwise.
-    <dt>'ImageRotate[$image$, $theta$]'
+      <dt>'ImageRotate[$image$, $theta$]'
       <dd>Rotates $image$ by a given angle $theta$
     </dl>
 
@@ -736,9 +735,9 @@ class ImageRotate(_ImageBuiltin):
 class ImagePartition(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImagePartition[$image$, $s$]'
+      <dt>'ImagePartition[$image$, $s$]'
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
-    <dt>'ImagePartition[$image$, {$w$, $h$}]'
+      <dt>'ImagePartition[$image$, {$w$, $h$}]'
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
@@ -797,13 +796,13 @@ class ImagePartition(_ImageBuiltin):
 class ImageAdjust(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageAdjust[$image$]'
+      <dt>'ImageAdjust[$image$]'
       <dd>adjusts the levels in $image$.
-    <dt>'ImageAdjust[$image$, $c$]'
+      <dt>'ImageAdjust[$image$, $c$]'
       <dd>adjusts the contrast in $image$ by $c$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$}]'
+      <dt>'ImageAdjust[$image$, {$c$, $b$}]'
       <dd>adjusts the contrast $c$, and brightness $b$ in $image$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
+      <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
@@ -861,9 +860,9 @@ class ImageAdjust(_ImageBuiltin):
 class Blur(_ImageBuiltin):
     """
     <dl>
-    <dt>'Blur[$image$]'
+      <dt>'Blur[$image$]'
       <dd>gives a blurred version of $image$.
-    <dt>'Blur[$image$, $r$]'
+      <dt>'Blur[$image$, $r$]'
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
 
@@ -886,7 +885,6 @@ class Sharpen(_ImageBuiltin):
     <dl>
       <dt>'Sharpen[$image$]'
       <dd>gives a sharpened version of $image$.
-
       <dt>'Sharpen[$image$, $r$]'
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
@@ -937,8 +935,8 @@ class GaussianFilter(_ImageBuiltin):
 class PillowImageFilter(_ImageBuiltin):
     """
     <dl>
-    <dt>'PillowImageFilter[$image$, "filtername"]'
-    <dd> applies an image filter "filtername" from the pillow library.
+      <dt>'PillowImageFilter[$image$, "filtername"]'
+      <dd> applies an image filter "filtername" from the pillow library.
     </dl>
     TODO: test cases?
     """
@@ -952,9 +950,8 @@ class PillowImageFilter(_ImageBuiltin):
 class MinFilter(PillowImageFilter):
     """
     <dl>
-    <dt>'MinFilter[$image$, $r$]'
-      <dd>gives $image$ with a minimum filter of radius $r$ applied on it. This always
-      picks the smallest value in the filter's area.
+      <dt>'MinFilter[$image$, $r$]'
+      <dd>gives $image$ with a minimum filter of radius $r$ applied on it. This always picks the smallest value in the filter's area.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -972,9 +969,8 @@ class MinFilter(PillowImageFilter):
 class MaxFilter(PillowImageFilter):
     """
     <dl>
-    <dt>'MaxFilter[$image$, $r$]'
-      <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always
-      picks the largest value in the filter's area.
+      <dt>'MaxFilter[$image$, $r$]'
+      <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always picks the largest value in the filter's area.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -992,9 +988,8 @@ class MaxFilter(PillowImageFilter):
 class MedianFilter(PillowImageFilter):
     """
     <dl>
-    <dt>'MedianFilter[$image$, $r$]'
-      <dd>gives $image$ with a median filter of radius $r$ applied on it. This always
-      picks the median value in the filter's area.
+      <dt>'MedianFilter[$image$, $r$]'
+      <dd>gives $image$ with a median filter of radius $r$ applied on it. This always picks the median value in the filter's area.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -1012,7 +1007,7 @@ class MedianFilter(PillowImageFilter):
 class EdgeDetect(_SkimageBuiltin):
     """
     <dl>
-    <dt>'EdgeDetect[$image$]'
+      <dt>'EdgeDetect[$image$]'
       <dd>returns an image showing the edges in $image$.
     </dl>
 
@@ -1054,7 +1049,7 @@ def _matrix(rows):
 class BoxMatrix(_ImageBuiltin):
     """
     <dl>
-    <dt>'BoxMatrix[$s]'
+      <dt>'BoxMatrix[$s]'
       <dd>Gives a box shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -1074,7 +1069,7 @@ class BoxMatrix(_ImageBuiltin):
 class DiskMatrix(_ImageBuiltin):
     """
     <dl>
-    <dt>'DiskMatrix[$s]'
+      <dt>'DiskMatrix[$s]'
       <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -1102,7 +1097,7 @@ class DiskMatrix(_ImageBuiltin):
 class DiamondMatrix(_ImageBuiltin):
     """
     <dl>
-    <dt>'DiamondMatrix[$s]'
+      <dt>'DiamondMatrix[$s]'
       <dd>Gives a diamond shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -1137,7 +1132,7 @@ class DiamondMatrix(_ImageBuiltin):
 class ImageConvolve(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageConvolve[$image$, $kernel$]'
+      <dt>'ImageConvolve[$image$, $kernel$]'
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
@@ -1187,7 +1182,7 @@ class _MorphologyFilter(_SkimageBuiltin):
 class Dilation(_MorphologyFilter):
     """
     <dl>
-    <dt>'Dilation[$image$, $ker$]'
+      <dt>'Dilation[$image$, $ker$]'
       <dd>Gives the morphological dilation of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1202,7 +1197,7 @@ class Dilation(_MorphologyFilter):
 class Erosion(_MorphologyFilter):
     """
     <dl>
-    <dt>'Erosion[$image$, $ker$]'
+      <dt>'Erosion[$image$, $ker$]'
       <dd>Gives the morphological erosion of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1217,7 +1212,7 @@ class Erosion(_MorphologyFilter):
 class Opening(_MorphologyFilter):
     """
     <dl>
-    <dt>'Opening[$image$, $ker$]'
+      <dt>'Opening[$image$, $ker$]'
       <dd>Gives the morphological opening of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1232,7 +1227,7 @@ class Opening(_MorphologyFilter):
 class Closing(_MorphologyFilter):
     """
     <dl>
-    <dt>'Closing[$image$, $ker$]'
+      <dt>'Closing[$image$, $ker$]'
       <dd>Gives the morphological closing of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1247,12 +1242,10 @@ class Closing(_MorphologyFilter):
 class MorphologicalComponents(_SkimageBuiltin):
     """
     <dl>
-    <dt>'MorphologicalComponents[$image$]'
-    <dd> Builds a 2-D array in which each pixel of $image$ is replaced
-    by an integer index representing the connected foreground image
-    component in which the pixel lies.
-    <dt>'MorphologicalComponents[$image$, $threshold$]'
-    <dd> consider any pixel with a value above $threshold$ as the foreground.
+      <dt>'MorphologicalComponents[$image$]'
+      <dd> Builds a 2-D array in which each pixel of $image$ is replaced by an integer index representing the connected foreground image component in which the pixel lies.
+      <dt>'MorphologicalComponents[$image$, $threshold$]'
+      <dd> consider any pixel with a value above $threshold$ as the foreground.
     </dl>
     """
 
@@ -1278,8 +1271,8 @@ class MorphologicalComponents(_SkimageBuiltin):
 class ImageColorSpace(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageColorSpace[$image$]'
-        <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
+      <dt>'ImageColorSpace[$image$]'
+      <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
     </dl>
 
     >> img = Import["ExampleData/lena.tif"];
@@ -1297,7 +1290,7 @@ class ImageColorSpace(_ImageBuiltin):
 class ColorQuantize(_ImageBuiltin):
     """
     <dl>
-    <dt>'ColorQuantize[$image$, $n$]'
+      <dt>'ColorQuantize[$image$, $n$]'
       <dd>gives a version of $image$ using only $n$ colors.
     </dl>
 
@@ -1389,10 +1382,8 @@ class Binarize(_SkimageBuiltin):
     <dl>
       <dt>'Binarize[$image$]'
       <dd>gives a binarized version of $image$, in which each pixel is either 0 or 1.
-
       <dt>'Binarize[$image$, $t$]'
       <dd>map values $x$ > $t$ to 1, and values $x$ <= $t$ to 0.
-
       <dt>'Binarize[$image$, {$t1$, $t2$}]'
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
@@ -1433,7 +1424,7 @@ class Binarize(_SkimageBuiltin):
 class ColorSeparate(_ImageBuiltin):
     """
     <dl>
-    <dt>'ColorSeparate[$image$]'
+      <dt>'ColorSeparate[$image$]'
       <dd>Gives each channel of $image$ as a separate grayscale image.
     </dl>
     """
@@ -1455,7 +1446,7 @@ class ColorSeparate(_ImageBuiltin):
 class ColorCombine(_ImageBuiltin):
     """
     <dl>
-    <dt>'ColorCombine[$channels$, $colorspace$]'
+      <dt>'ColorCombine[$channels$, $colorspace$]'
       <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
     </dl>
 
@@ -1522,11 +1513,9 @@ def _linearize(a):
 class Colorize(_ImageBuiltin):
     """
     <dl>
-    <dt>'Colorize[$values$]'
-      <dd>returns an image where each number in the rectangular matrix $values$ is a pixel and each
-      occurence of the same number is displayed in the same unique color, which is different from the
-      colors of all non-identical numbers.
-    <dt>'Colorize[$image$]'
+      <dt>'Colorize[$values$]'
+      <dd>returns an image where each number in the rectangular matrix $values$ is a pixel and each occurence of the same number is displayed in the same unique color, which is different from the colors of all non-identical numbers.
+      <dt>'Colorize[$image$]'
       <dd>gives a colorized version of $image$.
     </dl>
 
@@ -1586,9 +1575,9 @@ class Colorize(_ImageBuiltin):
 class ImageData(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageData[$image$]'
+      <dt>'ImageData[$image$]'
       <dd>gives a list of all color values of $image$ as a matrix.
-    <dt>'ImageData[$image$, $stype$]'
+      <dt>'ImageData[$image$, $stype$]'
       <dd>gives a list of color values in type $stype$.
     </dl>
 
@@ -1632,13 +1621,13 @@ class ImageData(_ImageBuiltin):
 class ImageTake(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageTake[$image$, $n$]'
+      <dt>'ImageTake[$image$, $n$]'
       <dd>gives the first $n$ rows of $image$.
-    <dt>'ImageTake[$image$, -$n$]'
+      <dt>'ImageTake[$image$, -$n$]'
       <dd>gives the last $n$ rows of $image$.
-    <dt>'ImageTake[$image$, {$r1$, $r2$}]'
+      <dt>'ImageTake[$image$, {$r1$, $r2$}]'
       <dd>gives rows $r1$, ..., $r2$ of $image$.
-    <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
+      <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
       <dd>gives a cropped version of $image$.
     </dl>
     """
@@ -1684,7 +1673,7 @@ class ImageTake(_ImageBuiltin):
 class PixelValue(_ImageBuiltin):
     """
     <dl>
-    <dt>'PixelValue[$image$, {$x$, $y$}]'
+      <dt>'PixelValue[$image$, {$x$, $y$}]'
       <dd>gives the value of the pixel at position {$x$, $y$} in $image$.
     </dl>
 
@@ -1729,7 +1718,7 @@ class PixelValue(_ImageBuiltin):
 class PixelValuePositions(_ImageBuiltin):
     """
     <dl>
-    <dt>'PixelValuePositions[$image$, $val$]'
+      <dt>'PixelValuePositions[$image$, $val$]'
       <dd>gives the positions of all pixels in $image$ that have value $val$.
     </dl>
 
@@ -1780,7 +1769,7 @@ class PixelValuePositions(_ImageBuiltin):
 class ImageDimensions(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageDimensions[$image$]'
+      <dt>'ImageDimensions[$image$]'
       <dd>Returns the dimensions of $image$ in pixels.
     </dl>
 
@@ -1807,7 +1796,7 @@ class ImageDimensions(_ImageBuiltin):
 class ImageAspectRatio(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageAspectRatio[$image$]'
+      <dt>'ImageAspectRatio[$image$]'
       <dd>gives the aspect ratio of $image$.
     </dl>
 
@@ -1830,7 +1819,7 @@ class ImageAspectRatio(_ImageBuiltin):
 class ImageChannels(_ImageBuiltin):
     """
     <dl>
-    <dt>'ImageChannels[$image$]'
+      <dt>'ImageChannels[$image$]'
       <dd>gives the number of channels in $image$.
     </dl>
 
@@ -2142,8 +2131,8 @@ class Image(Atom):
 class ImageAtom(AtomBuiltin):
     """
     <dl>
-    <dt>'Image[...]'
-    <dd> produces the internal representation of an image from an array
+      <dt>'Image[...]'
+      <dd> produces the internal representation of an image from an array
     of values for the pixels.
     </dl>
     #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
@@ -2173,7 +2162,7 @@ class ImageAtom(AtomBuiltin):
 class TextRecognize(Builtin):
     """
     <dl>
-    <dt>'TextRecognize[{$image$}]'
+      <dt>'TextRecognize[{$image$}]'
       <dd>Recognizes text in $image$ and returns it as string.
     </dl>
     """

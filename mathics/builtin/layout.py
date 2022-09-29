@@ -254,8 +254,7 @@ class Infix(Builtin):
     """
     <dl>
       <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
-      <dd>displays $expr$ with the infix operator $oper$, with
-        precedence $prec$ and associativity $assoc$.
+      <dd>displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$.
     </dl>
 
     'Infix' can be used with 'Format' to display certain forms with
@@ -294,8 +293,7 @@ class NonAssociative(Builtin):
     """
     <dl>
       <dt>'NonAssociative'
-      <dd>is used with operator formatting constructs to specify a
-        non-associative operator.
+      <dd>is used with operator formatting constructs to specify a non-associative operator.
     </dl>
     """
 
@@ -306,8 +304,7 @@ class Left(Builtin):
     """
     <dl>
       <dt>'Left'
-      <dd>is used with operator formatting constructs to specify a
-        left-associative operator.
+      <dd>is used with operator formatting constructs to specify a left-associative operator.
     </dl>
     """
 
@@ -318,8 +315,7 @@ class Right(Builtin):
     """
     <dl>
       <dt>'Right'
-      <dd>is used with operator formatting constructs to specify a
-        right-associative operator.
+      <dd>is used with operator formatting constructs to specify a right-associative operator.
     </dl>
     """
 
@@ -330,8 +326,7 @@ class Center(Builtin):
     """
     <dl>
       <dt>'Center'
-      <dd>is used with the 'ColumnAlignments' option to 'Grid' or
-        'TableForm' to specify a centered column.
+      <dd>is used with the 'ColumnAlignments' option to 'Grid' or 'TableForm' to specify a centered column.
     </dl>
     """
 

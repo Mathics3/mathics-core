@@ -129,7 +129,6 @@ class LaguerreL(_MPMathFunction):
      <dl>
        <dt>'LaguerreL[$n$, $x$]'
        <dd>returns the Laguerre polynomial L_$n$($x$).
-
        <dt>'LaguerreL[$n$, $a$, $x$]'
        <dd>returns the generalised Laguerre polynomial L^$a$_$n$($x$).
      </dl>
@@ -165,7 +164,6 @@ class LegendreP(_MPMathFunction):
     <dl>
       <dt>'LegendreP[$n$, $x$]'
       <dd>returns the Legendre polynomial P_$n$($x$).
-
       <dt>'LegendreP[$n$, $m$, $x$]'
       <dd>returns the associated Legendre polynomial P^$m$_$n$($x$).
     </dl>
@@ -216,7 +214,6 @@ class LegendreQ(_MPMathFunction):
     <dl>
       <dt>'LegendreQ[$n$, $x$]'
       <dd>returns the Legendre function of the second kind Q_$n$($x$).
-
       <dt>'LegendreQ[$n$, $m$, $x$]'
       <dd>returns the associated Legendre function of the second Q^$m$_$n$($x$).
     </dl>

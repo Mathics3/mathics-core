@@ -41,7 +41,6 @@ class ContinuedFraction(SympyFunction):
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
-
       <dt>'ContinuedFraction[$x$]'
       <dd>the complete continued fraction representation for a rational or quadradic irrational number.
     </dl>
@@ -75,8 +74,8 @@ class ContinuedFraction(SympyFunction):
 class Divisors(Builtin):
     """
     <dl>
-    <dt>'Divisors[$n$]'
-        <dd>returns a list of the integers that divide $n$.
+      <dt>'Divisors[$n$]'
+      <dd>returns a list of the integers that divide $n$.
     </dl>
 
     >> Divisors[96]
@@ -256,8 +255,8 @@ def _fractional_part(self, n, expr, evaluation):
 class FractionalPart(Builtin):
     """
     <dl>
-    <dt>'FractionalPart[$n$]'
-        <dd>finds the fractional part of $n$.
+      <dt>'FractionalPart[$n$]'
+      <dd>finds the fractional part of $n$.
     </dl>
 
     >> FractionalPart[4.1]
@@ -334,10 +333,10 @@ class FromContinuedFraction(SympyFunction):
 class MantissaExponent(Builtin):
     """
     <dl>
-    <dt>'MantissaExponent[$n$]'
-        <dd>finds a list containing the mantissa and exponent of a given number $n$.
-    <dt>'MantissaExponent[$n$, $b$]'
-        <dd>finds the base b mantissa and exponent of $n$.
+      <dt>'MantissaExponent[$n$]'
+      <dd>finds a list containing the mantissa and exponent of a given number $n$.
+      <dt>'MantissaExponent[$n$, $b$]'
+      <dd>finds the base b mantissa and exponent of $n$.
     </dl>
 
     >> MantissaExponent[2.5*10^20]
@@ -463,7 +462,6 @@ class NextPrime(Builtin):
     <dl>
       <dt>'NextPrime[$n$]'
       <dd>gives the next prime after $n$.
-
       <dt>'NextPrime[$n$,$k$]'
       <dd>gives the $k$th  prime after $n$.
     </dl>
@@ -552,8 +550,7 @@ class Prime(SympyFunction):
     <dl>
       <dt>'Prime[$n$]'
       <dt>'Prime'[{$n0$, $n1$, ...}]
-      <dd>returns the $n$th prime number where $n$ is an positive Integer.
-      If given a list of integers, the return value is a list with 'Prime' applied to each.
+      <dd>returns the $n$th prime number where $n$ is an positive Integer. If given a list of integers, the return value is a list with 'Prime' applied to each.
     </dl>
 
     Note that the first prime is 2, not 1:
@@ -591,8 +588,8 @@ class Prime(SympyFunction):
 class PrimePi(SympyFunction):
     """
     <dl>
-    <dt>'PrimePi[$x$]'
-        <dd>gives the number of primes less than or equal to $x$.
+      <dt>'PrimePi[$x$]'
+      <dd>gives the number of primes less than or equal to $x$.
     </dl>
 
     PrimePi is the inverse of Prime:
@@ -628,8 +625,8 @@ class PrimePi(SympyFunction):
 class PrimePowerQ(Builtin):
     """
     <dl>
-    <dt>'PrimePowerQ[$n$]'
-        <dd>returns 'True' if $n$ is a power of a prime number.
+      <dt>'PrimePowerQ[$n$]'
+      <dd>returns 'True' if $n$ is a power of a prime number.
     </dl>
 
     >> PrimePowerQ[9]
@@ -687,10 +684,8 @@ class RandomPrime(Builtin):
     <dl>
       <dt>'RandomPrime[{$imin$, $imax}]'
       <dd>gives a random prime between $imin$ and $imax$.
-
       <dt>'RandomPrime[$imax$]'
       <dd>gives a random prime between 2 and $imax$.
-
       <dt>'RandomPrime[$range$, $n$]'
       <dd>gives a list of $n$ random primes in $range$.
     </dl>

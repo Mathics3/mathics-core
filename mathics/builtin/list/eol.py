@@ -158,10 +158,8 @@ class Cases(Builtin):
     <dl>
       <dt>'Cases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that match $pattern$.
-
       <dt>'Cases[$list$, $pattern$, $ls$]'
       <dd>returns the elements matching at levelspec $ls$.
-
       <dt>'Cases[$list$, $pattern$, Heads->$bool$]'
       <dd>Match including the head of the expression in the search.
     </dl>
@@ -265,7 +263,6 @@ class Count(Builtin):
     <dl>
       <dt>'Count[$list$, $pattern$]'
       <dd>returns the number of times $pattern$ appears in $list$.
-
       <dt>'Count[$list$, $pattern$, $ls$]'
       <dd>counts the elements matching at levelspec $ls$.
     </dl>
@@ -289,10 +286,8 @@ class DeleteCases(Builtin):
     <dl>
       <dt>'DeleteCases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that do not match $pattern$.
-
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$]'
       <dd> removes all parts of $list on levels specified by $levelspec$ that match pattern (not fully implemented).
-
       <dt>'DeleteCases[$list$, $pattern$, $levelspec$, $n$]'
       <dd> removes the first $n$ parts of $list$ that match $pattern$.
     </dl>
@@ -478,16 +473,13 @@ class FirstCase(Builtin):
     """
     <dl>
       <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
-      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
-
+      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found. 
       <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
       <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
       <dt> FirstCase[$expr$, $pattern$, $default$]
-      <dd> gives $default$ if no element matching $pattern$ is found.
-
+      <dd> gives $default$ if no element matching $pattern$ is found. 
       <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$] \
-      <dd>finds only objects that appear on levels specified by $levelspec$.
-
+      <dd>finds only objects that appear on levels specified by $levelspec$. 
       <dt>FirstCase[$pattern$]
       <dd>represents an operator form of FirstCase that can be applied to an expression.
     </dl>
@@ -509,7 +501,6 @@ class Extract(Builtin):
     <dl>
       <dt>'Extract[$expr$, $list$]'
       <dd>extracts parts of $expr$ specified by $list$.
-
       <dt>'Extract[$expr$, {$list1$, $list2$, ...}]'
       <dd>extracts a list of parts.
     </dl>
@@ -536,10 +527,8 @@ class FirstPosition(Builtin):
     <dl>
       <dt>'FirstPosition[$expr$, $pattern$]'
       <dd>gives the position of the first element in $expr$ that matches $pattern$, or Missing["NotFound"] if no such element is found.
-
       <dt>'FirstPosition[$expr$, $pattern$, $default$]'
       <dd>gives default if no element matching $pattern$ is found.
-
       <dt>'FirstPosition[$expr$, $pattern$, $default$, $levelspec$]'
       <dd>finds only objects that appear on levels specified by $levelspec$.
     </dl>
@@ -1003,7 +992,6 @@ class Pick(Builtin):
     <dl>
       <dt>'Pick[$list$, $sel$]'
       <dd>returns those items in $list$ that are True in $sel$.
-
       <dt>'Pick[$list$, $sel$, $patt$]'
       <dd>returns those items in $list$ that match $patt$ in $sel$.
     </dl>
@@ -1053,7 +1041,6 @@ class Position(Builtin):
     <dl>
       <dt>'Position[$expr$, $patt$]'
       <dd>returns the list of positions for which $expr$ matches $patt$.
-
       <dt>'Position[$expr$, $patt$, $ls$]'
       <dd>returns the positions on levels specified by levelspec $ls$.
     </dl>
@@ -1115,7 +1102,6 @@ class Prepend(Builtin):
     <dl>
       <dt>'Prepend[$expr$, $item$]'
       <dd>returns $expr$ with $item$ prepended to its elements.
-
       <dt>'Prepend[$expr$]'
       <dd>'Prepend[$elem$][$expr$]' is equivalent to 'Prepend[$expr$,$elem$]'.
     </dl>
@@ -1224,7 +1210,6 @@ class ReplacePart(Builtin):
     <dl>
       <dt>'ReplacePart[$expr$, $i$ -> $new$]'
       <dd>replaces part $i$ in $expr$ with $new$.
-
       <dt>'ReplacePart[$expr$, {{$i$, $j$} -> $e1$, {$k$, $l$} -> $e2$}]'
       <dd>replaces parts $i$ and $j$ with $e1$, and parts $k$ and $l$ with $e2$.
     </dl>

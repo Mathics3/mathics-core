@@ -146,8 +146,8 @@ else:
 class RandomState(Builtin):
     """
     <dl>
-    <dt>'$RandomState'
-        <dd>is a long number representing the internal state of the pseudorandom number generator.
+      <dt>'$RandomState'
+      <dd>is a long number representing the internal state of the pseudorandom number generator.
     </dl>
 
     >> Mod[$RandomState, 10^100]
@@ -181,10 +181,10 @@ class RandomState(Builtin):
 class SeedRandom(Builtin):
     """
     <dl>
-    <dt>'SeedRandom[$n$]'
-        <dd>resets the pseudorandom generator with seed $n$.
-    <dt>'SeedRandom[]'
-        <dd>uses the current date and time as the seed.
+      <dt>'SeedRandom[$n$]'
+      <dd>resets the pseudorandom generator with seed $n$.
+      <dt>'SeedRandom[]'
+      <dd>uses the current date and time as the seed.
     </dl>
 
     'SeedRandom' can be used to get reproducible random numbers:
@@ -275,18 +275,16 @@ class _RandomBase(Builtin):
 class RandomInteger(Builtin):
     """
     <dl>
-    <dt>'RandomInteger[{$min$, $max$}]'
-        <dd>yields a pseudorandom integer in the range from $min$ to
-        $max$ inclusive.
-    <dt>'RandomInteger[$max$]'
-        <dd>yields a pseudorandom integer in the range from 0 to $max$
-        inclusive.
-    <dt>'RandomInteger[]'
-        <dd>gives 0 or 1.
-    <dt>'RandomInteger[$range$, $n$]'
-        <dd>gives a list of $n$ pseudorandom integers.
-    <dt>'RandomInteger[$range$, {$n1$, $n2$, ...}]'
-        <dd>gives a nested list of pseudorandom integers.
+      <dt>'RandomInteger[{$min$, $max$}]'
+      <dd>yields a pseudorandom integer in the range from $min$ to $max$ inclusive.
+      <dt>'RandomInteger[$max$]'
+      <dd>yields a pseudorandom integer in the range from 0 to $max$ inclusive.
+      <dt>'RandomInteger[]'
+      <dd>gives 0 or 1.
+      <dt>'RandomInteger[$range$, $n$]'
+      <dd>gives a list of $n$ pseudorandom integers.
+      <dt>'RandomInteger[$range$, {$n1$, $n2$, ...}]'
+      <dd>gives a nested list of pseudorandom integers.
     </dl>
 
     >> RandomInteger[{1, 5}]
@@ -351,16 +349,12 @@ class RandomReal(Builtin):
     <dl>
       <dt>'RandomReal[{$min$, $max$}]'
       <dd>yields a pseudorandom real number in the range from $min$ to $max$.
-
       <dt>'RandomReal[$max$]'
       <dd>yields a pseudorandom real number in the range from 0 to $max$.
-
       <dt>'RandomReal[]'
       <dd>yields a pseudorandom real number in the range from 0 to 1.
-
       <dt>'RandomReal[$range$, $n$]'
       <dd>gives a list of $n$ pseudorandom real numbers.
-
       <dt>'RandomReal[$range$, {$n1$, $n2$, ...}]'
       <dd>gives an $n1$ x $n2$ array of pseudorandom real numbers.
     </dl>
@@ -443,16 +437,16 @@ class RandomReal(Builtin):
 class RandomComplex(Builtin):
     """
     <dl>
-    <dt>'RandomComplex[{$z_min$, $z_max$}]'
-        <dd>yields a pseudorandom complex number in the rectangle with complex corners $z_min$ and $z_max$.
-    <dt>'RandomComplex[$z_max$]'
-        <dd>yields a pseudorandom complex number in the rectangle with corners at the origin and at $z_max$.
-    <dt>'RandomComplex[]'
-        <dd>yields a pseudorandom complex number with real and imaginary parts from 0 to 1.
-    <dt>'RandomComplex[$range$, $n$]'
-        <dd>gives a list of $n$ pseudorandom complex numbers.
-    <dt>'RandomComplex[$range$, {$n1$, $n2$, ...}]'
-        <dd>gives a nested list of pseudorandom complex numbers.
+      <dt>'RandomComplex[{$z_min$, $z_max$}]'
+      <dd>yields a pseudorandom complex number in the rectangle with complex corners $z_min$ and $z_max$.
+      <dt>'RandomComplex[$z_max$]'
+      <dd>yields a pseudorandom complex number in the rectangle with corners at the origin and at $z_max$.
+      <dt>'RandomComplex[]'
+      <dd>yields a pseudorandom complex number with real and imaginary parts from 0 to 1.
+      <dt>'RandomComplex[$range$, $n$]'
+      <dd>gives a list of $n$ pseudorandom complex numbers.
+      <dt>'RandomComplex[$range$, {$n1$, $n2$, ...}]'
+      <dd>gives a nested list of pseudorandom complex numbers.
     </dl>
 
     >> RandomComplex[]
@@ -564,10 +558,10 @@ class RandomComplex(Builtin):
 class Random(Builtin):
     """
     <dl>
-    <dt>'Random[]'
-    <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
-    <dt>'Random[$type$, $range$]'
-    <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
+      <dt>'Random[]'
+      <dd>gives a uniformly distributed pseudorandom Real number in the range 0 to 1.
+      <dt>'Random[$type$, $range$]'
+      <dd>gives a uniformly distributed pseudorandom number of the type $type$, in the specified interval $range$. Possible types are 'Integer', 'Real' or 'Complex'.
     </dl>
     Legacy function. Superseded by RandomReal, RandomInteger and RandomComplex.
 
@@ -668,22 +662,18 @@ class _RandomSelection(_RandomBase):
 class RandomChoice(_RandomSelection):
     """
     <dl>
-    <dt>'RandomChoice[$items$]'
-        <dd>randomly picks one item from $items$.
-    <dt>'RandomChoice[$items$, $n$]'
-        <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens from the
-        given set of $items$, so each item can be picked any number of times.
-    <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
-        <dd>randomly picks items from $items$ and arranges the picked items in the nested list
-        structure described by {$n1$, $n2$, ...}.
-    <dt>'RandomChoice[$weights$ -> $items$, $n$]'
-        <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in
-        $weights$ to determine how probable it is for each item in $items$ to get picked (in the
-        long run, items with higher weights will get picked more often than ones with lower weight).
-    <dt>'RandomChoice[$weights$ -> $items$]'
-        <dd>randomly picks one items from $items$ using weights $weights$.
-    <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-        <dd>randomly picks a structured list of items from $items$ using weights $weights$.
+      <dt>'RandomChoice[$items$]'
+      <dd>randomly picks one item from $items$.
+      <dt>'RandomChoice[$items$, $n$]'
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens from the given set of $items$, so each item can be picked any number of times.
+      <dt>'RandomChoice[$items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks items from $items$ and arranges the picked items in the nested list structure described by {$n1$, $n2$, ...}.
+      <dt>'RandomChoice[$weights$ -> $items$, $n$]'
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in $weights$ to determine how probable it is for each item in $items$ to get picked (in the long run, items with higher weights will get picked more often than ones with lower weight).
+      <dt>'RandomChoice[$weights$ -> $items$]'
+      <dd>randomly picks one items from $items$ using weights $weights$.
+      <dt>'RandomChoice[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks a structured list of items from $items$ using weights $weights$.
     </dl>
 
     Note: 'SeedRandom' is used below so we get repeatable "random" numbers that we can test.
@@ -712,25 +702,24 @@ class RandomChoice(_RandomSelection):
 class RandomSample(_RandomSelection):
     """
     <dl>
-    <dt>'RandomSample[$items$]'
-        <dd>randomly picks one item from $items$.
-    <dt>'RandomSample[$items$, $n$]'
-        <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens after the
-        previous items picked have been removed from $items$, so each item can be picked at most
+      <dt>'RandomSample[$items$]'
+      <dd>randomly picks one item from $items$.
+      <dt>'RandomSample[$items$, $n$]'
+      <dd>randomly picks $n$ items from $items$. Each pick in the $n$ picks happens after the previous items picked have been removed from $items$, so each item can be picked at most
         once.
-    <dt>'RandomSample[$items$, {$n1$, $n2$, ...}]'
-        <dd>randomly picks items from $items$ and arranges the picked items in the nested list
+      <dt>'RandomSample[$items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks items from $items$ and arranges the picked items in the nested list
         structure described by {$n1$, $n2$, ...}. Each item gets picked at most once.
-    <dt>'RandomSample[$weights$ -> $items$, $n$]'
-        <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in
+      <dt>'RandomSample[$weights$ -> $items$, $n$]'
+      <dd>randomly picks $n$ items from $items$ and uses the corresponding numeric values in
         $weights$ to determine how probable it is for each item in $items$ to get picked (in the
         long run, items with higher weights will get picked more often than ones with lower weight).
         Each item gets picked at most once.
-    <dt>'RandomSample[$weights$ -> $items$]'
-        <dd>randomly picks one items from $items$ using weights $weights$. Each item gets picked
+      <dt>'RandomSample[$weights$ -> $items$]'
+      <dd>randomly picks one items from $items$ using weights $weights$. Each item gets picked
         at most once.
-    <dt>'RandomSample[$weights$ -> $items$, {$n1$, $n2$, ...}]'
-        <dd>randomly picks a structured list of items from $items$ using weights $weights$. Each
+      <dt>'RandomSample[$weights$ -> $items$, {$n1$, $n2$, ...}]'
+      <dd>randomly picks a structured list of items from $items$ using weights $weights$. Each
         item gets picked at most once.
     </dl>
 

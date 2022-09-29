@@ -13,8 +13,7 @@ class ByteOrdering(Predefined):
     """
     <dl>
       <dt>'ByteOrdering'
-      <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering
-    of bytes should be assumed for your computer system..
+      <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering of bytes should be assumed for your computer system..
     </dl>
 
     X> ByteOrdering

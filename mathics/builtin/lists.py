@@ -610,8 +610,7 @@ class Split(Builtin):
       <dt>'Split[$list$]'
       <dd>splits $list$ into collections of consecutive identical elements.
       <dt>'Split[$list$, $test$]'
-      <dd>splits $list$ based on whether the function $test$ yields
-        'True' on consecutive elements.
+      <dd>splits $list$ based on whether the function $test$ yields 'True' on consecutive elements.
     </dl>
 
     >> Split[{x, x, x, y, x, y, y, z}]
@@ -678,8 +677,7 @@ class SplitBy(Builtin):
     """
     <dl>
       <dt>'SplitBy[$list$, $f$]'
-      <dd>splits $list$ into collections of consecutive elements
-        that give the same result when $f$ is applied.
+      <dd>splits $list$ into collections of consecutive elements that give the same result when $f$ is applied.
     </dl>
 
     >> SplitBy[Range[1, 3, 1/3], Round]
@@ -1217,8 +1215,7 @@ class TakeLargestBy(_RankedTakeLargest):
     """
     <dl>
       <dt>'TakeLargestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ largest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
+      <dd>returns the a sorted list of the $n$ largest items in $list$ using $f$ to retrieve the items' keys to compare them.
     </dl>
 
     For details on how to use the ExcludedForms option, see TakeLargest[].
@@ -1241,8 +1238,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
     """
     <dl>
       <dt>'TakeSmallestBy[$list$, $f$, $n$]'
-      <dd>returns the a sorted list of the $n$ smallest items in $list$
-        using $f$ to retrieve the items' keys to compare them.
+      <dd>returns the a sorted list of the $n$ smallest items in $list$ using $f$ to retrieve the items' keys to compare them.
     </dl>
 
     For details on how to use the ExcludedForms option, see TakeLargest[].
@@ -1462,8 +1458,7 @@ class PadLeft(_Pad):
       <dt>'PadLeft[$list$, $n$, $x$, $m$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the right.
       <dt>'PadLeft[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ...
-         on levels 1, 2, ... on the right.
+      <dd>pads $list$ to length $n$ by adding $x$ on the left and adding margins of $m1$, $m2$, ... on levels 1, 2, ... on the right.
       <dt>'PadLeft[$list$]'
       <dd>turns the ragged list $list$ into a regular list by adding 0 on the left.
     </dl>
@@ -1498,8 +1493,7 @@ class PadRight(_Pad):
       <dt>'PadRight[$list$, $n$, $x$, $m$]'
       <dd>pads $list$ to length $n$ by adding $x$ on the left and adding a margin of $m$ on the left.
       <dt>'PadRight[$list$, $n$, $x$, {$m1$, $m2$, ...}]'
-      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ...
-         on levels 1, 2, ... on the left.
+      <dd>pads $list$ to length $n$ by adding $x$ on the right and adding margins of $m1$, $m2$, ... on levels 1, 2, ... on the left.
       <dt>'PadRight[$list$]'
       <dd>turns the ragged list $list$ into a regular list by adding 0 on the right.
     </dl>
@@ -1768,8 +1762,7 @@ class FindClusters(_Cluster):
     """
     <dl>
       <dt>'FindClusters[$list$]'
-      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
-        automatically.
+      <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined automatically.
       <dt>'FindClusters[$list$, $k$]'
       <dd>returns a list of $k$ clusters formed from the elements of $list$.
     </dl>
@@ -1847,13 +1840,9 @@ class ClusteringComponents(_Cluster):
     """
     <dl>
       <dt>'ClusteringComponents[$list$]'
-      <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
-        element shows the index of the cluster in which the corresponding element in $list$
-        ended up.
+      <dd>forms clusters from $list$ and returns a list of cluster indices, in which each element shows the index of the cluster in which the corresponding element in $list$ ended up.
       <dt>'ClusteringComponents[$list$, $k$]'
-      <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which
-        each element shows the index of the cluster in which the corresponding element in
-        $list$ ended up.
+      <dd>forms $k$ clusters from $list$ and returns a list of cluster indices, in which each element shows the index of the cluster in which the corresponding element in $list$ ended up.
     </dl>
 
     For more detailed documentation regarding options and behavior, see FindClusters[].
@@ -1895,16 +1884,12 @@ class Nearest(Builtin):
     <dl>
       <dt>'Nearest[$list$, $x$]'
       <dd>returns the one item in $list$ that is nearest to $x$.
-
       <dt>'Nearest[$list$, $x$, $n$]'
       <dd>returns the $n$ nearest items.
-
       <dt>'Nearest[$list$, $x$, {$n$, $r$}]'
       <dd>returns up to $n$ nearest items that are not farther from $x$ than $r$.
-
       <dt>'Nearest[{$p1$ -> $q1$, $p2$ -> $q2$, ...}, $x$]'
       <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
-
       <dt>'Nearest[{$p1$, $p2$, ...} -> {$q1$, $q2$, ...}, $x$]'
       <dd>returns $q1$, $q2$, ... but measures the distances using $p1$, $p2$, ...
     </dl>

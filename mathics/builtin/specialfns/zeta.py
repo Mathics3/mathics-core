@@ -14,8 +14,8 @@ from mathics.core.convert.mpmath import from_mpmath
 class LerchPhi(_MPMathFunction):
     """
     <dl>
-    <dt>'LerchPhi[z,s,a]'
-        <dd>gives the Lerch transcendent Φ(z,s,a).
+      <dt>'LerchPhi[z,s,a]'
+      <dd>gives the Lerch transcendent Φ(z,s,a).
     </dl>
 
     >> LerchPhi[2, 3, -1.5]
@@ -45,7 +45,7 @@ class LerchPhi(_MPMathFunction):
 class Zeta(_MPMathFunction):
     """
     <dl>
-    <dt>'Zeta[$z$]'
+      <dt>'Zeta[$z$]'
       <dd>returns the Riemann zeta function of $z$.
     </dl>
 

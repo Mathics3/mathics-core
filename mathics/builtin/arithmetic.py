@@ -418,7 +418,6 @@ class Complex_(Builtin):
     <dl>
       <dt>'Complex'
       <dd>is the head of complex numbers.
-
       <dt>'Complex[$a$, $b$]'
       <dd>constructs the complex number '$a$ + I $b$'.
     </dl>
@@ -793,7 +792,6 @@ class Piecewise(SympyFunction):
     <dl>
       <dt>'Piecewise[{{expr1, cond1}, ...}]'
       <dd>represents a piecewise function.
-
       <dt>'Piecewise[{{expr1, cond1}, ...}, expr]'
       <dd>represents a piecewise function with default 'expr'.
     </dl>
@@ -953,13 +951,10 @@ class Product(_IterationFunction, SympyFunction):
     <dl>
       <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
       <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
-
       <dt>'Product[$expr$, {$i$, $imax$}]'
       <dd>same as 'Product[$expr$, {$i$, 1, $imax$}]'.
-
       <dt>'Product[$expr$, {$i$, $imin$, $imax$, $di$}]'
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
-
       <dt>'Product[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
       <dd>evaluates $expr$ as a multiple product, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>
@@ -1259,13 +1254,10 @@ class Sum(_IterationFunction, SympyFunction):
     <dl>
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}]'
       <dd>evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$.
-
       <dt>'Sum[$expr$, {$i$, $imax$}]'
       <dd>same as 'Sum[$expr$, {$i$, 1, $imax$}]'.
-
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$, $di$}]'
       <dd>$i$ ranges from $imin$ to $imax$ in steps of $di$.
-
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
       <dd>evaluates $expr$ as a multiple sum, with {$i$, ...}, {$j$, ...}, ... being in outermost-to-innermost order.
     </dl>

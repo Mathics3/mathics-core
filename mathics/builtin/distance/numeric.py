@@ -42,7 +42,7 @@ class BrayCurtisDistance(Builtin):
     """
     <dl>
       <dt>'BrayCurtisDistance[$u$, $v$]'
-       <dd>returns the Bray-Curtis distance between $u$ and $v$.
+      <dd>returns the Bray-Curtis distance between $u$ and $v$.
     </dl>
 
     The Bray-Curtis distance is equivalent to Total[Abs[u-v]]/Total[Abs[u+v]].
@@ -72,7 +72,7 @@ class CanberraDistance(Builtin):
     """
     <dl>
       <dt>'CanberraDistance[$u$, $v$]'
-       <dd>returns the canberra distance between $u$ and $v$, which is a weighted version of the Manhattan distance.
+      <dd>returns the canberra distance between $u$ and $v$, which is a weighted version of the Manhattan distance.
     </dl>
 
     >> CanberraDistance[-7, 5]

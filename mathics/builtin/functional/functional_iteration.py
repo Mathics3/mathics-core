@@ -21,7 +21,6 @@ class FixedPoint(Builtin):
     <dl>
       <dt>'FixedPoint[$f$, $expr$]'
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes.
-
       <dt>'FixedPoint[$f$, $expr$, $n$]'
       <dd>performs at most $n$ iterations. The same that using $MaxIterations->n$
     </dl>
@@ -94,7 +93,6 @@ class FixedPointList(Builtin):
     <dl>
       <dt>'FixedPointList[$f$, $expr$]'
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes, and returns a list of all intermediate results.
-
       <dt>'FixedPointList[$f$, $expr$, $n$]'
       <dd>performs at most $n$ iterations.
     </dl>
@@ -160,8 +158,7 @@ class Fold(Builtin):
     """
     <dl>
       <dt>'Fold[$f$, $x$, $list$]'
-      <dd>returns the result of iteratively applying the binary
-        operator $f$ to each element of $list$, starting with $x$.
+      <dd>returns the result of iteratively applying the binary operator $f$ to each element of $list$, starting with $x$.
       <dt>'Fold[$f$, $list$]'
       <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
     </dl>
@@ -183,9 +180,7 @@ class FoldList(Builtin):
     """
     <dl>
       <dt>'FoldList[$f$, $x$, $list$]'
-      <dd>returns a list starting with $x$, where each element is
-        the result of applying the binary operator $f$ to the previous
-        result and the next element of $list$.
+      <dd>returns a list starting with $x$, where each element is the result of applying the binary operator $f$ to the previous result and the next element of $list$.
       <dt>'FoldList[$f$, $list$]'
       <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
     </dl>
@@ -274,10 +269,8 @@ class NestWhile(Builtin):
     <dl>
       <dt>'NestWhile[$f$, $expr$, $test$]'
       <dd>applies a function $f$ repeatedly on an expression $expr$, until applying $test$ on the result no longer yields 'True'.
-
       <dt>'NestWhile[$f$, $expr$, $test$, $m$]'
       <dd>supplies the last $m$ results to $test$ (default value: 1).
-
       <dt>'NestWhile[$f$, $expr$, $test$, All]'
       <dd>supplies all results gained so far to $test$.
     </dl>

@@ -28,7 +28,6 @@ class Floor(SympyFunction):
     <dl>
       <dt>'Floor[$x$]'
       <dd>gives the greatest integer less than or equal to $x$.
-
       <dt>'Floor[$x$, $a$]'
       <dd>gives the greatest multiple of $a$ less than or equal to $x$.
     </dl>
@@ -156,9 +155,7 @@ class IntegerString(Builtin):
       <dt>'IntegerString[$n$, $b$]'
       <dd>returns the base $b$ representation of integer $x$ as string. $x$'s sign is ignored.
       <dt>'IntegerString[$n$, $b$, $length$]'
-      <dd>returns a string of length $length$. If the number is too short, the string gets padded
-        with 0 on the left. If the number is too long, the $length$ least significant digits are
-        returned.
+      <dd>returns a string of length $length$. If the number is too short, the string gets padded with 0 on the left. If the number is too long, the $length$ least significant digits are returned.
     </dl>
 
     For bases > 10, alphabetic characters a, b, ... are used to represent digits 11, 12, ... . Note
@@ -482,11 +479,9 @@ class FromDigits(Builtin):
     """
     <dl>
       <dt>'FromDigits[$l$]'
-      <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of
-        digits or a string.
+      <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of digits or a string.
       <dt>'FromDigits[$l$, $b$]'
-      <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of
-        digits or a string.
+      <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of digits or a string.
     </dl>
 
     >> FromDigits["123"]

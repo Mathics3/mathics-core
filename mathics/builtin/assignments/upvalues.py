@@ -63,10 +63,9 @@ class UpSet(BinaryOperator, _SetOperator):
 class UpSetDelayed(UpSet):
     """
     <dl>
-       <dt>'UpSetDelayed[$expression$, $value$]'
-
-       <dt>'$expression$ ^:= $value$'
-       <dd>assigns $expression$ to the value of $f$[$x$] (without evaluating $expression$), associating the value with $x$.
+      <dt>'UpSetDelayed[$expression$, $value$]'
+      <dt>'$expression$ ^:= $value$'
+      <dd>assigns $expression$ to the value of $f$[$x$] (without evaluating $expression$), associating the value with $x$.
     </dl>
 
     >> a[b] ^:= x

@@ -31,8 +31,8 @@ from mathics.core.attributes import listable, no_attributes, protected
 class HistoryLength(Builtin):
     """
     <dl>
-    <dt>'$HistoryLength'
-        <dd>specifies the maximum number of 'In' and 'Out' entries.
+      <dt>'$HistoryLength'
+      <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
     >> $HistoryLength
      = 100
@@ -61,8 +61,8 @@ class HistoryLength(Builtin):
 class In(Builtin):
     """
     <dl>
-    <dt>'In[$k$]'
-        <dd>gives the $k$th line of input.
+      <dt>'In[$k$]'
+      <dd>gives the $k$th line of input.
     </dl>
     >> x = 1
      = 1
@@ -100,10 +100,8 @@ class In(Builtin):
 class IOHookPreRead(Builtin):
     """
     <dl>
-    <dt>$PreRead
-    <dd> is a global variable whose value, if set, is applied to the \
-    text or box form of every input expression before it is fed to the parser.
-    (Not implemented yet)
+      <dt>$PreRead
+      <dd> is a global variable whose value, if set, is applied to the \ text or box form of every input expression before it is fed to the parser. (Not implemented yet)
     </dl>
     """
 
@@ -117,9 +115,8 @@ class IOHookPreRead(Builtin):
 class IOHookPre(Builtin):
     """
     <dl>
-    <dt>$Pre
-    <dd>is a global variable whose value, if set,
-    is applied to every input expression.
+      <dt>$Pre
+      <dd>is a global variable whose value, if set, is applied to every input expression.
     </dl>
 
     Set $Timing$ as the $Pre function, stores the enlapsed time in a variable,
@@ -150,9 +147,8 @@ class IOHookPre(Builtin):
 class IOHookPost(Builtin):
     """
     <dl>
-    <dt>$Post
-    <dd>is a global variable whose value, if set,
-    is applied to every output expression.
+      <dt>$Post
+      <dd>is a global variable whose value, if set, is applied to every output expression.
     </dl>
     """
 
@@ -164,9 +160,8 @@ class IOHookPost(Builtin):
 class IOHookPrePrint(Builtin):
     """
     <dl>
-    <dt>$PrePrint
-    <dd>is a global variable whose value, if set,
-    is applied to every output expression before it is printed.
+      <dt>$PrePrint
+      <dd>is a global variable whose value, if set, is applied to every output expression before it is printed.
     </dl>
     """
 
@@ -180,10 +175,8 @@ class IOHookPrePrint(Builtin):
 class IOHookSyntaxHandler(Builtin):
     """
     <dl>
-    <dt>$SyntaxHandler
-    <dd>is a global variable whose value, if set,
-    is applied to  any input string that is found to contain a syntax error.
-    (Not implemented yet)
+      <dt>$SyntaxHandler
+      <dd>is a global variable whose value, if set, is applied to  any input string that is found to contain a syntax error. (Not implemented yet)
     </dl>
     """
 
@@ -195,8 +188,8 @@ class IOHookSyntaxHandler(Builtin):
 class Line(Builtin):
     """
     <dl>
-    <dt>'$Line'
-        <dd>holds the current input line number.
+      <dt>'$Line'
+      <dd>holds the current input line number.
     </dl>
     >> $Line
      = 1
@@ -218,11 +211,11 @@ class Line(Builtin):
 class Out(Builtin):
     """
     <dl>
-    <dt>'Out[$k$]'
-    <dt>'%$k$'
-        <dd>gives the result of the $k$th input line.
-    <dt>'%', '%%', etc.
-        <dd>gives the result of the previous input line, of the line before the previous input line, etc.
+      <dt>'Out[$k$]'
+      <dt>'%$k$'
+      <dd>gives the result of the $k$th input line.
+      <dt>'%', '%%', etc.
+      <dd>gives the result of the previous input line, of the line before the previous input line, etc.
     </dl>
 
     >> 42

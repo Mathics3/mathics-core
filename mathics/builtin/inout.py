@@ -138,8 +138,7 @@ class MatrixForm(TableForm):
     """
     <dl>
       <dt>'MatrixForm[$m$]'
-      <dd>displays a matrix $m$, hiding the underlying list
-        structure.
+      <dd>displays a matrix $m$, hiding the underlying list structure.
     </dl>
 
     >> Array[a,{4,3}]//MatrixForm
@@ -176,8 +175,7 @@ class StringForm(Builtin):
     """
     <dl>
       <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
-      <dd>displays the string $str$, replacing placeholders in $str$
-        with the corresponding expressions.
+      <dd>displays the string $str$, replacing placeholders in $str$ with the corresponding expressions.
     </dl>
 
     >> StringForm["`1` bla `2` blub `` bla `2`", a, b, c]
@@ -226,7 +224,6 @@ class Echo_(Predefined):
     <dl>
       <dt>'$Echo'
       <dd>gives a list of files and pipes to which all input is echoed.
-
     </dl>
     """
 
@@ -307,8 +304,7 @@ class TraditionalForm(Builtin):
     """
     <dl>
       <dt>'TraditionalForm[$expr$]'
-      <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
-           function evaluations are represented by brackets instead of square brackets.
+      <dd>displays $expr$ in a format similar to the traditional mathematical notation, where function evaluations are represented by brackets instead of square brackets.
     </dl>
 
     ## To pass this test, we need to improve the implementation of Element.format
@@ -418,8 +414,7 @@ class PythonForm(Builtin):
     """
     <dl>
       <dt>'PythonForm[$expr$]'
-      <dd>returns an approximate equivalent of $expr$ in Python, when that is possible. We assume
-      that Python has SymPy imported. No explicit import will be include in the result.
+      <dd>returns an approximate equivalent of $expr$ in Python, when that is possible. We assume that Python has SymPy imported. No explicit import will be include in the result.
     </dl>
 
     >> PythonForm[Infinity]
@@ -460,8 +455,7 @@ class SympyForm(Builtin):
     """
     <dl>
       <dt>'SympyForm[$expr$]'
-      <dd>returns an Sympy $expr$ in Python. Sympy is used internally
-      to implement a number of Mathics functions, like Simplify.
+      <dd>returns an Sympy $expr$ in Python. Sympy is used internally to implement a number of Mathics functions, like Simplify.
     </dl>
 
     >> SympyForm[Pi^2]

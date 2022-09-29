@@ -64,7 +64,7 @@ SymbolAbsoluteTime = Symbol("AbsoluteTime")
 class AbsoluteFileName(Builtin):
     """
     <dl>
-    <dt>'AbsoluteFileName["$name$"]'
+      <dt>'AbsoluteFileName["$name$"]'
       <dd>returns the absolute version of the given filename.
     </dl>
 
@@ -106,7 +106,7 @@ class AbsoluteFileName(Builtin):
 class BaseDirectory(Predefined):
     """
     <dl>
-    <dt>'$UserBaseDirectory'
+      <dt>'$UserBaseDirectory'
       <dd>returns the folder where user configurations are stored.
     </dl>
 
@@ -125,7 +125,7 @@ class BaseDirectory(Predefined):
 class CopyDirectory(Builtin):
     """
     <dl>
-    <dt>'CopyDirectory["$dir1$", "$dir2$"]'
+      <dt>'CopyDirectory["$dir1$", "$dir2$"]'
       <dd>copies directory $dir1$ to $dir2$.
     </dl>
     """
@@ -174,7 +174,7 @@ class CopyDirectory(Builtin):
 class CopyFile(Builtin):
     """
     <dl>
-    <dt>'CopyFile["$file1$", "$file2$"]'
+      <dt>'CopyFile["$file1$", "$file2$"]'
       <dd>copies $file1$ to $file2$.
     </dl>
 
@@ -233,9 +233,9 @@ class CopyFile(Builtin):
 class CreateDirectory(Builtin):
     """
     <dl>
-    <dt>'CreateDirectory["$dir$"]'
+      <dt>'CreateDirectory["$dir$"]'
       <dd>creates a directory called $dir$.
-    <dt>'CreateDirectory[]'
+      <dt>'CreateDirectory[]'
       <dd>creates a temporary directory.
     </dl>
 
@@ -294,10 +294,10 @@ class CreateDirectory(Builtin):
 class CreateFile(Builtin):
     """
     <dl>
-    <dt>'CreateFile["filename"]'
-        <dd>Creates a file named "filename" temporary file, but do not open it.
-    <dt>'CreateFile[]'
-        <dd>Creates a temporary file, but do not open it.
+      <dt>'CreateFile["filename"]'
+      <dd>Creates a file named "filename" temporary file, but do not open it.
+      <dt>'CreateFile[]'
+      <dd>Creates a temporary file, but do not open it.
     </dl>
     """
 
@@ -329,8 +329,8 @@ class CreateFile(Builtin):
 class CreateTemporary(Builtin):
     """
     <dl>
-    <dt>'CreateTemporary[]'
-        <dd>Creates a temporary file, but do not open it.
+      <dt>'CreateTemporary[]'
+      <dd>Creates a temporary file, but do not open it.
     </dl>
     """
 
@@ -348,7 +348,7 @@ class CreateTemporary(Builtin):
 class DeleteDirectory(Builtin):
     """
     <dl>
-    <dt>'DeleteDirectory["$dir$"]'
+      <dt>'DeleteDirectory["$dir$"]'
       <dd>deletes a directory called $dir$.
     </dl>
 
@@ -410,9 +410,9 @@ class DeleteDirectory(Builtin):
 class DeleteFile(Builtin):
     """
     <dl>
-    <dt>'Delete["$file$"]'
+      <dt>'Delete["$file$"]'
       <dd>deletes $file$.
-    <dt>'Delete[{"$file1$", "$file2$", ...}]'
+      <dt>'Delete[{"$file1$", "$file2$", ...}]'
       <dd>deletes a list of files.
     </dl>
 
@@ -474,7 +474,7 @@ class DeleteFile(Builtin):
 class Directory(Builtin):
     """
     <dl>
-    <dt>'Directory[]'
+      <dt>'Directory[]'
       <dd>returns the current working directory.
     </dl>
 
@@ -493,7 +493,7 @@ class Directory(Builtin):
 class DirectoryName(Builtin):
     """
     <dl>
-    <dt>'DirectoryName["$name$"]'
+      <dt>'DirectoryName["$name$"]'
       <dd>extracts the directory name from a filename.
     </dl>
 
@@ -565,7 +565,7 @@ class DirectoryName(Builtin):
 class DirectoryStack(Builtin):
     """
     <dl>
-    <dt>'DirectoryStack[]'
+      <dt>'DirectoryStack[]'
       <dd>returns the directory stack.
     </dl>
 
@@ -584,7 +584,7 @@ class DirectoryStack(Builtin):
 class DirectoryQ(Builtin):
     """
     <dl>
-    <dt>'DirectoryQ["$name$"]'
+      <dt>'DirectoryQ["$name$"]'
       <dd>returns 'True' if the directory called $name$ exists and 'False' otherwise.
     </dl>
 
@@ -626,7 +626,7 @@ class DirectoryQ(Builtin):
 class ExpandFileName(Builtin):
     """
     <dl>
-    <dt>'ExpandFileName["$name$"]'
+      <dt>'ExpandFileName["$name$"]'
       <dd>expands $name$ to an absolute filename for your system.
     </dl>
 
@@ -657,7 +657,7 @@ class ExpandFileName(Builtin):
 class File(Builtin):
     """
     <dl>
-    <dt>'File["$file$"]'
+      <dt>'File["$file$"]'
       <dd>is a symbolic representation of an element in the local file system.
     </dl>
     """
@@ -668,7 +668,7 @@ class File(Builtin):
 class FileBaseName(Builtin):
     """
     <dl>
-    <dt>'FileBaseName["$file$"]'
+      <dt>'FileBaseName["$file$"]'
       <dd>gives the base name for the specified file name.
     </dl>
 
@@ -701,7 +701,7 @@ class FileBaseName(Builtin):
 class FileByteCount(Builtin):
     """
     <dl>
-    <dt>'FileByteCount[$file$]'
+      <dt>'FileByteCount[$file$]'
       <dd>returns the number of bytes in $file$.
     </dl>
 
@@ -745,7 +745,7 @@ class FileByteCount(Builtin):
 class FileDate(Builtin):
     """
     <dl>
-    <dt>'FileDate[$file$, $types$]'
+      <dt>'FileDate[$file$, $types$]'
       <dd>returns the time and date at which the file was last modified.
     </dl>
 
@@ -847,7 +847,7 @@ class FileDate(Builtin):
 class FileExistsQ(Builtin):
     """
     <dl>
-    <dt>'FileExistsQ["$file$"]'
+      <dt>'FileExistsQ["$file$"]'
       <dd>returns 'True' if $file$ exists and 'False' otherwise.
     </dl>
 
@@ -882,7 +882,7 @@ class FileExistsQ(Builtin):
 class FileExtension(Builtin):
     """
     <dl>
-    <dt>'FileExtension["$file$"]'
+      <dt>'FileExtension["$file$"]'
       <dd>gives the extension for the specified file name.
     </dl>
 
@@ -914,12 +914,12 @@ class FileExtension(Builtin):
 class FileHash(Builtin):
     """
     <dl>
-    <dt>'FileHash[$file$]'
+      <dt>'FileHash[$file$]'
       <dd>returns an integer hash for the given $file$.
-    <dt>'FileHash[$file$, $type$]'
+      <dt>'FileHash[$file$, $type$]'
       <dd>returns an integer hash of the specified $type$ for the given $file$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
-    <dt>'FileHash[$file$, $type$, $format$]'
+      <dt>'FileHash[$file$, $type$, $format$]'
       <dd>gives a hash code in the specified format.
     </dl>
 
@@ -985,7 +985,7 @@ class FileHash(Builtin):
 class FileInformation(Builtin):
     """
     <dl>
-    <dt>'FileInformation["$file$"]'
+      <dt>'FileInformation["$file$"]'
       <dd>returns information about $file$.
     </dl>
 
@@ -1007,7 +1007,7 @@ class FileInformation(Builtin):
 class FileNameDepth(Builtin):
     """
     <dl>
-    <dt>'FileNameDepth["$name$"]'
+      <dt>'FileNameDepth["$name$"]'
       <dd>gives the number of path parts in the given filename.
     </dl>
 
@@ -1039,7 +1039,6 @@ class FileNameJoin(Builtin):
     <dl>
       <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
       <dd>joins the $dir_i$ together into one path.
-
       <dt>'FileNameJoin[..., OperatingSystem->"os"]'
       <dd>yields a file name in the format for the specified operating system. Possible choices are "Windows", "MacOSX", and "Unix".
     </dl>
@@ -1107,7 +1106,7 @@ class FileNameJoin(Builtin):
 class FileType(Builtin):
     """
     <dl>
-    <dt>'FileType["$file$"]'
+      <dt>'FileType["$file$"]'
       <dd>gives the type of a file, a string. This is typically 'File', 'Directory' or 'None'.
     </dl>
 
@@ -1151,7 +1150,7 @@ class FileType(Builtin):
 class FindFile(Builtin):
     """
     <dl>
-    <dt>'FindFile[$name$]'
+      <dt>'FindFile[$name$]'
       <dd>searches '$Path' for the given filename.
     </dl>
 
@@ -1196,18 +1195,18 @@ class FindFile(Builtin):
 class FileNames(Builtin):
     r"""
     <dl>
-    <dt>'FileNames[]'
-        <dd>Returns a list with the filenames in the current working folder.
-    <dt>'FileNames[$form$]'
-        <dd>Returns a list with the filenames in the current working folder that matches with $form$.
-    <dt>'FileNames[{$form_1$, $form_2$, ...}]'
-        <dd>Returns a list with the filenames in the current working folder that matches with one of $form_1$, $form_2$, ....
-    <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
-        <dd>Looks into the directories $dir_1$, $dir_2$, ....
-    <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
-        <dd>Looks into the directories $dir_1$, $dir_2$, ....
-    <dt>'FileNames[{$forms$, $dirs$, $n$]'
-        <dd>Look for files up to the level $n$.
+      <dt>'FileNames[]'
+      <dd>Returns a list with the filenames in the current working folder.
+      <dt>'FileNames[$form$]'
+      <dd>Returns a list with the filenames in the current working folder that matches with $form$.
+      <dt>'FileNames[{$form_1$, $form_2$, ...}]'
+      <dd>Returns a list with the filenames in the current working folder that matches with one of $form_1$, $form_2$, ....
+      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dd>Looks into the directories $dir_1$, $dir_2$, ....
+      <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
+      <dd>Looks into the directories $dir_1$, $dir_2$, ....
+      <dt>'FileNames[{$forms$, $dirs$, $n$]'
+      <dd>Look for files up to the level $n$.
     </dl>
 
     >> SetDirectory[$InstallationDirectory <> "/autoload"];
@@ -1396,10 +1395,8 @@ class FileNameTake(Builtin):
     <dl>
       <dt>'FileNameTake["$file$"]'
       <dd>returns the last path element in the file name $name$.
-
       <dt>'FileNameTake["$file$", $n$]'
       <dd>returns the first $n$ path elements in the file name $name$.
-
       <dt>'FileNameTake["$file$", $-n$]'
       <dd>returns the last $n$ path elements in the file name $name$.
     </dl>
@@ -1440,10 +1437,8 @@ class FindList(Builtin):
     <dl>
       <dt>'FindList[$file$, $text$]'
       <dd>returns a list of all lines in $file$ that contain $text$.
-
       <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
       <dd>returns a list of all lines in $file$ that contain any of the specified string.
-
       <dt>'FindList[{$file1$, $file2$, ...}, ...]'
       <dd>returns a list of all lines in any of the $filei$ that contain the specified strings.
     </dl>
@@ -1605,8 +1600,8 @@ class InstallationDirectory(Predefined):
 class Needs(Builtin):
     """
     <dl>
-    <dt>'Needs["context`"]'
-        <dd>loads the specified context if not already in '$Packages'.
+      <dt>'Needs["context`"]'
+      <dd>loads the specified context if not already in '$Packages'.
     </dl>
 
     >> Needs["VectorAnalysis`"]
@@ -1742,7 +1737,7 @@ class Needs(Builtin):
 class OperatingSystem(Predefined):
     """
     <dl>
-    <dt>'$OperatingSystem'
+      <dt>'$OperatingSystem'
       <dd>gives the type of operating system running Mathics.
     </dl>
 
@@ -1770,7 +1765,6 @@ class ParentDirectory(Builtin):
     <dl>
       <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
-
       <dt>'ParentDirectory["$dir$"]'
       <dd>returns the parent $dir$.
     </dl>
@@ -1891,7 +1885,7 @@ class RenameDirectory(Builtin):
 class RenameFile(Builtin):
     """
     <dl>
-    <dt>'RenameFile["$file1$", "$file2$"]'
+      <dt>'RenameFile["$file1$", "$file2$"]'
       <dd>renames $file1$ to $file2$.
     </dl>
 
@@ -1950,7 +1944,7 @@ class RenameFile(Builtin):
 class ResetDirectory(Builtin):
     """
     <dl>
-    <dt>'ResetDirectory[]'
+      <dt>'ResetDirectory[]'
       <dd>pops a directory from the directory stack and returns it.
     </dl>
 
@@ -1978,7 +1972,7 @@ class ResetDirectory(Builtin):
 class RootDirectory(Predefined):
     """
     <dl>
-    <dt>'$RootDirectory'
+      <dt>'$RootDirectory'
       <dd>returns the system root directory.
     </dl>
 
@@ -1997,7 +1991,7 @@ class RootDirectory(Predefined):
 class SetDirectory(Builtin):
     """
     <dl>
-    <dt>'SetDirectory[$dir$]'
+      <dt>'SetDirectory[$dir$]'
       <dd>sets the current working directory to $dir$.
     </dl>
 
@@ -2045,13 +2039,12 @@ class SetDirectory(Builtin):
 class SetFileDate(Builtin):
     """
     <dl>
-    <dt>'SetFileDate["$file$"]'
+      <dt>'SetFileDate["$file$"]'
       <dd>set the file access and modification dates of $file$ to the current date.
-    <dt>'SetFileDate["$file$", $date$]'
+      <dt>'SetFileDate["$file$", $date$]'
       <dd>set the file access and modification dates of $file$ to the specified date list.
-    <dt>'SetFileDate["$file$", $date$, "$type$"]'
-      <dd>set the file date of $file$ to the specified date list.
-      The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
+      <dt>'SetFileDate["$file$", $date$, "$type$"]'
+      <dd>set the file date of $file$ to the specified date list. The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
     </dl>
 
     Create a temporary file (for example purposes)
@@ -2188,7 +2181,7 @@ class SetFileDate(Builtin):
 class TemporaryDirectory(Predefined):
     """
     <dl>
-    <dt>'$TemporaryDirectory'
+      <dt>'$TemporaryDirectory'
       <dd>returns the directory used for temporary files.
     </dl>
 
@@ -2206,7 +2199,7 @@ class TemporaryDirectory(Predefined):
 class ToFileName(Builtin):
     """
     <dl>
-    <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
+      <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
       <dd>joins the $dir_i$ together into one path.
     </dl>
 
@@ -2233,7 +2226,7 @@ class ToFileName(Builtin):
 class UserBaseDirectory(Predefined):
     """
     <dl>
-    <dt>'$UserBaseDirectory'
+      <dt>'$UserBaseDirectory'
       <dd>returns the folder where user configurations are stored.
     </dl>
 
@@ -2252,10 +2245,10 @@ class UserBaseDirectory(Predefined):
 class URLSave(Builtin):
     """
     <dl>
-    <dt>'URLSave["url"]'
-        <dd>Save "url" in a temporary file.
-    <dt>'URLSave["url", $filename$]'
-        <dd>Save "url" in $filename$.
+      <dt>'URLSave["url"]'
+      <dd>Save "url" in a temporary file.
+      <dt>'URLSave["url", $filename$]'
+      <dd>Save "url" in $filename$.
     </dl>
     """
 

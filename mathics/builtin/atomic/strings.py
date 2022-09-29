@@ -349,9 +349,8 @@ class SystemCharacterEncoding(Predefined):
 class CharacterEncoding(Predefined):
     """
     <dl>
-    <dt>'CharacterEncoding'
-        <dd>specifies the default character encoding to use if no other encoding is
-        specified.
+      <dt>'CharacterEncoding'
+      <dd>specifies the default character encoding to use if no other encoding is specified.
     </dl>
     """
 
@@ -432,7 +431,7 @@ class CharacterEncodings(Predefined):
 class NumberString(Builtin):
     """
     <dl>
-    <dt>'NumberString'
+      <dt>'NumberString'
       <dd>represents the characters in a number.
     </dl>
 
@@ -452,7 +451,7 @@ class NumberString(Builtin):
 class Whitespace(Builtin):
     r"""
     <dl>
-    <dt>'Whitespace'
+      <dt>'Whitespace'
       <dd>represents a sequence of whitespace characters.
     </dl>
 
@@ -478,12 +477,11 @@ def letter_number(chars: List[str], start_ord) -> List["Integer"]:
 class Alphabet(Builtin):
     """
      <dl>
-      <dt>'Alphabet'[]
-      <dd>gives the list of lowercase letters a-z in the English alphabet .
-
-      <dt>'Alphabet[$type$]'
-      <dd> gives the alphabet for the language or class $type$.
-    </dl>
+       <dt>'Alphabet'[]
+       <dd>gives the list of lowercase letters a-z in the English alphabet .
+       <dt>'Alphabet[$type$]'
+       <dd> gives the alphabet for the language or class $type$.
+     </dl>
 
     >> Alphabet[]
      = {a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r, s, t, u, v, w, x, y, z}
@@ -524,7 +522,6 @@ class LetterNumber(Builtin):
     <dl>
       <dt>'LetterNumber'[$c$]
       <dd>returns the position of the character $c$ in the English alphabet.
-
       <dt>'LetterNumber["string"]'
       <dd>returns a list of the positions of characters in string.
       <dt>'LetterNumber["string", $alpha$]'
@@ -638,7 +635,7 @@ class LetterNumber(Builtin):
 class HexidecimalCharacter(Builtin):
     """
     <dl>
-    <dt>'HexidecimalCharacter'
+      <dt>'HexidecimalCharacter'
       <dd>represents the characters 0-9, a-f and A-F.
     </dl>
 
@@ -740,10 +737,8 @@ class StringRepeat(Builtin):
     <dl>
       <dt>'StringRepeat["$string$", $n$]'
       <dd>gives $string$ repeated $n$ times.
-
       <dt>'StringRepeat["$string$", $n$, $max$]'
       <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
-
     </dl>
 
     >> StringRepeat["abc", 3]
@@ -818,7 +813,6 @@ class ToString(Builtin):
     <dl>
       <dt>'ToString[$expr$]'
       <dd>returns a string representation of $expr$.
-
       <dt>'ToString[$expr$, $form$]'
       <dd>returns a string representation of $expr$ in the form $form$.
     </dl>
@@ -869,8 +863,7 @@ class InterpretedBox(PrefixOperator):
     r"""
     <dl>
       <dt>'InterpretedBox[$box$]'
-      <dd>is the ad hoc fullform for \! $box$. just
-          for internal use...
+      <dd>is the ad hoc fullform for \! $box$. just for internal use...
     </dl>
     >> \! \(2+2\)
      = 4
@@ -1021,7 +1014,7 @@ class ToExpression(Builtin):
 class StringQ(Test):
     """
     <dl>
-    <dt>'StringQ[$expr$]'
+      <dt>'StringQ[$expr$]'
       <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
     </dl>
 
@@ -1042,8 +1035,8 @@ class StringQ(Test):
 class RemoveDiacritics(Builtin):
     """
     <dl>
-    <dt>'RemoveDiacritics[$s$]'
-        <dd>returns a version of $s$ with all diacritics removed.
+      <dt>'RemoveDiacritics[$s$]'
+      <dd>returns a version of $s$ with all diacritics removed.
     </dl>
 
     >> RemoveDiacritics["en prononçant pêcher et pécher"]
@@ -1067,8 +1060,8 @@ class RemoveDiacritics(Builtin):
 class Transliterate(Builtin):
     """
     <dl>
-    <dt>'Transliterate[$s$]'
-        <dd>transliterates a text in some script into an ASCII string.
+      <dt>'Transliterate[$s$]'
+      <dd>transliterates a text in some script into an ASCII string.
     </dl>
 
     ASCII translateration examples:
@@ -1140,12 +1133,12 @@ def _pattern_search(name, string, patt, evaluation, options, matched):
 class StringContainsQ(Builtin):
     """
     <dl>
-    <dt>'StringContainsQ["$string$", $patt$]'
-        <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
-    <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
-        <dd>returns the list of results for each element of string list.
-    <dt>'StringContainsQ[patt]'
-        <dd>represents an operator form of StringContainsQ that can be applied to an expression.
+      <dt>'StringContainsQ["$string$", $patt$]'
+      <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
+      <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
+      <dd>returns the list of results for each element of string list.
+      <dt>'StringContainsQ[patt]'
+      <dd>represents an operator form of StringContainsQ that can be applied to an expression.
     </dl>
 
     >> StringContainsQ["mathics", "m" ~~ __ ~~ "s"]

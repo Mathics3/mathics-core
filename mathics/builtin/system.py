@@ -41,8 +41,8 @@ else:
 class Aborted(Predefined):
     """
     <dl>
-    <dt>'$Aborted'
-        <dd>is returned by a calculation that has been aborted.
+      <dt>'$Aborted'
+      <dd>is returned by a calculation that has been aborted.
     </dl>
     """
 
@@ -53,7 +53,7 @@ class Aborted(Predefined):
 class CommandLine(Predefined):
     """
     <dl>
-    <dt>'$CommandLine'
+      <dt>'$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics session.
     </dl>
     >> $CommandLine
@@ -91,8 +91,8 @@ class Environment(Builtin):
 class Failed(Predefined):
     """
     <dl>
-    <dt>'$Failed'
-        <dd>is returned by some functions in the event of an error.
+      <dt>'$Failed'
+      <dd>is returned by some functions in the event of an error.
     </dl>
 
     #> Get["nonexistent_file.m"]
@@ -107,8 +107,8 @@ class Failed(Predefined):
 class GetEnvironment(Builtin):
     """
     <dl>
-    <dt>'GetEnvironment["$var$"]'
-        <dd>gives the setting corresponding to the variable "var" in the operating system environment.
+      <dt>'GetEnvironment["$var$"]'
+      <dd>gives the setting corresponding to the variable "var" in the operating system environment.
     </dl>
 
     X> GetEnvironment["HOME"]
@@ -142,8 +142,8 @@ class GetEnvironment(Builtin):
 class Machine(Predefined):
     """
     <dl>
-    <dt>'$Machine'
-        <dd>returns a string describing the type of computer system on which the Mathics is being run.
+      <dt>'$Machine'
+      <dd>returns a string describing the type of computer system on which the Mathics is being run.
     </dl>
     X> $Machine
      = linux
@@ -252,8 +252,8 @@ class ProcessID(Predefined):
 class ProcessorType(Predefined):
     r"""
     <dl>
-    <dt>'$ProcessorType'
-        <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
+      <dt>'$ProcessorType'
+      <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
     </dl>
     X> $ProcessorType
     = x86_64
@@ -312,8 +312,8 @@ class Run(Builtin):
 class SystemID(Predefined):
     r"""
     <dl>
-       <dt>'$SystemID'
-       <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
+      <dt>'$SystemID'
+      <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
     </dl>
     X> $SystemID
      = linux
@@ -354,8 +354,7 @@ class UserName(Predefined):
     r"""
     <dl>
       <dt>$UserName
-      <dd>returns the login name, according to the operative system, of the user that started the current
-      \Mathics session.
+      <dd>returns the login name, according to the operative system, of the user that started the current \Mathics session.
     </dl>
 
     X> $UserName

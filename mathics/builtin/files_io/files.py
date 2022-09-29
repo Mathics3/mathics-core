@@ -74,7 +74,7 @@ SymbolPath = Symbol("$Path")
 class Input_(Predefined):
     """
     <dl>
-    <dt>'$Input'
+      <dt>'$Input'
       <dd>is the name of the stream from which input is currently being read.
     </dl>
 
@@ -239,7 +239,7 @@ class Close(Builtin):
 class EndOfFile(Builtin):
     """
     <dl>
-    <dt>'EndOfFile'
+      <dt>'EndOfFile'
       <dd>is returned by 'Read' when the end of an input stream is reached.
     </dl>
     """
@@ -264,7 +264,7 @@ class Expression_(Builtin):
 class FilePrint(Builtin):
     """
     <dl>
-    <dt>'FilePrint[$file$]'
+      <dt>'FilePrint[$file$]'
       <dd>prints the raw contents of $file$.
     </dl>
 
@@ -348,7 +348,7 @@ class FilePrint(Builtin):
 class Number_(Builtin):
     """
     <dl>
-    <dt>'Number'
+      <dt>'Number'
       <dd>is a data type for 'Read'.
     </dl>
     """
@@ -362,7 +362,6 @@ class Get(PrefixOperator):
     <dl>
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
-
       <dt>'Get[$name$, Trace->True]'
       <dd>Runs Get tracing each line before it is evaluated.
     </dl>
@@ -461,7 +460,7 @@ class Get(PrefixOperator):
 class InputFileName_(Predefined):
     """
     <dl>
-    <dt>'$InputFileName'
+      <dt>'$InputFileName'
       <dd>is the name of the file from which input is currently being read.
     </dl>
 
@@ -538,7 +537,7 @@ class OpenRead(_OpenAction):
 class OpenWrite(_OpenAction):
     """
     <dl>
-    <dt>'OpenWrite["file"]'
+      <dt>'OpenWrite["file"]'
       <dd>opens a file and returns an OutputStream.
     </dl>
 
@@ -561,7 +560,7 @@ class OpenWrite(_OpenAction):
 class OpenAppend(_OpenAction):
     """
     <dl>
-    <dt>'OpenAppend["file"]'
+      <dt>'OpenAppend["file"]'
       <dd>opens a file and returns an OutputStream to which writes are appended.
     </dl>
 
@@ -587,9 +586,9 @@ class OpenAppend(_OpenAction):
 class Put(BinaryOperator):
     """
     <dl>
-    <dt>'$expr$ >> $filename$'
+      <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
-    <dt>'Put[$expr1$, $expr2$, ..., $filename$]'
+      <dt>'Put[$expr1$, $expr2$, ..., $filename$]'
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -682,9 +681,9 @@ class Put(BinaryOperator):
 class PutAppend(BinaryOperator):
     """
     <dl>
-    <dt>'$expr$ >>> $filename$'
+      <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
-    <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
+      <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -774,16 +773,12 @@ class Read(Builtin):
     <dl>
       <dt>'Read[$stream$]'
       <dd>reads the input stream and returns one expression.
-
       <dt>'Read[$stream$, $type$]'
       <dd>reads the input stream and returns an object of the given type.
-
       <dt>'Read[$stream$, $type$]'
       <dd>reads the input stream and returns an object of the given type.
-
       <dt>'Read[$stream$, Hold[Expression]]'
       <dd>reads the input stream for an Expression and puts it inside 'Hold'.
-
     </dl>
     $type$ is one of:
     <ul>
@@ -1165,11 +1160,11 @@ class Read(Builtin):
 class ReadList(Read):
     """
     <dl>
-    <dt>'ReadList["$file$"]'
+      <dt>'ReadList["$file$"]'
       <dd>Reads all the expressions until the end of file.
-    <dt>'ReadList["$file$", $type$]'
+      <dt>'ReadList["$file$", $type$]'
       <dd>Reads objects of a specified type until the end of file.
-    <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
+      <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
       <dd>Reads a sequence of specified types until the end of file.
     </dl>
 
@@ -1287,7 +1282,7 @@ class ReadList(Read):
 class StreamPosition(Builtin):
     """
     <dl>
-    <dt>'StreamPosition[$stream$]'
+      <dt>'StreamPosition[$stream$]'
       <dd>returns the current position in a stream as an integer.
     </dl>
 
@@ -1326,7 +1321,7 @@ class StreamPosition(Builtin):
 class SetStreamPosition(Builtin):
     """
     <dl>
-    <dt>'SetStreamPosition[$stream$, $n$]'
+      <dt>'SetStreamPosition[$stream$, $n$]'
       <dd>sets the current position in a stream.
     </dl>
 
@@ -1406,9 +1401,9 @@ class SetStreamPosition(Builtin):
 class Skip(Read):
     """
     <dl>
-    <dt>'Skip[$stream$, $type$]'
+      <dt>'Skip[$stream$, $type$]'
       <dd>skips ahead in an input steream by one object of the specified $type$.
-    <dt>'Skip[$stream$, $type$, $n$]'
+      <dt>'Skip[$stream$, $type$, $n$]'
       <dd>skips ahead in an input steream by $n$ objects of the specified $type$.
     </dl>
 
@@ -1480,7 +1475,7 @@ class Skip(Read):
 class Find(Read):
     """
     <dl>
-    <dt>'Find[$stream$, $text$]'
+      <dt>'Find[$stream$, $text$]'
       <dd>find the first line in $stream$ that contains $text$.
     </dl>
 

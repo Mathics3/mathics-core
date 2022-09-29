@@ -20,8 +20,8 @@ class _ColorObject(Builtin):
             text_name = self.text_name
         doc = """
             <dl>
-            <dt>'%(name)s'
-            <dd>represents the color %(text_name)s in graphics.
+              <dt>'%(name)s'
+              <dd>represents the color %(text_name)s in graphics.
             </dl>
 
             >> Graphics[{EdgeForm[Black], %(name)s, Disk[]}, ImageSize->Small]

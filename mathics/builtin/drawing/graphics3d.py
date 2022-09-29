@@ -68,7 +68,6 @@ class Graphics3D(Graphics):
     <dl>
       <dt>'Graphics3D[$primitives$, $options$]'
       <dd>represents a three-dimensional graphic.
-
       <dd>See also the Section "Plotting" for a list of Plot options.
     </dl>
 
@@ -185,12 +184,12 @@ class Graphics3DElements(_GraphicsElements):
 class Sphere(Builtin):
     """
     <dl>
-    <dt>'Sphere[{$x$, $y$, $z$}]'
-        <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
-        <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
-        <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
+      <dt>'Sphere[{$x$, $y$, $z$}]'
+      <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
+      <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
+      <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
+      <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+      <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
     </dl>
 
     >> Graphics3D[Sphere[{0, 0, 0}, 1]]
@@ -212,10 +211,8 @@ class Cone(Builtin):
     <dl>
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cone of radius 1.
-
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
       <dd>is a cone of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
-
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cones of radius $r$.
     </dl>
@@ -258,16 +255,12 @@ class Cuboid(Builtin):
     <dl>
       <dt>'Cuboid[$p_min$]'
       <dd>is a unit cube/square with its lower corner at point $p_min$.
-
       <dt>'Cuboid[$p_min$, $p_max$]
       <dd>is a 2d square with with lower corner $p_min$ and upper corner $p_max$.
-
       <dt>'Cuboid[{$p_min$, $p_max$}]'
       <dd>is a cuboid with lower corner $p_min$ and upper corner $p_max$.
-
       <dt>'Cuboid[{$p1_min$, $p1_max$, ...}]'
       <dd>is a collection of cuboids.
-
       <dt>'Cuboid[]' is equivalent to 'Cuboid[{0,0,0}]'.
     </dl>
 
@@ -309,10 +302,8 @@ class Cylinder(Builtin):
     <dl>
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cylinder of radius 1.
-
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}, $r$]'
       <dd>is a cylinder of radius $r$ starting at ($x1$, $y1$, $z1$) and ending at ($x2$, $y2$, $z2$).
-
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
       <dd>is a collection cylinders of radius $r$.
     </dl>
@@ -354,7 +345,6 @@ class Tube(Builtin):
     <dl>
       <dt>'Tube[{$p1$, $p2$, ...}]'
       <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
-
       <dt>'Tube[{$p1$, $p2$, ...}, $r$]'
       <dd>represents a tube with radius $r$.
     </dl>

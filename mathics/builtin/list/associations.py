@@ -197,7 +197,6 @@ class Keys(Builtin):
     <dl>
       <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the keys $keyi$ in an association.
-
       <dt>'Keys[{$key1$ -> $val1$, $key2$ -> $val2$, ...}]'
       <dd>return a list of the $keyi$ in a list of rules.
     </dl>
@@ -321,7 +320,6 @@ class Values(Builtin):
     <dl>
       <dt>'Values[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the values $vali$ in an association.
-
       <dt>'Values[{$key1$ -> $val1$, $key2$ -> $val2$, ...}]'
       <dd>return a list of the $vali$ in a list of rules.
     </dl>

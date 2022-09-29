@@ -129,7 +129,6 @@ class Curl(SympyFunction):
     <dl>
       <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
       <dd>returns the curl $df2$/$dx1$ - $df1$/$dx2$
-
       <dt>'Curl[{$f1$, $f2$, $f3} {$x1$, $x2$, $x3}]'
       <dd>returns the curl ($df3$/$dx2$ - $df2$/$dx3$, $dx3$/$df$3 - $df3$/$dx1$, $df2$/$df1$ - $df1$/$dx2$)
     </dl>
@@ -170,9 +169,8 @@ class Norm(Builtin):
     <dl>
       <dt>'Norm[$m$, $p$]'
       <dd>computes the p-norm of matrix m.
-
       <dt>'Norm[$m$]'
-     <dd>computes the 2-norm of matrix m.
+      <dd>computes the 2-norm of matrix m.
     </dl>
 
     The Norm of of a vector is its Euclidian distance:

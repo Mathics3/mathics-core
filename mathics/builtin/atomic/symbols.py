@@ -104,7 +104,6 @@ class Context(Builtin):
     <dl>
       <dt>'Context[$symbol$]'
       <dd>yields the name of the context where $symbol$ is defined in.
-
       <dt>'Context[]'
       <dd>returns the value of '$Context'.
     </dl>
@@ -155,8 +154,7 @@ class Definition(Builtin):
     """
     <dl>
       <dt>'Definition[$symbol$]'
-      <dd>prints as the definitions given for $symbol$.
-      This is in a form that can e stored in a package.
+      <dd>prints as the definitions given for $symbol$. This is in a form that can e stored in a package.
     </dl>
 
     'Definition' does not print information for 'ReadProtected' symbols.
@@ -373,8 +371,8 @@ class Definition(Builtin):
 class DownValues(Builtin):
     """
     <dl>
-    <dt>'DownValues[$symbol$]'
-        <dd>gives the list of downvalues associated with $symbol$.
+      <dt>'DownValues[$symbol$]'
+      <dd>gives the list of downvalues associated with $symbol$.
     </dl>
 
     'DownValues' uses 'HoldPattern' and 'RuleDelayed' to protect the
@@ -685,8 +683,8 @@ class OwnValues(Builtin):
 class Symbol_(Builtin):
     """
     <dl>
-    <dt>'Symbol'
-        <dd>is the head of symbols.
+      <dt>'Symbol'
+      <dd>is the head of symbols.
     </dl>
 
     >> Head[x]
@@ -728,9 +726,8 @@ class Symbol_(Builtin):
 class SymbolName(Builtin):
     """
     <dl>
-    <dt>'SymbolName[$s$]'
-        <dd>returns the name of the symbol $s$ (without any leading
-        context name).
+      <dt>'SymbolName[$s$]'
+      <dd>returns the name of the symbol $s$ (without any leading context name).
     </dl>
 
     >> SymbolName[x] // InputForm
@@ -753,8 +750,8 @@ class SymbolName(Builtin):
 class SymbolQ(Test):
     """
     <dl>
-    <dt>'SymbolQ[$x$]'
-        <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
+      <dt>'SymbolQ[$x$]'
+      <dd>is 'True' if $x$ is a symbol, or 'False' otherwise.
     </dl>
 
     >> SymbolQ[a]
@@ -804,8 +801,8 @@ class UpValues(Builtin):
 class ValueQ(Builtin):
     """
     <dl>
-    <dt>'ValueQ[$expr$]'
-        <dd>returns 'True' if and only if $expr$ is defined.
+      <dt>'ValueQ[$expr$]'
+      <dd>returns 'True' if and only if $expr$ is defined.
     </dl>
 
     >> ValueQ[x]

@@ -17,10 +17,8 @@ class Set(BinaryOperator, _SetOperator):
     """
     <dl>
       <dt>'Set[$expr$, $value$]'
-
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
-
       <dt>{$s1$, $s2$, $s3$} = {$v1$, $v2$, $v3$}
       <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding values ($v1$, $v2$, ...).
     </dl>
@@ -103,7 +101,6 @@ class SetDelayed(Set):
     """
     <dl>
       <dt>'SetDelayed[$expr$, $value$]'
-
       <dt>$expr$ := $value$
       <dd>assigns $value$ to $expr$, without evaluating $value$.
     </dl>
@@ -159,7 +156,6 @@ class TagSet(Builtin, _SetOperator):
     """
     <dl>
       <dt>'TagSet[$f$, $expr$, $value$]'
-
       <dt>'$f$ /: $expr$ = $value$'
       <dd>assigns $value$ to $expr$, associating the corresponding assignment with the symbol $f$.
     </dl>
@@ -206,7 +202,6 @@ class TagSetDelayed(TagSet):
     """
     <dl>
       <dt>'TagSetDelayed[$f$, $expr$, $value$]'
-
       <dt>'$f$ /: $expr$ := $value$'
       <dd>is the delayed version of 'TagSet'.
     </dl>

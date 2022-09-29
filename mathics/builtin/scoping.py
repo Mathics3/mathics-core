@@ -138,7 +138,6 @@ class Block(Builtin):
     <dl>
       <dt>'Block[{$x$, $y$, ...}, $expr$]'
       <dd>temporarily removes the definitions of the given variables, evaluates $expr$, and restores the original definitions afterwards.
-
       <dt>'Block[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
       <dd>assigns temporary values to the variables during the evaluation of $expr$.
     </dl>
@@ -306,13 +305,10 @@ class Unique(Predefined):
     <dl>
       <dt>'Unique[]'
       <dd>generates a new symbol and gives a name of the form '$number'.
-
       <dt>'Unique[x]'
       <dd>generates a new symbol and gives a name of the form 'x$number'.
-
       <dt>'Unique[{x, y, ...}]'
       <dd>generates a list of new symbols.
-
       <dt>'Unique["xxx"]'
       <dd>generates a new symbol and gives a name of the form 'xxxnumber'.
     </dl>
@@ -663,9 +659,8 @@ class EndPackage(Builtin):
 class ContextStack(Builtin):
     """
     <dl>
-        <dt>'System`Private`$ContextStack'
-        <dd>is an internal variable tracking the values of '$Context'
-        saved by 'Begin' and 'BeginPackage'.
+      <dt>'System`Private`$ContextStack'
+      <dd>is an internal variable tracking the values of '$Context' saved by 'Begin' and 'BeginPackage'.
     </dl>
     """
 

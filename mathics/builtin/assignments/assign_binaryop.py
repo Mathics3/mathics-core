@@ -52,7 +52,6 @@ class Decrement(PostfixOperator):
     """
     <dl>
       <dt>'Decrement[$x$]'
-
       <dt>'$x$--'
       <dd>decrements $x$ by 1, returning the original value of $x$.
     </dl>
@@ -107,7 +106,6 @@ class Increment(PostfixOperator):
     """
     <dl>
       <dt>'Increment[$x$]'
-
       <dt>'$x$++'
       <dd>increments $x$ by 1, returning the original value of $x$.
     </dl>
@@ -143,9 +141,9 @@ class Increment(PostfixOperator):
 class PreIncrement(PrefixOperator):
     """
     <dl>
-    <dt>'PreIncrement[$x$]'
-    <dt>'++$x$'
-        <dd>increments $x$ by 1, returning the new value of $x$.
+      <dt>'PreIncrement[$x$]'
+      <dt>'++$x$'
+      <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
     '++$a$' is equivalent to '$a$ = $a$ + 1':
@@ -171,7 +169,6 @@ class PreDecrement(PrefixOperator):
     """
     <dl>
       <dt>'PreDecrement[$x$]'
-
       <dt>'--$x$'
       <dd>decrements $x$ by 1, returning the new value of $x$.
     </dl>
@@ -197,9 +194,9 @@ class PreDecrement(PrefixOperator):
 class SubtractFrom(BinaryOperator):
     """
     <dl>
-    <dt>'SubtractFrom[$x$, $dx$]'
-    <dt>'$x$ -= $dx$'
-        <dd>is equivalent to '$x$ = $x$ - $dx$'.
+      <dt>'SubtractFrom[$x$, $dx$]'
+      <dt>'$x$ -= $dx$'
+      <dd>is equivalent to '$x$ = $x$ - $dx$'.
     </dl>
 
     >> a = 10;

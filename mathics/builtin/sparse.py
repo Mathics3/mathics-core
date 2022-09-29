@@ -22,12 +22,12 @@ SymbolSparseArray = Symbol("SparseArray")
 class SparseArray(Builtin):
     """
     <dl>
-    <dt>'SparseArray[$rules$]'
-        <dd>Builds a sparse array acording to the list of $rules$.
-    <dt>'SparseArray[$rules$, $dims$]'
-        <dd>Builds a sparse array of dimensions $dims$ acording to the $rules$.
-    <dt>'SparseArray[$list$]'
-        <dd>Builds a sparse representation of $list$.
+      <dt>'SparseArray[$rules$]'
+      <dd>Builds a sparse array acording to the list of $rules$.
+      <dt>'SparseArray[$rules$, $dims$]'
+      <dd>Builds a sparse array of dimensions $dims$ acording to the $rules$.
+      <dt>'SparseArray[$list$]'
+      <dd>Builds a sparse representation of $list$.
     </dl>
 
     >> SparseArray[{{1, 2} -> 1, {2, 1} -> 1}]

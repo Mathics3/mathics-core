@@ -63,8 +63,7 @@ class BoxData(Builtin):
     """
     <dl>
       <dt>'BoxData[...]'
-      <dd>is a low-level representation of the contents of a typesetting
-    cell.
+      <dd>is a low-level representation of the contents of a typesetting cell.
     </dl>
     """
 
@@ -75,8 +74,7 @@ class TextData(Builtin):
     """
     <dl>
       <dt>'TextData[...]'
-      <dd>is a low-level representation of the contents of a textual
-    cell.
+      <dd>is a low-level representation of the contents of a textual cell.
     </dl>
     """
 
@@ -147,8 +145,7 @@ class InterpretationBox(BoxExpression):
     """
     <dl>
       <dt>'InterpretationBox[{...}, expr]'
-      <dd> is a low-level box construct that displays as
-    boxes but is interpreted on input as expr.
+      <dd> is a low-level box construct that displays as boxes but is interpreted on input as expr.
     </dl>
 
     >> A = InterpretationBox["Pepe", 4]
@@ -381,7 +378,6 @@ class StyleBox(BoxExpression):
     <dl>
       <dt>'StyleBox[boxes, options]'
       <dd> is a low-level representation of boxes  to be shown with the specified option settings.
-
       <dt>'StyleBox[boxes, style]'
       <dd> uses the option setting for the specified style in the current notebook.
     </dl>
@@ -431,8 +427,7 @@ class TagBox(BoxExpression):
     """
     <dl>
       <dt>'TagBox[boxes, tag]'
-      <dd> is a low-level box construct that displays as
-    boxes but is interpreted on input as expr
+      <dd> is a low-level box construct that displays as boxes but is interpreted on input as expr
     </dl>
     """
 

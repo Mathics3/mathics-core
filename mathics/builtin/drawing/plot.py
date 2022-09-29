@@ -112,8 +112,8 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
 class ColorDataFunction(Builtin):
     """
     <dl>
-    <dt>'ColorDataFunction[range, ...]'
-    <dd> is a function that represents a color scheme.
+      <dt>'ColorDataFunction[range, ...]'
+      <dd> is a function that represents a color scheme.
     </dl>
     """
 
@@ -167,8 +167,8 @@ class _PalettableGradient(_GradientColorScheme):
 class ColorData(Builtin):
     """
     <dl>
-    <dt>'ColorData["$name$"]'
-        <dd>returns a color function with the given $name$.
+      <dt>'ColorData["$name$"]'
+      <dd>returns a color function with the given $name$.
     </dl>
 
     Define a user-defined color function:
@@ -1073,8 +1073,8 @@ class PieChart(_Chart):
 class BarChart(_Chart):
     """
     <dl>
-        <dt>'BarChart[{$b1$, $b2$ ...}]'
-        <dd>makes a bar chart with lengths $b1$, $b2$, ....
+      <dt>'BarChart[{$b1$, $b2$ ...}]'
+      <dd>makes a bar chart with lengths $b1$, $b2$, ....
     </dl>
     Drawing options include -
     Charting:
@@ -1216,8 +1216,8 @@ class BarChart(_Chart):
 class Histogram(Builtin):
     """
     <dl>
-        <dt>'Histogram[{$x1$, $x2$ ...}]'
-        <dd>plots a histogram using the values $x1$, $x2$, ....
+      <dt>'Histogram[{$x1$, $x2$ ...}]'
+      <dd>plots a histogram using the values $x1$, $x2$, ....
     </dl>
 
     >> Histogram[{3, 8, 10, 100, 1000, 500, 300, 200, 10, 20, 200, 100, 200, 300, 500}]
@@ -2119,10 +2119,8 @@ class Plot(_Plot):
     <dl>
       <dt>'Plot[$f$, {$x$, $xmin$, $xmax$}]'
       <dd>plots $f$ with $x$ ranging from $xmin$ to $xmax$.
-
       <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
       <dd>plots several functions $f1$, $f2$, ...
-
     </dl>
 
     >> Plot[{Sin[x], Cos[x], x / 3}, {x, -Pi, Pi}]
@@ -2200,14 +2198,14 @@ class Plot(_Plot):
 class ParametricPlot(_Plot):
     """
     <dl>
-    <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
-        <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
-    <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
-        <dd>plots several parametric functions $f$, $g$, ...
-    <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
-        <dd>plots a parametric area.
-    <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
-        <dd>plots several parametric areas.
+      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
+      <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
+      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
+      <dd>plots several parametric functions $f$, $g$, ...
+      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dd>plots a parametric area.
+      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dd>plots several parametric areas.
     </dl>
 
     >> ParametricPlot[{Sin[u], Cos[3 u]}, {u, 0, 2 Pi}]
@@ -2334,12 +2332,12 @@ class PolarPlot(_Plot):
 class ListPlot(_ListPlot):
     """
     <dl>
-    <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
-        <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
-    <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
-        <dd>plots a list of $x$, $y$ pairs.
-    <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
-        <dd>plots several lists of points.
+      <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
+      <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
+      <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>plots a list of $x$, $y$ pairs.
+      <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
+      <dd>plots several lists of points.
     </dl>
 
     ListPlot accepts a superset of the Graphics options.
@@ -2370,10 +2368,8 @@ class ListLinePlot(_ListPlot):
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
-
       <dt>'ListLinePlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
       <dd>plots a line through a list of $x$, $y$ pairs.
-
       <dt>'ListLinePlot[{$list_1$, $list_2$, ...}]'
       <dd>plots several lines.
     </dl>
@@ -2409,7 +2405,6 @@ class Plot3D(_Plot3D):
     <dl>
       <dt>'Plot3D[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
       <dd>creates a three-dimensional plot of $f$ with $x$ ranging from $xmin$ to $xmax$ and $y$ ranging from $ymin$ to $ymax$.
-
     </dl>
 
     Plot3D has the same options as Graphics3D, in particular:

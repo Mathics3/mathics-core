@@ -85,10 +85,8 @@ class RecursionLimit(Predefined):
 class IterationLimit(Predefined):
     """
     <dl>
-        <dt>'$IterationLimit'
-
-        <dd>specifies the maximum number of times a reevaluation of an expression may happen.
-
+      <dt>'$IterationLimit'
+      <dd>specifies the maximum number of times a reevaluation of an expression may happen.
     </dl>
 
     Calculations terminated by '$IterationLimit' return '$Aborted':
@@ -146,8 +144,8 @@ class IterationLimit(Predefined):
 class Hold(Builtin):
     """
     <dl>
-    <dt>'Hold[$expr$]'
-        <dd>prevents $expr$ from being evaluated.
+      <dt>'Hold[$expr$]'
+      <dd>prevents $expr$ from being evaluated.
     </dl>
     >> Attributes[Hold]
      = {HoldAll, Protected}
@@ -160,9 +158,8 @@ class Hold(Builtin):
 class HoldComplete(Builtin):
     """
     <dl>
-    <dt>'HoldComplete[$expr$]'
-        <dd>prevents $expr$ from being evaluated, and also prevents
-        'Sequence' objects from being spliced into argument lists.
+      <dt>'HoldComplete[$expr$]'
+      <dd>prevents $expr$ from being evaluated, and also prevents 'Sequence' objects from being spliced into argument lists.
     </dl>
     >> Attributes[HoldComplete]
      = {HoldAllComplete, Protected}
@@ -175,8 +172,8 @@ class HoldComplete(Builtin):
 class HoldForm(Builtin):
     """
     <dl>
-    <dt>'HoldForm[$expr$]'
-        <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
+      <dt>'HoldForm[$expr$]'
+      <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
     </dl>
 
     >> HoldForm[1 + 2 + 3]
@@ -198,9 +195,8 @@ class HoldForm(Builtin):
 class Evaluate(Builtin):
     """
     <dl>
-    <dt>'Evaluate[$expr$]'
-        <dd>forces evaluation of $expr$, even if it occurs inside a
-        held argument or a 'Hold' form.
+      <dt>'Evaluate[$expr$]'
+      <dd>forces evaluation of $expr$, even if it occurs inside a held argument or a 'Hold' form.
     </dl>
 
     Create a function $f$ with a held argument:
@@ -231,9 +227,8 @@ class Evaluate(Builtin):
 class Unevaluated(Builtin):
     """
     <dl>
-    <dt>'Unevaluated[$expr$]'
-        <dd>temporarily leaves $expr$ in an unevaluated form when it
-        appears as a function argument.
+      <dt>'Unevaluated[$expr$]'
+      <dd>temporarily leaves $expr$ in an unevaluated form when it appears as a function argument.
     </dl>
 
     'Unevaluated' is automatically removed when function arguments are
@@ -273,9 +268,8 @@ class Unevaluated(Builtin):
 class ReleaseHold(Builtin):
     """
     <dl>
-    <dt>'ReleaseHold[$expr$]'
-        <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
-        'HoldComplete' head from $expr$.
+      <dt>'ReleaseHold[$expr$]'
+      <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or 'HoldComplete' head from $expr$.
     </dl>
     >> x = 3;
     >> Hold[x]
@@ -296,8 +290,8 @@ class ReleaseHold(Builtin):
 class Sequence(Builtin):
     """
     <dl>
-    <dt>'Sequence[$x1$, $x2$, ...]'
-        <dd>represents a sequence of arguments to a function.
+      <dt>'Sequence[$x1$, $x2$, ...]'
+      <dd>represents a sequence of arguments to a function.
     </dl>
 
     'Sequence' is automatically spliced in, except when a function has attribute 'SequenceHold'
@@ -332,16 +326,16 @@ class Sequence(Builtin):
 class Quit(Builtin):
     """
     <dl>
-    <dt>'Quit'[]
+      <dt>'Quit'[]
       <dd> Terminates the Mathics session.
-    <dt>'Quit[$n$]'
+      <dt>'Quit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
 
     <dl>
-    <dt>'Exit'[]
+      <dt>'Exit'[]
       <dd> Terminates the Mathics session.
-    <dt>'Exit[$n$]'
+      <dt>'Exit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
 

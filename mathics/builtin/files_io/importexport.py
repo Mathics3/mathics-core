@@ -951,8 +951,8 @@ def _importer_exporter_options(
 class ImportFormats(Predefined):
     """
     <dl>
-    <dt>'$ImportFormats'
-        <dd>returns a list of file formats supported by Import.
+      <dt>'$ImportFormats'
+      <dd>returns a list of file formats supported by Import.
     </dl>
 
     >> $ImportFormats
@@ -987,8 +987,8 @@ class ExportFormats(Predefined):
 class ConverterDumpsExtensionMappings(Predefined):
     """
     <dl>
-    <dt>'$extensionMappings'
-        <dd>Returns a list of associations between file extensions and file types.
+      <dt>'$extensionMappings'
+      <dd>Returns a list of associations between file extensions and file types.
     </dl>
     """
 
@@ -1004,8 +1004,8 @@ class ConverterDumpsExtensionMappings(Predefined):
 class ConverterDumpsFormatMappings(Predefined):
     """
     <dl>
-    <dt>'$formatMappings'
-        <dd>Returns a list of associations between file extensions and file types.
+      <dt>'$formatMappings'
+      <dd>Returns a list of associations between file extensions and file types.
     </dl>
     """
 
@@ -1021,11 +1021,11 @@ class ConverterDumpsFormatMappings(Predefined):
 class RegisterImport(Builtin):
     """
     <dl>
-    <dt>'RegisterImport["$format$", $defaultFunction$]'
+      <dt>'RegisterImport["$format$", $defaultFunction$]'
       <dd>register '$defaultFunction$' as the default function used when importing from a file of type '"$format$"'.
-    <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
+      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
       <dd>registers multiple elements ($elem1$, ...) and their corresponding converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
-    <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
+      <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
       <dd>also registers additional elements ($elem3$, ...) whose converters ($postFunction3$, ...) act on output from the low-level funcions.
     </dl>
 
@@ -1152,7 +1152,7 @@ class RegisterImport(Builtin):
 class RegisterExport(Builtin):
     """
     <dl>
-    <dt>'RegisterExport["$format$", $func$]'
+      <dt>'RegisterExport["$format$", $func$]'
       <dd>register '$func$' as the default function used when exporting from a file of type '"$format$"'.
     </dl>
 
@@ -1209,7 +1209,7 @@ class RegisterExport(Builtin):
 class URLFetch(Builtin):
     """
     <dl>
-    <dt>'URLFetch[$URL$]'
+      <dt>'URLFetch[$URL$]'
       <dd> Returns the content of $URL$ as a string.
     </dl>
 
@@ -1293,11 +1293,11 @@ class URLFetch(Builtin):
 class Import(Builtin):
     """
     <dl>
-    <dt>'Import["$file$"]'
+      <dt>'Import["$file$"]'
       <dd>imports data from a file.
-    <dt>'Import["$file$", $elements$]'
+      <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
-    <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
+      <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.
     </dl>
 
@@ -1574,11 +1574,11 @@ class Import(Builtin):
 class ImportString(Import):
     """
     <dl>
-    <dt>'ImportString["$data$", "$format$"]'
+      <dt>'ImportString["$data$", "$format$"]'
       <dd>imports data in the specified format from a string.
-    <dt>'ImportString["$file$", $elements$]'
+      <dt>'ImportString["$file$", $elements$]'
       <dd>imports the specified elements from a string.
-    <dt>'ImportString["$data$"]'
+      <dt>'ImportString["$data$"]'
       <dd>attempts to determine the format of the string from its content.
     </dl>
 
@@ -1677,11 +1677,11 @@ class ImportString(Import):
 class Export(Builtin):
     """
     <dl>
-    <dt>'Export["$file$.$ext$", $expr$]'
+      <dt>'Export["$file$.$ext$", $expr$]'
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
-    <dt>'Export["$file$", $expr$, "$format$"]'
+      <dt>'Export["$file$", $expr$, "$format$"]'
       <dd>exports $expr$ to a file in the specified format.
-    <dt>'Export["$file$", $exprs$, $elems$]'
+      <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
 
@@ -1898,7 +1898,6 @@ class ExportString(Builtin):
     <dl>
       <dt>'ExportString[$expr$, $form$]'
       <dd>exports $expr$ to a string, in the format $form$.
-
       <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>
@@ -2078,7 +2077,7 @@ class ExportString(Builtin):
 class FileFormat(Builtin):
     """
     <dl>
-    <dt>'FileFormat["$name$"]'
+      <dt>'FileFormat["$name$"]'
       <dd>attempts to determine what format 'Import' should use to import specified file.
     </dl>
 
@@ -2188,8 +2187,8 @@ import base64
 class B64Encode(Builtin):
     """
     <dl>
-    <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
-    <dd>Encodes $expr$ in Base64 coding
+      <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
+      <dd>Encodes $expr$ in Base64 coding
     </dl>
 
     >> System`Convert`B64Dump`B64Encode["Hello world"]
@@ -2224,8 +2223,8 @@ class B64Encode(Builtin):
 class B64Decode(Builtin):
     """
     <dl>
-    <dt> 'System`Convert`B64Dump`B64Decode[$string$]'
-    <dd>Decode  $string$ in Base64 coding to an expression.
+      <dt> 'System`Convert`B64Dump`B64Decode[$string$]'
+      <dd>Decode  $string$ in Base64 coding to an expression.
     </dl>
 
     >> System`Convert`B64Dump`B64Decode["R!="]
@@ -2259,8 +2258,8 @@ class B64Decode(Builtin):
 class ConvertCommonDumpRemoveLinearSyntax(Builtin):
     """
     <dl>
-    <dt> 'System`Convert`CommonDump`RemoveLinearSyntax[$something$]'
-    <dd> Keine anung... Undocumented in wma
+      <dt> 'System`Convert`CommonDump`RemoveLinearSyntax[$something$]'
+      <dd> Keine anung... Undocumented in wma
     </dl>
     """
 

@@ -46,9 +46,7 @@ class SortBy(Builtin):
     """
     <dl>
       <dt>'SortBy[$list$, $f$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
-    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
-    according to their natural order (without applying $f).
+      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted according to their natural order (without applying $f).
       <dt>'SortBy[$f$]'
       <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
@@ -118,14 +116,9 @@ class BinarySearch(Builtin):
     """
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
-      <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
-        exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have
-        to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$
-        need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
-
+      <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$ need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
-      <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$
-        needs to yield a sorted sequence if applied to the elements of $l.
+      <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$ needs to yield a sorted sequence if applied to the elements of $l.
     </dl>
 
     >> CombinatoricaOld`BinarySearch[{3, 4, 10, 100, 123}, 100]
@@ -207,8 +200,7 @@ class PatternsOrderedQ(Builtin):
     """
     <dl>
       <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
-      <dd>returns 'True' if pattern $patt1$ would be applied before
-        $patt2$ according to canonical pattern ordering.
+      <dd>returns 'True' if pattern $patt1$ would be applied before $patt2$ according to canonical pattern ordering.
     </dl>
 
     >> PatternsOrderedQ[x__, x_]
@@ -234,8 +226,7 @@ class OrderedQ(Builtin):
     """
     <dl>
       <dt>'OrderedQ[{$a$, $b$}]'
-      <dd>is 'True' if $a$ sorts before $b$ according to canonical
-        ordering.
+      <dd>is 'True' if $a$ sorts before $b$ according to canonical ordering.
     </dl>
 
     >> OrderedQ[{a, b}]
@@ -261,8 +252,7 @@ class Order(Builtin):
     """
     <dl>
       <dt>'Order[$x$, $y$]'
-      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
-        -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$, -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
     </dl>
 
     >> Order[7, 11]
@@ -294,7 +284,6 @@ class ApplyLevel(BinaryOperator):
     """
     <dl>
       <dt>'ApplyLevel[$f$, $expr$]'
-
       <dt>'$f$ @@@ $expr$'
       <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
     </dl>
@@ -358,10 +347,8 @@ class Flatten(Builtin):
     <dl>
       <dt>'Flatten[$expr$]'
       <dd>flattens out nested lists in $expr$.
-
       <dt>'Flatten[$expr$, $n$]'
       <dd>stops flattening at level $n$.
-
       <dt>'Flatten[$expr$, $n$, $h$]'
       <dd>flattens expressions with head $h$ instead of 'List'.
     </dl>
@@ -606,7 +593,6 @@ class Operate(Builtin):
     <dl>
       <dt>'Operate[$p$, $expr$]'
       <dd>applies $p$ to the head of $expr$.
-
       <dt>'Operate[$p$, $expr$, $n$]'
       <dd>applies $p$ to the $n$th head of $expr$.
     </dl>

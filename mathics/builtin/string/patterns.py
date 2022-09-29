@@ -62,7 +62,7 @@ class DigitCharacter(Builtin):
 class EndOfLine(Builtin):
     r"""
     <dl>
-    <dt>'EndOfString'
+      <dt>'EndOfString'
       <dd>represents the end of a line in a string.
     </dl>
 
@@ -83,7 +83,7 @@ class EndOfLine(Builtin):
 class EndOfString(Builtin):
     r"""
     <dl>
-    <dt>'EndOfString'
+      <dt>'EndOfString'
       <dd>represents the end of a string.
     </dl>
 
@@ -119,7 +119,7 @@ class LetterCharacter(Builtin):
 class StartOfLine(Builtin):
     r"""
     <dl>
-    <dt>'StartOfString'
+      <dt>'StartOfString'
       <dd>represents the start of a line in a string.
     </dl>
 
@@ -140,7 +140,7 @@ class StartOfLine(Builtin):
 class StartOfString(Builtin):
     r"""
     <dl>
-    <dt>'StartOfString'
+      <dt>'StartOfString'
       <dd>represents the start of a string.
     </dl>
 
@@ -160,16 +160,12 @@ class StringCases(_StringFind):
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
       <dd>gives all occurences of $pattern$ in $string$.
-
       <dt>'StringReplace["$string$", $pattern$ -> $form$]'
       <dd>gives all instances of $form$ that stem from occurences of $pattern$ in $string$.
-
       <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
       <dd>gives all occurences of $pattern1$, $pattern2$, ....
-
       <dt>'StringReplace["$string$", $pattern$, $n$]'
       <dd>gives only the first $n$ occurences.
-
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
       <dd>gives occurences in $string1$, $string2$, ...
     </dl>
@@ -230,7 +226,7 @@ class StringCases(_StringFind):
 class StringExpression(BinaryOperator):
     """
     <dl>
-    <dt>'StringExpression[s_1, s_2, ...]'
+      <dt>'StringExpression[s_1, s_2, ...]'
       <dd>represents a sequence of strings and symbolic string objects $s_i$.
     </dl>
 
@@ -266,14 +262,14 @@ class StringExpression(BinaryOperator):
 class StringFreeQ(Builtin):
     """
     <dl>
-    <dt>'StringFreeQ["$string$", $patt$]'
-        <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
-    <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
-        <dd>returns the list of results for each element of string list.
-    <dt>'StringFreeQ["string", {p1, p2, ...}]'
-        <dd>returns True if no substring matches any of the $pi$.
-    <dt>'StringFreeQ[patt]'
-        <dd>represents an operator form of StringFreeQ that can be applied to an expression.
+      <dt>'StringFreeQ["$string$", $patt$]'
+      <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
+      <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
+      <dd>returns the list of results for each element of string list.
+      <dt>'StringFreeQ["string", {p1, p2, ...}]'
+      <dd>returns True if no substring matches any of the $pi$.
+      <dt>'StringFreeQ[patt]'
+      <dd>represents an operator form of StringFreeQ that can be applied to an expression.
     </dl>
 
     >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
@@ -364,8 +360,8 @@ class StringFreeQ(Builtin):
 class StringMatchQ(Builtin):
     r"""
     <dl>
-    <dt>'StringMatchQ["string", $patern$]'
-    <dd> checks  is "string" matches $pattern$
+      <dt>'StringMatchQ["string", $patern$]'
+      <dd> checks  is "string" matches $pattern$
     </dl>
     >> StringMatchQ["abc", "abc"]
      = True

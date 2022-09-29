@@ -13,7 +13,7 @@ from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
 class Mean(Builtin):
     """
     <dl>
-    <dt>'Mean[$list$]'
+      <dt>'Mean[$list$]'
       <dd>returns the statistical mean of $list$.
     </dl>
 

@@ -362,11 +362,11 @@ class _BinaryFormat:
 class BinaryRead(Builtin):
     """
     <dl>
-    <dt>'BinaryRead[$stream$]'
+      <dt>'BinaryRead[$stream$]'
       <dd>reads one byte from the stream as an integer from 0 to 255.
-    <dt>'BinaryRead[$stream$, $type$]'
+      <dt>'BinaryRead[$stream$, $type$]'
       <dd>reads one object of specified type from the stream.
-    <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
+      <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
       <dd>reads a sequence of objects of specified types.
     </dl>
 
@@ -659,19 +659,14 @@ class BinaryWrite(Builtin):
     <dl>
       <dt>'BinaryWrite[$channel$, $b$]'
       <dd>writes a single byte given as an integer from 0 to 255.
-
       <dt>'BinaryWrite[$channel$, {b1, b2, ...}]'
       <dd>writes a sequence of byte.
-
       <dt>'BinaryWrite[$channel$, "string"]'
       <dd>writes the raw characters in a string.
-
       <dt>'BinaryWrite[$channel$, $x$, $type$]'
       <dd>writes $x$ as the specified type.
-
       <dt>'BinaryWrite[$channel$, {$x1$, $x2$, ...}, $type$]'
       <dd>writes a sequence of objects as the specified type.
-
       <dt>'BinaryWrite[$channel$, {$x1$, $x2$, ...}, {$type1$, $type2$, ...}]'
       <dd>writes a sequence of objects using a sequence of specified types.
     </dl>

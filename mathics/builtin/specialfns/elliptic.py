@@ -23,7 +23,6 @@ class EllipticE(SympyFunction):
     <dl>
       <dt>'EllipticE[$m$]'
       <dd>computes the complete elliptic integral $E$($m$).
-
       <dt>'EllipticE[phi|$m$]'
       <dd>computes the complete elliptic integral of the second kind $E$($m$|$phi$).
     </dl>

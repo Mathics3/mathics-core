@@ -138,9 +138,9 @@ class CubeRoot(Builtin):
 class Divide(BinaryOperator):
     """
     <dl>
-    <dt>'Divide[$a$, $b$]'
-    <dt>'$a$ / $b$'
-        <dd>represents the division of $a$ by $b$.
+      <dt>'Divide[$a$, $b$]'
+      <dt>'$a$ / $b$'
+      <dd>represents the division of $a$ by $b$.
     </dl>
     >> 30 / 5
      = 6
@@ -202,8 +202,8 @@ class Divide(BinaryOperator):
 class Minus(PrefixOperator):
     """
     <dl>
-    <dt>'Minus[$expr$]'
-        <dd> is the negation of $expr$.
+      <dt>'Minus[$expr$]'
+      <dd> is the negation of $expr$.
     </dl>
 
     >> -a //FullForm
@@ -245,9 +245,9 @@ class Minus(PrefixOperator):
 class Plus(BinaryOperator, SympyFunction):
     """
     <dl>
-    <dt>'Plus[$a$, $b$, ...]'
-    <dt>$a$ + $b$ + ...
-        <dd>represents the sum of the terms $a$, $b$, ...
+      <dt>'Plus[$a$, $b$, ...]'
+      <dt>$a$ + $b$ + ...
+      <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
 
     >> 1 + 2
@@ -458,9 +458,9 @@ class Plus(BinaryOperator, SympyFunction):
 class Power(BinaryOperator, _MPMathFunction):
     """
     <dl>
-    <dt>'Power[$a$, $b$]'
-    <dt>'$a$ ^ $b$'
-        <dd>represents $a$ raised to the power of $b$.
+      <dt>'Power[$a$, $b$]'
+      <dt>'$a$ ^ $b$'
+      <dd>represents $a$ raised to the power of $b$.
     </dl>
 
     >> 4 ^ (1/2)
@@ -622,8 +622,8 @@ class Power(BinaryOperator, _MPMathFunction):
 class Sqrt(SympyFunction):
     """
     <dl>
-    <dt>'Sqrt[$expr$]'
-        <dd>returns the square root of $expr$.
+      <dt>'Sqrt[$expr$]'
+      <dd>returns the square root of $expr$.
     </dl>
 
     >> Sqrt[4]
@@ -663,9 +663,9 @@ class Sqrt(SympyFunction):
 class Subtract(BinaryOperator):
     """
     <dl>
-    <dt>'Subtract[$a$, $b$]'
-    <dt>$a$ - $b$
-        <dd>represents the subtraction of $b$ from $a$.
+      <dt>'Subtract[$a$, $b$]'
+      <dt>$a$ - $b$
+      <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
     >> 5 - 3
@@ -694,10 +694,10 @@ class Subtract(BinaryOperator):
 class Times(BinaryOperator, SympyFunction):
     """
     <dl>
-    <dt>'Times[$a$, $b$, ...]'
-    <dt>'$a$ * $b$ * ...'
-    <dt>'$a$ $b$ ...'
-        <dd>represents the product of the terms $a$, $b$, ...
+      <dt>'Times[$a$, $b$, ...]'
+      <dt>'$a$ * $b$ * ...'
+      <dt>'$a$ $b$ ...'
+      <dd>represents the product of the terms $a$, $b$, ...
     </dl>
     >> 10 * 2
      = 20
