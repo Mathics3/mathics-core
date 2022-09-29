@@ -532,7 +532,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
     if len(lhs.elements) == 2:
         form = lhs.elements[1]
         form_name = form.get_name()
-        if not form_names:
+        if not form_name:
             evaluation.message("Format", "fttp", lhs.elements[1])
             raise AssignmentException(lhs, None)
         # If the form is not in defs.printforms
@@ -558,7 +558,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_format(tag, rule, form_names)
+        defs.add_format(tag, rule, form_name)
     return count > 0
 
 
