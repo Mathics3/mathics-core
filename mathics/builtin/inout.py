@@ -50,9 +50,8 @@ SymbolTableDepth = Symbol("TableDepth")
 class PrintForms_(Predefined):
     """
     <dl>
-    <dt>'$PrintForms'
-    <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting
-    format values
+      <dt>'$PrintForms'
+      <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting format values.
     </dl>
 
     >> $PrintForms

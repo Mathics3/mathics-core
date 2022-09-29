@@ -531,7 +531,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, None)
     if len(lhs.elements) == 2:
         form = lhs.elements[1]
-        form_names = form.get_name()
+        form_name = form.get_name()
         if not form_names:
             evaluation.message("Format", "fttp", lhs.elements[1])
             raise AssignmentException(lhs, None)
@@ -541,7 +541,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if form not in print_forms:
             print_forms.append(form)
     else:
-        form_names = [
+        form_name = [
             "System`StandardForm",
             "System`TraditionalForm",
             "System`OutputForm",
