@@ -104,6 +104,7 @@ class Context(Builtin):
     <dl>
       <dt>'Context[$symbol$]'
       <dd>yields the name of the context where $symbol$ is defined in.
+
       <dt>'Context[]'
       <dd>returns the value of '$Context'.
     </dl>

@@ -104,10 +104,13 @@ class D(SympyFunction):
     <dl>
       <dt>'D[$f$, $x$]'
       <dd>gives the partial derivative of $f$ with respect to $x$.
+
       <dt>'D[$f$, $x$, $y$, ...]'
       <dd>differentiates successively with respect to $x$, $y$, etc.
+
       <dt>'D[$f$, {$x$, $n$}]'
       <dd>gives the multiple derivative of order $n$.
+
       <dt>'D[$f$, {{$x1$, $x2$, ...}}]'
       <dd>gives the vector derivative of $f$ with respect to $x1$, $x2$, etc.
     </dl>
@@ -355,6 +358,7 @@ class Derivative(PostfixOperator, SympyFunction):
     <dl>
       <dt>'Derivative[$n$][$f$]'
       <dd>represents the $n$th derivative of the function $f$.
+
       <dt>'Derivative[$n1$, $n2$, ...][$f$]'
       <dd>represents a multivariate derivative.
     </dl>
@@ -707,6 +711,7 @@ class FindRoot(_BaseFinder):
     <dl>
       <dt>'FindRoot[$f$, {$x$, $x0$}]'
       <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
+
       <dt>'FindRoot[$lhs$ == $rhs$, {$x$, $x0$}]'
       <dd>tries to solve the equation '$lhs$ == $rhs$'.
     </dl>
@@ -904,6 +909,7 @@ class Integrate(SympyFunction):
     <dl>
       <dt>'Integrate[$f$, $x$]'
       <dd>integrates $f$ with respect to $x$. The result does not contain the additive integration constant.
+
       <dt>'Integrate[$f$, {$x$, $a$, $b$}]'
       <dd>computes the definite integral of $f$ with respect to $x$ from $a$ to $b$.
     </dl>

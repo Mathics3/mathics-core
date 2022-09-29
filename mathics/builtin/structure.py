@@ -47,6 +47,7 @@ class SortBy(Builtin):
     <dl>
       <dt>'SortBy[$list$, $f$]'
       <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted according to their natural order (without applying $f).
+
       <dt>'SortBy[$f$]'
       <dd>creates an operator function that, when applied, sorts by $f.
     </dl>
@@ -117,6 +118,7 @@ class BinarySearch(Builtin):
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
       <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not exist in $l$, 'BinarySearch' returns (a + b) / 2, where a and b are the indices between which $k$ would have to be inserted in order to maintain the sorting order in $l$. Please note that $k$ and the elements in $l$ need to be comparable under a strict total order (see https://en.wikipedia.org/wiki/Total_order).
+
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$, $f$]'
       <dd>the index of $k in the elements of $l$ if $f$ is applied to the latter prior to comparison. Note that $f$ needs to yield a sorted sequence if applied to the elements of $l.
     </dl>
@@ -347,8 +349,10 @@ class Flatten(Builtin):
     <dl>
       <dt>'Flatten[$expr$]'
       <dd>flattens out nested lists in $expr$.
+
       <dt>'Flatten[$expr$, $n$]'
       <dd>stops flattening at level $n$.
+
       <dt>'Flatten[$expr$, $n$, $h$]'
       <dd>flattens expressions with head $h$ instead of 'List'.
     </dl>
@@ -593,6 +597,7 @@ class Operate(Builtin):
     <dl>
       <dt>'Operate[$p$, $expr$]'
       <dd>applies $p$ to the head of $expr$.
+
       <dt>'Operate[$p$, $expr$, $n$]'
       <dd>applies $p$ to the $n$th head of $expr$.
     </dl>

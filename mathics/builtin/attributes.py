@@ -36,8 +36,10 @@ class Attributes(Builtin):
     <dl>
       <dt>'Attributes'[$symbol$]
       <dd>returns the attributes of $symbol$.
+
       <dt>'Attributes'["$string$"]
       <dd>returns the attributes of 'Symbol'["$string$"].
+
       <dt>'Attributes'[$symbol$] = {$attr1$, $attr2$}
       <dd>sets the attributes of $symbol$, replacing any existing attributes.
     </dl>
@@ -189,6 +191,7 @@ class Protect(Builtin):
     <dl>
       <dt>'Protect'[$s1$, $s2$, ...]
       <dd>sets the attribute 'Protected' for the symbols $si$.
+
       <dt>'Protect'[$str1$, $str2$, ...]
       <dd>protects all symbols whose names textually match $stri$.
     </dl>
@@ -251,6 +254,7 @@ class Unprotect(Builtin):
     <dl>
       <dt>'Unprotect'[$s1$, $s2$, ...]
       <dd>removes the attribute 'Protected' for the symbols $si$.
+
       <dt>'Unprotect'[$str$]
       <dd>unprotects symbols whose names textually match $str$.
     </dl>

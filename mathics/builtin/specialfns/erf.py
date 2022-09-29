@@ -20,6 +20,7 @@ class Erf(_MPMathMultiFunction):
     <dl>
       <dt>'Erf[$z$]'
       <dd>returns the error function of $z$.
+
       <dt>'Erf[$z0$, $z1$]'
       <dd>returns the result of 'Erf[$z1$] - Erf[$z0$]'.
     </dl>

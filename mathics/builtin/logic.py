@@ -408,8 +408,10 @@ class NoneTrue(_ManyTrue):
     <dl>
       <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
       <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
+
       <dt>'NoneTrue[$list$, $test$, $level$]'
       <dd>returns True if no application of $test$ to items of $list$ at $level$ evaluates to True.
+
       <dt>'NoneTrue[$test$]'
       <dd>gives an operator that may be applied to expressions.
     </dl>
@@ -439,8 +441,10 @@ class AnyTrue(_ManyTrue):
     <dl>
       <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
       <dd>returns True if any application of $test$ to $expr1$, $expr2$, ... evaluates to True.
+
       <dt>'AnyTrue[$list$, $test$, $level$]'
       <dd>returns True if any application of $test$ to items of $list$ at $level$ evaluates to True.
+
       <dt>'AnyTrue[$test$]'
       <dd>gives an operator that may be applied to expressions.
     </dl>
@@ -470,8 +474,10 @@ class AllTrue(_ManyTrue):
     <dl>
       <dt>'AllTrue[{$expr1$, $expr2$, ...}, $test$]'
       <dd>returns True if all applications of $test$ to $expr1$, $expr2$, ... evaluate to True.
+
       <dt>'AllTrue[$list$, $test$, $level$]'
       <dd>returns True if all applications of $test$ to items of $list$ at $level$ evaluate to True.
+
       <dt>'AllTrue[$test$]'
       <dd>gives an operator that may be applied to expressions.
     </dl>

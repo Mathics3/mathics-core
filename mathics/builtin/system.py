@@ -545,9 +545,9 @@ class Share(Builtin):
     <dl>
       <dt>'Share[]'
       <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.
+
       <dt>'Share[Symbol]'
       <dd>Does the same thing as 'Share[]'; Note: this function differs from WMA which tries to reduce the amount of memory required to store definitions associated to $Symbol$.
-
     </dl>
 
     >> Share[]

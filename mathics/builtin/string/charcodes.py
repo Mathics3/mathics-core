@@ -36,6 +36,7 @@ class ToCharacterCode(Builtin):
     <dl>
       <dt>'ToCharacterCode["$string$"]'
       <dd>converts the string to a list of character codes (Unicode codepoints).
+
       <dt>'ToCharacterCode[{"$string1$", "$string2$", ...}]'
       <dd>converts a list of strings to character codes.
     </dl>
@@ -139,8 +140,10 @@ class FromCharacterCode(Builtin):
     <dl>
       <dt>'FromCharacterCode[$n$]'
       <dd>returns the character corresponding to Unicode codepoint $n$.
+
       <dt>'FromCharacterCode[{$n1$, $n2$, ...}]'
       <dd>returns a string with characters corresponding to $n_i$.
+
       <dt>'FromCharacterCode[{{$n11$, $n12$, ...}, {$n21$, $n22$, ...}, ...}]'
       <dd>returns a list of strings.
     </dl>

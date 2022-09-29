@@ -112,10 +112,13 @@ class OptionValue(Builtin):
     <dl>
       <dt>'OptionValue[$name$]'
       <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
+
       <dt>'OptionValue[$f$, $name$]'
       <dd>recover the value of the option $name$ associated to the symbol $f$.
+
       <dt>'OptionValue[$f$, $optvals$, $name$]'
       <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
+
       <dt>'OptionValue[..., $list$]'
       <dd>recover the value of the options in $list$ .
     </dl>
@@ -234,8 +237,10 @@ class Default(Builtin):
     <dl>
       <dt>'Default[$f$]'
       <dd>gives the default value for an omitted parameter of $f$.
+
       <dt>'Default[$f$, $k$]'
       <dd>gives the default value for a parameter on the $k$th position.
+
       <dt>'Default[$f$, $k$, $n$]'
       <dd>gives the default value for the $k$th parameter out of $n$.
     </dl>
@@ -365,6 +370,7 @@ class FilterRules(Builtin):
     <dl>
       <dt>'FilterRules[$rules$, $pattern$]'
       <dd>gives those $rules$ that have a left side that matches $pattern$.
+
       <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
       <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
     </dl>

@@ -47,6 +47,7 @@ class Chop(Builtin):
     <dl>
       <dt>'Chop[$expr$]'
       <dd>replaces floating point numbers close to 0 by 0.
+
       <dt>'Chop[$expr$, $delta$]'
       <dd>uses a tolerance of $delta$. The default tolerance is '10^-10'.
     </dl>

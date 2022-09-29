@@ -257,6 +257,7 @@ class FittedModel(Builtin):
     """
     <dl>
       <dd>'FittedModel[...]'
+
       <dt> Result of a linear fit
     </dl>
     """

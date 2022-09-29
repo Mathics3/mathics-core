@@ -45,8 +45,10 @@ class Blend(Builtin):
     <dl>
       <dt>'Blend[{$c1$, $c2$}]'
       <dd>represents the color between $c1$ and $c2$.
+
       <dt>'Blend[{$c1$, $c2$}, $x$]'
       <dd>represents the color formed by blending $c1$ and $c2$ with factors 1 - $x$ and $x$ respectively.
+
       <dt>'Blend[{$c1$, $c2$, ..., $cn$}, $x$]'
       <dd>blends between the colors $c1$ to $cn$ according to the factor $x$.
     </dl>
@@ -208,6 +210,7 @@ class ColorNegate(_ImageBuiltin):
     <dl>
       <dt>'ColorNegate[$image$]'
       <dd>returns the negative of $image$ in which colors have been negated.
+
       <dt>'ColorNegate[$color$]'
       <dd>returns the negative of a color.  Yellow is RGBColor[1.0, 1.0, 0.0] >> ColorNegate[Yellow] = RGBColor[0., 0., 1.]
     </dl>
@@ -234,6 +237,7 @@ class Darker(Builtin):
     <dl>
       <dt>'Darker[$c$, $f$]'
       <dd>is equivalent to 'Blend[{$c$, Black}, $f$]'.
+
       <dt>'Darker[$c$]'
       <dd>is equivalent to 'Darker[$c$, 1/3]'.
     </dl>
@@ -257,8 +261,10 @@ class DominantColors(_ImageBuiltin):
     <dl>
       <dt>'DominantColors[$image$]'
       <dd>gives a list of colors which are dominant in the given image.
+
       <dt>'DominantColors[$image$, $n$]'
       <dd>returns at most $n$ colors.
+
       <dt>'DominantColors[$image$, $n$, $prop$]'
       <dd>returns the given property $prop$, which may be "Color" (return RGB colors), "LABColor" (return LAB colors), "Count" (return the number of pixels a dominant color covers), "Coverage" (return the fraction of the image a dominant color covers), or "CoverageImage" (return a black and white image indicating with white the parts that are covered by a dominant color).
     </dl>
@@ -425,6 +431,7 @@ class Lighter(Builtin):
     <dl>
       <dt>'Lighter[$c$, $f$]'
       <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.
+
       <dt>'Lighter[$c$]'
       <dd>is equivalent to 'Lighter[$c$, 1/3]'.
     </dl>

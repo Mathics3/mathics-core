@@ -28,6 +28,7 @@ class Floor(SympyFunction):
     <dl>
       <dt>'Floor[$x$]'
       <dd>gives the greatest integer less than or equal to $x$.
+
       <dt>'Floor[$x$, $a$]'
       <dd>gives the greatest multiple of $a$ less than or equal to $x$.
     </dl>
@@ -152,8 +153,10 @@ class IntegerString(Builtin):
     <dl>
       <dt>'IntegerString[$n$]'
       <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
+
       <dt>'IntegerString[$n$, $b$]'
       <dd>returns the base $b$ representation of integer $x$ as string. $x$'s sign is ignored.
+
       <dt>'IntegerString[$n$, $b$, $length$]'
       <dd>returns a string of length $length$. If the number is too short, the string gets padded with 0 on the left. If the number is too long, the $length$ least significant digits are returned.
     </dl>
@@ -243,8 +246,10 @@ class IntegerDigits(Builtin):
     <dl>
       <dt>'IntegerDigits[$n$]'
       <dd>returns a list of the base-10 digits in the integer $n$.
+
       <dt>'IntegerDigits[$n$, $base$]'
       <dd>returns a list of the base-$base$ digits in $n$.
+
       <dt>'IntegerDigits[$n$, $base$, $length$]'
       <dd>returns a list of length $length$, truncating or padding with zeroes on the left as necessary.
     </dl>
@@ -325,8 +330,10 @@ class IntegerDigits(_IntBaseBuiltin):
     <dl>
       <dt>'IntegerDigits[$n$]'
       <dd>returns the decimal representation of integer $x$ as list of digits. $x$'s sign is ignored.
+
       <dt>'IntegerDigits[$n$, $b$]'
       <dd>returns the base $b$ representation of integer $x$ as list of digits. $x$'s sign is ignored.
+
       <dt>'IntegerDigits[$n$, $b$, $length$]'
       <dd>returns a list of length $length$. If the number is too short, the list gets padded with 0 on the left. If the number is too long, the $length$ least significant digits are returned.
     </dl>
@@ -393,8 +400,10 @@ class DigitCount(_IntBaseBuiltin):
     <dl>
       <dt>'DigitCount[$n$, $b$, $d$]'
       <dd>returns the number of times digit $d$ occurs in the base $b$ representation of $n$.
+
       <dt>'DigitCount[$n$, $b$]'
       <dd>returns a list indicating the number of times each digit occurs in the base $b$ representation of $n$.
+
       <dt>'DigitCount[$n$, $b$]'
       <dd>returns a list indicating the number of times each digit occurs in the decimal representation of $n$.
     </dl>
@@ -447,6 +456,7 @@ class IntegerReverse(_IntBaseBuiltin):
     <dl>
       <dt>'IntegerReverse[$n$]'
       <dd>returns the integer that has the reverse decimal representation of $x$ without sign.
+
       <dt>'IntegerReverse[$n$, $b$]'
       <dd>returns the integer that has the reverse base $b$ represenation of $x$ without sign.
     </dl>
@@ -480,6 +490,7 @@ class FromDigits(Builtin):
     <dl>
       <dt>'FromDigits[$l$]'
       <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of digits or a string.
+
       <dt>'FromDigits[$l$, $b$]'
       <dd>returns the integer corresponding to the base $b$ representation given by $l$. $l$ can be a list of digits or a string.
     </dl>

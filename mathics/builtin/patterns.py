@@ -194,10 +194,13 @@ class Replace(Builtin):
     <dl>
       <dt>'Replace[$expr$, $x$ -> $y$]'
       <dd>yields the result of replacing $expr$ with $y$ if it matches the pattern $x$.
+
       <dt>'Replace[$expr$, $x$ -> $y$, $levelspec$]'
       <dd>replaces only subexpressions at levels specified through $levelspec$.
+
       <dt>'Replace[$expr$, {$x$ -> $y$, ...}]'
       <dd>performs replacement with multiple rules, yielding a single result expression.
+
       <dt>'Replace[$expr$, {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}]'
       <dd>returns a list containing the result of performing each set of replacements.
     </dl>
@@ -275,8 +278,10 @@ class ReplaceAll(BinaryOperator):
       <dt>'ReplaceAll[$expr$, $x$ -> $y$]'
       <dt>'$expr$ /. $x$ -> $y$'
       <dd>yields the result of replacing all subexpressions of $expr$ matching the pattern $x$ with $y$.
+
       <dt>'$expr$ /. {$x$ -> $y$, ...}'
       <dd>performs replacement with multiple rules, yielding a single result expression.
+
       <dt>'$expr$ /. {{$a$ -> $b$, ...}, {$c$ -> $d$, ...}, ...}'
       <dd>returns a list containing the result of performing each set of replacements.
     </dl>
@@ -748,6 +753,7 @@ class Except(PatternObject):
     <dl>
       <dt>'Except[$c$]'
       <dd>represents a pattern object that matches any expression except those matching $c$.
+
       <dt>'Except[$c$, $p$]'
       <dd>represents a pattern object that matches $p$ but not $c$.
     </dl>
@@ -916,8 +922,10 @@ class Pattern_(PatternObject):
       <dt>'Pattern[$symb$, $patt$]'
       <dt>'$symb$ : $patt$'
       <dd>assigns the name $symb$ to the pattern $patt$.
+
       <dt>'$symb$_$head$'
       <dd>is equivalent to '$symb$ : _$head$' (accordingly with '__' and '___').
+
       <dt>'$symb$ : $patt$ : $default$'
       <dd>is a pattern with name $symb$ and default value $default$, equivalent to 'Optional[$patt$ : $symb$, $default$]'.
     </dl>
@@ -1171,6 +1179,7 @@ class Blank(_Blank):
       <dt>'Blank[]'
       <dt>'_'
       <dd>represents any single expression in a pattern.
+
       <dt>'Blank[$h$]'
       <dt>'_$h$'
       <dd>represents any expression with head $h$.
@@ -1217,6 +1226,7 @@ class BlankSequence(_Blank):
       <dt>'BlankSequence[]'
       <dt>'__'
       <dd>represents any non-empty sequence of expression elements in a pattern.
+
       <dt>'BlankSequence[$h$]'
       <dt>'__$h$'
       <dd>represents any sequence of elements, all of which have head $h$.
@@ -1531,6 +1541,7 @@ class OptionsPattern(PatternObject):
     <dl>
       <dt>'OptionsPattern[$f$]'
       <dd>is a pattern that stands for a sequence of options given to a function, with default values taken from 'Options[$f$]'. The options can be of the form '$opt$->$value$' or '$opt$:>$value$', and might be in arbitrarily nested lists.
+
       <dt>'OptionsPattern[{$opt1$->$value1$, ...}]'
       <dd>takes explicit default values from the given list. The list may also contain symbols $f$, for which 'Options[$f$]' is taken into account; it may be arbitrarily nested. 'OptionsPattern[{}]' does not use any default values.
     </dl>

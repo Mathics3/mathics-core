@@ -387,6 +387,7 @@ class Apart(Builtin):
     <dl>
       <dt>'Apart[$expr$]'
       <dd>writes $expr$ as a sum of individual fractions.
+
       <dt>'Apart[$expr$, $var$]'
       <dd>treats $var$ as the main variable.
     </dl>
@@ -501,6 +502,7 @@ class Coefficient(Builtin):
     <dl>
       <dt>'Coefficient[expr, form]'
       <dd>returns the coefficient of $form$ in the polynomial $expr$.
+
       <dt>'Coefficient[expr, form, n]'
       <dd>return the coefficient of $form$^$n$ in $expr$.
     </dl>
@@ -918,6 +920,7 @@ class CoefficientList(Builtin):
     <dl>
       <dt>'CoefficientList[poly, var]'
       <dd>returns a list of coefficients of powers of $var$ in $poly$, starting with power 0.
+
       <dt>'CoefficientList[poly, {var1, var2, ...}]'
       <dd>returns an array of coefficients of the $vari$.
     </dl>
@@ -1044,8 +1047,10 @@ class Collect(_CoefficientHandler):
     <dl>
       <dt>'Collect[$expr$, $x$]'
       <dd> Expands $expr$ and collect together terms having the same power of $x$.
+
       <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}]'
       <dd> Expands $expr$ and collect together terms having the same powers of $x_1$, $x_2$, ....
+
       <dt>'Collect[$expr$, {$x_1$, $x_2$, ...}, $filter$]'
       <dd> After collect the terms, applies $filter$ to each coefficient.
     </dl>
@@ -1147,6 +1152,7 @@ class Expand(_Expand):
     <dl>
       <dt>'Expand[$expr$]'
       <dd>expands out positive integer powers and products of sums in $expr$, as well as trigonometric identities.
+
       <dt>Expand[$expr$, $target$]
       <dd>just expands those parts involving $target$.
     </dl>
@@ -1240,6 +1246,7 @@ class ExpandAll(_Expand):
     <dl>
       <dt>'ExpandAll[$expr$]'
       <dd>expands out negative integer powers and products of sums in $expr$.
+
       <dt>'ExpandAll[$expr$, $target$]'
       <dd>just expands those parts involving $target$.
     </dl>
@@ -1329,6 +1336,7 @@ class Exponent(Builtin):
     <dl>
       <dt>'Exponent[expr, form]'
       <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
+
       <dt>'Exponent[expr, form, h]'
       <dd>applies $h$ to the set of exponents with which $form$ appears in $expr$.
     </dl>
@@ -1441,15 +1449,10 @@ class FactorTermsList(Builtin):
     """
     <dl>
       <dt>'FactorTermsList[poly]'
-      <dd>returns a list of 2 elements.
-        The first element is the numerical factor in $poly$.
-        The second one is the remaining of the polynomial with numerical factor removed
+      <dd>returns a list of 2 elements. The first element is the numerical factor in $poly$. The second one is the remaining of the polynomial with numerical factor removed
+
       <dt>'FactorTermsList[poly, {x1, x2, ...}]'
-      <dd>returns a list of factors in $poly$.
-        The first element is the numerical factor in $poly$.
-        The next ones are factors that are independent of variables lists which
-        are created by removing each variable $xi$ from right to left.
-        The last one is the remaining of polynomial after dividing $poly$ to all previous factors
+      <dd>returns a list of factors in $poly$. The first element is the numerical factor in $poly$. The next ones are factors that are independent of variables lists which are created by removing each variable $xi$ from right to left. The last one is the remaining of polynomial after dividing $poly$ to all previous factors
     </dl>
 
     >> FactorTermsList[2 x^2 - 2]
@@ -1551,6 +1554,7 @@ class Simplify(Builtin):
     <dl>
       <dt>'Simplify[$expr$]'
       <dd>simplifies $expr$.
+
       <dt>'Simplify[$expr$, $assump$]'
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
@@ -1719,6 +1723,7 @@ class FullSimplify(Simplify):
     <dl>
       <dt>'FullSimplify[$expr$]'
       <dd>simplifies $expr$ using an extended set of simplification rules.
+
       <dt>'FullSimplify[$expr$, $assump$]'
       <dd>simplifies $expr$ assuming $assump$ instead of $Assumptions$.
     </dl>
@@ -1826,6 +1831,7 @@ class PolynomialQ(Builtin):
     <dl>
       <dt>'PolynomialQ[expr, var]'
       <dd>returns True if $expr$ is a polynomial in $var$, and returns False otherwise.
+
       <dt>'PolynomialQ[expr, {var1, ...}]'
       <dd>tests whether $expr$ is a polynomial in the $vari$.
     </dl>

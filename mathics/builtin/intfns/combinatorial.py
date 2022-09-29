@@ -296,14 +296,19 @@ class Subsets(Builtin):
     <dl>
       <dt>'Subsets[$list$]'
       <dd>finds a list of all possible subsets of $list$.
+
       <dt>'Subsets[$list$, $n$]'
       <dd>finds a list of all possible subsets containing at most $n$ elements.
+
       <dt>'Subsets[$list$, {$n$}]'
       <dd>finds a list of all possible subsets containing exactly $n$ elements.
+
       <dt>'Subsets[$list$, {$min$, $max$}]'
       <dd>finds a list of all possible subsets containing between $min$ and $max$ elements.
+
       <dt>'Subsets[$list$, $spec$, $n$]'
       <dd>finds a list of the first $n$ possible subsets.
+
       <dt>'Subsets[$list$, $spec$, {$n$}]'
       <dd>finds the $n$th possible subset.
     </dl>

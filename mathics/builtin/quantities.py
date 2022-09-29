@@ -60,6 +60,7 @@ class UnitConvert(Builtin):
     <dl>
       <dt>'UnitConvert[$quantity$, $targetunit$] '
       <dd> converts the specified $quantity$ to the specified $targetunit$.
+
       <dt>'UnitConvert[quantity]'
       <dd> converts the specified $quantity$ to its "SIBase" units.
     </dl>
@@ -164,6 +165,7 @@ class Quantity(Builtin):
     <dl>
       <dt>'Quantity[$magnitude$, $unit$]'
       <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
+
       <dt>'Quantity[$unit$]'
       <dd>assumes the magnitude of the specified $unit$ to be 1.
     </dl>
@@ -339,6 +341,7 @@ class QuantityMagnitude(Builtin):
     <dl>
       <dt>'QuantityMagnitude[$quantity$]'
       <dd>gives the amount of the specified $quantity$.
+
       <dt>'QuantityMagnitude[$quantity$, $unit$]'
       <dd>gives the value corresponding to $quantity$ when converted to $unit$.
     </dl>

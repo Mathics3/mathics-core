@@ -328,6 +328,7 @@ class Quit(Builtin):
     <dl>
       <dt>'Quit'[]
       <dd> Terminates the Mathics session.
+
       <dt>'Quit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
@@ -335,6 +336,7 @@ class Quit(Builtin):
     <dl>
       <dt>'Exit'[]
       <dd> Terminates the Mathics session.
+
       <dt>'Exit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>

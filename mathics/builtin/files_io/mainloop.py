@@ -214,6 +214,7 @@ class Out(Builtin):
       <dt>'Out[$k$]'
       <dt>'%$k$'
       <dd>gives the result of the $k$th input line.
+
       <dt>'%', '%%', etc.
       <dd>gives the result of the previous input line, of the line before the previous input line, etc.
     </dl>

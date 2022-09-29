@@ -73,6 +73,9 @@ def fix_docstring(filename):
                     + str(linenumber)
                     + ". Abort."
                 )
+                if file_newlines[-1].strip().startswith("<dd>"):
+                    modified = True
+                    file_newlines.append("\n")
                 if line.index("<dt>") - curr_indent != 2:
                     modified = True
                     line = (2 + curr_indent) * " " + line.strip() + "\n"

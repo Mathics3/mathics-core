@@ -46,6 +46,7 @@ class Apply(BinaryOperator):
       <dt>'Apply[$f$, $expr$]'
       <dt>'$f$ @@ $expr$'
       <dd>replaces the head of $expr$ with $f$.
+
       <dt>'Apply[$f$, $expr$, $levelspec$]'
       <dd>applies $f$ on the parts specified by $levelspec$.
     </dl>
@@ -120,6 +121,7 @@ class Map(BinaryOperator):
     <dl>
       <dt>'Map[$f$, $expr$]' or '$f$ /@ $expr$'
       <dd>applies $f$ to each part on the first level of $expr$.
+
       <dt>'Map[$f$, $expr$, $levelspec$]'
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
@@ -180,8 +182,10 @@ class MapAt(Builtin):
     <dl>
       <dt>'MapAt[$f$, $expr$, $n$]'
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
+
       <dt>'MapAt[f, $exp$r, {$i$, $j$ ...}]'
       <dd>applies $f$ to the part of $expr$ at position {$i$, $j$, ...}.
+
       <dt>'MapAt[$f$,$pos$]'
       <dd>represents an operator form of MapAt that can be applied to an expression.
     </dl>
@@ -259,6 +263,7 @@ class MapIndexed(Builtin):
     <dl>
       <dt>'MapIndexed[$f$, $expr$]'
       <dd>applies $f$ to each part on the first level of $expr$, including the part positions in the call to $f$.
+
       <dt>'MapIndexed[$f$, $expr$, $levelspec$]'
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
@@ -331,6 +336,7 @@ class MapThread(Builtin):
     <dl>
       <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
       <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
+
       <dt>'MapThread[$f$, {$expr1$, $expr2$, ...}, $n$]'
       <dd>applies $f$ at level $n$.
     </dl>
@@ -441,6 +447,7 @@ class Scan(Builtin):
     <dl>
       <dt>'Scan[$f$, $expr$]'
       <dd>applies $f$ to each element of $expr$ and returns 'Null'.
+
       <dt>'Scan[$f$, $expr$, $levelspec$]
       <dd>applies $f$ to each level specified by $levelspec$ of $expr$.
     </dl>
@@ -501,6 +508,7 @@ class Thread(Builtin):
     <dl>
       <dt>'Thread[$f$[$args$]]'
       <dd>threads $f$ over any lists that appear in $args$.
+
       <dt>'Thread[$f$[$args$], $h$]'
       <dd>threads over any parts with head $h$.
     </dl>

@@ -16,6 +16,7 @@ class Diagonal(Builtin):
     <dl>
       <dt>'Diagonal[$m$]'
       <dd>gives a list with the values in the diagonal of the matrix $m$.
+
       <dt>'Diagonal[$m$, $k$]'
       <dd>gives a list with the values in the $k$ diagonal of the matrix $m$.
     </dl>
@@ -61,6 +62,7 @@ class MatrixQ(Builtin):
     <dl>
       <dt>'MatrixQ[$m$]'
       <dd>gives 'True' if $m$ is a list of equal-length lists.
+
       <dt>'MatrixQ[$m$, $f$]'
       <dd>gives 'True' only if '$f$[$x$]' returns 'True' for when applied to element $x$ of the matrix $m$.
     </dl>

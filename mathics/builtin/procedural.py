@@ -83,8 +83,10 @@ class Catch(Builtin):
     <dl>
       <dt>'Catch[$expr$]'
       <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
+
       <dt>'Catch[$expr$, $form$]'
       <dd> returns value from the first 'Throw[$value$, $tag$]' for which $form$ matches $tag$.
+
       <dt>'Catch[$expr$, $form$, $f$]'
       <dd> returns $f$[$value$, $tag$].
     </dl>
@@ -236,14 +238,19 @@ class Do(_IterationFunction):
     <dl>
       <dt>'Do[$expr$, {$max$}]'
       <dd>evaluates $expr$ $max$ times.
+
       <dt>'Do[$expr$, {$i$, $max$}]'
       <dd>evaluates $expr$ $max$ times, substituting $i$ in $expr$ with values from 1 to $max$.
+
       <dt>'Do[$expr$, {$i$, $min$, $max$}]'
       <dd>starts with '$i$ = $max$'.
+
       <dt>'Do[$expr$, {$i$, $min$, $max$, $step$}]'
       <dd>uses a step size of $step$.
+
       <dt>'Do[$expr$, {$i$, {$i1$, $i2$, ...}}]'
       <dd>uses values $i1$, $i2$, ... for $i$.
+
       <dt>'Do[$expr$, {$i$, $imin$, $imax$}, {$j$, $jmin$, $jmax$}, ...]'
       <dd>evaluates $expr$ for each $j$ from $jmin$ to $jmax$, for each $i$ from $imin$ to $imax$, etc.
     </dl>
@@ -281,8 +288,10 @@ class For(Builtin):
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
       <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
+
       <dt>'For[$start$, $test$, $incr$]'
       <dd>evaluates only $incr$ and no $body$.
+
       <dt>'For[$start$, $test$]'
       <dd>runs the loop without any body.
     </dl>
@@ -334,8 +343,10 @@ class If(Builtin):
     <dl>
       <dt>'If[$cond$, $pos$, $neg$]'
       <dd>returns $pos$ if $cond$ evaluates to 'True', and $neg$ if it evaluates to 'False'.
+
       <dt>'If[$cond$, $pos$, $neg$, $other$]'
       <dd>returns $other$ if $cond$ evaluates to neither 'True' nor 'False'.
+
       <dt>'If[$cond$, $pos$]'
       <dd>returns 'Null' if $cond$ evaluates to 'False'.
     </dl>
@@ -566,6 +577,7 @@ class While(Builtin):
     <dl>
       <dt>'While[$test$, $body$]'
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.
+
       <dt>'While[$test$]'
       <dd>runs the loop without any body.
     </dl>
@@ -607,6 +619,7 @@ class Throw(Builtin):
     <dl>
       <dt>'Throw[`value`]'
       <dd> stops evaluation and returns `value` as the value of the nearest enclosing 'Catch'.
+
       <dt>'Catch[`value`, `tag`]'
       <dd> is caught only by `Catch[expr,form]`, where tag matches form.
     </dl>

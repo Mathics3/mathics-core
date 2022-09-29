@@ -262,6 +262,7 @@ class ColorDistance(Builtin):
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
       <dd>returns a measure of color distance between the colors $c1$ and $c2$.
+
       <dt>'ColorDistance[$list$, $c2$]'
       <dd>returns a list of color distances between the colors in $list$ and $c2$.
     </dl>
@@ -468,6 +469,7 @@ class GrayLevel(_ColorObject):
     <dl>
       <dt>'GrayLevel[$g$]'
       <dd>represents a shade of gray specified by $g$, ranging from 0 (black) to 1 (white).
+
       <dt>'GrayLevel[$g$, $a$]'
       <dd>represents a shade of gray specified by $g$ with opacity $a$.
     </dl>
@@ -483,10 +485,13 @@ class Hue(_ColorObject):
     <dl>
       <dt>'Hue[$h$, $s$, $l$, $a$]'
       <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
+
       <dt>'Hue[$h$, $s$, $l$]'
       <dd>is equivalent to 'Hue[$h$, $s$, $l$, 1]'.
+
       <dt>'Hue[$h$, $s$]'
       <dd>is equivalent to 'Hue[$h$, $s$, 1, 1]'.
+
       <dt>'Hue[$h$]'
       <dd>is equivalent to 'Hue[$h$, 1, 1, 1]'.
     </dl>

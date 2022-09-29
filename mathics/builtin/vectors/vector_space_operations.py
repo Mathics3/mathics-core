@@ -68,6 +68,7 @@ class Normalize(Builtin):
     <dl>
       <dt>'Normalize[$v$]'
       <dd>calculates the normalized vector $v$.
+
       <dt>'Normalize[$z$]'
       <dd>calculates the normalized complex number $z$.
     </dl>
@@ -156,6 +157,7 @@ class UnitVector(Builtin):
     <dl>
       <dt>'UnitVector[$n$, $k$]'
       <dd>returns the $n$-dimensional unit vector with a 1 in position $k$.
+
       <dt>'UnitVector[$k$]'
       <dd>is equivalent to 'UnitVector[2, $k$]'.
     </dl>

@@ -159,6 +159,7 @@ class HTMLGet(_Get):
     """
     <dl>
       <dd>HTMLGet['str']
+
       <dt>Parses 'str' as HTML code.
     </dl>
     """

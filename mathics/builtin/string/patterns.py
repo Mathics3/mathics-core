@@ -160,12 +160,16 @@ class StringCases(_StringFind):
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
       <dd>gives all occurences of $pattern$ in $string$.
+
       <dt>'StringReplace["$string$", $pattern$ -> $form$]'
       <dd>gives all instances of $form$ that stem from occurences of $pattern$ in $string$.
+
       <dt>'StringCases["$string$", {$pattern1$, $pattern2$, ...}]'
       <dd>gives all occurences of $pattern1$, $pattern2$, ....
+
       <dt>'StringReplace["$string$", $pattern$, $n$]'
       <dd>gives only the first $n$ occurences.
+
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $pattern$]'
       <dd>gives occurences in $string1$, $string2$, ...
     </dl>
@@ -264,10 +268,13 @@ class StringFreeQ(Builtin):
     <dl>
       <dt>'StringFreeQ["$string$", $patt$]'
       <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
+
       <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
       <dd>returns the list of results for each element of string list.
+
       <dt>'StringFreeQ["string", {p1, p2, ...}]'
       <dd>returns True if no substring matches any of the $pi$.
+
       <dt>'StringFreeQ[patt]'
       <dd>represents an operator form of StringFreeQ that can be applied to an expression.
     </dl>

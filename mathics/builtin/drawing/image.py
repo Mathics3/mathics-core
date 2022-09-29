@@ -347,8 +347,10 @@ class RandomImage(_ImageBuiltin):
     <dl>
       <dt>'RandomImage[$max$]'
       <dd>creates an image of random pixels with values 0 to $max$.
+
       <dt>'RandomImage[{$min$, $max$}]'
       <dd>creates an image of random pixels with values $min$ to $max$.
+
       <dt>'RandomImage[..., $size$]'
       <dd>creates an image of the given $size$.
     </dl>
@@ -420,6 +422,7 @@ class ImageResize(_ImageBuiltin):
     <dl>
       <dt>'ImageResize[$image$, $width$]'
       <dd>
+
       <dt>'ImageResize[$image$, {$width$, $height$}]'
       <dd>
     </dl>
@@ -605,8 +608,10 @@ class ImageReflect(_ImageBuiltin):
     <dl>
       <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
+
       <dt>'ImageReflect[$image$, $side$]'
       <dd>Flips $image$ so that $side$ is interchanged with its opposite.
+
       <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
       <dd>Flips $image$ so that $side_1$ is interchanged with $side_2$.
     </dl>
@@ -682,6 +687,7 @@ class ImageRotate(_ImageBuiltin):
     <dl>
       <dt>'ImageRotate[$image$]'
       <dd>Rotates $image$ 90 degrees counterclockwise.
+
       <dt>'ImageRotate[$image$, $theta$]'
       <dd>Rotates $image$ by a given angle $theta$
     </dl>
@@ -737,6 +743,7 @@ class ImagePartition(_ImageBuiltin):
     <dl>
       <dt>'ImagePartition[$image$, $s$]'
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
+
       <dt>'ImagePartition[$image$, {$w$, $h$}]'
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
@@ -798,10 +805,13 @@ class ImageAdjust(_ImageBuiltin):
     <dl>
       <dt>'ImageAdjust[$image$]'
       <dd>adjusts the levels in $image$.
+
       <dt>'ImageAdjust[$image$, $c$]'
       <dd>adjusts the contrast in $image$ by $c$.
+
       <dt>'ImageAdjust[$image$, {$c$, $b$}]'
       <dd>adjusts the contrast $c$, and brightness $b$ in $image$.
+
       <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
@@ -862,6 +872,7 @@ class Blur(_ImageBuiltin):
     <dl>
       <dt>'Blur[$image$]'
       <dd>gives a blurred version of $image$.
+
       <dt>'Blur[$image$, $r$]'
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
@@ -885,6 +896,7 @@ class Sharpen(_ImageBuiltin):
     <dl>
       <dt>'Sharpen[$image$]'
       <dd>gives a sharpened version of $image$.
+
       <dt>'Sharpen[$image$, $r$]'
       <dd>sharpens $image$ with a kernel of size $r$.
     </dl>
@@ -1244,6 +1256,7 @@ class MorphologicalComponents(_SkimageBuiltin):
     <dl>
       <dt>'MorphologicalComponents[$image$]'
       <dd> Builds a 2-D array in which each pixel of $image$ is replaced by an integer index representing the connected foreground image component in which the pixel lies.
+
       <dt>'MorphologicalComponents[$image$, $threshold$]'
       <dd> consider any pixel with a value above $threshold$ as the foreground.
     </dl>
@@ -1382,8 +1395,10 @@ class Binarize(_SkimageBuiltin):
     <dl>
       <dt>'Binarize[$image$]'
       <dd>gives a binarized version of $image$, in which each pixel is either 0 or 1.
+
       <dt>'Binarize[$image$, $t$]'
       <dd>map values $x$ > $t$ to 1, and values $x$ <= $t$ to 0.
+
       <dt>'Binarize[$image$, {$t1$, $t2$}]'
       <dd>map $t1$ < $x$ < $t2$ to 1, and all other values to 0.
     </dl>
@@ -1515,6 +1530,7 @@ class Colorize(_ImageBuiltin):
     <dl>
       <dt>'Colorize[$values$]'
       <dd>returns an image where each number in the rectangular matrix $values$ is a pixel and each occurence of the same number is displayed in the same unique color, which is different from the colors of all non-identical numbers.
+
       <dt>'Colorize[$image$]'
       <dd>gives a colorized version of $image$.
     </dl>
@@ -1577,6 +1593,7 @@ class ImageData(_ImageBuiltin):
     <dl>
       <dt>'ImageData[$image$]'
       <dd>gives a list of all color values of $image$ as a matrix.
+
       <dt>'ImageData[$image$, $stype$]'
       <dd>gives a list of color values in type $stype$.
     </dl>
@@ -1623,10 +1640,13 @@ class ImageTake(_ImageBuiltin):
     <dl>
       <dt>'ImageTake[$image$, $n$]'
       <dd>gives the first $n$ rows of $image$.
+
       <dt>'ImageTake[$image$, -$n$]'
       <dd>gives the last $n$ rows of $image$.
+
       <dt>'ImageTake[$image$, {$r1$, $r2$}]'
       <dd>gives rows $r1$, ..., $r2$ of $image$.
+
       <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
       <dd>gives a cropped version of $image$.
     </dl>

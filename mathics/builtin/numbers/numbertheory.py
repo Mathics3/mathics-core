@@ -41,6 +41,7 @@ class ContinuedFraction(SympyFunction):
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
       <dd>generate the first $n$ terms in the continued fraction representation of $x$.
+
       <dt>'ContinuedFraction[$x$]'
       <dd>the complete continued fraction representation for a rational or quadradic irrational number.
     </dl>
@@ -335,6 +336,7 @@ class MantissaExponent(Builtin):
     <dl>
       <dt>'MantissaExponent[$n$]'
       <dd>finds a list containing the mantissa and exponent of a given number $n$.
+
       <dt>'MantissaExponent[$n$, $b$]'
       <dd>finds the base b mantissa and exponent of $n$.
     </dl>
@@ -462,6 +464,7 @@ class NextPrime(Builtin):
     <dl>
       <dt>'NextPrime[$n$]'
       <dd>gives the next prime after $n$.
+
       <dt>'NextPrime[$n$,$k$]'
       <dd>gives the $k$th  prime after $n$.
     </dl>
@@ -684,8 +687,10 @@ class RandomPrime(Builtin):
     <dl>
       <dt>'RandomPrime[{$imin$, $imax}]'
       <dd>gives a random prime between $imin$ and $imax$.
+
       <dt>'RandomPrime[$imax$]'
       <dd>gives a random prime between 2 and $imax$.
+
       <dt>'RandomPrime[$range$, $n$]'
       <dd>gives a list of $n$ random primes in $range$.
     </dl>

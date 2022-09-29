@@ -479,6 +479,7 @@ class Alphabet(Builtin):
      <dl>
        <dt>'Alphabet'[]
        <dd>gives the list of lowercase letters a-z in the English alphabet .
+
        <dt>'Alphabet[$type$]'
        <dd> gives the alphabet for the language or class $type$.
      </dl>
@@ -522,8 +523,10 @@ class LetterNumber(Builtin):
     <dl>
       <dt>'LetterNumber'[$c$]
       <dd>returns the position of the character $c$ in the English alphabet.
+
       <dt>'LetterNumber["string"]'
       <dd>returns a list of the positions of characters in string.
+
       <dt>'LetterNumber["string", $alpha$]'
       <dd>returns a list of the positions of characters in string, regarding the alphabet $alpha$.
     </dl>
@@ -737,6 +740,7 @@ class StringRepeat(Builtin):
     <dl>
       <dt>'StringRepeat["$string$", $n$]'
       <dd>gives $string$ repeated $n$ times.
+
       <dt>'StringRepeat["$string$", $n$, $max$]'
       <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
     </dl>
@@ -813,6 +817,7 @@ class ToString(Builtin):
     <dl>
       <dt>'ToString[$expr$]'
       <dd>returns a string representation of $expr$.
+
       <dt>'ToString[$expr$, $form$]'
       <dd>returns a string representation of $expr$ in the form $form$.
     </dl>
@@ -894,7 +899,6 @@ class ToExpression(Builtin):
 
       <dt>'ToExpression[$input$, $form$, $h$]'
       <dd>applies the head $h$ to the expression before evaluating it.
-
     </dl>
 
     >> ToExpression["1 + 2"]
@@ -1135,8 +1139,10 @@ class StringContainsQ(Builtin):
     <dl>
       <dt>'StringContainsQ["$string$", $patt$]'
       <dd>returns True if any part of $string$ matches $patt$, and returns False otherwise.
+
       <dt>'StringContainsQ[{"s1", "s2", ...}, patt]'
       <dd>returns the list of results for each element of string list.
+
       <dt>'StringContainsQ[patt]'
       <dd>represents an operator form of StringContainsQ that can be applied to an expression.
     </dl>

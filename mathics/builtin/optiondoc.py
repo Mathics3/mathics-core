@@ -146,6 +146,7 @@ class ImageSize(Builtin):
     <dl>
       <dt>Automatic
       <dd>determined by location or other dimension (default)
+
       <dt>Tiny, Small, Medium, Large
       <dd>pre defined absolute sizes
     </dl>

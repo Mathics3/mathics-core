@@ -378,6 +378,7 @@ class StyleBox(BoxExpression):
     <dl>
       <dt>'StyleBox[boxes, options]'
       <dd> is a low-level representation of boxes  to be shown with the specified option settings.
+
       <dt>'StyleBox[boxes, style]'
       <dd> uses the option setting for the specified style in the current notebook.
     </dl>
@@ -493,6 +494,7 @@ class SqrtBox(BoxExpression):
     <dl>
       <dt>'SqrtBox[$x$]'
       <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
+
       <dt>'SqrtBox[$x$, $y$]'
       <dd> represents $\\sqrt[y]{x}$.
     </dl>

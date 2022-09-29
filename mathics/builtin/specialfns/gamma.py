@@ -43,6 +43,7 @@ class Beta(_MPMathMultiFunction):
     <dl>
       <dt>'Beta[$a$, $b$]'
       <dd>is the Euler's Beta function.
+
       <dt>'Beta[$z$, $a$, $b$]'
       <dd>gives the incomplete Beta function.
     </dl>
@@ -264,8 +265,10 @@ class Gamma(_MPMathMultiFunction):
     <dl>
       <dt>'Gamma[$z$]'
       <dd>is the gamma function on the complex number $z$.
+
       <dt>'Gamma[$z$, $x$]'
       <dd>is the upper incomplete gamma function.
+
       <dt>'Gamma[$z$, $x0$, $x1$]'
       <dd>is equivalent to 'Gamma[$z$, $x0$] - Gamma[$z$, $x1$]'.
     </dl>
@@ -416,6 +419,7 @@ class PolyGamma(_MPMathMultiFunction):
     <dl>
       <dt>PolyGamma[z]
       <dd>returns the digamma function.
+
       <dt>PolyGamma[n,z]
       <dd>gives the n^(th) derivative of the digamma function.
     </dl>
@@ -449,6 +453,7 @@ class StieltjesGamma(SympyFunction):
     <dl>
       <dt>'StieltjesGamma[$n$]'
       <dd>returns the Stieljs contstant for $n$.
+
       <dt>'StieltjesGamma[$n$, $a$]'
       <dd>gives the generalized Stieltjes constant of its parameters
     </dl>

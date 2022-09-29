@@ -362,6 +362,7 @@ class Get(PrefixOperator):
     <dl>
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
+
       <dt>'Get[$name$, Trace->True]'
       <dd>Runs Get tracing each line before it is evaluated.
     </dl>
@@ -588,6 +589,7 @@ class Put(BinaryOperator):
     <dl>
       <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
+
       <dt>'Put[$expr1$, $expr2$, ..., $filename$]'
       <dd>write a sequence of expressions to a file.
     </dl>
@@ -683,6 +685,7 @@ class PutAppend(BinaryOperator):
     <dl>
       <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
+
       <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
       <dd>write a sequence of expressions to a file.
     </dl>
@@ -773,10 +776,13 @@ class Read(Builtin):
     <dl>
       <dt>'Read[$stream$]'
       <dd>reads the input stream and returns one expression.
+
       <dt>'Read[$stream$, $type$]'
       <dd>reads the input stream and returns an object of the given type.
+
       <dt>'Read[$stream$, $type$]'
       <dd>reads the input stream and returns an object of the given type.
+
       <dt>'Read[$stream$, Hold[Expression]]'
       <dd>reads the input stream for an Expression and puts it inside 'Hold'.
     </dl>
@@ -1162,8 +1168,10 @@ class ReadList(Read):
     <dl>
       <dt>'ReadList["$file$"]'
       <dd>Reads all the expressions until the end of file.
+
       <dt>'ReadList["$file$", $type$]'
       <dd>Reads objects of a specified type until the end of file.
+
       <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
       <dd>Reads a sequence of specified types until the end of file.
     </dl>
@@ -1403,6 +1411,7 @@ class Skip(Read):
     <dl>
       <dt>'Skip[$stream$, $type$]'
       <dd>skips ahead in an input steream by one object of the specified $type$.
+
       <dt>'Skip[$stream$, $type$, $n$]'
       <dd>skips ahead in an input steream by $n$ objects of the specified $type$.
     </dl>

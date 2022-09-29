@@ -1214,8 +1214,7 @@ class Timing(Builtin):
     """
     <dl>
       <dt>'Timing[$expr$]'
-      <dd>measures the processor time taken to evaluate $expr$.
-      It returns a list containing the measured time in seconds and the result of the evaluation.
+      <dd>measures the processor time taken to evaluate $expr$. It returns a list containing the measured time in seconds and the result of the evaluation.
     </dl>
 
     >> Timing[50!]
@@ -1262,6 +1261,7 @@ class TimeRemaining(Builtin):
     <dl>
       <dt>'TimeRemaining[]'
       <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
+
       <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
       <dd>returns $failexpr$ if the time constraint is not met.
     </dl>

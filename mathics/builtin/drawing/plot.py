@@ -2119,6 +2119,7 @@ class Plot(_Plot):
     <dl>
       <dt>'Plot[$f$, {$x$, $xmin$, $xmax$}]'
       <dd>plots $f$ with $x$ ranging from $xmin$ to $xmax$.
+
       <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
       <dd>plots several functions $f1$, $f2$, ...
     </dl>
@@ -2200,10 +2201,13 @@ class ParametricPlot(_Plot):
     <dl>
       <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
       <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
+
       <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
       <dd>plots several parametric functions $f$, $g$, ...
+
       <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
       <dd>plots a parametric area.
+
       <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
       <dd>plots several parametric areas.
     </dl>
@@ -2334,8 +2338,10 @@ class ListPlot(_ListPlot):
     <dl>
       <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
+
       <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
       <dd>plots a list of $x$, $y$ pairs.
+
       <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
       <dd>plots several lists of points.
     </dl>
@@ -2368,8 +2374,10 @@ class ListLinePlot(_ListPlot):
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
       <dd>plots a line through a list of $y$-values, assuming integer $x$-values 1, 2, 3, ...
+
       <dt>'ListLinePlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
       <dd>plots a line through a list of $x$, $y$ pairs.
+
       <dt>'ListLinePlot[{$list_1$, $list_2$, ...}]'
       <dd>plots several lines.
     </dl>

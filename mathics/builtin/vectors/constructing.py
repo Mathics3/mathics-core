@@ -16,10 +16,13 @@ class AngleVector(Builtin):
     <dl>
       <dt>'AngleVector[$phi$]'
       <dd>returns the point at angle $phi$ on the unit circle.
+
       <dt>'AngleVector[{$r$, $phi$}]'
       <dd>returns the point at angle $phi$ on a circle of radius $r$.
+
       <dt>'AngleVector[{$x$, $y$}, $phi$]'
       <dd>returns the point at angle $phi$ on a circle of radius 1 centered at {$x$, $y$}.
+
       <dt>'AngleVector[{$x$, $y$}, {$r$, $phi$}]'
       <dd>returns point at angle $phi$ on a circle of radius $r$ centered at {$x$, $y$}.
     </dl>

@@ -327,6 +327,7 @@ class IntegerLength(Builtin):
     <dl>
       <dt>'IntegerLength[$x$]'
       <dd>gives the number of digits in the base-10 representation of $x$.
+
       <dt>'IntegerLength[$x$, $b$]'
       <dd>gives the number of base-$b$ digits in $x$.
     </dl>
@@ -479,10 +480,13 @@ class RealDigits(Builtin):
     <dl>
       <dt>'RealDigits[$n$]'
       <dd>returns the decimal representation of the real number $n$ as list of digits, together with the number of digits that are to the left of the decimal point.
+
       <dt>'RealDigits[$n$, $b$]'
       <dd>returns a list of base_$b$ representation of the real number $n$.
+
       <dt>'RealDigits[$n$, $b$, $len$]'
       <dd>returns a list of $len$ digits.
+
       <dt>'RealDigits[$n$, $b$, $len$, $p$]'
       <dd>return $len$ digits starting with the coefficient of $b$^$p$
     </dl>

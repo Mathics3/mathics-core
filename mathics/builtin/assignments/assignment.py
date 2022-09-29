@@ -19,6 +19,7 @@ class Set(BinaryOperator, _SetOperator):
       <dt>'Set[$expr$, $value$]'
       <dt>$expr$ = $value$
       <dd>evaluates $value$ and assigns it to $expr$.
+
       <dt>{$s1$, $s2$, $s3$} = {$v1$, $v2$, $v3$}
       <dd>sets multiple symbols ($s1$, $s2$, ...) to the corresponding values ($v1$, $v2$, ...).
     </dl>

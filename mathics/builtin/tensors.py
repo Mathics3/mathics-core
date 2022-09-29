@@ -106,8 +106,10 @@ class ArrayQ(Builtin):
     <dl>
       <dt>'ArrayQ[$expr$]'
       <dd>tests whether $expr$ is a full array.
+
       <dt>'ArrayQ[$expr$, $pattern$]'
       <dd>also tests whether the array depth of $expr$ matches $pattern$.
+
       <dt>'ArrayQ[$expr$, $pattern$, $test$]'
       <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$. 'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
     </dl>
@@ -396,6 +398,7 @@ class RotationTransform(Builtin):
     <dl>
       <dt>'RotationTransform[$phi$]'
       <dd>gives a rotation by $phi$.
+
       <dt>'RotationTransform[$phi$, $p$]'
       <dd>gives a rotation by $phi$ around the point $p$.
     </dl>
@@ -413,6 +416,7 @@ class ScalingTransform(Builtin):
     <dl>
       <dt>'ScalingTransform[$v$]'
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
+
       <dt>'ScalingTransform[$phi$, $p$]'
       <dd>gives a scaling transform of $v$ that is centered at the point $p$.
     </dl>
@@ -430,8 +434,10 @@ class ShearingTransform(Builtin):
     <dl>
       <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
       <dd>gives a horizontal shear by the angle $phi$.
+
       <dt>'ShearingTransform[$phi$, {0, 1}, {1, 0}]'
       <dd>gives a vertical shear by the angle $phi$.
+
       <dt>'ShearingTransform[$phi$, $u$, $u$, $p$]'
       <dd>gives a shear centered at the point $p$.
     </dl>
@@ -540,6 +546,7 @@ class VectorQ(Builtin):
     <dl>
       <dt>'VectorQ[$v$]'
       <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.
+
       <dt>'VectorQ[$v$, $f$]'
       <dd>returns 'True' if $v$ is a vector and '$f$[$x$]' returns 'True' for each element $x$ of $v$.
     </dl>

@@ -1023,8 +1023,10 @@ class RegisterImport(Builtin):
     <dl>
       <dt>'RegisterImport["$format$", $defaultFunction$]'
       <dd>register '$defaultFunction$' as the default function used when importing from a file of type '"$format$"'.
+
       <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
       <dd>registers multiple elements ($elem1$, ...) and their corresponding converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
+
       <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
       <dd>also registers additional elements ($elem3$, ...) whose converters ($postFunction3$, ...) act on output from the low-level funcions.
     </dl>
@@ -1295,8 +1297,10 @@ class Import(Builtin):
     <dl>
       <dt>'Import["$file$"]'
       <dd>imports data from a file.
+
       <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
+
       <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.
     </dl>
@@ -1576,8 +1580,10 @@ class ImportString(Import):
     <dl>
       <dt>'ImportString["$data$", "$format$"]'
       <dd>imports data in the specified format from a string.
+
       <dt>'ImportString["$file$", $elements$]'
       <dd>imports the specified elements from a string.
+
       <dt>'ImportString["$data$"]'
       <dd>attempts to determine the format of the string from its content.
     </dl>
@@ -1679,8 +1685,10 @@ class Export(Builtin):
     <dl>
       <dt>'Export["$file$.$ext$", $expr$]'
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
+
       <dt>'Export["$file$", $expr$, "$format$"]'
       <dd>exports $expr$ to a file in the specified format.
+
       <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
@@ -1898,6 +1906,7 @@ class ExportString(Builtin):
     <dl>
       <dt>'ExportString[$expr$, $form$]'
       <dd>exports $expr$ to a string, in the format $form$.
+
       <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a string as elements specified by $elems$.
     </dl>

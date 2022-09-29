@@ -507,6 +507,7 @@ class KelvinBei(_Bessel):
     <dl>
       <dt>'KelvinBei[$z$]'
       <dd>returns the Kelvin function bei($z$).
+
       <dt>'KelvinBei[$n$, $z$]'
       <dd>returns the Kelvin function bei_$n$($z$).
     </dl>
@@ -540,6 +541,7 @@ class KelvinBer(_Bessel):
     <dl>
       <dt>'KelvinBer[$z$]'
       <dd>returns the Kelvin function ber($z$).
+
       <dt>'KelvinBer[$n$, $z$]'
       <dd>returns the Kelvin function ber_$n$($z$).
     </dl>
@@ -574,6 +576,7 @@ class KelvinKei(_Bessel):
     <dl>
       <dt>'KelvinKei[$z$]'
       <dd>returns the Kelvin function kei($z$).
+
       <dt>'KelvinKei[$n$, $z$]'
       <dd>returns the Kelvin function kei_$n$($z$).
     </dl>
@@ -608,6 +611,7 @@ class KelvinKer(_Bessel):
     <dl>
       <dt>'KelvinKer[$z$]'
       <dd>returns the Kelvin function ker($z$).
+
       <dt>'KelvinKer[$n$, $z$]'
       <dd>returns the Kelvin function ker_$n$($z$).
     </dl>

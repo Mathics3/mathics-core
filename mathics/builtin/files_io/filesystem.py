@@ -235,6 +235,7 @@ class CreateDirectory(Builtin):
     <dl>
       <dt>'CreateDirectory["$dir$"]'
       <dd>creates a directory called $dir$.
+
       <dt>'CreateDirectory[]'
       <dd>creates a temporary directory.
     </dl>
@@ -296,6 +297,7 @@ class CreateFile(Builtin):
     <dl>
       <dt>'CreateFile["filename"]'
       <dd>Creates a file named "filename" temporary file, but do not open it.
+
       <dt>'CreateFile[]'
       <dd>Creates a temporary file, but do not open it.
     </dl>
@@ -412,6 +414,7 @@ class DeleteFile(Builtin):
     <dl>
       <dt>'Delete["$file$"]'
       <dd>deletes $file$.
+
       <dt>'Delete[{"$file1$", "$file2$", ...}]'
       <dd>deletes a list of files.
     </dl>
@@ -916,9 +919,11 @@ class FileHash(Builtin):
     <dl>
       <dt>'FileHash[$file$]'
       <dd>returns an integer hash for the given $file$.
+
       <dt>'FileHash[$file$, $type$]'
       <dd>returns an integer hash of the specified $type$ for the given $file$.
       <dd>The types supported are "MD5", "Adler32", "CRC32", "SHA", "SHA224", "SHA256", "SHA384", and "SHA512".
+
       <dt>'FileHash[$file$, $type$, $format$]'
       <dd>gives a hash code in the specified format.
     </dl>
@@ -1039,6 +1044,7 @@ class FileNameJoin(Builtin):
     <dl>
       <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
       <dd>joins the $dir_i$ together into one path.
+
       <dt>'FileNameJoin[..., OperatingSystem->"os"]'
       <dd>yields a file name in the format for the specified operating system. Possible choices are "Windows", "MacOSX", and "Unix".
     </dl>
@@ -1197,14 +1203,19 @@ class FileNames(Builtin):
     <dl>
       <dt>'FileNames[]'
       <dd>Returns a list with the filenames in the current working folder.
+
       <dt>'FileNames[$form$]'
       <dd>Returns a list with the filenames in the current working folder that matches with $form$.
+
       <dt>'FileNames[{$form_1$, $form_2$, ...}]'
       <dd>Returns a list with the filenames in the current working folder that matches with one of $form_1$, $form_2$, ....
+
       <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
+
       <dt>'FileNames[{$form_1$, $form_2$, ...},{$dir_1$, $dir_2$, ...}]'
       <dd>Looks into the directories $dir_1$, $dir_2$, ....
+
       <dt>'FileNames[{$forms$, $dirs$, $n$]'
       <dd>Look for files up to the level $n$.
     </dl>
@@ -1395,8 +1406,10 @@ class FileNameTake(Builtin):
     <dl>
       <dt>'FileNameTake["$file$"]'
       <dd>returns the last path element in the file name $name$.
+
       <dt>'FileNameTake["$file$", $n$]'
       <dd>returns the first $n$ path elements in the file name $name$.
+
       <dt>'FileNameTake["$file$", $-n$]'
       <dd>returns the last $n$ path elements in the file name $name$.
     </dl>
@@ -1437,8 +1450,10 @@ class FindList(Builtin):
     <dl>
       <dt>'FindList[$file$, $text$]'
       <dd>returns a list of all lines in $file$ that contain $text$.
+
       <dt>'FindList[$file$, {$text1$, $text2$, ...}]'
       <dd>returns a list of all lines in $file$ that contain any of the specified string.
+
       <dt>'FindList[{$file1$, $file2$, ...}, ...]'
       <dd>returns a list of all lines in any of the $filei$ that contain the specified strings.
     </dl>
@@ -1765,6 +1780,7 @@ class ParentDirectory(Builtin):
     <dl>
       <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
+
       <dt>'ParentDirectory["$dir$"]'
       <dd>returns the parent $dir$.
     </dl>
@@ -2041,8 +2057,10 @@ class SetFileDate(Builtin):
     <dl>
       <dt>'SetFileDate["$file$"]'
       <dd>set the file access and modification dates of $file$ to the current date.
+
       <dt>'SetFileDate["$file$", $date$]'
       <dd>set the file access and modification dates of $file$ to the specified date list.
+
       <dt>'SetFileDate["$file$", $date$, "$type$"]'
       <dd>set the file date of $file$ to the specified date list. The "$type$" can be one of "$Access$", "$Creation$", "$Modification$", or 'All'.
     </dl>
@@ -2247,6 +2265,7 @@ class URLSave(Builtin):
     <dl>
       <dt>'URLSave["url"]'
       <dd>Save "url" in a temporary file.
+
       <dt>'URLSave["url", $filename$]'
       <dd>Save "url" in $filename$.
     </dl>

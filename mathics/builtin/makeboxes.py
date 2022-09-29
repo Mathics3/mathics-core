@@ -334,6 +334,7 @@ class MakeBoxes(Builtin):
     <dl>
       <dt>'MakeBoxes[$expr$]'
       <dd>is a low-level formatting primitive that converts $expr$ to box form, without evaluating it.
+
       <dt>'\\( ... \\)'
       <dd>directly inputs box objects.
     </dl>
@@ -672,6 +673,7 @@ class NumberForm(_NumberForm):
     <dl>
       <dt>'NumberForm[$expr$, $n$]'
       <dd>prints a real number $expr$ with $n$-digits of precision.
+
       <dt>'NumberForm[$expr$, {$n$, $f$}]'
       <dd>prints with $n$-digits and $f$ digits to the right of the decimal point.
     </dl>

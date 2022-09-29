@@ -36,8 +36,10 @@ class Quantile(Builtin):
     <dl>
       <dt>'Quantile[$list$, $q$]'
       <dd>returns the $q$th quantile of $list$.
+
       <dt>'Quantile[$list$, $q$, {{$a$,$b$}, {$c$,$d$}}]'
       <dd>uses the quantile definition specified by parameters $a$, $b$, $c$, $d$.
+
       <dt>For a list of length $n$, 'Quantile[list, $q$, {{$a$,$b$}, {$c$,$d$}}]' depends on $x$=$a$+($n$+$b$)$q$.  If $x$ is an integer, the result is '$s$[[$x$]]', where $s$='Sort[list,Less]'.  Otherwise, the result is 's[[Floor[x]]]+(s[[Ceiling[x]]]-s[[Floor[x]]])(c+dFractionalPart[x])', with the indices taken to be 1 or n if they are out of range.  The default choice of parameters is '{{0,0},{1,0}}'.
     </dl>
 
@@ -154,8 +156,7 @@ class RankedMax(Builtin):
     """
     <dl>
       <dt>'RankedMax[$list$, $n$]'
-      <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
-      $n$ = 2 yielding the second largest element, and so on).
+      <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element, $n$ = 2 yielding the second largest element, and so on).
     </dl>
 
     >> RankedMax[{482, 17, 181, -12}, 2]

@@ -596,10 +596,9 @@ class Equal(_EqualityOperator, _SympyComparison):
       <dt>'$x$ == $y$'
       <dd>is 'True' if $x$ and $y$ are known to be equal, or 'False' if $x$ and $y$ are known to be unequal, in which case case, 'Not[$x$ == $y$]' will be 'True'.
 
-      Commutative properties apply, so if $x$ == $y$ then $y$ == $x$.
+          Commutative properties apply, so if $x$ == $y$ then $y$ == $x$.  For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
 
-      For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].  For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
-
+          For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
 
       <dt>'$x$ == $y$ == $z$ == ...'
       <dd> express a chain of equalities.

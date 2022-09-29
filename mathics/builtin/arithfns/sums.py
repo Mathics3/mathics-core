@@ -29,10 +29,13 @@ class Total(Builtin):
     <dl>
       <dt>'Total[$list$]'
       <dd>adds all values in $list$.
+
       <dt>'Total[$list$, $n$]'
       <dd>adds all values up to level $n$.
+
       <dt>'Total[$list$, {$n$}]'
       <dd>totals only the values at level {$n$}.
+
       <dt>'Total[$list$, {$n_1$, $n_2$}]'
       <dd>totals at levels {$n_1$, $n_2$}.
     </dl>
