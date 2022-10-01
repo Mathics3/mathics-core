@@ -22,6 +22,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
+from mathics.core.convert.op import ascii_op_to_unicode
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
@@ -39,6 +40,7 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import SymbolMessageName, SymbolRule
+from mathics.settings import SYSTEM_CHARACTER_ENCODING
 
 
 def check_requires_list(requires: list) -> bool:
@@ -624,13 +626,13 @@ class BinaryOperator(Operator):
             operator = self.get_operator_display()
             formatted = 'MakeBoxes[Infix[{%s},"%s",%d,%s], form]' % (
                 replace_items,
-                operator,
+                ascii_op_to_unicode(operator, SYSTEM_CHARACTER_ENCODING),
                 self.precedence,
                 self.grouping,
             )
             formatted_output = 'MakeBoxes[Infix[{%s}," %s ",%d,%s], form]' % (
                 replace_items,
-                operator,
+                ascii_op_to_unicode(operator, SYSTEM_CHARACTER_ENCODING),
                 self.precedence,
                 self.grouping,
             )

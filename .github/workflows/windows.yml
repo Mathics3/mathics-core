@@ -25,9 +25,8 @@ jobs:
         python -m pip install wheel
         choco install llvm
         set LLVM_DIR="C:\Program Files\LLVM"
-        # Can remove after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
-        pip install -e .
+        # Can comment out after next Mathics-Scanner release
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner@ascii-op-to-unicode#egg=Mathics-Scanner[full]
     - name: Install Mathics
       run: |
         python setup.py install

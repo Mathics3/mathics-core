@@ -7,6 +7,7 @@
 GIT2CL ?= admin-tools/git2cl
 PYTHON ?= python3
 PIP ?= pip3
+BASH ?= bash
 RM  ?= rm
 
 .PHONY: \
@@ -45,7 +46,7 @@ else
 endif
 
 #: Default target - same as "develop"
-all: develop
+all: develop mathics/data/op-tables.json
 
 #: build everything needed to install
 build:
@@ -107,6 +108,7 @@ clean: clean-cython clean-cache
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
 	rm -f factorials || true; \
+	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
 #: Run py.test tests. Use environment variable "o" for pytest options
@@ -125,11 +127,15 @@ doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/docu
 
 #: Run tests that appear in docstring in the code.
 doctest:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
+
+#: Build JSON ASCII to unicode opcode tables
+mathics/data/op-tables.json:
+	$(BASH) ./admin-tools/make-op-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:

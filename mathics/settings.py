@@ -69,7 +69,10 @@ ENABLE_FILES_MODULE = True
 # whatever it is that setting this thing did.
 default_pymathics_modules = []
 
-SYSTEM_CHARACTER_ENCODING = "UTF-8" if sys.getdefaultencoding() == "utf-8" else "ASCII"
+character_encoding = os.environ.get(
+    "MATHICS_CHARACTER_ENCODING", sys.getdefaultencoding()
+)
+SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
 
 
 def get_doc_tex_data_path(should_be_readable=False, create_parent=False) -> str:

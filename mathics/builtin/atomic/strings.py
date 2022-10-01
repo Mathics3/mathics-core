@@ -27,6 +27,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import listable, protected
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.op import ascii_op_to_unicode
 from mathics.core.convert.python import from_bool
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
@@ -327,6 +328,31 @@ def mathics_split(patt, string, flags):
 
     # slice up the string
     return [string[start:stop] for start, stop in indices]
+
+
+class AsciiOpToString(Builtin):
+    """
+    <dl>
+      <dt>'AsciiOpToString[$operator$]'
+      <dd>returns a unicode (string)representation of ASCII string operator $op$ .
+      <dd>returns a unicode (string)representation of ASCII string operator $op$ .
+    </dl>
+    This is a Mathics-specific function which is used in operation output rendering.
+
+
+    >> AsciiOpToString[">="]
+     = ...
+    """
+
+    options = {
+        "CharacterEncoding": '"Unicode"',
+    }
+    summary_text = "convert ASCII operator to unicode"
+
+    def apply(self, operator, evaluation, options):
+        "AsciiOpToString[operator_String, OptionsPattern[AsciiOpToString]]"
+        encoding = options["System`CharacterEncoding"]
+        return String(ascii_op_to_unicode(operator.value, encoding.value))
 
 
 class SystemCharacterEncoding(Predefined):
