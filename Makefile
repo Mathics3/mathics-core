@@ -81,7 +81,6 @@ install:
 #: Run the most extensive set of tests
 check: pytest gstest doctest
 
-
 #: Build and check manifest of Builtins
 check-builtin-manifest:
 	$(PYTHON) admin-tools/build_and_check_manifest.py

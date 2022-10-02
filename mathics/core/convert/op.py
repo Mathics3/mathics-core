@@ -16,7 +16,9 @@ ROOT_DIR = pkg_resources.resource_filename("mathics", "")
 
 # Load the conversion tables from disk
 characters_path = osp.join(ROOT_DIR, "data", "op-tables.json")
-assert osp.exists(characters_path), "ASCII operator to Unicode tables are missing"
+assert osp.exists(
+    characters_path
+), f"ASCII operator to Unicode tables are missing from {characters_path}"
 with open(characters_path, "r") as f:
     op_data = ujson.load(f)
 

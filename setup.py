@@ -138,7 +138,6 @@ else:
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics_Scanner>=1.2.1,<1.3.0",
     "mpmath>=1.2.0",
     "palettable",
     "pint",
