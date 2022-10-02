@@ -46,7 +46,7 @@ else
 endif
 
 #: Default target - same as "develop"
-all: develop mathics/data/op-tables.json
+all: develop
 
 #: build everything needed to install
 build:
@@ -56,17 +56,17 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:
+develop:  mathics/data/op-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:
+develop-full:  mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython:
+develop-full-cython: mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full,cython]
 
 
