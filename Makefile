@@ -122,7 +122,7 @@ gstest:
 
 #: Create data that is used to in Django docs and to build LaTeX PDF
 doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	$(PYTHON) mathics/docpipeline.py --output --keep-going
+	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going
 
 #: Run tests that appear in docstring in the code.
 doctest:
