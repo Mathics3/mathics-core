@@ -31,7 +31,18 @@ def boxes_to_text(boxes, **options) -> str:
 
 
 def string(self, **options) -> str:
+    from mathics_scanner.characters import replace_wl_with_plain_text
+
     value = self.value
+    encoding = options.get("encoding", "Unicode")
+
+    # TODO: check if it makes sense to generalize this to
+    # other codepages...
+    if encoding in ("UTF8", "UTF-8"):
+        value = replace_wl_with_plain_text(value, True)
+    elif encoding == "ASCII":
+        value = replace_wl_with_plain_text(value, False)
+
     show_string_characters = (
         options.get("System`ShowStringCharacters", None) is SymbolTrue
     )
