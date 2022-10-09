@@ -22,6 +22,10 @@ assert osp.exists(
 with open(characters_path, "r") as f:
     op_data = ujson.load(f)
 
+ascii_operator_to_symbol = op_data["ascii-operator-to-symbol"]
+operator_to_unicode = op_data["operator-to-unicode"]
+operator_to_ascii = op_data["operator-to-ascii"]
+
 
 @lru_cache(maxsize=1024)
 def ascii_op_to_unicode(ascii_op: str, encoding: str) -> str:

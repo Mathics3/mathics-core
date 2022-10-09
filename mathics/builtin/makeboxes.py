@@ -5,11 +5,13 @@
 Low level Format definitions
 """
 
+from typing import Union
 import mpmath
 
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import _boxed_string, RowBox, to_boxes
+from mathics.core.convert.op import operator_to_unicode, operator_to_ascii
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -44,6 +46,7 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolInfinity,
+    SymbolInputForm,
     SymbolMakeBoxes,
     SymbolOutputForm,
     SymbolRowBox,
@@ -80,11 +83,17 @@ def parenthesize(precedence, element, element_boxes, when_equal):
     return element_boxes
 
 
-def make_boxes_infix(elements, ops, precedence, grouping, form):
+# FIXME: op should be a string, so remove the Union.
+def make_boxes_infix(
+    elements, op: Union[str, list], precedence: int, grouping, form: Symbol
+):
     result = []
     for index, element in enumerate(elements):
         if index > 0:
-            result.append(ops[index - 1])
+            if isinstance(op, list):
+                result.append(op[index - 1])
+            else:
+                result.append(op)
         parenthesized = False
         if grouping == "System`NonAssociative":
             parenthesized = True
@@ -474,26 +483,26 @@ class MakeBoxes(Builtin):
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
-    def apply_infix(self, expr, h, prec, grouping, f, evaluation):
-        """MakeBoxes[Infix[expr_, h_, prec_:None, grouping_:None],
-        f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+    def apply_infix(self, expr, operator, prec, grouping, form: Symbol, evaluation):
+        """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         def get_op(op):
             if not isinstance(op, String):
-                op = MakeBoxes(op, f)
+                op = MakeBoxes(op, form)
             else:
                 op_value = op.get_string_value()
-                if f.get_name() == "System`InputForm" and op_value in ["*", "^"]:
+                if form.get_name() == "System`InputForm" and op_value in ["*", "^"]:
                     pass
                 elif (
-                    f.get_name() in ("System`InputForm", "System`OutputForm")
+                    form in (SymbolInputForm, SymbolOutputForm)
                     and not op_value.startswith(" ")
                     and not op_value.endswith(" ")
                 ):
                     op = String(" " + op_value + " ")
             return op
 
-        precedence = prec.get_int_value()
+        precedence = prec.value
         grouping = grouping.get_name()
 
         if isinstance(expr, Atom):
@@ -502,15 +511,31 @@ class MakeBoxes(Builtin):
 
         elements = expr.elements
         if len(elements) > 1:
-            if h.has_form("List", len(elements) - 1):
-                ops = [get_op(op) for op in h.elements]
+            if operator.has_form("List", len(elements) - 1):
+                operator = [get_op(op) for op in operator.elements]
+                return make_boxes_infix(elements, operator, precedence, grouping, form)
+            elif isinstance(operator, String):
+                op_str = operator.value
             else:
-                ops = [get_op(h)] * (len(elements) - 1)
-            return make_boxes_infix(elements, ops, precedence, grouping, f)
+                encoding = evaluation.definitions.get_ownvalue(
+                    "$CharacterEncoding"
+                ).replace.value
+                if encoding == "ASCII":
+                    op_str = operator_to_ascii[operator.short_name]
+                else:
+                    op_str = operator_to_unicode[operator.short_name]
+
+            if form in (SymbolInputForm, SymbolOutputForm) and op_str != " ":
+                op_str = f" {op_str} "
+
+            return make_boxes_infix(
+                elements, String(op_str), precedence, grouping, form
+            )
+
         elif len(elements) == 1:
-            return MakeBoxes(elements[0], f)
+            return MakeBoxes(elements[0], form)
         else:
-            return MakeBoxes(expr, f)
+            return MakeBoxes(expr, form)
 
 
 class ToBoxes(Builtin):
