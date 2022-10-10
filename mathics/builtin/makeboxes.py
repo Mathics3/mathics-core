@@ -489,22 +489,33 @@ class MakeBoxes(Builtin):
         """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        ## FIXME: this should go into a some formatter
-        def format_op(op) -> Union[String, BaseElement]:
-            if not isinstance(op, String):
-                op = MakeBoxes(op, form)
-            else:
-                op_str = op.value
+        ## FIXME: this should go into a some formatter.
+        def format_operator(operator) -> Union[String, BaseElement]:
+            """
+            Format infix operator `operator`. To do this outside parameter form is used.
+            Sometimes no changes are made and operator is returned unchanged.
 
-                if form == SymbolInputForm and op_str in ["*", "^", " "]:
-                    pass
-                elif (
-                    form in (SymbolInputForm, SymbolOutputForm)
-                    and not op_str.startswith(" ")
-                    and not op_str.endswith(" ")
-                ):
-                    op = String(" " + op_str + " ")
-            return op
+            This function probably should be rewritten be more scalable across other forms
+            and moved to a module that contiaing similar formatting routines.
+            """
+            if not isinstance(operator, String):
+                return MakeBoxes(operator, form)
+
+            op_str = operator.value
+
+            # FIXME: performing a check using the operator symbol representation feels a bit
+            # fragile. The operator name seems more straightforward and more robust.
+            if form == SymbolInputForm and op_str in ["*", "^", " "]:
+                return operator
+            elif (
+                form in (SymbolInputForm, SymbolOutputForm)
+                and not op_str.startswith(" ")
+                and not op_str.endswith(" ")
+            ):
+                # FIXME: Again, testing on specific forms is fragile and not scalable.
+                op = String(" " + op_str + " ")
+                return op
+            return operator
 
         precedence = prec.value
         grouping = grouping.get_name()
@@ -516,7 +527,7 @@ class MakeBoxes(Builtin):
         elements = expr.elements
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
-                operator = [format_op(op) for op in operator.elements]
+                operator = [format_operator(op) for op in operator.elements]
                 return make_boxes_infix(elements, operator, precedence, grouping, form)
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
@@ -531,9 +542,11 @@ class MakeBoxes(Builtin):
                     else operator.short_name
                 )
                 if encoding == "ASCII":
-                    operator = format_op(String(operator_to_ascii.get(op_str, op_str)))
+                    operator = format_operator(
+                        String(operator_to_ascii.get(op_str, op_str))
+                    )
                 else:
-                    operator = format_op(
+                    operator = format_operator(
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
