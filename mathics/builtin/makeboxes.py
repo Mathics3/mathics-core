@@ -25,7 +25,7 @@ from mathics.core.attributes import (
     hold_all_complete as A_HOLD_ALL_COMPLETE,
     read_protected as A_READ_PROTECTED,
 )
-from mathics.core.element import BoxElementMixin
+from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
@@ -85,7 +85,7 @@ def parenthesize(precedence, element, element_boxes, when_equal):
 
 # FIXME: op should be a string, so remove the Union.
 def make_boxes_infix(
-    elements, op: Union[str, list], precedence: int, grouping, form: Symbol
+    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
 ):
     result = []
     for index, element in enumerate(elements):
@@ -483,23 +483,27 @@ class MakeBoxes(Builtin):
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
-    def apply_infix(self, expr, operator, prec, grouping, form: Symbol, evaluation):
+    def apply_infix(
+        self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
+    ):
         """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        def get_op(op):
+        ## FIXME: this should go into a some formatter
+        def format_op(op) -> Union[String, BaseElement]:
             if not isinstance(op, String):
                 op = MakeBoxes(op, form)
             else:
-                op_value = op.get_string_value()
-                if form.get_name() == "System`InputForm" and op_value in ["*", "^"]:
+                op_str = op.value
+
+                if form == SymbolInputForm and op_str in ["*", "^", " "]:
                     pass
                 elif (
                     form in (SymbolInputForm, SymbolOutputForm)
-                    and not op_value.startswith(" ")
-                    and not op_value.endswith(" ")
+                    and not op_str.startswith(" ")
+                    and not op_str.endswith(" ")
                 ):
-                    op = String(" " + op_value + " ")
+                    op = String(" " + op_str + " ")
             return op
 
         precedence = prec.value
@@ -512,25 +516,28 @@ class MakeBoxes(Builtin):
         elements = expr.elements
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
-                operator = [get_op(op) for op in operator.elements]
+                operator = [format_op(op) for op in operator.elements]
                 return make_boxes_infix(elements, operator, precedence, grouping, form)
-            elif isinstance(operator, String):
-                op_str = operator.value
             else:
-                encoding = evaluation.definitions.get_ownvalue(
+                encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
-                ).replace.value
+                )
+                encoding = (
+                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
+                )
+                op_str = (
+                    operator.value
+                    if isinstance(operator, String)
+                    else operator.short_name
+                )
                 if encoding == "ASCII":
-                    op_str = operator_to_ascii[operator.short_name]
+                    operator = format_op(String(operator_to_ascii.get(op_str, op_str)))
                 else:
-                    op_str = operator_to_unicode[operator.short_name]
+                    operator = format_op(
+                        String(operator_to_unicode.get(op_str, op_str))
+                    )
 
-            if form in (SymbolInputForm, SymbolOutputForm) and op_str != " ":
-                op_str = f" {op_str} "
-
-            return make_boxes_infix(
-                elements, String(op_str), precedence, grouping, form
-            )
+            return make_boxes_infix(elements, operator, precedence, grouping, form)
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)

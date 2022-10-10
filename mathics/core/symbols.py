@@ -405,7 +405,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # code to see even what type of value should be expected
             # for it.
             self.value = value
-            self._short_name = name.split("`")[-1]
+            self._short_name = strip_context(name)
 
             cls.defined_symbols[name] = self
         return self
