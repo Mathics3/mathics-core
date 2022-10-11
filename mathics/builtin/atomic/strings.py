@@ -24,7 +24,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
 )
-from mathics.core.attributes import listable, protected
+from mathics.core.attributes import listable as A_LISTABLE, protected as A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
@@ -163,6 +163,45 @@ def _parallel_match(text, rules, flags, limit):
             k = match.end()
 
         push(i, iter, form)
+
+
+def _pattern_search(name, string, patt, evaluation, options, matched):
+    # Get the pattern list and check validity for each
+    if patt.has_form("List", None):
+        patts = patt.elements
+    else:
+        patts = [patt]
+    re_patts = []
+    for p in patts:
+        py_p = to_regex(p, evaluation)
+        if py_p is None:
+            return evaluation.message("StringExpression", "invld", p, patt)
+        re_patts.append(py_p)
+
+    flags = re.MULTILINE
+    if options["System`IgnoreCase"] is SymbolTrue:
+        flags = flags | re.IGNORECASE
+
+    def _search(patts, str, flags, matched):
+        if any(re.search(p, str, flags=flags) for p in patts):
+            return from_bool(matched)
+        return from_bool(not matched)
+
+    # Check string validity and perform regex searchhing
+    if string.has_form("List", None):
+        py_s = [s.get_string_value() for s in string.elements]
+        if any(s is None for s in py_s):
+            return evaluation.message(
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
+            )
+        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
+    else:
+        py_s = string.get_string_value()
+        if py_s is None:
+            return evaluation.message(
+                name, "strse", Integer1, Expression(Symbol(name), string, patt)
+            )
+        return _search(re_patts, py_s, flags, matched)
 
 
 def to_regex(
@@ -310,6 +349,13 @@ def anchor_pattern(patt):
     return patt
 
 
+# FIXME: Generalize string.lower() and ord()
+def letter_number(chars: List[str], start_ord) -> List["Integer"]:
+    # Note caller has verified that everything isalpha() and
+    # each char has length 1.
+    return [Integer(ord(char.lower()) - start_ord) for char in chars]
+
+
 def mathics_split(patt, string, flags):
     """
     Python's re.split includes the text of groups if they are capturing.
@@ -381,85 +427,6 @@ def to_python_encoding(encoding):
     return _encodings.get(encoding)
 
 
-class CharacterEncoding(Predefined):
-    """
-    <dl>
-    <dt>'CharacterEncoding'
-        <dd>specifies the default character encoding to use if no other encoding is specified.
-    </dl>
-    """
-
-    name = "$CharacterEncoding"
-    value = f'"{SYSTEM_CHARACTER_ENCODING}"'
-    rules = {
-        "$CharacterEncoding": value,
-    }
-
-    summary_text = "default character encoding"
-
-
-class CharacterEncodings(Predefined):
-    """
-    <dl>
-      <dt>'$CharacterEncodings'
-      <dd>stores the list of available character encodings.
-    </dl>
-    """
-
-    name = "$CharacterEncodings"
-    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
-    rules = {
-        "$CharacterEncodings": value,
-    }
-    summary_text = "available character encodings"
-
-
-class NumberString(Builtin):
-    """
-    <dl>
-    <dt>'NumberString'
-      <dd>represents the characters in a number.
-    </dl>
-
-    >> StringMatchQ["1234", NumberString]
-     = True
-
-    >> StringMatchQ["1234.5", NumberString]
-    = True
-
-    >> StringMatchQ["1.2`20", NumberString]
-     = False
-    """
-
-    summary_text = "characters in string representation of a number"
-
-
-class Whitespace(Builtin):
-    r"""
-    <dl>
-    <dt>'Whitespace'
-      <dd>represents a sequence of whitespace characters.
-    </dl>
-
-    >> StringMatchQ["\r \n", Whitespace]
-     = True
-
-    >> StringSplit["a  \n b \r\n c d", Whitespace]
-     = {a, b, c, d}
-
-    >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
-     = "this has leading and trailing whitespace removed"
-    """
-    summary_text = "sequence of whitespace characters"
-
-
-# FIXME: Generalize string.lower() and ord()
-def letter_number(chars: List[str], start_ord) -> List["Integer"]:
-    # Note caller has verified that everything isalpha() and
-    # each char has length 1.
-    return [Integer(ord(char.lower()) - start_ord) for char in chars]
-
-
 class Alphabet(Builtin):
     """
      <dl>
@@ -502,6 +469,90 @@ class Alphabet(Builtin):
             evaluation.message("Alphabet", "nalph", alpha)
             return
         return to_mathics_list(*alphabet["Lowercase"], elements_conversion_fn=String)
+
+
+class CharacterEncoding(Predefined):
+    """
+    <dl>
+      <dt>'CharacterEncoding'
+      <dd>specifies the default raw character encoding to use for input and output when no encoding is explicitly specified. Initially this is set to '$SystemCharacterEncoding'.
+    </dl>
+
+    See the character encoding current is in effect and used in input and output functions functions like 'OpenRead[]':
+
+    >> $CharacterEncoding
+     = ...
+
+    See also <url>:$SystemCharacterEncoding: /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
+    """
+
+    name = "$CharacterEncoding"
+    value = f'"{SYSTEM_CHARACTER_ENCODING}"'
+    rules = {
+        "$CharacterEncoding": value,
+    }
+
+    summary_text = "default character encoding"
+
+
+class CharacterEncodings(Predefined):
+    """
+    <dl>
+      <dt>'$CharacterEncodings'
+      <dd>stores the list of available character encodings.
+    </dl>
+
+    >> $CharacterEncodings
+     = ...
+    """
+
+    name = "$CharacterEncodings"
+    value = "{%s}" % ",".join(map(lambda s: '"%s"' % s, _encodings.keys()))
+    rules = {
+        "$CharacterEncodings": value,
+    }
+    summary_text = "available character encodings"
+
+
+class HexidecimalCharacter(Builtin):
+    """
+    <dl>
+    <dt>'HexidecimalCharacter'
+      <dd>represents the characters 0-9, a-f and A-F.
+    </dl>
+
+    >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
+     = {True, True, True, False, False, False, False}
+    """
+
+    summary_text = "hexadecimal digits"
+
+
+# This isn't your normal Box class. We'll keep this here rather than
+# in mathics.builtin.box for now.
+class InterpretedBox(PrefixOperator):
+    r"""
+    <dl>
+      <dt>'InterpretedBox[$box$]'
+      <dd>is the ad hoc fullform for \! $box$. just
+          for internal use...
+    </dl>
+    >> \! \(2+2\)
+     = 4
+    """
+
+    operator = "\\!"
+    precedence = 670
+    summary_text = "interpret boxes as an expression"
+
+    def apply_dummy(self, boxes, evaluation: Evaluation):
+        """InterpretedBox[boxes_]"""
+        # TODO: the following is a very raw and dummy way to
+        # handle these expressions.
+        # In the first place, this should handle different kind
+        # of boxes in different ways.
+        reinput = boxes.boxes_to_text()
+        return Expression(SymbolToExpression, reinput).evaluate(evaluation)
 
 
 class LetterNumber(Builtin):
@@ -620,18 +671,49 @@ class LetterNumber(Builtin):
         return None
 
 
-class HexidecimalCharacter(Builtin):
+class NumberString(Builtin):
     """
     <dl>
-    <dt>'HexidecimalCharacter'
-      <dd>represents the characters 0-9, a-f and A-F.
+    <dt>'NumberString'
+      <dd>represents the characters in a number.
     </dl>
 
-    >> StringMatchQ[#, HexidecimalCharacter] & /@ {"a", "1", "A", "x", "H", " ", "."}
-     = {True, True, True, False, False, False, False}
+    >> StringMatchQ["1234", NumberString]
+     = True
+
+    >> StringMatchQ["1234.5", NumberString]
+    = True
+
+    >> StringMatchQ["1.2`20", NumberString]
+     = False
     """
 
-    summary_text = "hexadecimal digits"
+    summary_text = "characters in string representation of a number"
+
+
+class RemoveDiacritics(Builtin):
+    """
+    <dl>
+    <dt>'RemoveDiacritics[$s$]'
+        <dd>returns a version of $s$ with all diacritics removed.
+    </dl>
+
+    >> RemoveDiacritics["en prononçant pêcher et pécher"]
+     = en prononcant pecher et pecher
+
+    >> RemoveDiacritics["piñata"]
+     = pinata
+    """
+
+    summary_text = "remove diacritics"
+
+    def apply(self, s, evaluation: Evaluation):
+        "RemoveDiacritics[s_String]"
+        return String(
+            unicodedata.normalize("NFKD", s.value)
+            .encode("ascii", "ignore")
+            .decode("ascii")
+        )
 
 
 class _StringFind(Builtin):
@@ -720,59 +802,6 @@ class _StringFind(Builtin):
             return self._find(py_strings, py_rules, py_n, flags, evaluation)
 
 
-class StringRepeat(Builtin):
-    """
-    <dl>
-      <dt>'StringRepeat["$string$", $n$]'
-      <dd>gives $string$ repeated $n$ times.
-
-      <dt>'StringRepeat["$string$", $n$, $max$]'
-      <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
-
-    </dl>
-
-    >> StringRepeat["abc", 3]
-     = abcabcabc
-
-    >> StringRepeat["abc", 10, 7]
-     = abcabca
-
-    #> StringRepeat["x", 0]
-     : A positive integer is expected at position 2 in StringRepeat[x, 0].
-     = StringRepeat[x, 0]
-    """
-
-    messages = {
-        "intp": "A positive integer is expected at position `1` in `2`.",
-    }
-
-    summary_text = "build a string by concatenating repetitions"
-
-    def apply(self, s, n, expression, evaluation):
-        "StringRepeat[s_String, n_]"
-        py_n = n.value if isinstance(n, Integer) else 0
-        if py_n < 1:
-            evaluation.message("StringRepeat", "intp", 2, expression)
-        else:
-            return String(s.value * py_n)
-
-    def apply_truncated(self, s, n, m, expression, evaluation):
-        "StringRepeat[s_String, n_Integer, m_Integer]"
-        # The above rule insures that n and m are boht Integer type
-        py_n = n.value
-        py_m = m.value
-
-        if py_n < 1:
-            evaluation.message("StringRepeat", "intp", 2, expression)
-        elif py_m < 1:
-            evaluation.message("StringRepeat", "intp", 3, expression)
-        else:
-            py_s = s.value
-            py_n = min(1 + py_m // len(py_s), py_n)
-
-            return String((py_s * py_n)[:py_m])
-
-
 class String_(Builtin):
     """
     <dl>
@@ -796,336 +825,6 @@ class String_(Builtin):
 
     name = "String"
     summary_text = "head for strings"
-
-
-def eval_ToString(
-    expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
-) -> String:
-    boxes = format_element(expr, evaluation, form, encoding=encoding)
-    text = boxes.boxes_to_text(evaluation=evaluation)
-    return String(text)
-
-
-class ToString(Builtin):
-    """
-    <dl>
-      <dt>'ToString[$expr$]'
-      <dd>returns a string representation of $expr$.
-
-      <dt>'ToString[$expr$, $form$]'
-      <dd>returns a string representation of $expr$ in the form $form$.
-    </dl>
-
-    >> ToString[2]
-     = 2
-    >> ToString[2] // InputForm
-     = "2"
-    >> ToString[a+b]
-     = a + b
-    >> "U" <> 2
-     : String expected.
-     = U <> 2
-    >> "U" <> ToString[2]
-     = U2
-    >> ToString[Integrate[f[x],x], TeXForm]
-     = \\int f\\left[x\\right] \\, dx
-
-    """
-
-    options = {
-        "CharacterEncoding": '"Unicode"',
-        "FormatType": "OutputForm",
-        "NumberMarks": "$NumberMarks",
-        "PageHeight": "Infinity",
-        "PageWidth": "Infinity",
-        "TotalHeight": "Infinity",
-        "TotalWidth": "Infinity",
-    }
-
-    summary_text = "format an expression and produce a string"
-
-    def apply_default(self, value, evaluation, options):
-        "ToString[value_, OptionsPattern[ToString]]"
-        return self.apply_form(value, SymbolOutputForm, evaluation, options)
-
-    def apply_form(self, expr, form, evaluation, options):
-        "ToString[expr_, form_, OptionsPattern[ToString]]"
-        encoding = options["System`CharacterEncoding"]
-        return eval_ToString(expr, form, encoding.value, evaluation)
-
-
-# This isn't your normal Box class. We'll keep this here rather than
-# in mathics.builtin.box for now.
-class InterpretedBox(PrefixOperator):
-    r"""
-    <dl>
-      <dt>'InterpretedBox[$box$]'
-      <dd>is the ad hoc fullform for \! $box$. just
-          for internal use...
-    </dl>
-    >> \! \(2+2\)
-     = 4
-    """
-
-    operator = "\\!"
-    precedence = 670
-    summary_text = "interpret boxes as an expression"
-
-    def apply_dummy(self, boxes, evaluation: Evaluation):
-        """InterpretedBox[boxes_]"""
-        # TODO: the following is a very raw and dummy way to
-        # handle these expressions.
-        # In the first place, this should handle different kind
-        # of boxes in different ways.
-        reinput = boxes.boxes_to_text()
-        return Expression(SymbolToExpression, reinput).evaluate(evaluation)
-
-
-class ToExpression(Builtin):
-    r"""
-    <dl>
-      <dt>'ToExpression[$input$]'
-      <dd>inteprets a given string as Mathics input.
-
-      <dt>'ToExpression[$input$, $form$]'
-      <dd>reads the given input in the specified $form$.
-
-      <dt>'ToExpression[$input$, $form$, $h$]'
-      <dd>applies the head $h$ to the expression before evaluating it.
-
-    </dl>
-
-    >> ToExpression["1 + 2"]
-     = 3
-
-    >> ToExpression["{2, 3, 1}", InputForm, Max]
-     = 3
-
-    >> ToExpression["2 3", InputForm]
-     = 6
-
-    Note that newlines are like semicolons, not blanks. So so the return value is the second-line value.
-    >> ToExpression["2\[NewLine]3"]
-     = 3
-
-    #> ToExpression["log(x)", InputForm]
-     = log x
-
-    #> ToExpression["1+"]
-     : Incomplete expression; more input is needed (line 1 of "ToExpression['1+']").
-     = $Failed
-
-    #> ToExpression[]
-     : ToExpression called with 0 arguments; between 1 and 3 arguments are expected.
-     = ToExpression[]
-    """
-
-    # TODO: Other forms
-    """
-    >> ToExpression["log(x)", TraditionalForm]
-     = Log[x]
-    >> ToExpression["log(x)", TraditionalForm]
-     = Log[x]
-    #> ToExpression["log(x)", StandardForm]
-     = log x
-    """
-    attributes = listable | protected
-
-    messages = {
-        "argb": (
-            "`1` called with `2` arguments; "
-            "between `3` and `4` arguments are expected."
-        ),
-        "interpfmt": (
-            "`1` is not a valid interpretation format. "
-            "Valid interpretation formats include InputForm "
-            "and any member of $BoxForms."
-        ),
-        "notstr": "The format type `1` is valid only for string input.",
-    }
-    summary_text = "build an expression from formatted text"
-
-    def apply(self, seq, evaluation: Evaluation):
-        "ToExpression[seq__]"
-
-        # Organise Arguments
-        py_seq = seq.get_sequence()
-        if len(py_seq) == 1:
-            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
-        elif len(py_seq) == 2:
-            (inp, form, head) = (py_seq[0], py_seq[1], None)
-        elif len(py_seq) == 3:
-            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
-        else:
-            assert len(py_seq) > 3  # 0 case handled by apply_empty
-            evaluation.message(
-                "ToExpression",
-                "argb",
-                "ToExpression",
-                Integer(len(py_seq)),
-                Integer1,
-                Integer(3),
-            )
-            return
-
-        # Apply the different forms
-        if form is SymbolInputForm:
-            if isinstance(inp, String):
-
-                # TODO: turn the below up into a function and call that.
-                s = inp.value
-                short_s = s[:15] + "..." if len(s) > 16 else s
-                with io.StringIO(s) as f:
-                    f.name = """ToExpression['%s']""" % short_s
-                    feeder = MathicsFileLineFeeder(f)
-                    while not feeder.empty():
-                        try:
-                            query = parse(evaluation.definitions, feeder)
-                        except TranslateError:
-                            return SymbolFailed
-                        finally:
-                            feeder.send_messages(evaluation)
-                        if query is None:  # blank line / comment
-                            continue
-                        result = query.evaluate(evaluation)
-
-            else:
-                result = inp
-        else:
-            evaluation.message("ToExpression", "interpfmt", form)
-            return
-
-        # Apply head if present
-        if head is not None:
-            result = Expression(head, result).evaluate(evaluation)
-
-        return result
-
-    def apply_empty(self, evaluation: Evaluation):
-        "ToExpression[]"
-        evaluation.message(
-            "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
-        )
-        return
-
-
-class StringQ(Test):
-    """
-    <dl>
-    <dt>'StringQ[$expr$]'
-      <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
-    </dl>
-
-    >> StringQ["abc"]
-     = True
-    >> StringQ[1.5]
-     = False
-    >> Select[{"12", 1, 3, 5, "yz", x, y}, StringQ]
-     = {12, yz}
-    """
-
-    summary_text = "test whether an expression is a string"
-
-    def test(self, expr):
-        return isinstance(expr, String)
-
-
-class RemoveDiacritics(Builtin):
-    """
-    <dl>
-    <dt>'RemoveDiacritics[$s$]'
-        <dd>returns a version of $s$ with all diacritics removed.
-    </dl>
-
-    >> RemoveDiacritics["en prononçant pêcher et pécher"]
-     = en prononcant pecher et pecher
-
-    >> RemoveDiacritics["piñata"]
-     = pinata
-    """
-
-    summary_text = "remove diacritics"
-
-    def apply(self, s, evaluation: Evaluation):
-        "RemoveDiacritics[s_String]"
-        return String(
-            unicodedata.normalize("NFKD", s.value)
-            .encode("ascii", "ignore")
-            .decode("ascii")
-        )
-
-
-class Transliterate(Builtin):
-    """
-    <dl>
-    <dt>'Transliterate[$s$]'
-        <dd>transliterates a text in some script into an ASCII string.
-    </dl>
-
-    ASCII translateration examples:
-    <ul>
-      <li><url>:Russian language: https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
-      <li><url>:Hiragana: https://en.wikipedia.org/wiki/Hiragana#Table_of_hiragana</url>
-    </ul>
-    """
-
-    # Causes XeTeX to barf. Put this inside a unit test.
-    # >> Transliterate["つかう"]
-    #  = tsukau
-
-    # >> Transliterate["Алекса́ндр Пу́шкин"]
-    #  = Aleksandr Pushkin
-
-    # > Transliterate["μήτηρ γάρ τέ μέ φησι θεὰ Θέτις ἀργυρόπεζα"]
-    # = meter gar te me phesi thea Thetis arguropeza
-
-    requires = ("unidecode",)
-    summary_text = "transliterate an UTF string in different alphabets to ASCII"
-
-    def apply(self, s, evaluation: Evaluation):
-        "Transliterate[s_String]"
-        from unidecode import unidecode
-
-        return String(unidecode(s.value))
-
-
-def _pattern_search(name, string, patt, evaluation, options, matched):
-    # Get the pattern list and check validity for each
-    if patt.has_form("List", None):
-        patts = patt.elements
-    else:
-        patts = [patt]
-    re_patts = []
-    for p in patts:
-        py_p = to_regex(p, evaluation)
-        if py_p is None:
-            return evaluation.message("StringExpression", "invld", p, patt)
-        re_patts.append(py_p)
-
-    flags = re.MULTILINE
-    if options["System`IgnoreCase"] is SymbolTrue:
-        flags = flags | re.IGNORECASE
-
-    def _search(patts, str, flags, matched):
-        if any(re.search(p, str, flags=flags) for p in patts):
-            return from_bool(matched)
-        return from_bool(not matched)
-
-    # Check string validity and perform regex searchhing
-    if string.has_form("List", None):
-        py_s = [s.get_string_value() for s in string.elements]
-        if any(s is None for s in py_s):
-            return evaluation.message(
-                name, "strse", Integer1, Expression(Symbol(name), string, patt)
-            )
-        return to_mathics_list(*[_search(re_patts, s, flags, matched) for s in py_s])
-    else:
-        py_s = string.get_string_value()
-        if py_s is None:
-            return evaluation.message(
-                name, "strse", Integer1, Expression(Symbol(name), string, patt)
-            )
-        return _search(re_patts, py_s, flags, matched)
 
 
 class StringContainsQ(Builtin):
@@ -1225,12 +924,91 @@ class StringContainsQ(Builtin):
         )
 
 
+class StringQ(Test):
+    """
+    <dl>
+    <dt>'StringQ[$expr$]'
+      <dd>returns 'True' if $expr$ is a 'String', or 'False' otherwise.
+    </dl>
+
+    >> StringQ["abc"]
+     = True
+    >> StringQ[1.5]
+     = False
+    >> Select[{"12", 1, 3, 5, "yz", x, y}, StringQ]
+     = {12, yz}
+    """
+
+    summary_text = "test whether an expression is a string"
+
+    def test(self, expr):
+        return isinstance(expr, String)
+
+
+class StringRepeat(Builtin):
+    """
+    <dl>
+      <dt>'StringRepeat["$string$", $n$]'
+      <dd>gives $string$ repeated $n$ times.
+
+      <dt>'StringRepeat["$string$", $n$, $max$]'
+      <dd>gives $string$ repeated $n$ times, but not more than $max$ characters.
+
+    </dl>
+
+    >> StringRepeat["abc", 3]
+     = abcabcabc
+
+    >> StringRepeat["abc", 10, 7]
+     = abcabca
+
+    #> StringRepeat["x", 0]
+     : A positive integer is expected at position 2 in StringRepeat[x, 0].
+     = StringRepeat[x, 0]
+    """
+
+    messages = {
+        "intp": "A positive integer is expected at position `1` in `2`.",
+    }
+
+    summary_text = "build a string by concatenating repetitions"
+
+    def apply(self, s, n, expression, evaluation):
+        "StringRepeat[s_String, n_]"
+        py_n = n.value if isinstance(n, Integer) else 0
+        if py_n < 1:
+            evaluation.message("StringRepeat", "intp", 2, expression)
+        else:
+            return String(s.value * py_n)
+
+    def apply_truncated(self, s, n, m, expression, evaluation):
+        "StringRepeat[s_String, n_Integer, m_Integer]"
+        # The above rule insures that n and m are boht Integer type
+        py_n = n.value
+        py_m = m.value
+
+        if py_n < 1:
+            evaluation.message("StringRepeat", "intp", 2, expression)
+        elif py_m < 1:
+            evaluation.message("StringRepeat", "intp", 3, expression)
+        else:
+            py_s = s.value
+            py_n = min(1 + py_m // len(py_s), py_n)
+
+            return String((py_s * py_n)[:py_m])
+
+
 class SystemCharacterEncoding(Predefined):
     """
     <dl>
       <dt>$SystemCharacterEncoding
       <dd>gives the default character encoding of the system.
+
+      On startup, the value of environment variable 'MATHICS_CHARACTER_ENCODING' sets this value. However if that evironment varaible is not set, set the value is set in Python using 'sys.getdefaultencoding()'.
     </dl>
+
+    >> $SystemCharacterEncoding
+     = ...
     """
 
     name = "$SystemCharacterEncoding"
@@ -1239,4 +1017,241 @@ class SystemCharacterEncoding(Predefined):
         "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
     }
 
-    summary_text = "system's character enconding"
+    summary_text = "system's character encoding"
+
+
+class ToExpression(Builtin):
+    r"""
+    <dl>
+      <dt>'ToExpression[$input$]'
+      <dd>inteprets a given string as Mathics input.
+
+      <dt>'ToExpression[$input$, $form$]'
+      <dd>reads the given input in the specified $form$.
+
+      <dt>'ToExpression[$input$, $form$, $h$]'
+      <dd>applies the head $h$ to the expression before evaluating it.
+
+    </dl>
+
+    >> ToExpression["1 + 2"]
+     = 3
+
+    >> ToExpression["{2, 3, 1}", InputForm, Max]
+     = 3
+
+    >> ToExpression["2 3", InputForm]
+     = 6
+
+    Note that newlines are like semicolons, not blanks. So so the return value is the second-line value.
+    >> ToExpression["2\[NewLine]3"]
+     = 3
+
+    #> ToExpression["log(x)", InputForm]
+     = log x
+
+    #> ToExpression["1+"]
+     : Incomplete expression; more input is needed (line 1 of "ToExpression['1+']").
+     = $Failed
+
+    #> ToExpression[]
+     : ToExpression called with 0 arguments; between 1 and 3 arguments are expected.
+     = ToExpression[]
+    """
+
+    # TODO: Other forms
+    """
+    >> ToExpression["log(x)", TraditionalForm]
+     = Log[x]
+    >> ToExpression["log(x)", TraditionalForm]
+     = Log[x]
+    #> ToExpression["log(x)", StandardForm]
+     = log x
+    """
+    attributes = A_LISTABLE | A_PROTECTED
+
+    messages = {
+        "argb": (
+            "`1` called with `2` arguments; "
+            "between `3` and `4` arguments are expected."
+        ),
+        "interpfmt": (
+            "`1` is not a valid interpretation format. "
+            "Valid interpretation formats include InputForm "
+            "and any member of $BoxForms."
+        ),
+        "notstr": "The format type `1` is valid only for string input.",
+    }
+    summary_text = "build an expression from formatted text"
+
+    def apply(self, seq, evaluation: Evaluation):
+        "ToExpression[seq__]"
+
+        # Organise Arguments
+        py_seq = seq.get_sequence()
+        if len(py_seq) == 1:
+            (inp, form, head) = (py_seq[0], SymbolInputForm, None)
+        elif len(py_seq) == 2:
+            (inp, form, head) = (py_seq[0], py_seq[1], None)
+        elif len(py_seq) == 3:
+            (inp, form, head) = (py_seq[0], py_seq[1], py_seq[2])
+        else:
+            assert len(py_seq) > 3  # 0 case handled by apply_empty
+            evaluation.message(
+                "ToExpression",
+                "argb",
+                "ToExpression",
+                Integer(len(py_seq)),
+                Integer1,
+                Integer(3),
+            )
+            return
+
+        # Apply the different forms
+        if form is SymbolInputForm:
+            if isinstance(inp, String):
+
+                # TODO: turn the below up into a function and call that.
+                s = inp.value
+                short_s = s[:15] + "..." if len(s) > 16 else s
+                with io.StringIO(s) as f:
+                    f.name = """ToExpression['%s']""" % short_s
+                    feeder = MathicsFileLineFeeder(f)
+                    while not feeder.empty():
+                        try:
+                            query = parse(evaluation.definitions, feeder)
+                        except TranslateError:
+                            return SymbolFailed
+                        finally:
+                            feeder.send_messages(evaluation)
+                        if query is None:  # blank line / comment
+                            continue
+                        result = query.evaluate(evaluation)
+
+            else:
+                result = inp
+        else:
+            evaluation.message("ToExpression", "interpfmt", form)
+            return
+
+        # Apply head if present
+        if head is not None:
+            result = Expression(head, result).evaluate(evaluation)
+
+        return result
+
+    def apply_empty(self, evaluation: Evaluation):
+        "ToExpression[]"
+        evaluation.message(
+            "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
+        )
+        return
+
+
+def eval_ToString(
+    expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
+) -> String:
+    boxes = format_element(expr, evaluation, form, encoding=encoding)
+    text = boxes.boxes_to_text(evaluation=evaluation)
+    return String(text)
+
+
+class ToString(Builtin):
+    """
+    <dl>
+      <dt>'ToString[$expr$]'
+      <dd>returns a string representation of $expr$.
+
+      <dt>'ToString[$expr$, $form$]'
+      <dd>returns a string representation of $expr$ in the form $form$.
+    </dl>
+
+    >> ToString[2]
+     = 2
+    >> ToString[2] // InputForm
+     = "2"
+    >> ToString[a+b]
+     = a + b
+    >> "U" <> 2
+     : String expected.
+     = U <> 2
+    >> "U" <> ToString[2]
+     = U2
+    >> ToString[Integrate[f[x],x], TeXForm]
+     = \\int f\\left[x\\right] \\, dx
+
+    """
+
+    options = {
+        "CharacterEncoding": '"Unicode"',
+        "FormatType": "OutputForm",
+        "NumberMarks": "$NumberMarks",
+        "PageHeight": "Infinity",
+        "PageWidth": "Infinity",
+        "TotalHeight": "Infinity",
+        "TotalWidth": "Infinity",
+    }
+
+    summary_text = "format an expression and produce a string"
+
+    def apply_default(self, value, evaluation, options):
+        "ToString[value_, OptionsPattern[ToString]]"
+        return self.apply_form(value, SymbolOutputForm, evaluation, options)
+
+    def apply_form(self, expr, form, evaluation, options):
+        "ToString[expr_, form_, OptionsPattern[ToString]]"
+        encoding = options["System`CharacterEncoding"]
+        return eval_ToString(expr, form, encoding.value, evaluation)
+
+
+class Transliterate(Builtin):
+    """
+    <dl>
+    <dt>'Transliterate[$s$]'
+        <dd>transliterates a text in some script into an ASCII string.
+    </dl>
+
+    ASCII translateration examples:
+    <ul>
+      <li><url>:Russian language: https://en.wikipedia.org/wiki/Russian_language#Transliteration</url>
+      <li><url>:Hiragana: https://en.wikipedia.org/wiki/Hiragana#Table_of_hiragana</url>
+    </ul>
+    """
+
+    # Causes XeTeX to barf. Put this inside a unit test.
+    # >> Transliterate["つかう"]
+    #  = tsukau
+
+    # >> Transliterate["Алекса́ндр Пу́шкин"]
+    #  = Aleksandr Pushkin
+
+    # > Transliterate["μήτηρ γάρ τέ μέ φησι θεὰ Θέτις ἀργυρόπεζα"]
+    # = meter gar te me phesi thea Thetis arguropeza
+
+    requires = ("unidecode",)
+    summary_text = "transliterate an UTF string in different alphabets to ASCII"
+
+    def apply(self, s, evaluation: Evaluation):
+        "Transliterate[s_String]"
+        from unidecode import unidecode
+
+        return String(unidecode(s.value))
+
+
+class Whitespace(Builtin):
+    r"""
+    <dl>
+    <dt>'Whitespace'
+      <dd>represents a sequence of whitespace characters.
+    </dl>
+
+    >> StringMatchQ["\r \n", Whitespace]
+     = True
+
+    >> StringSplit["a  \n b \r\n c d", Whitespace]
+     = {a, b, c, d}
+
+    >> StringReplace[" this has leading and trailing whitespace \n ", (StartOfString ~~ Whitespace) | (Whitespace ~~ EndOfString) -> ""] <> " removed" // FullForm
+     = "this has leading and trailing whitespace removed"
+    """
+    summary_text = "sequence of whitespace characters"
