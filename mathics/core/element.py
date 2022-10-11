@@ -341,6 +341,15 @@ class BaseElement(KeyComparable):
         """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
+        # Below, we special-case for SymbolSequence. Here is an example to suggest why.
+        # Suppose we have this evaluation method:
+        #
+        # def apply(x, evaluation):
+        #     """F[x__]"""
+        #     args = x.get_sequence()
+        #
+        # For the expression "F[a,b]", this function is expected to return [Symbol(a), Symbol(b)], while
+        # for the expression "F[{a,b}]" this function is expected to return ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
             return self.elements
         else:
