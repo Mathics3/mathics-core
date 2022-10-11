@@ -22,6 +22,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import protected, read_protected, no_attributes
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
+from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
@@ -620,15 +621,9 @@ class BinaryOperator(Operator):
             op_pattern = "%s[x_, y_]" % name
             replace_items = "x, y"
 
+        operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
         if self.default_formats:
-            operator = self.get_operator_display()
-            formatted = 'MakeBoxes[Infix[{%s},"%s",%d,%s], form]' % (
-                replace_items,
-                operator,
-                self.precedence,
-                self.grouping,
-            )
-            formatted_output = 'MakeBoxes[Infix[{%s}," %s ",%d,%s], form]' % (
+            formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
                 self.precedence,
@@ -640,7 +635,7 @@ class BinaryOperator(Operator):
                 ): formatted,
                 "MakeBoxes[{0}, form:InputForm|OutputForm]".format(
                     op_pattern
-                ): formatted_output,
+                ): formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules

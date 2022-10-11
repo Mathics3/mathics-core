@@ -534,7 +534,7 @@ class StringPosition(Builtin):
      = {{4, 6}, {9, 11}}
 
     'StringPosition' can be useful for searching through text.
-    >> data = Import["ExampleData/EinsteinSzilLetter.txt"];
+    >> data = Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> StringPosition[data, "uranium"]
      = {{299, 305}, {870, 876}, {1538, 1544}, {1671, 1677}, {2300, 2306}, {2784, 2790}, {3093, 3099}}
 

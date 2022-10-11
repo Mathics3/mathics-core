@@ -25,9 +25,12 @@ from mathics.core.atoms import (
     Integer1,
 )
 from mathics.core.attributes import listable, protected
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.op import ascii_op_to_unicode
 from mathics.core.convert.python import from_bool
+from mathics.core.element import BaseElement
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.parser import MathicsFileLineFeeder, parse
@@ -329,41 +332,6 @@ def mathics_split(patt, string, flags):
     return [string[start:stop] for start, stop in indices]
 
 
-class SystemCharacterEncoding(Predefined):
-    """
-    <dl>
-      <dt>$SystemCharacterEncoding
-      <dd>gives the default character encoding of the system.
-    </dl>
-    """
-
-    name = "$SystemCharacterEncoding"
-
-    rules = {
-        "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
-    }
-
-    summary_text = "system's character enconding"
-
-
-class CharacterEncoding(Predefined):
-    """
-    <dl>
-    <dt>'CharacterEncoding'
-        <dd>specifies the default character encoding to use if no other encoding is
-        specified.
-    </dl>
-    """
-
-    name = "$CharacterEncoding"
-    value = '"UTF-8"'
-    rules = {
-        "$CharacterEncoding": value,
-    }
-
-    summary_text = "default character encoding"
-
-
 _encodings = {
     # see https://docs.python.org/2/library/codecs.html#standard-encodings
     "ASCII": "ascii",
@@ -411,6 +379,23 @@ _encodings = {
 
 def to_python_encoding(encoding):
     return _encodings.get(encoding)
+
+
+class CharacterEncoding(Predefined):
+    """
+    <dl>
+    <dt>'CharacterEncoding'
+        <dd>specifies the default character encoding to use if no other encoding is specified.
+    </dl>
+    """
+
+    name = "$CharacterEncoding"
+    value = f'"{SYSTEM_CHARACTER_ENCODING}"'
+    rules = {
+        "$CharacterEncoding": value,
+    }
+
+    summary_text = "default character encoding"
 
 
 class CharacterEncodings(Predefined):
@@ -813,6 +798,14 @@ class String_(Builtin):
     summary_text = "head for strings"
 
 
+def eval_ToString(
+    expr: BaseElement, form: Symbol, encoding: String, evaluation: Evaluation
+) -> String:
+    boxes = format_element(expr, evaluation, form, encoding=encoding)
+    text = boxes.boxes_to_text(evaluation=evaluation)
+    return String(text)
+
+
 class ToString(Builtin):
     """
     <dl>
@@ -855,12 +848,10 @@ class ToString(Builtin):
         "ToString[value_, OptionsPattern[ToString]]"
         return self.apply_form(value, SymbolOutputForm, evaluation, options)
 
-    def apply_form(self, value, form, evaluation, options):
-        "ToString[value_, form_, OptionsPattern[ToString]]"
+    def apply_form(self, expr, form, evaluation, options):
+        "ToString[expr_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
-        text = format_element(value, evaluation, form, encoding=encoding)
-        text = text.boxes_to_text(evaluation=evaluation)
-        return String(text)
+        return eval_ToString(expr, form, encoding.value, evaluation)
 
 
 # This isn't your normal Box class. We'll keep this here rather than
@@ -880,7 +871,7 @@ class InterpretedBox(PrefixOperator):
     precedence = 670
     summary_text = "interpret boxes as an expression"
 
-    def apply_dummy(self, boxes, evaluation):
+    def apply_dummy(self, boxes, evaluation: Evaluation):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
@@ -954,7 +945,7 @@ class ToExpression(Builtin):
     }
     summary_text = "build an expression from formatted text"
 
-    def apply(self, seq, evaluation):
+    def apply(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
         # Organise Arguments
@@ -1010,7 +1001,7 @@ class ToExpression(Builtin):
 
         return result
 
-    def apply_empty(self, evaluation):
+    def apply_empty(self, evaluation: Evaluation):
         "ToExpression[]"
         evaluation.message(
             "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
@@ -1055,7 +1046,7 @@ class RemoveDiacritics(Builtin):
 
     summary_text = "remove diacritics"
 
-    def apply(self, s, evaluation):
+    def apply(self, s, evaluation: Evaluation):
         "RemoveDiacritics[s_String]"
         return String(
             unicodedata.normalize("NFKD", s.value)
@@ -1091,7 +1082,7 @@ class Transliterate(Builtin):
     requires = ("unidecode",)
     summary_text = "transliterate an UTF string in different alphabets to ASCII"
 
-    def apply(self, s, evaluation):
+    def apply(self, s, evaluation: Evaluation):
         "Transliterate[s_String]"
         from unidecode import unidecode
 
@@ -1232,3 +1223,20 @@ class StringContainsQ(Builtin):
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, True
         )
+
+
+class SystemCharacterEncoding(Predefined):
+    """
+    <dl>
+      <dt>$SystemCharacterEncoding
+      <dd>gives the default character encoding of the system.
+    </dl>
+    """
+
+    name = "$SystemCharacterEncoding"
+
+    rules = {
+        "$SystemCharacterEncoding": '"' + SYSTEM_CHARACTER_ENCODING + '"',
+    }
+
+    summary_text = "system's character enconding"
