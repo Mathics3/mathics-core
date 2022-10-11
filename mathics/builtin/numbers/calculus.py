@@ -98,6 +98,10 @@ from mathics.core.systemsymbols import (
 
 import sympy
 
+# These should be used in lower-level formatting
+SymbolDifferentialD = Symbol("System`DifferentialD")
+SymbolIntegral = Symbol("System`Integral")
+
 
 class D(SympyFunction):
     """

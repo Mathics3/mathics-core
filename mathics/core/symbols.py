@@ -405,6 +405,8 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # code to see even what type of value should be expected
             # for it.
             self.value = value
+            self._short_name = strip_context(name)
+
             cls.defined_symbols[name] = self
         return self
 
@@ -555,9 +557,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 1,
             )
 
-    def user_hash(self, update) -> None:
-        update(b"System`Symbol>" + self.name.encode("utf8"))
-
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
         var = vars.get(self.name, None)
@@ -569,6 +568,14 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def sameQ(self, rhs: Any) -> bool:
         """Mathics SameQ"""
         return self is rhs
+
+    @property
+    def short_name(self) -> str:
+        """The symbol name with its context stripped off"""
+        return self._short_name
+
+    def user_hash(self, update) -> None:
+        update(b"System`Symbol>" + self.name.encode("utf8"))
 
     def to_python(self, *args, python_form: bool = False, **kwargs):
         if self is SymbolTrue:
