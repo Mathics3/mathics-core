@@ -530,19 +530,24 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message_args("Format", len(lhs.elements), 1, 2)
         raise AssignmentException(lhs, None)
     if len(lhs.elements) == 2:
-        form = lhs.elements[1].get_name()
-        if not form:
+        form = lhs.elements[1]
+        form_name = form.get_name()
+        if not form_name:
             evaluation.message("Format", "fttp", lhs.elements[1])
             raise AssignmentException(lhs, None)
+        # If the form is not in defs.printforms
+        # add it.
+        print_forms = defs.printforms
+        if form not in print_forms:
+            print_forms.append(form)
     else:
-        form = system_symbols(
-            "StandardForm",
-            "TraditionalForm",
-            "OutputForm",
-            "TeXForm",
-            "MathMLForm",
-        )
-        form = [f.name for f in form]
+        form_name = [
+            "System`StandardForm",
+            "System`TraditionalForm",
+            "System`OutputForm",
+            "System`TeXForm",
+            "System`MathMLForm",
+        ]
     lhs = focus = lhs.elements[0]
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
@@ -553,7 +558,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_format(tag, rule, form)
+        defs.add_format(tag, rule, form_name)
     return count > 0
 
 

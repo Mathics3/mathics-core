@@ -17,6 +17,11 @@ from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import Integer, String, StringFromPython
+from mathics.core.attributes import (
+    no_attributes as A_NO_ATTRIBUTES,
+    locked as A_LOCKED,
+    protected as A_PROTECTED,
+)
 
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
@@ -40,6 +45,36 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 SymbolNumberForm = Symbol("System`NumberForm")
 SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolTableDepth = Symbol("TableDepth")
+
+
+class PrintForms_(Predefined):
+    """
+    <dl>
+      <dt>'$PrintForms'
+      <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting format values.
+    </dl>
+
+    >> $PrintForms
+     = ...
+
+    Suppose now that we want to add a new format `MyForm`. Initially, it does not belongs to $\$PrintForms$:
+    >> MemberQ[$PrintForms, MyForm]
+     = False
+    Now, let's define a format rule:
+    >> Format[MyForm[F[x_]]]:= "F<<" <> ToString[x] <> ">>"
+    >> Format[F[x_], MyForm]:= MyForm[F[x]]
+    Now, the new format belongs to the $\$PrintForms$ list
+    >> MemberQ[$PrintForms, MyForm]
+     = True
+
+    """
+
+    attributes = A_LOCKED | A_PROTECTED
+    name = "$PrintForms"
+    summary_text = "list the print formats"
+
+    def evaluate(self, evaluation):
+        return ListExpression(*evaluation.definitions.printforms)
 
 
 class TableForm(Builtin):
@@ -230,7 +265,7 @@ class Echo_(Predefined):
     </dl>
     """
 
-    attributes = 0
+    attributes = A_NO_ATTRIBUTES
     name = "$Echo"
     rules = {"$Echo": "{}"}
     summary_text = "files and pipes that echoes the input"

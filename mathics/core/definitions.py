@@ -19,6 +19,7 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    format_symbols,
     strip_context,
 )
 from mathics.core.systemsymbols import SymbolGet
@@ -106,6 +107,7 @@ class Definitions:
             "System`",
             "Global`",
         )
+        self.printforms = [f for f in format_symbols]
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
 
