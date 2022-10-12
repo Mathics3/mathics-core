@@ -183,6 +183,7 @@ def format_element(
     Applies formats associated to the expression, and then calls Makeboxes
     """
     expr = do_format(element, evaluation, form)
+    # FIXME: handle "encoding" in kwargs
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
     if isinstance(result_box, String):
