@@ -25,6 +25,7 @@ from mathics.core.atoms import (
     Integer1,
 )
 from mathics.core.attributes import listable, protected
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
@@ -33,7 +34,7 @@ from mathics.core.convert.python import from_bool
 from mathics.core.element import BaseElement
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
-from mathics.core.parser import MathicsFileLineFeeder, parse
+from mathics.core.parser import MathicsFileLineFeeder, MathicsSingleLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
     SymbolTrue,
@@ -49,7 +50,7 @@ from mathics.core.systemsymbols import (
 
 
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
-from mathics_scanner import TranslateError
+from mathics_scanner import TranslateError, InvalidSyntaxError
 
 
 SymbolToExpression = Symbol("ToExpression")
@@ -820,16 +821,33 @@ class ToString(Builtin):
      = 2
     >> ToString[2] // InputForm
      = "2"
+
+    'ToString' formats output according to form rules. Note spaces around the operator are added:
     >> ToString[a+b]
      = a + b
+
     >> "U" <> 2
      : String expected.
      = U <> 2
     >> "U" <> ToString[2]
      = U2
+
     >> ToString[Integrate[f[x],x], TeXForm]
      = \\int f\\left[x\\right] \\, dx
 
+    When 'ToString' is passed a string, the string is first parsed to an expression.
+
+    >> ToString["1->2", OutputForm]
+     = ...
+
+    >> ToString["1->2"] == ToString[1 -> 2]
+     = True
+
+    If a string argument does not parse, the string is left untouched and returned
+    >> ToString["->2", StandardForm]
+     = ->2
+
+    ## FIXME: add examples using encoding->"ASCII", encoding->"Unicode" after this works.
     """
 
     options = {
@@ -851,6 +869,17 @@ class ToString(Builtin):
     def apply_form(self, expr, form, evaluation, options):
         "ToString[expr_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
+
+        if isinstance(expr, String):
+            # ToString[] of a string parses the string into an M-expression and then
+            # runs ToString[] on the resulting M-expression.
+            # FIXME: should add_builtin be True?
+            definitions = Definitions(add_builtin=False)
+            try:
+                expr = parse(definitions, MathicsSingleLineFeeder(expr.value))
+            except InvalidSyntaxError:
+                return expr
+
         return eval_ToString(expr, form, encoding.value, evaluation)
 
 
