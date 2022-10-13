@@ -25,6 +25,7 @@ from mathics.core.atoms import (
     Integer1,
 )
 from mathics.core.attributes import listable, protected
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
@@ -48,7 +49,6 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.session import MathicsSession
 from mathics.settings import SYSTEM_CHARACTER_ENCODING
 from mathics_scanner import TranslateError, InvalidSyntaxError
 
@@ -873,9 +873,10 @@ class ToString(Builtin):
         if isinstance(expr, String):
             # ToString[] of a string parses the string into an M-expression and then
             # runs ToString[] on the resulting M-expression.
-            session = MathicsSession()
+            # FIXME: should add_builtin be True?
+            definitions = Definitions(add_builtin=False)
             try:
-                expr = parse(session.definitions, MathicsSingleLineFeeder(expr.value))
+                expr = parse(definitions, MathicsSingleLineFeeder(expr.value))
             except InvalidSyntaxError:
                 return expr
 
