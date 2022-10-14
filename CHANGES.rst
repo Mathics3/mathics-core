@@ -51,6 +51,7 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
+#. In the command line interface, outputs with non-default formats are now printed as``Out[`lineno`]//`form`= `result```.
 
 
 5.0.2

@@ -126,12 +126,21 @@ class TerminalShell(MathicsLineFeeder):
         else:
             return "{1}In[{2}{0}{3}]:= {4}".format(next_line_number, *self.incolors)
 
-    def get_out_prompt(self):
+    def get_out_prompt(self, format=None):
         line_number = self.get_last_line_number()
-        return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
+        if format:
+            return "{2}Out[{3}{0}{4}]//{1}= {5}".format(
+                line_number, format, *self.outcolors
+            )
+        else:
+            return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
 
     def to_output(self, text):
         line_number = self.get_last_line_number()
+        # TODO: check if this method still works when //`Format`
+        # is appended.
+        # Also, consider to call `get_out_prompt` to build
+        # the string...
         newline = "\n" + " " * len("Out[{0}]= ".format(line_number))
         return newline.join(text.splitlines())
 
@@ -143,7 +152,9 @@ class TerminalShell(MathicsLineFeeder):
             return self.rl_read_line(prompt)
         return input(prompt)
 
-    def print_result(self, result, no_out_prompt=False, strict_wl_output=False):
+    def print_result(
+        self, result, no_out_prompt=False, strict_wl_output=False, form=""
+    ):
         if result is None:
             # FIXME decide what to do here
             return
@@ -165,7 +176,7 @@ class TerminalShell(MathicsLineFeeder):
             out_str = "-Graph-"
 
         output = self.to_output(out_str)
-        mess = self.get_out_prompt() if not no_out_prompt else ""
+        mess = self.get_out_prompt(form) if not no_out_prompt else ""
         print(mess + output + "\n")
 
     def rl_read_line(self, prompt):
@@ -451,7 +462,15 @@ Please contribute to Mathics!""",
                 print(query)
             result = evaluation.evaluate(query, timeout=settings.TIMEOUT)
             if result is not None:
-                shell.print_result(result, strict_wl_output=args.strict_wl_output)
+                head = result.last_eval.get_head()
+                form = ""
+                if head in evaluation.definitions.printforms:
+                    form = evaluation.definitions.shorten_name(head.get_name())
+                if form == "OutputForm":
+                    form = ""
+                shell.print_result(
+                    result, strict_wl_output=args.strict_wl_output, form=form
+                )
         except (KeyboardInterrupt):
             print("\nKeyboardInterrupt")
         except EOFError:
