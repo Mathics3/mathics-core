@@ -129,11 +129,11 @@ class TerminalShell(MathicsLineFeeder):
     def get_out_prompt(self, format=None):
         line_number = self.get_last_line_number()
         if format:
-            return "{2}Out[{3}{0}{4}]//{1}= {5}".format(
+            return "{2}Out[{3}{0}{2}]{4}//{1}= {5}".format(
                 line_number, format, *self.outcolors
             )
         else:
-            return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
+            return "{1}Out[{2}{0}{1}]{3}= {4}".format(line_number, *self.outcolors)
 
     def to_output(self, text):
         line_number = self.get_last_line_number()
