@@ -51,7 +51,7 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
-
+#. PrintForm symbols are now in a separated module.
 
 5.0.2
 -----
