@@ -119,7 +119,7 @@ class CubeRoot(Builtin):
 
     summary_text = "cubed root"
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation):
         "CubeRoot[n_Complex]"
 
         evaluation.message("CubeRoot", "preal", n)
@@ -237,7 +237,7 @@ class Minus(PrefixOperator):
 
     summary_text = "arithmetic negation"
 
-    def apply_int(self, x: Integer, evaluation):
+    def eval_int(self, x: Integer, evaluation):
         "Minus[x_Integer]"
         return Integer(-x.value)
 
@@ -366,7 +366,7 @@ class Plus(BinaryOperator, SympyFunction):
             SymbolLeft,
         )
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Plus[items___]"
 
         items_tuple = items.numerify(evaluation).get_sequence()
@@ -584,7 +584,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     summary_text = "exponentiation"
 
-    def apply_check(self, x, y, evaluation):
+    def eval_check(self, x, y, evaluation):
         "Power[x_, y_]"
 
         # Power uses _MPMathFunction but does some error checking first
@@ -864,7 +864,7 @@ class Times(BinaryOperator, SympyFunction):
         "OutputForm: Times[items__]"
         return self.format_times(items, evaluation, op=" ")
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Times[items___]"
         items = items.numerify(evaluation).get_sequence()
         elements = []
