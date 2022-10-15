@@ -35,7 +35,7 @@ Internals
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
 #. `from_mpmath` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
-
+#. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
 
 Bugs
 ++++
