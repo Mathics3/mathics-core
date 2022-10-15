@@ -273,6 +273,12 @@ class Builtin:
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
 
+        for pattern, function in self.get_functions(
+            prefix="eval", is_pymodule=is_pymodule
+        ):
+            rules.append(
+                BuiltinRule(name, pattern, function, check_options, system=True)
+            )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
@@ -546,7 +552,7 @@ class Operator(Builtin):
 class Predefined(Builtin):
     def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
-        if prefix == "apply" and hasattr(self, "evaluate"):
+        if prefix in ("apply", "eval") and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
         return functions
 
