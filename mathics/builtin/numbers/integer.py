@@ -12,9 +12,9 @@ import string
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Integer0, String
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    protected as A_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
 )
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.convert.expression import to_mathics_list

@@ -17,7 +17,7 @@ from mathics.core.atoms import String
 from mathics.core.attributes import (
     hold_all as A_HOLD_ALL,
     hold_first as A_HOLD_FIRST,
-    protected as A_PROTECTED,
+    A_PROTECTED,
 )
 from mathics.core.evaluation import Message as EvaluationMessage
 from mathics.core.expression import Expression

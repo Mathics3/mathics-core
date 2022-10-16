@@ -68,7 +68,7 @@ from mathics.core.attributes import (
     numeric_function,
     one_identity,
     orderless,
-    protected,
+    A_PROTECTED,
     read_protected,
 )
 
@@ -103,7 +103,7 @@ class CubeRoot(Builtin):
      = (3 + 4 I) ^ (1 / 3)
     """
 
-    attributes = listable | numeric_function | protected | read_protected
+    attributes = listable | numeric_function | A_PROTECTED | read_protected
 
     messages = {
         "preal": "The parameter `1` should be real valued.",
@@ -178,7 +178,7 @@ class Divide(BinaryOperator):
 
     operator = "/"
     precedence = 470
-    attributes = listable | numeric_function | protected
+    attributes = listable | numeric_function | A_PROTECTED
     grouping = "Left"
 
     default_formats = False
@@ -220,7 +220,7 @@ class Minus(PrefixOperator):
 
     operator = "-"
     precedence = 480
-    attributes = listable | numeric_function | protected
+    attributes = listable | numeric_function | A_PROTECTED
 
     rules = {
         "Minus[x_]": "Times[-1, x]",
@@ -303,7 +303,7 @@ class Plus(BinaryOperator, SympyFunction):
     operator = "+"
     precedence = 310
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | protected
+        flat | listable | numeric_function | one_identity | orderless | A_PROTECTED
     )
 
     default_formats = False
@@ -538,7 +538,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     operator = "^"
     precedence = 590
-    attributes = listable | numeric_function | one_identity | protected
+    attributes = listable | numeric_function | one_identity | A_PROTECTED
     grouping = "Right"
 
     default_formats = False
@@ -648,7 +648,7 @@ class Sqrt(SympyFunction):
      = 1.4142135623730950488016887242096980785696718753769
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = listable | numeric_function | A_PROTECTED
 
     rules = {
         "Sqrt[x_]": "x ^ (1/2)",
@@ -681,7 +681,7 @@ class Subtract(BinaryOperator):
     operator = "-"
     precedence_parse = 311
     precedence = 310
-    attributes = listable | numeric_function | protected
+    attributes = listable | numeric_function | A_PROTECTED
     grouping = "Left"
 
     rules = {
@@ -775,7 +775,7 @@ class Times(BinaryOperator, SympyFunction):
     operator_display = " "
     precedence = 400
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | protected
+        flat | listable | numeric_function | one_identity | orderless | A_PROTECTED
     )
 
     defaults = {

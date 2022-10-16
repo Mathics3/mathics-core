@@ -29,7 +29,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.core.attributes import attribute_string_to_number, locked, protected
+from mathics.core.attributes import attribute_string_to_number, locked, A_PROTECTED
 
 from functools import reduce
 
@@ -109,7 +109,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return protected & defin.get_attributes(tag)
+    return A_PROTECTED & defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):

@@ -6,7 +6,7 @@ Forms of Assignment
 
 from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
+from mathics.core.attributes import hold_all, hold_first, A_PROTECTED, sequence_hold
 from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.evaluators import eval_load_module
 from mathics.core.symbols import SymbolNull
@@ -79,7 +79,7 @@ class Set(BinaryOperator, _SetOperator):
     #> x = Infinity;
     """
 
-    attributes = hold_first | protected | sequence_hold
+    attributes = hold_first | A_PROTECTED | sequence_hold
     grouping = "Right"
 
     messages = {
@@ -142,7 +142,7 @@ class SetDelayed(Set):
     """
 
     operator = ":="
-    attributes = hold_all | protected | sequence_hold
+    attributes = hold_all | A_PROTECTED | sequence_hold
 
     summary_text = "test a delayed value; used in defining functions"
 
@@ -182,7 +182,7 @@ class TagSet(Builtin, _SetOperator):
      = 3
     """
 
-    attributes = hold_all | protected | sequence_hold
+    attributes = hold_all | A_PROTECTED | sequence_hold
 
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
@@ -212,7 +212,7 @@ class TagSetDelayed(TagSet):
     </dl>
     """
 
-    attributes = hold_all | protected | sequence_hold
+    attributes = hold_all | A_PROTECTED | sequence_hold
     summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):

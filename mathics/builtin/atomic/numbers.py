@@ -31,8 +31,8 @@ from mathics.core.atoms import (
     Complex,
 )
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    protected as A_PROTECTED,
+    A_LISTABLE,
+    A_PROTECTED,
 )
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.evaluators import eval_N

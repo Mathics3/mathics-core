@@ -14,7 +14,7 @@ from mathics.core.attributes import (
     listable,
     locked,
     no_attributes,
-    protected,
+    A_PROTECTED,
     read_protected,
 )
 from mathics.core.expression import Expression
@@ -75,7 +75,7 @@ class Clear(Builtin):
     """
 
     allow_locked = True
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
@@ -236,7 +236,7 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    attributes = hold_first | listable | protected | read_protected
+    attributes = hold_first | listable | A_PROTECTED | read_protected
     operator = "=."
 
     messages = {

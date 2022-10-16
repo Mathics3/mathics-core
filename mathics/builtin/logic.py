@@ -10,7 +10,7 @@ from mathics.core.attributes import (
     hold_all,
     one_identity,
     orderless,
-    protected,
+    A_PROTECTED,
     locked,
 )
 
@@ -51,7 +51,7 @@ class Or(BinaryOperator):
      = a || b
     """
 
-    attributes = flat | hold_all | one_identity | protected
+    attributes = flat | hold_all | one_identity | A_PROTECTED
     operator = "||"
     precedence = 215
     summary_text = "logic (inclusive) disjunction"
@@ -100,7 +100,7 @@ class And(BinaryOperator):
      = a && b && c
     """
 
-    attributes = flat | hold_all | one_identity | protected
+    attributes = flat | hold_all | one_identity | A_PROTECTED
     operator = "&&"
     precedence = 215
     summary_text = "logic conjunction"
@@ -119,7 +119,7 @@ class And(BinaryOperator):
             result = arg.evaluate(evaluation)
             if result is SymbolFalse:
                 return SymbolFalse
-            elif not result is SymbolTrue:
+            elif result is not SymbolTrue:
                 elements.append(result)
         if elements:
             if len(elements) == 1:
@@ -258,7 +258,7 @@ class Equivalent(BinaryOperator):
      = True
     """
 
-    attributes = orderless | protected
+    attributes = orderless | A_PROTECTED
     operator = "\u29E6"
     precedence = 205
     summary_text = "logic equivalence"
@@ -318,7 +318,7 @@ class Xor(BinaryOperator):
      = a \u22BB b
     """
 
-    attributes = flat | one_identity | orderless | protected
+    attributes = flat | one_identity | orderless | A_PROTECTED
     operator = "\u22BB"
     precedence = 215
     summary_text = "logic (exclusive) disjunction"
@@ -357,7 +357,7 @@ class True_(Predefined):
     </dl>
     """
 
-    attributes = locked | protected
+    attributes = locked | A_PROTECTED
     name = "True"
     summary_text = "boolean constant for True"
 
@@ -370,7 +370,7 @@ class False_(Predefined):
     </dl>
     """
 
-    attributes = locked | protected
+    attributes = locked | A_PROTECTED
     name = "False"
     summary_text = "boolean constant for False"
 

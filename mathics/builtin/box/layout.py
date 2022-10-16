@@ -12,9 +12,9 @@ from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import (
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_HOLD_ALL_COMPLETE,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation

@@ -14,7 +14,7 @@ from mathics.builtin.base import (
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
-from mathics.core.attributes import hold_all_complete, protected
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
@@ -82,7 +82,7 @@ class Association(Builtin):
 
     error_idx = 0
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
 
     summary_text = "an association between keys and values"
 
@@ -252,7 +252,7 @@ class Keys(Builtin):
      = Keys[a -> x, b -> y]
     """
 
-    attributes = protected
+    attributes = A_PROTECTED
 
     messages = {
         "argx": "Keys called with `1` arguments; 1 argument is expected.",
@@ -294,7 +294,7 @@ class Lookup(Builtin):
     </dl>
     """
 
-    attributes = hold_all_complete
+    attributes = A_HOLD_ALL_COMPLETE
     rules = {
         "Lookup[assoc_?AssociationQ, key_, default_]": "FirstCase[assoc, _[Verbatim[key], val_] :> val, default]",
         "Lookup[assoc_?AssociationQ, key_]": 'Lookup[assoc, key, Missing["KeyAbsent", key]]',
@@ -376,7 +376,7 @@ class Values(Builtin):
      = Values[a -> x, b -> y]
     """
 
-    attributes = protected
+    attributes = A_PROTECTED
 
     messages = {
         "argx": "Values called with `1` arguments; 1 argument is expected.",

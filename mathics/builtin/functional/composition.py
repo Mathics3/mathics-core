@@ -18,9 +18,9 @@ from mathics.builtin.base import Builtin
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    one_identity as A_ONE_IDENTITY,
-    protected as A_PROTECTED,
+    A_FLAT,
+    A_ONE_IDENTITY,
+    A_PROTECTED,
 )
 
 

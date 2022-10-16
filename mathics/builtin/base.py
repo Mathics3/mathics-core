@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import protected, read_protected, no_attributes
+from mathics.core.attributes import A_PROTECTED, read_protected, no_attributes
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -178,7 +178,7 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     abstract: bool = False
-    attributes: int = protected
+    attributes: int = A_PROTECTED
     is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
@@ -735,7 +735,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # * Review the implementation
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | read_protected
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)

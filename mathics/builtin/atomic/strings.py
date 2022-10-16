@@ -24,7 +24,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
 )
-from mathics.core.attributes import listable as A_LISTABLE, protected as A_PROTECTED
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list

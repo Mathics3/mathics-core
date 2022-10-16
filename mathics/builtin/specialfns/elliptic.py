@@ -6,9 +6,9 @@ In integral calculus, an <url>:elliptic integral: https://en.wikipedia.org/wiki/
 """
 
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    protected as A_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
 )
 from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer

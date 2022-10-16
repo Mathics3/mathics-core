@@ -24,8 +24,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import (
     constant as A_CONSTANT,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 from mathics.core.number import get_precision, PrecisionValueError, machine_precision

@@ -30,7 +30,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer1,
 )
-from mathics.core.attributes import hold_all, protected
+from mathics.core.attributes import hold_all, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluators import eval_N
@@ -384,7 +384,7 @@ def get_plot_range(values, all_values, option):
 
 class _Plot(Builtin):
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     expect_list = False
 
@@ -747,7 +747,7 @@ class _Plot(Builtin):
 
 
 class _Chart(Builtin):
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
     never_monochrome = False
     options = Graphics.options.copy()
     options.update(
@@ -1227,7 +1227,7 @@ class Histogram(Builtin):
      = -Graphics-
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(
@@ -2348,7 +2348,7 @@ class ListPlot(_ListPlot):
      = -Graphics-
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(
@@ -2387,7 +2387,7 @@ class ListLinePlot(_ListPlot):
      = -Graphics-
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(
@@ -2465,7 +2465,7 @@ class Plot3D(_Plot3D):
     """
     #> Plot3D[x + 2y, {x, -2, 2}, {y, -2, 2}] // TeXForm
     """
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(
@@ -2546,7 +2546,7 @@ class DensityPlot(_Plot3D):
      = -Graphics-
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(

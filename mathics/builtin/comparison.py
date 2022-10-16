@@ -34,12 +34,12 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    one_identity as A_ONE_IDENTITY,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
+    A_FLAT,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.evaluators import eval_N
