@@ -3,7 +3,7 @@ Forms of Input and Output
 
 A <i>Form</i> format specifies the way Mathics Expression input is read or output written.
 
-A list of forms is contained in variable '$OutputForm'.
+The variable '$OutputForms' has a list of Forms defined.
 
 See also: <url>:Forms of Input and Output: https://reference.wolfram.com/language/tutorial/TextualInputAndOutput.html#12368</url>
 """
@@ -60,9 +60,9 @@ class FormBaseClass(Builtin):
     # Using "__new__" is not optimal for what we want.
     # We basically want to hook into class construction in order to
     # detect certain class attributes so we can add them to a list.
-    # __new__ has this feature. However we dont' really need (or want)
+    # __new__ has this feature. However we do not really need (or want)
     # to do the memory allocation aspect that "__new__" is intended for.
-    # We considered __prepare__ and metaclass, instead bu could not figure
+    # We considered __prepare__ and metaclass, instead but could not figure
     # out how to get that to work.
     def __new__(cls, *args, **kwargs):
         """ """
@@ -210,7 +210,7 @@ class OutputForm(FormBaseClass):
 class OutputForms_(Predefined):
     r"""
     <dl>
-      <dt>'$Output'
+      <dt>'$OutputForms'
       <dd>contains the list of all output forms. It is updated automatically when new 'OutputForms' are defined by setting format values.
     </dl>
 
@@ -236,7 +236,7 @@ class PrintForms_(Predefined):
     >> $PrintForms
      = ...
 
-    Suppose now that we want to add a new format 'MyForm'. Initially, it does not belongs to '$PrintForms':
+    Suppose now that we want to add a new format 'MyForm'. Initially, it does not belong to '$PrintForms':
     >> MemberQ[$PrintForms, MyForm]
      = False
     Now, let's define a format rule:
