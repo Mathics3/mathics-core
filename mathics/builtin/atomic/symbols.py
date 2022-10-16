@@ -21,7 +21,7 @@ from mathics.core.atoms import String
 from mathics.core.attributes import (
     attributes_bitset_to_list,
     A_HOLD_ALL,
-    hold_first,
+    A_HOLD_FIRST,
     locked,
     A_PROTECTED,
     A_READ_PROTECTED,
@@ -131,7 +131,7 @@ class Context(Builtin):
      = Pattern[a`b, Blank[]]
     """
 
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     rules = {"Context[]": "$Context"}
 
@@ -816,7 +816,7 @@ class ValueQ(Builtin):
      = False
     """
 
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
     summary_text = "test whether a symbol can be considered to have a value"
 
     def apply(self, expr, evaluation):

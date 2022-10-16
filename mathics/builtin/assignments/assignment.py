@@ -6,7 +6,12 @@ Forms of Assignment
 
 from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.attributes import A_HOLD_ALL, hold_first, A_PROTECTED, A_SEQUENCE_HOLD
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
+)
 from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.evaluators import eval_load_module
 from mathics.core.symbols import SymbolNull
@@ -79,7 +84,7 @@ class Set(BinaryOperator, _SetOperator):
     #> x = Infinity;
     """
 
-    attributes = hold_first | A_PROTECTED | A_SEQUENCE_HOLD
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
 
     messages = {

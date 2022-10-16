@@ -18,7 +18,7 @@ from mathics.core.atoms import (
     Integer,
     String,
 )
-from mathics.core.attributes import flat, one_identity, A_PROTECTED
+from mathics.core.attributes import flat, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
@@ -228,7 +228,7 @@ class Dot(BinaryOperator):
 
     operator = "."
     precedence = 490
-    attributes = flat | one_identity | A_PROTECTED
+    attributes = flat | A_ONE_IDENTITY | A_PROTECTED
 
     rules = {
         "Dot[a_List, b_List]": "Inner[Times, a, b, Plus]",

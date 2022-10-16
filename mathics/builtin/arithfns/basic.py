@@ -66,8 +66,8 @@ from mathics.core.attributes import (
     flat,
     listable,
     numeric_function,
-    one_identity,
-    orderless,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -303,7 +303,7 @@ class Plus(BinaryOperator, SympyFunction):
     operator = "+"
     precedence = 310
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | A_PROTECTED
+        flat | listable | numeric_function | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
 
     default_formats = False
@@ -538,7 +538,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     operator = "^"
     precedence = 590
-    attributes = listable | numeric_function | one_identity | A_PROTECTED
+    attributes = listable | numeric_function | A_ONE_IDENTITY | A_PROTECTED
     grouping = "Right"
 
     default_formats = False
@@ -775,7 +775,7 @@ class Times(BinaryOperator, SympyFunction):
     operator_display = " "
     precedence = 400
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | A_PROTECTED
+        flat | listable | numeric_function | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
 
     defaults = {

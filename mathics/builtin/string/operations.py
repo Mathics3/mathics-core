@@ -34,7 +34,7 @@ from mathics.core.atoms import (
 from mathics.core.attributes import (
     flat,
     listable,
-    one_identity,
+    A_ONE_IDENTITY,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -462,7 +462,7 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    attributes = flat | one_identity | A_PROTECTED
+    attributes = flat | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
     precedence = 600
     summary_text = "join strings together"

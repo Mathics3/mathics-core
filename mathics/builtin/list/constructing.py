@@ -17,7 +17,7 @@ from mathics.builtin.lists import (
     get_tuples,
 )
 from mathics.core.atoms import Integer, Symbol
-from mathics.core.attributes import hold_first, listable, A_PROTECTED
+from mathics.core.attributes import A_HOLD_FIRST, listable, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
@@ -324,7 +324,7 @@ class Reap(Builtin):
     """
 
     summary_text = 'create lists of elements "sown" inside programs'
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     rules = {
         "Reap[expr_, pattern_, f_]": (

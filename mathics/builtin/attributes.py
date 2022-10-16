@@ -17,7 +17,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
     attribute_string_to_number,
     A_HOLD_ALL,
-    hold_first,
+    A_HOLD_FIRST,
     listable,
     locked,
     A_PROTECTED,
@@ -105,7 +105,7 @@ class SetAttributes(Builtin):
      = {Flat, Orderless}
     """
 
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
@@ -158,7 +158,7 @@ class ClearAttributes(Builtin):
      = {}
     """
 
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
     summary_text = "clear the attributes of a symbol"
 
     def apply(self, symbols, attributes, evaluation):

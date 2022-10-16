@@ -44,7 +44,7 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import (
     constant as A_CONSTANT,
-    hold_all as A_HOLD_ALL,
+    A_HOLD_ALL,
     A_LISTABLE,
     A_N_HOLD_ALL,
     A_PROTECTED,

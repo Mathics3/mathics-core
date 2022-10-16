@@ -30,9 +30,9 @@ from mathics.builtin.exceptions import InvalidLevelspecError, PartError
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer, Integer0, Integer1, String
 from mathics.core.attributes import (
-    hold_first as A_HOLD_FIRST,
-    hold_rest as A_HOLD_REST,
-    A_N_HOLD_REST as A_N_HOLD_REST,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_N_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )

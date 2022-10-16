@@ -15,7 +15,12 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
-from mathics.core.attributes import A_HOLD_ALL, hold_rest, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -311,7 +316,7 @@ class For(Builtin):
      = 120
     """
 
-    attributes = hold_rest | A_PROTECTED
+    attributes = A_HOLD_REST | A_PROTECTED
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
@@ -365,7 +370,7 @@ class If(Builtin):
 
     summary_text = "if-then-else conditional expression"
     # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
-    attributes = hold_rest | A_PROTECTED
+    attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def apply_2(self, condition, t, evaluation):
@@ -490,7 +495,7 @@ class Switch(Builtin):
     """
 
     summary_text = "switch based on a value, with patterns allowed"
-    attributes = hold_rest | A_PROTECTED
+    attributes = A_HOLD_REST | A_PROTECTED
 
     messages = {
         "argct": (

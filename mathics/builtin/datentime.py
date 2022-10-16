@@ -18,7 +18,7 @@ import dateutil.parser
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
-    hold_all,
+    A_HOLD_ALL,
     no_attributes,
     A_PROTECTED,
     A_READ_PROTECTED,
@@ -412,7 +412,7 @@ class AbsoluteTiming(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "total wall-clock time to run a Mathics command"
 
@@ -1130,7 +1130,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
         # >> a=1; s
         # =  Cos[x] (-5 + Cos[2 x]) / 6
 
-        attributes = hold_all | A_PROTECTED
+        attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
             "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
         }
@@ -1229,7 +1229,7 @@ class Timing(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "CPU time to run a Mathics command"
 

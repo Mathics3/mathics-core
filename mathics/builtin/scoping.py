@@ -6,7 +6,7 @@ Scoping Constructs
 
 from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
+    A_HOLD_ALL,
     A_PROTECTED,
     attribute_string_to_number,
 )

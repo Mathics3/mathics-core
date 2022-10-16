@@ -8,8 +8,8 @@ from mathics.core.expression import Expression
 from mathics.core.attributes import (
     flat,
     A_HOLD_ALL,
-    one_identity,
-    orderless,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
     A_PROTECTED,
     locked,
 )
@@ -51,7 +51,7 @@ class Or(BinaryOperator):
      = a || b
     """
 
-    attributes = flat | A_HOLD_ALL | one_identity | A_PROTECTED
+    attributes = flat | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "||"
     precedence = 215
     summary_text = "logic (inclusive) disjunction"
@@ -100,7 +100,7 @@ class And(BinaryOperator):
      = a && b && c
     """
 
-    attributes = flat | A_HOLD_ALL | one_identity | A_PROTECTED
+    attributes = flat | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "&&"
     precedence = 215
     summary_text = "logic conjunction"
@@ -258,7 +258,7 @@ class Equivalent(BinaryOperator):
      = True
     """
 
-    attributes = orderless | A_PROTECTED
+    attributes = A_ORDERLESS | A_PROTECTED
     operator = "\u29E6"
     precedence = 205
     summary_text = "logic equivalence"
@@ -318,7 +318,7 @@ class Xor(BinaryOperator):
      = a \u22BB b
     """
 
-    attributes = flat | one_identity | orderless | A_PROTECTED
+    attributes = flat | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     operator = "\u22BB"
     precedence = 215
     summary_text = "logic (exclusive) disjunction"

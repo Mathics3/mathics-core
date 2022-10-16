@@ -3,7 +3,12 @@
 
 from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator
-from mathics.core.attributes import A_HOLD_ALL, hold_first, A_PROTECTED, A_SEQUENCE_HOLD
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
+)
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 
@@ -41,7 +46,7 @@ class UpSet(BinaryOperator, _SetOperator):
      = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
-    attributes = hold_first | A_PROTECTED | A_SEQUENCE_HOLD
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
     operator = "^="
     precedence = 40

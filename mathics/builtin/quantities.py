@@ -16,7 +16,7 @@ from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRowBox
 
 from mathics.core.attributes import (
-    hold_rest,
+    A_HOLD_REST,
     A_N_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
@@ -193,7 +193,7 @@ class Quantity(Builtin):
      = 1 foot
     """
 
-    attributes = hold_rest | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_HOLD_REST | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",

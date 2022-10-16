@@ -10,7 +10,7 @@ from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
-from mathics.core.attributes import flat, one_identity, orderless
+from mathics.core.attributes import flat, A_ONE_IDENTITY, A_ORDERLESS
 
 # from mathics.core.pattern_nocython import (
 #    StopGenerator #, Pattern #, ExpressionPattern)
@@ -277,7 +277,7 @@ class ExpressionPattern(Pattern):
                 # call to get_match_candidates_count(), which is slow.
 
                 unmatched_elements = expression.elements
-                leading_blanks = not orderless & attributes
+                leading_blanks = not A_ORDERLESS & attributes
 
                 for element in self.elements:
                     match_count = element.get_match_count()
@@ -354,7 +354,7 @@ class ExpressionPattern(Pattern):
         if (
             wrap_oneid
             and not evaluation.ignore_oneidentity
-            and one_identity & attributes
+            and A_ONE_IDENTITY & attributes
             and not self.head.expr.sameQ(expression.get_head())  # nopep8
             and not self.head.expr.sameQ(expression)
         ):
@@ -393,7 +393,7 @@ class ExpressionPattern(Pattern):
             )
 
     def get_pre_choices(self, yield_func, expression, attributes, vars):
-        if orderless & attributes:
+        if A_ORDERLESS & attributes:
             self.sort()
             patterns = self.filter_elements("Pattern")
             groups = {}
@@ -518,7 +518,7 @@ class ExpressionPattern(Pattern):
             yield_func(items[0])
         else:
             if max_count is None or len(items) <= max_count:
-                if orderless & attributes:
+                if A_ORDERLESS & attributes:
                     for perm in permutations(items):
                         sequence = Expression(SymbolSequence, *perm)
                         sequence.pattern_sequence = True
@@ -588,7 +588,7 @@ class ExpressionPattern(Pattern):
 
         less_first = len(rest_elements) > 0
 
-        if orderless & attributes:
+        if A_ORDERLESS & attributes:
             # we only want element_candidates to be a set if we're orderless.
             # otherwise, constructing a set() is very slow for large lists.
             # performance test case:

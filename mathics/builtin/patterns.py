@@ -60,8 +60,8 @@ from mathics.core.atoms import (
 )
 from mathics.core.attributes import (
     A_HOLD_ALL,
-    hold_first,
-    hold_rest,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
@@ -126,7 +126,7 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    attributes = A_SEQUENCE_HOLD | hold_rest | A_PROTECTED
+    attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
     precedence = 120
@@ -968,7 +968,7 @@ class Pattern_(PatternObject):
 
     arg_counts = [2]
 
-    attributes = hold_first | A_PROTECTED
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
@@ -1519,7 +1519,7 @@ class Condition(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = hold_rest | A_PROTECTED
+    attributes = A_HOLD_REST | A_PROTECTED
     operator = "/;"
     precedence = 130
     summary_text = "conditional definition"
