@@ -16,7 +16,7 @@ from mathics.core.atoms import String
 from mathics.core.attributes import (
     attributes_bitset_to_list,
     attribute_string_to_number,
-    hold_all,
+    A_HOLD_ALL,
     hold_first,
     listable,
     locked,
@@ -71,7 +71,7 @@ class Attributes(Builtin):
      = {Listable}
     """
 
-    attributes = hold_all | listable | A_PROTECTED
+    attributes = A_HOLD_ALL | listable | A_PROTECTED
     summary_text = "find the attributes of a symbol"
 
     def apply(self, expr, evaluation):
@@ -204,7 +204,7 @@ class Protect(Builtin):
      = {1, 2, 3}
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -260,7 +260,7 @@ class Unprotect(Builtin):
     </dl>
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }

@@ -3,7 +3,7 @@
 
 from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator
-from mathics.core.attributes import hold_all, hold_first, A_PROTECTED, sequence_hold
+from mathics.core.attributes import A_HOLD_ALL, hold_first, A_PROTECTED, A_SEQUENCE_HOLD
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 
@@ -41,7 +41,7 @@ class UpSet(BinaryOperator, _SetOperator):
      = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
-    attributes = hold_first | A_PROTECTED | sequence_hold
+    attributes = hold_first | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
     operator = "^="
     precedence = 40
@@ -80,7 +80,7 @@ class UpSetDelayed(UpSet):
      = $Failed
     """
 
-    attributes = hold_all | A_PROTECTED | sequence_hold
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
     operator = "^:="
     summary_text = "set a delayed value and associate the assignment with symbols that occur at level one"
 

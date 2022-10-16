@@ -9,13 +9,13 @@ from mathics.builtin.base import (
     PostfixOperator,
 )
 from mathics.core.attributes import (
-    hold_all,
+    A_HOLD_ALL,
     hold_first,
     listable,
     locked,
     no_attributes,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -75,7 +75,7 @@ class Clear(Builtin):
     """
 
     allow_locked = True
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
@@ -236,7 +236,7 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    attributes = hold_first | listable | A_PROTECTED | read_protected
+    attributes = hold_first | listable | A_PROTECTED | A_READ_PROTECTED
     operator = "=."
 
     messages = {

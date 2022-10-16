@@ -15,7 +15,7 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
-from mathics.core.attributes import hold_all, hold_rest, A_PROTECTED, read_protected
+from mathics.core.attributes import A_HOLD_ALL, hold_rest, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -107,7 +107,7 @@ class Catch(Builtin):
     #> Clear[f]
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -183,7 +183,7 @@ class CompoundExpression(BinaryOperator):
     #> Clear[x]; Clear[z]
     """
 
-    attributes = hold_all | A_PROTECTED | read_protected
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     operator = ";"
     precedence = 10
 
@@ -545,7 +545,7 @@ class Which(Builtin):
      = Which[a, b, c]
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "test which of a sequence of conditions are true"
 
     def apply(self, items, evaluation):
@@ -593,7 +593,7 @@ class While(Builtin):
     """
 
     summary_text = "evaluate an expression while a criterion is true"
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     rules = {
         "While[test_]": "While[test, Null]",
     }

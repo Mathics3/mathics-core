@@ -24,7 +24,7 @@ from mathics.core.attributes import (
     locked,
     no_attributes,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
@@ -954,7 +954,7 @@ class FileHash(Builtin):
      = FileHash[xyzsymbol]
     """
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "FileHash[filename_String]": 'FileHash[filename, "MD5", "Integer"]',
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',

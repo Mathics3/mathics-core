@@ -36,7 +36,7 @@ from mathics.core.attributes import (
     listable,
     one_identity,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
@@ -108,7 +108,7 @@ class Hash(Builtin):
      = Hash[{a, b, c}, xyzstr, Integer]
     """
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
@@ -867,7 +867,7 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "list": "List expected at position `1` in `2`.",

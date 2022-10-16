@@ -16,7 +16,7 @@ import mpmath
 from functools import lru_cache
 
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
+    A_HOLD_ALL,
     hold_rest as A_HOLD_REST,
     A_LISTABLE,
     A_NO_ATTRIBUTES,

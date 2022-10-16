@@ -17,7 +17,7 @@ from mathics.core.attributes import (
     listable,
     numeric_function,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 
 
@@ -39,7 +39,7 @@ class Fibonacci(_MPMathFunction):
     """
 
     nargs = {1}
-    attributes = listable | numeric_function | A_PROTECTED | read_protected
+    attributes = listable | numeric_function | A_PROTECTED | A_READ_PROTECTED
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
     summary_text = "Fibonacci's numbers"

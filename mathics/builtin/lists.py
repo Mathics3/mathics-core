@@ -61,10 +61,10 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.attributes import (
-    hold_all,
+    A_HOLD_ALL,
     locked,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
@@ -149,7 +149,7 @@ class ContainsOnly(Builtin):
      = True
     """
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
@@ -813,7 +813,7 @@ class _IterationFunction(Builtin):
      = 15
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
     throw_iterb = True
 

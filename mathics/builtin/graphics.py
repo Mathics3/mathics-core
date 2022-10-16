@@ -58,7 +58,7 @@ from mathics.core.systemsymbols import (
 
 from mathics.core.formatter import lookup_method
 
-from mathics.core.attributes import A_PROTECTED, read_protected
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 
 
 SymbolEdgeForm = Symbol("System`EdgeForm")
@@ -1232,7 +1232,7 @@ class Directive(Builtin):
     </dl>
     """
 
-    attributes = read_protected | A_PROTECTED
+    attributes = A_READ_PROTECTED | A_PROTECTED
     summary_text = "compound directive"
 
 

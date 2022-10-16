@@ -69,7 +69,7 @@ from mathics.core.attributes import (
     one_identity,
     orderless,
     A_PROTECTED,
-    read_protected,
+    A_READ_PROTECTED,
 )
 
 
@@ -103,7 +103,7 @@ class CubeRoot(Builtin):
      = (3 + 4 I) ^ (1 / 3)
     """
 
-    attributes = listable | numeric_function | A_PROTECTED | read_protected
+    attributes = listable | numeric_function | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "preal": "The parameter `1` should be real valued.",

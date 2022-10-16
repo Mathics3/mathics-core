@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 
-from mathics.core.attributes import hold_first, A_PROTECTED, read_protected
+from mathics.core.attributes import hold_first, A_PROTECTED, A_READ_PROTECTED
 
 
 class AddTo(BinaryOperator):
@@ -66,7 +66,7 @@ class Decrement(PostfixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = hold_first | A_PROTECTED | read_protected
+    attributes = hold_first | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "x_--": "Module[{t=x}, x = x - 1; t]",
@@ -124,7 +124,7 @@ class Increment(PostfixOperator):
 
     operator = "++"
     precedence = 660
-    attributes = hold_first | A_PROTECTED | read_protected
+    attributes = hold_first | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "x_++": (
@@ -156,7 +156,7 @@ class PreIncrement(PrefixOperator):
      = 3
     """
 
-    attributes = hold_first | A_PROTECTED | read_protected
+    attributes = hold_first | A_PROTECTED | A_READ_PROTECTED
     operator = "++"
     precedence = 660
 
@@ -186,7 +186,7 @@ class PreDecrement(PrefixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = hold_first | A_PROTECTED | read_protected
+    attributes = hold_first | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "--x_": "x = x - 1",

@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import A_PROTECTED, read_protected, no_attributes
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, no_attributes
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -735,7 +735,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # * Review the implementation
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)

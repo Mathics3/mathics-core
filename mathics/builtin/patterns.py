@@ -59,11 +59,11 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.attributes import (
-    hold_all,
+    A_HOLD_ALL,
     hold_first,
     hold_rest,
     A_PROTECTED,
-    sequence_hold,
+    A_SEQUENCE_HOLD,
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, SymbolVerbatim
@@ -107,7 +107,7 @@ class Rule_(BinaryOperator):
     name = "Rule"
     operator = "->"
     precedence = 120
-    attributes = sequence_hold | A_PROTECTED
+    attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
     summary_text = "a replacement rule"
@@ -126,7 +126,7 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    attributes = sequence_hold | hold_rest | A_PROTECTED
+    attributes = A_SEQUENCE_HOLD | hold_rest | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
     precedence = 120
@@ -910,7 +910,7 @@ class HoldPattern(PatternObject):
     """
 
     arg_counts = [1]
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
     def init(self, expr):

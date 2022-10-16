@@ -5,7 +5,7 @@ from mathics.builtin.base import Predefined, Builtin
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
-from mathics.core.attributes import hold_all, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 
 
 class RecursionLimit(Predefined):
@@ -153,7 +153,7 @@ class Hold(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "prevent the evaluation"
 
 
@@ -187,7 +187,7 @@ class HoldForm(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | A_PROTECTED
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     rules = {
         "MakeBoxes[HoldForm[expr_], f_]": "MakeBoxes[expr, f]",

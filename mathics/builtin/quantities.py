@@ -15,7 +15,12 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRowBox
 
-from mathics.core.attributes import hold_rest, n_hold_rest, A_PROTECTED, read_protected
+from mathics.core.attributes import (
+    hold_rest,
+    A_N_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 
 from pint import UnitRegistry
 
@@ -188,7 +193,7 @@ class Quantity(Builtin):
      = 1 foot
     """
 
-    attributes = hold_rest | n_hold_rest | A_PROTECTED | read_protected
+    attributes = hold_rest | A_N_HOLD_REST | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "unkunit": "Unable to interpret unit specification `1`.",

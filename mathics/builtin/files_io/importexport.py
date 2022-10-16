@@ -28,7 +28,7 @@ from mathics.builtin.base import (
 from mathics.builtin.pymimesniffer import magic
 
 from mathics.core.atoms import ByteArrayAtom
-from mathics.core.attributes import no_attributes, A_PROTECTED, read_protected
+from mathics.core.attributes import no_attributes, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
@@ -1094,7 +1094,7 @@ class RegisterImport(Builtin):
     summary_text = "Register an importer for a file format"
     context = "ImportExport`"
 
-    attributes = A_PROTECTED | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     # XXX OptionsIssue
     options = {
@@ -2269,7 +2269,7 @@ class ConvertCommonDumpRemoveLinearSyntax(Builtin):
         "System`Convert`CommonDump`ConvertRecursive": "False",
     }
     # options = {"ConvertRecursive" : "False", }
-    attributes = read_protected | A_PROTECTED
+    attributes = A_READ_PROTECTED | A_PROTECTED
     context = "System`Convert`CommonDump`"
     name = "RemoveLinearSyntax"
 

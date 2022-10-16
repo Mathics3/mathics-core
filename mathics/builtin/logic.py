@@ -7,7 +7,7 @@ from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
     flat,
-    hold_all,
+    A_HOLD_ALL,
     one_identity,
     orderless,
     A_PROTECTED,
@@ -51,7 +51,7 @@ class Or(BinaryOperator):
      = a || b
     """
 
-    attributes = flat | hold_all | one_identity | A_PROTECTED
+    attributes = flat | A_HOLD_ALL | one_identity | A_PROTECTED
     operator = "||"
     precedence = 215
     summary_text = "logic (inclusive) disjunction"
@@ -100,7 +100,7 @@ class And(BinaryOperator):
      = a && b && c
     """
 
-    attributes = flat | hold_all | one_identity | A_PROTECTED
+    attributes = flat | A_HOLD_ALL | one_identity | A_PROTECTED
     operator = "&&"
     precedence = 215
     summary_text = "logic conjunction"

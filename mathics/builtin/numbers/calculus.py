@@ -46,7 +46,7 @@ from mathics.core.attributes import (
     constant as A_CONSTANT,
     hold_all as A_HOLD_ALL,
     A_LISTABLE,
-    n_hold_all as A_N_HOLD_ALL,
+    A_N_HOLD_ALL,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
