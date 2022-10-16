@@ -10,7 +10,7 @@ from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
-from mathics.core.attributes import flat, A_ONE_IDENTITY, A_ORDERLESS
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 
 # from mathics.core.pattern_nocython import (
 #    StopGenerator #, Pattern #, ExpressionPattern)
@@ -248,7 +248,7 @@ class ExpressionPattern(Pattern):
     ):
         evaluation.check_stopped()
         attributes = self.head.get_attributes(evaluation.definitions)
-        if not flat & attributes:
+        if not A_FLAT & attributes:
             fully = True
         if not isinstance(expression, Atom):
             # don't do this here, as self.get_pre_choices changes the
@@ -527,7 +527,7 @@ class ExpressionPattern(Pattern):
                     sequence = Expression(SymbolSequence, *items)
                     sequence.pattern_sequence = True
                     yield_func(sequence)
-            if flat & attributes and include_flattened:
+            if A_FLAT & attributes and include_flattened:
                 yield_func(Expression(expression.get_head(), *items))
 
     def match_element(
@@ -570,7 +570,7 @@ class ExpressionPattern(Pattern):
         # "Artificially" only use more elements than specified for some kind
         # of pattern.
         # TODO: This could be further optimized!
-        try_flattened = flat & attributes and (
+        try_flattened = A_FLAT & attributes and (
             element.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
@@ -583,7 +583,7 @@ class ExpressionPattern(Pattern):
         # into one operand may occur.
         # This can of course also be when flat and same head.
         try_flattened = try_flattened or (
-            flat & attributes and element.get_head() == expression.head
+            A_FLAT & attributes and element.get_head() == expression.head
         )
 
         less_first = len(rest_elements) > 0
@@ -602,7 +602,7 @@ class ExpressionPattern(Pattern):
                 if existing is not None:
                     head = existing.get_head()
                     if head.get_name() == "System`Sequence" or (
-                        flat & attributes and head == expression.get_head()
+                        A_FLAT & attributes and head == expression.get_head()
                     ):
                         needed = existing.elements
                     else:

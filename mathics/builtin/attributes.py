@@ -18,7 +18,7 @@ from mathics.core.attributes import (
     attribute_string_to_number,
     A_HOLD_ALL,
     A_HOLD_FIRST,
-    listable,
+    A_LISTABLE,
     locked,
     A_PROTECTED,
 )
@@ -71,7 +71,7 @@ class Attributes(Builtin):
      = {Listable}
     """
 
-    attributes = A_HOLD_ALL | listable | A_PROTECTED
+    attributes = A_HOLD_ALL | A_LISTABLE | A_PROTECTED
     summary_text = "find the attributes of a symbol"
 
     def apply(self, expr, evaluation):

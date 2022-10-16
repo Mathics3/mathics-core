@@ -20,7 +20,7 @@ from mathics.builtin.string.operations import Hash
 
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
-    listable,
+    A_LISTABLE,
     locked,
     no_attributes,
     A_PROTECTED,
@@ -246,7 +246,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
 
     options = {
         "CreateIntermediateDirectories": "True",
@@ -301,7 +301,7 @@ class CreateFile(Builtin):
     </dl>
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
     options = {
         "CreateIntermediateDirectories": "True",
         "OverwriteTarget": "True",

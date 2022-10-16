@@ -25,7 +25,7 @@ sort_order = "mathics.builtin.the-main-loop"
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.attributes import listable, no_attributes, A_PROTECTED
+from mathics.core.attributes import A_LISTABLE, no_attributes, A_PROTECTED
 
 
 class HistoryLength(Builtin):
@@ -89,7 +89,7 @@ class In(Builtin):
      . In[1] = x = 1
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
@@ -253,7 +253,7 @@ class Out(Builtin):
      = 12
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "Out[k_Integer?Negative]": "Out[$Line + k]",

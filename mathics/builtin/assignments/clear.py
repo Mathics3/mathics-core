@@ -11,7 +11,7 @@ from mathics.builtin.base import (
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
-    listable,
+    A_LISTABLE,
     locked,
     no_attributes,
     A_PROTECTED,
@@ -236,7 +236,7 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    attributes = A_HOLD_FIRST | listable | A_PROTECTED | A_READ_PROTECTED
+    attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     operator = "=."
 
     messages = {

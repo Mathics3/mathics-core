@@ -6,7 +6,7 @@ from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
-    flat,
+    A_FLAT,
     A_HOLD_ALL,
     A_ONE_IDENTITY,
     A_ORDERLESS,
@@ -51,7 +51,7 @@ class Or(BinaryOperator):
      = a || b
     """
 
-    attributes = flat | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
+    attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "||"
     precedence = 215
     summary_text = "logic (inclusive) disjunction"
@@ -100,7 +100,7 @@ class And(BinaryOperator):
      = a && b && c
     """
 
-    attributes = flat | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
+    attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "&&"
     precedence = 215
     summary_text = "logic conjunction"
@@ -318,7 +318,7 @@ class Xor(BinaryOperator):
      = a \u22BB b
     """
 
-    attributes = flat | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
+    attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     operator = "\u22BB"
     precedence = 215
     summary_text = "logic (exclusive) disjunction"

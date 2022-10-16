@@ -32,8 +32,8 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    flat,
-    listable,
+    A_FLAT,
+    A_LISTABLE,
     A_ONE_IDENTITY,
     A_PROTECTED,
     A_READ_PROTECTED,
@@ -462,7 +462,7 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    attributes = flat | A_ONE_IDENTITY | A_PROTECTED
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
     precedence = 600
     summary_text = "join strings together"
@@ -502,7 +502,7 @@ class StringLength(Builtin):
      = StringLength[x]
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
 
     summary_text = "length of a string (in Unicode characters)"
 
@@ -798,7 +798,7 @@ class StringReverse(Builtin):
        = evil
     """
 
-    attributes = listable | A_PROTECTED
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "reverses the order of the characters in a string"
 
     def apply(self, string, evaluation):
