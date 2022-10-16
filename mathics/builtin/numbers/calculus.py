@@ -45,10 +45,10 @@ from mathics.core.atoms import (
 from mathics.core.attributes import (
     constant as A_CONSTANT,
     hold_all as A_HOLD_ALL,
-    listable as A_LISTABLE,
+    A_LISTABLE,
     n_hold_all as A_N_HOLD_ALL,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 from mathics.core.convert.expression import to_expression, to_mathics_list

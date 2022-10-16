@@ -23,7 +23,7 @@ from mathics.core.attributes import (
     listable,
     locked,
     no_attributes,
-    protected,
+    A_PROTECTED,
     read_protected,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -246,7 +246,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    attributes = listable | protected
+    attributes = listable | A_PROTECTED
 
     options = {
         "CreateIntermediateDirectories": "True",
@@ -301,7 +301,7 @@ class CreateFile(Builtin):
     </dl>
     """
 
-    attributes = listable | protected
+    attributes = listable | A_PROTECTED
     options = {
         "CreateIntermediateDirectories": "True",
         "OverwriteTarget": "True",
@@ -954,7 +954,7 @@ class FileHash(Builtin):
      = FileHash[xyzsymbol]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | read_protected
     rules = {
         "FileHash[filename_String]": 'FileHash[filename, "MD5", "Integer"]',
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
@@ -1750,7 +1750,7 @@ class OperatingSystem(Predefined):
      = ...
     """
 
-    attributes = locked | protected
+    attributes = locked | A_PROTECTED
     name = "$OperatingSystem"
     summary_text = "type of operating system"
 

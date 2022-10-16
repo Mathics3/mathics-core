@@ -35,7 +35,7 @@ from mathics.core.attributes import (
     flat,
     listable,
     one_identity,
-    protected,
+    A_PROTECTED,
     read_protected,
 )
 from mathics.core.convert.python import from_python
@@ -108,7 +108,7 @@ class Hash(Builtin):
      = Hash[{a, b, c}, xyzstr, Integer]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | read_protected
 
     rules = {
         "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
@@ -462,7 +462,7 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    attributes = flat | one_identity | protected
+    attributes = flat | one_identity | A_PROTECTED
     operator = "<>"
     precedence = 600
     summary_text = "join strings together"
@@ -502,7 +502,7 @@ class StringLength(Builtin):
      = StringLength[x]
     """
 
-    attributes = listable | protected
+    attributes = listable | A_PROTECTED
 
     summary_text = "length of a string (in Unicode characters)"
 
@@ -798,7 +798,7 @@ class StringReverse(Builtin):
        = evil
     """
 
-    attributes = listable | protected
+    attributes = listable | A_PROTECTED
     summary_text = "reverses the order of the characters in a string"
 
     def apply(self, string, evaluation):
@@ -867,7 +867,7 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | read_protected
 
     messages = {
         "list": "List expected at position `1` in `2`.",

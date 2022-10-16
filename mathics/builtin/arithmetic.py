@@ -18,10 +18,10 @@ from functools import lru_cache
 from mathics.core.attributes import (
     hold_all as A_HOLD_ALL,
     hold_rest as A_HOLD_REST,
-    listable as A_LISTABLE,
-    no_attributes as A_NO_ATTRIBUTES,
-    numeric_function as A_NUMERIC_FUNCTION,
-    protected as A_PROTECTED,
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
 )
 
 from mathics.core.evaluators import eval_N

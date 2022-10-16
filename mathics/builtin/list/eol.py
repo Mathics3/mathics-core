@@ -33,8 +33,8 @@ from mathics.core.attributes import (
     hold_first as A_HOLD_FIRST,
     hold_rest as A_HOLD_REST,
     n_hold_rest as A_N_HOLD_REST,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python

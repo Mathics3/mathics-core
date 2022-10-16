@@ -25,7 +25,7 @@ from mathics.core.atoms import (
     String,
     SymbolString,
 )
-from mathics.core.attributes import protected, read_protected
+from mathics.core.attributes import A_PROTECTED, read_protected
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
@@ -82,7 +82,7 @@ class Input_(Predefined):
      = #<--#
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | read_protected
     name = "$Input"
     summary_text = "the name of the current input stream"
 

@@ -62,7 +62,7 @@ from mathics.core.attributes import (
     hold_all,
     hold_first,
     hold_rest,
-    protected,
+    A_PROTECTED,
     sequence_hold,
 )
 from mathics.core.element import EvalMixin
@@ -107,7 +107,7 @@ class Rule_(BinaryOperator):
     name = "Rule"
     operator = "->"
     precedence = 120
-    attributes = sequence_hold | protected
+    attributes = sequence_hold | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
     summary_text = "a replacement rule"
@@ -126,7 +126,7 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    attributes = sequence_hold | hold_rest | protected
+    attributes = sequence_hold | hold_rest | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
     precedence = 120
@@ -910,7 +910,7 @@ class HoldPattern(PatternObject):
     """
 
     arg_counts = [1]
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
     def init(self, expr):
@@ -968,7 +968,7 @@ class Pattern_(PatternObject):
 
     arg_counts = [2]
 
-    attributes = hold_first | protected
+    attributes = hold_first | A_PROTECTED
 
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
@@ -1519,7 +1519,7 @@ class Condition(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = hold_rest | protected
+    attributes = hold_rest | A_PROTECTED
     operator = "/;"
     precedence = 130
     summary_text = "conditional definition"

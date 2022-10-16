@@ -20,7 +20,7 @@ from mathics.core.attributes import (
     hold_first,
     listable,
     locked,
-    protected,
+    A_PROTECTED,
 )
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -71,7 +71,7 @@ class Attributes(Builtin):
      = {Listable}
     """
 
-    attributes = hold_all | listable | protected
+    attributes = hold_all | listable | A_PROTECTED
     summary_text = "find the attributes of a symbol"
 
     def apply(self, expr, evaluation):
@@ -105,7 +105,7 @@ class SetAttributes(Builtin):
      = {Flat, Orderless}
     """
 
-    attributes = hold_first | protected
+    attributes = hold_first | A_PROTECTED
 
     messages = {
         "unknownattr": f"`1` should be one of {', '.join(attribute_string_to_number.keys())}"
@@ -158,7 +158,7 @@ class ClearAttributes(Builtin):
      = {}
     """
 
-    attributes = hold_first | protected
+    attributes = hold_first | A_PROTECTED
     summary_text = "clear the attributes of a symbol"
 
     def apply(self, symbols, attributes, evaluation):
@@ -204,7 +204,7 @@ class Protect(Builtin):
      = {1, 2, 3}
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }
@@ -260,7 +260,7 @@ class Unprotect(Builtin):
     </dl>
     """
 
-    attributes = hold_all | protected
+    attributes = hold_all | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
     }

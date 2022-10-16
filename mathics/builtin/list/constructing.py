@@ -17,7 +17,7 @@ from mathics.builtin.lists import (
     get_tuples,
 )
 from mathics.core.atoms import Integer, Symbol
-from mathics.core.attributes import hold_first, listable, protected
+from mathics.core.attributes import hold_first, listable, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
@@ -176,7 +176,7 @@ class Range(Builtin):
      = {0, 1 / 3, 2 / 3, 1, 4 / 3, 5 / 3, 2}
     """
 
-    attributes = listable | protected
+    attributes = listable | A_PROTECTED
 
     rules = {
         "Range[imax_?RealNumberQ]": "Range[1, imax, 1]",
@@ -324,7 +324,7 @@ class Reap(Builtin):
     """
 
     summary_text = 'create lists of elements "sown" inside programs'
-    attributes = hold_first | protected
+    attributes = hold_first | A_PROTECTED
 
     rules = {
         "Reap[expr_, pattern_, f_]": (
