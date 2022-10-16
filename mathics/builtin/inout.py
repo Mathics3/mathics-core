@@ -18,9 +18,9 @@ from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import Integer, String, StringFromPython
 from mathics.core.attributes import (
-    no_attributes as A_NO_ATTRIBUTES,
-    locked as A_LOCKED,
-    protected as A_PROTECTED,
+    A_NO_ATTRIBUTES,
+    A_LOCKED,
+    A_PROTECTED,
 )
 
 from mathics.core.element import EvalMixin

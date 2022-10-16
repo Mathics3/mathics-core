@@ -8,7 +8,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from typing import Any, Optional, Tuple, Union
 
-from mathics.core.attributes import no_attributes
+from mathics.core.attributes import A_NO_ATTRIBUTES
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -266,7 +266,7 @@ class BaseElement(KeyComparable):
         return []
 
     def get_attributes(self, definitions):
-        return no_attributes
+        return A_NO_ATTRIBUTES
 
     def get_head_name(self):
         raise NotImplementedError

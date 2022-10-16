@@ -20,27 +20,27 @@
 from typing import Dict, Generator
 
 # fmt: off
-A_NO_ATTRIBUTES     = no_attributes     = 0b0000000000000000
+A_NO_ATTRIBUTES     = 0b0000000000000000
 
 # FIXME: remove lowercase after thes are no longer imported
 # alphabetical order
-A_CONSTANT          = constant          = 0b00000000000000001
-A_FLAT              = flat              = 0b00000000000000010
-A_HOLD_ALL          = hold_all          = 0b00000000000000100
-A_HOLD_ALL_COMPLETE = hold_all_complete = 0b00000000000001000
-A_HOLD_FIRST        = hold_first        = 0b00000000000010000
-A_HOLD_REST         = hold_rest         = 0b00000000000100000
-A_LISTABLE          = listable          = 0b00000000001000000
-A_LOCKED            = locked            = 0b00000000010000000
-A_N_HOLD_ALL        = n_hold_all        = 0b00000000100000000
-A_N_HOLD_FIRST      = n_hold_first      = 0b00000001000000000
-A_N_HOLD_REST       = n_hold_rest       = 0b00000010000000000
-A_NUMERIC_FUNCTION  = numeric_function  = 0b00000100000000000
-A_ONE_IDENTITY      = one_identity      = 0b00001000000000000
-A_ORDERLESS         = orderless         = 0b00010000000000000
-A_PROTECTED         = protected         = 0b00100000000000000
-A_READ_PROTECTED    = read_protected    = 0b01000000000000000
-A_SEQUENCE_HOLD     = sequence_hold     = 0b10000000000000000
+A_CONSTANT          = 0b00000000000000001
+A_FLAT              = 0b00000000000000010
+A_HOLD_ALL          = 0b00000000000000100
+A_HOLD_ALL_COMPLETE = 0b00000000000001000
+A_HOLD_FIRST        = 0b00000000000010000
+A_HOLD_REST         = 0b00000000000100000
+A_LISTABLE          = 0b00000000001000000
+A_LOCKED            = 0b00000000010000000
+A_N_HOLD_ALL        = 0b00000000100000000
+A_N_HOLD_FIRST      = 0b00000001000000000
+A_N_HOLD_REST       = 0b00000010000000000
+A_NUMERIC_FUNCTION  = 0b00000100000000000
+A_ONE_IDENTITY      = 0b00001000000000000
+A_ORDERLESS         = 0b00010000000000000
+A_PROTECTED         = 0b00100000000000000
+A_READ_PROTECTED    = 0b01000000000000000
+A_SEQUENCE_HOLD     = 0b10000000000000000
 
 attribute_number_to_string: Dict[int, str] = {
     A_CONSTANT:           "System`Constant",

@@ -63,13 +63,13 @@ from mathics.core.number import min_prec, dps
 from mathics.core.convert.sympy import from_sympy
 
 from mathics.core.attributes import (
-    flat,
-    listable,
-    numeric_function,
-    one_identity,
-    orderless,
-    protected,
-    read_protected,
+    A_FLAT,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 
@@ -103,7 +103,7 @@ class CubeRoot(Builtin):
      = (3 + 4 I) ^ (1 / 3)
     """
 
-    attributes = listable | numeric_function | protected | read_protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "preal": "The parameter `1` should be real valued.",
@@ -178,7 +178,7 @@ class Divide(BinaryOperator):
 
     operator = "/"
     precedence = 470
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
     default_formats = False
@@ -220,7 +220,7 @@ class Minus(PrefixOperator):
 
     operator = "-"
     precedence = 480
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Minus[x_]": "Times[-1, x]",
@@ -303,7 +303,12 @@ class Plus(BinaryOperator, SympyFunction):
     operator = "+"
     precedence = 310
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | protected
+        A_FLAT
+        | A_LISTABLE
+        | A_NUMERIC_FUNCTION
+        | A_ONE_IDENTITY
+        | A_ORDERLESS
+        | A_PROTECTED
     )
 
     default_formats = False
@@ -538,7 +543,7 @@ class Power(BinaryOperator, _MPMathFunction):
 
     operator = "^"
     precedence = 590
-    attributes = listable | numeric_function | one_identity | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_PROTECTED
     grouping = "Right"
 
     default_formats = False
@@ -648,7 +653,7 @@ class Sqrt(SympyFunction):
      = 1.4142135623730950488016887242096980785696718753769
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Sqrt[x_]": "x ^ (1/2)",
@@ -681,7 +686,7 @@ class Subtract(BinaryOperator):
     operator = "-"
     precedence_parse = 311
     precedence = 310
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     grouping = "Left"
 
     rules = {
@@ -775,7 +780,12 @@ class Times(BinaryOperator, SympyFunction):
     operator_display = " "
     precedence = 400
     attributes = (
-        flat | listable | numeric_function | one_identity | orderless | protected
+        A_FLAT
+        | A_LISTABLE
+        | A_NUMERIC_FUNCTION
+        | A_ONE_IDENTITY
+        | A_ORDERLESS
+        | A_PROTECTED
     )
 
     defaults = {

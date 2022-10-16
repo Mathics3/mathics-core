@@ -16,18 +16,16 @@ from mathics.builtin.base import (
 
 from mathics.builtin.atomic.strings import to_regex
 
-from mathics.core.atoms import (
-    String,
-)
+from mathics.core.atoms import String
 
 from mathics.core.attributes import (
     attributes_bitset_to_list,
-    hold_all,
-    hold_first,
-    locked,
-    protected,
-    read_protected,
-    sequence_hold,
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_LOCKED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+    A_SEQUENCE_HOLD,
 )
 
 from mathics.core.expression import Expression
@@ -133,7 +131,7 @@ class Context(Builtin):
      = Pattern[a`b, Blank[]]
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     rules = {"Context[]": "$Context"}
 
@@ -252,7 +250,7 @@ class Definition(Builtin):
      = Null
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     precedence = 670
     summary_text = "give values of a symbol in a form that can be stored in a package"
 
@@ -305,7 +303,7 @@ class Definition(Builtin):
                 )
             )
 
-        if definition is not None and not read_protected & attributes:
+        if definition is not None and not A_READ_PROTECTED & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -416,7 +414,7 @@ class DownValues(Builtin):
      = 5
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give a list of transformation rules corresponding to all downvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -454,7 +452,7 @@ class Information(PrefixOperator):
 
     """
 
-    attributes = hold_all | sequence_hold | protected | read_protected
+    attributes = A_HOLD_ALL | A_SEQUENCE_HOLD | A_PROTECTED | A_READ_PROTECTED
     messages = {"notfound": "Expression `1` is not a symbol"}
     operator = "??"
     options = {
@@ -542,7 +540,7 @@ class Information(PrefixOperator):
                 )
             )
 
-        if definition is not None and not read_protected & attributes:
+        if definition is not None and not A_READ_PROTECTED & attributes:
             for rule in definition.ownvalues:
                 print_rule(rule)
             for rule in definition.downvalues:
@@ -673,7 +671,7 @@ class OwnValues(Builtin):
      = 5
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the rule corresponding to any ownvalue defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -699,7 +697,7 @@ class Symbol_(Builtin):
      = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
 
     messages = {
         "symname": (
@@ -792,7 +790,7 @@ class UpValues(Builtin):
      = 0
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
 
     def apply(self, symbol, evaluation):
@@ -818,7 +816,7 @@ class ValueQ(Builtin):
      = False
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     summary_text = "test whether a symbol can be considered to have a value"
 
     def apply(self, expr, evaluation):

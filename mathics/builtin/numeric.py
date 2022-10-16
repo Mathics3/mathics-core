@@ -14,7 +14,7 @@ import sympy
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.evaluators import eval_nvalues
 from mathics.core.expression import Expression
@@ -451,7 +451,7 @@ class Round(Builtin):
      = Round[1.5, k]
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",

@@ -10,7 +10,7 @@ from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
-from mathics.core.attributes import flat, one_identity, orderless
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 
 # from mathics.core.pattern_nocython import (
 #    StopGenerator #, Pattern #, ExpressionPattern)
@@ -248,7 +248,7 @@ class ExpressionPattern(Pattern):
     ):
         evaluation.check_stopped()
         attributes = self.head.get_attributes(evaluation.definitions)
-        if not flat & attributes:
+        if not A_FLAT & attributes:
             fully = True
         if not isinstance(expression, Atom):
             # don't do this here, as self.get_pre_choices changes the
@@ -277,7 +277,7 @@ class ExpressionPattern(Pattern):
                 # call to get_match_candidates_count(), which is slow.
 
                 unmatched_elements = expression.elements
-                leading_blanks = not orderless & attributes
+                leading_blanks = not A_ORDERLESS & attributes
 
                 for element in self.elements:
                     match_count = element.get_match_count()
@@ -354,7 +354,7 @@ class ExpressionPattern(Pattern):
         if (
             wrap_oneid
             and not evaluation.ignore_oneidentity
-            and one_identity & attributes
+            and A_ONE_IDENTITY & attributes
             and not self.head.expr.sameQ(expression.get_head())  # nopep8
             and not self.head.expr.sameQ(expression)
         ):
@@ -393,7 +393,7 @@ class ExpressionPattern(Pattern):
             )
 
     def get_pre_choices(self, yield_func, expression, attributes, vars):
-        if orderless & attributes:
+        if A_ORDERLESS & attributes:
             self.sort()
             patterns = self.filter_elements("Pattern")
             groups = {}
@@ -518,7 +518,7 @@ class ExpressionPattern(Pattern):
             yield_func(items[0])
         else:
             if max_count is None or len(items) <= max_count:
-                if orderless & attributes:
+                if A_ORDERLESS & attributes:
                     for perm in permutations(items):
                         sequence = Expression(SymbolSequence, *perm)
                         sequence.pattern_sequence = True
@@ -527,7 +527,7 @@ class ExpressionPattern(Pattern):
                     sequence = Expression(SymbolSequence, *items)
                     sequence.pattern_sequence = True
                     yield_func(sequence)
-            if flat & attributes and include_flattened:
+            if A_FLAT & attributes and include_flattened:
                 yield_func(Expression(expression.get_head(), *items))
 
     def match_element(
@@ -570,7 +570,7 @@ class ExpressionPattern(Pattern):
         # "Artificially" only use more elements than specified for some kind
         # of pattern.
         # TODO: This could be further optimized!
-        try_flattened = flat & attributes and (
+        try_flattened = A_FLAT & attributes and (
             element.get_head() in SYSTEM_SYMBOLS_PATTERNS
         )
 
@@ -583,12 +583,12 @@ class ExpressionPattern(Pattern):
         # into one operand may occur.
         # This can of course also be when flat and same head.
         try_flattened = try_flattened or (
-            flat & attributes and element.get_head() == expression.head
+            A_FLAT & attributes and element.get_head() == expression.head
         )
 
         less_first = len(rest_elements) > 0
 
-        if orderless & attributes:
+        if A_ORDERLESS & attributes:
             # we only want element_candidates to be a set if we're orderless.
             # otherwise, constructing a set() is very slow for large lists.
             # performance test case:
@@ -602,7 +602,7 @@ class ExpressionPattern(Pattern):
                 if existing is not None:
                     head = existing.get_head()
                     if head.get_name() == "System`Sequence" or (
-                        flat & attributes and head == expression.get_head()
+                        A_FLAT & attributes and head == expression.get_head()
                     ):
                         needed = existing.elements
                     else:

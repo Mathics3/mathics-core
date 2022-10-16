@@ -13,16 +13,16 @@ from mathics.core.atoms import Integer, Number, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    hold_all as A_HOLD_ALL,
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    hold_first as A_HOLD_FIRST,
-    hold_rest as A_HOLD_REST,
-    listable as A_LISTABLE,
-    no_attributes as A_NO_ATTRIBUTES,
-    numeric_function as A_NUMERIC_FUNCTION,
-    orderless as A_ORDERLESS,
-    sequence_hold as A_SEQUENCE_HOLD,
+    A_FLAT,
+    A_HOLD_ALL,
+    A_HOLD_ALL_COMPLETE,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
+    A_SEQUENCE_HOLD,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
