@@ -12,8 +12,8 @@ from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_LISTABLE,
-    locked,
-    no_attributes,
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -122,7 +122,7 @@ class Clear(Builtin):
                 if is_protected(name, evaluation.definitions):
                     evaluation.message(self.get_name(), "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and locked & attributes:
+                if not self.allow_locked and A_LOCKED & attributes:
                     evaluation.message(self.get_name(), "locked", Symbol(name))
                     continue
                 # remove the cache for the definition first.
@@ -161,7 +161,7 @@ class ClearAll(Clear):
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
-        definition.attributes = no_attributes
+        definition.attributes = A_NO_ATTRIBUTES
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []

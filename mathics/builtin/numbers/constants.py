@@ -23,7 +23,7 @@ from mathics.core.atoms import (
     PrecisionReal,
 )
 from mathics.core.attributes import (
-    constant as A_CONSTANT,
+    A_CONSTANT,
     A_PROTECTED,
     A_READ_PROTECTED,
 )

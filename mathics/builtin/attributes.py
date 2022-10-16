@@ -19,7 +19,7 @@ from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_LISTABLE,
-    locked,
+    A_LOCKED,
     A_PROTECTED,
 )
 from mathics.core.expression import Expression
@@ -126,7 +126,7 @@ class SetAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if locked & evaluation.definitions.get_attributes(symbol):
+            if A_LOCKED & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("SetAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -176,7 +176,7 @@ class ClearAttributes(Builtin):
         if values is None:
             return
         for symbol in symbols:
-            if locked & evaluation.definitions.get_attributes(symbol):
+            if A_LOCKED & evaluation.definitions.get_attributes(symbol):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
@@ -240,7 +240,7 @@ class Protect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not locked & evaluation.definitions.get_attributes(defn):
+                    if not A_LOCKED & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(SymbolSetAttributes, ListExpression(*items), protected).evaluate(
@@ -293,7 +293,7 @@ class Unprotect(Builtin):
                 names = evaluation.definitions.get_matching_names(pattern)
                 for defn in names:
                     symbol = Symbol(defn)
-                    if not locked & evaluation.definitions.get_attributes(defn):
+                    if not A_LOCKED & evaluation.definitions.get_attributes(defn):
                         items.append(symbol)
 
         Expression(

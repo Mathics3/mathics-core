@@ -12,7 +12,7 @@ from collections import defaultdict
 from typing import List, Optional
 
 from mathics.core.atoms import String
-from mathics.core.attributes import no_attributes
+from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
@@ -491,7 +491,7 @@ class Definitions:
                 attributes = builtin.attributes
             else:
                 is_numeric = False
-                attributes = no_attributes
+                attributes = A_NO_ATTRIBUTES
 
             options = {}
             formatvalues = {
@@ -590,7 +590,7 @@ class Definitions:
                 attributes = builtin.attributes
                 is_numeric = builtin.is_numeric
             else:
-                attributes = no_attributes
+                attributes = A_NO_ATTRIBUTES
                 is_numeric = False
             self.user[name] = Definition(
                 name=name,
@@ -818,7 +818,7 @@ class Definition:
         upvalues=None,
         formatvalues=None,
         messages=None,
-        attributes=no_attributes,
+        attributes=A_NO_ATTRIBUTES,
         options=None,
         nvalues=None,
         defaultvalues=None,

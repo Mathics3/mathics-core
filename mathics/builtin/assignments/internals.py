@@ -29,7 +29,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.core.attributes import attribute_string_to_number, locked, A_PROTECTED
+from mathics.core.attributes import attribute_string_to_number, A_LOCKED, A_PROTECTED
 
 from functools import reduce
 
@@ -475,7 +475,7 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     )
     if attributes_list is None:
         raise AssignmentException(lhs, rhs)
-    if locked & evaluation.definitions.get_attributes(tag):
+    if A_LOCKED & evaluation.definitions.get_attributes(tag):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
 

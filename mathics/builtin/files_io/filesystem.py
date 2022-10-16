@@ -21,8 +21,8 @@ from mathics.builtin.string.operations import Hash
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_LISTABLE,
-    locked,
-    no_attributes,
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -1593,7 +1593,7 @@ class InstallationDirectory(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$InstallationDirectory"
     summary_text = "Mathics installation directory"
 
@@ -1750,7 +1750,7 @@ class OperatingSystem(Predefined):
      = ...
     """
 
-    attributes = locked | A_PROTECTED
+    attributes = A_LOCKED | A_PROTECTED
     name = "$OperatingSystem"
     summary_text = "type of operating system"
 
@@ -1813,7 +1813,7 @@ class Path(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$Path"
     summary_text = "list directories where files are searched"
 

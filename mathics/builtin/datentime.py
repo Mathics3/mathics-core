@@ -19,7 +19,7 @@ from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
-    no_attributes,
+    A_NO_ATTRIBUTES,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -1173,7 +1173,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 

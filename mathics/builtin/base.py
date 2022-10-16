@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, no_attributes
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -917,7 +917,7 @@ class PatternObject(BuiltinElement, Pattern):
         if self.head is None:
             # FIXME: _Blank in builtin/patterns.py sets head to None.
             # Figure out if this is the best thing to do and explain why.
-            return no_attributes
+            return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:

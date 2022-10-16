@@ -11,7 +11,7 @@ from mathics.core.attributes import (
     A_ONE_IDENTITY,
     A_ORDERLESS,
     A_PROTECTED,
-    locked,
+    A_LOCKED,
 )
 
 
@@ -357,7 +357,7 @@ class True_(Predefined):
     </dl>
     """
 
-    attributes = locked | A_PROTECTED
+    attributes = A_LOCKED | A_PROTECTED
     name = "True"
     summary_text = "boolean constant for True"
 
@@ -370,7 +370,7 @@ class False_(Predefined):
     </dl>
     """
 
-    attributes = locked | A_PROTECTED
+    attributes = A_LOCKED | A_PROTECTED
     name = "False"
     summary_text = "boolean constant for False"
 

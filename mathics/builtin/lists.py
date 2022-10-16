@@ -62,7 +62,7 @@ from mathics.core.atoms import (
 
 from mathics.core.attributes import (
     A_HOLD_ALL,
-    locked,
+    A_LOCKED,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
@@ -506,7 +506,7 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
-    attributes = locked | A_PROTECTED
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "specify a list explicitly"
 
     def apply(self, elements, evaluation):

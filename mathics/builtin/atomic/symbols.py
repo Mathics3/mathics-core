@@ -22,7 +22,7 @@ from mathics.core.attributes import (
     attributes_bitset_to_list,
     A_HOLD_ALL,
     A_HOLD_FIRST,
-    locked,
+    A_LOCKED,
     A_PROTECTED,
     A_READ_PROTECTED,
     A_SEQUENCE_HOLD,
@@ -697,7 +697,7 @@ class Symbol_(Builtin):
      = {\u03b7, \u0393\u03b2, Z\u221e, \u2220XYZ, \u25a0r, i\u2026j}
     """
 
-    attributes = locked | A_PROTECTED
+    attributes = A_LOCKED | A_PROTECTED
 
     messages = {
         "symname": (

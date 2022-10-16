@@ -43,7 +43,7 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    constant as A_CONSTANT,
+    A_CONSTANT,
     A_HOLD_ALL,
     A_LISTABLE,
     A_N_HOLD_ALL,
