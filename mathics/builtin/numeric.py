@@ -380,17 +380,6 @@ class Rationalize(Builtin):
         return result
 
 
-class RealValuedNumericQ(Builtin):
-    # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
-    # to add something to the docs.
-    context = "Internal`"
-
-    rules = {
-        "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
-    }
-
-
 class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
     # FIXME: Perhaps in future we will have a more explicite way to indicate not
@@ -402,6 +391,17 @@ class RealValuedNumberQ(Builtin):
         "Internal`RealValuedNumberQ[x_Integer]": "True",
         "Internal`RealValuedNumberQ[x_Rational]": "True",
         "Internal`RealValuedNumberQ[x_]": "False",
+    }
+
+
+class RealValuedNumericQ(Builtin):
+    # No docstring since this is internal and it will mess up documentation.
+    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # to add something to the docs.
+    context = "Internal`"
+
+    rules = {
+        "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
     }
 
 
