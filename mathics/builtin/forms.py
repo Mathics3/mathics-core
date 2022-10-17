@@ -50,7 +50,7 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolTableDepth = Symbol("TableDepth")
 
 
-class FormBaseClass(Builtin):
+class _FormBaseClass(Builtin):
     """
     Base class for a Mathics Form.
 
@@ -68,11 +68,6 @@ class FormBaseClass(Builtin):
         """ """
         instance = super().__new__(cls, expression=False)
         name = cls.__name__
-        if name == "FormBaseClass":
-            # This is me:
-            # Signal to Mathics doc processing not to include this module in its documentation.
-            instance.no_doc = True
-            return instance
 
         if hasattr(cls, "in_printforms") and cls.in_printforms:
             definitions.PrintForms.add(Symbol(name))
@@ -83,7 +78,7 @@ class FormBaseClass(Builtin):
         return instance
 
 
-class FullForm(FormBaseClass):
+class FullForm(_FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/FullForm.html</url>
     <dl>
@@ -104,7 +99,7 @@ class FullForm(FormBaseClass):
     summary_text = "underlying M-Expression representation"
 
 
-class MathMLForm(FormBaseClass):
+class MathMLForm(_FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/MathMLForm.html</url>
     <dl>
@@ -160,7 +155,7 @@ class MathMLForm(FormBaseClass):
         return Expression(SymbolRowBox, ListExpression(String(mathml)))
 
 
-class InputForm(FormBaseClass):
+class InputForm(_FormBaseClass):
     r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/InputForm.html</url>
     <dl>
@@ -187,7 +182,7 @@ class InputForm(FormBaseClass):
     summary_text = "plain-text input format"
 
 
-class OutputForm(FormBaseClass):
+class OutputForm(_FormBaseClass):
     """
     <dl>
       <dt>'OutputForm[$expr$]'
@@ -256,7 +251,7 @@ class PrintForms_(Predefined):
         return ListExpression(*evaluation.definitions.printforms)
 
 
-class PythonForm(FormBaseClass):
+class PythonForm(_FormBaseClass):
     """
     <dl>
       <dt>'PythonForm[$expr$]'
@@ -294,12 +289,12 @@ class PythonForm(FormBaseClass):
             return
         return StringFromPython(python_equivalent)
 
-    def apply(self, expr, evaluation) -> Expression:
+    def eval(self, expr, evaluation) -> Expression:
         "PythonForm[expr_]"
-        return self.apply_python(expr, evaluation)
+        return self.eval_python(expr, evaluation)
 
 
-class SympyForm(FormBaseClass):
+class SympyForm(_FormBaseClass):
     """
     <dl>
       <dt>'SympyForm[$expr$]'
@@ -326,12 +321,12 @@ class SympyForm(FormBaseClass):
             return
         return StringFromPython(sympy_equivalent)
 
-    def apply(self, expr, evaluation) -> Expression:
+    def eval(self, expr, evaluation) -> Expression:
         "SympyForm[expr_]"
-        return self.apply_sympy(expr, evaluation)
+        return self.eval_sympy(expr, evaluation)
 
 
-class StringForm(FormBaseClass):
+class StringForm(_FormBaseClass):
     """
     <url>WMA :https://reference.wolfram.com/language/ref/StringForm.html</url>
     <dl>
@@ -383,7 +378,7 @@ class StringForm(FormBaseClass):
         )
 
 
-class StandardForm(FormBaseClass):
+class StandardForm(_FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/StandardForm.html</url>
     <dl>
@@ -407,7 +402,7 @@ class StandardForm(FormBaseClass):
     summary_text = "default output format"
 
 
-class TraditionalForm(FormBaseClass):
+class TraditionalForm(_FormBaseClass):
     """
     <url>WMA :https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
     <dl>
@@ -424,7 +419,7 @@ class TraditionalForm(FormBaseClass):
     summary_text = "traditional output format"
 
 
-class TeXForm(FormBaseClass):
+class TeXForm(_FormBaseClass):
     r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/TeXForm.html</url>
     <dl>
@@ -473,7 +468,7 @@ class TeXForm(FormBaseClass):
         return Expression(SymbolRowBox, ListExpression(String(tex)))
 
 
-class TableForm(FormBaseClass):
+class TableForm(_FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/TableForm.html</url>
     <dl>
@@ -600,7 +595,7 @@ class MatrixForm(TableForm):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         f:StandardForm|TraditionalForm]"""
 
-        result = super(MatrixForm, self).apply_makeboxes(table, f, evaluation, options)
+        result = super(MatrixForm, self).eval_makeboxes(table, f, evaluation, options)
         if result.get_head_name() == "System`GridBox":
             return Expression(
                 SymbolRowBox, ListExpression(String("("), result, String(")"))
