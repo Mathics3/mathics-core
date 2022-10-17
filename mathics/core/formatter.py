@@ -7,6 +7,7 @@ import re
 from mathics.core.atoms import SymbolI, String, Integer, Rational, Complex
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.convert.expression import to_expression_with_specialization
+from mathics.core.definitions import OutputForms
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -26,7 +27,6 @@ from mathics.core.symbols import (
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolTimes,
-    format_symbols,
 )
 from mathics.core.systemsymbols import (
     SymbolComplex,
@@ -211,7 +211,6 @@ def do_format_element(
     superfluous enclosing formats.
     """
 
-    formats = format_symbols
     evaluation.inc_recursion_depth()
     try:
         expr = element
@@ -221,7 +220,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in formats and len(elements) == 1:
+        if head in OutputForms and len(elements) == 1:
             expr = elements[0]
             if not (form is SymbolOutputForm and head is SymbolStandardForm):
                 form = head
@@ -268,8 +267,8 @@ def do_format_element(
                 # expr is of the form f[...][...]
                 return None
             name = expr.get_lookup_name()
-            formats = evaluation.definitions.get_formats(name, form.get_name())
-            for rule in formats:
+            OutputForms = evaluation.definitions.get_formats(name, form.get_name())
+            for rule in OutputForms:
                 result = rule.apply(expr, evaluation)
                 if result is not None and result != expr:
                     return result.evaluate(evaluation)
@@ -288,7 +287,7 @@ def do_format_element(
         # If the expression is not atomic or of certain
         # specific cases, iterate over the elements.
         head = expr.get_head()
-        if head in formats:
+        if head in OutputForms:
             do_format = element_formatters.get(type(element), do_format_element)
             expr = do_format(expr, evaluation, form)
         elif (
