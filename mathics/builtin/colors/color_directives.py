@@ -125,40 +125,6 @@ def _euclidean_distance(a, b):
     return sqrt(sum((x1 - x2) * (x1 - x2) for x1, x2 in zip(a, b)))
 
 
-class Opacity(_GraphicsDirective):
-    """
-    <dl>
-      <dt>'Opacity[$level$]'
-      <dd> is a graphics directive that sets the opacity to $level$.
-    </dl>
-    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
-     = -Graphics-
-    >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
-     = -Graphics3D-
-    Notice that 'Opacity' does not overwrite the value of the alpha channel if it is set in a color directive:
-    >> Graphics[{Blue, Disk[], RGBColor[1,0,0,1],Opacity[.2], Rectangle[{0,0},{1,1}]}]
-     = -Graphics-
-    """
-
-    def init(self, item=None, *args, **kwargs):
-        if isinstance(item, (int, float)):
-            item = Expression(SymbolOpacity, MachineReal(item))
-            super(Opacity, self).init(None, item)
-        self.opacity = item.elements[0].to_python()
-
-    def to_css(self):
-        try:
-            if 0.0 <= self.opacity <= 1.0:
-                return self.opacity
-        except:
-            pass
-        return None
-
-    @staticmethod
-    def create_as_style(klass, graphics, item):
-        return klass(item)
-
-
 class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
     formats = {
         # we are adding ImageSizeMultipliers in the rule below, because we do _not_ want color boxes to
@@ -578,6 +544,40 @@ class LUVColor(_ColorObject):
     color_space = "LUV"
     components_sizes = [3, 4]
     default_components = [0, 0, 0, 1]
+
+
+class Opacity(_GraphicsDirective):
+    """
+    <dl>
+      <dt>'Opacity[$level$]'
+      <dd> is a graphics directive that sets the opacity to $level$.
+    </dl>
+    >> Graphics[{Blue, Disk[{.5, 1}, 1], Opacity[.4], Red, Disk[], Opacity[.2], Green, Disk[{-.5, 1}, 1]}]
+     = -Graphics-
+    >> Graphics3D[{Blue, Sphere[], Opacity[.4], Red, Cuboid[]}]
+     = -Graphics3D-
+    Notice that 'Opacity' does not overwrite the value of the alpha channel if it is set in a color directive:
+    >> Graphics[{Blue, Disk[], RGBColor[1,0,0,1],Opacity[.2], Rectangle[{0,0},{1,1}]}]
+     = -Graphics-
+    """
+
+    def init(self, item=None, *args, **kwargs):
+        if isinstance(item, (int, float)):
+            item = Expression(SymbolOpacity, MachineReal(item))
+            super(Opacity, self).init(None, item)
+        self.opacity = item.elements[0].to_python()
+
+    def to_css(self):
+        try:
+            if 0.0 <= self.opacity <= 1.0:
+                return self.opacity
+        except:
+            pass
+        return None
+
+    @staticmethod
+    def create_as_style(klass, graphics, item):
+        return klass(item)
 
 
 class RGBColor(_ColorObject):
