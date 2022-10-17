@@ -19,7 +19,6 @@ from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
-    format_symbols,
     strip_context,
 )
 from mathics.core.systemsymbols import SymbolGet
@@ -27,6 +26,12 @@ from mathics.core.systemsymbols import SymbolGet
 from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
+
+# The contents of $OutputForms. FormMeta in mathics.base.forms adds to this.
+OutputForms = set()
+
+# The contents of $PrintForms. FormMeta in mathics.base.forms adds to this.
+PrintForms = set()
 
 
 def get_file_time(file) -> float:
@@ -107,13 +112,15 @@ class Definitions:
             "System`",
             "Global`",
         )
-        self.printforms = [f for f in format_symbols]
+        self.printforms = list(PrintForms)
+        self.outputforms = list(OutputForms)
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
 
         # This loads all the formatting functions.
         # It needs to be early because it can be used in
         # messages during the builtins loading.
+        # Rocky: this smells of something not quite right in terms of modularity.
         import mathics.format
 
         if add_builtin:

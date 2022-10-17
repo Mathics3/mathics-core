@@ -19,6 +19,7 @@ New Builtins
 #. ``Skewness``
 #. ``ThreeJSymbol``
 #. ``$PrintForms``
+#. ``$OutputForms``
 
 
 Documentation
@@ -27,6 +28,7 @@ Documentation
 #. "Functional Programming" section split out.
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. A new section on "Accuracy and Precision" was included in the manual.
+#. "Forms of Input and Output" is its own section
 
 Internals
 +++++++++
@@ -51,7 +53,6 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
-#. PrintForm symbols are now in a separated module.
 
 5.0.2
 -----

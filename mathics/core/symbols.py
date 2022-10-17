@@ -678,19 +678,6 @@ def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
     return frozenset(Symbol(s) for s in symbols)
 
 
-# The available formats.
-
-format_symbols = system_symbols(
-    "InputForm",
-    "OutputForm",
-    "StandardForm",
-    "FullForm",
-    "TraditionalForm",
-    "TeXForm",
-    "MathMLForm",
-)
-
-
 # Symbols used in this module.
 
 # Note, below we are only setting PredefinedSymbol for Symbols which
