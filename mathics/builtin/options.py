@@ -24,6 +24,176 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 
+class Default(Builtin):
+    """
+    <dl>
+    <dt>'Default[$f$]'
+        <dd>gives the default value for an omitted parameter of $f$.
+    <dt>'Default[$f$, $k$]'
+        <dd>gives the default value for a parameter on the $k$th position.
+    <dt>'Default[$f$, $k$, $n$]'
+        <dd>gives the default value for the $k$th parameter out of $n$.
+    </dl>
+
+    Assign values to 'Default' to specify default values.
+
+    >> Default[f] = 1
+     = 1
+    >> f[x_.] := x ^ 2
+    >> f[]
+     = 1
+
+    Default values are stored in 'DefaultValues':
+    >> DefaultValues[f]
+     = {HoldPattern[Default[f]] :> 1}
+
+    You can use patterns for $k$ and $n$:
+    >> Default[h, k_, n_] := {k, n}
+    Note that the position of a parameter is relative to the pattern, not the matching expression:
+    >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
+     = {{3, 5}, {4, 5}}
+    """
+
+    summary_text = "predefined default arguments for a function"
+
+    def apply(self, f, i, evaluation):
+        "Default[f_, i___]"
+
+        i = i.get_sequence()
+        if len(i) > 2:
+            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
+            return
+        i = [index.get_int_value() for index in i]
+        for index in i:
+            if index is None or index < 1:
+                evaluation.message(SymbolDefault, "intp")
+                return
+        name = f.get_name()
+        if not name:
+            evaluation.message(SymbolDefault, "sym", f, 1)
+            return
+        result = get_default_value(name, evaluation, *i)
+        return result
+
+
+class FilterRules(Builtin):
+    """
+    <dl>
+    <dt>'FilterRules[$rules$, $pattern$]'
+        <dd>gives those $rules$ that have a left side that matches $pattern$.
+    <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
+        <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+    </dl>
+
+    >> FilterRules[{x -> 100, y -> 1000}, x]
+     = {x -> 100}
+
+    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
+     = {x -> 100, z -> 10000}
+    """
+
+    rules = {
+        "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
+    }
+    summary_text = (
+        "select rules such that the pattern matches some other given patterns"
+    )
+
+    def apply(self, rules, pattern, evaluation):
+        "FilterRules[rules_List, pattern_]"
+        from mathics.builtin.patterns import Matcher
+
+        match = Matcher(pattern).match
+
+        def matched():
+            for rule in rules.elements:
+                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
+                    yield rule
+
+        return ListExpression(*list(matched()))
+
+
+class NotOptionQ(Test):
+    """
+    <dl>
+    <dt>'NotOptionQ[$expr$]'
+        <dd>returns 'True' if $expr$ does not have the form of a valid
+        option specification.
+    </dl>
+
+    >> NotOptionQ[x]
+     = True
+    >> NotOptionQ[2]
+     = True
+    >> NotOptionQ["abc"]
+     = True
+
+    >> NotOptionQ[a -> True]
+     = False
+    """
+
+    summary_text = "test whether an expression does not match the form of a valid option specification"
+
+    def test(self, expr):
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
+        if not expr.has_form("List", None):
+            expr = [expr]
+        else:
+            expr = expr.elements
+        return not all(
+            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+        )
+
+
+class OptionQ(Test):
+    """
+    <dl>
+    <dt>'OptionQ[$expr$]'
+        <dd>returns 'True' if $expr$ has the form of a valid option
+        specification.
+    </dl>
+
+    Examples of option specifications:
+    >> OptionQ[a -> True]
+     = True
+    >> OptionQ[a :> True]
+     = True
+    >> OptionQ[{a -> True}]
+     = True
+    >> OptionQ[{a :> True}]
+     = True
+
+    Options lists are flattened when are applyied, so
+    >> OptionQ[{a -> True, {b->1, "c"->2}}]
+     = True
+    >> OptionQ[{a -> True, {b->1, c}}]
+     = False
+    >> OptionQ[{a -> True, F[b->1,c->2]}]
+     = False
+
+    'OptionQ' returns 'False' if its argument is not a valid option
+    specification:
+    >> OptionQ[x]
+     = False
+    """
+
+    summary_text = (
+        "test whether an expression matches the form of a valid option specification"
+    )
+
+    def test(self, expr):
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
+        if not expr.has_form("List", None):
+            expr = [expr]
+        else:
+            expr = expr.elements
+        return all(
+            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+        )
+
+
 class Options(Builtin):
     """
     <dl>
@@ -230,176 +400,6 @@ class OptionValue(Builtin):
             evaluation.message("OptionValue", "optnf", optname)
             return Symbol(name)
         return val
-
-
-class Default(Builtin):
-    """
-    <dl>
-    <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted parameter of $f$.
-    <dt>'Default[$f$, $k$]'
-        <dd>gives the default value for a parameter on the $k$th position.
-    <dt>'Default[$f$, $k$, $n$]'
-        <dd>gives the default value for the $k$th parameter out of $n$.
-    </dl>
-
-    Assign values to 'Default' to specify default values.
-
-    >> Default[f] = 1
-     = 1
-    >> f[x_.] := x ^ 2
-    >> f[]
-     = 1
-
-    Default values are stored in 'DefaultValues':
-    >> DefaultValues[f]
-     = {HoldPattern[Default[f]] :> 1}
-
-    You can use patterns for $k$ and $n$:
-    >> Default[h, k_, n_] := {k, n}
-    Note that the position of a parameter is relative to the pattern, not the matching expression:
-    >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
-     = {{3, 5}, {4, 5}}
-    """
-
-    summary_text = "predefined default arguments for a function"
-
-    def apply(self, f, i, evaluation):
-        "Default[f_, i___]"
-
-        i = i.get_sequence()
-        if len(i) > 2:
-            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
-            return
-        i = [index.get_int_value() for index in i]
-        for index in i:
-            if index is None or index < 1:
-                evaluation.message(SymbolDefault, "intp")
-                return
-        name = f.get_name()
-        if not name:
-            evaluation.message(SymbolDefault, "sym", f, 1)
-            return
-        result = get_default_value(name, evaluation, *i)
-        return result
-
-
-class OptionQ(Test):
-    """
-    <dl>
-    <dt>'OptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ has the form of a valid option
-        specification.
-    </dl>
-
-    Examples of option specifications:
-    >> OptionQ[a -> True]
-     = True
-    >> OptionQ[a :> True]
-     = True
-    >> OptionQ[{a -> True}]
-     = True
-    >> OptionQ[{a :> True}]
-     = True
-
-    Options lists are flattened when are applyied, so
-    >> OptionQ[{a -> True, {b->1, "c"->2}}]
-     = True
-    >> OptionQ[{a -> True, {b->1, c}}]
-     = False
-    >> OptionQ[{a -> True, F[b->1,c->2]}]
-     = False
-
-    'OptionQ' returns 'False' if its argument is not a valid option
-    specification:
-    >> OptionQ[x]
-     = False
-    """
-
-    summary_text = (
-        "test whether an expression matches the form of a valid option specification"
-    )
-
-    def test(self, expr):
-        if hasattr(expr, "flatten_with_respect_to_head"):
-            expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
-            expr = [expr]
-        else:
-            expr = expr.elements
-        return all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
-        )
-
-
-class NotOptionQ(Test):
-    """
-    <dl>
-    <dt>'NotOptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ does not have the form of a valid
-        option specification.
-    </dl>
-
-    >> NotOptionQ[x]
-     = True
-    >> NotOptionQ[2]
-     = True
-    >> NotOptionQ["abc"]
-     = True
-
-    >> NotOptionQ[a -> True]
-     = False
-    """
-
-    summary_text = "test whether an expression does not match the form of a valid option specification"
-
-    def test(self, expr):
-        if hasattr(expr, "flatten_with_respect_to_head"):
-            expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
-            expr = [expr]
-        else:
-            expr = expr.elements
-        return not all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
-        )
-
-
-class FilterRules(Builtin):
-    """
-    <dl>
-    <dt>'FilterRules[$rules$, $pattern$]'
-        <dd>gives those $rules$ that have a left side that matches $pattern$.
-    <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
-        <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
-    </dl>
-
-    >> FilterRules[{x -> 100, y -> 1000}, x]
-     = {x -> 100}
-
-    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
-     = {x -> 100, z -> 10000}
-    """
-
-    rules = {
-        "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
-    }
-    summary_text = (
-        "select rules such that the pattern matches some other given patterns"
-    )
-
-    def apply(self, rules, pattern, evaluation):
-        "FilterRules[rules_List, pattern_]"
-        from mathics.builtin.patterns import Matcher
-
-        match = Matcher(pattern).match
-
-        def matched():
-            for rule in rules.elements:
-                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
-                    yield rule
-
-        return ListExpression(*list(matched()))
 
 
 def options_to_rules(options, filter=None):
