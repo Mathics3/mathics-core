@@ -27,6 +27,62 @@ from mathics.core.systemsymbols import SymbolRule
 SymbolMinimize = Symbol("Minimize")
 
 
+class Maximize(Builtin):
+    """
+    <dl>
+      <dt>'Maximize[$f$, $x$]'
+      <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
+    </dl>
+
+    >> Maximize[-2 x^2 - 3 x + 5, x]
+     = {{49 / 8, {x -> -3 / 4}}}
+
+    #>> Maximize[1 - (x y - 3)^2, {x, y}]
+     = {{1, {x -> 3, y -> 1}}}
+
+    #>> Maximize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
+     = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
+    """
+
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "compute the maximum of a function"
+
+    def apply(self, f, vars, evaluation):
+        "Maximize[f_?NotListQ, vars_]"
+
+        dual_f = f.to_sympy() * (-1)
+
+        dual_solutions = (
+            Expression(SymbolMinimize, from_sympy(dual_f), vars)
+            .evaluate(evaluation)
+            .elements
+        )
+
+        solutions = []
+        for dual_solution in dual_solutions:
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
+
+        return from_python(solutions)
+
+    def apply_constraints(self, f, vars, evaluation):
+        "Maximize[f_List, vars_]"
+
+        constraints = [function for function in f.elements]
+        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
+
+        dual_solutions = (
+            Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
+        )
+
+        solutions = []
+        for dual_solution in dual_solutions:
+            solution_elements = dual_solution.elements
+            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
+
+        return from_python(solutions)
+
+
 class Minimize(Builtin):
     """
     <dl>
@@ -348,59 +404,3 @@ class Minimize(Builtin):
                 for minimum in minimum_list
             )
         )
-
-
-class Maximize(Builtin):
-    """
-    <dl>
-      <dt>'Maximize[$f$, $x$]'
-      <dd>compute the maximum of $f$ respect $x$ that change between $a$ and $b$
-    </dl>
-
-    >> Maximize[-2 x^2 - 3 x + 5, x]
-     = {{49 / 8, {x -> -3 / 4}}}
-
-    #>> Maximize[1 - (x y - 3)^2, {x, y}]
-     = {{1, {x -> 3, y -> 1}}}
-
-    #>> Maximize[{x - 2 y, x^2 + y^2 <= 1}, {x, y}]
-     = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
-    """
-
-    attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "compute the maximum of a function"
-
-    def apply(self, f, vars, evaluation):
-        "Maximize[f_?NotListQ, vars_]"
-
-        dual_f = f.to_sympy() * (-1)
-
-        dual_solutions = (
-            Expression(SymbolMinimize, from_sympy(dual_f), vars)
-            .evaluate(evaluation)
-            .elements
-        )
-
-        solutions = []
-        for dual_solution in dual_solutions:
-            solution_elements = dual_solution.elements
-            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
-
-        return from_python(solutions)
-
-    def apply_constraints(self, f, vars, evaluation):
-        "Maximize[f_List, vars_]"
-
-        constraints = [function for function in f.elements]
-        constraints[0] = from_sympy(constraints[0].to_sympy() * IntegerM1)
-
-        dual_solutions = (
-            Expression(SymbolMinimize, constraints, vars).evaluate(evaluation).elements
-        )
-
-        solutions = []
-        for dual_solution in dual_solutions:
-            solution_elements = dual_solution.elements
-            solutions.append([solution_elements[0] * IntegerM1, solution_elements[1]])
-
-        return from_python(solutions)

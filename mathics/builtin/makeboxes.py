@@ -59,6 +59,18 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
+def int_to_s_exp(expr, n):
+    n = expr.get_int_value()
+    if n < 0:
+        nonnegative = 0
+        s = str(-n)
+    else:
+        nonnegative = 1
+        s = str(n)
+    exp = len(s) - 1
+    return s, exp, nonnegative
+
+
 def parenthesize(precedence, element, element_boxes, when_equal):
     from mathics.builtin import builtins_precedence
 
@@ -162,18 +174,6 @@ def real_to_s_exp(expr, n):
         # add trailing zeros for precision reals
         if n is not None and not expr.is_machine_precision() and len(s) < n:
             s = s + "0" * (n - len(s))
-    return s, exp, nonnegative
-
-
-def int_to_s_exp(expr, n):
-    n = expr.get_int_value()
-    if n < 0:
-        nonnegative = 0
-        s = str(-n)
-    else:
-        nonnegative = 1
-        s = str(n)
-    exp = len(s) - 1
     return s, exp, nonnegative
 
 

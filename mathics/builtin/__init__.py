@@ -5,6 +5,7 @@ Mathics Built-in Functions and Variables.
 Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
 """
 
+from typing import Optional
 import glob
 import importlib
 import pkgutil
@@ -35,6 +36,50 @@ from mathics.builtin.base import (
     Operator,
     PatternObject,
 )
+
+
+def is_builtin(var):
+    if var == Builtin:
+        return True
+    if hasattr(var, "__bases__"):
+        return any(is_builtin(base) for base in var.__bases__)
+    return False
+
+
+def contributing_builtin_var(module, name) -> Optional[type]:
+    """
+    Returns getattr(module, name) if it is a Builtin that
+    should contribute with a definition.
+    Otherwise, returns None.
+    """
+    if name.startswith("_"):
+        return None
+
+    var = getattr(module, name)
+
+    if not hasattr(var, "__module__"):
+        return None
+
+    # Skip those builtins defined in another module
+    if var.__module__ != module.__name__:
+        return None
+
+    # Skip those builtins in the module mathics.builtin.base
+    if var.__module__ == "mathics.builtin.base":
+        return None
+
+    # Skip those builtins out the submodules of mathics.builtin
+    if not var.__module__.startswith("mathics.builtin."):
+        return None
+
+    # If it is not a subclass of Builtin, skip it
+    if not is_builtin(var):
+        return None
+
+    # Skip it we explicitly set that we want to skip it:
+    if var in getattr(module, "NO_CONTRIBUTING_CLASSES", []):
+        return None
+    return var
 
 
 def sanity_check(cls, module):
@@ -147,14 +192,6 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
         import_module(module_name, import_name)
 
 
-def is_builtin(var):
-    if var == Builtin:
-        return True
-    if hasattr(var, "__bases__"):
-        return any(is_builtin(base) for base in var.__bases__)
-    return False
-
-
 # FIXME: redo using importlib since that is probably less fragile.
 exclude_files = set(("codetables", "base"))
 module_names = [
@@ -210,16 +247,8 @@ for module in modules:
     builtins_by_module[module.__name__] = []
     vars = dir(module)
     for name in vars:
-        var = getattr(module, name)
-        if (
-            hasattr(var, "__module__")
-            and var.__module__.startswith("mathics.builtin.")
-            and var.__module__ != "mathics.builtin.base"
-            and is_builtin(var)
-            and not name.startswith("_")
-            and var.__module__ == module.__name__
-        ):  # nopep8
-
+        var = contributing_builtin_var(module, name)
+        if var:
             instance = var(expression=False)
 
             if isinstance(instance, Builtin):

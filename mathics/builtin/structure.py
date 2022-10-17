@@ -42,76 +42,28 @@ SymbolOperate = Symbol("Operate")
 SymbolSortBy = Symbol("SortBy")
 
 
-class SortBy(Builtin):
+class ApplyLevel(BinaryOperator):
     """
     <dl>
-      <dt>'SortBy[$list$, $f$]'
-      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
-    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
-    according to their natural order (without applying $f).
-      <dt>'SortBy[$f$]'
-      <dd>creates an operator function that, when applied, sorts by $f.
+      <dt>'ApplyLevel[$f$, $expr$]'
+
+      <dt>'$f$ @@@ $expr$'
+      <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
     </dl>
 
-    >> SortBy[{{5, 1}, {10, -1}}, Last]
-    = {{10, -1}, {5, 1}}
-
-    >> SortBy[Total][{{5, 1}, {10, -9}}]
-    = {{10, -9}, {5, 1}}
+    >> f @@@ {{a, b}, {c, d}}
+     = {f[a, b], f[c, d]}
     """
 
-    messages = {
-        "list": "List expected at position `2` in `1`.",
-        "func": "Function expected at position `2` in `1`.",
-    }
+    grouping = "Right"
+    operator = "@@@"
+    precedence = 620
 
     rules = {
-        "SortBy[f_]": "SortBy[#, f]&",
+        "ApplyLevel[f_, expr_]": "Apply[f, expr, {1}]",
     }
 
-    summary_text = "sort by the values of a function applied to elements"
-
-    def apply(self, li, f, evaluation):
-        "SortBy[li_, f_]"
-
-        if isinstance(li, Atom):
-            return evaluation.message("Sort", "normal")
-        elif li.get_head_name() != "System`List":
-            expr = Expression(SymbolSortBy, li, f)
-            return evaluation.message(self.get_name(), "list", expr, 1)
-        else:
-            keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
-            # even though our sort function has only (n log n) comparisons, we should
-            # compute f no more than n times.
-
-            if (
-                keys_expr is None
-                or keys_expr.get_head_name() != "System`List"
-                or len(keys_expr.elements) != len(li.elements)
-            ):
-                expr = Expression(SymbolSortBy, li, f)
-                return evaluation.message("SortBy", "func", expr, 2)
-
-            keys = keys_expr.elements
-            raw_keys = li.elements
-
-            class Key:
-                def __init__(self, index):
-                    self.index = index
-
-                def __gt__(self, other):
-                    kx, ky = keys[self.index], keys[other.index]
-                    if kx > ky:
-                        return True
-                    elif kx < ky:
-                        return False
-                    else:  # if f(x) == f(y), resort to x < y?
-                        return raw_keys[self.index] > raw_keys[other.index]
-
-            # we sort a list of indices. after sorting, we reorder the elements.
-            new_indices = sorted(list(range(len(raw_keys))), key=Key)
-            new_elements = [raw_keys[i] for i in new_indices]  # reorder elements
-            return li.restructure(li.head, new_elements, evaluation)
+    summary_text = "apply a function to a list, at the top level"
 
 
 class BinarySearch(Builtin):
@@ -203,154 +155,59 @@ class BinarySearch(Builtin):
                 lower_index = pivot_index + 1
 
 
-class PatternsOrderedQ(Builtin):
+class ByteCount(Builtin):
     """
     <dl>
-      <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
-      <dd>returns 'True' if pattern $patt1$ would be applied before
-        $patt2$ according to canonical pattern ordering.
+      <dt>'ByteCount[$expr$]'
+      <dd>gives the internal memory space used by $expr$, in bytes.
     </dl>
 
-    >> PatternsOrderedQ[x__, x_]
-     = False
-    >> PatternsOrderedQ[x_, x__]
-     = True
-    >> PatternsOrderedQ[b, a]
-     = True
+    The results may heavily depend on the Python implementation in use.
     """
 
-    summary_text = "test whether patterns are canonically sorted"
+    summary_text = "amount of memory used by expr, in bytes"
 
-    def apply(self, p1, p2, evaluation):
-        "PatternsOrderedQ[p1_, p2_]"
-
-        if p1.get_sort_key(True) <= p2.get_sort_key(True):
-            return SymbolTrue
+    def apply(self, expression, evaluation):
+        "ByteCount[expression_]"
+        if not bytecount_support:
+            return evaluation.message("ByteCount", "pypy")
         else:
-            return SymbolFalse
+            return Integer(count_bytes(expression))
 
 
-class OrderedQ(Builtin):
+class Depth(Builtin):
     """
     <dl>
-      <dt>'OrderedQ[{$a$, $b$}]'
-      <dd>is 'True' if $a$ sorts before $b$ according to canonical
-        ordering.
+      <dt>'Depth[$expr$]'
+      <dd>gives the depth of $expr$.
     </dl>
 
-    >> OrderedQ[{a, b}]
-     = True
-    >> OrderedQ[{b, a}]
-     = False
+    The depth of an expression is defined as one plus the maximum
+    number of 'Part' indices required to reach any part of $expr$,
+    except for heads.
+
+    >> Depth[x]
+     = 1
+    >> Depth[x + y]
+     = 2
+    >> Depth[{{{{x}}}}]
+     = 5
+
+    Complex numbers are atomic, and hence have depth 1:
+    >> Depth[1 + 2 I]
+     = 1
+
+    'Depth' ignores heads:
+    >> Depth[f[a, b][c]]
+     = 2
     """
 
-    summary_text = "test whether elements are canonically sorted"
+    summary_text = "the maximum number of indices to specify any part"
 
     def apply(self, expr, evaluation):
-        "OrderedQ[expr_]"
-
-        for index, value in enumerate(expr.elements[:-1]):
-            if expr.elements[index] <= expr.elements[index + 1]:
-                continue
-            else:
-                return SymbolFalse
-        return SymbolTrue
-
-
-class Order(Builtin):
-    """
-    <dl>
-      <dt>'Order[$x$, $y$]'
-      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
-        -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
-    </dl>
-
-    >> Order[7, 11]
-     = 1
-
-    >> Order[100, 10]
-     = -1
-
-    >> Order[x, z]
-     = 1
-
-    >> Order[x, x]
-     = 0
-    """
-
-    summary_text = "canonical ordering of expressions"
-
-    def apply(self, x, y, evaluation):
-        "Order[x_, y_]"
-        if x < y:
-            return Integer1
-        elif x > y:
-            return Integer(-1)
-        else:
-            return Integer0
-
-
-class ApplyLevel(BinaryOperator):
-    """
-    <dl>
-      <dt>'ApplyLevel[$f$, $expr$]'
-
-      <dt>'$f$ @@@ $expr$'
-      <dd>is equivalent to 'Apply[$f$, $expr$, {1}]'.
-    </dl>
-
-    >> f @@@ {{a, b}, {c, d}}
-     = {f[a, b], f[c, d]}
-    """
-
-    grouping = "Right"
-    operator = "@@@"
-    precedence = 620
-
-    rules = {
-        "ApplyLevel[f_, expr_]": "Apply[f, expr, {1}]",
-    }
-
-    summary_text = "apply a function to a list, at the top level"
-
-
-class FreeQ(Builtin):
-    """
-    <dl>
-      <dt>'FreeQ[$expr$, $x$]'
-      <dd>returns 'True' if $expr$ does not contain the expression $x$.
-    </dl>
-
-    >> FreeQ[y, x]
-     = True
-    >> FreeQ[a+b+c, a+b]
-     = False
-    >> FreeQ[{1, 2, a^(a+b)}, Plus]
-     = False
-    >> FreeQ[a+b, x_+y_+z_]
-     = True
-    >> FreeQ[a+b+c, x_+y_+z_]
-     = False
-    >> FreeQ[x_+y_+z_][a+b]
-     = True
-    """
-
-    rules = {
-        "FreeQ[form_][expr_]": "FreeQ[expr, form]",
-    }
-
-    summary_text = (
-        "test whether an expression is free of subexpressions matching a pattern"
-    )
-
-    def apply(self, expr, form, evaluation):
-        "FreeQ[expr_, form_]"
-
-        form = Pattern.create(form)
-        if expr.is_free(form, evaluation):
-            return SymbolTrue
-        else:
-            return SymbolFalse
+        "Depth[expr_]"
+        expr, depth = walk_levels(expr)
+        return Integer(depth + 1)
 
 
 class Flatten(Builtin):
@@ -546,6 +403,45 @@ class Flatten(Builtin):
         return expr.flatten_with_respect_to_head(h, level=n)
 
 
+class FreeQ(Builtin):
+    """
+    <dl>
+      <dt>'FreeQ[$expr$, $x$]'
+      <dd>returns 'True' if $expr$ does not contain the expression $x$.
+    </dl>
+
+    >> FreeQ[y, x]
+     = True
+    >> FreeQ[a+b+c, a+b]
+     = False
+    >> FreeQ[{1, 2, a^(a+b)}, Plus]
+     = False
+    >> FreeQ[a+b, x_+y_+z_]
+     = True
+    >> FreeQ[a+b+c, x_+y_+z_]
+     = False
+    >> FreeQ[x_+y_+z_][a+b]
+     = True
+    """
+
+    rules = {
+        "FreeQ[form_][expr_]": "FreeQ[expr, form]",
+    }
+
+    summary_text = (
+        "test whether an expression is free of subexpressions matching a pattern"
+    )
+
+    def apply(self, expr, form, evaluation):
+        "FreeQ[expr_, form_]"
+
+        form = Pattern.create(form)
+        if expr.is_free(form, evaluation):
+            return SymbolTrue
+        else:
+            return SymbolFalse
+
+
 class Null(Predefined):
     """
     <dl>
@@ -564,41 +460,6 @@ class Null(Predefined):
     """
 
     summary_text = "implicit result for expressions that does not yield a result"
-
-
-class Depth(Builtin):
-    """
-    <dl>
-      <dt>'Depth[$expr$]'
-      <dd>gives the depth of $expr$.
-    </dl>
-
-    The depth of an expression is defined as one plus the maximum
-    number of 'Part' indices required to reach any part of $expr$,
-    except for heads.
-
-    >> Depth[x]
-     = 1
-    >> Depth[x + y]
-     = 2
-    >> Depth[{{{{x}}}}]
-     = 5
-
-    Complex numbers are atomic, and hence have depth 1:
-    >> Depth[1 + 2 I]
-     = 1
-
-    'Depth' ignores heads:
-    >> Depth[f[a, b][c]]
-     = 2
-    """
-
-    summary_text = "the maximum number of indices to specify any part"
-
-    def apply(self, expr, evaluation):
-        "Depth[expr_]"
-        expr, depth = walk_levels(expr)
-        return Integer(depth + 1)
 
 
 class Operate(Builtin):
@@ -666,6 +527,165 @@ class Operate(Builtin):
         return expr
 
 
+class Order(Builtin):
+    """
+    <dl>
+      <dt>'Order[$x$, $y$]'
+      <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
+        -1 that $y$ is before $x$. 0 indicates that there is no specific ordering. Uses the same order as 'Sort'.
+    </dl>
+
+    >> Order[7, 11]
+     = 1
+
+    >> Order[100, 10]
+     = -1
+
+    >> Order[x, z]
+     = 1
+
+    >> Order[x, x]
+     = 0
+    """
+
+    summary_text = "canonical ordering of expressions"
+
+    def apply(self, x, y, evaluation):
+        "Order[x_, y_]"
+        if x < y:
+            return Integer1
+        elif x > y:
+            return Integer(-1)
+        else:
+            return Integer0
+
+
+class OrderedQ(Builtin):
+    """
+    <dl>
+      <dt>'OrderedQ[{$a$, $b$}]'
+      <dd>is 'True' if $a$ sorts before $b$ according to canonical
+        ordering.
+    </dl>
+
+    >> OrderedQ[{a, b}]
+     = True
+    >> OrderedQ[{b, a}]
+     = False
+    """
+
+    summary_text = "test whether elements are canonically sorted"
+
+    def apply(self, expr, evaluation):
+        "OrderedQ[expr_]"
+
+        for index, value in enumerate(expr.elements[:-1]):
+            if expr.elements[index] <= expr.elements[index + 1]:
+                continue
+            else:
+                return SymbolFalse
+        return SymbolTrue
+
+
+class PatternsOrderedQ(Builtin):
+    """
+    <dl>
+      <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
+      <dd>returns 'True' if pattern $patt1$ would be applied before
+        $patt2$ according to canonical pattern ordering.
+    </dl>
+
+    >> PatternsOrderedQ[x__, x_]
+     = False
+    >> PatternsOrderedQ[x_, x__]
+     = True
+    >> PatternsOrderedQ[b, a]
+     = True
+    """
+
+    summary_text = "test whether patterns are canonically sorted"
+
+    def apply(self, p1, p2, evaluation):
+        "PatternsOrderedQ[p1_, p2_]"
+
+        if p1.get_sort_key(True) <= p2.get_sort_key(True):
+            return SymbolTrue
+        else:
+            return SymbolFalse
+
+
+class SortBy(Builtin):
+    """
+    <dl>
+      <dt>'SortBy[$list$, $f$]'
+      <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
+    extracted from the $list$'s elements using $f. Chunks of elements that appear the same under $f are sorted
+    according to their natural order (without applying $f).
+      <dt>'SortBy[$f$]'
+      <dd>creates an operator function that, when applied, sorts by $f.
+    </dl>
+
+    >> SortBy[{{5, 1}, {10, -1}}, Last]
+    = {{10, -1}, {5, 1}}
+
+    >> SortBy[Total][{{5, 1}, {10, -9}}]
+    = {{10, -9}, {5, 1}}
+    """
+
+    messages = {
+        "list": "List expected at position `2` in `1`.",
+        "func": "Function expected at position `2` in `1`.",
+    }
+
+    rules = {
+        "SortBy[f_]": "SortBy[#, f]&",
+    }
+
+    summary_text = "sort by the values of a function applied to elements"
+
+    def apply(self, li, f, evaluation):
+        "SortBy[li_, f_]"
+
+        if isinstance(li, Atom):
+            return evaluation.message("Sort", "normal")
+        elif li.get_head_name() != "System`List":
+            expr = Expression(SymbolSortBy, li, f)
+            return evaluation.message(self.get_name(), "list", expr, 1)
+        else:
+            keys_expr = Expression(SymbolMap, f, li).evaluate(evaluation)  # precompute:
+            # even though our sort function has only (n log n) comparisons, we should
+            # compute f no more than n times.
+
+            if (
+                keys_expr is None
+                or keys_expr.get_head_name() != "System`List"
+                or len(keys_expr.elements) != len(li.elements)
+            ):
+                expr = Expression(SymbolSortBy, li, f)
+                return evaluation.message("SortBy", "func", expr, 2)
+
+            keys = keys_expr.elements
+            raw_keys = li.elements
+
+            class Key:
+                def __init__(self, index):
+                    self.index = index
+
+                def __gt__(self, other):
+                    kx, ky = keys[self.index], keys[other.index]
+                    if kx > ky:
+                        return True
+                    elif kx < ky:
+                        return False
+                    else:  # if f(x) == f(y), resort to x < y?
+                        return raw_keys[self.index] > raw_keys[other.index]
+
+            # we sort a list of indices. after sorting, we reorder the elements.
+            new_indices = sorted(list(range(len(raw_keys))), key=Key)
+            new_elements = [raw_keys[i] for i in new_indices]  # reorder elements
+            return li.restructure(li.head, new_elements, evaluation)
+
+
 class Through(Builtin):
     """
     <dl>
@@ -688,23 +708,3 @@ class Through(Builtin):
         for element in args.get_sequence():
             elements.append(Expression(element, *x.get_sequence()))
         return Expression(p, *elements)
-
-
-class ByteCount(Builtin):
-    """
-    <dl>
-      <dt>'ByteCount[$expr$]'
-      <dd>gives the internal memory space used by $expr$, in bytes.
-    </dl>
-
-    The results may heavily depend on the Python implementation in use.
-    """
-
-    summary_text = "amount of memory used by expr, in bytes"
-
-    def apply(self, expression, evaluation):
-        "ByteCount[expression_]"
-        if not bytecount_support:
-            return evaluation.message("ByteCount", "pypy")
-        else:
-            return Integer(count_bytes(expression))

@@ -30,6 +30,18 @@ from mathics.core.systemsymbols import SymbolMakeBoxes
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
+class Center(Builtin):
+    """
+    <dl>
+      <dt>'Center'
+      <dd>is used with the 'ColumnAlignments' option to 'Grid' or
+        'TableForm' to specify a centered column.
+    </dl>
+    """
+
+    summary_text = "center alignment"
+
+
 class Format(Builtin):
     """
     <dl>
@@ -62,36 +74,6 @@ class Format(Builtin):
     summary_text = (
         "settable low-level translator from various forms to evaluatable expressions"
     )
-
-
-class Row(Builtin):
-    """
-    <dl>
-      <dt>'Row[{$expr$, ...}]'
-      <dd>formats several expressions inside a 'RowBox'.
-    </dl>
-    """
-
-    summary_text = "1D layouts containing arbitrary objects in a row"
-
-    def apply_makeboxes(self, items, sep, f, evaluation):
-        """MakeBoxes[Row[{items___}, sep_:""],
-        f:StandardForm|TraditionalForm|OutputForm]"""
-
-        items = items.get_sequence()
-        if not isinstance(sep, String):
-            sep = MakeBoxes(sep, f)
-        if len(items) == 1:
-            return MakeBoxes(items[0], f)
-        else:
-            result = []
-            for index, item in enumerate(items):
-                if index > 0 and not sep.sameQ(String("")):
-                    result.append(to_boxes(sep, evaluation))
-                item = MakeBoxes(item, f).evaluate(evaluation)
-                item = to_boxes(item, evaluation)
-                result.append(item)
-            return RowBox(*result)
 
 
 class Grid(Builtin):
@@ -129,21 +111,238 @@ class Grid(Builtin):
         )
 
 
-class Superscript(Builtin):
+class Infix(Builtin):
     """
     <dl>
-      <dt>'Superscript[$x$, $y$]'
-      <dd>displays as $x$^$y$.
+      <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
+      <dd>displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$.
     </dl>
 
-    >> Superscript[x,3] // TeXForm
-     = x^3
+    'Infix' can be used with 'Format' to display certain forms with
+    user-defined infix notation:
+    >> Format[g[x_, y_]] := Infix[{x, y}, "#", 350, Left]
+    >> g[a, g[b, c]]
+     = a # (b # c)
+    >> g[g[a, b], c]
+     = a # b # c
+    >> g[a + b, c]
+     = (a + b) # c
+    >> g[a * b, c]
+     = a b # c
+    >> g[a, b] + c
+     = c + a # b
+    >> g[a, b] * c
+     = c (a # b)
+
+    >> Infix[{a, b, c}, {"+", "-"}]
+     = a + b - c
+
+    #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
+    #> r[1, 2, 3]
+     = 1 ~ 2 ~ 3
+    #> r[1]
+     = ab
     """
 
-    summary_text = "format an expression with a superscript"
+    messages = {
+        "normal": "Nonatomic expression expected at position `1`",
+    }
+    summary_text = "infix form"
+
+
+class Left(Builtin):
+    """
+    <dl>
+      <dt>'Left'
+      <dd>is used with operator formatting constructs to specify a left-associative operator.
+    </dl>
+    """
+
+    summary_text = "left alignment/left associative"
+
+
+class NonAssociative(Builtin):
+    """
+    <dl>
+      <dt>'NonAssociative'
+      <dd>is used with operator formatting constructs to specify a non-associative operator.
+    </dl>
+    """
+
+    summary_text = "non-associative operator"
+
+
+class Postfix(BinaryOperator):
+    """
+    <dl>
+      <dt>'$x$ // $f$'
+      <dd>is equivalent to '$f$[$x$]'.
+    </dl>
+
+    >> b // a
+     = a[b]
+    >> c // b // a
+     = a[b[c]]
+
+    The postfix operator '//' is parsed to an expression before evaluation:
+    >> Hold[x // a // b // c // d // e // f]
+     = Hold[f[e[d[c[b[a[x]]]]]]]
+    """
+
+    grouping = "Left"
+    operator = "//"
+    operator_display = None
+    precedence = 70
+    summary_text = "postfix form"
+
+
+class Precedence(Builtin):
+    """
+    <dl>
+      <dt>'Precedence[$op$]'
+      <dd>returns the precedence of the built-in operator $op$.
+    </dl>
+
+    >> Precedence[Plus]
+     = 310.
+    >> Precedence[Plus] < Precedence[Times]
+     = True
+
+    Unknown symbols have precedence 670:
+    >> Precedence[f]
+     = 670.
+    Other expressions have precedence 1000:
+    >> Precedence[a + b]
+     = 1000.
+    """
+
+    summary_text = "an object to be parenthesized with a given precedence level"
+
+    def apply(self, expr, evaluation) -> Real:
+        "Precedence[expr_]"
+
+        name = expr.get_name()
+        precedence = 1000
+        if name:
+            builtin = evaluation.definitions.get_definition(name, only_if_exists=True)
+            if builtin:
+                builtin = builtin.builtin
+            if builtin is not None and isinstance(builtin, Operator):
+                precedence = builtin.precedence
+            else:
+                precedence = 670
+        return Real(precedence)
+
+
+class Prefix(BinaryOperator):
+    """
+    <dl>
+      <dt>'$f$ @ $x$'
+      <dd>is equivalent to '$f$[$x$]'.
+    </dl>
+
+    >> a @ b
+     = a[b]
+    >> a @ b @ c
+     = a[b[c]]
+    >> Format[p[x_]] := Prefix[{x}, "*"]
+    >> p[3]
+     = *3
+    >> Format[q[x_]] := Prefix[{x}, "~", 350]
+    >> q[a+b]
+     = ~(a + b)
+    >> q[a*b]
+     = ~a b
+    >> q[a]+b
+     = b + ~a
+
+    The prefix operator '@' is parsed to an expression before evaluation:
+    >> Hold[a @ b @ c @ d @ e @ f @ x]
+     = Hold[a[b[c[d[e[f[x]]]]]]]
+    """
+
+    grouping = "Right"
+    operator = "@"
+    operator_display = None
+    precedence = 640
+    summary_text = "prefix form"
+
+
+class Right(Builtin):
+    """
+    <dl>
+      <dt>'Right'
+      <dd>is used with operator formatting constructs to specify a right-associative operator.
+    </dl>
+    """
+
+    summary_text = "right alignment/right associative"
+
+
+class Row(Builtin):
+    """
+    <dl>
+      <dt>'Row[{$expr$, ...}]'
+      <dd>formats several expressions inside a 'RowBox'.
+    </dl>
+    """
+
+    summary_text = "1D layouts containing arbitrary objects in a row"
+
+    def apply_makeboxes(self, items, sep, f, evaluation):
+        """MakeBoxes[Row[{items___}, sep_:""],
+        f:StandardForm|TraditionalForm|OutputForm]"""
+
+        items = items.get_sequence()
+        if not isinstance(sep, String):
+            sep = MakeBoxes(sep, f)
+        if len(items) == 1:
+            return MakeBoxes(items[0], f)
+        else:
+            result = []
+            for index, item in enumerate(items):
+                if index > 0 and not sep.sameQ(String("")):
+                    result.append(to_boxes(sep, evaluation))
+                item = MakeBoxes(item, f).evaluate(evaluation)
+                item = to_boxes(item, evaluation)
+                result.append(item)
+            return RowBox(*result)
+
+
+class Style(Builtin):
+    """
+    <dl>
+      <dt>'Style[$expr$, options]'
+      <dd>displays $expr$ formatted using the specified option settings.
+      <dt>'Style[$expr$, "style"]'
+      <dd> uses the option settings for the specified style in the current notebook.
+      <dt>'Style[$expr$, $color$]'
+      <dd>displays using the specified color.
+      <dt>'Style[$expr$, $Bold$]'
+      <dd>displays with fonts made bold.
+      <dt>'Style[$expr$, $Italic$]'
+      <dd>displays with fonts made italic.
+      <dt>'Style[$expr$, $Underlined$]'
+      <dd>displays with fonts underlined.
+      <dt>'Style[$expr$, $Larger$]
+      <dd>displays with fonts made larger.
+      <dt>'Style[$expr$, $Smaller$]'
+      <dd>displays with fonts made smaller.
+      <dt>'Style[$expr$, $n$]'
+      <dd>displays with font size n.
+      <dt>'Style[$expr$, $Tiny$]'
+      <dt>'Style[$expr$, $Small$]', etc.
+      <dd>display with fonts that are tiny, small, etc.
+    </dl>
+    """
+
+    summary_text = "wrapper specifying styles and style options to apply"
+    options = {"ImageSizeMultipliers": "Automatic"}
+
     rules = {
-        "MakeBoxes[Superscript[x_, y_], f:StandardForm|TraditionalForm]": (
-            "SuperscriptBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
+        "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
+            "StyleBox[MakeBoxes[expr, f], "
+            "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
         )
     }
 
@@ -192,219 +391,20 @@ class Subsuperscript(Builtin):
     summary_text = "format an expression with a subscript and a superscript"
 
 
-class Postfix(BinaryOperator):
+class Superscript(Builtin):
     """
     <dl>
-      <dt>'$x$ // $f$'
-      <dd>is equivalent to '$f$[$x$]'.
+      <dt>'Superscript[$x$, $y$]'
+      <dd>displays as $x$^$y$.
     </dl>
 
-    >> b // a
-     = a[b]
-    >> c // b // a
-     = a[b[c]]
-
-    The postfix operator '//' is parsed to an expression before evaluation:
-    >> Hold[x // a // b // c // d // e // f]
-     = Hold[f[e[d[c[b[a[x]]]]]]]
+    >> Superscript[x,3] // TeXForm
+     = x^3
     """
 
-    grouping = "Left"
-    operator = "//"
-    operator_display = None
-    precedence = 70
-    summary_text = "postfix form"
-
-
-class Prefix(BinaryOperator):
-    """
-    <dl>
-      <dt>'$f$ @ $x$'
-      <dd>is equivalent to '$f$[$x$]'.
-    </dl>
-
-    >> a @ b
-     = a[b]
-    >> a @ b @ c
-     = a[b[c]]
-    >> Format[p[x_]] := Prefix[{x}, "*"]
-    >> p[3]
-     = *3
-    >> Format[q[x_]] := Prefix[{x}, "~", 350]
-    >> q[a+b]
-     = ~(a + b)
-    >> q[a*b]
-     = ~a b
-    >> q[a]+b
-     = b + ~a
-
-    The prefix operator '@' is parsed to an expression before evaluation:
-    >> Hold[a @ b @ c @ d @ e @ f @ x]
-     = Hold[a[b[c[d[e[f[x]]]]]]]
-    """
-
-    grouping = "Right"
-    operator = "@"
-    operator_display = None
-    precedence = 640
-    summary_text = "prefix form"
-
-
-class Infix(Builtin):
-    """
-    <dl>
-      <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
-      <dd>displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$.
-    </dl>
-
-    'Infix' can be used with 'Format' to display certain forms with
-    user-defined infix notation:
-    >> Format[g[x_, y_]] := Infix[{x, y}, "#", 350, Left]
-    >> g[a, g[b, c]]
-     = a # (b # c)
-    >> g[g[a, b], c]
-     = a # b # c
-    >> g[a + b, c]
-     = (a + b) # c
-    >> g[a * b, c]
-     = a b # c
-    >> g[a, b] + c
-     = c + a # b
-    >> g[a, b] * c
-     = c (a # b)
-
-    >> Infix[{a, b, c}, {"+", "-"}]
-     = a + b - c
-
-    #> Format[r[items___]] := Infix[If[Length[{items}] > 1, {items}, {ab}], "~"]
-    #> r[1, 2, 3]
-     = 1 ~ 2 ~ 3
-    #> r[1]
-     = ab
-    """
-
-    messages = {
-        "normal": "Nonatomic expression expected at position `1`",
-    }
-    summary_text = "infix form"
-
-
-class NonAssociative(Builtin):
-    """
-    <dl>
-      <dt>'NonAssociative'
-      <dd>is used with operator formatting constructs to specify a non-associative operator.
-    </dl>
-    """
-
-    summary_text = "non-associative operator"
-
-
-class Left(Builtin):
-    """
-    <dl>
-      <dt>'Left'
-      <dd>is used with operator formatting constructs to specify a left-associative operator.
-    </dl>
-    """
-
-    summary_text = "left alignment/left associative"
-
-
-class Right(Builtin):
-    """
-    <dl>
-      <dt>'Right'
-      <dd>is used with operator formatting constructs to specify a right-associative operator.
-    </dl>
-    """
-
-    summary_text = "right alignment/right associative"
-
-
-class Center(Builtin):
-    """
-    <dl>
-      <dt>'Center'
-      <dd>is used with the 'ColumnAlignments' option to 'Grid' or
-        'TableForm' to specify a centered column.
-    </dl>
-    """
-
-    summary_text = "center alignment"
-
-
-class Style(Builtin):
-    """
-    <dl>
-      <dt>'Style[$expr$, options]'
-      <dd>displays $expr$ formatted using the specified option settings.
-      <dt>'Style[$expr$, "style"]'
-      <dd> uses the option settings for the specified style in the current notebook.
-      <dt>'Style[$expr$, $color$]'
-      <dd>displays using the specified color.
-      <dt>'Style[$expr$, $Bold$]'
-      <dd>displays with fonts made bold.
-      <dt>'Style[$expr$, $Italic$]'
-      <dd>displays with fonts made italic.
-      <dt>'Style[$expr$, $Underlined$]'
-      <dd>displays with fonts underlined.
-      <dt>'Style[$expr$, $Larger$]
-      <dd>displays with fonts made larger.
-      <dt>'Style[$expr$, $Smaller$]'
-      <dd>displays with fonts made smaller.
-      <dt>'Style[$expr$, $n$]'
-      <dd>displays with font size n.
-      <dt>'Style[$expr$, $Tiny$]'
-      <dt>'Style[$expr$, $Small$]', etc.
-      <dd>display with fonts that are tiny, small, etc.
-    </dl>
-    """
-
-    summary_text = "wrapper specifying styles and style options to apply"
-    options = {"ImageSizeMultipliers": "Automatic"}
-
+    summary_text = "format an expression with a superscript"
     rules = {
-        "MakeBoxes[Style[expr_, OptionsPattern[Style]], f_]": (
-            "StyleBox[MakeBoxes[expr, f], "
-            "ImageSizeMultipliers -> OptionValue[ImageSizeMultipliers]]"
+        "MakeBoxes[Superscript[x_, y_], f:StandardForm|TraditionalForm]": (
+            "SuperscriptBox[MakeBoxes[x, f], MakeBoxes[y, f]]"
         )
     }
-
-
-class Precedence(Builtin):
-    """
-    <dl>
-      <dt>'Precedence[$op$]'
-      <dd>returns the precedence of the built-in operator $op$.
-    </dl>
-
-    >> Precedence[Plus]
-     = 310.
-    >> Precedence[Plus] < Precedence[Times]
-     = True
-
-    Unknown symbols have precedence 670:
-    >> Precedence[f]
-     = 670.
-    Other expressions have precedence 1000:
-    >> Precedence[a + b]
-     = 1000.
-    """
-
-    summary_text = "an object to be parenthesized with a given precedence level"
-
-    def apply(self, expr, evaluation) -> Real:
-        "Precedence[expr_]"
-
-        name = expr.get_name()
-        precedence = 1000
-        if name:
-            builtin = evaluation.definitions.get_definition(name, only_if_exists=True)
-            if builtin:
-                builtin = builtin.builtin
-            if builtin is not None and isinstance(builtin, Operator):
-                precedence = builtin.precedence
-            else:
-                precedence = 670
-        return Real(precedence)
