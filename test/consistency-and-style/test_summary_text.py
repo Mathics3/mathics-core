@@ -7,7 +7,7 @@ import os
 import os.path as osp
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
-
+from mathics.builtin import contributing_builtin_var
 from mathics.builtin.base import Builtin
 from mathics import __file__ as mathics_initfile_path
 
@@ -194,14 +194,12 @@ def test_summary_text_available(module_name):
     module = modules[module_name]
     vars = dir(module)
     for name in vars:
-        var = getattr(module, name)
+        var = contributing_builtin_var(module, name)
+        if var is None:
+            continue
         # skip if var is not a builtin that belongs to
         # this module
-        if (
-            name.startswith("_")
-            or (len(name) > 3 and name[-3:] == "Box")
-            or not (is_builtin(var) and var.__module__ == module.__name__)
-        ):
+        if len(name) > 3 and name[-3:] == "Box":
             continue
         instance = var(expression=False)
         if not isinstance(instance, Builtin):

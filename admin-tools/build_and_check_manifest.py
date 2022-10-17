@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mathics.builtin import modules, is_builtin, Builtin
+from mathics.builtin import contributing_builtin_var, modules, is_builtin, Builtin
 import sys
 
 
@@ -10,15 +10,8 @@ def generate_avaliable_builtins_names():
     for module in modules:
         vars = dir(module)
         for name in vars:
-            var = getattr(module, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__.startswith("mathics.builtin.")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__ == module.__name__
-            ):  # nopep8
+            var = contributing_builtin_var(module, name)
+            if var:  # nopep8
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     # This set the default context for symbols in mathics.builtins
