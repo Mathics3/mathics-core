@@ -10,7 +10,6 @@ from mathics.builtin.base import (
     Predefined,
 )
 
-
 from mathics.core.attributes import A_NO_ATTRIBUTES
 
 from mathics.core.expression import Expression
