@@ -16,7 +16,7 @@ import sympy
 from mathics.builtin.base import Builtin
 
 from mathics.core.atoms import IntegerM1
-from mathics.core.attributes import constant, protected, read_protected
+from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
@@ -44,7 +44,7 @@ class Minimize(Builtin):
      = {{-Sqrt[5], {x -> -Sqrt[5] / 5, y -> 2 Sqrt[5] / 5}}}
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "compute the minimum of a function"
 
     def apply_onevariable(self, f, x, evaluation):
@@ -88,7 +88,7 @@ class Minimize(Builtin):
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or constant & var.get_attributes(evaluation.definitions)
+                or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -165,7 +165,7 @@ class Minimize(Builtin):
             if (
                 (isinstance(var, Atom) and not isinstance(var, Symbol))
                 or head_name in ("System`Plus", "System`Times", "System`Power")  # noqa
-                or constant & var.get_attributes(evaluation.definitions)
+                or A_CONSTANT & var.get_attributes(evaluation.definitions)
             ):
 
                 evaluation.message("Minimize", "ivar", vars_or)
@@ -367,7 +367,7 @@ class Maximize(Builtin):
      = {{Sqrt[5], {x -> Sqrt[5] / 5, y -> -2 Sqrt[5] / 5}}}
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     summary_text = "compute the maximum of a function"
 
     def apply(self, f, vars, evaluation):

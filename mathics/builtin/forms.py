@@ -17,10 +17,7 @@ from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import Integer, String, StringFromPython
-from mathics.core.attributes import (
-    locked as A_LOCKED,
-    protected as A_PROTECTED,
-)
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
 
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError

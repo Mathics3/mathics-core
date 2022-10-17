@@ -13,8 +13,8 @@ from mathics.builtin.base import Builtin
 
 
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_PROTECTED,
 )
 from mathics.core.convert.python import from_bool
 from mathics.core.definitions import Definitions

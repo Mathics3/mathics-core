@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import protected, read_protected, no_attributes
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -178,7 +178,7 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     abstract: bool = False
-    attributes: int = protected
+    attributes: int = A_PROTECTED
     is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
@@ -273,6 +273,12 @@ class Builtin:
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
 
+        for pattern, function in self.get_functions(
+            prefix="eval", is_pymodule=is_pymodule
+        ):
+            rules.append(
+                BuiltinRule(name, pattern, function, check_options, system=True)
+            )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
@@ -546,7 +552,7 @@ class Operator(Builtin):
 class Predefined(Builtin):
     def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
-        if prefix == "apply" and hasattr(self, "evaluate"):
+        if prefix in ("apply", "eval") and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
         return functions
 
@@ -729,7 +735,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # * Review the implementation
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -911,7 +917,7 @@ class PatternObject(BuiltinElement, Pattern):
         if self.head is None:
             # FIXME: _Blank in builtin/patterns.py sets head to None.
             # Figure out if this is the best thing to do and explain why.
-            return no_attributes
+            return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:

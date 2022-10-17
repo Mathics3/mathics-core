@@ -22,8 +22,8 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.attributes import (
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    read_protected as A_READ_PROTECTED,
+    A_HOLD_ALL_COMPLETE,
+    A_READ_PROTECTED,
 )
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
