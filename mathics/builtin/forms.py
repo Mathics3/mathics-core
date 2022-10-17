@@ -50,7 +50,7 @@ SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
 SymbolTableDepth = Symbol("TableDepth")
 
 
-class _FormBaseClass(Builtin):
+class FormBaseClass(Builtin):
     """
     Base class for a Mathics Form.
 
@@ -78,7 +78,7 @@ class _FormBaseClass(Builtin):
         return instance
 
 
-class FullForm(_FormBaseClass):
+class FullForm(FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/FullForm.html</url>
     <dl>
@@ -99,7 +99,7 @@ class FullForm(_FormBaseClass):
     summary_text = "underlying M-Expression representation"
 
 
-class MathMLForm(_FormBaseClass):
+class MathMLForm(FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/MathMLForm.html</url>
     <dl>
@@ -155,7 +155,7 @@ class MathMLForm(_FormBaseClass):
         return Expression(SymbolRowBox, ListExpression(String(mathml)))
 
 
-class InputForm(_FormBaseClass):
+class InputForm(FormBaseClass):
     r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/InputForm.html</url>
     <dl>
@@ -182,7 +182,7 @@ class InputForm(_FormBaseClass):
     summary_text = "plain-text input format"
 
 
-class OutputForm(_FormBaseClass):
+class OutputForm(FormBaseClass):
     """
     <dl>
       <dt>'OutputForm[$expr$]'
@@ -251,7 +251,7 @@ class PrintForms_(Predefined):
         return ListExpression(*evaluation.definitions.printforms)
 
 
-class PythonForm(_FormBaseClass):
+class PythonForm(FormBaseClass):
     """
     <dl>
       <dt>'PythonForm[$expr$]'
@@ -294,7 +294,7 @@ class PythonForm(_FormBaseClass):
         return self.eval_python(expr, evaluation)
 
 
-class SympyForm(_FormBaseClass):
+class SympyForm(FormBaseClass):
     """
     <dl>
       <dt>'SympyForm[$expr$]'
@@ -326,7 +326,7 @@ class SympyForm(_FormBaseClass):
         return self.eval_sympy(expr, evaluation)
 
 
-class StringForm(_FormBaseClass):
+class StringForm(FormBaseClass):
     """
     <url>WMA :https://reference.wolfram.com/language/ref/StringForm.html</url>
     <dl>
@@ -378,7 +378,7 @@ class StringForm(_FormBaseClass):
         )
 
 
-class StandardForm(_FormBaseClass):
+class StandardForm(FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/StandardForm.html</url>
     <dl>
@@ -402,7 +402,7 @@ class StandardForm(_FormBaseClass):
     summary_text = "default output format"
 
 
-class TraditionalForm(_FormBaseClass):
+class TraditionalForm(FormBaseClass):
     """
     <url>WMA :https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
     <dl>
@@ -419,7 +419,7 @@ class TraditionalForm(_FormBaseClass):
     summary_text = "traditional output format"
 
 
-class TeXForm(_FormBaseClass):
+class TeXForm(FormBaseClass):
     r"""
     <url>:WMA: https://reference.wolfram.com/language/ref/TeXForm.html</url>
     <dl>
@@ -468,7 +468,7 @@ class TeXForm(_FormBaseClass):
         return Expression(SymbolRowBox, ListExpression(String(tex)))
 
 
-class TableForm(_FormBaseClass):
+class TableForm(FormBaseClass):
     """
     <url>:WMA: https://reference.wolfram.com/language/ref/TableForm.html</url>
     <dl>
@@ -601,3 +601,9 @@ class MatrixForm(TableForm):
                 SymbolRowBox, ListExpression(String("("), result, String(")"))
             )
         return result
+
+
+# FormBaseClass is a public Builtin class that
+# should not contribute with a definition.
+
+NO_CONTRIBUTING_CLASSES = [FormBaseClass]

@@ -220,7 +220,7 @@ def do_format_element(
         # If the expression is enclosed by a Format
         # takes the form from the expression and
         # removes the format from the expression.
-        if head in OutputForms and len(elements) == 1:
+        if head in OutputForms and len(expr.elements) == 1:
             expr = elements[0]
             if not (form is SymbolOutputForm and head is SymbolStandardForm):
                 form = head
@@ -267,8 +267,8 @@ def do_format_element(
                 # expr is of the form f[...][...]
                 return None
             name = expr.get_lookup_name()
-            OutputForms = evaluation.definitions.get_formats(name, form.get_name())
-            for rule in OutputForms:
+            format_rules = evaluation.definitions.get_formats(name, form.get_name())
+            for rule in format_rules:
                 result = rule.apply(expr, evaluation)
                 if result is not None and result != expr:
                     return result.evaluate(evaluation)
@@ -288,8 +288,15 @@ def do_format_element(
         # specific cases, iterate over the elements.
         head = expr.get_head()
         if head in OutputForms:
+            # If the expression was of the form
+            # Form[expr, opts]
+            # then the format was not stripped. Then,
+            # just return it as it is.
+            if len(expr.elements) != 1:
+                return expr
             do_format = element_formatters.get(type(element), do_format_element)
             expr = do_format(expr, evaluation, form)
+
         elif (
             head is not SymbolNumberForm
             and not isinstance(expr, (Atom, BoxElementMixin))

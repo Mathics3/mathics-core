@@ -44,6 +44,7 @@ System`$MaxPrecision
 System`$MinPrecision
 System`$ModuleNumber
 System`$OperatingSystem
+System`$OutputForms
 System`$Packages
 System`$ParentProcessID
 System`$Path
