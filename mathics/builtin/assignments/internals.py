@@ -535,11 +535,11 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if not form_name:
             evaluation.message("Format", "fttp", lhs.elements[1])
             raise AssignmentException(lhs, None)
-        # If the form is not in defs.printforms
+        # If the form is not in defs.printforms / defs.outputforms
         # add it.
-        print_forms = defs.printforms
-        if form not in print_forms:
-            print_forms.append(form)
+        for form_list in (defs.outputforms, defs.printforms):
+            if form not in form_list:
+                form_list.append(form)
     else:
         form_name = [
             "System`StandardForm",
