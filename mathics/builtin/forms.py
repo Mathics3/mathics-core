@@ -27,6 +27,7 @@ from mathics.core.attributes import A_LOCKED, A_PROTECTED
 
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, BoxError
+from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -36,8 +37,10 @@ from mathics.core.symbols import (
 
 from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
+    SymbolOutputForm,
     SymbolRowBox,
     SymbolRule,
+    SymbolStandardForm,
 )
 
 import mathics.core.definitions as definitions
@@ -515,9 +518,9 @@ class TableForm(FormBaseClass):
     def eval_makeboxes(self, table, f, evaluation, options):
         """MakeBoxes[%(name)s[table_, OptionsPattern[%(name)s]],
         f:StandardForm|TraditionalForm|OutputForm]"""
-
         dims = len(get_dimensions(table, head=SymbolList))
-        depth = self.get_option(options, "TableDepth", evaluation)
+        depth = self.get_option(options, "TableDepth", evaluation, pop=True)
+        options["System`TableDepth"] = depth
         depth = expr_min((Integer(dims), depth))
         depth = depth.value
         if depth is None:
@@ -525,12 +528,12 @@ class TableForm(FormBaseClass):
             return
 
         if depth <= 0:
-            return Expression(SymbolMakeBoxes, table, f)
+            return format_element(table, evaluation, f)
         elif depth == 1:
             return GridBox(
                 ListExpression(
                     *(
-                        ListExpression(Expression(SymbolMakeBoxes, item, f))
+                        ListExpression(format_element(item, evaluation, f))
                         for item in table.elements
                     ),
                 )
@@ -540,27 +543,26 @@ class TableForm(FormBaseClass):
             #        Expression('List', Expression('MakeBoxes', item, f))
             #        for item in table.elements)))
         else:
-            new_depth = Expression(SymbolRule, SymbolTableDepth, Integer(depth - 2))
+            options["System`TableDepth"] = Integer(depth - 2)
 
             def transform_item(item):
                 if depth > 2:
-                    return Expression(Symbol(self.get_name()), item, new_depth)
+                    return self.eval_makeboxes(item, f, evaluation, options)
                 else:
-                    return item
+                    return format_element(item, evaluation, f)
 
-            return GridBox(
+            result = GridBox(
                 ListExpression(
                     *(
                         ListExpression(
-                            *(
-                                Expression(SymbolMakeBoxes, transform_item(item), f)
-                                for item in row.elements
-                            ),
+                            *(transform_item(item) for item in row.elements),
                         )
                         for row in table.elements
                     ),
                 )
             )
+            options["System`TableDepth"] = Integer(depth)
+            return result
 
 
 class MatrixForm(TableForm):
@@ -582,9 +584,9 @@ class MatrixForm(TableForm):
 
     ## Issue #182
     #> {{2*a, 0},{0,0}}//MatrixForm
-     = 2 a   0
+     = 2 ⁢ a   0
      .
-     . 0     0
+     . 0       0
     """
 
     in_outputforms = True
@@ -597,9 +599,8 @@ class MatrixForm(TableForm):
 
         result = super(MatrixForm, self).eval_makeboxes(table, f, evaluation, options)
         if result.get_head_name() == "System`GridBox":
-            return Expression(
-                SymbolRowBox, ListExpression(String("("), result, String(")"))
-            )
+            return RowBox(String("("), result, String(")"))
+
         return result
 
 

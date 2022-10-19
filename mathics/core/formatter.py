@@ -136,7 +136,7 @@ def lookup_method(self, format: str) -> Callable:
 
         return ret_fn
 
-    error_msg = f"Can't find formatter {format} for {type(self).__name__}"
+    error_msg = f"Can't find formatter {format} for {type(self).__name__} ({self})"
     raise RuntimeError(error_msg)
 
 
