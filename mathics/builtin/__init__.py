@@ -38,14 +38,6 @@ from mathics.builtin.base import (
 )
 
 
-def is_builtin(var):
-    if var == Builtin:
-        return True
-    if hasattr(var, "__bases__"):
-        return any(is_builtin(base) for base in var.__bases__)
-    return False
-
-
 def contributing_builtin_var(module, name) -> Optional[type]:
     """
     Returns getattr(module, name) if it is a Builtin that
@@ -57,7 +49,7 @@ def contributing_builtin_var(module, name) -> Optional[type]:
 
     var = getattr(module, name)
 
-    if not hasattr(var, "__module__"):
+    if not (isinstance(var, type) and hasattr(var, "__module__")):
         return None
 
     # Skip those builtins defined in another module
@@ -73,7 +65,7 @@ def contributing_builtin_var(module, name) -> Optional[type]:
         return None
 
     # If it is not a subclass of Builtin, skip it
-    if not is_builtin(var):
+    if not issubclass(var, Builtin):
         return None
 
     # Skip it we explicitly set that we want to skip it:

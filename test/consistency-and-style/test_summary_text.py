@@ -94,14 +94,6 @@ __py_files__ = [
 ]
 
 
-def _is_builtin(var):
-    if var == Builtin:
-        return True
-    if hasattr(var, "__bases__"):
-        return any(_is_builtin(base) for base in var.__bases__)
-    return False
-
-
 def import_module(module_name: str):
     try:
         module = importlib.import_module("mathics.builtin." + module_name)
@@ -167,15 +159,6 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
     assert (
         docstr.count("</dd>") == 0
     ), f"unnecesary </dd> field {instance.get_name()} from {module_name}"
-
-
-def is_builtin(var: object) -> bool:
-    return (
-        hasattr(var, "__module__")
-        and var.__module__.startswith("mathics.builtin.")
-        and var.__module__ != "mathics.builtin.base"
-        and _is_builtin(var)
-    )
 
 
 @pytest.mark.skipif(

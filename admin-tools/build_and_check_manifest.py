@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from mathics.builtin import contributing_builtin_var, modules, is_builtin, Builtin
+from mathics.builtin import contributing_builtin_var, modules, Builtin
 import sys
 
 

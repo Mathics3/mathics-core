@@ -36,7 +36,7 @@ Internals
 #. `from_mpmath` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
 #. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
-#. Modularize and improving the way in which `Builtin` classes are selected to have an associated `Definition`.
+#. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
 
    
 Bugs

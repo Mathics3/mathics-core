@@ -166,7 +166,11 @@ class Definitions:
         from an external Python module in the pymathics module namespace.
         """
         import importlib
-        from mathics.builtin import is_builtin, builtins_by_module, Builtin
+        from mathics.builtin import (
+            contributing_builtin_var,
+            builtins_by_module,
+            Builtin,
+        )
 
         # Ensures that the pymathics module be reloaded
         import sys
@@ -187,14 +191,8 @@ class Definitions:
         if not ("pymathics_version_data" in vars):
             raise PyMathicsLoadException(module)
         for name in vars - set(("pymathics_version_data", "__version__")):
-            var = getattr(loaded_module, name)
-            if (
-                hasattr(var, "__module__")
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__[: len(loaded_module.__name__)]
-                == loaded_module.__name__
-            ):  # nopep8
+            var = contributing_builtin_var(loaded_module, name)
+            if var:  # nopep8
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     if not var.context:
