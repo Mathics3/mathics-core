@@ -417,10 +417,11 @@ class Evaluation:
                 if self.exc_result != self.SymbolNull:
                     result = self.format_output(self.exc_result, format)
 
-            head = self.last_eval.get_head()
             form = None
-            if head in output_forms:
-                form = self.definitions.shorten_name(head.name)
+            if self.last_eval:
+                head = self.last_eval.get_head()
+                if head in output_forms:
+                    form = self.definitions.shorten_name(head.name)
 
             result = Result(self.out, result, line_no, self.last_eval, form)
             self.out = []
