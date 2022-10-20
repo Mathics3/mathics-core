@@ -419,6 +419,9 @@ class TraditionalForm(FormBaseClass):
     ## = g(x)
     """
 
+    in_outputforms = True
+    in_printforms = True
+
     summary_text = "traditional output format"
 
 
