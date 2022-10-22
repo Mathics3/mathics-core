@@ -637,6 +637,7 @@ class MatrixForm(TableForm):
 
 
 # FormBaseClass is a public Builtin class that
-# should not contribute with a definition.
+# should not get added as a definition (and therefore not added to
+# to external documentation.
 
-NO_CONTRIBUTING_CLASSES = [FormBaseClass]
+DOES_NOT_ADD_BUILTIN_DEFINITION = [FormBaseClass]

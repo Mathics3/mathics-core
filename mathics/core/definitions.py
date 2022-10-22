@@ -175,7 +175,7 @@ class Definitions:
         import importlib
         from mathics.builtin import (
             builtins_by_module,
-            contributing_builtin_var,
+            name_is_builtin_symbol,
             Builtin,
         )
 
@@ -198,8 +198,8 @@ class Definitions:
         if not ("pymathics_version_data" in vars):
             raise PyMathicsLoadException(module)
         for name in vars - set(("pymathics_version_data", "__version__")):
-            var = contributing_builtin_var(loaded_module, name)
-            if contributing_builtin_var:
+            var = name_is_builtin_symbol(loaded_module, name)
+            if name_is_builtin_symbol:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     if not var.context:

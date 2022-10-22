@@ -8,9 +8,11 @@ Mathics has over a thousand Built-in Functions and variables, all of which are d
 from typing import Optional
 import glob
 import importlib
+import inspect
 import pkgutil
 import re
 import os.path as osp
+
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -36,57 +38,6 @@ from mathics.builtin.base import (
     Operator,
     PatternObject,
 )
-
-
-def contributing_builtin_var(module, name) -> Optional[type]:
-    """
-    Returns getattr(module, name) if it is a Builtin that
-    should contribute with a definition.
-    Otherwise, returns None.
-    """
-    if name.startswith("_"):
-        return None
-
-    var = getattr(module, name)
-
-    if not (isinstance(var, type) and hasattr(var, "__module__")):
-        return None
-
-    # Skip those builtins defined in another module
-    if var.__module__ != module.__name__:
-        return None
-
-    # Skip those builtins in the module mathics.builtin.base
-    if var.__module__ == "mathics.builtin.base":
-        return None
-
-    # Skip those builtins out the submodules of mathics.builtin
-    if not var.__module__.startswith("mathics.builtin."):
-        return None
-
-    # If it is not a subclass of Builtin, skip it
-    if not issubclass(var, Builtin):
-        return None
-
-    # Skip it we explicitly set that we want to skip it:
-    if var in getattr(module, "NO_CONTRIBUTING_CLASSES", []):
-        return None
-    return var
-
-
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            var.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
 
 
 def add_builtins(new_builtins):
@@ -184,6 +135,63 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
         import_module(module_name, import_name)
 
 
+def name_is_builtin_symbol(module, name: str) -> Optional[type]:
+    """
+    Checks if ``name`` should be added to definitions, and return
+    its associated Builtin class.
+
+    Return ``None`` if the name should not get added to definitions.
+    """
+    if name.startswith("_"):
+        return None
+
+    module_object = getattr(module, name)
+
+    # Look only at Class objects.
+    if not inspect.isclass(module_object):
+        return None
+
+    # FIXME: tests involving module_object.__module__ are fragile and
+    # Python implementation specific. Figure out how to do this
+    # via the inspect module which is not implementation specific.
+
+    # Skip those builtins defined in or imported from another module.
+    if module_object.__module__ != module.__name__:
+        return None
+
+    # Skip objects in module mathics.builtin.base.
+    if module_object.__module__ == "mathics.builtin.base":
+        return None
+
+    # Skip those builtins that are not submodules of mathics.builtin.
+    if not module_object.__module__.startswith("mathics.builtin."):
+        return None
+
+    # If it is not a subclass of Builtin, skip it.
+    if not issubclass(module_object, Builtin):
+        return None
+
+    # Skip Builtin classes that were explicitly marked for skipping.
+    if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
+        return None
+    return module_object
+
+
+def sanity_check(cls, module):
+    if not RUN_SANITY_TEST:
+        return True
+
+    if not hasattr(cls, "summary_text"):
+        print(
+            "In ",
+            module.__name__,
+            var.__name__,
+            " does not have a summary_text.",
+        )
+        return False
+    return True
+
+
 # FIXME: redo using importlib since that is probably less fragile.
 exclude_files = set(("codetables", "base"))
 module_names = [
@@ -237,19 +245,20 @@ for subdir in (
 
 for module in modules:
     builtins_by_module[module.__name__] = []
-    vars = dir(module)
-    for name in vars:
-        var = contributing_builtin_var(module, name)
-        if var:
-            instance = var(expression=False)
+    module_vars = dir(module)
+
+    for name in module_vars:
+        builtin_class = name_is_builtin_symbol(module, name)
+        if builtin_class is not None:
+            instance = builtin_class(expression=False)
 
             if isinstance(instance, Builtin):
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
                 assert sanity_check(
-                    var, module
-                ), f"In {module.__name__} Builtin <<{var.__name__}>> did not pass the sanity check."
+                    builtin_class, module
+                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
 
                 _builtins.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)

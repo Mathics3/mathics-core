@@ -1071,11 +1071,11 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin import Builtin, contributing_builtin_var
+        from mathics.builtin import Builtin, name_is_builtin_symbol
 
         print("loading symbols")
         for name in dir(self.pymathicsmodule):
-            var = contributing_builtin_var(self.pymathicsmodule, name)
+            var = name_is_builtin_symbol(self.pymathicsmodule, name)
             if var:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
