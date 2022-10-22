@@ -1,7 +1,7 @@
 .. contents::
 
- CHANGES
- =======
+CHANGES
+=======
 
 5.0.3dev0
 ---------
