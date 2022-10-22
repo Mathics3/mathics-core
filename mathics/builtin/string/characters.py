@@ -7,7 +7,7 @@ Characters in Strings
 from mathics.builtin.base import Builtin, Test
 
 from mathics.core.atoms import String
-from mathics.core.attributes import listable, protected, read_protected
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.list import ListExpression
 
@@ -35,7 +35,7 @@ class Characters(Builtin):
      = \u03B1\u03B2\u03B3
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "list the characters in a string"
 
     def apply(self, string, evaluation):
@@ -57,7 +57,7 @@ class CharacterRange(Builtin):
      = {}
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "argtype": "Arguments `1` and `2` are not both strings of length 1.",
@@ -172,7 +172,7 @@ class ToLowerCase(Builtin):
      = new york
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into lower case"
 
     def apply(self, s, evaluation):
@@ -191,7 +191,7 @@ class ToUpperCase(Builtin):
      = NEW YORK
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "turn all the letters into upper case"
 
     def apply(self, s, evaluation):

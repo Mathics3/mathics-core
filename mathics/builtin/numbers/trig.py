@@ -32,6 +32,10 @@ SymbolArcSin = Symbol("ArcSin")
 SymbolArcTan = Symbol("ArcTan")
 
 
+class _IllegalStepSpecification(Exception):
+    pass
+
+
 class Fold:
     # allows inherited classes to specify a single algorithm implementation that
     # can be called with machine precision, arbitrary precision or symbolically.
@@ -614,10 +618,6 @@ class Haversine(_MPMathFunction):
 
     summary_text = "Haversine function"
     rules = {"Haversine[z_]": "Power[Sin[z/2], 2]"}
-
-
-class _IllegalStepSpecification(Exception):
-    pass
 
 
 class InverseHaversine(_MPMathFunction):

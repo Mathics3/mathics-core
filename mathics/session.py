@@ -10,10 +10,13 @@ In particular we provide:
 """
 
 import os.path as osp
+from typing import Optional
+
 from mathics.core.definitions import autoload_files
 from mathics.core.parser import parse, MathicsSingleLineFeeder
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
+import mathics.settings
 
 
 def load_default_settings_files(
@@ -53,7 +56,15 @@ class MathicsSession:
     it and evaluating it in the context of the current session.
     """
 
-    def __init__(self, add_builtin=True, catch_interrupt=False, form="InputForm"):
+    def __init__(
+        self,
+        add_builtin=True,
+        catch_interrupt=False,
+        form="InputForm",
+        character_encoding=Optional[str],
+    ):
+        if character_encoding is not None:
+            mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form
         self.reset(add_builtin, catch_interrupt)
 

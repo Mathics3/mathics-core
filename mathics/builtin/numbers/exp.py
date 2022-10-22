@@ -16,7 +16,7 @@ from itertools import chain
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Real
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPower
@@ -260,7 +260,7 @@ class Log2(Builtin):
     """
 
     summary_text = "base-2 logarithm function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Log2[x_]": "Log[2, x]",
@@ -283,7 +283,7 @@ class Log10(Builtin):
     """
 
     summary_text = "base-10 logarithm function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Log10[x_]": "Log[10, x]",
@@ -311,6 +311,6 @@ class LogisticSigmoid(Builtin):
     """
 
     summary_text = "logistic function"
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {"LogisticSigmoid[z_?NumberQ]": "1 / (1 + Exp[-z])"}

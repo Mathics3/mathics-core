@@ -19,13 +19,13 @@ from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolComplexInfinity
 
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    one_identity as A_ONE_IDENTITY,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_FLAT,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 SymbolQuotient = Symbol("Quotient")

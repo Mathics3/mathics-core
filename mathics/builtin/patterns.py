@@ -59,11 +59,11 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    hold_rest,
-    protected,
-    sequence_hold,
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, SymbolVerbatim
@@ -107,7 +107,7 @@ class Rule_(BinaryOperator):
     name = "Rule"
     operator = "->"
     precedence = 120
-    attributes = sequence_hold | protected
+    attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
     summary_text = "a replacement rule"
@@ -126,7 +126,7 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    attributes = sequence_hold | hold_rest | protected
+    attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
     precedence = 120
@@ -910,7 +910,7 @@ class HoldPattern(PatternObject):
     """
 
     arg_counts = [1]
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
     def init(self, expr):
@@ -968,7 +968,7 @@ class Pattern_(PatternObject):
 
     arg_counts = [2]
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
@@ -1519,7 +1519,7 @@ class Condition(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     operator = "/;"
     precedence = 130
     summary_text = "conditional definition"

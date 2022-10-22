@@ -9,13 +9,13 @@ from mathics.builtin.base import (
     PostfixOperator,
 )
 from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    listable,
-    locked,
-    no_attributes,
-    protected,
-    read_protected,
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_LISTABLE,
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.expression import Expression
 from mathics.core.symbols import (
@@ -75,7 +75,7 @@ class Clear(Builtin):
     """
 
     allow_locked = True
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
         "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
@@ -122,7 +122,7 @@ class Clear(Builtin):
                 if is_protected(name, evaluation.definitions):
                     evaluation.message(self.get_name(), "wrsym", Symbol(name))
                     continue
-                if not self.allow_locked and locked & attributes:
+                if not self.allow_locked and A_LOCKED & attributes:
                     evaluation.message(self.get_name(), "locked", Symbol(name))
                     continue
                 # remove the cache for the definition first.
@@ -161,7 +161,7 @@ class ClearAll(Clear):
 
     def do_clear(self, definition):
         super(ClearAll, self).do_clear(definition)
-        definition.attributes = no_attributes
+        definition.attributes = A_NO_ATTRIBUTES
         definition.messages = []
         definition.options = []
         definition.defaultvalues = []
@@ -236,7 +236,7 @@ class Unset(PostfixOperator):
      = $Failed
     """
 
-    attributes = hold_first | listable | protected | read_protected
+    attributes = A_HOLD_FIRST | A_LISTABLE | A_PROTECTED | A_READ_PROTECTED
     operator = "=."
 
     messages = {
