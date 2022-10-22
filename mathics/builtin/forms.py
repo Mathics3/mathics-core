@@ -3,9 +3,11 @@ Forms of Input and Output
 
 A <i>Form</i> format specifies the way Mathics Expression input is read or output written.
 
-The variable '$OutputForms' has a list of Forms defined.
+The variable <url>:$OutputForms':
+http://localhost:8000/doc/reference-of-built-in-symbols/forms-of-input-and-output/$outputforms/</url> has a list of Forms defined.
 
-See also: <url>:Forms of Input and Output: https://reference.wolfram.com/language/tutorial/TextualInputAndOutput.html#12368</url>
+See also <url>:WMA link:
+https://reference.wolfram.com/language/tutorial/TextualInputAndOutput.html#12368</url>.
 """
 
 import re
@@ -36,11 +38,7 @@ from mathics.core.symbols import (
 )
 
 from mathics.core.systemsymbols import (
-    SymbolMakeBoxes,
-    SymbolOutputForm,
     SymbolRowBox,
-    SymbolRule,
-    SymbolStandardForm,
 )
 
 import mathics.core.definitions as definitions
@@ -83,7 +81,10 @@ class FormBaseClass(Builtin):
 
 class FullForm(FormBaseClass):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/FullForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/FullForm.html</url>
+
     <dl>
       <dt>'FullForm[$expr$]'
       <dd>displays the underlying form of $expr$.
@@ -104,7 +105,10 @@ class FullForm(FormBaseClass):
 
 class MathMLForm(FormBaseClass):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/MathMLForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/MathMLForm.html</url>
+
     <dl>
       <dt>'MathMLForm[$expr$]'
       <dd>displays $expr$ as a MathML expression.
@@ -160,7 +164,10 @@ class MathMLForm(FormBaseClass):
 
 class InputForm(FormBaseClass):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/InputForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/InputForm.html</url>
+
     <dl>
       <dt>'InputForm[$expr$]'
       <dd>displays $expr$ in an unambiguous form suitable for input.
@@ -187,6 +194,10 @@ class InputForm(FormBaseClass):
 
 class OutputForm(FormBaseClass):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/OutputForm.html</url>
+
     <dl>
       <dt>'OutputForm[$expr$]'
       <dd>displays $expr$ in a plain-text form.
@@ -331,7 +342,10 @@ class SympyForm(FormBaseClass):
 
 class StringForm(FormBaseClass):
     """
-    <url>WMA :https://reference.wolfram.com/language/ref/StringForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/StringForm.html</url>
+
     <dl>
       <dt>'StringForm[$str$, $expr1$, $expr2$, ...]'
       <dd>displays the string $str$, replacing placeholders in $str$
@@ -383,7 +397,10 @@ class StringForm(FormBaseClass):
 
 class StandardForm(FormBaseClass):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/StandardForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/StandardForm.html</url>
+
     <dl>
       <dt>'StandardForm[$expr$]'
       <dd>displays $expr$ in the default form.
@@ -407,7 +424,10 @@ class StandardForm(FormBaseClass):
 
 class TraditionalForm(FormBaseClass):
     """
-    <url>WMA :https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
+
     <dl>
       <dt>'TraditionalForm[$expr$]'
       <dd>displays $expr$ in a format similar to the traditional mathematical notation, where
@@ -427,7 +447,10 @@ class TraditionalForm(FormBaseClass):
 
 class TeXForm(FormBaseClass):
     r"""
-    <url>:WMA: https://reference.wolfram.com/language/ref/TeXForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/TeXForm.html</url>
+
     <dl>
       <dt>'TeXForm[$expr$]'
       <dd>displays $expr$ using TeX math mode commands.
@@ -476,7 +499,10 @@ class TeXForm(FormBaseClass):
 
 class TableForm(FormBaseClass):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/TableForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/TableForm.html</url>
+
     <dl>
       <dt>'TableForm[$expr$]'
       <dd>displays $expr$ as a table.
@@ -570,7 +596,10 @@ class TableForm(FormBaseClass):
 
 class MatrixForm(TableForm):
     """
-    <url>WMA :https://reference.wolfram.com/language/ref/MatrixForm.html</url>
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/MatrixForm.html</url>
+
     <dl>
       <dt>'MatrixForm[$m$]'
       <dd>displays a matrix $m$, hiding the underlying list structure.
