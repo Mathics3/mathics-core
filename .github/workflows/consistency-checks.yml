@@ -22,8 +22,8 @@ jobs:
       run: |
         sudo apt update -qq && sudo apt install llvm-dev
         python -m pip install --upgrade pip
-        # Can remove after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # We can comment out after next Mathics-Scanner release
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
     - name: Install Mathics with minimum dependencies
       run: |
         make develop

@@ -29,7 +29,7 @@ from mathics.core.systemsymbols import (
 )
 
 
-from mathics.core.attributes import attribute_string_to_number, locked, protected
+from mathics.core.attributes import attribute_string_to_number, A_LOCKED, A_PROTECTED
 
 from functools import reduce
 
@@ -109,7 +109,7 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 
 def is_protected(tag, defin):
-    return protected & defin.get_attributes(tag)
+    return A_PROTECTED & defin.get_attributes(tag)
 
 
 def repl_pattern_by_symbol(expr):
@@ -475,7 +475,7 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     )
     if attributes_list is None:
         raise AssignmentException(lhs, rhs)
-    if locked & evaluation.definitions.get_attributes(tag):
+    if A_LOCKED & evaluation.definitions.get_attributes(tag):
         evaluation.message(name, "locked", Symbol(tag))
         raise AssignmentException(lhs, rhs)
 
@@ -530,19 +530,24 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message_args("Format", len(lhs.elements), 1, 2)
         raise AssignmentException(lhs, None)
     if len(lhs.elements) == 2:
-        form = lhs.elements[1].get_name()
-        if not form:
+        form = lhs.elements[1]
+        form_name = form.get_name()
+        if not form_name:
             evaluation.message("Format", "fttp", lhs.elements[1])
             raise AssignmentException(lhs, None)
+        # If the form is not in defs.printforms
+        # add it.
+        print_forms = defs.printforms
+        if form not in print_forms:
+            print_forms.append(form)
     else:
-        form = system_symbols(
-            "StandardForm",
-            "TraditionalForm",
-            "OutputForm",
-            "TeXForm",
-            "MathMLForm",
-        )
-        form = [f.name for f in form]
+        form_name = [
+            "System`StandardForm",
+            "System`TraditionalForm",
+            "System`OutputForm",
+            "System`TeXForm",
+            "System`MathMLForm",
+        ]
     lhs = focus = lhs.elements[0]
     tags = process_tags_and_upset_dont_allow_custom(
         tags, upset, self, lhs, focus, evaluation
@@ -553,7 +558,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
         if rejected_because_protected(self, lhs, tag, evaluation):
             continue
         count += 1
-        defs.add_format(tag, rule, form)
+        defs.add_format(tag, rule, form_name)
     return count > 0
 
 

@@ -735,8 +735,8 @@ class RandomSample(_RandomSelection):
     </dl>
 
     >> SeedRandom[42]
-    >> RandomSample[{a, b, c}]
-     = {a}
+    >> RandomSample[{a, b, c, d}]
+     = {b, d, a, c}
     >> SeedRandom[42]
     >> RandomSample[{a, b, c, d, e, f, g, h}, 7]
      = {b, f, a, h, c, e, d}
@@ -744,12 +744,20 @@ class RandomSample(_RandomSelection):
     >> RandomSample[{"a", {1, 2}, x, {}}, 3]
      = {{1, 2}, {}, a}
     >> SeedRandom[42]
+    >> RandomSample[Range[10]]
+     = {9, 2, 6, 1, 8, 3, 10, 5, 4, 7}
+    >> SeedRandom[42]
     >> RandomSample[Range[100], {2, 3}]
      = {{84, 54, 71}, {46, 45, 40}}
     >> SeedRandom[42]
     >> RandomSample[Range[100] -> Range[100], 5]
      = {62, 98, 86, 78, 40}
     """
+
+    rules = {
+        "%(name)s[spec_]": "%(name)s[spec, {Length[spec]}]",
+        "%(name)s[spec_, n_Integer]": "%(name)s[spec, {n}]",
+    }
 
     _replace = False
     summary_text = "pick a sample at random from a list"

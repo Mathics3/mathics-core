@@ -3,7 +3,10 @@ import time
 from mathics.session import MathicsSession
 from typing import Optional
 
-session = MathicsSession()
+# Set up a Mathics session with definitions.
+# For consistency set the character encoding ASCII which is
+# the lowest common denominator available on all systems.
+session = MathicsSession(character_encoding="ASCII")
 
 
 def reset_session(add_builtin=True, catch_interrupt=False):
@@ -97,7 +100,9 @@ def check_evaluation(
         msgs = list(expected_messages)
         expected_len = len(msgs)
         got_len = len(outs)
-        assert expected_len == got_len, f"expected {expected_len}; got {got_len}"
+        assert (
+            expected_len == got_len
+        ), f"expected {expected_len}; got {got_len}. Messages: {outs}"
         for (out, msg) in zip(outs, msgs):
             if out != msg:
                 print(f"out:<<{out}>>")

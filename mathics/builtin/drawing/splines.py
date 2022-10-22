@@ -11,7 +11,7 @@ sort_order = "mathics.builtin.splines"
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 
 
 # For a more generic implementation in Python using scipy,
@@ -34,7 +34,7 @@ class BernsteinBasis(Builtin):
      = 0.25
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     rules = {
         "BernsteinBasis[d_, n_, x_]": "Piecewise[{{Binomial[d, n] * x ^ n * (1 - x) ^ (d - n), 0 < x < 1}}, 0]"
     }
