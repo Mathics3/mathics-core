@@ -20,66 +20,51 @@
 from typing import Dict, Generator
 
 # fmt: off
-no_attributes     = 0b0000000000000000
+A_NO_ATTRIBUTES     = 0b0000000000000000
 
+# FIXME: remove lowercase after thes are no longer imported
 # alphabetical order
-constant          = 0b00000000000000001
-flat              = 0b00000000000000010
-hold_all          = 0b00000000000000100
-hold_all_complete = 0b00000000000001000
-hold_first        = 0b00000000000010000
-hold_rest         = 0b00000000000100000
-listable          = 0b00000000001000000
-locked            = 0b00000000010000000
-n_hold_all        = 0b00000000100000000
-n_hold_first      = 0b00000001000000000
-n_hold_rest       = 0b00000010000000000
-numeric_function  = 0b00000100000000000
-one_identity      = 0b00001000000000000
-orderless         = 0b00010000000000000
-protected         = 0b00100000000000000
-read_protected    = 0b01000000000000000
-sequence_hold     = 0b10000000000000000
-# fmt: on
+A_CONSTANT          = 0b00000000000000001
+A_FLAT              = 0b00000000000000010
+A_HOLD_ALL          = 0b00000000000000100
+A_HOLD_ALL_COMPLETE = 0b00000000000001000
+A_HOLD_FIRST        = 0b00000000000010000
+A_HOLD_REST         = 0b00000000000100000
+A_LISTABLE          = 0b00000000001000000
+A_LOCKED            = 0b00000000010000000
+A_N_HOLD_ALL        = 0b00000000100000000
+A_N_HOLD_FIRST      = 0b00000001000000000
+A_N_HOLD_REST       = 0b00000010000000000
+A_NUMERIC_FUNCTION  = 0b00000100000000000
+A_ONE_IDENTITY      = 0b00001000000000000
+A_ORDERLESS         = 0b00010000000000000
+A_PROTECTED         = 0b00100000000000000
+A_READ_PROTECTED    = 0b01000000000000000
+A_SEQUENCE_HOLD     = 0b10000000000000000
 
 attribute_number_to_string: Dict[int, str] = {
-    constant: "System`Constant",
-    flat: "System`Flat",
-    hold_all: "System`HoldAll",
-    hold_all_complete: "System`HoldAllComplete",
-    hold_first: "System`HoldFirst",
-    hold_rest: "System`HoldRest",
-    listable: "System`Listable",
-    locked: "System`Locked",
-    n_hold_all: "System`NHoldAll",
-    n_hold_first: "System`NHoldFirst",
-    n_hold_rest: "System`NHoldRest",
-    numeric_function: "System`NumericFunction",
-    one_identity: "System`OneIdentity",
-    orderless: "System`Orderless",
-    protected: "System`Protected",
-    read_protected: "System`ReadProtected",
-    sequence_hold: "System`SequenceHold",
+    A_CONSTANT:           "System`Constant",
+    A_FLAT:               "System`Flat",
+    A_HOLD_ALL:           "System`HoldAll",
+    A_HOLD_ALL_COMPLETE:  "System`HoldAllComplete",
+    A_HOLD_FIRST:         "System`HoldFirst",
+    A_HOLD_REST:          "System`HoldRest",
+    A_LISTABLE:           "System`Listable",
+    A_LOCKED:             "System`Locked",
+    A_N_HOLD_ALL:         "System`NHoldAll",
+    A_N_HOLD_FIRST:       "System`NHoldFirst",
+    A_N_HOLD_REST:        "System`NHoldRest",
+    A_NUMERIC_FUNCTION:   "System`NumericFunction",
+    A_ONE_IDENTITY:       "System`OneIdentity",
+    A_ORDERLESS:          "System`Orderless",
+    A_PROTECTED:          "System`Protected",
+    A_READ_PROTECTED:     "System`ReadProtected",
+    A_SEQUENCE_HOLD:      "System`SequenceHold",
 }
+# fmt: on
 
 attribute_string_to_number: Dict[str, int] = {
-    "System`Constant": constant,
-    "System`Flat": flat,
-    "System`HoldAll": hold_all,
-    "System`HoldAllComplete": hold_all_complete,
-    "System`HoldFirst": hold_first,
-    "System`HoldRest": hold_rest,
-    "System`Listable": listable,
-    "System`Locked": locked,
-    "System`NHoldAll": n_hold_all,
-    "System`NHoldFirst": n_hold_first,
-    "System`NHoldRest": n_hold_rest,
-    "System`NumericFunction": numeric_function,
-    "System`OneIdentity": one_identity,
-    "System`Orderless": orderless,
-    "System`Protected": protected,
-    "System`ReadProtected": read_protected,
-    "System`SequenceHold": sequence_hold,
+    v: k for k, v in attribute_number_to_string.items()
 }
 
 

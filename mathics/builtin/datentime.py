@@ -17,7 +17,12 @@ import dateutil.parser
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer, Real, String
-from mathics.core.attributes import hold_all, no_attributes, protected, read_protected
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
@@ -407,7 +412,7 @@ class AbsoluteTiming(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "total wall-clock time to run a Mathics command"
 
@@ -455,7 +460,7 @@ class DateDifference(Builtin):
      = {{14, "Month"}, {20, "Day"}}
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -714,7 +719,7 @@ class DatePlus(Builtin):
      = {2010, 4, 3}
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     messages = {
         "date": "Argument `1` cannot be interpreted as a date.",
@@ -909,7 +914,7 @@ class DateString(_DateFormat):
 
     """
 
-    attributes = read_protected | protected
+    attributes = A_READ_PROTECTED | A_PROTECTED
 
     rules = {
         "DateString[]": "DateString[DateList[], $DateStringFormat]",
@@ -1125,7 +1130,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
         # >> a=1; s
         # =  Cos[x] (-5 + Cos[2 x]) / 6
 
-        attributes = hold_all | protected
+        attributes = A_HOLD_ALL | A_PROTECTED
         messages = {
             "timc": "Number of seconds `1` is not a positive machine-sized number or Infinity.",
         }
@@ -1168,7 +1173,7 @@ class TimeZone(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$TimeZone"
     value = SystemTimeZone.value.copy()
 
@@ -1224,7 +1229,7 @@ class Timing(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "CPU time to run a Mathics command"
 

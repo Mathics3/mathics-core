@@ -7,6 +7,7 @@
 GIT2CL ?= admin-tools/git2cl
 PYTHON ?= python3
 PIP ?= pip3
+BASH ?= bash
 RM  ?= rm
 
 .PHONY: \
@@ -55,17 +56,17 @@ build:
 # because pip install doesn't handle
 # INSTALL_REQUIRES properly
 #: Set up to run from the source tree
-develop:
+develop:  mathics/data/op-tables.json
 	$(PIP) install -e .[dev]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies
-develop-full:
+develop-full:  mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full]
 
 # See note above on ./setup.py
 #: Set up to run from the source tree with full dependencies and Cython
-develop-full-cython:
+develop-full-cython: mathics/data/op-tables.json
 	$(PIP) install -e .[dev,full,cython]
 
 
@@ -79,7 +80,6 @@ install:
 
 #: Run the most extensive set of tests
 check: pytest gstest doctest
-
 
 #: Build and check manifest of Builtins
 check-builtin-manifest:
@@ -107,6 +107,7 @@ clean: clean-cython clean-cache
 	   ($(MAKE) -C "$$dir" clean); \
 	done; \
 	rm -f factorials || true; \
+	rm -f mathics/data/op-tables || true; \
 	rm -rf build || true
 
 #: Run py.test tests. Use environment variable "o" for pytest options
@@ -121,15 +122,19 @@ gstest:
 
 #: Create data that is used to in Django docs and to build LaTeX PDF
 doc-data: mathics/builtin/*.py mathics/doc/documentation/*.mdoc mathics/doc/documentation/images/*
-	$(PYTHON) mathics/docpipeline.py --output --keep-going
+	MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) mathics/docpipeline.py --output --keep-going
 
 #: Run tests that appear in docstring in the code.
 doctest:
-	SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
+	MATHICS_CHARACTER_ENCODING="ASCII" SANDBOX=$(SANDBOX) $(PYTHON) mathics/docpipeline.py $o
 
 #: Make Mathics PDF manual via Asymptote and LaTeX
 latexdoc texdoc doc:
 	(cd mathics/doc/latex && $(MAKE) doc)
+
+#: Build JSON ASCII to unicode opcode tables
+mathics/data/op-tables.json:
+	$(BASH) ./admin-tools/make-op-tables.sh
 
 #: Remove ChangeLog
 rmChangeLog:

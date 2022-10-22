@@ -20,8 +20,9 @@ from mathics.core.atoms import (
     PrecisionReal,
     String,
 )
-from mathics.core.attributes import protected, read_protected, no_attributes
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
+from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
@@ -177,7 +178,7 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     abstract: bool = False
-    attributes: int = protected
+    attributes: int = A_PROTECTED
     is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
@@ -272,6 +273,12 @@ class Builtin:
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
 
+        for pattern, function in self.get_functions(
+            prefix="eval", is_pymodule=is_pymodule
+        ):
+            rules.append(
+                BuiltinRule(name, pattern, function, check_options, system=True)
+            )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
@@ -545,7 +552,7 @@ class Operator(Builtin):
 class Predefined(Builtin):
     def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
-        if prefix == "apply" and hasattr(self, "evaluate"):
+        if prefix in ("apply", "eval") and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
         return functions
 
@@ -620,15 +627,9 @@ class BinaryOperator(Operator):
             op_pattern = "%s[x_, y_]" % name
             replace_items = "x, y"
 
+        operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
         if self.default_formats:
-            operator = self.get_operator_display()
-            formatted = 'MakeBoxes[Infix[{%s},"%s",%d,%s], form]' % (
-                replace_items,
-                operator,
-                self.precedence,
-                self.grouping,
-            )
-            formatted_output = 'MakeBoxes[Infix[{%s}," %s ",%d,%s], form]' % (
+            formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
                 self.precedence,
@@ -640,7 +641,7 @@ class BinaryOperator(Operator):
                 ): formatted,
                 "MakeBoxes[{0}, form:InputForm|OutputForm]".format(
                     op_pattern
-                ): formatted_output,
+                ): formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
@@ -734,7 +735,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # * Review the implementation
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -916,7 +917,7 @@ class PatternObject(BuiltinElement, Pattern):
         if self.head is None:
             # FIXME: _Blank in builtin/patterns.py sets head to None.
             # Figure out if this is the best thing to do and explain why.
-            return no_attributes
+            return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:

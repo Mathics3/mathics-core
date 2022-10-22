@@ -25,7 +25,7 @@ from mathics.core.atoms import (
     String,
     SymbolString,
 )
-from mathics.core.attributes import protected, read_protected
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
@@ -82,7 +82,7 @@ class Input_(Predefined):
      = #<--#
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     name = "$Input"
     summary_text = "the name of the current input stream"
 
@@ -164,7 +164,7 @@ class _OpenAction(Builtin):
             opener = MathicsOpen(
                 path_string,
                 mode=mode,
-                encoding=encoding.get_string_value(),
+                encoding=encoding.value,
                 is_temporary_file=is_temporary_file,
             )
             opener.__enter__(is_temporary_file=is_temporary_file)
@@ -503,7 +503,7 @@ class OpenRead(_OpenAction):
       <dd>opens a file and returns an 'InputStream'.
     </dl>
 
-    >> OpenRead["ExampleData/EinsteinSzilLetter.txt"]
+    >> OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]
      = InputStream[...]
     #> Close[%];
 
@@ -525,7 +525,7 @@ class OpenRead(_OpenAction):
      : Cannot open MathicsNonExampleFile.
      = OpenRead[MathicsNonExampleFile]
 
-    #> OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True]
+    #> OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True, CharacterEncoding->"UTF8"]
      = InputStream[...]
     #> Close[%];
     """
@@ -1484,7 +1484,7 @@ class Find(Read):
       <dd>find the first line in $stream$ that contains $text$.
     </dl>
 
-    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt"];
+    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> Find[stream, "uranium"]
      = in manuscript, leads me to expect that the element uranium may be turned into
     >> Find[stream, "uranium"]
@@ -1492,7 +1492,7 @@ class Find(Read):
     >> Close[stream]
      = ...
 
-    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt"];
+    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> Find[stream, {"energy", "power"} ]
      = a new and important source of energy in the immediate future. Certain aspects
     >> Find[stream, {"energy", "power"} ]

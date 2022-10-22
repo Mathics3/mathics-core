@@ -6,12 +6,12 @@ from mathics.builtin.lists import InvalidLevelspecError, python_levelspec, walk_
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
-    flat,
-    hold_all,
-    one_identity,
-    orderless,
-    protected,
-    locked,
+    A_FLAT,
+    A_HOLD_ALL,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_LOCKED,
 )
 
 
@@ -51,7 +51,7 @@ class Or(BinaryOperator):
      = a || b
     """
 
-    attributes = flat | hold_all | one_identity | protected
+    attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "||"
     precedence = 215
     summary_text = "logic (inclusive) disjunction"
@@ -100,7 +100,7 @@ class And(BinaryOperator):
      = a && b && c
     """
 
-    attributes = flat | hold_all | one_identity | protected
+    attributes = A_FLAT | A_HOLD_ALL | A_ONE_IDENTITY | A_PROTECTED
     operator = "&&"
     precedence = 215
     summary_text = "logic conjunction"
@@ -119,7 +119,7 @@ class And(BinaryOperator):
             result = arg.evaluate(evaluation)
             if result is SymbolFalse:
                 return SymbolFalse
-            elif not result is SymbolTrue:
+            elif result is not SymbolTrue:
                 elements.append(result)
         if elements:
             if len(elements) == 1:
@@ -258,7 +258,7 @@ class Equivalent(BinaryOperator):
      = True
     """
 
-    attributes = orderless | protected
+    attributes = A_ORDERLESS | A_PROTECTED
     operator = "\u29E6"
     precedence = 205
     summary_text = "logic equivalence"
@@ -318,7 +318,7 @@ class Xor(BinaryOperator):
      = a \u22BB b
     """
 
-    attributes = flat | one_identity | orderless | protected
+    attributes = A_FLAT | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     operator = "\u22BB"
     precedence = 215
     summary_text = "logic (exclusive) disjunction"
@@ -357,7 +357,7 @@ class True_(Predefined):
     </dl>
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
     name = "True"
     summary_text = "boolean constant for True"
 
@@ -370,7 +370,7 @@ class False_(Predefined):
     </dl>
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
     name = "False"
     summary_text = "boolean constant for False"
 

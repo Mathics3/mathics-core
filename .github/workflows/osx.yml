@@ -27,8 +27,8 @@ jobs:
         brew install llvm@11
         python -m pip install --upgrade pip
         LLVM_CONFIG=/usr/local/Cellar/llvm@11/11.1.0/bin/llvm-config pip install llvmlite
-        # Can remove after next Mathics-Scanner release
-        # python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
+        # We can comment out after next Mathics-Scanner release
+        python -m pip install -e git+https://github.com/Mathics3/mathics-scanner#egg=Mathics-Scanner[full]
     - name: Install Mathics with full dependencies
       run: |
         make develop-full

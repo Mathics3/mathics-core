@@ -18,7 +18,7 @@ from mathics.builtin.base import (
 )
 
 from mathics.core.atoms import Integer
-from mathics.core.attributes import flat, one_identity, protected
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import (
     Expression,
     structure,
@@ -500,7 +500,7 @@ class Join(Builtin):
      = Join[x, y + z, y z]
     """
 
-    attributes = flat | one_identity | protected
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     summary_text = "join lists together at any level"
 
     def apply(self, lists, evaluation):

@@ -15,9 +15,9 @@ from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    n_hold_all as A_N_HOLD_ALL,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_N_HOLD_ALL,
+    A_PROTECTED,
 )
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.symbols import Symbol

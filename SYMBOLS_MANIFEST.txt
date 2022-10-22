@@ -52,6 +52,7 @@ System`$Post
 System`$Pre
 System`$PrePrint
 System`$PreRead
+System`$PrintForms
 System`$ProcessID
 System`$ProcessorType
 System`$RandomState
@@ -79,6 +80,7 @@ System`AbsoluteThickness
 System`AbsoluteTime
 System`AbsoluteTiming
 System`Accumulate
+System`Accuracy
 System`AddTo
 System`AiryAi
 System`AiryAiPrime
@@ -263,6 +265,7 @@ System`Csc
 System`CubeRoot
 System`Cuboid
 System`Cuboid3DBox
+System`Curl
 System`Cyan
 System`Cylinder
 System`Cylinder3DBox
@@ -546,6 +549,7 @@ System`Keys
 System`Khinchin
 System`KnownUnitQ
 System`KroneckerProduct
+System`Kurtosis
 System`LABColor
 System`LCHColor
 System`LCM
@@ -878,12 +882,14 @@ System`Sharpen
 System`ShearingTransform
 System`Shortest
 System`Show
+System`ShowStringCharacters
 System`Sign
 System`Simplify
 System`Sin
 System`SingularValueDecomposition
 System`Sinh
 System`SixJSymbol
+System`Skewness
 System`Skip
 System`Slot
 System`SlotSequence
