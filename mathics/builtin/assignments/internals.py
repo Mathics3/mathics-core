@@ -14,7 +14,6 @@ from mathics.core.symbols import (
     SymbolMaxPrecision,
     SymbolN,
     SymbolTrue,
-    system_symbols,
     valid_context_name,
 )
 from mathics.core.systemsymbols import (
@@ -44,7 +43,6 @@ class AssignmentException(Exception):
 def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
-    count = 0
     defs = evaluation.definitions
     ignore_protection, tags = process_assign_other(
         self, lhs, rhs, evaluation, tags, upset
@@ -181,12 +179,10 @@ def unroll_patterns(lhs, rhs, evaluation):
 
     if name == "System`HoldPattern":
         lhs = lhs_elements[0]
-        name = lhs.get_head_name()
     return lhs, rhs
 
 
 def unroll_conditions(lhs):
-    condition = None
     if isinstance(lhs, Symbol):
         return lhs, None
     else:
@@ -212,7 +208,7 @@ def unroll_conditions(lhs):
 
 
 # Here starts the functions that implement `assign_elementary` for different
-# kind of expressions. Maybe they should be put in a separated module or
+# kind of expressions. Maybe they should be put in a separated module, or
 # maybe they should be member functions of _SetOperator.
 
 

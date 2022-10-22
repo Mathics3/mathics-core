@@ -13,6 +13,13 @@ import pkgutil
 import re
 import os.path as osp
 
+from mathics.builtin.base import (
+    Builtin,
+    SympyObject,
+    Operator,
+    PatternObject,
+)
+
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -21,9 +28,8 @@ from typing import List
 # Set this to True to print all the builtins that do not have
 # a summary_text. In the future, we can set this to True
 # and raise an error if a new builtin is added without
-# this property or if do not fulfills some other conditions.
+# this property or if it does not fulfill some other conditions.
 RUN_SANITY_TEST = False
-
 
 # Get a list of files in this directory. We'll exclude from the start
 # files with leading characters we don't want like __init__ with its leading underscore.
@@ -31,13 +37,6 @@ __py_files__ = [
     osp.basename(f[0:-3])
     for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
 ]
-
-from mathics.builtin.base import (
-    Builtin,
-    SympyObject,
-    Operator,
-    PatternObject,
-)
 
 
 def add_builtins(new_builtins):
@@ -185,7 +184,7 @@ def sanity_check(cls, module):
         print(
             "In ",
             module.__name__,
-            var.__name__,
+            cls.__name__,
             " does not have a summary_text.",
         )
         return False
@@ -263,7 +262,6 @@ for module in modules:
                 _builtins.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-
 mathics_to_sympy = {}  # here we have: name -> sympy object
 mathics_to_python = {}  # here we have: name -> string
 sympy_to_mathics = {}
@@ -277,7 +275,6 @@ new_builtins = _builtins
 _builtins = {}
 
 add_builtins(new_builtins)
-
 
 display_operators_set = set()
 for modname, builtins in builtins_by_module.items():
