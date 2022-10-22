@@ -214,7 +214,7 @@ def do_format_element(
     evaluation.inc_recursion_depth()
     try:
         expr = element
-        head = element.get_head()
+        head = element.get_head()  # use element.head
         elements = element.get_elements()
         include_form = False
         # If the expression is enclosed by a Format

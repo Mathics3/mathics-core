@@ -20,11 +20,11 @@ from mathics.builtin.string.operations import Hash
 
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
-    listable,
-    locked,
-    no_attributes,
-    protected,
-    read_protected,
+    A_LISTABLE,
+    A_LOCKED,
+    A_NO_ATTRIBUTES,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
@@ -246,7 +246,7 @@ class CreateDirectory(Builtin):
     #> DeleteDirectory[dir]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     options = {
         "CreateIntermediateDirectories": "True",
@@ -301,7 +301,7 @@ class CreateFile(Builtin):
     </dl>
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     options = {
         "CreateIntermediateDirectories": "True",
         "OverwriteTarget": "True",
@@ -954,7 +954,7 @@ class FileHash(Builtin):
      = FileHash[xyzsymbol]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     rules = {
         "FileHash[filename_String]": 'FileHash[filename, "MD5", "Integer"]',
         "FileHash[filename_String, hashtype_String]": 'FileHash[filename, hashtype, "Integer"]',
@@ -1593,7 +1593,7 @@ class InstallationDirectory(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$InstallationDirectory"
     summary_text = "Mathics installation directory"
 
@@ -1750,7 +1750,7 @@ class OperatingSystem(Predefined):
      = ...
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
     name = "$OperatingSystem"
     summary_text = "type of operating system"
 
@@ -1813,7 +1813,7 @@ class Path(Predefined):
      = ...
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$Path"
     summary_text = "list directories where files are searched"
 

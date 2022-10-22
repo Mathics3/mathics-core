@@ -9,6 +9,7 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 """
 import pytest
+from typing import Optional
 from test.helper import evaluate, check_evaluation
 from mathics.builtin.base import check_requires_list
 
@@ -30,12 +31,21 @@ if check_requires_list(["scipy", "scipy.integrate"]):
     tests_for_findminimum = sum(
         [
             [
-                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2])
+                (tst[0].replace("{method}", "Method->" + method), tst[1], tst[2], None)
                 for tst in generic_tests_for_findminimum
             ]
             for method in methods_findminimum
         ],
-        [],
+        [
+            (
+                r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}, Method->Newton], {_Real,{x->_Real}}]",
+                r"True",
+                r"check message",
+                [
+                    r"Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point."
+                ],
+            )
+        ],
     )
     methods_findroot = ["Automatic", "Newton", "Secant", "brenth"]
     generic_tests_for_findroot = [
@@ -54,8 +64,18 @@ if check_requires_list(["scipy", "scipy.integrate"]):
 
 else:
     tests_for_findminimum = [
-        (r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]", r"True", ""),
-        (r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]", r"True", ""),
+        (
+            r"MatchQ[FindMinimum[Cos[x]^2, {x,1.}],{_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
+        (
+            r"MatchQ[FindMaximum[Cos[x]^2, {x,1.}], {_Real,{x->_Real}}]",
+            r"True",
+            "",
+            None,
+        ),
     ]
     tests_for_findroot = [
         (r"MatchQ[FindRoot[Cos[x+1.5], {x,.1}], {x->_Real}]", r"True", ""),
@@ -69,17 +89,18 @@ tests_for_integrate = [
 
 
 @pytest.mark.parametrize(
-    "str_expr, str_expected, assert_fail_message", tests_for_findminimum
+    "str_expr, str_expected, assert_fail_message, expected_messages",
+    tests_for_findminimum,
 )
 def test_findminimum(
-    str_expr: str, str_expected: str, assert_fail_message: str, message=""
+    str_expr: str,
+    str_expected: str,
+    assert_fail_message: str,
+    expected_messages: Optional[list],
 ):
-    result = evaluate(str_expr)
-    expected = evaluate(str_expected)
-    if assert_fail_message:
-        assert result == expected, assert_fail_message
-    else:
-        assert result == expected
+    check_evaluation(
+        str_expr, str_expected, assert_fail_message, expected_messages=expected_messages
+    )
 
 
 @pytest.mark.parametrize(
@@ -88,24 +109,14 @@ def test_findminimum(
 def test_findroot(
     str_expr: str, str_expected: str, assert_fail_message: str, message=""
 ):
-    result = evaluate(str_expr)
-    expected = evaluate(str_expected)
-    if assert_fail_message:
-        assert result == expected, assert_fail_message
-    else:
-        assert result == expected
+    check_evaluation(str_expr, str_expected, assert_fail_message, expected_messages=[])
 
 
 @pytest.mark.parametrize(
     "str_expr, str_expected, assert_fail_message", tests_for_integrate
 )
 def test_integrate(str_expr: str, str_expected: str, assert_fail_message):
-    result = evaluate(str_expr)
-    expected = evaluate(str_expected)
-    if assert_fail_message:
-        assert result == expected, assert_fail_message
-    else:
-        assert result == expected
+    check_evaluation(str_expr, str_expected, assert_fail_message, expected_messages=[])
 
 
 @pytest.mark.parametrize(

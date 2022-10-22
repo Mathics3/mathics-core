@@ -2251,7 +2251,7 @@ if "Pyston" not in sys.version:
           <dd>Gives a word cloud with the words weighted using the given weights.
         </dl>
 
-        >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt"]]]
+        >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
          = -Image-
 
         >> WordCloud[Range[50] -> ToString /@ Range[50]]

@@ -1,10 +1,10 @@
 from mathics.builtin.arithmetic import _MPMathFunction
 
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 

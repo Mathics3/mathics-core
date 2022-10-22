@@ -21,7 +21,7 @@ from mathics.core.atoms import (
     Integer1,
     String,
 )
-from mathics.core.attributes import flat, listable, one_identity, protected
+from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -244,7 +244,7 @@ class StringExpression(BinaryOperator):
      = a ~~ b
     """
 
-    attributes = flat | one_identity | protected
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "~~"
     precedence = 135
 
@@ -419,7 +419,7 @@ class StringMatchQ(Builtin):
      = False
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     options = {
         "IgnoreCase": "False",
