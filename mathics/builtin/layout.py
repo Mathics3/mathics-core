@@ -23,6 +23,7 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 
 from mathics.core.expression import Expression
+from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
@@ -99,10 +100,7 @@ class Grid(Builtin):
             ListExpression(
                 *(
                     ListExpression(
-                        *(
-                            Expression(SymbolMakeBoxes, item, f)
-                            for item in row.elements
-                        ),
+                        *(format_element(item, evaluation, f) for item in row.elements),
                     )
                     for row in array.elements
                 ),
