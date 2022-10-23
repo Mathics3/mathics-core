@@ -29,7 +29,7 @@ from mathics.core.atoms import (
     RationalOneHalf,
     Number,
 )
-from mathics.core.attributes import listable, protected
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.element import BaseElement
@@ -417,7 +417,7 @@ class Apart(Builtin):
      = f[2 x]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     rules = {
         "Apart[expr_]": (
             "Block[{vars = Cases[Level[expr, {-1}], _Symbol]},"
@@ -460,7 +460,7 @@ class Cancel(Builtin):
      = 2 f[x] / x
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "cancel common factors in rational expressions"
 
     def apply(self, expr, evaluation):
@@ -556,7 +556,7 @@ class Coefficient(Builtin):
     ##  = {2, 1, 7}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     messages = {
         "argtu": "Coefficient called with 1 argument; 2 or 3 arguments are expected.",
         "ivar": "`1` is not a valid variable.",
@@ -1101,7 +1101,7 @@ class Denominator(Builtin):
      = 1
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "denominator of an expression"
 
     def apply(self, expr, evaluation):
@@ -1364,7 +1364,7 @@ class Exponent(Builtin):
      = Exponent[x ^ 2]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "argtu": "Exponent called with `1` argument; 2 or 3 arguments are expected.",
@@ -1429,7 +1429,7 @@ class Factor(Builtin):
      = {x (1 + x)}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "factor sums into product and powers"
 
     def apply(self, expr, evaluation):
@@ -1770,7 +1770,7 @@ class MinimalPolynomial(Builtin):
      = 1 - 4 #1 ^ 2 + #1 ^ 4
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     messages = {
         "nalg": "`1` is not an explicit algebraic number.",
@@ -1813,7 +1813,7 @@ class Numerator(Builtin):
      = a + b
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "numerator of an expression"
 
     def apply(self, expr, evaluation):
@@ -1965,7 +1965,7 @@ class Together(Builtin):
      = f[x] (1 + x) / x ^ 2
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "put over a common denominator"
 
     def apply(self, expr, evaluation):

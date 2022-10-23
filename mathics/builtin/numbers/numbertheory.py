@@ -10,11 +10,11 @@ import sympy
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Integer0, Integer10, Rational
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python

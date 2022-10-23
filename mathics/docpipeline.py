@@ -19,6 +19,7 @@ from argparse import ArgumentParser
 from datetime import datetime
 
 import mathics
+import mathics.settings
 
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
@@ -171,6 +172,11 @@ def test_tests(
     max_tests=MAX_TESTS,
     excludes=[],
 ):
+
+    # For consistency set the character encoding ASCII which is
+    # the lowest common denominator available on all systems.
+    mathics.settings.SYSTEM_CHARACTER_ENCODING = "ASCII"
+
     definitions.reset_user_definitions()
     total = failed = skipped = 0
     failed_symbols = set()

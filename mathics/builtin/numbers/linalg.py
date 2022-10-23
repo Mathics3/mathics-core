@@ -72,12 +72,29 @@ class Det(Builtin):
         return from_sympy(det)
 
 
+class Eigensystem(Builtin):
+    """
+    <dl>
+      <dt>'Eigensystem[$m$]'
+      <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
+    </dl>
+
+    >> Eigensystem[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
+     = {{2, -1, 1}, {{1, 1, 1}, {1, -2, 1}, {-1, 0, 1}}}
+    """
+
+    rules = {"Eigensystem[m_]": "{Eigenvalues[m], Eigenvectors[m]}"}
+    summary_text = "eigenvalues and corresponding eigenvectors of a matrix"
+
+
 class Eigenvalues(Builtin):
     """
     <dl>
       <dt>'Eigenvalues[$m$]'
-      <dd>computes the eigenvalues of the matrix $m$. By default Sympy's routine is used. Sometimes this is slow and less good than the corresponding mpmath routine. Use option Method->"mpmath" if you want to use mpmath's routine instead.
+      <dd>computes the eigenvalues of the matrix $m$.
     </dl>
+
+    By default Sympy's routine is used. Sometimes this is slow and less good than the corresponding mpmath routine. Use option Method->"mpmath" if you want to use mpmath's routine instead.
 
     Numeric eigenvalues are sorted in order of decreasing absolute value:
     >> Eigenvalues[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
@@ -238,27 +255,11 @@ class Eigenvectors(Builtin):
         return ListExpression(*result)
 
 
-class Eigensystem(Builtin):
-    """
-    <dl>
-      <dt>'Eigensystem[$m$]'
-      <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
-    </dl>
-
-    >> Eigensystem[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}]
-     = {{2, -1, 1}, {{1, 1, 1}, {1, -2, 1}, {-1, 0, 1}}}
-    """
-
-    rules = {"Eigensystem[m_]": "{Eigenvalues[m], Eigenvectors[m]}"}
-    summary_text = "eigenvalues and corresponding eigenvectors of a matrix"
-
-
 class FittedModel(Builtin):
     """
     <dl>
-      <dd>'FittedModel[...]'
-
-      <dt> Result of a linear fit
+      <dt>'FittedModel[...]'
+      <dd> Result of a linear fit.
     </dl>
     """
 
@@ -456,7 +457,8 @@ class LinearSolve(Builtin):
     """
     <dl>
       <dt>'LinearSolve[$matrix$, $right$]'
-      <dd>solves the linear equation system '$matrix$ . $x$ = $right$' and returns one corresponding solution $x$.
+      <dd>solves the linear equation system '$matrix$ . $x$ = $right$'
+        and returns one corresponding solution $x$.
     </dl>
 
     >> LinearSolve[{{1, 1, 0}, {1, 0, 1}, {0, 1, 1}}, {1, 2, 3}]
@@ -690,7 +692,8 @@ class PseudoInverse(Builtin):
     """
     <dl>
       <dt>'PseudoInverse[$m$]'
-      <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$. If $m$ is invertible, the pseudoinverse equals the inverse.
+      <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
+          If $m$ is invertible, the pseudoinverse equals the inverse.
     </dl>
 
     >> PseudoInverse[{{1, 2}, {2, 3}, {3, 4}}]
@@ -720,6 +723,41 @@ class PseudoInverse(Builtin):
             return evaluation.message("PseudoInverse", "matrix", m, 1)
         pinv = matrix.pinv()
         return from_sympy(pinv)
+
+
+class QRDecomposition(Builtin):
+    """
+    <dl>
+      <dt>'QRDecomposition[$m$]'
+      <dd>computes the QR decomposition of the matrix $m$.
+    </dl>
+
+    >> QRDecomposition[{{1, 2}, {3, 4}, {5, 6}}]
+     = {{{Sqrt[35] / 35, 3 Sqrt[35] / 35, Sqrt[35] / 7}, {13 Sqrt[210] / 210, 2 Sqrt[210] / 105, -Sqrt[210] / 42}}, {{Sqrt[35], 44 Sqrt[35] / 35}, {0, 2 Sqrt[210] / 35}}}
+
+    #> QRDecomposition[{1, {2}}]
+     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
+     = QRDecomposition[{1, {2}}]
+    """
+
+    messages = {
+        "sympy": "Sympy is unable to perform the QR decomposition.",
+        "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
+    }
+    summary_text = "qr decomposition"
+
+    def apply(self, m, evaluation):
+        "QRDecomposition[m_]"
+
+        matrix = to_sympy_matrix(m)
+        if matrix is None:
+            return evaluation.message("QRDecomposition", "matrix", m, 1)
+        try:
+            Q, R = matrix.QRdecomposition()
+        except sympy.matrices.MatrixError:
+            return evaluation.message("QRDecomposition", "sympy")
+        Q = Q.transpose()
+        return ListExpression(*[from_sympy(Q), from_sympy(R)])
 
 
 class RowReduce(Builtin):
@@ -757,41 +795,6 @@ class RowReduce(Builtin):
             return evaluation.message("RowReduce", "matrix", m, 1)
         reduced = matrix.rref()[0]
         return from_sympy(reduced)
-
-
-class QRDecomposition(Builtin):
-    """
-    <dl>
-      <dt>'QRDecomposition[$m$]'
-      <dd>computes the QR decomposition of the matrix $m$.
-    </dl>
-
-    >> QRDecomposition[{{1, 2}, {3, 4}, {5, 6}}]
-     = {{{Sqrt[35] / 35, 3 Sqrt[35] / 35, Sqrt[35] / 7}, {13 Sqrt[210] / 210, 2 Sqrt[210] / 105, -Sqrt[210] / 42}}, {{Sqrt[35], 44 Sqrt[35] / 35}, {0, 2 Sqrt[210] / 35}}}
-
-    #> QRDecomposition[{1, {2}}]
-     : Argument {1, {2}} at position 1 is not a non-empty rectangular matrix.
-     = QRDecomposition[{1, {2}}]
-    """
-
-    messages = {
-        "sympy": "Sympy is unable to perform the QR decomposition.",
-        "matrix": "Argument `1` at position `2` is not a non-empty rectangular matrix.",
-    }
-    summary_text = "qr decomposition"
-
-    def apply(self, m, evaluation):
-        "QRDecomposition[m_]"
-
-        matrix = to_sympy_matrix(m)
-        if matrix is None:
-            return evaluation.message("QRDecomposition", "matrix", m, 1)
-        try:
-            Q, R = matrix.QRdecomposition()
-        except sympy.matrices.MatrixError:
-            return evaluation.message("QRDecomposition", "sympy")
-        Q = Q.transpose()
-        return ListExpression(*[from_sympy(Q), from_sympy(R)])
 
 
 class SingularValueDecomposition(Builtin):

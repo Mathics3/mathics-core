@@ -25,7 +25,7 @@ sort_order = "mathics.builtin.the-main-loop"
 
 from mathics.builtin.base import Builtin
 
-from mathics.core.attributes import listable, no_attributes, protected
+from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
 
 
 class HistoryLength(Builtin):
@@ -89,7 +89,7 @@ class In(Builtin):
      . In[1] = x = 1
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
@@ -101,11 +101,14 @@ class IOHookPreRead(Builtin):
     """
     <dl>
       <dt>$PreRead
-      <dd> is a global variable whose value, if set, is applied to the \ text or box form of every input expression before it is fed to the parser. (Not implemented yet)
+      <dd> is a global variable whose value, if set, is applied to the \
+      text or box form of every input expression before it is fed to the parser.
+
+      (Not implemented yet)
     </dl>
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$PreRead"
     summary_text = (
         "function applied to each input string before being fed to the Wolfram System"
@@ -116,7 +119,8 @@ class IOHookPre(Builtin):
     """
     <dl>
       <dt>$Pre
-      <dd>is a global variable whose value, if set, is applied to every input expression.
+      <dd>is a global variable whose value, if set,
+    is applied to every input expression.
     </dl>
 
     Set $Timing$ as the $Pre function, stores the enlapsed time in a variable,
@@ -139,7 +143,7 @@ class IOHookPre(Builtin):
      = 4
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$Pre"
     summary_text = "function applied to each input expression before evaluation"
 
@@ -152,7 +156,7 @@ class IOHookPost(Builtin):
     </dl>
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$Post"
     summary_text = "function applied to each expression after evaluation"
 
@@ -165,7 +169,7 @@ class IOHookPrePrint(Builtin):
     </dl>
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$PrePrint"
     summary_text = (
         "function applied after 'Out[n]' is assigned, but before the result is printed"
@@ -176,11 +180,13 @@ class IOHookSyntaxHandler(Builtin):
     """
     <dl>
       <dt>$SyntaxHandler
-      <dd>is a global variable whose value, if set, is applied to  any input string that is found to contain a syntax error. (Not implemented yet)
+      <dd>is a global variable whose value, if set, is applied to any input string that is found to contain a syntax error.
+
+    (Not implemented yet)
     </dl>
     """
 
-    attributes = no_attributes
+    attributes = A_NO_ATTRIBUTES
     name = "$SyntaxHandler"
     summary_text = "function applied to any input line that yields a syntax error"
 
@@ -247,7 +253,7 @@ class Out(Builtin):
      = 12
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     rules = {
         "Out[k_Integer?Negative]": "Out[$Line + k]",

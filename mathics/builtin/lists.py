@@ -61,10 +61,10 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.attributes import (
-    hold_all,
-    locked,
-    protected,
-    read_protected,
+    A_HOLD_ALL,
+    A_LOCKED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
@@ -149,7 +149,7 @@ class ContainsOnly(Builtin):
      = True
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
@@ -511,7 +511,7 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "specify a list explicitly"
 
     def apply(self, elements, evaluation):
@@ -817,7 +817,7 @@ class _IterationFunction(Builtin):
      = 15
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
     throw_iterb = True
 

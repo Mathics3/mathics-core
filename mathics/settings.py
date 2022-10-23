@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-
 import pkg_resources
 import sys
 import os
@@ -8,10 +6,14 @@ import os.path as osp
 from pathlib import Path
 
 
+def get_srcdir():
+    filename = osp.normcase(osp.dirname(osp.abspath(__file__)))
+    return osp.realpath(filename)
+
+
 DEBUG = True
 
 DEBUG_PRINT = False
-
 # Either None (no timeout) or a positive integer.
 # Unix only
 TIMEOUT = None
@@ -32,6 +34,12 @@ else:
         os.environ.get("APPDATA", osp.expanduser("~/.local/var/mathics/"))
     )
 
+# In contrast to ROOT_DIR, LOCAL_ROOT_DIR is used in building
+# LaTeX documentation. When Mathics is installed, we don't want LaTeX file documentation.tex
+# to get put in the installation directory, but instead we build documentaiton
+# from checked-out source and that is where this should be put.
+LOCAL_ROOT_DIR = get_srcdir()
+
 # Location of internal document data. Currently this is in Python
 # Pickle form, but storing this in JSON if possible would be preferable and faster
 
@@ -44,11 +52,11 @@ DOC_USER_TEX_DATA_PATH = os.environ.get(
 # We need another version as a fallback, and that is distributed with the
 # package. It is note user writable and not in the user space.
 DOC_SYSTEM_TEX_DATA_PATH = os.environ.get(
-    "DOC_SYSTEM_TEX_DATA_PATH", osp.join(ROOT_DIR, "data", "doc_tex_data.pcl")
+    "DOC_SYSTEM_TEX_DATA_PATH", osp.join(LOCAL_ROOT_DIR, "data", "doc_tex_data.pcl")
 )
 
-DOC_DIR = osp.join(ROOT_DIR, "doc", "documentation")
-DOC_LATEX_FILE = osp.join(ROOT_DIR, "doc", "latex", "documentation.tex")
+DOC_DIR = osp.join(LOCAL_ROOT_DIR, "doc", "documentation")
+DOC_LATEX_FILE = osp.join(LOCAL_ROOT_DIR, "doc", "latex", "documentation.tex")
 
 # Set this True if you prefer 12 hour time to be the default
 TIME_12HOUR = False
@@ -61,7 +69,10 @@ ENABLE_FILES_MODULE = True
 # whatever it is that setting this thing did.
 default_pymathics_modules = []
 
-SYSTEM_CHARACTER_ENCODING = "UTF-8" if sys.getdefaultencoding() == "utf-8" else "ASCII"
+character_encoding = os.environ.get(
+    "MATHICS_CHARACTER_ENCODING", sys.getdefaultencoding()
+)
+SYSTEM_CHARACTER_ENCODING = "UTF-8" if character_encoding == "utf-8" else "ASCII"
 
 
 def get_doc_tex_data_path(should_be_readable=False, create_parent=False) -> str:

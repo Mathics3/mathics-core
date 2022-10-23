@@ -14,10 +14,10 @@ from mathics.core.atoms import Integer
 from mathics.builtin.arithmetic import _MPMathFunction
 
 from mathics.core.attributes import (
-    listable,
-    numeric_function,
-    protected,
-    read_protected,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 
@@ -39,7 +39,7 @@ class Fibonacci(_MPMathFunction):
     """
 
     nargs = {1}
-    attributes = listable | numeric_function | protected | read_protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED | A_READ_PROTECTED
     sympy_name = "fibonacci"
     mpmath_name = "fibonacci"
     summary_text = "Fibonacci's numbers"
@@ -85,7 +85,7 @@ class StirlingS1(Builtin):
     = -608281864034267560872252163321295376887552831379210240000000000
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     nargs = {2}
     summary_text = "Stirling numbers of the first kind"
@@ -112,7 +112,7 @@ class StirlingS2(Builtin):
     = {1, 511, 9330, 34105, 42525, 22827, 5880, 750, 45, 1}
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     nargs = {2}
     sympy_name = "functions.combinatorial.numbers.stirling"
     mpmath_name = "stirling2"

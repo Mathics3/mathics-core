@@ -5,7 +5,7 @@ from mathics.builtin.base import Predefined, Builtin
 from mathics.core.atoms import Integer
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
-from mathics.core.attributes import hold_all, hold_all_complete, protected
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 
 
 class RecursionLimit(Predefined):
@@ -151,7 +151,7 @@ class Hold(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "prevent the evaluation"
 
 
@@ -165,7 +165,7 @@ class HoldComplete(Builtin):
      = {HoldAllComplete, Protected}
     """
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
     summary_text = "prevents the evaluation, including the upvalues"
 
 
@@ -184,7 +184,7 @@ class HoldForm(Builtin):
      = {HoldAll, Protected}
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     rules = {
         "MakeBoxes[HoldForm[expr_], f_]": "MakeBoxes[expr, f]",
@@ -261,7 +261,7 @@ class Unevaluated(Builtin):
      = 15
     """
 
-    attributes = hold_all_complete | protected
+    attributes = A_HOLD_ALL_COMPLETE | A_PROTECTED
     summary_text = "keep the element unevaluated, disregarding Hold attributes"
 
 

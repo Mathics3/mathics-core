@@ -2,7 +2,7 @@ from .helper import evaluate, session
 
 from mathics.builtin.base import BoxExpression, Predefined
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
-from mathics.core.attributes import hold_all, protected, read_protected
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
 
@@ -49,7 +49,7 @@ class CustomGraphicsBox(BoxExpression):
     """"""
 
     options = GRAPHICS_OPTIONS
-    attributes = hold_all | protected | read_protected
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     def init(self, *elems, **options):
         self._elements = elems

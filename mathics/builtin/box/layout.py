@@ -12,9 +12,9 @@ from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import (
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_HOLD_ALL_COMPLETE,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
@@ -63,22 +63,12 @@ class BoxData(Builtin):
     """
     <dl>
       <dt>'BoxData[...]'
-      <dd>is a low-level representation of the contents of a typesetting cell.
+      <dd>is a low-level representation of the contents of a typesetting
+    cell.
     </dl>
     """
 
     summary_text = "low-level representation of the contents of a typesetting cell"
-
-
-class TextData(Builtin):
-    """
-    <dl>
-      <dt>'TextData[...]'
-      <dd>is a low-level representation of the contents of a textual cell.
-    </dl>
-    """
-
-    summary_text = "low-level representation of the contents of a textual cell."
 
 
 class ButtonBox(BoxExpression):
@@ -98,6 +88,36 @@ def is_constant_list(list):
     if list:
         return all(item == list[0] for item in list[1:])
     return True
+
+
+class FractionBox(BoxExpression):
+    """
+    <dl>
+      <dt>'FractionBox[$x$, $y$]'
+      <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
+    </dl>
+    """
+
+    options = {
+        "MultilineFunction": "Automatic",
+        "FractionLine": "Automatic",
+    }
+
+    def apply(self, num, den, evaluation, options):
+        """FractionBox[num_, den_, OptionsPattern[]]"""
+        num_box, den_box = (
+            to_boxes(num, evaluation, options),
+            to_boxes(den, evaluation, options),
+        )
+        return FractionBox(num_box, den_box, **options)
+
+    def init(self, num, den, **options):
+        self.num = num
+        self.den = den
+        self.box_options = options
+
+    def to_expression(self):
+        return Expression(SymbolFractionBox, self.num, self.den)
 
 
 class GridBox(BoxExpression):
@@ -145,7 +165,8 @@ class InterpretationBox(BoxExpression):
     """
     <dl>
       <dt>'InterpretationBox[{...}, expr]'
-      <dd> is a low-level box construct that displays as boxes but is interpreted on input as expr.
+      <dd> is a low-level box construct that displays as
+    boxes but is interpreted on input as expr.
     </dl>
 
     >> A = InterpretationBox["Pepe", 4]
@@ -166,6 +187,187 @@ class InterpretationBox(BoxExpression):
     def apply_display(boxexpr, evaluation):
         """DisplayForm[boxexpr_IntepretationBox]"""
         return boxexpr.elements[0]
+
+
+class RowBox(BoxExpression):
+    """
+    <dl>
+      <dt>'RowBox[{...}]'
+      <dd>is a box construct that represents a sequence of boxes arranged in a horizontal row.
+    </dl>
+    """
+
+    summary_text = "horizontal arrange of boxes"
+
+    def __repr__(self):
+        return "RowBox[List[" + self.items.__repr__() + "]]"
+
+    def apply_list(self, boxes, evaluation):
+        """RowBox[boxes_List]"""
+        boxes = boxes.evaluate(evaluation)
+        items = tuple(to_boxes(b, evaluation) for b in boxes.elements)
+        result = RowBox(*items)
+        return result
+
+    def init(self, *items, **kwargs):
+        # TODO: check that each element is an string or a BoxElementMixin
+        self.box_options = {}
+        if isinstance(items[0], Expression):
+            if len(items) != 1:
+                raise Exception(
+                    items, "is not a List[] or a list of Strings or BoxElementMixin"
+                )
+            if items[0].has_form("List", None):
+                items = items[0]._elements
+            else:
+                raise Exception(
+                    items, "is not a List[] or a list of Strings or BoxElementMixin"
+                )
+
+        def check_item(item):
+            if isinstance(item, String):
+                return item
+            if not isinstance(item, BoxElementMixin):
+                raise Exception(
+                    item, "is not a List[] or a list of Strings or BoxElementMixin"
+                )
+            return item
+
+        self.items = tuple((check_item(item) for item in items))
+        self._elements = None
+
+    def to_expression(self) -> Expression:
+        """
+        returns an expression that can be evaluated. This is needed
+        to implement the interface of normal Expressions, for example, when a boxed expression
+        is manipulated to produce a new boxed expression.
+
+        For instance, consider the folling definition:
+        ```
+        MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
+        ```
+        Here, MakeBoxes is applied over the items, then ``Riffle`` the elements of the result, convert them into
+        a sequence and finally, a ``RowBox`` is built. Then, riffle needs an expression as an argument. To get it,
+        in the apply method, this function must be called.
+        """
+        if self._elements is None:
+            items = tuple(
+                item.to_expression() if isinstance(item, BoxElementMixin) else item
+                for item in self.items
+            )
+
+            self._elements = Expression(SymbolRowBox, ListExpression(*items))
+        return self._elements
+
+
+class ShowStringCharacters(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
+    <dl>
+      <dt>'ShowStringCharacters'
+      <dd>is an option for Cell that directs whether to display '"' in strings.
+    </dl>
+
+    <ul>
+    <li>'ShowStringCharacters' is usually 'False' for output cells and 'True' for input cells.
+    <li>'ShowStringCharacters' is often set in styles rather than in individual cells.
+    </ul>
+
+    <i>This option can sometimes be output, but currently it is not interpreted.</i>
+    """
+
+    summary_text = "cell option directing wither show show quotes around strings"
+
+
+class SqrtBox(BoxExpression):
+    """
+    <dl>
+      <dt>'SqrtBox[$x$]'
+      <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
+      <dt>'SqrtBox[$x$, $y$]'
+      <dd> represents $\\sqrt[y]{x}$.
+    </dl>
+    """
+
+    options = {
+        "MultilineFunction": "Automatic",
+        "MinSize": "Automatic",
+    }
+
+    def apply_index(self, radicand, index, evaluation, options):
+        """SqrtBox[radicand_, index_, OptionsPattern[]]"""
+        radicand_box, index_box = (
+            to_boxes(radicand, evaluation, options),
+            to_boxes(index, evaluation, options),
+        )
+        return SqrtBox(radicand_box, index_box, **options)
+
+    def apply(self, radicand, evaluation, options):
+        """SqrtBox[radicand_, OptionsPattern[]]"""
+        radicand_box = to_boxes(radicand, evaluation, options)
+        return SqrtBox(radicand_box, None, **options)
+
+    def init(self, radicand, index=None, **options):
+        self.radicand = radicand
+        self.index = index
+        self.box_options = options
+
+    def to_expression(self):
+        if self.index:
+            return Expression(SymbolSqrtBox, self.radicand, self.index)
+        return Expression(SymbolSqrtBox, self.radicand)
+
+
+class StyleBox(BoxExpression):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/StyleBox.html</url>
+    <dl>
+      <dt>'StyleBox[boxes, options]'
+      <dd> is a low-level representation of boxes  to be shown with the specified option settings.
+
+      <dt>'StyleBox[boxes, style]'
+      <dd> uses the option setting for the specified style in the current notebook.
+    </dl>
+    """
+
+    options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
+    attributes = A_PROTECTED | A_READ_PROTECTED
+    summary_text = "associate boxes with styles"
+
+    def apply_options(self, boxes, evaluation, options):
+        """StyleBox[boxes_, OptionsPattern[]]"""
+        return StyleBox(boxes, style="", **options)
+
+    def apply_style(self, boxes, style, evaluation, options):
+        """StyleBox[boxes_, style_String, OptionsPattern[]]"""
+        return StyleBox(boxes, style=style, **options)
+
+    def get_string_value(self):
+        box = self.boxes
+        if isinstance(box, String):
+            return box.value
+        return None
+
+    def init(self, boxes, style=None, **options):
+        # This implementation superseeds Expresion.process_style_box
+        if isinstance(boxes, StyleBox):
+            options.update(boxes.box_options)
+            boxes = boxes.boxes
+        self.style = style
+        self.box_options = options
+        self.boxes = boxes
+
+    def to_expression(self):
+        if self.style:
+            return Expression(
+                Symbol(self.get_name()),
+                self.boxes,
+                self.style,
+                *options_to_rules(self.box_options),
+            )
+        return Expression(
+            Symbol(self.get_name()), self.boxes, *options_to_rules(self.box_options)
+        )
 
 
 class SubscriptBox(BoxExpression):
@@ -282,153 +484,12 @@ class SuperscriptBox(BoxExpression):
         return Expression(SymbolSuperscriptBox, self.base, self.superindex)
 
 
-class RowBox(BoxExpression):
-    """
-    <dl>
-      <dt>'RowBox[{...}]'
-      <dd>is a box construct that represents a sequence of boxes arranged in a horizontal row.
-    </dl>
-    """
-
-    summary_text = "horizontal arrange of boxes"
-
-    def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
-
-    def apply_list(self, boxes, evaluation):
-        """RowBox[boxes_List]"""
-        boxes = boxes.evaluate(evaluation)
-        items = tuple(to_boxes(b, evaluation) for b in boxes.elements)
-        result = RowBox(*items)
-        return result
-
-    def init(self, *items, **kwargs):
-        # TODO: check that each element is an string or a BoxElementMixin
-        self.box_options = {}
-        if isinstance(items[0], Expression):
-            if len(items) != 1:
-                raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxElementMixin"
-                )
-            if items[0].has_form("List", None):
-                items = items[0]._elements
-            else:
-                raise Exception(
-                    items, "is not a List[] or a list of Strings or BoxElementMixin"
-                )
-
-        def check_item(item):
-            if isinstance(item, String):
-                return item
-            if not isinstance(item, BoxElementMixin):
-                raise Exception(
-                    item, "is not a List[] or a list of Strings or BoxElementMixin"
-                )
-            return item
-
-        self.items = tuple((check_item(item) for item in items))
-        self._elements = None
-
-    def to_expression(self) -> Expression:
-        """
-        returns an expression that can be evaluated. This is needed
-        to implement the interface of normal Expressions, for example, when a boxed expression
-        is manipulated to produce a new boxed expression.
-
-        For instance, consider the folling definition:
-        ```
-        MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
-        ```
-        Here, MakeBoxes is applied over the items, then ``Riffle`` the elements of the result, convert them into
-        a sequence and finally, a ``RowBox`` is built. Then, riffle needs an expression as an argument. To get it,
-        in the apply method, this function must be called.
-        """
-        if self._elements is None:
-            items = tuple(
-                item.to_expression() if isinstance(item, BoxElementMixin) else item
-                for item in self.items
-            )
-
-            self._elements = Expression(SymbolRowBox, ListExpression(*items))
-        return self._elements
-
-
-class ShowStringCharacters(Builtin):
-    """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
-    <dl>
-      <dt>'ShowStringCharacters'
-      <dd>is an option for Cell that directs whether to display '"' in strings.
-    </dl>
-
-    <ul>
-    <li>'ShowStringCharacters' is usually 'False' for output cells and 'True' for input cells.
-    <li>'ShowStringCharacters' is often set in styles rather than in individual cells.
-    </ul>
-
-    <i>This option can sometimes be output, but currently it is not interpreted.</i>
-    """
-
-    summary_text = "cell option directing wither show show quotes around strings"
-
-
-class StyleBox(BoxExpression):
-    """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/StyleBox.html</url>
-    <dl>
-      <dt>'StyleBox[boxes, options]'
-      <dd> is a low-level representation of boxes  to be shown with the specified option settings.
-
-      <dt>'StyleBox[boxes, style]'
-      <dd> uses the option setting for the specified style in the current notebook.
-    </dl>
-    """
-
-    options = {"ShowStringCharacters": "True", "$OptionSyntax": "Ignore"}
-    attributes = A_PROTECTED | A_READ_PROTECTED
-    summary_text = "associate boxes with styles"
-
-    def apply_options(self, boxes, evaluation, options):
-        """StyleBox[boxes_, OptionsPattern[]]"""
-        return StyleBox(boxes, style="", **options)
-
-    def apply_style(self, boxes, style, evaluation, options):
-        """StyleBox[boxes_, style_String, OptionsPattern[]]"""
-        return StyleBox(boxes, style=style, **options)
-
-    def get_string_value(self):
-        box = self.boxes
-        if isinstance(box, String):
-            return box.value
-        return None
-
-    def init(self, boxes, style=None, **options):
-        # This implementation superseeds Expresion.process_style_box
-        if isinstance(boxes, StyleBox):
-            options.update(boxes.box_options)
-            boxes = boxes.boxes
-        self.style = style
-        self.box_options = options
-        self.boxes = boxes
-
-    def to_expression(self):
-        if self.style:
-            return Expression(
-                Symbol(self.get_name()),
-                self.boxes,
-                self.style,
-                *options_to_rules(self.box_options),
-            )
-        return Expression(
-            Symbol(self.get_name()), self.boxes, *options_to_rules(self.box_options)
-        )
-
-
 class TagBox(BoxExpression):
     """
     <dl>
       <dt>'TagBox[boxes, tag]'
-      <dd> is a low-level box construct that displays as boxes but is interpreted on input as expr
+      <dd> is a low-level box construct that displays as
+    boxes but is interpreted on input as expr
     </dl>
     """
 
@@ -448,6 +509,18 @@ class TemplateBox(BoxExpression):
     summary_text = "parametrized box"
 
 
+class TextData(Builtin):
+    """
+    <dl>
+      <dt>'TextData[...]'
+      <dd>is a low-level representation of the contents of a textual
+    cell.
+    </dl>
+    """
+
+    summary_text = "low-level representation of the contents of a textual cell."
+
+
 class TooltipBox(BoxExpression):
     """
     <dl>
@@ -457,73 +530,3 @@ class TooltipBox(BoxExpression):
     """
 
     summary_text = "box for showing tooltips"
-
-
-class FractionBox(BoxExpression):
-    """
-    <dl>
-      <dt>'FractionBox[$x$, $y$]'
-      <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
-    </dl>
-    """
-
-    options = {
-        "MultilineFunction": "Automatic",
-        "FractionLine": "Automatic",
-    }
-
-    def apply(self, num, den, evaluation, options):
-        """FractionBox[num_, den_, OptionsPattern[]]"""
-        num_box, den_box = (
-            to_boxes(num, evaluation, options),
-            to_boxes(den, evaluation, options),
-        )
-        return FractionBox(num_box, den_box, **options)
-
-    def init(self, num, den, **options):
-        self.num = num
-        self.den = den
-        self.box_options = options
-
-    def to_expression(self):
-        return Expression(SymbolFractionBox, self.num, self.den)
-
-
-class SqrtBox(BoxExpression):
-    """
-    <dl>
-      <dt>'SqrtBox[$x$]'
-      <dd> is a low-level formatting construct that represents $\\sqrt{x}$.
-
-      <dt>'SqrtBox[$x$, $y$]'
-      <dd> represents $\\sqrt[y]{x}$.
-    </dl>
-    """
-
-    options = {
-        "MultilineFunction": "Automatic",
-        "MinSize": "Automatic",
-    }
-
-    def apply_index(self, radicand, index, evaluation, options):
-        """SqrtBox[radicand_, index_, OptionsPattern[]]"""
-        radicand_box, index_box = (
-            to_boxes(radicand, evaluation, options),
-            to_boxes(index, evaluation, options),
-        )
-        return SqrtBox(radicand_box, index_box, **options)
-
-    def apply(self, radicand, evaluation, options):
-        """SqrtBox[radicand_, OptionsPattern[]]"""
-        radicand_box = to_boxes(radicand, evaluation, options)
-        return SqrtBox(radicand_box, None, **options)
-
-    def init(self, radicand, index=None, **options):
-        self.radicand = radicand
-        self.index = index
-        self.box_options = options
-
-    def to_expression(self):
-        if self.index:
-            return Expression(SymbolSqrtBox, self.radicand, self.index)
-        return Expression(SymbolSqrtBox, self.radicand)

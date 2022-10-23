@@ -8,9 +8,9 @@ Error Function and Related Functions
 from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
 
 from mathics.core.attributes import (
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    protected as A_PROTECTED,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
 )
 
 

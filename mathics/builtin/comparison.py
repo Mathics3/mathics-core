@@ -34,12 +34,12 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    listable as A_LISTABLE,
-    numeric_function as A_NUMERIC_FUNCTION,
-    one_identity as A_ONE_IDENTITY,
-    orderless as A_ORDERLESS,
-    protected as A_PROTECTED,
+    A_FLAT,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
 from mathics.core.evaluators import eval_N
@@ -70,6 +70,105 @@ SymbolExactNumberQ = Symbol("ExactNumberQ")
 SymbolMaxExtraPrecision = Symbol("$MaxExtraPrecision")
 
 
+def cmp(a, b) -> int:
+    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
+    return (a > b) - (a < b)
+
+
+def do_cmp(x1, x2) -> Optional[int]:
+
+    # don't attempt to compare complex numbers
+    for x in (x1, x2):
+        # TODO: Send message General::nord
+        if isinstance(x, Complex) or (
+            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
+        ):
+            return None
+
+    s1 = x1.to_sympy()
+    s2 = x2.to_sympy()
+
+    # Use internal comparisons only for Real which is uses
+    # WL's interpretation of equal (which allows for slop
+    # in the least significant digit of precision), and use
+    # use sympy for everything else
+    if s1.is_Float and s2.is_Float:
+        if x1 == x2:
+            return 0
+        if x1 < x2:
+            return -1
+        return 1
+
+    # we don't want to compare anything that
+    # cannot be represented as a numeric value
+    if s1.is_number and s2.is_number:
+        if s1 == s2:
+            return 0
+        if s1 < s2:
+            return -1
+        return 1
+
+    return None
+
+
+def do_cplx_equal(x, y) -> Optional[int]:
+    if isinstance(y, Complex):
+        x, y = y, x
+    if isinstance(x, Complex):
+        if isinstance(y, Complex):
+            c = do_cmp(x.real, y.real)
+            if c is None:
+                return
+            if c != 0:
+                return False
+            c = do_cmp(x.imag, y.imag)
+            if c is None:
+                return
+            if c != 0:
+                return False
+            else:
+                return True
+        else:
+            c = do_cmp(x.imag, Integer0)
+            if c is None:
+                return
+            if c != 0:
+                return False
+            c = do_cmp(x.real, y.real)
+            if c is None:
+                return
+            if c != 0:
+                return False
+            else:
+                return True
+    c = do_cmp(x, y)
+    if c is None:
+        return None
+    return c == 0
+
+
+def expr_max(elements):
+    result = Expression(SymbolDirectedInfinity, IntegerM1)
+    for element in elements:
+        c = do_cmp(element, result)
+        if c > 0:
+            result = element
+    return result
+
+
+def expr_min(elements):
+    result = Expression(SymbolDirectedInfinity, Integer1)
+    for element in elements:
+        c = do_cmp(element, result)
+        if c < 0:
+            result = element
+    return result
+
+
+def is_number(sympy_value) -> bool:
+    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
+
+
 class _InequalityOperator(BinaryOperator):
     precedence = 290
     grouping = "NonAssociative"
@@ -96,6 +195,32 @@ class _InequalityOperator(BinaryOperator):
         else:
             items = to_numeric_args(items, evaluation)
         return items
+
+
+class _ComparisonOperator(_InequalityOperator):
+    "Compares arguments in a chain e.g. a < b < c compares a < b and b < c."
+
+    def apply(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
+            return SymbolTrue
+        items = self.numerify_args(items, evaluation)
+        wanted = operators[self.get_name()]
+        if isinstance(items[-1], String):
+            return None
+        for i in range(len(items) - 1):
+            x = items[i]
+            if isinstance(x, String):
+                return None
+            y = items[i + 1]
+            c = do_cmp(x, y)
+            if c is None:
+                return
+            elif c not in wanted:
+                return SymbolFalse
+            assert c in wanted
+        return SymbolTrue
 
 
 class _EqualityOperator(_InequalityOperator):
@@ -256,169 +381,67 @@ class _EqualityOperator(_InequalityOperator):
         return SymbolTrue
 
 
-class _ComparisonOperator(_InequalityOperator):
-    "Compares arguments in a chain e.g. a < b < c compares a < b and b < c."
+class _MinMax(Builtin):
+
+    attributes = (
+        A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
+    )
 
     def apply(self, items, evaluation):
         "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
-            return SymbolTrue
-        items = self.numerify_args(items, evaluation)
-        wanted = operators[self.get_name()]
-        if isinstance(items[-1], String):
-            return None
-        for i in range(len(items) - 1):
-            x = items[i]
-            if isinstance(x, String):
-                return None
-            y = items[i + 1]
-            c = do_cmp(x, y)
-            if c is None:
-                return
-            elif c not in wanted:
-                return SymbolFalse
-            assert c in wanted
-        return SymbolTrue
+        if hasattr(items, "flatten_with_respect_to_head"):
+            items = items.flatten_with_respect_to_head(SymbolList)
+        items = items.get_sequence()
+        results = []
+        best = None
+
+        for item in items:
+            if item.has_form("List", None):
+                elements = item.elements
+            else:
+                elements = [item]
+            for element in elements:
+                if isinstance(element, String):
+                    results.append(element)
+                    continue
+                if best is None:
+                    best = element
+                    results.append(best)
+                    continue
+                c = do_cmp(element, best)
+                if c is None:
+                    results.append(element)
+                elif (self.sense == 1 and c > 0) or (self.sense == -1 and c < 0):
+                    results.remove(best)
+                    best = element
+                    results.append(element)
+
+        if not results:
+            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
+        if len(results) == 1:
+            return results.pop()
+        if len(results) < len(items):
+            # Some simplification was possible because we discarded
+            # elements.
+            return Expression(Symbol(self.get_name()), *results)
+        # If we get here, no simplification was possible.
+        return None
 
 
-def cmp(a, b) -> int:
-    "Returns 0 if a == b, -1 if a < b and 1 if a > b"
-    return (a > b) - (a < b)
+class _SympyComparison(SympyFunction):
+    def to_sympy(self, expr, **kwargs):
+        to_sympy = super(_SympyComparison, self).to_sympy
+        if len(expr.elements) > 2:
 
+            def pairs(elements):
+                yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                elements = elements[1:]
+                while len(elements) >= 2:
+                    yield Expression(Symbol(expr.get_head_name()), *elements[:2])
+                    elements = elements[1:]
 
-def is_number(sympy_value) -> bool:
-    return hasattr(sympy_value, "is_number") or isinstance(sympy_value, sympy.Float)
-
-
-class SameQ(_ComparisonOperator):
-    """
-    <dl>
-      <dt>'SameQ[$x$, $y$]'
-      <dt>'$x$ === $y$'
-      <dd>returns 'True' if $x$ and $y$ are structurally identical. Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
-    </dl>
-
-    <ul>
-      <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
-      <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
-      <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
-    </ul>
-
-
-    Any object is the same as itself:
-    >> a === a
-     = True
-
-    Degenerate cases of 'SameQ' showing off how you can chain '===':
-    >> SameQ[a] === SameQ[] === True
-     = True
-
-    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same type:
-    >> {1==1., 1===1.}
-     = {True, False}
-
-
-    >> 2./9. === .2222222222222222`15.9546
-     = True
-    The comparison consider just the lowest precision
-    >> .2222222`6 === .2222`3
-     = True
-    Notice the extra decimal in the rhs. Because the internal representation,
-    $0.222`3$ is not equivalent to $0.2222`3$:
-    >> .2222222`6 === .222`3
-     = False
-    15.9546 is the value of '$MaxPrecision'
-    """
-
-    grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "==="
-    precedence = 290
-
-    summary_text = "literal symbolic identity"
-
-    def apply_list(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
-            return SymbolTrue
-
-        first_item = items_sequence[0]
-        for item in items_sequence[1:]:
-            if not first_item.sameQ(item):
-                return SymbolFalse
-        return SymbolTrue
-
-
-class UnsameQ(_ComparisonOperator):
-    """
-    <dl>
-      <dt>'UnsameQ[$x$, $y$]'
-      <dt>'$x$ =!= $y$'
-      <dd>returns 'True' if $x$ and $y$ are not structurally identical. Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
-    </dl>
-
-    >> a =!= a
-     = False
-    >> 1 =!= 1.
-     = True
-
-    UnsameQ accepts any number of arguments and returns True if all expressions
-    are structurally distinct:
-    >> 1 =!= 2 =!= 3 =!= 4
-     = True
-
-    UnsameQ returns False if any expression is identical to another:
-    >> 1 =!= 2 =!= 1 =!= 4
-     = False
-
-    UnsameQ[] and UnsameQ[expr] return True:
-    >> UnsameQ[]
-     = True
-    >> UnsameQ[expr]
-     = True
-    """
-
-    grouping = "None"  # Indeterminate grouping: Neither left nor right
-    operator = "=!="
-    precedence = 290
-
-    summary_text = "not literal symbolic identity"
-
-    def apply_list(self, items, evaluation):
-        "%(name)s[items___]"
-        items_sequence = items.get_sequence()
-        if len(items_sequence) <= 1:
-            return SymbolTrue
-
-        for index, first_item in enumerate(items_sequence):
-            for second_item in items_sequence[index + 1 :]:
-                if first_item.sameQ(second_item):
-                    return SymbolFalse
-        return SymbolTrue
-
-
-class TrueQ(Builtin):
-    """
-    <dl>
-      <dt>'TrueQ[$expr$]'
-      <dd>returns 'True' if and only if $expr$ is 'True'.
-    </dl>
-
-    >> TrueQ[True]
-     = True
-
-    >> TrueQ[False]
-     = False
-
-    >> TrueQ[a]
-     = False
-    """
-
-    rules = {
-        "TrueQ[expr_]": "If[expr, True, False, False]",
-    }
-    summary_text = "test whether the expression evaluates to True"
+            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.elements)])
+        return to_sympy(expr, **kwargs)
 
 
 class BooleanQ(Builtin):
@@ -453,158 +476,23 @@ class BooleanQ(Builtin):
     summary_text = "test whether the expression evaluates to a boolean constant"
 
 
-class Inequality(Builtin):
-    """
-    <dl>
-      <dt>'Inequality'
-      <dd>is the head of expressions involving different inequality operators (at least temporarily). Thus, it is possible to write chains of inequalities.
-    </dl>
-
-    >> a < b <= c
-     = a < b && b <= c
-    >> Inequality[a, Greater, b, LessEqual, c]
-     = a > b && b <= c
-    >> 1 < 2 <= 3
-     = True
-    >> 1 < 2 > 0
-     = True
-    >> 1 < 2 < -1
-     = False
-    """
-
-    messages = {
-        "ineq": (
-            "Inequality called with `` arguments; the number of "
-            "arguments is expected to be an odd number >= 3."
-        ),
-    }
-    summary_text = "chain of inequalities"
-
-    def apply(self, items, evaluation):
-        "Inequality[items___]"
-
-        elements = items.numerify(evaluation).get_sequence()
-        count = len(elements)
-        if count == 1:
-            return SymbolTrue
-        elif count % 2 == 0:
-            evaluation.message("Inequality", "ineq", count)
-        elif count == 3:
-            name = elements[1].get_name()
-            if name in operators:
-                return Expression(Symbol(name), elements[0], elements[2])
-        else:
-            groups = [
-                Expression(SymbolInequality, *elements[index - 1 : index + 2])
-                for index in range(1, count - 1, 2)
-            ]
-            return Expression(SymbolAnd, *groups)
-
-
-def do_cplx_equal(x, y) -> Optional[int]:
-    if isinstance(y, Complex):
-        x, y = y, x
-    if isinstance(x, Complex):
-        if isinstance(y, Complex):
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.imag, y.imag)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-        else:
-            c = do_cmp(x.imag, Integer0)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            c = do_cmp(x.real, y.real)
-            if c is None:
-                return
-            if c != 0:
-                return False
-            else:
-                return True
-    c = do_cmp(x, y)
-    if c is None:
-        return None
-    return c == 0
-
-
-def do_cmp(x1, x2) -> Optional[int]:
-
-    # don't attempt to compare complex numbers
-    for x in (x1, x2):
-        # TODO: Send message General::nord
-        if isinstance(x, Complex) or (
-            x.has_form("DirectedInfinity", 1) and isinstance(x.elements[0], Complex)
-        ):
-            return None
-
-    s1 = x1.to_sympy()
-    s2 = x2.to_sympy()
-
-    # Use internal comparisons only for Real which is uses
-    # WL's interpretation of equal (which allows for slop
-    # in the least significant digit of precision), and use
-    # use sympy for everything else
-    if s1.is_Float and s2.is_Float:
-        if x1 == x2:
-            return 0
-        if x1 < x2:
-            return -1
-        return 1
-
-    # we don't want to compare anything that
-    # cannot be represented as a numeric value
-    if s1.is_number and s2.is_number:
-        if s1 == s2:
-            return 0
-        if s1 < s2:
-            return -1
-        return 1
-
-    return None
-
-
-class _SympyComparison(SympyFunction):
-    def to_sympy(self, expr, **kwargs):
-        to_sympy = super(_SympyComparison, self).to_sympy
-        if len(expr.elements) > 2:
-
-            def pairs(elements):
-                yield Expression(Symbol(expr.get_head_name()), *elements[:2])
-                elements = elements[1:]
-                while len(elements) >= 2:
-                    yield Expression(Symbol(expr.get_head_name()), *elements[:2])
-                    elements = elements[1:]
-
-            return sympy.And(*[to_sympy(p, **kwargs) for p in pairs(expr.elements)])
-        return to_sympy(expr, **kwargs)
-
-
 class Equal(_EqualityOperator, _SympyComparison):
     """
     <dl>
       <dt>'Equal[$x$, $y$]'
       <dt>'$x$ == $y$'
-      <dd>is 'True' if $x$ and $y$ are known to be equal, or 'False' if $x$ and $y$ are known to be unequal, in which case case, 'Not[$x$ == $y$]' will be 'True'.
+      <dd>is 'True' if $x$ and $y$ are known to be equal, or
+        'False' if $x$ and $y$ are known to be unequal, in which case
+        case, 'Not[$x$ == $y$]' will be 'True'.
 
+        Commutative properties apply, so if $x$ == $y$ then $y$ == $x$.
+
+        For any expression $x$ and $y$, Equal[$x$, $y$] == Not[Unequal[$x$, $y$]].
+
+        For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
       <dt>'$x$ == $y$ == $z$ == ...'
       <dd> express a chain of equalities.
     </dl>
-
-    Equal takes into account the commutative property of the equality, so if $x$ == $y$ then $y$ == $x$.
-
-    Also, the consistency relation Equal[$x$, $y$] == Not[Unequal[$x$, $y$]] is satisfied for any pair of expressions $x$, $y$.
-
-    For any expression 'SameQ[$x$, $y$]' implies Equal[$x$, $y$].
 
     Numerical Equalities:
 
@@ -723,72 +611,93 @@ class Equal(_EqualityOperator, _SympyComparison):
         return x
 
 
-class Unequal(_EqualityOperator, _SympyComparison):
+class Greater(_ComparisonOperator, _SympyComparison):
     """
     <dl>
-      <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
-      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.  Commutative properties apply so if $x$ != $y$ then $y$ != $x$.  For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
+      <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
+      <dd>yields 'True' if $x$ is known to be greater than $y$.
     </dl>
 
-    >> 1 != 1.
-     = False
-
-    Comparsion can be chained:
-    >> 1 != 2 != 3
+    Symbolic constants are compared numerically:
+    >> E > 1
      = True
 
-    >> 1 != 2 != x
-     = 1 != 2 != x
+    Greater operator can be chained:
+    >> a > b > c //FullForm
+     = Greater[a, b, c]
 
-    Strings are allowed:
-    >> Unequal["11", "11"]
-     = False
-
-    Comparision to mismatched types is True:
-    >> Unequal[11, "11"]
+    >> 3 > 2 > 1
      = True
-
-    Lists are compared based on their elements:
-    >> {1} != {2}
-     = True
-    >> {1, 2} != {1, 2}
-     = False
-    >> {a} != {a}
-     = False
-    >> "a" != "b"
-     = True
-    >> "a" != "a"
-     = False
-
-    #> Pi != N[Pi]
-     = False
-
-    #> a_ != b_
-     = a_ != b_
-
-    #> Clear[a, b];
-    #> a != a != a
-     = False
-    #> "abc" != "def" != "abc"
-     = False
-
-    ## Reproduce strange MMA behaviour
-    #> a != b != a
-     = a != b != a
-
-    'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
-
-    >> {Unequal[], Unequal[x], Unequal[1]}
-     = {True, True, True}
     """
 
-    operator = "!="
-    summary_text = "numerical inequality"
-    sympy_name = "Ne"
+    operator = ">"
+    summary_text = "greater than"
+    sympy_name = "StrictGreaterThan"
 
-    @staticmethod
-    def _op(x):
-        return not x
+
+class GreaterEqual(_ComparisonOperator, _SympyComparison):
+    """
+    <dl>
+      <dt>'GreaterEqual[$x$, $y$]'
+      <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
+      <dd>yields 'True' if $x$ is known to be greater than or equal
+        to $y$.
+    </dl>
+    """
+
+    operator = ">="
+    summary_text = "greater than or equal to"
+    sympy_name = "GreaterThan"
+
+
+class Inequality(Builtin):
+    """
+    <dl>
+      <dt>'Inequality'
+      <dd>is the head of expressions involving different inequality
+        operators (at least temporarily). Thus, it is possible to
+        write chains of inequalities.
+    </dl>
+
+    >> a < b <= c
+     = a < b && b <= c
+    >> Inequality[a, Greater, b, LessEqual, c]
+     = a > b && b <= c
+    >> 1 < 2 <= 3
+     = True
+    >> 1 < 2 > 0
+     = True
+    >> 1 < 2 < -1
+     = False
+    """
+
+    messages = {
+        "ineq": (
+            "Inequality called with `` arguments; the number of "
+            "arguments is expected to be an odd number >= 3."
+        ),
+    }
+    summary_text = "chain of inequalities"
+
+    def apply(self, items, evaluation):
+        "Inequality[items___]"
+
+        elements = items.numerify(evaluation).get_sequence()
+        count = len(elements)
+        if count == 1:
+            return SymbolTrue
+        elif count % 2 == 0:
+            evaluation.message("Inequality", "ineq", count)
+        elif count == 3:
+            name = elements[1].get_name()
+            if name in operators:
+                return Expression(Symbol(name), elements[0], elements[2])
+        else:
+            groups = [
+                Expression(SymbolInequality, *elements[index - 1 : index + 2])
+                for index in range(1, count - 1, 2)
+            ]
+            return Expression(SymbolAnd, *groups)
 
 
 class Less(_ComparisonOperator, _SympyComparison):
@@ -834,209 +743,6 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
     operator = "<="
     summary_text = "less than or equal to"
     sympy_name = "LessThan"  # in contrast to StrictLessThan
-
-
-class Greater(_ComparisonOperator, _SympyComparison):
-    """
-    <dl>
-      <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
-      <dd>yields 'True' if $x$ is known to be greater than $y$.
-    </dl>
-
-    Symbolic constants are compared numerically:
-    >> E > 1
-     = True
-
-    Greater operator can be chained:
-    >> a > b > c //FullForm
-     = Greater[a, b, c]
-
-    >> 3 > 2 > 1
-     = True
-    """
-
-    operator = ">"
-    summary_text = "greater than"
-    sympy_name = "StrictGreaterThan"
-
-
-class GreaterEqual(_ComparisonOperator, _SympyComparison):
-    """
-    <dl>
-      <dt>'GreaterEqual[$x$, $y$]'
-      <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
-      <dd>yields 'True' if $x$ is known to be greater than or equal to $y$.
-    </dl>
-    """
-
-    operator = ">="
-    summary_text = "greater than or equal to"
-    sympy_name = "GreaterThan"
-
-
-class Positive(Builtin):
-    """
-    <dl>
-      <dt>'Positive[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number.
-    </dl>
-
-    >> Positive[1]
-     = True
-
-    'Positive' returns 'False' if $x$ is zero or a complex number:
-    >> Positive[0]
-     = False
-    >> Positive[1 + 2 I]
-     = False
-
-    #> Positive[Pi]
-     = True
-    #> Positive[x]
-     = Positive[x]
-    #> Positive[Sin[{11, 14}]]
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a positive number"
-
-
-class Negative(Builtin):
-    """
-    <dl>
-      <dt>'Negative[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number.
-    </dl>
-    >> Negative[0]
-     = False
-    >> Negative[-3]
-     = True
-    >> Negative[10/7]
-     = False
-    >> Negative[1+2I]
-     = False
-    >> Negative[a + b]
-     = Negative[a + b]
-    #> Negative[-E]
-     = True
-    #> Negative[Sin[{11, 14}]]
-     = {True, False}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a negative number"
-
-
-class NonNegative(Builtin):
-    """
-    <dl>
-      <dt>'NonNegative[$x$]'
-      <dd>returns 'True' if $x$ is a positive real number or zero.
-    </dl>
-
-    >> {Positive[0], NonNegative[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-negative number"
-
-
-class NonPositive(Builtin):
-    """
-    <dl>
-      <dt>'NonPositive[$x$]'
-      <dd>returns 'True' if $x$ is a negative real number or zero.
-    </dl>
-
-    >> {Negative[0], NonPositive[0]}
-     = {False, True}
-    """
-
-    attributes = A_LISTABLE | A_PROTECTED
-
-    rules = {
-        "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
-    }
-    summary_text = "test whether an expression is a non-positive number"
-
-
-def expr_max(elements):
-    result = Expression(SymbolDirectedInfinity, IntegerM1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c > 0:
-            result = element
-    return result
-
-
-def expr_min(elements):
-    result = Expression(SymbolDirectedInfinity, Integer1)
-    for element in elements:
-        c = do_cmp(element, result)
-        if c < 0:
-            result = element
-    return result
-
-
-class _MinMax(Builtin):
-
-    attributes = (
-        A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
-    )
-
-    def apply(self, items, evaluation):
-        "%(name)s[items___]"
-        if hasattr(items, "flatten_with_respect_to_head"):
-            items = items.flatten_with_respect_to_head(SymbolList)
-        items = items.get_sequence()
-        results = []
-        best = None
-
-        for item in items:
-            if item.has_form("List", None):
-                elements = item.elements
-            else:
-                elements = [item]
-            for element in elements:
-                if isinstance(element, String):
-                    results.append(element)
-                    continue
-                if best is None:
-                    best = element
-                    results.append(best)
-                    continue
-                c = do_cmp(element, best)
-                if c is None:
-                    results.append(element)
-                elif (self.sense == 1 and c > 0) or (self.sense == -1 and c < 0):
-                    results.remove(best)
-                    best = element
-                    results.append(element)
-
-        if not results:
-            return Expression(SymbolDirectedInfinity, Integer(-self.sense))
-        if len(results) == 1:
-            return results.pop()
-        if len(results) < len(items):
-            # Some simplification was possible because we discarded
-            # elements.
-            return Expression(Symbol(self.get_name()), *results)
-        # If we get here, no simplification was possible.
-        return None
 
 
 class Max(_MinMax):
@@ -1110,3 +816,308 @@ class Min(_MinMax):
 
     sense = -1
     summary_text = "the minimum value"
+
+
+class Negative(Builtin):
+    """
+    <dl>
+      <dt>'Negative[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number.
+    </dl>
+    >> Negative[0]
+     = False
+    >> Negative[-3]
+     = True
+    >> Negative[10/7]
+     = False
+    >> Negative[1+2I]
+     = False
+    >> Negative[a + b]
+     = Negative[a + b]
+    #> Negative[-E]
+     = True
+    #> Negative[Sin[{11, 14}]]
+     = {True, False}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    rules = {
+        "Negative[x_?NumericQ]": "If[x < 0, True, False, False]",
+    }
+    summary_text = "test whether an expression is a negative number"
+
+
+class NonNegative(Builtin):
+    """
+    <dl>
+      <dt>'NonNegative[$x$]'
+      <dd>returns 'True' if $x$ is a positive real number or zero.
+    </dl>
+
+    >> {Positive[0], NonNegative[0]}
+     = {False, True}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    rules = {
+        "NonNegative[x_?NumericQ]": "If[x >= 0, True, False, False]",
+    }
+    summary_text = "test whether an expression is a non-negative number"
+
+
+class NonPositive(Builtin):
+    """
+    <dl>
+      <dt>'NonPositive[$x$]'
+      <dd>returns 'True' if $x$ is a negative real number or zero.
+    </dl>
+
+    >> {Negative[0], NonPositive[0]}
+     = {False, True}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    rules = {
+        "NonPositive[x_?NumericQ]": "If[x <= 0, True, False, False]",
+    }
+    summary_text = "test whether an expression is a non-positive number"
+
+
+class Positive(Builtin):
+    """
+    <dl>
+      <dt>'Positive[$x$]'
+      <dd>returns 'True' if $x$ is a positive real number.
+    </dl>
+
+    >> Positive[1]
+     = True
+
+    'Positive' returns 'False' if $x$ is zero or a complex number:
+    >> Positive[0]
+     = False
+    >> Positive[1 + 2 I]
+     = False
+
+    #> Positive[Pi]
+     = True
+    #> Positive[x]
+     = Positive[x]
+    #> Positive[Sin[{11, 14}]]
+     = {False, True}
+    """
+
+    attributes = A_LISTABLE | A_PROTECTED
+
+    rules = {
+        "Positive[x_?NumericQ]": "If[x > 0, True, False, False]",
+    }
+    summary_text = "test whether an expression is a positive number"
+
+
+class SameQ(_ComparisonOperator):
+    """
+    <dl>
+      <dt>'SameQ[$x$, $y$]'
+      <dt>'$x$ === $y$'
+      <dd>returns 'True' if $x$ and $y$ are structurally identical.
+      Commutative properties apply, so if $x$ === $y$ then $y$ === $x$.
+
+    </dl>
+
+    <ul>
+      <li>'SameQ' requires exact correspondence between expressions, expet that it still considers 'Real' numbers equal if they differ in their last binary digit.
+      <li>$e1$ === $e2$ === $e3$ gives 'True' if all the $ei$'s are identical.
+      <li>'SameQ[]' and 'SameQ[$expr$]' always yield 'True'.
+    </ul>
+
+
+    Any object is the same as itself:
+    >> a === a
+     = True
+
+    Degenerate cases of 'SameQ' showing off how you can chain '===':
+    >> SameQ[a] === SameQ[] === True
+     = True
+
+    Unlike 'Equal', 'SameQ' only yields 'True' if $x$ and $y$ have the same type:
+    >> {1==1., 1===1.}
+     = {True, False}
+
+
+    >> 2./9. === .2222222222222222`15.9546
+     = True
+    The comparison consider just the lowest precision
+    >> .2222222`6 === .2222`3
+     = True
+    Notice the extra decimal in the rhs. Because the internal representation,
+    $0.222`3$ is not equivalent to $0.2222`3$:
+    >> .2222222`6 === .222`3
+     = False
+    15.9546 is the value of '$MaxPrecision'
+    """
+
+    grouping = "None"  # Indeterminate grouping: Neither left nor right
+    operator = "==="
+    precedence = 290
+
+    summary_text = "literal symbolic identity"
+
+    def apply_list(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
+            return SymbolTrue
+
+        first_item = items_sequence[0]
+        for item in items_sequence[1:]:
+            if not first_item.sameQ(item):
+                return SymbolFalse
+        return SymbolTrue
+
+
+class TrueQ(Builtin):
+    """
+    <dl>
+      <dt>'TrueQ[$expr$]'
+      <dd>returns 'True' if and only if $expr$ is 'True'.
+    </dl>
+
+    >> TrueQ[True]
+     = True
+
+    >> TrueQ[False]
+     = False
+
+    >> TrueQ[a]
+     = False
+    """
+
+    rules = {
+        "TrueQ[expr_]": "If[expr, True, False, False]",
+    }
+    summary_text = "test whether the expression evaluates to True"
+
+
+class Unequal(_EqualityOperator, _SympyComparison):
+    """
+    <dl>
+      <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
+      <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
+
+        Commutative properties apply so if $x$ != $y$ then $y$ != $x$.
+
+        For any expression $x$ and $y$, Unequal[$x$, $y$] == Not[Equal[$x$, $y$]].
+    </dl>
+
+    >> 1 != 1.
+     = False
+
+    Comparsion can be chained:
+    >> 1 != 2 != 3
+     = True
+
+    >> 1 != 2 != x
+     = 1 != 2 != x
+
+    Strings are allowed:
+    >> Unequal["11", "11"]
+     = False
+
+    Comparision to mismatched types is True:
+    >> Unequal[11, "11"]
+     = True
+
+    Lists are compared based on their elements:
+    >> {1} != {2}
+     = True
+    >> {1, 2} != {1, 2}
+     = False
+    >> {a} != {a}
+     = False
+    >> "a" != "b"
+     = True
+    >> "a" != "a"
+     = False
+
+    #> Pi != N[Pi]
+     = False
+
+    #> a_ != b_
+     = a_ != b_
+
+    #> Clear[a, b];
+    #> a != a != a
+     = False
+    #> "abc" != "def" != "abc"
+     = False
+
+    ## Reproduce strange MMA behaviour
+    #> a != b != a
+     = a != b != a
+
+    'Unequal' using an empty parameter or list, or a list with one element is True. This is the same as 'Equal".
+
+    >> {Unequal[], Unequal[x], Unequal[1]}
+     = {True, True, True}
+    """
+
+    operator = "!="
+    summary_text = "numerical inequality"
+    sympy_name = "Ne"
+
+    @staticmethod
+    def _op(x):
+        return not x
+
+
+class UnsameQ(_ComparisonOperator):
+    """
+    <dl>
+      <dt>'UnsameQ[$x$, $y$]'
+      <dt>'$x$ =!= $y$'
+      <dd>returns 'True' if $x$ and $y$ are not structurally identical.
+      Commutative properties apply, so if $x$ =!= $y$, then $y$ =!= $x$.
+    </dl>
+
+    >> a =!= a
+     = False
+    >> 1 =!= 1.
+     = True
+
+    UnsameQ accepts any number of arguments and returns True if all expressions
+    are structurally distinct:
+    >> 1 =!= 2 =!= 3 =!= 4
+     = True
+
+    UnsameQ returns False if any expression is identical to another:
+    >> 1 =!= 2 =!= 1 =!= 4
+     = False
+
+    UnsameQ[] and UnsameQ[expr] return True:
+    >> UnsameQ[]
+     = True
+    >> UnsameQ[expr]
+     = True
+    """
+
+    grouping = "None"  # Indeterminate grouping: Neither left nor right
+    operator = "=!="
+    precedence = 290
+
+    summary_text = "not literal symbolic identity"
+
+    def apply_list(self, items, evaluation):
+        "%(name)s[items___]"
+        items_sequence = items.get_sequence()
+        if len(items_sequence) <= 1:
+            return SymbolTrue
+
+        for index, first_item in enumerate(items_sequence):
+            for second_item in items_sequence[index + 1 :]:
+                if first_item.sameQ(second_item):
+                    return SymbolFalse
+        return SymbolTrue

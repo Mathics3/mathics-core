@@ -14,7 +14,7 @@ import sympy
 from mathics.builtin.base import Builtin
 
 from mathics.core.atoms import IntegerM1
-from mathics.core.attributes import constant
+from mathics.core.attributes import A_CONSTANT
 from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -80,7 +80,7 @@ class RSolve(Builtin):
         if (
             (isinstance(n, Atom) and not isinstance(n, Symbol))
             or n.get_head_name() in ("System`Plus", "System`Times", "System`Power")
-            or constant & n.get_attributes(evaluation.definitions)
+            or A_CONSTANT & n.get_attributes(evaluation.definitions)
         ):
             # TODO: Factor out this check for dsvar into a separate
             # function. DSolve uses this too.
