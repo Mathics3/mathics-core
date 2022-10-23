@@ -64,8 +64,9 @@ add_conversion_fn(FractionBox, fractionbox)
 def gridbox(self, elements=None, **box_options) -> str:
     if not elements:
         elements = self._elements
-    evaluation = box_options.get("evaluation")
+    evaluation = box_options.get("evaluation", None)
     items, options = self.get_array(elements, evaluation)
+
     result = ""
     if not items:
         return ""
@@ -73,7 +74,7 @@ def gridbox(self, elements=None, **box_options) -> str:
     cells = [
         [
             # TODO: check if this evaluation is necesary.
-            boxes_to_text(item.evaluate(evaluation), **box_options).splitlines()
+            boxes_to_text(item, **box_options).splitlines()
             for item in row
         ]
         for row in items

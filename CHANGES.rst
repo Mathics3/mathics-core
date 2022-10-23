@@ -19,6 +19,7 @@ New Builtins
 #. ``Skewness``
 #. ``ThreeJSymbol``
 #. ``$PrintForms``
+#. ``$OutputForms``
 
 
 Documentation
@@ -27,6 +28,7 @@ Documentation
 #. "Functional Programming" section split out.
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. A new section on "Accuracy and Precision" was included in the manual.
+#. "Forms of Input and Output" is its own section
 
 Internals
 +++++++++
@@ -36,7 +38,9 @@ Internals
 #. `from_mpmath` conversion supports a new parameter ``acc`` to set the accuracy of the number.
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
 #. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
+#. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
 
+   
 Bugs
 ++++
 
@@ -51,7 +55,6 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
-
 
 5.0.2
 -----

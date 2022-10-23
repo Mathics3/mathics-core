@@ -154,7 +154,9 @@ def gridbox(self, elements=None, **box_options) -> str:
     for row in items:
         result += "<mtr>"
         for item in row:
-            result += f"<mtd {joined_attrs}>{boxes_to_mathml(item.evaluate(evaluation), **new_box_options)}</mtd>"
+            result += (
+                f"<mtd {joined_attrs}>{boxes_to_mathml(item, **new_box_options)}</mtd>"
+            )
         result += "</mtr>\n"
     result += "</mtable>"
     return result

@@ -5,29 +5,13 @@ Mathics Built-in Functions and Variables.
 Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
 """
 
+from typing import Optional
 import glob
 import importlib
+import inspect
 import pkgutil
 import re
 import os.path as osp
-from mathics.settings import ENABLE_FILES_MODULE
-from mathics.version import __version__  # noqa used in loading to check consistency.
-
-from typing import List
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if do not fulfills some other conditions.
-RUN_SANITY_TEST = False
-
-
-# Get a list of files in this directory. We'll exclude from the start
-# files with leading characters we don't want like __init__ with its leading underscore.
-__py_files__ = [
-    osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
-]
 
 from mathics.builtin.base import (
     Builtin,
@@ -36,20 +20,23 @@ from mathics.builtin.base import (
     PatternObject,
 )
 
+from mathics.settings import ENABLE_FILES_MODULE
+from mathics.version import __version__  # noqa used in loading to check consistency.
 
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
+from typing import List
 
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            var.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
+# Set this to True to print all the builtins that do not have
+# a summary_text. In the future, we can set this to True
+# and raise an error if a new builtin is added without
+# this property or if it does not fulfill some other conditions.
+RUN_SANITY_TEST = False
+
+# Get a list of files in this directory. We'll exclude from the start
+# files with leading characters we don't want like __init__ with its leading underscore.
+__py_files__ = [
+    osp.basename(f[0:-3])
+    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
+]
 
 
 def add_builtins(new_builtins):
@@ -147,12 +134,61 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
         import_module(module_name, import_name)
 
 
-def is_builtin(var):
-    if var == Builtin:
+def name_is_builtin_symbol(module, name: str) -> Optional[type]:
+    """
+    Checks if ``name`` should be added to definitions, and return
+    its associated Builtin class.
+
+    Return ``None`` if the name should not get added to definitions.
+    """
+    if name.startswith("_"):
+        return None
+
+    module_object = getattr(module, name)
+
+    # Look only at Class objects.
+    if not inspect.isclass(module_object):
+        return None
+
+    # FIXME: tests involving module_object.__module__ are fragile and
+    # Python implementation specific. Figure out how to do this
+    # via the inspect module which is not implementation specific.
+
+    # Skip those builtins defined in or imported from another module.
+    if module_object.__module__ != module.__name__:
+        return None
+
+    # Skip objects in module mathics.builtin.base.
+    if module_object.__module__ == "mathics.builtin.base":
+        return None
+
+    # Skip those builtins that are not submodules of mathics.builtin.
+    if not module_object.__module__.startswith("mathics.builtin."):
+        return None
+
+    # If it is not a subclass of Builtin, skip it.
+    if not issubclass(module_object, Builtin):
+        return None
+
+    # Skip Builtin classes that were explicitly marked for skipping.
+    if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
+        return None
+    return module_object
+
+
+def sanity_check(cls, module):
+    if not RUN_SANITY_TEST:
         return True
-    if hasattr(var, "__bases__"):
-        return any(is_builtin(base) for base in var.__bases__)
-    return False
+
+    if not hasattr(cls, "summary_text"):
+        print(
+            "In ",
+            module.__name__,
+            cls.__name__,
+            " does not have a summary_text.",
+        )
+        return False
+    return True
 
 
 # FIXME: redo using importlib since that is probably less fragile.
@@ -208,31 +244,23 @@ for subdir in (
 
 for module in modules:
     builtins_by_module[module.__name__] = []
-    vars = dir(module)
-    for name in vars:
-        var = getattr(module, name)
-        if (
-            hasattr(var, "__module__")
-            and var.__module__.startswith("mathics.builtin.")
-            and var.__module__ != "mathics.builtin.base"
-            and is_builtin(var)
-            and not name.startswith("_")
-            and var.__module__ == module.__name__
-        ):  # nopep8
+    module_vars = dir(module)
 
-            instance = var(expression=False)
+    for name in module_vars:
+        builtin_class = name_is_builtin_symbol(module, name)
+        if builtin_class is not None:
+            instance = builtin_class(expression=False)
 
             if isinstance(instance, Builtin):
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
                 assert sanity_check(
-                    var, module
-                ), f"In {module.__name__} Builtin <<{var.__name__}>> did not pass the sanity check."
+                    builtin_class, module
+                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
 
                 _builtins.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
-
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
 mathics_to_python = {}  # here we have: name -> string
@@ -247,7 +275,6 @@ new_builtins = _builtins
 _builtins = {}
 
 add_builtins(new_builtins)
-
 
 display_operators_set = set()
 for modname, builtins in builtins_by_module.items():
