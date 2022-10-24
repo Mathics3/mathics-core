@@ -20,6 +20,7 @@ from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.makeboxes import format_element
 from mathics.core.symbols import Symbol, SymbolMakeBoxes
 from mathics.core.systemsymbols import SymbolRowBox, SymbolStandardForm
 
@@ -37,7 +38,7 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
+def _to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     """
     This function takes the expression ``x``
     and tries to reduce it to a ``BoxElementMixin``
@@ -45,18 +46,7 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     """
     if isinstance(x, BoxElementMixin):
         return x
-    if isinstance(x, Atom):
-        x = x.atom_to_boxes(SymbolStandardForm, evaluation)
-        return to_boxes(x, evaluation, options)
-    if isinstance(x, Expression):
-        if not x.has_form("MakeBoxes", None):
-            x = Expression(SymbolMakeBoxes, x)
-        x_boxed = x.evaluate(evaluation)
-        if isinstance(x_boxed, BoxElementMixin):
-            return x_boxed
-        if isinstance(x_boxed, Atom):
-            return to_boxes(x_boxed, evaluation, options)
-    raise Exception(x, "cannot be boxed.")
+    return format_element(x, evaluation, SymbolStandardForm)
 
 
 class BoxData(Builtin):
@@ -106,8 +96,8 @@ class FractionBox(BoxExpression):
     def apply(self, num, den, evaluation, options):
         """FractionBox[num_, den_, OptionsPattern[]]"""
         num_box, den_box = (
-            to_boxes(num, evaluation, options),
-            to_boxes(den, evaluation, options),
+            _to_boxes(num, evaluation, options),
+            _to_boxes(den, evaluation, options),
         )
         return FractionBox(num_box, den_box, **options)
 
@@ -205,7 +195,7 @@ class RowBox(BoxExpression):
     def apply_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
         boxes = boxes.evaluate(evaluation)
-        items = tuple(to_boxes(b, evaluation) for b in boxes.elements)
+        items = tuple(_to_boxes(b, evaluation) for b in boxes.elements)
         result = RowBox(*items)
         return result
 
@@ -218,7 +208,7 @@ class RowBox(BoxExpression):
                     items, "is not a List[] or a list of Strings or BoxElementMixin"
                 )
             if items[0].has_form("List", None):
-                items = items[0]._elements
+                items = items[0].evaluate(evaluation)._elements
             else:
                 raise Exception(
                     items, "is not a List[] or a list of Strings or BoxElementMixin"
@@ -297,14 +287,14 @@ class SqrtBox(BoxExpression):
     def apply_index(self, radicand, index, evaluation, options):
         """SqrtBox[radicand_, index_, OptionsPattern[]]"""
         radicand_box, index_box = (
-            to_boxes(radicand, evaluation, options),
-            to_boxes(index, evaluation, options),
+            _to_boxes(radicand, evaluation, options),
+            _to_boxes(index, evaluation, options),
         )
         return SqrtBox(radicand_box, index_box, **options)
 
     def apply(self, radicand, evaluation, options):
         """SqrtBox[radicand_, OptionsPattern[]]"""
-        radicand_box = to_boxes(radicand, evaluation, options)
+        radicand_box = _to_boxes(radicand, evaluation, options)
         return SqrtBox(radicand_box, None, **options)
 
     def init(self, radicand, index=None, **options):
@@ -392,8 +382,8 @@ class SubscriptBox(BoxExpression):
     def apply(self, a, b, evaluation, options):
         """SubscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
-            to_boxes(a, evaluation, options),
-            to_boxes(b, evaluation, options),
+            _to_boxes(a, evaluation, options),
+            _to_boxes(b, evaluation, options),
         )
         return SubscriptBox(a_box, b_box, **options)
 
@@ -426,9 +416,9 @@ class SubsuperscriptBox(BoxExpression):
     def apply(self, a, b, c, evaluation, options):
         """SubsuperscriptBox[a_, b__, c__, OptionsPattern[]]"""
         a_box, b_box, c_box = (
-            to_boxes(a, evaluation, options),
-            to_boxes(b, evaluation, options),
-            to_boxes(c, evaluation, options),
+            _to_boxes(a, evaluation, options),
+            _to_boxes(b, evaluation, options),
+            _to_boxes(c, evaluation, options),
         )
         return SubsuperscriptBox(a_box, b_box, c_box, **options)
 
@@ -465,8 +455,8 @@ class SuperscriptBox(BoxExpression):
     def apply(self, a, b, evaluation, options):
         """SuperscriptBox[a_, b__, OptionsPattern[]]"""
         a_box, b_box = (
-            to_boxes(a, evaluation, options),
-            to_boxes(b, evaluation, options),
+            _to_boxes(a, evaluation, options),
+            _to_boxes(b, evaluation, options),
         )
         return SuperscriptBox(a_box, b_box, **options)
 

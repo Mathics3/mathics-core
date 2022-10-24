@@ -10,7 +10,7 @@ import mpmath
 
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.box.layout import _boxed_string, RowBox, to_boxes
+from mathics.builtin.box.layout import _boxed_string, RowBox
 from mathics.core.convert.op import operator_to_unicode, operator_to_ascii
 from mathics.core.atoms import (
     Integer,
@@ -26,6 +26,7 @@ from mathics.core.attributes import (
     A_READ_PROTECTED,
 )
 from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.makeboxes import format_element
@@ -51,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRowBox,
     SymbolRuleDelayed,
+    SymbolStandardForm,
 )
 
 
@@ -88,16 +90,18 @@ def parenthesize(precedence, element, element_boxes, when_equal):
         element_prec = builtins_precedence.get(element.get_head_name())
     if precedence is not None and element_prec is not None:
         if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
+            return RowBox(String("("), element_boxes, String(")"))
     return element_boxes
 
 
 # FIXME: op should be a string, so remove the Union.
 def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
+    elements,
+    op: Union[String, list],
+    precedence: int,
+    grouping,
+    form: Symbol,
+    evaluation: Evaluation,
 ):
     result = []
     for index, element in enumerate(elements):
@@ -114,7 +118,7 @@ def make_boxes_infix(
         elif grouping == "System`Right" and index == 0:
             parenthesized = True
 
-        element_boxes = MakeBoxes(element, form)
+        element_boxes = format_element(element, evaluation, form)
         element = parenthesize(precedence, element, element_boxes, parenthesized)
 
         result.append(element)
@@ -416,40 +420,41 @@ class MakeBoxes(Builtin):
 
             f_name = f.get_name()
             if f_name == "System`TraditionalForm":
-                left, right = "(", ")"
+                left, right = String("("), String(")")
             else:
-                left, right = "[", "]"
+                left, right = String("["), String("]")
 
             # Parenthesize infix operators at the head of expressions,
             # like (a + b)[x], but not f[a] in f[a][b].
             #
-            head_boxes = parenthesize(670, head, MakeBoxes(head, f), False)
-            head_boxes = head_boxes.evaluate(evaluation)
-            head_boxes = to_boxes(head_boxes, evaluation)
-            result = [head_boxes, to_boxes(String(left), evaluation)]
+            head_boxes = parenthesize(
+                670, head, format_element(head, evaluation, f), False
+            )
 
-            if len(elements) > 1:
+            result = [head_boxes, left]
+
+            if len(elements) == 1:
+                result.append(format_element(elements[0], evaluation, f))
+            elif len(elements) > 1:
                 row = []
+                # TODO: the extra spaces in sep
+                # should be added in the `boxes_to_text` routine,
+                # not here.
                 if f_name in (
                     "System`InputForm",
                     "System`OutputForm",
                     "System`FullForm",
                 ):
-                    sep = ", "
+                    sep = String(", ")
                 else:
-                    sep = ","
+                    sep = String(",")
                 for index, element in enumerate(elements):
                     if index > 0:
-                        row.append(to_boxes(String(sep), evaluation))
-                    row.append(
-                        to_boxes(MakeBoxes(element, f).evaluate(evaluation), evaluation)
-                    )
+                        row.append(sep)
+                    row.append(format_element(element, evaluation, f))
                 result.append(RowBox(*row))
-            elif len(elements) == 1:
-                result.append(
-                    to_boxes(MakeBoxes(elements[0], f).evaluate(evaluation), evaluation)
-                )
-            result.append(to_boxes(String(right), evaluation))
+
+            result.append(right)
             return RowBox(*result)
 
     def apply_outerprecedenceform(self, expr, prec, evaluation):
@@ -457,7 +462,7 @@ class MakeBoxes(Builtin):
         StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         precedence = prec.get_int_value()
-        boxes = MakeBoxes(expr)
+        boxes = format_element(expr, evaluation, SymbolStandardForm)
         return parenthesize(precedence, expr, boxes, True)
 
     def apply_postprefix(self, p, expr, h, prec, f, evaluation):
@@ -465,23 +470,23 @@ class MakeBoxes(Builtin):
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         if not isinstance(h, String):
-            h = MakeBoxes(h, f)
+            h = format_element(h, evaluation, f)
 
         precedence = prec.get_int_value()
 
         elements = expr.elements
         if len(elements) == 1:
             element = elements[0]
-            element_boxes = MakeBoxes(element, f)
+            element_boxes = format_element(element, evaluation, f)
             element = parenthesize(precedence, element, element_boxes, True)
             if p.get_name() == "System`Postfix":
                 args = (element, h)
             else:
                 args = (h, element)
 
-            return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
+            return Expression(SymbolRowBox, ListExpression(*args))
         else:
-            return MakeBoxes(expr, f).evaluate(evaluation)
+            return format_element(expr, evaluation, f)
 
     def apply_infix(
         self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
@@ -499,7 +504,7 @@ class MakeBoxes(Builtin):
             and moved to a module that contiaing similar formatting routines.
             """
             if not isinstance(operator, String):
-                return MakeBoxes(operator, form)
+                return format_element(operator, evaluation, form)
 
             op_str = operator.value
 
@@ -528,7 +533,9 @@ class MakeBoxes(Builtin):
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
                 operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(elements, operator, precedence, grouping, form)
+                return make_boxes_infix(
+                    elements, operator, precedence, grouping, form, evaluation
+                )
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
@@ -550,12 +557,14 @@ class MakeBoxes(Builtin):
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
-            return make_boxes_infix(elements, operator, precedence, grouping, form)
+            return make_boxes_infix(
+                elements, operator, precedence, grouping, form, evaluation
+            )
 
         elif len(elements) == 1:
-            return MakeBoxes(elements[0], form)
+            return format_element(elements[0], evaluation, form)
         else:
-            return MakeBoxes(expr, form)
+            return format_element(expr, evaluation, form)
 
 
 class ToBoxes(Builtin):
@@ -1136,7 +1145,7 @@ class BaseForm(Builtin):
             x = expr.value
             p = 0
         else:
-            return to_boxes(Expression(SymbolMakeBoxes, expr, f), evaluation)
+            return format_element(expr, evaluation, f)
 
         try:
             val = convert_base(x, base, p)
@@ -1144,8 +1153,6 @@ class BaseForm(Builtin):
             return evaluation.message("BaseForm", "basf", n)
 
         if f is SymbolOutputForm:
-            return to_boxes(String("%s_%d" % (val, base)), evaluation)
+            return String("%s_%d" % (val, base))
         else:
-            return to_boxes(
-                Expression(SymbolSubscriptBox, String(val), String(base)), evaluation
-            )
+            return Expression(SymbolSubscriptBox, String(val), String(base))

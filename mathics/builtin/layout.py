@@ -15,7 +15,7 @@ from mathics.builtin.base import (
     BinaryOperator,
     Operator,
 )
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
@@ -291,20 +291,29 @@ class Row(Builtin):
         """MakeBoxes[Row[{items___}, sep_:""],
         f:StandardForm|TraditionalForm|OutputForm]"""
 
+        # TODO: in WMA, this produces a TemplateBox
         items = items.get_sequence()
-        if not isinstance(sep, String):
-            sep = MakeBoxes(sep, f)
+
+        # If is just one element, format it and return.
         if len(items) == 1:
-            return MakeBoxes(items[0], f)
+            return format_element(items[0], evaluation, f)
+
+        # Process te separator. If the separator is a null string,
+        # sep is set to None, and no separator is added.
+        # If the separator is a `String`, then it is "formatted" by adding
+        # sorrounding quotes. Otherwise, calls format_element
+        if isinstance(sep, String):
+            sep = None if sep.value == "" else String(f'"{sep.value}"')
         else:
-            result = []
-            for index, item in enumerate(items):
-                if index > 0 and not sep.sameQ(String("")):
-                    result.append(to_boxes(sep, evaluation))
-                item = MakeBoxes(item, f).evaluate(evaluation)
-                item = to_boxes(item, evaluation)
-                result.append(item)
-            return RowBox(*result)
+            sep = format_element(sep, evaluation, f)
+
+        result = []
+        for index, item in enumerate(items):
+            if index > 0 and sep is not None:
+                result.append(sep)
+            item = format_element(item, evaluation, f)
+            result.append(item)
+        return RowBox(*result)
 
 
 class Style(Builtin):

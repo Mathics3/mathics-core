@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     Builtin,
     Predefined,
 )
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.tensors import get_dimensions
@@ -378,15 +378,13 @@ class StringForm(FormBaseClass):
             if index > last_index:
                 last_index = index
             if start > pos:
-                result.append(to_boxes(String(s[pos:start]), evaluation))
+                result.append(String(s[pos:start]))
             pos = end
             if 1 <= index <= len(args):
                 arg = args[index - 1]
-                result.append(
-                    to_boxes(MakeBoxes(arg, f).evaluate(evaluation), evaluation)
-                )
+                result.append(format_element(arg, evaluation, f))
         if pos < len(s):
-            result.append(to_boxes(String(s[pos:]), evaluation))
+            result.append(String(s[pos:]))
         return RowBox(
             *tuple(
                 r.evaluate(evaluation) if isinstance(r, EvalMixin) else r
