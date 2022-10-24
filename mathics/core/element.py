@@ -246,7 +246,7 @@ class BaseElement(KeyComparable):
         return None
 
     def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
-        from mathics.core.formatter import format_element
+        from mathics.core.makeboxes import format_element
         from mathics.core.symbols import Symbol
 
         if isinstance(form, str):
