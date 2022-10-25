@@ -43,6 +43,21 @@ def do_makeboxes(element: BaseElement, evaluation: Evaluation, f: Symbol):
     This function applies makeboxes rules associated to `element` in
     the form `f`.
     """
+    # TODO:
+    # Currently, MakeBoxes rules are stored as downvalues of
+    # `MakeBoxes`. In WMA, these rules are stored as
+    # formatvalues. The evaluation of a MakeBoxes expression
+    # consists then in calling `format_element`.
+    # `format_element` then has two steps. First, applying
+    # high-level format rules (defined by setting
+    # `Format[...]` expressions)
+    # and then a second step, (in charge of this routine)
+    # that applies `MakeBoxes` low-level rules.
+    #
+    # In a next round, instead of calling `evaluate`,
+    # a customized loop of applying rules will be implemented
+    # here.
+    #
     mb_expression = Expression(SymbolMakeBoxes, element, f)
     return mb_expression.evaluate(evaluation)
 
