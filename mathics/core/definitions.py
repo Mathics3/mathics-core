@@ -113,8 +113,15 @@ class Definitions:
             "Global`",
         )
 
-        # importing format loads populates Symbols to PrintForms and OutputForms
-        # Rocky: this smells of something not quite right in terms of modularity.
+        # Importing "mathics.format" populates the Symbol of the
+        # PrintForms and OutputForms sets.
+        #
+        # If "importlib" is used instead of "import", then we get:
+        #   TypeError: boxes_to_text() takes 1 positional argument but
+        #   2 were given
+        # Rocky: this smells of something not quite right in terms of
+        # modularity.
+
         import mathics.format  # noqa
 
         self.printforms = list(PrintForms)
