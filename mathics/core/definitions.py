@@ -112,16 +112,22 @@ class Definitions:
             "System`",
             "Global`",
         )
+
+        # Importing "mathics.format" populates the Symbol of the
+        # PrintForms and OutputForms sets.
+        #
+        # If "importlib" is used instead of "import", then we get:
+        #   TypeError: boxes_to_text() takes 1 positional argument but
+        #   2 were given
+        # Rocky: this smells of something not quite right in terms of
+        # modularity.
+
+        import mathics.format  # noqa
+
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
-
-        # This loads all the formatting functions.
-        # It needs to be early because it can be used in
-        # messages during the builtins loading.
-        # Rocky: this smells of something not quite right in terms of modularity.
-        import mathics.format
 
         if add_builtin:
             from mathics.builtin import modules, contribute
