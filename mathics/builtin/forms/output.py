@@ -31,8 +31,8 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
+from mathics.core.makeboxes import format_element
 from mathics.core.number import (
     convert_base,
     dps,
