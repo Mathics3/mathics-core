@@ -176,6 +176,7 @@ setup(
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
+        "mathics.builtin.forms",
         "mathics.builtin.functional",
         "mathics.builtin.intfns",
         "mathics.builtin.list",

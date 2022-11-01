@@ -20,7 +20,11 @@ from mathics.core.systemsymbols import SymbolDot, SymbolMean, SymbolSubtract
 
 SymbolConjugate = Symbol("Conjugate")
 SymbolCovariance = Symbol("Covariance")
+
+# Something is weird here. No System`. And we can't use what is in
+# SymbolSqrt from systemsymbols?
 SymbolSqrt = Symbol("Sqrt")
+
 SymbolStandardDeviation = Symbol("StandardDeviation")
 SymbolVariance = Symbol("Variance")
 
