@@ -21,13 +21,15 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolMakeBoxes
-from mathics.core.systemsymbols import SymbolRowBox, SymbolStandardForm
-
-SymbolFractionBox = Symbol("System`FractionBox")
-SymbolSubscriptBox = Symbol("System`SubscriptBox")
-SymbolSubsuperscriptBox = Symbol("System`SubsuperscriptBox")
-SymbolSuperscriptBox = Symbol("System`SuperscriptBox")
-SymbolSqrtBox = Symbol("System`SqrtBox")
+from mathics.core.systemsymbols import (
+    SymbolFractionBox,
+    SymbolRowBox,
+    SymbolSqrtBox,
+    SymbolStandardForm,
+    SymbolSubsuperscriptBox,
+    SymbolSubscriptBox,
+    SymbolSuperscriptBox,
+)
 
 
 # this temporarily replaces the _BoxedString class
@@ -165,8 +167,7 @@ class InterpretationBox(BoxExpression):
     """
     <dl>
       <dt>'InterpretationBox[{...}, expr]'
-      <dd> is a low-level box construct that displays as
-    boxes but is interpreted on input as expr.
+      <dd> is a low-level box construct that displays as boxes, but is interpreted on input as expr.
     </dl>
 
     >> A = InterpretationBox["Pepe", 4]

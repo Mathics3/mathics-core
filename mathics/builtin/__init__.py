@@ -218,6 +218,7 @@ for subdir in (
     "drawing",
     "fileformats",
     "files_io",
+    "forms",
     "functional",
     "intfns",
     "list",
