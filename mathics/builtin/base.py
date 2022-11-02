@@ -287,7 +287,6 @@ class Builtin:
             # FIXME: sometimes pattern is a string and sometimes a BaseElement?
             # This seems wrong.
             if not isinstance(pattern, BaseElement):
-                assert pattern
                 pattern = pattern % {"name": name}
                 pattern = parse_builtin_rule(pattern, definition_class)
             replace = replace % {"name": name}
