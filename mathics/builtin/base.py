@@ -284,7 +284,10 @@ class Builtin:
                 BuiltinRule(name, pattern, function, check_options, system=True)
             )
         for pattern, replace in self.rules.items():
+            # FIXME: sometimes pattern is a string and sometimes a BaseElement?
+            # This seems wrong.
             if not isinstance(pattern, BaseElement):
+                assert pattern
                 pattern = pattern % {"name": name}
                 pattern = parse_builtin_rule(pattern, definition_class)
             replace = replace % {"name": name}
@@ -292,6 +295,7 @@ class Builtin:
             rules.append(Rule(pattern, parse_builtin_rule(replace), system=True))
 
         box_rules = []
+        # FIXME: Why a special case for System`MakeBoxes? Remove this
         if name != "System`MakeBoxes":
             new_rules = []
             for rule in rules:
