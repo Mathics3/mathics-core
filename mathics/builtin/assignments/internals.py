@@ -755,5 +755,21 @@ class _SetOperator:
                 return False
             indices = lhs.elements[1:]
             return walk_parts([rule.replace], indices, evaluation, rhs)
+
+        # FIXME: the below is a big hack.
+        # Currently MakeBoxes boxing is implemented as a bunch of rules.
+        # See mathics.builtin.base contribute().
+        # I think we want to change this so it works like normal SetDelayed
+        # That is:
+        #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
+        # rather than:
+        #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+        elif lhs.get_head_name() == "System`MakeBoxes":
+            makeboxes_rule = Rule(lhs, rhs, system=True)
+            makeboxes_defs = defs.builtin["System`MakeBoxes"]
+            makeboxes_defs.add_rule(makeboxes_rule)
+            # FIXME: what should be the result?
+            return makeboxes_rule
+
         else:
             return self.assign_elementary(lhs, rhs, evaluation)
