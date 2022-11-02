@@ -46,8 +46,7 @@ class BezierFunction(Builtin):
     """
     <dl>
       <dt>'BezierFunction[{$pt_1$, $pt_2$, ...}]'
-      <dd>returns a Bézier function for the curve defined by points $pt_i$.
-      The embedding dimension for the curve represented by 'BezierFunction[{$pt_1$,$pt_2$,...}]' is given by the length of the lists $pt_i$.
+      <dd>returns a Bézier function for the curve defined by points $pt_i$. The embedding dimension for the curve represented by 'BezierFunction[{$pt_1$,$pt_2$,...}]' is given by the length of the lists $pt_i$.
     </dl>
 
     >> f = BezierFunction[{{0, 0}, {1, 1}, {2, 0}, {3, 2}}];

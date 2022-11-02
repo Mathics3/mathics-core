@@ -604,6 +604,7 @@ class DirectedInfinity(SympyFunction):
     <dl>
       <dt>'DirectedInfinity[$z$]'
       <dd>represents an infinite multiple of the complex number $z$.
+
       <dt>'DirectedInfinity[]'
       <dd>is the same as 'ComplexInfinity'.
     </dl>
@@ -1032,6 +1033,7 @@ class Rational_(Builtin):
     <dl>
       <dt>'Rational'
       <dd>is the head of rational numbers.
+
       <dt>'Rational[$a$, $b$]'
       <dd>constructs the rational number $a$ / $b$.
     </dl>

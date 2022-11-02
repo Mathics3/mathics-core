@@ -36,8 +36,7 @@ class Message(Builtin):
     """
     <dl>
       <dt>'Message[$symbol$::$msg$, $expr1$, $expr2$, ...]'
-      <dd>displays the specified message, replacing placeholders in
-        the message text with the corresponding expressions.
+      <dd>displays the specified message, replacing placeholders in the message text with the corresponding expressions.
     </dl>
 
     >> a::b = "Hello world!"
@@ -78,6 +77,7 @@ class Check(Builtin):
     <dl>
       <dt>'Check[$expr$, $failexpr$]'
       <dd>evaluates $expr$, and returns the result, unless messages were generated, in which case it evaluates and $failexpr$ will be returned.
+
       <dt>'Check[$expr$, $failexpr$, {s1::t1,s2::t2,...}]'
       <dd>checks only for the specified messages.
     </dl>
@@ -210,10 +210,13 @@ class Quiet(Builtin):
     <dl>
       <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
       <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
+
       <dt>'Quiet[$expr$, All]'
       <dd>evaluates $expr$, without any messages being displayed.
+
       <dt>'Quiet[$expr$, None]'
       <dd>evaluates $expr$, without all messages being displayed.
+
       <dt>'Quiet[$expr$, $off$, $on$]'
       <dd>evaluates $expr$, with messages $off$ being suppressed, but messages $on$ being displayed.
     </dl>

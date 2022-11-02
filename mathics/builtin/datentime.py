@@ -990,7 +990,7 @@ class DateStringFormat(Predefined):
 class EasterSunday(Builtin):  # Calendar`EasterSunday
     """
     <dl>
-    <dt>'EasterSunday[$year$]'
+      <dt>'EasterSunday[$year$]'
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
     </dl>
 
@@ -1029,7 +1029,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 class Pause(Builtin):
     """
     <dl>
-    <dt>'Pause[n]'
+      <dt>'Pause[n]'
       <dd>pauses for $n$ seconds.
     </dl>
 
@@ -1196,9 +1196,9 @@ class TimeZone(Predefined):
 class TimeUsed(Builtin):
     """
     <dl>
-    <dt>'TimeUsed[]'
+      <dt>'TimeUsed[]'
       <dd>returns the total CPU time used for this session, in seconds.
-      </dl>
+    </dl>
 
     >> TimeUsed[]
      = ...
@@ -1218,9 +1218,8 @@ class TimeUsed(Builtin):
 class Timing(Builtin):
     """
     <dl>
-    <dt>'Timing[$expr$]'
-      <dd>measures the processor time taken to evaluate $expr$.
-      It returns a list containing the measured time in seconds and the result of the evaluation.
+      <dt>'Timing[$expr$]'
+      <dd>measures the processor time taken to evaluate $expr$. It returns a list containing the measured time in seconds and the result of the evaluation.
     </dl>
 
     >> Timing[50!]
@@ -1245,7 +1244,7 @@ class Timing(Builtin):
 class SessionTime(Builtin):
     """
     <dl>
-    <dt>'SessionTime[]'
+      <dt>'SessionTime[]'
       <dd>returns the total time in seconds since this session started.
     </dl>
 
@@ -1265,10 +1264,11 @@ class SessionTime(Builtin):
 class TimeRemaining(Builtin):
     """
     <dl>
-    <dt>'TimeRemaining[]'
-        <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
-    <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
-        <dd>returns $failexpr$ if the time constraint is not met.
+      <dt>'TimeRemaining[]'
+      <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
+
+      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 
     If TimeConstrained is called out of a TimeConstrained expression, returns `Infinity`

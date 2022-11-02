@@ -329,8 +329,8 @@ class MakeBoxes(Builtin):
     """
     <dl>
       <dt>'MakeBoxes[$expr$]'
-      <dd>is a low-level formatting primitive that converts $expr$
-        to box form, without evaluating it.
+      <dd>is a low-level formatting primitive that converts $expr$ to box form, without evaluating it.
+
       <dt>'\\( ... \\)'
       <dd>directly inputs box objects.
     </dl>

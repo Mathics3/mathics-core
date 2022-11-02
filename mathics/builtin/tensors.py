@@ -111,8 +111,7 @@ class ArrayQ(Builtin):
       <dd>also tests whether the array depth of $expr$ matches $pattern$.
 
       <dt>'ArrayQ[$expr$, $pattern$, $test$]'
-      <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$.
-        'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
+      <dd>furthermore tests whether $test$ yields 'True' for all elements of $expr$. 'ArrayQ[$expr$]' is equivalent to 'ArrayQ[$expr$, _, True&]'.
     </dl>
 
     >> ArrayQ[a]
@@ -171,8 +170,8 @@ class ArrayQ(Builtin):
 class Dimensions(Builtin):
     """
     <dl>
-    <dt>'Dimensions[$expr$]'
-        <dd>returns a list of the dimensions of the expression $expr$.
+      <dt>'Dimensions[$expr$]'
+      <dd>returns a list of the dimensions of the expression $expr$.
     </dl>
 
     A vector of length 3:
@@ -240,9 +239,8 @@ class Dot(BinaryOperator):
 class Inner(Builtin):
     """
     <dl>
-    <dt>'Inner[$f$, $x$, $y$, $g$]'
-        <dd>computes a generalised inner product of $x$ and $y$, using
-        a multiplication function $f$ and an addition function $g$.
+      <dt>'Inner[$f$, $x$, $y$, $g$]'
+      <dd>computes a generalised inner product of $x$ and $y$, using a multiplication function $f$ and an addition function $g$.
     </dl>
 
     >> Inner[f, {a, b}, {x, y}, g]
@@ -434,12 +432,14 @@ class ScalingTransform(Builtin):
 class ShearingTransform(Builtin):
     """
     <dl>
-    <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
-        <dd>gives a horizontal shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, {0, 1}, {1, 0}]'
-        <dd>gives a vertical shear by the angle $phi$.
-    <dt>'ShearingTransform[$phi$, $u$, $u$, $p$]'
-        <dd>gives a shear centered at the point $p$.
+      <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
+      <dd>gives a horizontal shear by the angle $phi$.
+
+      <dt>'ShearingTransform[$phi$, {0, 1}, {1, 0}]'
+      <dd>gives a vertical shear by the angle $phi$.
+
+      <dt>'ShearingTransform[$phi$, $u$, $u$, $p$]'
+      <dd>gives a shear centered at the point $p$.
     </dl>
     """
 

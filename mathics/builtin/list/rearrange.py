@@ -378,9 +378,7 @@ class DeleteDuplicates(_GatherOperation):
       <dd>deletes duplicates from $list$.
 
       <dt>'DeleteDuplicates[$list$, $test$]'
-      <dd>deletes elements from $list$ based on whether the function $test$ yields 'True' on pairs of elements.
-
-      DeleteDuplicates does not change the order of the remaining elements.
+      <dd>deletes elements from $list$ based on whether the function $test$ yields 'True' on pairs of elements.  DeleteDuplicates does not change the order of the remaining elements.
     </dl>
 
     >> DeleteDuplicates[{1, 7, 8, 4, 3, 4, 1, 9, 9, 2, 1}]

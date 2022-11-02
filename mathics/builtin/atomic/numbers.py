@@ -792,8 +792,7 @@ class MachineEpsilon_(Predefined):
     """
     <dl>
       <dt>'$MachineEpsilon'
-      <dd>is the distance between '1.0' and the next
-            nearest representable machine-precision number.
+      <dd>is the distance between '1.0' and the next nearest representable machine-precision number.
     </dl>
 
     >> $MachineEpsilon

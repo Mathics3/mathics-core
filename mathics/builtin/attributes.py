@@ -308,8 +308,7 @@ class Protected(Predefined):
     """
     <dl>
       <dt>'Protected'
-      <dd>is an attribute that prevents values on a symbol from
-        being modified.
+      <dd>is an attribute that prevents values on a symbol from being modified.
     </dl>
 
     Values of 'Protected' symbols cannot be modified:
@@ -351,8 +350,7 @@ class ReadProtected(Predefined):
     """
     <dl>
       <dt>'ReadProtected'
-      <dd>is an attribute that prevents values on a symbol from
-        being read.
+      <dd>is an attribute that prevents values on a symbol from being read.
     </dl>
 
     Values associated with 'ReadProtected' symbols cannot be seen in
@@ -373,8 +371,7 @@ class Locked(Predefined):
     """
     <dl>
       <dt>'Locked'
-      <dd>is an attribute that prevents attributes on a symbol from
-        being modified.
+      <dd>is an attribute that prevents attributes on a symbol from being modified.
     </dl>
 
     The attributes of 'Locked' symbols cannot be modified:
@@ -401,8 +398,7 @@ class Flat(Predefined):
     """
     <dl>
       <dt>'Flat'
-      <dd>is an attribute that specifies that nested occurrences of
-        a function should be automatically flattened.
+      <dd>is an attribute that specifies that nested occurrences of a function should be automatically flattened.
     </dl>
 
     A symbol with the 'Flat' attribute represents an associative
@@ -443,13 +439,10 @@ class Flat(Predefined):
 
 
 class Orderless(Predefined):
-    """<dl>
+    """
+    <dl>
       <dt>'Orderless'
-      <dd>is an attribute that can be assigned to a symbol $f$ to
-        indicate that the elements $ei$ in expressions of the form
-        $f$[$e1$, $e2$, ...] should automatically be sorted into
-        canonical order. This property is accounted for in pattern
-        matching.
+      <dd>is an attribute that can be assigned to a symbol $f$ to indicate that the elements $ei$ in expressions of the form $f$[$e1$, $e2$, ...] should automatically be sorted into canonical order. This property is accounted for in pattern matching.
     </dl>
 
     The leaves of an 'Orderless' function are automatically sorted:
@@ -476,8 +469,7 @@ class OneIdentity(Predefined):
     """
     <dl>
       <dt>'OneIdentity'
-      <dd>is an attribute specifying that '$f$[$x$]' should be treated
-        as equivalent to $x$ in pattern matching.
+      <dd>is an attribute specifying that '$f$[$x$]' should be treated as equivalent to $x$ in pattern matching.
     </dl>
 
     'OneIdentity' affects pattern matching:
@@ -496,8 +488,7 @@ class SequenceHold(Predefined):
     """
     <dl>
       <dt>'SequenceHold'
-      <dd>is an attribute that prevents 'Sequence' objects from being
-        spliced into a function's arguments.
+      <dd>is an attribute that prevents 'Sequence' objects from being spliced into a function's arguments.
     </dl>
 
     Normally, 'Sequence' will be spliced into a function:
@@ -523,8 +514,7 @@ class HoldFirst(Predefined):
     """
     <dl>
       <dt>'HoldFirst'
-      <dd>is an attribute specifying that the first argument of a
-        function should be left unevaluated.
+      <dd>is an attribute specifying that the first argument of a function should be left unevaluated.
     </dl>
 
     >> Attributes[Set]
@@ -538,8 +528,7 @@ class HoldRest(Predefined):
     """
     <dl>
       <dt>'HoldRest'
-      <dd>is an attribute specifying that all but the first argument
-        of a function should be left unevaluated.
+      <dd>is an attribute specifying that all but the first argument of a function should be left unevaluated.
     </dl>
 
     >> Attributes[If]
@@ -555,8 +544,7 @@ class HoldAll(Predefined):
     """
     <dl>
       <dt>'HoldAll'
-      <dd>is an attribute specifying that all arguments of a
-        function should be left unevaluated.
+      <dd>is an attribute specifying that all arguments of a function should be left unevaluated.
     </dl>
 
     >> Attributes[Function]
@@ -570,9 +558,7 @@ class HoldAllComplete(Predefined):
     """
     <dl>
       <dt>'HoldAllComplete'
-      <dd>is an attribute that includes the effects of 'HoldAll' and
-        'SequenceHold', and also protects the function from being
-        affected by the upvalues of any arguments.
+      <dd>is an attribute that includes the effects of 'HoldAll' and 'SequenceHold', and also protects the function from being affected by the upvalues of any arguments.
     </dl>
 
     'HoldAllComplete' even prevents upvalues from being used, and
@@ -592,8 +578,7 @@ class NHoldAll(Predefined):
     """
     <dl>
       <dt>'NHoldAll'
-      <dd>is an attribute that protects all arguments of a
-        function from numeric evaluation.
+      <dd>is an attribute that protects all arguments of a function from numeric evaluation.
     </dl>
 
     >> N[f[2, 3]]
@@ -610,8 +595,7 @@ class NHoldFirst(Predefined):
     """
     <dl>
       <dt>'NHoldFirst'
-      <dd>is an attribute that protects the first argument of a
-        function from numeric evaluation.
+      <dd>is an attribute that protects the first argument of a function from numeric evaluation.
     </dl>
     """
 
@@ -622,8 +606,7 @@ class NHoldRest(Predefined):
     """
     <dl>
       <dt>'NHoldRest'
-      <dd>is an attribute that protects all but the first argument
-        of a function from numeric evaluation.
+      <dd>is an attribute that protects all but the first argument of a function from numeric evaluation.
     </dl>
     """
 
@@ -634,8 +617,7 @@ class Listable(Predefined):
     """
     <dl>
       <dt>'Listable'
-      <dd>is an attribute specifying that a function should be
-        automatically applied to each element of a list.
+      <dd>is an attribute specifying that a function should be automatically applied to each element of a list.
     </dl>
 
     >> SetAttributes[f, Listable]

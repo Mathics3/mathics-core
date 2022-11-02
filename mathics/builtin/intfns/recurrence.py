@@ -48,7 +48,7 @@ class Fibonacci(_MPMathFunction):
 class HarmonicNumber(_MPMathFunction):
     """
     <dl>
-    <dt>'HarmonicNumber[n]'
+      <dt>'HarmonicNumber[n]'
       <dd>returns the $n$th harmonic number.
     </dl>
 
@@ -102,9 +102,9 @@ class StirlingS1(Builtin):
 class StirlingS2(Builtin):
     """
       <dl>
-      <dt>'StirlingS2[$n$, $m$]'
-      <dd>gives the Stirling number of the second kind  _n^m.
-    </dl>
+        <dt>'StirlingS2[$n$, $m$]'
+        <dd>gives the Stirling number of the second kind  _n^m.
+      </dl>
 
     returns the number of ways of partitioning a set of $n$ elements into $m$ non empty subsets.
 

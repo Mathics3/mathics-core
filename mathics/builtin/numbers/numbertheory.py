@@ -75,8 +75,8 @@ class ContinuedFraction(SympyFunction):
 class Divisors(Builtin):
     """
     <dl>
-    <dt>'Divisors[$n$]'
-        <dd>returns a list of the integers that divide $n$.
+      <dt>'Divisors[$n$]'
+      <dd>returns a list of the integers that divide $n$.
     </dl>
 
     >> Divisors[96]
@@ -256,8 +256,8 @@ def _fractional_part(self, n, expr, evaluation):
 class FractionalPart(Builtin):
     """
     <dl>
-    <dt>'FractionalPart[$n$]'
-        <dd>finds the fractional part of $n$.
+      <dt>'FractionalPart[$n$]'
+      <dd>finds the fractional part of $n$.
     </dl>
 
     >> FractionalPart[4.1]
@@ -334,10 +334,11 @@ class FromContinuedFraction(SympyFunction):
 class MantissaExponent(Builtin):
     """
     <dl>
-    <dt>'MantissaExponent[$n$]'
-        <dd>finds a list containing the mantissa and exponent of a given number $n$.
-    <dt>'MantissaExponent[$n$, $b$]'
-        <dd>finds the base b mantissa and exponent of $n$.
+      <dt>'MantissaExponent[$n$]'
+      <dd>finds a list containing the mantissa and exponent of a given number $n$.
+
+      <dt>'MantissaExponent[$n$, $b$]'
+      <dd>finds the base b mantissa and exponent of $n$.
     </dl>
 
     >> MantissaExponent[2.5*10^20]
@@ -552,8 +553,7 @@ class Prime(SympyFunction):
     <dl>
       <dt>'Prime[$n$]'
       <dt>'Prime'[{$n0$, $n1$, ...}]
-      <dd>returns the $n$th prime number where $n$ is an positive Integer.
-      If given a list of integers, the return value is a list with 'Prime' applied to each.
+      <dd>returns the $n$th prime number where $n$ is an positive Integer. If given a list of integers, the return value is a list with 'Prime' applied to each.
     </dl>
 
     Note that the first prime is 2, not 1:
@@ -591,8 +591,8 @@ class Prime(SympyFunction):
 class PrimePi(SympyFunction):
     """
     <dl>
-    <dt>'PrimePi[$x$]'
-        <dd>gives the number of primes less than or equal to $x$.
+      <dt>'PrimePi[$x$]'
+      <dd>gives the number of primes less than or equal to $x$.
     </dl>
 
     PrimePi is the inverse of Prime:
@@ -628,8 +628,8 @@ class PrimePi(SympyFunction):
 class PrimePowerQ(Builtin):
     """
     <dl>
-    <dt>'PrimePowerQ[$n$]'
-        <dd>returns 'True' if $n$ is a power of a prime number.
+      <dt>'PrimePowerQ[$n$]'
+      <dd>returns 'True' if $n$ is a power of a prime number.
     </dl>
 
     >> PrimePowerQ[9]

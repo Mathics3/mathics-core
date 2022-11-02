@@ -81,7 +81,6 @@ class DigitQ(Builtin):
     <dl>
       <dt>'DigitQ[$string$]'
       <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
-
     </dl>
 
     >> DigitQ["9"]
@@ -164,8 +163,8 @@ class LowerCaseQ(Test):
 class ToLowerCase(Builtin):
     """
     <dl>
-    <dt>'ToLowerCase[$s$]'
-        <dd>returns $s$ in all lower case.
+      <dt>'ToLowerCase[$s$]'
+      <dd>returns $s$ in all lower case.
     </dl>
 
     >> ToLowerCase["New York"]
@@ -183,8 +182,8 @@ class ToLowerCase(Builtin):
 class ToUpperCase(Builtin):
     """
     <dl>
-    <dt>'ToUpperCase[$s$]'
-        <dd>returns $s$ in all upper case.
+      <dt>'ToUpperCase[$s$]'
+      <dd>returns $s$ in all upper case.
     </dl>
 
     >> ToUpperCase["New York"]
@@ -202,8 +201,8 @@ class ToUpperCase(Builtin):
 class UpperCaseQ(Test):
     """
     <dl>
-    <dt>'UpperCaseQ[$s$]'
-        <dd>returns True if $s$ consists wholly of upper case characters.
+      <dt>'UpperCaseQ[$s$]'
+      <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 
     >> UpperCaseQ["ABC"]

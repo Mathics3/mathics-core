@@ -172,7 +172,7 @@ class Norm(Builtin):
       <dd>computes the p-norm of matrix m.
 
       <dt>'Norm[$m$]'
-     <dd>computes the 2-norm of matrix m.
+      <dd>computes the 2-norm of matrix m.
     </dl>
 
     The Norm of of a vector is its Euclidian distance:

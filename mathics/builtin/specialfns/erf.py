@@ -108,8 +108,8 @@ class FresnelS(_MPMathFunction):
     <url>:Fresnel integral: https://en.wikipedia.org/wiki/Fresnel_integral</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/expintegrals.html#mpmath.fresnels</url>, <url>:WMA: https://reference.wolfram.com/language/ref/FresnelS.html</url>)
 
     <dl>
-    <dt>'FresnelS[$z$]'
-        <dd>is the Fresnel S integral $S$($z$).
+      <dt>'FresnelS[$z$]'
+      <dd>is the Fresnel S integral $S$($z$).
     </dl>
 
     >> FresnelS[{0, Infinity}]

@@ -167,6 +167,41 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
     assert (
         docstr.count("</dd>") == 0
     ), f"unnecesary </dd> field {instance.get_name()} from {module_name}"
+    # Now, check indentation and unwanted like breaks.
+    curr_indent_base = -3
+    last_line = ""
+    for lineno, line in enumerate(docstr.split("\n")):
+        if line.strip() == "":
+            continue
+        if line.strip()[0] == "#":
+            continue
+        if line.count("<dl>") > 0:
+            curr_indent_base = line.index("<dl>")
+        elif line.count("</dl>") > 0:
+            curr_indent_base = -1
+        elif line.count("<dt>") > 0:
+            relative_indent = line.index("<dt>") - curr_indent_base
+            assert relative_indent == 2, (
+                module_name + ", line " + str(lineno) + ": wrong indentation in " + line
+            )
+        elif line.count("<dd>") > 0:
+            relative_indent = line.index("<dd>") - curr_indent_base
+            assert relative_indent == 2, (
+                module_name + ", line " + str(lineno) + ": wrong indentation in " + line
+            )
+        else:
+            # Check that <dd> and <dt>  do not include a linebreak:
+            assert all(last_line.count(tag) == 0 for tag in ["<dt>", "<dt>"]), (
+                module_name
+                + ", line "
+                + str(line)
+                + ": Linebreak in <<"
+                + last_line
+                + "\n"
+                + line
+                + ">> not allowed."
+            )
+        last_line = line
 
 
 def is_builtin(var: object) -> bool:

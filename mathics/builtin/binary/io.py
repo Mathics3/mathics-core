@@ -362,11 +362,13 @@ class _BinaryFormat:
 class BinaryRead(Builtin):
     """
     <dl>
-    <dt>'BinaryRead[$stream$]'
+      <dt>'BinaryRead[$stream$]'
       <dd>reads one byte from the stream as an integer from 0 to 255.
-    <dt>'BinaryRead[$stream$, $type$]'
+
+      <dt>'BinaryRead[$stream$, $type$]'
       <dd>reads one object of specified type from the stream.
-    <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
+
+      <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
       <dd>reads a sequence of objects of specified types.
     </dl>
 

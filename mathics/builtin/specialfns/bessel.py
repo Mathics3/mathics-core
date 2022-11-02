@@ -151,7 +151,7 @@ class AiryAiZero(Builtin):
 class AiryBi(_MPMathFunction):
     """
     <dl>
-    <dt>'AiryBi[$x$]'
+      <dt>'AiryBi[$x$]'
       <dd>returns the Airy function of the second kind Bi($x$).
     </dl>
 
@@ -182,9 +182,8 @@ class AiryBi(_MPMathFunction):
 class AiryBiPrime(_MPMathFunction):
     """
     <dl>
-    <dt>'AiryBiPrime[$x$]'
-        <dd>returns the derivative of the Airy function of the second
-        kind 'AiryBi[$x$]'.
+      <dt>'AiryBiPrime[$x$]'
+      <dd>returns the derivative of the Airy function of the second kind 'AiryBi[$x$]'.
     </dl>
 
     Exact values:
@@ -212,7 +211,7 @@ class AiryBiPrime(_MPMathFunction):
 class AiryBiZero(Builtin):
     """
     <dl>
-    <dt>'AiryBiZero[$k$]'
+      <dt>'AiryBiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Bi($z$).
     </dl>
 
@@ -299,7 +298,7 @@ class BesselI(_Bessel):
     <url>:Modified Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besseli</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
     <dl>
-    <dt>'BesselI[$n$, $z$]'
+      <dt>'BesselI[$n$, $z$]'
       <dd>returns the modified Bessel function of the first kind I_$n$($z$).
     </dl>
 
@@ -328,7 +327,7 @@ class BesselJ(_Bessel):
     <url>:Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselj</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
-    <dt>'BesselJ[$n$, $z$]'
+      <dt>'BesselJ[$n$, $z$]'
       <dd>returns the Bessel function of the first kind J_$n$($z$).
     </dl>
 
@@ -624,7 +623,8 @@ class KelvinKer(_Bessel):
     <dl>
       <dt>'KelvinKer[$z$]'
       <dd>returns the Kelvin function ker($z$).
-    <dt>'KelvinKer[$n$, $z$]'
+
+      <dt>'KelvinKer[$n$, $z$]'
       <dd>returns the Kelvin function ker_$n$($z$).
     </dl>
 

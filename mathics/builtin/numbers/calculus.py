@@ -107,8 +107,8 @@ SymbolIntegral = Symbol("System`Integral")
 class Complexes(Builtin):
     """
     <dl>
-    <dt>'Complexes'
-        <dd>the domain of complex numbers, as in $x$ in Complexes.
+      <dt>'Complexes'
+      <dd>the domain of complex numbers, as in $x$ in Complexes.
     </dl>
     """
 
@@ -714,8 +714,8 @@ class _BaseFinder(Builtin):
 class FindMaximum(_BaseFinder):
     r"""
     <dl>
-    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+      <dt>'FindMaximum[$f$, {$x$, $x0$}]'
+      <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
     </dl>
 
     'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
@@ -758,8 +758,8 @@ class FindMaximum(_BaseFinder):
 class FindMinimum(_BaseFinder):
     r"""
     <dl>
-    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+      <dt>'FindMinimum[$f$, {$x$, $x0$}]'
+      <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
     </dl>
 
     'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
@@ -1268,11 +1268,11 @@ class Limit(Builtin):
 class NIntegrate(Builtin):
     """
     <dl>
-       <dt>'NIntegrate[$expr$, $interval$]'
-       <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
+      <dt>'NIntegrate[$expr$, $interval$]'
+      <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
 
-        <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
-        <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
+      <dt>'NIntegrate[$expr$, $interval1$, $interval2$, ...]'
+      <dd>returns a numeric approximation to the multiple integral of $expr$ with limits $interval1$, $interval2$ and with a precision of $prec$ digits.
     </dl>
 
     >> NIntegrate[Exp[-x],{x,0,Infinity},Tolerance->1*^-6, Method->"Internal"]
@@ -1565,8 +1565,8 @@ class O_(Builtin):
 class Reals(Builtin):
     """
     <dl>
-    <dt>'Reals'
-        <dd>is the domain real numbers, as in $x$ in Reals.
+      <dt>'Reals'
+      <dd>is the domain real numbers, as in $x$ in Reals.
     </dl>
 
     Limit a solution to real numbers:
@@ -1580,8 +1580,8 @@ class Reals(Builtin):
 class Root(SympyFunction):
     """
     <dl>
-    <dt>'Root[$f$, $i$]'
-        <dd>represents the i-th complex root of the polynomial $f$
+      <dt>'Root[$f$, $i$]'
+      <dd>represents the i-th complex root of the polynomial $f$
     </dl>
 
     >> Root[#1 ^ 2 - 1&, 1]

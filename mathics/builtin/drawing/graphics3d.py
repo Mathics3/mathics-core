@@ -68,7 +68,6 @@ class Graphics3D(Graphics):
     <dl>
       <dt>'Graphics3D[$primitives$, $options$]'
       <dd>represents a three-dimensional graphic.
-
       <dd>See also the Section "Plotting" for a list of Plot options.
     </dl>
 
@@ -185,12 +184,14 @@ class Graphics3DElements(_GraphicsElements):
 class Sphere(Builtin):
     """
     <dl>
-    <dt>'Sphere[{$x$, $y$, $z$}]'
-        <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
-        <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
-    <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
-        <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
+      <dt>'Sphere[{$x$, $y$, $z$}]'
+      <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
+
+      <dt>'Sphere[{$x$, $y$, $z$}, $r$]'
+      <dd>is a sphere of radius $r$ centered at the point {$x$, $y$, $z$}.
+
+      <dt>'Sphere[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}, ... }, $r$]'
+      <dd>is a collection spheres of radius $r$ centered at the points {$x1$, $y2$, $z2$}, {$x2$, $y2$, $z2$}, ...
     </dl>
 
     >> Graphics3D[Sphere[{0, 0, 0}, 1]]

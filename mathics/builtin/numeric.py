@@ -85,8 +85,8 @@ class Chop(Builtin):
 class N(Builtin):
     """
     <dl>
-    <dt>'N[$expr$, $prec$]'
-        <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
+      <dt>'N[$expr$, $prec$]'
+      <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
     </dl>
     >> N[Pi, 50]
      = 3.1415926535897932384626433832795028841971693993751

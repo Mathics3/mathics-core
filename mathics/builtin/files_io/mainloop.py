@@ -31,8 +31,8 @@ from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
 class HistoryLength(Builtin):
     """
     <dl>
-    <dt>'$HistoryLength'
-        <dd>specifies the maximum number of 'In' and 'Out' entries.
+      <dt>'$HistoryLength'
+      <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
     >> $HistoryLength
      = 100
@@ -61,8 +61,8 @@ class HistoryLength(Builtin):
 class In(Builtin):
     """
     <dl>
-    <dt>'In[$k$]'
-        <dd>gives the $k$th line of input.
+      <dt>'In[$k$]'
+      <dd>gives the $k$th line of input.
     </dl>
     >> x = 1
      = 1
@@ -118,8 +118,8 @@ class IOHookPreRead(Builtin):
 class IOHookPre(Builtin):
     """
     <dl>
-    <dt>$Pre
-    <dd>is a global variable whose value, if set,
+      <dt>$Pre
+      <dd>is a global variable whose value, if set,
     is applied to every input expression.
     </dl>
 

@@ -293,8 +293,7 @@ class Reap(Builtin):
       <dd>gives the result of evaluating $expr$, together with all values sown during this evaluation. Values sown with different tags are given in different lists.
 
       <dt>'Reap[$expr$, $pattern$]'
-      <dd>only yields values sown with a tag matching $pattern$.
-        'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
+      <dd>only yields values sown with a tag matching $pattern$. 'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
 
       <dt>'Reap[$expr$, {$pattern1$, $pattern2$, ...}]'
       <dd>uses multiple patterns.
@@ -408,12 +407,10 @@ class Table(_IterationFunction):
       <dd>generates a list of the values of expr when $i$ runs from 1 to $n$.
 
       <dt>'Table[$expr$, {$i$, $start$, $stop$, $step$}]'
-      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$,
-        incrementing by $step$.
+      <dd>evaluates $expr$ with $i$ ranging from $start$ to $stop$, incrementing by $step$.
 
       <dt>'Table[$expr$, {$i$, {$e1$, $e2$, ..., $ei$}}]'
-      <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$,
-        ..., $ei$.
+      <dd>evaluates $expr$ with $i$ taking on the values $e1$, $e2$, ..., $ei$.
     </dl>
     >> Table[x, 3]
      = {x, x, x}

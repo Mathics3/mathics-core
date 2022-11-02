@@ -34,8 +34,8 @@ class KnownUnitQ(Test):
 
     """
     <dl>
-    <dt>'KnownUnitQ[$unit$]'
-        <dd>returns True if $unit$ is a canonical unit, and False otherwise.
+      <dt>'KnownUnitQ[$unit$]'
+      <dd>returns True if $unit$ is a canonical unit, and False otherwise.
     </dl>
 
     >> KnownUnitQ["Feet"]
@@ -62,10 +62,10 @@ class KnownUnitQ(Test):
 class Quantity(Builtin):
     """
     <dl>
-    <dt>'Quantity[$magnitude$, $unit$]'
-        <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
-    <dt>'Quantity[$unit$]'
-        <dd>assumes the magnitude of the specified $unit$ to be 1.
+      <dt>'Quantity[$magnitude$, $unit$]'
+      <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
+      <dt>'Quantity[$unit$]'
+      <dd>assumes the magnitude of the specified $unit$ to be 1.
     </dl>
 
     >> Quantity["Kilogram"]
@@ -145,10 +145,11 @@ class Quantity(Builtin):
 class QuantityMagnitude(Builtin):
     """
     <dl>
-    <dt>'QuantityMagnitude[$quantity$]'
-        <dd>gives the amount of the specified $quantity$.
-    <dt>'QuantityMagnitude[$quantity$, $unit$]'
-        <dd>gives the value corresponding to $quantity$ when converted to $unit$.
+      <dt>'QuantityMagnitude[$quantity$]'
+      <dd>gives the amount of the specified $quantity$.
+
+      <dt>'QuantityMagnitude[$quantity$, $unit$]'
+      <dd>gives the value corresponding to $quantity$ when converted to $unit$.
     </dl>
 
     >> QuantityMagnitude[Quantity["Kilogram"]]
@@ -246,8 +247,8 @@ class QuantityMagnitude(Builtin):
 class QuantityQ(Test):
     """
     <dl>
-    <dt>'QuantityQ[$expr$]'
-        <dd>return True if $expr$ is a valid Association object, and False otherwise.
+      <dt>'QuantityQ[$expr$]'
+      <dd>return True if $expr$ is a valid Association object, and False otherwise.
     </dl>
 
     >> QuantityQ[Quantity[3, "Meters"]]
@@ -295,8 +296,8 @@ class QuantityQ(Test):
 class QuantityUnit(Builtin):
     """
     <dl>
-    <dt>'QuantityUnit[$quantity$]'
-        <dd>returns the unit associated with the specified $quantity$.
+      <dt>'QuantityUnit[$quantity$]'
+      <dd>returns the unit associated with the specified $quantity$.
     </dl>
 
     >> QuantityUnit[Quantity["Kilogram"]]
@@ -339,10 +340,10 @@ class UnitConvert(Builtin):
 
     """
     <dl>
-    <dt>'UnitConvert[$quantity$, $targetunit$] '
-        <dd> converts the specified $quantity$ to the specified $targetunit$.
-    <dt>'UnitConvert[quantity]'
-        <dd> converts the specified $quantity$ to its "SIBase" units.
+      <dt>'UnitConvert[$quantity$, $targetunit$] '
+      <dd> converts the specified $quantity$ to the specified $targetunit$.
+      <dt>'UnitConvert[quantity]'
+      <dd> converts the specified $quantity$ to its "SIBase" units.
     </dl>
 
     Convert from miles to kilometers:

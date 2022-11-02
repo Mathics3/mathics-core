@@ -1020,8 +1020,10 @@ class PointBox(_Polyline):
     <dl>
       <dt>'PointBox'[{$x$, $y$}]
       <dd> a box construction representing a point in a Graphic.
+
       <dt>'PointBox'[{$x$, $y$, $z$}]
       <dd> represents a point in a Graphic3D.
+
       <dt>'PointBox'[{$p_1$, $p_2$,...}]
       <dd> represents a set of points.
     </dl>

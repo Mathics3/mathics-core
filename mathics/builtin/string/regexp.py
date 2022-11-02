@@ -11,7 +11,7 @@ from mathics.builtin.base import Builtin
 class RegularExpression(Builtin):
     r"""
     <dl>
-    <dt>'RegularExpression["regex"]'
+      <dt>'RegularExpression["regex"]'
       <dd>represents the regex specified by the string $"regex"$.
     </dl>
 

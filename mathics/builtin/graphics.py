@@ -425,6 +425,7 @@ class Point(Builtin):
     <dl>
       <dt>'Point[{$point_1$, $point_2$ ...}]'
       <dd>represents the point primitive.
+
       <dt>'Point[{{$p_11$, $p_12$, ...}, {$p_21$, $p_22$, ...}, ...}]'
       <dd>represents a number of point primitives.
     </dl>
@@ -577,10 +578,13 @@ class RegularPolygon(Builtin):
     <dl>
       <dt>'RegularPolygon[$n$]'
       <dd>gives the regular polygon with $n$ edges.
+
       <dt>'RegularPolygon[$r$, $n$]'
       <dd>gives the regular polygon with $n$ edges and radius $r$.
+
       <dt>'RegularPolygon[{$r$, $phi$}, $n$]'
       <dd>gives the regular polygon with radius $r$ with one vertex drawn at angle $phi$.
+
       <dt>'RegularPolygon[{$x, $y}, $r$, $n$]'
       <dd>gives the regular polygon centered at the position {$x, $y}.
     </dl>

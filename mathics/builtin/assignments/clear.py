@@ -137,8 +137,7 @@ class ClearAll(Clear):
     """
     <dl>
       <dt>'ClearAll[$symb1$, $symb2$, ...]'
-      <dd>clears all values, attributes, messages and options associated with the given symbols.
-      The arguments can also be given as strings containing symbol names.
+      <dd>clears all values, attributes, messages and options associated with the given symbols. The arguments can also be given as strings containing symbol names.
     </dl>
 
     >> x = 2;
@@ -170,9 +169,9 @@ class ClearAll(Clear):
 class Unset(PostfixOperator):
     """
     <dl>
-    <dt>'Unset[$x$]'
-    <dt>'$x$=.'
-        <dd>removes any value belonging to $x$.
+      <dt>'Unset[$x$]'
+      <dt>'$x$=.'
+      <dd>removes any value belonging to $x$.
     </dl>
     >> a = 2
      = 2

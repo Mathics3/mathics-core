@@ -228,8 +228,8 @@ def parse_xml(parse, text, evaluation):
 class XMLObject(Builtin):
     """
     <dl>
-    <dt>'XMLObject["type"]'
-    <dd> represents the head of an XML object in symbolic XML.
+      <dt>'XMLObject["type"]'
+      <dd> represents the head of an XML object in symbolic XML.
     </dl>
     """
 
@@ -239,8 +239,8 @@ class XMLObject(Builtin):
 class XMLElement(Builtin):
     """
     <dl>
-    <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
-    <dd>   represents an element in symbolic XML.
+      <dt>'XMLElement[$tag$, {$attr_1$, $val_1$, ...}, {$data$, ...}]'
+      <dd>   represents an element in symbolic XML.
     </dl>
     """
 
@@ -266,8 +266,8 @@ class _Get(Builtin):
 class XMLGet(_Get):
     """
     <dl>
-    <dt>'XMLGet[...]'
-    <dd> Internal. Document me.
+      <dt>'XMLGet[...]'
+      <dd> Internal. Document me.
     </dl>
     """
 
@@ -280,8 +280,8 @@ class XMLGet(_Get):
 class XMLGetString(_Get):
     """
     <dl>
-    <dt>'XML`Parser`XMLGetString["string"]'
-    <dd>parses "string" as XML code, and returns an XMLObject.
+      <dt>'XML`Parser`XMLGetString["string"]'
+      <dd>parses "string" as XML code, and returns an XMLObject.
     </dl>
     >> Head[XML`Parser`XMLGetString["<a></a>"]]
      = XMLObject[Document]
@@ -303,8 +303,8 @@ class XMLGetString(_Get):
 class PlaintextImport(Builtin):
     """
     <dl>
-    <dt>'XML`PlaintextImport["string"]'
-    <dd>parses "string" as XML code, and returns it as plain text.
+      <dt>'XML`PlaintextImport["string"]'
+      <dd>parses "string" as XML code, and returns it as plain text.
     </dl>
     >> StringReplace[StringTake[Import["ExampleData/InventionNo1.xml", "Plaintext"],31],FromCharacterCode[10]->"/"]
      = MuseScore 1.2/2012-09-12/5.7/40
@@ -332,8 +332,8 @@ class PlaintextImport(Builtin):
 class TagsImport(Builtin):
     """
     <dl>
-    <dt>'XML`TagsImport["string"]'
-    <dd>parses "string" as XML code, and returns a list with the tags found.
+      <dt>'XML`TagsImport["string"]'
+      <dd>parses "string" as XML code, and returns a list with the tags found.
     </dl>
     >> Take[Import["ExampleData/InventionNo1.xml", "Tags"], 10]
      = {accidental, alter, arpeggiate, articulations, attributes, backup, bar-style, barline, beam, beat-type}
@@ -365,8 +365,8 @@ class TagsImport(Builtin):
 class XMLObjectImport(Builtin):
     """
     <dl>
-    <dt>'XML`XMLObjectImport["string"]'
-    <dd>parses "string" as XML code, and returns a list of XMLObjects found.
+      <dt>'XML`XMLObjectImport["string"]'
+      <dd>parses "string" as XML code, and returns a list of XMLObjects found.
     </dl>
 
     >> Part[Import["ExampleData/InventionNo1.xml", "XMLObject"], 2, 3, 1]

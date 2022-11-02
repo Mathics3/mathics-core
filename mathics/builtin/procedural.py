@@ -146,7 +146,7 @@ class CompoundExpression(BinaryOperator):
     <dl>
       <dt>'CompoundExpression[$e1$, $e2$, ...]'
       <dt>'$e1$; $e2$; ...'
-        <dd>evaluates its arguments in turn, returning the last result.
+      <dd>evaluates its arguments in turn, returning the last result.
     </dl>
 
     >> a; b; c; d

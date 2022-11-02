@@ -160,8 +160,8 @@ class Fold(Builtin):
     """
     <dl>
       <dt>'Fold[$f$, $x$, $list$]'
-      <dd>returns the result of iteratively applying the binary
-        operator $f$ to each element of $list$, starting with $x$.
+      <dd>returns the result of iteratively applying the binary operator $f$ to each element of $list$, starting with $x$.
+
       <dt>'Fold[$f$, $list$]'
       <dd>is equivalent to 'Fold[$f$, First[$list$], Rest[$list$]]'.
     </dl>
@@ -183,9 +183,8 @@ class FoldList(Builtin):
     """
     <dl>
       <dt>'FoldList[$f$, $x$, $list$]'
-      <dd>returns a list starting with $x$, where each element is
-        the result of applying the binary operator $f$ to the previous
-        result and the next element of $list$.
+      <dd>returns a list starting with $x$, where each element is the result of applying the binary operator $f$ to the previous result and the next element of $list$.
+
       <dt>'FoldList[$f$, $list$]'
       <dd>is equivalent to 'FoldList[$f$, First[$list$], Rest[$list$]]'.
     </dl>

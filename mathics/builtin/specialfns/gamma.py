@@ -43,6 +43,7 @@ class Beta(_MPMathMultiFunction):
     <dl>
       <dt>'Beta[$a$, $b$]'
       <dd>is the Euler's Beta function.
+
       <dt>'Beta[$z$, $a$, $b$]'
       <dd>gives the incomplete Beta function.
     </dl>

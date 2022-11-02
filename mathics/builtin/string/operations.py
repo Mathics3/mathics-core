@@ -263,8 +263,7 @@ class StringInsert(Builtin):
       <dd>inserts a at position $n$ from the end of "$string$".
 
       <dt>'StringInsert["$string$", "$snew$", {$n_1$, $n_2$, ...}]'
-      <dd>inserts a copy of $snew$ at each position $n_i$ in $string$;
-        the $n_i$ are taken before any insertion is done.
+      <dd>inserts a copy of $snew$ at each position $n_i$ in $string$; the $n_i$ are taken before any insertion is done.
 
       <dt>'StringInsert[{$s_1$, $s_2$, ...}, "$snew$", $n$]'
       <dd>gives the list of results for each of the $s_i$.
@@ -519,10 +518,13 @@ class StringPosition(Builtin):
     <dl>
       <dt>'StringPosition["$string$", $patt$]'
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
+
       <dt>'StringPosition["$string$", $patt$, $n$]'
       <dd>returns the first $n$ matches only.
+
       <dt>'StringPosition["$string$", {$patt1$, $patt2$, ...}, $n$]'
       <dd>matches multiple patterns.
+
       <dt>'StringPosition[{$s1$, $s2$, ...}, $patt$]'
       <dd>returns a list of matches for multiple strings.
     </dl>
@@ -675,14 +677,15 @@ class StringReplace(_StringFind):
     <dl>
       <dt>'StringReplace["$string$", "$a$"->"$b$"]'
       <dd>replaces each occurrence of $old$ with $new$ in $string$.
+
       <dt>'StringReplace["$string$", {"$s1$"->"$sp1$", "$s2$"->"$sp2$"}]'
-      <dd>performs multiple replacements of each $si$ by the
-        corresponding $spi$ in $string$.
+      <dd>performs multiple replacements of each $si$ by the corresponding $spi$ in $string$.
+
       <dt>'StringReplace["$string$", $srules$, $n$]'
       <dd>only performs the first $n$ replacements.
+
       <dt>'StringReplace[{"$string1$", "$string2$", ...}, $srules$]'
-      <dd>performs the replacements specified by $srules$ on a list
-        of strings.
+      <dd>performs the replacements specified by $srules$ on a list of strings.
     </dl>
 
     StringReplace replaces all occurrences of one substring with another:
@@ -811,16 +814,17 @@ class StringRiffle(Builtin):
     <dl>
       <dt>'StringRiffle[{s1, s2, s3, ...}]'
       <dd>returns a new string by concatenating all the $si$, with spaces inserted between them.
+
       <dt>'StringRiffle[list, sep]'
       <dd>inserts the separator $sep$ between all elements in $list$.
-      <dt>'StringRiffle[list, {"left", "sep", "right"}]'
-      <dd>use $left$ and $right$ as delimiters after concatenation.
 
-    ## These 2 forms are not currently implemented
-    ## <dt>'StringRiffle[{{s11, s12, ...}, {s21, s22, ...}, ...}]'
-    ##   <dd>returns a new string by concatenating the $sij$, and inserting spaces at the lowest level and newlines at the higher level.
-    ## <dt>'StringRiffle[list, sep1, sep2, ...]'
-    ##   <dd>inserts separator $sepi$ between elements of list at level i.
+      <dt>'StringRiffle[list, {"left", "sep", "right"}]'
+      <dd>use $left$ and $right$ as delimiters after concatenation.  ## These 2 forms are not currently implemented
+
+      ## <dt>'StringRiffle[{{s11, s12, ...}, {s21, s22, ...}, ...}]'
+      ##   <dd>returns a new string by concatenating the $sij$, and inserting spaces at the lowest level and newlines at the higher level.
+      ## <dt>'StringRiffle[list, sep1, sep2, ...]'
+      ##   <dd>inserts separator $sepi$ between elements of list at level i.
     </dl>
 
     >> StringRiffle[{"a", "b", "c", "d", "e"}]

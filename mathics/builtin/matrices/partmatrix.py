@@ -14,10 +14,11 @@ from mathics.core.list import ListExpression
 class Diagonal(Builtin):
     """
     <dl>
-        <dt>'Diagonal[$m$]'
-        <dd>gives a list with the values in the diagonal of the matrix $m$.
-        <dt>'Diagonal[$m$, $k$]'
-        <dd>gives a list with the values in the $k$ diagonal of the matrix $m$.
+      <dt>'Diagonal[$m$]'
+      <dd>gives a list with the values in the diagonal of the matrix $m$.
+
+      <dt>'Diagonal[$m$, $k$]'
+      <dd>gives a list with the values in the $k$ diagonal of the matrix $m$.
     </dl>
 
     >> Diagonal[{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}}]

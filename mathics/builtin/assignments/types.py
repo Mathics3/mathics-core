@@ -17,9 +17,7 @@ class DefaultValues(Builtin):
     """
     <dl>
       <dt>'DefaultValues[$symbol$]'
-      <dd>gives the list of default values associated with $symbol$.
-
-      <i>Note: this function is in Mathematica 5 but has been removed from current Mathematica.</i>
+      <dd>gives the list of default values associated with $symbol$.  <i>Note: this function is in Mathematica 5 but has been removed from current Mathematica.</i>
     </dl>
 
     >> Default[f, 1] = 4
@@ -79,10 +77,8 @@ class Messages(Builtin):
 class NValues(Builtin):
     """
     <dl>
-       <dt>'NValues[$symbol$]'
-       <dd>gives the list of numerical values associated with $symbol$.
-
-       <i>Note: this function is in Mathematica 5 but has been removed from current Mathematica.</i>
+      <dt>'NValues[$symbol$]'
+      <dd>gives the list of numerical values associated with $symbol$.  <i>Note: this function is in Mathematica 5 but has been removed from current Mathematica.</i>
     </dl>
 
     >> NValues[a]
@@ -123,9 +119,7 @@ class SubValues(Builtin):
     """
     <dl>
       <dt>'SubValues[$symbol$]'
-      <dd>gives the list of subvalues associated with $symbol$.
-
-      <i>Note: this function is not in current Mathematica.</i>
+      <dd>gives the list of subvalues associated with $symbol$.  <i>Note: this function is not in current Mathematica.</i>
     </dl>
 
     >> f[1][x_] := x

@@ -148,9 +148,7 @@ class DiceDissimilarity(_BooleanDissimilarity):
     <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
-      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
+      <dd>returns the Dice dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / (2 * c_tt + c_ft + c_tf), where $n$ is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$ < $n$.
     </dl>
 
     >> DiceDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -244,9 +242,7 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     """
     <dl>
       <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
-      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is
-      the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, and $R$ = 2 * (c_tf + c_ft).
+      <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + c_ff + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[$k]$=$j$ for $k$<n, and $R$ = 2 * (c_tf + c_ft).
     </dl>
 
     >> RogersTanimotoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -264,9 +260,7 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
     <dl>
       <dt>'RussellRaoDissimilarity[$u$, $v$]'
-      <dd>returns the Russell-Rao dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as (n - c_tt) / c_tt where n is len($u$) and c_ij is
-      the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
+      <dd>returns the Russell-Rao dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (n - c_tt) / c_tt where n is len($u$) and c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for k<n.
     </dl>
 
     >> RussellRaoDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]
@@ -283,8 +277,7 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
     <dl>
       <dt>'SokalSneathDissimilarity[$u$, $v$]'
-      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
-      which is defined as $R$ / (c_tt + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, and R = 2 * (c_tf + c_ft).
+      <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as $R$ / (c_tt + $R$) where $n$ is len($u$), c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$, and R = 2 * (c_tf + c_ft).
     </dl>
 
     >> SokalSneathDissimilarity[{1, 0, 1, 1, 0, 1, 1}, {0, 1, 1, 0, 0, 0, 1}]

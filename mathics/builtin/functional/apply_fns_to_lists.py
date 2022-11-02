@@ -44,7 +44,6 @@ class Apply(BinaryOperator):
     """
     <dl>
       <dt>'Apply[$f$, $expr$]'
-
       <dt>'$f$ @@ $expr$'
       <dd>replaces the head of $expr$ with $f$.
 
