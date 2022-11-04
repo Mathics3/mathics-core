@@ -283,15 +283,13 @@ class Builtin:
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
             )
-        for pattern, replace in self.rules.items():
-            # FIXME: sometimes pattern is a string and sometimes a BaseElement?
-            # This seems wrong.
-            if not isinstance(pattern, BaseElement):
-                pattern = pattern % {"name": name}
-                pattern = parse_builtin_rule(pattern, definition_class)
-            replace = replace % {"name": name}
-            # FIXME: Should system=True be system=not is_pymodule ?
-            rules.append(Rule(pattern, parse_builtin_rule(replace), system=True))
+        for pattern_str, replace_str in self.rules.items():
+            pattern_str = pattern_str % {"name": name}
+            pattern = parse_builtin_rule(pattern_str, definition_class)
+            replace_str = replace_str % {"name": name}
+            rules.append(
+                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+            )
 
         box_rules = []
         # FIXME: Why a special case for System`MakeBoxes? Remove this
