@@ -9,17 +9,18 @@ CHANGES
 New Builtins
 +++++++++++
 
-#. ``Accuracy``
 #. ``$BoxForms``
+#. ``$OutputForms``
+#. ``$PrintForms``
+#. ``Accuracy``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``Kurtosis``
 #. ``PauliMatrix``
+#. ``SetOptions``
 #. ``SixJSymbol``
 #. ``Skewness``
 #. ``ThreeJSymbol``
-#. ``$PrintForms``
-#. ``$OutputForms``
 
 
 Documentation
@@ -40,7 +41,7 @@ Internals
 #. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
 #. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
 
-   
+
 Bugs
 ++++
 
