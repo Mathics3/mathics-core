@@ -15,6 +15,7 @@ from mathics.builtin.base import Builtin, Test, get_option
 from mathics.builtin.drawing.image import Image
 
 from mathics.core.atoms import String
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import (
     Expression,
     SymbolDefault,
@@ -454,7 +455,7 @@ class SetOptions(Builtin):
 
     summary_text = "set up default option values for a function"
 
-    def eval(self, symbol, options, evaluation):
+    def eval(self, symbol: Symbol, options: Expression, evaluation: Evaluation):
         "SetOptions[symbol_Symbol, options___]"
 
         # Get the existing options for parameter ``symbol``.
@@ -467,8 +468,8 @@ class SetOptions(Builtin):
             value = next(options_pairs)
             options_dict[option_symbol.name] = value
 
-        # Update symbol's options for each of the options passed
-        # in ``_options``.
+        # Create and return a List with all of the options including
+        # the new updated ones.
         options_list = options_to_rules(options_dict)
         return ListExpression(*options_list)
 
