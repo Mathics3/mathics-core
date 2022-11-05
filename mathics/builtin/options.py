@@ -463,10 +463,23 @@ class SetOptions(Builtin):
 
         # Update symbol's options for each of the options passed
         # in ``_options``.
+        if not hasattr(options, "elements"):
+            evaluation.message("SetOptions", "rep", options)
+            return None
+
+        # For a single association, ``options`` is Symbol, replacement
+        # For multiple associations, ``options`` is a list of Rules.
         options_pairs = iter(options.elements)
-        for option_symbol in options_pairs:
-            value = next(options_pairs)
-            options_dict[option_symbol.name] = value
+        for element in options_pairs:
+            if isinstance(element, Symbol):
+                option_symbol = element
+                option_value = next(options_pairs)
+            elif element.head is SymbolRule:
+                option_symbol, option_value = element.elements
+            else:
+                evaluation.message("SetOptions", "rep", element)
+                return None
+            options_dict[option_symbol.name] = option_value
 
         # Create and return a List with all of the options including
         # the new updated ones.

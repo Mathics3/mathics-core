@@ -658,7 +658,7 @@ class General(Builtin):
         "ucdec": "An invalid unicode sequence was encountered and ignored.",
         "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",
         # Self-defined messages
-        # 'rep': "`1` is not a valid replacement rule.",
+        "rep": "`1` is not a valid replacement rule.",
         "options": "`1` is not a valid list of option rules.",
         "timeout": "Timeout reached.",
         "syntax": "`1`",
