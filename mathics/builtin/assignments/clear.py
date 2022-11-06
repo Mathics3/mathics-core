@@ -167,6 +167,36 @@ class ClearAll(Clear):
         definition.defaultvalues = []
 
 
+class Remove(Builtin):
+    """
+    <dl>
+      <dt>'Remove[$x$]'
+      <dd>removes the definition associated to $x$.
+    </dl>
+    >> a := 2
+    >> Names["Global`a"]
+     = {a}
+    >> Remove[a]
+    >> Names["Global`a"]
+     = {}
+    """
+
+    attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
+
+    precedence = 670
+    summary_text = "remove the definition of a symbol"
+
+    def eval(self, symb, evaluation):
+        """Remove[symb_]"""
+        if isinstance(symb, Symbol):
+            evaluation.definitions.reset_user_definition(symb.name)
+        elif isinstance(symb, String):
+            evaluation.definitions.reset_user_definition(symb.value)
+        else:
+            evaluation.message(self.get_name(), "ssym", symb)
+        return SymbolNull
+
+
 class Unset(PostfixOperator):
     """
     <dl>
