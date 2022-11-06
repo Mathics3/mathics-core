@@ -567,9 +567,12 @@ def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
     # rather than:
     #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
-    makeboxes_rule = Rule(lhs, rhs, system=True)
-    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
-    makeboxes_defs.add_rule(makeboxes_rule)
+
+    makeboxes_rule = Rule(lhs, rhs, system=False)
+    definitions = evaluation.definitions
+    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "down")
+    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
+    #    makeboxes_defs.add_rule(makeboxes_rule)
     return True
 
 

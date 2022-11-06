@@ -12,7 +12,7 @@ Begin["System`"]
    code. *)
 Attributes[CommonRadicalBox] = HoldAll;
 Attributes[RadBox] = HoldAll;
-CommonRadicalBox[expr_, form_] = RadBox[MakeBoxes[expr, form], 3];
+CommonRadicalBox[expr_, form_]:= RadBox[MakeBoxes[expr, form], 3];
 
 (******************************************************************************************)
 (* StandardForm Boxing Rules                                                               *)
