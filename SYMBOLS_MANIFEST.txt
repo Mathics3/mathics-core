@@ -878,6 +878,7 @@ System`SetAttributes
 System`SetDelayed
 System`SetDirectory
 System`SetFileDate
+System`SetOptions
 System`SetStreamPosition
 System`Share
 System`Sharpen

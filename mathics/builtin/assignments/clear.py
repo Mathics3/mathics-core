@@ -77,7 +77,6 @@ class Clear(Builtin):
     allow_locked = True
     attributes = A_HOLD_ALL | A_PROTECTED
     messages = {
-        "ssym": "`1` is not a symbol or a string.",
         "spsym": "Special symbol `1` cannot be cleared.",
     }
     summary_text = "clear all values associated with the LHS or symbol"
