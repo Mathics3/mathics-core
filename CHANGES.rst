@@ -15,6 +15,7 @@ New Builtins
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``Kurtosis``
 #. ``PauliMatrix``
+#. ``Remove``
 #. ``SixJSymbol``
 #. ``Skewness``
 #. ``ThreeJSymbol``
