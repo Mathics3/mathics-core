@@ -169,7 +169,13 @@ class Definitions:
                 if name.startswith("Global`"):
                     raise ValueError("autoload defined %s." % name)
 
-            self.builtin.update(self.user)
+            # Move symbols defined in autoload modules
+            # to Builtin definitions.
+            # This seems important for Export and Import...
+            # TODO: check why
+            for name in self.user:
+                self.builtin[name] = self.get_definition(name)
+
             self.user = {}
             self.clear_cache()
 
