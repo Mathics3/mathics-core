@@ -205,9 +205,6 @@ class Protect(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    messages = {
-        "ssym": "`1` is not a symbol or a string.",
-    }
     summary_text = "protect a symbol against redefinitions"
 
     def apply(self, symbols, evaluation):
@@ -261,9 +258,6 @@ class Unprotect(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
-    messages = {
-        "ssym": "`1` is not a symbol or a string.",
-    }
     summary_text = "remove protection against redefinitions"
 
     def apply(self, symbols, evaluation):
