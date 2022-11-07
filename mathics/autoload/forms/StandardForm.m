@@ -10,15 +10,15 @@ Begin["System`"]
 (* Change RadBox to RadicalBox. We use RadBox to make it clear that
    the below code was a read-in from a file and not some pre-existing
    code. *)
-Attributes[CommonRadicalBox] = HoldAll;
+Attributes[CubeRootRadicalBox] = HoldAll;
 Attributes[RadBox] = HoldAll;
-CommonRadicalBox[expr_, form_]:= RadBox[MakeBoxes[expr, form], 3];
+CubeRootRadicalBox[expr_, form_]:= RadBox[MakeBoxes[expr, form], 3];
 
 (******************************************************************************************)
 (* StandardForm Boxing Rules                                                               *)
 (******************************************************************************************)
 
-MakeBoxes[CubeRoot[expr_], StandardForm] := CommonRadicalBox[expr, StandardForm];
+MakeBoxes[CubeRoot[expr_], StandardForm] := CubeRootRadicalBox[expr, StandardForm];
 (*All the other StandardForm boxing routines... *)
 
 End[]
