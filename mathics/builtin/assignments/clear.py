@@ -181,7 +181,6 @@ class Remove(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
-    messages = {"ssym": "`1` is not a symbol."}
     precedence = 670
     summary_text = "remove the definition of a symbol"
 
