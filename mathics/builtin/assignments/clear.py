@@ -39,6 +39,10 @@ from mathics.builtin.assignments.internals import is_protected
 
 class Clear(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Clear.html</url>
+
     <dl>
       <dt>'Clear[$symb1$, $symb2$, ...]'
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
@@ -134,6 +138,10 @@ class Clear(Builtin):
 
 class ClearAll(Clear):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ClearAll.html</url>
+
     <dl>
       <dt>'ClearAll[$symb1$, $symb2$, ...]'
       <dd>clears all values, attributes, messages and options associated with the given symbols.
@@ -166,12 +174,50 @@ class ClearAll(Clear):
         definition.defaultvalues = []
 
 
+class Remove(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Remove.html</url>
+
+    <dl>
+      <dt>'Remove[$x$]'
+      <dd>removes the definition associated to $x$.
+    </dl>
+    >> a := 2
+    >> Names["Global`a"]
+     = {a}
+    >> Remove[a]
+    >> Names["Global`a"]
+     = {}
+    """
+
+    attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
+
+    precedence = 670
+    summary_text = "remove the definition of a symbol"
+
+    def eval(self, symb, evaluation):
+        """Remove[symb_]"""
+        if isinstance(symb, Symbol):
+            evaluation.definitions.reset_user_definition(symb.name)
+        elif isinstance(symb, String):
+            evaluation.definitions.reset_user_definition(symb.value)
+        else:
+            evaluation.message(self.get_name(), "ssym", symb)
+        return SymbolNull
+
+
 class Unset(PostfixOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unset.html</url>
+
     <dl>
-    <dt>'Unset[$x$]'
-    <dt>'$x$=.'
-        <dd>removes any value belonging to $x$.
+      <dt>'Unset[$x$]'
+      <dt>'$x$=.'
+      <dd>removes any value belonging to $x$.
     </dl>
     >> a = 2
      = 2
