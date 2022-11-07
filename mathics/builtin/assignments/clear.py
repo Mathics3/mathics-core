@@ -39,6 +39,10 @@ from mathics.builtin.assignments.internals import is_protected
 
 class Clear(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Clear.html</url>
+
     <dl>
       <dt>'Clear[$symb1$, $symb2$, ...]'
       <dd>clears all values of the given symbols. The arguments can also be given as strings containing symbol names.
@@ -134,6 +138,10 @@ class Clear(Builtin):
 
 class ClearAll(Clear):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ClearAll.html</url>
+
     <dl>
       <dt>'ClearAll[$symb1$, $symb2$, ...]'
       <dd>clears all values, attributes, messages and options associated with the given symbols.
@@ -168,6 +176,10 @@ class ClearAll(Clear):
 
 class Remove(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Remove.html</url>
+
     <dl>
       <dt>'Remove[$x$]'
       <dd>removes the definition associated to $x$.
@@ -198,10 +210,14 @@ class Remove(Builtin):
 
 class Unset(PostfixOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Unset.html</url>
+
     <dl>
-    <dt>'Unset[$x$]'
-    <dt>'$x$=.'
-        <dd>removes any value belonging to $x$.
+      <dt>'Unset[$x$]'
+      <dt>'$x$=.'
+      <dd>removes any value belonging to $x$.
     </dl>
     >> a = 2
      = 2
