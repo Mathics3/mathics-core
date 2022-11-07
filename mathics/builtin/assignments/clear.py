@@ -193,7 +193,6 @@ class Remove(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_LOCKED | A_PROTECTED
-
     precedence = 670
     summary_text = "remove the definition of a symbol"
 

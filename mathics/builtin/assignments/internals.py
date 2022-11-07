@@ -558,6 +558,24 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
+def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
+    # FIXME: the below is a big hack.
+    # Currently MakeBoxes boxing is implemented as a bunch of rules.
+    # See mathics.builtin.base contribute().
+    # I think we want to change this so it works like normal SetDelayed
+    # That is:
+    #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
+    # rather than:
+    #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+
+    makeboxes_rule = Rule(lhs, rhs, system=False)
+    definitions = evaluation.definitions
+    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "down")
+    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
+    #    makeboxes_defs.add_rule(makeboxes_rule)
+    return True
+
+
 def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
@@ -685,23 +703,24 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
 
 class _SetOperator:
     special_cases = {
-        "System`OwnValues": process_assign_definition_values,
-        "System`DownValues": process_assign_definition_values,
-        "System`SubValues": process_assign_definition_values,
-        "System`UpValues": process_assign_definition_values,
-        "System`NValues": process_assign_definition_values,
-        "System`DefaultValues": process_assign_definition_values,
-        "System`Messages": process_assign_definition_values,
-        "System`Attributes": process_assign_attributes,
-        "System`Options": process_assign_options,
-        "System`$RandomState": process_assign_random_state,
         "System`$Context": process_assign_context,
         "System`$ContextPath": process_assign_context_path,
-        "System`N": process_assign_n,
-        "System`NumericQ": process_assign_numericq,
-        "System`MessageName": process_assign_messagename,
+        "System`$RandomState": process_assign_random_state,
+        "System`Attributes": process_assign_attributes,
         "System`Default": process_assign_default,
+        "System`DefaultValues": process_assign_definition_values,
+        "System`DownValues": process_assign_definition_values,
         "System`Format": process_assign_format,
+        "System`MakeBoxes": process_assign_makeboxes,
+        "System`MessageName": process_assign_messagename,
+        "System`Messages": process_assign_definition_values,
+        "System`N": process_assign_n,
+        "System`NValues": process_assign_definition_values,
+        "System`NumericQ": process_assign_numericq,
+        "System`Options": process_assign_options,
+        "System`OwnValues": process_assign_definition_values,
+        "System`SubValues": process_assign_definition_values,
+        "System`UpValues": process_assign_definition_values,
     }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
