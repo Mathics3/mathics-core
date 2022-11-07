@@ -171,8 +171,9 @@ class Definitions:
 
             # Move symbols defined in autoload modules
             # to Builtin definitions.
-            # This seems important for Export and Import...
-            # TODO: check why
+            # This is important to avoid that reset_user_definitions
+            # getting rid of the autoloaded definitions (including)
+            # the needed by Import/Export.
             for name in self.user:
                 self.builtin[name] = self.get_definition(name)
 
