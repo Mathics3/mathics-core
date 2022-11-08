@@ -144,7 +144,7 @@ def repl_pattern_by_symbol(expr):
         return expr
 
 
-# Here are the functions related to assign_elementary
+# Here are the functions related to assign
 
 # Auxiliary routines
 
@@ -232,7 +232,7 @@ def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
     return lhs, condition
 
 
-# Here starts the functions that implement `assign_elementary` for different
+# Here starts the functions that implement `assign` for different
 # kind of expressions. Maybe they should be put in a separated module, or
 # maybe they should be member functions of _SetOperator.
 
@@ -643,6 +643,30 @@ def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
+def process_assing_part(self, lhs, rhs, evaluation, tags, upset):
+    """
+    Special case `A[[i,j,...]]=....`
+    """
+    defs = evaluation.definitions
+    if len(lhs.elements) < 1:
+        evaluation.message(self.get_name(), "setp", lhs)
+        return False
+    symbol = lhs.elements[0]
+    name = symbol.get_name()
+    if not name:
+        evaluation.message(self.get_name(), "setps", symbol)
+        return False
+    if is_protected(name, defs):
+        evaluation.message(self.get_name(), "wrsym", symbol)
+        return False
+    rule = defs.get_ownvalue(name)
+    if rule is None:
+        evaluation.message(self.get_name(), "noval", symbol)
+        return False
+    indices = lhs.elements[1:]
+    return walk_parts([rule.replace], indices, evaluation, rhs)
+
+
 def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
@@ -772,6 +796,23 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
 
 
 class _SetOperator:
+    """
+    This is the base class for assignment Builtin operators.
+
+    Special cases are determined by the head of the expression. Then
+    they are processed by specific routines, which are poke from
+    the `special_cases` dict.
+    """
+
+    # There are several idea about how to reimplement this. One possibility
+    # would be to use a Symbol instead of a name as the key of this dictionary.
+    #
+    # Another possibility would be to move the specific function to be a
+    # class method associated to the corresponding builtins. In any case,
+    # the present implementation should be clear enough to understand the
+    # logic.
+    #
+
     special_cases = {
         "System`$Context": process_assign_context,
         "System`$ContextPath": process_assign_context_path,
@@ -790,11 +831,12 @@ class _SetOperator:
         "System`NumericQ": process_assign_numericq,
         "System`Options": process_assign_options,
         "System`OwnValues": process_assign_definition_values,
+        "System`Part": process_assing_part,
         "System`SubValues": process_assign_definition_values,
         "System`UpValues": process_assign_definition_values,
     }
 
-    def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):
+    def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
         if isinstance(lhs, Symbol):
             name = lhs.name
         else:
@@ -810,39 +852,3 @@ class _SetOperator:
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
             return False
-
-    def assign(self, lhs, rhs, evaluation):
-        # lhs._format_cache = None
-        defs = evaluation.definitions
-        if False and lhs.get_head_name() == "System`List":
-            if not (rhs.get_head_name() == "System`List") or len(lhs.elements) != len(
-                rhs.elements
-            ):  # nopep8
-                evaluation.message(self.get_name(), "shape", lhs, rhs)
-                return False
-            else:
-                result = True
-                for left, right in zip(lhs.elements, rhs.elements):
-                    if not self.assign(left, right, evaluation):
-                        result = False
-                return result
-        elif lhs.get_head_name() == "System`Part":
-            if len(lhs.elements) < 1:
-                evaluation.message(self.get_name(), "setp", lhs)
-                return False
-            symbol = lhs.elements[0]
-            name = symbol.get_name()
-            if not name:
-                evaluation.message(self.get_name(), "setps", symbol)
-                return False
-            if is_protected(name, defs):
-                evaluation.message(self.get_name(), "wrsym", symbol)
-                return False
-            rule = defs.get_ownvalue(name)
-            if rule is None:
-                evaluation.message(self.get_name(), "noval", symbol)
-                return False
-            indices = lhs.elements[1:]
-            return walk_parts([rule.replace], indices, evaluation, rhs)
-        else:
-            return self.assign_elementary(lhs, rhs, evaluation)

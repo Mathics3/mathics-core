@@ -225,7 +225,7 @@ class TagSet(Builtin, _SetOperator):
             return
 
         rhs = rhs.evaluate(evaluation)
-        self.assign_elementary(lhs, rhs, evaluation, tags=[name])
+        self.assign(lhs, rhs, evaluation, tags=[name])
         return rhs
 
 
@@ -250,7 +250,7 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", f, 1)
             return
 
-        if self.assign_elementary(lhs, rhs, evaluation, tags=[name]):
+        if self.assign(lhs, rhs, evaluation, tags=[name]):
             return SymbolNull
         else:
             return SymbolFailed
