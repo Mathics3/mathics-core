@@ -358,6 +358,11 @@ class ExpressionPattern(Pattern):
             and not self.head.expr.sameQ(expression.get_head())  # nopep8
             and not self.head.expr.sameQ(expression)
         ):
+
+            print("Considering ONEIDENTITY")
+            print("   expression:", expression)
+            print("   self.head.expr:", self.head.expr)
+
             # and not OneIdentity &
             # (expression.get_attributes(evaluation.definitions) |
             # expression.get_head().get_attributes(evaluation.definitions)):

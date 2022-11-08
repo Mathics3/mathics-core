@@ -86,6 +86,10 @@ class ListExpression(Expression):
 
     # @timeit
     def evaluate_elements(self, evaluation):
+        """
+        return a new expression with the same head, and the
+        evaluable elements evaluated.
+        """
         elements_changed = False
         # Make tuple self._elements mutable by turning it into a list.
         elements = list(self._elements)
@@ -98,16 +102,17 @@ class ListExpression(Expression):
                         elements_changed = True
                         elements[index] = new_value
 
-        if elements_changed:
-            # Save changed elements, making them immutable again.
-            self._elements = tuple(elements)
+        if not elements_changed:
+            return self
 
-            # TODO: we could have a specialized version of this
-            # that keeps self.value up to date when that is
-            # easy to do. That is left of some future time to
-            # decide whether doing this this is warranted.
-            self._build_elements_properties()
-            self.value = None
+        new_list = ListExpression(*elements)
+        # TODO: we could have a specialized version of this
+        # that keeps self.value up to date when that is
+        # easy to do. That is left of some future time to
+        # decide whether doing this this is warranted.
+        new_list._build_elements_properties()
+        new_list.value = None
+        return new_list
 
     @property
     def is_literal(self) -> bool:
@@ -142,7 +147,7 @@ class ListExpression(Expression):
             self._build_elements_properties()
         if not self.elements_properties.elements_fully_evaluated:
             new = self.shallow_copy()
-            new.evaluate_elements(evaluation)
+            new = new.evaluate_elements(evaluation)
             return new, False
         return self, False
 

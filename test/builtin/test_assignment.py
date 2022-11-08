@@ -5,7 +5,7 @@ import pytest
 from test.helper import check_evaluation, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
-DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
+DEBUGASSIGN = int(os.environ.get("DEBUGSET", "1")) == 1
 
 if DEBUGASSIGN:
     skip_or_fail = pytest.mark.xfail
