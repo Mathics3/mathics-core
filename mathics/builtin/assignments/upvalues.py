@@ -58,7 +58,7 @@ class UpSet(BinaryOperator, _SetOperator):
     def apply(self, lhs, rhs, evaluation):
         "lhs_ ^= rhs_"
 
-        self.assign_elementary(lhs, rhs, evaluation, upset=True)
+        self.assign(lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -92,7 +92,7 @@ class UpSetDelayed(UpSet):
     def apply(self, lhs, rhs, evaluation):
         "lhs_ ^:= rhs_"
 
-        if self.assign_elementary(lhs, rhs, evaluation, upset=True):
+        if self.assign(lhs, rhs, evaluation, upset=True):
             return SymbolNull
         else:
             return SymbolFailed
