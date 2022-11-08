@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
+from typing import Optional, Tuple
 
 from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
@@ -41,12 +43,22 @@ class AssignmentException(Exception):
 
 
 def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
+    """
+    This is the default assignment. Stores a rule of the form lhs->rhs
+    as a value associated to each symbol listed in tags.
+    For special cases, such like conditions or patterns in the lhs,
+    lhs and rhs are rewritten in a normal form, where
+    conditions are associated to the lhs.
+    """
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
     ignore_protection, tags = process_assign_other(
         self, lhs, rhs, evaluation, tags, upset
     )
+    # In WMA, this does not happens. However, if we remove this,
+    # some combinatorica tests fail.
+    # Also, should not be at the begining?
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
@@ -166,7 +178,11 @@ def find_tag_and_check(lhs, tags, evaluation):
     return tag
 
 
-def unroll_patterns(lhs, rhs, evaluation):
+def unroll_patterns(lhs, rhs, evaluation) -> Tuple[BaseElement, BaseElement]:
+    """
+    Pattern[symb, pat]=rhs -> pat = (rhs/.(symb->pat))
+    HoldPattern[lhs] = rhs -> lhs = rhs
+    """
     if isinstance(lhs, Atom):
         return lhs, rhs
     name = lhs.get_head_name()
@@ -174,15 +190,24 @@ def unroll_patterns(lhs, rhs, evaluation):
     if name == "System`Pattern":
         lhs = lhs_elements[1]
         rulerepl = (lhs_elements[0], repl_pattern_by_symbol(lhs))
+        # Maybe this replamement should be delayed instead,
+        # like
+        # rhs = Expression(Symbol("System`Replace"), Rule(*rulerepl))
+        # TODO: check if this is the correct behavior.
         rhs, status = rhs.do_apply_rules([Rule(*rulerepl)], evaluation)
         name = lhs.get_head_name()
-
-    if name == "System`HoldPattern":
+    elif name == "System`HoldPattern":
         lhs = lhs_elements[0]
     return lhs, rhs
 
 
-def unroll_conditions(lhs):
+def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
+    """
+    If lhs is a nested `Condition` expression,
+    gather all the conditions in a single one, and returns a tuple
+    with the lhs stripped from the conditions and the shallow condition.
+    If there is not any condition, returns the lhs and None
+    """
     if isinstance(lhs, Symbol):
         return lhs, None
     else:
@@ -213,6 +238,9 @@ def unroll_conditions(lhs):
 
 
 def process_assign_recursion_limit(lhs, rhs, evaluation):
+    """
+    Set ownvalue for the $RecursionLimit symbol.
+    """
     rhs_int_value = rhs.get_int_value()
     # if (not rhs_int_value or rhs_int_value < 20) and not
     # rhs.get_name() == 'System`Infinity':
@@ -231,6 +259,10 @@ def process_assign_recursion_limit(lhs, rhs, evaluation):
 
 
 def process_assign_iteration_limit(lhs, rhs, evaluation):
+    """
+    Set ownvalue for the $IterationLimit symbol.
+    """
+
     rhs_int_value = rhs.get_int_value()
     if (
         not rhs_int_value or rhs_int_value < 20
@@ -241,6 +273,9 @@ def process_assign_iteration_limit(lhs, rhs, evaluation):
 
 
 def process_assign_module_number(lhs, rhs, evaluation):
+    """
+    Set ownvalue for the $ModuleNumber symbol.
+    """
     rhs_int_value = rhs.get_int_value()
     if not rhs_int_value or rhs_int_value <= 0:
         evaluation.message("$ModuleNumber", "set", rhs)
@@ -251,6 +286,10 @@ def process_assign_module_number(lhs, rhs, evaluation):
 def process_assign_line_number_and_history_length(
     self, lhs, rhs, evaluation, tags, upset
 ):
+    """
+    Set ownvalue for the $Line and $HistoryLength symbols.
+    """
+
     lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     if rhs_int_value is None or rhs_int_value < 0:
@@ -430,7 +469,18 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
+def process_assign_other(
+    self, lhs, rhs, evaluation, tags=None, upset=False
+) -> Tuple[bool, list]:
+    """
+    Process special cases, performing certain side effects, like modifying
+    the value of internal variables that are not stored as rules.
+
+    The function returns a tuple of a bool value and a list of tags.
+    If lhs is one of the special cases, then the bool variable is
+    True, meaning that the `Protected` attribute should not be taken into accout.
+    Otherwise, the value is False.
+    """
     tags, focus = process_tags_and_upset_allow_custom(
         tags, upset, self, lhs, evaluation
     )
@@ -455,6 +505,10 @@ def process_assign_other(self, lhs, rhs, evaluation, tags=None, upset=False):
 
 
 def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
+    """
+    Process the case where lhs is of the form
+    `Attribute[symbol]`
+    """
     name = lhs.get_head_name()
     if len(lhs.elements) != 1:
         evaluation.message_args(name, len(lhs.elements), 1)
@@ -558,6 +612,24 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
+def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
+    # FIXME: the below is a big hack.
+    # Currently MakeBoxes boxing is implemented as a bunch of rules.
+    # See mathics.builtin.base contribute().
+    # I think we want to change this so it works like normal SetDelayed
+    # That is:
+    #   MakeBoxes[CubeRoot, StandardForm] := RadicalBox[3, StandardForm]
+    # rather than:
+    #   MakeBoxes[CubeRoot, StandardForm] -> RadicalBox[3, StandardForm]
+
+    makeboxes_rule = Rule(lhs, rhs, system=False)
+    definitions = evaluation.definitions
+    definitions.add_rule("System`MakeBoxes", makeboxes_rule, "down")
+    #    makeboxes_defs = evaluation.definitions.builtin["System`MakeBoxes"]
+    #    makeboxes_defs.add_rule(makeboxes_rule)
+    return True
+
+
 def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
@@ -582,6 +654,9 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_rhs_conditions(lhs, rhs, condition, evaluation):
+    """
+    lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+    """
     # To Handle `OptionValue` in `Condition`
     rulopc = build_rulopc(lhs.get_head())
     rhs_name = rhs.get_head_name()
@@ -685,23 +760,24 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
 
 class _SetOperator:
     special_cases = {
-        "System`OwnValues": process_assign_definition_values,
-        "System`DownValues": process_assign_definition_values,
-        "System`SubValues": process_assign_definition_values,
-        "System`UpValues": process_assign_definition_values,
-        "System`NValues": process_assign_definition_values,
-        "System`DefaultValues": process_assign_definition_values,
-        "System`Messages": process_assign_definition_values,
-        "System`Attributes": process_assign_attributes,
-        "System`Options": process_assign_options,
-        "System`$RandomState": process_assign_random_state,
         "System`$Context": process_assign_context,
         "System`$ContextPath": process_assign_context_path,
-        "System`N": process_assign_n,
-        "System`NumericQ": process_assign_numericq,
-        "System`MessageName": process_assign_messagename,
+        "System`$RandomState": process_assign_random_state,
+        "System`Attributes": process_assign_attributes,
         "System`Default": process_assign_default,
+        "System`DefaultValues": process_assign_definition_values,
+        "System`DownValues": process_assign_definition_values,
         "System`Format": process_assign_format,
+        "System`MakeBoxes": process_assign_makeboxes,
+        "System`MessageName": process_assign_messagename,
+        "System`Messages": process_assign_definition_values,
+        "System`N": process_assign_n,
+        "System`NValues": process_assign_definition_values,
+        "System`NumericQ": process_assign_numericq,
+        "System`Options": process_assign_options,
+        "System`OwnValues": process_assign_definition_values,
+        "System`SubValues": process_assign_definition_values,
+        "System`UpValues": process_assign_definition_values,
     }
 
     def assign_elementary(self, lhs, rhs, evaluation, tags=None, upset=False):

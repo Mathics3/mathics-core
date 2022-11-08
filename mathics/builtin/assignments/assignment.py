@@ -144,6 +144,21 @@ class SetDelayed(Set):
      = 2 / 3
     >> F[-3, 2]
      = -2 / 3
+    We can use conditional delayed assignments to define \
+    symbols with values conditioned to the context. For example,
+    >> a/; b>0:= 3
+    Set $a$ to have a value of $3$ if certain variable $b$ is positive.\
+    So, if this variable is not set, $a$ stays unevaluated:
+    >> a
+     = a
+    If now we assign a positive value to $b$, then $a$ is evaluated:
+    >> b=2; a
+     =  3
+    Notice however that if we assign an unconditional value to $a$, \
+    this overrides the condition:
+    >> a:=0; a/; b>1:= 3
+    >> a
+     = 0
     """
 
     operator = ":="
