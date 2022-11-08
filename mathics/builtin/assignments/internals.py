@@ -612,6 +612,19 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
+def process_assign_list(self, lhs, rhs, evaluation, tags, upset):
+    if not (
+        rhs.get_head_name() == "System`List" and len(lhs.elements) == len(rhs.elements)
+    ):  # nopep8
+        evaluation.message(self.get_name(), "shape", lhs, rhs)
+        return False
+    result = True
+    for left, right in zip(lhs.elements, rhs.elements):
+        if not self.assign(left, right, evaluation):
+            result = False
+    return result
+
+
 def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     # FIXME: the below is a big hack.
     # Currently MakeBoxes boxing is implemented as a bunch of rules.
@@ -768,6 +781,7 @@ class _SetOperator:
         "System`DefaultValues": process_assign_definition_values,
         "System`DownValues": process_assign_definition_values,
         "System`Format": process_assign_format,
+        "System`List": process_assign_list,
         "System`MakeBoxes": process_assign_makeboxes,
         "System`MessageName": process_assign_messagename,
         "System`Messages": process_assign_definition_values,
@@ -800,11 +814,10 @@ class _SetOperator:
     def assign(self, lhs, rhs, evaluation):
         # lhs._format_cache = None
         defs = evaluation.definitions
-        if lhs.get_head_name() == "System`List":
+        if False and lhs.get_head_name() == "System`List":
             if not (rhs.get_head_name() == "System`List") or len(lhs.elements) != len(
                 rhs.elements
             ):  # nopep8
-
                 evaluation.message(self.get_name(), "shape", lhs, rhs)
                 return False
             else:
