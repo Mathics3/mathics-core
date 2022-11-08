@@ -136,22 +136,17 @@ def normalize_lhs(lhs, evaluation):
 
     returns a tuple with the normalized lhs, and the lookup_name of the head in uncondlhs.
     """
-    print("normalize ", lhs)
     cond = None
     if lhs.get_head() is SymbolCondition:
         lhs, cond = unroll_conditions(lhs)
-        print("    flatten conditions: ", lhs)
 
     lookup_name = lhs.get_lookup_name()
-    print("    lookup: ", lookup_name)
     # In WMA, before the assignment, the elements of the (stripped) LHS are evaluated.
     if isinstance(lhs, Expression) and lhs.get_head() not in (SymbolList, SymbolPart):
         lhs = lhs.evaluate_elements(evaluation)
     # If there was a conditional expression, rebuild it with the processed lhs
-    print("    evaluated elements", lhs)
     if cond:
         lhs = Expression(cond.get_head(), lhs, cond.elements[1])
-        print("   adding conditions: ", lhs)
     return lhs, lookup_name
 
 
