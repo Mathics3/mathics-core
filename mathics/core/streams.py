@@ -43,9 +43,10 @@ def urlsave_tmp(url, location=None, **kwargs):
             with open(location, "wb") as fp:
                 fp.write(r.content)
                 result = fp.name
+            return result
         except Exception:
-            result = None
-    return result
+            return None
+    return None
 
 
 def path_search(filename: str) -> Tuple[str, bool]:
