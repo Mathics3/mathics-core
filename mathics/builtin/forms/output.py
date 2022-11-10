@@ -149,6 +149,50 @@ class BaseForm(Builtin):
             )
 
 
+class DisplayForm(FormBaseClass):
+    """
+    <dl>
+      <dt>'DisplayForm[$obj$]'
+      <dd>is a form that shows low-level box structures as the correspoding
+      print form.
+    </dl>
+
+    By default, box structures are shown without a format:
+    >> box = MakeBoxes[Infix[{a, b}," + "], StandardForm]
+     = RowBox[{a,  + , b}]
+    Wrapping the box structure in a $DisplayForm$ ensures to render the expression:
+    >> DisplayForm[box]
+     = a + b
+
+    The same is valid if the box is nested into an expression:
+    >> DisplayForm[F[box]]
+     = F[a + b]
+
+    If the argument does not have a box structure,  `DisplayForm` is ignored:
+    >> DisplayForm[a + b]
+     = a + b
+
+    """
+
+    in_outputforms = True
+    summary_text = "render low-level box structures"
+
+    def apply_makeboxes(self, expr, f, evaluation):
+        """MakeBoxes[DisplayForm[expr_], f_]"""
+
+        # This is a paratemer needed to remember if
+        # MakeBoxes is formatting an expression inside a DisplayForm.
+        # Hopefully, this is temporal and it is not going to be
+        # needed after the Format/MakeBoxes refactor.
+        evaluation.in_display_form = True
+        try:
+            result = MakeBoxes(expr, f).evaluate(evaluation)
+        except:
+            pass
+        evaluation.in_display_form = False
+        return result
+
+
 class FullForm(FormBaseClass):
     """
     <url>
