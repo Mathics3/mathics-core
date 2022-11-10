@@ -3,8 +3,9 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.core.atoms import Integer
 from mathics.core.element import ensure_context
-from mathics.core.expression import Expression
+from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.symbols import Atom, Symbol, system_symbols
 from mathics.core.systemsymbols import SymbolSequence
 from mathics.core.util import subsets, subranges, permutations
@@ -33,6 +34,11 @@ SYSTEM_SYMBOLS_PATTERNS = system_symbols(
 
 
 def Pattern_create(expr):
+    """
+    Creates an AtomPattern or an ExpressionPattern or a
+    (builtin) pattern object according
+    to the class of the parameter `expr`.
+    """
     from mathics.builtin import pattern_objects
 
     # from mathics.core.pattern import AtomPattern, ExpressionPattern
@@ -48,6 +54,13 @@ def Pattern_create(expr):
 
 
 class StopGenerator(Exception):
+    """
+    StopGenerator is the exception raised when
+    an expression matches a pattern.
+    The exception holds the attribute `value`
+    that is used as a return value in `match`.
+    """
+
     def __init__(self, value=None):
         self.value = value
 
@@ -82,22 +95,33 @@ class Pattern:
         element_index=None,
         element_count=None,
         fully=True,
-        wrap_oneid=True,
     ):
+        """
+        Check if the expression matches the pattern (self).
+        If it does, calls `yield_func`.
+        vars collects subexpressions associated to subpatterns.
+        head ?
+        element_index ?
+        element_count ?
+        fully is used in match_elements, for the case of Orderless patterns.
+        """
         raise NotImplementedError
 
     """def match(self, expression, vars, evaluation,
               head=None, element_index=None, element_count=None,
-        fully=True, wrap_oneid=True):
+        fully=True):
         #raise NotImplementedError
         result = []
         def yield_func(vars, rest):
             result.append(vars, rest)
         self._match(yield_func, expression, vars, evaluation, head,
-                    element_index, element_count, fully, wrap_oneid)
+                    element_index, element_count, fully)
         return result"""
 
     def does_match(self, expression, evaluation, vars=None, fully=True):
+        """
+        returns True if `expression` matches self.
+        """
 
         if vars is None:
             vars = {}
@@ -187,7 +211,6 @@ class AtomPattern(Pattern):
         element_index=None,
         element_count=None,
         fully=True,
-        wrap_oneid=True,
     ):
         if expression is self.atom:
             yield_func(vars, None)
@@ -207,7 +230,6 @@ class AtomPattern(Pattern):
         element_index=None,
         element_count=None,
         fully=True,
-        wrap_oneid=True,
     ):
         if isinstance(expression, Atom) and expression.sameQ(self.atom):
             # yield vars, None
@@ -244,7 +266,6 @@ class ExpressionPattern(Pattern):
         element_index=None,
         element_count=None,
         fully=True,
-        wrap_oneid=True,
     ):
         evaluation.check_stopped()
         attributes = self.head.get_attributes(evaluation.definitions)
@@ -311,8 +332,7 @@ class ExpressionPattern(Pattern):
                 # for new_vars, rest in self.match_element(    # nopep8
                 #    self.elements[0], self.elements[1:], ([], expression.elements),
                 #    pre_vars, expression, attributes, evaluation, first=True,
-                #    fully=fully, element_count=len(self.elements),
-                #    wrap_oneid=expression.get_head_name() != 'System`MakeBoxes'):
+                #    fully=fully, element_count=len(self.elements)):
                 # def yield_element(new_vars, rest):
                 #    yield_func(new_vars, rest)
                 self.match_element(
@@ -327,7 +347,6 @@ class ExpressionPattern(Pattern):
                     first=True,
                     fully=fully,
                     element_count=len(self.elements),
-                    wrap_oneid=expression.get_head_name() != "System`MakeBoxes",
                 )
 
             # for head_vars, _ in self.head.match(expression.get_head(), vars,
@@ -351,51 +370,79 @@ class ExpressionPattern(Pattern):
                 self.head.match(yield_head, expression.get_head(), vars, evaluation)
             except StopGenerator_ExpressionPattern_match:
                 return
-        if (
-            wrap_oneid
-            and not evaluation.ignore_oneidentity
-            and A_ONE_IDENTITY & attributes
-            and not self.head.expr.sameQ(expression.get_head())  # nopep8
-            and not self.head.expr.sameQ(expression)
-        ):
-            # and not OneIdentity &
-            # (expression.get_attributes(evaluation.definitions) |
-            # expression.get_head().get_attributes(evaluation.definitions)):
-            new_expression = Expression(self.head.expr, expression)
-            for element in self.elements:
-                element.match_count = element.get_match_count()
-                element.candidates = [expression]
-                # element.get_match_candidates(
-                #    new_expression.elements, new_expression, attributes,
-                #    evaluation, vars)
-                if len(element.candidates) < element.match_count[0]:
-                    return
-            # for new_vars, rest in self.match_element(
-            #    self.elements[0], self.elements[1:],
-            #    ([], [expression]), vars, new_expression, attributes,
-            #    evaluation, first=True, fully=fully,
-            #    element_count=len(self.elements), wrap_oneid=True):
-            # def yield_element(new_vars, rest):
-            #    yield_func(new_vars, rest)
-            self.match_element(
+
+        if A_ONE_IDENTITY & attributes:
+            # This is all about the pattern. We do this
+            # each time because at some point we should need
+            # to check the default values each time...
+
+            # This tries to reduce the pattern to a non empty
+            # set of default values, and a single pattern.
+            default_indx = 0
+            optionals = {}
+            new_pattern = None
+            pattern_head = self.head.expr
+            for pat_elem in self.elements:
+                default_indx += 1
+                if isinstance(pat_elem, AtomPattern):
+                    if new_pattern is not None:
+                        return
+                    new_pattern = pat_elem
+                    # TODO: check into account the second argument,
+                    # and if there is a default value...
+                elif pat_elem.get_head_name() == "System`Optional":
+                    if len(pat_elem.elements) == 2:
+                        pat, value = pat_elem.elements
+                        assert pat.get_head_name() == "System`Pattern"
+                        key = pat.elements[0].atom.name
+                        optionals[key] = value
+                    elif len(pat_elem.elements) == 1:
+                        pat = pat_elem.elements[0]
+                        assert pat.get_head_name() == "System`Pattern"
+                        key = pat.elements[0].atom.name
+                        # Now, determine the default value
+                        defaultvalue_expr = Expression(
+                            SymbolDefault, pattern_head, Integer(default_indx)
+                        )
+                        value = defaultvalue_expr.evaluate(evaluation)
+                        if value.sameQ(defaultvalue_expr):
+                            return
+                        optionals[key] = value
+                    else:
+                        return
+                else:
+                    if new_pattern is not None:
+                        return
+                    new_pattern = pat_elem
+
+            # If there is not optional values in the pattern, then
+            # it can not match any expression as a OneIdentity pattern:
+            if len(optionals) == 0:
+                return
+
+            # Load the default values in vars
+            vars.update(optionals)
+            # Try to match the non-optional element with the expression
+            new_pattern.match(
                 yield_func,
-                self.elements[0],
-                self.elements[1:],
-                ([], [expression]),
+                expression,
                 vars,
-                new_expression,
-                attributes,
                 evaluation,
-                first=True,
+                head=head,
+                element_index=element_index,
+                element_count=element_count,
                 fully=fully,
-                element_count=len(self.elements),
-                wrap_oneid=True,
             )
 
-    def get_pre_choices(self, yield_func, expression, attributes, vars):
+    def get_pre_choices(self, yield_choice, expression, attributes, vars):
+        """
+        If not Orderless, call yield_choice with vars as the parameter.
+        """
         if A_ORDERLESS & attributes:
             self.sort()
             patterns = self.filter_elements("Pattern")
+            # a dict with entries having patterns with the same name
+            # which are not in vars.
             groups = {}
             prev_pattern = prev_name = None
             for pattern in patterns:
@@ -484,9 +531,9 @@ class ExpressionPattern(Pattern):
             # for setting in per_name(groups.items(), vars):
             # def yield_name(setting):
             #    yield_func(setting)
-            per_name(yield_func, list(groups.items()), vars)
+            per_name(yield_choice, list(groups.items()), vars)
         else:
-            yield_func(vars)
+            yield_choice(vars)
 
     def __init__(self, expr):
         self.head = Pattern.create(expr.head)
@@ -545,7 +592,6 @@ class ExpressionPattern(Pattern):
         first=False,
         fully=True,
         depth=1,
-        wrap_oneid=True,
     ):
 
         if rest_expression is None:
@@ -626,6 +672,9 @@ class ExpressionPattern(Pattern):
                     *set_lengths
                 )
         else:
+            # a generator that yields partitions of
+            # candidates as [before | block | after ]
+
             sets = subranges(
                 candidates,
                 flexible_start=first and not fully,
@@ -633,7 +682,6 @@ class ExpressionPattern(Pattern):
                 less_first=less_first,
                 *set_lengths
             )
-
         if rest_elements:
             next_element = rest_elements[0]
             next_rest_elements = rest_elements[1:]
@@ -680,7 +728,6 @@ class ExpressionPattern(Pattern):
                         depth=next_depth,
                         element_index=next_index,
                         element_count=element_count,
-                        wrap_oneid=wrap_oneid,
                     )
                 else:
                     if not fully or (not items_rest[0] and not items_rest[1]):
@@ -696,7 +743,6 @@ class ExpressionPattern(Pattern):
                     head=expression.head,
                     element_index=element_index,
                     element_count=element_count,
-                    wrap_oneid=wrap_oneid,
                 )
 
             self.get_wrappings(
