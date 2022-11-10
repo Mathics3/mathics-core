@@ -549,6 +549,9 @@ class ExpressionPattern(Pattern):
             yield_choice(vars)
 
     def __init__(self, expr):
+        if isinstance(expr, BoxElementMixin):
+            expr = expr.to_expression()
+
         self.head = Pattern.create(expr.head)
         self.elements = [Pattern.create(element) for element in expr.elements]
         self.expr = expr

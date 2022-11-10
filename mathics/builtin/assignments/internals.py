@@ -29,12 +29,72 @@ from mathics.core.systemsymbols import (
     SymbolPart,
     SymbolPattern,
     SymbolRuleDelayed,
+    SymbolSet,
+    SymbolSetDelayed,
+    SymbolTagSet,
+    SymbolTagSetDelayed,
+    SymbolUpSet,
+    SymbolUpSetDelayed,
 )
 
 
 from mathics.core.attributes import attribute_string_to_number, A_LOCKED, A_PROTECTED
 
 from functools import reduce
+
+
+# In Set* operators, the default behavior is that the
+# elements of the LHS are evaluated before the assignment.
+# So, if we define
+#
+# F[x_]:=G[x]
+#
+# and then
+#
+# M[F[x_]]:=x^2
+#
+# The rule that is stored is
+#
+# M[G[x_]]->x^2
+#
+#
+# This behaviour does not aplies to a reduces subset of expressions, like
+# in
+#
+# A={1,2,3}
+# Part[A,1]:=s
+#
+# in a way that the result of the second line is to change a part of `A`
+# A->{s, 2, 3}
+#
+# instead of trying to assign 1:=s
+#
+# Something similar happens with the Set* expressions. For example,
+# the expected behavior of
+#
+#  Set[F[x_],rhs_]:=Print["Do not set to F"]
+#
+#  is not to forbid assignments to `G`, but to F:
+#
+#  G[x_]:=x^4
+#  still set the rule G[x_]->x^2
+#
+#  while
+#
+#  F[x_]:=x^4
+#  just will print the warning "Do not set to F".
+#
+#
+NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS = (
+    SymbolSet,
+    SymbolSetDelayed,
+    SymbolUpSet,
+    SymbolUpSetDelayed,
+    SymbolTagSet,
+    SymbolTagSetDelayed,
+    SymbolList,
+    SymbolPart,
+)
 
 
 class AssignmentException(Exception):
@@ -54,14 +114,17 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
     """
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
+
     defs = evaluation.definitions
     ignore_protection, tags = process_assign_other(
         self, lhs, rhs, evaluation, tags, upset
     )
+
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the begining?
     lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+
     count = 0
     rule = Rule(lhs, rhs)
     position = "up" if upset else None
@@ -142,7 +205,10 @@ def normalize_lhs(lhs, evaluation):
 
     lookup_name = lhs.get_lookup_name()
     # In WMA, before the assignment, the elements of the (stripped) LHS are evaluated.
-    if isinstance(lhs, Expression) and lhs.get_head() not in (SymbolList, SymbolPart):
+    if (
+        isinstance(lhs, Expression)
+        and lhs.get_head() not in NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS
+    ):
         lhs = lhs.evaluate_elements(evaluation)
     # If there was a conditional expression, rebuild it with the processed lhs
     if cond:
@@ -512,6 +578,7 @@ def process_assign_other(
     tags, focus = process_tags_and_upset_allow_custom(
         tags, upset, self, lhs, evaluation
     )
+
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
         process_assign_recursion_limit(lhs, rhs, evaluation)
@@ -747,68 +814,110 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
     return lhs, rhs
 
 
+def find_tag(focus):
+    name = focus.get_lookup_name()
+    if name == "System`HoldPattern":
+        if len(focus.elements) == 1:
+            return find_tag(focus.elements[0])
+        # If HoldPattern appears with more than one element,
+        # the message
+        # "HoldPattern::argx: HoldPattern called with 2 arguments; 1 argument is expected."
+        # must be shown.
+        raise AssignmentException(lhs, None)
+    if name == "System`Optional":
+        return None
+    if name == "System`Pattern" and len(focus.elements) == 2:
+        pat = focus.elements[1]
+        if pat.get_head_name() in (
+            "System`Blank",
+            "System`BlankSequence",
+            "System`BlankNullSequence",
+        ):
+            elems = pat.elements
+            if len(elems) == 0:
+                return None
+            return find_tag(elems[0])
+        else:
+            return find_tag(pat)
+    return name
+
+
 def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, evaluation):
-    focus = focus.evaluate_elements(evaluation)
+
+    if (
+        isinstance(focus, Expression)
+        and focus.head not in NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS
+    ):
+        focus = focus.evaluate_elements(evaluation)
+
     name = lhs.get_head_name()
     if tags is None and not upset:
-        name = focus.get_lookup_name()
-        if not name:
+        name = find_tag(focus)
+        if name == "":
             evaluation.message(self.get_name(), "setraw", focus)
             raise AssignmentException(lhs, None)
-        tags = [name]
+        tags = [] if name is None else [name]
     elif upset:
-        tags = [focus.get_lookup_name()]
+        name = find_tag(focus)
+        tags = [] if name is None else [name]
     else:
-        allowed_names = [focus.get_lookup_name()]
+        name = find_tag(focus)
+        allowed_names = [] if name is None else [name]
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
                 raise AssignmentException(lhs, None)
+
+    if len(tags) == 0:
+        evaluation.message(self.get_name(), "nosym", focus)
+        raise AssignmentException(lhs, None)
     return tags
 
 
 def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     name = lhs.get_head_name()
     focus = lhs
-    focus = focus.evaluate_elements(evaluation)
+
+    if isinstance(focus, Expression) and focus.head not in (
+        SymbolSet,
+        SymbolSetDelayed,
+        SymbolUpSet,
+        SymbolUpSetDelayed,
+        SymbolTagSet,
+        SymbolTagSetDelayed,
+        SymbolList,
+        SymbolPart,
+    ):
+        focus = focus.evaluate_elements(evaluation)
+
     if tags is None and not upset:
-        name = focus.get_lookup_name()
-        if not name:
+        name = find_tag(focus)
+        if name == "":
             evaluation.message(self.get_name(), "setraw", focus)
             raise AssignmentException(lhs, None)
-        tags = [name]
+        tags = [] if name is None else [name]
     elif upset:
         tags = []
         if isinstance(focus, Atom):
             evaluation.message(self.get_name(), "normal")
             raise AssignmentException(lhs, None)
         for element in focus.elements:
-            name = element.get_lookup_name()
-            tags.append(name)
+            name = find_tag(element)
+            if name != "" and name is not None:
+                tags.append(name)
     else:
-        allowed_names = [focus.get_lookup_name()]
+        allowed_names = [find_tag(focus)]
         for element in focus.get_elements():
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`HoldPattern",
-            ):
-                element = element.elements[0]
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`Pattern",
-            ):
-                element = element.elements[1]
-            if not isinstance(element, Symbol) and element.get_head_name() in (
-                "System`Blank",
-                "System`BlankSequence",
-                "System`BlankNullSequence",
-            ):
-                if len(element.elements) == 1:
-                    element = element.elements[0]
-
-            allowed_names.append(element.get_lookup_name())
+            element_tag = find_tag(element)
+            if element_tag is not None and element_tag != "":
+                allowed_names.append(element_tag)
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
                 raise AssignmentException(lhs, None)
+    if len(tags) == 0:
+        evaluation.message(self.get_name(), "nosym", focus)
+        raise AssignmentException(lhs, None)
 
     return tags, focus
 
@@ -862,7 +971,6 @@ class _SetOperator:
             func = self.special_cases.get(lookup_name, None)
             if func:
                 return func(self, lhs, rhs, evaluation, tags, upset)
-
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:
             return False
