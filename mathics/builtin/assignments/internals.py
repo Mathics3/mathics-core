@@ -720,9 +720,6 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
 
 
 def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, evaluation):
-    # TODO: the following provides a hacky fix for 1259. I know @rocky loves
-    # this kind of things, but otherwise we need to work on rebuild the pattern
-    # matching mechanism...
     focus = focus.evaluate_elements(evaluation)
     name = lhs.get_head_name()
     if tags is None and not upset:
@@ -743,9 +740,6 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
 
 
 def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
-    # TODO: the following provides a hacky fix for 1259. I know @rocky loves
-    # this kind of things, but otherwise we need to work on rebuild the pattern
-    # matching mechanism...
     name = lhs.get_head_name()
     focus = lhs
     focus = focus.evaluate_elements(evaluation)
