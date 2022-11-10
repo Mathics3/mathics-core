@@ -64,6 +64,12 @@ def subsets(items, min, max, included=None, less_first=False):
 def subranges(
     items, min_count, max, flexible_start=False, included=None, less_first=False
 ):
+    """
+    generator that yields possible divisions of items as
+    ([items_inside],([previos_items],[remaining_items]))
+    with items_inside of variable lengths.
+    If flexible_start, then [previos_items] also has a variable size.
+    """
     # TODO: take into account included
 
     if max is None:
