@@ -4,7 +4,7 @@
 
 
 from mathics.core.atoms import Integer
-from mathics.core.element import ensure_context
+from mathics.core.element import ensure_context, BoxElementMixin
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.symbols import Atom, Symbol, system_symbols
 from mathics.core.systemsymbols import SymbolSequence
@@ -536,6 +536,9 @@ class ExpressionPattern(Pattern):
             yield_choice(vars)
 
     def __init__(self, expr):
+        if isinstance(expr, BoxElementMixin):
+            expr = expr.to_expression()
+
         self.head = Pattern.create(expr.head)
         self.elements = [Pattern.create(element) for element in expr.elements]
         self.expr = expr
