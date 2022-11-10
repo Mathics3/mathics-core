@@ -325,6 +325,47 @@ class BoxForms_(Predefined):
     summary_text = "the list of box formats"
 
 
+class DisplayForm(Builtin):
+    """
+    <dl>
+      <dt>'DisplayForm[$obj$]'
+      <dd>is a form that shows low-level box structures as the correspoding
+      print form.
+    </dl>
+
+    By default, box structures are shown without a format:
+    >> box = MakeBoxes[Infix[{a, b}," + "], StandardForm]
+     = RowBox[{a,  + , b}]
+    Wrapping the box structure in a $DisplayForm$ ensures to render the expression:
+    >> DisplayForm[box]
+     = a + b
+
+    The same is valid if the box is nested into an expression:
+    >> DisplayForm[F[box]]
+     = F[a + b]
+
+    If the argument does not have a box structure,  `DisplayForm` is ignored:
+    >> DisplayForm[a + b]
+     = a + b
+
+    """
+
+    def apply_makeboxes(self, expr, f, evaluation):
+        """MakeBoxes[DisplayForm[expr_], f_]"""
+
+        # This is a paratemer needed to remember if
+        # MakeBoxes is formatting an expression inside a DisplayForm.
+        # Hopefully, this is temporal and it is not going to be
+        # needed after the Format/MakeBoxes refactor.
+        evaluation.in_display_form = True
+        try:
+            result = MakeBoxes(expr, f).evaluate(evaluation)
+        except:
+            pass
+        evaluation.in_display_form = False
+        return result
+
+
 class MakeBoxes(Builtin):
     """
     <dl>
@@ -394,6 +435,10 @@ class MakeBoxes(Builtin):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         if isinstance(expr, BoxElementMixin):
+            # If we are inside a DisplayForm block,
+            # BoxElementMixin are not processed.
+            if evaluation.in_display_form:
+                return expr
             expr = expr.to_expression()
         if isinstance(expr, Atom):
             return expr.atom_to_boxes(f, evaluation)

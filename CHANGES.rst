@@ -15,6 +15,7 @@ New Builtins
 #. ``Accuracy``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
+#. ``DisplayForm``
 #. ``Kurtosis``
 #. ``PauliMatrix``
 #. ``Remove``
@@ -57,7 +58,8 @@ Enhancements
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
 #. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
-
+#. Basic implementation of ``DisplayForm``
+   
 5.0.2
 -----
 
