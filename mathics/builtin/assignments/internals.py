@@ -611,9 +611,7 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
     # TODO: the following provides a hacky fix for 1259. I know @rocky loves
     # this kind of things, but otherwise we need to work on rebuild the pattern
     # matching mechanism...
-    flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
     focus = focus.evaluate_elements(evaluation)
-    evaluation.ignore_oneidentity = flag_ioi
     name = lhs.get_head_name()
     if tags is None and not upset:
         name = focus.get_lookup_name()
@@ -638,9 +636,7 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     # matching mechanism...
     name = lhs.get_head_name()
     focus = lhs
-    flag_ioi, evaluation.ignore_oneidentity = evaluation.ignore_oneidentity, True
     focus = focus.evaluate_elements(evaluation)
-    evaluation.ignore_oneidentity = flag_ioi
     if tags is None and not upset:
         name = focus.get_lookup_name()
         if not name:

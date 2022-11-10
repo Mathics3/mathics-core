@@ -79,11 +79,11 @@ class Default(Builtin):
         i = [index.get_int_value() for index in i]
         for index in i:
             if index is None or index < 1:
-                evaluation.message(SymbolDefault, "intp")
+                evaluation.message(SymbolDefault.name, "intp")
                 return
         name = f.get_name()
         if not name:
-            evaluation.message(SymbolDefault, "sym", f, 1)
+            evaluation.message(SymbolDefault.name, "sym", f, 1)
             return
         result = get_default_value(name, evaluation, *i)
         return result

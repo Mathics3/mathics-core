@@ -476,9 +476,14 @@ class OneIdentity(Predefined):
 
     'OneIdentity' affects pattern matching:
     >> SetAttributes[f, OneIdentity]
-    >> a /. f[args___] -> {args}
+    >> a /. f[x_:0, u_] -> {u}
      = {a}
-    It does not affect evaluation:
+
+    However, without a default argument, the pattern does not match:
+    >> a /. f[u_] -> {u}
+     = a
+
+    Also, it does not affect evaluation:
     >> f[a]
      = f[a]
     """
