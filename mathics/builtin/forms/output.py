@@ -188,12 +188,12 @@ class DisplayForm(FormBaseClass):
         # MakeBoxes is formatting an expression inside a DisplayForm.
         # Hopefully, this is temporal and it is not going to be
         # needed after the Format/MakeBoxes refactor.
-        evaluation.in_display_form = True
+        previous_df, evaluation.in_display_form = evaluation.in_display_form, True
         try:
             result = MakeBoxes(expr, f).evaluate(evaluation)
         except:
             pass
-        evaluation.in_display_form = False
+        evaluation.in_display_form = previous_df
         return result
 
 
