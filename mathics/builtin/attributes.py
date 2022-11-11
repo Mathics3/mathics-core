@@ -72,6 +72,9 @@ class Attributes(Builtin):
     """
 
     attributes = A_HOLD_ALL | A_LISTABLE | A_PROTECTED
+    messages = {
+        "attnf": "`1` is not a known attribute.",
+    }
     summary_text = "find the attributes of a symbol"
 
     def apply(self, expr, evaluation):
@@ -135,7 +138,7 @@ class SetAttributes(Builtin):
                             symbol, attribute_string_to_number[value]
                         )
                     except KeyError:
-                        evaluation.message("SetAttributes", "unknowattr", value)
+                        evaluation.message("Attributes", "attnf", Symbol(value))
         return SymbolNull
 
 
@@ -180,9 +183,12 @@ class ClearAttributes(Builtin):
                 evaluation.message("ClearAttributes", "locked", Symbol(symbol))
             else:
                 for value in values:
-                    evaluation.definitions.clear_attribute(
-                        symbol, attribute_string_to_number[value]
-                    )
+                    try:
+                        evaluation.definitions.clear_attribute(
+                            symbol, attribute_string_to_number[value]
+                        )
+                    except KeyError:
+                        evaluation.message("Attributes", "attnf", Symbol(value))
         return SymbolNull
 
 
