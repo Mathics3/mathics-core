@@ -393,13 +393,20 @@ class ExpressionPattern(Pattern):
                 elif pat_elem.get_head_name() == "System`Optional":
                     if len(pat_elem.elements) == 2:
                         pat, value = pat_elem.elements
-                        assert pat.get_head_name() == "System`Pattern"
-                        key = pat.elements[0].atom.name
+                        if pat.get_head_name() == "System`Pattern":
+                            key = pat.elements[0].atom.name
+                        else:
+                            # if the first element of the Optional
+                            # is not a `Pattern`, then we need to
+                            # store an empty element.
+                            key = ""
                         optionals[key] = value
                     elif len(pat_elem.elements) == 1:
                         pat = pat_elem.elements[0]
-                        assert pat.get_head_name() == "System`Pattern"
-                        key = pat.elements[0].atom.name
+                        if pat.get_head_name() == "System`Pattern":
+                            key = pat.elements[0].atom.name
+                        else:
+                            key = ""
                         # Now, determine the default value
                         defaultvalue_expr = Expression(
                             SymbolDefault, pattern_head, Integer(default_indx)
@@ -420,7 +427,9 @@ class ExpressionPattern(Pattern):
             if len(optionals) == 0:
                 return
 
-            # Load the default values in vars
+            # Remove the empty key and load the default values in vars
+            if "" in optionals:
+                del optionals[""]
             vars.update(optionals)
             # Try to match the non-optional element with the expression
             new_pattern.match(
