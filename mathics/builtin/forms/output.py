@@ -151,9 +151,13 @@ class BaseForm(Builtin):
 
 class DisplayForm(FormBaseClass):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/DisplayForm.html</url>
+
     <dl>
       <dt>'DisplayForm[$obj$]'
-      <dd>is a form that shows low-level box structures as the correspoding
+      <dd>is a form that shows low-level box structures as the corresponding\
       print form.
     </dl>
 

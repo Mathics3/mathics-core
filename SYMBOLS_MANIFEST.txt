@@ -316,6 +316,7 @@ System`Disk
 System`DiskBox
 System`DiskMatrix
 System`Dispatch
+System`DisplayForm
 System`Divide
 System`DivideBy
 System`Divisible
