@@ -212,9 +212,6 @@ def do_format_element(
     superfluous enclosing formats.
     """
 
-    if isinstance(element, BoxElementMixin):
-        element = element.to_expression()
-
     evaluation.inc_recursion_depth()
     try:
         expr = element
