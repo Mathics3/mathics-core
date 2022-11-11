@@ -94,6 +94,7 @@ NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS = (
     SymbolTagSetDelayed,
     SymbolList,
     SymbolPart,
+    Symbol("System`MessageName"),
 )
 
 
@@ -199,20 +200,37 @@ def normalize_lhs(lhs, evaluation):
 
     returns a tuple with the normalized lhs, and the lookup_name of the head in uncondlhs.
     """
-    cond = None
-    if lhs.get_head() is SymbolCondition:
-        lhs, cond = unroll_conditions(lhs)
+    cond = []
+    hold_pattern = False
 
-    lookup_name = lhs.get_lookup_name()
-    # In WMA, before the assignment, the elements of the (stripped) LHS are evaluated.
+    core = lhs
+    while True:
+        if core.has_form("System`Condition", 2):
+            core, new_cond = core.elements[0], core.elements[1]
+            cond.append(new_cond)
+            continue
+        if core.has_form("System`HoldPattern", 1):
+            core, hold_pattern = core.elements[0], True
+            continue
+        break
+
+    lookup_name = core.get_lookup_name()
+    # if hold_pattern was set, or the original lhs was not
+    # an expression, or is one of the special cases in which
+    # the elements of the lhs must not be evaluated,
+    # just return the lhs as it was, together with the lookup_name:
     if (
-        isinstance(lhs, Expression)
-        and lhs.get_head() not in NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS
+        hold_pattern
+        or not isinstance(lhs, Expression)
+        or core.get_head() in NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS
     ):
-        lhs = lhs.evaluate_elements(evaluation)
-    # If there was a conditional expression, rebuild it with the processed lhs
+        return lhs, lookup_name
+
+    # For the general case, evaluate the elements
+    lhs = core.evaluate_elements(evaluation)
+    # and add the conditions as a single condition if any:
     if cond:
-        lhs = Expression(cond.get_head(), lhs, cond.elements[1])
+        lhs = Expression(SymbolCondition, core, Expression(SymbolAnd, *cond))
     return lhs, lookup_name
 
 
