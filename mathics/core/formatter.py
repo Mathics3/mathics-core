@@ -182,7 +182,6 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-
     expr = do_format(element, evaluation, form)
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
