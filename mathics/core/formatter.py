@@ -182,7 +182,6 @@ def format_element(
     """
     Applies formats associated to the expression, and then calls Makeboxes
     """
-
     expr = do_format(element, evaluation, form)
     result = Expression(SymbolMakeBoxes, expr, form)
     result_box = result.evaluate(evaluation)
@@ -211,9 +210,6 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-
-    if isinstance(element, BoxElementMixin):
-        element = element.to_expression()
 
     evaluation.inc_recursion_depth()
     try:
