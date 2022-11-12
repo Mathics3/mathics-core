@@ -24,9 +24,9 @@ from mathics.core.symbols import (
     Symbol,
     SymbolNull,
     SymbolTrue,
-    system_symbols,
+    symbol_set,
 )
-from mathics.core.systemsymbols import SymbolInfinity
+from mathics.core.systemsymbols import SymbolInfinity, SymbolInputForm, SymbolFullForm
 
 # Imperical number that seems to work.
 # We have to be able to match mpmath values with sympy values
@@ -35,7 +35,7 @@ COMPARE_PREC = 50
 SymbolI = Symbol("I")
 SymbolString = Symbol("String")
 
-SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = system_symbols("InputForm", "FullForm")
+SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM = symbol_set(SymbolInputForm, SymbolFullForm)
 
 
 class Number(Atom, ImmutableValueMixin, NumericOperators):
