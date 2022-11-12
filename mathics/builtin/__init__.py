@@ -20,6 +20,8 @@ from mathics.builtin.base import (
     PatternObject,
 )
 
+from mathics.core.pattern import pattern_objects
+
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -267,7 +269,6 @@ mathics_to_sympy = {}  # here we have: name -> sympy object
 mathics_to_python = {}  # here we have: name -> string
 sympy_to_mathics = {}
 
-pattern_objects = {}
 builtins_precedence = {}
 
 new_builtins = _builtins

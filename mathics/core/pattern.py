@@ -2,9 +2,11 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 
+from typing import Optional
 
 from mathics.core.atoms import Integer
-from mathics.core.element import ensure_context
+from mathics.core.element import BaseElement, ensure_context
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.symbols import Atom, Symbol, symbol_set
 from mathics.core.systemsymbols import (
@@ -41,6 +43,8 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
     SymbolRepeatedNull,
 )
 
+pattern_objects = {}
+
 
 class StopGenerator(Exception):
     """
@@ -73,15 +77,12 @@ class Pattern:
     """
 
     @staticmethod
-    def create(expr):
+    def create(expr: BaseElement) -> "Pattern":
         """
-        Creates an AtomPattern or an ExpressionPattern or a
-        (builtin) pattern object according
-        to the class of the parameter `expr`.
+        If ``expr`` is listed in ``pattern_object``  return the pattern found there.
+        Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
+        Otherwise, create and return and ``ExpressionPattern`` for ``expr``.
         """
-        from mathics.builtin import pattern_objects
-
-        # from mathics.core.pattern import AtomPattern, ExpressionPattern
 
         name = expr.get_head_name()
         pattern_object = pattern_objects.get(name)
@@ -114,7 +115,14 @@ class Pattern:
         """
         raise NotImplementedError
 
-    def does_match(self, expression, evaluation, vars=None, fully=True):
+    def does_match(
+        self,
+        expression: BaseElement,
+        evaluation: Evaluation,
+        vars=Optional[dict],
+        fully: bool = True,
+    ) -> bool:
+
         """
         returns True if `expression` matches self.
         """
