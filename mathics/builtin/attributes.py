@@ -460,11 +460,15 @@ class OneIdentity(Predefined):
 
     <dl>
       <dt>'OneIdentity'
-      <dd>is an attribute specifying that '$f$[$x$]' should be treated \
-        as equivalent to $x$ in pattern matching.
+      <dd>is an attribute assigned to a symbol, say $f$, indicating that '$f$[$x$]', $f$[$f$[$x$]], etc. are all \
+          equivalent to $x$ in pattern matching.
     </dl>
 
-    'OneIdentity' affects pattern matching:
+    >> a /. f[x_:0, u_] -> {u}
+     = a
+
+    Here is how 'OneIdentity' changes the pattern matched above :
+
     >> SetAttributes[f, OneIdentity]
     >> a /. f[x_:0, u_] -> {u}
      = {a}
@@ -473,7 +477,7 @@ class OneIdentity(Predefined):
     >> a /. f[u_] -> {u}
      = a
 
-    Also, it does not affect evaluation:
+    'OneIdentity' does not change evaluation:
     >> f[a]
      = f[a]
     """
