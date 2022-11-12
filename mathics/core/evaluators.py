@@ -21,10 +21,11 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import PyMathicsLoadException
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import PrecisionValueError, get_precision
-from mathics.core.symbols import Atom, BaseElement
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 
 
