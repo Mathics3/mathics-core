@@ -6,30 +6,39 @@
 from mathics.core.atoms import Integer
 from mathics.core.element import ensure_context
 from mathics.core.expression import Expression, SymbolDefault
-from mathics.core.symbols import Atom, Symbol, system_symbols
-from mathics.core.systemsymbols import SymbolSequence
+from mathics.core.symbols import Atom, Symbol, symbol_set
+from mathics.core.systemsymbols import (
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolRepeated,
+    SymbolRepeatedNull,
+    SymbolSequence,
+)
 from mathics.core.util import subsets, subranges, permutations
 from itertools import chain
 
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 
-# from mathics.core.pattern_nocython import (
-#    StopGenerator #, Pattern #, ExpressionPattern)
-# from mathics.core import pattern_nocython
-
-
-SYSTEM_SYMBOLS_PATTERNS = system_symbols(
-    "Pattern",
-    "PatternTest",
-    "Condition",
-    "Optional",
-    "Blank",
-    "BlankSequence",
-    "BlankNullSequence",
-    "Alternatives",
-    "OptionsPattern",
-    "Repeated",
-    "RepeatedNull",
+# FIXME: create definitions in systemsymbols for missing items below.
+SYSTEM_SYMBOLS_PATTERNS = symbol_set(
+    SymbolAlternatives,
+    SymbolBlank,
+    SymbolBlankNullSequence,
+    SymbolBlankSequence,
+    SymbolCondition,
+    SymbolOptional,
+    SymbolOptionsPattern,
+    SymbolPattern,
+    SymbolPatternTest,
+    SymbolRepeated,
+    SymbolRepeatedNull,
 )
 
 
@@ -106,17 +115,6 @@ class Pattern:
         fully is used in match_elements, for the case of Orderless patterns.
         """
         raise NotImplementedError
-
-    """def match(self, expression, vars, evaluation,
-              head=None, element_index=None, element_count=None,
-        fully=True):
-        #raise NotImplementedError
-        result = []
-        def yield_func(vars, rest):
-            result.append(vars, rest)
-        self._match(yield_func, expression, vars, evaluation, head,
-                    element_index, element_count, fully)
-        return result"""
 
     def does_match(self, expression, evaluation, vars=None, fully=True):
         """
