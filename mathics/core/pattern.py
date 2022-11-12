@@ -42,26 +42,6 @@ SYSTEM_SYMBOLS_PATTERNS = symbol_set(
 )
 
 
-def Pattern_create(expr):
-    """
-    Creates an AtomPattern or an ExpressionPattern or a
-    (builtin) pattern object according
-    to the class of the parameter `expr`.
-    """
-    from mathics.builtin import pattern_objects
-
-    # from mathics.core.pattern import AtomPattern, ExpressionPattern
-
-    name = expr.get_head_name()
-    pattern_object = pattern_objects.get(name)
-    if pattern_object is not None:
-        return pattern_object(expr)
-    if isinstance(expr, Atom):
-        return AtomPattern(expr)
-    else:
-        return ExpressionPattern(expr)
-
-
 class StopGenerator(Exception):
     """
     StopGenerator is the exception raised when
@@ -92,7 +72,25 @@ class Pattern:
     When the pattern matches, the symbol is bound to the parameter ``x``.
     """
 
-    create = staticmethod(Pattern_create)
+    @staticmethod
+    def create(expr):
+        """
+        Creates an AtomPattern or an ExpressionPattern or a
+        (builtin) pattern object according
+        to the class of the parameter `expr`.
+        """
+        from mathics.builtin import pattern_objects
+
+        # from mathics.core.pattern import AtomPattern, ExpressionPattern
+
+        name = expr.get_head_name()
+        pattern_object = pattern_objects.get(name)
+        if pattern_object is not None:
+            return pattern_object(expr)
+        if isinstance(expr, Atom):
+            return AtomPattern(expr)
+        else:
+            return ExpressionPattern(expr)
 
     def match(
         self,
