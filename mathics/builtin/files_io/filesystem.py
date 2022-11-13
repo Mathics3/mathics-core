@@ -2274,7 +2274,7 @@ class URLSave(Builtin):
         url = url.value
         if filename is None:
             result = urlsave_tmp(url, None, **options)
-        elif filename.get_head_name() == "String":
+        elif isinstance(filename, String):
             filename = filename.value
             result = urlsave_tmp(url, filename, **options)
         else:

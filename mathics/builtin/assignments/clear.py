@@ -22,14 +22,20 @@ from mathics.core.symbols import (
     Atom,
     Symbol,
     SymbolNull,
-    system_symbols,
+    symbol_set,
 )
 
 from mathics.core.systemsymbols import (
     SymbolContext,
     SymbolContextPath,
+    SymbolDownValues,
     SymbolFailed,
+    SymbolMessages,
+    SymbolNValues,
     SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )
 
 from mathics.core.atoms import String
@@ -320,12 +326,12 @@ class Unset(PostfixOperator):
         return SymbolNull
 
 
-SYSTEM_SYMBOL_VALUES = system_symbols(
-    "OwnValues",
-    "DownValues",
-    "SubValues",
-    "UpValues",
-    "NValues",
-    "Options",
-    "Messages",
+SYSTEM_SYMBOL_VALUES = symbol_set(
+    SymbolDownValues,
+    SymbolMessages,
+    SymbolNValues,
+    SymbolOptions,
+    SymbolOwnValues,
+    SymbolSubValues,
+    SymbolUpValues,
 )

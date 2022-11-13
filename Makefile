@@ -112,7 +112,7 @@ clean: clean-cython clean-cache
 
 #: Run py.test tests. Use environment variable "o" for pytest options
 pytest:
-	py.test $(PYTEST_WORKERS) test $o
+	$(PYTHON) -m pytest $(PYTEST_WORKERS) test $o
 
 
 #: Run a more extensive pattern-matching test
