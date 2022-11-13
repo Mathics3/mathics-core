@@ -18,7 +18,7 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes, number_form
+from mathics.builtin.makeboxes import MakeBoxes, SYMBOL_NO_FORMATBOXES, number_form
 from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import (
@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     StringFromPython,
 )
 
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.expression import Expression, BoxError
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
@@ -188,12 +189,16 @@ class DisplayForm(FormBaseClass):
         # MakeBoxes is formatting an expression inside a DisplayForm.
         # Hopefully, this is temporal and it is not going to be
         # needed after the Format/MakeBoxes refactor.
-        previous_df, evaluation.in_display_form = evaluation.in_display_form, True
+
+        old_value_in_display_form = SYMBOL_NO_FORMATBOXES.evaluate(evaluation)
+        evaluation.definitions.set_ownvalue(SYMBOL_NO_FORMATBOXES.name, SymbolTrue)
         try:
             result = MakeBoxes(expr, f).evaluate(evaluation)
-        except:
-            pass
-        evaluation.in_display_form = previous_df
+        except Exception:
+            result = None
+        evaluation.definitions.set_ownvalue(
+            SYMBOL_NO_FORMATBOXES.name, old_value_in_display_form
+        )
         return result
 
 
@@ -1124,3 +1129,23 @@ class MatrixForm(TableForm):
             return RowBox(String("("), result, String(")"))
 
         return result
+
+
+# Custom private symbol that helps DisplayForm to control if
+# MakeBoxes must process BoxElements as expressions, or keep as they are.
+class PrivateSymbolThatControlsTheStateOfDisplayForm(Builtin):
+    """
+    <dl>
+    <dt>'PrivateSymbolThatControlsTheStateOfDisplayForm'
+    <dd>If True, MakeBoxes keep Box elements as they are. Otherwise,\
+    tries to format them as if it were expressions.
+    </dl>
+    """
+
+    attributes = A_LOCKED | A_PROTECTED
+    context = "System`Private`MakeBoxes`"
+    name = "PrivateSymbolThatControlsTheStateOfDisplayForm"
+    rules = {
+        "System`Private`MakeBoxes`PrivateSymbolThatControlsTheStateOfDisplayForm": "False",
+    }
+    summary_text = "control if boxes are reevaluated."
