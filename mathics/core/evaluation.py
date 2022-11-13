@@ -257,8 +257,6 @@ class Evaluation:
         self.quiet_all = False
         self.format = format
 
-        # See comment in mathics.builtin.makeboxes.DisplayForm
-        self.in_display_form = False
         self.catch_interrupt = catch_interrupt
         self.SymbolNull = SymbolNull
 

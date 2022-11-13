@@ -37,12 +37,19 @@ from mathics.core.number import dps
 from mathics.core.symbols import (
     Atom,
     Symbol,
+    SymbolTrue,
 )
 
 from mathics.core.systemsymbols import (
     SymbolInputForm,
     SymbolOutputForm,
     SymbolRowBox,
+)
+
+
+# Afterwards, we can find a better name
+SYMBOL_FORMATBOXES = Symbol(
+    "System`Private`MakeBoxes`PrivateSymbolThatControlsTheStateOfDisplayForm"
 )
 
 
@@ -396,7 +403,7 @@ class MakeBoxes(Builtin):
         if isinstance(expr, BoxElementMixin):
             # If we are inside a DisplayForm block,
             # BoxElementMixin are not processed.
-            if evaluation.in_display_form:
+            if SYMBOL_FORMATBOXES.evaluate(evaluation) is SymbolTrue:
                 return expr
             expr = expr.to_expression()
         if isinstance(expr, Atom):
