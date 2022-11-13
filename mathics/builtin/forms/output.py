@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     StringFromPython,
 )
 
+from mathics.core.attributes import A_LOCKED, A_PROTECTED
 from mathics.core.expression import Expression, BoxError
 from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
@@ -194,7 +195,7 @@ class DisplayForm(FormBaseClass):
         try:
             result = MakeBoxes(expr, f).evaluate(evaluation)
         except Exception:
-            return
+            result = None
         evaluation.definitions.set_ownvalue(
             SYMBOL_FORMATBOXES.name, old_value_in_display_form
         )
@@ -1141,9 +1142,10 @@ class PrivateSymbolThatControlsTheStateOfDisplayForm(Builtin):
     </dl>
     """
 
-    name = "PrivateSymbolThatControlsTheStateOfDisplayForm"
+    attributes = A_LOCKED | A_PROTECTED
     context = "System`Private`MakeBoxes`"
-    summary_text = "control if boxes are reevaluated."
+    name = "PrivateSymbolThatControlsTheStateOfDisplayForm"
     rules = {
         "System`Private`MakeBoxes`PrivateSymbolThatControlsTheStateOfDisplayForm": "False",
     }
+    summary_text = "control if boxes are reevaluated."
