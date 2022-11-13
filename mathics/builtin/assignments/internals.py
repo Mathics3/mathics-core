@@ -12,6 +12,7 @@ from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
     SymbolFalse,
+    SymbolList,
     SymbolMinPrecision,
     SymbolMaxPrecision,
     SymbolN,
@@ -25,6 +26,7 @@ from mathics.core.systemsymbols import (
     SymbolHoldPattern,
     SymbolMachinePrecision,
     SymbolOptionValue,
+    SymbolPart,
     SymbolPattern,
     SymbolRuleDelayed,
 )
@@ -120,6 +122,32 @@ def get_symbol_values(symbol, func_name, position, evaluation):
 
 def is_protected(tag, defin):
     return A_PROTECTED & defin.get_attributes(tag)
+
+
+def normalize_lhs(lhs, evaluation):
+    """
+    Process the lhs in a way that
+    * if it is a conditional expression, reduce it to
+      a shallow conditional expression
+      ( Conditional[Conditional[...],tst] -> Conditional[uncondlhs, tst])
+      with `uncondlhs` the result of strip all the conditions from lhs.
+    * if `uncondlhs` is not a `List` or a `Part` expression, evaluate the
+      elements.
+
+    returns a tuple with the normalized lhs, and the lookup_name of the head in uncondlhs.
+    """
+    cond = None
+    if lhs.get_head() is SymbolCondition:
+        lhs, cond = unroll_conditions(lhs)
+
+    lookup_name = lhs.get_lookup_name()
+    # In WMA, before the assignment, the elements of the (stripped) LHS are evaluated.
+    if isinstance(lhs, Expression) and lhs.get_head() not in (SymbolList, SymbolPart):
+        lhs = lhs.evaluate_elements(evaluation)
+    # If there was a conditional expression, rebuild it with the processed lhs
+    if cond:
+        lhs = Expression(cond.get_head(), lhs, cond.elements[1])
+    return lhs, lookup_name
 
 
 def repl_pattern_by_symbol(expr):
@@ -415,7 +443,7 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
-    lhs, condition = unroll_conditions(lhs)
+    # lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
@@ -827,15 +855,11 @@ class _SetOperator:
     }
 
     def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
-        if isinstance(lhs, Symbol):
-            name = lhs.name
-        else:
-            name = lhs.get_head_name()
-        # lhs._format_cache = None
+        lhs, lookup_name = normalize_lhs(lhs, evaluation)
         try:
             # Deal with direct assignation to properties of
             # the definition object
-            func = self.special_cases.get(name, None)
+            func = self.special_cases.get(lookup_name, None)
             if func:
                 return func(self, lhs, rhs, evaluation, tags, upset)
 
