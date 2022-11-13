@@ -975,7 +975,6 @@ class Pattern_(PatternObject):
         "nodef": (
             "No default setting found for `1` in " "position `2` when length is `3`."
         ),
-        "argr": "Pattern called with 1 argument; 2 arguments are expected.",
     }
 
     rules = {

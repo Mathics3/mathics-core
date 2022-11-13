@@ -745,6 +745,13 @@ class SetAttributes(Builtin):
                         evaluation.message("Attributes", "attnf", Symbol(value))
         return SymbolNull
 
+    def eval_arg_error(self, args, evaluation):
+        "SetAttributes[args___]"
+        # We should only come here when we don't have 2 args, because
+        # eval() should be called otherwise.
+        nargs = len(args.elements) if isinstance(args, Expression) else 1
+        evaluation.message("SetAttributes", "argrx", "SetAttributes", nargs, 2)
+
 
 class Unprotect(Builtin):
     """
