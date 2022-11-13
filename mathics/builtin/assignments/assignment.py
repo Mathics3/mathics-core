@@ -144,7 +144,29 @@ class SetDelayed(Set):
      = 2 / 3
     >> F[-3, 2]
      = -2 / 3
+    We can use conditional delayed assignments to define \
+    symbols with values conditioned to the context. For example,
+    >> ClearAll[a,b]; a/; b>0:= 3
+    Set $a$ to have a value of $3$ if certain variable $b$ is positive.\
+    So, if this variable is not set, $a$ stays unevaluated:
+    >> a
+     = a
+    If now we assign a positive value to $b$, then $a$ is evaluated:
+    >> b=2; a
+     =  3
     """
+
+    #  I WMA, if we assign a value without a condition on the LHS,
+    # conditional values are never reached. So,
+    #
+    # Notice however that if we assign an unconditional value to $a$, \
+    # this overrides the condition:
+    # >> a:=0; a/; b>1:= 3
+    # >> a
+    # = 0
+    #
+    # In Mathics, this last line would return 3
+    # """
 
     operator = ":="
     attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
@@ -203,7 +225,7 @@ class TagSet(Builtin, _SetOperator):
             return
 
         rhs = rhs.evaluate(evaluation)
-        self.assign_elementary(lhs, rhs, evaluation, tags=[name])
+        self.assign(lhs, rhs, evaluation, tags=[name])
         return rhs
 
 
@@ -228,7 +250,7 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", f, 1)
             return
 
-        if self.assign_elementary(lhs, rhs, evaluation, tags=[name]):
+        if self.assign(lhs, rhs, evaluation, tags=[name]):
             return SymbolNull
         else:
             return SymbolFailed

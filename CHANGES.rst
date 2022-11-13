@@ -1,4 +1,4 @@
-.. contents::
+	.. contents::
 
 CHANGES
 =======
@@ -41,6 +41,8 @@ Internals
 #. Operator name to unicode or ASCII comes from Mathics scanner character tables.
 #. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
 #. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
+#. `_SetOperator.assign_elementary` was renamed as `_SetOperator.assign`. All the special cases are not handled by the `_SetOperator.special_cases` dict.
+
 
 
 Bugs
