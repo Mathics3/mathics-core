@@ -289,6 +289,34 @@ def test_set_and_clear(str_expr, str_expected, msg):
             "{F[2.], 4.}",
             "Assign N rule",
         ),
+        (None, None, None),
+        # This test is inspirated in CellsToTeX
+        ("SetAttributes[testHoldAll, HoldAll]", "Null", None),
+        (
+            (
+                "addF[sym_Symbol] := ("
+                "        functionCall:sym[___] := "
+                "            holdallfunc[functionCall]"
+                "                    )"
+            ),
+            "Null",
+            None,
+        ),
+        ("addF[Q]", "Null", None),
+        # This fails because the previous line does not set the
+        # rule as it should.
+        #
+        # In WMA,
+        #
+        # In[...]:=Downvalues[Q]                                                        # Out[...]=  {HoldPattern[functionCall:Q[___]] :> testHoldAll[functionCall]}
+        #
+        #
+        # In Mathics,
+        #
+        # Out[...]={HoldPattern[Q[___]] :> testHoldAll[Q[___]]}
+        #
+        #
+        ("Q[1]", "holdallfunc[Q[1]]", None),
     ],
 )
 @skip_or_fail
