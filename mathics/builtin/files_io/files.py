@@ -296,7 +296,7 @@ class FilePrint(Builtin):
     }
 
     def apply(self, path, evaluation, options):
-        "FilePrint[path_ OptionsPattern[FilePrint]]"
+        "FilePrint[path_, OptionsPattern[FilePrint]]"
         pypath = path.to_python()
         if not (
             isinstance(pypath, str)

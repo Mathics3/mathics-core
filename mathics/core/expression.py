@@ -37,11 +37,14 @@ from mathics.core.symbols import (
     Monomial,
     NumericOperators,
     Symbol,
+    SymbolAbs,
+    SymbolDivide,
     SymbolList,
     SymbolN,
+    SymbolPlus,
     SymbolTimes,
     SymbolTrue,
-    system_symbols,
+    symbol_set,
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -50,9 +53,14 @@ from mathics.core.systemsymbols import (
     SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
+    SymbolMinus,
     SymbolPattern,
+    SymbolPower,
     SymbolSequence,
+    SymbolSin,
     SymbolSlot,
+    SymbolSqrt,
+    SymbolSubtract,
     SymbolUnevaluated,
 )
 
@@ -70,16 +78,16 @@ SymbolSlotSequence = Symbol("SlotSequence")
 SymbolVerbatim = Symbol("Verbatim")
 
 
-symbols_arithmetic_operations = system_symbols(
-    "Sqrt",
-    "Times",
-    "Plus",
-    "Subtract",
-    "Minus",
-    "Power",
-    "Abs",
-    "Divide",
-    "Sin",
+symbols_arithmetic_operations = symbol_set(
+    SymbolAbs,
+    SymbolDivide,
+    SymbolMinus,
+    SymbolPlus,
+    SymbolPower,
+    SymbolSin,
+    SymbolSqrt,
+    SymbolSubtract,
+    SymbolTimes,
 )
 
 

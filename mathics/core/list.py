@@ -41,7 +41,7 @@ class ListExpression(Expression):
         #     call_frame = inspect.getouterframes(curframe, 2)
         #     print("caller name:", call_frame[1][3])
 
-        # from mathics.core.symbols import BaseElement
+        # from mathics.core.element import BaseElement
         # for element in elements:
         #     if not isinstance(element, BaseElement):
         #          from trepan.api import debug; debug()
