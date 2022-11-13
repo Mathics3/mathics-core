@@ -18,7 +18,7 @@ from mathics.builtin.base import Builtin
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
-from mathics.builtin.makeboxes import MakeBoxes, SYMBOL_FORMATBOXES, number_form
+from mathics.builtin.makeboxes import MakeBoxes, SYMBOL_NO_FORMATBOXES, number_form
 from mathics.builtin.tensors import get_dimensions
 
 from mathics.core.atoms import (
@@ -190,14 +190,14 @@ class DisplayForm(FormBaseClass):
         # Hopefully, this is temporal and it is not going to be
         # needed after the Format/MakeBoxes refactor.
 
-        old_value_in_display_form = SYMBOL_FORMATBOXES.evaluate(evaluation)
-        evaluation.definitions.set_ownvalue(SYMBOL_FORMATBOXES.name, SymbolTrue)
+        old_value_in_display_form = SYMBOL_NO_FORMATBOXES.evaluate(evaluation)
+        evaluation.definitions.set_ownvalue(SYMBOL_NO_FORMATBOXES.name, SymbolTrue)
         try:
             result = MakeBoxes(expr, f).evaluate(evaluation)
         except Exception:
             result = None
         evaluation.definitions.set_ownvalue(
-            SYMBOL_FORMATBOXES.name, old_value_in_display_form
+            SYMBOL_NO_FORMATBOXES.name, old_value_in_display_form
         )
         return result
 
