@@ -157,7 +157,7 @@ class Out(KeyComparable):
         self.is_print = False
         self.text = ""
 
-    def get_sort_key(self) -> Tuple[bool, bool, str]:
+    def get_sort_key(self, pattern_sort=False) -> Tuple[bool, bool, str]:
         return (self.is_message, self.is_print, self.text)
 
 
