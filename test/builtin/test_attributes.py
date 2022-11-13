@@ -105,6 +105,8 @@ def test_one_identity(str_expr, str_expected, msg):
             "F[a, b, b, c]",
             "https://reference.wolfram.com/language/tutorial/Patterns.html",
         ),
+        # When fixed, Add the difference between the next two as a
+        # doctest example.
         (
             "r[a,b,b,c]/.r[x_,x_]->rp[x]",
             "r[a, rp[r[b]], c]",
