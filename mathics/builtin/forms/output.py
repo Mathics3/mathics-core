@@ -115,7 +115,7 @@ class BaseForm(Builtin):
         "basf": "Requested base `1` must be between 2 and 36.",
     }
 
-    def apply_makeboxes(self, expr, n, f, evaluation):
+    def eval_makeboxes(self, expr, n, f, evaluation):
         """MakeBoxes[BaseForm[expr_, n_],
         f:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -181,7 +181,7 @@ class DisplayForm(FormBaseClass):
     in_outputforms = True
     summary_text = "render low-level box structures"
 
-    def apply_makeboxes(self, expr, f, evaluation):
+    def eval_makeboxes(self, expr, f, evaluation):
         """MakeBoxes[DisplayForm[expr_], f_]"""
 
         # This is a paratemer needed to remember if
@@ -692,7 +692,7 @@ class NumberForm(_NumberForm):
         else:
             return man
 
-    def apply_list_n(self, expr, n, evaluation, options) -> Expression:
+    def eval_list_n(self, expr, n, evaluation, options) -> Expression:
         "NumberForm[expr_List, n_, OptionsPattern[NumberForm]]"
         options = [
             Expression(SymbolRuleDelayed, Symbol(key), value)
@@ -705,7 +705,7 @@ class NumberForm(_NumberForm):
             ]
         )
 
-    def apply_list_nf(self, expr, n, f, evaluation, options) -> Expression:
+    def eval_list_nf(self, expr, n, f, evaluation, options) -> Expression:
         "NumberForm[expr_List, {n_, f_}, OptionsPattern[NumberForm]]"
         options = [
             Expression(SymbolRuleDelayed, Symbol(key), value)
@@ -718,7 +718,7 @@ class NumberForm(_NumberForm):
             ],
         )
 
-    def apply_makeboxes(self, expr, form, evaluation, options={}):
+    def eval_makeboxes(self, expr, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -743,7 +743,7 @@ class NumberForm(_NumberForm):
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
-    def apply_makeboxes_n(self, expr, n, form, evaluation, options={}):
+    def eval_makeboxes_n(self, expr, n, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, n_?NotOptionQ, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
@@ -763,7 +763,7 @@ class NumberForm(_NumberForm):
             return number_form(expr, py_n, None, evaluation, py_options)
         return Expression(SymbolMakeBoxes, expr, form)
 
-    def apply_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
+    def eval_makeboxes_nf(self, expr, n, f, form, evaluation, options={}):
         """MakeBoxes[NumberForm[expr_, {n_, f_}, OptionsPattern[NumberForm]],
         form:StandardForm|TraditionalForm|OutputForm]"""
 
