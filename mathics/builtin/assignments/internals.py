@@ -779,6 +779,27 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
 def process_rhs_conditions(lhs, rhs, evaluation, condition=None):
     """
     lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+
+    This function is necesary as a temporal patch for a bug
+    in the pattern matching / replacement code.
+
+    In WMA,
+
+    ``f[4]/.(f[x_]:> (p[x]/;x>0))``
+
+    shold return
+
+    ``p[4]``
+
+    while ``f[-4]/.(f[x_]:> (p[x]/;x>0))``
+    would result in ``f[-4]``
+
+    In Mathics, the first case results in
+    ``p[4]/; 4>0``
+    while the second,
+    ``p[-4]/; -4>0``
+
+    This should be handled in the apply method of the BaseRule class.
     """
     # To Handle `OptionValue` in `Condition`
     rulopc = build_rulopc(lhs.get_head())
