@@ -107,7 +107,7 @@ class BaseRule(KeyComparable):
     def do_replace(self):
         raise NotImplementedError
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.get_sort_key(True)))
 

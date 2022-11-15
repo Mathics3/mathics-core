@@ -201,7 +201,10 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
+        try:
+            return "RowBox[List[" + self.items.__repr__() + "]]"
+        except:
+            return "RowBox[List[{uninitialized}]]"
 
     def apply_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""
