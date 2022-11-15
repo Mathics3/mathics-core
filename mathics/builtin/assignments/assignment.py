@@ -6,23 +6,10 @@ Forms of Assignment
 
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import (
+    ASSIGNMENT_FUNCTION_MAP,
     AssignmentException,
     assign_store_rules_by_tag,
     normalize_lhs,
-    process_assign_attributes,
-    process_assign_context,
-    process_assign_context_path,
-    process_assign_default,
-    process_assign_definition_values,
-    process_assign_format,
-    process_assign_list,
-    process_assign_makeboxes,
-    process_assign_messagename,
-    process_assign_n,
-    process_assign_numericq,
-    process_assign_options,
-    process_assign_random_state,
-    process_assign_part,
 )
 
 from mathics.core.attributes import (
@@ -43,49 +30,26 @@ class _SetOperator:
 
     Special cases are determined by the head of the expression. Then
     they are processed by specific routines, which are poke from
-    the `special_cases` dict.
+    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
     """
 
     # FIXME:
     # Assigment is determined by the LHS.
-    # Is there a larger patterns or natural grouping that we are missing?
-    # For example it might be that
-    # there are some attributes or other properties of of the
-    # LHS of a builtin that we should be targetting.
+    # Are there a larger patterns or natural groupings that we are missing?
+    # For example, it might be that it
+    # we can key off of some attributes or other properties of the
+    # LHS of a builtin, instead of listing all of the builtins in that class
+    # (which may miss some).
     # Below, we key on a string, but Symbol is more correct.
-    #
-
-    special_cases = {
-        "System`$Context": process_assign_context,
-        "System`$ContextPath": process_assign_context_path,
-        "System`$RandomState": process_assign_random_state,
-        "System`Attributes": process_assign_attributes,
-        "System`Default": process_assign_default,
-        "System`DefaultValues": process_assign_definition_values,
-        "System`DownValues": process_assign_definition_values,
-        "System`Format": process_assign_format,
-        "System`List": process_assign_list,
-        "System`MakeBoxes": process_assign_makeboxes,
-        "System`MessageName": process_assign_messagename,
-        "System`Messages": process_assign_definition_values,
-        "System`N": process_assign_n,
-        "System`NValues": process_assign_definition_values,
-        "System`NumericQ": process_assign_numericq,
-        "System`Options": process_assign_options,
-        "System`OwnValues": process_assign_definition_values,
-        "System`Part": process_assign_part,
-        "System`SubValues": process_assign_definition_values,
-        "System`UpValues": process_assign_definition_values,
-    }
 
     def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
         lhs, lookup_name = normalize_lhs(lhs, evaluation)
         try:
-            # Deal with direct assignation to properties of
-            # the definition object
-            func = self.special_cases.get(lookup_name, None)
-            if func:
-                return func(self, lhs, rhs, evaluation, tags, upset)
+            # Using a builtin name, find which assignment procedure to perform,
+            # and then call that function.
+            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            if assignment_func:
+                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
 
             return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
         except AssignmentException:

@@ -814,3 +814,28 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
                 raise AssignmentException(lhs, None)
 
     return tags, focus
+
+
+# Below is a mapping from a string Symbol name into an assignment function
+ASSIGNMENT_FUNCTION_MAP = {
+    "System`$Context": process_assign_context,
+    "System`$ContextPath": process_assign_context_path,
+    "System`$RandomState": process_assign_random_state,
+    "System`Attributes": process_assign_attributes,
+    "System`Default": process_assign_default,
+    "System`DefaultValues": process_assign_definition_values,
+    "System`DownValues": process_assign_definition_values,
+    "System`Format": process_assign_format,
+    "System`List": process_assign_list,
+    "System`MakeBoxes": process_assign_makeboxes,
+    "System`MessageName": process_assign_messagename,
+    "System`Messages": process_assign_definition_values,
+    "System`N": process_assign_n,
+    "System`NValues": process_assign_definition_values,
+    "System`NumericQ": process_assign_numericq,
+    "System`Options": process_assign_options,
+    "System`OwnValues": process_assign_definition_values,
+    "System`Part": process_assign_part,
+    "System`SubValues": process_assign_definition_values,
+    "System`UpValues": process_assign_definition_values,
+}
