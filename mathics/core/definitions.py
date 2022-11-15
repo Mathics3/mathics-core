@@ -95,11 +95,17 @@ class Definitions:
     - definition_cache: keep definitions obtained by merging builtins, pymathics, and user definitions associated to the same symbol.
     """
 
+    _already_loaded = False
+    builtin = {}
+
     def __init__(
-        self, add_builtin=False, builtin_filename=None, extension_modules=[]
+        self,
+        add_builtin: bool = False,  # Set to True to ensure that builtin get loaded.
+        builtin_filename: Optional[str] = None,  # Not used by now.
+        extension_modules: list = []  # The list of extension modules to be loaded
+        # in this instance.
     ) -> None:
         super(Definitions, self).__init__()
-        self.builtin = {}
         self.user = {}
         self.pymathics = {}
         self.definitions_cache = {}
@@ -112,6 +118,46 @@ class Definitions:
             "System`",
             "Global`",
         )
+        self.trace_evaluation = False
+        self.timing_trace_evaluation = False
+
+        # All the following code must be run if add_builtin is set to True
+        # and self.builtin was not initialized.
+        if add_builtin:
+            # self.builtin now is a class attribute, so
+            # the loading is done just once, the first time
+            # that Definitions is created with the  ``add_builtin``
+            # parameter set to ``True``.
+            self.do_load_builtins()  # (builtin_filename)
+
+            # Load the extension modules.
+            # TODO: Consider to move this to do_add_builtins.
+            for module in extension_modules:
+                try:
+                    self.load_pymathics_module(module, remove_on_quit=False)
+                except PyMathicsLoadException:
+                    raise
+                except ImportError:
+                    raise
+
+        # PrintForms and OutputForms are populated when
+        # mathics.builtin.forms.base is loaded for the first time.
+        # Incidentally, this happens when mathics.format is loaded.
+        # but in general, we should assume that this happens after
+        # the builtins are stored.
+        self.printforms = list(PrintForms)
+        self.outputforms = list(OutputForms)
+
+    def do_load_builtins(self, builtin_filename: Optional[str] = None):
+        """
+        This function is called just once, to populate
+        the builtin dictionary.
+        """
+        from mathics.builtin import modules, contribute
+        from mathics.settings import ROOT_DIR
+
+        # I move this here, because this must be loaded just
+        # the first time that the builtins are loaded.
 
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
@@ -121,64 +167,66 @@ class Definitions:
         #   2 were given
         # Rocky: this smells of something not quite right in terms of
         # modularity.
-
         import mathics.format  # noqa
 
-        self.printforms = list(PrintForms)
-        self.outputforms = list(OutputForms)
+        if self._already_loaded:
+            return
+
+        #  # This chunck of code is here because at some moment we considered to store
+        #  # the builtins as a pickled file, to speedup the initialization.
+        #  # This didn't work, and we do not use this by now, so let's comment out
+        #  # by now...
+        #
+        # loaded = False
+        #  if builtin_filename is not None:
+        #     builtin_dates = [get_file_time(module.__file__) for module in modules]
+        #     builtin_time = max(builtin_dates)
+        #     if get_file_time(builtin_filename) > builtin_time:
+        #         builtin_file = open(builtin_filename, "rb")
+        #         self.builtin = pickle.load(builtin_file)
+        #         loaded = True
+        # if not loaded:
+        contribute(self)
+        #  # This would store the builtins in a picke. Also it
+        #  # is not used by now...
+        #  if builtin_filename is not None:
+        #    builtin_file = open(builtin_filename, "wb")
+        #     pickle.dump(self.builtin, builtin_file, -1)
+
+        # Notice that definitions here are stored in the user
+        # dict of the first instance of the class which is called
+        # with the `add_builtin` parameter set to True.
+
+        autoload_files(self, ROOT_DIR, "autoload")
+
+        # Move any user definitions created by autoloaded files to
+        # builtins, and clear out the user definitions list. This
+        # means that any autoloaded definitions become shared
+        # between users and no longer disappear after a Quit[].
+        #
+        # Autoloads that accidentally define a name in Global`
+        # could cause confusion, so check for this.
+        #
+        for name in self.user:
+            if name.startswith("Global`"):
+                raise ValueError("autoload defined %s." % name)
+
+        # Move symbols defined in autoload modules
+        # to Builtin definitions.
+        # This is important to avoid that reset_user_definitions
+        # getting rid of the autoloaded definitions (including)
+        # the needed by Import/Export.
+
+        for name in self.user:
+            self.builtin[name] = self.get_definition(name)
+
+        self.user = {}
+        self.clear_cache()
+        # Restore the context and trace variables.
+        self.current_context = "Global`"
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
-
-        if add_builtin:
-            from mathics.builtin import modules, contribute
-            from mathics.settings import ROOT_DIR
-
-            loaded = False
-            if builtin_filename is not None:
-                builtin_dates = [get_file_time(module.__file__) for module in modules]
-                builtin_time = max(builtin_dates)
-                if get_file_time(builtin_filename) > builtin_time:
-                    builtin_file = open(builtin_filename, "rb")
-                    self.builtin = pickle.load(builtin_file)
-                    loaded = True
-            if not loaded:
-                contribute(self)
-                for module in extension_modules:
-                    try:
-                        self.load_pymathics_module(module, remove_on_quit=False)
-                    except PyMathicsLoadException:
-                        raise
-                    except ImportError:
-                        raise
-
-                if builtin_filename is not None:
-                    builtin_file = open(builtin_filename, "wb")
-                    pickle.dump(self.builtin, builtin_file, -1)
-
-            autoload_files(self, ROOT_DIR, "autoload")
-
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            # Move symbols defined in autoload modules
-            # to Builtin definitions.
-            # This is important to avoid that reset_user_definitions
-            # getting rid of the autoloaded definitions (including)
-            # the needed by Import/Export.
-            for name in self.user:
-                self.builtin[name] = self.get_definition(name)
-
-            self.user = {}
-            self.clear_cache()
+        Definitions._already_loaded = True
 
     def load_pymathics_module(self, module, remove_on_quit=True):
         """
