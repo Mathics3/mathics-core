@@ -38,9 +38,8 @@ from mathics.core.systemsymbols import (
     SymbolUpValues,
 )
 
+from mathics.core.assignment import is_protected
 from mathics.core.atoms import String
-
-from mathics.builtin.assignments.internals import is_protected
 
 
 class Clear(Builtin):

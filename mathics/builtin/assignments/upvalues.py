@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.assignments.internals import _SetOperator
+from mathics.builtin.assignments.assignment import _SetOperator
 from mathics.builtin.base import BinaryOperator
 from mathics.core.attributes import (
     A_HOLD_ALL,

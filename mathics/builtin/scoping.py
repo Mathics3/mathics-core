@@ -4,13 +4,13 @@ Scoping Constructs
 """
 
 
-from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_PROTECTED,
     attribute_string_to_number,
 )
 from mathics.builtin.base import Builtin, Predefined
+from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import (
     String,
     Integer,

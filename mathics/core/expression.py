@@ -538,6 +538,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return expr
 
     def evaluate_elements(self, evaluation) -> "Expression":
+        """
+        return a new expression with the same head, and the
+        evaluable elements evaluated.
+        """
         elements = [
             element.evaluate(evaluation) if isinstance(element, EvalMixin) else element
             for element in self._elements

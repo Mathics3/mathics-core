@@ -15,7 +15,7 @@ However in contrast to \Mathematica, you can set any symbol as an attribute.
 
 
 from mathics.builtin.base import Predefined, Builtin
-from mathics.builtin.assignments.internals import get_symbol_list
+from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import String
 from mathics.core.attributes import (
     attributes_bitset_to_list,

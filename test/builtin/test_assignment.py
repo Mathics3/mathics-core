@@ -158,6 +158,58 @@ def test_setdelayed_oneidentity():
             "{a + b, Q[a, b], a + b}",
             None,
         ),
+        (None, None, None),
+        (r"a=b; a=4; {a, b}", "{4, b}", None),
+        (None, None, None),
+        (r"a=b; b=4;  {a,b}", "{4, 4}", None),
+        (None, None, None),
+        (r"a=b; b=4; Clear[a]; {a,b}", "{a, 4}", None),
+        (None, None, None),
+        ("a=b; b=4; Clear[b]; {a, b}", "{b, b}", None),
+        (None, None, None),
+        ("F[x_]:=x^2; G[x_]:=F[x]; ClearAll[F]; G[u]", "F[u]", None),
+        (None, None, None),
+        ("F[x_]:=G[x]; G[x_]:=x^2; ClearAll[G]; F[u]", "G[u]", None),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "Arguments on the LHS are evaluated before the assignment in := after F reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
+            "{Q[5], H[F[5]]}",
+            "Arguments on the LHS are evaluated before the assignment in ^:= after F reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{Q[5], Q[5]}",
+            "The arguments on the LHS are evaluated before the assignment in := after G reset",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
+            "{H[G[5]], H[G[5]]}",
+            "The arguments on the LHS are evaluated before the assignment in ^:= after G reset",
+        ),
+        (None, None, None),
+        (
+            (
+                "A[x_]:=B[x];B[x_]:=F[x];F[x_]:=G[x];"
+                "H[A[y_]]:=Q[y]; ClearAll[F];"
+                "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
+            ),
+            "{H[F[5]], H[F[5]], H[F[5]], Q[5]}",
+            "The arguments on the LHS are completely evaluated before the assignment",
+        ),
+        (None, None, None),
+        (
+            "F[x_]:=G[x];N[F[x_]]:=x^2;ClearAll[F];{N[F[2]],N[G[2]]}",
+            "{F[2.], 4.}",
+            "Assign N rule",
+        ),
         (
             None,
             None,

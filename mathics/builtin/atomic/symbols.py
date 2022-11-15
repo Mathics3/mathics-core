@@ -7,7 +7,6 @@ Symbolic data. Every symbol has a unique name, exists in a certain context or na
 
 import re
 
-from mathics.builtin.assignments.internals import get_symbol_values
 from mathics.builtin.base import (
     Builtin,
     PrefixOperator,
@@ -16,6 +15,7 @@ from mathics.builtin.base import (
 
 from mathics.builtin.atomic.strings import to_regex
 
+from mathics.core.assignment import get_symbol_values
 from mathics.core.atoms import String
 
 from mathics.core.attributes import (

@@ -4,8 +4,14 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.assignment import (
+    ASSIGNMENT_FUNCTION_MAP,
+    AssignmentException,
+    assign_store_rules_by_tag,
+    normalize_lhs,
+)
+
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -16,6 +22,39 @@ from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.evaluators import eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+
+
+class _SetOperator:
+    """
+    This is the base class for assignment Builtin operators.
+
+    Special cases are determined by the head of the expression. Then
+    they are processed by specific routines, which are poke from
+    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
+    """
+
+    # FIXME:
+    # Assigment is determined by the LHS.
+    # Are there a larger patterns or natural groupings that we are missing?
+    # For example, it might be that it
+    # we can key off of some attributes or other properties of the
+    # LHS of a builtin, instead of listing all of the builtins in that class
+    # (which may miss some).
+    # Below, we key on a string, but Symbol is more correct.
+
+    def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
+        lhs, lookup_name = normalize_lhs(lhs, evaluation)
+        try:
+            # Using a builtin name, find which assignment procedure to perform,
+            # and then call that function.
+            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            if assignment_func:
+                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+
+            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        except AssignmentException:
+
+            return False
 
 
 class Set(BinaryOperator, _SetOperator):
