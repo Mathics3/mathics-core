@@ -174,25 +174,25 @@ def test_setdelayed_oneidentity():
         (
             "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
             "{Q[5], H[F[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
+            "Arguments on the LHS are evaluated before the assignment in := after F reset",
         ),
         (None, None, None),
         (
             "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[F]; {H[G[5]],H[F[5]]}",
             "{Q[5], H[F[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
+            "Arguments on the LHS are evaluated before the assignment in ^:= after F reset",
         ),
         (None, None, None),
         (
             "F[x_]:=G[x]; H[F[y_]]:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{Q[5], Q[5]}",
-            "The arguments on the LHS are evaluated before the assignment",
+            "The arguments on the LHS are evaluated before the assignment in := after G reset",
         ),
         (None, None, None),
         (
             "F[x_]:=G[x]; H[F[y_]]^:=Q[y]; ClearAll[G]; {H[G[5]],H[F[5]]}",
             "{H[G[5]], H[G[5]]}",
-            "The arguments on the LHS are evaluated before the assignment",
+            "The arguments on the LHS are evaluated before the assignment in ^:= after G reset",
         ),
         (None, None, None),
         (
