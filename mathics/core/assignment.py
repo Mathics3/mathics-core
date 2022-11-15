@@ -7,10 +7,12 @@ from typing import Optional, Tuple
 
 from mathics.algorithm.parts import walk_parts
 from mathics.core.atoms import Atom, Integer
+from mathics.core.definitions import get_tag_position
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
+from mathics.core.pattern import Pattern
 from mathics.core.rules import Rule
 from mathics.core.symbols import (
     Symbol,
@@ -115,24 +117,25 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
     lhs and rhs are rewritten in a normal form, where
     conditions are associated to the lhs.
     """
-    lhs, condition = unroll_conditions(lhs)
-    lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
-
+    condition = None
     defs = evaluation.definitions
-    ignore_protection, tags = process_assign_other(
-        self, lhs, rhs, evaluation, tags, upset
+    tags, focus = process_tags_and_upset(tags, upset, self, lhs, evaluation)
+    # TODO: check if we can invert the order, and call this just
+    # in the special cases
+    ignore_protection = process_assign_side_effects(
+        self, lhs, rhs, focus, evaluation, tags, upset
     )
-
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the begining?
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
-
+    lhs, rhs = process_rhs_conditions(lhs, rhs, evaluation)
     count = 0
     rule = Rule(lhs, rhs)
     position = "up" if upset else None
     for tag in tags:
-        if rejected_because_protected(self, lhs, tag, evaluation, ignore_protection):
+        if not ignore_protection and rejected_because_protected(
+            self, lhs, tag, evaluation
+        ):
             continue
         count += 1
         defs.add_rule(tag, rule, position=position)
@@ -246,17 +249,6 @@ def repl_pattern_by_symbol(expr):
 # Auxiliary routines
 
 
-def rejected_because_protected(self, lhs, tag, evaluation, ignore=False):
-    defs = evaluation.definitions
-    if not ignore and is_protected(tag, defs):
-        if lhs.get_name() == tag:
-            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
-        else:
-            evaluation.message(self.get_name(), "write", Symbol(tag), lhs)
-        return True
-    return False
-
-
 def find_tag_and_check(lhs, tags, evaluation):
     name = lhs.get_head_name()
     if len(lhs.elements) != 1:
@@ -273,6 +265,17 @@ def find_tag_and_check(lhs, tags, evaluation):
         evaluation.message(name, "wrsym", Symbol(tag))
         raise AssignmentException(lhs, None)
     return tag
+
+
+def rejected_because_protected(self, lhs, tag, evaluation):
+    defs = evaluation.definitions
+    if is_protected(tag, defs):
+        if lhs.get_name() == tag:
+            evaluation.message(self.get_name(), "wrsym", Symbol(tag))
+        else:
+            evaluation.message(self.get_name(), "write", Symbol(tag), lhs)
+        return True
+    return False
 
 
 def unroll_patterns(lhs, rhs, evaluation) -> Tuple[BaseElement, BaseElement]:
@@ -430,10 +433,8 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message_args(SymbolDefault, len(lhs.elements), 1, 2, 3)
         raise AssignmentException(lhs, None)
     focus = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
-    )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    tags, focus = process_tags_and_upset(tags, upset, self, lhs, evaluation, focus)
+    lhs, rhs = process_rhs_conditions(lhs, rhs, evaluation, condition)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -483,10 +484,8 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
             "System`MathMLForm",
         ]
     lhs = focus = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
-    )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    tags, focus = process_tags_and_upset(tags, upset, self, lhs, evaluation, focus)
+    lhs, rhs = process_rhs_conditions(lhs, rhs, evaluation, condition)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -596,10 +595,8 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
         evaluation.message_args("MessageName", len(lhs.elements), 2)
         raise AssignmentException(lhs, None)
     focus = lhs.elements[0]
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
-    )
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    tags, focus = process_tags_and_upset(tags, upset, self, lhs, evaluation, focus)
+    lhs, rhs = process_rhs_conditions(lhs, rhs, evaluation, condition)
     rule = Rule(lhs, rhs)
     for tag in tags:
         # Messages can be assigned even if the symbol is protected...
@@ -646,7 +643,6 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
 
 
 def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
-    # lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     if rhs not in (SymbolTrue, SymbolFalse):
         evaluation.message("NumericQ", "set", lhs, rhs)
@@ -686,11 +682,9 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
         nprec = lhs.elements[1]
     focus = lhs.elements[0]
     lhs = Expression(SymbolN, focus, nprec)
-    tags = process_tags_and_upset_dont_allow_custom(
-        tags, upset, self, lhs, focus, evaluation
-    )
+    tags, focus = process_tags_and_upset(tags, upset, self, lhs, evaluation, focus)
     count = 0
-    lhs, rhs = process_rhs_conditions(lhs, rhs, condition, evaluation)
+    lhs, rhs = process_rhs_conditions(lhs, rhs, evaluation, condition)
     rule = Rule(lhs, rhs)
     for tag in tags:
         if rejected_because_protected(self, lhs, tag, evaluation):
@@ -700,21 +694,18 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_other(
-    self, lhs, rhs, evaluation, tags=None, upset=False
-) -> Tuple[bool, list]:
+def process_assign_side_effects(
+    self, lhs, rhs, focus, evaluation, tags=None, upset=False
+) -> bool:
     """
     Process special cases, performing certain side effects, like modifying
     the value of internal variables that are not stored as rules.
 
-    The function returns a tuple of a bool value and a list of tags.
+    The function returns a a bool value.
     If lhs is one of the special cases, then the bool variable is
-    True, meaning that the `Protected` attribute should not be taken into accout.
+    True, meaning that the `Protected` attribute should not be taken into account.
     Otherwise, the value is False.
     """
-    tags, focus = process_tags_and_upset_allow_custom(
-        tags, upset, self, lhs, evaluation
-    )
 
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
@@ -732,8 +723,8 @@ def process_assign_other(
     elif lhs_name == "System`$MaxPrecision":
         process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset)
     else:
-        return False, tags
-    return True, tags
+        return False
+    return True
 
 
 def process_assign_part(self, lhs, rhs, evaluation, tags, upset):
@@ -788,9 +779,30 @@ def process_assign_recursion_limit(lhs, rhs, evaluation):
     return False
 
 
-def process_rhs_conditions(lhs, rhs, condition, evaluation):
+def process_rhs_conditions(lhs, rhs, evaluation, condition=None):
     """
     lhs = Condition[rhs, test] -> Condition[lhs, test]  = rhs
+
+    This function is necesary as a temporal patch for a bug
+    in the pattern matching / replacement code.
+
+    In WMA,
+
+    ``f[4]/.(f[x_]:> (p[x]/;x>0))``
+
+    shold return
+
+    ``p[4]``
+
+    while ``f[-4]/.(f[x_]:> (p[x]/;x>0))``
+    would result in ``f[-4]``
+
+    In Mathics, the first case results in
+    ``p[4]/; 4>0``
+    while the second,
+    ``p[-4]/; -4>0``
+
+    This should be handled in the apply method of the BaseRule class.
     """
     # To Handle `OptionValue` in `Condition`
     rulopc = build_rulopc(lhs.get_head())
@@ -817,8 +829,15 @@ def process_rhs_conditions(lhs, rhs, condition, evaluation):
     return lhs, rhs
 
 
-def find_tag(focus):
+def find_focus(focus):
+    """
+    Recursively, look for the (true) focus expression, i.e.,
+    the expression after strip it from Condition, Pattern and HoldPattern
+    wrapping expressions.
+    """
     name = focus.get_lookup_name()
+    if isinstance(focus, Pattern):
+        return find_focus(focus.expr)
     if name == "System`HoldPattern":
         if len(focus.elements) == 1:
             return find_tag(focus.elements[0])
@@ -826,7 +845,9 @@ def find_tag(focus):
         # the message
         # "HoldPattern::argx: HoldPattern called with 2 arguments; 1 argument is expected."
         # must be shown.
-        raise AssignmentException(lhs, None)
+        raise AssignmentException(focus, None)
+    if focus.has_form("System`Condition", 2):
+        return find_focus(focus.elements[0])
     if name == "System`Optional":
         return None
     if name == "System`Pattern" and len(focus.elements) == 2:
@@ -839,21 +860,34 @@ def find_tag(focus):
             elems = pat.elements
             if len(elems) == 0:
                 return None
-            return find_tag(elems[0])
+            return find_focus(elems[0])
         else:
-            return find_tag(pat)
-    return name
+            return find_focus(pat)
+    return focus
 
 
-def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, evaluation):
+def find_tag(focus):
+    focus = find_focus(focus)
+    if focus is None:
+        return None
+    return focus.get_lookup_name()
 
+
+def process_tags_and_upset(tags, upset, self, lhs, evaluation, focus=None):
+    if focus is None:
+        allow_custom = True
+        focus = lhs
+    else:
+        allow_custom = False
+
+    # Ensures that focus is the actual focus of the expression.
+    focus = find_focus(focus)
     if (
         isinstance(focus, Expression)
         and focus.head not in NOT_EVALUATE_ELEMENTS_IN_ASSIGNMENTS
     ):
         focus = focus.evaluate_elements(evaluation)
 
-    name = lhs.get_head_name()
     if tags is None and not upset:
         name = find_tag(focus)
         if name == "":
@@ -861,59 +895,28 @@ def process_tags_and_upset_dont_allow_custom(tags, upset, self, lhs, focus, eval
             raise AssignmentException(lhs, None)
         tags = [] if name is None else [name]
     elif upset:
-        name = find_tag(focus)
-        tags = [] if name is None else [name]
-    else:
-        name = find_tag(focus)
-        allowed_names = [] if name is None else [name]
-        for name in tags:
-            if name not in allowed_names:
-                evaluation.message(self.get_name(), "tagnfd", Symbol(name))
+        if allow_custom:
+            tags = []
+            if isinstance(focus, Atom):
+                evaluation.message(self.get_name(), "normal")
                 raise AssignmentException(lhs, None)
-
-    if len(tags) == 0:
-        evaluation.message(self.get_name(), "nosym", focus)
-        raise AssignmentException(lhs, None)
-    return tags
-
-
-def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
-    name = lhs.get_head_name()
-    focus = lhs
-
-    if isinstance(focus, Expression) and focus.head not in (
-        SymbolSet,
-        SymbolSetDelayed,
-        SymbolUpSet,
-        SymbolUpSetDelayed,
-        SymbolTagSet,
-        SymbolTagSetDelayed,
-        SymbolList,
-        SymbolPart,
-    ):
-        focus = focus.evaluate_elements(evaluation)
-
-    if tags is None and not upset:
-        name = find_tag(focus)
-        if name == "":
-            evaluation.message(self.get_name(), "setraw", focus)
-            raise AssignmentException(lhs, None)
-        tags = [] if name is None else [name]
-    elif upset:
-        tags = []
-        if isinstance(focus, Atom):
-            evaluation.message(self.get_name(), "normal")
-            raise AssignmentException(lhs, None)
-        for element in focus.elements:
-            name = find_tag(element)
-            if name != "" and name is not None:
-                tags.append(name)
+            for element in focus.elements:
+                name = find_tag(element)
+                if name != "" and name is not None:
+                    tags.append(name)
+        else:
+            name = find_tag(focus)
+            tags = [] if name is None else [name]
     else:
-        allowed_names = [find_tag(focus)]
-        for element in focus.get_elements():
-            element_tag = find_tag(element)
-            if element_tag is not None and element_tag != "":
-                allowed_names.append(element_tag)
+        if allow_custom:
+            allowed_names = [find_tag(focus)]
+            for element in focus.get_elements():
+                element_tag = find_tag(element)
+                if element_tag is not None and element_tag != "":
+                    allowed_names.append(element_tag)
+        else:
+            name = find_tag(focus)
+            allowed_names = [] if name is None else [name]
         for name in tags:
             if name not in allowed_names:
                 evaluation.message(self.get_name(), "tagnfd", Symbol(name))
@@ -921,7 +924,6 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     if len(tags) == 0:
         evaluation.message(self.get_name(), "nosym", focus)
         raise AssignmentException(lhs, None)
-
     return tags, focus
 
 

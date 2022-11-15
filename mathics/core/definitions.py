@@ -16,6 +16,7 @@ from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
+from mathics.core.pattern import Pattern
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -780,6 +781,25 @@ class Definitions:
 
 
 def get_tag_position(pattern, name) -> Optional[str]:
+    # Strip first the pattern from HoldPattern, Pattern
+    # and Condition wrappings
+    while True:
+        # TODO: Not Atom/Expression,
+        # pattern -> pattern.to_expression()
+        if isinstance(pattern, Pattern):
+            pattern = pattern.expr
+            continue
+        if pattern.has_form("System`HoldPattern", 1):
+            pattern = pattern.elements[0]
+            continue
+        if pattern.has_form("System`Pattern", 2):
+            pattern = pattern.elements[1]
+            continue
+        if pattern.has_form("System`Condition", 2):
+            pattern = pattern.elements[0]
+            continue
+        break
+
     if pattern.get_name() == name:
         return "own"
     elif isinstance(pattern, Atom):
@@ -788,10 +808,8 @@ def get_tag_position(pattern, name) -> Optional[str]:
         head_name = pattern.get_head_name()
         if head_name == name:
             return "down"
-        elif head_name == "System`N" and len(pattern.elements) == 2:
+        elif pattern.has_form("System`N", 2):
             return "n"
-        elif head_name == "System`Condition" and len(pattern.elements) > 0:
-            return get_tag_position(pattern.elements[0], name)
         elif pattern.get_lookup_name() == name:
             return "sub"
         else:
@@ -912,6 +930,9 @@ class Definition:
         return False
 
     def __repr__(self) -> str:
+        print("arguments of ", id(self))
+        for p in (self.name, self.downvalues, self.formatvalues, self.attributes):
+            print(p)
         s = "<Definition: name: {}, downvalues: {}, formats: {}, attributes: {}>".format(
             self.name, self.downvalues, self.formatvalues, self.attributes
         )
