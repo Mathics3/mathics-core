@@ -4,6 +4,7 @@ import reprlib
 from typing import Optional, Tuple
 
 from mathics.core.element import ElementsProperties
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.symbols import EvalMixin, Symbol, SymbolList
 
@@ -85,7 +86,7 @@ class ListExpression(Expression):
         return f"<ListExpression: {self._elements}>"
 
     # @timeit
-    def evaluate_elements(self, evaluation):
+    def evaluate_elements(self, evaluation: Evaluation) -> Expression:
         """
         return a new expression with the same head, and the
         evaluable elements evaluated.
