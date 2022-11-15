@@ -5,13 +5,6 @@ import pytest
 from test.helper import check_evaluation, session
 from mathics_scanner.errors import IncompleteSyntaxError
 
-DEBUGASSIGN = int(os.environ.get("DEBUGSET", "0")) == 1
-
-if DEBUGASSIGN:
-    skip_or_fail = pytest.mark.xfail
-else:
-    skip_or_fail = pytest.mark.skip
-
 
 str_test_set_with_oneidentity = """
 SetAttributes[SUNIndex, {OneIdentity}];
@@ -215,28 +208,6 @@ def test_setdelayed_oneidentity():
             None,
             None,
         ),
-    ],
-)
-def test_set_and_clear(str_expr, str_expected, msg):
-    """
-    Test calls to Set, Clear and ClearAll. If
-    str_expr is None, the session is reset,
-    in a way that the next test run over a fresh
-    environment.
-    """
-    check_evaluation(
-        str_expr,
-        str_expected,
-        to_string_expr=True,
-        to_string_expected=True,
-        hold_expected=True,
-        failure_message=msg,
-    )
-
-
-@pytest.mark.parametrize(
-    ("str_expr", "str_expected", "msg"),
-    [
         (None, None, None),
         (r"a=b; a=4; {a, b}", "{4, b}", None),
         (None, None, None),
@@ -276,7 +247,7 @@ def test_set_and_clear(str_expr, str_expected, msg):
         (None, None, None),
         (
             (
-                "A[x_]:=B[x];B[x_]:=F[x_];F[x_]:=G[x];"
+                "A[x_]:=B[x];B[x_]:=F[x];F[x_]:=G[x];"
                 "H[A[y_]]:=Q[y]; ClearAll[F];"
                 "{H[A[5]],H[B[5]],H[F[5]],H[G[5]]}"
             ),
@@ -289,10 +260,39 @@ def test_set_and_clear(str_expr, str_expected, msg):
             "{F[2.], 4.}",
             "Assign N rule",
         ),
+        (None, None, None),
+        # This test is inspirated in CellsToTeX
+        ("SetAttributes[testHoldAll, HoldAll]", "Null", None),
+        (
+            (
+                "addF[sym_Symbol] := ("
+                "        functionCall:sym[___] := "
+                "            holdallfunc[functionCall]"
+                "                    )"
+            ),
+            "Null",
+            None,
+        ),
+        ("addF[Q]", "Null", None),
+        ("Q[1]", "holdallfunc[Q[1]]", None),
+        (
+            """
+          ClearAll[F];
+          F[k_] := 1 /; (k == 1);
+          F[k_] := 2 /; (k > 1);
+          F[k_] := Q[3] ;
+          F[k_] := M[3] ;
+          {F[0],F[1],F[2]}
+          """,
+            "{M[3], 1, 2}",
+            (
+                "sucesive set* with the same LHS but different RHS overwrites sucesively,"
+                "except if the RHS are composed by conditions."
+            ),
+        ),
     ],
 )
-@skip_or_fail
-def test_set_and_clear_to_fix(str_expr, str_expected, msg):
+def test_set_and_clear(str_expr, str_expected, msg):
     """
     Test calls to Set, Clear and ClearAll. If
     str_expr is None, the session is reset,
