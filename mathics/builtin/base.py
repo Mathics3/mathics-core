@@ -818,7 +818,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         return self.to_expression().get_sort_key()
 
     def get_string_value(self):
@@ -826,7 +826,12 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
-        return expr.sameQ(self)
+        if expr is self:
+            return True
+        # Otherwise, we need to convert
+        # self into an to expression
+        # to avoid an infinite loop...
+        return self.to_expression().sameQ(expr)
 
     def do_format(self, evaluation, format):
         return self
