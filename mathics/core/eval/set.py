@@ -662,7 +662,7 @@ def eval_tags_and_upset(tags, upset, self, lhs, evaluation, focus=None):
 
 
 # Below is a mapping from Symbol name (as a string) into an assignment eval function.
-ASSIGNMENT_FUNCTION_MAP = {
+SET_EVAL_FUNCTION_MAP = {
     "System`$Context": eval_set_context,
     "System`$ContextPath": eval_set_context_path,
     "System`$RandomState": eval_set_random_state,

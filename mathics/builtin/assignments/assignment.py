@@ -9,7 +9,7 @@ from mathics.core.assignment import (
     AssignmentException,
 )
 from mathics.core.eval.set import (
-    ASSIGNMENT_FUNCTION_MAP,
+    SET_EVAL_FUNCTION_MAP,
     assign_store_rules_by_tag,
     normalize_lhs,
 )
@@ -49,7 +49,7 @@ class _SetOperator:
         try:
             # Using a builtin name, find which assignment procedure to perform,
             # and then call that function.
-            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            assignment_func = SET_EVAL_FUNCTION_MAP.get(lookup_name, None)
             if assignment_func:
                 return assignment_func(self, lhs, rhs, evaluation, tags, upset)
 
