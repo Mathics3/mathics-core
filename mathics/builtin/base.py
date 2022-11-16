@@ -818,7 +818,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
     def get_lookup_name(self):
         return self.get_name()
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         return self.to_expression().get_sort_key()
 
     def get_string_value(self):
