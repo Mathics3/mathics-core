@@ -226,3 +226,16 @@ def test_Attributes_wrong_args(str_expr, arg_count):
             f"SetAttributes called with {arg_count} arguments; 2 arguments are expected.",
         ),
     )
+
+
+def test_anonymous_func_attributes():
+    check_evaluation(
+        str_expr="""
+        a=Function[x, Hold[x]];
+        b=Function[x, Hold[x], HoldAllComplete];
+        {a[1+1],b[1+1]}
+        """,
+        str_expected="{Hold[2], Hold[1+1]}",
+        to_string_expr=True,
+        to_string_expected=True,
+    )

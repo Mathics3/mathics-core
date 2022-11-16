@@ -23,6 +23,7 @@ from mathics.core.attributes import (
     A_NUMERIC_FUNCTION,
     A_ORDERLESS,
     A_SEQUENCE_HOLD,
+    attribute_string_to_number,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
@@ -662,9 +663,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if self._head is SymbolFunction and len(self._elements) > 2:
             res = self._elements[2]
             if isinstance(res, Symbol):
-                return (str(res),)
+                return attribute_string_to_number.get(res.name, 0)
             elif res.has_form("List", None):
-                return set(str(a) for a in res._elements)
+                result = A_NO_ATTRIBUTES
+                for a in res._elements:
+                    result = result | attribute_string_to_number.get(a.name, 0)
+                return result
         return A_NO_ATTRIBUTES
 
     def get_elements(self):
