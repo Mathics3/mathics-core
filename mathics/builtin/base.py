@@ -826,6 +826,11 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def sameQ(self, expr) -> bool:
         """Mathics SameQ"""
+        if expr is self:
+            return True
+        # Otherwise, we need to convert
+        # self into an to expression
+        # to avoid an infinite loop...
         return self.to_expression().sameQ(expr)
 
     def do_format(self, evaluation, format):

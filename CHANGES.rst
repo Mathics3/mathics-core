@@ -1,7 +1,7 @@
 	.. contents::
 
 CHANGES
-=======
+*******
 
 5.0.3dev0
 ---------
@@ -52,7 +52,8 @@ Bugs
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 #. Rules of the form ``pat->Condition[expr, cond]`` are handled as in WL. The same works for nested `Condition` expressions. Also, comparisons among these rules was improved.
-   
+#. ``mathics.core.Pattern.create`` now catches the case when the input parameter is not an `Atom` or an `Expression`.
+
 
 Enhancements
 ++++++++++++

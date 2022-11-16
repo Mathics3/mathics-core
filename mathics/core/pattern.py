@@ -86,9 +86,6 @@ class Pattern:
         by calling the method ``to_expression``, and then call the function
         again with this new object as input.
         """
-        if not isinstance(expr, (Atom, Expression)):
-            expr = expr.to_expression()
-
         name = expr.get_head_name()
         pattern_object = pattern_objects.get(name)
         if pattern_object is not None:
@@ -97,8 +94,10 @@ class Pattern:
             return AtomPattern(expr)
         elif isinstance(expr, Expression):
             return ExpressionPattern(expr)
-        # Otherwise, try to get an expression and
-        # call again.
+        # To handle Boxes and other possible objects that
+        # can be converted into expressions, convert expr to
+        # expression and call this function
+        # again:
         return Pattern.create(expr.to_expression())
 
     def match(
