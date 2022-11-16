@@ -229,11 +229,35 @@ def test_Attributes_wrong_args(str_expr, arg_count):
 
 
 def test_anonymous_func_attributes():
+    """
+    This test checks that Attributes are correctly
+    interpreted for Function[...] expressions.
+    In evaluation, a general expression as a head of
+    another expression does not have
+    any associate attribute. ``Function`` is
+    a particular case, since we can set the attributes
+    that must be taken into account during evaluations
+    of expressions of the form
+    ```
+    Function[vars, body, attrs][parms]
+    ```
+    Here, the third parameter tells the evaluator
+    which attributes has the "head"
+    ``Function[vars, expr, attrs]``.
+
+    In the example, ``f`` does not have any attribute,
+    so if we evaluate ``f[1+1]``, the evaluator evaluates
+    first ``1+1`` to ``2`` and then pass this to the
+    body.
+    In the second case, ``g`` has the attribute `HoldAllComplete`,
+    so ``1+1`` is keep unevaluated when it is passed to the body,
+    in a way that ``g[1+1]`` results in ``Hold[1+1]``
+    """
     check_evaluation(
         str_expr="""
-        a=Function[x, Hold[x]];
-        b=Function[x, Hold[x], HoldAllComplete];
-        {a[1+1],b[1+1]}
+        f=Function[x, Hold[x]];
+        g=Function[x, Hold[x], HoldAllComplete];
+        {f[1+1],g[1+1]}
         """,
         str_expected="{Hold[2], Hold[1+1]}",
         to_string_expr=True,
