@@ -129,7 +129,7 @@ def eval_nvalues(
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
                 result = eval_nvalues(result, prec, evaluation)
-            return result
+                return result
 
     # If we are here, is because there are not NValues that matches
     # to the expression. In such a case, if we arrive to an atomic expression,

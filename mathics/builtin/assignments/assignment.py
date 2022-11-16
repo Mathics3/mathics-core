@@ -6,8 +6,10 @@ Forms of Assignment
 
 from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import (
-    ASSIGNMENT_FUNCTION_MAP,
     AssignmentException,
+)
+from mathics.core.eval.set import (
+    ASSIGNMENT_FUNCTION_MAP,
     assign_store_rules_by_tag,
     normalize_lhs,
 )
