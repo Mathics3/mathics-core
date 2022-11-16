@@ -172,7 +172,8 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
     else:
         result = []
         for rule in rules:
-            if rule.get_head_name() not in ("System`Rule", "System`RuleDelayed"):
+            head_name = rule.get_head_name()
+            if head_name not in ("System`Rule", "System`RuleDelayed"):
                 evaluation.message(name, "reps", rule)
                 return None, True
             elif len(rule.elements) != 2:
@@ -186,7 +187,13 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
                 )
                 return None, True
             else:
-                result.append(Rule(rule.elements[0], rule.elements[1]))
+                result.append(
+                    Rule(
+                        rule.elements[0],
+                        rule.elements[1],
+                        delayed=(head_name == "System`RuleDelayed"),
+                    )
+                )
         return result, False
 
 
@@ -1690,7 +1697,7 @@ class Dispatch(Atom):
         self._elements = None
         self._head = SymbolDispatch
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         return self.src.get_sort_key()
 
     def get_atom_name(self):

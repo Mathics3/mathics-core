@@ -5,7 +5,7 @@ from inspect import signature
 
 from mathics.core.element import KeyComparable
 from mathics.core.expression import Expression
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import strip_context, SymbolTrue
 from mathics.core.pattern import Pattern, StopGenerator
 
 from itertools import chain
@@ -17,6 +17,10 @@ def _python_function_arguments(f):
 
 def function_arguments(f):
     return _python_function_arguments(f)
+
+
+class StopMatchConditionFailed(StopGenerator):
+    pass
 
 
 class StopGenerator_BaseRule(StopGenerator):
@@ -59,7 +63,11 @@ class BaseRule(KeyComparable):
                 if name.startswith("_option_"):
                     options[name[len("_option_") :]] = value
                     del vars[name]
-            new_expression = self.do_replace(expression, vars, options, evaluation)
+            try:
+                new_expression = self.do_replace(expression, vars, options, evaluation)
+            except StopMatchConditionFailed:
+                return
+
             if new_expression is None:
                 new_expression = expression
             if rest[0] or rest[1]:
@@ -107,7 +115,7 @@ class BaseRule(KeyComparable):
     def do_replace(self):
         raise NotImplementedError
 
-    def get_sort_key(self) -> tuple:
+    def get_sort_key(self, pattern_sort=False) -> tuple:
         # FIXME: check if this makes sense:
         return tuple((self.system, self.pattern.get_sort_key(True)))
 
@@ -131,12 +139,131 @@ class Rule(BaseRule):
     ``G[1.^2, a^2]``
     """
 
-    def __init__(self, pattern, replace, system=False) -> None:
+    def __ge__(self, other):
+        if isinstance(other, Rule):
+            sys, key, rhs_cond = self.get_sort_key()
+            sys_other, key_other, rhs_cond_other = other.get_sort_key()
+            if sys != sys_other:
+                return sys > sys_other
+            if key != key_other:
+                return key > key_other
+
+            # larger and more complex conditions come first
+            len_cond, len_cond_other = len(rhs_cond), len(rhs_cond_other)
+            if len_cond != len_cond_other:
+                return len_cond_other > len_cond
+            if len_cond == 0:
+                return False
+            for me_cond, other_cond in zip(rhs_cond, rhs_cond_other):
+                me_sk = me_cond.get_sort_key(True)
+                o_sk = other_cond.get_sort_key(True)
+                if me_sk > o_sk:
+                    return False
+            return True
+        # Follow the usual rule
+        return self.get_sort_key(True) >= other.get_sort_key(True)
+
+    def __gt__(self, other):
+        if isinstance(other, Rule):
+            sys, key, rhs_cond = self.get_sort_key()
+            sys_other, key_other, rhs_cond_other = other.get_sort_key()
+            if sys != sys_other:
+                return sys > sys_other
+            if key != key_other:
+                return key > key_other
+
+            # larger and more complex conditions come first
+            len_cond, len_cond_other = len(rhs_cond), len(rhs_cond_other)
+            if len_cond != len_cond_other:
+                return len_cond_other > len_cond
+            if len_cond == 0:
+                return False
+
+            for me_cond, other_cond in zip(rhs_cond, rhs_cond_other):
+                me_sk = me_cond.get_sort_key(True)
+                o_sk = other_cond.get_sort_key(True)
+                if me_sk > o_sk:
+                    return False
+            return me_sk > o_sk
+        # Follow the usual rule
+        return self.get_sort_key(True) > other.get_sort_key(True)
+
+    def __le__(self, other):
+        if isinstance(other, Rule):
+            sys, key, rhs_cond = self.get_sort_key()
+            sys_other, key_other, rhs_cond_other = other.get_sort_key()
+            if sys != sys_other:
+                return sys < sys_other
+            if key != key_other:
+                return key < key_other
+
+            # larger and more complex conditions come first
+            len_cond, len_cond_other = len(rhs_cond), len(rhs_cond_other)
+            if len_cond != len_cond_other:
+                return len_cond_other < len_cond
+            if len_cond == 0:
+                return False
+            for me_cond, other_cond in zip(rhs_cond, rhs_cond_other):
+                me_sk = me_cond.get_sort_key(True)
+                o_sk = other_cond.get_sort_key(True)
+                if me_sk < o_sk:
+                    return False
+            return True
+        # Follow the usual rule
+        return self.get_sort_key(True) <= other.get_sort_key(True)
+
+    def __lt__(self, other):
+        if isinstance(other, Rule):
+            sys, key, rhs_cond = self.get_sort_key()
+            sys_other, key_other, rhs_cond_other = other.get_sort_key()
+            if sys != sys_other:
+                return sys < sys_other
+            if key != key_other:
+                return key < key_other
+
+            # larger and more complex conditions come first
+            len_cond, len_cond_other = len(rhs_cond), len(rhs_cond_other)
+            if len_cond != len_cond_other:
+                return len_cond_other < len_cond
+            if len_cond == 0:
+                return False
+
+            for me_cond, other_cond in zip(rhs_cond, rhs_cond_other):
+                me_sk = me_cond.get_sort_key(True)
+                o_sk = other_cond.get_sort_key(True)
+                if me_sk < o_sk:
+                    return False
+            return me_sk > o_sk
+        # Follow the usual rule
+        return self.get_sort_key(True) < other.get_sort_key(True)
+
+    def __init__(self, pattern, replace, delayed=True, system=False) -> None:
         super(Rule, self).__init__(pattern, system=system)
         self.replace = replace
+        self.delayed = delayed
+        # If delayed is True, and replace is a nested
+        # Condition expression, stores the conditions and the
+        # remaining stripped expression.
+        # This is going to be used to compare and sort rules,
+        # and also to decide if the rule matches an expression.
+        conds = []
+        if delayed:
+            while replace.has_form("System`Condition", 2):
+                replace, cond = replace.elements
+                conds.append(cond)
+
+        self.rhs_conditions = sorted(conds)
+        self.strip_replace = replace
 
     def do_replace(self, expression, vars, options, evaluation):
-        new = self.replace.replace_vars(vars)
+        replace = self.replace if self.rhs_conditions == [] else self.strip_replace
+        for cond in self.rhs_conditions:
+            cond = cond.replace_vars(vars)
+            cond = cond.evaluate(evaluation)
+            if cond is not SymbolTrue:
+                raise StopMatchConditionFailed
+
+        new = replace.replace_vars(vars)
         new.options = options
 
         # if options is a non-empty dict, we need to ensure reevaluation of the whole expression, since 'new' will
@@ -158,6 +285,12 @@ class Rule(BaseRule):
 
     def __repr__(self) -> str:
         return "<Rule: %s -> %s>" % (self.pattern, self.replace)
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        # FIXME: check if this makes sense:
+        return tuple(
+            (self.system, self.pattern.get_sort_key(True), self.rhs_conditions)
+        )
 
 
 class BuiltinRule(BaseRule):

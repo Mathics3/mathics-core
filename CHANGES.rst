@@ -50,7 +50,8 @@ Bugs
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
-
+#. Rules of the form ``pat->Condition[expr, cond]`` are handled as in WL. The same also works for nested `Condition` expressions. In particular, the comparison between two Rules with the same pattern but an iterated ``Condition`` expressionare considered equal if the conditions are the same. 
+   
 
 Enhancements
 ++++++++++++
