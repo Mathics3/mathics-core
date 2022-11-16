@@ -80,9 +80,14 @@ class Pattern:
     def create(expr: BaseElement) -> "Pattern":
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
-        Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``.
-        Otherwise, create and return and ``ExpressionPattern`` for ``expr``.
+        Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``;
+        if it is an ``Expression`` create and return and ``ExpressionPattern`` for ``expr``.
+        Finally, it tries to get one object of one of these classes
+        by calling the method ``to_expression``, and then call the function
+        again with this new object as input.
         """
+        if not isinstance(expr, (Atom, Expression)):
+            expr = expr.to_expression()
 
         name = expr.get_head_name()
         pattern_object = pattern_objects.get(name)
@@ -90,8 +95,11 @@ class Pattern:
             return pattern_object(expr)
         if isinstance(expr, Atom):
             return AtomPattern(expr)
-        else:
+        elif isinstance(expr, Expression):
             return ExpressionPattern(expr)
+        # Otherwise, try to get an expression and
+        # call again.
+        return Pattern.create(expr.to_expression())
 
     def match(
         self,
