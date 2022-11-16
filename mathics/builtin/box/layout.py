@@ -59,7 +59,12 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
             return x_boxed
         if isinstance(x_boxed, Atom):
             return to_boxes(x_boxed, evaluation, options)
-    return to_boxes(Expression(SymbolFullForm, x), evaluation, options)
+
+    return RowBox(
+        String("BoxError:  <<"),
+        to_boxes(Expression(SymbolFullForm, x), evaluation, options),
+        String(">>"),
+    )
 
 
 class BoxData(Builtin):
