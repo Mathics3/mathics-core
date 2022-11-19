@@ -42,7 +42,7 @@ Internals
 #. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
 #. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
 #. `_SetOperator.assign_elementary` was renamed as `_SetOperator.assign`. All the special cases are not handled by the `_SetOperator.special_cases` dict.
-
+#. Improving modularity in evaluating  expressions of the form ``*Set*[...]``.
 
 
 Bugs
@@ -50,7 +50,7 @@ Bugs
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
 #. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
-
+#. Improving compatibility in ``*Set*[...]`` expressions., For general cases, the LHS is evaluated before setting its value. For LHS also of the form ``*Set*[...]``, the LHS is keep unevaluated.
 
 Enhancements
 ++++++++++++
