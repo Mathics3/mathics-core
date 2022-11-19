@@ -88,23 +88,6 @@ def contribute(definitions):
             definitions.builtin[op] = Definition(name=op)
 
 
-def get_module_doc(module):
-    doc = module.__doc__
-    if doc is not None:
-        doc = doc.strip()
-    if doc:
-        title = doc.splitlines()[0]
-        text = "\n".join(doc.splitlines()[1:])
-    else:
-        title = module.__name__
-        for prefix in ("mathics.builtin.", "mathics.optional."):
-            if title.startswith(prefix):
-                title = title[len(prefix) :]
-        title = title.capitalize()
-        text = ""
-    return title, text
-
-
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
     """
     Imports the list of Mathics Built-in modules so that inside
@@ -202,7 +185,7 @@ module_names = [
 modules = []
 import_builtins(module_names)
 
-_builtins = []
+_builtins_list = []
 builtins_by_module = {}
 
 disable_file_module_names = (
@@ -262,7 +245,7 @@ for module in modules:
                     builtin_class, module
                 ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
 
-                _builtins.append((instance.get_name(), instance))
+                _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
@@ -271,7 +254,7 @@ sympy_to_mathics = {}
 
 builtins_precedence = {}
 
-new_builtins = _builtins
+new_builtins = _builtins_list
 
 # FIXME: some magic is going on here..
 _builtins = {}
