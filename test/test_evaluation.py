@@ -61,55 +61,66 @@ def test_evaluation(str_expr: str, str_expected: str, message=""):
         assert result == expected
 
 
-# We skip this test because this behaviour is currently
-# broken
 @pytest.mark.parametrize(
     "str_setup,str_expr,str_expected,message",
     [
         (
-            "F[x___Real]:=List[x]^2; a=.4;",
+            "F[x_, y_,z_]:={Length[x], Length[y], Length[z]}; a:={1,1}",
+            "F[Unevaluated[a],a,Unevaluated[a]]",
+            "{2,2,2}",
+            "evaluated as {Length[a], Length[{1,1}], Length[a]}",
+        ),
+        (
+            "F[x_, y_,z_]:={HoldForm[x], HoldForm[y], HoldForm[z]}; a:={1,1}",
+            "F[Unevaluated[a],a,Unevaluated[a]]",
+            "{HoldForm[a], {1, 1}, HoldForm[a]}",
+            "evaluated as {HoldForm[a], HoldForm[{1,1}], HoldForm[a]}",
+        ),
+        (
+            "ClearAll[a,F]; F[x_Symbol, y_Real, z_Symbol] := {x^2,y^2,z^2};a=4.;",
             "F[Unevaluated[a], a, Unevaluated[a]]",
-            "F[Unevaluated[a], 0.4, Unevaluated[a]]",
-            None,
+            "{16., 16.,16.}",
+            (
+                "Here the definition matchec because the first and last parameters are"
+                "keep unevaluated."
+            ),
         ),
         (
-            "F[x___Real]:=List[x]^2; a=.4;",
-            "F[Unevaluated[b], b, Unevaluated[b]]",
-            "F[Unevaluated[b], b, Unevaluated[b]]",
-            "the second argument shouldn't be ``Unevaluated[b]``",
+            "ClearAll[a, b, F]; Attributes[F]=Flat;a=4.;",
+            "F[Unevaluated[a], a, F[b,1], Unevaluated[F[b,a]]]",
+            "F[Unevaluated[a], 4., b, 1, Unevaluated[b], Unevaluated[a]]",
+            "If F does not have a pattern that matches, keeps the unevaluated elements",
         ),
         (
-            "G[x___Symbol]:=List[x]^2; a=.4;",
-            "G[Unevaluated[a], a, Unevaluated[a]]",
-            "F[Unevaluated[a], 0.4, Unevaluated[a]]",
-            None,
+            "ClearAll[a, b, F]; Attributes[F]={Orderless, Flat};a=4.;",
+            "F[Unevaluated[a], a, F[b,1], Unevaluated[F[b,a]]]",
+            "F[1, 4., Unevaluated[a], Unevaluated[a], b, Unevaluated[b]]",
+            "the same, with orderless. Unevaluated[expr] comes right after than expr.",
         ),
         (
-            "G[x___Symbol]:=List[x]^2; a=.4;",
-            "G[Unevaluated[b], b, Unevaluated[b]]",
-            "F[Unevaluated[b], b, Unevaluated[b]]",
-            "the second argument shouldn't be ``Unevaluated[b]``",
+            "ClearAll[a, b, F,G]; Attributes[F]=Flat;a=4.;G[x_,y_]:=0",
+            "F[Unevaluated[a], a, G[b,1], Unevaluated[G[b,a]]]",
+            "F[Unevaluated[a], 4., 0, Unevaluated[G[b,a]]]",
+            "G is evaluated",
         ),
+        # (
+        #    "ClearAll[a, b, F,G]; Attributes[F]=Flat;a=4.;F[x_,y__]:={x,y}",
+        #    "F[Unevaluated[a], a, G[b,1], Unevaluated[G[b,a]]]",
+        #    "{F[4.], 4., G[b, 1], G[b, 4.]}",
+        #    "Since F is successfully evaluated, Unevaluated is removed.",
+        # ),
         (
-            "a =.; F[a, x_Real, a] := List[x]^2;a=4.;",
-            "F[Unevaluated[a], a, Unevaluated[a]]",
-            "{16.}",
-            "Here, the second ``a`` is kept unevaluated because of a bug.",
+            "ClearAll[a, b, F,G]; Attributes[F]=HoldFirst;a=4.;F[x_,y__]:={Hold[x],Hold[y]}",
+            "F[Unevaluated[a], a, G[b,1], Unevaluated[F[b,a]]]",
+            "{Hold[a], Hold[4., G[b, 1], F[b, a]]}",
+            "Since F is successfully evaluated, Unevaluated is removed.",
         ),
     ],
-)
-@pytest.mark.skip(
-    reason="the right behaviour was broken since we start to use Symbol as singleton, to speedup comparisons."
 )
 def test_unevaluate(str_setup, str_expr, str_expected, message):
     if str_setup:
         evaluate(str_setup)
-    result = evaluate(str_expr)
-    expected = evaluate(str_expected)
-    if message:
-        assert result == expected, message
-    else:
-        assert result == expected
+    check_evaluation(str_expr, str_expected, message)
 
 
 @pytest.mark.parametrize(

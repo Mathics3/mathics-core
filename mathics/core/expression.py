@@ -26,7 +26,12 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
-from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
+from mathics.core.element import (
+    ElementsProperties,
+    EvalMixin,
+    ensure_context,
+    BaseElement,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.number import dps
@@ -621,30 +626,29 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         if self._does_not_contain_symbol(head.get_name()):
             return self
         sub_level = level - 1
-        do_flatten = False
-        for element in self._elements:
-            if element.get_head().sameQ(head) and (
+        indx_to_flatten = []
+        for idx, element in enumerate(self._elements):
+            if (
                 not pattern_only or element.pattern_sequence
-            ):
-                do_flatten = True
-                break
-        if do_flatten:
-            new_elements = []
-            for element in self._elements:
-                if element.get_head().sameQ(head) and (
-                    not pattern_only or element.pattern_sequence
-                ):
-                    new_element = element.flatten_with_respect_to_head(
-                        head, pattern_only, callback, level=sub_level
-                    )
-                    if callback is not None:
-                        callback(new_element._elements, element)
-                    new_elements.extend(new_element._elements)
-                else:
-                    new_elements.append(element)
-            return to_expression_with_specialization(self._head, *new_elements)
-        else:
+            ) and element.get_head().sameQ(head):
+                indx_to_flatten.append(idx)
+
+        if len(indx_to_flatten) == 0:
             return self
+
+        new_elements = []
+        for idx, element in enumerate(self._elements):
+            if len(indx_to_flatten) > 0 and idx == indx_to_flatten[0]:
+                indx_to_flatten.pop(0)
+                new_element = element.flatten_with_respect_to_head(
+                    head, pattern_only, callback, level=sub_level
+                )
+                if callback is not None:
+                    callback(new_element._elements, element)
+                new_elements.extend(new_element._elements)
+            else:
+                new_elements.append(element)
+        return to_expression_with_specialization(self._head, *new_elements)
 
     def get_atoms(self, include_heads=True):
         """Returns a list of atoms involved in the expression."""
@@ -1023,6 +1027,67 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         See also https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/evaluation.html#detailed-rewrite-apply-eval-process
         """
 
+        # Internal class and functions to handle ``Unevaluated`` elements
+        class UnevaluatedWrapper(BaseElement):
+            """
+            This class is used to wrap the argument of
+            elements of the form ``Unevaluated[expr_]``,
+            to provide the right behaviour under
+            ``flatten_with_respect_to_head``, sort and thread.
+            The wrapper is removed before step of looking and applying
+            rules.
+            If no rule is successfully applied, then the wrapper is converted
+            again into an expression of the form Unevaluated(expr_)
+            """
+
+            def __init__(self, expr: BaseElement):
+                self.expr = expr
+                self.elements_properties = ElementsProperties(True, True, True)
+
+            def get_head(self):
+                return self.expr.get_head()
+
+            def __repr__(self):
+                return f"<<UnevaluatedWrapper[{self.expr.__repr__()}]>>"
+
+            def get_sort_key(self, pattern_sort=False):
+                # this ensures that when the elements of an expression are
+                # sorted,  elements tagged follows the corresponding untagged
+                # elements.
+                return self.expr.get_sort_key(pattern_sort) + ("Unevaluated",)
+
+            @property
+            def is_literal(self):
+                return False
+
+            def flatten_with_respect_to_head(
+                self, head, pattern_only=False, callback=None, level=100
+            ):
+                flatten_expr = self.expr.flatten_with_respect_to_head(
+                    head=head, pattern_only=pattern_only, callback=callback, level=level
+                )
+                # distribute the tag over the elements.
+                marked_elements = tuple(
+                    UnevaluatedWrapper(element) for element in flatten_expr._elements
+                )
+                return Expression(self.expr._head, *marked_elements)
+
+        def strip_unevaluated_wrapper(expr_with_wrappers):
+            items = (
+                element.expr if isinstance(element, UnevaluatedWrapper) else element
+                for element in expr_with_wrappers._elements
+            )
+            return Expression(expr_with_wrappers._head, *items)
+
+        def restore_unevaluated_from_wrapper(expr_with_wrappers):
+            items = (
+                Expression(SymbolUnevaluated, element.expr)
+                if isinstance(element, UnevaluatedWrapper)
+                else element
+                for element in expr_with_wrappers._elements
+            )
+            return Expression(expr_with_wrappers._head, *items)
+
         # Step 1 : evaluate the Head and get its Attributes. These attributes, used later, include
         # HoldFirst / HoldAll / HoldRest / HoldAllComplete.
 
@@ -1030,29 +1095,31 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # This is what makes expressions in Mathics be M-expressions rather than
         # S-expressions.
         head = self._head.evaluate(evaluation)
-
         attributes = head.get_attributes(evaluation.definitions)
+        contains_unevaluated_wrapper = False
 
         if self.elements_properties is None:
             self._build_elements_properties()
 
         # @timeit
         def eval_elements():
-            nonlocal recompute_properties
+            nonlocal recompute_properties, contains_unevaluated_wrapper
 
             # @timeit
             def eval_range(indices):
-                nonlocal recompute_properties
+                nonlocal recompute_properties, contains_unevaluated_wrapper
                 recompute_properties = False
                 for index in indices:
                     element = elements[index]
-                    if not element.has_form("Unevaluated", 1):
-                        if isinstance(element, EvalMixin):
-                            new_value = element.evaluate(evaluation)
-                            # We need id() because != by itself is too permissive
-                            if id(element) != id(new_value):
-                                recompute_properties = True
-                                elements[index] = new_value
+                    if element.has_form("System`Unevaluated", 1):
+                        contains_unevaluated_wrapper = True
+                        elements[index] = UnevaluatedWrapper(element._elements[0])
+                    elif isinstance(element, EvalMixin):
+                        new_value = element.evaluate(evaluation)
+                        # We need id() because != by itself is too permissive
+                        if id(element) != id(new_value):
+                            recompute_properties = True
+                            elements[index] = new_value
 
             # @timeit
             def rest_range(indices):
@@ -1069,6 +1136,9 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                                 if id(new_value) != id(element):
                                     elements[index] = new_value
                                     recompute_properties = True
+                        elif element.has_form("System`Unevaluated", 1):
+                            contains_unevaluated_wrapper = True
+                            elements[index] = UnevaluatedWrapper(element._elements[0])
 
             if (A_HOLD_ALL | A_HOLD_ALL_COMPLETE) & attributes:
                 # eval_range(range(0, 0))
@@ -1119,51 +1189,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                 new._build_elements_properties()
             elements = new._elements
 
-        # comment @mmatera: I think this is wrong now, because alters singletons... (see PR #58)
-        # The idea is to mark which elements was marked as "Unevaluated"
-        # Also, this consumes time for long lists, and is useful just for a very unfrequent
-        # expressions, involving `Unevaluated` elements.
-        # Notice also that this behaviour is broken when the argument of "Unevaluated" is a symbol (see comment and tests in test/test_unevaluate.py)
-
-        for element in elements:
-            element.unevaluated = False
-
-        # If HoldAllComplete Attribute (flag ``A_HOLD_ALL_COMPLETE``) is not set,
-        # and the expression has elements of the form  `Unevaluated[element]`
-        # change them to `element` and set a flag `unevaluated=True`
-        # If the evaluation fails, use this flag to restore back the initial form
-        # Unevaluated[element]
-
-        # comment @mmatera:
-        # what we need here is some way to track which elements are marked as
-        # Unevaluated, that propagates by flatten, and at the end,
-        # to recover a list of positions that (eventually)
-        # must be marked again as Unevaluated.
-
-        if not A_HOLD_ALL_COMPLETE & attributes:
-            dirty_elements = None
-
-            for index, element in enumerate(elements):
-                if element.has_form("Unevaluated", 1):
-                    if dirty_elements is None:
-                        dirty_elements = list(elements)
-                    dirty_elements[index] = element._elements[0]
-                    dirty_elements[index].unevaluated = True
-
-            if dirty_elements:
-                new = Expression(head, *dirty_elements)
-                elements = dirty_elements
-                new._build_elements_properties()
-
-        # If the Attribute ``Flat`` (flag ``A_FLAT``) is set, calls
-        # flatten with a callback that set elements as unevaluated
-        # too.
-        def flatten_callback(new_elements, old):
-            for element in new_elements:
-                element.unevaluated = old.unevaluated
-
         if A_FLAT & attributes:
-            new = new.flatten_with_respect_to_head(new._head, callback=flatten_callback)
+            new = new.flatten_with_respect_to_head(new._head)
             if new.elements_properties is None:
                 new._build_elements_properties()
 
@@ -1195,12 +1222,21 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # threading.  Still, we need to perform this rewrite to
         # maintain correct semantic behavior.
         if A_LISTABLE & attributes:
+            # TODO: Check how Unevaluated works here
             done, threaded = new.thread(evaluation)
             if done:
+                #                if contains_unevaluated_wrapper:
+                #                    new = restore_unevaluated_from_wrapper(new)
+                #                    threaded = restore_unevaluated_from_wrapper(new)
+
                 if threaded.sameQ(new):
+                    if contains_unevaluated_wrapper:
+                        new = restore_unevaluated_from_wrapper(new)
                     new._timestamp_cache(evaluation)
                     return new, False
                 else:
+                    if contains_unevaluated_wrapper:
+                        threaded = restore_unevaluated_from_wrapper(threaded)
                     return threaded, True
 
         # Step 6: Now,the next step is to look at the rules associated to
@@ -1229,6 +1265,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # ```
         # in mathics results in  `fish`, but in WL results in  `5`. This special behaviour suggests
         # that WMA process in a different way certain symbols.
+
+        if contains_unevaluated_wrapper:
+            wrapped_new = new
+            new = strip_unevaluated_wrapper(new)
 
         def rules():
             rules_names = set()
@@ -1265,19 +1305,8 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
                     return result, True
 
         # Step 7: If we are here, is because we didn't find any rule that matches with the expression.
-
-        dirty_elements = None
-
-        # Expression did not change, re-apply Unevaluated
-        for index, element in enumerate(new._elements):
-            if element.unevaluated:
-                if dirty_elements is None:
-                    dirty_elements = list(new._elements)
-                dirty_elements[index] = Expression(SymbolUnevaluated, element)
-
-        if dirty_elements:
-            new = Expression(head)
-            new.elements = dirty_elements
+        if contains_unevaluated_wrapper:
+            new = restore_unevaluated_from_wrapper(wrapped_new)
 
         # Step 8: Update the cache. Return the new compound Expression and indicate that no further evaluation is needed.
         new._timestamp_cache(evaluation)
