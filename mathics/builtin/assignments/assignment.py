@@ -8,7 +8,7 @@ from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.assignment import (
     AssignmentException,
 )
-from mathics.core.eval.set import (
+from mathics.eval.set import (
     SET_EVAL_FUNCTION_MAP,
     assign_store_rules_by_tag,
     normalize_lhs,
