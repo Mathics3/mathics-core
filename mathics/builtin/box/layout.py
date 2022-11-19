@@ -23,6 +23,7 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolMakeBoxes
 from mathics.core.systemsymbols import (
     SymbolFractionBox,
+    SymbolFullForm,
     SymbolRowBox,
     SymbolSqrtBox,
     SymbolStandardForm,
@@ -58,7 +59,12 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
             return x_boxed
         if isinstance(x_boxed, Atom):
             return to_boxes(x_boxed, evaluation, options)
-    raise Exception(x, "cannot be boxed.")
+
+    return RowBox(
+        String("BoxError:  <<"),
+        to_boxes(Expression(SymbolFullForm, x), evaluation, options),
+        String(">>"),
+    )
 
 
 class BoxData(Builtin):
@@ -201,7 +207,10 @@ class RowBox(BoxExpression):
     summary_text = "horizontal arrange of boxes"
 
     def __repr__(self):
-        return "RowBox[List[" + self.items.__repr__() + "]]"
+        try:
+            return "RowBox[List[" + self.items.__repr__() + "]]"
+        except:
+            return "RowBox[List[{uninitialized}]]"
 
     def apply_list(self, boxes, evaluation):
         """RowBox[boxes_List]"""

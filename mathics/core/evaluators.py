@@ -75,7 +75,6 @@ def eval_nvalues(
     stored in ``evaluation.definitions``.
     If `prec` can not be evaluated as a number, returns None, otherwise, returns an expression.
     """
-
     # The first step is to determine the precision goal
     try:
         # Here ``get_precision`` is called with ``show_messages``
@@ -129,7 +128,7 @@ def eval_nvalues(
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
                 result = eval_nvalues(result, prec, evaluation)
-            return result
+                return result
 
     # If we are here, is because there are not NValues that matches
     # to the expression. In such a case, if we arrive to an atomic expression,

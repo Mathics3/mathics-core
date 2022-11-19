@@ -5,8 +5,8 @@ Forms of Assignment
 
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.assignment import (
-    ASSIGNMENT_FUNCTION_MAP,
+from mathics.core.eval.set import (
+    SET_EVAL_FUNCTION_MAP,
     AssignmentException,
     assign_store_rules_by_tag,
     normalize_lhs,
@@ -47,7 +47,7 @@ class _SetOperator:
         try:
             # Using a builtin name, find which assignment procedure to perform,
             # and then call that function.
-            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            assignment_func = SET_EVAL_FUNCTION_MAP.get(lookup_name, None)
             if assignment_func:
                 return assignment_func(self, lhs, rhs, evaluation, tags, upset)
 
@@ -170,11 +170,21 @@ class SetDelayed(Set):
     'Condition' ('/;') can be used with 'SetDelayed' to make an
     assignment that only holds if a condition is satisfied:
     >> f[x_] := p[x] /; x>0
+    >> f[x_] := p[-x]/; x<-2
     >> f[3]
      = p[3]
     >> f[-3]
-     = f[-3]
-    It also works if the condition is set in the LHS:
+     = p[3]
+    >> f[-1]
+     = f[-1]
+    Notice that the LHS is the same in both definitions, but the second
+    does not overwrite the first one.
+
+    To overwrite one of these definitions, we have to assign using the same condition:
+    >> f[x_] := Sin[x] /; x>0
+    >> f[3]
+     = Sin[3]
+    In a similar way, the condition can be set in the LHS:
     >> F[x_, y_] /; x < y /; x>0  := x / y;
     >> F[x_, y_] := y / x;
     >> F[2, 3]
