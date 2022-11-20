@@ -19,7 +19,7 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
 )
 from mathics.core.definitions import PyMathicsLoadException
-from mathics.core.evaluators import eval_load_module
+from mathics.eval.nevaluator import eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
 

@@ -129,7 +129,7 @@ def eval_nvalues(
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
                 result = eval_nvalues(result, prec, evaluation)
-            return result
+                return result
 
     # If we are here, is because there are not NValues that matches
     # to the expression. In such a case, if we arrive to an atomic expression,
@@ -174,6 +174,3 @@ def eval_nvalues(
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
-# ``numerify``, ``evaluation``, ``_rewrite_apply_eval_step``, ``format`` and ``boxes_to_*`` that in the current implementation
-# requires to introduce local imports.
-# This also would make easier to test and profile classes that store Expression-like objects and methods that produce the evaluation.
