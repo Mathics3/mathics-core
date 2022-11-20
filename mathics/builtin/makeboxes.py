@@ -30,10 +30,14 @@ from mathics.core.attributes import (
 )
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
-from mathics.core.number import dps
-
+from mathics.core.makeboxes import format_element
+from mathics.core.number import (
+    dps,
+    convert_base,
+    machine_precision,
+    reconstruct_digits,
+)
 from mathics.core.symbols import (
     Atom,
     Symbol,

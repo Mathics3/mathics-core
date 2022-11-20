@@ -238,7 +238,7 @@ class Rational(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.core.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -671,7 +671,7 @@ class Complex(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.core.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -936,7 +936,7 @@ class Rational(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.core.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 

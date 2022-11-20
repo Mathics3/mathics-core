@@ -31,8 +31,8 @@ from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.op import ascii_op_to_unicode
 from mathics.core.convert.python import from_bool
 from mathics.core.element import BaseElement
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
+from mathics.core.makeboxes import format_element
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.symbols import (
     Symbol,
