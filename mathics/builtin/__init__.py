@@ -11,7 +11,7 @@ import inspect
 import os.path as osp
 import pkgutil
 import re
-from typing import List, Optional
+from typing import Dict, List, Optional, Type
 
 from mathics.builtin.base import (
     Builtin,
@@ -31,11 +31,18 @@ __py_files__ = [
     for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
 ]
 
-system_builtins_dict = {}
-builtins_by_module = {}
+# system_builtins_dict maps a full builtin name, e.g. "System`EulerPhi" to a Builtin class
+system_builtins_dict: Dict[str, Type[Builtin]] = {}
+
+# builtins_by_module maps a full module name, e.g. "mathics.builtin.evaluation" to a
+# list of Builtin classes.
+builtins_by_module: Dict[str, List[Type[Builtin]]] = {}
 
 
-def add_builtins(new_builtins):
+def add_builtins(new_builtins: list):
+    """
+    Updates system_builtins_dict to insert new_builtins.
+    """
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
         if hasattr(builtin, "python_equivalent"):
@@ -233,7 +240,7 @@ for module in modules:
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-mathics_to_sympy = {}  # here we have: name -> sympy object
+mathics_to_sympy: Dict[str, Type[Builtin]] = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
 
 builtins_precedence = {}
