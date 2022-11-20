@@ -13,6 +13,7 @@ from typing import Optional
 
 import sympy
 
+from mathics.builtin.pymathics import PyMathicsLoadException, load_pymathics_module
 from mathics.core.atoms import Number
 from mathics.core.attributes import (
     A_N_HOLD_ALL,
@@ -20,7 +21,6 @@ from mathics.core.attributes import (
     A_N_HOLD_REST,
 )
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -49,7 +49,7 @@ def eval_N(
 
 def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
     try:
-        evaluation.definitions.load_pymathics_module(module_name)
+        load_pymathics_module(evaluation.definitions, module_name)
     except (PyMathicsLoadException, ImportError):
         raise
     else:
