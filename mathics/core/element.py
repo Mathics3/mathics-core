@@ -410,7 +410,7 @@ class BaseElement(KeyComparable):
         """
         Check if self has a subexpression of the form `form`.
         """
-        from mathics.builtin.patterns import item_is_free
+        from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
 

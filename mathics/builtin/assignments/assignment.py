@@ -5,7 +5,6 @@ Forms of Assignment
 
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.builtin.pymathics import PyMathicsLoadException
 from mathics.core.assignment import (
     ASSIGNMENT_FUNCTION_MAP,
     AssignmentException,
@@ -20,10 +19,11 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
 )
 
-from mathics.core.definitions import PyMathicsLoadException
-from mathics.eval.nevaluator import eval_load_module
+
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+
+from mathics.eval.pymathics import PyMathicsLoadException, eval_load_module
 
 
 class _SetOperator:

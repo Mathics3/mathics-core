@@ -107,7 +107,7 @@ class Definitions:
             "Global`",
         )
 
-        from mathics.builtin.pymathics import (
+        from mathics.eval.pymathics import (
             PyMathicsLoadException,
             load_pymathics_module,
         )

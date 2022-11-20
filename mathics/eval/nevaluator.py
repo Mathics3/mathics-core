@@ -13,7 +13,6 @@ from typing import Optional
 
 import sympy
 
-from mathics.builtin.pymathics import PyMathicsLoadException, load_pymathics_module
 from mathics.core.atoms import Number
 from mathics.core.attributes import (
     A_N_HOLD_ALL,
@@ -28,6 +27,7 @@ from mathics.core.number import PrecisionValueError, get_precision
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 
+from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
 # FIXME: Add the two-argument form N[expr, n]
 def eval_N(
@@ -45,26 +45,6 @@ def eval_N(
     if isinstance(result, Number):
         return result
     return result.evaluate(evaluation)
-
-
-def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
-    try:
-        load_pymathics_module(evaluation.definitions, module_name)
-    except (PyMathicsLoadException, ImportError):
-        raise
-    else:
-        # Add Pymathics` to $ContextPath so that when user does not
-        # have to qualify Pymathics variables and functions,
-        # as the those in the module just loaded.
-        # Follow the $ContextPath example in the WL
-        # reference manual where PackletManager appears first in
-        # the list, it seems to be preferable to add this PyMathics
-        # at the beginning.
-        context_path = list(evaluation.definitions.get_context_path())
-        if "Pymathics`" not in context_path:
-            context_path.insert(0, "Pymathics`")
-            evaluation.definitions.set_context_path(context_path)
-    return module_name
 
 
 def eval_nvalues(
