@@ -15,13 +15,11 @@ from mathics.core.atoms import String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
-from mathics.core.expression import Expression
 from mathics.core.symbols import (
     Atom,
     Symbol,
     strip_context,
 )
-from mathics.core.systemsymbols import SymbolGet
 
 from mathics_scanner.tokeniser import full_names_pattern
 
@@ -49,30 +47,6 @@ def valuesname(name) -> str:
         return "messages"
     else:
         return name[7:-6].lower()
-
-
-def autoload_files(
-    defs, root_dir_path: str, autoload_dir: str, block_global_definitions: bool = True
-):
-    from mathics.core.evaluation import Evaluation
-
-    # Load symbols from the autoload folder
-    for root, dirs, files in os.walk(os.path.join(root_dir_path, autoload_dir)):
-        for path in [os.path.join(root, f) for f in files if f.endswith(".m")]:
-            Expression(SymbolGet, String(path)).evaluate(Evaluation(defs))
-
-    if block_global_definitions:
-        # Move any user definitions created by autoloaded files to
-        # builtins, and clear out the user definitions list. This
-        # means that any autoloaded definitions become shared
-        # between users and no longer disappear after a Quit[].
-        #
-        # Autoloads that accidentally define a name in Global`
-        # could cause confusion, so check for this.
-
-        for name in defs.user:
-            if name.startswith("Global`"):
-                raise ValueError("autoload defined %s." % name)
 
 
 class Definitions:
@@ -111,6 +85,11 @@ class Definitions:
             PyMathicsLoadException,
             load_pymathics_module,
         )
+        from mathics.builtin import system_builtins_dict
+        from mathics.builtin.system_init import (
+            autoload_files,
+            update_builtin_definitions,
+        )
 
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
@@ -129,7 +108,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules, contribute
+            from mathics.builtin import modules
             from mathics.settings import ROOT_DIR
 
             loaded = False
@@ -141,7 +120,7 @@ class Definitions:
                     self.builtin = pickle.load(builtin_file)
                     loaded = True
             if not loaded:
-                contribute(self)
+                update_builtin_definitions(system_builtins_dict, self)
                 for module in extension_modules:
                     try:
                         load_pymathics_module(self, module)
