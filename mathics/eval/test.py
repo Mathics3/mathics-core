@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+This module contains basic low-level functions that implement
+test evaluations over ``Expression``s.
+"""
+
+
 from mathics.core.atoms import Atom
 from mathics.core.pattern import StopGenerator
 

@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+"""
+This module contains basic low-level functions that combine an ``Expression``
+with an ``Evaluation`` objects to produce ``BoxExpressions``, following
+formatting rules.
+"""
+
+
 import typing
 from typing import Any
 
