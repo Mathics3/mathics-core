@@ -20,7 +20,6 @@ from mathics.builtin.base import (
     SympyObject,
     mathics_to_python,
 )
-from mathics.builtin.system_init import sanity_check
 from mathics.core.pattern import pattern_objects
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
@@ -204,6 +203,33 @@ for subdir in (
     ]
     # print("XXX3", submodule_names)
     import_builtins(submodule_names, subdir)
+
+# FIXME: move this somewhere else...
+
+# Set this to True to print all the builtins that do not have
+# a summary_text. In the future, we can set this to True
+# and raise an error if a new builtin is added without
+# this property or if it does not fulfill some other conditions.
+RUN_SANITY_TEST = False
+
+
+def sanity_check(cls, module):
+    if not RUN_SANITY_TEST:
+        return True
+
+    if not hasattr(cls, "summary_text"):
+        print(
+            "In ",
+            module.__name__,
+            cls.__name__,
+            " does not have a summary_text.",
+        )
+        return False
+    return True
+
+
+# End FIXME
+
 
 for module in modules:
     builtins_by_module[module.__name__] = []

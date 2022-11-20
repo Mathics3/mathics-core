@@ -190,7 +190,6 @@ setup(
         "mathics.builtin.specialfns",
         "mathics.builtin.statistics",
         "mathics.builtin.string",
-        "mathics.builtin.systems_init",
         "mathics.builtin.vectors",
         "mathics.doc",
         "mathics.format",
