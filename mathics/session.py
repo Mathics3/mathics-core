@@ -72,6 +72,10 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
+        # TODO: Due to a fail in the Definitions __init__ method,
+        # we need to initialize this each time Definitions is
+        # instantiated. When it gets fixed, the next line
+        # can be removed.
         initialize_system_definitions()
         self.definitions = Definitions(add_builtin)
         self.evaluation = Evaluation(
