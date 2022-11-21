@@ -584,7 +584,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is SymbolNull:
             return None
 
-        # This was introduced before `mathics.core.evaluators.eval_N`
+        # This was introduced before `mathics.eval.nevaluator.eval_N`
         # provided a simple way to convert an expression into a number.
         # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
@@ -596,7 +596,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 DeprecationWarning,
             )
 
-            from mathics.core.evaluators import eval_N
+            from mathics.eval.nevaluator import eval_N
 
             value = eval_N(self, n_evaluation)
             if value is not self:

@@ -2,7 +2,7 @@
 
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, from_python
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlank,

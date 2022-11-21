@@ -23,6 +23,7 @@ from mathics.core.attributes import (
     A_NUMERIC_FUNCTION,
     A_ORDERLESS,
     A_SEQUENCE_HOLD,
+    attribute_string_to_number,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
@@ -663,13 +664,22 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return atoms
 
     def get_attributes(self, definitions):
-        if self._head is SymbolFunction and len(self._elements) > 2:
+        result = A_NO_ATTRIBUTES
+        # Maybe this deserves to specialize Function
+        if self._head is SymbolFunction and len(self._elements) == 3:
             res = self._elements[2]
-            if isinstance(res, Symbol):
-                return (str(res),)
-            elif res.has_form("List", None):
-                return set(str(a) for a in res._elements)
-        return A_NO_ATTRIBUTES
+            if res.has_form("List", None):
+                attributes = res._elements
+            else:
+                attributes = (res,)
+            for attrib in attributes:
+                if not isinstance(attrib, Symbol):
+                    # if we had here an evaluation object, instead of
+                    # a definition
+                    # evaluation.message("Attributes","attnf", a)
+                    continue
+                result = result | attribute_string_to_number.get(attrib.name, 0)
+        return result
 
     def get_elements(self):
         # print("Use of get_elements is deprecated. Use elements instead.")

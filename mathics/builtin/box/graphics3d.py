@@ -28,7 +28,7 @@ from mathics.builtin.drawing.graphics_internals import get_class
 
 
 from mathics.core.formatter import lookup_method
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.symbols import Symbol, SymbolTrue
 
 

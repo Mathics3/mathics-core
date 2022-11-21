@@ -11,7 +11,7 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
@@ -571,7 +571,7 @@ class Power(BinaryOperator, _MPMathFunction):
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
         ),
         ("", "x_ ^ y_"): (
-            "PrecedenceForm[Superscript[OuterPrecedenceForm[HoldForm[x], 590],"
+            "PrecedenceForm[Superscript[PrecedenceForm[HoldForm[x], 590],"
             "  HoldForm[y]], 590]"
         ),
         ("", "x_ ^ y_?Negative"): (
