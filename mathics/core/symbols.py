@@ -323,9 +323,6 @@ class Atom(BaseElement):
         """
         return False
 
-    def numerify(self, evaluation) -> "Atom":
-        return self
-
     def replace_vars(self, vars, options=None, in_scoping=True) -> "Atom":
         return self
 

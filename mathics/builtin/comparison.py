@@ -56,6 +56,7 @@ from mathics.core.systemsymbols import (
     SymbolSign,
 )
 
+from mathics.eval.numerify import numerify
 
 operators = {
     "System`Less": (-1,),
@@ -682,7 +683,7 @@ class Inequality(Builtin):
     def apply(self, items, evaluation):
         "Inequality[items___]"
 
-        elements = items.numerify(evaluation).get_sequence()
+        elements = numerify(items, evaluation).get_sequence()
         count = len(elements)
         if count == 1:
             return SymbolTrue

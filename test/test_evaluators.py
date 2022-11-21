@@ -4,13 +4,14 @@ import pytest
 
 from mathics.session import MathicsSession
 from mathics.eval.nevaluator import eval_N, eval_nvalues
+from mathics.eval.numerify import numerify as eval_numerify
 
 session = MathicsSession()
 evaluation = session.evaluation
 
 
 def numerify(expr, evaluation):
-    return expr.numerify(evaluation)
+    return eval_numerify(expr, evaluation)
 
 
 def test_sameQ():
