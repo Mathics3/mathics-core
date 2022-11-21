@@ -452,7 +452,7 @@ class Evaluation:
         self.stopped = True
 
     def format_output(self, expr, format=None):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         if format is None:
             format = self.format

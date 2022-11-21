@@ -11,7 +11,7 @@ sort_order = "mathics.builtin.drawing-graphics"
 from math import sqrt
 
 
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 
 from mathics.builtin.base import Builtin
 

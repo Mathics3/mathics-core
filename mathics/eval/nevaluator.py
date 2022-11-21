@@ -20,7 +20,6 @@ from mathics.core.attributes import (
     A_N_HOLD_REST,
 )
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.definitions import PyMathicsLoadException
 from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
@@ -45,26 +44,6 @@ def eval_N(
     if isinstance(result, Number):
         return result
     return result.evaluate(evaluation)
-
-
-def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
-    try:
-        evaluation.definitions.load_pymathics_module(module_name)
-    except (PyMathicsLoadException, ImportError):
-        raise
-    else:
-        # Add Pymathics` to $ContextPath so that when user does not
-        # have to qualify Pymathics variables and functions,
-        # as the those in the module just loaded.
-        # Follow the $ContextPath example in the WL
-        # reference manual where PackletManager appears first in
-        # the list, it seems to be preferable to add this PyMathics
-        # at the beginning.
-        context_path = list(evaluation.definitions.get_context_path())
-        if "Pymathics`" not in context_path:
-            context_path.insert(0, "Pymathics`")
-            evaluation.definitions.set_context_path(context_path)
-    return module_name
 
 
 def eval_nvalues(
@@ -174,6 +153,3 @@ def eval_nvalues(
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
-# ``numerify``, ``evaluation``, ``_rewrite_apply_eval_step``, ``format`` and ``boxes_to_*`` that in the current implementation
-# requires to introduce local imports.
-# This also would make easier to test and profile classes that store Expression-like objects and methods that produce the evaluation.

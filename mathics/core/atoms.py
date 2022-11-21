@@ -154,7 +154,7 @@ class Integer(Number):
         super().__init__()
 
     def make_boxes(self, form) -> "String":
-        from mathics.builtin.box.layout import _boxed_string
+        from mathics.eval.makeboxes import _boxed_string
 
         if form in ("System`InputForm", "System`FullForm"):
             return _boxed_string(str(self.value), number_as_text=True)
@@ -238,7 +238,7 @@ class Rational(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -671,7 +671,7 @@ class Complex(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -859,7 +859,7 @@ class Integer(Number):
         return True
 
     def make_boxes(self, form) -> "String":
-        from mathics.builtin.box.layout import _boxed_string
+        from mathics.eval.makeboxes import _boxed_string
 
         if form in ("System`InputForm", "System`FullForm"):
             return _boxed_string(str(self.value), number_as_text=True)
@@ -936,7 +936,7 @@ class Rational(Number):
         return self
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         return format_element(self, evaluation, f)
 
@@ -1018,7 +1018,7 @@ class String(Atom, BoxElementMixin):
         return '"%s"' % self.value
 
     def atom_to_boxes(self, f, evaluation):
-        from mathics.builtin.box.layout import _boxed_string
+        from mathics.eval.makeboxes import _boxed_string
 
         inner = str(self.value)
         if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:

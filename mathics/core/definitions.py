@@ -75,12 +75,6 @@ def autoload_files(
                 raise ValueError("autoload defined %s." % name)
 
 
-class PyMathicsLoadException(Exception):
-    def __init__(self, module):
-        self.name = module + " is not a valid pymathics module"
-        self.module = module
-
-
 class Definitions:
     """
     The state of one instance of the Mathics interpreter is stored in this object.
@@ -111,6 +105,11 @@ class Definitions:
         self.context_path = (
             "System`",
             "Global`",
+        )
+
+        from mathics.core.pymathics import (
+            PyMathicsLoadException,
+            load_pymathics_module,
         )
 
         # Importing "mathics.format" populates the Symbol of the
@@ -145,7 +144,7 @@ class Definitions:
                 contribute(self)
                 for module in extension_modules:
                     try:
-                        self.load_pymathics_module(module, remove_on_quit=False)
+                        load_pymathics_module(self, module)
                     except PyMathicsLoadException:
                         raise
                     except ImportError:
@@ -172,72 +171,6 @@ class Definitions:
             self.builtin.update(self.user)
             self.user = {}
             self.clear_cache()
-
-    def load_pymathics_module(self, module, remove_on_quit=True):
-        """
-        Loads Mathics builtin objects and their definitions
-        from an external Python module in the pymathics module namespace.
-        """
-        import importlib
-        from mathics.builtin import (
-            builtins_by_module,
-            name_is_builtin_symbol,
-            Builtin,
-        )
-
-        # Ensures that the pymathics module be reloaded
-        import sys
-
-        if module in sys.modules:
-            loaded_module = importlib.reload(sys.modules[module])
-        else:
-            loaded_module = importlib.import_module(module)
-
-        builtins_by_module[loaded_module.__name__] = []
-        vars = set(
-            loaded_module.__all__
-            if hasattr(loaded_module, "__all__")
-            else dir(loaded_module)
-        )
-
-        newsymbols = {}
-        if not ("pymathics_version_data" in vars):
-            raise PyMathicsLoadException(module)
-        for name in vars - set(("pymathics_version_data", "__version__")):
-            var = name_is_builtin_symbol(loaded_module, name)
-            if name_is_builtin_symbol:
-                instance = var(expression=False)
-                if isinstance(instance, Builtin):
-                    if not var.context:
-                        var.context = "Pymathics`"
-                    symbol_name = instance.get_name()
-                    builtins_by_module[loaded_module.__name__].append(instance)
-                    newsymbols[symbol_name] = instance
-
-        for name in newsymbols:
-            self.user.pop(name, None)
-
-        for name, item in newsymbols.items():
-            if name != "System`MakeBoxes":
-                item.contribute(self, is_pymodule=True)
-
-        onload = loaded_module.pymathics_version_data.get("onload", None)
-        if onload:
-            onload(self)
-
-        return loaded_module
-
-    def clear_pymathics_modules(self):
-        from mathics.builtin import builtins_by_module
-
-        for key in list(builtins_by_module.keys()):
-            if not key.startswith("mathics."):
-                del builtins_by_module[key]
-        for key in self.pymathics:
-            del self.pymathics[key]
-
-        self.pymathics = {}
-        return None
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
