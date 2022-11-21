@@ -246,8 +246,8 @@ class BaseElement(KeyComparable):
         return None
 
     def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
-        from mathics.core.formatter import format_element
         from mathics.core.symbols import Symbol
+        from mathics.eval.makeboxes import format_element
 
         if isinstance(form, str):
             form = Symbol(form)
@@ -410,7 +410,7 @@ class BaseElement(KeyComparable):
         """
         Check if self has a subexpression of the form `form`.
         """
-        from mathics.builtin.patterns import item_is_free
+        from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
 

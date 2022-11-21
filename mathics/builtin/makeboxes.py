@@ -10,11 +10,7 @@ import mpmath
 
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.box.layout import (
-    _boxed_string,
-    RowBox,
-    to_boxes,
-)
+from mathics.builtin.box.layout import RowBox, to_boxes
 
 from mathics.core.convert.op import operator_to_unicode, operator_to_ascii
 from mathics.core.atoms import (
@@ -30,7 +26,6 @@ from mathics.core.attributes import (
 )
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
 
@@ -43,6 +38,11 @@ from mathics.core.systemsymbols import (
     SymbolInputForm,
     SymbolOutputForm,
     SymbolRowBox,
+)
+
+from mathics.eval.makeboxes import (
+    _boxed_string,
+    format_element,
 )
 
 
@@ -390,7 +390,7 @@ class MakeBoxes(Builtin):
     }
     summary_text = "settable low-level translator from expression to display boxes"
 
-    def apply_general(self, expr, f, evaluation):
+    def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
         if isinstance(expr, BoxElementMixin):
@@ -439,15 +439,15 @@ class MakeBoxes(Builtin):
             result.append(to_boxes(String(right), evaluation))
             return RowBox(*result)
 
-    def apply_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
+    def eval_outerprecedenceform(self, expr, prec, evaluation):
+        """MakeBoxes[PrecedenceForm[expr_, prec_],
         StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         precedence = prec.get_int_value()
         boxes = MakeBoxes(expr)
         return parenthesize(precedence, expr, boxes, True)
 
-    def apply_postprefix(self, p, expr, h, prec, f, evaluation):
+    def eval_postprefix(self, p, expr, h, prec, f, evaluation):
         """MakeBoxes[(p:Prefix|Postfix)[expr_, h_, prec_:None],
         f:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
@@ -470,7 +470,7 @@ class MakeBoxes(Builtin):
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
-    def apply_infix(
+    def eval_infix(
         self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
     ):
         """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
@@ -564,7 +564,7 @@ class ToBoxes(Builtin):
 
     summary_text = "produce the display boxes of an evaluated expression"
 
-    def apply(self, expr, form, evaluation):
+    def eval(self, expr, form, evaluation):
         "ToBoxes[expr_, form_:StandardForm]"
 
         form_name = form.get_name()

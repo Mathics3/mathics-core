@@ -29,7 +29,6 @@ from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
-from mathics.core.formatter import format_element, do_format
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     channel_to_stream,
@@ -53,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
 )
 
+from mathics.eval.makeboxes import format_element, do_format
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
