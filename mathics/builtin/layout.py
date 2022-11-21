@@ -23,10 +23,11 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
+
+from mathics.eval.makeboxes import format_element
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 

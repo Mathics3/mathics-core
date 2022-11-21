@@ -3,7 +3,7 @@
 import pytest
 
 from mathics.session import MathicsSession
-from mathics.core.evaluators import eval_N, eval_nvalues
+from mathics.eval.nevaluator import eval_N, eval_nvalues
 
 session = MathicsSession()
 evaluation = session.evaluation
