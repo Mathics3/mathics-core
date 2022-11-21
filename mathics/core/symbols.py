@@ -610,7 +610,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         return self.name
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.builtin.system_init import mathics_to_sympy
 
         if self.sympy_dummy is not None:
             return self.sympy_dummy

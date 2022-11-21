@@ -1,7 +1,12 @@
 # -*- coding: utf-8 -*-
 import time
-from mathics.session import MathicsSession
+
 from typing import Optional
+
+from mathics.session import MathicsSession
+from mathics.core.definitions import initialize_system_definitions
+
+initialize_system_definitions()
 
 # Set up a Mathics session with definitions.
 # For consistency set the character encoding ASCII which is

@@ -64,7 +64,7 @@ extra_operators = set(
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
+    from mathics.builtin.system_init import display_operators_set as operators
 
     text = self.value
 

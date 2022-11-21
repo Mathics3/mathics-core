@@ -9,6 +9,11 @@ import bisect
 
 from collections import defaultdict
 
+# FIXME: should we use deepcopy insteads of copy?
+# If so, there are bugs in the code that need to be fixed.
+# Do we even need to use copy/deepcopy at all?
+from copy import copy
+
 from typing import List, Optional
 
 from mathics.core.atoms import String
@@ -22,6 +27,7 @@ from mathics.core.symbols import (
 )
 
 from mathics_scanner.tokeniser import full_names_pattern
+from mathics.settings import ROOT_DIR
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -47,6 +53,14 @@ def valuesname(name) -> str:
         return "messages"
     else:
         return name[7:-6].lower()
+
+
+# system_definitions contains system-wide defintions used for creating
+# builtins. Define system_definitions so we can use it in Definitions
+# We declare it here so it can be used in the Definitions class
+# However it is initialized to an instance of Definitions below
+# after Definitions is defined.
+system_definitions = None
 
 
 class Definitions:
@@ -81,75 +95,13 @@ class Definitions:
             "Global`",
         )
 
-        from mathics.core.pymathics import (
-            PyMathicsLoadException,
-            load_pymathics_module,
-        )
-        from mathics.builtin import system_builtins_dict
-        from mathics.builtin.system_init import (
-            autoload_files,
-            update_builtin_definitions,
-        )
-
-        # Importing "mathics.format" populates the Symbol of the
-        # PrintForms and OutputForms sets.
-        #
-        # If "importlib" is used instead of "import", then we get:
-        #   TypeError: boxes_to_text() takes 1 positional argument but
-        #   2 were given
-        # Rocky: this smells of something not quite right in terms of
-        # modularity.
-
-        import mathics.format  # noqa
-
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
         self.trace_evaluation = False
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules
-            from mathics.settings import ROOT_DIR
-
-            loaded = False
-            if builtin_filename is not None:
-                builtin_dates = [get_file_time(module.__file__) for module in modules]
-                builtin_time = max(builtin_dates)
-                if get_file_time(builtin_filename) > builtin_time:
-                    builtin_file = open(builtin_filename, "rb")
-                    self.builtin = pickle.load(builtin_file)
-                    loaded = True
-            if not loaded:
-                update_builtin_definitions(system_builtins_dict, self)
-                for module in extension_modules:
-                    try:
-                        load_pymathics_module(self, module)
-                    except PyMathicsLoadException:
-                        raise
-                    except ImportError:
-                        raise
-
-                if builtin_filename is not None:
-                    builtin_file = open(builtin_filename, "wb")
-                    pickle.dump(self.builtin, builtin_file, -1)
-
-            autoload_files(self, ROOT_DIR, "autoload")
-
-            # Move any user definitions created by autoloaded files to
-            # builtins, and clear out the user definitions list. This
-            # means that any autoloaded definitions become shared
-            # between users and no longer disappear after a Quit[].
-            #
-            # Autoloads that accidentally define a name in Global`
-            # could cause confusion, so check for this.
-            #
-            for name in self.user:
-                if name.startswith("Global`"):
-                    raise ValueError("autoload defined %s." % name)
-
-            self.builtin.update(self.user)
-            self.user = {}
-            self.clear_cache()
+            self.builtin = copy(system_definitions.builtin)
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
@@ -828,3 +780,47 @@ class Definition:
             self.name, self.downvalues, self.formatvalues, self.attributes
         )
         return s
+
+
+system_definitions = Definitions(add_builtin=False)
+
+
+def initialize_system_definitions():
+    from mathics.builtin.system_init import (
+        autoload_files,
+        update_builtin_definitions,
+        system_builtins_dict,
+    )
+
+    # Importing "mathics.format" populates the Symbol of the
+    # PrintForms and OutputForms sets.
+    #
+    # If "importlib" is used instead of "import", then we get:
+    #   TypeError: boxes_to_text() takes 1 positional argument but
+    #   2 were given
+    # Rocky: this smells of something not quite right in terms of
+    # modularity.
+
+    import mathics.format  # noqa
+
+    update_builtin_definitions(system_builtins_dict, system_definitions)
+
+    autoload_files(system_definitions, ROOT_DIR, "autoload")
+
+    # Move any user definitions created by autoloaded files to
+    # builtins, and clear out the user definitions list. This
+    # means that any autoloaded definitions become shared
+    # between users and no longer disappear after a Quit[].
+    #
+    # Autoloads that accidentally define a name in Global`
+    # could cause confusion, so check for this.
+    #
+    for name in system_definitions.user:
+        if name.startswith("Global`"):
+            raise ValueError("autoload defined %s." % name)
+
+    system_definitions.builtin.update(system_definitions.user)
+    system_definitions.user = {}
+
+
+system_definitions = Definitions(add_builtin=False)
