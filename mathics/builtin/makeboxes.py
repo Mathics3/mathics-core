@@ -440,7 +440,7 @@ class MakeBoxes(Builtin):
             return RowBox(*result)
 
     def apply_outerprecedenceform(self, expr, prec, evaluation):
-        """MakeBoxes[OuterPrecedenceForm[expr_, prec_],
+        """MakeBoxes[PrecedenceForm[expr_, prec_],
         StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
         precedence = prec.get_int_value()
