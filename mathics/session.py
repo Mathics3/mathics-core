@@ -14,7 +14,7 @@ from typing import Optional
 
 from mathics.builtin.system_init import autoload_files
 from mathics.core.parser import parse, MathicsSingleLineFeeder
-from mathics.core.definitions import Definitions
+from mathics.core.definitions import Definitions, initialize_system_definitions
 from mathics.core.evaluation import Evaluation
 import mathics.settings
 
@@ -72,6 +72,7 @@ class MathicsSession:
         """
         reset the definitions and the evaluation objects.
         """
+        initialize_system_definitions()
         self.definitions = Definitions(add_builtin)
         self.evaluation = Evaluation(
             definitions=self.definitions, catch_interrupt=catch_interrupt

@@ -8,6 +8,7 @@ from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
 from mathics.session import MathicsSession
 from mathics.builtin.makeboxes import MakeBoxes
 
+
 session = MathicsSession(add_builtin=True, catch_interrupt=False)
 evaluation = Evaluation(session.definitions)
 
