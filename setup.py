@@ -106,7 +106,6 @@ else:
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
-                "evaluators",
                 "expression",
                 "symbols",
                 "number",
@@ -114,6 +113,7 @@ else:
                 "pattern",
             ),
             "builtin": ["arithmetic", "patterns", "graphics"],
+            "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
             Extension(

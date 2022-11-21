@@ -19,7 +19,7 @@ from mathics.core.attributes import (
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool, from_python
 from mathics.core.convert.sympy import SympyPrime, from_sympy
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolFalse

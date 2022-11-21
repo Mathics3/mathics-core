@@ -32,13 +32,6 @@ from mathics.core.systemsymbols import (
 )
 
 
-# this temporarily replaces the _BoxedString class
-def _boxed_string(string: str, **options):
-    from mathics.core.atoms import String
-
-    return StyleBox(String(string), **options)
-
-
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     """
     This function takes the expression ``x``
@@ -51,14 +44,15 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
         x = x.atom_to_boxes(SymbolStandardForm, evaluation)
         return to_boxes(x, evaluation, options)
     if isinstance(x, Expression):
-        if not x.has_form("MakeBoxes", None):
-            x = Expression(SymbolMakeBoxes, x)
-        x_boxed = x.evaluate(evaluation)
+        if x.has_form("MakeBoxes", None):
+            x_boxed = x.evaluate(evaluation)
+        else:
+            x_boxed = eval_makeboxes(x, evaluation)
         if isinstance(x_boxed, BoxElementMixin):
             return x_boxed
         if isinstance(x_boxed, Atom):
             return to_boxes(x_boxed, evaluation, options)
-    raise Exception(x, "cannot be boxed.")
+    raise eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
 
 
 class BoxData(Builtin):

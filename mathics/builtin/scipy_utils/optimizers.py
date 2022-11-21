@@ -5,7 +5,7 @@ from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.atoms import Number, Real
 from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolInfinity, SymbolFailed
 from mathics.core.util import IS_PYPY
 
