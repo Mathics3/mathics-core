@@ -3,24 +3,15 @@
 
 import importlib
 import re
-import sympy
-
 from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
+import sympy
 
-from mathics.builtin.exceptions import (
-    MessageException,
-)
-
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    String,
-)
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED, A_NO_ATTRIBUTES
+from mathics.builtin.exceptions import MessageException
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
+from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
 from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
@@ -29,9 +20,9 @@ from mathics.core.definitions import Definition
 from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
-from mathics.core.number import get_precision, PrecisionValueError
-from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
-from mathics.core.rules import Rule, BuiltinRule, Pattern
+from mathics.core.number import PrecisionValueError, get_precision
+from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
+from mathics.core.rules import BuiltinRule, Pattern, Rule
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -40,6 +31,9 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import SymbolMessageName, SymbolRule
+
+# Signals to Mathics doc processing not to include this module in its documentation.
+no_doc = True
 
 
 def check_requires_list(requires: list) -> bool:
@@ -103,7 +97,7 @@ def split_name(name: str) -> str:
     return result.lower()
 
 
-mathics_to_python = {}
+mathics_to_python = {}  # here we have: name -> string
 
 
 class Builtin:
@@ -283,15 +277,16 @@ class Builtin:
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
             )
-        for pattern, replace in self.rules.items():
-            if not isinstance(pattern, BaseElement):
-                pattern = pattern % {"name": name}
-                pattern = parse_builtin_rule(pattern, definition_class)
-            replace = replace % {"name": name}
-            # FIXME: Should system=True be system=not is_pymodule ?
-            rules.append(Rule(pattern, parse_builtin_rule(replace), system=True))
+        for pattern_str, replace_str in self.rules.items():
+            pattern_str = pattern_str % {"name": name}
+            pattern = parse_builtin_rule(pattern_str, definition_class)
+            replace_str = replace_str % {"name": name}
+            rules.append(
+                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+            )
 
         box_rules = []
+        # FIXME: Why a special case for System`MakeBoxes? Remove this
         if name != "System`MakeBoxes":
             new_rules = []
             for rule in rules:

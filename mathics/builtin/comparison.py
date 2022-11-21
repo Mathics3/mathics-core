@@ -42,7 +42,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue

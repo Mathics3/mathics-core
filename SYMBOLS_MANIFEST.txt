@@ -831,6 +831,7 @@ System`RegularExpression
 System`RegularPolygon
 System`RegularPolygonBox
 System`ReleaseHold
+System`Remove
 System`RemoveDiacritics
 System`RenameDirectory
 System`RenameFile
@@ -877,6 +878,7 @@ System`SetAttributes
 System`SetDelayed
 System`SetDirectory
 System`SetFileDate
+System`SetOptions
 System`SetStreamPosition
 System`Share
 System`Sharpen

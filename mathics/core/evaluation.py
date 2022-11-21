@@ -262,9 +262,6 @@ class Evaluation:
         # status of last evaluate
         self.exc_result = self.SymbolNull
         self.last_eval = None
-        # Necesary to handle OneIdentity on
-        # lhs in assignment
-        self.ignore_oneidentity = False
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method = []
@@ -455,7 +452,7 @@ class Evaluation:
         self.stopped = True
 
     def format_output(self, expr, format=None):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         if format is None:
             format = self.format

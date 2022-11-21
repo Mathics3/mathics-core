@@ -56,9 +56,8 @@ from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
@@ -95,6 +94,7 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 
+from mathics.eval.makeboxes import format_element
 
 import sympy
 

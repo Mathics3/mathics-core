@@ -975,7 +975,6 @@ class Pattern_(PatternObject):
         "nodef": (
             "No default setting found for `1` in " "position `2` when length is `3`."
         ),
-        "argr": "Pattern called with 1 argument; 2 arguments are expected.",
     }
 
     rules = {
@@ -1659,29 +1658,6 @@ class OptionsPattern(PatternObject):
         return [element for element in elements if _match(element)]
 
 
-class _StopGeneratorBaseElementIsFree(StopGenerator):
-    pass
-
-
-def item_is_free(item, form, evaluation):
-    # for vars, rest in form.match(self, {}, evaluation, fully=False):
-    def yield_match(vars, rest):
-        raise _StopGeneratorBaseElementIsFree(False)
-        # return False
-
-    try:
-        form.match(yield_match, item, {}, evaluation, fully=False)
-    except _StopGeneratorBaseElementIsFree as exc:
-        return exc.value
-
-    if isinstance(item, Atom):
-        return True
-    else:
-        return item_is_free(item.head, form, evaluation) and all(
-            item_is_free(element, form, evaluation) for element in item.elements
-        )
-
-
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
@@ -1702,7 +1678,7 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.builtin.box.layout import RowBox
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         box_element = format_element(self.src, evaluation, f)
         return RowBox(String("Dispatch"), String("["), box_element, String("]"))

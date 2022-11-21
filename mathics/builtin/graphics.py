@@ -11,7 +11,7 @@ sort_order = "mathics.builtin.drawing-graphics"
 from math import sqrt
 
 
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 
 from mathics.builtin.base import Builtin
 
@@ -47,22 +47,22 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
-    system_symbols,
+    symbol_set,
     system_symbols_dict,
     SymbolList,
     SymbolNull,
 )
 from mathics.core.systemsymbols import (
+    SymbolEdgeForm,
+    SymbolFaceForm,
     SymbolMakeBoxes,
+    SymbolRule,
 )
 
 from mathics.core.formatter import lookup_method
 
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 
-
-SymbolEdgeForm = Symbol("System`EdgeForm")
-SymbolFaceForm = Symbol("System`FaceForm")
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -1427,26 +1427,26 @@ class Tiny(Builtin):
 
 
 element_heads = frozenset(
-    system_symbols(
-        "Arrow",
-        "BezierCurve",
-        "Circle",
-        "Cone",
-        "Cuboid",
-        "Cylinder",
-        "Disk",
-        "FilledCurve",
-        "Inset",
-        "Line",
-        "Point",
-        "Polygon",
-        "Rectangle",
-        "RegularPolygon",
-        "Sphere",
-        "Style",
-        "Text",
-        "Tube",
-        "UniformPolyhedron",
+    symbol_set(
+        Symbol("System`Arrow"),
+        Symbol("System`BezierCurve"),
+        Symbol("System`Circle"),
+        Symbol("System`Cone"),
+        Symbol("System`Cuboid"),
+        Symbol("System`Cylinder"),
+        Symbol("System`Disk"),
+        Symbol("System`FilledCurve"),
+        Symbol("System`Inset"),
+        Symbol("System`Line"),
+        Symbol("System`Point"),
+        Symbol("System`Polygon"),
+        Symbol("System`Rectangle"),
+        Symbol("System`RegularPolygon"),
+        Symbol("System`Sphere"),
+        Symbol("System`Style"),
+        Symbol("System`Text"),
+        Symbol("System`Tube"),
+        Symbol("System`UniformPolyhedron"),
     )
 )
 
@@ -1477,7 +1477,7 @@ style_options = system_symbols_dict(
 style_heads = frozenset(styles.keys())
 
 style_and_form_heads = frozenset(
-    style_heads.union(system_symbols("System`EdgeForm", "System`FaceForm"))
+    style_heads.union(symbol_set(SymbolEdgeForm, SymbolFaceForm))
 )
 
 GLOBALS.update(
@@ -1497,8 +1497,8 @@ GLOBALS.update(
 GLOBALS.update(styles)
 
 GRAPHICS_SYMBOLS = {
-    Symbol("System`List"),
-    Symbol("System`Rule"),
+    SymbolList,
+    SymbolRule,
     Symbol("System`VertexColors"),
     *element_heads,
     *[Symbol(element.name + "Box") for element in element_heads],

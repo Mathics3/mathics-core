@@ -5,31 +5,24 @@ Mathics Built-in Functions and Variables.
 Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
 """
 
-from typing import Optional
 import glob
 import importlib
 import inspect
+import os.path as osp
 import pkgutil
 import re
-import os.path as osp
+from typing import List, Optional
 
 from mathics.builtin.base import (
     Builtin,
-    SympyObject,
     Operator,
     PatternObject,
+    SympyObject,
+    mathics_to_python,
 )
-
+from mathics.core.pattern import pattern_objects
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
-
-from typing import List
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if it does not fulfill some other conditions.
-RUN_SANITY_TEST = False
 
 # Get a list of files in this directory. We'll exclude from the start
 # files with leading characters we don't want like __init__ with its leading underscore.
@@ -73,9 +66,9 @@ def contribute(definitions):
         if name != "System`MakeBoxes":
             item.contribute(definitions)
 
+    from mathics.core.definitions import Definition
     from mathics.core.expression import ensure_context
     from mathics.core.parser import all_operator_names
-    from mathics.core.definitions import Definition
 
     # All builtins are loaded. Create dummy builtin definitions for
     # any remaining operators that don't have them. This allows
@@ -84,23 +77,6 @@ def contribute(definitions):
         if not definitions.have_definition(ensure_context(operator)):
             op = ensure_context(operator)
             definitions.builtin[op] = Definition(name=op)
-
-
-def get_module_doc(module):
-    doc = module.__doc__
-    if doc is not None:
-        doc = doc.strip()
-    if doc:
-        title = doc.splitlines()[0]
-        text = "\n".join(doc.splitlines()[1:])
-    else:
-        title = module.__name__
-        for prefix in ("mathics.builtin.", "mathics.optional."):
-            if title.startswith(prefix):
-                title = title[len(prefix) :]
-        title = title.capitalize()
-        text = ""
-    return title, text
 
 
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
@@ -176,21 +152,6 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
     return module_object
 
 
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            cls.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
-
-
 # FIXME: redo using importlib since that is probably less fragile.
 exclude_files = set(("codetables", "base"))
 module_names = [
@@ -200,7 +161,7 @@ module_names = [
 modules = []
 import_builtins(module_names)
 
-_builtins = []
+_builtins_list = []
 builtins_by_module = {}
 
 disable_file_module_names = (
@@ -243,6 +204,33 @@ for subdir in (
     # print("XXX3", submodule_names)
     import_builtins(submodule_names, subdir)
 
+# FIXME: move this somewhere else...
+
+# Set this to True to print all the builtins that do not have
+# a summary_text. In the future, we can set this to True
+# and raise an error if a new builtin is added without
+# this property or if it does not fulfill some other conditions.
+RUN_SANITY_TEST = False
+
+
+def sanity_check(cls, module):
+    if not RUN_SANITY_TEST:
+        return True
+
+    if not hasattr(cls, "summary_text"):
+        print(
+            "In ",
+            module.__name__,
+            cls.__name__,
+            " does not have a summary_text.",
+        )
+        return False
+    return True
+
+
+# End FIXME
+
+
 for module in modules:
     builtins_by_module[module.__name__] = []
     module_vars = dir(module)
@@ -260,17 +248,15 @@ for module in modules:
                     builtin_class, module
                 ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
 
-                _builtins.append((instance.get_name(), instance))
+                _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
-mathics_to_python = {}  # here we have: name -> string
 sympy_to_mathics = {}
 
-pattern_objects = {}
 builtins_precedence = {}
 
-new_builtins = _builtins
+new_builtins = _builtins_list
 
 # FIXME: some magic is going on here..
 _builtins = {}

@@ -3,8 +3,7 @@
 
 import sympy
 import time
-import typing
-from typing import Any, Optional
+from typing import Any, FrozenSet, List, Optional, Tuple
 
 from mathics.core.element import (
     BaseElement,
@@ -251,7 +250,7 @@ class Atom(BaseElement):
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
-    def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
+    def get_atoms(self, include_heads=True) -> List["Atom"]:
         return [self]
 
     # We seem to need this because the caller doesn't distinguish something with elements
@@ -585,7 +584,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is SymbolNull:
             return None
 
-        # This was introduced before `mathics.core.evaluators.eval_N`
+        # This was introduced before `mathics.eval.nevaluator.eval_N`
         # provided a simple way to convert an expression into a number.
         # Now it makes this routine harder to describe.
         n_evaluation = kwargs.get("n_evaluation")
@@ -597,7 +596,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 DeprecationWarning,
             )
 
-            from mathics.core.evaluators import eval_N
+            from mathics.eval.nevaluator import eval_N
 
             value = eval_N(self, n_evaluation)
             if value is not self:
@@ -667,15 +666,14 @@ class PredefinedSymbol(Symbol):
         return False
 
 
-# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
+def symbol_set(*symbols: Tuple[Symbol]) -> FrozenSet[Symbol]:
     """
-    Return a frozenset of symbols from a list of names (strings).
+    Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.
 
     In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
     """
-    return frozenset(Symbol(s) for s in symbols)
+    return frozenset(symbols)
 
 
 # Symbols used in this module.

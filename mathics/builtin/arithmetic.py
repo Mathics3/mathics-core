@@ -24,7 +24,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 
 from mathics.builtin.base import (
     Builtin,
