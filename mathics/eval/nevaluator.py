@@ -27,7 +27,6 @@ from mathics.core.number import PrecisionValueError, get_precision
 from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 
-from mathics.eval.pymathics import PyMathicsLoadException, load_pymathics_module
 
 # FIXME: Add the two-argument form N[expr, n]
 def eval_N(

@@ -113,7 +113,7 @@ else:
                 "pattern",
             ),
             "builtin": ["arithmetic", "patterns", "graphics"],
-            "eval": ("nevaluator", "makeboxes", "test", "pymathics"),
+            "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
             Extension(

@@ -6,8 +6,7 @@ This module contains routines that implement different kind of evaluations over 
 
   * eval_N
   * eval_makeboxes
-  * pymathics load / unload modules
-  * test helpers that check properties on expressions. 
+  * test helpers that check properties on expressions.
 
 """
 
