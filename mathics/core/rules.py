@@ -232,9 +232,9 @@ class BuiltinRule(BaseRule):
         return odict
 
     def __setstate__(self, dict):
-        from mathics.builtin import builtins
+        from mathics.builtin import _builtins
 
         self.__dict__.update(dict)  # update attributes
-        cls, name = dict["function_"]
+        class_name, name = dict["function_"]
 
-        self.function = getattr(builtins[cls], name)
+        self.function = getattr(_builtins[class_name], name)
