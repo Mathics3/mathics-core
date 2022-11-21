@@ -23,7 +23,7 @@ class PyMathicsLoadException(Exception):
 # Why do we need this?
 def eval_clear_pymathics_modules():
     global pymathics
-    from mathics.builtin import builtins_by_module
+    from mathics.builtin.system_init import builtins_by_module
 
     for key in list(builtins_by_module.keys()):
         if not key.startswith("mathics."):
@@ -60,10 +60,10 @@ def load_pymathics_module(definitions, module):
     Loads Mathics builtin objects and their definitions
     from an external Python module in the pymathics module namespace.
     """
-    from mathics.builtin import (
+    from mathics.builtin.base import Builtin
+    from mathics.builtin.system_init import (
         builtins_by_module,
         name_is_builtin_symbol,
-        Builtin,
     )
 
     if module in sys.modules:
