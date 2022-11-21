@@ -1087,7 +1087,8 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin import Builtin, name_is_builtin_symbol
+        from mathics.builtin import name_is_builtin_symbol
+        from mathics.builtin.base import Builtin
 
         print("loading symbols")
         for name in dir(self.pymathicsmodule):
