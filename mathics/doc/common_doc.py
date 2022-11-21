@@ -36,7 +36,6 @@ from typing import Callable
 
 from mathics import builtin
 from mathics import settings
-from mathics.builtin import get_module_doc
 from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
@@ -139,6 +138,23 @@ SPECIAL_COMMANDS = {
 
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
+
+
+def get_module_doc(module):
+    doc = module.__doc__
+    if doc is not None:
+        doc = doc.strip()
+    if doc:
+        title = doc.splitlines()[0]
+        text = "\n".join(doc.splitlines()[1:])
+    else:
+        title = module.__name__
+        for prefix in ("mathics.builtin.", "mathics.optional."):
+            if title.startswith(prefix):
+                title = title[len(prefix) :]
+        title = title.capitalize()
+        text = ""
+    return title, text
 
 
 def get_results_by_test(test_expr: str, full_test_key: list, doc_data: dict) -> list:
@@ -1071,19 +1087,13 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin import is_builtin, Builtin
+        from mathics.builtin import name_is_builtin_symbol
+        from mathics.builtin.base import Builtin
 
         print("loading symbols")
         for name in dir(self.pymathicsmodule):
-            var = getattr(self.pymathicsmodule, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__[: len(self.pymathicsmodule.__name__)]
-                == self.pymathicsmodule.__name__
-            ):  # nopep8
+            var = name_is_builtin_symbol(self.pymathicsmodule, name)
+            if var:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     self.symbols[instance.get_name()] = instance

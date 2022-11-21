@@ -20,7 +20,7 @@ from mathics.core.atoms import (
     Integer,
     String,
 )
-from mathics.core.attributes import hold_all, protected
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.function import (
     expression_to_callable_and_args,
@@ -89,7 +89,7 @@ class Compile(Builtin):
      =  CompiledFunction[{a, b}, a, -PythonizedCode-]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
         "invar": "Variable `1` should be {symbol, type} annotation.",

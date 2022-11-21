@@ -15,9 +15,9 @@ from mathics.builtin.base import Builtin, PostfixOperator
 from mathics.core.expression import Expression
 
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    n_hold_all as A_N_HOLD_ALL,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_N_HOLD_ALL,
+    A_PROTECTED,
 )
 from mathics.core.convert.sympy import SymbolFunction
 from mathics.core.symbols import Symbol
@@ -68,6 +68,33 @@ class Function(PostfixOperator):
      = #1 + #2
     #> Evaluate[g[Sequence@@Slot/@Range[2]]]&[1,2]
      = 3
+
+
+    In the evaluation process, the attributes associated with an Expression are \
+    determined by its Head.  If the Head is also a non-atomic Expression, in general,\
+    no Attribute is assumed. In particular, it is what happens when the head of the expression \
+    has the form 
+
+    ``Function[$body$]``
+    or
+    ``Function[$vars$, $body$]``
+
+    >> h := Function[{x}, Hold[1+x]]
+    >> h[1 + 1]
+     = Hold[1 + 2]
+
+    Notice that $Hold$ in the body prevents the evaluation of $1+x$, but not \
+    the evaluation of $1+1$. To avoid that evaluation, of its arguments, the Head \
+    should have the attribute 'HoldAll'. This behavior can be obtained by using the \
+    three arguments form version of this expression:
+    
+    >> h:= Function[{x}, Hold[1+x], HoldAll]
+    >> h[1+1]
+     = Hold[1 + (1 + 1)]
+    
+    In this case, the attribute 'HoldAll' is assumed, \
+    preventing the evaluation of the argument $1+1$ before passing it \
+    to the function body.
     """
 
     operator = "&"

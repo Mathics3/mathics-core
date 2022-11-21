@@ -126,17 +126,23 @@ class TerminalShell(MathicsLineFeeder):
         else:
             return "{1}In[{2}{0}{3}]:= {4}".format(next_line_number, *self.incolors)
 
-    def get_out_prompt(self):
+    def get_out_prompt(self, form=None):
         line_number = self.get_last_line_number()
+        if form:
+            return "{2}Out[{3}{0}{4}]//{1}= {5}".format(
+                line_number, form, *self.outcolors
+            )
         return "{1}Out[{2}{0}{3}]= {4}".format(line_number, *self.outcolors)
 
-    def to_output(self, text):
+    def to_output(self, text, form=None):
         line_number = self.get_last_line_number()
         newline = "\n" + " " * len("Out[{0}]= ".format(line_number))
+        if form:
+            newline += (len(form) + 2) * " "
         return newline.join(text.splitlines())
 
-    def out_callback(self, out):
-        print(self.to_output(str(out)))
+    def out_callback(self, out, fmt=None):
+        print(self.to_output(str(out), fmt))
 
     def read_line(self, prompt):
         if self.using_readline:
@@ -148,6 +154,7 @@ class TerminalShell(MathicsLineFeeder):
             # FIXME decide what to do here
             return
 
+        form = result.form
         last_eval = result.last_eval
 
         eval_type = None
@@ -164,8 +171,8 @@ class TerminalShell(MathicsLineFeeder):
         if eval_type == "System`Graph":
             out_str = "-Graph-"
 
-        output = self.to_output(out_str)
-        mess = self.get_out_prompt() if not no_out_prompt else ""
+        output = self.to_output(out_str, form)
+        mess = self.get_out_prompt(form) if not no_out_prompt else ""
         print(mess + output + "\n")
 
     def rl_read_line(self, prompt):

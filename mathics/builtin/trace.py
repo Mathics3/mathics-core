@@ -13,8 +13,8 @@ from mathics.builtin.base import Builtin
 
 
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_PROTECTED,
 )
 from mathics.core.convert.python import from_bool
 from mathics.core.definitions import Definitions
@@ -308,6 +308,42 @@ class TraceBuiltinsVariable(Builtin):
         return value
 
 
+class TraceEvaluation(Builtin):
+    """
+    <dl>
+      <dt>'TraceEvaluation[$expr$]'
+      <dd>Evaluate $expr$ and print each step of the evaluation.
+    </dl>
+
+    >> TraceEvaluation[(x + x)^2]
+     | ...
+     = ...
+
+    >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
+     | ...
+     = ...
+    """
+
+    attributes = A_HOLD_ALL | A_PROTECTED
+    options = {
+        "System`ShowTimeBySteps": "False",
+    }
+    summary_text = "trace the succesive evaluations"
+
+    def apply(self, expr, evaluation, options):
+        "TraceEvaluation[expr_, OptionsPattern[]]"
+        curr_trace_evaluation = evaluation.definitions.trace_evaluation
+        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
+        evaluation.definitions.trace_evaluation = True
+        evaluation.definitions.timing_trace_evaluation = (
+            options["System`ShowTimeBySteps"] is SymbolTrue
+        )
+        result = expr.evaluate(evaluation)
+        evaluation.definitions.trace_evaluation = curr_trace_evaluation
+        evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
+        return result
+
+
 class TraceEvaluationVariable(Builtin):
     """
     <dl>
@@ -360,39 +396,3 @@ class TraceEvaluationVariable(Builtin):
             evaluation.message("$TraceEvaluation", "bool", value)
 
         return value
-
-
-class TraceEvaluation(Builtin):
-    """
-    <dl>
-      <dt>'TraceEvaluation[$expr$]'
-      <dd>Evaluate $expr$ and print each step of the evaluation.
-    </dl>
-
-    >> TraceEvaluation[(x + x)^2]
-     | ...
-     = ...
-
-    >> TraceEvaluation[(x + x)^2, ShowTimeBySteps->True]
-     | ...
-     = ...
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    options = {
-        "System`ShowTimeBySteps": "False",
-    }
-    summary_text = "trace the succesive evaluations"
-
-    def apply(self, expr, evaluation, options):
-        "TraceEvaluation[expr_, OptionsPattern[]]"
-        curr_trace_evaluation = evaluation.definitions.trace_evaluation
-        curr_time_by_steps = evaluation.definitions.timing_trace_evaluation
-        evaluation.definitions.trace_evaluation = True
-        evaluation.definitions.timing_trace_evaluation = (
-            options["System`ShowTimeBySteps"] is SymbolTrue
-        )
-        result = expr.evaluate(evaluation)
-        evaluation.definitions.trace_evaluation = curr_trace_evaluation
-        evaluation.definitions.timing_trace_evaluation = curr_time_by_steps
-        return result

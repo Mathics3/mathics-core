@@ -15,16 +15,16 @@ import sympy
 
 from mathics.core.atoms import Number
 from mathics.core.attributes import (
-    n_hold_all as A_N_HOLD_ALL,
-    n_hold_first as A_N_HOLD_FIRST,
-    n_hold_rest as A_N_HOLD_REST,
+    A_N_HOLD_ALL,
+    A_N_HOLD_FIRST,
+    A_N_HOLD_REST,
 )
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.definitions import PyMathicsLoadException
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.number import PrecisionValueError, get_precision
-from mathics.core.symbols import Atom, BaseElement
+from mathics.core.symbols import Atom
 from mathics.core.systemsymbols import SymbolMachinePrecision, SymbolN
 
 
@@ -44,26 +44,6 @@ def eval_N(
     if isinstance(result, Number):
         return result
     return result.evaluate(evaluation)
-
-
-def eval_load_module(module_name: str, evaluation: Evaluation) -> str:
-    try:
-        evaluation.definitions.load_pymathics_module(module_name)
-    except (PyMathicsLoadException, ImportError):
-        raise
-    else:
-        # Add Pymathics` to $ContextPath so that when user does not
-        # have to qualify Pymathics variables and functions,
-        # as the those in the module just loaded.
-        # Follow the $ContextPath example in the WL
-        # reference manual where PackletManager appears first in
-        # the list, it seems to be preferable to add this PyMathics
-        # at the beginning.
-        context_path = list(evaluation.definitions.get_context_path())
-        if "Pymathics`" not in context_path:
-            context_path.insert(0, "Pymathics`")
-            evaluation.definitions.set_context_path(context_path)
-    return module_name
 
 
 def eval_nvalues(
@@ -128,7 +108,7 @@ def eval_nvalues(
             if not result.sameQ(nexpr):
                 result = result.evaluate(evaluation)
                 result = eval_nvalues(result, prec, evaluation)
-            return result
+                return result
 
     # If we are here, is because there are not NValues that matches
     # to the expression. In such a case, if we arrive to an atomic expression,
@@ -173,6 +153,3 @@ def eval_nvalues(
 
 
 # comment mmatera: Other methods that I would like to have here, as non-member methods are
-# ``numerify``, ``evaluation``, ``_rewrite_apply_eval_step``, ``format`` and ``boxes_to_*`` that in the current implementation
-# requires to introduce local imports.
-# This also would make easier to test and profile classes that store Expression-like objects and methods that produce the evaluation.

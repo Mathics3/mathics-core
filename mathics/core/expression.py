@@ -13,16 +13,17 @@ from mathics.core.atoms import Integer, Number, String
 
 # FIXME: adjust mathics.core.attributes to uppercase attribute names
 from mathics.core.attributes import (
-    flat as A_FLAT,
-    hold_all as A_HOLD_ALL,
-    hold_all_complete as A_HOLD_ALL_COMPLETE,
-    hold_first as A_HOLD_FIRST,
-    hold_rest as A_HOLD_REST,
-    listable as A_LISTABLE,
-    no_attributes as A_NO_ATTRIBUTES,
-    numeric_function as A_NUMERIC_FUNCTION,
-    orderless as A_ORDERLESS,
-    sequence_hold as A_SEQUENCE_HOLD,
+    A_FLAT,
+    A_HOLD_ALL,
+    A_HOLD_ALL_COMPLETE,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_NUMERIC_FUNCTION,
+    A_ORDERLESS,
+    A_SEQUENCE_HOLD,
+    attribute_string_to_number,
 )
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
@@ -37,11 +38,14 @@ from mathics.core.symbols import (
     Monomial,
     NumericOperators,
     Symbol,
+    SymbolAbs,
+    SymbolDivide,
     SymbolList,
     SymbolN,
+    SymbolPlus,
     SymbolTimes,
     SymbolTrue,
-    system_symbols,
+    symbol_set,
 )
 from mathics.core.systemsymbols import (
     SymbolAborted,
@@ -50,9 +54,14 @@ from mathics.core.systemsymbols import (
     SymbolCondition,
     SymbolDirectedInfinity,
     SymbolFunction,
+    SymbolMinus,
     SymbolPattern,
+    SymbolPower,
     SymbolSequence,
+    SymbolSin,
     SymbolSlot,
+    SymbolSqrt,
+    SymbolSubtract,
     SymbolUnevaluated,
 )
 
@@ -70,16 +79,16 @@ SymbolSlotSequence = Symbol("SlotSequence")
 SymbolVerbatim = Symbol("Verbatim")
 
 
-symbols_arithmetic_operations = system_symbols(
-    "Sqrt",
-    "Times",
-    "Plus",
-    "Subtract",
-    "Minus",
-    "Power",
-    "Abs",
-    "Divide",
-    "Sin",
+symbols_arithmetic_operations = symbol_set(
+    SymbolAbs,
+    SymbolDivide,
+    SymbolMinus,
+    SymbolPlus,
+    SymbolPower,
+    SymbolSin,
+    SymbolSqrt,
+    SymbolSubtract,
+    SymbolTimes,
 )
 
 
@@ -530,6 +539,10 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return expr
 
     def evaluate_elements(self, evaluation) -> "Expression":
+        """
+        return a new expression with the same head, and the
+        evaluable elements evaluated.
+        """
         elements = [
             element.evaluate(evaluation) if isinstance(element, EvalMixin) else element
             for element in self._elements
@@ -647,13 +660,22 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return atoms
 
     def get_attributes(self, definitions):
-        if self._head is SymbolFunction and len(self._elements) > 2:
+        result = A_NO_ATTRIBUTES
+        # Maybe this deserves to specialize Function
+        if self._head is SymbolFunction and len(self._elements) == 3:
             res = self._elements[2]
-            if isinstance(res, Symbol):
-                return (str(res),)
-            elif res.has_form("List", None):
-                return set(str(a) for a in res._elements)
-        return A_NO_ATTRIBUTES
+            if res.has_form("List", None):
+                attributes = res._elements
+            else:
+                attributes = (res,)
+            for attrib in attributes:
+                if not isinstance(attrib, Symbol):
+                    # if we had here an evaluation object, instead of
+                    # a definition
+                    # evaluation.message("Attributes","attnf", a)
+                    continue
+                result = result | attribute_string_to_number.get(attrib.name, 0)
+        return result
 
     def get_elements(self):
         # print("Use of get_elements is deprecated. Use elements instead.")

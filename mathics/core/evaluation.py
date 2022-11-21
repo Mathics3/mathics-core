@@ -205,17 +205,19 @@ class Print(Out):
 
 
 class Result:
-    def __init__(self, out, result, line_no, last_eval=None) -> None:
+    def __init__(self, out, result, line_no, last_eval=None, form=None) -> None:
         self.out = out
         self.result = result
         self.line_no = line_no
         self.last_eval = last_eval
+        self.form = form
 
     def get_data(self):
         return {
             "out": [out.get_data() for out in self.out],
             "result": self.result,
             "line": self.line_no,
+            "form": self.form,
         }
 
 
@@ -260,9 +262,6 @@ class Evaluation:
         # status of last evaluate
         self.exc_result = self.SymbolNull
         self.last_eval = None
-        # Necesary to handle OneIdentity on
-        # lhs in assignment
-        self.ignore_oneidentity = False
         # Used in ``mathics.builtin.numbers.constants.get_constant`` and
         # ``mathics.builtin.numeric.N``.
         self._preferred_n_method = []
@@ -316,6 +315,8 @@ class Evaluation:
         if format is None:
             format = self.format
 
+        output_forms = self.definitions.outputforms
+
         line_no = self.definitions.get_line_no()
         line_no += 1
         self.definitions.set_line_no(line_no)
@@ -346,7 +347,7 @@ class Evaluation:
                 else:
                     out_result = self.last_eval
 
-                stored_result = self.get_stored_result(out_result)
+                stored_result = self.get_stored_result(out_result, output_forms)
                 self.definitions.add_rule(
                     "Out", Rule(Expression(SymbolOut, Integer(line_no)), stored_result)
                 )
@@ -413,7 +414,13 @@ class Evaluation:
                 if self.exc_result != self.SymbolNull:
                     result = self.format_output(self.exc_result, format)
 
-            result = Result(self.out, result, line_no, self.last_eval)
+            form = None
+            if self.last_eval:
+                head = self.last_eval.get_head()
+                if head in output_forms:
+                    form = self.definitions.shorten_name(head.name)
+
+            result = Result(self.out, result, line_no, self.last_eval, form)
             self.out = []
         finally:
             self.stop()
@@ -431,11 +438,12 @@ class Evaluation:
             line -= 1
         return result
 
-    def get_stored_result(self, eval_result):
+    def get_stored_result(self, eval_result, output_forms):
         """Return `eval_result` stripped of any format, e.g. FullForm, MathML, TeX
         that it might have been wrapped in.
         """
-        if eval_result.has_form(FORMATS, 1):
+        head = eval_result.get_head()
+        if head in output_forms:
             return eval_result.elements[0]
 
         return eval_result
@@ -444,7 +452,7 @@ class Evaluation:
         self.stopped = True
 
     def format_output(self, expr, format=None):
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         if format is None:
             format = self.format

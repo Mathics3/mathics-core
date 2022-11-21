@@ -8,7 +8,7 @@ Here we have the base class and related function for element inside an Expressio
 
 from typing import Any, Optional, Tuple, Union
 
-from mathics.core.attributes import no_attributes
+from mathics.core.attributes import A_NO_ATTRIBUTES
 
 
 def ensure_context(name: str, context="System`") -> str:
@@ -246,8 +246,8 @@ class BaseElement(KeyComparable):
         return None
 
     def format(self, evaluation, form, **kwargs) -> "BoxElementMixin":
-        from mathics.core.formatter import format_element
         from mathics.core.symbols import Symbol
+        from mathics.eval.makeboxes import format_element
 
         if isinstance(form, str):
             form = Symbol(form)
@@ -266,7 +266,7 @@ class BaseElement(KeyComparable):
         return []
 
     def get_attributes(self, definitions):
-        return no_attributes
+        return A_NO_ATTRIBUTES
 
     def get_head_name(self):
         raise NotImplementedError
@@ -341,6 +341,15 @@ class BaseElement(KeyComparable):
         """Convert's a Mathics Sequence into a Python's list of elements"""
         from mathics.core.symbols import SymbolSequence
 
+        # Below, we special-case for SymbolSequence. Here is an example to suggest why.
+        # Suppose we have this evaluation method:
+        #
+        # def apply(x, evaluation):
+        #     """F[x__]"""
+        #     args = x.get_sequence()
+        #
+        # For the expression "F[a,b]", this function is expected to return [Symbol(a), Symbol(b)], while
+        # for the expression "F[{a,b}]" this function is expected to return ListExpression[Symbol(a), Symbol(b)].
         if self.get_head() is SymbolSequence:
             return self.elements
         else:
@@ -401,7 +410,7 @@ class BaseElement(KeyComparable):
         """
         Check if self has a subexpression of the form `form`.
         """
-        from mathics.builtin.patterns import item_is_free
+        from mathics.eval.test import item_is_free
 
         return item_is_free(self, form, evaluation)
 

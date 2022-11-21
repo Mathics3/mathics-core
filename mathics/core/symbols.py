@@ -3,8 +3,7 @@
 
 import sympy
 import time
-import typing
-from typing import Any, Optional
+from typing import Any, FrozenSet, List, Optional, Tuple
 
 from mathics.core.element import (
     BaseElement,
@@ -251,7 +250,7 @@ class Atom(BaseElement):
     def get_atom_name(self) -> str:
         return self.__class__.__name__
 
-    def get_atoms(self, include_heads=True) -> typing.List["Atom"]:
+    def get_atoms(self, include_heads=True) -> List["Atom"]:
         return [self]
 
     # We seem to need this because the caller doesn't distinguish something with elements
@@ -405,6 +404,8 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # code to see even what type of value should be expected
             # for it.
             self.value = value
+            self._short_name = strip_context(name)
+
             cls.defined_symbols[name] = self
         return self
 
@@ -555,9 +556,6 @@ class Symbol(Atom, NumericOperators, EvalMixin):
                 1,
             )
 
-    def user_hash(self, update) -> None:
-        update(b"System`Symbol>" + self.name.encode("utf8"))
-
     def replace_vars(self, vars, options={}, in_scoping=True):
         assert all(fully_qualified_symbol_name(v) for v in vars)
         var = vars.get(self.name, None)
@@ -570,6 +568,14 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         """Mathics SameQ"""
         return self is rhs
 
+    @property
+    def short_name(self) -> str:
+        """The symbol name with its context stripped off"""
+        return self._short_name
+
+    def user_hash(self, update) -> None:
+        update(b"System`Symbol>" + self.name.encode("utf8"))
+
     def to_python(self, *args, python_form: bool = False, **kwargs):
         if self is SymbolTrue:
             return True
@@ -578,7 +584,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is SymbolNull:
             return None
 
-        # This was introduced before `mathics.core.evaluators.eval_N`
+        # This was introduced before `mathics.eval.nevaluator.eval_N`
         # provided a simple way to convert an expression into a number.
         # Now it makes this routine harder to describe.
         # Consider remove this in future versions.
@@ -591,7 +597,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             #    DeprecationWarning,
             # )
 
-            from mathics.core.evaluators import eval_N
+            from mathics.eval.nevaluator import eval_N
 
             value = eval_N(self, n_evaluation)
             if value is not self:
@@ -661,28 +667,14 @@ class PredefinedSymbol(Symbol):
         return False
 
 
-# system_symbols('A', 'B', ...) -> [Symbol('System`A'), Symbol('System`B'), ...]
-def system_symbols(*symbols) -> typing.FrozenSet[Symbol]:
+def symbol_set(*symbols: Tuple[Symbol]) -> FrozenSet[Symbol]:
     """
-    Return a frozenset of symbols from a list of names (strings).
+    Return a frozenset of symbols from a Symbol arguments.
     We will use this in testing membership, so an immutable object is fine.
 
     In 2021, we benchmarked frozenset versus list, tuple, and set and frozenset was the fastest.
     """
-    return frozenset(Symbol(s) for s in symbols)
-
-
-# The available formats.
-
-format_symbols = system_symbols(
-    "InputForm",
-    "OutputForm",
-    "StandardForm",
-    "FullForm",
-    "TraditionalForm",
-    "TeXForm",
-    "MathMLForm",
-)
+    return frozenset(symbols)
 
 
 # Symbols used in this module.

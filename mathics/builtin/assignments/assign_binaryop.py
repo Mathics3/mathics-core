@@ -19,7 +19,7 @@ from mathics.builtin.base import (
     PrefixOperator,
 )
 
-from mathics.core.attributes import hold_first, protected, read_protected
+from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 
 
 class AddTo(BinaryOperator):
@@ -37,7 +37,7 @@ class AddTo(BinaryOperator):
      = 12
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "+="
     precedence = 100
@@ -66,7 +66,7 @@ class Decrement(PostfixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = hold_first | protected | read_protected
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "x_--": "Module[{t=x}, x = x - 1; t]",
@@ -92,7 +92,7 @@ class DivideBy(BinaryOperator):
      = 5
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "/="
     precedence = 100
@@ -124,7 +124,7 @@ class Increment(PostfixOperator):
 
     operator = "++"
     precedence = 660
-    attributes = hold_first | protected | read_protected
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "x_++": (
@@ -156,7 +156,7 @@ class PreIncrement(PrefixOperator):
      = 3
     """
 
-    attributes = hold_first | protected | read_protected
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
     operator = "++"
     precedence = 660
 
@@ -186,7 +186,7 @@ class PreDecrement(PrefixOperator):
 
     operator = "--"
     precedence = 660
-    attributes = hold_first | protected | read_protected
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "--x_": "x = x - 1",
@@ -209,7 +209,7 @@ class SubtractFrom(BinaryOperator):
      = 8
     """
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
     operator = "-="
     precedence = 100
@@ -237,7 +237,7 @@ class TimesBy(BinaryOperator):
 
     operator = "*="
     precedence = 100
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
     grouping = "Right"
 
     rules = {

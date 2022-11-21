@@ -1,14 +1,21 @@
 # -*- coding: utf-8 -*-
 
 """
-Options and Default Arguments
-"""
+Options Management
 
+A number of functions have various options which control the behavior or the default behavior that function.
+Default options can be queried or set.
+
+<url>
+:WMA link:
+https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
+"""
 
 from mathics.builtin.base import Builtin, Test, get_option
 from mathics.builtin.drawing.image import Image
 
 from mathics.core.atoms import String
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import (
     Expression,
     SymbolDefault,
@@ -24,11 +31,198 @@ from mathics.core.symbols import (
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 
-class Options(Builtin):
+class Default(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/Default.html</url>
+
+    <dl>
+      <dt>'Default[$f$]'
+      <dd>gives the default value for an omitted parameter of $f$.
+
+      <dt>'Default[$f$, $k$]'
+      <dd>gives the default value for a parameter on the $k$th position.
+
+      <dt>'Default[$f$, $k$, $n$]'
+      <dd>gives the default value for the $k$th parameter out of $n$.
+    </dl>
+
+    Assign values to 'Default' to specify default values.
+
+    >> Default[f] = 1
+     = 1
+    >> f[x_.] := x ^ 2
+    >> f[]
+     = 1
+
+    Default values are stored in 'DefaultValues':
+    >> DefaultValues[f]
+     = {HoldPattern[Default[f]] :> 1}
+
+    You can use patterns for $k$ and $n$:
+    >> Default[h, k_, n_] := {k, n}
+    Note that the position of a parameter is relative to the pattern, not the matching expression:
+    >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
+     = {{3, 5}, {4, 5}}
+    """
+
+    summary_text = "predefined default arguments for a function"
+
+    def eval(self, f, i, evaluation):
+        "Default[f_, i___]"
+
+        i = i.get_sequence()
+        if len(i) > 2:
+            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
+            return
+        i = [index.get_int_value() for index in i]
+        for index in i:
+            if index is None or index < 1:
+                evaluation.message(SymbolDefault.name, "intp")
+                return
+        name = f.get_name()
+        if not name:
+            evaluation.message(SymbolDefault.name, "sym", f, 1)
+            return
+        result = get_default_value(name, evaluation, *i)
+        return result
+
+
+class FilterRules(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/FilterRules.html</url>
+
+    <dl>
+      <dt>'FilterRules[$rules$, $pattern$]'
+      <dd>gives those $rules$ that have a left side that matches $pattern$.
+
+      <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
+      <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
+    </dl>
+
+    >> FilterRules[{x -> 100, y -> 1000}, x]
+     = {x -> 100}
+
+    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
+     = {x -> 100, z -> 10000}
+    """
+
+    rules = {
+        "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
+    }
+    summary_text = (
+        "select rules such that the pattern matches some other given patterns"
+    )
+
+    def eval(self, rules, pattern, evaluation):
+        "FilterRules[rules_List, pattern_]"
+        from mathics.builtin.patterns import Matcher
+
+        match = Matcher(pattern).match
+
+        def matched():
+            for rule in rules.elements:
+                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
+                    yield rule
+
+        return ListExpression(*list(matched()))
+
+
+# Has this been removed from WL? I cannot find a WMA link.
+class NotOptionQ(Test):
     """
     <dl>
-    <dt>'Options[$f$]'
-        <dd>gives a list of optional arguments to $f$ and their
+      <dt>'NotOptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ does not have the form of a valid \
+          option specification.
+    </dl>
+
+    >> NotOptionQ[x]
+     = True
+    >> NotOptionQ[2]
+     = True
+    >> NotOptionQ["abc"]
+     = True
+
+    >> NotOptionQ[a -> True]
+     = False
+    """
+
+    summary_text = "test whether an expression does not match the form of a valid option specification"
+
+    def test(self, expr):
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
+        if not expr.has_form("List", None):
+            expr = [expr]
+        else:
+            expr = expr.elements
+        return not all(
+            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+        )
+
+
+# Has this been removed from WL? I cannot find a WMA link.
+class OptionQ(Test):
+    """
+    <dl>
+      <dt>'OptionQ[$expr$]'
+      <dd>returns 'True' if $expr$ has the form of a valid option \
+         specification.
+    </dl>
+
+    Examples of option specifications:
+    >> OptionQ[a -> True]
+     = True
+    >> OptionQ[a :> True]
+     = True
+    >> OptionQ[{a -> True}]
+     = True
+    >> OptionQ[{a :> True}]
+     = True
+
+    Options lists are flattened when are applyied, so
+    >> OptionQ[{a -> True, {b->1, "c"->2}}]
+     = True
+    >> OptionQ[{a -> True, {b->1, c}}]
+     = False
+    >> OptionQ[{a -> True, F[b->1,c->2]}]
+     = False
+
+    'OptionQ' returns 'False' if its argument is not a valid option
+    specification:
+    >> OptionQ[x]
+     = False
+    """
+
+    summary_text = (
+        "test whether an expression matches the form of a valid option specification"
+    )
+
+    def test(self, expr):
+        if hasattr(expr, "flatten_with_respect_to_head"):
+            expr = expr.flatten_with_respect_to_head(SymbolList)
+        if not expr.has_form("List", None):
+            expr = [expr]
+        else:
+            expr = expr.elements
+        return all(
+            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
+        )
+
+
+class Options(Builtin):
+    """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/Options.html</url>
+
+    <dl>
+      <dt>'Options[$f$]'
+      <dd>gives a list of optional arguments to $f$ and their \
         default values.
     </dl>
 
@@ -87,7 +281,7 @@ class Options(Builtin):
 
     summary_text = "the list of optional arguments and their default values"
 
-    def apply(self, f, evaluation):
+    def eval(self, f, evaluation):
         "Options[f_]"
 
         name = f.get_name()
@@ -110,17 +304,22 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/OptionValue.html</url>
+
     <dl>
-    <dt>'OptionValue[$name$]'
-        <dd>gives the value of the option $name$ as specified in a
-        call to a function with 'OptionsPattern'.
-    <dt>'OptionValue[$f$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$.
-    <dt>'OptionValue[$f$, $optvals$, $name$]'
-        <dd>recover the value of the option $name$ associated to the symbol $f$,
-            extracting the values from $optvals$ if available.
-    <dt>'OptionValue[..., $list$]'
-        <dd>recover the value of the options in $list$ .
+      <dt>'OptionValue[$name$]'
+      <dd>gives the value of the option $name$ as specified in a call to a function with 'OptionsPattern'.
+
+      <dt>'OptionValue[$f$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$.
+
+      <dt>'OptionValue[$f$, $optvals$, $name$]'
+      <dd>recover the value of the option $name$ associated to the symbol $f$, extracting the values from $optvals$ if available.
+
+      <dt>'OptionValue[..., $list$]'
+      <dd>recover the value of the options in $list$ .
     </dl>
 
     >> f[a->3] /. f[OptionsPattern[{}]] -> {OptionValue[a]}
@@ -151,7 +350,7 @@ class OptionValue(Builtin):
     }
     summary_text = "retrieve values of options while executing a function"
 
-    def apply_1(self, optname, evaluation):
+    def eval_1(self, optname, evaluation):
         "OptionValue[optname_]"
         if evaluation.options is None:
             return
@@ -176,11 +375,11 @@ class OptionValue(Builtin):
             return Symbol(name)
         return val
 
-    def apply_2(self, f, optname, evaluation):
+    def eval_2(self, f, optname, evaluation):
         "OptionValue[f_, optname_]"
         return self.apply_3(f, None, optname, evaluation)
 
-    def apply_3(self, f, optvals, optname, evaluation):
+    def eval_3(self, f, optvals, optname, evaluation):
         "OptionValue[f_, optvals_, optname_]"
         if type(optname) is String:
             name = optname.to_python()[1:-1]
@@ -231,175 +430,61 @@ class OptionValue(Builtin):
             return Symbol(name)
         return val
 
+    # FIXME until we figure out what test/test_evaluation.py fails
+    apply_3 = eval_3
 
-class Default(Builtin):
+
+class SetOptions(Builtin):
     """
+    <url>
+      :WMA link:
+      https://reference.wolfram.com/language/ref/SetOptions.html</url>
+
     <dl>
-    <dt>'Default[$f$]'
-        <dd>gives the default value for an omitted parameter of $f$.
-    <dt>'Default[$f$, $k$]'
-        <dd>gives the default value for a parameter on the $k$th position.
-    <dt>'Default[$f$, $k$, $n$]'
-        <dd>gives the default value for the $k$th parameter out of $n$.
+      <dt>'SetOptions[$s$, name1 -> value1, name2 -> value2, ...]'
+      <dd>sets the specified default options for a symbol $s$. \
+      The entire set of options for $s$ is returned.
     </dl>
 
-    Assign values to 'Default' to specify default values.
+    One way to find the default options for a symbol is to use \
+    'SetOptions' passing no association pairs:
 
-    >> Default[f] = 1
-     = 1
-    >> f[x_.] := x ^ 2
-    >> f[]
-     = 1
-
-    Default values are stored in 'DefaultValues':
-    >> DefaultValues[f]
-     = {HoldPattern[Default[f]] :> 1}
-
-    You can use patterns for $k$ and $n$:
-    >> Default[h, k_, n_] := {k, n}
-    Note that the position of a parameter is relative to the pattern, not the matching expression:
-    >> h[] /. h[___, ___, x_., y_., ___] -> {x, y}
-     = {{3, 5}, {4, 5}}
+    >> SetOptions[Plot]
+     = ...
     """
 
-    summary_text = "predefined default arguments for a function"
+    summary_text = "set up default option values for a function"
 
-    def apply(self, f, i, evaluation):
-        "Default[f_, i___]"
+    def eval(self, symbol: Symbol, options: Expression, evaluation: Evaluation):
+        "SetOptions[symbol_Symbol, options___]"
 
-        i = i.get_sequence()
-        if len(i) > 2:
-            evaluation.message(SymbolDefault, "argb", 1 + len(i), 1, 3)
-            return
-        i = [index.get_int_value() for index in i]
-        for index in i:
-            if index is None or index < 1:
-                evaluation.message(SymbolDefault, "intp")
-                return
-        name = f.get_name()
-        if not name:
-            evaluation.message(SymbolDefault, "sym", f, 1)
-            return
-        result = get_default_value(name, evaluation, *i)
-        return result
+        # Get the existing options for parameter ``symbol``.
+        options_dict = evaluation.definitions.get_options(symbol.name)
 
+        # Update symbol's options for each of the options passed
+        # in ``_options``.
+        if not hasattr(options, "elements"):
+            evaluation.message("SetOptions", "rep", options)
+            return None
 
-class OptionQ(Test):
-    """
-    <dl>
-    <dt>'OptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ has the form of a valid option
-        specification.
-    </dl>
+        # For a single association, ``options`` is Symbol, replacement
+        # For multiple associations, ``options`` is a list of Rules.
+        options_pairs = iter(options.elements)
+        for element in options_pairs:
+            if isinstance(element, Symbol):
+                option_symbol = element
+                option_value = next(options_pairs)
+            elif element.head is SymbolRule:
+                option_symbol, option_value = element.elements
+            else:
+                evaluation.message("SetOptions", "rep", element)
+                return None
+            options_dict[option_symbol.name] = option_value
 
-    Examples of option specifications:
-    >> OptionQ[a -> True]
-     = True
-    >> OptionQ[a :> True]
-     = True
-    >> OptionQ[{a -> True}]
-     = True
-    >> OptionQ[{a :> True}]
-     = True
-
-    Options lists are flattened when are applyied, so
-    >> OptionQ[{a -> True, {b->1, "c"->2}}]
-     = True
-    >> OptionQ[{a -> True, {b->1, c}}]
-     = False
-    >> OptionQ[{a -> True, F[b->1,c->2]}]
-     = False
-
-    'OptionQ' returns 'False' if its argument is not a valid option
-    specification:
-    >> OptionQ[x]
-     = False
-    """
-
-    summary_text = (
-        "test whether an expression matches the form of a valid option specification"
-    )
-
-    def test(self, expr):
-        if hasattr(expr, "flatten_with_respect_to_head"):
-            expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
-            expr = [expr]
-        else:
-            expr = expr.elements
-        return all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
-        )
-
-
-class NotOptionQ(Test):
-    """
-    <dl>
-    <dt>'NotOptionQ[$expr$]'
-        <dd>returns 'True' if $expr$ does not have the form of a valid
-        option specification.
-    </dl>
-
-    >> NotOptionQ[x]
-     = True
-    >> NotOptionQ[2]
-     = True
-    >> NotOptionQ["abc"]
-     = True
-
-    >> NotOptionQ[a -> True]
-     = False
-    """
-
-    summary_text = "test whether an expression does not match the form of a valid option specification"
-
-    def test(self, expr):
-        if hasattr(expr, "flatten_with_respect_to_head"):
-            expr = expr.flatten_with_respect_to_head(SymbolList)
-        if not expr.has_form("List", None):
-            expr = [expr]
-        else:
-            expr = expr.elements
-        return not all(
-            e.has_form("Rule", None) or e.has_form("RuleDelayed", 2) for e in expr
-        )
-
-
-class FilterRules(Builtin):
-    """
-    <dl>
-    <dt>'FilterRules[$rules$, $pattern$]'
-        <dd>gives those $rules$ that have a left side that matches $pattern$.
-    <dt>'FilterRules[$rules$, {$pattern1$, $pattern2$, ...}]'
-        <dd>gives those $rules$ that have a left side that match at least one of $pattern1$, $pattern2$, ...
-    </dl>
-
-    >> FilterRules[{x -> 100, y -> 1000}, x]
-     = {x -> 100}
-
-    >> FilterRules[{x -> 100, y -> 1000, z -> 10000}, {a, b, x, z}]
-     = {x -> 100, z -> 10000}
-    """
-
-    rules = {
-        "FilterRules[rules_List, patterns_List]": "FilterRules[rules, Alternatives @@ patterns]",
-    }
-    summary_text = (
-        "select rules such that the pattern matches some other given patterns"
-    )
-
-    def apply(self, rules, pattern, evaluation):
-        "FilterRules[rules_List, pattern_]"
-        from mathics.builtin.patterns import Matcher
-
-        match = Matcher(pattern).match
-
-        def matched():
-            for rule in rules.elements:
-                if rule.has_form("Rule", 2) and match(rule.elements[0], evaluation):
-                    yield rule
-
-        return ListExpression(*list(matched()))
+        # Create and return a List with all of the options including
+        # the new updated ones.
+        options_list = options_to_rules(options_dict)
+        return ListExpression(*options_list)
 
 
 def options_to_rules(options, filter=None):

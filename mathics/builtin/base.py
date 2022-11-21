@@ -3,34 +3,26 @@
 
 import importlib
 import re
-import sympy
-
 from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
+import sympy
 
-from mathics.builtin.exceptions import (
-    MessageException,
-)
-
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    String,
-)
-from mathics.core.attributes import protected, read_protected, no_attributes
+from mathics.builtin.exceptions import MessageException
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
+from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
+from mathics.core.convert.op import ascii_operator_to_symbol
 from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
-from mathics.core.number import get_precision, PrecisionValueError
-from mathics.core.parser.util import SystemDefinitions, PyMathicsDefinitions
-from mathics.core.rules import Rule, BuiltinRule, Pattern
+from mathics.core.number import PrecisionValueError, get_precision
+from mathics.core.parser.util import PyMathicsDefinitions, SystemDefinitions
+from mathics.core.rules import BuiltinRule, Pattern, Rule
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -39,6 +31,9 @@ from mathics.core.symbols import (
     strip_context,
 )
 from mathics.core.systemsymbols import SymbolMessageName, SymbolRule
+
+# Signals to Mathics doc processing not to include this module in its documentation.
+no_doc = True
 
 
 def check_requires_list(requires: list) -> bool:
@@ -102,7 +97,7 @@ def split_name(name: str) -> str:
     return result.lower()
 
 
-mathics_to_python = {}
+mathics_to_python = {}  # here we have: name -> string
 
 
 class Builtin:
@@ -177,7 +172,7 @@ class Builtin:
     name: Optional[str] = None
     context: str = ""
     abstract: bool = False
-    attributes: int = protected
+    attributes: int = A_PROTECTED
     is_numeric: bool = False
     rules: Dict[str, Any] = {}
     formats: Dict[str, Any] = {}
@@ -272,19 +267,26 @@ class Builtin:
             PyMathicsDefinitions() if is_pymodule else SystemDefinitions()
         )
 
+        for pattern, function in self.get_functions(
+            prefix="eval", is_pymodule=is_pymodule
+        ):
+            rules.append(
+                BuiltinRule(name, pattern, function, check_options, system=True)
+            )
         for pattern, function in self.get_functions(is_pymodule=is_pymodule):
             rules.append(
                 BuiltinRule(name, pattern, function, check_options, system=True)
             )
-        for pattern, replace in self.rules.items():
-            if not isinstance(pattern, BaseElement):
-                pattern = pattern % {"name": name}
-                pattern = parse_builtin_rule(pattern, definition_class)
-            replace = replace % {"name": name}
-            # FIXME: Should system=True be system=not is_pymodule ?
-            rules.append(Rule(pattern, parse_builtin_rule(replace), system=True))
+        for pattern_str, replace_str in self.rules.items():
+            pattern_str = pattern_str % {"name": name}
+            pattern = parse_builtin_rule(pattern_str, definition_class)
+            replace_str = replace_str % {"name": name}
+            rules.append(
+                Rule(pattern, parse_builtin_rule(replace_str), system=not is_pymodule)
+            )
 
         box_rules = []
+        # FIXME: Why a special case for System`MakeBoxes? Remove this
         if name != "System`MakeBoxes":
             new_rules = []
             for rule in rules:
@@ -545,7 +547,7 @@ class Operator(Builtin):
 class Predefined(Builtin):
     def get_functions(self, prefix="apply", is_pymodule=False) -> List[Callable]:
         functions = list(super().get_functions(prefix))
-        if prefix == "apply" and hasattr(self, "evaluate"):
+        if prefix in ("apply", "eval") and hasattr(self, "evaluate"):
             functions.append((Symbol(self.get_name()), self.evaluate))
         return functions
 
@@ -620,15 +622,9 @@ class BinaryOperator(Operator):
             op_pattern = "%s[x_, y_]" % name
             replace_items = "x, y"
 
+        operator = ascii_operator_to_symbol.get(self.operator, self.__class__.__name__)
         if self.default_formats:
-            operator = self.get_operator_display()
-            formatted = 'MakeBoxes[Infix[{%s},"%s",%d,%s], form]' % (
-                replace_items,
-                operator,
-                self.precedence,
-                self.grouping,
-            )
-            formatted_output = 'MakeBoxes[Infix[{%s}," %s ",%d,%s], form]' % (
+            formatted = "MakeBoxes[Infix[{%s}, %s, %d,%s], form]" % (
                 replace_items,
                 operator,
                 self.precedence,
@@ -640,7 +636,7 @@ class BinaryOperator(Operator):
                 ): formatted,
                 "MakeBoxes[{0}, form:InputForm|OutputForm]".format(
                     op_pattern
-                ): formatted_output,
+                ): formatted,
             }
             default_rules.update(self.rules)
             self.rules = default_rules
@@ -734,7 +730,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     # * Review the implementation
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     def __new__(cls, *elements, **kwargs):
         instance = super().__new__(cls, *elements, **kwargs)
@@ -916,7 +912,7 @@ class PatternObject(BuiltinElement, Pattern):
         if self.head is None:
             # FIXME: _Blank in builtin/patterns.py sets head to None.
             # Figure out if this is the best thing to do and explain why.
-            return no_attributes
+            return A_NO_ATTRIBUTES
         return self.head.get_attributes(definitions)
 
     def get_head_name(self) -> str:

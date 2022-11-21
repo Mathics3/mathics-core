@@ -14,9 +14,9 @@ import sympy
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
-from mathics.core.attributes import listable, numeric_function, protected
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.evaluators import eval_nvalues
+from mathics.eval.nevaluator import eval_nvalues
 from mathics.core.expression import Expression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
@@ -380,17 +380,6 @@ class Rationalize(Builtin):
         return result
 
 
-class RealValuedNumericQ(Builtin):
-    # No docstring since this is internal and it will mess up documentation.
-    # FIXME: Perhaps in future we will have a more explicite way to indicate not
-    # to add something to the docs.
-    context = "Internal`"
-
-    rules = {
-        "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
-    }
-
-
 class RealValuedNumberQ(Builtin):
     # No docstring since this is internal and it will mess up documentation.
     # FIXME: Perhaps in future we will have a more explicite way to indicate not
@@ -402,6 +391,17 @@ class RealValuedNumberQ(Builtin):
         "Internal`RealValuedNumberQ[x_Integer]": "True",
         "Internal`RealValuedNumberQ[x_Rational]": "True",
         "Internal`RealValuedNumberQ[x_]": "False",
+    }
+
+
+class RealValuedNumericQ(Builtin):
+    # No docstring since this is internal and it will mess up documentation.
+    # FIXME: Perhaps in future we will have a more explicite way to indicate not
+    # to add something to the docs.
+    context = "Internal`"
+
+    rules = {
+        "Internal`RealValuedNumericQ[x_]": "Head[N[x]] === Real",
     }
 
 
@@ -451,7 +451,7 @@ class Round(Builtin):
      = Round[1.5, k]
     """
 
-    attributes = listable | numeric_function | protected
+    attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     rules = {
         "Round[expr_?NumericQ]": "Round[Re[expr], 1] + I * Round[Im[expr], 1]",

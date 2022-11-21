@@ -1,4 +1,4 @@
-.. contents::
+	.. contents::
 
 CHANGES
 =======
@@ -9,15 +9,20 @@ CHANGES
 New Builtins
 +++++++++++
 
-#. ``Accuracy``
 #. ``$BoxForms``
+#. ``$OutputForms``
+#. ``$PrintForms``
+#. ``Accuracy``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``Kurtosis``
 #. ``PauliMatrix``
+#. ``Remove``
+#. ``SetOptions``
 #. ``SixJSymbol``
 #. ``Skewness``
 #. ``ThreeJSymbol``
+
 
 Documentation
 +++++++++++++
@@ -25,13 +30,18 @@ Documentation
 #. "Functional Programming" section split out.
 #. "Exponential Functional" split out from "Trigonometry Functions"
 #. A new section on "Accuracy and Precision" was included in the manual.
+#. "Forms of Input and Output" is its own section
 
 Internals
 +++++++++
 
 #. ``boxes_to_`` methods are now optional for ``BoxElement`` subclasses. Most of the code is now moved to the ``mathics.format`` submodule, and implemented in a more scalable way.
 #. ``mathics.builtin.inout`` was splitted in several modules (``inout``, ``messages``, ``layout``, ``makeboxes``) in order to improve the documentation.
-#. `from_mpmath` conversion now supports a new parameter ``acc`` to set the accuracy of the number.
+#. `from_mpmath` conversion supports a new parameter ``acc`` to set the accuracy of the number.
+#. Operator name to unicode or ASCII comes from Mathics scanner character tables.
+#. ``eval*`` methods in `Builtin` classes are considerer as synonyms of ``apply*`` methods.
+#. Modularize and improve the way in which `Builtin` classes are selected to have an associated `Definition`.
+#. `_SetOperator.assign_elementary` was renamed as `_SetOperator.assign`. All the special cases are not handled by the `_SetOperator.special_cases` dict.
 
 
 
@@ -39,6 +49,7 @@ Bugs
 ++++
 
 # ``0`` with a given precision (like in ```0`3```) is now parsed as ``0``, an integer number.
+#. ``RandomSample`` with one list argument now returns a random ordering of the list items. Previously it would return just one item.
 
 
 Enhancements
@@ -47,8 +58,7 @@ Enhancements
 #. Vector restriction on ``Norm[]`` removed. "Frobinius" p-form allowed.
 #. Better handling of comparisons with finite precision numbers.
 #. Improved implementation for  ``Precision``.
-
-
+#. Infix operators, like ``->`` render with their Unicode symbol when ``$CharacterEncoding`` is not "ASCII".
 
 5.0.2
 -----

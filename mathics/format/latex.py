@@ -184,9 +184,7 @@ def gridbox(self, elements=None, **box_options) -> str:
         column_count = max(column_count, len(row))
     result = r"\begin{array}{%s} " % (column_alignments * column_count)
     for index, row in enumerate(items):
-        result += " & ".join(
-            boxes_to_tex(item.evaluate(evaluation), **new_box_options) for item in row
-        )
+        result += " & ".join(boxes_to_tex(item, **new_box_options) for item in row)
         if index != len(items) - 1:
             result += "\\\\ "
     result += r"\end{array}"

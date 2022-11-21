@@ -9,7 +9,7 @@ import sympy
 
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Integer, Real, String
-from mathics.core.attributes import protected as A_PROTECTED
+from mathics.core.attributes import A_PROTECTED
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 

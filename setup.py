@@ -37,7 +37,7 @@ from setuptools import setup, Extension
 
 is_PyPy = platform.python_implementation() == "PyPy"
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.2.1,<1.3.0"]
+INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0"]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
@@ -106,7 +106,6 @@ else:
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
-                "evaluators",
                 "expression",
                 "symbols",
                 "number",
@@ -114,6 +113,7 @@ else:
                 "pattern",
             ),
             "builtin": ["arithmetic", "patterns", "graphics"],
+            "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
             Extension(
@@ -138,7 +138,6 @@ else:
 
 # General Requirements
 INSTALL_REQUIRES += [
-    "Mathics_Scanner>=1.2.1,<1.3.0",
     "mpmath>=1.2.0",
     "palettable",
     "pint",
@@ -177,6 +176,7 @@ setup(
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
         "mathics.builtin.files_io",
+        "mathics.builtin.forms",
         "mathics.builtin.functional",
         "mathics.builtin.intfns",
         "mathics.builtin.list",

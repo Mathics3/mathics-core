@@ -61,14 +61,14 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.attributes import (
-    hold_all,
-    locked,
-    protected,
-    read_protected,
+    A_HOLD_ALL,
+    A_LOCKED,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
@@ -149,7 +149,7 @@ class ContainsOnly(Builtin):
      = True
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "lsa": "List or association expected instead of `1`.",
@@ -172,7 +172,7 @@ class ContainsOnly(Builtin):
                     return evaluation.message("ContainsOnly", "optx", Symbol(key), expr)
         return None
 
-    def apply(self, list1, list2, evaluation, options={}):
+    def eval(self, list1, list2, evaluation, options={}):
         "ContainsOnly[list1_List, list2_List, OptionsPattern[ContainsOnly]]"
 
         same_test = self.get_option(options, "SameTest", evaluation)
@@ -188,7 +188,7 @@ class ContainsOnly(Builtin):
                 return SymbolFalse
         return SymbolTrue
 
-    def apply_msg(self, e1, e2, evaluation, options={}):
+    def eval_msg(self, e1, e2, evaluation, options={}):
         "ContainsOnly[e1_, e2_, OptionsPattern[ContainsOnly]]"
 
         opts = (
@@ -295,6 +295,8 @@ class Delete(Builtin):
     """
 
     messages = {
+        # FIXME: This message doesn't exist in more modern WMA, and
+        # Delete *can* take more than 2 arguments.
         "argr": "Delete called with 1 argument; 2 arguments are expected.",
         "argt": "Delete called with `1` arguments; 2 arguments are expected.",
         "psl": "Position specification `1` in `2` is not a machine-sized integer or a list of machine-sized integers.",
@@ -302,7 +304,7 @@ class Delete(Builtin):
     }
     summary_text = "delete elements from a list at given positions"
 
-    def apply_one(self, expr, position: Integer, evaluation):
+    def eval_one(self, expr, position: Integer, evaluation):
         "Delete[expr_, position_Integer]"
         pos = position.value
         try:
@@ -310,7 +312,7 @@ class Delete(Builtin):
         except PartRangeError:
             evaluation.message("Part", "partw", ListExpression(position), expr)
 
-    def apply(self, expr, positions, evaluation):
+    def eval(self, expr, positions, evaluation):
         "Delete[expr_, positions___]"
         positions = positions.get_sequence()
         if len(positions) > 1:
@@ -443,7 +445,7 @@ class Level(Builtin):
     }
     summary_text = "parts specified by a given number of indices"
 
-    def apply(self, expr, ls, evaluation, options={}):
+    def eval(self, expr, ls, evaluation, options={}):
         "Level[expr_, ls_, OptionsPattern[Level]]"
 
         try:
@@ -506,10 +508,10 @@ class List(Builtin):
      = {{a, b, {c, d}}}
     """
 
-    attributes = locked | protected
+    attributes = A_LOCKED | A_PROTECTED
     summary_text = "specify a list explicitly"
 
-    def apply(self, elements, evaluation):
+    def eval(self, elements, evaluation):
         """List[elements___]"""
         # Pick out the elements part of the parameter elements;
         # we we will call that `elements_part_of_elements__`.
@@ -518,7 +520,7 @@ class List(Builtin):
         elements_part_of_elements__ = elements.get_sequence()
         return ListExpression(*elements_part_of_elements__)
 
-    def apply_makeboxes(self, items, f, evaluation):
+    def eval_makeboxes(self, items, f, evaluation):
         """MakeBoxes[{items___},
         f:StandardForm|TraditionalForm|OutputForm|InputForm|FullForm]"""
 
@@ -649,7 +651,7 @@ class Split(Builtin):
     }
     summary_text = "split into runs of identical elements"
 
-    def apply(self, mlist, test, evaluation):
+    def eval(self, mlist, test, evaluation):
         "Split[mlist_, test_]"
 
         expr = Expression(SymbolSplit, mlist, test)
@@ -702,7 +704,7 @@ class SplitBy(Builtin):
 
     summary_text = "split based on values of a function applied to elements"
 
-    def apply(self, mlist, func, evaluation):
+    def eval(self, mlist, func, evaluation):
         "SplitBy[mlist_, func_?NotListQ]"
 
         expr = Expression(SymbolSplit, mlist, func)
@@ -727,7 +729,7 @@ class SplitBy(Builtin):
         outer = structure(mlist.head, inner, evaluation)
         return outer([inner(t) for t in result])
 
-    def apply_multiple(self, mlist, funcs, evaluation):
+    def eval_multiple(self, mlist, funcs, evaluation):
         "SplitBy[mlist_, funcs_List]"
         expr = Expression(SymbolSplit, mlist, funcs)
 
@@ -737,7 +739,7 @@ class SplitBy(Builtin):
 
         result = mlist
         for f in funcs.elements[::-1]:
-            result = self.apply(result, f, evaluation)
+            result = self.eval(result, f, evaluation)
 
         return result
 
@@ -781,7 +783,7 @@ class LeafCount(Builtin):
     }
     summary_text = "the total number of atomic subexpressions"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "LeafCount[expr___]"
 
         from mathics.core.atoms import Rational, Complex
@@ -813,14 +815,14 @@ class _IterationFunction(Builtin):
      = 15
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     allow_loopcontrol = False
     throw_iterb = True
 
     def get_result(self, items):
         pass
 
-    def apply_symbol(self, expr, iterator, evaluation):
+    def eval_symbol(self, expr, iterator, evaluation):
         "%(name)s[expr_, iterator_Symbol]"
         iterator = iterator.evaluate(evaluation)
         if iterator.has_form(["List", "Range", "Sequence"], None):
@@ -830,19 +832,19 @@ class _IterationFunction(Builtin):
             elif len(elements) == 2:
                 if elements[1].has_form(["List", "Sequence"], None):
                     seq = Expression(SymbolSequence, *(elements[1].elements))
-                    return self.apply_list(expr, elements[0], seq, evaluation)
+                    return self.eval_list(expr, elements[0], seq, evaluation)
                 else:
-                    return self.apply_range(expr, *elements, evaluation)
+                    return self.eval_range(expr, *elements, evaluation)
             elif len(elements) == 3:
-                return self.apply_iter_nostep(expr, *elements, evaluation)
+                return self.eval_iter_nostep(expr, *elements, evaluation)
             elif len(elements) == 4:
-                return self.apply_iter(expr, *elements, evaluation)
+                return self.eval_iter(expr, *elements, evaluation)
 
         if self.throw_iterb:
             evaluation.message(self.get_name(), "iterb")
         return
 
-    def apply_range(self, expr, i, imax, evaluation):
+    def eval_range(self, expr, i, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imax_}]"
         imax = imax.evaluate(evaluation)
         if imax.has_form("Range", None):
@@ -852,11 +854,11 @@ class _IterationFunction(Builtin):
             return self.apply_list(expr, i, seq, evaluation)
         elif imax.has_form("List", None):
             seq = Expression(SymbolSequence, *(imax.elements))
-            return self.apply_list(expr, i, seq, evaluation)
+            return self.eval_list(expr, i, seq, evaluation)
         else:
-            return self.apply_iter(expr, i, Integer1, imax, Integer1, evaluation)
+            return self.eval_iter(expr, i, Integer1, imax, Integer1, evaluation)
 
-    def apply_max(self, expr, imax, evaluation):
+    def eval_max(self, expr, imax, evaluation):
         "%(name)s[expr_, {imax_}]"
 
         # Even though `imax` should be an integeral value, its type does not
@@ -912,11 +914,11 @@ class _IterationFunction(Builtin):
 
         return self.get_result(result)
 
-    def apply_iter_nostep(self, expr, i, imin, imax, evaluation):
+    def eval_iter_nostep(self, expr, i, imin, imax, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_}]"
-        return self.apply_iter(expr, i, imin, imax, Integer1, evaluation)
+        return self.eval_iter(expr, i, imin, imax, Integer1, evaluation)
 
-    def apply_iter(self, expr, i, imin, imax, di, evaluation):
+    def eval_iter(self, expr, i, imin, imax, di, evaluation):
         "%(name)s[expr_, {i_Symbol, imin_, imax_, di_}]"
 
         if isinstance(self, SympyFunction) and di.get_int_value() == 1:
@@ -977,7 +979,7 @@ class _IterationFunction(Builtin):
             index = Expression(SymbolPlus, index, di).evaluate(evaluation)
         return self.get_result(result)
 
-    def apply_list(self, expr, i, items, evaluation):
+    def eval_list(self, expr, i, items, evaluation):
         "%(name)s[expr_, {i_Symbol, {items___}}]"
         items = items.evaluate(evaluation).get_sequence()
         result = []
@@ -1003,7 +1005,7 @@ class _IterationFunction(Builtin):
                     raise
         return self.get_result(result)
 
-    def apply_multi(self, expr, first, sequ, evaluation):
+    def eval_multi(self, expr, first, sequ, evaluation):
         "%(name)s[expr_, first_, sequ__]"
 
         sequ = sequ.get_sequence()
@@ -1027,7 +1029,7 @@ class Insert(Builtin):
 
     summary_text = "insert an element at a given position"
 
-    def apply(self, expr, elem, n: Integer, evaluation):
+    def eval(self, expr, elem, n: Integer, evaluation):
         "Insert[expr_List, elem_, n_Integer]"
 
         py_n = n.value
@@ -1232,7 +1234,7 @@ class TakeLargestBy(_RankedTakeLargest):
 
     summary_text = "sublist of n largest elements according to a given criteria"
 
-    def apply(self, element, f, n, evaluation, options):
+    def eval(self, element, f, n, evaluation, options):
         "TakeLargestBy[element_List, f_, n_, OptionsPattern[TakeLargestBy]]"
         return self._compute(element, n, evaluation, options, f=f)
 
@@ -1256,7 +1258,7 @@ class TakeSmallestBy(_RankedTakeSmallest):
 
     summary_text = "sublist of n largest elements according to a criteria"
 
-    def apply(self, element, f, n, evaluation, options):
+    def eval(self, element, f, n, evaluation, options):
         "TakeSmallestBy[element_List, f_, n_, OptionsPattern[TakeSmallestBy]]"
         return self._compute(element, n, evaluation, options, f=f)
 
@@ -1416,7 +1418,7 @@ class _Pad(Builtin):
             )
             return None
 
-    def apply_zero(self, element, n, evaluation):
+    def eval_zero(self, element, n, evaluation):
         "%(name)s[element_, n_]"
         return self._pad(
             element,
@@ -1427,7 +1429,7 @@ class _Pad(Builtin):
             lambda: Expression(self.get_name(), element, n),
         )
 
-    def apply(self, element, n, x, evaluation):
+    def eval(self, element, n, x, evaluation):
         "%(name)s[element_, n_, x_]"
         return self._pad(
             element,
@@ -1438,7 +1440,7 @@ class _Pad(Builtin):
             lambda: Expression(self.get_name(), element, n, x),
         )
 
-    def apply_margin(self, element, n, x, m, evaluation):
+    def eval_margin(self, element, n, x, m, evaluation):
         "%(name)s[element_, n_, x_, m_]"
         return self._pad(
             element,
@@ -1820,7 +1822,7 @@ class FindClusters(_Cluster):
 
     summary_text = "divide data into lists of similar elements"
 
-    def apply(self, p, evaluation, options):
+    def eval(self, p, evaluation, options):
         "FindClusters[p_, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -1831,7 +1833,7 @@ class FindClusters(_Cluster):
             Expression(SymbolFindClusters, p, *options_to_rules(options)),
         )
 
-    def apply_manual_k(self, p, k: Integer, evaluation, options):
+    def eval_manual_k(self, p, k: Integer, evaluation, options):
         "FindClusters[p_, k_Integer, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -1867,7 +1869,7 @@ class ClusteringComponents(_Cluster):
 
     summary_text = "label data with the index of the cluster it is in"
 
-    def apply(self, p, evaluation, options):
+    def eval(self, p, evaluation, options):
         "ClusteringComponents[p_, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -1878,7 +1880,7 @@ class ClusteringComponents(_Cluster):
             Expression(SymbolClusteringComponents, p, *options_to_rules(options)),
         )
 
-    def apply_manual_k(self, p, k: Integer, evaluation, options):
+    def eval_manual_k(self, p, k: Integer, evaluation, options):
         "ClusteringComponents[p_, k_Integer, OptionsPattern[%(name)s]]"
         return self._cluster(
             p,
@@ -1941,7 +1943,7 @@ class Nearest(Builtin):
     }
     summary_text = "the nearest element from a list"
 
-    def apply(self, items, pivot, limit, expression, evaluation, options):
+    def eval(self, items, pivot, limit, expression, evaluation, options):
         "Nearest[items_, pivot_, limit_, OptionsPattern[%(name)s]]"
 
         method = self.get_option(options, "Method", evaluation)
@@ -2078,6 +2080,8 @@ class SubsetQ(Builtin):
     """
 
     messages = {
+        # FIXME: This message doesn't exist in more modern WMA, and
+        # Subset *can* take more than 2 arguments.
         "argr": "SubsetQ called with 1 argument; 2 arguments are expected.",
         "argrx": "SubsetQ called with `1` arguments; 2 arguments are expected.",
         "heads": "Heads `1` and `2` at positions 1 and 2 are expected to be the same.",
@@ -2085,7 +2089,7 @@ class SubsetQ(Builtin):
     }
     summary_text = "test if a list is a subset of another list"
 
-    def apply(self, expr, subset, evaluation):
+    def eval(self, expr, subset, evaluation):
         "SubsetQ[expr_, subset___]"
 
         if isinstance(expr, Atom):

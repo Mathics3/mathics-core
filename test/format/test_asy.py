@@ -6,7 +6,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.core.systemsymbols import SymbolGraphics, SymbolPoint
 from mathics.session import MathicsSession
-from mathics.builtin.inout import MakeBoxes
+from mathics.builtin.makeboxes import MakeBoxes
 
 session = MathicsSession(add_builtin=True, catch_interrupt=False)
 evaluation = Evaluation(session.definitions)

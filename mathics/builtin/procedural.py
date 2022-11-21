@@ -15,7 +15,12 @@ from mathics.builtin.base import Builtin, BinaryOperator
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
 
-from mathics.core.attributes import hold_all, hold_rest, protected, read_protected
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_REST,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
 from mathics.core.expression import Expression
 from mathics.core.interrupt import (
     AbortInterrupt,
@@ -107,7 +112,7 @@ class Catch(Builtin):
     #> Clear[f]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     summary_text = "handle an exception raised by a 'Throw'"
 
@@ -183,7 +188,7 @@ class CompoundExpression(BinaryOperator):
     #> Clear[x]; Clear[z]
     """
 
-    attributes = hold_all | protected | read_protected
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
     operator = ";"
     precedence = 10
 
@@ -311,7 +316,7 @@ class For(Builtin):
      = 120
     """
 
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     rules = {
         "For[start_, test_, incr_]": "For[start, test, incr, Null]",
     }
@@ -365,7 +370,7 @@ class If(Builtin):
 
     summary_text = "if-then-else conditional expression"
     # this is the WR summary: "test if a condition is true, false, or of unknown truth value"
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     summary_text = "test if a condition is true, false, or of unknown truth value"
 
     def apply_2(self, condition, t, evaluation):
@@ -490,7 +495,7 @@ class Switch(Builtin):
     """
 
     summary_text = "switch based on a value, with patterns allowed"
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
 
     messages = {
         "argct": (
@@ -545,7 +550,7 @@ class Which(Builtin):
      = Which[a, b, c]
     """
 
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "test which of a sequence of conditions are true"
 
     def apply(self, items, evaluation):
@@ -593,7 +598,7 @@ class While(Builtin):
     """
 
     summary_text = "evaluate an expression while a criterion is true"
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     rules = {
         "While[test_]": "While[test, Null]",
     }

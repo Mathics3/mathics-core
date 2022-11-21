@@ -43,12 +43,12 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    constant as A_CONSTANT,
-    hold_all as A_HOLD_ALL,
-    listable as A_LISTABLE,
-    n_hold_all as A_N_HOLD_ALL,
-    protected as A_PROTECTED,
-    read_protected as A_READ_PROTECTED,
+    A_CONSTANT,
+    A_HOLD_ALL,
+    A_LISTABLE,
+    A_N_HOLD_ALL,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 
 from mathics.core.convert.expression import to_expression, to_mathics_list
@@ -56,9 +56,8 @@ from mathics.core.convert.function import expression_to_callable_and_args
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression, from_sympy
 from mathics.core.evaluation import Evaluation
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import dps, machine_epsilon
 from mathics.core.rules import Pattern
@@ -95,8 +94,25 @@ from mathics.core.systemsymbols import (
     SymbolUndefined,
 )
 
+from mathics.eval.makeboxes import format_element
 
 import sympy
+
+# These should be used in lower-level formatting
+SymbolDifferentialD = Symbol("System`DifferentialD")
+SymbolIntegral = Symbol("System`Integral")
+
+
+# Maybe this class should be in a module "mathics.builtin.domains" or something like that
+class Complexes(Builtin):
+    """
+    <dl>
+    <dt>'Complexes'
+        <dd>the domain of complex numbers, as in $x$ in Complexes.
+    </dl>
+    """
+
+    summary_text = "the domain complex numbers"
 
 
 class D(SympyFunction):
@@ -505,17 +521,6 @@ class Derivative(PostfixOperator, SympyFunction):
             return
 
 
-class Complexes(Builtin):
-    """
-    <dl>
-    <dt>'Complexes'
-        <dd>the domain of complex numbers, as in $x$ in Complexes.
-    </dl>
-    """
-
-    summary_text = "the domain complex numbers"
-
-
 class DiscreteLimit(Builtin):
     """
     <dl>
@@ -706,6 +711,99 @@ class _BaseFinder(Builtin):
         return
 
 
+class FindMaximum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
+    </dl>
+
+    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+
+    >> FindMaximum[-(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMaximum[Sin[x], {x, 1}]
+     = {1., {x -> 1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u, {u, 0., x}, Method->"Internal"];
+    >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
+     = {0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+    """
+
+    methods = {}
+    messages = _BaseFinder.messages.copy()
+    summary_text = "local maximum optimization"
+    try:
+        from mathics.algorithm.optimizers import native_local_optimizer_methods
+
+        methods.update(native_local_optimizer_methods)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
+
+
+class FindMinimum(_BaseFinder):
+    r"""
+    <dl>
+    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
+        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
+    </dl>
+
+    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+
+
+    >> FindMinimum[(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
+     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
+     = {2., {x -> 3.}}
+    >> FindMinimum[Sin[x], {x, 1}]
+     = {-1., {x -> -1.5708}}
+    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
+    >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
+     = {-0.5, {x -> 1.00001}}
+    >> Clear[phi];
+    For a not so well behaving function, the result can be less accurate:
+    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
+     : The maximum number of iterations was exceeded. The result might be inaccurate.
+     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
+    """
+
+    methods = {}
+    messages = _BaseFinder.messages.copy()
+    summary_text = "local minimum optimization"
+    try:
+        from mathics.algorithm.optimizers import (
+            native_local_optimizer_methods,
+            native_optimizer_messages,
+        )
+
+        methods.update(native_local_optimizer_methods)
+        messages.update(native_optimizer_messages)
+    except Exception:
+        pass
+    try:
+        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
+
+        methods.update(scipy_optimizer_methods)
+    except Exception:
+        pass
+
+
 class FindRoot(_BaseFinder):
     r"""
     <dl>
@@ -794,99 +892,7 @@ class FindRoot(_BaseFinder):
         pass
 
 
-class FindMinimum(_BaseFinder):
-    r"""
-    <dl>
-    <dt>'FindMinimum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
-    </dl>
-
-    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
-
-
-    >> FindMinimum[(x-3)^2+2., {x, 1}]
-     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
-    >> FindMinimum[10*^-30 *(x-3)^2+2., {x, 1}]
-     : Encountered a gradient that is effectively zero. The result returned may not be a minimum; it may be a maximum or a saddle point.
-     = {2., {x -> 3.}}
-    >> FindMinimum[Sin[x], {x, 1}]
-     = {-1., {x -> -1.5708}}
-    >> phi[x_?NumberQ]:=NIntegrate[u,{u,0,x}, Method->"Internal"];
-    >> Quiet[FindMinimum[phi[x]-x,{x, 1.2}, Method->"Newton"]]
-     = {-0.5, {x -> 1.00001}}
-    >> Clear[phi];
-    For a not so well behaving function, the result can be less accurate:
-    >> FindMinimum[Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
-     : The maximum number of iterations was exceeded. The result might be inaccurate.
-     =  FindMinimum[Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
-    """
-
-    methods = {}
-    messages = _BaseFinder.messages.copy()
-    summary_text = "local minimum optimization"
-    try:
-        from mathics.algorithm.optimizers import (
-            native_local_optimizer_methods,
-            native_optimizer_messages,
-        )
-
-        methods.update(native_local_optimizer_methods)
-        messages.update(native_optimizer_messages)
-    except Exception:
-        pass
-    try:
-        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
-
-        methods.update(scipy_optimizer_methods)
-    except Exception:
-        pass
-
-
-class FindMaximum(_BaseFinder):
-    r"""
-    <dl>
-    <dt>'FindMaximum[$f$, {$x$, $x0$}]'
-        <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
-    </dl>
-
-    'FindMaximum' by default uses Newton\'s method, so the function of interest should have a first derivative.
-
-    >> FindMaximum[-(x-3)^2+2., {x, 1}]
-     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
-    >> FindMaximum[-10*^-30 *(x-3)^2+2., {x, 1}]
-     : Encountered a gradient that is effectively zero. The result returned may not be a maximum; it may be a minimum or a saddle point.
-     = {2., {x -> 3.}}
-    >> FindMaximum[Sin[x], {x, 1}]
-     = {1., {x -> 1.5708}}
-    >> phi[x_?NumberQ]:=NIntegrate[u, {u, 0., x}, Method->"Internal"];
-    >> Quiet[FindMaximum[-phi[x] + x, {x, 1.2}, Method->"Newton"]]
-     = {0.5, {x -> 1.00001}}
-    >> Clear[phi];
-    For a not so well behaving function, the result can be less accurate:
-    >> FindMaximum[-Exp[-1/x^2]+1., {x,1.2}, MaxIterations->10]
-     : The maximum number of iterations was exceeded. The result might be inaccurate.
-     = FindMaximum[-Exp[-1 / x ^ 2] + 1., {x, 1.2}, MaxIterations -> 10]
-    """
-
-    methods = {}
-    messages = _BaseFinder.messages.copy()
-    summary_text = "local maximum optimization"
-    try:
-        from mathics.algorithm.optimizers import native_local_optimizer_methods
-
-        methods.update(native_local_optimizer_methods)
-    except Exception:
-        pass
-    try:
-        from mathics.builtin.scipy_utils.optimizers import scipy_optimizer_methods
-
-        methods.update(scipy_optimizer_methods)
-    except Exception:
-        pass
-
-
+# Move to mathics.builtin.domains...
 class Integers(Builtin):
     """
     <dl>

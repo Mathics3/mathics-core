@@ -4,13 +4,57 @@ Forms of Assignment
 """
 
 
-from mathics.builtin.assignments.internals import _SetOperator
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
-from mathics.core.definitions import PyMathicsLoadException
-from mathics.core.evaluators import eval_load_module
+from mathics.core.assignment import (
+    ASSIGNMENT_FUNCTION_MAP,
+    AssignmentException,
+    assign_store_rules_by_tag,
+    normalize_lhs,
+)
+
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
+)
+
+from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+
+
+class _SetOperator:
+    """
+    This is the base class for assignment Builtin operators.
+
+    Special cases are determined by the head of the expression. Then
+    they are processed by specific routines, which are poke from
+    the ``ASSIGNMENT_FUNCTION_MAP`` dict.
+    """
+
+    # FIXME:
+    # Assigment is determined by the LHS.
+    # Are there a larger patterns or natural groupings that we are missing?
+    # For example, it might be that it
+    # we can key off of some attributes or other properties of the
+    # LHS of a builtin, instead of listing all of the builtins in that class
+    # (which may miss some).
+    # Below, we key on a string, but Symbol is more correct.
+
+    def assign(self, lhs, rhs, evaluation, tags=None, upset=False):
+        lhs, lookup_name = normalize_lhs(lhs, evaluation)
+        try:
+            # Using a builtin name, find which assignment procedure to perform,
+            # and then call that function.
+            assignment_func = ASSIGNMENT_FUNCTION_MAP.get(lookup_name, None)
+            if assignment_func:
+                return assignment_func(self, lhs, rhs, evaluation, tags, upset)
+
+            return assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset)
+        except AssignmentException:
+
+            return False
 
 
 class Set(BinaryOperator, _SetOperator):
@@ -79,7 +123,7 @@ class Set(BinaryOperator, _SetOperator):
     #> x = Infinity;
     """
 
-    attributes = hold_first | protected | sequence_hold
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
 
     messages = {
@@ -139,10 +183,32 @@ class SetDelayed(Set):
      = 2 / 3
     >> F[-3, 2]
      = -2 / 3
+    We can use conditional delayed assignments to define \
+    symbols with values conditioned to the context. For example,
+    >> ClearAll[a,b]; a/; b>0:= 3
+    Set $a$ to have a value of $3$ if certain variable $b$ is positive.\
+    So, if this variable is not set, $a$ stays unevaluated:
+    >> a
+     = a
+    If now we assign a positive value to $b$, then $a$ is evaluated:
+    >> b=2; a
+     =  3
     """
 
+    #  I WMA, if we assign a value without a condition on the LHS,
+    # conditional values are never reached. So,
+    #
+    # Notice however that if we assign an unconditional value to $a$, \
+    # this overrides the condition:
+    # >> a:=0; a/; b>1:= 3
+    # >> a
+    # = 0
+    #
+    # In Mathics, this last line would return 3
+    # """
+
     operator = ":="
-    attributes = hold_all | protected | sequence_hold
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
 
     summary_text = "test a delayed value; used in defining functions"
 
@@ -182,7 +248,7 @@ class TagSet(Builtin, _SetOperator):
      = 3
     """
 
-    attributes = hold_all | protected | sequence_hold
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
 
     messages = {
         "tagnfd": "Tag `1` not found or too deep for an assigned rule.",
@@ -198,7 +264,7 @@ class TagSet(Builtin, _SetOperator):
             return
 
         rhs = rhs.evaluate(evaluation)
-        self.assign_elementary(lhs, rhs, evaluation, tags=[name])
+        self.assign(lhs, rhs, evaluation, tags=[name])
         return rhs
 
 
@@ -212,7 +278,7 @@ class TagSetDelayed(TagSet):
     </dl>
     """
 
-    attributes = hold_all | protected | sequence_hold
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
     summary_text = "assign a delayed value to an expression, associating the corresponding assignment with the a symbol"
 
     def apply(self, f, lhs, rhs, evaluation):
@@ -223,7 +289,7 @@ class TagSetDelayed(TagSet):
             evaluation.message(self.get_name(), "sym", f, 1)
             return
 
-        if self.assign_elementary(lhs, rhs, evaluation, tags=[name]):
+        if self.assign(lhs, rhs, evaluation, tags=[name]):
             return SymbolNull
         else:
             return SymbolFailed

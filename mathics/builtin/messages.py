@@ -15,9 +15,9 @@ from mathics.builtin.base import (
 
 from mathics.core.atoms import String
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    hold_first as A_HOLD_FIRST,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
 )
 from mathics.core.evaluation import Message as EvaluationMessage
 from mathics.core.expression import Expression
@@ -603,6 +603,7 @@ class General(Builtin):
         "argtu": ("`1` called with 1 argument; `2` or `3` arguments are expected."),
         "base": "Requested base `1` in `2` should be between 2 and `3`.",
         "boxfmt": "`1` is not a box formatting type.",
+        "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",
         "color": "`1` is not a valid color or gray-level specification.",
         "cxt": "`1` is not a valid context name.",
         "divz": "The argument `1` should be nonzero.",
@@ -645,20 +646,21 @@ class General(Builtin):
         "setp": "Part assignment to `1` could not be made",
         "setps": "`1` in the part assignment is not a symbol.",
         "span": "`1` is not a valid Span specification.",
+        "ssym": "`1` is not a symbol or a string.",
         "stream": "`1` is not string, InputStream[], or OutputStream[]",
         "string": "String expected.",
         "sym": "Argument `1` at position `2` is expected to be a symbol.",
         "tag": "Rule for `1` can only be attached to `2`.",
         "take": "Cannot take positions `1` through `2` in `3`.",
+        "ucdec": "An invalid unicode sequence was encountered and ignored.",
         "vrule": (
             "Cannot set `1` to `2`, " "which is not a valid list of replacement rules."
         ),
         "write": "Tag `1` in `2` is Protected.",
         "wrsym": "Symbol `1` is Protected.",
-        "ucdec": "An invalid unicode sequence was encountered and ignored.",
-        "charcode": "The character encoding `1` is not supported. Use $CharacterEncodings to list supported encodings.",
+        # TODO: someone please explain why these are different...
         # Self-defined messages
-        # 'rep': "`1` is not a valid replacement rule.",
+        "rep": "`1` is not a valid replacement rule.",
         "options": "`1` is not a valid list of option rules.",
         "timeout": "Timeout reached.",
         "syntax": "`1`",

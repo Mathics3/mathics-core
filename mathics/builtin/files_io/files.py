@@ -25,11 +25,10 @@ from mathics.core.atoms import (
     String,
     SymbolString,
 )
-from mathics.core.attributes import protected, read_protected
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
-from mathics.core.formatter import format_element, do_format
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
     channel_to_stream,
@@ -53,6 +52,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
 )
 
+from mathics.eval.makeboxes import format_element, do_format
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
@@ -82,7 +82,7 @@ class Input_(Predefined):
      = #<--#
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
     name = "$Input"
     summary_text = "the name of the current input stream"
 
@@ -164,7 +164,7 @@ class _OpenAction(Builtin):
             opener = MathicsOpen(
                 path_string,
                 mode=mode,
-                encoding=encoding.get_string_value(),
+                encoding=encoding.value,
                 is_temporary_file=is_temporary_file,
             )
             opener.__enter__(is_temporary_file=is_temporary_file)
@@ -296,7 +296,7 @@ class FilePrint(Builtin):
     }
 
     def apply(self, path, evaluation, options):
-        "FilePrint[path_ OptionsPattern[FilePrint]]"
+        "FilePrint[path_, OptionsPattern[FilePrint]]"
         pypath = path.to_python()
         if not (
             isinstance(pypath, str)
@@ -503,7 +503,7 @@ class OpenRead(_OpenAction):
       <dd>opens a file and returns an 'InputStream'.
     </dl>
 
-    >> OpenRead["ExampleData/EinsteinSzilLetter.txt"]
+    >> OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]
      = InputStream[...]
     #> Close[%];
 
@@ -525,7 +525,7 @@ class OpenRead(_OpenAction):
      : Cannot open MathicsNonExampleFile.
      = OpenRead[MathicsNonExampleFile]
 
-    #> OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True]
+    #> OpenRead["ExampleData/EinsteinSzilLetter.txt", BinaryFormat -> True, CharacterEncoding->"UTF8"]
      = InputStream[...]
     #> Close[%];
     """
@@ -1484,7 +1484,7 @@ class Find(Read):
       <dd>find the first line in $stream$ that contains $text$.
     </dl>
 
-    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt"];
+    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> Find[stream, "uranium"]
      = in manuscript, leads me to expect that the element uranium may be turned into
     >> Find[stream, "uranium"]
@@ -1492,7 +1492,7 @@ class Find(Read):
     >> Close[stream]
      = ...
 
-    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt"];
+    >> stream = OpenRead["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> Find[stream, {"energy", "power"} ]
      = a new and important source of energy in the immediate future. Certain aspects
     >> Find[stream, {"energy", "power"} ]
@@ -1696,13 +1696,15 @@ class Write(Builtin):
     def apply(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
 
-        strm = channel_to_stream(channel)
+        stream = None
+        if isinstance(channel, String):
+            stream = {"stdout": 1, "stderr": 2}.get(channel.value, None)
 
-        if strm is None:
-            return
-
-        n = strm.elements[1].get_int_value()
-        stream = stream_manager.lookup_stream(n)
+        if stream is None:
+            strm = channel_to_stream(channel, "w")
+            if strm is None:
+                return
+            stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
 
         if stream is None or stream.io is None or stream.io.closed:
             evaluation.message("General", "openx", channel)
@@ -1763,6 +1765,9 @@ class WriteString(Builtin):
     #> DeleteFile[pathname];
     #> Clear[pathname];
 
+
+    If stream is the string "stdout" or "stderr", writes to the system standard output/ standard error channel:
+    >> WriteString["stdout", "Hola"]
     """
 
     summary_text = "write a sequence of strings to a stream, with no extra newlines"
@@ -1773,12 +1778,18 @@ class WriteString(Builtin):
 
     def apply(self, channel, expr, evaluation):
         "WriteString[channel_, expr___]"
-        strm = channel_to_stream(channel, "w")
+        stream = None
+        if isinstance(channel, String):
+            if channel.value == "stdout":
+                stream = stream_manager.lookup_stream(1)
+            elif channel.value == "stderr":
+                stream = stream_manager.lookup_stream(2)
 
-        if strm is None:
-            return
-
-        stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
+        if stream is None:
+            strm = channel_to_stream(channel, "w")
+            if strm is None:
+                return
+            stream = stream_manager.lookup_stream(strm.elements[1].get_int_value())
 
         if stream is None or stream.io is None or stream.io.closed:
             return None

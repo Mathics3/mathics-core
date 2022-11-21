@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.builtin.assignments.assignment import _SetOperator
 from mathics.builtin.base import BinaryOperator
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
+)
 from mathics.core.symbols import SymbolNull
-
 from mathics.core.systemsymbols import SymbolFailed
-
-from mathics.builtin.assignments.internals import _SetOperator
-
-from mathics.core.attributes import hold_all, hold_first, protected, sequence_hold
 
 
 class UpSet(BinaryOperator, _SetOperator):
@@ -44,7 +46,7 @@ class UpSet(BinaryOperator, _SetOperator):
      = {HoldPattern[f[g, a + b, h]] :> 2}
     """
 
-    attributes = hold_first | protected | sequence_hold
+    attributes = A_HOLD_FIRST | A_PROTECTED | A_SEQUENCE_HOLD
     grouping = "Right"
     operator = "^="
     precedence = 40
@@ -56,7 +58,7 @@ class UpSet(BinaryOperator, _SetOperator):
     def apply(self, lhs, rhs, evaluation):
         "lhs_ ^= rhs_"
 
-        self.assign_elementary(lhs, rhs, evaluation, upset=True)
+        self.assign(lhs, rhs, evaluation, upset=True)
         return rhs
 
 
@@ -83,14 +85,14 @@ class UpSetDelayed(UpSet):
      = $Failed
     """
 
-    attributes = hold_all | protected | sequence_hold
+    attributes = A_HOLD_ALL | A_PROTECTED | A_SEQUENCE_HOLD
     operator = "^:="
     summary_text = "set a delayed value and associate the assignment with symbols that occur at level one"
 
     def apply(self, lhs, rhs, evaluation):
         "lhs_ ^:= rhs_"
 
-        if self.assign_elementary(lhs, rhs, evaluation, upset=True):
+        if self.assign(lhs, rhs, evaluation, upset=True):
             return SymbolNull
         else:
             return SymbolFailed

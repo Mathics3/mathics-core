@@ -5,7 +5,7 @@ from mathics import settings
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, String
-from mathics.core.attributes import hold_all, protected
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Output
 from mathics.core.expression import Expression
@@ -286,7 +286,7 @@ class Manipulate(Builtin):
      = Manipulate[x, {x, 1, 0}]
     """
     attributes = (
-        hold_all | protected
+        A_HOLD_ALL | A_PROTECTED
     )  # we'll call ReleaseHold at the time of evaluation below
 
     messages = {

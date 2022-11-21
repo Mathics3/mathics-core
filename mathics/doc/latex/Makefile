@@ -13,7 +13,7 @@ all doc texdoc: mathics.pdf
 
 #: Create internal Document Data from .mdoc and Python builtin module docstrings
 doc-data $(DOC_TEX_DATA_PCL):
-	(cd ../.. && $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
+	(cd ../.. && MATHICS_CHARACTER_ENCODING="ASCII" $(PYTHON) docpipeline.py --output --keep-going --want-sorting)
 
 #: Build mathics PDF
 mathics.pdf: mathics.tex documentation.tex logo-text-nodrop.pdf logo-heptatom.pdf version-info.tex $(DOC_TEX_DATA_PCL)

@@ -32,15 +32,14 @@ from mathics.core.atoms import (
     String,
 )
 from mathics.core.attributes import (
-    flat,
-    listable,
-    one_identity,
-    protected,
-    read_protected,
+    A_FLAT,
+    A_LISTABLE,
+    A_ONE_IDENTITY,
+    A_PROTECTED,
+    A_READ_PROTECTED,
 )
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -55,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
 )
 
+from mathics.eval.makeboxes import format_element
 
 SymbolStringInsert = Symbol("StringInsert")
 SymbolStringJoin = Symbol("StringJoin")
@@ -108,7 +108,7 @@ class Hash(Builtin):
      = Hash[{a, b, c}, xyzstr, Integer]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     rules = {
         "Hash[expr_]": 'Hash[expr, "MD5", "Integer"]',
@@ -462,7 +462,7 @@ class StringJoin(BinaryOperator):
      | Hello world!
     """
 
-    attributes = flat | one_identity | protected
+    attributes = A_FLAT | A_ONE_IDENTITY | A_PROTECTED
     operator = "<>"
     precedence = 600
     summary_text = "join strings together"
@@ -502,7 +502,7 @@ class StringLength(Builtin):
      = StringLength[x]
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
 
     summary_text = "length of a string (in Unicode characters)"
 
@@ -534,7 +534,7 @@ class StringPosition(Builtin):
      = {{4, 6}, {9, 11}}
 
     'StringPosition' can be useful for searching through text.
-    >> data = Import["ExampleData/EinsteinSzilLetter.txt"];
+    >> data = Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"];
     >> StringPosition[data, "uranium"]
      = {{299, 305}, {870, 876}, {1538, 1544}, {1671, 1677}, {2300, 2306}, {2784, 2790}, {3093, 3099}}
 
@@ -798,7 +798,7 @@ class StringReverse(Builtin):
        = evil
     """
 
-    attributes = listable | protected
+    attributes = A_LISTABLE | A_PROTECTED
     summary_text = "reverses the order of the characters in a string"
 
     def apply(self, string, evaluation):
@@ -867,7 +867,7 @@ class StringRiffle(Builtin):
      = StringRiffle[{a, b, c}, +, -]
     """
 
-    attributes = protected | read_protected
+    attributes = A_PROTECTED | A_READ_PROTECTED
 
     messages = {
         "list": "List expected at position `1` in `2`.",

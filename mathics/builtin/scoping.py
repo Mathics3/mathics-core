@@ -4,13 +4,13 @@ Scoping Constructs
 """
 
 
-from mathics.builtin.assignments.internals import get_symbol_list
 from mathics.core.attributes import (
-    hold_all as A_HOLD_ALL,
-    protected as A_PROTECTED,
+    A_HOLD_ALL,
+    A_PROTECTED,
     attribute_string_to_number,
 )
 from mathics.builtin.base import Builtin, Predefined
+from mathics.core.assignment import get_symbol_list
 from mathics.core.atoms import (
     String,
     Integer,
@@ -76,61 +76,74 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
     return result
 
 
-class With(Builtin):
+class Begin(Builtin):
     """
     <dl>
-
-      <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
-      <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
+      <dt>'Begin'[$context$]
+      <dd>temporarily sets the current context to $context$.
     </dl>
 
-    ## >> n = 10
-    ##  = 10
+    >> Begin["test`"]
+     = test`
+    ## X> {$Context, $ContextPath}
+    ## >> Context[newsymbol]
+    ##  = test`
+    >> End[]
+     = test`
+    >> End[]
+     : No previous context defined.
+     = Global`
 
-    ## Evaluate an expression with x locally set to 5:
-
-    ## 'With' works even without evaluation:
-    ## >> With[{x = a}, (1 + x^2) &]
-    ##  = 1 + a ^ 2&
-
-    ## Use 'With' to insert values into held expressions
-    ## >> With[{x=y}, Hold[x]]
-    ##  = Hold[y]
-
-    ## >> Table[With[{i=j}, Hold[i]],{j,1,4}]
-    ##  = {Hold[1], Hold[2], Hold[3], Hold[4]}
-    ## >> x=5; With[{x=x}, Hold[x]]
-    ##  = Hold[5]
-    ## >> {Block[{x = 3}, Hold[x]], With[{x = 3}, Hold[x]]}
-    ##  = {Hold[x], Hold[3]}
-    ## >> x=.; ReleaseHold /@ %
-    ##  = {x, 3}
-    ## >> With[{e = y}, Function[{x,y}, e*x*y]]
-    ##  = Function[{x$, y$}, y x$ y$]
-
+    ## #> Begin["`test`"]
+    ##  = Global`test`
+    ## #> Context[]
+    ##  = Global`test`
+    ## #> End[]
+    ##  = Global`test`
     """
 
-    attributes = A_HOLD_ALL | A_PROTECTED
-
-    messages = {
-        "lvsym": (
-            "Local variable specification contains `1`, "
-            "which is not a symbol or an assignment to a symbol."
-        ),
-        "dup": (
-            "Duplicate local variable `1` found in local variable " "specification."
-        ),
-        "lvlist": "Local variable specification `1` is not a List.",
+    rules = {
+        "Begin[context_String]": """
+             Unprotect[System`Private`$ContextStack];
+             System`Private`$ContextStack = Append[System`Private`$ContextStack, $Context];
+             Protect[System`Private`$ContextStack];
+             $Context = context;
+             $Context
+        """,
     }
-    summary_text = "replace variables by some constant values"
+    summary_text = "temporarily set the current context"
 
-    def apply(self, vars, expr, evaluation):
-        "With[vars_, expr_]"
 
-        vars = dict(get_scoping_vars(vars, "With", evaluation))
-        result = expr.replace_vars(vars)
-        result.evaluate(evaluation)
-        return result
+class BeginPackage(Builtin):
+    """
+    <dl>
+      <dt>'BeginPackage'[$context$]
+      <dd>starts the package given by $context$.
+    </dl>
+
+    The $context$ argument must be a valid context name. 'BeginPackage' changes the values of '$Context' and '$ContextPath', setting the current context to $context$.
+
+    ## >> BeginPackage["test`"]
+    ##  = test`
+    """
+
+    messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
+
+    rules = {
+        "BeginPackage[context_String]": """
+             Unprotect[System`Private`$ContextPathStack, System`$Packages];
+             Begin[context];
+             System`Private`$ContextPathStack =
+                 Append[System`Private`$ContextPathStack, $ContextPath];
+             $ContextPath = {context, "System`"};
+             $Packages = If[MemberQ[System`$Packages,$Context],
+                            $Packages,
+                            System`$Packages=Join[{$Context}, System`$Packages]];
+             Protect[System`Private`$ContextPathStack, System`$Packages];
+             context
+        """,
+    }
+    summary_text = "temporarily set the context and clean the context path"
 
 
 class Block(Builtin):
@@ -190,46 +203,177 @@ class Block(Builtin):
         return result
 
 
-class ModuleNumber_(Predefined):
+class Context_(Predefined):
     """
     <dl>
-      <dt>'$ModuleNumber'
-      <dd>is the current "serial number" to be used for local module variables.
+      <dt>'$Context'
+      <dd>is the current context.
     </dl>
 
+    >> $Context
+    = Global`
 
-    <ul>
-      <li>'$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
-      <li> a Mathics session starts with '$ModuleNumber' set to 1.
-      <li> You can reset $ModuleNumber to a positive machine integer, but if you do so, naming conflicts may lead to inefficiencies.
-    </li>
+    #> InputForm[$Context]
+    = "Global`"
 
-    ## Fixme: go over and adjuset
-    ## Each use of 'Module' increments '$ModuleNumber':
-    ## >> {$ModuleNumber, Module[{y}, y], $ModuleNumber}
-    ##  = {..., ...}
-
-    ## FIXME and go over
-    ## You can reset $ModuleNumber:
-    ## >> $ModuleNumber = 17; {Module[{x}, x], $ModuleNumber}
-    ##  = {x$17, 18}
-    ##
-    ## >> $ModuleNumber = x;
-    ## : Cannot set $ModuleNumber to x; value must be a positive integer.
+    ## Test general context behaviour
+    #> Plus === Global`Plus
+     = False
+    #> `Plus === Global`Plus
+     = True
     """
 
-    name = "$ModuleNumber"
+    messages = {"cxset": "`1` is not a valid context name ending in `."}
+    name = "$Context"
+    rules = {
+        "$Context": '"Global`"',
+    }
+    summary_text = "the current context"
+
+
+class Contexts(Builtin):
+    """
+    <dl>
+      <dt>'Contexts[]'
+      <dd>yields a list of all contexts.
+    </dl>
+
+    ## this assignment makes sure that a definition in Global` exists
+    ## >> x = 5;
+    ## X> Contexts[] // InputForm
+    """
+
+    summary_text = "list all the defined contexts"
+
+    def apply(self, evaluation):
+        "Contexts[]"
+
+        contexts = set()
+        for name in evaluation.definitions.get_names():
+            contexts.add(String(name[: name.rindex("`") + 1]))
+
+        return ListExpression(*sorted(contexts))
+
+
+class ContextPath_(Predefined):
+    """
+    <dl>
+      <dt>'$ContextPath'
+      <dd>is the search path for contexts.
+    </dl>
+
+    X> $ContextPath // InputForm
+
+    ## #> x`x = 1; x
+    ##  = x
+    ## #> $ContextPath = {"x`"};
+    ## #> x
+    ##  = 1
+    ## #> System`$ContextPath
+    ##  = {x`}
+    ## #> $ContextPath = {"System`", "Global`"};
+    """
+
+    messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
+    name = "$ContextPath"
+    rules = {
+        "$ContextPath": '{"System`", "Global`"}',
+    }
+    summary_text = "the current context search path"
+
+
+class ContextPathStack(Builtin):
+    """
+    <dl>
+      <dt>'System`Private`$ContextPathStack'
+      <dd>is an internal variable tracking the values of '$ContextPath' saved by 'Begin' and 'BeginPackage'.
+    </dl>
+    """
+
+    context = "System`Private`"
+    name = "$ContextPathStack"
+
+    rules = {
+        "System`Private`$ContextPathStack": "{}",
+    }
+    summary_text = "internal variable tracking $ContextPath values"
+
+
+class ContextStack(Builtin):
+    """
+    <dl>
+        <dt>'System`Private`$ContextStack'
+        <dd>is an internal variable tracking the values of '$Context'
+        saved by 'Begin' and 'BeginPackage'.
+    </dl>
+    """
+
+    context = "System`Private`"
+    name = "$ContextStack"
+
+    rules = {
+        "System`Private`$ContextStack": "{}",
+    }
+    summary_text = "internal variable tracking $Context values"
+
+
+class End(Builtin):
+    """
+    <dl>
+      <dt>'End[]'
+      <dd>ends a context started by 'Begin'.
+    </dl>
+    """
 
     messages = {
-        "set": (
-            "Cannot set $ModuleNumber to `1`; " "value must be a positive integer."
-        ),
+        "noctx": "No previous context defined.",
     }
 
     rules = {
-        "$ModuleNumber": "1",
+        "End[]": """
+             Block[{System`Private`old=$Context},
+                   If[Length[System`Private`$ContextStack] === 0,
+                     (* then *) Message[End::noctx]; $Context,
+                     (* else *) Unprotect[System`Private`$ContextStack];
+                                {$Context, System`Private`$ContextStack} =
+                                    {Last[System`Private`$ContextStack],
+                                     Most[System`Private`$ContextStack]};
+                                Protect[System`Private`$ContextStack];
+                                System`Private`old]]
+        """,
     }
-    summary_text = "serial number of the current local module"
+    summary_text = "revert to the context previous to the nearest 'Begin' statement"
+
+
+class EndPackage(Builtin):
+    """
+    <dl>
+      <dt>'EndPackage[]'
+      <dd>marks the end of a package, undoing a previous 'BeginPackage'.
+    </dl>
+
+    After 'EndPackage', the values of '$Context' and '$ContextPath' at the time of the 'BeginPackage' call are restored, with the new package\'s context prepended to $ContextPath.
+    """
+
+    messages = {
+        "noctx": "No previous context defined.",
+    }
+
+    rules = {
+        "EndPackage[]": """
+             Block[{System`Private`newctx=Quiet[End[], {End::noctx}]},
+                   If[Length[System`Private`$ContextPathStack] === 0,
+                      (* then *) Message[EndPackage::noctx],
+                      (* else *) Unprotect[System`Private`$ContextPathStack];
+                                 {$ContextPath, System`Private`$ContextPathStack} =
+                                     {Prepend[Last[System`Private`$ContextPathStack],
+                                              System`Private`newctx],
+                                      Most[System`Private`$ContextPathStack]};
+                                 Protect[System`Private`$ContextPathStack];
+                                 Null]]
+        """,
+    }
+    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
 
 
 class Module(Builtin):
@@ -299,6 +443,48 @@ class Module(Builtin):
         new_expr = expr.replace_vars(replace, in_scoping=False)
         result = new_expr.evaluate(evaluation)
         return result
+
+
+class ModuleNumber_(Predefined):
+    """
+    <dl>
+      <dt>'$ModuleNumber'
+      <dd>is the current "serial number" to be used for local module variables.
+    </dl>
+
+
+    <ul>
+      <li>'$ModuleNumber' is incremented every time 'Module' or 'Unique' is called.
+      <li> a Mathics session starts with '$ModuleNumber' set to 1.
+      <li> You can reset $ModuleNumber to a positive machine integer, but if you do so, naming conflicts may lead to inefficiencies.
+    </li>
+
+    ## Fixme: go over and adjuset
+    ## Each use of 'Module' increments '$ModuleNumber':
+    ## >> {$ModuleNumber, Module[{y}, y], $ModuleNumber}
+    ##  = {..., ...}
+
+    ## FIXME and go over
+    ## You can reset $ModuleNumber:
+    ## >> $ModuleNumber = 17; {Module[{x}, x], $ModuleNumber}
+    ##  = {x$17, 18}
+    ##
+    ## >> $ModuleNumber = x;
+    ## : Cannot set $ModuleNumber to x; value must be a positive integer.
+    """
+
+    name = "$ModuleNumber"
+
+    messages = {
+        "set": (
+            "Cannot set $ModuleNumber to `1`; " "value must be a positive integer."
+        ),
+    }
+
+    rules = {
+        "$ModuleNumber": "1",
+    }
+    summary_text = "serial number of the current local module"
 
 
 class Unique(Predefined):
@@ -452,244 +638,58 @@ class Unique(Predefined):
             return list[0]
 
 
-class Contexts(Builtin):
+class With(Builtin):
     """
     <dl>
-      <dt>'Contexts[]'
-      <dd>yields a list of all contexts.
+
+      <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
+      <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
     </dl>
 
-    ## this assignment makes sure that a definition in Global` exists
-    ## >> x = 5;
-    ## X> Contexts[] // InputForm
+    ## >> n = 10
+    ##  = 10
+
+    ## Evaluate an expression with x locally set to 5:
+
+    ## 'With' works even without evaluation:
+    ## >> With[{x = a}, (1 + x^2) &]
+    ##  = 1 + a ^ 2&
+
+    ## Use 'With' to insert values into held expressions
+    ## >> With[{x=y}, Hold[x]]
+    ##  = Hold[y]
+
+    ## >> Table[With[{i=j}, Hold[i]],{j,1,4}]
+    ##  = {Hold[1], Hold[2], Hold[3], Hold[4]}
+    ## >> x=5; With[{x=x}, Hold[x]]
+    ##  = Hold[5]
+    ## >> {Block[{x = 3}, Hold[x]], With[{x = 3}, Hold[x]]}
+    ##  = {Hold[x], Hold[3]}
+    ## >> x=.; ReleaseHold /@ %
+    ##  = {x, 3}
+    ## >> With[{e = y}, Function[{x,y}, e*x*y]]
+    ##  = Function[{x$, y$}, y x$ y$]
+
     """
 
-    summary_text = "list all the defined contexts"
-
-    def apply(self, evaluation):
-        "Contexts[]"
-
-        contexts = set()
-        for name in evaluation.definitions.get_names():
-            contexts.add(String(name[: name.rindex("`") + 1]))
-
-        return ListExpression(*sorted(contexts))
-
-
-class Context_(Predefined):
-    """
-    <dl>
-      <dt>'$Context'
-      <dd>is the current context.
-    </dl>
-
-    >> $Context
-    = Global`
-
-    #> InputForm[$Context]
-    = "Global`"
-
-    ## Test general context behaviour
-    #> Plus === Global`Plus
-     = False
-    #> `Plus === Global`Plus
-     = True
-    """
-
-    messages = {"cxset": "`1` is not a valid context name ending in `."}
-    name = "$Context"
-    rules = {
-        "$Context": '"Global`"',
-    }
-    summary_text = "the current context"
-
-
-class ContextPath_(Predefined):
-    """
-    <dl>
-      <dt>'$ContextPath'
-      <dd>is the search path for contexts.
-    </dl>
-
-    X> $ContextPath // InputForm
-
-    ## #> x`x = 1; x
-    ##  = x
-    ## #> $ContextPath = {"x`"};
-    ## #> x
-    ##  = 1
-    ## #> System`$ContextPath
-    ##  = {x`}
-    ## #> $ContextPath = {"System`", "Global`"};
-    """
-
-    messages = {"cxlist": "`1` is not a list of valid context names ending in `."}
-    name = "$ContextPath"
-    rules = {
-        "$ContextPath": '{"System`", "Global`"}',
-    }
-    summary_text = "the current context search path"
-
-
-class Begin(Builtin):
-    """
-    <dl>
-      <dt>'Begin'[$context$]
-      <dd>temporarily sets the current context to $context$.
-    </dl>
-
-    >> Begin["test`"]
-     = test`
-    ## X> {$Context, $ContextPath}
-    ## >> Context[newsymbol]
-    ##  = test`
-    >> End[]
-     = test`
-    >> End[]
-     : No previous context defined.
-     = Global`
-
-    ## #> Begin["`test`"]
-    ##  = Global`test`
-    ## #> Context[]
-    ##  = Global`test`
-    ## #> End[]
-    ##  = Global`test`
-    """
-
-    rules = {
-        "Begin[context_String]": """
-             Unprotect[System`Private`$ContextStack];
-             System`Private`$ContextStack = Append[System`Private`$ContextStack, $Context];
-             Protect[System`Private`$ContextStack];
-             $Context = context;
-             $Context
-        """,
-    }
-    summary_text = "temporarily set the current context"
-
-
-class End(Builtin):
-    """
-    <dl>
-      <dt>'End[]'
-      <dd>ends a context started by 'Begin'.
-    </dl>
-    """
+    attributes = A_HOLD_ALL | A_PROTECTED
 
     messages = {
-        "noctx": "No previous context defined.",
+        "lvsym": (
+            "Local variable specification contains `1`, "
+            "which is not a symbol or an assignment to a symbol."
+        ),
+        "dup": (
+            "Duplicate local variable `1` found in local variable " "specification."
+        ),
+        "lvlist": "Local variable specification `1` is not a List.",
     }
+    summary_text = "replace variables by some constant values"
 
-    rules = {
-        "End[]": """
-             Block[{System`Private`old=$Context},
-                   If[Length[System`Private`$ContextStack] === 0,
-                     (* then *) Message[End::noctx]; $Context,
-                     (* else *) Unprotect[System`Private`$ContextStack];
-                                {$Context, System`Private`$ContextStack} =
-                                    {Last[System`Private`$ContextStack],
-                                     Most[System`Private`$ContextStack]};
-                                Protect[System`Private`$ContextStack];
-                                System`Private`old]]
-        """,
-    }
-    summary_text = "revert to the context previous to the nearest 'Begin' statement"
+    def apply(self, vars, expr, evaluation):
+        "With[vars_, expr_]"
 
-
-class BeginPackage(Builtin):
-    """
-    <dl>
-      <dt>'BeginPackage'[$context$]
-      <dd>starts the package given by $context$.
-    </dl>
-
-    The $context$ argument must be a valid context name. 'BeginPackage' changes the values of '$Context' and '$ContextPath', setting the current context to $context$.
-
-    ## >> BeginPackage["test`"]
-    ##  = test`
-    """
-
-    messages = {"unimpl": "The second argument to BeginPackage is not yet implemented."}
-
-    rules = {
-        "BeginPackage[context_String]": """
-             Unprotect[System`Private`$ContextPathStack, System`$Packages];
-             Begin[context];
-             System`Private`$ContextPathStack =
-                 Append[System`Private`$ContextPathStack, $ContextPath];
-             $ContextPath = {context, "System`"};
-             $Packages = If[MemberQ[System`$Packages,$Context],
-                            $Packages,
-                            System`$Packages=Join[{$Context}, System`$Packages]];
-             Protect[System`Private`$ContextPathStack, System`$Packages];
-             context
-        """,
-    }
-    summary_text = "temporarily set the context and clean the context path"
-
-
-class EndPackage(Builtin):
-    """
-    <dl>
-      <dt>'EndPackage[]'
-      <dd>marks the end of a package, undoing a previous 'BeginPackage'.
-    </dl>
-
-    After 'EndPackage', the values of '$Context' and '$ContextPath' at the time of the 'BeginPackage' call are restored, with the new package\'s context prepended to $ContextPath.
-    """
-
-    messages = {
-        "noctx": "No previous context defined.",
-    }
-
-    rules = {
-        "EndPackage[]": """
-             Block[{System`Private`newctx=Quiet[End[], {End::noctx}]},
-                   If[Length[System`Private`$ContextPathStack] === 0,
-                      (* then *) Message[EndPackage::noctx],
-                      (* else *) Unprotect[System`Private`$ContextPathStack];
-                                 {$ContextPath, System`Private`$ContextPathStack} =
-                                     {Prepend[Last[System`Private`$ContextPathStack],
-                                              System`Private`newctx],
-                                      Most[System`Private`$ContextPathStack]};
-                                 Protect[System`Private`$ContextPathStack];
-                                 Null]]
-        """,
-    }
-    summary_text = "restore the context and the context path to the state before the nearest call to 'BeginPackage'"
-
-
-class ContextStack(Builtin):
-    """
-    <dl>
-        <dt>'System`Private`$ContextStack'
-        <dd>is an internal variable tracking the values of '$Context'
-        saved by 'Begin' and 'BeginPackage'.
-    </dl>
-    """
-
-    context = "System`Private`"
-    name = "$ContextStack"
-
-    rules = {
-        "System`Private`$ContextStack": "{}",
-    }
-    summary_text = "internal variable tracking $Context values"
-
-
-class ContextPathStack(Builtin):
-    """
-    <dl>
-      <dt>'System`Private`$ContextPathStack'
-      <dd>is an internal variable tracking the values of '$ContextPath' saved by 'Begin' and 'BeginPackage'.
-    </dl>
-    """
-
-    context = "System`Private`"
-    name = "$ContextPathStack"
-
-    rules = {
-        "System`Private`$ContextPathStack": "{}",
-    }
-    summary_text = "internal variable tracking $ContextPath values"
+        vars = dict(get_scoping_vars(vars, "With", evaluation))
+        result = expr.replace_vars(vars)
+        result.evaluate(evaluation)
+        return result

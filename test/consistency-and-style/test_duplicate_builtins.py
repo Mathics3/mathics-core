@@ -6,7 +6,8 @@ had missing or duplicate build-in functions definitions.
 """
 import pytest
 import os
-from mathics.builtin import modules, is_builtin, Builtin
+from mathics.builtin import name_is_builtin_symbol, modules
+from mathics.builtin.base import Builtin
 
 
 @pytest.mark.skipif(
@@ -18,15 +19,8 @@ def test_check_duplicated():
     for module in modules:
         vars = dir(module)
         for name in vars:
-            var = getattr(module, name)
-            if (
-                hasattr(var, "__module__")
-                and var.__module__.startswith("mathics.builtin.")
-                and var.__module__ != "mathics.builtin.base"
-                and is_builtin(var)
-                and not name.startswith("_")
-                and var.__module__ == module.__name__
-            ):  # nopep8
+            var = name_is_builtin_symbol(module, name)
+            if var:
                 instance = var(expression=False)
                 if isinstance(instance, Builtin):
                     # This set the default context for symbols in mathics.builtins

@@ -59,11 +59,11 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.attributes import (
-    hold_all,
-    hold_first,
-    hold_rest,
-    protected,
-    sequence_hold,
+    A_HOLD_ALL,
+    A_HOLD_FIRST,
+    A_HOLD_REST,
+    A_PROTECTED,
+    A_SEQUENCE_HOLD,
 )
 from mathics.core.element import EvalMixin
 from mathics.core.expression import Expression, SymbolVerbatim
@@ -107,7 +107,7 @@ class Rule_(BinaryOperator):
     name = "Rule"
     operator = "->"
     precedence = 120
-    attributes = sequence_hold | protected
+    attributes = A_SEQUENCE_HOLD | A_PROTECTED
     grouping = "Right"
     needs_verbatim = True
     summary_text = "a replacement rule"
@@ -126,7 +126,7 @@ class RuleDelayed(BinaryOperator):
      = {HoldRest, Protected, SequenceHold}
     """
 
-    attributes = sequence_hold | hold_rest | protected
+    attributes = A_SEQUENCE_HOLD | A_HOLD_REST | A_PROTECTED
     needs_verbatim = True
     operator = ":>"
     precedence = 120
@@ -910,7 +910,7 @@ class HoldPattern(PatternObject):
     """
 
     arg_counts = [1]
-    attributes = hold_all | protected
+    attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "took the expression as a literal pattern"
 
     def init(self, expr):
@@ -968,14 +968,13 @@ class Pattern_(PatternObject):
 
     arg_counts = [2]
 
-    attributes = hold_first | protected
+    attributes = A_HOLD_FIRST | A_PROTECTED
 
     messages = {
         "patvar": "First element in pattern `1` is not a valid pattern name.",
         "nodef": (
             "No default setting found for `1` in " "position `2` when length is `3`."
         ),
-        "argr": "Pattern called with 1 argument; 2 arguments are expected.",
     }
 
     rules = {
@@ -1519,7 +1518,7 @@ class Condition(BinaryOperator, PatternObject):
 
     arg_counts = [2]
     # Don't know why this has attribute HoldAll in Mathematica
-    attributes = hold_rest | protected
+    attributes = A_HOLD_REST | A_PROTECTED
     operator = "/;"
     precedence = 130
     summary_text = "conditional definition"
@@ -1659,29 +1658,6 @@ class OptionsPattern(PatternObject):
         return [element for element in elements if _match(element)]
 
 
-class _StopGeneratorBaseElementIsFree(StopGenerator):
-    pass
-
-
-def item_is_free(item, form, evaluation):
-    # for vars, rest in form.match(self, {}, evaluation, fully=False):
-    def yield_match(vars, rest):
-        raise _StopGeneratorBaseElementIsFree(False)
-        # return False
-
-    try:
-        form.match(yield_match, item, {}, evaluation, fully=False)
-    except _StopGeneratorBaseElementIsFree as exc:
-        return exc.value
-
-    if isinstance(item, Atom):
-        return True
-    else:
-        return item_is_free(item.head, form, evaluation) and all(
-            item_is_free(element, form, evaluation) for element in item.elements
-        )
-
-
 class Dispatch(Atom):
     class_head_name = "System`Dispatch"
 
@@ -1702,7 +1678,7 @@ class Dispatch(Atom):
 
     def atom_to_boxes(self, f, evaluation):
         from mathics.builtin.box.layout import RowBox
-        from mathics.core.formatter import format_element
+        from mathics.eval.makeboxes import format_element
 
         box_element = format_element(self.src, evaluation, f)
         return RowBox(String("Dispatch"), String("["), box_element, String("]"))
