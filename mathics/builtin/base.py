@@ -3,6 +3,7 @@
 
 import importlib
 import re
+
 from functools import lru_cache, total_ordering
 from itertools import chain
 from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
@@ -291,7 +292,13 @@ class Builtin:
             )
 
         box_rules = []
-        # FIXME: Why a special case for System`MakeBoxes? Remove this
+
+        # System`MakeBoxes comes first because all the other symbols contribute to it.
+        # Then, a definition of this symbol must be available from the begining.
+        # Probably, this is not a good approach, since it makes that MakeBoxes has
+        # a very large number of inespecific rules. A better approach would imply at least
+        # to store the rules as upvalues of the symbols associated to these rules.
+        #
         if name != "System`MakeBoxes":
             new_rules = []
             for rule in rules:
@@ -389,12 +396,31 @@ class Builtin:
         )
         if is_pymodule:
             definitions.pymathics[name] = definition
+            try:
+                makeboxes_def = definitions.pymathics["System`MakeBoxes"]
+            except KeyError:
+                builtin_mb_def = definitions.builtin["System`MakeBoxes"]
+                makeboxes_def = Definition(
+                    "System`MakeBoxes",
+                    builtin=builtin_mb_def.builtin,
+                    attributes=builtin_mb_def.attributes,
+                    is_numeric=builtin_mb_def.is_numeric,
+                )
+                definitions.pymathics["System`MakeBoxes"] = makeboxes_def
         else:
             definitions.builtin[name] = definition
+            makeboxes_def = definitions.builtin["System`MakeBoxes"]
 
-        makeboxes_def = definitions.builtin["System`MakeBoxes"]
         for rule in box_rules:
             makeboxes_def.add_rule(rule)
+
+        # If a pymathics module was loaded, then there are at least two
+        # definitions for MakeBoxes, the builtin, the pymathics, and the
+        # cached from combining the former two. Rules are added to one of
+        # both, which are not going to be in the cached version that
+        # Definitions.get_definition provides. To make the new rules
+        # accesible, we need to clear the definitions cache.
+        definitions.clear_cache("System`MakeBoxes")
 
     @classmethod
     def get_name(cls, short=False) -> str:

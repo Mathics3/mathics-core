@@ -21,7 +21,7 @@ from datetime import datetime
 import mathics
 import mathics.settings
 
-from mathics.core.definitions import Definitions, initialize_system_definitions
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.builtin.system_init import builtins_dict
@@ -446,7 +446,7 @@ def main():
     global definitions
     global logfile
     global check_partial_enlapsed_time
-    initialize_system_definitions()
+
     definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
