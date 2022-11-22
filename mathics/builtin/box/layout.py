@@ -7,7 +7,6 @@ The routines here assist in boxing at the bottom of the hierarchy. At the other 
 """
 
 from mathics.builtin.base import BoxExpression, Builtin
-from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import Atom, String
@@ -18,6 +17,7 @@ from mathics.core.attributes import (
 )
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
+from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolMakeBoxes

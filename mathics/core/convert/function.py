@@ -15,8 +15,8 @@ from typing import Optional, Callable, Tuple
 
 
 try:
-    from mathics.builtin.compile.types import int_type, real_type, bool_type
-    from mathics.builtin.compile import _compile, CompileArg, CompileError
+    from mathics.compile.types import int_type, real_type, bool_type
+    from mathics.compile import _compile, CompileArg, CompileError
 
     use_llvm = True
     # _Complex not implemented
