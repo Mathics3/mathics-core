@@ -2,6 +2,8 @@
 
 import re
 import sys
+
+from collections import UserDict
 from itertools import chain
 
 # Remove "try"  below and adjust return type after Python 3.6 support is dropped.
@@ -91,3 +93,24 @@ def subranges(
                 items[start : start + length],
                 (items[:start], items[start + length :]),
             )
+
+
+class DictReadOnlyProxy(UserDict):
+    def __init__(self, otherdict):
+        self._dict = otherdict
+
+    def __contains__(self, key):
+        return self._dict.__contains__(key)
+
+    def __iter__(self):
+        return self._dict.__iter__()
+
+    def __getitem__(self, key):
+        return self._dict[key]
+
+    def __setitem__(self, key, val):
+        print(key, val)
+        raise NotImplementedError("This dictionary cannot be updated")
+
+    def __delitem__(self, key):
+        raise NotImplementedError("This dictionary does not allow delete")

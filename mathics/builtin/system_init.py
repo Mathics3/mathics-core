@@ -15,8 +15,11 @@ from mathics.core.systemsymbols import SymbolGet
 
 from mathics.core.expression import ensure_context
 from mathics.core.parser import all_operator_names
+from mathics.core.util import DictReadOnlyProxy
+
 
 from mathics.settings import ROOT_DIR
+
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
@@ -250,6 +253,8 @@ def _initialize_system_definitions():
 
     system_definitions.builtin.update(system_definitions.user)
     system_definitions.user = {}
+
+    system_definitions.builtin = DictReadOnlyProxy(system_definitions.builtin)
 
 
 _initialize_system_definitions()

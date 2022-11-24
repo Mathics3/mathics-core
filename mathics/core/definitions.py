@@ -101,7 +101,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            self.builtin = copy(system_definitions.builtin)
+            self.builtin = system_definitions.builtin
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),
