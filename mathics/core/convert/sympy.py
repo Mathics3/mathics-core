@@ -155,7 +155,7 @@ class SympyPrime(sympy.Function):
 
 
 def from_sympy(expr):
-    from mathics.builtin import sympy_to_mathics
+    from mathics.builtin.system_init import sympy_to_mathics
     from mathics.core.atoms import (
         Integer,
         Integer0,

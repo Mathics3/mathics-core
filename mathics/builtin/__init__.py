@@ -7,20 +7,12 @@ Mathics has over a thousand Built-in Functions and variables, all of which are d
 
 import glob
 import importlib
-import inspect
 import os.path as osp
 import pkgutil
 import re
-from typing import Dict, List, Optional, Type
 
-from mathics.builtin.base import (
-    Builtin,
-    Operator,
-    PatternObject,
-    SympyObject,
-    mathics_to_python,
-)
-from mathics.core.pattern import pattern_objects
+from typing import List
+
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -30,43 +22,6 @@ __py_files__ = [
     osp.basename(f[0:-3])
     for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
 ]
-
-# system_builtins_dict maps a full builtin name, e.g. "System`EulerPhi" to a Builtin class
-system_builtins_dict: Dict[str, Type[Builtin]] = {}
-
-# builtins_by_module maps a full module name, e.g. "mathics.builtin.evaluation" to a
-# list of Builtin classes.
-builtins_by_module: Dict[str, List[Type[Builtin]]] = {}
-
-
-def add_builtins(new_builtins: list):
-    """
-    Updates system_builtins_dict to insert new_builtins.
-    """
-    for var_name, builtin in new_builtins:
-        name = builtin.get_name()
-        if hasattr(builtin, "python_equivalent"):
-            # print("XXX0", builtin.python_equivalent)
-            mathics_to_python[name] = builtin.python_equivalent
-
-        if isinstance(builtin, SympyObject):
-            mathics_to_sympy[name] = builtin
-            for sympy_name in builtin.get_sympy_names():
-                # print("XXX1", sympy_name)
-                sympy_to_mathics[sympy_name] = builtin
-        if isinstance(builtin, Operator):
-            builtins_precedence[name] = builtin.precedence
-        if isinstance(builtin, PatternObject):
-            pattern_objects[name] = builtin.__class__
-    system_builtins_dict.update(dict(new_builtins))
-
-
-def builtins_dict():
-    return {
-        builtin.get_name(): builtin
-        for modname, builtins in builtins_by_module.items()
-        for builtin in builtins
-    }
 
 
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
@@ -100,48 +55,6 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
         import_module(module_name, import_name)
 
 
-def name_is_builtin_symbol(module, name: str) -> Optional[type]:
-    """
-    Checks if ``name`` should be added to definitions, and return
-    its associated Builtin class.
-
-    Return ``None`` if the name should not get added to definitions.
-    """
-    if name.startswith("_"):
-        return None
-
-    module_object = getattr(module, name)
-
-    # Look only at Class objects.
-    if not inspect.isclass(module_object):
-        return None
-
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
-    # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
-        return None
-
-    # Skip objects in module mathics.builtin.base.
-    if module_object.__module__ == "mathics.builtin.base":
-        return None
-
-    # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
-        return None
-
-    # If it is not a subclass of Builtin, skip it.
-    if not issubclass(module_object, Builtin):
-        return None
-
-    # Skip Builtin classes that were explicitly marked for skipping.
-    if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
-        return None
-    return module_object
-
-
 # FIXME: redo using importlib since that is probably less fragile.
 exclude_files = set(("codetables", "base"))
 module_names = [
@@ -150,8 +63,6 @@ module_names = [
 
 modules = []
 import_builtins(module_names)
-
-_builtins_list = []
 
 disable_file_module_names = (
     [] if ENABLE_FILES_MODULE else ["files_io.files", "files_io.importexport"]
@@ -192,67 +103,3 @@ for subdir in (
     ]
     # print("XXX3", submodule_names)
     import_builtins(submodule_names, subdir)
-
-# FIXME: move this somewhere else...
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if it does not fulfill some other conditions.
-RUN_SANITY_TEST = False
-
-
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            cls.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
-
-
-# End FIXME
-
-
-for module in modules:
-    builtins_by_module[module.__name__] = []
-    module_vars = dir(module)
-
-    for name in module_vars:
-        builtin_class = name_is_builtin_symbol(module, name)
-        if builtin_class is not None:
-            instance = builtin_class(expression=False)
-
-            if isinstance(instance, Builtin):
-                # This set the default context for symbols in mathics.builtins
-                if not type(instance).context:
-                    type(instance).context = "System`"
-                assert sanity_check(
-                    builtin_class, module
-                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
-
-                _builtins_list.append((instance.get_name(), instance))
-                builtins_by_module[module.__name__].append(instance)
-
-mathics_to_sympy: Dict[str, Type[Builtin]] = {}  # here we have: name -> sympy object
-sympy_to_mathics = {}
-
-builtins_precedence = {}
-
-new_builtins = _builtins_list
-
-add_builtins(new_builtins)
-
-display_operators_set = set()
-for modname, builtins in builtins_by_module.items():
-    for builtin in builtins:
-        # name = builtin.get_name()
-        operator = builtin.get_operator_display()
-        if operator is not None:
-            display_operators_set.add(operator)

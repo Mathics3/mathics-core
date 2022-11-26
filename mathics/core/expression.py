@@ -1446,7 +1446,7 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         return self
 
     def to_sympy(self, **kwargs):
-        from mathics.builtin import mathics_to_sympy
+        from mathics.builtin.system_init import mathics_to_sympy
 
         if "convert_all_global_functions" in kwargs:
             if len(self.elements) > 0 and kwargs["convert_all_global_functions"]:

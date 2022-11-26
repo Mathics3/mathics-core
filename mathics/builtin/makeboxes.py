@@ -59,7 +59,7 @@ def int_to_s_exp(expr, n):
 
 
 def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
+    from mathics.builtin.system_init import builtins_precedence
 
     while element.has_form("HoldForm", 1):
         element = element.elements[0]

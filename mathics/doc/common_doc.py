@@ -830,7 +830,7 @@ class MathicsMainDocumentation(Documentation):
             (
                 "Reference of Built-in Symbols",
                 builtin.modules,
-                builtin.builtins_by_module,
+                builtin.system_init.builtins_by_module,
                 True,
             )
         ]:  # nopep8
@@ -1087,7 +1087,7 @@ class PyMathicsDocumentation(Documentation):
 
         # Load the dictionary of mathics symbols defined in the module
         self.symbols = {}
-        from mathics.builtin import name_is_builtin_symbol
+        from mathics.builtin.system_init import name_is_builtin_symbol
         from mathics.builtin.base import Builtin
 
         print("loading symbols")
