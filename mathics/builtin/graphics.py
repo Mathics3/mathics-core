@@ -11,7 +11,7 @@ sort_order = "mathics.builtin.drawing-graphics"
 from math import sqrt
 
 
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 
 from mathics.builtin.base import Builtin
 
@@ -34,7 +34,6 @@ from mathics.builtin.drawing.graphics_internals import (
     GLOBALS,
     get_class,
 )
-from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.options import options_to_rules
 
 from mathics.core.atoms import (
@@ -43,6 +42,7 @@ from mathics.core.atoms import (
     Real,
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (

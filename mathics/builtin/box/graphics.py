@@ -3,10 +3,11 @@
 Boxing Routines for 2D Graphics
 """
 
+
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
-from mathics.builtin.base import BoxExpression
 
+from mathics.builtin.base import BoxExpression
 from mathics.builtin.colors.color_directives import (
     _ColorObject,
     ColorError,
@@ -14,7 +15,6 @@ from mathics.builtin.colors.color_directives import (
     RGBColor,
 )
 from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
-from mathics.builtin.exceptions import BoxExpressionError
 from mathics.builtin.graphics import (
     Arrowheads,
     Coords,
@@ -40,12 +40,14 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
-from mathics.core.formatter import format_element, lookup_method
+from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
 
+from mathics.eval.makeboxes import format_element
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")

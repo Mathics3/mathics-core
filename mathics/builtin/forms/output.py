@@ -31,7 +31,6 @@ from mathics.core.atoms import (
 )
 
 from mathics.core.expression import Expression, BoxError
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.number import (
     convert_base,
@@ -60,6 +59,8 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
+
+from mathics.eval.makeboxes import format_element
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 

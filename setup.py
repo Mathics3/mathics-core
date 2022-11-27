@@ -106,7 +106,6 @@ else:
         print("Running Cython over code base")
         EXTENSIONS_DICT = {
             "core": (
-                "evaluators",
                 "expression",
                 "symbols",
                 "number",
@@ -114,6 +113,7 @@ else:
                 "pattern",
             ),
             "builtin": ["arithmetic", "patterns", "graphics"],
+            "eval": ("nevaluator", "makeboxes", "test"),
         }
         EXTENSIONS = [
             Extension(
@@ -161,6 +161,7 @@ setup(
     packages=[
         "mathics",
         "mathics.algorithm",
+        "mathics.compile",
         "mathics.core",
         "mathics.core.convert",
         "mathics.core.parser",
@@ -171,7 +172,6 @@ setup(
         "mathics.builtin.binary",
         "mathics.builtin.box",
         "mathics.builtin.colors",
-        "mathics.builtin.compile",
         "mathics.builtin.distance",
         "mathics.builtin.drawing",
         "mathics.builtin.fileformats",
@@ -191,6 +191,7 @@ setup(
         "mathics.builtin.statistics",
         "mathics.builtin.string",
         "mathics.builtin.vectors",
+        "mathics.eval",
         "mathics.doc",
         "mathics.format",
     ],

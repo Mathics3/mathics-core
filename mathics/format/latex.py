@@ -14,7 +14,6 @@ Symbols exist.
 
 import re
 
-from mathics.builtin.exceptions import BoxConstructError
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
@@ -30,6 +29,7 @@ from mathics.builtin.box.layout import (
 from mathics.builtin.colors.color_directives import RGBColor
 
 from mathics.core.atoms import String
+from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
     lookup_method as lookup_conversion_method,
     add_conversion_fn,

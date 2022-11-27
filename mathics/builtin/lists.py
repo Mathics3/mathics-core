@@ -28,7 +28,6 @@ from mathics.algorithm.parts import (
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
-    MessageException,
     NegativeIntegerException,
     Predefined,
     SympyFunction,
@@ -36,14 +35,6 @@ from mathics.builtin.base import (
 )
 
 from mathics.builtin.box.layout import RowBox
-
-from mathics.builtin.exceptions import (
-    InvalidLevelspecError,
-    PartDepthError,
-    PartError,
-    PartRangeError,
-)
-
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
@@ -68,7 +59,13 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
-from mathics.core.evaluators import eval_N
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartError,
+    PartRangeError,
+)
 from mathics.core.expression import Expression, structure
 
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
@@ -95,6 +92,7 @@ from mathics.core.systemsymbols import (
     SymbolSubsetQ,
 )
 
+from mathics.eval.nevaluator import eval_N
 
 SymbolClusteringComponents = Symbol("ClusteringComponents")
 SymbolContainsOnly = Symbol("ContainsOnly")

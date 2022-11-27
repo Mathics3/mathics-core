@@ -2,9 +2,9 @@ from mathics.builtin.box.graphics3d import Coords3D
 
 from mathics.builtin.colors.color_directives import _ColorObject, Opacity
 from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
-from mathics.builtin.exceptions import BoxExpressionError
 
 import numbers
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import Symbol
 
 
