@@ -9,7 +9,7 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 import sympy
 
-from mathics.builtin.exceptions import MessageException
+from mathics.core.exceptions import MessageException
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args

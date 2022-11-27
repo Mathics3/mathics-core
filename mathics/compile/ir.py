@@ -4,9 +4,9 @@ import itertools
 from llvmlite import ir
 import ctypes
 
-from mathics.builtin.compile.base import CompileError
-from mathics.builtin.compile.types import int_type, real_type, bool_type, void_type
-from mathics.builtin.compile.utils import pairwise, llvm_to_ctype
+from mathics.compile.base import CompileError
+from mathics.compile.types import int_type, real_type, bool_type, void_type
+from mathics.compile.utils import pairwise, llvm_to_ctype
 from mathics.core.atoms import Integer, Real
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol

@@ -15,11 +15,14 @@ from typing import Iterable
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
-    MessageException,
 )
-from mathics.builtin.exceptions import InvalidLevelspecError, PartRangeError
 from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartRangeError,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (

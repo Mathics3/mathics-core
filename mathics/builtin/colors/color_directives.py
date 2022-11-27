@@ -10,7 +10,6 @@ from math import atan2, cos, exp, pi, radians, sin, sqrt
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.builtin.exceptions import BoxExpressionError
 from mathics.core.atoms import (
     Integer,
     Real,
@@ -20,6 +19,7 @@ from mathics.core.atoms import (
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import machine_epsilon

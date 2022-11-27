@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
+from mathics.core.atoms import Integer
+from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.atoms import Integer
-from mathics.builtin.base import MessageException
 
 """
 This module provides some infrastructure to deal with SubExpressions.
