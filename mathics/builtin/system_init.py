@@ -16,6 +16,8 @@ from mathics.core.systemsymbols import SymbolGet
 from mathics.core.expression import ensure_context
 from mathics.core.parser import all_operator_names
 
+from mathics.settings import ROOT_DIR
+
 mathics_to_sympy = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
 
@@ -213,3 +215,41 @@ for modname, builtins in builtins_by_module.items():
         operator = builtin.get_operator_display()
         if operator is not None:
             display_operators_set.add(operator)
+
+
+def _initialize_system_definitions():
+    from mathics.core.definitions import system_definitions
+
+    #    print("Initializing definitions")
+    # Importing "mathics.format" populates the Symbol of the
+    # PrintForms and OutputForms sets.
+    #
+    # If "importlib" is used instead of "import", then we get:
+    #   TypeError: boxes_to_text() takes 1 positional argument but
+    #   2 were given
+    # Rocky: this smells of something not quite right in terms of
+    # modularity.
+
+    import mathics.format  # noqa
+
+    update_builtin_definitions(system_builtins_dict, system_definitions)
+
+    autoload_files(system_definitions, ROOT_DIR, "autoload")
+
+    # Move any user definitions created by autoloaded files to
+    # builtins, and clear out the user definitions list. This
+    # means that any autoloaded definitions become shared
+    # between users and no longer disappear after a Quit[].
+    #
+    # Autoloads that accidentally define a name in Global`
+    # could cause confusion, so check for this.
+    #
+    for name in system_definitions.user:
+        if name.startswith("Global`"):
+            raise ValueError("autoload defined %s." % name)
+
+    system_definitions.builtin.update(system_definitions.user)
+    system_definitions.user = {}
+
+
+_initialize_system_definitions()
