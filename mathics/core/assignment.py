@@ -58,9 +58,7 @@ def assign_store_rules_by_tag(self, lhs, rhs, evaluation, tags, upset=None):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
-    ignore_protection, tags = process_assign_other(
-        self, lhs, rhs, evaluation, tags, upset
-    )
+    ignore_protection, tags = eval_assign_other(self, lhs, rhs, evaluation, tags, upset)
     # In WMA, this does not happens. However, if we remove this,
     # some combinatorica tests fail.
     # Also, should not be at the begining?
@@ -268,7 +266,7 @@ def unroll_conditions(lhs) -> Tuple[BaseElement, Optional[Expression]]:
 # maybe they should be member functions of _SetOperator.
 
 
-def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     """
     Process the case where lhs is of the form
     `Attribute[symbol]`
@@ -311,7 +309,7 @@ def process_assign_attributes(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_context(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_head_name()
     new_context = rhs.get_string_value()
     if new_context is None or not valid_context_name(
@@ -339,7 +337,7 @@ def process_assign_context(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_name()
     currContext = evaluation.definitions.get_current_context()
     context_path = [s.get_string_value() for s in rhs.get_elements()]
@@ -354,7 +352,7 @@ def process_assign_context_path(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, None)
 
 
-def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_default(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     count = 0
@@ -377,7 +375,7 @@ def process_assign_default(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
     name = lhs.get_head_name()
     tag = find_tag_and_check(lhs, tags, evaluation)
     rules = rhs.get_rules_list()
@@ -388,7 +386,7 @@ def process_assign_definition_values(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_format(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     count = 0
@@ -430,7 +428,7 @@ def process_assign_format(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_iteration_limit(lhs, rhs, evaluation):
+def eval_assign_iteration_limit(lhs, rhs, evaluation):
     """
     Set ownvalue for the $IterationLimit symbol.
     """
@@ -444,9 +442,7 @@ def process_assign_iteration_limit(lhs, rhs, evaluation):
     return False
 
 
-def process_assign_line_number_and_history_length(
-    self, lhs, rhs, evaluation, tags, upset
-):
+def eval_assign_line_number_and_history_length(self, lhs, rhs, evaluation, tags, upset):
     """
     Set ownvalue for the $Line and $HistoryLength symbols.
     """
@@ -459,7 +455,7 @@ def process_assign_line_number_and_history_length(
     return False
 
 
-def process_assign_list(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_list(self, lhs, rhs, evaluation, tags, upset):
     if not (
         rhs.get_head_name() == "System`List" and len(lhs.elements) == len(rhs.elements)
     ):  # nopep8
@@ -472,7 +468,7 @@ def process_assign_list(self, lhs, rhs, evaluation, tags, upset):
     return result
 
 
-def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     # FIXME: the below is a big hack.
     # Currently MakeBoxes boxing is implemented as a bunch of rules.
     # See mathics.builtin.base contribute().
@@ -490,7 +486,7 @@ def process_assign_makeboxes(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     # $MinPrecision = Infinity is not allowed
@@ -505,7 +501,7 @@ def process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, None)
 
 
-def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
     lhs_name = lhs.get_name()
     rhs_int_value = rhs.get_int_value()
     if rhs.has_form("DirectedInfinity", 1) and rhs.elements[0].get_int_value() == 1:
@@ -521,7 +517,7 @@ def process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset):
         raise AssignmentException(lhs, None)
 
 
-def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     count = 0
@@ -544,7 +540,7 @@ def process_assign_messagename(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_module_number(lhs, rhs, evaluation):
+def eval_assign_module_number(lhs, rhs, evaluation):
     """
     Set ownvalue for the $ModuleNumber symbol.
     """
@@ -555,7 +551,7 @@ def process_assign_module_number(lhs, rhs, evaluation):
     return False
 
 
-def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_options(self, lhs, rhs, evaluation, tags, upset):
     lhs_elements = lhs.elements
     name = lhs.get_head_name()
     if len(lhs_elements) != 1:
@@ -579,7 +575,7 @@ def process_assign_options(self, lhs, rhs, evaluation, tags, upset):
     return True
 
 
-def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
     # lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     if rhs not in (SymbolTrue, SymbolFalse):
@@ -603,7 +599,7 @@ def process_assign_numericq(self, lhs, rhs, evaluation, tags, upset):
         return True
 
 
-def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_n(self, lhs, rhs, evaluation, tags, upset):
     lhs, condition = unroll_conditions(lhs)
     lhs, rhs = unroll_patterns(lhs, rhs, evaluation)
     defs = evaluation.definitions
@@ -634,7 +630,7 @@ def process_assign_n(self, lhs, rhs, evaluation, tags, upset):
     return count > 0
 
 
-def process_assign_other(
+def eval_assign_other(
     self, lhs, rhs, evaluation, tags=None, upset=False
 ) -> Tuple[bool, list]:
     """
@@ -651,25 +647,25 @@ def process_assign_other(
     )
     lhs_name = lhs.get_name()
     if lhs_name == "System`$RecursionLimit":
-        process_assign_recursion_limit(lhs, rhs, evaluation)
+        eval_assign_recursion_limit(lhs, rhs, evaluation)
     elif lhs_name in ("System`$Line", "System`$HistoryLength"):
-        process_assign_line_number_and_history_length(
+        eval_assign_line_number_and_history_length(
             self, lhs, rhs, evaluation, tags, upset
         )
     elif lhs_name == "System`$IterationLimit":
-        process_assign_iteration_limit(lhs, rhs, evaluation)
+        eval_assign_iteration_limit(lhs, rhs, evaluation)
     elif lhs_name == "System`$ModuleNumber":
-        process_assign_module_number(lhs, rhs, evaluation)
+        eval_assign_module_number(lhs, rhs, evaluation)
     elif lhs_name == "System`$MinPrecision":
-        process_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
+        eval_assign_minprecision(self, lhs, rhs, evaluation, tags, upset)
     elif lhs_name == "System`$MaxPrecision":
-        process_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset)
+        eval_assign_maxprecision(self, lhs, rhs, evaluation, tags, upset)
     else:
         return False, tags
     return True, tags
 
 
-def process_assign_part(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_part(self, lhs, rhs, evaluation, tags, upset):
     """
     Special case `A[[i,j,...]]=....`
     """
@@ -693,14 +689,14 @@ def process_assign_part(self, lhs, rhs, evaluation, tags, upset):
     return walk_parts([rule.replace], indices, evaluation, rhs)
 
 
-def process_assign_random_state(self, lhs, rhs, evaluation, tags, upset):
+def eval_assign_random_state(self, lhs, rhs, evaluation, tags, upset):
     # TODO: allow setting of legal random states!
     # (but consider pickle's insecurity!)
     evaluation.message("$RandomState", "rndst", rhs)
     raise AssignmentException(lhs, None)
 
 
-def process_assign_recursion_limit(lhs, rhs, evaluation):
+def eval_assign_recursion_limit(lhs, rhs, evaluation):
     """
     Set ownvalue for the $RecursionLimit symbol.
     """
@@ -816,26 +812,26 @@ def process_tags_and_upset_allow_custom(tags, upset, self, lhs, evaluation):
     return tags, focus
 
 
-# Below is a mapping from a string Symbol name into an assignment function
+# Below is a mapping from Symbol name (as a string) into an assignment eval function.
 ASSIGNMENT_FUNCTION_MAP = {
-    "System`$Context": process_assign_context,
-    "System`$ContextPath": process_assign_context_path,
-    "System`$RandomState": process_assign_random_state,
-    "System`Attributes": process_assign_attributes,
-    "System`Default": process_assign_default,
-    "System`DefaultValues": process_assign_definition_values,
-    "System`DownValues": process_assign_definition_values,
-    "System`Format": process_assign_format,
-    "System`List": process_assign_list,
-    "System`MakeBoxes": process_assign_makeboxes,
-    "System`MessageName": process_assign_messagename,
-    "System`Messages": process_assign_definition_values,
-    "System`N": process_assign_n,
-    "System`NValues": process_assign_definition_values,
-    "System`NumericQ": process_assign_numericq,
-    "System`Options": process_assign_options,
-    "System`OwnValues": process_assign_definition_values,
-    "System`Part": process_assign_part,
-    "System`SubValues": process_assign_definition_values,
-    "System`UpValues": process_assign_definition_values,
+    "System`$Context": eval_assign_context,
+    "System`$ContextPath": eval_assign_context_path,
+    "System`$RandomState": eval_assign_random_state,
+    "System`Attributes": eval_assign_attributes,
+    "System`Default": eval_assign_default,
+    "System`DefaultValues": eval_assign_definition_values,
+    "System`DownValues": eval_assign_definition_values,
+    "System`Format": eval_assign_format,
+    "System`List": eval_assign_list,
+    "System`MakeBoxes": eval_assign_makeboxes,
+    "System`MessageName": eval_assign_messagename,
+    "System`Messages": eval_assign_definition_values,
+    "System`N": eval_assign_n,
+    "System`NValues": eval_assign_definition_values,
+    "System`NumericQ": eval_assign_numericq,
+    "System`Options": eval_assign_options,
+    "System`OwnValues": eval_assign_definition_values,
+    "System`Part": eval_assign_part,
+    "System`SubValues": eval_assign_definition_values,
+    "System`UpValues": eval_assign_definition_values,
 }

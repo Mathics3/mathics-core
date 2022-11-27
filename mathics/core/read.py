@@ -5,10 +5,10 @@ Functions to support Read[]
 import io
 import os.path as osp
 
-from mathics.builtin.base import MessageException
 from mathics.builtin.atomic.strings import to_python_encoding
 from mathics.core.expression import Expression
 from mathics.core.atoms import Integer, String
+from mathics.core.exceptions import MessageException
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.streams import Stream, path_search, stream_manager

@@ -9,10 +9,6 @@ Functions for working with 3D graphics.
 # Here we are also hiding "drawing" since this erroneously appears at the top level.
 sort_order = "mathics.builtin.three-dimensional-graphics"
 
-from mathics.core.evaluators import eval_N
-from mathics.core.expression import Expression
-from mathics.core.symbols import SymbolN
-
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
@@ -23,6 +19,10 @@ from mathics.builtin.graphics import (
 )
 
 from mathics.core.atoms import Real, Integer, Rational
+from mathics.core.expression import Expression
+from mathics.core.symbols import SymbolN
+
+from mathics.eval.nevaluator import eval_N
 
 
 def coords3D(value):

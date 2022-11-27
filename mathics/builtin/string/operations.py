@@ -40,7 +40,6 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
-from mathics.core.formatter import format_element
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
@@ -55,6 +54,7 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
 )
 
+from mathics.eval.makeboxes import format_element
 
 SymbolStringInsert = Symbol("StringInsert")
 SymbolStringJoin = Symbol("StringJoin")

@@ -35,7 +35,7 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.python import from_bool, from_python
-from mathics.core.evaluators import eval_N
+from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import (

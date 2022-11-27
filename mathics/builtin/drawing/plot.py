@@ -33,7 +33,6 @@ from mathics.core.atoms import (
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.evaluators import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
@@ -57,6 +56,8 @@ from mathics.core.systemsymbols import (
     SymbolStyle,
 )
 
+from mathics.eval.nevaluator import eval_N
+
 RealPoint6 = Real(0.6)
 RealPoint2 = Real(0.2)
 
@@ -69,7 +70,7 @@ SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
 
 try:
-    from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
+    from mathics.compile import _compile, CompileArg, CompileError, real_type
 
     has_compile = True
 except ImportError:
