@@ -21,7 +21,7 @@ from datetime import datetime
 import mathics
 import mathics.settings
 
-from mathics.core.definitions import Definitions, initialize_system_definitions
+from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
 from mathics.builtin.system_init import builtins_dict

@@ -371,7 +371,6 @@ Please contribute to Mathics!""",
     if args.show_statistics:
         atexit.register(show_lru_cache_statistics)
 
-    initialize_system_definitions()
     definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
     definitions.set_line_no(0)
 
