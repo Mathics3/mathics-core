@@ -73,7 +73,6 @@ module_subdirs = (
     "binary",
     "box",
     "colors",
-    "compile",
     "distance",
     "drawing",
     "fileformats",
