@@ -10,7 +10,7 @@ import mpmath
 import pytest
 
 from mathics.builtin.compilation import CompiledCode
-from mathics.builtin.compile import has_llvmlite
+from mathics.compile import has_llvmlite
 from mathics.core.atoms import (
     Integer,
     Integer1,
@@ -32,7 +32,7 @@ from mathics.core.systemsymbols import (
 )
 
 if has_llvmlite:
-    from mathics.builtin.compile import (
+    from mathics.compile import (
         CompileArg,
         CompileError,
         _compile,
