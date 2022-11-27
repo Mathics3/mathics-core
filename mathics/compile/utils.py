@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from mathics.builtin.compile.types import int_type, real_type, bool_type, void_type
+from mathics.compile.types import int_type, real_type, bool_type, void_type
 from ctypes import c_int64, c_double, c_bool, c_void_p
 
 

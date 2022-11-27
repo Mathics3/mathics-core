@@ -9,11 +9,11 @@ from mathics.builtin.base import (
     BoxExpression,
     split_name,
 )
-from mathics.builtin.exceptions import BoxExpressionError
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True
 
+from mathics.core.exceptions import BoxExpressionError
 from mathics.core.symbols import system_symbols_dict, Symbol
 
 

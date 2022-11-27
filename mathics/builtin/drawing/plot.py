@@ -70,7 +70,7 @@ SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
 
 try:
-    from mathics.builtin.compile import _compile, CompileArg, CompileError, real_type
+    from mathics.compile import _compile, CompileArg, CompileError, real_type
 
     has_compile = True
 except ImportError:

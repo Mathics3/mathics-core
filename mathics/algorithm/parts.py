@@ -9,18 +9,18 @@ from typing import List
 from mathics.core.atoms import Integer, Integer1
 from mathics.core.convert.expression import make_expression
 from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.exceptions import (
+    InvalidLevelspecError,
+    MessageException,
+    PartDepthError,
+    PartRangeError,
+)
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolList
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolInfinity
 from mathics.core.subexpression import SubExpression
 
-from mathics.builtin.exceptions import (
-    InvalidLevelspecError,
-    MessageException,
-    PartDepthError,
-    PartRangeError,
-)
 
 SymbolNothing = Symbol("Nothing")
 
