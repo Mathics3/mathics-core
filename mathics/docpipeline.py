@@ -446,7 +446,7 @@ def main():
     global definitions
     global logfile
     global check_partial_enlapsed_time
-    initialize_system_definitions()
+
     definitions = Definitions(add_builtin=True)
 
     parser = ArgumentParser(description="Mathics test suite.", add_help=False)
