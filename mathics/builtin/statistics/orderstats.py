@@ -23,6 +23,8 @@ from mathics.core.symbols import (
 )
 from mathics.core.systemsymbols import SymbolSubtract
 
+from mathics.eval.numerify import numerify
+
 SymbolRankedMax = Symbol("RankedMax")
 SymbolRankedMin = Symbol("RankedMin")
 
@@ -86,7 +88,7 @@ class Quantile(Builtin):
         def ranked(i):
             return introselect(partially_sorted, min(max(0, i - 1), n - 1))
 
-        numeric_qs = qs.evaluate(evaluation).numerify(evaluation)
+        numeric_qs = numerify(qs.evaluate(evaluation), evaluation)
         results = []
 
         for q in numeric_qs.elements:
@@ -98,7 +100,7 @@ class Quantile(Builtin):
 
             x = (Integer(n) + b) * q + a
 
-            numeric_x = x.evaluate(evaluation).numerify(evaluation)
+            numeric_x = numerify(x.evaluate(evaluation), evaluation)
 
             if isinstance(numeric_x, Integer):
                 results.append(ranked(numeric_x.value))

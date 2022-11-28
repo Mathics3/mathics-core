@@ -11,13 +11,14 @@ import sympy
 import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.eval.nevaluator import eval_N
 from mathics.builtin.base import (
     Builtin,
     BinaryOperator,
     PrefixOperator,
     SympyFunction,
 )
+
+
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -32,10 +33,23 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.attributes import (
+    A_FLAT,
+    A_LISTABLE,
+    A_NUMERIC_FUNCTION,
+    A_ONE_IDENTITY,
+    A_ORDERLESS,
+    A_PROTECTED,
+    A_READ_PROTECTED,
+)
+
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.convert.sympy import from_sympy
+
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
+from mathics.core.number import min_prec, dps
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -58,19 +72,10 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-from mathics.core.number import min_prec, dps
 
-from mathics.core.convert.sympy import from_sympy
 
-from mathics.core.attributes import (
-    A_FLAT,
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_ONE_IDENTITY,
-    A_ORDERLESS,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.eval.nevaluator import eval_N
+from mathics.eval.numerify import numerify
 
 
 class CubeRoot(Builtin):
@@ -374,7 +379,7 @@ class Plus(BinaryOperator, SympyFunction):
     def eval(self, items, evaluation):
         "Plus[items___]"
 
-        items_tuple = items.numerify(evaluation).get_sequence()
+        items_tuple = numerify(items, evaluation).get_sequence()
         elements = []
         last_item = last_count = None
 
@@ -876,7 +881,7 @@ class Times(BinaryOperator, SympyFunction):
 
     def eval(self, items, evaluation):
         "Times[items___]"
-        items = items.numerify(evaluation).get_sequence()
+        items = numerify(items, evaluation).get_sequence()
         elements = []
         numbers = []
         infinity_factor = False
