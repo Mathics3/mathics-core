@@ -7,6 +7,8 @@ Mathematical Functions
 Basic arithmetic functions, including complex number arithmetic.
 """
 
+from mathics.eval.numerify import numerify
+
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.mathematical-functions"
 
@@ -123,7 +125,7 @@ class _MPMathFunction(SympyFunction):
     def apply(self, z, evaluation):
         "%(name)s[z__]"
 
-        args = z.numerify(evaluation).get_sequence()
+        args = numerify(z, evaluation).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
         result = None
 
