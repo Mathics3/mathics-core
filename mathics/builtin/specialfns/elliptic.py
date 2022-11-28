@@ -15,6 +15,8 @@ from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_numeric_sympy_args
 from mathics.core.convert.sympy import from_sympy
 
+from mathics.eval.numerify import numerify
+
 import sympy
 
 
@@ -53,7 +55,7 @@ class EllipticE(SympyFunction):
 
     def apply_m(self, m, evaluation):
         "%(name)s[m_]"
-        sympy_arg = m.numerify(evaluation).to_sympy()
+        sympy_arg = numerify(m, evaluation).to_sympy()
         try:
             return from_sympy(sympy.elliptic_e(sympy_arg))
         except:
@@ -61,7 +63,7 @@ class EllipticE(SympyFunction):
 
     def apply_phi_m(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
-        sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
+        sympy_args = [numerify(a, evaluation).to_sympy() for a in (phi, m)]
         try:
             return from_sympy(sympy.elliptic_e(*sympy_args))
         except:
@@ -97,7 +99,7 @@ class EllipticF(SympyFunction):
 
     def apply(self, phi, m, evaluation):
         "%(name)s[phi_, m_]"
-        sympy_args = [a.numerify(evaluation).to_sympy() for a in (phi, m)]
+        sympy_args = [numerify(a, evaluation).to_sympy() for a in (phi, m)]
         try:
             return from_sympy(sympy.elliptic_f(*sympy_args))
         except:
@@ -136,7 +138,7 @@ class EllipticK(SympyFunction):
 
     def apply(self, m, evaluation):
         "%(name)s[m_]"
-        args = m.numerify(evaluation).get_sequence()
+        args = numerify(m, evaluation).get_sequence()
         sympy_args = [a.to_sympy() for a in args]
         try:
             return from_sympy(sympy.elliptic_k(*sympy_args))
