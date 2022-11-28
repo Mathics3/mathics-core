@@ -81,7 +81,7 @@ class Pattern:
         """
         If ``expr`` is listed in ``pattern_object``  return the pattern found there.
         Otherwise, if ``expr`` is an ``Atom``, create and return  ``AtomPattern`` for ``expr``;
-        if it is an ``Expression`` create and return and ``ExpressionPattern`` for ``expr``.
+        if it is an ``Expression`` create and return an ``ExpressionPattern`` for ``expr``.
         Finally, it tries to get one object of one of these classes
         by calling the method ``to_expression``, and then call the function
         again with this new object as input.
