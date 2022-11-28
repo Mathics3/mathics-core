@@ -94,6 +94,9 @@ from mathics.core.systemsymbols import (
 
 from mathics.eval.nevaluator import eval_N
 
+from mathics.eval.nevaluator import eval_N
+from mathics.eval.numerify import numerify
+
 SymbolClusteringComponents = Symbol("ClusteringComponents")
 SymbolContainsOnly = Symbol("ContainsOnly")
 SymbolFindClusters = Symbol("FindClusters")
@@ -893,7 +896,7 @@ class _IterationFunction(Builtin):
 
         else:
             imax = imax.evaluate(evaluation)
-            imax = imax.numerify(evaluation)
+            imax = numerify(imax, evaluation)
             if isinstance(imax, Number):
                 imax = imax.round()
             py_max = imax.get_float_value()

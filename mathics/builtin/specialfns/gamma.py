@@ -37,6 +37,8 @@ from mathics.core.systemsymbols import (
     SymbolIndeterminate,
 )
 
+from mathics.eval.numerify import numerify
+
 
 class Beta(_MPMathMultiFunction):
     """
@@ -98,11 +100,9 @@ class Beta(_MPMathMultiFunction):
         if not all(isinstance(q, Number) for q in (a, b, z)):
             return
 
-        args = (
-            Expression(SymbolSequence, a, b, Integer0, z)
-            .numerify(evaluation)
-            .get_sequence()
-        )
+        args = numerify(
+            Expression(SymbolSequence, a, b, Integer0, z), evaluation
+        ).get_sequence()
         mpmath_function = self.get_mpmath_function(tuple(args))
         if any(arg.is_machine_precision() for arg in args):
             # if any argument has machine precision then the entire calculation
