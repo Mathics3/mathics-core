@@ -462,7 +462,7 @@ System`Hash
 System`Haversine
 System`Head
 System`HermiteH
-System`HexidecimalCharacter
+System`HexadecimalCharacter
 System`Histogram
 System`Hold
 System`HoldAll
