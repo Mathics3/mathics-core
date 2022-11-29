@@ -440,7 +440,7 @@ class Alphabet(Builtin):
 
     summary_text = "lowercase letters in an alphabet"
 
-    def apply(self, alpha, evaluation):
+    def eval(self, alpha, evaluation):
         """Alphabet[alpha_String]"""
         alphakey = alpha.value
         alphakey = alphabet_alias.get(alphakey, alphakey)
@@ -539,7 +539,7 @@ class InterpretedBox(PrefixOperator):
     precedence = 670
     summary_text = "interpret boxes as an expression"
 
-    def apply_dummy(self, boxes, evaluation: Evaluation):
+    def eval_dummy(self, boxes, evaluation: Evaluation):
         """InterpretedBox[boxes_]"""
         # TODO: the following is a very raw and dummy way to
         # handle these expressions.
@@ -604,7 +604,7 @@ class LetterNumber(Builtin):
 
     summary_text = "position of a letter in an alphabet"
 
-    def apply_alpha_str(self, chars: List[Any], alpha: String, evaluation):
+    def eval_alpha_str(self, chars: List[Any], alpha: String, evaluation):
         "LetterNumber[chars_, alpha_String]"
         alphakey = alpha.value
         alphakey = alphabet_alias.get(alphakey, alphakey)
@@ -643,7 +643,7 @@ class LetterNumber(Builtin):
             return evaluation.message(self.__class__.__name__, "nas", chars)
         return None
 
-    def apply(self, chars: List[Any], evaluation):
+    def eval(self, chars: List[Any], evaluation):
         "LetterNumber[chars_]"
 
         start_ord = ord("a") - 1
@@ -661,7 +661,7 @@ class LetterNumber(Builtin):
         elif chars.has_form("List", 1, None):
             result = []
             for element in chars.elements:
-                result.append(self.apply(element, evaluation))
+                result.append(self.eval(element, evaluation))
             return ListExpression(*result)
         else:
             return evaluation.message(self.__class__.__name__, "nas", chars)
@@ -710,7 +710,7 @@ class RemoveDiacritics(Builtin):
 
     summary_text = "remove diacritics"
 
-    def apply(self, s, evaluation: Evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "RemoveDiacritics[s_String]"
         return String(
             unicodedata.normalize("NFKD", s.value)
@@ -928,7 +928,7 @@ class StringContainsQ(Builtin):
 
     summary_text = "test whether a pattern matches with a substring"
 
-    def apply(self, string, patt, evaluation, options):
+    def eval(self, string, patt, evaluation, options):
         "StringContainsQ[string_, patt_, OptionsPattern[%(name)s]]"
         return _pattern_search(
             self.__class__.__name__, string, patt, evaluation, options, True
@@ -990,7 +990,7 @@ class StringRepeat(Builtin):
 
     summary_text = "build a string by concatenating repetitions"
 
-    def apply(self, s, n, expression, evaluation):
+    def eval(self, s, n, expression, evaluation):
         "StringRepeat[s_String, n_]"
         py_n = n.value if isinstance(n, Integer) else 0
         if py_n < 1:
@@ -998,7 +998,7 @@ class StringRepeat(Builtin):
         else:
             return String(s.value * py_n)
 
-    def apply_truncated(self, s, n, m, expression, evaluation):
+    def eval_truncated(self, s, n, m, expression, evaluation):
         "StringRepeat[s_String, n_Integer, m_Integer]"
         # The above rule insures that n and m are boht Integer type
         py_n = n.value
@@ -1107,7 +1107,7 @@ class ToExpression(Builtin):
     }
     summary_text = "build an expression from formatted text"
 
-    def apply(self, seq, evaluation: Evaluation):
+    def eval(self, seq, evaluation: Evaluation):
         "ToExpression[seq__]"
 
         # Organise Arguments
@@ -1163,7 +1163,7 @@ class ToExpression(Builtin):
 
         return result
 
-    def apply_empty(self, evaluation: Evaluation):
+    def eval_empty(self, evaluation: Evaluation):
         "ToExpression[]"
         evaluation.message(
             "ToExpression", "argb", "ToExpression", Integer0, Integer1, Integer(3)
@@ -1212,11 +1212,11 @@ class ToString(Builtin):
 
     summary_text = "format an expression and produce a string"
 
-    def apply_default(self, value, evaluation, options):
+    def eval_default(self, value, evaluation, options):
         "ToString[value_, OptionsPattern[ToString]]"
-        return self.apply_form(value, SymbolOutputForm, evaluation, options)
+        return self.eval_form(value, SymbolOutputForm, evaluation, options)
 
-    def apply_form(self, expr, form, evaluation, options):
+    def eval_form(self, expr, form, evaluation, options):
         "ToString[expr_, form_, OptionsPattern[ToString]]"
         encoding = options["System`CharacterEncoding"]
         return eval_ToString(expr, form, encoding.value, evaluation)
@@ -1252,7 +1252,7 @@ class Transliterate(Builtin):
     requires = ("unidecode",)
     summary_text = "transliterate an UTF string in different alphabets to ASCII"
 
-    def apply(self, s, evaluation: Evaluation):
+    def eval(self, s, evaluation: Evaluation):
         "Transliterate[s_String]"
         from unidecode import unidecode
 

@@ -14,7 +14,13 @@ from mathics.eval.math_ops import eval_2_Norm, eval_p_norm
 
 class Cross(Builtin):
     """
-    <url>:Cross product: https://en.wikipedia.org/wiki/Cross_product</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/physics/vector/api/functions.html#sympy.physics.vector.functions.cross</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Cross.html</url>)
+    <url>
+    :Cross product:
+    https://en.wikipedia.org/wiki/Cross_product</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/physics/vector/api/functions.html#sympy.physics.vector.functions.cross</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Cross.html</url>)
 
     <dl>
       <dt>'Cross[$a$, $b$]'
@@ -57,7 +63,7 @@ class Cross(Builtin):
     rules = {"Cross[{x_, y_}]": "{-y, x}"}
     summary_text = "vector cross product"
 
-    def apply(self, a, b, evaluation):
+    def eval(self, a, b, evaluation):
         "Cross[a_, b_]"
         a = to_sympy_matrix(a)
         b = to_sympy_matrix(b)
@@ -74,7 +80,11 @@ class Cross(Builtin):
 
 class Curl(SympyFunction):
     """
-    <url>:Curl: https://en.wikipedia.org/wiki/Curl_(mathematics)</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/vector/api/vectorfunctions.html#sympy.vector.curl</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
+    <url>
+    :Curl:
+    https://en.wikipedia.org/wiki/Curl_(mathematics)</url> (<url>
+    :SymPy: https://docs.sympy.org/latest/modules/vector/api/vectorfunctions.html#sympy.vector.curl</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Curl.html</url>)
 
     <dl>
       <dt>'Curl[{$f1$, $f2$}, {$x1$, $x2$}]'
@@ -115,7 +125,12 @@ class Curl(SympyFunction):
 
 class Norm(Builtin):
     """
-    <url>:Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Norm.html</url>)
+    <url>
+    :Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/matrices/matrices.html#sympy.matrices.matrices.MatrixBase.norm</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Norm.html</url>)
 
     <dl>
       <dt>'Norm[$m$, $p$]'
@@ -171,11 +186,11 @@ class Norm(Builtin):
     }
     summary_text = "norm of a vector or matrix"
 
-    def apply_two_norm(self, m, evaluation):
+    def eval_two_norm(self, m, evaluation):
         "Norm[m_]"
         return eval_2_Norm(m, evaluation)
 
-    def apply_p_norm(self, m, p, evaluation):
+    def eval_p_norm(self, m, p, evaluation):
         "Norm[m_, p_]"
         return eval_p_norm(m, p, evaluation)
 
