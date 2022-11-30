@@ -14,6 +14,7 @@ import os.path as osp
 from mathics import settings
 from mathics import version_string, license_string, __version__
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
+from mathics.builtin.system_init import initialize_system
 from mathics.core.atoms import String
 from mathics.core.definitions import autoload_files, Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
@@ -369,6 +370,7 @@ Please contribute to Mathics!""",
     if args.show_statistics:
         atexit.register(show_lru_cache_statistics)
 
+    initialize_system()
     definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
     definitions.set_line_no(0)
 

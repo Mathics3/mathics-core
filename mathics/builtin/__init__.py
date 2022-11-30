@@ -37,7 +37,6 @@ from mathics.builtin.base import (
 )
 from mathics.core.pattern import pattern_objects
 from mathics.settings import ENABLE_FILES_MODULE
-from mathics.version import __version__  # noqa used in loading to check consistency.
 
 # Get a list of files in this directory. We'll exclude from the start
 # files with leading characters we don't want like __init__ with its leading underscore.
@@ -54,6 +53,7 @@ builtins_list = []
 builtins_precedence = {}
 
 system_builtins = {}
+
 
 def add_builtins(new_builtins):
     for var_name, builtin in new_builtins:
@@ -72,14 +72,6 @@ def add_builtins(new_builtins):
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     system_builtins.update(dict(new_builtins))
-
-
-def builtins_dict():
-    return {
-        builtin.get_name(): builtin
-        for modname, builtins in builtins_by_module.items()
-        for builtin in builtins
-    }
 
 
 def contribute(definitions):
@@ -244,11 +236,3 @@ for module in modules:
 
 new_builtins = builtins_list
 add_builtins(new_builtins)
-
-display_operators_set = set()
-for modname, builtins in builtins_by_module.items():
-    for builtin in builtins:
-        # name = builtin.get_name()
-        operator = builtin.get_operator_display()
-        if operator is not None:
-            display_operators_set.add(operator)

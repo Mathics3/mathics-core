@@ -21,6 +21,7 @@ from mathics.builtin.box.layout import (
 )
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
+from mathics.builtin.system_init import display_operators_set as operators
 
 
 from mathics.core.atoms import String
@@ -62,7 +63,6 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
 
     text = self.value
 
