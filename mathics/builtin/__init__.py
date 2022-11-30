@@ -1,8 +1,23 @@
 # -*- coding: utf-8 -*-
 """
-Mathics Built-in Functions and Variables.
+Mathics Builtin Functions and  Variables.
 
-Mathics has over a thousand Built-in Functions and variables, all of which are defined here.
+Mathics has over a thousand Built-in functions and variables, all of
+which are defined here.
+
+Note that there are other modules to collect specific aspects a
+Builtin, such as ``mathics.eval`` for evaluation specifics, or
+``mathics.format`` for rendering details, or ``mathics.compile`` for
+compilation details.
+
+What remains here is then mostly the top-level definition of a Mathics
+Builtin, and attributes that have not been segregated elsewhere such
+as has been done for one of the other modules listed above.
+
+A Mathics Builtin is implemented one of a particular kind of Python
+class.  Within these classes class variables give properties of the
+builtin class such as the Builtin's Attributes, it Information text,
+among other things.
 """
 
 import glob
