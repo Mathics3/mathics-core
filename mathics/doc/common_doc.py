@@ -830,7 +830,7 @@ class MathicsMainDocumentation(Documentation):
             (
                 "Reference of Built-in Symbols",
                 builtin.modules,
-                builtin.builtins_by_module,
+                builtin.system_init.builtins_by_module,
                 True,
             )
         ]:  # nopep8

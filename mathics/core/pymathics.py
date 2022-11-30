@@ -7,6 +7,7 @@ import importlib
 import sys
 
 
+from mathics.builtin.system_init import builtins_by_module
 from mathics.core.evaluation import Evaluation
 
 # This dict probably does not belong here.
@@ -22,7 +23,6 @@ class PyMathicsLoadException(Exception):
 # Why do we need this?
 def eval_clear_pymathics_modules():
     global pymathics
-    from mathics.builtin import builtins_by_module
 
     for key in list(builtins_by_module.keys()):
         if not key.startswith("mathics."):

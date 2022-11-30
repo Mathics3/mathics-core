@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Mathics Builtin Functions and  Variables.
+Mathics Builtin Functions and Variables.
 
 Mathics has over a thousand Built-in functions and variables, all of
 which are defined here.
@@ -47,6 +47,14 @@ __py_files__ = [
 ]
 
 
+mathics_to_sympy = {}  # here we have: name -> sympy object
+sympy_to_mathics = {}
+builtins_list = []
+
+builtins_precedence = {}
+
+system_builtins = {}
+
 def add_builtins(new_builtins):
     for var_name, builtin in new_builtins:
         name = builtin.get_name()
@@ -63,7 +71,7 @@ def add_builtins(new_builtins):
             builtins_precedence[name] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
-    _builtins.update(dict(new_builtins))
+    system_builtins.update(dict(new_builtins))
 
 
 def builtins_dict():
@@ -76,8 +84,8 @@ def builtins_dict():
 
 def contribute(definitions):
     # let MakeBoxes contribute first
-    _builtins["System`MakeBoxes"].contribute(definitions)
-    for name, item in _builtins.items():
+    system_builtins["System`MakeBoxes"].contribute(definitions)
+    for name, item in system_builtins.items():
         if name != "System`MakeBoxes":
             item.contribute(definitions)
 
@@ -176,7 +184,6 @@ module_names = [
 modules = []
 import_builtins(module_names)
 
-_builtins_list = []
 builtins_by_module = {}
 
 disable_file_module_names = (
@@ -232,19 +239,10 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
-                _builtins_list.append((instance.get_name(), instance))
+                builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-mathics_to_sympy = {}  # here we have: name -> sympy object
-sympy_to_mathics = {}
-
-builtins_precedence = {}
-
-new_builtins = _builtins_list
-
-# FIXME: some magic is going on here..
-_builtins = {}
-
+new_builtins = builtins_list
 add_builtins(new_builtins)
 
 display_operators_set = set()

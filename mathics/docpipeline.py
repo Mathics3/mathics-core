@@ -24,13 +24,14 @@ import mathics.settings
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.builtin import builtins_dict
+from mathics.builtin.system_init import builtins_dict, initialize_system
 
 from mathics import version_string
 from mathics import settings
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.timing import show_lru_cache_statistics
 
+initialize_system()
 builtins = builtins_dict()
 
 
