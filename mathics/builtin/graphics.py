@@ -5,52 +5,44 @@
 Drawing Graphics
 """
 
-# This tells documentation how to sort this module
+# This following line tells documentation how to sort this module
 sort_order = "mathics.builtin.drawing-graphics"
 
 from math import sqrt
 
-
-from mathics.eval.nevaluator import eval_N
-
 from mathics.builtin.base import Builtin
-
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
-    Opacity,
     CMYKColor,
     GrayLevel,
     Hue,
     LABColor,
     LCHColor,
     LUVColor,
+    Opacity,
     RGBColor,
     XYZColor,
+    _ColorObject,
 )
-
 from mathics.builtin.drawing.graphics_internals import (
+    GLOBALS,
     _GraphicsDirective,
     _GraphicsElementBox,
-    GLOBALS,
     get_class,
 )
 from mathics.builtin.options import options_to_rules
-
-from mathics.core.atoms import (
-    Integer,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Integer, Rational, Real
+from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
+from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
     Symbol,
-    symbol_set,
-    system_symbols_dict,
     SymbolList,
     SymbolNull,
+    symbol_set,
+    system_symbols_dict,
 )
 from mathics.core.systemsymbols import (
     SymbolEdgeForm,
@@ -58,11 +50,7 @@ from mathics.core.systemsymbols import (
     SymbolMakeBoxes,
     SymbolRule,
 )
-
-from mathics.core.formatter import lookup_method
-
-from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
-
+from mathics.eval.nevaluator import eval_N
 
 GRAPHICS_OPTIONS = {
     "AspectRatio": "Automatic",
@@ -209,7 +197,7 @@ class Show(Builtin):
     options = GRAPHICS_OPTIONS
     summary_text = "display graphic objects"
 
-    def apply(self, graphics, evaluation, options):
+    def eval(self, graphics, evaluation, options):
         """Show[graphics_, OptionsPattern[%(name)s]]"""
 
         for option in options:
@@ -285,7 +273,7 @@ class Graphics(Builtin):
     box_suffix = "Box"
     summary_text = "general two‐dimensional graphics"
 
-    def apply_makeboxes(self, content, evaluation, options):
+    def eval_makeboxes(self, content, evaluation, options):
         """MakeBoxes[%(name)s[content_, OptionsPattern[%(name)s]],
         StandardForm|TraditionalForm|OutputForm]"""
 
@@ -315,7 +303,7 @@ class Graphics(Builtin):
                         if inset.get_head() is Symbol("System`Graphics"):
                             opts = {}
                             # opts = dict(opt._elements[0].name:opt_elements[1]   for opt in  inset._elements[1:])
-                            inset = self.apply_makeboxes(
+                            inset = self.eval_makeboxes(
                                 inset._elements[0], evaluation, opts
                             )
                         n_elements = [inset] + [
@@ -347,38 +335,6 @@ class Graphics(Builtin):
             return Graphics3DBox(
                 convert(content), evaluation=evaluation, *options_to_rules(options)
             )
-
-
-class _Size(_GraphicsDirective):
-    def init(self, graphics, item=None, value=None):
-        super(_Size, self).init(graphics, item)
-        if item is not None:
-            self.value = item.elements[0].round_to_float()
-        elif value is not None:
-            self.value = value
-        else:
-            raise BoxExpressionError
-        if self.value < 0:
-            raise BoxExpressionError
-
-
-class _Thickness(_Size):
-    pass
-
-
-class AbsoluteThickness(_Thickness):
-    """
-    <dl>
-      <dt>'AbsoluteThickness[$p$]'
-      <dd>sets the line thickness for subsequent graphics primitives to $p$ points.
-    </dl>
-
-    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
-     = -Graphics-
-    """
-
-    def get_thickness(self):
-        return self.graphics.translate_absolute((self.value, 0))[0]
 
 
 class _Polyline(_GraphicsElementBox):
@@ -418,6 +374,40 @@ class _Polyline(_GraphicsElementBox):
                     [(x - l, y - l), (x - l, y + l), (x + l, y - l), (x + l, y + l)]
                 )
         return result
+
+
+class _Size(_GraphicsDirective):
+    def init(self, graphics, item=None, value=None):
+        super(_Size, self).init(graphics, item)
+        if item is not None:
+            self.value = item.elements[0].round_to_float()
+        elif value is not None:
+            self.value = value
+        else:
+            raise BoxExpressionError
+        if self.value < 0:
+            raise BoxExpressionError
+
+
+class _Thickness(_Size):
+    pass
+
+
+class AbsoluteThickness(_Thickness):
+    """
+    <dl>
+      <dt>'AbsoluteThickness[$p$]'
+      <dd>sets the line thickness for subsequent graphics primitives to $p$ points.
+    </dl>
+
+    >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
+     = -Graphics-
+    """
+
+    summary_text = "graphics directive be specifying absolute line thickness"
+
+    def get_thickness(self):
+        return self.graphics.translate_absolute((self.value, 0))[0]
 
 
 class Point(Builtin):
