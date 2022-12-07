@@ -219,33 +219,6 @@ for subdir in (
     # print("XXX3", submodule_names)
     import_builtins(submodule_names, subdir)
 
-# FIXME: move this somewhere else...
-
-# Set this to True to print all the builtins that do not have
-# a summary_text. In the future, we can set this to True
-# and raise an error if a new builtin is added without
-# this property or if it does not fulfill some other conditions.
-RUN_SANITY_TEST = False
-
-
-def sanity_check(cls, module):
-    if not RUN_SANITY_TEST:
-        return True
-
-    if not hasattr(cls, "summary_text"):
-        print(
-            "In ",
-            module.__name__,
-            cls.__name__,
-            " does not have a summary_text.",
-        )
-        return False
-    return True
-
-
-# End FIXME
-
-
 for module in modules:
     builtins_by_module[module.__name__] = []
     module_vars = dir(module)
@@ -259,10 +232,6 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
-                assert sanity_check(
-                    builtin_class, module
-                ), f"In {module.__name__} Builtin <<{builtin_class.__name__}>> did not pass the sanity check."
-
                 _builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
