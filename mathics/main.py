@@ -14,7 +14,6 @@ import os.path as osp
 from mathics import settings
 from mathics import version_string, license_string, __version__
 from mathics.builtin.trace import TraceBuiltins, traced_do_replace
-from mathics.builtin.system_init import initialize_system
 from mathics.core.atoms import String
 from mathics.core.definitions import autoload_files, Definitions, Symbol
 from mathics.core.evaluation import Evaluation, Output
@@ -24,6 +23,7 @@ from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import strip_context, SymbolNull
 from mathics.core.streams import stream_manager
+from mathics.core.system_init import initialize_system
 from mathics.timing import show_lru_cache_statistics
 
 

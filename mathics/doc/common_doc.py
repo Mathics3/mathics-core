@@ -34,11 +34,14 @@ from os import getenv, listdir
 from types import ModuleType
 from typing import Callable
 
+import mathics.core as core
 from mathics import builtin
 from mathics import settings
 from mathics.builtin.base import check_requires_list
 from mathics.core.evaluation import Message, Print
 from mathics.core.util import IS_PYPY
+from mathics.core.system_init import name_is_builtin_symbol
+
 from mathics.doc.utils import slugify
 
 # These regular expressions pull out information from docstring or text in a file.
@@ -830,7 +833,7 @@ class MathicsMainDocumentation(Documentation):
             (
                 "Reference of Built-in Symbols",
                 builtin.modules,
-                builtin.system_init.builtins_by_module,
+                core.system_init.builtins_by_module,
                 True,
             )
         ]:  # nopep8

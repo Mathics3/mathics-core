@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.system_init import initialize_system
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.parser import MathicsSingleLineFeeder, parse
+from mathics.core.system_init import initialize_system
 
 initialize_system()
 definitions = Definitions(add_builtin=True)

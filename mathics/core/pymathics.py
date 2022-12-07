@@ -7,8 +7,8 @@ import importlib
 import sys
 
 
-from mathics.builtin.system_init import builtins_by_module
 from mathics.core.evaluation import Evaluation
+from mathics.core.system_init import builtins_by_module, name_is_builtin_symbol
 
 # This dict probably does not belong here.
 pymathics = {}
@@ -61,7 +61,6 @@ def load_pymathics_module(definitions, module):
     """
     from mathics.builtin import (
         builtins_by_module,
-        name_is_builtin_symbol,
         Builtin,
     )
 

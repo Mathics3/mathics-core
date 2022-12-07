@@ -20,13 +20,10 @@ builtin class such as the Builtin's Attributes, its Information text,
 among other things.
 """
 
-import glob
 import importlib
-import inspect
-import os.path as osp
 import pkgutil
 import re
-from typing import List, Optional
+from typing import List
 
 from mathics.builtin.base import (
     Builtin,
@@ -36,15 +33,10 @@ from mathics.builtin.base import (
     mathics_to_python,
 )
 from mathics.core.pattern import pattern_objects
+from mathics.core.system_init import get_builtin_pyfiles, name_is_builtin_symbol
 from mathics.settings import ENABLE_FILES_MODULE
 
-# Get a list of files in this directory. We'll exclude from the start
-# files with leading characters we don't want like __init__ with its leading underscore.
-__py_files__ = [
-    osp.basename(f[0:-3])
-    for f in glob.glob(osp.join(osp.dirname(__file__), "[a-z]*.py"))
-]
-
+__py_files__ = get_builtin_pyfiles()
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
@@ -72,26 +64,6 @@ def add_builtins(new_builtins):
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     system_builtins.update(dict(new_builtins))
-
-
-def contribute(definitions):
-    # let MakeBoxes contribute first
-    system_builtins["System`MakeBoxes"].contribute(definitions)
-    for name, item in system_builtins.items():
-        if name != "System`MakeBoxes":
-            item.contribute(definitions)
-
-    from mathics.core.definitions import Definition
-    from mathics.core.expression import ensure_context
-    from mathics.core.parser import all_operator_names
-
-    # All builtins are loaded. Create dummy builtin definitions for
-    # any remaining operators that don't have them. This allows
-    # operators like \[Cup] to behave correctly.
-    for operator in all_operator_names:
-        if not definitions.have_definition(ensure_context(operator)):
-            op = ensure_context(operator)
-            definitions.builtin[op] = Definition(name=op)
 
 
 def import_builtins(module_names: List[str], submodule_name=None) -> None:
@@ -123,48 +95,6 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
             else f"mathics.builtin.{module_name}"
         )
         import_module(module_name, import_name)
-
-
-def name_is_builtin_symbol(module, name: str) -> Optional[type]:
-    """
-    Checks if ``name`` should be added to definitions, and return
-    its associated Builtin class.
-
-    Return ``None`` if the name should not get added to definitions.
-    """
-    if name.startswith("_"):
-        return None
-
-    module_object = getattr(module, name)
-
-    # Look only at Class objects.
-    if not inspect.isclass(module_object):
-        return None
-
-    # FIXME: tests involving module_object.__module__ are fragile and
-    # Python implementation specific. Figure out how to do this
-    # via the inspect module which is not implementation specific.
-
-    # Skip those builtins defined in or imported from another module.
-    if module_object.__module__ != module.__name__:
-        return None
-
-    # Skip objects in module mathics.builtin.base.
-    if module_object.__module__ == "mathics.builtin.base":
-        return None
-
-    # Skip those builtins that are not submodules of mathics.builtin.
-    if not module_object.__module__.startswith("mathics.builtin."):
-        return None
-
-    # If it is not a subclass of Builtin, skip it.
-    if not issubclass(module_object, Builtin):
-        return None
-
-    # Skip Builtin classes that were explicitly marked for skipping.
-    if module_object in getattr(module, "DOES_NOT_ADD_BUILTIN_DEFINITION", []):
-        return None
-    return module_object
 
 
 # FIXME: redo using importlib since that is probably less fragile.
@@ -231,8 +161,8 @@ for module in modules:
                 # This set the default context for symbols in mathics.builtins
                 if not type(instance).context:
                     type(instance).context = "System`"
+
                 builtins_list.append((instance.get_name(), instance))
                 builtins_by_module[module.__name__].append(instance)
 
-new_builtins = builtins_list
-add_builtins(new_builtins)
+add_builtins(builtins_list)

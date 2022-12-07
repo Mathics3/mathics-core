@@ -24,7 +24,7 @@ import mathics.settings
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.builtin.system_init import builtins_dict, initialize_system
+from mathics.core.system_init import builtins_dict, initialize_system
 
 from mathics import version_string
 from mathics import settings

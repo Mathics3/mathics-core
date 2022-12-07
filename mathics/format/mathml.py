@@ -21,7 +21,6 @@ from mathics.builtin.box.layout import (
 )
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
-from mathics.builtin.system_init import display_operators_set as operators
 
 
 from mathics.core.atoms import String
@@ -33,6 +32,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import SymbolTrue
+from mathics.core.system_init import display_operators_set as operators
 
 
 def encode_mathml(text: str) -> str:
