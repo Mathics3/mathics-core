@@ -9,8 +9,7 @@ import sys
 
 from mathics.core.evaluation import Evaluation
 
-# Tis dict
-# Probably this do not belong here.
+# This dict probably does not belong here.
 pymathics = {}
 
 

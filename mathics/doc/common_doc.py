@@ -101,7 +101,7 @@ LATEX_ARRAY_RE = re.compile(
 LATEX_INLINE_END_RE = re.compile(r"(?s)(?P<all>\\lstinline'[^']*?'\}?[.,;:])")
 LATEX_CONSOLE_RE = re.compile(r"\\console\{(.*?)\}")
 
-# These are all of the XML/HTML-like tags that documentation supports.
+# These are all the XML/HTML-like tags that documentation supports.
 ALLOWED_TAGS = (
     "dl",
     "dd",
@@ -270,7 +270,7 @@ def _replace_all(text, pairs):
 
 
 def escape_latex_output(text):
-    "Escape Mathics output"
+    """Escape Mathics output"""
 
     text = _replace_all(
         text,
@@ -289,7 +289,7 @@ def escape_latex_output(text):
 
 
 def escape_latex_code(text):
-    "Escape verbatim Mathics input"
+    """Escape verbatim Mathics input"""
 
     text = escape_latex_output(text)
     escape_char = get_latex_escape_char(text)
@@ -297,7 +297,7 @@ def escape_latex_code(text):
 
 
 def escape_latex(text):
-    "Escape documentation text"
+    """Escape documentation text"""
 
     def repl_python(match):
         return (
@@ -587,7 +587,7 @@ def post_process_latex(result):
         return "\\begin{%s}%s\\end{%s}" % (tag, content, tag)
 
     def repl_inline_end(match):
-        "Prevent linebreaks between inline code and sentence delimeters"
+        """Prevent linebreaks between inline code and sentence delimeters"""
 
         code = match.group("all")
         if code[-2] == "}":
@@ -614,7 +614,7 @@ def post_process_latex(result):
 POST_SUBSTITUTION_TAG = "_POST_SUBSTITUTION%d_"
 
 
-def pre_sub(re, text, repl_func):
+def pre_sub(regexp, text, repl_func):
     post_substitutions = []
 
     def repl_pre(match):
@@ -623,7 +623,7 @@ def pre_sub(re, text, repl_func):
         post_substitutions.append(repl)
         return POST_SUBSTITUTION_TAG % index
 
-    text = re.sub(repl_pre, text)
+    text = regexp.sub(repl_pre, text)
 
     return text, post_substitutions
 
@@ -768,7 +768,7 @@ def skip_module_doc(module, modules_seen):
 
 
 def sorted_chapters(chapters: list) -> list:
-    "Return chapters sorted by title"
+    """Return chapters sorted by title"""
     return sorted(chapters, key=lambda chapter: chapter.title)
 
 
@@ -883,7 +883,7 @@ class MathicsMainDocumentation(Documentation):
                             continue
                         elif IS_PYPY and submodule.__name__ == "builtins":
                             # PyPy seems to add this module on its own,
-                            # but it is not something htat can be importable
+                            # but it is not something that can be importable
                             continue
 
                         if submodule in modules_seen:
@@ -1124,7 +1124,7 @@ class PyMathicsDocumentation(Documentation):
                     sections = SECTION_RE.findall(text)
                     for pre_text, title, text in sections:
                         if not chapter.doc:
-                            chapter.doc = XMLDoc(pre_text)
+                            chapter.doc = XMLDoc(pre_text, title)
                         if title:
                             section = DocSection(chapter, title, text)
                             chapter.sections.append(section)
@@ -1138,7 +1138,7 @@ class PyMathicsDocumentation(Documentation):
         # Builds the automatic documentation
         builtin_part = DocPart(self, "Pymathics Modules", is_reference=True)
         title, text = get_module_doc(self.pymathicsmodule)
-        chapter = DocChapter(builtin_part, title, XMLDoc(text))
+        chapter = DocChapter(builtin_part, title, XMLDoc(text, title))
         for name in self.symbols:
             instance = self.symbols[name]
             installed = check_requires_list(getattr(instance, "requires", []))
@@ -1421,7 +1421,7 @@ class DocSubsection:
 
         About some of the parameters...
 
-        Some of the subsections are contained in a grouping module and need special work to
+        Some subsections are contained in a grouping module and need special work to
         get the grouping module name correct.
 
         For example the Chapter "Colors" is a module so the docstring text for it is in
@@ -1651,7 +1651,7 @@ class DocTests:
         return [test.index for test in self.tests]
 
 
-# This string is used so we can indicate a trailing blank at the end of a line by
+# This string is used, so we can indicate a trailing blank at the end of a line by
 # adding this string to the end of the line which gets stripped off.
 # Some editors and formatters like to strip off trailing blanks at the ends of lines.
 END_LINE_SENTINAL = "#<--#"

@@ -41,26 +41,24 @@ def encode_mathml(text: str) -> str:
     return text
 
 
-extra_operators = set(
-    (
-        ",",
-        "(",
-        ")",
-        "[",
-        "]",
-        "{",
-        "}",
-        "\u301a",
-        "\u301b",
-        "\u00d7",
-        "\u2032",
-        "\u2032\u2032",
-        " ",
-        "\u2062",
-        "\u222b",
-        "\u2146",
-    )
-)
+extra_operators = {
+    ",",
+    "(",
+    ")",
+    "[",
+    "]",
+    "{",
+    "}",
+    "\u301a",
+    "\u301b",
+    "\u00d7",
+    "\u2032",
+    "\u2032\u2032",
+    " ",
+    "\u2062",
+    "\u222b",
+    "\u2146",
+}
 
 
 def string(self, **options) -> str:
@@ -281,7 +279,8 @@ def graphicsbox(self, elements=None, **options) -> str:
     svg_body = self.boxes_to_svg(elements, **options)
 
     # mglyph, which is what we have been using, is bad because MathML standard changed.
-    # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph behaviour.
+    # metext does not work because the way in which we produce the svg images is also based on this outdated mglyph
+    # behaviour.
     # template = '<mtext width="%dpx" height="%dpx"><img width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/></mtext>'
     template = (
         '<mglyph width="%dpx" height="%dpx" src="data:image/svg+xml;base64,%s"/>'
