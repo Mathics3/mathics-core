@@ -16,7 +16,7 @@ as has been done for one of the other modules listed above.
 
 A Mathics Builtin is implemented one of a particular kind of Python
 class.  Within these classes class variables give properties of the
-builtin class such as the Builtin's Attributes, it Information text,
+builtin class such as the Builtin's Attributes, its Information text,
 among other things.
 """
 
@@ -168,9 +168,9 @@ def name_is_builtin_symbol(module, name: str) -> Optional[type]:
 
 
 # FIXME: redo using importlib since that is probably less fragile.
-exclude_files = set(("codetables", "base"))
+exclude_files = {"codetables", "base"}
 module_names = [
-    f for f in __py_files__ if re.match("^[a-z0-9]+$", f) if f not in exclude_files
+    f for f in __py_files__ if re.match(r"^[a-z\d]+$", f) if f not in exclude_files
 ]
 
 modules = []
