@@ -94,7 +94,7 @@ def contribute(definitions):
             definitions.builtin[op] = Definition(name=op)
 
 
-def import_builtins(module_names: List[str], submodule_name=None) -> None:
+def import_builtins(module_names: List[str], submodule_name=None, import_parent=True) -> None:
     """
     Imports the list of Mathics Built-in modules so that inside
     Mathics we have these Builtin Functions, like Plus[], List[] are defined.
@@ -113,7 +113,7 @@ def import_builtins(module_names: List[str], submodule_name=None) -> None:
         if module:
             modules.append(module)
 
-    if submodule_name:
+    if submodule_name and import_parent:
         import_module(submodule_name, f"mathics.builtin.{submodule_name}")
 
     for module_name in module_names:
@@ -180,7 +180,11 @@ _builtins_list = []
 builtins_by_module = {}
 
 disable_file_module_names = (
-    [] if ENABLE_FILES_MODULE else ["files_io.files", "files_io.importexport"]
+    [] if ENABLE_FILES_MODULE else [
+        "files_io.files",
+        "files_io.importexport",
+        "files_io.filesystem"
+    ]
 )
 
 for subdir in (
@@ -208,16 +212,18 @@ for subdir in (
 ):
     import_name = f"{__name__}.{subdir}"
 
-    if import_name in disable_file_module_names:
-        continue
-
     builtin_module = importlib.import_module(import_name)
     submodule_names = [
         modname
         for importer, modname, ispkg in pkgutil.iter_modules(builtin_module.__path__)
+        if f"{subdir}.{modname}" not in disable_file_module_names
     ]
-    # print("XXX3", submodule_names)
-    import_builtins(submodule_names, subdir)
+
+    import_builtins(
+        submodule_names,
+        subdir,
+        not any(subdir in mod for mod in disable_file_module_names)
+    )
 
 for module in modules:
     builtins_by_module[module.__name__] = []
