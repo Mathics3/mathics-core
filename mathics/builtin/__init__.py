@@ -179,9 +179,7 @@ import_builtins(module_names)
 _builtins_list = []
 builtins_by_module = {}
 
-disable_file_module_names = (
-    [] if ENABLE_FILES_MODULE else ["files_io.files", "files_io.importexport"]
-)
+disable_file_module_names = [] if ENABLE_FILES_MODULE else ["files_io"]
 
 for subdir in (
     "arithfns",
@@ -208,7 +206,7 @@ for subdir in (
 ):
     import_name = f"{__name__}.{subdir}"
 
-    if import_name in disable_file_module_names:
+    if subdir in disable_file_module_names:
         continue
 
     builtin_module = importlib.import_module(import_name)
