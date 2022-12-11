@@ -13,18 +13,21 @@ An interactive session operates a loop, called the "main loop" in this way:
 
 As part of this loop, various global objects in this section are consulted.
 
-There are a variety of "hooks" that allow you to insert functions to be applied to the expresssions at various stages in the main loop.
+There are a variety of "hooks" that allow you to insert functions to be applied to the expressions at various stages \
+in the main loop.
 
-If you assign a function to the global variable '$PreRead' it will be applied with the input that is read in the first step listed above.
+If you assign a function to the global variable '$PreRead' it will be applied with the input that is read in the first \
+step listed above.
 
-Similarly, if you assign a function to global variable '$Pre', it will be applied with the input before processing the input, the second step listed above.
+Similarly, if you assign a function to global variable '$Pre', it will be applied with the input before processing the \
+input, the second step listed above.
 """
-
-# This tells documentation how to sort this module
-sort_order = "mathics.builtin.the-main-loop"
 
 from mathics.builtin.base import Builtin
 from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
+
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.the-main-loop"
 
 
 class HistoryLength(Builtin):
@@ -95,7 +98,7 @@ class In(Builtin):
     rules = {
         "In[k_Integer?Negative]": "In[$Line + k]",
     }
-    summary_text = "i-esim input"
+    summary_text = "Kth input"
 
 
 class IOHookPreRead(Builtin):
@@ -125,8 +128,8 @@ class IOHookPre(Builtin):
       <dd>is a global variable whose value, if set, is applied to every input expression.
     </dl>
 
-    Set $Timing$ as the $Pre function, stores the enlapsed time in a variable,
-    stores just the result in Out[$Line] and print a formated version showing the enlapsed time
+    Set $Timing$ as the $Pre function, stores the elapsed time in a variable,
+    stores just the result in Out[$Line] and print a formatted version showing the elapsed time
     >> $Pre := (Print["[Processing input...]"];#1)&
     >> $Post := (Print["[Storing result...]"]; #1)&
      | [Processing input...]
@@ -139,7 +142,7 @@ class IOHookPre(Builtin):
      | [Storing result...]
      | The result is:
      = {..., 4}
-    >> $Pre = .; $Post = .;  $PrePrint = .;  $EnlapsedTime = .;
+    >> $Pre = .; $Post = .;  $PrePrint = .;  $ElapsedTime = .;
      | [Processing input...]
     >> 2 + 2
      = 4
@@ -185,7 +188,8 @@ class IOHookSyntaxHandler(Builtin):
     <url>:WMA: https://reference.wolfram.com/language/ref/$SyntaxHandler</url>
     <dl>
       <dt>$SyntaxHandler
-      <dd>is a global variable whose value, if set, is applied to any input string that is found to contain a syntax error.
+      <dd>is a global variable whose value, if set, is applied to any input string that is found to contain a syntax \
+          error.
 
     (Not implemented yet)
     </dl>
@@ -270,4 +274,4 @@ class Out(Builtin):
         "MakeBoxes[Out[k_Integer?Positive],"
         "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'"%%" <> ToString[k]',
     }
-    summary_text = "result of the Nth input line"
+    summary_text = "result of the Kth input line"
