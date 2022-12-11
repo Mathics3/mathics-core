@@ -24,15 +24,15 @@ Similarly, if you assign a function to global variable '$Pre', it will be applie
 sort_order = "mathics.builtin.the-main-loop"
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.attributes import A_LISTABLE, A_NO_ATTRIBUTES, A_PROTECTED
 
 
 class HistoryLength(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$HistoryLength</url>
     <dl>
-    <dt>'$HistoryLength'
-        <dd>specifies the maximum number of 'In' and 'Out' entries.
+      <dt>'$HistoryLength'
+      <dd>specifies the maximum number of 'In' and 'Out' entries.
     </dl>
     >> $HistoryLength
      = 100
@@ -60,10 +60,11 @@ class HistoryLength(Builtin):
 
 class In(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/In</url>
     <dl>
-    <dt>'In[$k$]'
+      <dt>'In[$k$]'
         <dd>gives the $k$th line of input.
-    </dl>
+      </dl>
     >> x = 1
      = 1
     >> x = x + 1
@@ -99,6 +100,7 @@ class In(Builtin):
 
 class IOHookPreRead(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$PreRead</url>
     <dl>
       <dt>$PreRead
       <dd> is a global variable whose value, if set, is applied to the \
@@ -117,10 +119,10 @@ class IOHookPreRead(Builtin):
 
 class IOHookPre(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$Pre</url>
     <dl>
-    <dt>$Pre
-    <dd>is a global variable whose value, if set,
-    is applied to every input expression.
+      <dt>$Pre
+      <dd>is a global variable whose value, if set, is applied to every input expression.
     </dl>
 
     Set $Timing$ as the $Pre function, stores the enlapsed time in a variable,
@@ -150,6 +152,7 @@ class IOHookPre(Builtin):
 
 class IOHookPost(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$Post</url>
     <dl>
       <dt>$Post
       <dd>is a global variable whose value, if set, is applied to every output expression.
@@ -163,6 +166,7 @@ class IOHookPost(Builtin):
 
 class IOHookPrePrint(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$PrePrint</url>
     <dl>
       <dt>$PrePrint
       <dd>is a global variable whose value, if set, is applied to every output expression before it is printed.
@@ -178,6 +182,7 @@ class IOHookPrePrint(Builtin):
 
 class IOHookSyntaxHandler(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$SyntaxHandler</url>
     <dl>
       <dt>$SyntaxHandler
       <dd>is a global variable whose value, if set, is applied to any input string that is found to contain a syntax error.
@@ -193,6 +198,7 @@ class IOHookSyntaxHandler(Builtin):
 
 class Line(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$Line</url>
     <dl>
       <dt>'$Line'
       <dd>holds the current input line number.
@@ -216,6 +222,7 @@ class Line(Builtin):
 
 class Out(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/$Out</url>
     <dl>
       <dt>'Out[$k$]'
       <dt>'%$k$'
@@ -263,4 +270,4 @@ class Out(Builtin):
         "MakeBoxes[Out[k_Integer?Positive],"
         "    f:StandardForm|TraditionalForm|InputForm|OutputForm]": r'"%%" <> ToString[k]',
     }
-    summary_text = "result of the n-esim input line"
+    summary_text = "result of the Nth input line"
