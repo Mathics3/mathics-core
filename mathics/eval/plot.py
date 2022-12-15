@@ -1,13 +1,16 @@
 """
 Evaluation routines for 2D plotting.
+
+Note this is distinct from formatting/rendering, e.g. to SVG..
 """
 from math import cos, isinf, isnan, pi, sqrt
 from typing import Callable, Iterable, List, Optional, Union, Type
 
+from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
-from mathics.core.atoms import Real, String
+from mathics.core.atoms import Integer, Integer0, Real, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import BaseElement
@@ -21,6 +24,7 @@ from mathics.core.systemsymbols import (
     SymbolLine,
     SymbolMessageName,
     SymbolPoint,
+    SymbolPolygon,
     SymbolQuiet,
 )
 
@@ -120,6 +124,149 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
     return quiet_f
 
 
+def eval_ListPlot(
+    plot_points: list,
+    x_range: int,
+    y_range: int,
+    is_discrete_plot: bool,
+    is_joined_plot: bool,
+    filling,
+    options: dict,
+):
+    if isinstance(plot_points, list) and len(plot_points) != 0:
+        if all(not isinstance(point, (list, tuple)) for point in plot_points):
+            # Only y values given
+            plot_points = [
+                [[float(i + 1), plot_points[i]] for i in range(len(plot_points))]
+            ]
+        elif all(
+            isinstance(line, (list, tuple)) and len(line) == 2 for line in plot_points
+        ):
+            # Single list of (x,y) pairs
+            plot_points = [plot_points]
+        elif all(isinstance(line, list) for line in plot_points):
+            # List of lines
+            if all(
+                isinstance(point, list) and len(point) == 2
+                for line in plot_points
+                for point in line
+            ):
+                pass
+            elif all(
+                not isinstance(point, list) for line in plot_points for point in line
+            ):
+                plot_points = [
+                    [[float(i + 1), l] for i, l in enumerate(line)]
+                    for line in plot_points
+                ]
+            else:
+                return
+        else:
+            return
+    else:
+        return
+
+    # Split into segments at missing data
+    plot_points = [[line] for line in plot_points]
+    for lidx, line in enumerate(plot_points):
+        i = 0
+        while i < len(plot_points[lidx]):
+            seg = line[i]
+            for j, point in enumerate(seg):
+                if not (
+                    isinstance(point[0], (int, float))
+                    and isinstance(point[1], (int, float))
+                ):
+                    plot_points[lidx].insert(i, seg[:j])
+                    plot_points[lidx][i + 1] = seg[j + 1 :]
+                    i -= 1
+                    break
+
+            i += 1
+
+    y_range = get_plot_range(
+        [y for line in plot_points for seg in line for x, y in seg],
+        [y for line in plot_points for seg in line for x, y in seg],
+        y_range,
+    )
+    x_range = get_plot_range(
+        [x for line in plot_points for seg in line for x, y in seg],
+        [x for line in plot_points for seg in line for x, y in seg],
+        x_range,
+    )
+
+    if filling == "System`Axis":
+        # TODO: Handle arbitary axis intercepts
+        filling = 0.0
+    elif filling == "System`Bottom":
+        filling = y_range[0]
+    elif filling == "System`Top":
+        filling = y_range[1]
+
+    hue = 0.67
+    hue_pos = 0.236068
+    hue_neg = -0.763932
+
+    graphics = []
+    for indx, line in enumerate(plot_points):
+        graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
+        for segment in line:
+            mathics_segment = from_python(segment)
+            if is_joined_plot:
+                graphics.append(Expression(SymbolLine, mathics_segment))
+                if filling is not None:
+                    graphics.append(
+                        Expression(
+                            SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
+                        )
+                    )
+                    fill_area = list(segment)
+                    fill_area.append([segment[-1][0], filling])
+                    fill_area.append([segment[0][0], filling])
+                    graphics.append(Expression(SymbolPolygon, from_python(fill_area)))
+            elif is_discrete_plot:
+                graphics.append(Expression(SymbolPoint, mathics_segment))
+                for mathics_point in mathics_segment:
+                    graphics.append(
+                        Expression(
+                            SymbolLine,
+                            ListExpression(
+                                ListExpression(mathics_point[0], Integer0),
+                                mathics_point,
+                            ),
+                        )
+                    )
+            else:
+                graphics.append(Expression(SymbolPoint, from_python(segment)))
+                if filling is not None:
+                    for point in segment:
+                        graphics.append(
+                            Expression(
+                                SymbolLine,
+                                from_python(
+                                    [[point[0], filling], [point[0], point[1]]]
+                                ),
+                            )
+                        )
+
+        if indx % 4 == 0:
+            hue += hue_pos
+        else:
+            hue += hue_neg
+        if hue > 1:
+            hue -= 1
+        if hue < 0:
+            hue += 1
+
+    options["System`PlotRange"] = from_python([x_range, y_range])
+
+    return Expression(
+        SymbolGraphics,
+        ListExpression(*graphics),
+        *options_to_rules(options, Graphics.options)
+    )
+
+
 def eval_Plot(
     functions: List[Expression],
     apply_fn: Callable,
@@ -158,20 +305,6 @@ def eval_Plot(
     hue = 0.67
     hue_pos = 0.236068
     hue_neg = -0.763932
-
-    def get_points_minmax(points):
-        xmin = xmax = ymin = ymax = None
-        for line in points:
-            for x, y in line:
-                if xmin is None or x < xmin:
-                    xmin = x
-                if xmax is None or x > xmax:
-                    xmax = x
-                if ymin is None or y < ymin:
-                    ymin = y
-                if ymax is None or y > ymax:
-                    ymax = y
-        return xmin, xmax, ymin, ymax
 
     def get_points_range(points):
         xmin, xmax, ymin, ymax = get_points_minmax(points)
@@ -347,14 +480,14 @@ def eval_Plot(
 
 
 def extract_pyreal(value) -> Optional[float]:
-    if isinstance(value, Real):
+    if isinstance(value, (Real, Integer)):
         return chop(value).round_to_float()
     return None
 
 
 def get_plot_range(values: Iterable, all_values: Iterable, option: str) -> tuple:
     """
-    Returns a tuple of the min and max values in values or
+    Returns a tuple of the min and max values in values.
     """
     if option == "System`Automatic":
         result = automatic_plot_range(values)
@@ -373,6 +506,25 @@ def get_plot_range(values: Iterable, all_values: Iterable, option: str) -> tuple
             return value * 2, 0
         return -1, 1
     return result
+
+
+def get_points_minmax(points: Iterable) -> tuple:
+    """
+    Return the minimum and maximum x and y values
+    in a list of points.
+    """
+    xmin = xmax = ymin = ymax = None
+    for line in points:
+        for x, y in line:
+            if xmin is None or x < xmin:
+                xmin = x
+            if xmax is None or x > xmax:
+                xmax = x
+            if ymin is None or y < ymin:
+                ymin = y
+            if ymax is None or y > ymax:
+                ymax = y
+    return xmin, xmax, ymin, ymax
 
 
 def zero_to_one(value: Union[float, int]) -> Union[float, int]:

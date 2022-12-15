@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import numbers
 
+from functools import lru_cache
+from typing import Optional
 
 from mathics.builtin.drawing.plot import (
     Plot,
@@ -14,8 +16,10 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList
-from mathics.core.systemsymbols import SymbolPlot
+from mathics.eval.nevaluator import eval_N
+from mathics.eval.plot import eval_ListPlot
 
 
 class _DiscretePlot(Plot):
@@ -51,12 +55,24 @@ class _DiscretePlot(Plot):
         if isinstance(function, Symbol) and function.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(function.name)
             for rule in rules:
-                function = rule.apply(function, evaluation, fully=True)
+                functions = rule.apply(function, evaluation, fully=True)
 
-        expr_limits = Expression(SymbolList, x, start, stop)
+        if function.get_head_name() == "List":
+            functions_param = self.get_functions_param(functions)
+            for index, f in enumerate(functions_param):
+                if isinstance(f, Symbol) and f.name is not x.get_name():
+                    rules = evaluation.definitions.get_ownvalues(f.name)
+                    for rule in rules:
+                        f = rule.apply(f, evaluation, fully=True)
+                functions_param[index] = f
+            functions = functions.flatten_with_respect_to_head(SymbolList)
+
+        expr_limits = ListExpression(x, start, stop)
+        # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(
-            self.get_name(), function, expr_limits, *options_to_rules(options)
+            Symbol(self.get_name()), function, expr_limits, *options_to_rules(options)
         )
+        function = self.get_functions_param(function)
         x_name = x.get_name()
 
         py_start = start.value
@@ -67,9 +83,9 @@ class _DiscretePlot(Plot):
             return evaluation.message(self.get_name(), "plld", expr_limits)
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
+        plot_range = eval_N(plotrange_option, evaluation).to_python()
 
-        plotrange = plotrange_option.to_python(n_evaluation=evaluation)
-        x_range, y_range = self.get_plotrange(plotrange, py_start, py_stop)
+        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
         if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
             y_range, numbers.Real
         ):
@@ -87,48 +103,41 @@ class _DiscretePlot(Plot):
         # PlotPoints Option
         # constants to generate colors
 
-        def get_points_minmax(points):
-            xmin = xmax = ymin = ymax = None
-            for line in points:
-                for x, y in line:
-                    if xmin is None or x < xmin:
-                        xmin = x
-                    if xmax is None or x > xmax:
-                        xmax = x
-                    if ymin is None or y < ymin:
-                        ymin = y
-                    if ymax is None or y > ymax:
-                        ymax = y
-            return xmin, xmax, ymin, ymax
-
         base_plot_points = []  # list of points in base subdivision
         plot_points = []  # list of all plotted points
-        graphics = []  # list of resulting graphics primitives
 
-        points = []
-        xvalues = []  # x value for each point in points
-        cf = compile_quiet_function(function, [x_name], evaluation, self.expect_list)
+        compiled_fn = compile_quiet_function(
+            function[0], [x_name], evaluation, self.expect_list
+        )
+
+        @lru_cache
+        def apply_fn(fn, x_value: int) -> Optional[float]:
+            value = fn(x_value)
+            if value is not None:
+                value = float(value)
+            return value
+
         for x_value in range(py_start, py_stop):
-            point = self.eval_f(cf, x_value)
-            points.append(point)
-            xvalues.append(x_value)
+            point = apply_fn(compiled_fn, x_value)
+            plot_points.append((x_value, point))
 
         x_range = get_plot_range(
             [xx for xx, yy in base_plot_points], [xx for xx, yy in plot_points], x_range
         )
-        y_range = get_plot_range(
-            [yy for xx, yy in base_plot_points], [yy for xx, yy in plot_points], y_range
-        )
-
-        graphics = from_python(points)
+        y_values = [yy for xx, yy in plot_points]
+        y_range = get_plot_range(y_values, y_values, option="System`All")
 
         options["System`PlotRange"] = from_python([x_range, y_range])
         options["System`Discrete"] = True
 
-        return Expression(
-            SymbolPlot,
-            Expression(SymbolList, *graphics),
-            # *options_to_rules(options)
+        return eval_ListPlot(
+            plot_points,
+            x_range,
+            y_range,
+            is_discrete_plot=True,
+            is_joined_plot=False,
+            filling=False,
+            options=options,
         )
 
 

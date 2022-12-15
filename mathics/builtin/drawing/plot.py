@@ -2,7 +2,8 @@
 """
 Plotting Data
 
-Plotting functions take a function as a parameter and data, often a range of points, as another parameter, and plot or show the function applied to the data.
+Plotting functions take a function as a parameter and data, often a range of \
+points, as another parameter, and plot or show the function applied to the data.
 """
 
 import itertools
@@ -10,6 +11,8 @@ import numbers
 from math import cos, pi, sin, sqrt
 
 import palettable
+
+from functools import lru_cache
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics3d import Graphics3D
@@ -30,10 +33,8 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolGrid,
-    SymbolHue,
     SymbolLine,
     SymbolMap,
-    SymbolPoint,
     SymbolPolygon,
     SymbolRGBColor,
     SymbolRow,
@@ -43,9 +44,8 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.plot import (
-    RealPoint2,
-    RealPoint6,
     compile_quiet_function,
+    eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
@@ -332,146 +332,19 @@ class _ListPlot(Builtin):
 
         # Joined Option
         joined_option = self.get_option(options, "Joined", evaluation)
-        joined = joined_option.to_python()
-        if joined not in [True, False]:
+        is_joined_plot = joined_option.to_python()
+        if is_joined_plot not in [True, False]:
             evaluation.message(plot_name, "joind", joined_option, expr)
-            joined = False
+            is_joined_plot = False
 
-        # Hack until we separate DiscretePlot
-        discrete_plot_option = self.get_option(options, "Discrete", evaluation)
-        discrete_plot = discrete_plot_option.to_python()
-
-        if isinstance(all_points, list) and len(all_points) != 0:
-            if all(not isinstance(point, list) for point in all_points):
-                # Only y values given
-                all_points = [
-                    [[float(i + 1), all_points[i]] for i in range(len(all_points))]
-                ]
-            elif all(isinstance(line, list) and len(line) == 2 for line in all_points):
-                # Single list of (x,y) pairs
-                all_points = [all_points]
-            elif all(isinstance(line, list) for line in all_points):
-                # List of lines
-                if all(
-                    isinstance(point, list) and len(point) == 2
-                    for line in all_points
-                    for point in line
-                ):
-                    pass
-                elif all(
-                    not isinstance(point, list) for line in all_points for point in line
-                ):
-                    all_points = [
-                        [[float(i + 1), l] for i, l in enumerate(line)]
-                        for line in all_points
-                    ]
-                else:
-                    return
-            else:
-                return
-        else:
-            return
-
-        # Split into segments at missing data
-        all_points = [[line] for line in all_points]
-        for lidx, line in enumerate(all_points):
-            i = 0
-            while i < len(all_points[lidx]):
-                seg = line[i]
-                for j, point in enumerate(seg):
-                    if not (
-                        isinstance(point[0], (int, float))
-                        and isinstance(point[1], (int, float))
-                    ):
-                        all_points[lidx].insert(i, seg[:j])
-                        all_points[lidx][i + 1] = seg[j + 1 :]
-                        i -= 1
-                        break
-
-                i += 1
-
-        y_range = get_plot_range(
-            [y for line in all_points for seg in line for x, y in seg],
-            [y for line in all_points for seg in line for x, y in seg],
-            y_range,
-        )
-        x_range = get_plot_range(
-            [x for line in all_points for seg in line for x, y in seg],
-            [x for line in all_points for seg in line for x, y in seg],
+        return eval_ListPlot(
+            all_points,
             x_range,
-        )
-
-        if filling == "System`Axis":
-            # TODO: Handle arbitary axis intercepts
-            filling = 0.0
-        elif filling == "System`Bottom":
-            filling = y_range[0]
-        elif filling == "System`Top":
-            filling = y_range[1]
-
-        hue = 0.67
-        hue_pos = 0.236068
-        hue_neg = -0.763932
-
-        graphics = []
-        for indx, line in enumerate(all_points):
-            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
-            for segment in line:
-                mathics_segment = from_python(segment)
-                if joined:
-                    graphics.append(Expression(SymbolLine, mathics_segment))
-                    if filling is not None:
-                        graphics.append(
-                            Expression(
-                                SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
-                            )
-                        )
-                        fill_area = list(segment)
-                        fill_area.append([segment[-1][0], filling])
-                        fill_area.append([segment[0][0], filling])
-                        graphics.append(
-                            Expression(SymbolPolygon, from_python(fill_area))
-                        )
-                elif discrete_plot:
-                    graphics.append(Expression(SymbolPoint, mathics_segment))
-                    for mathics_point in mathics_segment:
-                        graphics.append(
-                            Expression(
-                                SymbolLine,
-                                ListExpression(
-                                    ListExpression(mathics_point[0], Integer0),
-                                    mathics_point,
-                                ),
-                            )
-                        )
-                else:
-                    graphics.append(Expression(SymbolPoint, from_python(segment)))
-                    if filling is not None:
-                        for point in segment:
-                            graphics.append(
-                                Expression(
-                                    SymbolLine,
-                                    from_python(
-                                        [[point[0], filling], [point[0], point[1]]]
-                                    ),
-                                )
-                            )
-
-            if indx % 4 == 0:
-                hue += hue_pos
-            else:
-                hue += hue_neg
-            if hue > 1:
-                hue -= 1
-            if hue < 0:
-                hue += 1
-
-        options["System`PlotRange"] = from_python([x_range, y_range])
-
-        return Expression(
-            SymbolGraphics,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            y_range,
+            is_discrete_plot=False,
+            is_joined_plot=is_joined_plot,
+            filling=filling,
+            options=options,
         )
 
 
@@ -541,7 +414,7 @@ class _Plot(Builtin):
             functions = functions.flatten_with_respect_to_head(SymbolList)
 
         expr_limits = ListExpression(x, start, stop)
-        # FIXME: arrange forself to have a .symbolname property or attribute
+        # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(
             Symbol(self.get_name()), functions, expr_limits, *options_to_rules(options)
         )
@@ -556,8 +429,8 @@ class _Plot(Builtin):
             return evaluation.message(self.get_name(), "plld", expr_limits)
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
-        x_range, y_range = self.get_plotrange(plotrange, py_start, py_stop)
+        plot_range = eval_N(plotrange_option, evaluation).to_python()
+        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
         if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
             y_range, numbers.Real
         ):
@@ -775,7 +648,7 @@ class _Plot3D(Builtin):
                 f, [x.get_name(), y.get_name()], evaluation, False
             )
 
-            def _apply_fn(x_value, y_value):
+            def apply_fn(compiled_fn, x_value, y_value):
                 try:
                     # Try to used cached value first
                     return stored[(x_value, y_value)]
@@ -791,7 +664,11 @@ class _Plot3D(Builtin):
             split_edges = set()  # subdivided edges
 
             def triangle(x1, y1, x2, y2, x3, y3, depth=0):
-                v1, v2, v3 = _apply_fn(x1, y1), _apply_fn(x2, y2), _apply_fn(x3, y3)
+                v1, v2, v3 = (
+                    apply_fn(compiled_fn, x1, y1),
+                    apply_fn(compiled_fn, x2, y2),
+                    apply_fn(compiled_fn, x3, y3),
+                )
 
                 if (v1 is v2 is v3 is None) and (depth > max_depth // 2):
                     # fast finish because the entire region is undefined but
@@ -868,10 +745,10 @@ class _Plot3D(Builtin):
                         )
                     )
 
-                    v1 = _apply_fn(x1, y1)
-                    v2 = _apply_fn(x2, y2)
-                    v3 = _apply_fn(x3, y3)
-                    v4 = _apply_fn(x4, y4)
+                    v1 = apply_fn(compiled_fn, x1, y1)
+                    v2 = apply_fn(compiled_fn, x2, y2)
+                    v3 = apply_fn(compiled_fn, x3, y3)
+                    v4 = apply_fn(compiled_fn, x4, y4)
 
                     if v1 is None or v4 is None:
                         triangle(x1, y1, x2, y2, x3, y3)
@@ -1824,7 +1701,6 @@ class ListPlot(_ListPlot):
             "PlotPoints": "None",
             "Filling": "None",
             "Joined": "False",
-            "Discrete": "False",
         }
     )
     summary_text = "plot lists of points"
@@ -2138,6 +2014,7 @@ class Plot(_Plot):
                 x_range = [start, stop]
         return x_range, y_range
 
+    @lru_cache
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
@@ -2204,8 +2081,9 @@ class ParametricPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    def _apply_fn(self, f, x_value):
-        value = f(x_value)
+    @lru_cache
+    def _apply_fn(self, fn, x_value):
+        value = fn(x_value)
         if value is not None and len(value) == 2:
             return value
 
@@ -2281,6 +2159,7 @@ class PolarPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
+    @lru_cache
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
