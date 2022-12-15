@@ -1,9 +1,10 @@
 """
 Evaluation routines for 2D plotting.
 
-Note this is distinct from boxing and formatting/rendering, e.g. to SVG.
-That is done as another pass after M-expression evaluation finishes.
+These routines build Mathics Expressions that describe plots as Graphics in WL.
+Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
 """
+
 from math import cos, isinf, isnan, pi, sqrt
 from typing import Callable, Iterable, List, Optional, Union, Type
 
