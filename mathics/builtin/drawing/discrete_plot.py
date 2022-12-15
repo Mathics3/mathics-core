@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+"""
+Discrete Plot
+"""
 import numbers
 
 from functools import lru_cache
@@ -26,15 +29,7 @@ class _DiscretePlot(Plot):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    options = Graphics.options.copy()
-    options.update(
-        {
-            "Axes": "True",
-            "AspectRatio": "1 / GoldenRatio",
-            "PlotRange": "Automatic",
-            "$OptionSyntax": "Strict",
-        }
-    )
+    expect_list = False
 
     messages = {
         "prng": (
@@ -47,11 +42,26 @@ class _DiscretePlot(Plot):
         ),
     }
 
-    expect_list = False
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "PlotRange": "Automatic",
+            "$OptionSyntax": "Strict",
+        }
+    )
 
-    def eval(self, function, x, start, stop, evaluation, options):
-        """%(name)s[function_, {x_Symbol, start_Integer, stop_Integer},
-        OptionsPattern[%(name)s]]"""
+    rules = {
+        # One argument-form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}]": "DiscretePlot[expr, {var, 1, nmax, 1}]",
+        # One argument-form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}]": "DiscretePlot[expr, {var, nmin, nmax, 1}]",
+    }
+
+    def eval(self, function, x, start, nmax, step, evaluation, options):
+        """DiscretePlot[function_, {x_Symbol, start_Integer, nmax_Integer, step_Integer},
+        OptionsPattern[DiscretePlot]]"""
         if isinstance(function, Symbol) and function.name is not x.get_name():
             rules = evaluation.definitions.get_ownvalues(function.name)
             for rule in rules:
@@ -67,7 +77,7 @@ class _DiscretePlot(Plot):
                 functions_param[index] = f
             functions = functions.flatten_with_respect_to_head(SymbolList)
 
-        expr_limits = ListExpression(x, start, stop)
+        expr_limits = ListExpression(x, start, nmax)
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(
             Symbol(self.get_name()), function, expr_limits, *options_to_rules(options)
@@ -76,21 +86,22 @@ class _DiscretePlot(Plot):
         x_name = x.get_name()
 
         py_start = start.value
-        py_stop = stop.value
-        if py_start is None or py_stop is None:
-            return evaluation.message(self.get_name(), "plln", stop, expr)
-        if py_start >= py_stop:
+        py_nmax = nmax.value
+        py_step = step.value
+        if py_start is None or py_nmax is None:
+            return evaluation.message(self.get_name(), "plln", nmax, expr)
+        if py_start >= py_nmax:
             return evaluation.message(self.get_name(), "plld", expr_limits)
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plot_range = eval_N(plotrange_option, evaluation).to_python()
 
-        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
+        x_range, y_range = self.get_plotrange(plot_range, py_start, py_nmax)
         if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
             y_range, numbers.Real
         ):
             evaluation.message(self.get_name(), "prng", plotrange_option)
-            x_range, y_range = [py_start, py_stop], "Automatic"
+            x_range, y_range = [py_start, py_nmax], "Automatic"
 
         # x_range and y_range are now either Automatic, All, or of the form [min, max]
         assert x_range in ("System`Automatic", "System`All") or isinstance(
@@ -117,7 +128,7 @@ class _DiscretePlot(Plot):
                 value = float(value)
             return value
 
-        for x_value in range(py_start, py_stop):
+        for x_value in range(py_start, py_nmax, py_step):
             point = apply_fn(compiled_fn, x_value)
             plot_points.append((x_value, point))
 
@@ -144,20 +155,25 @@ class _DiscretePlot(Plot):
 class DiscretePlot(_DiscretePlot):
     """
     <dl>
-      <dt>'DiscretePlot[$f$, {$x$, $xmin$, $xmax$}]'
-      <dd>plots $f$ with $x$ ranging from $xmin$ to $xmax$.
+      <dt>'DiscretePlot[$expr$, {$x$, $n_max$}]'
+      <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
 
-      <dt>'DiscretePlot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
-      <dd>plots several functions $f1$, $f2$, ...
+      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$}]'
+      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
+
+      <dt>'DiscretePlot[$f$, {$x$, $n_min$, $n_max$, $dn$}]'
+      <dd>plots $f$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
 
     </dl>
 
-    >> DiscretePlot[PrimePi[k], {k, 1, 50}]
+    >> DiscretePlot[PrimePi[k], {k, 50}]
      = -Graphics-
 
     >> DiscretePlot[Sin[x], {x, 0, 4 Pi}, DiscretePlotRange->{{0, 4 Pi}, {0, 1.5}}]
      = -Graphics-
 
-    >> DiscretePlot[Tan[x], {x, -6, 6}, Mesh->Full]
+    >> DiscretePlot[Tan[x], {x, -6, 6}]
      = -Graphics-
     """
+
+    summary_text = "discrete plot of a one-paremeter function"
