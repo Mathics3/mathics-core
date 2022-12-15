@@ -10,32 +10,23 @@ Plotting functions take a function as a parameter and data, often a range of poi
 sort_order = "mathics.builtin.plotting-data"
 
 
-from math import sin, cos, pi, sqrt, isnan, isinf
 import itertools
 import numbers
+from math import cos, pi, sin, sqrt
+
 import palettable
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
-from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
-from mathics.builtin.scoping import dynamic_scoping
-
-from mathics.core.atoms import (
-    Real,
-    MachineReal,
-    String,
-    Integer,
-    Integer0,
-    Integer1,
-)
+from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolList, SymbolN, SymbolPower, SymbolTrue
+from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolBlend,
     SymbolColorData,
@@ -44,37 +35,44 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolGrid,
-    SymbolMessageName,
+    SymbolHue,
+    SymbolLine,
     SymbolMap,
-    SymbolQuiet,
     SymbolPoint,
     SymbolPolygon,
+    SymbolRGBColor,
     SymbolRow,
     SymbolRule,
-    SymbolRGBColor,
     SymbolSlot,
     SymbolStyle,
 )
-
 from mathics.eval.nevaluator import eval_N
-
-RealPoint6 = Real(0.6)
-RealPoint2 = Real(0.2)
+from mathics.eval.plot import (
+    RealPoint2,
+    RealPoint6,
+    compile_quiet_function,
+    eval_Plot,
+    get_plot_range,
+)
 
 SymbolColorDataFunction = Symbol("ColorDataFunction")
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
-SymbolHue = Symbol("Hue")
-SymbolLine = Symbol("Line")
 SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
 
-try:
-    from mathics.compile import _compile, CompileArg, CompileError, real_type
-
-    has_compile = True
-except ImportError:
-    has_compile = False
+# PlotRange Option
+def check_plot_range(range, range_type) -> bool:
+    """
+    Return True if `range` has two numbers, the first number less than the second number,
+    and that both numbers have type `range_type`
+    """
+    if range in ("System`Automatic", "System`All"):
+        return True
+    if isinstance(range, list) and len(range) == 2:
+        if isinstance(range[0], range_type) and isinstance(range[1], range_type):
+            return True
+    return False
 
 
 def gradient_palette(color_function, n, evaluation):  # always returns RGB values
@@ -99,7 +97,7 @@ def gradient_palette(color_function, n, evaluation):  # always returns RGB value
     if len(colors.elements) != n:
         return
 
-    from mathics.builtin.colors.color_directives import expression_to_color, ColorError
+    from mathics.builtin.colors.color_directives import ColorError, expression_to_color
 
     try:
         objects = [expression_to_color(x) for x in colors.elements]
@@ -243,11 +241,11 @@ class ColorData(Builtin):
         "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
     }
 
-    def apply_directory(self, evaluation):
+    def eval_directory(self, evaluation):
         "ColorData[]"
         return ListExpression(String("Gradients"))
 
-    def apply(self, name, evaluation):
+    def eval(self, name, evaluation):
         "ColorData[name_String]"
         py_name = name.get_string_value()
         if py_name == "Gradients":
@@ -265,122 +263,6 @@ class ColorData(Builtin):
             evaluation.message("ColorData", "notent", name)
             return None
         return palette.colors()
-
-
-def extract_pyreal(value):
-    if isinstance(value, Real):
-        return chop(value).round_to_float()
-    return None
-
-
-def zero_to_one(value):
-    if value == 0:
-        return 1
-    return value
-
-
-def compile_quiet_function(expr, arg_names, evaluation, expect_list):
-    """
-    Given an expression return a quiet callable version.
-    Compiles the expression where possible.
-    """
-    if has_compile and not expect_list:
-        try:
-            cfunc = _compile(
-                expr, [CompileArg(arg_name, real_type) for arg_name in arg_names]
-            )
-        except CompileError:
-            pass
-        else:
-
-            def quiet_f(*args):
-                try:
-                    result = cfunc(*args)
-                    if not (isnan(result) or isinf(result)):
-                        return result
-                except Exception:
-                    pass
-                return None
-
-            return quiet_f
-    expr = Expression(SymbolN, expr).evaluate(evaluation)
-    quiet_expr = Expression(
-        SymbolQuiet,
-        expr,
-        ListExpression(Expression(SymbolMessageName, SymbolPower, String("infy"))),
-    )
-
-    def quiet_f(*args):
-        vars = {arg_name: Real(arg) for arg_name, arg in zip(arg_names, args)}
-        value = dynamic_scoping(quiet_expr.evaluate, vars, evaluation)
-        if expect_list:
-            if value.has_form("List", None):
-                value = [extract_pyreal(item) for item in value.elements]
-                if any(item is None for item in value):
-                    return None
-                return value
-            else:
-                return None
-        else:
-            value = extract_pyreal(value)
-            if value is None or isinf(value) or isnan(value):
-                return None
-            return value
-
-    return quiet_f
-
-
-def automatic_plot_range(values):
-    """Calculates mean and standard deviation, throwing away all points
-    which are more than 'thresh' number of standard deviations away from
-    the mean. These are then used to find good vmin and vmax values. These
-    values can then be used to find Automatic Plotrange."""
-
-    if not values:
-        return 0, 1
-
-    thresh = 2.0
-    values = sorted(values)
-    valavg = sum(values) / len(values)
-    valdev = sqrt(
-        sum([(x - valavg) ** 2 for x in values]) / zero_to_one(len(values) - 1)
-    )
-
-    n1, n2 = 0, len(values) - 1
-    if valdev != 0:
-        for v in values:
-            if abs(v - valavg) / valdev < thresh:
-                break
-            n1 += 1
-        for v in values[::-1]:
-            if abs(v - valavg) / valdev < thresh:
-                break
-            n2 -= 1
-
-    vrange = values[n2] - values[n1]
-    vmin = values[n1] - 0.05 * vrange  # 5% extra looks nice
-    vmax = values[n2] + 0.05 * vrange
-    return vmin, vmax
-
-
-def get_plot_range(values, all_values, option):
-    if option == "System`Automatic":
-        result = automatic_plot_range(values)
-    elif option == "System`All":
-        if not all_values:
-            result = [0, 1]
-        else:
-            result = min(all_values), max(all_values)
-    else:
-        result = option
-    if result[0] == result[1]:
-        value = result[0]
-        if value > 0:
-            return 0, value * 2
-        if value < 0:
-            return value * 2, 0
-        return -1, 1
-    return result
 
 
 class _Plot(Builtin):
@@ -419,7 +301,7 @@ class _Plot(Builtin):
         }
     )
 
-    def apply(self, functions, x, start, stop, evaluation, options):
+    def eval(self, functions, x, start, stop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
@@ -451,23 +333,13 @@ class _Plot(Builtin):
             return evaluation.message(self.get_name(), "plln", stop, expr)
         if py_start >= py_stop:
             return evaluation.message(self.get_name(), "plld", expr_limits)
-        start, stop = py_start, py_stop
-
-        # PlotRange Option
-        def check_range(range):
-            if range in ("System`Automatic", "System`All"):
-                return True
-            if isinstance(range, list) and len(range) == 2:
-                if isinstance(range[0], numbers.Real) and isinstance(  # noqa
-                    range[1], numbers.Real
-                ):
-                    return True
-            return False
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plotrange = eval_N(plotrange_option, evaluation).to_python()
-        x_range, y_range = self.get_plotrange(plotrange, start, stop)
-        if not check_range(x_range) or not check_range(y_range):
+        x_range, y_range = self.get_plotrange(plotrange, py_start, py_stop)
+        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
+            y_range, numbers.Real
+        ):
             evaluation.message(self.get_name(), "prng", plotrange_option)
             x_range, y_range = [start, stop], "Automatic"
 
@@ -552,198 +424,21 @@ class _Plot(Builtin):
         # exclusions is now either 'None' or a list of reals and 'Automatic'
         assert exclusions == "System`None" or isinstance(exclusions, list)
 
-        # constants to generate colors
-        hue = 0.67
-        hue_pos = 0.236068
-        hue_neg = -0.763932
-
-        def get_points_minmax(points):
-            xmin = xmax = ymin = ymax = None
-            for line in points:
-                for x, y in line:
-                    if xmin is None or x < xmin:
-                        xmin = x
-                    if xmax is None or x > xmax:
-                        xmax = x
-                    if ymin is None or y < ymin:
-                        ymin = y
-                    if ymax is None or y > ymax:
-                        ymax = y
-            return xmin, xmax, ymin, ymax
-
-        def get_points_range(points):
-            xmin, xmax, ymin, ymax = get_points_minmax(points)
-            if xmin is None or xmax is None:
-                xmin, xmax = 0, 1
-            if ymin is None or ymax is None:
-                ymin, ymax = 0, 1
-            return zero_to_one(xmax - xmin), zero_to_one(ymax - ymin)
-
-        function_hues = []
-        base_plot_points = []  # list of points in base subdivision
-        plot_points = []  # list of all plotted points
-        mesh_points = []
-        graphics = []  # list of resulting graphics primitives
-        for index, f in enumerate(functions):
-            points = []
-            xvalues = []  # x value for each point in points
-            tmp_mesh_points = []  # For this function only
-            continuous = False
-            d = (stop - start) / (plotpoints - 1)
-            cf = compile_quiet_function(f, [x_name], evaluation, self.expect_list)
-            for i in range(plotpoints):
-                x_value = start + i * d
-                point = self.eval_f(cf, x_value)
-                if point is not None:
-                    if continuous:
-                        points[-1].append(point)
-                        xvalues[-1].append(x_value)
-                    else:
-                        points.append([point])
-                        xvalues.append([x_value])
-                    continuous = True
-                else:
-                    continuous = False
-
-            base_points = []
-            for line in points:
-                base_points.extend(line)
-            base_plot_points.extend(base_points)
-
-            xmin, xmax = automatic_plot_range([xx for xx, yy in base_points])
-            xscale = 1.0 / zero_to_one(xmax - xmin)
-            ymin, ymax = automatic_plot_range([yy for xx, yy in base_points])
-            yscale = 1.0 / zero_to_one(ymax - ymin)
-
-            if mesh == "System`Full":
-                for line in points:
-                    tmp_mesh_points.extend(line)
-
-            def find_excl(excl):
-                # Find which line the exclusion is in
-                for line in range(len(xvalues)):  # TODO: Binary Search faster?
-                    if xvalues[line][0] <= excl and xvalues[line][-1] >= excl:
-                        break
-                    if (
-                        xvalues[line][-1] <= excl
-                        and xvalues[min(line + 1, len(xvalues) - 1)][0]
-                        >= excl  # nopep8
-                    ):
-                        return min(line + 1, len(xvalues) - 1), 0, False
-                xi = 0
-                for xi in range(len(xvalues[line]) - 1):
-                    if xvalues[line][xi] <= excl and xvalues[line][xi + 1] >= excl:
-                        return line, xi + 1, True
-                return line, xi + 1, False
-
-            if exclusions != "System`None":
-                for excl in exclusions:
-                    if excl != "System`Automatic":
-                        l, xi, split_required = find_excl(excl)
-                        if split_required:
-                            xvalues.insert(l + 1, xvalues[l][xi:])
-                            xvalues[l] = xvalues[l][:xi]
-                            points.insert(l + 1, points[l][xi:])
-                            points[l] = points[l][:xi]
-                    # assert(xvalues[l][-1] <= excl  <= xvalues[l+1][0])
-
-            # Adaptive Sampling - loop again and interpolate highly angled
-            # sections
-
-            # Cos of the maximum angle between successive line segments
-            ang_thresh = cos(pi / 180)
-
-            for line, line_xvalues in zip(points, xvalues):
-                recursion_count = 0
-                smooth = False
-                while not smooth and recursion_count < maxrecursion:
-                    recursion_count += 1
-                    smooth = True
-                    i = 2
-                    while i < len(line):
-                        vec1 = (
-                            xscale * (line[i - 1][0] - line[i - 2][0]),
-                            yscale * (line[i - 1][1] - line[i - 2][1]),
-                        )
-                        vec2 = (
-                            xscale * (line[i][0] - line[i - 1][0]),
-                            yscale * (line[i][1] - line[i - 1][1]),
-                        )
-                        try:
-                            angle = (vec1[0] * vec2[0] + vec1[1] * vec2[1]) / sqrt(
-                                (vec1[0] ** 2 + vec1[1] ** 2)
-                                * (vec2[0] ** 2 + vec2[1] ** 2)
-                            )
-                        except ZeroDivisionError:
-                            angle = 0.0
-                        if abs(angle) < ang_thresh:
-                            smooth = False
-                            incr = 0
-
-                            x_value = 0.5 * (line_xvalues[i - 1] + line_xvalues[i])
-
-                            point = self.eval_f(cf, x_value)
-                            if point is not None:
-                                line.insert(i, point)
-                                line_xvalues.insert(i, x_value)
-                                incr += 1
-
-                            x_value = 0.5 * (line_xvalues[i - 2] + line_xvalues[i - 1])
-                            point = self.eval_f(cf, x_value)
-                            if point is not None:
-                                line.insert(i - 1, point)
-                                line_xvalues.insert(i - 1, x_value)
-                                incr += 1
-
-                            i += incr
-                        i += 1
-
-            if exclusions == "System`None":  # Join all the Lines
-                points = [[(xx, yy) for line in points for xx, yy in line]]
-
-            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
-            graphics.append(Expression(SymbolLine, from_python(points)))
-
-            for line in points:
-                plot_points.extend(line)
-
-            if mesh == "System`All":
-                for line in points:
-                    tmp_mesh_points.extend(line)
-
-            if mesh != "System`None":
-                mesh_points.append(tmp_mesh_points)
-
-            function_hues.append(hue)
-
-            if index % 4 == 0:
-                hue += hue_pos
-            else:
-                hue += hue_neg
-            if hue > 1:
-                hue -= 1
-            if hue < 0:
-                hue += 1
-
-        x_range = get_plot_range(
-            [xx for xx, yy in base_plot_points], [xx for xx, yy in plot_points], x_range
-        )
-        y_range = get_plot_range(
-            [yy for xx, yy in base_plot_points], [yy for xx, yy in plot_points], y_range
-        )
-
-        options["System`PlotRange"] = from_python([x_range, y_range])
-
-        if mesh != "None":
-            for hue, points in zip(function_hues, mesh_points):
-                graphics.append(
-                    Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6)
-                )
-                meshpoints = [to_mathics_list(xx, yy) for xx, yy in points]
-                graphics.append(Expression(SymbolPoint, ListExpression(*meshpoints)))
-
-        return Expression(
-            SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
+        return eval_Plot(
+            functions,
+            self._apply_fn,
+            x_name,
+            py_start,
+            py_stop,
+            x_range,
+            y_range,
+            plotpoints,
+            mesh,
+            self.expect_list,
+            exclusions,
+            maxrecursion,
+            options,
+            evaluation,
         )
 
 
@@ -764,7 +459,7 @@ class _Chart(Builtin):
     def _draw(self, data, color, evaluation, options):
         raise NotImplementedError()
 
-    def apply(self, points, evaluation, options):
+    def eval(self, points, evaluation, options):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -1241,7 +936,7 @@ class Histogram(Builtin):
     )
     summary_text = "draw a histogram"
 
-    def apply(self, points, spec, evaluation, options):
+    def eval(self, points, spec, evaluation, options):
         "%(name)s[points_, spec___, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -1280,7 +975,8 @@ class Histogram(Builtin):
         span = maximum - minimum
 
         from math import ceil
-        from mpmath import floor as mpfloor, ceil as mpceil
+
+        from mpmath import ceil as mpceil, floor as mpfloor
 
         class Distribution:
             def __init__(self, data, n_bins):
@@ -1468,6 +1164,11 @@ class Histogram(Builtin):
 
 
 class _ListPlot(Builtin):
+    """
+    Computation part of ListPlot, ListLinePlot, and DiscretePlot
+    2-Dimensional plot a list of points in some fashion.
+    """
+
     messages = {
         "prng": (
             "Value of option PlotRange -> `1` is not All, Automatic or "
@@ -1476,24 +1177,13 @@ class _ListPlot(Builtin):
         "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
-    def apply(self, points, evaluation, options):
+    def eval(self, points, evaluation, options):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
         all_points = eval_N(points, evaluation).to_python()
-        # FIXME: arrange forself to have a .symbolname property or attribute
+        # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
-
-        # PlotRange Option
-        def check_range(range):
-            if range in ("System`Automatic", "System`All"):
-                return True
-            if isinstance(range, list) and len(range) == 2:
-                if isinstance(range[0], numbers.Real) and isinstance(  # noqa
-                    range[1], numbers.Real
-                ):
-                    return True
-            return False
 
         plotrange_option = self.get_option(options, "PlotRange", evaluation)
         plotrange = eval_N(plotrange_option, evaluation).to_python()
@@ -1506,7 +1196,7 @@ class _ListPlot(Builtin):
         elif isinstance(plotrange, list) and len(plotrange) == 2:
             if all(isinstance(pr, numbers.Real) for pr in plotrange):
                 plotrange = ["System`All", plotrange]
-            elif all(check_range(pr) for pr in plotrange):
+            elif all(check_plot_range(pr, numbers.Real) for pr in plotrange):
                 pass
         else:
             evaluation.message(self.get_name(), "prng", plotrange_option)
@@ -1619,8 +1309,9 @@ class _ListPlot(Builtin):
         for indx, line in enumerate(all_points):
             graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
             for segment in line:
+                mathics_segment = from_python(segment)
                 if joined:
-                    graphics.append(Expression(SymbolLine, from_python(segment)))
+                    graphics.append(Expression(SymbolLine, mathics_segment))
                     if filling is not None:
                         graphics.append(
                             Expression(
@@ -1632,6 +1323,18 @@ class _ListPlot(Builtin):
                         fill_area.append([segment[0][0], filling])
                         graphics.append(
                             Expression(SymbolPolygon, from_python(fill_area))
+                        )
+                elif discrete_plot:
+                    graphics.append(Expression(SymbolPoint, mathics_segment))
+                    for mathics_point in mathics_segment:
+                        graphics.append(
+                            Expression(
+                                SymbolLine,
+                                ListExpression(
+                                    ListExpression(mathics_point[0], Integer0),
+                                    mathics_point,
+                                ),
+                            )
                         )
                 else:
                     graphics.append(Expression(SymbolPoint, from_python(segment)))
@@ -1681,7 +1384,7 @@ class _Plot3D(Builtin):
         ),
     }
 
-    def apply(self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options):
+    def eval(self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
         xexpr_limits = ListExpression(x, xstart, xstop)
@@ -1772,15 +1475,16 @@ class _Plot3D(Builtin):
         for indx, f in enumerate(functions):
             stored = {}
 
-            cf = compile_quiet_function(
+            compiled_fn = compile_quiet_function(
                 f, [x.get_name(), y.get_name()], evaluation, False
             )
 
-            def eval_f(x_value, y_value):
+            def _apply_fn(x_value, y_value):
                 try:
+                    # Try to used cached value first
                     return stored[(x_value, y_value)]
                 except KeyError:
-                    value = cf(x_value, y_value)
+                    value = compiled_fn(x_value, y_value)
                     if value is not None:
                         value = float(value)
                     stored[(x_value, y_value)] = value
@@ -1791,7 +1495,7 @@ class _Plot3D(Builtin):
             split_edges = set()  # subdivided edges
 
             def triangle(x1, y1, x2, y2, x3, y3, depth=0):
-                v1, v2, v3 = eval_f(x1, y1), eval_f(x2, y2), eval_f(x3, y3)
+                v1, v2, v3 = _apply_fn(x1, y1), _apply_fn(x2, y2), _apply_fn(x3, y3)
 
                 if (v1 is v2 is v3 is None) and (depth > max_depth // 2):
                     # fast finish because the entire region is undefined but
@@ -1868,10 +1572,10 @@ class _Plot3D(Builtin):
                         )
                     )
 
-                    v1 = eval_f(x1, y1)
-                    v2 = eval_f(x2, y2)
-                    v3 = eval_f(x3, y3)
-                    v4 = eval_f(x4, y4)
+                    v1 = _apply_fn(x1, y1)
+                    v2 = _apply_fn(x2, y2)
+                    v3 = _apply_fn(x3, y3)
+                    v4 = _apply_fn(x4, y4)
 
                     if v1 is None or v4 is None:
                         triangle(x1, y1, x2, y2, x3, y3)
@@ -2192,7 +1896,7 @@ class Plot(_Plot):
                 x_range = [start, stop]
         return x_range, y_range
 
-    def eval_f(self, f, x_value):
+    def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
             return (x_value, value)
@@ -2201,14 +1905,17 @@ class Plot(_Plot):
 class ParametricPlot(_Plot):
     """
     <dl>
-    <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
-        <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
-    <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
-        <dd>plots several parametric functions $f$, $g$, ...
-    <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
-        <dd>plots a parametric area.
-    <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
-        <dd>plots several parametric areas.
+      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}]'
+      <dd>plots a parametric function $f$ with the parameter $u$ ranging from $umin$ to $umax$.
+
+      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}]'
+      <dd>plots several parametric functions $f$, $g$, ...
+
+      <dt>'ParametricPlot[{$f_x$, $f_y$}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dd>plots a parametric area.
+
+      <dt>'ParametricPlot[{{$f_x$, $f_y$}, {$g_x$, $g_y$}, ...}, {$u$, $umin$, $umax$}, {$v$, $vmin$, $vmax$}]'
+      <dd>plots several parametric areas.
     </dl>
 
     >> ParametricPlot[{Sin[u], Cos[3 u]}, {u, 0, 2 Pi}]
@@ -2254,7 +1961,7 @@ class ParametricPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    def eval_f(self, f, x_value):
+    def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None and len(value) == 2:
             return value
@@ -2326,7 +2033,7 @@ class PolarPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    def eval_f(self, f, x_value):
+    def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
             return (value * cos(x_value), value * sin(x_value))
@@ -2335,12 +2042,14 @@ class PolarPlot(_Plot):
 class ListPlot(_ListPlot):
     """
     <dl>
-    <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
-        <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
-    <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
-        <dd>plots a list of $x$, $y$ pairs.
-    <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
-        <dd>plots several lists of points.
+      <dt>'ListPlot[{$y_1$, $y_2$, ...}]'
+      <dd>plots a list of y-values, assuming integer x-values 1, 2, 3, ...
+
+      <dt>'ListPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>plots a list of $x$, $y$ pairs.
+
+      <dt>'ListPlot[{$list_1$, $list_2$, ...}]'
+      <dd>plots several lists of points.
     </dl>
 
     ListPlot accepts a superset of the Graphics options.
@@ -2361,6 +2070,7 @@ class ListPlot(_ListPlot):
             "PlotPoints": "None",
             "Filling": "None",
             "Joined": "False",
+            "Discrete": "False",
         }
     )
     summary_text = "plot lists of points"
