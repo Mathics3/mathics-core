@@ -2,7 +2,7 @@
 Evaluation routines for 2D plotting.
 """
 from math import cos, isinf, isnan, pi, sqrt
-from typing import Callable, Iterable, List, Optional, Union
+from typing import Callable, Iterable, List, Optional, Union, Type
 
 from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
@@ -10,6 +10,7 @@ from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import Real, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
@@ -92,7 +93,7 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
                 return None
 
             return quiet_f
-    expr = Expression(SymbolN, expr).evaluate(evaluation)
+    expr: Optional[Type[BaseElement]] = Expression(SymbolN, expr).evaluate(evaluation)
     quiet_expr = Expression(
         SymbolQuiet,
         expr,
@@ -127,7 +128,7 @@ def eval_Plot(
     stop: int,
     x_range: list,
     y_range,
-    plotpoints: int,
+    num_plot_points: int,
     mesh,
     list_is_expected: bool,
     exclusions: list,
@@ -147,7 +148,7 @@ def eval_Plot(
     x_range: x-axis range of the form Automatic, All, or [min, max]
     y_range: y-axis range of the form Automatic, All, or [min, max]
     y_range: either Automatic, All, or of the form [min, max]
-    plotpoints: number of points to plot
+    num_plot_points: number of points to plot
     list_is_expected: list is expected in evaluation (?)
     max_recursion: maximum number of levels of recursion in evaluation (?)
     options: Plot options
@@ -190,9 +191,9 @@ def eval_Plot(
         xvalues = []  # x value for each point in points
         tmp_mesh_points = []  # For this function only
         continuous = False
-        d = (stop - start) / (plotpoints - 1)
+        d = (stop - start) / (num_plot_points - 1)
         compiled_fn = compile_quiet_function(f, [x_name], evaluation, list_is_expected)
-        for i in range(plotpoints):
+        for i in range(num_plot_points):
             x_value = start + i * d
             point = apply_fn(compiled_fn, x_value)
             if point is not None:
@@ -337,8 +338,8 @@ def eval_Plot(
     if mesh != "None":
         for hue, points in zip(function_hues, mesh_points):
             graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
-            meshpoints = [to_mathics_list(xx, yy) for xx, yy in points]
-            graphics.append(Expression(SymbolPoint, ListExpression(*meshpoints)))
+            mesh_points = [to_mathics_list(xx, yy) for xx, yy in points]
+            graphics.append(Expression(SymbolPoint, ListExpression(*mesh_points)))
 
     return Expression(
         SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
@@ -379,7 +380,7 @@ def zero_to_one(value: Union[float, int]) -> Union[float, int]:
     Return 1 only if ``value`` is zero, otherwise keep the value as is.
 
     This is useful in scaling when the value can be used as
-    a divisor or when determining the number of points to plot and we want to
+    a divisor or when determining the number of points to plot, and we want to
     assure there is at least one point plotted.
     """
     return 1 if value == 0 else value

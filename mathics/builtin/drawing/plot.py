@@ -5,11 +5,6 @@ Plotting Data
 Plotting functions take a function as a parameter and data, often a range of points, as another parameter, and plot or show the function applied to the data.
 """
 
-# This tells documentation how to sort this module
-# Here we are also hiding "drawing" since this erroneously appears at the top level.
-sort_order = "mathics.builtin.plotting-data"
-
-
 import itertools
 import numbers
 from math import cos, pi, sin, sqrt
@@ -55,11 +50,16 @@ from mathics.eval.plot import (
     get_plot_range,
 )
 
+# This tells documentation how to sort this module
+# Here we are also hiding "drawing" since this erroneously appears at the top level.
+sort_order = "mathics.builtin.plotting-data"
+
 SymbolColorDataFunction = Symbol("ColorDataFunction")
 SymbolDisk = Symbol("Disk")
 SymbolFaceForm = Symbol("FaceForm")
 SymbolRectangle = Symbol("Rectangle")
 SymbolText = Symbol("Text")
+
 
 # PlotRange Option
 def check_plot_range(range, range_type) -> bool:
@@ -472,7 +472,6 @@ class _PalettableGradient(_GradientColorScheme):
 
 
 class _Plot(Builtin):
-
     attributes = A_HOLD_ALL | A_PROTECTED
 
     expect_list = False
