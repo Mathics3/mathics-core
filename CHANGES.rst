@@ -15,6 +15,7 @@ New Builtins
 #. ``Accuracy``
 #. ``ClebschGordan``
 #. ``Curl`` (2-D and 3-D vector forms only)
+#. ``DiscretePlot``
 #. ``Kurtosis``
 #. ``PauliMatrix``
 #. ``Remove``
