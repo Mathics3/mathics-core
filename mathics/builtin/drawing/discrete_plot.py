@@ -138,6 +138,14 @@ class _DiscretePlot(Plot):
         y_values = [yy for xx, yy in plot_points]
         y_range = get_plot_range(y_values, y_values, option="System`All")
 
+        # FIXME: For now we are going to specify that the min points are (-.1, -.1)
+        # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
+        # See GraphicsBox.axis_ticks().
+        if x_range[0] > 0:
+            x_range = (-0.1, x_range[1])
+        if y_range[0] > 0:
+            y_range = (-0.1, y_range[1])
+
         options["System`PlotRange"] = from_python([x_range, y_range])
         options["System`Discrete"] = True
 

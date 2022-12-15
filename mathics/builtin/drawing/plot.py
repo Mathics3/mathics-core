@@ -1131,6 +1131,7 @@ class BarChart(_Chart):
             graphics.extend(list(labels(chart_labels.elements)))
             y_range[0] = -0.4  # room for labels at the bottom
 
+        # FIXME: this can't be right...
         # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1

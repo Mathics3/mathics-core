@@ -1,7 +1,8 @@
 """
 Evaluation routines for 2D plotting.
 
-Note this is distinct from formatting/rendering, e.g. to SVG..
+Note this is distinct from boxing and formatting/rendering, e.g. to SVG.
+That is done as another pass after M-expression evaluation finishes.
 """
 from math import cos, isinf, isnan, pi, sqrt
 from typing import Callable, Iterable, List, Optional, Union, Type
@@ -136,18 +137,23 @@ def eval_ListPlot(
     if not isinstance(plot_points, list) or len(plot_points) == 0:
         return
 
+    # Classify the kind of data that "point" is, and
+    # canonicalize this into a list of lines.
     if all(not isinstance(point, (list, tuple)) for point in plot_points):
-        # Only y values given
+        # He have only y values given
         plot_points = [
             [[float(i + 1), plot_points[i]] for i in range(len(plot_points))]
         ]
     elif all(
         isinstance(line, (list, tuple)) and len(line) == 2 for line in plot_points
     ):
-        # Single list of (x,y) pairs
+        # He have a single list of (x,y) pairs
         plot_points = [plot_points]
     elif all(isinstance(line, list) for line in plot_points):
-        # List of lines
+        if not all(isinstance(line, list) for line in plot_points):
+            return
+
+        # He have a list of lines
         if all(
             isinstance(point, list) and len(point) == 2
             for line in plot_points
@@ -158,10 +164,6 @@ def eval_ListPlot(
             plot_points = [
                 [[float(i + 1), l] for i, l in enumerate(line)] for line in plot_points
             ]
-        else:
-            return
-    else:
-        return
 
     # Split into segments at missing data
     plot_points = [[line] for line in plot_points]
@@ -204,7 +206,11 @@ def eval_ListPlot(
     hue_pos = 0.236068
     hue_neg = -0.763932
 
+    # List of graphics primitves that rendering will use to draw.
+    # This includes the plot data, and overall graphics directives
+    # like the Hue.
     graphics = []
+
     for indx, line in enumerate(plot_points):
         graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
         for segment in line:
@@ -315,7 +321,12 @@ def eval_Plot(
     base_plot_points = []  # list of points in base subdivision
     plot_points = []  # list of all plotted points
     mesh_points = []
-    graphics = []  # list of resulting graphics primitives
+
+    # List of graphics primitives that rendering will use to draw.
+    # This includes the plot data, and overall graphics directives
+    # like the Hue.
+    graphics = []
+
     for index, f in enumerate(functions):
         points = []
         xvalues = []  # x value for each point in points
