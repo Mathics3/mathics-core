@@ -133,34 +133,31 @@ def eval_ListPlot(
     filling,
     options: dict,
 ):
-    if isinstance(plot_points, list) and len(plot_points) != 0:
-        if all(not isinstance(point, (list, tuple)) for point in plot_points):
-            # Only y values given
-            plot_points = [
-                [[float(i + 1), plot_points[i]] for i in range(len(plot_points))]
-            ]
-        elif all(
-            isinstance(line, (list, tuple)) and len(line) == 2 for line in plot_points
+    if not isinstance(plot_points, list) or len(plot_points) == 0:
+        return
+
+    if all(not isinstance(point, (list, tuple)) for point in plot_points):
+        # Only y values given
+        plot_points = [
+            [[float(i + 1), plot_points[i]] for i in range(len(plot_points))]
+        ]
+    elif all(
+        isinstance(line, (list, tuple)) and len(line) == 2 for line in plot_points
+    ):
+        # Single list of (x,y) pairs
+        plot_points = [plot_points]
+    elif all(isinstance(line, list) for line in plot_points):
+        # List of lines
+        if all(
+            isinstance(point, list) and len(point) == 2
+            for line in plot_points
+            for point in line
         ):
-            # Single list of (x,y) pairs
-            plot_points = [plot_points]
-        elif all(isinstance(line, list) for line in plot_points):
-            # List of lines
-            if all(
-                isinstance(point, list) and len(point) == 2
-                for line in plot_points
-                for point in line
-            ):
-                pass
-            elif all(
-                not isinstance(point, list) for line in plot_points for point in line
-            ):
-                plot_points = [
-                    [[float(i + 1), l] for i, l in enumerate(line)]
-                    for line in plot_points
-                ]
-            else:
-                return
+            pass
+        elif all(not isinstance(point, list) for line in plot_points for point in line):
+            plot_points = [
+                [[float(i + 1), l] for i, l in enumerate(line)] for line in plot_points
+            ]
         else:
             return
     else:
