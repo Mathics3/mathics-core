@@ -1991,7 +1991,7 @@ class Plot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
-            functions = functions.elements
+            functions = list(functions.elements)
         else:
             functions = [functions]
         return functions

@@ -1,8 +1,9 @@
 """
 Evaluation routines for 2D plotting.
 
-These routines build Mathics Expressions that describe plots as Graphics in WL.
+These routines build Mathics M-Expressions that describe plots.
 Note that this is distinct from boxing, formatting and rendering e.g. to SVG.
+That is done as another pass after M-expression evaluation finishes.
 """
 
 from math import cos, isinf, isnan, pi, sqrt
