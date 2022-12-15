@@ -178,8 +178,8 @@ class DiscretePlot(_DiscretePlot):
     >> DiscretePlot[PrimePi[k], {k, 100}]
      = -Graphics-
 
-    is about the same as 'Sqrt[k] * 3':
-    >> DiscretePlot[3 Sqrt[k], {k, 100}]
+    is about the same as 'Sqrt[k] * 2.5':
+    >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
     >> DiscretePlot[Sin[x], {x, 0, 4 Pi}, DiscretePlotRange->{{0, 4 Pi}, {0, 1.5}}]
