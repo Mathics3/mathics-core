@@ -55,7 +55,7 @@ class _DiscretePlot(Plot):
     rules = {
         # One argument-form of DiscretePlot
         "DiscretePlot[expr_, {var_Symbol, nmax_Integer}]": "DiscretePlot[expr, {var, 1, nmax, 1}]",
-        # One argument-form of DiscretePlot
+        # Two argument-form of DiscretePlot
         "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}]": "DiscretePlot[expr, {var, nmin, nmax, 1}]",
     }
 
@@ -67,7 +67,7 @@ class _DiscretePlot(Plot):
             for rule in rules:
                 functions = rule.apply(function, evaluation, fully=True)
 
-        if function.get_head_name() == "List":
+        if function.head is SymbolList:
             functions_param = self.get_functions_param(functions)
             for index, f in enumerate(functions_param):
                 if isinstance(f, Symbol) and f.name is not x.get_name():

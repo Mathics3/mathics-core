@@ -403,7 +403,7 @@ class _Plot(Builtin):
             for rule in rules:
                 functions = rule.apply(functions, evaluation, fully=True)
 
-        if functions.get_head_name() == "List":
+        if functions.head is SymbolList:
             functions_param = self.get_functions_param(functions)
             for index, f in enumerate(functions_param):
                 if isinstance(f, Symbol) and f.name is not x.get_name():
