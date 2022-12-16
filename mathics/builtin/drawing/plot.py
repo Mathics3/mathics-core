@@ -1972,7 +1972,7 @@ class ListLinePlot(_ListPlot):
     >> ListLinePlot[Table[{n, n ^ 0.5}, {n, 10}]]
      = -Graphics-
 
-    >> ListLinePlot[{{-2, -1}, {-1, -1}}]
+    >> ListLinePlot[{{-2, -1}, {-1, -1}, {1, 3}}]
      = -Graphics-
     """
 
