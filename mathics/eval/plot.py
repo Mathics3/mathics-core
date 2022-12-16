@@ -165,7 +165,19 @@ def eval_ListPlot(
         isinstance(plot_group, (list, tuple)) and len(plot_group) == 2
         for plot_group in plot_groups
     ):
-        # He have a single list of (x,y) pairs
+        # He have a single list of (x,y) pairs.
+
+        # FIXME: is this right?
+        x_range = get_plot_range(
+            [xx for xx, yy in plot_groups], [xx for xx, yy in plot_groups], x_range
+        )
+        y_range = get_plot_range(
+            [yy for xx, yy in plot_groups], [yy for xx, yy in plot_groups], y_range
+        )
+
+        get_plot_range(
+            [xx for xx, yy in plot_groups], [xx for xx, yy in plot_groups], x_range
+        )
         plot_groups = [plot_groups]
     elif all(isinstance(line, list) for line in plot_groups):
         if not all(isinstance(line, list) for line in plot_groups):
@@ -181,8 +193,15 @@ def eval_ListPlot(
         elif not is_discrete_plot and all(
             not isinstance(point, list) for line in plot_groups for point in line
         ):
+            # FIXME: is this right?
+            y_min = min(plot_groups)[0]
+            y_max = max(plot_groups)[0]
+            x_min = 0
+            x_max = len(plot_groups)
+
             plot_groups = [
-                [[float(i + 1), l] for i, l in enumerate(line)] for line in plot_groups
+                [[float(i + 1), l] for i, l in enumerate(plot_group)]
+                for plot_group in plot_groups
             ]
 
     # Split into plot segments
