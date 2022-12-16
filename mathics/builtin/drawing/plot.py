@@ -2281,7 +2281,7 @@ class ParametricPlot(_Plot):
             functions = [functions]
         else:
             # Multiple Functions
-            functions = functions.elements
+            functions = list(functions.elements)
         return functions
 
     def get_plotrange(self, plotrange, start, stop):
