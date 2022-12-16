@@ -506,7 +506,7 @@ class _Plot(Builtin):
         )
 
     def get_functions_param(self, functions):
-        if functions.head is SymbolList:
+        if functions.has_form("List", None):
             functions = list(functions.elements)
         else:
             functions = [functions]
@@ -540,14 +540,19 @@ class _Plot(Builtin):
             for rule in rules:
                 functions = rule.apply(functions, evaluation, fully=True)
 
-        if functions.head is SymbolList:
+        if functions.get_head() == SymbolList:
             functions_param = self.get_functions_param(functions)
             for index, f in enumerate(functions_param):
                 if isinstance(f, Symbol) and f.name is not x.get_name():
                     rules = evaluation.definitions.get_ownvalues(f.name)
                     for rule in rules:
                         f = rule.apply(f, evaluation, fully=True)
-                functions_param[index] = f
+                try:
+                    functions_param[index] = f
+                except:
+                    from trepan.api import debug
+
+                    debug()
             functions = functions.flatten_with_respect_to_head(SymbolList)
 
         expr_limits = ListExpression(x, start, stop)
@@ -1967,12 +1972,12 @@ class ListLinePlot(_ListPlot):
       <dd>plots several lines.
     </dl>
 
-    ListPlot accepts a superset of the Graphics options.
-
     >> ListLinePlot[Table[{n, n ^ 0.5}, {n, 10}]]
      = -Graphics-
 
-    >> ListLinePlot[{{-2, -1}, {-1, -1}, {1, 3}}]
+    ListPlot accepts a superset of the Graphics options.
+
+    >> ListLinePlot[{{-2, -1}, {-1, -1}, {1, 3}}, Filling->Axis]
      = -Graphics-
     """
 
@@ -2357,7 +2362,7 @@ class PolarPlot(_Plot):
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
-            functions = functions.elements
+            functions = list(functions.elements)
         else:
             functions = [functions]
         return functions

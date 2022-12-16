@@ -295,10 +295,6 @@ class Atom(BaseElement):
             return heads == name
 
     @property
-    def head(self) -> str:
-        Symbol(self.class_head_name)
-
-    @property
     def is_literal(self) -> bool:
         """True if the value can't change and has a Python representation,
         i.e. a value is set and it does not depend on definition
