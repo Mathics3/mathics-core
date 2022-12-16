@@ -128,102 +128,123 @@ def compile_quiet_function(expr, arg_names, evaluation, list_is_expected: bool):
 
 
 def eval_ListPlot(
-    plot_points: list,
-    x_range: int,
-    y_range: int,
+    plot_groups: list,
+    x_range: list,
+    y_range: list,
     is_discrete_plot: bool,
     is_joined_plot: bool,
     filling,
     options: dict,
 ):
-    if not isinstance(plot_points, list) or len(plot_points) == 0:
+    """
+    Evaluation part of LisPlot[] and DiscretePlot[]
+
+    plot_groups: the plot point data, It can be in a number of different list formats
+    x_range: the x range that of the area to show in the plot
+    y_range: the y range that of the area to show in the plot
+    is_discrete_plot: True if called from DiscretePlot, False if called from ListPlot
+    is_joined_plot: True if points are to be joined. This never happens in a discrete plot
+    options: miscellaneous graphics options from underlying M-Expression
+    """
+
+    if not isinstance(plot_groups, list) or len(plot_groups) == 0:
         return
 
     # Classify the kind of data that "point" is, and
     # canonicalize this into a list of lines.
-    if all(not isinstance(point, (list, tuple)) for point in plot_points):
+    if all(not isinstance(point, (list, tuple)) for point in plot_groups):
         # He have only y values given
-        plot_points = [
-            [[float(i + 1), plot_points[i]] for i in range(len(plot_points))]
+        y_min = min(plot_groups)
+        y_max = max(plot_groups)
+        x_min = 0
+        x_max = len(plot_groups)
+        plot_groups = [
+            [[float(i + 1), plot_groups[i]] for i in range(len(plot_groups))]
         ]
     elif all(
-        isinstance(line, (list, tuple)) and len(line) == 2 for line in plot_points
+        isinstance(plot_group, (list, tuple)) and len(plot_group) == 2
+        for plot_group in plot_groups
     ):
         # He have a single list of (x,y) pairs
-        plot_points = [plot_points]
-    elif all(isinstance(line, list) for line in plot_points):
-        if not all(isinstance(line, list) for line in plot_points):
+        plot_groups = [plot_groups]
+    elif all(isinstance(line, list) for line in plot_groups):
+        if not all(isinstance(line, list) for line in plot_groups):
             return
 
-        # He have a list of lines
+        # He have a list of plot groups
         if all(
             isinstance(point, list) and len(point) == 2
-            for line in plot_points
-            for point in line
+            for plot_group in plot_groups
+            for point in plot_groups
         ):
             pass
-        elif all(not isinstance(point, list) for line in plot_points for point in line):
-            plot_points = [
-                [[float(i + 1), l] for i, l in enumerate(line)] for line in plot_points
+        elif not is_discrete_plot and all(
+            not isinstance(point, list) for line in plot_groups for point in line
+        ):
+            plot_groups = [
+                [[float(i + 1), l] for i, l in enumerate(line)] for line in plot_groups
             ]
 
-    # Split into segments at missing data
-    plot_points = [[line] for line in plot_points]
-    for lidx, line in enumerate(plot_points):
+    # Split into plot segments
+    plot_groups = [[plot_group] for plot_group in plot_groups]
+    if isinstance(x_range, (list, tuple)):
+        x_min, m_max = x_range
+        y_min, y_max = y_range
+
+    for lidx, plot_group in enumerate(plot_groups):
         i = 0
-        while i < len(plot_points[lidx]):
-            seg = line[i]
+        while i < len(plot_groups[lidx]):
+            seg = plot_group[i]
             for j, point in enumerate(seg):
+                x_min = min(x_min, point[0])
+                x_max = max(x_min, point[0])
+                y_min = min(y_min, point[1])
+                y_max = max(y_max, point[1])
                 if not (
                     isinstance(point[0], (int, float))
                     and isinstance(point[1], (int, float))
                 ):
-                    plot_points[lidx].insert(i, seg[:j])
-                    plot_points[lidx][i + 1] = seg[j + 1 :]
+                    plot_groups[lidx].insert(i, seg[:j])
+                    plot_groups[lidx][i + 1] = seg[j + 1 :]
                     i -= 1
                     break
 
             i += 1
 
-    y_range = get_plot_range(
-        [y for line in plot_points for seg in line for x, y in seg],
-        [y for line in plot_points for seg in line for x, y in seg],
-        y_range,
-    )
-    x_range = get_plot_range(
-        [x for line in plot_points for seg in line for x, y in seg],
-        [x for line in plot_points for seg in line for x, y in seg],
-        x_range,
-    )
-
     # FIXME: For now we are going to specify that the min points are (-.1, -.1)
     # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
     # See GraphicsBox.axis_ticks().
-    if x_range[0] > 0:
-        x_range = (-0.1, x_range[1])
-    if y_range[0] > 0:
-        y_range = (-0.1, y_range[1])
+    if x_min > 0:
+        x_min = -0.1
+    if y_min > 0:
+        y_min = -0.1
 
+    x_range = x_min, x_max
+    y_range = y_min, y_max
+
+    is_axis_filling = is_discrete_plot
     if filling == "System`Axis":
         # TODO: Handle arbitary axis intercepts
         filling = 0.0
+        is_axis_filling = True
     elif filling == "System`Bottom":
         filling = y_range[0]
     elif filling == "System`Top":
         filling = y_range[1]
 
+    # constants to generate colors for a plot group
     hue = 0.67
     hue_pos = 0.236068
     hue_neg = -0.763932
 
-    # List of graphics primitves that rendering will use to draw.
+    # List of graphics primitives that rendering will use to draw.
     # This includes the plot data, and overall graphics directives
     # like the Hue.
     graphics = []
 
-    for indx, line in enumerate(plot_points):
+    for index, plot_group in enumerate(plot_groups):
         graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
-        for segment in line:
+        for segment in plot_group:
             mathics_segment = from_python(segment)
             if is_joined_plot:
                 graphics.append(Expression(SymbolLine, mathics_segment))
@@ -237,7 +258,7 @@ def eval_ListPlot(
                     fill_area.append([segment[-1][0], filling])
                     fill_area.append([segment[0][0], filling])
                     graphics.append(Expression(SymbolPolygon, from_python(fill_area)))
-            elif is_discrete_plot:
+            elif is_axis_filling:
                 graphics.append(Expression(SymbolPoint, mathics_segment))
                 for mathics_point in mathics_segment:
                     graphics.append(
@@ -262,7 +283,7 @@ def eval_ListPlot(
                             )
                         )
 
-        if indx % 4 == 0:
+        if index % 4 == 0:
             hue += hue_pos
         else:
             hue += hue_neg

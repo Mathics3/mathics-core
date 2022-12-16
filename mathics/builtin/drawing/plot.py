@@ -22,6 +22,7 @@ from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, S
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
@@ -75,7 +76,9 @@ def check_plot_range(range, range_type) -> bool:
     return False
 
 
-def gradient_palette(color_function, n, evaluation):  # always returns RGB values
+def gradient_palette(
+    color_function, n, evaluation: Evaluation
+):  # always returns RGB values
     if isinstance(color_function, String):
         color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
         if not color_data.has_form("ColorDataFunction", 4):
@@ -122,10 +125,10 @@ class _Chart(Builtin):
         }
     )
 
-    def _draw(self, data, color, evaluation, options):
+    def _draw(self, data, color, evaluation: Evaluation, options: dict):
         raise NotImplementedError()
 
-    def eval(self, points, evaluation, options):
+    def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -281,7 +284,7 @@ class _ListPlot(Builtin):
         "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
-    def eval(self, points, evaluation, options):
+    def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
@@ -395,7 +398,7 @@ class _Plot(Builtin):
         }
     )
 
-    def eval(self, functions, x, start, stop, evaluation, options):
+    def eval(self, functions, x, start, stop, evaluation: Evaluation, options: dict):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
 
@@ -529,7 +532,7 @@ class _Plot(Builtin):
         return x_range, y_range
 
     def process_function_and_options(
-        self, functions, x, start, stop, evaluation, options
+        self, functions, x, start, stop, evaluation: Evaluation, options: dict
     ) -> tuple:
 
         if isinstance(functions, Symbol) and functions.name is not x.get_name():
@@ -598,7 +601,18 @@ class _Plot3D(Builtin):
         ),
     }
 
-    def eval(self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options):
+    def eval(
+        self,
+        functions,
+        x,
+        xstart,
+        xstop,
+        y,
+        ystart,
+        ystop,
+        evaluation: Evaluation,
+        options: dict,
+    ):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
         xexpr_limits = ListExpression(x, xstart, xstop)
@@ -1269,11 +1283,11 @@ class ColorData(Builtin):
         "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
     }
 
-    def eval_directory(self, evaluation):
+    def eval_directory(self, evaluation: Evaluation):
         "ColorData[]"
         return ListExpression(String("Gradients"))
 
-    def eval(self, name, evaluation):
+    def eval(self, name, evaluation: Evaluation):
         "ColorData[name_String]"
         py_name = name.get_string_value()
         if py_name == "Gradients":
@@ -1460,6 +1474,7 @@ class DensityPlot(_Plot3D):
 
 class DiscretePlot(_Plot):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/DiscretePlot.html</url>
     <dl>
       <dt>'DiscretePlot[$expr$, {$x$, $n_max$}]'
       <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
@@ -1467,9 +1482,11 @@ class DiscretePlot(_Plot):
       <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$}]'
       <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
 
-      <dt>'DiscretePlot[$f$, {$x$, $n_min$, $n_max$, $dn$}]'
-      <dd>plots $f$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
+      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$, $dn$}]'
+      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
 
+      <dt>'DiscretePlot[{$expr1$, $expr2$, ...}, ...]'
+      <dd>plots the values of all $expri$.
     </dl>
 
     The number of primes for a number $k$:
@@ -1480,7 +1497,8 @@ class DiscretePlot(_Plot):
     >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
-    >> DiscretePlot[Tan[x], {x, -6, 6}]
+    A plot can contain several functions, using the same parameter, here $x$:
+    >> DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 1, 40}]
      = -Graphics-
     """
 
@@ -1518,7 +1536,9 @@ class DiscretePlot(_Plot):
 
     summary_text = "discrete plot of a one-paremeter function"
 
-    def eval(self, functions, x, start, nmax, step, evaluation, options):
+    def eval(
+        self, functions, x, start, nmax, step, evaluation: Evaluation, options: dict
+    ):
         """DiscretePlot[functions_, {x_Symbol, start_Integer, nmax_Integer, step_Integer},
         OptionsPattern[DiscretePlot]]"""
 
@@ -1561,12 +1581,19 @@ class DiscretePlot(_Plot):
             y_range, list
         )
 
-        # PlotPoints Option
-        # constants to generate colors
         base_plot_points = []  # list of points in base subdivision
         plot_points = []  # list of all plotted points
 
+        # list of all plotted points across all functions
+        plot_groups = []
+
+        # List of graphics primitves that rendering will use to draw.
+        # This includes the plot data, and overall graphics directives
+        # like the Hue.
+
         for index, f in enumerate(functions):
+            # list of all plotted points for a given function
+            plot_points = []
 
             compiled_fn = compile_quiet_function(
                 f, [x_name], evaluation, self.expect_list
@@ -1588,6 +1615,7 @@ class DiscretePlot(_Plot):
                 [xx for xx, yy in plot_points],
                 x_range,
             )
+            plot_groups.append(plot_points)
 
         y_values = [yy for xx, yy in plot_points]
         y_range = get_plot_range(y_values, y_values, option="System`All")
@@ -1604,7 +1632,7 @@ class DiscretePlot(_Plot):
         options["System`Discrete"] = True
 
         return eval_ListPlot(
-            plot_points,
+            plot_groups,
             x_range,
             y_range,
             is_discrete_plot=True,
@@ -1644,7 +1672,7 @@ class Histogram(Builtin):
     )
     summary_text = "draw a histogram"
 
-    def eval(self, points, spec, evaluation, options):
+    def eval(self, points, spec, evaluation: Evaluation, options: dict):
         "%(name)s[points_, spec___, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -1885,10 +1913,27 @@ class ListPlot(_ListPlot):
       <dd>plots several lists of points.
     </dl>
 
-    ListPlot accepts a superset of the Graphics options.
-
-    >> ListPlot[Table[n ^ 2, {n, 10}]]
+    The frequecy of Primes:
+    >> ListPlot[Prime[Range[30]]]
      = -Graphics-
+
+    seems very roughly to fit a table of quadradic numbers:
+    >> ListPlot[Table[n ^ 2 / 8, {n, 30}]]
+     = -Graphics-
+
+    ListPlot accepts some Graphics options:
+
+    >> ListPlot[Table[n ^ 2, {n, 30}], Joined->True]
+     = -Graphics-
+
+    Compare with <url>:'Plot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+
+    >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
+     = -Graphics-
+
+    Compare with <url>:'ListPlot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/listplot</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -2013,7 +2058,7 @@ class PieChart(_Chart):
 
     summary_text = "draw a pie chart"
 
-    def _draw(self, data, color, evaluation, options):
+    def _draw(self, data, color, evaluation, options: dict):
         data = [[max(0.0, x) for x in group] for group in data]
 
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
@@ -2426,7 +2471,7 @@ class Plot3D(_Plot3D):
             return [functions]
 
     def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation
+        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
     ):
         graphics = []
         for p1, p2, p3 in triangles:
@@ -2454,7 +2499,7 @@ class Plot3D(_Plot3D):
             graphics.append(Expression(SymbolLine, ListExpression(*line)))
         return graphics
 
-    def final_graphics(self, graphics, options):
+    def final_graphics(self, graphics, options: dict):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
