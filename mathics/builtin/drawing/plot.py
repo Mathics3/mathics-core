@@ -1599,7 +1599,7 @@ class DiscretePlot(_Plot):
                 f, [x_name], evaluation, self.expect_list
             )
 
-            @lru_cache
+            @lru_cache()
             def apply_fn(fn, x_value: int) -> Optional[float]:
                 value = fn(x_value)
                 if value is not None:
@@ -2235,7 +2235,7 @@ class Plot(_Plot):
 
     summary_text = "curves of one or more functions"
 
-    @lru_cache
+    @lru_cache()
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
@@ -2281,7 +2281,7 @@ class ParametricPlot(_Plot):
             functions = [functions]
         else:
             # Multiple Functions
-            functions = functions.elements
+            functions = list(functions.elements)
         return functions
 
     def get_plotrange(self, plotrange, start, stop):
@@ -2302,7 +2302,7 @@ class ParametricPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    @lru_cache
+    @lru_cache()
     def _apply_fn(self, fn, x_value):
         value = fn(x_value)
         if value is not None and len(value) == 2:
@@ -2380,7 +2380,7 @@ class PolarPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    @lru_cache
+    @lru_cache()
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
