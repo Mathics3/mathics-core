@@ -2,12 +2,15 @@
 """
 Plotting Data
 
-Plotting functions take a function as a parameter and data, often a range of points, as another parameter, and plot or show the function applied to the data.
+Plotting functions take a function as a parameter and data, often a range of \
+points, as another parameter, and plot or show the function applied to the data.
 """
 
 import itertools
 import numbers
+from functools import lru_cache
 from math import cos, pi, sin, sqrt
+from typing import Optional
 
 import palettable
 
@@ -19,6 +22,7 @@ from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, S
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolList, SymbolTrue
@@ -30,10 +34,8 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolGrid,
-    SymbolHue,
     SymbolLine,
     SymbolMap,
-    SymbolPoint,
     SymbolPolygon,
     SymbolRGBColor,
     SymbolRow,
@@ -43,9 +45,8 @@ from mathics.core.systemsymbols import (
 )
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.plot import (
-    RealPoint2,
-    RealPoint6,
     compile_quiet_function,
+    eval_ListPlot,
     eval_Plot,
     get_plot_range,
 )
@@ -75,7 +76,9 @@ def check_plot_range(range, range_type) -> bool:
     return False
 
 
-def gradient_palette(color_function, n, evaluation):  # always returns RGB values
+def gradient_palette(
+    color_function, n, evaluation: Evaluation
+):  # always returns RGB values
     if isinstance(color_function, String):
         color_data = Expression(SymbolColorData, color_function).evaluate(evaluation)
         if not color_data.has_form("ColorDataFunction", 4):
@@ -122,10 +125,10 @@ class _Chart(Builtin):
         }
     )
 
-    def _draw(self, data, color, evaluation, options):
+    def _draw(self, data, color, evaluation: Evaluation, options: dict):
         raise NotImplementedError()
 
-    def eval(self, points, evaluation, options):
+    def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -269,7 +272,7 @@ class _GradientColorScheme:
 
 class _ListPlot(Builtin):
     """
-    Computation part of ListPlot, ListLinePlot, and DiscretePlot
+    Base class for ListPlot, and ListLinePlot
     2-Dimensional plot a list of points in some fashion.
     """
 
@@ -281,7 +284,7 @@ class _ListPlot(Builtin):
         "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
-    def eval(self, points, evaluation, options):
+    def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
@@ -332,130 +335,19 @@ class _ListPlot(Builtin):
 
         # Joined Option
         joined_option = self.get_option(options, "Joined", evaluation)
-        joined = joined_option.to_python()
-        if joined not in [True, False]:
+        is_joined_plot = joined_option.to_python()
+        if is_joined_plot not in [True, False]:
             evaluation.message(plot_name, "joind", joined_option, expr)
-            joined = False
+            is_joined_plot = False
 
-        if isinstance(all_points, list) and len(all_points) != 0:
-            if all(not isinstance(point, list) for point in all_points):
-                # Only y values given
-                all_points = [
-                    [[float(i + 1), all_points[i]] for i in range(len(all_points))]
-                ]
-            elif all(isinstance(line, list) and len(line) == 2 for line in all_points):
-                # Single list of (x,y) pairs
-                all_points = [all_points]
-            elif all(isinstance(line, list) for line in all_points):
-                # List of lines
-                if all(
-                    isinstance(point, list) and len(point) == 2
-                    for line in all_points
-                    for point in line
-                ):
-                    pass
-                elif all(
-                    not isinstance(point, list) for line in all_points for point in line
-                ):
-                    all_points = [
-                        [[float(i + 1), l] for i, l in enumerate(line)]
-                        for line in all_points
-                    ]
-                else:
-                    return
-            else:
-                return
-        else:
-            return
-
-        # Split into segments at missing data
-        all_points = [[line] for line in all_points]
-        for lidx, line in enumerate(all_points):
-            i = 0
-            while i < len(all_points[lidx]):
-                seg = line[i]
-                for j, point in enumerate(seg):
-                    if not (
-                        isinstance(point[0], (int, float))
-                        and isinstance(point[1], (int, float))
-                    ):
-                        all_points[lidx].insert(i, seg[:j])
-                        all_points[lidx][i + 1] = seg[j + 1 :]
-                        i -= 1
-                        break
-
-                i += 1
-
-        y_range = get_plot_range(
-            [y for line in all_points for seg in line for x, y in seg],
-            [y for line in all_points for seg in line for x, y in seg],
-            y_range,
-        )
-        x_range = get_plot_range(
-            [x for line in all_points for seg in line for x, y in seg],
-            [x for line in all_points for seg in line for x, y in seg],
+        return eval_ListPlot(
+            all_points,
             x_range,
-        )
-
-        if filling == "System`Axis":
-            # TODO: Handle arbitary axis intercepts
-            filling = 0.0
-        elif filling == "System`Bottom":
-            filling = y_range[0]
-        elif filling == "System`Top":
-            filling = y_range[1]
-
-        hue = 0.67
-        hue_pos = 0.236068
-        hue_neg = -0.763932
-
-        graphics = []
-        for indx, line in enumerate(all_points):
-            graphics.append(Expression(SymbolHue, Real(hue), RealPoint6, RealPoint6))
-            for segment in line:
-                mathics_segment = from_python(segment)
-                if joined:
-                    graphics.append(Expression(SymbolLine, mathics_segment))
-                    if filling is not None:
-                        graphics.append(
-                            Expression(
-                                SymbolHue, Real(hue), RealPoint6, RealPoint6, RealPoint2
-                            )
-                        )
-                        fill_area = list(segment)
-                        fill_area.append([segment[-1][0], filling])
-                        fill_area.append([segment[0][0], filling])
-                        graphics.append(
-                            Expression(SymbolPolygon, from_python(fill_area))
-                        )
-                else:
-                    graphics.append(Expression(SymbolPoint, from_python(segment)))
-                    if filling is not None:
-                        for point in segment:
-                            graphics.append(
-                                Expression(
-                                    SymbolLine,
-                                    from_python(
-                                        [[point[0], filling], [point[0], point[1]]]
-                                    ),
-                                )
-                            )
-
-            if indx % 4 == 0:
-                hue += hue_pos
-            else:
-                hue += hue_neg
-            if hue > 1:
-                hue -= 1
-            if hue < 0:
-                hue += 1
-
-        options["System`PlotRange"] = from_python([x_range, y_range])
-
-        return Expression(
-            SymbolGraphics,
-            ListExpression(*graphics),
-            *options_to_rules(options, Graphics.options)
+            y_range,
+            is_discrete_plot=False,
+            is_joined_plot=is_joined_plot,
+            filling=filling,
+            options=options,
         )
 
 
@@ -506,54 +398,21 @@ class _Plot(Builtin):
         }
     )
 
-    def eval(self, functions, x, start, stop, evaluation, options):
+    def eval(self, functions, x, start, stop, evaluation: Evaluation, options: dict):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
         OptionsPattern[%(name)s]]"""
-        if isinstance(functions, Symbol) and functions.name is not x.get_name():
-            rules = evaluation.definitions.get_ownvalues(functions.name)
-            for rule in rules:
-                functions = rule.apply(functions, evaluation, fully=True)
 
-        if functions.get_head_name() == "List":
-            functions_param = self.get_functions_param(functions)
-            for index, f in enumerate(functions_param):
-                if isinstance(f, Symbol) and f.name is not x.get_name():
-                    rules = evaluation.definitions.get_ownvalues(f.name)
-                    for rule in rules:
-                        f = rule.apply(f, evaluation, fully=True)
-                functions_param[index] = f
-            functions = functions.flatten_with_respect_to_head(SymbolList)
-
-        expr_limits = ListExpression(x, start, stop)
-        # FIXME: arrange forself to have a .symbolname property or attribute
-        expr = Expression(
-            Symbol(self.get_name()), functions, expr_limits, *options_to_rules(options)
-        )
-        functions = self.get_functions_param(functions)
-        x_name = x.get_name()
-
-        py_start = start.round_to_float(evaluation)
-        py_stop = stop.round_to_float(evaluation)
-        if py_start is None or py_stop is None:
-            return evaluation.message(self.get_name(), "plln", stop, expr)
-        if py_start >= py_stop:
-            return evaluation.message(self.get_name(), "plld", expr_limits)
-
-        plotrange_option = self.get_option(options, "PlotRange", evaluation)
-        plotrange = eval_N(plotrange_option, evaluation).to_python()
-        x_range, y_range = self.get_plotrange(plotrange, py_start, py_stop)
-        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
-            y_range, numbers.Real
-        ):
-            evaluation.message(self.get_name(), "prng", plotrange_option)
-            x_range, y_range = [start, stop], "Automatic"
-
-        # x_range and y_range are now either Automatic, All, or of the form [min, max]
-        assert x_range in ("System`Automatic", "System`All") or isinstance(
-            x_range, list
-        )
-        assert y_range in ("System`Automatic", "System`All") or isinstance(
-            y_range, list
+        (
+            functions,
+            x_name,
+            py_start,
+            py_stop,
+            x_range,
+            y_range,
+            _,
+            _,
+        ) = self.process_function_and_options(
+            functions, x, start, stop, evaluation, options
         )
 
         # Mesh Option
@@ -646,6 +505,84 @@ class _Plot(Builtin):
             evaluation,
         )
 
+    def get_functions_param(self, functions):
+        if functions.head is SymbolList:
+            functions = list(functions.elements)
+        else:
+            functions = [functions]
+        return functions
+
+    def get_plotrange(self, plotrange, start, stop):
+        x_range = y_range = None
+        if isinstance(plotrange, numbers.Real):
+            plotrange = ["System`Full", [-plotrange, plotrange]]
+        if plotrange == "System`Automatic":
+            plotrange = ["System`Full", "System`Automatic"]
+        elif plotrange == "System`All":
+            plotrange = ["System`All", "System`All"]
+        if isinstance(plotrange, list) and len(plotrange) == 2:
+            if isinstance(plotrange[0], numbers.Real) and isinstance(  # noqa
+                plotrange[1], numbers.Real
+            ):
+                x_range, y_range = "System`Full", plotrange
+            else:
+                x_range, y_range = plotrange
+            if x_range == "System`Full":
+                x_range = [start, stop]
+        return x_range, y_range
+
+    def process_function_and_options(
+        self, functions, x, start, stop, evaluation: Evaluation, options: dict
+    ) -> tuple:
+
+        if isinstance(functions, Symbol) and functions.name is not x.get_name():
+            rules = evaluation.definitions.get_ownvalues(functions.name)
+            for rule in rules:
+                functions = rule.apply(functions, evaluation, fully=True)
+
+        if functions.head is SymbolList:
+            functions_param = self.get_functions_param(functions)
+            for index, f in enumerate(functions_param):
+                if isinstance(f, Symbol) and f.name is not x.get_name():
+                    rules = evaluation.definitions.get_ownvalues(f.name)
+                    for rule in rules:
+                        f = rule.apply(f, evaluation, fully=True)
+                functions_param[index] = f
+            functions = functions.flatten_with_respect_to_head(SymbolList)
+
+        expr_limits = ListExpression(x, start, stop)
+        # FIXME: arrange for self to have a .symbolname property or attribute
+        expr = Expression(
+            Symbol(self.get_name()), functions, expr_limits, *options_to_rules(options)
+        )
+        functions = self.get_functions_param(functions)
+        x_name = x.get_name()
+
+        py_start = start.round_to_float(evaluation)
+        py_stop = stop.round_to_float(evaluation)
+        if py_start is None or py_stop is None:
+            return evaluation.message(self.get_name(), "plln", stop, expr)
+        if py_start >= py_stop:
+            return evaluation.message(self.get_name(), "plld", expr_limits)
+
+        plotrange_option = self.get_option(options, "PlotRange", evaluation)
+        plot_range = eval_N(plotrange_option, evaluation).to_python()
+        x_range, y_range = self.get_plotrange(plot_range, py_start, py_stop)
+        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
+            y_range, numbers.Real
+        ):
+            evaluation.message(self.get_name(), "prng", plotrange_option)
+            x_range, y_range = [start, stop], "Automatic"
+
+        # x_range and y_range are now either Automatic, All, or of the form [min, max]
+        assert x_range in ("System`Automatic", "System`All") or isinstance(
+            x_range, list
+        )
+        assert y_range in ("System`Automatic", "System`All") or isinstance(
+            y_range, list
+        )
+        return functions, x_name, py_start, py_stop, x_range, y_range, expr_limits, expr
+
 
 class _Plot3D(Builtin):
     messages = {
@@ -664,7 +601,18 @@ class _Plot3D(Builtin):
         ),
     }
 
-    def eval(self, functions, x, xstart, xstop, y, ystart, ystop, evaluation, options):
+    def eval(
+        self,
+        functions,
+        x,
+        xstart,
+        xstop,
+        y,
+        ystart,
+        ystop,
+        evaluation: Evaluation,
+        options: dict,
+    ):
         """%(name)s[functions_, {x_Symbol, xstart_, xstop_},
         {y_Symbol, ystart_, ystop_}, OptionsPattern[%(name)s]]"""
         xexpr_limits = ListExpression(x, xstart, xstop)
@@ -759,7 +707,7 @@ class _Plot3D(Builtin):
                 f, [x.get_name(), y.get_name()], evaluation, False
             )
 
-            def _apply_fn(x_value, y_value):
+            def apply_fn(compiled_fn, x_value, y_value):
                 try:
                     # Try to used cached value first
                     return stored[(x_value, y_value)]
@@ -775,7 +723,11 @@ class _Plot3D(Builtin):
             split_edges = set()  # subdivided edges
 
             def triangle(x1, y1, x2, y2, x3, y3, depth=0):
-                v1, v2, v3 = _apply_fn(x1, y1), _apply_fn(x2, y2), _apply_fn(x3, y3)
+                v1, v2, v3 = (
+                    apply_fn(compiled_fn, x1, y1),
+                    apply_fn(compiled_fn, x2, y2),
+                    apply_fn(compiled_fn, x3, y3),
+                )
 
                 if (v1 is v2 is v3 is None) and (depth > max_depth // 2):
                     # fast finish because the entire region is undefined but
@@ -852,10 +804,10 @@ class _Plot3D(Builtin):
                         )
                     )
 
-                    v1 = _apply_fn(x1, y1)
-                    v2 = _apply_fn(x2, y2)
-                    v3 = _apply_fn(x3, y3)
-                    v4 = _apply_fn(x4, y4)
+                    v1 = apply_fn(compiled_fn, x1, y1)
+                    v2 = apply_fn(compiled_fn, x2, y2)
+                    v3 = apply_fn(compiled_fn, x3, y3)
+                    v4 = apply_fn(compiled_fn, x4, y4)
 
                     if v1 is None or v4 is None:
                         triangle(x1, y1, x2, y2, x3, y3)
@@ -1238,6 +1190,7 @@ class BarChart(_Chart):
             graphics.extend(list(labels(chart_labels.elements)))
             y_range[0] = -0.4  # room for labels at the bottom
 
+        # FIXME: this can't be right...
         # always specify -.1 as the minimum x plot range, as this will make the y axis apppear
         # at origin (0,0); otherwise it will be shifted right; see GraphicsBox.axis_ticks().
         x_range[0] = -0.1
@@ -1249,6 +1202,122 @@ class BarChart(_Chart):
         return Expression(
             SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
         )
+
+
+class ColorData(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
+    <dl>
+      <dt>'ColorData["$name$"]'
+      <dd>returns a color function with the given $name$.
+    </dl>
+
+    Define a user-defined color function:
+    >> Unprotect[ColorData]; ColorData["test"] := ColorDataFunction["test", "Gradients", {0, 1}, Blend[{Red, Green, Blue}, #1] &]; Protect[ColorData]
+
+    Compare it to the default color function, 'LakeColors':
+    >> {DensityPlot[x + y, {x, -1, 1}, {y, -1, 1}], DensityPlot[x + y, {x, -1, 1}, {y, -1, 1}, ColorFunction->"test"]}
+     = {-Graphics-, -Graphics-}
+    """
+
+    # rules = {
+    #    'ColorData["LakeColors"]': (
+    #        """ColorDataFunction["LakeColors", "Gradients", {0, 1},
+    #            Blend[{RGBColor[0.293416, 0.0574044, 0.529412],
+    #                RGBColor[0.563821, 0.527565, 0.909499],
+    #                RGBColor[0.762631, 0.846998, 0.914031],
+    #                RGBColor[0.941176, 0.906538, 0.834043]}, #1] &]"""),
+    # }
+    summary_text = "named color gradients and collections"
+    messages = {
+        "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
+    }
+
+    palettes = {
+        "LakeColors": _PredefinedGradient(
+            [
+                (0.293416, 0.0574044, 0.529412),
+                (0.563821, 0.527565, 0.909499),
+                (0.762631, 0.846998, 0.914031),
+                (0.941176, 0.906538, 0.834043),
+            ]
+        ),
+        "Pastel": _PalettableGradient(
+            palettable.colorbrewer.qualitative.Pastel1_9, False
+        ),
+        "Rainbow": _PalettableGradient(
+            palettable.colorbrewer.diverging.Spectral_9, True
+        ),
+        "RedBlueTones": _PalettableGradient(
+            palettable.colorbrewer.diverging.RdBu_11, False
+        ),
+        "GreenPinkTones": _PalettableGradient(
+            palettable.colorbrewer.diverging.PiYG_9, False
+        ),
+        "GrayTones": _PalettableGradient(
+            palettable.colorbrewer.sequential.Greys_9, False
+        ),
+        "SolarColors": _PalettableGradient(
+            palettable.colorbrewer.sequential.OrRd_9, True
+        ),
+        "CherryTones": _PalettableGradient(
+            palettable.colorbrewer.sequential.Reds_9, True
+        ),
+        "FuchsiaTones": _PalettableGradient(
+            palettable.colorbrewer.sequential.RdPu_9, True
+        ),
+        "SiennaTones": _PalettableGradient(
+            palettable.colorbrewer.sequential.Oranges_9, True
+        ),
+        # specific to Mathics
+        "Paired": _PalettableGradient(
+            palettable.colorbrewer.qualitative.Paired_9, False
+        ),
+        "Accent": _PalettableGradient(
+            palettable.colorbrewer.qualitative.Accent_8, False
+        ),
+        "Aquatic": _PalettableGradient(palettable.wesanderson.Aquatic1_5, False),
+        "Zissou": _PalettableGradient(palettable.wesanderson.Zissou_5, False),
+        "Tableau": _PalettableGradient(palettable.tableau.Tableau_20, False),
+        "TrafficLight": _PalettableGradient(palettable.tableau.TrafficLight_9, False),
+        "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
+    }
+
+    def eval_directory(self, evaluation: Evaluation):
+        "ColorData[]"
+        return ListExpression(String("Gradients"))
+
+    def eval(self, name, evaluation: Evaluation):
+        "ColorData[name_String]"
+        py_name = name.get_string_value()
+        if py_name == "Gradients":
+            return ListExpression(*[String(name) for name in self.palettes.keys()])
+        palette = ColorData.palettes.get(py_name, None)
+        if palette is None:
+            evaluation.message("ColorData", "notent", name)
+            return
+        return palette.color_data_function(py_name)
+
+    @staticmethod
+    def colors(name, evaluation):
+        palette = ColorData.palettes.get(name, None)
+        if palette is None:
+            evaluation.message("ColorData", "notent", name)
+            return None
+        return palette.colors()
+
+
+class ColorDataFunction(Builtin):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ColorDataFunction.html</url>
+    <dl>
+      <dt>'ColorDataFunction[range, ...]'
+      <dd> is a function that represents a color scheme.
+    </dl>
+    """
+
+    summary_text = "color scheme object"
+    pass
 
 
 class DensityPlot(_Plot3D):
@@ -1403,120 +1472,174 @@ class DensityPlot(_Plot3D):
         )
 
 
-class ColorData(Builtin):
+class DiscretePlot(_Plot):
     """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
+    <url>:WMA link: https://reference.wolfram.com/language/ref/DiscretePlot.html</url>
     <dl>
-      <dt>'ColorData["$name$"]'
-      <dd>returns a color function with the given $name$.
+      <dt>'DiscretePlot[$expr$, {$x$, $n_max$}]'
+      <dd>plots $expr$ with $x$ ranging from 1 to $n_max$.
+
+      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$}]'
+      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$.
+
+      <dt>'DiscretePlot[$expr$, {$x$, $n_min$, $n_max$, $dn$}]'
+      <dd>plots $expr$ with $x$ ranging from $n_min$ to $n_max$ usings steps $dn$.
+
+      <dt>'DiscretePlot[{$expr1$, $expr2$, ...}, ...]'
+      <dd>plots the values of all $expri$.
     </dl>
 
-    Define a user-defined color function:
-    >> Unprotect[ColorData]; ColorData["test"] := ColorDataFunction["test", "Gradients", {0, 1}, Blend[{Red, Green, Blue}, #1] &]; Protect[ColorData]
+    The number of primes for a number $k$:
+    >> DiscretePlot[PrimePi[k], {k, 100}]
+     = -Graphics-
 
-    Compare it to the default color function, 'LakeColors':
-    >> {DensityPlot[x + y, {x, -1, 1}, {y, -1, 1}], DensityPlot[x + y, {x, -1, 1}, {y, -1, 1}, ColorFunction->"test"]}
-     = {-Graphics-, -Graphics-}
+    is about the same as 'Sqrt[k] * 2.5':
+    >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
+     = -Graphics-
+
+    A plot can contain several functions, using the same parameter, here $x$:
+    >> DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 1, 40}]
+     = -Graphics-
     """
 
-    # rules = {
-    #    'ColorData["LakeColors"]': (
-    #        """ColorDataFunction["LakeColors", "Gradients", {0, 1},
-    #            Blend[{RGBColor[0.293416, 0.0574044, 0.529412],
-    #                RGBColor[0.563821, 0.527565, 0.909499],
-    #                RGBColor[0.762631, 0.846998, 0.914031],
-    #                RGBColor[0.941176, 0.906538, 0.834043]}, #1] &]"""),
-    # }
-    summary_text = "named color gradients and collections"
+    attributes = A_HOLD_ALL | A_PROTECTED
+
+    expect_list = False
+
     messages = {
-        "notent": "`1` is not a known color scheme. ColorData[] gives you lists of schemes.",
+        "prng": (
+            "Value of option PlotRange -> `1` is not All, Automatic or "
+            "an appropriate list of range specifications."
+        ),
+        "invexcl": (
+            "Value of Exclusions -> `1` is not None, Automatic or an "
+            "appropriate list of constraints."
+        ),
     }
 
-    palettes = {
-        "LakeColors": _PredefinedGradient(
-            [
-                (0.293416, 0.0574044, 0.529412),
-                (0.563821, 0.527565, 0.909499),
-                (0.762631, 0.846998, 0.914031),
-                (0.941176, 0.906538, 0.834043),
-            ]
-        ),
-        "Pastel": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Pastel1_9, False
-        ),
-        "Rainbow": _PalettableGradient(
-            palettable.colorbrewer.diverging.Spectral_9, True
-        ),
-        "RedBlueTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.RdBu_11, False
-        ),
-        "GreenPinkTones": _PalettableGradient(
-            palettable.colorbrewer.diverging.PiYG_9, False
-        ),
-        "GrayTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Greys_9, False
-        ),
-        "SolarColors": _PalettableGradient(
-            palettable.colorbrewer.sequential.OrRd_9, True
-        ),
-        "CherryTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Reds_9, True
-        ),
-        "FuchsiaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.RdPu_9, True
-        ),
-        "SiennaTones": _PalettableGradient(
-            palettable.colorbrewer.sequential.Oranges_9, True
-        ),
-        # specific to Mathics
-        "Paired": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Paired_9, False
-        ),
-        "Accent": _PalettableGradient(
-            palettable.colorbrewer.qualitative.Accent_8, False
-        ),
-        "Aquatic": _PalettableGradient(palettable.wesanderson.Aquatic1_5, False),
-        "Zissou": _PalettableGradient(palettable.wesanderson.Zissou_5, False),
-        "Tableau": _PalettableGradient(palettable.tableau.Tableau_20, False),
-        "TrafficLight": _PalettableGradient(palettable.tableau.TrafficLight_9, False),
-        "Moonrise1": _PalettableGradient(palettable.wesanderson.Moonrise1_5, False),
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "PlotRange": "Automatic",
+            "$OptionSyntax": "Strict",
+        }
+    )
+
+    rules = {
+        # One argument-form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmax_Integer}]": "DiscretePlot[expr, {var, 1, nmax, 1}]",
+        # Two argument-form of DiscretePlot
+        "DiscretePlot[expr_, {var_Symbol, nmin_Integer, nmax_Integer}]": "DiscretePlot[expr, {var, nmin, nmax, 1}]",
     }
 
-    def eval_directory(self, evaluation):
-        "ColorData[]"
-        return ListExpression(String("Gradients"))
+    summary_text = "discrete plot of a one-paremeter function"
 
-    def eval(self, name, evaluation):
-        "ColorData[name_String]"
-        py_name = name.get_string_value()
-        if py_name == "Gradients":
-            return ListExpression(*[String(name) for name in self.palettes.keys()])
-        palette = ColorData.palettes.get(py_name, None)
-        if palette is None:
-            evaluation.message("ColorData", "notent", name)
-            return
-        return palette.color_data_function(py_name)
+    def eval(
+        self, functions, x, start, nmax, step, evaluation: Evaluation, options: dict
+    ):
+        """DiscretePlot[functions_, {x_Symbol, start_Integer, nmax_Integer, step_Integer},
+        OptionsPattern[DiscretePlot]]"""
 
-    @staticmethod
-    def colors(name, evaluation):
-        palette = ColorData.palettes.get(name, None)
-        if palette is None:
-            evaluation.message("ColorData", "notent", name)
-            return None
-        return palette.colors()
+        (
+            functions,
+            x_name,
+            py_start,
+            py_stop,
+            x_range,
+            y_range,
+            expr_limits,
+            expr,
+        ) = self.process_function_and_options(
+            functions, x, start, nmax, evaluation, options
+        )
 
+        py_start = start.value
+        py_nmax = nmax.value
+        py_step = step.value
+        if py_start is None or py_nmax is None:
+            return evaluation.message(self.get_name(), "plln", nmax, expr)
+        if py_start >= py_nmax:
+            return evaluation.message(self.get_name(), "plld", expr_limits)
 
-class ColorDataFunction(Builtin):
-    """
-    <url>:WMA link: https://reference.wolfram.com/language/ref/ColorDataFunction.html</url>
-    <dl>
-      <dt>'ColorDataFunction[range, ...]'
-      <dd> is a function that represents a color scheme.
-    </dl>
-    """
+        plotrange_option = self.get_option(options, "PlotRange", evaluation)
+        plot_range = eval_N(plotrange_option, evaluation).to_python()
 
-    summary_text = "color scheme object"
-    pass
+        x_range, y_range = self.get_plotrange(plot_range, py_start, py_nmax)
+        if not check_plot_range(x_range, numbers.Real) or not check_plot_range(
+            y_range, numbers.Real
+        ):
+            evaluation.message(self.get_name(), "prng", plotrange_option)
+            x_range, y_range = [py_start, py_nmax], "Automatic"
+
+        # x_range and y_range are now either Automatic, All, or of the form [min, max]
+        assert x_range in ("System`Automatic", "System`All") or isinstance(
+            x_range, list
+        )
+        assert y_range in ("System`Automatic", "System`All") or isinstance(
+            y_range, list
+        )
+
+        base_plot_points = []  # list of points in base subdivision
+        plot_points = []  # list of all plotted points
+
+        # list of all plotted points across all functions
+        plot_groups = []
+
+        # List of graphics primitves that rendering will use to draw.
+        # This includes the plot data, and overall graphics directives
+        # like the Hue.
+
+        for index, f in enumerate(functions):
+            # list of all plotted points for a given function
+            plot_points = []
+
+            compiled_fn = compile_quiet_function(
+                f, [x_name], evaluation, self.expect_list
+            )
+
+            @lru_cache
+            def apply_fn(fn, x_value: int) -> Optional[float]:
+                value = fn(x_value)
+                if value is not None:
+                    value = float(value)
+                return value
+
+            for x_value in range(py_start, py_nmax, py_step):
+                point = apply_fn(compiled_fn, x_value)
+                plot_points.append((x_value, point))
+
+            x_range = get_plot_range(
+                [xx for xx, yy in base_plot_points],
+                [xx for xx, yy in plot_points],
+                x_range,
+            )
+            plot_groups.append(plot_points)
+
+        y_values = [yy for xx, yy in plot_points]
+        y_range = get_plot_range(y_values, y_values, option="System`All")
+
+        # FIXME: For now we are going to specify that the min points are (-.1, -.1)
+        # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
+        # See GraphicsBox.axis_ticks().
+        if x_range[0] > 0:
+            x_range = (-0.1, x_range[1])
+        if y_range[0] > 0:
+            y_range = (-0.1, y_range[1])
+
+        options["System`PlotRange"] = from_python([x_range, y_range])
+        options["System`Discrete"] = True
+
+        return eval_ListPlot(
+            plot_groups,
+            x_range,
+            y_range,
+            is_discrete_plot=True,
+            is_joined_plot=False,
+            filling=False,
+            options=options,
+        )
 
 
 class Histogram(Builtin):
@@ -1549,7 +1672,7 @@ class Histogram(Builtin):
     )
     summary_text = "draw a histogram"
 
-    def eval(self, points, spec, evaluation, options):
+    def eval(self, points, spec, evaluation: Evaluation, options: dict):
         "%(name)s[points_, spec___, OptionsPattern[%(name)s]]"
 
         points = points.evaluate(evaluation)
@@ -1790,10 +1913,27 @@ class ListPlot(_ListPlot):
       <dd>plots several lists of points.
     </dl>
 
-    ListPlot accepts a superset of the Graphics options.
-
-    >> ListPlot[Table[n ^ 2, {n, 10}]]
+    The frequecy of Primes:
+    >> ListPlot[Prime[Range[30]]]
      = -Graphics-
+
+    seems very roughly to fit a table of quadradic numbers:
+    >> ListPlot[Table[n ^ 2 / 8, {n, 30}]]
+     = -Graphics-
+
+    ListPlot accepts some Graphics options:
+
+    >> ListPlot[Table[n ^ 2, {n, 30}], Joined->True]
+     = -Graphics-
+
+    Compare with <url>:'Plot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
+
+    >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
+     = -Graphics-
+
+    Compare with <url>:'ListPlot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/listplot</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1808,7 +1948,6 @@ class ListPlot(_ListPlot):
             "PlotPoints": "None",
             "Filling": "None",
             "Joined": "False",
-            "Discrete": "False",
         }
     )
     summary_text = "plot lists of points"
@@ -1833,7 +1972,7 @@ class ListLinePlot(_ListPlot):
     >> ListLinePlot[Table[{n, n ^ 0.5}, {n, 10}]]
      = -Graphics-
 
-    >> ListLinePlot[{{-2, -1}, {-1, -1}}]
+    >> ListLinePlot[{{-2, -1}, {-1, -1}, {1, 3}}]
      = -Graphics-
     """
 
@@ -1919,7 +2058,7 @@ class PieChart(_Chart):
 
     summary_text = "draw a pie chart"
 
-    def _draw(self, data, color, evaluation, options):
+    def _draw(self, data, color, evaluation, options: dict):
         data = [[max(0.0, x) for x in group] for group in data]
 
         sector_origin = self.get_option(options, "SectorOrigin", evaluation)
@@ -2096,32 +2235,7 @@ class Plot(_Plot):
 
     summary_text = "curves of one or more functions"
 
-    def get_functions_param(self, functions):
-        if functions.has_form("List", None):
-            functions = functions.elements
-        else:
-            functions = [functions]
-        return functions
-
-    def get_plotrange(self, plotrange, start, stop):
-        x_range = y_range = None
-        if isinstance(plotrange, numbers.Real):
-            plotrange = ["System`Full", [-plotrange, plotrange]]
-        if plotrange == "System`Automatic":
-            plotrange = ["System`Full", "System`Automatic"]
-        elif plotrange == "System`All":
-            plotrange = ["System`All", "System`All"]
-        if isinstance(plotrange, list) and len(plotrange) == 2:
-            if isinstance(plotrange[0], numbers.Real) and isinstance(  # noqa
-                plotrange[1], numbers.Real
-            ):
-                x_range, y_range = "System`Full", plotrange
-            else:
-                x_range, y_range = plotrange
-            if x_range == "System`Full":
-                x_range = [start, stop]
-        return x_range, y_range
-
+    @lru_cache
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
@@ -2188,8 +2302,9 @@ class ParametricPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
-    def _apply_fn(self, f, x_value):
-        value = f(x_value)
+    @lru_cache
+    def _apply_fn(self, fn, x_value):
+        value = fn(x_value)
         if value is not None and len(value) == 2:
             return value
 
@@ -2265,6 +2380,7 @@ class PolarPlot(_Plot):
                 x_range, y_range = plotrange
         return x_range, y_range
 
+    @lru_cache
     def _apply_fn(self, f, x_value):
         value = f(x_value)
         if value is not None:
@@ -2355,7 +2471,7 @@ class Plot3D(_Plot3D):
             return [functions]
 
     def construct_graphics(
-        self, triangles, mesh_points, v_min, v_max, options, evaluation
+        self, triangles, mesh_points, v_min, v_max, options, evaluation: Evaluation
     ):
         graphics = []
         for p1, p2, p3 in triangles:
@@ -2383,7 +2499,7 @@ class Plot3D(_Plot3D):
             graphics.append(Expression(SymbolLine, ListExpression(*line)))
         return graphics
 
-    def final_graphics(self, graphics, options):
+    def final_graphics(self, graphics, options: dict):
         return Expression(
             SymbolGraphics3D,
             ListExpression(*graphics),
