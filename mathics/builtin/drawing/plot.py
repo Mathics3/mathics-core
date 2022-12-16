@@ -503,7 +503,7 @@ class _Plot(Builtin):
         )
 
     def get_functions_param(self, functions):
-        if functions.has_form("List", None):
+        if functions.head is SymbolList:
             functions = list(functions.elements)
         else:
             functions = [functions]
