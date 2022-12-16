@@ -196,6 +196,14 @@ def eval_ListPlot(
         x_range,
     )
 
+    # FIXME: For now we are going to specify that the min points are (-.1, -.1)
+    # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
+    # See GraphicsBox.axis_ticks().
+    if x_range[0] > 0:
+        x_range = (-0.1, x_range[1])
+    if y_range[0] > 0:
+        y_range = (-0.1, y_range[1])
+
     if filling == "System`Axis":
         # TODO: Handle arbitary axis intercepts
         filling = 0.0
