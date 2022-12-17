@@ -2337,7 +2337,7 @@ class Plot(_Plot):
      = -Graphics-
     """
 
-    summary_text = "curves of one or more functions"
+    summary_text = "plot curves of one or more functions"
 
     @lru_cache()
     def _apply_fn(self, f: Callable, x_value):

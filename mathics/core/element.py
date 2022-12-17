@@ -399,13 +399,6 @@ class BaseElement(KeyComparable):
     def is_zero(self) -> bool:
         return False
 
-    def __hash__(self):
-        """
-        To allow usage of expression as dictionary keys,
-        as in Expression.get_pre_choices
-        """
-        raise NotImplementedError
-
     def is_free(self, form, evaluation) -> bool:
         """
         Check if self has a subexpression of the form `form`.
