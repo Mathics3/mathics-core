@@ -702,6 +702,7 @@ class GraphicsBox(BoxExpression):
         return svg_body
 
     def create_axes(self, elements, graphics_options, xmin, xmax, ymin, ymax):
+        use_log_for_y_axis = graphics_options.get("System`LogPlot", False)
         axes = graphics_options.get("System`Axes")
         if axes is SymbolTrue:
             axes = (True, True)
@@ -744,7 +745,17 @@ class GraphicsBox(BoxExpression):
 
         for (
             index,
-            (min, max, p_self0, p_other0, p_origin, ticks, ticks_small, ticks_int),
+            (
+                min,
+                max,
+                p_self0,
+                p_other0,
+                p_origin,
+                ticks,
+                ticks_small,
+                ticks_int,
+                is_logscale,
+            ),
         ) in enumerate(
             [
                 (
@@ -756,6 +767,7 @@ class GraphicsBox(BoxExpression):
                     ticks_x,
                     ticks_x_small,
                     ticks_x_int,
+                    False,
                 ),
                 (
                     ymin,
@@ -766,6 +778,7 @@ class GraphicsBox(BoxExpression):
                     ticks_y,
                     ticks_y_small,
                     ticks_y_int,
+                    use_log_for_y_axis,
                 ),
             ]
         ):
@@ -798,12 +811,18 @@ class GraphicsBox(BoxExpression):
                             ),
                         ]
                     )
+
+                    tick_value = 10**x if is_logscale else x
                     if ticks_int:
-                        content = String(str(int(x)))
-                    elif x == floor(x):
-                        content = String("%.1f" % x)  # e.g. 1.0 (instead of 1.)
+                        content = String(str(int(tick_value)))
+                    elif tick_value == floor(x):
+                        content = String(
+                            "%.1f" % tick_value
+                        )  # e.g. 1.0 (instead of 1.)
                     else:
-                        content = String("%g" % x)  # fix e.g. 0.6000000000000001
+                        content = String(
+                            "%g" % tick_value
+                        )  # fix e.g. 0.6000000000000001
                     add_element(
                         InsetBox(
                             elements,

@@ -17,6 +17,8 @@ New Builtins
 #. ``Curl`` (2-D and 3-D vector forms only)
 #. ``DiscretePlot``
 #. ``Kurtosis``
+#. ``ListLogPlot``
+#. ``LogPlot``
 #. ``PauliMatrix``
 #. ``Remove``
 #. ``SetOptions``
