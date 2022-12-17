@@ -380,7 +380,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast.
             # This tuple with "Symbol" is used to give a different hash
-            # than the hash that would be returned if just name were
+            # than the hash that would be returned if just string name were
             # used.
             self.hash = hash(("Symbol", name))
 
