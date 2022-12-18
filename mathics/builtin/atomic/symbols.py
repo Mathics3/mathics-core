@@ -606,7 +606,7 @@ class Names(Builtin):
 
     The wildcard '*' matches any character:
     >> Names["List*"]
-     = {List, ListLinePlot, ListPlot, ListQ, Listable}
+     = {List, ListLinePlot, ListLogPlot, ListPlot, ListQ, Listable}
 
     The wildcard '@' matches only lowercase characters:
     >> Names["List@"]

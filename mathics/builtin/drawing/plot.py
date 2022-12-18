@@ -10,7 +10,7 @@ import itertools
 import numbers
 from functools import lru_cache
 from math import cos, pi, sin, sqrt
-from typing import Optional
+from typing import Callable, Optional
 
 import palettable
 
@@ -19,7 +19,7 @@ from mathics.builtin.drawing.graphics3d import Graphics3D
 from mathics.builtin.graphics import Graphics
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal, Real, String
-from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -34,6 +34,7 @@ from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolGrid,
+    SymbolLog10,
     SymbolLine,
     SymbolMap,
     SymbolPolygon,
@@ -276,6 +277,8 @@ class _ListPlot(Builtin):
     2-Dimensional plot a list of points in some fashion.
     """
 
+    attributes = A_PROTECTED | A_READ_PROTECTED
+
     messages = {
         "prng": (
             "Value of option PlotRange -> `1` is not All, Automatic or "
@@ -284,10 +287,22 @@ class _ListPlot(Builtin):
         "joind": "Value of option Joined -> `1` is not True or False.",
     }
 
+    use_log_scale = False
+
     def eval(self, points, evaluation: Evaluation, options: dict):
         "%(name)s[points_, OptionsPattern[%(name)s]]"
 
         plot_name = self.get_name()
+
+        # Scale point values down by Log 10. Tick mark values will be adjusted to be 10^n in GraphicsBox.
+        if self.use_log_scale:
+            points = ListExpression(
+                *(
+                    Expression(SymbolLog10, point).evaluate(evaluation)
+                    for point in points
+                )
+            )
+
         all_points = eval_N(points, evaluation).to_python()
         # FIXME: arrange for self to have a .symbolname property or attribute
         expr = Expression(Symbol(self.get_name()), points, *options_to_rules(options))
@@ -347,6 +362,7 @@ class _ListPlot(Builtin):
             is_discrete_plot=False,
             is_joined_plot=is_joined_plot,
             filling=filling,
+            use_log_scale=self.use_log_scale,
             options=options,
         )
 
@@ -364,9 +380,12 @@ class _PalettableGradient(_GradientColorScheme):
 
 
 class _Plot(Builtin):
-    attributes = A_HOLD_ALL | A_PROTECTED
+
+    attributes = A_HOLD_ALL | A_PROTECTED | A_READ_PROTECTED
 
     expect_list = False
+
+    use_log_scale = False
 
     messages = {
         "invmaxrec": (
@@ -397,6 +416,12 @@ class _Plot(Builtin):
             "$OptionSyntax": "Strict",
         }
     )
+
+    @lru_cache()
+    def _apply_fn(self, f: Callable, x_value):
+        value = f(x_value)
+        if value is not None:
+            return (x_value, value)
 
     def eval(self, functions, x, start, stop, evaluation: Evaluation, options: dict):
         """%(name)s[functions_, {x_Symbol, start_, stop_},
@@ -488,6 +513,7 @@ class _Plot(Builtin):
         # exclusions is now either 'None' or a list of reals and 'Automatic'
         assert exclusions == "System`None" or isinstance(exclusions, list)
 
+        use_log_scale = self.use_log_scale
         return eval_Plot(
             functions,
             self._apply_fn,
@@ -501,6 +527,7 @@ class _Plot(Builtin):
             self.expect_list,
             exclusions,
             maxrecursion,
+            use_log_scale,
             options,
             evaluation,
         )
@@ -547,12 +574,8 @@ class _Plot(Builtin):
                     rules = evaluation.definitions.get_ownvalues(f.name)
                     for rule in rules:
                         f = rule.apply(f, evaluation, fully=True)
-                try:
-                    functions_param[index] = f
-                except:
-                    from trepan.api import debug
+                functions_param[index] = f
 
-                    debug()
             functions = functions.flatten_with_respect_to_head(SymbolList)
 
         expr_limits = ListExpression(x, start, stop)
@@ -712,7 +735,7 @@ class _Plot3D(Builtin):
                 f, [x.get_name(), y.get_name()], evaluation, False
             )
 
-            def apply_fn(compiled_fn, x_value, y_value):
+            def apply_fn(compiled_fn: Callable, x_value, y_value):
                 try:
                     # Try to used cached value first
                     return stored[(x_value, y_value)]
@@ -1495,16 +1518,22 @@ class DiscretePlot(_Plot):
     </dl>
 
     The number of primes for a number $k$:
-    >> DiscretePlot[PrimePi[k], {k, 100}]
+    >> DiscretePlot[PrimePi[k], {k, 1, 100}]
      = -Graphics-
 
     is about the same as 'Sqrt[k] * 2.5':
     >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
+    Notice in the above that when the starting value, $n_min$,  is 1, we can \
+    omit it.
+
     A plot can contain several functions, using the same parameter, here $x$:
-    >> DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 1, 40}]
+    >> DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 0, 40}]
      = -Graphics-
+
+    Compare with <url>:'Plot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot/</url>.
     """
 
     attributes = A_HOLD_ALL | A_PROTECTED
@@ -1605,7 +1634,7 @@ class DiscretePlot(_Plot):
             )
 
             @lru_cache()
-            def apply_fn(fn, x_value: int) -> Optional[float]:
+            def apply_fn(fn: Callable, x_value: int) -> Optional[float]:
                 value = fn(x_value)
                 if value is not None:
                     value = float(value)
@@ -1634,7 +1663,6 @@ class DiscretePlot(_Plot):
             y_range = (-0.1, y_range[1])
 
         options["System`PlotRange"] = from_python([x_range, y_range])
-        options["System`Discrete"] = True
 
         return eval_ListPlot(
             plot_groups,
@@ -1643,6 +1671,7 @@ class DiscretePlot(_Plot):
             is_discrete_plot=True,
             is_joined_plot=False,
             filling=False,
+            use_log_scale=False,
             options=options,
         )
 
@@ -1937,11 +1966,9 @@ class ListPlot(_ListPlot):
     >> ListPlot[Table[n ^ 2, {n, 30}], Filling->Axis]
      = -Graphics-
 
-    Compare with <url>:'ListPlot':
-    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/listplot</url>.
+    Compare with <url>:'Plot':
+    /doc/reference-of-built-in-symbols/graphics-drawing-and-images/plotting-data/plot</url>.
     """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
 
     options = Graphics.options.copy()
     options.update(
@@ -1996,6 +2023,78 @@ class ListLinePlot(_ListPlot):
         }
     )
     summary_text = "plot lines through lists of points"
+
+
+class ListLogPlot(_ListPlot):
+    """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ListLogPlot.html</url>
+    <dl>
+      <dt>'ListLogPlot[{$y_1$, $y_2$, ...}]'
+      <dd>log plots a list of y-values, assuming integer x-values 1, 2, 3, ...
+
+      <dt>'ListLogPlot[{{$x_1$, $y_1$}, {$x_2$, $y_2$}, ...}]'
+      <dd>log plots a list of $x$, $y$ pairs.
+
+      <dt>'ListLogPlot[{$list_1$, $list_2$, ...}]'
+      <dd>log plots several lists of points.
+    </dl>
+
+    Plotting table of Fibonacci numbers:
+    >> ListLogPlot[Table[Fibonacci[n], {n, 10}]]
+     = -Graphics-
+
+    we see that Fibonacci numbers grow exponentially. So when \
+    plotted using on a log scale the result fits \
+    points of a sloped line.
+
+    >> ListLogPlot[Table[n!, {n, 10}], Joined -> True]
+     = -Graphics-
+    """
+
+    options = Graphics.options.copy()
+    options.update(
+        {
+            "Axes": "True",
+            "AspectRatio": "1 / GoldenRatio",
+            "Mesh": "None",
+            "PlotRange": "Automatic",
+            "PlotPoints": "None",
+            "Filling": "None",
+            "Joined": "False",
+        }
+    )
+    summary_text = "log plot lists of points"
+
+    use_log_scale = True
+
+
+class LogPlot(_Plot):
+    """
+    <url>:Semi-log plot:
+    https://en.wikipedia.org/wiki/Semi-log_plot</url> \
+    (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/LogPlot.html</url>)
+    <dl>
+      <dt>'LogPlot[$f$, {$x$, $xmin$, $xmax$}]'
+      <dd>log plots $f$ with $x$ ranging from $xmin$ to $xmax$.
+
+      <dt>'Plot[{$f1$, $f2$, ...}, {$x$, $xmin$, $xmax$}]'
+      <dd>log plots several functions $f1$, $f2$, ...
+
+    </dl>
+
+    >> LogPlot[x^x, {x, 1, 5}]
+     = -Graphics-
+
+    >> LogPlot[{x^x, Exp[x], x!}, {x, 1, 5}]
+     = -Graphics-
+
+    """
+
+    summary_text = "plots on a log scale curves of one or more functions"
+
+    use_log_scale = True
 
 
 class PieChart(_Chart):
@@ -2241,7 +2340,7 @@ class Plot(_Plot):
     summary_text = "curves of one or more functions"
 
     @lru_cache()
-    def _apply_fn(self, f, x_value):
+    def _apply_fn(self, f: Callable, x_value):
         value = f(x_value)
         if value is not None:
             return (x_value, value)
@@ -2308,7 +2407,7 @@ class ParametricPlot(_Plot):
         return x_range, y_range
 
     @lru_cache()
-    def _apply_fn(self, fn, x_value):
+    def _apply_fn(self, fn: Callable, x_value):
         value = fn(x_value)
         if value is not None and len(value) == 2:
             return value
@@ -2386,8 +2485,8 @@ class PolarPlot(_Plot):
         return x_range, y_range
 
     @lru_cache()
-    def _apply_fn(self, f, x_value):
-        value = f(x_value)
+    def _apply_fn(self, fn: Callable, x_value):
+        value = fn(x_value)
         if value is not None:
             return (value * cos(x_value), value * sin(x_value))
 
@@ -2467,7 +2566,7 @@ class Plot3D(_Plot3D):
             "MaxRecursion": "2",
         }
     )
-    summary_text = "3D surfaces of one or more functions"
+    summary_text = "plots 3D surfaces of one or more functions"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):

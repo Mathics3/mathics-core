@@ -9,7 +9,6 @@ That is done as another pass after M-expression evaluation finishes.
 from math import cos, isinf, isnan, pi, sqrt
 from typing import Callable, Iterable, List, Optional, Union, Type
 
-from mathics.builtin.graphics import Graphics
 from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
@@ -20,11 +19,13 @@ from mathics.core.element import BaseElement
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import SymbolN, SymbolPower
+from mathics.core.symbols import SymbolN, SymbolPower, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolGraphics,
     SymbolHue,
     SymbolLine,
+    SymbolLog10,
+    SymbolLogPlot,
     SymbolMessageName,
     SymbolPoint,
     SymbolPolygon,
@@ -134,6 +135,7 @@ def eval_ListPlot(
     is_discrete_plot: bool,
     is_joined_plot: bool,
     filling,
+    use_log_scale: bool,
     options: dict,
 ):
     """
@@ -153,9 +155,19 @@ def eval_ListPlot(
     # Classify the kind of data that "point" is, and
     # canonicalize this into a list of lines.
     if all(not isinstance(point, (list, tuple)) for point in plot_groups):
-        # He have only y values given
-        y_min = min(plot_groups)
-        y_max = max(plot_groups)
+        # We have only y values given.
+
+        # Remove entries that are not float or int.
+        plot_groups = tuple(y for y in plot_groups if isinstance(y, (float, int)))
+
+        if len(plot_groups) == 0:
+            # Plot groups is empty
+            y_min = 0
+            y_max = 0
+        else:
+            y_min = min(plot_groups)
+            y_max = max(plot_groups)
+
         x_min = 0
         x_max = len(plot_groups)
         plot_groups = [
@@ -290,7 +302,7 @@ def eval_ListPlot(
                         )
                     )
             else:
-                graphics.append(Expression(SymbolPoint, from_python(segment)))
+                graphics.append(Expression(SymbolPoint, mathics_segment))
                 if filling is not None:
                     for point in segment:
                         graphics.append(
@@ -313,10 +325,11 @@ def eval_ListPlot(
 
     options["System`PlotRange"] = from_python([x_range, y_range])
 
+    if use_log_scale:
+        options[SymbolLogPlot.name] = SymbolTrue
+
     return Expression(
-        SymbolGraphics,
-        ListExpression(*graphics),
-        *options_to_rules(options, Graphics.options)
+        SymbolGraphics, ListExpression(*graphics), *options_to_rules(options)
     )
 
 
@@ -333,6 +346,7 @@ def eval_Plot(
     list_is_expected: bool,
     exclusions: list,
     max_recursion: int,
+    use_log_scale: bool,
     options: dict,
     evaluation: Evaluation,
 ) -> Expression:
@@ -383,6 +397,10 @@ def eval_Plot(
         tmp_mesh_points = []  # For this function only
         continuous = False
         d = (stop - start) / (num_plot_points - 1)
+        if use_log_scale:
+            # Scale point values down by Log 10.
+            # Tick mark values will be adjusted to be 10^n in GraphicsBox.
+            f = Expression(SymbolLog10, f)
         compiled_fn = compile_quiet_function(f, [x_name], evaluation, list_is_expected)
         for i in range(num_plot_points):
             x_value = start + i * d
@@ -524,7 +542,18 @@ def eval_Plot(
         [yy for xx, yy in base_plot_points], [yy for xx, yy in plot_points], y_range
     )
 
+    # FIXME: For now we are going to specify that the min points are (-.1, -.1)
+    # or pretty close to (0, 0) for positive plots, so that the tick axes are set to zero.
+    # See GraphicsBox.axis_ticks().
+    if x_range[0] > 0:
+        x_range = (-0.1, x_range[1])
+    if y_range[0] > 0:
+        y_range = (-0.1, y_range[1])
+
     options["System`PlotRange"] = from_python([x_range, y_range])
+
+    if use_log_scale:
+        options[SymbolLogPlot.name] = SymbolTrue
 
     if mesh != "None":
         for hue, points in zip(function_hues, mesh_points):
