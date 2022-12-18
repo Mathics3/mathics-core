@@ -155,9 +155,19 @@ def eval_ListPlot(
     # Classify the kind of data that "point" is, and
     # canonicalize this into a list of lines.
     if all(not isinstance(point, (list, tuple)) for point in plot_groups):
-        # He have only y values given
-        y_min = min(plot_groups)
-        y_max = max(plot_groups)
+        # We have only y values given.
+
+        # Remove entries that are not float or int.
+        plot_groups = tuple(y for y in plot_groups if isinstance(y, (float, int)))
+
+        if len(plot_groups) == 0:
+            # Plot groups is empty
+            y_min = 0
+            y_max = 0
+        else:
+            y_min = min(plot_groups)
+            y_max = max(plot_groups)
+
         x_min = 0
         x_max = len(plot_groups)
         plot_groups = [
