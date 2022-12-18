@@ -812,6 +812,8 @@ class GraphicsBox(BoxExpression):
                         ]
                     )
 
+                    # FIXME: for log plots we labels should appear
+                    # as 10^x rather than say 1000000.
                     tick_value = 10**x if is_logscale else x
                     if ticks_int:
                         content = String(str(int(tick_value)))

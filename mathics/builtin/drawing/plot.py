@@ -1525,7 +1525,8 @@ class DiscretePlot(_Plot):
     >> DiscretePlot[2.5 Sqrt[k], {k, 100}]
      = -Graphics-
 
-    Notice above, that when can omit the starting $n_min$ value when it is 1.
+    Notice in the above that when the starting value, $n_min$,  is 1, we can \
+    omit it.
 
     A plot can contain several functions, using the same parameter, here $x$:
     >> DiscretePlot[{Sin[Pi x/20], Cos[Pi x/20]}, {x, 0, 40}]
@@ -2042,7 +2043,7 @@ class ListLogPlot(_ListPlot):
     >> ListLogPlot[Table[Fibonacci[n], {n, 10}]]
      = -Graphics-
 
-    we see that Fibonaccy numbers grow exponentially. So when \
+    we see that Fibonacci numbers grow exponentially. So when \
     plotted using on a log scale the result fits \
     points of a sloped line.
 
@@ -2565,7 +2566,7 @@ class Plot3D(_Plot3D):
             "MaxRecursion": "2",
         }
     )
-    summary_text = "3D surfaces of one or more functions"
+    summary_text = "plots 3D surfaces of one or more functions"
 
     def get_functions_param(self, functions):
         if functions.has_form("List", None):
