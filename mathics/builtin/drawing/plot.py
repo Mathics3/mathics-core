@@ -1518,7 +1518,7 @@ class DiscretePlot(_Plot):
     </dl>
 
     The number of primes for a number $k$:
-    >> DiscretePlot[PrimePi[k], {1, k, 100}]
+    >> DiscretePlot[PrimePi[k], {k, 1, 100}]
      = -Graphics-
 
     is about the same as 'Sqrt[k] * 2.5':
@@ -1662,7 +1662,6 @@ class DiscretePlot(_Plot):
             y_range = (-0.1, y_range[1])
 
         options["System`PlotRange"] = from_python([x_range, y_range])
-        options["System`Discrete"] = True
 
         return eval_ListPlot(
             plot_groups,
@@ -1671,6 +1670,7 @@ class DiscretePlot(_Plot):
             is_discrete_plot=True,
             is_joined_plot=False,
             filling=False,
+            use_log_scale=False,
             options=options,
         )
 
