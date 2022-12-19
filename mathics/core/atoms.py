@@ -4,7 +4,6 @@
 import base64
 import math
 import re
-from functools import lru_cache
 from typing import Optional, Type, Union
 
 import mpmath
@@ -43,6 +42,18 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
 
     def is_numeric(self, evaluation=None) -> bool:
         return True
+
+    @property
+    def is_literal(self) -> bool:
+        """Number can't change and has a Python representation,
+        i.e. a value is set and it does not depend on definition
+        bindings. So we say it is a literal.
+        """
+        return True
+
+    @property
+    def value(self) -> bool:
+        return self._value
 
 
 def _ExponentFunction(value):
@@ -90,35 +101,46 @@ class Integer(Number):
     value: int
     class_head_name = "System`Integer"
 
+    # Collection of Integers defined so far.
+    # We use this for object uniqueness.
+    _integers = {}
+
     # We use __new__ here to unsure that two Integer's that have the same value
     # return the same object.
     def __new__(cls, value) -> "Integer":
-        n = int(value)
-        self = super(Integer, cls).__new__(cls)
-        self.value = n
 
-        # Set a value for self.__hash__() once so that every time
-        # it is used this is fast.
-        self.hash = hash(("Integer", n))
+        n = int(value)
+        key = (cls, n)
+        self = cls._integers.get(key)
+        if self is None:
+            self = super().__new__(cls)
+            self._value = n
+
+            # Cache object so we don't allocate again.
+            self._integers[key] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast.
+            self.hash = hash(key)
         return self
 
     def __eq__(self, other) -> bool:
         return (
-            self.value == other.value
+            self._value == other.value
             if isinstance(other, Integer)
             else super().__eq__(other)
         )
 
     def __ge__(self, other) -> bool:
         return (
-            self.value >= other.value
+            self._value >= other.value
             if isinstance(other, Integer)
             else super().__ge__(other)
         )
 
     def __gt__(self, other) -> bool:
         return (
-            self.value > other.value
+            self._value > other.value
             if isinstance(other, Integer)
             else super().__gt__(other)
         )
@@ -128,21 +150,21 @@ class Integer(Number):
 
     def __le__(self, other) -> bool:
         return (
-            self.value <= other.value
+            self._value <= other.value
             if isinstance(other, Integer)
             else super().__le__(other)
         )
 
     def __lt__(self, other) -> bool:
         return (
-            self.value < other.value
+            self._value < other.value
             if isinstance(other, Integer)
             else super().__lt__(other)
         )
 
     def __ne__(self, other) -> bool:
         return (
-            self.value != other.value
+            self._value != other.value
             if isinstance(other, Integer)
             else super().__ne__(other)
         )
@@ -150,36 +172,24 @@ class Integer(Number):
     def abs(self) -> "Integer":
         return -self if self < Integer0 else self
 
-    @lru_cache(maxsize=1024)
-    def __init__(self, value):
-        super().__init__()
-
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
 
     def default_format(self, evaluation, form) -> str:
-        return str(self.value)
-
-    @property
-    def is_literal(self) -> bool:
-        """For an Integer, the value can't change and has a Python representation,
-        i.e. a value is set and it does not depend on definition
-        bindings. So we say it is a literal.
-        """
-        return True
+        return str(self._value)
 
     def make_boxes(self, form) -> "String":
         from mathics.eval.makeboxes import _boxed_string
 
         if form in ("System`InputForm", "System`FullForm"):
             return _boxed_string(str(self.value), number_as_text=True)
-        return String(str(self.value))
+        return String(str(self._value))
 
     def to_sympy(self, **kwargs):
-        return sympy.Integer(self.value)
+        return sympy.Integer(self._value)
 
     def to_mpmath(self):
-        return mpmath.mpf(self.value)
+        return mpmath.mpf(self._value)
 
     def to_python(self, *args, **kwargs):
         return self.value
@@ -195,33 +205,35 @@ class Integer(Number):
         return PrecisionReal(sympy.Float(self.value, d))
 
     def get_int_value(self) -> int:
-        return self.value
+        return self._value
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
-        return isinstance(other, Integer) and self.value == other.value
+        return isinstance(other, Integer) and self._value == other.value
 
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super().get_sort_key(True)
         else:
-            return (0, 0, self.value, 0, 1)
+            return (0, 0, self._value, 0, 1)
 
     def do_copy(self) -> "Integer":
-        return Integer(self.value)
+        return Integer(self._value)
 
     def user_hash(self, update):
-        update(b"System`Integer>" + str(self.value).encode("utf8"))
+        update(b"System`Integer>" + str(self._value).encode("utf8"))
 
     def __getnewargs__(self):
-        return (self.value,)
+        return (self._value,)
 
     def __neg__(self) -> "Integer":
-        return Integer(-self.value)
+        return Integer(-self._value)
 
     @property
     def is_zero(self) -> bool:
-        return self.value == 0
+        # Note: 0 is self._value or the other way around is a syntax
+        # error.
+        return self._value == 0
 
 
 Integer0 = Integer(0)
@@ -295,7 +307,7 @@ class Real(Number):
     def get_sort_key(self, pattern_sort=False) -> tuple:
         if pattern_sort:
             return super().get_sort_key(True)
-        return (0, 0, self.value, 0, 1)
+        return (0, 0, self._value, 0, 1)
 
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
@@ -314,29 +326,71 @@ class MachineReal(Real):
     Stored internally as a python float.
     """
 
+    # Collection of MachineReals defined so far.
+    # We use this for object uniqueness.
+    _machine_reals = {}
+
     def __new__(cls, value) -> "MachineReal":
-        self = Number.__new__(cls)
-        self.value = float(value)
-        if math.isinf(self.value) or math.isnan(self.value):
+        n = float(value)
+        if math.isinf(n) or math.isnan(n):
             raise OverflowError
+
+        key = (cls, n)
+        self = cls._machine_reals.get(key)
+        if self is None:
+            self = Number.__new__(cls)
+            self._value = n
+
+            # Cache object so we don't allocate again.
+            self._machine_reals[key] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast.
+            self.hash = hash(key)
         return self
 
-    @property
-    def is_literal(self) -> bool:
-        """For a Real, the value can't change and has a Python representation,
-        i.e. a value is set and it does not depend on definition
-        bindings. So we say it is a literal.
-        """
-        return True
+    def __getnewargs__(self):
+        return (self.value,)
 
-    def to_python(self, *args, **kwargs) -> float:
+    def __hash__(self):
+        return self.hash
+
+    def __neg__(self) -> "MachineReal":
+        return MachineReal(-self.value)
+
+    def do_copy(self) -> "MachineReal":
+        return MachineReal(self._value)
+
+    def get_precision(self) -> float:
+        """Returns the default specification for precision in N and other numerical functions."""
+        return machine_precision
+
+    def get_float_value(self, permit_complex=False) -> float:
         return self.value
 
-    def to_sympy(self, *args, **kwargs):
-        return sympy.Float(self.value)
+    @property
+    def is_approx_zero(self) -> bool:
+        # In WMA, Chop[10.^(-10)] == 0,
+        # so, lets take it.
+        res = abs(self.value) <= 1e-10
+        return res
 
-    def to_mpmath(self):
-        return mpmath.mpf(self.value)
+    def is_machine_precision(self) -> bool:
+        return True
+
+    def make_boxes(self, form):
+        from mathics.builtin.makeboxes import number_form
+
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        if form in ("System`InputForm", "System`FullForm"):
+            n = None
+        else:
+            n = 6
+        return number_form(self, n, None, None, _number_form_options)
+
+    @property
+    def is_zero(self) -> bool:
+        return self.value == 0.0
 
     def round(self, d=None) -> "MachineReal":
         return self
@@ -364,45 +418,21 @@ class MachineReal(Real):
         else:
             return False
 
-    def is_machine_precision(self) -> bool:
-        return True
-
-    def get_precision(self) -> float:
-        """Returns the default specification for precision in N and other numerical functions."""
-        return machine_precision
-
-    def get_float_value(self, permit_complex=False) -> float:
+    def to_python(self, *args, **kwargs) -> float:
         return self.value
 
-    def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
+    def to_sympy(self, *args, **kwargs):
+        return sympy.Float(self.value)
 
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        if form in ("System`InputForm", "System`FullForm"):
-            n = None
-        else:
-            n = 6
-        return number_form(self, n, None, None, _number_form_options)
-
-    def __getnewargs__(self):
-        return (self.value,)
-
-    def do_copy(self) -> "MachineReal":
-        return MachineReal(self.value)
-
-    def __neg__(self) -> "MachineReal":
-        return MachineReal(-self.value)
+    def to_mpmath(self):
+        return mpmath.mpf(self.value)
 
     @property
-    def is_zero(self) -> bool:
-        return self.value == 0.0
+    def value(self) -> bool:
+        return self._value
 
-    @property
-    def is_approx_zero(self) -> bool:
-        # In WMA, Chop[10.^(-10)] == 0,
-        # so, lets take it.
-        res = abs(self.value) <= 1e-10
-        return res
+
+MachineReal0 = MachineReal(0)
 
 
 class PrecisionReal(Real):
@@ -414,24 +444,56 @@ class PrecisionReal(Real):
     Note: Plays nicely with the mpmath.mpf (float) type.
     """
 
+    # Collection of MachineReals defined so far.
+    # We use this for object uniqueness.
+    _precision_reals = {}
+
     value: sympy.Float
 
     def __new__(cls, value) -> "PrecisionReal":
-        self = Number.__new__(cls)
-        self.value = sympy.Float(value)
+        n = sympy.Float(value)
+        key = (cls, n)
+        self = cls._precision_reals.get(key)
+        if self is None:
+            self = Number.__new__(cls)
+            self._value = n
+
+            # Cache object so we don't allocate again.
+            self._precision_reals[key] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast.
+            self.hash = hash(key)
+
         return self
 
-    @property
-    def is_literal(self) -> bool:
-        """For a PrecisionReal, the value can't change and has a Python representation,
-        i.e. a value is set and it does not depend on definition
-        bindings. So we say it is a literal.
-        """
-        return True
+    def __getnewargs__(self):
+        return (self.value,)
+
+    def __hash__(self):
+        return self.hash
+
+    def __neg__(self) -> "PrecisionReal":
+        return PrecisionReal(-self.value)
+
+    def do_copy(self) -> "PrecisionReal":
+        return PrecisionReal(self.value)
+
+    def get_precision(self) -> float:
+        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
+        return self.value._prec + 1.0
 
     @property
     def is_zero(self) -> bool:
         return self.value == 0.0
+
+    def make_boxes(self, form):
+        from mathics.builtin.makeboxes import number_form
+
+        _number_form_options["_Form"] = form  # passed to _NumberFormat
+        return number_form(
+            self, dps(self.get_precision()), None, None, _number_form_options
+        )
 
     def round(self, d=None) -> Union[MachineReal, "PrecisionReal"]:
         if d is None:
@@ -459,27 +521,6 @@ class PrecisionReal(Real):
         diff = abs(value - other_value)
         return diff < 0.5**prec
 
-    def get_precision(self) -> float:
-        """Returns the default specification for precision (in binary digits) in N and other numerical functions."""
-        return self.value._prec + 1.0
-
-    def make_boxes(self, form):
-        from mathics.builtin.makeboxes import number_form
-
-        _number_form_options["_Form"] = form  # passed to _NumberFormat
-        return number_form(
-            self, dps(self.get_precision()), None, None, _number_form_options
-        )
-
-    def __getnewargs__(self):
-        return (self.value,)
-
-    def do_copy(self) -> "PrecisionReal":
-        return PrecisionReal(self.value)
-
-    def __neg__(self) -> "PrecisionReal":
-        return PrecisionReal(-self.value)
-
     def to_python(self, *args, **kwargs):
         return float(self.value)
 
@@ -488,6 +529,10 @@ class PrecisionReal(Real):
 
     def to_mpmath(self):
         return mpmath.mpf(self.value)
+
+    @property
+    def value(self):
+        return self._value
 
 
 class ByteArrayAtom(Atom, ImmutableValueMixin):
@@ -581,11 +626,11 @@ class Complex(Number):
     def __new__(cls, real, imag):
         self = super().__new__(cls)
         if isinstance(real, Complex) or not isinstance(real, Number):
-            raise ValueError("Argument 'real' must be a real number.")
+            raise ValueError("Argument 'real' must be a Real number.")
         if imag is SymbolInfinity:
             return SymbolI * SymbolInfinity
         if isinstance(imag, Complex) or not isinstance(imag, Number):
-            raise ValueError("Argument 'imag' must be a real number.")
+            raise ValueError("Argument 'imag' must be a Real number.")
 
         if imag.sameQ(Integer0):
             return real
@@ -601,6 +646,8 @@ class Complex(Number):
         # Set a value for self.__hash__() once so that every time
         # it is used this is fast.
         self.hash = hash(("Complex", real, imag))
+
+        self._value = (self.real, self.imag)
         return self
 
     def __hash__(self):
@@ -719,16 +766,27 @@ class Complex(Number):
 class Rational(Number):
     class_head_name = "System`Rational"
 
-    # We use __new__ here to unsure that two Integer's that have the same value
+    # Collection of integers defined so far.
+    _rationals = {}
+
+    # We use __new__ here to unsure that two Rationals's that have the same value
     # return the same object.
-    # Think about: Do we ever need this on a __new__ since that does the same thing?
-    @lru_cache(maxsize=1024)
     def __new__(cls, numerator, denominator=1) -> "Rational":
-        self = super().__new__(cls)
-        self.value = sympy.Rational(numerator, denominator)
-        # Set a value for self.__hash__() once so that every time
-        # it is used this is fast.
-        self.hash = hash(("Rational", self.value))
+
+        value = sympy.Rational(numerator, denominator)
+        key = (cls, value)
+        self = cls._rationals.get(key)
+
+        if self is None:
+            self = super().__new__(cls)
+            self._value = value
+
+            # Cache object so we don't allocate again.
+            self._rationals[key] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast.
+            self.hash = hash(key)
         return self
 
     def __hash__(self):

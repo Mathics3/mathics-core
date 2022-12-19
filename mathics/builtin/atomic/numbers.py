@@ -25,6 +25,7 @@ from mathics.core.atoms import (
     Integer0,
     Integer10,
     MachineReal,
+    MachineReal0,
     Number,
     Rational,
     Real,
@@ -1012,7 +1013,7 @@ class Precision(Builtin):
         "Precision[z_]"
         if isinstance(z, Real):
             if z.is_zero:
-                return MachineReal(0.0)
+                return MachineReal0
             return MachineReal(dps(z.get_precision()))
 
         if isinstance(z, Complex):

@@ -270,6 +270,12 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         values = []
         for element in self._elements:
             # Test for the literalness, and the three properties mentioned above
+            try:
+                element.is_literal
+            except:
+                from trepan.api import debug
+
+                debug()
             if element.is_literal:
                 values.append(element.value)
             else:

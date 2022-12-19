@@ -410,7 +410,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # self.sympy_dummy, for which I have to dig into the
             # code to see even what type of value should be expected
             # for it.
-            self.value = value
+            self._value = value
             self._short_name = strip_context(name)
 
             cls.defined_symbols[name] = self
@@ -633,6 +633,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         ):
             return sympy.Symbol(sympy_symbol_prefix + self.name)
         return builtin.to_sympy(self, **kwargs)
+
+    @property
+    def value(self) -> Any:
+        return self._value
 
 
 class PredefinedSymbol(Symbol):
