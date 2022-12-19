@@ -329,19 +329,19 @@ class Atom(BaseElement):
 
 
 class Symbol(Atom, NumericOperators, EvalMixin):
-    """A Symbol is a kind of Atom that acts as a symbolic variable.
+    """
+    A Symbol is a kind of Atom that acts as a symbolic variable.
 
     All Symbols have a name that can be converted to string.
 
-    A Variable Symbol is a ``Symbol`` that is associated with a
-    ``Definition`` that has an ``OwnValue`` that determines its
-    evaluation value.
+    A Variable Symbol is a ``Symbol``` that is associated with a ``Definition``
+    that determines its evaluation value.
 
     A Function Symbol, like a Variable Symbol, is a ``Symbol`` that is
     also associated with a ``Definition``. But it has a ``DownValue``
     that is used in its evaluation.
 
-    We also have Symbols which in contrast to Variables Symbols have
+    We also have Symbols which, in contrast to Variables Symbols, have
     a constant value that cannot change. System`True and System`False
     are like this.
 

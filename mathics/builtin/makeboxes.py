@@ -451,11 +451,16 @@ class MakeBoxes(Builtin):
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
 
+    # FIXME: prec is sometimes not an Integer for a ListExpession.
+    # And this is recent with respect to PredefinedSymbol revision.
+    # How does this get set and why?
     def eval_infix(
         self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
     ):
         """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        assert isinstance(prec, Integer)
 
         ## FIXME: this should go into a some formatter.
         def format_operator(operator) -> Union[String, BaseElement]:
