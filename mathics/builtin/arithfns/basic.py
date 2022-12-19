@@ -30,6 +30,7 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     Rational,
+    RationalOneHalf,
     Real,
     String,
 )
@@ -570,7 +571,7 @@ class Power(BinaryOperator, _MPMathFunction):
         Expression(
             SymbolPower,
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
-            Rational(1, 2),
+            RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
         (("InputForm", "OutputForm"), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
@@ -618,7 +619,7 @@ class Power(BinaryOperator, _MPMathFunction):
                     )
                     return SymbolComplexInfinity
         if isinstance(x, Complex) and x.real.is_zero:
-            yhalf = Expression(SymbolTimes, y, Rational(1, 2))
+            yhalf = Expression(SymbolTimes, y, RationalOneHalf)
             factor = self.apply(Expression(SymbolSequence, x.imag, y), evaluation)
             return Expression(
                 SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
