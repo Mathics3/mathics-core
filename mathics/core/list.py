@@ -55,12 +55,6 @@ class ListExpression(Expression):
             self._is_literal = True
             values = []
             for element in elements:
-                try:
-                    element.is_literal
-                except:
-                    from trepan.api import debug
-
-                    debug()
                 if element.is_literal:
                     values.append(element.value)
                 else:

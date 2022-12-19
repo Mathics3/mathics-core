@@ -143,7 +143,7 @@ else:
 
 class RandomState(Builtin):
     """
-    <url>:WMA: https://reference.wolfram.com/language/ref/RandomState.html</url>)
+    <url>:WMA: https://reference.wolfram.com/language/ref/RandomState.html</url>
     <dl>
       <dt>'$RandomState'
       <dd>is a long number representing the internal state of the \
