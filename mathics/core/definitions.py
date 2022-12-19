@@ -11,7 +11,7 @@ from collections import defaultdict
 
 from typing import List, Optional
 
-from mathics.core.atoms import String
+from mathics.core.atoms import String, MachineReal
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
@@ -172,6 +172,7 @@ class Definitions:
             self.builtin.update(self.user)
             self.user = {}
             self.clear_cache()
+            MachineReal._show_references = True
 
     def clear_cache(self, name=None):
         # the definitions cache (self.definitions_cache) caches (incomplete and complete) names -> Definition(),

@@ -563,11 +563,34 @@ class Share(Builtin):
         # collecting repeated symbols and expressions, and then
         # remplace them by references.
         # Return the amount of memory recovered.
+
+        def clear_reals_cache():
+            """
+            Remove entries from the atom dictionary which
+            are not used anymore.
+            """
+            # Probably we want to do something similar with
+            # other atoms like Integers or (temporal) Symbols.
+            from mathics.core.atoms import MachineReal
+
+            stored_machinereals = MachineReal._machine_reals
+            unused_items = []
+            for key in stored_machinereals:
+                # If there is just one reference to the
+                # real number, sweep it out.
+                if len(gc.get_referrers(stored_machinereals[key])) < 2:
+                    unused_items.append(key)
+
+            for key in unused_items:
+                del stored_machinereals[key]
+
         if have_psutil:
             totalmem = psutil.virtual_memory().available
+            clear_reals_cache()
             gc.collect()
             return Integer(totalmem - psutil.virtual_memory().available)
         else:
+            clear_reals_cache()
             gc.collect()
             return Integer0
 

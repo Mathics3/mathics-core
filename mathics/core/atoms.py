@@ -329,6 +329,7 @@ class MachineReal(Real):
     # Collection of MachineReals defined so far.
     # We use this for object uniqueness.
     _machine_reals = {}
+    _show_references = False
 
     def __new__(cls, value) -> "MachineReal":
         n = float(value)
@@ -347,6 +348,49 @@ class MachineReal(Real):
             # Set a value for self.__hash__() once so that every time
             # it is used this is fast.
             self.hash = hash(key)
+
+        if cls._show_references:
+            from sys import getrefcount
+            import gc
+
+            def show_entry(obj):
+                if obj is cls._machine_reals:
+                    return "MachineReals._machine_reals"
+                if type(obj) is tuple:
+                    return "tuple: " + str(obj)
+                if type(obj) is dict:
+                    # if "get_plot_range" in obj:
+                    #    return str(("plot dict", id(obj)))
+                    if "__doc__" in obj:
+                        docstr = obj["__doc__"]
+                        if docstr is None:
+                            return "class / module"
+                        else:
+                            docstr = (docstr + 50 * "  ")[:50]
+                        return "class / module: " + docstr
+                    return "dict: " + str({key for key in obj})
+                return str((type(obj), id(obj)))
+
+            gc.collect()
+            print(
+                "list of entries and their references for the dict",
+                (type(cls._machine_reals), id(cls._machine_reals)),
+            )
+            for key in cls._machine_reals:
+                val = cls._machine_reals[key]
+                number = str(key[1])
+                number = number + ":" + max(0, 16 - len(number)) * " "
+
+                # There is always 1 reference inside the
+                # cls._machone_reals, and one in the
+                # ``getrefcount`` call:
+                print(
+                    number,
+                    sorted(
+                        [show_entry(obj) for obj in gc.get_referrers(val)],
+                        key=lambda x: x[1],
+                    ),
+                )
         return self
 
     def __getnewargs__(self):
