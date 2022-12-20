@@ -77,6 +77,9 @@ class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
 
 class Hash(Builtin):
     """
+    <url>:Hash function:https://en.wikipedia.org/wiki/Hash_function</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Hash.html</url>) 
+
     <dl>
       <dt>'Hash[$expr$]'
       <dd>returns an integer hash for the given $expr$.

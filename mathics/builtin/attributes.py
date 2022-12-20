@@ -37,8 +37,6 @@ SymbolProtected = Symbol("Protected")
 
 class Attributes(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Attributes.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Attributes.html</url>
@@ -157,8 +155,6 @@ class ClearAttributes(Builtin):
 
 class Constant(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Constant.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Constant.html</url>
@@ -234,8 +230,6 @@ class Flat(Predefined):
 
 class HoldAll(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldAll.html</url>
-
     <url>
      :WMA link:
       https://reference.wolfram.com/language/ref/HoldAll.html</url>
@@ -282,8 +276,6 @@ class HoldAllComplete(Predefined):
 
 class HoldFirst(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldFirst.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/HoldFirst.html</url>
@@ -324,8 +316,6 @@ class HoldRest(Predefined):
 
 class Listable(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Listable.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Listable.html</url>
@@ -382,8 +372,6 @@ class Locked(Predefined):
 
 class NHoldAll(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NHoldAll.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/NHoldAll.html</url>
@@ -422,8 +410,6 @@ class NHoldFirst(Predefined):
 
 class NHoldRest(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NHoldRest.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/NHoldRest.html</url>
@@ -468,8 +454,6 @@ class NumericFunction(Predefined):
 
 class OneIdentity(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OneIdentity.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OneIdentity.html</url>
@@ -538,8 +522,6 @@ class Orderless(Predefined):
 
 class Protect(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Protect.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Protect.html</url>
@@ -651,8 +633,6 @@ class Protected(Predefined):
 
 class ReadProtected(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ReadProtected.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ReadProtected.html</url>
@@ -713,8 +693,6 @@ class SequenceHold(Predefined):
 
 class SetAttributes(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SetAttributes.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/SetAttributes.html</url>

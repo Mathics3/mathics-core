@@ -167,13 +167,12 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
         docstr.count("</dd>") == 0
     ), f"unnecesary </dd> field {instance.get_name()} from {module_name}"
 
-
-#    assert (
-#        docstr.count("<url>") > 0
-#    ), f"missing <url> field {instance.get_name()} from {module_name}"
-#    assert (
-#        docstr.count("<url>") == docstr.lower().count("</url>")
-#    ), f"unbalanced <url> </url> tags in {instance.get_name()} from {module_name}"
+    assert (
+        docstr.count("<url>") > 0
+    ), f"missing <url> field {instance.get_name()} from {module_name}"
+    assert docstr.count("<url>") == docstr.lower().count(
+        "</url>"
+    ), f"unbalanced <url> </url> tags in {instance.get_name()} from {module_name}"
 
 
 def is_builtin(var: object) -> bool:

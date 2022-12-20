@@ -195,8 +195,6 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Catalan.html</url>
-
     <url>
     :Catalan's constant:
     https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>

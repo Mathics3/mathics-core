@@ -63,6 +63,8 @@ class DigitCharacter(Builtin):
 
 class EndOfLine(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfLine.html</url>
+
     <dl>
     <dt>'EndOfString'
       <dd>represents the end of a line in a string.

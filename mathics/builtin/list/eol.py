@@ -487,14 +487,15 @@ class FirstCase(Builtin):
 
     <dl>
       <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
-      <dd>gives the first $ei$ to match $pattern$, or $Missing["NotFound"]$ if none matching pattern is found.
+      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
 
       <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
       <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
       <dt> FirstCase[$expr$, $pattern$, $default$]
       <dd> gives $default$ if no element matching $pattern$ is found.
 
-      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$]       <dd>finds only objects that appear on levels specified by $levelspec$.
+      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$]
+      <dd>finds only objects that appear on levels specified by $levelspec$.
 
       <dt>FirstCase[$pattern$]
       <dd>represents an operator form of FirstCase that can be applied to an expression.

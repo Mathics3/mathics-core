@@ -24,8 +24,6 @@ from mathics.core.systemsymbols import SymbolConjugate, SymbolDot
 
 class KroneckerProduct(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
-
     <url>
     :Kronecker product:
     https://en.wikipedia.org/wiki/Kronecker_product</url> (<url>
@@ -73,6 +71,8 @@ class KroneckerProduct(SympyFunction):
 
 class Normalize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
+
     <dl>
       <dt>'Normalize[$v$]'
       <dd>calculates the normalized vector $v$.
