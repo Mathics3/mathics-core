@@ -54,6 +54,7 @@ class Aborted(Predefined):
 
 class CommandLine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$CommandLine.html</url>
     <dl>
     <dt>'$CommandLine'
       <dd>is a list of strings passed on the command line to launch the Mathics session.
@@ -94,6 +95,7 @@ class Environment(Builtin):
 
 class Failed(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Failed.html</url>
     <dl>
     <dt>'$Failed'
         <dd>is returned by some functions in the event of an error.
@@ -147,6 +149,8 @@ class GetEnvironment(Builtin):
 
 class Machine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Machine.html</url>
+
     <dl>
     <dt>'$Machine'
         <dd>returns a string describing the type of computer system on which the Mathics is being run.
@@ -183,6 +187,8 @@ class MachineName(Predefined):
 
 class MathicsVersion(Predefined):
     r"""
+    <url>:mathics native:</url>
+
     <dl>
       <dt>'MathicsVersion'
       <dd>this string is the version of Mathics we are running.
@@ -221,6 +227,8 @@ class Packages(Predefined):
 
 class ParentProcessID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ParentProcessID.html</url>
+
     <dl>
       <dt>'$ParentProcesID'
       <dd>gives the ID assigned to the process which invokes the \Mathics by the operating system under which it is run.
@@ -263,6 +271,8 @@ class ProcessID(Predefined):
 
 class ProcessorType(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessorType.html</url>
+
     <dl>
     <dt>'$ProcessorType'
         <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
@@ -307,6 +317,8 @@ class ScriptCommandLine(Predefined):
 
 class Run(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Run.html</url>
+
     <dl>
       <dt>'Run[$command$]'
       <dd>runs command as an external operating system command, returning the exit code obtained.
@@ -343,6 +355,8 @@ class SystemID(Predefined):
 
 class SystemWordLength(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemWordLength.html</url>
+
     <dl>
       <dt>'$SystemWordLength'
       <dd>gives the effective number of bits in raw machine words on the computer system where \Mathics is running.
@@ -394,6 +408,8 @@ class UserName(Predefined):
 
 class Version(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Version.html</url>
+
     <dl>
       <dt>'$Version'
       <dd>returns a string with the current Mathics version and the versions of relevant libraries.
@@ -457,6 +473,7 @@ if have_psutil:
     class MemoryAvailable(Builtin):
         """
         <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
         <dl>
           <dt>'MemoryAvailable'
           <dd>Returns the amount of the available physical memory.
@@ -501,6 +518,8 @@ else:
 
     class MemoryAvailable(Builtin):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
+
         <dl>
           <dt>'MemoryAvailable'
           <dd>Returns the amount of the available physical when Python module "psutil" is installed.
@@ -570,6 +589,8 @@ class MemoryInUse(Builtin):
 
 class Share(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Share.html</url>
+
     <dl>
       <dt>'Share[]'
       <dd>release memory forcing Python to do garbage collection. If Python package is 'psutil' installed is the amount of released memoryis returned. Otherwise returns $0$. This function differs from WMA which tries to reduce the amount of memory required to store definitions, by reducing duplicated definitions.

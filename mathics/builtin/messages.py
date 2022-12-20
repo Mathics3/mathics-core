@@ -211,6 +211,8 @@ class Check(Builtin):
 
 class Quiet(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quiet.html</url>
+
     <dl>
       <dt>'Quiet[$expr$, {$s1$::$t1$, ...}]'
       <dd>evaluates $expr$, without messages '{$s1$::$t1$, ...}' being displayed.
@@ -388,6 +390,8 @@ class Off(Builtin):
 
 class On(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/On.html</url>
+
     <dl>
       <dt>'On[$symbol$::$tag$]'
       <dd>turns a message on for printing.
@@ -480,6 +484,8 @@ class MessageName(BinaryOperator):
 
 class Syntax(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Syntax.html</url>
+
     <dl>
       <dt>'Syntax'
       <dd>is a symbol to which all syntax messages are assigned.

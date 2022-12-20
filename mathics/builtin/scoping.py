@@ -118,6 +118,8 @@ class Begin(Builtin):
 
 class BeginPackage(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BeginPackage.html</url>
+
     <dl>
       <dt>'BeginPackage'[$context$]
       <dd>starts the package given by $context$.
@@ -209,6 +211,7 @@ class Block(Builtin):
 
 class Context_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Context.html</url>
     <dl>
       <dt>'$Context'
       <dd>is the current context.
@@ -263,6 +266,7 @@ class Contexts(Builtin):
 
 class ContextPath_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ContextPath.html</url>
     <dl>
       <dt>'$ContextPath'
       <dd>is the search path for contexts.
@@ -309,6 +313,7 @@ class ContextPathStack(Builtin):
 
 class ContextStack(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContextStack.html</url>
     <dl>
         <dt>'System`Private`$ContextStack'
         <dd>is an internal variable tracking the values of '$Context'
@@ -357,6 +362,8 @@ class End(Builtin):
 
 class EndPackage(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndPackage.html</url>
+
     <dl>
       <dt>'EndPackage[]'
       <dd>marks the end of a package, undoing a previous 'BeginPackage'.
@@ -459,6 +466,7 @@ class Module(Builtin):
 
 class ModuleNumber_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ModuleNumber.html</url>
     <dl>
       <dt>'$ModuleNumber'
       <dd>is the current "serial number" to be used for local module variables.
@@ -654,8 +662,9 @@ class Unique(Predefined):
 
 class With(Builtin):
     """
-    <dl>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/With.html</url>
 
+    <dl>
       <dt>'With[{$x$=$x0$, $y$=$y0$, ...}, $expr$]'
       <dd>specifies that all occurrences of the symbols $x$, $y$, ... in $expr$ should be replaced by $x0$, $y0$, ...
     </dl>

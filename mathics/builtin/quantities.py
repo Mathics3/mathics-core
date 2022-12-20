@@ -62,6 +62,8 @@ class KnownUnitQ(Test):
 
 class Quantity(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quantity.html</url>
+
     <dl>
     <dt>'Quantity[$magnitude$, $unit$]'
         <dd>represents a quantity with size $magnitude$ and unit specified by $unit$.
@@ -248,6 +250,7 @@ class QuantityMagnitude(Builtin):
 
 class QuantityQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityQ.html</url>
     <dl>
     <dt>'QuantityQ[$expr$]'
         <dd>return True if $expr$ is a valid Association object, and False otherwise.
@@ -343,6 +346,8 @@ class QuantityUnit(Builtin):
 class UnitConvert(Builtin):
 
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UnitConvert.html</url>
+
     <dl>
     <dt>'UnitConvert[$quantity$, $targetunit$] '
         <dd> converts the specified $quantity$ to the specified $targetunit$.

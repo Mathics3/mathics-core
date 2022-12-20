@@ -266,6 +266,8 @@ class Abs(_MPMathFunction):
 
 class Arg(_MPMathFunction):
     """
+    <url>:Arg:https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url>
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
     <dl>
       <dt>'Arg'[$z$, $method_option$]
       <dd>returns the argument of a complex value $z$.
@@ -372,6 +374,7 @@ class Assuming(Builtin):
 
 class Assumptions(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$Assumptions.html</url>
     <dl>
       <dt>'$Assumptions'
       <dd>is the default setting for the Assumptions option used in such functions as Simplify, Refine, and Integrate.
@@ -422,6 +425,8 @@ class Boole(Builtin):
 
 class Complex_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Complex.html</url>
+
     <dl>
       <dt>'Complex'
       <dd>is the head of complex numbers.
@@ -576,6 +581,9 @@ class ConditionalExpression(Builtin):
 
 class Conjugate(_MPMathFunction):
     """
+    <url>:Complex Conjugate:https://en.wikipedia.org/wiki/Complex_conjugate</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>)
+
     <dl>
       <dt>'Conjugate[$z$]'
       <dd>returns the complex conjugate of the complex number $z$.
@@ -703,6 +711,9 @@ class DirectedInfinity(SympyFunction):
 
 class I(Predefined):
     """
+    <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/I.html</url>)
+
     <dl>
       <dt>'I'
       <dd>represents the imaginary number 'Sqrt[-1]'.
@@ -763,6 +774,8 @@ class Im(SympyFunction):
 
 class Integer_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Integer.html</url>
+
     <dl>
       <dt>'Integer'
       <dd>is the head of integers.
@@ -805,6 +818,8 @@ class NumberQ(Test):
 
 class Piecewise(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Piecewise.html</url>
+
     <dl>
       <dt>'Piecewise[{{expr1, cond1}, ...}]'
       <dd>represents a piecewise function.
@@ -967,6 +982,8 @@ class PossibleZeroQ(SympyFunction):
 
 class Product(_IterationFunction, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Product.html</url>
+
     <dl>
       <dt>'Product[$expr$, {$i$, $imin$, $imax$}]'
       <dd>evaluates the discrete product of $expr$ with $i$ ranging from $imin$ to $imax$.
@@ -1079,6 +1096,8 @@ class Rational_(Builtin):
 
 class Re(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Re.html</url>
+
     <dl>
       <dt>'Re[$z$]'
       <dd>returns the real component of the complex number $z$.
@@ -1118,7 +1137,7 @@ class Re(SympyFunction):
 
 class Real_(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Real_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Real.html</url>
 
     <dl>
       <dt>'Real'
@@ -1194,6 +1213,8 @@ class Real_(Builtin):
 
 class RealNumberQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
+
     <dl>
       <dt>'RealNumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is an explicit number with no imaginary component.
@@ -1279,6 +1300,8 @@ class Sign(SympyFunction):
 
 class Sum(_IterationFunction, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sum.html</url>
+
     <dl>
       <dt>'Sum[$expr$, {$i$, $imin$, $imax$}]'
       <dd>evaluates the discrete sum of $expr$ with $i$ ranging from $imin$ to $imax$.

@@ -86,6 +86,8 @@ class RecursionLimit(Predefined):
 
 class IterationLimit(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$IterationLimit.html</url>
+
     <dl>
         <dt>'$IterationLimit'
 
@@ -163,6 +165,8 @@ class Hold(Builtin):
 
 class HoldComplete(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldComplete.html</url>
+
     <dl>
     <dt>'HoldComplete[$expr$]'
         <dd>prevents $expr$ from being evaluated, and also prevents
@@ -203,6 +207,8 @@ class HoldForm(Builtin):
 
 class Evaluate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
+
     <dl>
     <dt>'Evaluate[$expr$]'
         <dd>forces evaluation of $expr$, even if it occurs inside a
@@ -280,6 +286,8 @@ class Unevaluated(Builtin):
 
 class ReleaseHold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReleaseHold.html</url>
+
     <dl>
     <dt>'ReleaseHold[$expr$]'
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
@@ -341,6 +349,8 @@ class Sequence(Builtin):
 
 class Quit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
+
     <dl>
     <dt>'Quit'[]
       <dd> Terminates the Mathics session.

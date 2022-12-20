@@ -105,6 +105,8 @@ class ArrayDepth(Builtin):
 
 class ArrayQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArrayQ.html</url>
+
     <dl>
       <dt>'ArrayQ[$expr$]'
       <dd>tests whether $expr$ is a full array.
@@ -211,6 +213,9 @@ class Dimensions(Builtin):
 
 class Dot(BinaryOperator):
     """
+    <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Dot.html</url>)
+
     <dl>
       <dt>'Dot[$x$, $y$]'
       <dt>'$x$ . $y$'
@@ -336,6 +341,8 @@ class Inner(Builtin):
 
 class Outer(Builtin):
     """
+    <url>:Outer product:https://en.wikipedia.org/wiki/Outer_product</url> \
+    (<url>:WMA link:https://en.wikipedia.org/wiki/Outer</url>)
     <dl>
       <dt>'Outer[$f$, $x$, $y$]'
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
@@ -423,6 +430,8 @@ class RotationTransform(Builtin):
 
 class ScalingTransform(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
+
     <dl>
       <dt>'ScalingTransform[$v$]'
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
@@ -463,6 +472,8 @@ class ShearingTransform(Builtin):
 
 class TransformationFunction(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
+
     <dl>
       <dt>'TransformationFunction[$m$]'
       <dd>represents a transformation.

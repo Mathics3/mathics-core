@@ -86,6 +86,8 @@ class Chop(Builtin):
 
 class N(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/N.html</url>
+
     <dl>
     <dt>'N[$expr$, $prec$]'
         <dd>evaluates $expr$ numerically with a precision of $prec$ digits.
@@ -411,6 +413,8 @@ class RealValuedNumericQ(Builtin):
 
 class Round(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Round.html</url>
+
     <dl>
       <dt>'Round[$expr$]'
       <dd>rounds $expr$ to the nearest integer.

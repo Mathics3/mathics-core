@@ -61,6 +61,7 @@ class _TraceBase(Builtin):
 
 class ClearTrace(Builtin):
     """
+    <url>:native:</url>
     <dl>
       <dt>'ClearTrace[]'
       <dd>Clear the statistics collected for Built-in Functions
@@ -93,6 +94,7 @@ class ClearTrace(Builtin):
 
 class PrintTrace(_TraceBase):
     """
+    <url>:native:</url>
     <dl>
       <dt>'PrintTrace[]'
       <dd>Print statistics collected for Built-in Functions
@@ -136,6 +138,7 @@ class PrintTrace(_TraceBase):
 
 class TraceBuiltins(_TraceBase):
     """
+    <url>:native:</url>
     <dl>
       <dt>'TraceBuiltins[$expr$]'
       <dd>Evaluate $expr$ and then print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
@@ -248,6 +251,7 @@ class TraceBuiltins(_TraceBase):
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
     """
+    <url>:native:</url>
     <dl>
       <dt>'$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
@@ -310,6 +314,7 @@ class TraceBuiltinsVariable(Builtin):
 
 class TraceEvaluation(Builtin):
     """
+    <url>:native:</url>
     <dl>
       <dt>'TraceEvaluation[$expr$]'
       <dd>Evaluate $expr$ and print each step of the evaluation.
@@ -346,6 +351,7 @@ class TraceEvaluation(Builtin):
 
 class TraceEvaluationVariable(Builtin):
     """
+    <url>:native:</url>
     <dl>
       <dt>'$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.

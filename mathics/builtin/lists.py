@@ -119,6 +119,8 @@ class All(Predefined):
 
 class ContainsOnly(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContainsOnly.html</url>
+
     <dl>
       <dt>'ContainsOnly[$list1$, $list2$]'
       <dd>yields True if $list1$ contains only elements that appear in $list2$.
@@ -360,6 +362,8 @@ class Delete(Builtin):
 
 class Failure(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Failure.html</url>
+
     <dl>
       <dt>Failure[$tag$, $assoc$]
       <dd> represents a failure of a type indicated by $tag$, with details given by the association $assoc$.
@@ -396,6 +400,8 @@ class Key(Builtin):
 
 class Level(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Level.html</url>
+
     <dl>
       <dt>'Level[$expr$, $levelspec$]'
       <dd>gives a list of all subexpressions of $expr$ at the
@@ -502,6 +508,8 @@ class LevelQ(Test):
 
 class List(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/List.html</url>
+
     <dl>
       <dt>'List[$e1$, $e2$, ..., $ei$]'
       <dt>'{$e1$, $e2$, ..., $ei$}'
@@ -562,6 +570,8 @@ class ListQ(Test):
 
 class NotListQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NotListQ.html</url>
+
     <dl>
       <dt>'NotListQ[$expr$]'
       <dd>returns true if $expr$ is not a list.
@@ -607,7 +617,7 @@ def list_boxes(items, f, evaluation, open=None, close=None):
 
 class None_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/None_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/None.html</url>
 
     <dl>
       <dt>'None'
@@ -621,6 +631,8 @@ class None_(Predefined):
 
 class Split(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Split.html</url>
+
     <dl>
       <dt>'Split[$list$]'
       <dd>splits $list$ into collections of consecutive identical elements.
@@ -761,6 +773,8 @@ class SplitBy(Builtin):
 
 class LeafCount(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LeafCount.html</url>
+
     <dl>
       <dt>'LeafCount[$expr$]'
       <dd>returns the total number of indivisible subexpressions in $expr$.
@@ -826,8 +840,6 @@ class LeafCount(Builtin):
 
 class _IterationFunction(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/_IterationFunction.html</url>
-
     >> Sum[k, {k, Range[5]}]
      = 15
     """
@@ -1032,6 +1044,8 @@ class _IterationFunction(Builtin):
 
 class Insert(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Insert.html</url>
+
     <dl>
       <dt>'Insert[$list$, $elem$, $n$]'
       <dd>inserts $elem$ at position $n$ in $list$. When $n$ is negative, the position is counted from the end.
@@ -1082,6 +1096,8 @@ class IntersectingQ(Builtin):
 
 class DisjointQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DisjointQ.html</url>
+
     <dl>
       <dt>'DisjointQ[$a$, $b$]'
       <dd>gives True if $a and $b are disjoint, or False if $a and $b have any common elements.
@@ -1236,6 +1252,8 @@ class _RankedTakeLargest(_RankedTake):
 
 class TakeLargestBy(_RankedTakeLargest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargestBy.html</url>
+
     <dl>
       <dt>'TakeLargestBy[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ largest items in $list$
@@ -1475,6 +1493,8 @@ class _Pad(Builtin):
 
 class PadLeft(_Pad):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PadLeft.html</url>
+
     <dl>
       <dt>'PadLeft[$list$, $n$]'
       <dd>pads $list$ to length $n$ by adding 0 on the left.
@@ -1791,6 +1811,8 @@ class _Cluster(Builtin):
 
 class FindClusters(_Cluster):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindClusters.html</url>
+
     <dl>
       <dt>'FindClusters[$list$]'
       <dd>returns a list of clusters formed from the elements of $list$. The number of cluster is determined
@@ -1919,6 +1941,8 @@ class ClusteringComponents(_Cluster):
 
 class Nearest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Nearest.html</url>
+
     <dl>
       <dt>'Nearest[$list$, $x$]'
       <dd>returns the one item in $list$ that is nearest to $x$.
