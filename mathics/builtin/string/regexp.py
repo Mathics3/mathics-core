@@ -9,7 +9,7 @@ from mathics.builtin.base import Builtin
 
 # builtin.strings.atomic.to_regex seems to have the implementation.
 class RegularExpression(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/RegularExpression.html</url>
 
     <dl>
@@ -17,7 +17,7 @@ class RegularExpression(Builtin):
       <dd>represents the regex specified by the string $"regex"$.
     </dl>
 
-    >> StringSplit["1.23, 4.56  7.89", RegularExpression["(\\\\s|,)+"]]
+    >> StringSplit["1.23, 4.56  7.89", RegularExpression["(\\s|,)+"]]
      = {1.23, 4.56, 7.89}
 
     #> RegularExpression["[abc]"]

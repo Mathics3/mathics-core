@@ -34,7 +34,7 @@ class Characters(Builtin):
      = ABC123
 
     #> \\[Alpha]\\[Beta]\\[Gamma]
-     = αβγ
+     = \u03B1\u03B2\u03B3
     """
 
     attributes = A_LISTABLE | A_PROTECTED

@@ -66,7 +66,7 @@ class EndOfLine(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfLine.html</url>
 
     <dl>
-    <dt>'EndOfString'
+    <dt>'EndOfLine'
       <dd>represents the end of a line in a string.
     </dl>
 
@@ -85,7 +85,7 @@ class EndOfLine(Builtin):
 
 
 class EndOfString(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfString.html</url>
 
     <dl>
@@ -97,7 +97,7 @@ class EndOfString(Builtin):
     >> StringMatchQ[#, __ ~~ "e" ~~ EndOfString] &/@ {"apple", "banana", "artichoke"}
      = {True, False, True}
 
-    >> StringReplace["aab\\nabb", "b" ~~ EndOfString -> "c"]
+    >> StringReplace["aab\nabb", "b" ~~ EndOfString -> "c"]
      = aab
      . abc
     """
@@ -124,21 +124,21 @@ class LetterCharacter(Builtin):
 
 
 class StartOfLine(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfLine.html</url>
 
     <dl>
-    <dt>'StartOfString'
+    <dt>'StartOfLine'
       <dd>represents the start of a line in a string.
     </dl>
 
-    >> StringReplace["aba\\nbba\\na\\nab", StartOfLine ~~ "a" -> "c"]
+    >> StringReplace["aba\nbba\na\nab", StartOfLine ~~ "a" -> "c"]
      = cba
      . bba
      . c
      . cb
 
-    >> StringSplit["abc\\ndef\\nhij", StartOfLine]
+    >> StringSplit["abc\ndef\nhij", StartOfLine]
      = {abc
      . , def
      . , hij}
@@ -482,7 +482,7 @@ class StringMatchQ(Builtin):
 
 
 class WhitespaceCharacter(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
 
     <dl>
@@ -490,16 +490,16 @@ class WhitespaceCharacter(Builtin):
       <dd>represents a single whitespace character.
     </dl>
 
-    >> StringMatchQ["\\n", WhitespaceCharacter]
+    >> StringMatchQ["\n", WhitespaceCharacter]
      = True
 
-    >> StringSplit["a\\nb\\r\\nc\\rd", WhitespaceCharacter]
+    >> StringSplit["a\nb\r\nc\rd", WhitespaceCharacter]
      = {a, b, , c, d}
 
     For sequences of whitespace characters use 'Whitespace':
-    >> StringMatchQ[" \\n", WhitespaceCharacter]
+    >> StringMatchQ[" \n", WhitespaceCharacter]
      = False
-    >> StringMatchQ[" \\n", Whitespace]
+    >> StringMatchQ[" \n", Whitespace]
      = True
     """
 
