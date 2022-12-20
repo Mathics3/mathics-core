@@ -1224,7 +1224,7 @@ class FindFile(Builtin):
 
 
 class FileNames(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/FileNames.html</url>
 
     <dl>

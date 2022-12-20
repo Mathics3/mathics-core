@@ -12,8 +12,8 @@ from mathics.core.list import ListExpression
 
 
 class PrintForms_(Predefined):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PrintForms_.html</url>
+    r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$PrintForms.html</url>
 
     <dl>
       <dt>'$PrintForms'
@@ -45,6 +45,8 @@ class PrintForms_(Predefined):
 
 class OutputForms_(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$OutputForms.html</url>
+
     <dl>
       <dt>'$OutputForms'
       <dd>contains the list of all output forms. It is updated automatically when new 'OutputForms' are defined by setting format values.
