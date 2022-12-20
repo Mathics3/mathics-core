@@ -157,7 +157,7 @@ class _MPMathConstant(_Constant_Common):
 
 
 class _NumpyConstant(_Constant_Common):
-    "Representation of a constant in numpy, e.g. Pi, E, etc."
+    """Representation of a constant in numpy, e.g. Pi, E, etc."""
 
     # Subclasses should define this.
     numpy_name = None
@@ -261,8 +261,6 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Degree.html</url>
-
     <url>
     :Degree (angle):
     https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>

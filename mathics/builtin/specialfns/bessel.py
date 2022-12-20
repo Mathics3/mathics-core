@@ -61,8 +61,7 @@ class AiryAi(_MPMathFunction):
 
 class AiryAiPrime(_MPMathFunction):
     """
-
-    Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
+    Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
       <dt>'AiryAiPrime[$x$]'
       <dd>returns the derivative of the Airy function 'AiryAi[$x$]'.
@@ -92,6 +91,8 @@ class AiryAiPrime(_MPMathFunction):
 
 class AiryAiZero(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryAiZero.html</url>
+
     <dl>
       <dt>'AiryAiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Ai($z$).
@@ -184,6 +185,8 @@ class AiryBi(_MPMathFunction):
 
 class AiryBiPrime(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiPrime.html</url>
+
     <dl>
     <dt>'AiryBiPrime[$x$]'
         <dd>returns the derivative of the Airy function of the second
@@ -664,8 +667,6 @@ class KelvinKer(_Bessel):
 
 class SphericalBesselJ(_Bessel):
     """
-
-
     <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
@@ -711,9 +712,8 @@ class SphericalBesselY(_Bessel):
 
 class SphericalHankelH1(_Bessel):
     """
-
-
-    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH1.html</url>)
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -733,7 +733,8 @@ class SphericalHankelH1(_Bessel):
 class SphericalHankelH2(_Bessel):
     """
 
-    <url>:Spherical Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
+    <url>:Spherical Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SphericalHankelH2.html</url>)
 
     <dl>
       <dt>'SphericalHankelH1[$n$, $z$]'
@@ -753,7 +754,9 @@ class SphericalHankelH2(_Bessel):
 class StruveH(_Bessel):
     """
 
-    <url>:Struve functions H: https://en.wikipedia.org/wiki/Struve_function</url>
+    <url>:Struve functions H: https://en.wikipedia.org/wiki/Struve_function</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Struve.html</url>)
+
     <dl>
       <dt>'StruveH[$n$, $z$]'
       <dd>returns the Struve function H_$n$($z$).
