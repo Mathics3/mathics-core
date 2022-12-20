@@ -762,7 +762,7 @@ class FindMaximum(_BaseFinder):
 
 
 class FindMinimum(_BaseFinder):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/FindMinimum.html</url>
 
     <dl>
@@ -770,7 +770,7 @@ class FindMinimum(_BaseFinder):
         <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
     </dl>
 
-    'FindMinimum' by default uses Newton\\'s method, so the function of interest should have a first derivative.
+    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
 
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]

@@ -41,6 +41,8 @@ class Automatic(Builtin):
 
 class Axes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Axes.html</url>
+
     <dl>
       <dt>'Axes'
       <dd>is an option for charting and graphics functions that specifies whether axes should be drawn.
@@ -77,6 +79,8 @@ class Axis(Builtin):
 
 class Bottom(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Bottom.html</url>
+
     <dl>
       <dt>'Bottom'
       <dd>is a possible value for the 'Filling' option.
@@ -134,6 +138,8 @@ class Filling(Builtin):
 
 class Full(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Full.html</url>
+
     <dl>
       <dt>'Full'
       <dd>is a possible value for the 'Mesh' and 'PlotRange' options.
@@ -170,6 +176,8 @@ class ImageSize(Builtin):
 
 class Joined(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Joined.html</url>
+
     <dl>
       <dt>'Joined $boolean$'
       <dd>is an option for 'Plot' that gives whether to join points to make lines.
@@ -204,6 +212,8 @@ class MaxRecursion(Builtin):
 
 class Mesh(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Mesh.html</url>
+
     <dl>
        <dt>'Mesh'
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that specifies the mesh to be drawn. The default is 'Mesh->None'.
@@ -246,6 +256,8 @@ class PlotPoints(Builtin):
 
 class PlotRange(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PlotRange.html</url>
+
     <dl>
       <dt>'PlotRange'
       <dd>is a charting option, such as for 'Plot', 'BarChart', 'PieChart', etc. that gives the range of coordinates to include in a plot.
@@ -292,10 +304,12 @@ class TicksStyle(Builtin):
 
 class Top(Builtin):
     """
-     <dl>
-       <dt>'Top'
-       <dd>is a possible value for the 'Filling' option.
-     </dl>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Top.html</url>
+
+    <dl>
+      <dt>'Top'
+      <dd>is a possible value for the 'Filling' option.
+    </dl>
 
     >> ListLinePlot[Table[Cos[x], {x, -5, 5, 0.2}], Filling->Top]
       = -Graphics-
