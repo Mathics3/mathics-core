@@ -155,7 +155,7 @@ class AppendTo(Builtin):
 
 
 class Cases(Builtin):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/Cases.html</url>
 
     <dl>
@@ -175,11 +175,11 @@ class Cases(Builtin):
      = {2 I, 4 - I}
 
     Find symbols among the elements of an expression:
-    >> Cases[{b, 6, \\[Pi]}, _Symbol]
+    >> Cases[{b, 6, \[Pi]}, _Symbol]
      = {b, Pi}
 
     Also include the head of the expression in the previous search:
-    >> Cases[{b, 6, \\[Pi]}, _Symbol, Heads -> True]
+    >> Cases[{b, 6, \[Pi]}, _Symbol, Heads -> True]
      = {List, b, Pi}
 
     #> Cases[1, 2]
