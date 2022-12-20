@@ -178,8 +178,6 @@ class FullForm(FormBaseClass):
 
 class MathMLForm(FormBaseClass):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MathMLForm.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/MathMLForm.html</url>
@@ -747,8 +745,6 @@ class NumberForm(_NumberForm):
 
 class OutputForm(FormBaseClass):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OutputForm.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OutputForm.html</url>
@@ -877,8 +873,6 @@ class StandardForm(FormBaseClass):
 
 class TraditionalForm(FormBaseClass):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
@@ -954,8 +948,6 @@ class TeXForm(FormBaseClass):
 
 class TableForm(FormBaseClass):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TableForm.html</url>
-
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/TableForm.html</url>

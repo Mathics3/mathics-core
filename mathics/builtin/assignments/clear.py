@@ -44,8 +44,6 @@ from mathics.core.atoms import String
 
 class Clear(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Clear.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Clear.html</url>
@@ -183,8 +181,6 @@ class ClearAll(Clear):
 
 class Remove(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Remove.html</url>
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Remove.html</url>
