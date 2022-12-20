@@ -419,7 +419,7 @@ class Pochhammer(SympyFunction):
 
 
 class PolyGamma(_MPMathMultiFunction):
-    """
+    r"""
     <url>:WMA link:https://reference.wolfram.com/language/ref/PolyGamma.html</url>
 
     PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.

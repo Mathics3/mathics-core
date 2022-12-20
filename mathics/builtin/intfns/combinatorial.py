@@ -145,8 +145,7 @@ class CatalanNumber(SympyFunction):
 
 
 class DiceDissimilarity(_BooleanDissimilarity):
-    """
-
+    r"""
     <url>:Sørensen–Dice coefficient: https://en.wikipedia.org/wiki/S%C3%B8rensen%E2%80%93Dice_coefficient</url> (<url>:Sympy: https://docs.scipy.org/doc/scipy/search.html</url>, <url>:DiceDissimilarity: https://reference.wolfram.com/language/ref/DiceDissimilarity.html</url>)
     <dl>
       <dt>'DiceDissimilarity[$u$, $v$]'
