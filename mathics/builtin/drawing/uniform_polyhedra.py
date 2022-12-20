@@ -18,6 +18,8 @@ uniform_polyhedra_set = frozenset(uniform_polyhedra_names.split(", "))
 
 class UniformPolyhedron(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UniformPolyhedron.html</url>
+
     <dl>
       <dt>'UniformPolyhedron["name"]'
       <dd>return a uniform polyhedron with the given name.
@@ -73,6 +75,8 @@ class Dodecahedron(Builtin):
 
 class Icosahedron(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Icosahedron.html</url>
+
     <dl>
       <dt>'Icosahedron[]'
       <dd>a regular Icosahedron centered at the origin with unit edge length.
@@ -111,6 +115,8 @@ class Octahedron(Builtin):
 
 class Tetrahedron(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tetrahedron.html</url>
+
     <dl>
       <dt>'Tetrahedron[]'
       <dd>a regular tetrahedron centered at the origin with unit edge length.

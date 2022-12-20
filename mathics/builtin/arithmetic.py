@@ -230,6 +230,7 @@ def create_infix(items, operator, prec, grouping):
 
 class Abs(_MPMathFunction):
     """
+
     <url>:Absolute value: https://en.wikipedia.org/wiki/Absolute_value</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
     <dl>
@@ -333,6 +334,8 @@ class Arg(_MPMathFunction):
 
 class Assuming(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>
+
     <dl>
       <dt>'Assuming[$cond$, $expr$]'
       <dd>Evaluates $expr$ assuming the conditions $cond$.
@@ -390,6 +393,8 @@ class Assumptions(Predefined):
 
 class Boole(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Boole.html</url>
+
     <dl>
       <dt>'Boole[expr]'
       <dd>returns 1 if expr is True and 0 if expr is False.
@@ -487,6 +492,8 @@ class Complex_(Builtin):
 
 class ConditionalExpression(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ConditionalExpression.html</url>
+
     <dl>
       <dt>'ConditionalExpression[$expr$, $cond$]'
       <dd>returns $expr$ if $cond$ evaluates to $True$, $Undefined$ if $cond$ evaluates to $False$.
@@ -603,6 +610,8 @@ class Conjugate(_MPMathFunction):
 
 class DirectedInfinity(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
+
     <dl>
       <dt>'DirectedInfinity[$z$]'
       <dd>represents an infinite multiple of the complex number $z$.
@@ -714,6 +723,8 @@ class I(Predefined):
 
 class Im(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Im.html</url>
+
     <dl>
       <dt>'Im[$z$]'
       <dd>returns the imaginary component of the complex number $z$.
@@ -771,6 +782,8 @@ class Integer_(Builtin):
 
 class NumberQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NumberQ.html</url>
+
     <dl>
       <dt>'NumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is an explicit number, and 'False' otherwise.
@@ -885,6 +898,8 @@ class Piecewise(SympyFunction):
 
 class PossibleZeroQ(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PossibleZeroQ.html</url>
+
     <dl>
       <dt>'PossibleZeroQ[$expr$]'
       <dd>returns 'True' if basic symbolic and numerical methods suggest that expr has value zero, and 'False' otherwise.
@@ -1031,6 +1046,8 @@ class Product(_IterationFunction, SympyFunction):
 
 class Rational_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rational_.html</url>
+
     <dl>
       <dt>'Rational'
       <dd>is the head of rational numbers.
@@ -1101,6 +1118,8 @@ class Re(SympyFunction):
 
 class Real_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Real_.html</url>
+
     <dl>
       <dt>'Real'
       <dd>is the head of real (inexact) numbers.
@@ -1200,6 +1219,8 @@ class RealNumberQ(Test):
 
 class Sign(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sign.html</url>
+
     <dl>
       <dt>'Sign[$x$]'
       <dd>return -1, 0, or 1 depending on whether $x$ is negative, zero, or positive.

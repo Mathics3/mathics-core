@@ -26,6 +26,8 @@ from mathics.core.attributes import (
 
 class Composition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Composition.html</url>
+
     <dl>
       <dt>'Composition[$f$, $g$]'
       <dd>returns the composition of two functions $f$ and $g$.

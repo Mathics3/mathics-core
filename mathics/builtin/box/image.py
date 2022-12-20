@@ -5,6 +5,8 @@ from mathics.builtin.base import BoxExpression
 
 class ImageBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageBox.html</url>
+
     <dl>
       <dt>'ImageBox[...]'
       <dd>is a box structure for an image element.

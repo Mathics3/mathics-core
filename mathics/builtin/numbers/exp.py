@@ -190,6 +190,8 @@ class Exp(_MPMathFunction):
 
 class Log(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log.html</url>
+
     <dl>
       <dt>'Log[$z$]'
       <dd>returns the natural logarithm of $z$.
@@ -269,6 +271,8 @@ class Log2(Builtin):
 
 class Log10(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log10.html</url>
+
     <dl>
       <dt>'Log10[$z$]'
       <dd>returns the base-10 logarithm of $z$.

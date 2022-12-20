@@ -37,6 +37,7 @@ SymbolMantissaExponent = Symbol("System`MantissaExponent")
 
 class ContinuedFraction(SympyFunction):
     """
+
     <url>:Continued fraction: https://en.wikipedia.org/wiki/Continued_fraction</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#module-sympy.ntheory.continued_fraction</url>, <url>:WMA: https://reference.wolfram.com/language/ref/ContinuedFraction.html</url>)
     <dl>
       <dt>'ContinuedFraction[$x$, $n$]'
@@ -148,6 +149,7 @@ class Divisors(Builtin):
 
 class EulerPhi(SympyFunction):
     """
+
     <url>:Euler's totient function: https://en.wikipedia.org/wiki/Euler%27s_totient_function</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/ntheory.html#sympy.ntheory.factor_.totient</url>, <url>:WMA: https://reference.wolfram.com/language/ref/EulerPhi.html</url>)
     This function counts positive integers up to $n$ that are relatively prime to $n$.
     It is typically used in cryptography and in many applications in elementary number theory.
@@ -255,6 +257,8 @@ def _fractional_part(self, n, expr, evaluation):
 
 class FractionalPart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
+
     <dl>
     <dt>'FractionalPart[$n$]'
         <dd>finds the fractional part of $n$.
@@ -333,6 +337,8 @@ class FromContinuedFraction(SympyFunction):
 
 class MantissaExponent(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MantissaExponent.html</url>
+
     <dl>
     <dt>'MantissaExponent[$n$]'
         <dd>finds a list containing the mantissa and exponent of a given number $n$.
@@ -529,6 +535,8 @@ class NextPrime(Builtin):
 
 class PartitionsP(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PartitionsP.html</url>
+
     <dl>
       <dt>'PartitionsP[$n$]'
       <dd>return the number $p$($n$) of unrestricted partitions of the integer $n$.
@@ -590,6 +598,8 @@ class Prime(SympyFunction):
 
 class PrimePi(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrimePi.html</url>
+
     <dl>
     <dt>'PrimePi[$x$]'
         <dd>gives the number of primes less than or equal to $x$.
@@ -684,6 +694,8 @@ class PrimePowerQ(Builtin):
 
 class RandomPrime(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
+
     <dl>
       <dt>'RandomPrime[{$imin$, $imax}]'
       <dd>gives a random prime between $imin$ and $imax$.

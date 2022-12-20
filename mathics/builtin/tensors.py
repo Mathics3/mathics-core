@@ -83,6 +83,8 @@ def get_dimensions(expr, head=None):
 
 class ArrayDepth(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
+
     <dl>
       <dt>'ArrayDepth[$a$]'
       <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
@@ -170,6 +172,8 @@ class ArrayQ(Builtin):
 
 class Dimensions(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Dimensions.html</url>
+
     <dl>
     <dt>'Dimensions[$expr$]'
         <dd>returns a list of the dimensions of the expression $expr$.
@@ -239,6 +243,8 @@ class Dot(BinaryOperator):
 
 class Inner(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inner.html</url>
+
     <dl>
     <dt>'Inner[$f$, $x$, $y$, $g$]'
         <dd>computes a generalised inner product of $x$ and $y$, using
@@ -397,6 +403,8 @@ class Outer(Builtin):
 
 class RotationTransform(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RotationTransform.html</url>
+
     <dl>
       <dt>'RotationTransform[$phi$]'
       <dd>gives a rotation by $phi$.
@@ -433,6 +441,8 @@ class ScalingTransform(Builtin):
 
 class ShearingTransform(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
+
     <dl>
     <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
         <dd>gives a horizontal shear by the angle $phi$.
@@ -474,6 +484,8 @@ class TransformationFunction(Builtin):
 
 class TranslationTransform(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
+
     <dl>
       <dt>'TranslationTransform[$v$]'
       <dd>gives the translation by the vector $v$.
@@ -543,6 +555,8 @@ class Transpose(Builtin):
 # are subsumed by Elements of Lists.
 class VectorQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VectorQ.html</url>
+
     <dl>
       <dt>'VectorQ[$v$]'
       <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.

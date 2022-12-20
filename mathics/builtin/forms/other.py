@@ -14,6 +14,8 @@ from mathics.core.atoms import String
 
 class StringForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringForm.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/StringForm.html</url>

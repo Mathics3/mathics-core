@@ -14,6 +14,8 @@ from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 
 class DefaultValues(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DefaultValues.html</url>
+
     <dl>
       <dt>'DefaultValues[$symbol$]'
       <dd>gives the list of default values associated with $symbol$.
@@ -77,6 +79,8 @@ class Messages(Builtin):
 
 class NValues(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
+
     <dl>
        <dt>'NValues[$symbol$]'
        <dd>gives the list of numerical values associated with $symbol$.

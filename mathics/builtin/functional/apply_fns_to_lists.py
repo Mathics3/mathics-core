@@ -45,6 +45,8 @@ SymbolMapThread = Symbol("MapThread")
 
 class Apply(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Apply.html</url>
+
     <dl>
       <dt>'Apply[$f$, $expr$]'
 
@@ -183,6 +185,8 @@ class Map(BinaryOperator):
 
 class MapAt(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MapAt.html</url>
+
     <dl>
       <dt>'MapAt[$f$, $expr$, $n$]'
       <dd>applies $f$ to the element at position $n$ in $expr$. If $n$ is negative, the position is counted from the end.
@@ -337,6 +341,8 @@ class MapIndexed(Builtin):
 
 class MapThread(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MapThread.html</url>
+
     <dl>
       <dt>'MapThread[$f$, {{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]
       <dd>returns '{$f$[$a1$, $b1$, ...], $f$[$a2$, $b2$, ...], ...}'.
@@ -509,6 +515,8 @@ class Scan(Builtin):
 
 class Thread(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thread.html</url>
+
     <dl>
       <dt>'Thread[$f$[$args$]]'
       <dd>threads $f$ over any lists that appear in $args$.

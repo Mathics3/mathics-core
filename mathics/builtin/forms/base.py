@@ -8,6 +8,8 @@ form_symbol_to_class = {}
 
 class FormBaseClass(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FormBaseClass.html</url>
+
     Base class for a Mathics Form.
 
     All Forms should subclass this.

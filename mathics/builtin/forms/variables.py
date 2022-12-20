@@ -12,7 +12,9 @@ from mathics.core.list import ListExpression
 
 
 class PrintForms_(Predefined):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrintForms_.html</url>
+
     <dl>
       <dt>'$PrintForms'
       <dd>contains the list of basic print forms. It is updated automatically when new 'PrintForms' are defined by setting format values.

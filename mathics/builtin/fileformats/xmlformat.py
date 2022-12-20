@@ -227,6 +227,8 @@ def parse_xml(parse, text, evaluation):
 
 class XMLObject(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLObject.html</url>
+
     <dl>
     <dt>'XMLObject["type"]'
     <dd> represents the head of an XML object in symbolic XML.
@@ -279,6 +281,8 @@ class XMLGet(_Get):
 
 class XMLGetString(_Get):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLGetString.html</url>
+
     <dl>
     <dt>'XML`Parser`XMLGetString["string"]'
     <dd>parses "string" as XML code, and returns an XMLObject.
@@ -331,6 +335,8 @@ class PlaintextImport(Builtin):
 
 class TagsImport(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagsImport.html</url>
+
     <dl>
     <dt>'XML`TagsImport["string"]'
     <dd>parses "string" as XML code, and returns a list with the tags found.

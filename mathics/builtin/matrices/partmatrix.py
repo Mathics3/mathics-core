@@ -13,6 +13,8 @@ from mathics.core.list import ListExpression
 
 class Diagonal(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Diagonal.html</url>
+
     <dl>
         <dt>'Diagonal[$m$]'
         <dd>gives a list with the values in the diagonal of the matrix $m$.

@@ -291,6 +291,8 @@ class _TallyBin:
 
 class Catenate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catenate.html</url>
+
     <dl>
       <dt>'Catenate[{$l1$, $l2$, ...}]'
       <dd>concatenates the lists $l1$, $l2$, ...
@@ -373,6 +375,8 @@ class Complement(_SetOperation):
 
 class DeleteDuplicates(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteDuplicates.html</url>
+
     <dl>
       <dt>'DeleteDuplicates[$list$]'
       <dd>deletes duplicates from $list$.
@@ -425,6 +429,8 @@ class Gather(_GatherOperation):
 
 class GatherBy(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GatherBy.html</url>
+
     <dl>
       <dt>'GatherBy[$list$, $f$]'
       <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical.
@@ -527,6 +533,8 @@ class Join(Builtin):
 
 class Partition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Partition.html</url>
+
     <dl>
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
@@ -692,6 +700,8 @@ def riffle_lists(items, seps):
 
 class Riffle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Riffle.html</url>
+
     <dl>
       <dt>'Riffle[$list$, $x$]'
       <dd>inserts a copy of $x$ between each element of $list$.
@@ -764,6 +774,8 @@ class RotateLeft(_Rotate):
 
 class RotateRight(_Rotate):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RotateRight.html</url>
+
     <dl>
       <dt>'RotateRight[$expr$]'
       <dd>rotates the items of $expr$' by one item to the right.
@@ -813,6 +825,8 @@ class Tally(_GatherOperation):
 
 class Union(_SetOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Union.html</url>
+
     <dl>
       <dt>'Union[$a$, $b$, ...]'
       <dd>gives the union of the given set or sets. The resulting list will be sorted and each element will only occur once.

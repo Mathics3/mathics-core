@@ -40,6 +40,8 @@ def _norm_calc(head, u, v, evaluation):
 
 class BrayCurtisDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BrayCurtisDistance.html</url>
+
     <dl>
       <dt>'BrayCurtisDistance[$u$, $v$]'
        <dd>returns the Bray-Curtis distance between $u$ and $v$.
@@ -102,6 +104,8 @@ class CanberraDistance(Builtin):
 
 class ChessboardDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ChessboardDistance.html</url>
+
     <dl>
       <dt>'ChessboardDistance[$u$, $v$]'
       <dd>returns the chessboard distance (also known as Chebyshev distance) between $u$ and $v$, which is the number of moves a king on a chessboard needs to get from square $u$ to square $v$.
@@ -163,6 +167,8 @@ class CosineDistance(Builtin):
 
 class EuclideanDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EuclideanDistance.html</url>
+
     <dl>
       <dt>'EuclideanDistance[$u$, $v$]'
       <dd>returns the euclidean distance between $u$ and $v$.
@@ -212,6 +218,8 @@ class ManhattanDistance(Builtin):
 
 class SquaredEuclideanDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SquaredEuclideanDistance.html</url>
+
     <dl>
       <dt>'SquaredEuclideanDistance[$u$, $v$]'
       <dd>returns squared the euclidean distance between $u$ and $v$.

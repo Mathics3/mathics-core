@@ -44,6 +44,8 @@ def chop(expr, delta=10.0 ** (-10.0)):
 
 class Chop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Chop.html</url>
+
     <dl>
       <dt>'Chop[$expr$]'
       <dd>replaces floating point numbers close to 0 by 0.
@@ -245,6 +247,8 @@ class N(Builtin):
 
 class Rationalize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rationalize.html</url>
+
     <dl>
       <dt>'Rationalize[$x$]'
       <dd>converts a real number $x$ to a nearby rational number with small denominator.

@@ -61,6 +61,7 @@ class AiryAi(_MPMathFunction):
 
 class AiryAiPrime(_MPMathFunction):
     """
+
     Derivative of Airy function (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.airyaiprime</url>, <url>:WMA:https://reference.wolfram.com/language/ref/AiryAiPrime.html</url>)
     <dl>
       <dt>'AiryAiPrime[$x$]'
@@ -150,6 +151,8 @@ class AiryAiZero(Builtin):
 
 class AiryBi(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBi.html</url>
+
     <dl>
     <dt>'AiryBi[$x$]'
       <dd>returns the Airy function of the second kind Bi($x$).
@@ -211,6 +214,8 @@ class AiryBiPrime(_MPMathFunction):
 
 class AiryBiZero(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AiryBiZero.html</url>
+
     <dl>
     <dt>'AiryBiZero[$k$]'
       <dd>returns the $k$th zero of the Airy function Bi($z$).
@@ -296,6 +301,7 @@ class AngerJ(_Bessel):
 class BesselI(_Bessel):
     """
 
+
     <url>:Modified Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Bessel_functions_of_the_first_kind:_J%CE%B1</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besseli</url>, <url>:WMA: https://reference.wolfram.com/language/ref/BesselI.html</url>)
 
     <dl>
@@ -367,6 +373,7 @@ class BesselJ(_Bessel):
 
 class BesselK(_Bessel):
     """
+
     <url>:Modified Bessel function of the second kind: https://en.wikipedia.org/wiki/Bessel_function#Modified_Bessel_functions:_I%CE%B1,_K%CE%B1</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.besselk</url>, <url>:WMA:https://reference.wolfram.com/language/ref/BesselJ.html</url>)
 
     <dl>
@@ -431,6 +438,8 @@ class BesselY(_Bessel):
 
 class BesselJZero(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BesselJZero.html</url>
+
     <dl>
       <dt>'BesselJZero[$n$, $k$]'
       <dd>returns the $k$th zero of the Bessel function of the first kind J_$n$($z$).
@@ -472,6 +481,8 @@ class BesselYZero(_Bessel):
 
 class HankelH1(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HankelH1.html</url>
+
     <dl>
       <dt>'HankelH1[$n$, $z$]'
       <dd>returns the Hankel function of the first kind H_$n$^1 ($z$).
@@ -515,6 +526,7 @@ class HankelH2(_Bessel):
 
 class KelvinBei(_Bessel):
     """
+
     <url>:Kelvin function bei: https://en.wikipedia.org/wiki/Kelvin_functions#bei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#bei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinBei.html</url>)
 
     <dl>
@@ -584,6 +596,7 @@ class KelvinBer(_Bessel):
 
 class KelvinKei(_Bessel):
     """
+
     <url>:Kelvin function kei: https://en.wikipedia.org/wiki/Kelvin_functions#kei(x)</url> (<url>:mpmath: https://mpmath.org/doc/current/functions/bessel.html#kei</url>, <url>:WMA: https://reference.wolfram.com/language/ref/KelvinKei.html</url>)
 
     <dl>
@@ -652,6 +665,7 @@ class KelvinKer(_Bessel):
 class SphericalBesselJ(_Bessel):
     """
 
+
     <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url> (<url>:Sympy: https://docs.sympy.org/latest/modules/functions/special.html#sympy.functions.special.bessel.jn</url>, <url>:WMA: https://reference.wolfram.com/language/ref/SphericalBesselJ.html</url>)
 
     <dl>
@@ -698,6 +712,7 @@ class SphericalBesselY(_Bessel):
 class SphericalHankelH1(_Bessel):
     """
 
+
     <url>:Spherical Bessel function of the first kind: https://en.wikipedia.org/wiki/Bessel_function#Spherical_Bessel_functions</url>
 
     <dl>
@@ -737,6 +752,7 @@ class SphericalHankelH2(_Bessel):
 
 class StruveH(_Bessel):
     """
+
     <url>:Struve functions H: https://en.wikipedia.org/wiki/Struve_function</url>
     <dl>
       <dt>'StruveH[$n$, $z$]'
@@ -785,6 +801,8 @@ class StruveL(_Bessel):
 
 class WeberE(_Bessel):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WeberE.html</url>
+
     <dl>
       <dt>'WeberE[$n$, $z$]'
       <dd>returns the Weber function E_$n$($z$).

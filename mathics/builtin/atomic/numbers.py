@@ -255,6 +255,8 @@ class ExactNumberQ(Test):
 
 class IntegerExponent(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerExponent.html</url>
+
     <dl>
       <dt>'IntegerExponent[$n$, $b$]'
       <dd>gives the highest exponent of $b$ that divides $n$.
@@ -408,6 +410,8 @@ class IntegerLength(Builtin):
 
 class InexactNumberQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
+
     <dl>
       <dt>'InexactNumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is not an exact number, and 'False' otherwise.
@@ -452,6 +456,8 @@ class IntegerQ(Test):
 
 class MachineNumberQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineNumberQ.html</url>
+
     <dl>
       <dt>'MachineNumberQ[$expr$]'
       <dd>returns 'True' if $expr$ is a machine-precision real or complex number.
@@ -737,6 +743,8 @@ class RealDigits(Builtin):
 
 class MaxPrecision(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxPrecision.html</url>
+
     <dl>
       <dt>'$MaxPrecision'
       <dd>represents the maximum number of digits of precision permitted in abitrary-precision numbers.
@@ -816,6 +824,8 @@ class MachineEpsilon_(Predefined):
 
 class MachinePrecision_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MachinePrecision_.html</url>
+
     <dl>
       <dt>'$MachinePrecision'
       <dd>is the number of decimal digits of precision for machine-precision numbers.
@@ -865,6 +875,8 @@ class MachinePrecision(Predefined):
 
 class MinPrecision(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MinPrecision.html</url>
+
     <dl>
       <dt>'$MinPrecision'
       <dd>represents the minimum number of digits of precision permitted in abitrary-precision numbers.
@@ -966,6 +978,7 @@ class NumericQ(Builtin):
 
 class Precision(Builtin):
     """
+
     <url>:Precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Precision: https://reference.wolfram.com/language/ref/Precision.html</url>)
 
     <dl>

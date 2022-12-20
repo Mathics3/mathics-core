@@ -65,6 +65,8 @@ class Style3D(Style):
 
 class Graphics3D(Graphics):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
+
     <dl>
       <dt>'Graphics3D[$primitives$, $options$]'
       <dd>represents a three-dimensional graphic.
@@ -209,6 +211,8 @@ class Sphere(Builtin):
 
 class Cone(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cone.html</url>
+
     <dl>
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cone of radius 1.
@@ -306,6 +310,8 @@ class Cuboid(Builtin):
 
 class Cylinder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cylinder.html</url>
+
     <dl>
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cylinder of radius 1.

@@ -185,6 +185,8 @@ def _extract_graphics(graphics, format, evaluation):
 
 class Show(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Show.html</url>
+
     <dl>
       <dt>'Show[$graphics$, $options$]'
       <dd>shows a list of graphics with the specified options added.
@@ -412,6 +414,8 @@ class AbsoluteThickness(_Thickness):
 
 class Point(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Point.html</url>
+
     <dl>
       <dt>'Point[{$point_1$, $point_2$ ...}]'
       <dd>represents the point primitive.
@@ -468,6 +472,8 @@ class PointSize(_Size):
 # is kind of  wrong.
 class Line(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Line.html</url>
+
     <dl>
       <dt>'Line[{$point_1$, $point_2$ ...}]'
       <dd>represents the line primitive.
@@ -520,6 +526,8 @@ def _svg_bezier(*segments):
 
 class FilledCurve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FilledCurve.html</url>
+
     <dl>
       <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
       <dd>represents a filled curve.
@@ -564,6 +572,8 @@ class Polygon(Builtin):
 
 class RegularPolygon(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
+
     <dl>
       <dt>'RegularPolygon[$n$]'
       <dd>gives the regular polygon with $n$ edges.
@@ -623,6 +633,8 @@ class Arrow(Builtin):
 
 class Arrowheads(_GraphicsDirective):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Arrowheads.html</url>
+
     <dl>
       <dt>'Arrowheads[$s$]'
       <dd>specifies that Arrow[] draws one arrow of size $s$ (relative to width of image, defaults to 0.04).
@@ -1150,6 +1162,8 @@ class GraphicsElements(_GraphicsElements):
 
 class Circle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Circle.html</url>
+
     <dl>
       <dt>'Circle[{$cx$, $cy$}, $r$]'
       <dd>draws a circle with center '($cx$, $cy$)' and radius $r$.
@@ -1216,6 +1230,8 @@ class Disk(Builtin):
 
 class Directive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Directive.html</url>
+
     <dl>
       <dt> 'Directive'[$g_1$, $g_2$, ...]
       <dd> represents a single graphics directive composed of the directives $g_1$, $g_2$, ...
@@ -1244,6 +1260,8 @@ class EdgeForm(Builtin):
 
 class FaceForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FaceForm.html</url>
+
     <dl>
       <dt> 'FaceForm[$g$]'
       <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $ g$.
@@ -1266,6 +1284,8 @@ class FontColor(Builtin):
 
 class Inset(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inset.html</url>
+
     <dl>
       <dt>'Text[$obj$]'
       <dd>represents an object $obj$ inset in a graphic.
@@ -1295,6 +1315,8 @@ class Large(Builtin):
 
 class Medium(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Medium.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Medium'
       <dd>produces a medium-sized image.
@@ -1317,6 +1339,8 @@ class Offset(Builtin):
 
 class Rectangle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rectangle.html</url>
+
     <dl>
       <dt>'Rectangle[{$xmin$, $ymin$}]'
       <dd>represents a unit square with bottom-left corner at {$xmin$, $ymin$}.
@@ -1349,6 +1373,8 @@ class Small(Builtin):
 
 class Text(Inset):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Text.html</url>
+
     <dl>
       <dt>'Text["$text$", {$x$, $y$}]'
       <dd>draws $text$ centered on position '{$x$, $y$}'.
@@ -1378,6 +1404,8 @@ class Thick(Builtin):
 
 class Thin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Thin.html</url>
+
     <dl>
       <dt>'Thin'
       <dd>sets the line width for subsequent graphics primitives to 0.5pt.
@@ -1407,6 +1435,8 @@ class Thickness(_Thickness):
 
 class Tiny(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tiny.html</url>
+
     <dl>
       <dt>'ImageSize' -> 'Tiny'
       <dd>produces a tiny image.

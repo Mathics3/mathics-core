@@ -33,6 +33,8 @@ from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 class Default(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Default.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Default.html</url>
@@ -134,6 +136,8 @@ class FilterRules(Builtin):
 # Has this been removed from WL? I cannot find a WMA link.
 class NotOptionQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
+
     <dl>
       <dt>'NotOptionQ[$expr$]'
       <dd>returns 'True' if $expr$ does not have the form of a valid \
@@ -168,6 +172,8 @@ class NotOptionQ(Test):
 # Has this been removed from WL? I cannot find a WMA link.
 class OptionQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionQ.html</url>
+
     <dl>
       <dt>'OptionQ[$expr$]'
       <dd>returns 'True' if $expr$ has the form of a valid option \
@@ -304,6 +310,8 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionValue.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OptionValue.html</url>

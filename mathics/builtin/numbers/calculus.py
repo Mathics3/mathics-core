@@ -106,6 +106,8 @@ SymbolIntegral = Symbol("System`Integral")
 # Maybe this class should be in a module "mathics.builtin.domains" or something like that
 class Complexes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Complexes.html</url>
+
     <dl>
     <dt>'Complexes'
         <dd>the domain of complex numbers, as in $x$ in Complexes.
@@ -371,6 +373,8 @@ class D(SympyFunction):
 
 class Derivative(PostfixOperator, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Derivative.html</url>
+
     <dl>
       <dt>'Derivative[$n$][$f$]'
       <dd>represents the $n$th derivative of the function $f$.
@@ -577,6 +581,8 @@ class DiscreteLimit(Builtin):
 
 class _BaseFinder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/_BaseFinder.html</url>
+
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
     """
 
@@ -756,13 +762,15 @@ class FindMaximum(_BaseFinder):
 
 
 class FindMinimum(_BaseFinder):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindMinimum.html</url>
+
     <dl>
     <dt>'FindMinimum[$f$, {$x$, $x0$}]'
         <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
     </dl>
 
-    'FindMinimum' by default uses Newton\'s method, so the function of interest should have a first derivative.
+    'FindMinimum' by default uses Newton\\'s method, so the function of interest should have a first derivative.
 
 
     >> FindMinimum[(x-3)^2+2., {x, 1}]
@@ -895,6 +903,8 @@ class FindRoot(_BaseFinder):
 # Move to mathics.builtin.domains...
 class Integers(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Integers.html</url>
+
     <dl>
       <dt>'Integers'
       <dd>the domain of integer numbers, as in $x$ in Integers.
@@ -1187,6 +1197,8 @@ class Integrate(SympyFunction):
 
 class Limit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
+
     <dl>
       <dt>'Limit[$expr$, $x$->$x0$]'
       <dd>gives the limit of $expr$ as $x$ approaches $x0$.
@@ -1540,6 +1552,8 @@ class NIntegrate(Builtin):
 
 class O_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/O_.html</url>
+
     <dl>
       <dt>'O[$x$]^n'
       <dd> Represents a term of order $x^n$.
@@ -1579,6 +1593,8 @@ class Reals(Builtin):
 
 class Root(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Root.html</url>
+
     <dl>
     <dt>'Root[$f$, $i$]'
         <dd>represents the i-th complex root of the polynomial $f$
@@ -1716,6 +1732,8 @@ class Series(Builtin):
 
 class SeriesData(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
+
     <dl>
       <dt>'SeriesData[...]'
       <dd>Represents a series expansion

@@ -34,6 +34,8 @@ SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 class Center(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Center.html</url>
+
     <dl>
       <dt>'Center'
       <dd>is used with the 'ColumnAlignments' option to 'Grid' or
@@ -80,6 +82,8 @@ class Format(Builtin):
 
 class Grid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Grid.html</url>
+
     <dl>
       <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
       <dd>formats several expressions inside a 'GridBox'.
@@ -151,6 +155,8 @@ class Infix(Builtin):
 
 class Left(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Left.html</url>
+
     <dl>
       <dt>'Left'
       <dd>is used with operator formatting constructs to specify a left-associative operator.
@@ -173,6 +179,8 @@ class NonAssociative(Builtin):
 
 class Postfix(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Postfix.html</url>
+
     <dl>
       <dt>'$x$ // $f$'
       <dd>is equivalent to '$f$[$x$]'.
@@ -235,6 +243,8 @@ class Precedence(Builtin):
 
 class Prefix(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Prefix.html</url>
+
     <dl>
       <dt>'$f$ @ $x$'
       <dd>is equivalent to '$f$[$x$]'.
@@ -280,6 +290,8 @@ class Right(Builtin):
 
 class Row(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Row.html</url>
+
     <dl>
       <dt>'Row[{$expr$, ...}]'
       <dd>formats several expressions inside a 'RowBox'.
@@ -348,6 +360,8 @@ class Style(Builtin):
 
 class Subscript(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subscript.html</url>
+
     <dl>
       <dt>'Subscript[$a$, $i$]'
       <dd>displays as $a_i$.
@@ -392,6 +406,8 @@ class Subsuperscript(Builtin):
 
 class Superscript(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Superscript.html</url>
+
     <dl>
       <dt>'Superscript[$x$, $y$]'
       <dd>displays as $x$^$y$.

@@ -88,6 +88,8 @@ class BitLength(Builtin):
 
 class Ceiling(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Ceiling.html</url>
+
     <dl>
       <dt>'Ceiling[$x$]'
       <dd>gives the smallest integer greater than or equal to $x$.
@@ -171,6 +173,8 @@ class DigitCount(_IntBaseBuiltin):
 
 class Floor(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Floor.html</url>
+
     <dl>
       <dt>'Floor[$x$]'
       <dd>gives the greatest integer less than or equal to $x$.
@@ -303,6 +307,8 @@ class FromDigits(Builtin):
 
 class IntegerString(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerString.html</url>
+
     <dl>
       <dt>'IntegerString[$n$]'
       <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
@@ -382,6 +388,8 @@ class IntegerString(Builtin):
 
 class IntegerDigits(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerDigits.html</url>
+
     <dl>
       <dt>'IntegerDigits[$n$]'
       <dd>returns a list of the base-10 digits in the integer $n$.
@@ -390,6 +398,7 @@ class IntegerDigits(Builtin):
       <dt>'IntegerDigits[$n$, $base$, $length$]'
       <dd>returns a list of length $length$, truncating or padding with zeroes on the left as necessary.
     </dl>
+
 
     >> IntegerDigits[76543]
      = {7, 6, 5, 4, 3}
@@ -532,6 +541,8 @@ class IntegerDigits(_IntBaseBuiltin):
 
 class IntegerReverse(_IntBaseBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerReverse.html</url>
+
     <dl>
       <dt>'IntegerReverse[$n$]'
       <dd>returns the integer that has the reverse decimal representation of $x$ without sign.

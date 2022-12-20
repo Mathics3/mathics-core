@@ -24,6 +24,8 @@ from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 
 class AddTo(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AddTo.html</url>
+
     <dl>
       <dt>'AddTo[$x$, $dx$]'
       <dt>'$x$ += $dx$'
@@ -79,6 +81,8 @@ class Decrement(PostfixOperator):
 
 class DivideBy(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DivideBy.html</url>
+
     <dl>
       <dt>'DivideBy[$x$, $dx$]'
       <dt>'$x$ /= $dx$'
@@ -142,6 +146,8 @@ class Increment(PostfixOperator):
 
 class PreIncrement(PrefixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PreIncrement.html</url>
+
     <dl>
     <dt>'PreIncrement[$x$]'
     <dt>'++$x$'
@@ -196,6 +202,8 @@ class PreDecrement(PrefixOperator):
 
 class SubtractFrom(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
+
     <dl>
     <dt>'SubtractFrom[$x$, $dx$]'
     <dt>'$x$ -= $dx$'

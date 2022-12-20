@@ -81,6 +81,8 @@ from mathics.eval.numerify import numerify
 
 class CubeRoot(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CubeRoot.html</url>
+
     <dl>
       <dt>'CubeRoot[$n$]'
       <dd>finds the real-valued cube root of the given $n$.
@@ -207,6 +209,8 @@ class Divide(BinaryOperator):
 
 class Minus(PrefixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
+
     <dl>
     <dt>'Minus[$expr$]'
         <dd> is the negation of $expr$.
@@ -468,6 +472,8 @@ class Plus(BinaryOperator, SympyFunction):
 
 class Power(BinaryOperator, _MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Power.html</url>
+
     <dl>
     <dt>'Power[$a$, $b$]'
     <dt>'$a$ ^ $b$'
@@ -673,6 +679,8 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subtract.html</url>
+
     <dl>
     <dt>'Subtract[$a$, $b$]'
     <dt>$a$ - $b$

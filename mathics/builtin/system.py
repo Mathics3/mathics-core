@@ -40,6 +40,8 @@ else:
 
 class Aborted(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Aborted.html</url>
+
     <dl>
     <dt>'$Aborted'
         <dd>is returned by a calculation that has been aborted.
@@ -69,6 +71,8 @@ class CommandLine(Predefined):
 
 class Environment(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Environment.html</url>
+
     <dl>
       <dt>'Environment[$var$]'
       <dd>gives the value of an operating system environment variable.
@@ -106,6 +110,8 @@ class Failed(Predefined):
 
 class GetEnvironment(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GetEnvironment.html</url>
+
     <dl>
     <dt>'GetEnvironment["$var$"]'
         <dd>gives the setting corresponding to the variable "var" in the operating system environment.
@@ -158,6 +164,8 @@ class Machine(Predefined):
 
 class MachineName(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MachineName.html</url>
+
     <dl>
       <dt>'$MachineName'
       <dd>is a string that gives the assigned name of the computer on which Mathics is being run, if such a name is defined.
@@ -191,6 +199,8 @@ class MathicsVersion(Predefined):
 
 class Packages(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Packages.html</url>
+
     <dl>
       <dt>'$Packages'
       <dd>returns a list of the contexts corresponding to all packages which have been loaded into Mathics.
@@ -231,6 +241,8 @@ class ParentProcessID(Predefined):
 
 class ProcessID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessID.html</url>
+
     <dl>
       <dt>'$ProcessID'
       <dd>gives the ID assigned to the \Mathics process by the operating system under which it is run.
@@ -269,6 +281,8 @@ class ProcessorType(Predefined):
 
 class ScriptCommandLine(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ScriptCommandLine.html</url>
+
     <dl>
       <dt>'$ScriptCommandLine'
       <dd>is a list of string arguments when running the kernel is script mode.
@@ -311,6 +325,8 @@ class Run(Builtin):
 
 class SystemID(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemID.html</url>
+
     <dl>
        <dt>'$SystemID'
        <dd>is a short string that identifies the type of computer system on which the \Mathics is being run.
@@ -352,6 +368,8 @@ class SystemWordLength(Predefined):
 
 class UserName(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UserName.html</url>
+
     <dl>
       <dt>$UserName
       <dd>returns the login name, according to the operative system, of the user that started the current
@@ -394,6 +412,8 @@ class Version(Predefined):
 
 class VersionNumber(Predefined):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VersionNumber.html</url>
+
     <dl>
       <dt>'$VersionNumber'
       <dd>is a real number which gives the current Wolfram Language version that \Mathics tries to be compatible with.
@@ -416,6 +436,8 @@ if have_psutil:
 
     class SystemMemory(Predefined):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
+
         <dl>
           <dt>'$SystemMemory'
           <dd>Returns the total amount of physical memory.
@@ -434,6 +456,7 @@ if have_psutil:
 
     class MemoryAvailable(Builtin):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryAvailable.html</url>
         <dl>
           <dt>'MemoryAvailable'
           <dd>Returns the amount of the available physical memory.
@@ -458,6 +481,8 @@ else:
 
     class SystemMemory(Predefined):
         """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/SystemMemory.html</url>
+
         <dl>
           <dt>'$SystemMemory'
           <dd>Returns the total amount of physical memory when Python module "psutil" is installed.
@@ -495,6 +520,8 @@ else:
 
 class MemoryInUse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MemoryInUse.html</url>
+
     <dl>
       <dt>'MemoryInUse[]'
       <dd>Returns the amount of memory used by all of the definitions objects if we can determine that; -1 otherwise.

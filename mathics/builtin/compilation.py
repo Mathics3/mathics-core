@@ -36,6 +36,8 @@ from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 
 class Compile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Compile.html</url>
+
     <dl>
       <dt>'Compile[{$x1$, $x2$, ...}, $expr$]'
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
@@ -182,7 +184,9 @@ class CompiledCode(Atom, ImmutableValueMixin):
 
 
 class CompiledFunction(Builtin):
-    """'
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CompiledFunction.html</url>
+
     <dl>
       <dt>'CompiledFunction[$args$...]'
       <dd>represents compiled code for evaluating a compiled function.

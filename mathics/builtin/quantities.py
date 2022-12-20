@@ -31,8 +31,9 @@ Q_ = ureg.Quantity
 
 
 class KnownUnitQ(Test):
-
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KnownUnitQ.html</url>
+
     <dl>
     <dt>'KnownUnitQ[$unit$]'
         <dd>returns True if $unit$ is a canonical unit, and False otherwise.
@@ -144,6 +145,8 @@ class Quantity(Builtin):
 
 class QuantityMagnitude(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityMagnitude.html</url>
+
     <dl>
     <dt>'QuantityMagnitude[$quantity$]'
         <dd>gives the amount of the specified $quantity$.
@@ -294,6 +297,8 @@ class QuantityQ(Test):
 
 class QuantityUnit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuantityUnit.html</url>
+
     <dl>
     <dt>'QuantityUnit[$quantity$]'
         <dd>returns the unit associated with the specified $quantity$.

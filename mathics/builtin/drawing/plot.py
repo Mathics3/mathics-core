@@ -273,6 +273,8 @@ class _GradientColorScheme:
 
 class _ListPlot(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/_ListPlot.html</url>
+
     Base class for ListPlot, and ListLinePlot
     2-Dimensional plot a list of points in some fashion.
     """
@@ -1234,6 +1236,7 @@ class BarChart(_Chart):
 
 class ColorData(Builtin):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/ColorData.html</url>
     <dl>
       <dt>'ColorData["$name$"]'
@@ -1350,6 +1353,7 @@ class ColorDataFunction(Builtin):
 
 class DensityPlot(_Plot3D):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/DensityPlot.html</url>
     <dl>
       <dt>'DensityPlot[$f$, {$x$, $xmin$, $xmax$}, {$y$, $ymin$, $ymax$}]'
@@ -1678,6 +1682,7 @@ class DiscretePlot(_Plot):
 
 class Histogram(Builtin):
     """
+
     <url>:Histogram: https://en.wikipedia.org/wiki/Histogram</url> \
     (<url>:WMA link: https://reference.wolfram.com/language/ref/ColorDataFunction.html</url>)
 
@@ -1987,6 +1992,7 @@ class ListPlot(_ListPlot):
 
 class ListLinePlot(_ListPlot):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/ListLinePlot.html</url>
     <dl>
       <dt>'ListLinePlot[{$y_1$, $y_2$, ...}]'
@@ -2070,9 +2076,10 @@ class ListLogPlot(_ListPlot):
 
 class LogPlot(_Plot):
     """
+
     <url>:Semi-log plot:
     https://en.wikipedia.org/wiki/Semi-log_plot</url> \
-    (<url>
+     (<url>
     :WMA link:
     https://reference.wolfram.com/language/ref/LogPlot.html</url>)
     <dl>
@@ -2289,6 +2296,7 @@ class PieChart(_Chart):
 
 class Plot(_Plot):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/Plot.html</url>
     <dl>
       <dt>'Plot[$f$, {$x$, $xmin$, $xmax$}]'
@@ -2415,11 +2423,12 @@ class ParametricPlot(_Plot):
 
 class PolarPlot(_Plot):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/PolarPlot.html</url>
     <dl>
       <dt>'PolarPlot[$r$, {$t$, $t_min$, $t_max$}]'
       <dd>creates a polar plot of curve with radius $r$ as a function of angle $t$ \
-      ranging from $t_min$ to $t_max$.
+       ranging from $t_min$ to $t_max$.
     </dl>
 
     In a Polar Plot, a <url>:polar coordinate system:

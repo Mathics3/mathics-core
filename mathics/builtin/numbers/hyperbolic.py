@@ -25,6 +25,8 @@ SymbolSinh = Symbol("Sinh")
 
 class ArcCosh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCosh.html</url>
+
     <dl>
       <dt>'ArcCosh[$z$]'
       <dd>returns the inverse hyperbolic cosine of $z$.
@@ -83,6 +85,8 @@ class ArcCoth(_MPMathFunction):
 
 class ArcCsch(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsch.html</url>
+
     <dl>
       <dt>'ArcCsch[$z$]'
       <dd>returns the inverse hyperbolic cosecant of $z$.
@@ -149,6 +153,8 @@ class ArcSech(_MPMathFunction):
 
 class ArcSinh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSinh.html</url>
+
     <dl>
       <dt>'ArcSinh[$z$]'
       <dd>returns the inverse hyperbolic sine of $z$.
@@ -205,6 +211,8 @@ class ArcTanh(_MPMathFunction):
 
 class Cosh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cosh.html</url>
+
     <dl>
       <dt>'Cosh[$z$]'
       <dd>returns the hyperbolic cosine of $z$.
@@ -249,6 +257,7 @@ class Coth(_MPMathFunction):
 
 class Gudermannian(Builtin):
     """
+
     <url>:Gudermannian function: https://en.wikipedia.org/wiki/Gudermannian_function</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Gudermannian.html</url>, <url>:MathWorld: https://mathworld.wolfram.com/Gudermannian.html</url>)
     <dl>
       <dt>'Gudermannian[$z$]'
@@ -325,6 +334,8 @@ class InverseGudermannian(Builtin):
 
 class Sech(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sech.html</url>
+
     <dl>
       <dt>'Sech[$z$]'
       <dd>returns the hyperbolic secant of $z$.
@@ -372,6 +383,8 @@ class Sinh(_MPMathFunction):
 
 class Tanh(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tanh.html</url>
+
     <dl>
       <dt>'Tanh[$z$]'
       <dd>returns the hyperbolic tangent of $z$.

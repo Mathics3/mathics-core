@@ -950,6 +950,8 @@ def _importer_exporter_options(
 
 class ImportFormats(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImportFormats.html</url>
+
     <dl>
     <dt>'$ImportFormats'
         <dd>returns a list of file formats supported by Import.
@@ -986,6 +988,8 @@ class ExportFormats(Predefined):
 
 class ConverterDumpsExtensionMappings(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ConverterDumpsExtensionMappings.html</url>
+
     <dl>
     <dt>'$extensionMappings'
         <dd>Returns a list of associations between file extensions and file types.
@@ -1020,6 +1024,8 @@ class ConverterDumpsFormatMappings(Predefined):
 
 class RegisterImport(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RegisterImport.html</url>
+
     <dl>
     <dt>'RegisterImport["$format$", $defaultFunction$]'
       <dd>register '$defaultFunction$' as the default function used when importing from a file of type '"$format$"'.
@@ -1208,6 +1214,8 @@ class RegisterExport(Builtin):
 
 class URLFetch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/URLFetch.html</url>
+
     <dl>
     <dt>'URLFetch[$URL$]'
       <dd> Returns the content of $URL$ as a string.
@@ -1573,6 +1581,8 @@ class Import(Builtin):
 
 class ImportString(Import):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImportString.html</url>
+
     <dl>
     <dt>'ImportString["$data$", "$format$"]'
       <dd>imports data in the specified format from a string.
@@ -1895,6 +1905,8 @@ class Export(Builtin):
 
 class ExportString(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExportString.html</url>
+
     <dl>
       <dt>'ExportString[$expr$, $form$]'
       <dd>exports $expr$ to a string, in the format $form$.
@@ -2187,6 +2199,8 @@ import base64
 
 class B64Encode(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/B64Encode.html</url>
+
     <dl>
     <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
     <dd>Encodes $expr$ in Base64 coding
@@ -2258,6 +2272,8 @@ class B64Decode(Builtin):
 
 class ConvertCommonDumpRemoveLinearSyntax(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ConvertCommonDumpRemoveLinearSyntax.html</url>
+
     <dl>
     <dt> 'System`Convert`CommonDump`RemoveLinearSyntax[$something$]'
     <dd> Keine anung... Undocumented in wma

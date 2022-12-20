@@ -24,6 +24,8 @@ from mathics.core.systemsymbols import SymbolConjugate, SymbolDot
 
 class KroneckerProduct(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
+
     <url>
     :Kronecker product:
     https://en.wikipedia.org/wiki/Kronecker_product</url> (<url>
@@ -101,6 +103,8 @@ class Normalize(Builtin):
 
 class Projection(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Projection.html</url>
+
     <dl>
       <dt>'Projection[$u$, $v$]'
       <dd>gives the projection of the vector $u$ onto $v$
@@ -205,6 +209,8 @@ class UnitVector(Builtin):
 
 class VectorAngle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VectorAngle.html</url>
+
     <dl>
       <dt>'VectorAngle[$u$, $v$]'
       <dd>gives the angles between vectors $u$ and $v$

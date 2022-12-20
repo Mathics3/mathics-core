@@ -146,6 +146,8 @@ class _ArcBox(_RoundBox):
 
 class ArrowBox(_Polyline):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArrowBox.html</url>
+
     <dl>
       <dt>'ArrowBox[...]'
       <dd>is a box structure for 'Arrow' elements.
@@ -368,6 +370,8 @@ class BezierCurveBox(_Polyline):
 
 class CircleBox(_ArcBox):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CircleBox.html</url>
+
     <dl>
       <dt>'CircleBox[...]'
       <dd>box structure for a 'Circle' element.
@@ -392,6 +396,8 @@ class DiskBox(_ArcBox):
 
 class GraphicsBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GraphicsBox.html</url>
+
     <dl>
       <dt>'GraphicsBox[...]'
       <dd>box structure holding a 'Graphics' object.
@@ -1040,6 +1046,8 @@ class LineBox(_Polyline):
 
 class PointBox(_Polyline):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PointBox.html</url>
+
     <dl>
       <dt>'PointBox'[{$x$, $y$}]
       <dd> a box construction representing a point in a Graphic.

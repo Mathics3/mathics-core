@@ -25,6 +25,8 @@ from mathics.core.symbols import (
 
 class DesignMatrix(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
+
     <dl>
       <dt>'DesignMatrix[$m$, $f$, $x$]'
       <dd>returns the design matrix for a linear model $f$ in the variables $x$.
@@ -74,6 +76,8 @@ class Det(Builtin):
 
 class Eigensystem(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Eigensystem.html</url>
+
     <dl>
     <dt>'Eigensystem[$m$]'
         <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
@@ -184,6 +188,8 @@ class Eigenvalues(Builtin):
 
 class Eigenvectors(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvectors.html</url>
+
     <dl>
     <dt>'Eigenvectors[$m$]'
         <dd>computes the eigenvectors of the matrix $m$.
@@ -278,6 +284,8 @@ class FittedModel(Builtin):
 
 class Inverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inverse.html</url>
+
     <dl>
     <dt>'Inverse[$m$]'
         <dd>computes the inverse of the matrix $m$.
@@ -378,6 +386,8 @@ class LeastSquares(Builtin):
 
 class LinearModelFit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearModelFit.html</url>
+
     <dl>
     <dt>'LinearModelFit[$m$, $f$, $x$]'
         <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
@@ -530,6 +540,8 @@ class LinearSolve(Builtin):
 
 class MatrixExp(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixExp.html</url>
+
     <dl>
     <dt>'MatrixExp[$m$]'
         <dd>computes the exponential of the matrix $m$.
@@ -619,6 +631,8 @@ class MatrixPower(Builtin):
 
 class MatrixRank(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixRank.html</url>
+
     <dl>
     <dt>'MatrixRank[$matrix$]'
         <dd>returns the rank of $matrix$.
@@ -692,6 +706,8 @@ class NullSpace(Builtin):
 
 class PseudoInverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PseudoInverse.html</url>
+
     <dl>
     <dt>'PseudoInverse[$m$]'
         <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
@@ -764,6 +780,8 @@ class QRDecomposition(Builtin):
 
 class RowReduce(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RowReduce.html</url>
+
     <dl>
     <dt>'RowReduce[$matrix$]'
         <dd>returns the reduced row-echelon form of $matrix$.
@@ -860,6 +878,8 @@ class SingularValueDecomposition(Builtin):
 
 class Tr(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tr.html</url>
+
     <dl>
       <dt>'Tr[$m$]'
       <dd>computes the trace of the matrix $m$.

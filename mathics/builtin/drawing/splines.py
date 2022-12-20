@@ -19,6 +19,7 @@ from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 #  https://github.com/Tarheel-Formal-Methods/kaa
 class BernsteinBasis(Builtin):
     """
+
     <url>:Bernstein polynomial basis: https://en.wikipedia.org/wiki/Bernstein_polynomial</url> (<url>:SciPy: https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.BPoly.html</url> :WMA:
 
     A Bernstein is a polynomial that is a linear combination of Bernstein basis polynomials.
@@ -74,6 +75,8 @@ class BezierFunction(Builtin):
 
 class BezierCurve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BezierCurve.html</url>
+
      <dl>
        <dt>'BezierCurve[{$pt_1$, $pt_2$ ...}]'
        <dd>represents a Bézier curve with control points $p_i$.

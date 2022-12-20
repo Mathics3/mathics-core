@@ -33,6 +33,8 @@ SymbolNormal = Symbol("Normal")
 
 class Array(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Array.html</url>
+
     <dl>
       <dt>'Array[$f$, $n$]'
       <dd>returns the $n$-element list '{$f$[1], ..., $f$[$n$]}'.
@@ -140,6 +142,8 @@ class ConstantArray(Builtin):
 
 class Normal(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Normal.html</url>
+
     <dl>
       <dt>'Normal[expr_]'
       <dd> Brings especial expressions to a normal expression from different especial forms.
@@ -212,6 +216,8 @@ class Range(Builtin):
 
 class Permutations(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Permutations.html</url>
+
     <dl>
       <dt>'Permutations[$list$]'
       <dd>gives all possible orderings of the items in $list$.
@@ -371,6 +377,8 @@ class Reap(Builtin):
 
 class Sow(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sow.html</url>
+
     <dl>
       <dt>'Sow[$e$]'
       <dd>sends the value $e$ to the innermost 'Reap'.
@@ -455,6 +463,8 @@ class Table(_IterationFunction):
 
 class Tuples(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tuples.html</url>
+
     <dl>
       <dt>'Tuples[$list$, $n$]'
       <dd>returns a list of all $n$-tuples of elements in $list$.

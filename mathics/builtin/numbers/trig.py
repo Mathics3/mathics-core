@@ -168,6 +168,8 @@ class Fold:
 
 class AnglePath(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AnglePath.html</url>
+
     <dl>
       <dt>'AnglePath[{$phi1$, $phi2$, ...}]'
       <dd>returns the points formed by a turtle starting at {0, 0} and angled at 0 degrees going through
@@ -329,6 +331,8 @@ class AnglePathFold(Fold):
 
 class ArcCos(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCos.html</url>
+
     <dl>
       <dt>'ArcCos[$z$]'
       <dd>returns the inverse cosine of $z$.
@@ -381,6 +385,8 @@ class ArcCot(_MPMathFunction):
 
 class ArcCsc(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcCsc.html</url>
+
     <dl>
       <dt>'ArcCsc[$z$]'
       <dd>returns the inverse cosecant of $z$.
@@ -444,6 +450,8 @@ class ArcSec(_MPMathFunction):
 
 class ArcSin(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ArcSin.html</url>
+
     <dl>
       <dt>'ArcSin[$z$]'
       <dd>returns the inverse sine of $z$.
@@ -520,6 +528,8 @@ class ArcTan(_MPMathFunction):
 
 class Cos(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cos.html</url>
+
     <dl>
       <dt>'Cos[$z$]'
       <dd>returns the cosine of $z$.
@@ -572,6 +582,8 @@ class Cot(_MPMathFunction):
 
 class Csc(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Csc.html</url>
+
     <dl>
       <dt>'Csc[$z$]'
       <dd>returns the cosecant of $z$.
@@ -622,6 +634,8 @@ class Haversine(_MPMathFunction):
 
 class InverseHaversine(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InverseHaversine.html</url>
+
     <dl>
       <dt>'InverseHaversine[$z$]'
       <dd>returns the inverse haversine function of $z$.
@@ -670,6 +684,8 @@ class Sec(_MPMathFunction):
 
 class Sin(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sin.html</url>
+
     <dl>
       <dt>'Sin[$z$]'
       <dd>returns the sine of $z$.

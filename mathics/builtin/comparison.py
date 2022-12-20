@@ -479,6 +479,8 @@ class BooleanQ(Builtin):
 
 class Equal(_EqualityOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Equal.html</url>
+
     <dl>
       <dt>'Equal[$x$, $y$]'
       <dt>'$x$ == $y$'
@@ -638,6 +640,8 @@ class Greater(_ComparisonOperator, _SympyComparison):
 
 class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GreaterEqual.html</url>
+
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
       <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
@@ -703,6 +707,8 @@ class Inequality(Builtin):
 
 class Less(_ComparisonOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Less.html</url>
+
     <dl>
       <dt>'Less[$x$, $y$]' or $x$ < $y$
       <dd>yields 'True' if $x$ is known to be less than $y$.
@@ -748,6 +754,8 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
 
 class Max(_MinMax):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Max.html</url>
+
     <dl>
       <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
       <dd>returns the expression with the greatest value among the $e_i$.
@@ -821,6 +829,8 @@ class Min(_MinMax):
 
 class Negative(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Negative.html</url>
+
     <dl>
       <dt>'Negative[$x$]'
       <dd>returns 'True' if $x$ is a negative real number.
@@ -870,6 +880,8 @@ class NonNegative(Builtin):
 
 class NonPositive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NonPositive.html</url>
+
     <dl>
       <dt>'NonPositive[$x$]'
       <dd>returns 'True' if $x$ is a negative real number or zero.
@@ -921,6 +933,8 @@ class Positive(Builtin):
 
 class SameQ(_ComparisonOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SameQ.html</url>
+
     <dl>
       <dt>'SameQ[$x$, $y$]'
       <dt>'$x$ === $y$'
@@ -1005,6 +1019,8 @@ class TrueQ(Builtin):
 
 class Unequal(_EqualityOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unequal.html</url>
+
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
       <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.

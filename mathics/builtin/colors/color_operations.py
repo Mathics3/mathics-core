@@ -42,6 +42,8 @@ except ImportError:
 
 class Blend(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blend.html</url>
+
     <dl>
     <dt>'Blend[{$c1$, $c2$}]'
         <dd>represents the color between $c1$ and $c2$.
@@ -208,6 +210,8 @@ class ColorConvert(Builtin):
 
 class ColorNegate(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorNegate.html</url>
+
     <dl>
       <dt>'ColorNegate[$image$]'
       <dd>returns the negative of $image$ in which colors have been negated.
@@ -262,6 +266,8 @@ class Darker(Builtin):
 
 class DominantColors(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DominantColors.html</url>
+
     <dl>
     <dt>'DominantColors[$image$]'
       <dd>gives a list of colors which are dominant in the given image.

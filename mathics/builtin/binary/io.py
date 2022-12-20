@@ -34,6 +34,7 @@ SymbolBinaryWrite = Symbol("BinaryWrite")
 
 class _BinaryFormat:
     """
+
     Container for BinaryRead readers and BinaryWrite writers
     """
 
@@ -657,6 +658,8 @@ class BinaryRead(Builtin):
 
 class BinaryWrite(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BinaryWrite.html</url>
+
     <dl>
       <dt>'BinaryWrite[$channel$, $b$]'
       <dd>writes a single byte given as an integer from 0 to 255.

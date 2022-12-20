@@ -341,6 +341,8 @@ class _DateFormat(Builtin):
 
 class AbsoluteTime(_DateFormat):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteTime.html</url>
+
     <dl>
       <dt>'AbsoluteTime[]'
       <dd>gives the local time in seconds since epoch January 1, 1900, in your time zone.
@@ -427,6 +429,8 @@ class AbsoluteTiming(Builtin):
 
 class DateDifference(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateDifference.html</url>
+
     <dl>
       <dt>'DateDifference[$date1$, $date2$]'
       <dd>returns the difference between $date1$ and $date2$ in days.
@@ -693,6 +697,8 @@ class DateObject(_DateFormat, ImmutableValueMixin):
 
 class DatePlus(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DatePlus.html</url>
+
     <dl>
       <dt>'DatePlus[$date$, $n$]'
       <dd>finds the date $n$ days after $date$.
@@ -858,6 +864,8 @@ class DateList(_DateFormat):
 
 class DateString(_DateFormat):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DateString.html</url>
+
     <dl>
       <dt>'DateString[]'
       <dd>returns the current local time and date as a string.
@@ -989,6 +997,8 @@ class DateStringFormat(Predefined):
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EasterSunday.html</url>
+
     <dl>
     <dt>'EasterSunday[$year$]'
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
@@ -1059,6 +1069,8 @@ class Pause(Builtin):
 
 class SystemTimeZone(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemTimeZone.html</url>
+
     <dl>
       <dt>'$SystemTimeZone'
       <dd> gives the current time zone for the computer system on which Mathics is being run.
@@ -1097,7 +1109,9 @@ class Now(Predefined):
 if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
     class TimeConstrained(Builtin):
-        r"""
+        """
+        <url>:WMA link:https://reference.wolfram.com/language/ref/TimeConstrained.html</url>
+
         <dl>
           <dt>'TimeConstrained[$expr$, $t$]'
           <dd>'evaluates $expr$, stopping after $t$ seconds.'
@@ -1109,7 +1123,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
         Possible issues: for certain time-consuming functions (like simplify)
         which are based on sympy or other libraries, it is possible that
         the evaluation continues after the timeout. However, at the end of the evaluation, the function will return '$Aborted' and the results will not affect
-        the state of the \Mathics kernel.
+        the state of the \\Mathics kernel.
 
         """
 
@@ -1195,6 +1209,8 @@ class TimeZone(Predefined):
 
 class TimeUsed(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TimeUsed.html</url>
+
     <dl>
     <dt>'TimeUsed[]'
       <dd>returns the total CPU time used for this session, in seconds.
@@ -1244,6 +1260,8 @@ class Timing(Builtin):
 
 class SessionTime(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SessionTime.html</url>
+
     <dl>
     <dt>'SessionTime[]'
       <dd>returns the total time in seconds since this session started.

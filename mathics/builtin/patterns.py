@@ -84,6 +84,8 @@ SymbolDefault = Symbol("Default")
 
 class Rule_(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rule_.html</url>
+
     <dl>
       <dt>'Rule[$x$, $y$]'
       <dt>'$x$ -> $y$'
@@ -192,6 +194,8 @@ def create_rules(rules_expr, expr, name, evaluation, extra_args=[]):
 
 class Replace(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Replace.html</url>
+
     <dl>
       <dt>'Replace[$expr$, $x$ -> $y$]'
       <dd>yields the result of replacing $expr$ with $y$ if it
@@ -344,6 +348,8 @@ class ReplaceAll(BinaryOperator):
 
 class ReplaceRepeated(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplaceRepeated.html</url>
+
     <dl>
       <dt>'ReplaceRepeated[$expr$, $x$ -> $y$]'
       <dt>'$expr$ //. $x$ -> $y$'
@@ -489,6 +495,8 @@ class ReplaceList(Builtin):
 
 class PatternTest(BinaryOperator, PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PatternTest.html</url>
+
     <dl>
       <dt>'PatternTest[$pattern$, $test$]'
       <dt>'$pattern$ ? $test$'
@@ -829,6 +837,8 @@ def match(expr, form, evaluation):
 
 class MatchQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatchQ.html</url>
+
     <dl>
       <dt>'MatchQ[$expr$, $form$]'
       <dd>tests whether $expr$ matches $form$.
@@ -893,6 +903,8 @@ class Verbatim(PatternObject):
 
 class HoldPattern(PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldPattern.html</url>
+
     <dl>
       <dt>'HoldPattern[$expr$]'
       <dd>is equivalent to $expr$ for pattern matching, but
@@ -1043,6 +1055,8 @@ class Pattern_(PatternObject):
 
 class Optional(BinaryOperator, PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Optional.html</url>
+
     <dl>
       <dt>'Optional[$patt$, $default$]'
       <dt>'$patt$ : $default$'
@@ -1229,6 +1243,8 @@ class Blank(_Blank):
 
 class BlankSequence(_Blank):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BlankSequence.html</url>
+
     <dl>
       <dt>'BlankSequence[]'
       <dt>'__'
@@ -1346,6 +1362,8 @@ class BlankNullSequence(_Blank):
 
 class Repeated(PostfixOperator, PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Repeated.html</url>
+
     <dl>
       <dt>'Repeated[$pattern$]'
       <dd>matches one or more occurrences of $pattern$.
@@ -1461,6 +1479,8 @@ class RepeatedNull(Repeated):
 
 class Shortest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Shortest.html</url>
+
     <dl>
       <dt>'Shortest[$pat$]'
       <dd>is a pattern object that matches the shortest sequence consistent with the pattern $p$.
@@ -1494,6 +1514,8 @@ class Longest(Builtin):
 
 class Condition(BinaryOperator, PatternObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Condition.html</url>
+
     <dl>
       <dt>'Condition[$pattern$, $expr$]'
       <dt>'$pattern$ /; $expr$'

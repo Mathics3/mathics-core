@@ -155,6 +155,8 @@ class Hash(Builtin):
 
 class StringDrop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringDrop.html</url>
+
     <dl>
       <dt>'StringDrop["$string$", $n$]'
       <dd>gives $string$ with the first $n$ characters dropped.
@@ -445,6 +447,8 @@ class StringInsert(Builtin):
 
 class StringJoin(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringJoin.html</url>
+
     <dl>
       <dt>'StringJoin["$s1$", "$s2$", ...]'
       <dd>returns the concatenation of the strings $s1$, $s2$,  .
@@ -516,6 +520,8 @@ class StringLength(Builtin):
 
 class StringPosition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringPosition.html</url>
+
     <dl>
       <dt>'StringPosition["$string$", $patt$]'
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
@@ -789,6 +795,8 @@ class StringReplace(_StringFind):
 
 class StringReverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringReverse.html</url>
+
     <dl>
       <dt>'StringReverse["$string$"]'
       <dd>reverses the order of the characters in "string".
@@ -936,6 +944,8 @@ class StringRiffle(Builtin):
 
 class StringSplit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringSplit.html</url>
+
     <dl>
       <dt>'StringSplit[$s$]'
       <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
@@ -1164,6 +1174,8 @@ class StringTake(Builtin):
 
 class StringTrim(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringTrim.html</url>
+
     <dl>
       <dt>'StringTrim[$s$]'
       <dd>returns a version of $s$ with whitespace removed from start and end.

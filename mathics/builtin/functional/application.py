@@ -25,6 +25,8 @@ from mathics.core.symbols import Symbol
 
 class Function(PostfixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Function.html</url>
+
     <dl>
       <dt>'Function[$body$]'
       <dt>'$body$ &'
@@ -71,7 +73,7 @@ class Function(PostfixOperator):
 
 
     In the evaluation process, the attributes associated with an Expression are \
-    determined by its Head.  If the Head is also a non-atomic Expression, in general,\
+    determined by its Head.  If the Head is also a non-atomic Expression, in general, \
     no Attribute is assumed. In particular, it is what happens when the head of the expression \
     has the form 
 
@@ -204,6 +206,8 @@ class Slot(Builtin):
 
 class SlotSequence(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SlotSequence.html</url>
+
     <dl>
     <dt>'##'
         <dd>is the sequence of arguments supplied to a pure function.

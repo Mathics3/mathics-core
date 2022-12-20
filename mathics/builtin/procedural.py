@@ -42,6 +42,8 @@ SymbolWhich = Symbol("Which")
 
 class Abort(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Abort.html</url>
+
     <dl>
       <dt>'Abort[]'
       <dd>aborts an evaluation completely and returns '$Aborted'.
@@ -85,6 +87,8 @@ class Break(Builtin):
 
 class Catch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catch.html</url>
+
     <dl>
       <dt>'Catch[$expr$]'
       <dd> returns the argument of the first 'Throw' generated in the evaluation of $expr$.
@@ -214,6 +218,8 @@ class CompoundExpression(BinaryOperator):
 
 class Continue(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Continue.html</url>
+
     <dl>
       <dt>'Continue[]'
       <dd>continues with the next iteration in a 'For', 'While', or 'Do' loop.
@@ -290,6 +296,8 @@ class Do(_IterationFunction):
 
 class For(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/For.html</url>
+
     <dl>
       <dt>'For[$start$, $test$, $incr$, $body$]'
       <dd>evaluates $start$, and then iteratively $body$ and $incr$ as long as $test$ evaluates to 'True'.
@@ -402,6 +410,8 @@ class If(Builtin):
 
 class Interrupt(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Interrupt.html</url>
+
     <dl>
       <dt>'Interrupt[]'
       <dd>Interrupt an evaluation and returns '$Aborted'.
@@ -468,6 +478,8 @@ class Return(Builtin):
 
 class Switch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Switch.html</url>
+
     <dl>
       <dt>'Switch[$expr$, $pattern1$, $value1$, $pattern2$, $value2$, ...]'
       <dd>yields the first $value$ for which $expr$ matches the corresponding $pattern$.
@@ -579,6 +591,8 @@ class Which(Builtin):
 
 class While(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/While.html</url>
+
     <dl>
       <dt>'While[$test$, $body$]'
       <dd>evaluates $body$ as long as $test$ evaluates to 'True'.

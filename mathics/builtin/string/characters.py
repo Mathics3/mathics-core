@@ -14,6 +14,8 @@ from mathics.core.list import ListExpression
 
 class Characters(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Characters.html</url>
+
     <dl>
       <dt>'Characters["$string$"]'
       <dd>returns a list of the characters in $string$.
@@ -32,7 +34,7 @@ class Characters(Builtin):
      = ABC123
 
     #> \\[Alpha]\\[Beta]\\[Gamma]
-     = \u03B1\u03B2\u03B3
+     = αβγ
     """
 
     attributes = A_LISTABLE | A_PROTECTED
@@ -78,6 +80,8 @@ class CharacterRange(Builtin):
 
 class DigitQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitQ.html</url>
+
     <dl>
       <dt>'DigitQ[$string$]'
       <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
@@ -142,6 +146,8 @@ class LetterQ(Builtin):
 
 class LowerCaseQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LowerCaseQ.html</url>
+
     <dl>
       <dt>'LowerCaseQ[$s$]'
       <dd>returns True if $s$ consists wholly of lower case characters.
@@ -182,6 +188,8 @@ class ToLowerCase(Builtin):
 
 class ToUpperCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
+
     <dl>
     <dt>'ToUpperCase[$s$]'
         <dd>returns $s$ in all upper case.

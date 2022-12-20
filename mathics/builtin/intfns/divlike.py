@@ -34,6 +34,8 @@ SymbolQuotientRemainder = Symbol("QuotientRemainder")
 
 class CompositeQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CompositeQ.html</url>
+
     <dl>
       <dt>'CompositeQ[$n$]'
       <dd>returns True if $n$ is a composite number
@@ -104,6 +106,8 @@ class CoprimeQ(Builtin):
 
 class Divisible(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Divisible.html</url>
+
     <dl>
       <dt>'Divisible[$n$, $m$]'
       <dd>returns 'True' if $n$ is divisible by $m$, and 'False' otherwise.
@@ -154,6 +158,8 @@ class EvenQ(Test):
 
 class GCD(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GCD.html</url>
+
     <dl>
       <dt>'GCD[$n1$, $n2$, ...]'
       <dd>computes the greatest common divisor of the given integers.
@@ -218,6 +224,8 @@ class LCM(Builtin):
 
 class Mod(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Mod.html</url>
+
     <dl>
       <dt>'Mod[$x$, $m$]'
       <dd>returns $x$ modulo $m$.
@@ -287,6 +295,8 @@ class ModularInverse(SympyFunction):
 
 class OddQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OddQ.html</url>
+
     <dl>
       <dt>'OddQ[$x$]'
       <dd>returns 'True' if $x$ is odd, and 'False' otherwise.
@@ -358,6 +368,8 @@ class PowerMod(Builtin):
 
 class PrimeQ(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrimeQ.html</url>
+
     <dl>
       <dt>'PrimeQ[$n$]'
       <dd>returns 'True' if $n$ is a prime number.
@@ -448,6 +460,8 @@ class Quotient(Builtin):
 
 class QuotientRemainder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/QuotientRemainder.html</url>
+
     <dl>
       <dt>'QuotientRemainder[m, n]'
       <dd>computes a list of the quotient and remainder from division of $m$ by $n$.

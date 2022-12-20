@@ -67,6 +67,8 @@ MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
 class BaseForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BaseForm.html</url>
+
     <dl>
       <dt>'BaseForm[$expr$, $n$]'
       <dd>prints numbers in $expr$ in base $n$.
@@ -176,6 +178,8 @@ class FullForm(FormBaseClass):
 
 class MathMLForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MathMLForm.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/MathMLForm.html</url>
@@ -265,6 +269,8 @@ class InputForm(FormBaseClass):
 
 class _NumberForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/_NumberForm.html</url>
+
     Base class for NumberForm, AccountingForm, EngineeringForm, and ScientificForm.
     """
 
@@ -741,6 +747,8 @@ class NumberForm(_NumberForm):
 
 class OutputForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OutputForm.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OutputForm.html</url>
@@ -808,6 +816,8 @@ class PythonForm(FormBaseClass):
 
 class SympyForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SympyForm.html</url>
+
     <dl>
       <dt>'SympyForm[$expr$]'
       <dd>returns an Sympy $expr$ in Python. Sympy is used internally
@@ -867,6 +877,8 @@ class StandardForm(FormBaseClass):
 
 class TraditionalForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/TraditionalForm.html</url>
@@ -942,6 +954,8 @@ class TeXForm(FormBaseClass):
 
 class TableForm(FormBaseClass):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TableForm.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/TableForm.html</url>

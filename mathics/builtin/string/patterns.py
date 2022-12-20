@@ -37,6 +37,8 @@ SymbolStringExpression = Symbol("StringExpression")
 
 class DigitCharacter(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitCharacter.html</url>
+
     <dl>
       <dt>'DigitCharacter'
       <dd>represents the digits 0-9.
@@ -81,7 +83,9 @@ class EndOfLine(Builtin):
 
 
 class EndOfString(Builtin):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfString.html</url>
+
     <dl>
     <dt>'EndOfString'
       <dd>represents the end of a string.
@@ -91,10 +95,11 @@ class EndOfString(Builtin):
     >> StringMatchQ[#, __ ~~ "e" ~~ EndOfString] &/@ {"apple", "banana", "artichoke"}
      = {True, False, True}
 
-    >> StringReplace["aab\nabb", "b" ~~ EndOfString -> "c"]
+    >> StringReplace["aab\\nabb", "b" ~~ EndOfString -> "c"]
      = aab
      . abc
     """
+
     summary_text = "end of the whole string"
 
 
@@ -117,23 +122,26 @@ class LetterCharacter(Builtin):
 
 
 class StartOfLine(Builtin):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfLine.html</url>
+
     <dl>
     <dt>'StartOfString'
       <dd>represents the start of a line in a string.
     </dl>
 
-    >> StringReplace["aba\nbba\na\nab", StartOfLine ~~ "a" -> "c"]
+    >> StringReplace["aba\\nbba\\na\\nab", StartOfLine ~~ "a" -> "c"]
      = cba
      . bba
      . c
      . cb
 
-    >> StringSplit["abc\ndef\nhij", StartOfLine]
+    >> StringSplit["abc\\ndef\\nhij", StartOfLine]
      = {abc
      . , def
      . , hij}
     """
+
     summary_text = "start of a line"
 
 
@@ -157,6 +165,8 @@ class StartOfString(Builtin):
 
 class StringCases(_StringFind):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringCases.html</url>
+
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
       <dd>gives all occurences of $pattern$ in $string$.
@@ -265,6 +275,8 @@ class StringExpression(BinaryOperator):
 
 class StringFreeQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
+
     <dl>
     <dt>'StringFreeQ["$string$", $patt$]'
         <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
@@ -468,30 +480,35 @@ class StringMatchQ(Builtin):
 
 
 class WhitespaceCharacter(Builtin):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
+
     <dl>
       <dt>'WhitespaceCharacter'
       <dd>represents a single whitespace character.
     </dl>
 
-    >> StringMatchQ["\n", WhitespaceCharacter]
+    >> StringMatchQ["\\n", WhitespaceCharacter]
      = True
 
-    >> StringSplit["a\nb\r\nc\rd", WhitespaceCharacter]
+    >> StringSplit["a\\nb\\r\\nc\\rd", WhitespaceCharacter]
      = {a, b, , c, d}
 
     For sequences of whitespace characters use 'Whitespace':
-    >> StringMatchQ[" \n", WhitespaceCharacter]
+    >> StringMatchQ[" \\n", WhitespaceCharacter]
      = False
-    >> StringMatchQ[" \n", Whitespace]
+    >> StringMatchQ[" \\n", Whitespace]
      = True
     """
+
     summary_text = "space, newline, tab, or other whitespace character"
 
 
 # strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WordBoundary.html</url>
+
     <dl>
       <dt>'WordBoundary'
       <dd>represents the boundary between words.

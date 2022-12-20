@@ -31,6 +31,7 @@ SymbolRankedMin = Symbol("RankedMin")
 
 class Quantile(Builtin):
     """
+
     <url>:Quantile: https://en.wikipedia.org/wiki/Quantile</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Quantile.html</url>)
     In statistics and probability, quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities, or dividing the observations in a sample in the same way.
 
@@ -162,6 +163,8 @@ class Quartiles(Builtin):
 
 class RankedMax(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMax.html</url>
+
     <dl>
       <dt>'RankedMax[$list$, $n$]'
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
@@ -225,6 +228,8 @@ class RankedMin(Builtin):
 
 class Sort(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
+
     <dl>
       <dt>'Sort[$list$]'
       <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering.
@@ -316,6 +321,8 @@ class TakeLargest(_RankedTakeLargest):
 
 class TakeSmallest(_RankedTakeSmallest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
+
     <dl>
       <dt>'TakeSmallest[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$.

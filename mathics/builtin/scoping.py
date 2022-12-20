@@ -78,6 +78,8 @@ def dynamic_scoping(func, vars, evaluation: Evaluation):
 
 class Begin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Begin.html</url>
+
     <dl>
       <dt>'Begin'[$context$]
       <dd>temporarily sets the current context to $context$.
@@ -148,6 +150,8 @@ class BeginPackage(Builtin):
 
 class Block(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Block.html</url>
+
     <dl>
       <dt>'Block[{$x$, $y$, ...}, $expr$]'
       <dd>temporarily removes the definitions of the given variables, evaluates $expr$, and restores the original definitions afterwards.
@@ -233,6 +237,8 @@ class Context_(Predefined):
 
 class Contexts(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Contexts.html</url>
+
     <dl>
       <dt>'Contexts[]'
       <dd>yields a list of all contexts.
@@ -284,6 +290,8 @@ class ContextPath_(Predefined):
 
 class ContextPathStack(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ContextPathStack.html</url>
+
     <dl>
       <dt>'System`Private`$ContextPathStack'
       <dd>is an internal variable tracking the values of '$ContextPath' saved by 'Begin' and 'BeginPackage'.
@@ -319,6 +327,8 @@ class ContextStack(Builtin):
 
 class End(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/End.html</url>
+
     <dl>
       <dt>'End[]'
       <dd>ends a context started by 'Begin'.
@@ -378,6 +388,8 @@ class EndPackage(Builtin):
 
 class Module(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Module.html</url>
+
     <dl>
       <dt>'Module[{$vars$}, $expr$]'
       <dd>localizes variables by giving them a temporary name of the form 'name$number', where number is the current value of '$ModuleNumber'. Each time a module is evaluated, '$ModuleNumber' is incremented.
@@ -489,6 +501,8 @@ class ModuleNumber_(Predefined):
 
 class Unique(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unique.html</url>
+
     <dl>
       <dt>'Unique[]'
       <dd>generates a new symbol and gives a name of the form '$number'.

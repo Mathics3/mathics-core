@@ -18,6 +18,8 @@ sort_order = "mathics.builtin.iteratively-applying-functions"
 
 class FixedPoint(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FixedPoint.html</url>
+
     <dl>
       <dt>'FixedPoint[$f$, $expr$]'
       <dd>starting with $expr$, iteratively applies $f$ until the result no longer changes.
@@ -158,6 +160,8 @@ class FixedPointList(Builtin):
 
 class Fold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Fold.html</url>
+
     <dl>
       <dt>'Fold[$f$, $x$, $list$]'
       <dd>returns the result of iteratively applying the binary
@@ -205,6 +209,8 @@ class FoldList(Builtin):
 
 class Nest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Nest.html</url>
+
     <dl>
       <dt>'Nest[$f$, $expr$, $n$]'
       <dd>starting with $expr$, iteratively applies $f$ $n$ times and returns the final result.
@@ -271,6 +277,8 @@ class NestList(Builtin):
 
 class NestWhile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NestWhile.html</url>
+
     <dl>
       <dt>'NestWhile[$f$, $expr$, $test$]'
       <dd>applies a function $f$ repeatedly on an expression $expr$, until applying $test$ on the result no longer yields 'True'.

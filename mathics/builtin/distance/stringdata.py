@@ -187,6 +187,8 @@ class DamerauLevenshteinDistance(_StringDistance):
 
 class EditDistance(_StringDistance):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EditDistance.html</url>
+
     <dl>
     <dt>'EditDistance[$a$, $b$]'
         <dd>returns the Levenshtein distance of $a$ and $b$, which is defined as the minimum number of

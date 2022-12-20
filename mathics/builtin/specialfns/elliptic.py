@@ -22,6 +22,8 @@ import sympy
 
 class EllipticE(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticE.html</url>
+
     <dl>
       <dt>'EllipticE[$m$]'
       <dd>computes the complete elliptic integral $E$($m$).
@@ -108,6 +110,8 @@ class EllipticF(SympyFunction):
 
 class EllipticK(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticK.html</url>
+
     <dl>
       <dt>'EllipticK[$m$]'
       <dd>computes the elliptic integral of the first kind $K$($m$).

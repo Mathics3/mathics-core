@@ -157,7 +157,7 @@ class _MPMathConstant(_Constant_Common):
 
 
 class _NumpyConstant(_Constant_Common):
-    """Representation of a constant in numpy, e.g. Pi, E, etc."""
+    "Representation of a constant in numpy, e.g. Pi, E, etc."
 
     # Subclasses should define this.
     numpy_name = None
@@ -195,6 +195,8 @@ class _SympyConstant(_Constant_Common, SympyObject):
 
 class Catalan(_MPMathConstant, _SympyConstant):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catalan.html</url>
+
     <url>
     :Catalan's constant:
     https://en.wikipedia.org/wiki/Catalan%27s_constant</url> (<url>
@@ -261,6 +263,8 @@ class ComplexInfinity(_SympyConstant):
 
 class Degree(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Degree.html</url>
+
     <url>
     :Degree (angle):
     https://en.wikipedia.org/wiki/Degree_(angle)</url> (<url>
@@ -362,6 +366,8 @@ class E(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
 class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EulerGamma.html</url>
+
     <url>
     :Euler's constant:
     https://en.wikipedia.org/wiki/Euler%27s_constant</url> (<url>
@@ -370,7 +376,7 @@ class EulerGamma(_MPMathConstant, _NumpyConstant, _SympyConstant):
 
     <dl>
       <dt>'EulerGamma'
-      <dd>is Euler's constant \u03b3 with numerial value \u2243 0.577216.
+      <dd>is Euler's constant γ with numerial value \u2243 0.577216.
     </dl>
 
     >> EulerGamma // N
@@ -469,6 +475,7 @@ class Indeterminate(_SympyConstant):
 
 class Infinity(_SympyConstant):
     """
+
     <url>:
     Infinity:
     https://en.wikipedia.org/wiki/Infinity</url> (<url>
@@ -541,6 +548,8 @@ class Khinchin(_MPMathConstant):
 
 class Overflow(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Overflow.html</url>
+
     Numeric Overflow (<url>
     :WMA:
     https://reference.wolfram.com/language/ref/Overflow.html
@@ -613,6 +622,8 @@ class Pi(_MPMathConstant, _SympyConstant):
 
 class Undefined(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Undefined.html</url>
+
     Undefined symbol/value (<url>
     :WMA:
     https://reference.wolfram.com/language/ref/Undefined.html</url>)

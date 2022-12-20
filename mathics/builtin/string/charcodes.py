@@ -33,6 +33,8 @@ def unpack_bytes(codes):
 
 class ToCharacterCode(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToCharacterCode.html</url>
+
     <dl>
     <dt>'ToCharacterCode["$string$"]'
       <dd>converts the string to a list of character codes (Unicode
@@ -137,6 +139,8 @@ class _InvalidCodepointError(ValueError):
 
 class FromCharacterCode(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FromCharacterCode.html</url>
+
     <dl>
     <dt>'FromCharacterCode[$n$]'
         <dd>returns the character corresponding to Unicode codepoint $n$.

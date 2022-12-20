@@ -14,6 +14,8 @@ from mathics.eval.math_ops import eval_2_Norm, eval_p_norm
 
 class Cross(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cross.html</url>
+
     <url>
     :Cross product:
     https://en.wikipedia.org/wiki/Cross_product</url> (<url>
@@ -125,6 +127,8 @@ class Curl(SympyFunction):
 
 class Norm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Norm.html</url>
+
     <url>
     :Matrix norms induced by vector p-norms: https://en.wikipedia.org/wiki/Matrix_norm#Matrix_norms_induced_by_vector_p-norms</url> (<url>
     :SymPy:

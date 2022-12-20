@@ -13,6 +13,8 @@ from mathics.core.convert.mpmath import from_mpmath
 
 class LerchPhi(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LerchPhi.html</url>
+
     <dl>
     <dt>'LerchPhi[z,s,a]'
         <dd>gives the Lerch transcendent Φ(z,s,a).

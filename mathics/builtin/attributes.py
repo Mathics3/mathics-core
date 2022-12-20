@@ -37,6 +37,8 @@ SymbolProtected = Symbol("Protected")
 
 class Attributes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Attributes.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Attributes.html</url>
@@ -155,6 +157,8 @@ class ClearAttributes(Builtin):
 
 class Constant(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Constant.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Constant.html</url>
@@ -230,6 +234,8 @@ class Flat(Predefined):
 
 class HoldAll(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldAll.html</url>
+
     <url>
      :WMA link:
       https://reference.wolfram.com/language/ref/HoldAll.html</url>
@@ -237,7 +243,7 @@ class HoldAll(Predefined):
     <dl>
       <dt>'HoldAll'
       <dd>is an attribute specifying that all arguments of a \
-        function should be left unevaluated.
+          function should be left unevaluated.
     </dl>
 
     >> Attributes[Function]
@@ -276,6 +282,8 @@ class HoldAllComplete(Predefined):
 
 class HoldFirst(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldFirst.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/HoldFirst.html</url>
@@ -283,7 +291,7 @@ class HoldFirst(Predefined):
     <dl>
       <dt>'HoldFirst'
       <dd>is an attribute specifying that the first argument of a \
-        function should be left unevaluated.
+         function should be left unevaluated.
     </dl>
 
     >> Attributes[Set]
@@ -316,6 +324,8 @@ class HoldRest(Predefined):
 
 class Listable(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Listable.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Listable.html</url>
@@ -372,6 +382,8 @@ class Locked(Predefined):
 
 class NHoldAll(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NHoldAll.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/NHoldAll.html</url>
@@ -379,7 +391,7 @@ class NHoldAll(Predefined):
     <dl>
       <dt>'NHoldAll'
       <dd>is an attribute that protects all arguments of a \
-        function from numeric evaluation.
+         function from numeric evaluation.
     </dl>
 
     >> N[f[2, 3]]
@@ -410,6 +422,8 @@ class NHoldFirst(Predefined):
 
 class NHoldRest(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NHoldRest.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/NHoldRest.html</url>
@@ -454,6 +468,8 @@ class NumericFunction(Predefined):
 
 class OneIdentity(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OneIdentity.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OneIdentity.html</url>
@@ -522,6 +538,8 @@ class Orderless(Predefined):
 
 class Protect(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Protect.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Protect.html</url>
@@ -633,6 +651,8 @@ class Protected(Predefined):
 
 class ReadProtected(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReadProtected.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ReadProtected.html</url>
@@ -693,6 +713,8 @@ class SequenceHold(Predefined):
 
 class SetAttributes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetAttributes.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/SetAttributes.html</url>

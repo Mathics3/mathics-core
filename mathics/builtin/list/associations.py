@@ -27,6 +27,8 @@ from mathics.core.systemsymbols import (
 
 class Association(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Association.html</url>
+
     <dl>
       <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'
       <dt>'<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>'
@@ -194,6 +196,8 @@ class AssociationQ(Test):
 
 class Keys(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
+
     <dl>
       <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the keys $keyi$ in an association.
@@ -305,6 +309,8 @@ class Lookup(Builtin):
 
 class Missing(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Missing.html</url>
+
     <dl>
       <dd>'Missing[]'
       <dt> represents a data that is misssing.

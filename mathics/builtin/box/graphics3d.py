@@ -34,6 +34,8 @@ from mathics.eval.nevaluator import eval_N
 
 class Graphics3DBox(GraphicsBox):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3DBox.html</url>
+
     <dl>
       <dt>'Graphics3DBox[{...}]'
       <dd>a box structure for Graphics3D elements.

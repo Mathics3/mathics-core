@@ -22,6 +22,8 @@ from mathics.builtin.base import Builtin
 
 class Automatic(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Automatic.html</url>
+
     <dl>
       <dt>'Automatic'
       <dd>is used to specify an automatically computed option value.
@@ -59,6 +61,8 @@ class Axes(Builtin):
 
 class Axis(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Axis.html</url>
+
     <dl>
       <dt>'Axis'
       <dd>is a possible value for the 'Filling' option.
@@ -87,6 +91,8 @@ class Bottom(Builtin):
 
 class ChartLabels(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ChartLabels.html</url>
+
     <dl>
       <dt>'ChartLabels'
       <dd>is a charting option that specifies what labels should be used for chart elements.
@@ -112,6 +118,8 @@ class ChartLegends(Builtin):
 
 class Filling(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Filling.html</url>
+
     <dl>
       <dt>'Filling -> [Top | Bottom| Axis]'
       <dd>'Filling' is a an option to 'ListPlot', 'Plot' or 'Plot3D', and related functions that indicates what filling to add under point, curves, and surfaces.
@@ -137,6 +145,8 @@ class Full(Builtin):
 
 class ImageSize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageSize.html</url>
+
     <dl>
       <dt>'ImageSize'
       <dd>is an option that specifies the overall size of an image to display.
@@ -176,6 +186,8 @@ class Joined(Builtin):
 
 class MaxRecursion(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxRecursion.html</url>
+
     <dl>
       <dt>'MaxRecursion'
       <dd>is an option for functions like NIntegrate and Plot that specifies how many recursive subdivisions can be made.
@@ -218,6 +230,8 @@ class Mesh(Builtin):
 
 class PlotPoints(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PlotPoints.html</url>
+
     <dl>
       <dt>'PlotPoints $n$'
       <dd>A number specifies how many initial sample points to use.
@@ -256,6 +270,8 @@ class PlotRange(Builtin):
 
 class TicksStyle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TicksStyle.html</url>
+
     <dl>
       <dt>'TicksStyle'
       <dd>is an option for graphics functions which specifies how ticks should be rendered.

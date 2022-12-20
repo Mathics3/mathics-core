@@ -409,6 +409,8 @@ def to_python_encoding(encoding):
 
 class Alphabet(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Alphabet.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Alphabet.html</url>
@@ -483,6 +485,8 @@ class CharacterEncoding(Predefined):
 
 class CharacterEncodings(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CharacterEncodings.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
@@ -524,6 +528,8 @@ class HexadecimalCharacter(Builtin):
 # in mathics.builtin.box for now.
 class InterpretedBox(PrefixOperator):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InterpretedBox.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/InterpretedBox.html</url>
@@ -670,6 +676,8 @@ class LetterNumber(Builtin):
 
 class NumberString(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NumberString.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/NumberString.html</url>
@@ -835,6 +843,8 @@ class String_(Builtin):
 
 class StringContainsQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringContainsQ.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/StringContainsQ.html</url>
@@ -961,6 +971,8 @@ class StringQ(Test):
 
 class StringRepeat(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringRepeat.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/StringRepeat.html</url>
@@ -1042,6 +1054,8 @@ class SystemCharacterEncoding(Predefined):
 
 class ToExpression(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToExpression.html</url>
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ToExpression.html</url>
@@ -1224,6 +1238,7 @@ class ToString(Builtin):
 
 class Transliterate(Builtin):
     """
+
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/Transliterate.html</url>

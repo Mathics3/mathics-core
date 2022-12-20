@@ -11,6 +11,8 @@ from mathics.builtin.base import Builtin
 
 class Accumulate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Accumulate.html</url>
+
     <dl>
     <dt>'Accumulate[$list$]'
         <dd>accumulates the values of $list$, returning a new list.

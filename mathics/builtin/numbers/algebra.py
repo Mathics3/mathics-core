@@ -384,6 +384,8 @@ def get_exponents_sorted(expr, var) -> list:
 
 class Apart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Apart.html</url>
+
     <dl>
       <dt>'Apart[$expr$]'
       <dd>writes $expr$ as a sum of individual fractions.
@@ -498,6 +500,8 @@ def _coefficient(name, expr, form, n, evaluation):
 
 class Coefficient(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Coefficient.html</url>
+
     <dl>
       <dt>'Coefficient[expr, form]'
       <dd>returns the coefficient of $form$ in the polynomial $expr$.
@@ -815,6 +819,8 @@ class _CoefficientHandler(Builtin):
 
 class CoefficientArrays(_CoefficientHandler):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CoefficientArrays.html</url>
+
     <dl>
       <dt>'CoefficientArrays[$polys$, $vars$]'
       <dd>returns a list of arrays of coefficients of the variables $vars$ in the polynomial  $poly$.
@@ -1041,6 +1047,8 @@ class CoefficientList(Builtin):
 
 class Collect(_CoefficientHandler):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Collect.html</url>
+
     <dl>
       <dt>'Collect[$expr$, $x$]'
       <dd> Expands $expr$ and collect together terms having the same power of $x$.
@@ -1238,6 +1246,8 @@ class Expand(_Expand):
 
 class ExpandAll(_Expand):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpandAll.html</url>
+
     <dl>
       <dt>'ExpandAll[$expr$]'
       <dd>expands out negative integer powers and products of sums in $expr$.
@@ -1327,6 +1337,8 @@ class ExpandDenominator(_Expand):
 
 class Exponent(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Exponent.html</url>
+
     <dl>
       <dt>'Exponent[expr, form]'
       <dd>returns the maximum power with which $form$ appears in the expanded form of $expr$.
@@ -1440,6 +1452,8 @@ class Factor(Builtin):
 
 class FactorTermsList(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FactorTermsList.html</url>
+
     <dl>
       <dt>'FactorTermsList[poly]'
       <dd>returns a list of 2 elements.
@@ -1549,6 +1563,8 @@ class FactorTermsList(Builtin):
 # FullSimplify
 class Simplify(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Simplify.html</url>
+
     <dl>
       <dt>'Simplify[$expr$]'
       <dd>simplifies $expr$.
@@ -1740,6 +1756,8 @@ class FullSimplify(Simplify):
 
 class MinimalPolynomial(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MinimalPolynomial.html</url>
+
     <dl>
       <dt>'MinimalPolynomial[s, x]'
       <dd>gives the minimal polynomial in $x$ for which the algebraic number $s$ is a root.
@@ -1824,6 +1842,8 @@ class Numerator(Builtin):
 
 class PolynomialQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PolynomialQ.html</url>
+
     <dl>
       <dt>'PolynomialQ[expr, var]'
       <dd>returns True if $expr$ is a polynomial in $var$, and returns False otherwise.
@@ -1942,6 +1962,8 @@ class PowerExpand(Builtin):
 
 class Together(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Together.html</url>
+
     <dl>
       <dt>'Together[$expr$]'
       <dd>writes sums of fractions in $expr$ together.

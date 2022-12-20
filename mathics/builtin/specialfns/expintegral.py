@@ -10,6 +10,8 @@ from mathics.builtin.arithmetic import _MPMathFunction
 
 class ExpIntegralE(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpIntegralE.html</url>
+
     <dl>
     <dt>'ExpIntegralE[$n$, $z$]'
       <dd>returns the exponential integral function $E_n(z)$.
@@ -43,6 +45,8 @@ class ExpIntegralEi(_MPMathFunction):
 
 class ProductLog(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ProductLog.html</url>
+
     <dl>
     <dt>'ProductLog[$z$]'
         <dd>returns the value of the Lambert W function at $z$.

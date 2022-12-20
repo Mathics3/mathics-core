@@ -30,6 +30,8 @@ SymbolTableDepth = Symbol("TableDepth")
 
 class Echo_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Echo_.html</url>
+
     <dl>
       <dt>'$Echo'
       <dd>gives a list of files and pipes to which all input is echoed.

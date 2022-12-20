@@ -10,6 +10,8 @@ from mathics.core.atoms import String
 
 class Compress(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Compress.html</url>
+
     <dl>
     <dt>'Compress[$expr$]'
       <dd>gives a compressed string representation of $expr$.

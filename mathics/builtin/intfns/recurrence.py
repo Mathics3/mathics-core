@@ -23,6 +23,8 @@ from mathics.core.attributes import (
 
 class Fibonacci(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>
+
     <dl>
       <dt>'Fibonacci[$n$]'
       <dd>computes the $n$th Fibonacci number.
@@ -73,6 +75,8 @@ class HarmonicNumber(_MPMathFunction):
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
 class StirlingS1(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StirlingS1.html</url>
+
     <dl>
       <dt>'StirlingS1[$n$, $m$]'
       <dd>gives the Stirling number of the first kind $ _n^m$.

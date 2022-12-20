@@ -226,6 +226,8 @@ class CMYKColor(_ColorObject):
 
 class ColorDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorDistance.html</url>
+
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
       <dd>returns a measure of color distance between the colors $c1$ and $c2$.
@@ -433,6 +435,8 @@ class ColorError(BoxExpressionError):
 
 class GrayLevel(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GrayLevel.html</url>
+
     <dl>
       <dt>'GrayLevel[$g$]'
       <dd>represents a shade of gray specified by $g$, ranging from
@@ -507,6 +511,8 @@ class Hue(_ColorObject):
 
 class LABColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LABColor.html</url>
+
     <dl>
       <dt>'LABColor[$l$, $a$, $b$]'
       <dd>represents a color with the specified lightness, red/green and yellow/blue
@@ -535,6 +541,8 @@ class LCHColor(_ColorObject):
 
 class LUVColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LUVColor.html</url>
+
     <dl>
       <dt>'LCHColor[$l$, $u$, $v$]'
       <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
@@ -582,6 +590,8 @@ class Opacity(_GraphicsDirective):
 
 class RGBColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RGBColor.html</url>
+
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
       <dd>represents a color with the specified red, green and blue

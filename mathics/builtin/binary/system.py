@@ -11,6 +11,8 @@ from mathics.core.atoms import Integer, Integer1, IntegerM1
 
 class ByteOrdering(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ByteOrdering.html</url>
+
     <dl>
       <dt>'ByteOrdering'
       <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering

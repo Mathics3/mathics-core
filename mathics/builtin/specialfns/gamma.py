@@ -42,6 +42,8 @@ from mathics.eval.numerify import numerify
 
 class Beta(_MPMathMultiFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Beta.html</url>
+
     <dl>
       <dt>'Beta[$a$, $b$]'
       <dd>is the Euler's Beta function.
@@ -178,6 +180,8 @@ class Factorial(PostfixOperator, _MPMathFunction):
 
 class Factorial2(PostfixOperator, _MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial2.html</url>
+
     <dl>
       <dt>'Factorial2[$n$]'
       <dt>'$n$!!'
@@ -347,6 +351,8 @@ class Gamma(_MPMathMultiFunction):
 
 class LogGamma(_MPMathMultiFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LogGamma.html</url>
+
     In number theory the logarithm of the gamma function often appears. For positive real numbers, this can be evaluated as 'Log[Gamma[$z$]]'.
 
     <dl>
@@ -413,7 +419,9 @@ class Pochhammer(SympyFunction):
 
 
 class PolyGamma(_MPMathMultiFunction):
-    r"""
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PolyGamma.html</url>
+
     PolyGamma is a meromorphic function on the complex numbers and is defined as a derivative of the logarithm of the gamma function.
     <dl>
       <dt>PolyGamma[z]
@@ -429,6 +437,7 @@ class PolyGamma(_MPMathMultiFunction):
     >> PolyGamma[3, 5]
      = -22369 / 3456 + Pi ^ 4 / 15
     """
+
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
     mpmath_names = {

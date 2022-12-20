@@ -51,6 +51,8 @@ class Black(_ColorObject):
 
 class Blue(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blue.html</url>
+
     >> Blue
      = RGBColor[0, 0, 1]
     """
@@ -69,6 +71,8 @@ class Brown(_ColorObject):
 
 class Cyan(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cyan.html</url>
+
     >> Cyan
      = RGBColor[0, 1, 1]
     """
@@ -87,6 +91,8 @@ class Gray(_ColorObject):
 
 class Green(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Green.html</url>
+
     >> Green
      = RGBColor[0, 1, 0]
     """
@@ -105,6 +111,8 @@ class Magenta(_ColorObject):
 
 class LightBlue(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LightBlue.html</url>
+
     >> Graphics[{LightBlue, EdgeForm[Black], Disk[]}]
      = -Graphics-
 
@@ -182,6 +190,8 @@ class Orange(_ColorObject):
 
 class Red(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Red.html</url>
+
     >> Red
      = RGBColor[1, 0, 0]
     """
@@ -200,6 +210,8 @@ class Yellow(_ColorObject):
 
 class White(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/White.html</url>
+
     >> White
      = GrayLevel[1]
     """

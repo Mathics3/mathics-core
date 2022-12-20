@@ -106,6 +106,8 @@ SymbolSplit = Symbol("Split")
 
 class All(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/All.html</url>
+
     <dl>
       <dt>'All'
       <dd>is a possible option value for 'Span', 'Quiet', 'Part' and related functions. 'All' specifies all parts at a particular level.
@@ -212,6 +214,8 @@ class ContainsOnly(Builtin):
 
 class Delete(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Delete.html</url>
+
     <dl>
       <dt>'Delete[$expr$, $i$]'
       <dd>deletes the element at position $i$ in $expr$. The position is counted from the end if $i$ is negative.
@@ -374,6 +378,8 @@ class Failure(Builtin):
 
 class Key(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Key.html</url>
+
     <dl>
       <dt>Key[$key$]
       <dd> represents a key used to access a value in an association.
@@ -467,6 +473,8 @@ class Level(Builtin):
 
 class LevelQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LevelQ.html</url>
+
     <dl>
       <dt>'LevelQ[$expr$]'
       <dd>tests whether $expr$ is a valid level specification.
@@ -531,6 +539,8 @@ class List(Builtin):
 
 class ListQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ListQ.html</url>
+
     <dl>
       <dt>'ListQ[$expr$]'
       <dd>tests whether $expr$ is a 'List'.
@@ -597,6 +607,8 @@ def list_boxes(items, f, evaluation, open=None, close=None):
 
 class None_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/None_.html</url>
+
     <dl>
       <dt>'None'
       <dd>is a possible value for 'Span' and 'Quiet'.
@@ -679,6 +691,8 @@ class Split(Builtin):
 
 class SplitBy(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SplitBy.html</url>
+
     <dl>
       <dt>'SplitBy[$list$, $f$]'
       <dd>splits $list$ into collections of consecutive elements
@@ -812,6 +826,8 @@ class LeafCount(Builtin):
 
 class _IterationFunction(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/_IterationFunction.html</url>
+
     >> Sum[k, {k, Range[5]}]
      = 15
     """
@@ -1052,6 +1068,8 @@ def get_tuples(items):
 
 class IntersectingQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntersectingQ.html</url>
+
     <dl>
       <dt>'IntersectingQ[$a$, $b$]'
       <dd>gives True if there are any common elements in $a and $b, or False if $a and $b are disjoint.
@@ -1242,6 +1260,8 @@ class TakeLargestBy(_RankedTakeLargest):
 
 class TakeSmallestBy(_RankedTakeSmallest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallestBy.html</url>
+
     <dl>
       <dt>'TakeSmallestBy[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$
@@ -1491,6 +1511,8 @@ class PadLeft(_Pad):
 
 class PadRight(_Pad):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PadRight.html</url>
+
     <dl>
       <dt>'PadRight[$list$, $n$]'
       <dd>pads $list$ to length $n$ by adding 0 on the right.
@@ -1848,6 +1870,8 @@ class FindClusters(_Cluster):
 
 class ClusteringComponents(_Cluster):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ClusteringComponents.html</url>
+
     <dl>
       <dt>'ClusteringComponents[$list$]'
       <dd>forms clusters from $list$ and returns a list of cluster indices, in which each
@@ -2035,6 +2059,8 @@ class Nearest(Builtin):
 
 class SubsetQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SubsetQ.html</url>
+
     <dl>
       <dt>'SubsetQ[$list1$, $list2$]'
       <dd>returns True if $list2$ is a subset of $list1$, and False otherwise.
