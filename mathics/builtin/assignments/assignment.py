@@ -307,8 +307,7 @@ class TagSetDelayed(TagSet):
 # Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
 class LoadModule(Builtin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LoadModule.html</url>
+    ## <url>:mathics native for pymathics:</url>
 
     <dl>
       <dt>'LoadModule[$module$]'
