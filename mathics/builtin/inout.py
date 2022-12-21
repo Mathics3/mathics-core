@@ -30,6 +30,8 @@ SymbolTableDepth = Symbol("TableDepth")
 
 class Echo_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Echo_.html</url>
+
     <dl>
       <dt>'$Echo'
       <dd>gives a list of files and pipes to which all input is echoed.
@@ -45,6 +47,8 @@ class Echo_(Predefined):
 
 class Print(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Print.html</url>
+
     <dl>
       <dt>'Print[$expr$, ...]'
       <dd>prints each $expr$ in string form.

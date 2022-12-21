@@ -44,6 +44,8 @@ SymbolSortBy = Symbol("SortBy")
 
 class ApplyLevel(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ApplyLevel.html</url>
+
     <dl>
       <dt>'ApplyLevel[$f$, $expr$]'
 
@@ -68,6 +70,8 @@ class ApplyLevel(BinaryOperator):
 
 class BinarySearch(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BinarySearch.html</url>
+
     <dl>
       <dt>'CombinatoricaOld`BinarySearch[$l$, $k$]'
       <dd>searches the list $l$, which has to be sorted, for key $k$ and returns its index in $l$. If $k$ does not
@@ -157,6 +161,8 @@ class BinarySearch(Builtin):
 
 class ByteCount(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ByteCount.html</url>
+
     <dl>
       <dt>'ByteCount[$expr$]'
       <dd>gives the internal memory space used by $expr$, in bytes.
@@ -177,6 +183,8 @@ class ByteCount(Builtin):
 
 class Depth(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Depth.html</url>
+
     <dl>
       <dt>'Depth[$expr$]'
       <dd>gives the depth of $expr$.
@@ -212,6 +220,8 @@ class Depth(Builtin):
 
 class Flatten(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Flatten.html</url>
+
     <dl>
       <dt>'Flatten[$expr$]'
       <dd>flattens out nested lists in $expr$.
@@ -405,6 +415,8 @@ class Flatten(Builtin):
 
 class FreeQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FreeQ.html</url>
+
     <dl>
       <dt>'FreeQ[$expr$, $x$]'
       <dd>returns 'True' if $expr$ does not contain the expression $x$.
@@ -444,6 +456,8 @@ class FreeQ(Builtin):
 
 class Null(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Null.html</url>
+
     <dl>
       <dt>'Null'
       <dd>is the implicit result of expressions that do not yield a result.
@@ -464,6 +478,8 @@ class Null(Predefined):
 
 class Operate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Operate.html</url>
+
     <dl>
       <dt>'Operate[$p$, $expr$]'
       <dd>applies $p$ to the head of $expr$.
@@ -529,6 +545,8 @@ class Operate(Builtin):
 
 class Order(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Order.html</url>
+
     <dl>
       <dt>'Order[$x$, $y$]'
       <dd>returns a number indicating the canonical ordering of $x$ and $y$. 1 indicates that $x$ is before $y$,
@@ -562,6 +580,8 @@ class Order(Builtin):
 
 class OrderedQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OrderedQ.html</url>
+
     <dl>
       <dt>'OrderedQ[{$a$, $b$}]'
       <dd>is 'True' if $a$ sorts before $b$ according to canonical
@@ -589,6 +609,8 @@ class OrderedQ(Builtin):
 
 class PatternsOrderedQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PatternsOrderedQ.html</url>
+
     <dl>
       <dt>'PatternsOrderedQ[$patt1$, $patt2$]'
       <dd>returns 'True' if pattern $patt1$ would be applied before
@@ -616,6 +638,8 @@ class PatternsOrderedQ(Builtin):
 
 class SortBy(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SortBy.html</url>
+
     <dl>
       <dt>'SortBy[$list$, $f$]'
       <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering of the keys that are
@@ -688,6 +712,8 @@ class SortBy(Builtin):
 
 class Through(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Through.html</url>
+
     <dl>
       <dt>'Through[$p$[$f$][$x$]]'
       <dd>gives $p$[$f$[$x$]].
