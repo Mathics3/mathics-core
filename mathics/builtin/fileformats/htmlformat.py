@@ -157,6 +157,8 @@ class _Get(_HTMLBuiltin):
 
 class HTMLGet(_Get):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HTMLGet.html</url>
+
     <dl>
     <dd>HTMLGet['str']
     <dt>Parses 'str' as HTML code.
@@ -171,6 +173,8 @@ class HTMLGet(_Get):
 
 class HTMLGetString(_Get):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HTMLGetString.html</url>
+
     <dl>
     <dt>'HTML`Parser`HTMLGetString["string"]'
     <dd> parses HTML code contained in "string".
@@ -269,6 +273,9 @@ class _DataImport(_TagImport):
 
 class DataImport(_DataImport):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DataImport.html</url>
+
     <dl>
     <dt>'HTML`DataImport["filename"]'
     <dd> imports data from a HTML file.
@@ -287,6 +294,8 @@ class DataImport(_DataImport):
 
 class FullDataImport(_DataImport):
     """
+    <url>:internal native:</url>
+
     <dl>
     <dt>'HTML`FullDataImport["filename"]'
     <dd> imports data from a HTML file.
@@ -308,6 +317,8 @@ class _LinksImport(_TagImport):
 
 class HyperlinksImport(_LinksImport):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HyperlinksImport.html</url>
+
     <dl>
     <dt>'HTML`HyperlinksImport["filename"]'
     <dd> imports hyperlinks from a HTML file.
@@ -329,6 +340,8 @@ class HyperlinksImport(_LinksImport):
 
 class ImageLinksImport(_LinksImport):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageLinksImport.html</url>
+
     <dl>
     <dt>'HTML`ImageLinksImport["filename"]'
     <dd> imports links to the images included in a HTML file.
@@ -349,6 +362,8 @@ class ImageLinksImport(_LinksImport):
 
 class PlaintextImport(_TagImport):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PlaintextImport.html</url>
+
     <dl>
     <dt>'HTML`PlaintextImport["filename"]'
     <dd> imports plane text from a HTML file.
@@ -372,6 +387,8 @@ class PlaintextImport(_TagImport):
 
 class SourceImport(_HTMLBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SourceImport.html</url>
+
     <dl>
     <dt>'HTML`SourceImport["filename"]'
     <dd> imports source code from a HTML file.
@@ -396,6 +413,8 @@ class SourceImport(_HTMLBuiltin):
 
 class TitleImport(_TagImport):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TitleImport.html</url>
+
     <dl>
     <dt>'HTML`TitleImport["filename"]'
     <dd> imports the title string from a HTML file.
@@ -415,6 +434,8 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLObjectImport.html</url>
+
     <dl>
     <dt>'HTML`XMLObjectImport["filename"]'
     <dd> imports XML objects from a HTML file.

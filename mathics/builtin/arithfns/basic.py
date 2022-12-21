@@ -81,6 +81,8 @@ from mathics.eval.numerify import numerify
 
 class CubeRoot(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CubeRoot.html</url>
+
     <dl>
       <dt>'CubeRoot[$n$]'
       <dd>finds the real-valued cube root of the given $n$.
@@ -143,6 +145,8 @@ class CubeRoot(Builtin):
 
 class Divide(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Divide.html</url>
+
     <dl>
     <dt>'Divide[$a$, $b$]'
     <dt>'$a$ / $b$'
@@ -207,6 +211,8 @@ class Divide(BinaryOperator):
 
 class Minus(PrefixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
+
     <dl>
     <dt>'Minus[$expr$]'
         <dd> is the negation of $expr$.
@@ -250,6 +256,8 @@ class Minus(PrefixOperator):
 
 class Plus(BinaryOperator, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Plus.html</url>
+
     <dl>
     <dt>'Plus[$a$, $b$, ...]'
     <dt>$a$ + $b$ + ...
@@ -468,6 +476,8 @@ class Plus(BinaryOperator, SympyFunction):
 
 class Power(BinaryOperator, _MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Power.html</url>
+
     <dl>
     <dt>'Power[$a$, $b$]'
     <dt>'$a$ ^ $b$'
@@ -632,6 +642,8 @@ class Power(BinaryOperator, _MPMathFunction):
 
 class Sqrt(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sqrt.html</url>
+
     <dl>
     <dt>'Sqrt[$expr$]'
         <dd>returns the square root of $expr$.
@@ -673,6 +685,8 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subtract.html</url>
+
     <dl>
     <dt>'Subtract[$a$, $b$]'
     <dt>$a$ - $b$
@@ -704,6 +718,8 @@ class Subtract(BinaryOperator):
 
 class Times(BinaryOperator, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Times.html</url>
+
     <dl>
     <dt>'Times[$a$, $b$, ...]'
     <dt>'$a$ * $b$ * ...'
