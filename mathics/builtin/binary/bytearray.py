@@ -25,15 +25,15 @@ class ByteArray(Builtin):
     </dl>
 
     >> A=ByteArray[{1, 25, 3}]
-     = ByteArray["ARkD"]
+     = ByteArray[<3>]
     >> A[[2]]
      = 25
     >> Normal[A]
      = {1, 25, 3}
     >> ToString[A]
-     = ByteArray["ARkD"]
+     = ByteArray[<3>]
     >> ByteArray["ARkD"]
-     = ByteArray["ARkD"]
+     = ByteArray[<3>]
     >> B=ByteArray["asy"]
      : The first argument in Bytearray[asy] should be a B64 enconded string or a vector of integers.
      = $Failed
@@ -57,7 +57,7 @@ class ByteArray(Builtin):
 
     def eval_to_str(self, baa, evaluation):
         "ToString[ByteArray[baa_ByteArrayAtom]]"
-        return String('ByteArray["' + baa.__str__() + '"]')
+        return String("ByteArray[" + baa.__str__() + "]")
 
     def eval_normal(self, baa, evaluation):
         "System`Normal[ByteArray[baa_ByteArrayAtom]]"

@@ -1582,9 +1582,9 @@ def _linearize(a):
     u = numpy.unique(a)
     n = len(u)
 
-    lower = numpy.ndarray(a.shape, dtype=numpy.int)
+    lower = numpy.ndarray(a.shape, dtype=int)
     lower.fill(0)
-    upper = numpy.ndarray(a.shape, dtype=numpy.int)
+    upper = numpy.ndarray(a.shape, dtype=int)
     upper.fill(n - 1)
 
     h = numpy.sort(u)
@@ -1713,7 +1713,7 @@ class ImageData(_ImageBuiltin):
         elif stype == "Bit16":
             pixels = pixels_as_uint(pixels)
         elif stype == "Bit":
-            pixels = pixels.astype(numpy.int)
+            pixels = pixels.astype(int)
         else:
             return evaluation.message("ImageData", "pixelfmt", stype)
         return from_python(numpy_to_matrix(pixels))

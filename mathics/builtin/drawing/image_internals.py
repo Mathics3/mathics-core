@@ -63,7 +63,7 @@ def pixels_as_float(pixels):
         return pixels.astype(numpy.float32) / 255.0
     elif dtype == numpy.uint16:
         return pixels.astype(numpy.float32) / 65535.0
-    elif dtype == bool:
+    elif dtype is bool:
         return pixels.astype(numpy.float32)
     else:
         raise NotImplementedError
@@ -78,7 +78,7 @@ def pixels_as_ubyte(pixels):
         return pixels
     elif dtype == numpy.uint16:
         return (pixels / 256).astype(numpy.uint8)
-    elif dtype == numpy.bool:
+    elif dtype is bool:
         return pixels.astype(numpy.uint8) * 255
     else:
         raise NotImplementedError
@@ -93,7 +93,7 @@ def pixels_as_uint(pixels):
         return pixels.astype(numpy.uint16) * 256
     elif dtype == numpy.uint16:
         return pixels
-    elif dtype == numpy.bool:
+    elif dtype is bool:
         return pixels.astype(numpy.uint8) * 65535
     else:
         raise NotImplementedError

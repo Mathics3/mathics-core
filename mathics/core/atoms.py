@@ -559,10 +559,10 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
         return self.hash
 
     def __str__(self) -> str:
-        return base64.b64encode(self.value).decode("utf8")
+        return f"<{len(self.value)}>"
 
     def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String('""' + self.__str__() + '""')
+        res = String(self.__str__())
         return res
 
     def do_copy(self) -> "ByteArrayAtom":

@@ -986,7 +986,7 @@ class Part(Builtin):
             return
         indices = i.get_sequence()
         # How to deal with ByteArrays
-        if list.get_head_name() == "System`ByteArray":
+        if list.get_head() == SymbolByteArray:
             list = list.evaluate(evaluation)
             if len(indices) > 1:
                 print(
@@ -995,8 +995,8 @@ class Part(Builtin):
                 )
                 return
             idx = indices[0]
-            if idx.get_head_name() == "System`Integer":
-                idx = idx.get_int_value()
+            if isinstance(idx, Integer):
+                idx = idx.value
                 if idx == 0:
                     return SymbolByteArray
                 data = list.elements[0].value
