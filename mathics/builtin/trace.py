@@ -3,9 +3,11 @@
 """
 Tracing Built-in Functions
 
-Built-in Function Tracing provides one high-level way understand what is getting evaluated and where the time is spent in evaluation.
+Built-in Function Tracing provides one high-level way understand what is \
+getting evaluated and where the time is spent in evaluation.
 
-With this, it may be possible for both users and implementers to follow how Mathics arrives at its results, or guide how to speed up expression evaluation.
+With this, it may be possible for both users and implementers to follow \
+how Mathics arrives at its results, or guide how to speed up expression evaluation.
 """
 
 
@@ -144,7 +146,9 @@ class TraceBuiltins(_TraceBase):
 
     <dl>
       <dt>'TraceBuiltins[$expr$]'
-      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
+      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
+          in evaluating $expr$ along with the number of times is each called, \
+          and combined elapsed time in milliseconds spent in each.
     </dl>
 
     Sort Options:
