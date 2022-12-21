@@ -183,12 +183,8 @@ class _OpenAction(Builtin):
 
 class Character(Builtin):
     """
-<<<<<<< HEAD
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Character.html</url>
-=======
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Character.html</url>
->>>>>>> f6040b82 (docstr url for files_io, intfns, list and trace)
 
     <dl>
       <dt>'Character'
@@ -486,13 +482,9 @@ class Get(PrefixOperator):
 
 class InputFileName_(Predefined):
     """
-<<<<<<< HEAD
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/$InputFileName.html</url>
-=======
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$InputFileName.html</url>
->>>>>>> f6040b82 (docstr url for files_io, intfns, list and trace)
 
     <dl>
       <dt>'$InputFileName'
@@ -534,13 +526,9 @@ class InputStream(Builtin):
 
 class OpenRead(_OpenAction):
     """
-<<<<<<< HEAD
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/OpenRead.html</url>
-=======
-    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenRead.html</url>
->>>>>>> f6040b82 (docstr url for files_io, intfns, list and trace)
 
     <dl>
       <dt>'OpenRead["file"]'
@@ -731,13 +719,9 @@ class Put(BinaryOperator):
 
 class PutAppend(BinaryOperator):
     """
-<<<<<<< HEAD
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/PutAppend.html</url>
-=======
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PutAppend.html</url>
->>>>>>> f6040b82 (docstr url for files_io, intfns, list and trace)
 
     <dl>
       <dt>'$expr$ >>> $filename$'

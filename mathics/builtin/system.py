@@ -187,7 +187,7 @@ class MachineName(Predefined):
 
 class MathicsVersion(Predefined):
     r"""
-    <url>:mathics native:</url>
+    ## <url>:mathics native:</url>
 
     <dl>
       <dt>'MathicsVersion'
