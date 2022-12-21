@@ -57,6 +57,8 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
 
 class BoxData(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BoxData.html</url>
+
     <dl>
       <dt>'BoxData[...]'
       <dd>is a low-level representation of the contents of a typesetting
@@ -88,6 +90,8 @@ def is_constant_list(list):
 
 class FractionBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FractionBox.html</url>
+
     <dl>
       <dt>'FractionBox[$x$, $y$]'
       <dd> FractionBox[x, y] is a low-level formatting construct that represents $\frac{x}{y}$.
@@ -159,6 +163,8 @@ class GridBox(BoxExpression):
 
 class InterpretationBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InterpretationBox.html</url>
+
     <dl>
       <dt>'InterpretationBox[{...}, expr]'
       <dd> is a low-level box construct that displays as boxes, but is interpreted on input as expr.
@@ -257,6 +263,7 @@ class RowBox(BoxExpression):
 
 class ShowStringCharacters(Builtin):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/ShowStringCharacters.html</url>
     <dl>
       <dt>'ShowStringCharacters'
@@ -315,6 +322,7 @@ class SqrtBox(BoxExpression):
 
 class StyleBox(BoxExpression):
     """
+
     <url>:WMA link: https://reference.wolfram.com/language/ref/StyleBox.html</url>
     <dl>
       <dt>'StyleBox[boxes, options]'
@@ -408,6 +416,8 @@ class SubscriptBox(BoxExpression):
 
 class SubsuperscriptBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SubsuperscriptBox.html</url>
+
     <dl>
       <dt>'SubsuperscriptBox[$a$, $b$, $c$]'
       <dd>is a box construct that represents $a_b^c$.
@@ -481,6 +491,8 @@ class SuperscriptBox(BoxExpression):
 
 class TagBox(BoxExpression):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagBox.html</url>
+
     <dl>
       <dt>'TagBox[boxes, tag]'
       <dd> is a low-level box construct that displays as
@@ -506,6 +518,8 @@ class TemplateBox(BoxExpression):
 
 class TextData(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TextData.html</url>
+
     <dl>
       <dt>'TextData[...]'
       <dd>is a low-level representation of the contents of a textual

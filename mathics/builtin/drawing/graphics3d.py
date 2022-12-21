@@ -65,6 +65,8 @@ class Style3D(Style):
 
 class Graphics3D(Graphics):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Graphics3D.html</url>
+
     <dl>
       <dt>'Graphics3D[$primitives$, $options$]'
       <dd>represents a three-dimensional graphic.
@@ -184,6 +186,8 @@ class Graphics3DElements(_GraphicsElements):
 
 class Sphere(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sphere.html</url>
+
     <dl>
     <dt>'Sphere[{$x$, $y$, $z$}]'
         <dd>is a sphere of radius 1 centered at the point {$x$, $y$, $z$}.
@@ -209,6 +213,8 @@ class Sphere(Builtin):
 
 class Cone(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cone.html</url>
+
     <dl>
       <dt>'Cone[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cone of radius 1.
@@ -254,6 +260,8 @@ class Cone(Builtin):
 
 class Cuboid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cuboid.html</url>
+
     Cuboid also known as interval, rectangle, square, cube, rectangular parallelepiped, tesseract, orthotope, and box.
     <dl>
       <dt>'Cuboid[$p_min$]'
@@ -306,6 +314,8 @@ class Cuboid(Builtin):
 
 class Cylinder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cylinder.html</url>
+
     <dl>
       <dt>'Cylinder[{{$x1$, $y1$, $z1$}, {$x2$, $y2$, $z2$}}]'
       <dd>represents a cylinder of radius 1.
@@ -351,6 +361,8 @@ class Cylinder(Builtin):
 
 class Tube(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tube.html</url>
+
     <dl>
       <dt>'Tube[{$p1$, $p2$, ...}]'
       <dd>represents a tube passing through $p1$, $p2$, ... with radius 1.
