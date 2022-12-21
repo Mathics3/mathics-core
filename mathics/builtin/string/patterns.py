@@ -37,6 +37,8 @@ SymbolStringExpression = Symbol("StringExpression")
 
 class DigitCharacter(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitCharacter.html</url>
+
     <dl>
       <dt>'DigitCharacter'
       <dd>represents the digits 0-9.
@@ -61,8 +63,10 @@ class DigitCharacter(Builtin):
 
 class EndOfLine(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfLine.html</url>
+
     <dl>
-    <dt>'EndOfString'
+    <dt>'EndOfLine'
       <dd>represents the end of a line in a string.
     </dl>
 
@@ -82,6 +86,8 @@ class EndOfLine(Builtin):
 
 class EndOfString(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfString.html</url>
+
     <dl>
     <dt>'EndOfString'
       <dd>represents the end of a string.
@@ -95,11 +101,14 @@ class EndOfString(Builtin):
      = aab
      . abc
     """
+
     summary_text = "end of the whole string"
 
 
 class LetterCharacter(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LetterCharacter.html</url>
+
     <dl>
       <dt>'LetterCharacter'
       <dd>represents letters.
@@ -118,8 +127,10 @@ class LetterCharacter(Builtin):
 
 class StartOfLine(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfLine.html</url>
+
     <dl>
-    <dt>'StartOfString'
+    <dt>'StartOfLine'
       <dd>represents the start of a line in a string.
     </dl>
 
@@ -134,11 +145,14 @@ class StartOfLine(Builtin):
      . , def
      . , hij}
     """
+
     summary_text = "start of a line"
 
 
 class StartOfString(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfString.html</url>
+
     <dl>
     <dt>'StartOfString'
       <dd>represents the start of a string.
@@ -157,6 +171,8 @@ class StartOfString(Builtin):
 
 class StringCases(_StringFind):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringCases.html</url>
+
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
       <dd>gives all occurences of $pattern$ in $string$.
@@ -229,6 +245,8 @@ class StringCases(_StringFind):
 
 class StringExpression(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringExpression.html</url>
+
     <dl>
     <dt>'StringExpression[s_1, s_2, ...]'
       <dd>represents a sequence of strings and symbolic string objects $s_i$.
@@ -265,6 +283,8 @@ class StringExpression(BinaryOperator):
 
 class StringFreeQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
+
     <dl>
     <dt>'StringFreeQ["$string$", $patt$]'
         <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
@@ -363,6 +383,8 @@ class StringFreeQ(Builtin):
 
 class StringMatchQ(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
+
     <dl>
     <dt>'StringMatchQ["string", $patern$]'
     <dd> checks  is "string" matches $pattern$
@@ -469,6 +491,8 @@ class StringMatchQ(Builtin):
 
 class WhitespaceCharacter(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
+
     <dl>
       <dt>'WhitespaceCharacter'
       <dd>represents a single whitespace character.
@@ -486,12 +510,15 @@ class WhitespaceCharacter(Builtin):
     >> StringMatchQ[" \n", Whitespace]
      = True
     """
+
     summary_text = "space, newline, tab, or other whitespace character"
 
 
 # strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WordBoundary.html</url>
+
     <dl>
       <dt>'WordBoundary'
       <dd>represents the boundary between words.
@@ -506,6 +533,8 @@ class WordBoundary(Builtin):
 
 class WordCharacter(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WordCharacter.html</url>
+
     <dl>
       <dt>'WordCharacter'
       <dd>represents a single letter or digit character.

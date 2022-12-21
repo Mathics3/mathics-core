@@ -22,6 +22,8 @@ import sympy
 
 class EllipticE(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticE.html</url>
+
     <dl>
       <dt>'EllipticE[$m$]'
       <dd>computes the complete elliptic integral $E$($m$).
@@ -72,6 +74,8 @@ class EllipticE(SympyFunction):
 
 class EllipticF(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticF.html</url>
+
     <dl>
       <dt>'EllipticF[$m$]'
       <dd>computes the elliptic integral of the first kind $F$($ϕ$|$m$).
@@ -108,6 +112,8 @@ class EllipticF(SympyFunction):
 
 class EllipticK(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticK.html</url>
+
     <dl>
       <dt>'EllipticK[$m$]'
       <dd>computes the elliptic integral of the first kind $K$($m$).
@@ -148,6 +154,8 @@ class EllipticK(SympyFunction):
 
 class EllipticPi(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticPi.html</url>
+
     <dl>
       <dt>'EllipticPi[$n$, $m$]'
       <dd>computes the elliptic integral of the third kind $Pi$($m$).
