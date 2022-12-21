@@ -172,7 +172,8 @@ class Left(Builtin):
 
 class NonAssociative(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NonAssociative.html</url>
+    ## For some reason, this is a Builtin symbol in WMA, but it is not available in WR.
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/NonAssociative.html</url>
 
     <dl>
       <dt>'NonAssociative'
@@ -211,7 +212,8 @@ class Postfix(BinaryOperator):
 
 class Precedence(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Precedence.html</url>
+    ## As NonAssociative, this is a Builtin in WMA that does not have an entry in WR.
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/Precedence.html</url>
 
     <dl>
       <dt>'Precedence[$op$]'

@@ -1005,7 +1005,8 @@ class DateStringFormat(Predefined):
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/EasterSunday.html</url>
+    <url>:Date of Easter:https://en.wikipedia.org/wiki/Date_of_Easter</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
 
     <dl>
     <dt>'EasterSunday[$year$]'
@@ -1079,7 +1080,7 @@ class Pause(Builtin):
 
 class SystemTimeZone(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SystemTimeZone.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
 
     <dl>
       <dt>'$SystemTimeZone'
@@ -1190,7 +1191,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
 class TimeZone(Predefined):
     """
-    <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url>
+    <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> \
     (<url>:WMA link:https://reference.wolfram.com/language/ref/TimeZone.html</url>)
 
     <dl>

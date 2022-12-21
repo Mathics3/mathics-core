@@ -367,7 +367,7 @@ class Xor(BinaryOperator):
 
 class True_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/True_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/True.html</url>
 
     <dl>
       <dt>'True'
