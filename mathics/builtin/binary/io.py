@@ -31,6 +31,7 @@ SymbolBinaryWrite = Symbol("BinaryWrite")
 
 class _BinaryFormat:
     """
+
     Container for BinaryRead readers and BinaryWrite writers
     """
 

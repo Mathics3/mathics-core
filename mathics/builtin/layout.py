@@ -10,23 +10,16 @@ we can use ``Row``
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-    Operator,
-)
+from mathics.builtin.base import BinaryOperator, Builtin, Operator
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
-
 from mathics.core.atoms import Real, String
-
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
-
 from mathics.eval.makeboxes import format_element
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
@@ -172,13 +165,14 @@ class Left(Builtin):
 
 class NonAssociative(Builtin):
     """
-    ## For some reason, this is a Builtin symbol in WMA, but it is not available in WR.
-    ## <url>:WMA link:https://reference.wolfram.com/language/ref/NonAssociative.html</url>
+        ## For some reason, this is a Builtin symbol in WMA, but it is not available in WR.
+        ## <url>:WMA link:https://reference.wolfram.com/language/ref/NonAssociative.html</url>
+    on, logic, comparison, datentime, attributes and binary)
 
-    <dl>
-      <dt>'NonAssociative'
-      <dd>is used with operator formatting constructs to specify a non-associative operator.
-    </dl>
+        <dl>
+          <dt>'NonAssociative'
+          <dd>is used with operator formatting constructs to specify a non-associative operator.
+        </dl>
     """
 
     summary_text = "non-associative operator"
@@ -212,25 +206,26 @@ class Postfix(BinaryOperator):
 
 class Precedence(Builtin):
     """
-    ## As NonAssociative, this is a Builtin in WMA that does not have an entry in WR.
-    ## <url>:WMA link:https://reference.wolfram.com/language/ref/Precedence.html</url>
+        ## As NonAssociative, this is a Builtin in WMA that does not have an entry in WR.
+        ## <url>:WMA link:https://reference.wolfram.com/language/ref/Precedence.html</url>
+    on, logic, comparison, datentime, attributes and binary)
 
-    <dl>
-      <dt>'Precedence[$op$]'
-      <dd>returns the precedence of the built-in operator $op$.
-    </dl>
+        <dl>
+          <dt>'Precedence[$op$]'
+          <dd>returns the precedence of the built-in operator $op$.
+        </dl>
 
-    >> Precedence[Plus]
-     = 310.
-    >> Precedence[Plus] < Precedence[Times]
-     = True
+        >> Precedence[Plus]
+         = 310.
+        >> Precedence[Plus] < Precedence[Times]
+         = True
 
-    Unknown symbols have precedence 670:
-    >> Precedence[f]
-     = 670.
-    Other expressions have precedence 1000:
-    >> Precedence[a + b]
-     = 1000.
+        Unknown symbols have precedence 670:
+        >> Precedence[f]
+         = 670.
+        Other expressions have precedence 1000:
+        >> Precedence[a + b]
+         = 1000.
     """
 
     summary_text = "an object to be parenthesized with a given precedence level"

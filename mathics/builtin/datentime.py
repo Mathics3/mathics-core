@@ -25,8 +25,8 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.element import ImmutableValueMixin
+from mathics.core.evaluation import TimeoutInterrupt, run_with_timeout_and_stack
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolNull
@@ -36,7 +36,6 @@ from mathics.core.systemsymbols import (
     SymbolInfinity,
     SymbolRowBox,
 )
-
 from mathics.settings import TIME_12HOUR
 
 START_TIME = time.time()
@@ -381,12 +380,12 @@ class AbsoluteTime(_DateFormat):
 
     summary_text = "absolute time in seconds"
 
-    def apply_now(self, evaluation):
+    def eval_now(self, evaluation):
         "AbsoluteTime[]"
 
         return Real(total_seconds(datetime.now() - EPOCH_START))
 
-    def apply_spec(self, epochtime, evaluation):
+    def eval_spec(self, epochtime, evaluation):
         "AbsoluteTime[epochtime_]"
 
         datelist = self.to_datelist(epochtime, evaluation)
@@ -420,7 +419,7 @@ class AbsoluteTiming(Builtin):
 
     summary_text = "total wall-clock time to run a Mathics command"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "AbsoluteTiming[expr_]"
 
         start = time.time()
@@ -479,7 +478,7 @@ class DateDifference(Builtin):
 
     summary_text = "find the difference in days, weeks, etc. between two dates"
 
-    def apply(self, date1, date2, units, evaluation):
+    def eval(self, date1, date2, units, evaluation):
         "DateDifference[date1_, date2_, units_]"
 
         # Process dates
@@ -626,7 +625,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
         " an object representing a date of any granularity (year, hour, instant, ...)"
     )
 
-    def apply_any(self, args, evaluation, options):
+    def eval_any(self, args, evaluation, options):
         "DateObject[args_, OptionsPattern[]]"
         datelist = None
         tz = None
@@ -684,7 +683,7 @@ class DateObject(_DateFormat, ImmutableValueMixin):
             fmt,
         )
 
-    def apply_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
+    def eval_makeboxes(self, datetime, gran, cal, tz, fmt, evaluation):
         "MakeBoxes[DateObject[datetime_List, gran_, cal_, tz_, fmt_], StandardForm|TraditionalForm|OutputForm]"
         # TODO:
         if fmt.sameQ(SymbolAutomatic):
@@ -742,7 +741,7 @@ class DatePlus(Builtin):
 
     summary_text = "add or subtract days, weeks, etc. in a date list or string"
 
-    def apply(self, date, off, evaluation):
+    def eval(self, date, off, evaluation):
         "DatePlus[date_, off_]"
 
         # Process date
@@ -857,7 +856,7 @@ class DateList(_DateFormat):
 
     summary_text = "date elements as numbers in {y,m,d,h,m,s} format"
 
-    def apply(self, epochtime, evaluation):
+    def eval(self, epochtime, evaluation):
         "%(name)s[epochtime_]"
         datelist = self.to_datelist(epochtime, evaluation)
 
@@ -940,7 +939,7 @@ class DateString(_DateFormat):
 
     summary_text = "current or specified date as a string in many possible formats"
 
-    def apply(self, epochtime, form, evaluation):
+    def eval(self, epochtime, form, evaluation):
         "DateString[epochtime_, form_]"
         datelist = self.to_datelist(epochtime, evaluation)
 
@@ -1005,11 +1004,13 @@ class DateStringFormat(Predefined):
 
 class EasterSunday(Builtin):  # Calendar`EasterSunday
     """
-    <url>:Date of Easter:https://en.wikipedia.org/wiki/Date_of_Easter</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
+    <url>:Date of Easter:
+    https://en.wikipedia.org/wiki/Date_of_Easter</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/Calendar/ref/EasterSunday.html</url>)
 
     <dl>
-    <dt>'EasterSunday[$year$]'
+      <dt>'EasterSunday[$year$]'
       <dd>returns the date of the Gregorian Easter Sunday as {year, month, day}.
     </dl>
 
@@ -1022,7 +1023,7 @@ class EasterSunday(Builtin):  # Calendar`EasterSunday
 
     summary_text = "find the date of Easter Sunday for a given year"
 
-    def apply(self, year, evaluation):
+    def eval(self, year, evaluation):
         "EasterSunday[year_Integer]"
         y = year.value
 
@@ -1065,7 +1066,7 @@ class Pause(Builtin):
 
     summary_text = "pause for a number of seconds"
 
-    def apply(self, n, evaluation):
+    def eval(self, n, evaluation):
         "Pause[n_]"
         sleeptime = n.to_python()
         if not isinstance(sleeptime, (int, float)) or sleeptime < 0:
@@ -1080,7 +1081,9 @@ class Pause(Builtin):
 
 class SystemTimeZone(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$SystemTimeZone.html</url>
 
     <dl>
       <dt>'$SystemTimeZone'
@@ -1164,11 +1167,11 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
         summary_text = "run a command for at most a specified time"
 
-        def apply_2(self, expr, t, evaluation):
+        def eval_2(self, expr, t, evaluation):
             "TimeConstrained[expr_, t_]"
-            return self.apply_3(expr, t, SymbolAborted, evaluation)
+            return self.eval_3(expr, t, SymbolAborted, evaluation)
 
-        def apply_3(self, expr, t, failexpr, evaluation):
+        def eval_3(self, expr, t, failexpr, evaluation):
             "TimeConstrained[expr_, t_, failexpr_]"
             t = t.evaluate(evaluation)
             if not t.is_numeric(evaluation):
@@ -1191,8 +1194,9 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 
 class TimeZone(Predefined):
     """
-    <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/TimeZone.html</url>)
+    <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
 
     <dl>
       <dt>'$TimeZone'
@@ -1213,7 +1217,7 @@ class TimeZone(Predefined):
 
     summary_text = "resettable default time zone"
 
-    def apply(self, lhs, rhs, evaluation):
+    def eval(self, lhs, rhs, evaluation):
         "lhs_ = rhs_"
 
         self.assign(lhs, rhs, evaluation)
@@ -1240,7 +1244,7 @@ class TimeUsed(Builtin):
         "the total number of seconds of CPU time in the current Mathics session"
     )
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "TimeUsed[]"
         # time.process_time() is better than
         # time.clock(). See https://bugs.python.org/issue31803
@@ -1252,9 +1256,10 @@ class Timing(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Timing.html</url>
 
     <dl>
-    <dt>'Timing[$expr$]'
+      <dt>'Timing[$expr$]'
       <dd>measures the processor time taken to evaluate $expr$.
-      It returns a list containing the measured time in seconds and the result of the evaluation.
+          It returns a list containing the measured time in seconds and \
+          the result of the evaluation.
     </dl>
 
     >> Timing[50!]
@@ -1267,7 +1272,7 @@ class Timing(Builtin):
 
     summary_text = "CPU time to run a Mathics command"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "Timing[expr_]"
 
         start = time.process_time()
@@ -1278,10 +1283,12 @@ class Timing(Builtin):
 
 class SessionTime(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SessionTime.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SessionTime.html</url>
 
     <dl>
-    <dt>'SessionTime[]'
+      <dt>'SessionTime[]'
       <dd>returns the total time in seconds since this session started.
     </dl>
 
@@ -1293,20 +1300,23 @@ class SessionTime(Builtin):
         "total elapsed time in seconds since the beginning of your Mathics session"
     )
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "SessionTime[]"
         return Real(time.time() - START_TIME)
 
 
 class TimeRemaining(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TimeRemaining.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TimeRemaining.html</url>
 
     <dl>
-    <dt>'TimeRemaining[]'
-        <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
-    <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
-        <dd>returns $failexpr$ if the time constraint is not met.
+      <dt>'TimeRemaining[]'
+      <dd>Gives the number of seconds remaining until the earliest enclosing 'TimeConstrained' will request the current computation to stop.
+
+      <dt>'TimeConstrained[$expr$, $t$, $failexpr$]'
+      <dd>returns $failexpr$ if the time constraint is not met.
     </dl>
 
     If TimeConstrained is called out of a TimeConstrained expression, returns `Infinity`
@@ -1320,7 +1330,7 @@ class TimeRemaining(Builtin):
 
     summary_text = "time before a time constraint in a running program"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "TimeRemaining[]"
         if len(evaluation.timeout_queue) > 0:
             t, start_time = evaluation.timeout_queue[-1]
