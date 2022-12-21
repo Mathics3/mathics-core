@@ -63,6 +63,8 @@ SymbolAbsoluteTime = Symbol("AbsoluteTime")
 
 class AbsoluteFileName(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteFileName.html</url>
+
     <dl>
       <dt>'AbsoluteFileName["$name$"]'
       <dd>returns the absolute version of the given filename.
@@ -103,14 +105,16 @@ class AbsoluteFileName(Builtin):
         return String(osp.abspath(result))
 
 
-class BaseDirectory(Predefined):
+class BaseDirectory_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$BaseDirectory.html</url>
+
     <dl>
-      <dt>'$UserBaseDirectory'
+      <dt>'$BaseDirectory'
       <dd>returns the folder where user configurations are stored.
     </dl>
 
-    >> $RootDirectory
+    >> $BaseDirectory
      = ...
     """
 
@@ -124,6 +128,8 @@ class BaseDirectory(Predefined):
 
 class CopyDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CopyDirectory.html</url>
+
     <dl>
       <dt>'CopyDirectory["$dir1$", "$dir2$"]'
       <dd>copies directory $dir1$ to $dir2$.
@@ -172,6 +178,8 @@ class CopyDirectory(Builtin):
 
 class CopyFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CopyFile.html</url>
+
     <dl>
       <dt>'CopyFile["$file1$", "$file2$"]'
       <dd>copies $file1$ to $file2$.
@@ -231,6 +239,8 @@ class CopyFile(Builtin):
 
 class CreateDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateDirectory.html</url>
+
     <dl>
       <dt>'CreateDirectory["$dir$"]'
       <dd>creates a directory called $dir$.
@@ -293,6 +303,8 @@ class CreateDirectory(Builtin):
 
 class CreateFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateFile.html</url>
+
     <dl>
       <dt>'CreateFile["filename"]'
       <dd>Creates a file named "filename" temporary file, but do not open it.
@@ -329,6 +341,8 @@ class CreateFile(Builtin):
 
 class CreateTemporary(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CreateTemporary.html</url>
+
     <dl>
       <dt>'CreateTemporary[]'
       <dd>Creates a temporary file, but do not open it.
@@ -348,6 +362,8 @@ class CreateTemporary(Builtin):
 
 class DeleteDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteDirectory.html</url>
+
     <dl>
       <dt>'DeleteDirectory["$dir$"]'
       <dd>deletes a directory called $dir$.
@@ -410,6 +426,8 @@ class DeleteDirectory(Builtin):
 
 class DeleteFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteFile.html</url>
+
     <dl>
       <dt>'Delete["$file$"]'
       <dd>deletes $file$.
@@ -475,6 +493,8 @@ class DeleteFile(Builtin):
 
 class Directory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Directory.html</url>
+
     <dl>
       <dt>'Directory[]'
       <dd>returns the current working directory.
@@ -494,6 +514,8 @@ class Directory(Builtin):
 
 class DirectoryName(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryName.html</url>
+
     <dl>
       <dt>'DirectoryName["$name$"]'
       <dd>extracts the directory name from a filename.
@@ -566,6 +588,8 @@ class DirectoryName(Builtin):
 
 class DirectoryStack(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryStack.html</url>
+
     <dl>
       <dt>'DirectoryStack[]'
       <dd>returns the directory stack.
@@ -585,6 +609,8 @@ class DirectoryStack(Builtin):
 
 class DirectoryQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectoryQ.html</url>
+
     <dl>
       <dt>'DirectoryQ["$name$"]'
       <dd>returns 'True' if the directory called $name$ exists and 'False' otherwise.
@@ -627,6 +653,8 @@ class DirectoryQ(Builtin):
 
 class ExpandFileName(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ExpandFileName.html</url>
+
     <dl>
       <dt>'ExpandFileName["$name$"]'
       <dd>expands $name$ to an absolute filename for your system.
@@ -658,6 +686,8 @@ class ExpandFileName(Builtin):
 
 class File(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/File.html</url>
+
     <dl>
       <dt>'File["$file$"]'
       <dd>is a symbolic representation of an element in the local file system.
@@ -669,6 +699,8 @@ class File(Builtin):
 
 class FileBaseName(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileBaseName.html</url>
+
     <dl>
       <dt>'FileBaseName["$file$"]'
       <dd>gives the base name for the specified file name.
@@ -702,6 +734,8 @@ class FileBaseName(Builtin):
 
 class FileByteCount(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileByteCount.html</url>
+
     <dl>
       <dt>'FileByteCount[$file$]'
       <dd>returns the number of bytes in $file$.
@@ -746,6 +780,8 @@ class FileByteCount(Builtin):
 
 class FileDate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileDate.html</url>
+
     <dl>
       <dt>'FileDate[$file$, $types$]'
       <dd>returns the time and date at which the file was last modified.
@@ -848,6 +884,8 @@ class FileDate(Builtin):
 
 class FileExistsQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileExistsQ.html</url>
+
     <dl>
       <dt>'FileExistsQ["$file$"]'
       <dd>returns 'True' if $file$ exists and 'False' otherwise.
@@ -883,6 +921,8 @@ class FileExistsQ(Builtin):
 
 class FileExtension(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileExtension.html</url>
+
     <dl>
       <dt>'FileExtension["$file$"]'
       <dd>gives the extension for the specified file name.
@@ -915,6 +955,8 @@ class FileExtension(Builtin):
 
 class FileHash(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileHash.html</url>
+
     <dl>
       <dt>'FileHash[$file$]'
       <dd>returns an integer hash for the given $file$.
@@ -988,6 +1030,8 @@ class FileHash(Builtin):
 
 class FileInformation(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileInformation.html</url>
+
     <dl>
       <dt>'FileInformation["$file$"]'
       <dd>returns information about $file$.
@@ -1010,6 +1054,8 @@ class FileInformation(Builtin):
 
 class FileNameDepth(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameDepth.html</url>
+
     <dl>
       <dt>'FileNameDepth["$name$"]'
       <dd>gives the number of path parts in the given filename.
@@ -1040,6 +1086,8 @@ class FileNameDepth(Builtin):
 
 class FileNameJoin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameJoin.html</url>
+
     <dl>
       <dt>'FileNameJoin[{"$dir_1$", "$dir_2$", ...}]'
       <dd>joins the $dir_i$ together into one path.
@@ -1110,6 +1158,8 @@ class FileNameJoin(Builtin):
 
 class FileType(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileType.html</url>
+
     <dl>
       <dt>'FileType["$file$"]'
       <dd>gives the type of a file, a string. This is typically 'File', 'Directory' or 'None'.
@@ -1154,6 +1204,8 @@ class FileType(Builtin):
 
 class FindFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileFind.html</url>
+
     <dl>
       <dt>'FindFile[$name$]'
       <dd>searches '$Path' for the given filename.
@@ -1199,6 +1251,8 @@ class FindFile(Builtin):
 
 class FileNames(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNames.html</url>
+
     <dl>
     <dt>'FileNames[]'
         <dd>Returns a list with the filenames in the current working folder.
@@ -1222,6 +1276,7 @@ class FileNames(Builtin):
     >> FileNames["*.m", "formats", Infinity]//Length
      = ...
     """
+
     # >> FileNames[]//Length
     #  = 2
     fmtmaps = {Symbol("System`All"): "*"}
@@ -1337,6 +1392,8 @@ class FileNames(Builtin):
 
 class FileNameSplit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameSplit.html</url>
+
     <dl>
       <dt>'FileNameSplit["$filenames$"]'
       <dd>splits a $filename$ into a list of parts.
@@ -1397,6 +1454,8 @@ class FileNameSplit(Builtin):
 
 class FileNameTake(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FileNameTake.html</url>
+
     <dl>
       <dt>'FileNameTake["$file$"]'
       <dd>returns the last path element in the file name $name$.
@@ -1441,6 +1500,8 @@ class FileNameTake(Builtin):
 
 class FindList(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindList.html</url>
+
     <dl>
       <dt>'FindList[$file$, $text$]'
       <dd>returns a list of all lines in $file$ that contain $text$.
@@ -1551,6 +1612,8 @@ class FindList(Builtin):
 
 class HomeDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HomeDirectory.html</url>
+
     <dl>
       <dt>'$HomeDirectory'
       <dd>returns the users HOME directory.
@@ -1570,6 +1633,8 @@ class HomeDirectory(Predefined):
 
 class InitialDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$InitialDirectory.html</url>
+
     <dl>
       <dt>'$InitialDirectory'
       <dd>returns the directory from which \\Mathics was started.
@@ -1589,6 +1654,8 @@ class InitialDirectory(Predefined):
 
 class InstallationDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InstallationDirectory.html</url>
+
     <dl>
       <dt>'$InstallationDirectory'
       <dd>returns the top-level directory in which \\Mathics was installed.
@@ -1608,6 +1675,8 @@ class InstallationDirectory(Predefined):
 
 class Needs(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Needs.html</url>
+
     <dl>
     <dt>'Needs["context`"]'
         <dd>loads the specified context if not already in '$Packages'.
@@ -1745,6 +1814,8 @@ class Needs(Builtin):
 
 class OperatingSystem(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OperatingSystem.html</url>
+
     <dl>
     <dt>'$OperatingSystem'
       <dd>gives the type of operating system running Mathics.
@@ -1771,6 +1842,8 @@ class OperatingSystem(Predefined):
 
 class ParentDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ParentDirectory.html</url>
+
     <dl>
       <dt>'ParentDirectory[]'
       <dd>returns the parent of the current working directory.
@@ -1808,6 +1881,8 @@ class ParentDirectory(Builtin):
 
 class Path(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Path.html</url>
+
     <dl>
       <dt>'$Path'
       <dd>returns the list of directories to search when looking for a file.
@@ -1827,6 +1902,8 @@ class Path(Predefined):
 
 class PathnameSeparator(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$PathnameSeparator.html</url>
+
     <dl>
       <dt>'$PathnameSeparator'
       <dd>returns a string for the seperator in paths.
@@ -1845,6 +1922,8 @@ class PathnameSeparator(Predefined):
 
 class RenameDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RenameDirectory.html</url>
+
     <dl>
       <dt>'RenameDirectory["$dir1$", "$dir2$"]'
       <dd>renames directory $dir1$ to $dir2$.
@@ -1893,6 +1972,8 @@ class RenameDirectory(Builtin):
 
 class RenameFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RenameFile.html</url>
+
     <dl>
     <dt>'RenameFile["$file1$", "$file2$"]'
       <dd>renames $file1$ to $file2$.
@@ -1952,6 +2033,8 @@ class RenameFile(Builtin):
 
 class ResetDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ResetDirectory.html</url>
+
     <dl>
     <dt>'ResetDirectory[]'
       <dd>pops a directory from the directory stack and returns it.
@@ -1980,6 +2063,8 @@ class ResetDirectory(Builtin):
 
 class RootDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$RootDirectory.html</url>
+
     <dl>
     <dt>'$RootDirectory'
       <dd>returns the system root directory.
@@ -1999,6 +2084,8 @@ class RootDirectory(Predefined):
 
 class SetDirectory(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetDirectory.html</url>
+
     <dl>
     <dt>'SetDirectory[$dir$]'
       <dd>sets the current working directory to $dir$.
@@ -2047,6 +2134,8 @@ class SetDirectory(Builtin):
 
 class SetFileDate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetFileDate.html</url>
+
     <dl>
     <dt>'SetFileDate["$file$"]'
       <dd>set the file access and modification dates of $file$ to the current date.
@@ -2190,6 +2279,8 @@ class SetFileDate(Builtin):
 
 class TemporaryDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$TemporaryDirectory.html</url>
+
     <dl>
     <dt>'$TemporaryDirectory'
       <dd>returns the directory used for temporary files.
@@ -2208,6 +2299,8 @@ class TemporaryDirectory(Predefined):
 
 class ToFileName(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToFileName.html</url>
+
     <dl>
     <dt>'ToFileName[{"$dir_1$", "$dir_2$", ...}]'
       <dd>joins the $dir_i$ together into one path.
@@ -2235,6 +2328,8 @@ class ToFileName(Builtin):
 
 class UserBaseDirectory(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UserBaseDirectory.html</url>
+
     <dl>
     <dt>'$UserBaseDirectory'
       <dd>returns the folder where user configurations are stored.
@@ -2254,6 +2349,8 @@ class UserBaseDirectory(Predefined):
 
 class URLSave(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/URLSave.html</url>
+
     <dl>
       <dt>'URLSave["url"]'
       <dd>Save "url" in a temporary file.

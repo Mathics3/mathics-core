@@ -442,6 +442,48 @@ class Drop(Builtin):
             e.message(evaluation)
 
 
+class First(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/First.html</url>
+
+    <dl>
+      <dt>'First[$expr$]'
+      <dd>returns the first element in $expr$.
+    </dl>
+
+    'First[$expr$]' is equivalent to '$expr$[[1]]'.
+
+    >> First[{a, b, c}]
+     = a
+    >> First[a + b + c]
+     = a
+    >> First[x]
+     : Nonatomic expression expected.
+     = First[x]
+    >> First[{}]
+     : {} has zero length and no first element.
+     = First[{}]
+    """
+
+    messages = {
+        "normal": "Nonatomic expression expected.",
+        "nofirst": "`1` has zero length and no first element.",
+    }
+    summary_text = "first element of a list or expression"
+
+    def apply(self, expr, evaluation):
+        "First[expr_]"
+
+        if isinstance(expr, Atom):
+            evaluation.message("First", "normal")
+            return
+        if len(expr.elements) == 0:
+            evaluation.message("First", "nofirst", expr)
+            return
+
+        return expr.elements[0]
+
+
 class Extract(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Extract.html</url>
@@ -469,6 +511,38 @@ class Extract(Builtin):
         "Extract[expr_, {lists___List}]": "Extract[expr, #]& /@ {lists}",
     }
     summary_text = "extract elements that appear at a list of positions"
+
+
+class FirstCase(Builtin):
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FirstCase.html</url>
+
+    <dl>
+      <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
+      <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
+
+      <dt> FirstCase[{$e1$,$e2$, ...}, $pattern$ -> $rhs$]
+      <dd> gives the value of $rhs$ corresponding to the first $ei$ to match pattern.
+      <dt> FirstCase[$expr$, $pattern$, $default$]
+      <dd> gives $default$ if no element matching $pattern$ is found.
+
+      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$]
+      <dd>finds only objects that appear on levels specified by $levelspec$.
+
+      <dt>FirstCase[$pattern$]
+      <dd>represents an operator form of FirstCase that can be applied to an expression.
+    </dl>
+
+
+    """
+
+    attributes = A_HOLD_REST | A_PROTECTED
+    options = Cases.options
+    rules = {
+        'FirstCase[expr_, pattOrRule_, Shortest[default_:Missing["NotFound"], 1],Shortest[levelspec_:{1}, 2], opts:OptionsPattern[]]': "Replace[Cases[expr, pattOrRule, levelspec, 1, opts],{{} :> default, {match_} :> match}]",
+        "FirstCase[pattOrRule_][expr_]": "FirstCase[expr, pattOrRule]",
+    }
+    summary_text = "first element that matches a pattern"
 
 
 class First(Builtin):

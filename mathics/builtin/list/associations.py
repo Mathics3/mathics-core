@@ -27,6 +27,8 @@ from mathics.core.systemsymbols import (
 
 class Association(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Association.html</url>
+
     <dl>
       <dt>'Association[$key1$ -> $val1$, $key2$ -> $val2$, ...]'
       <dt>'<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>'
@@ -163,6 +165,8 @@ class Association(Builtin):
 
 class AssociationQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AssociationQ.html</url>
+
     <dl>
       <dt>'AssociationQ[$expr$]'
       <dd>return True if $expr$ is a valid Association object, and False otherwise.
@@ -194,6 +198,8 @@ class AssociationQ(Test):
 
 class Keys(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Keys.html</url>
+
     <dl>
       <dt>'Keys[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the keys $keyi$ in an association.
@@ -288,6 +294,8 @@ class Keys(Builtin):
 
 class Lookup(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Lookup.html</url>
+
     <dl>
       <dt>Lookup[$assoc$, $key$]
       <dd> looks up the value associated with $key$ in the association $assoc$, or Missing[$KeyAbsent$].
@@ -305,6 +313,8 @@ class Lookup(Builtin):
 
 class Missing(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Missing.html</url>
+
     <dl>
       <dd>'Missing[]'
       <dt> represents a data that is misssing.
@@ -318,6 +328,8 @@ class Missing(Builtin):
 
 class Values(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Values.html</url>
+
     <dl>
       <dt>'Values[<|$key1$ -> $val1$, $key2$ -> $val2$, ...|>]'
       <dd>return a list of the values $vali$ in an association.

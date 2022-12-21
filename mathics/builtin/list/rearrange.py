@@ -291,6 +291,8 @@ class _TallyBin:
 
 class Catenate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Catenate.html</url>
+
     <dl>
       <dt>'Catenate[{$l1$, $l2$, ...}]'
       <dd>concatenates the lists $l1$, $l2$, ...
@@ -328,6 +330,8 @@ class Catenate(Builtin):
 
 class Complement(_SetOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Complement.html</url>
+
     <dl>
       <dt>'Complement[$all$, $e1$, $e2$, ...]'
       <dd>returns an expression containing the elements in the set $all$ that are not in any of $e1$, $e2$, etc.
@@ -373,6 +377,8 @@ class Complement(_SetOperation):
 
 class DeleteDuplicates(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteDuplicates.html</url>
+
     <dl>
       <dt>'DeleteDuplicates[$list$]'
       <dd>deletes duplicates from $list$.
@@ -402,6 +408,8 @@ class DeleteDuplicates(_GatherOperation):
 
 class Gather(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Gather.html</url>
+
     <dl>
       <dt>'Gather[$list$, $test$]'
       <dd>gathers elements of $list$ into sub lists of items that are the same according to $test$.
@@ -425,6 +433,8 @@ class Gather(_GatherOperation):
 
 class GatherBy(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GatherBy.html</url>
+
     <dl>
       <dt>'GatherBy[$list$, $f$]'
       <dd>gathers elements of $list$ into sub lists of items whose image under $f$ identical.
@@ -469,6 +479,8 @@ class GatherBy(_GatherOperation):
 
 class Join(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Join.html</url>
+
     <dl>
       <dt>'Join[$l1$, $l2$]'
       <dd>concatenates the lists $l1$ and $l2$.
@@ -527,6 +539,8 @@ class Join(Builtin):
 
 class Partition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Partition.html</url>
+
     <dl>
       <dt>'Partition[$list$, $n$]'
       <dd>partitions $list$ into sublists of length $n$.
@@ -589,6 +603,8 @@ class Partition(Builtin):
 
 class Reverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Reverse.html</url>
+
     <dl>
       <dt>'Reverse[$expr$]'
       <dd>reverses the order of $expr$'s items (on the top level)
@@ -692,6 +708,8 @@ def riffle_lists(items, seps):
 
 class Riffle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Riffle.html</url>
+
     <dl>
       <dt>'Riffle[$list$, $x$]'
       <dd>inserts a copy of $x$ between each element of $list$.
@@ -737,6 +755,8 @@ class Riffle(Builtin):
 
 class RotateLeft(_Rotate):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RotateLeft.html</url>
+
     <dl>
       <dt>'RotateLeft[$expr$]'
       <dd>rotates the items of $expr$' by one item to the left.
@@ -764,6 +784,8 @@ class RotateLeft(_Rotate):
 
 class RotateRight(_Rotate):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RotateRight.html</url>
+
     <dl>
       <dt>'RotateRight[$expr$]'
       <dd>rotates the items of $expr$' by one item to the right.
@@ -791,6 +813,8 @@ class RotateRight(_Rotate):
 
 class Tally(_GatherOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tally.html</url>
+
     <dl>
       <dt>'Tally[$list$]'
       <dd>counts and returns the number of occurences of objects and returns the result as a list of pairs {object, count}.
@@ -813,6 +837,8 @@ class Tally(_GatherOperation):
 
 class Union(_SetOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Union.html</url>
+
     <dl>
       <dt>'Union[$a$, $b$, ...]'
       <dd>gives the union of the given set or sets. The resulting list will be sorted and each element will only occur once.
@@ -850,6 +876,8 @@ class Union(_SetOperation):
 
 class Intersection(_SetOperation):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Intersection.html</url>
+
     <dl>
       <dt>'Intersection[$a$, $b$, ...]'
       <dd>gives the intersection of the sets. The resulting list will be sorted and each element will only occur once.
