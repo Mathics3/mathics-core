@@ -60,6 +60,10 @@ class _IntBaseBuiltin(Builtin):
 
 class BitLength(Builtin):
     """
+
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BitLength.html</url>
+
     <dl>
       <dt>'BitLength[$x$]'
       <dd>gives the number of bits needed to represent the integer $x$. $x$'s sign is ignored.
@@ -88,6 +92,8 @@ class BitLength(Builtin):
 
 class Ceiling(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Ceiling.html</url>
+
     <dl>
       <dt>'Ceiling[$x$]'
       <dd>gives the smallest integer greater than or equal to $x$.
@@ -117,6 +123,10 @@ class Ceiling(SympyFunction):
 
 class DigitCount(_IntBaseBuiltin):
     """
+
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitCount.html</url>
+
     <dl>
       <dt>'DigitCount[$n$, $b$, $d$]'
       <dd>returns the number of times digit $d$ occurs in the base $b$ representation of $n$.
@@ -171,6 +181,8 @@ class DigitCount(_IntBaseBuiltin):
 
 class Floor(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Floor.html</url>
+
     <dl>
       <dt>'Floor[$x$]'
       <dd>gives the greatest integer less than or equal to $x$.
@@ -218,6 +230,10 @@ class Floor(SympyFunction):
 
 class FromDigits(Builtin):
     """
+
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FromDigits.html</url>
+
     <dl>
       <dt>'FromDigits[$l$]'
       <dd>returns the integer corresponding to the decimal representation given by $l$. $l$ can be a list of
@@ -303,6 +319,8 @@ class FromDigits(Builtin):
 
 class IntegerString(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerString.html</url>
+
     <dl>
       <dt>'IntegerString[$n$]'
       <dd>returns the decimal representation of integer $x$ as string. $x$'s sign is ignored.
@@ -382,6 +400,8 @@ class IntegerString(Builtin):
 
 class IntegerDigits(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerDigits.html</url>
+
     <dl>
       <dt>'IntegerDigits[$n$]'
       <dd>returns a list of the base-10 digits in the integer $n$.
@@ -464,6 +484,8 @@ class IntegerDigits(Builtin):
 
 class IntegerDigits(_IntBaseBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerDigits.html</url>
+
     <dl>
       <dt>'IntegerDigits[$n$]'
       <dd>returns the decimal representation of integer $x$ as list of digits. $x$'s sign is ignored.
@@ -532,6 +554,11 @@ class IntegerDigits(_IntBaseBuiltin):
 
 class IntegerReverse(_IntBaseBuiltin):
     """
+
+
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerReverse.html</url>
+
     <dl>
       <dt>'IntegerReverse[$n$]'
       <dd>returns the integer that has the reverse decimal representation of $x$ without sign.

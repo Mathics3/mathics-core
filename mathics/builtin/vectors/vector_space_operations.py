@@ -71,6 +71,8 @@ class KroneckerProduct(SympyFunction):
 
 class Normalize(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/KroneckerProduct.html</url>
+
     <dl>
       <dt>'Normalize[$v$]'
       <dd>calculates the normalized vector $v$.
@@ -101,6 +103,8 @@ class Normalize(Builtin):
 
 class Projection(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Projection.html</url>
+
     <dl>
       <dt>'Projection[$u$, $v$]'
       <dd>gives the projection of the vector $u$ onto $v$
@@ -160,6 +164,12 @@ class Projection(Builtin):
 
 class UnitVector(Builtin):
     """
+    <url>
+    :Unit vector:
+    https://en.wikipedia.org/wiki/Unit_vector</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/UnitVector.html</url>)
+
     <dl>
       <dt>'UnitVector[$n$, $k$]'
       <dd>returns the $n$-dimensional unit vector with a 1 in position $k$.
@@ -205,6 +215,8 @@ class UnitVector(Builtin):
 
 class VectorAngle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/VectorAngle.html</url>
+
     <dl>
       <dt>'VectorAngle[$u$, $v$]'
       <dd>gives the angles between vectors $u$ and $v$
