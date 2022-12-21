@@ -458,9 +458,10 @@ class CharacterEncoding(Predefined):
     """
     <url>
     :WMA link:
-    https://reference.wolfram.com/language/ref/CharacterEncoding.html</url>
+    https://reference.wolfram.com/language/ref/$CharacterEncoding.html</url>
+
     <dl>
-      <dt>'CharacterEncoding'
+      <dt>'$CharacterEncoding'
       <dd>specifies the default raw character encoding to use for input and output when no encoding is explicitly specified. Initially this is set to '$SystemCharacterEncoding'.
     </dl>
 
@@ -509,6 +510,7 @@ class HexadecimalCharacter(Builtin):
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/HexadecimalCharacter.html</url>
+
     <dl>
       <dt>'HexadecimalCharacter'
       <dd>represents the characters 0-9, a-f and A-F.
@@ -528,6 +530,7 @@ class InterpretedBox(PrefixOperator):
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/InterpretedBox.html</url>
+
     <dl>
       <dt>'InterpretedBox[$box$]'
       <dd>is the ad hoc fullform for \! $box$. just for internal use...

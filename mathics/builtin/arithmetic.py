@@ -266,7 +266,7 @@ class Abs(_MPMathFunction):
 
 class Arg(_MPMathFunction):
     """
-    <url>:Arg:https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url>
+    <url>:Arg:https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url> \
     (<url>:WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
     <dl>
       <dt>'Arg'[$z$, $method_option$]
@@ -582,7 +582,7 @@ class ConditionalExpression(Builtin):
 class Conjugate(_MPMathFunction):
     """
     <url>:Complex Conjugate:https://en.wikipedia.org/wiki/Complex_conjugate</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Assuming.html</url>)
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
 
     <dl>
       <dt>'Conjugate[$z$]'
@@ -1063,7 +1063,7 @@ class Product(_IterationFunction, SympyFunction):
 
 class Rational_(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Rational_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rational.html</url>
 
     <dl>
       <dt>'Rational'
