@@ -13,6 +13,8 @@ from mathics.core.list import ListExpression
 
 class DiagonalMatrix(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DiagonalMatrix.html</url>
+
     <dl>
       <dt>'DiagonalMatrix[$list$]'
       <dd>gives a matrix with the values in $list$ on its diagonal and zeroes elsewhere.
@@ -44,6 +46,8 @@ class DiagonalMatrix(Builtin):
 
 class IdentityMatrix(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/IdentityMatrix.html</url>
+
     <dl>
       <dt>'IdentityMatrix[$n$]'
       <dd>gives the identity matrix with $n$ rows and columns.
