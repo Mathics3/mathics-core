@@ -61,7 +61,7 @@ class _TraceBase(Builtin):
 
 class ClearTrace(Builtin):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'ClearTrace[]'
@@ -95,7 +95,7 @@ class ClearTrace(Builtin):
 
 class PrintTrace(_TraceBase):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'PrintTrace[]'
@@ -140,7 +140,7 @@ class PrintTrace(_TraceBase):
 
 class TraceBuiltins(_TraceBase):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'TraceBuiltins[$expr$]'
@@ -254,7 +254,7 @@ class TraceBuiltins(_TraceBase):
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'$TraceBuiltins'
@@ -318,7 +318,7 @@ class TraceBuiltinsVariable(Builtin):
 
 class TraceEvaluation(Builtin):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'TraceEvaluation[$expr$]'
@@ -356,7 +356,7 @@ class TraceEvaluation(Builtin):
 
 class TraceEvaluationVariable(Builtin):
     """
-    <url>:trace native symbol:</url>
+    ## <url>:trace native symbol:</url>
 
     <dl>
       <dt>'$TraceEvaluation'
