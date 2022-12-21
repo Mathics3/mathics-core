@@ -587,8 +587,6 @@ class DiscreteLimit(Builtin):
 
 class _BaseFinder(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/_BaseFinder.html</url>
-
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
     """
 
@@ -1569,7 +1567,7 @@ class NIntegrate(Builtin):
 class O_(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/O_.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/O.html</url>
 
     <dl>
       <dt>'O[$x$]^n'
