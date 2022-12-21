@@ -10,7 +10,7 @@ from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 
 class RecursionLimit(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RecursionLimit.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
 
     <dl>
       <dt>'$RecursionLimit'
