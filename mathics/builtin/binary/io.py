@@ -31,6 +31,7 @@ SymbolBinaryWrite = Symbol("BinaryWrite")
 
 class _BinaryFormat:
     """
+
     Container for BinaryRead readers and BinaryWrite writers
     """
 
@@ -359,9 +360,13 @@ class _BinaryFormat:
 
 class BinaryRead(Builtin):
     """
+<<<<<<< HEAD
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/BinaryRead.html</url>
+=======
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BinaryRead.html</url>
+>>>>>>> ee219dad (docstr url for logic, optiondoc, sparse, tensor layout, evaluation, logic, comparison, datentime, attributes and binary)
 
     <dl>
       <dt>'BinaryRead[$stream$]'
