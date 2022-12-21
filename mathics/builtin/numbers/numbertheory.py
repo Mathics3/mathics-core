@@ -74,6 +74,8 @@ class ContinuedFraction(SympyFunction):
 
 class Divisors(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Divisors.html</url>
+
     <dl>
     <dt>'Divisors[$n$]'
         <dd>returns a list of the integers that divide $n$.
@@ -189,6 +191,8 @@ class EulerPhi(SympyFunction):
 
 class FactorInteger(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FactorInteger.html</url>
+
     <dl>
       <dt>'FactorInteger[$n$]'
       <dd>returns the factorization of $n$ as a list of factors and exponents.
@@ -255,6 +259,8 @@ def _fractional_part(self, n, expr, evaluation):
 
 class FractionalPart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FractionalPart.html</url>
+
     <dl>
     <dt>'FractionalPart[$n$]'
         <dd>finds the fractional part of $n$.
@@ -307,6 +313,8 @@ class FractionalPart(Builtin):
 
 class FromContinuedFraction(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FromContinuedFraction.html</url>
+
     <dl>
       <dt>'FromContinuedFraction[$list$]'
       <dd>reconstructs a number from the list of its continued fraction terms.
@@ -333,6 +341,8 @@ class FromContinuedFraction(SympyFunction):
 
 class MantissaExponent(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MantissaExponent.html</url>
+
     <dl>
     <dt>'MantissaExponent[$n$]'
         <dd>finds a list containing the mantissa and exponent of a given number $n$.
@@ -460,6 +470,8 @@ class MantissaExponent(Builtin):
 
 class NextPrime(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NextPrime.html</url>
+
     <dl>
       <dt>'NextPrime[$n$]'
       <dd>gives the next prime after $n$.
@@ -529,6 +541,8 @@ class NextPrime(Builtin):
 
 class PartitionsP(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PartitionsP.html</url>
+
     <dl>
       <dt>'PartitionsP[$n$]'
       <dd>return the number $p$($n$) of unrestricted partitions of the integer $n$.
@@ -549,6 +563,8 @@ class PartitionsP(SympyFunction):
 
 class Prime(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Prime.html</url>
+
     <dl>
       <dt>'Prime[$n$]'
       <dt>'Prime'[{$n0$, $n1$, ...}]
@@ -590,6 +606,8 @@ class Prime(SympyFunction):
 
 class PrimePi(SympyFunction):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePi.html</url>
+
     <dl>
     <dt>'PrimePi[$x$]'
         <dd>gives the number of primes less than or equal to $x$.
@@ -627,6 +645,8 @@ class PrimePi(SympyFunction):
 
 class PrimePowerQ(Builtin):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/PrimePowerQ.html</url>
+
     <dl>
     <dt>'PrimePowerQ[$n$]'
         <dd>returns 'True' if $n$ is a power of a prime number.
@@ -684,6 +704,8 @@ class PrimePowerQ(Builtin):
 
 class RandomPrime(Builtin):
     """
+    <url>:Prime numbers:https://reference.wolfram.com/language/ref/RandomPrime.html</url>
+
     <dl>
       <dt>'RandomPrime[{$imin$, $imax}]'
       <dd>gives a random prime between $imin$ and $imax$.

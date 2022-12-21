@@ -106,6 +106,8 @@ SymbolIntegral = Symbol("System`Integral")
 # Maybe this class should be in a module "mathics.builtin.domains" or something like that
 class Complexes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Complexes.html</url>
+
     <dl>
     <dt>'Complexes'
         <dd>the domain of complex numbers, as in $x$ in Complexes.
@@ -117,6 +119,9 @@ class Complexes(Builtin):
 
 class D(SympyFunction):
     """
+    <url>:Derivative:https://en.wikipedia.org/wiki/Derivative</url>\
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/D.html</url>)
+
     <dl>
       <dt>'D[$f$, $x$]'
       <dd>gives the partial derivative of $f$ with respect to $x$.
@@ -371,6 +376,9 @@ class D(SympyFunction):
 
 class Derivative(PostfixOperator, SympyFunction):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Derivative.html</url>
+
     <dl>
       <dt>'Derivative[$n$][$f$]'
       <dd>represents the $n$th derivative of the function $f$.
@@ -523,6 +531,8 @@ class Derivative(PostfixOperator, SympyFunction):
 
 class DiscreteLimit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DiscreteLimit.html</url>
+
     <dl>
       <dt>'DiscreteLimit[$f$, $k$->Infinity]'
       <dd>gives the limit of the sequence $f$ as $k$ tends to infinity.
@@ -577,6 +587,8 @@ class DiscreteLimit(Builtin):
 
 class _BaseFinder(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/_BaseFinder.html</url>
+
     This class is the basis class for FindRoot, FindMinimum and FindMaximum.
     """
 
@@ -713,6 +725,8 @@ class _BaseFinder(Builtin):
 
 class FindMaximum(_BaseFinder):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindMaximum.html</url>
+
     <dl>
     <dt>'FindMaximum[$f$, {$x$, $x0$}]'
         <dd>searches for a numerical maximum of $f$, starting from '$x$=$x0$'.
@@ -757,6 +771,8 @@ class FindMaximum(_BaseFinder):
 
 class FindMinimum(_BaseFinder):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindMinimum.html</url>
+
     <dl>
     <dt>'FindMinimum[$f$, {$x$, $x0$}]'
         <dd>searches for a numerical minimum of $f$, starting from '$x$=$x0$'.
@@ -806,6 +822,8 @@ class FindMinimum(_BaseFinder):
 
 class FindRoot(_BaseFinder):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FindRoot.html</url>
+
     <dl>
       <dt>'FindRoot[$f$, {$x$, $x0$}]'
       <dd>searches for a numerical root of $f$, starting from '$x$=$x0$'.
@@ -895,6 +913,9 @@ class FindRoot(_BaseFinder):
 # Move to mathics.builtin.domains...
 class Integers(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Integers.html</url>
+
     <dl>
       <dt>'Integers'
       <dd>the domain of integer numbers, as in $x$ in Integers.
@@ -912,6 +933,8 @@ class Integers(Builtin):
 
 class Integrate(SympyFunction):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Integrate.html</url>
+
     <dl>
       <dt>'Integrate[$f$, $x$]'
       <dd>integrates $f$ with respect to $x$. The result does not contain the additive integration constant.
@@ -1187,6 +1210,9 @@ class Integrate(SympyFunction):
 
 class Limit(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Limit.html</url>
+
     <dl>
       <dt>'Limit[$expr$, $x$->$x0$]'
       <dd>gives the limit of $expr$ as $x$ approaches $x0$.
@@ -1267,6 +1293,8 @@ class Limit(Builtin):
 
 class NIntegrate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NIntegrate.html</url>
+
     <dl>
        <dt>'NIntegrate[$expr$, $interval$]'
        <dd>returns a numeric approximation to the definite integral of $expr$ with limits $interval$ and with a precision of $prec$ digits.
@@ -1540,6 +1568,9 @@ class NIntegrate(Builtin):
 
 class O_(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/O_.html</url>
+
     <dl>
       <dt>'O[$x$]^n'
       <dd> Represents a term of order $x^n$.
@@ -1564,6 +1595,8 @@ class O_(Builtin):
 
 class Reals(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Reals.html</url>
+
     <dl>
     <dt>'Reals'
         <dd>is the domain real numbers, as in $x$ in Reals.
@@ -1579,6 +1612,9 @@ class Reals(Builtin):
 
 class Root(SympyFunction):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Root.html</url>
+
     <dl>
     <dt>'Root[$f$, $i$]'
         <dd>represents the i-th complex root of the polynomial $f$
@@ -1657,6 +1693,8 @@ class Root(SympyFunction):
 
 class Series(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Series.html</url>
+
     <dl>
       <dt>'Series[$f$, {$x$, $x0$, $n$}]'
       <dd>Represents the series expansion around '$x$=$x0$' up to order $n$.
@@ -1716,6 +1754,9 @@ class Series(Builtin):
 
 class SeriesData(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SeriesData.html</url>
+
     <dl>
       <dt>'SeriesData[...]'
       <dd>Represents a series expansion

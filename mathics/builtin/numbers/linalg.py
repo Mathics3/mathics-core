@@ -25,6 +25,8 @@ from mathics.core.symbols import (
 
 class DesignMatrix(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DesignMatrix.html</url>
+
     <dl>
       <dt>'DesignMatrix[$m$, $f$, $x$]'
       <dd>returns the design matrix for a linear model $f$ in the variables $x$.
@@ -47,6 +49,9 @@ class DesignMatrix(Builtin):
 
 class Det(Builtin):
     """
+    <url>:Matrix Determinant: https://en.wikipedia.org/wiki/Determinant</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Det.html</url>)
+
     <dl>
       <dt>'Det[$m$]'
       <dd>computes the determinant of the matrix $m$.
@@ -74,6 +79,9 @@ class Det(Builtin):
 
 class Eigensystem(Builtin):
     """
+    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigensystem.html</url>)
+
     <dl>
     <dt>'Eigensystem[$m$]'
         <dd>returns the list '{Eigenvalues[$m$], Eigenvectors[$m$]}'.
@@ -89,6 +97,10 @@ class Eigensystem(Builtin):
 
 class Eigenvalues(Builtin):
     """
+    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvalues.html</url>)
+
+
     <dl>
       <dt>'Eigenvalues[$m$]'
       <dd>computes the eigenvalues of the matrix $m$.
@@ -184,6 +196,9 @@ class Eigenvalues(Builtin):
 
 class Eigenvectors(Builtin):
     """
+    <url>:Matrix Eigenvalues: https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Eigenvectors.html</url>)
+
     <dl>
     <dt>'Eigenvectors[$m$]'
         <dd>computes the eigenvectors of the matrix $m$.
@@ -258,6 +273,8 @@ class Eigenvectors(Builtin):
 
 class FittedModel(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FittedModel.html</url>
+
     <dl>
     <dd>'FittedModel[...]'
     <dt> Result of a linear fit
@@ -278,6 +295,8 @@ class FittedModel(Builtin):
 
 class Inverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inverse.html</url>
+
     <dl>
     <dt>'Inverse[$m$]'
         <dd>computes the inverse of the matrix $m$.
@@ -322,6 +341,8 @@ class Inverse(Builtin):
 
 class LeastSquares(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LeastSquares.html</url>
+
     <dl>
     <dt>'LeastSquares[$m$, $b$]'
         <dd>computes the least squares solution to $m$ $x$ = $b$, finding
@@ -378,6 +399,8 @@ class LeastSquares(Builtin):
 
 class LinearModelFit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearModelFit.html</url>
+
     <dl>
     <dt>'LinearModelFit[$m$, $f$, $x$]'
         <dd>fits a linear model $f$ in the variables $x$ to the dataset $m$.
@@ -457,6 +480,8 @@ class LinearModelFit(Builtin):
 
 class LinearSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LinearSolve.html</url>
+
     <dl>
     <dt>'LinearSolve[$matrix$, $right$]'
         <dd>solves the linear equation system '$matrix$ . $x$ = $right$'
@@ -530,6 +555,8 @@ class LinearSolve(Builtin):
 
 class MatrixExp(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixExp.html</url>
+
     <dl>
     <dt>'MatrixExp[$m$]'
         <dd>computes the exponential of the matrix $m$.
@@ -572,6 +599,8 @@ class MatrixExp(Builtin):
 
 class MatrixPower(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixPower.html</url>
+
     <dl>
     <dt>'MatrixPower[$m$, $n$]'
         <dd>computes the $n$th power of a matrix $m$.
@@ -619,6 +648,8 @@ class MatrixPower(Builtin):
 
 class MatrixRank(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatrixRank.html</url>
+
     <dl>
     <dt>'MatrixRank[$matrix$]'
         <dd>returns the rank of $matrix$.
@@ -653,6 +684,9 @@ class MatrixRank(Builtin):
 
 class NullSpace(Builtin):
     """
+    <url>:Kernel (null space):https://en.wikipedia.org/wiki/Kernel_(linear_algebra)</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/NullSpace.html</url>)
+
     <dl>
     <dt>'NullSpace[$matrix$]'
         <dd>returns a list of vectors that span the nullspace of $matrix$.
@@ -692,6 +726,8 @@ class NullSpace(Builtin):
 
 class PseudoInverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PseudoInverse.html</url>
+
     <dl>
     <dt>'PseudoInverse[$m$]'
         <dd>computes the Moore-Penrose pseudoinverse of the matrix $m$.
@@ -729,6 +765,9 @@ class PseudoInverse(Builtin):
 
 class QRDecomposition(Builtin):
     """
+    <url>:QR Decomposition:https://en.wikipedia.org/wiki/QR_decomposition</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/QRDecomposition.html</url>)
+
     <dl>
     <dt>'QRDecomposition[$m$]'
         <dd>computes the QR decomposition of the matrix $m$.
@@ -764,6 +803,8 @@ class QRDecomposition(Builtin):
 
 class RowReduce(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RowReduce.html</url>
+
     <dl>
     <dt>'RowReduce[$matrix$]'
         <dd>returns the reduced row-echelon form of $matrix$.
@@ -801,6 +842,9 @@ class RowReduce(Builtin):
 
 class SingularValueDecomposition(Builtin):
     """
+    <url>:Singular Value Decomposition:https://en.wikipedia.org/wiki/Singular_value_decomposition</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/SingularValueDecomposition.html</url>)
+
     <dl>
       <dt>'SingularValueDecomposition[$m$]'
       <dd>calculates the singular value decomposition for the matrix $m$.
@@ -860,6 +904,9 @@ class SingularValueDecomposition(Builtin):
 
 class Tr(Builtin):
     """
+    <url>:Matrix trace:https://en.wikipedia.org/wiki/Trace_(linear_algebra)</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Tr.html</url>)
+
     <dl>
       <dt>'Tr[$m$]'
       <dd>computes the trace of the matrix $m$.
