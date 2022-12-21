@@ -34,6 +34,8 @@ SymbolEquivalent = Symbol("Equivalent")
 
 class Or(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Or.html</url>
+
     <dl>
     <dt>'Or[$expr1$, $expr2$, ...]'
     <dt>'$expr1$ || $expr2$ || ...'
@@ -83,6 +85,8 @@ class Or(BinaryOperator):
 
 class And(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/And.html</url>
+
     <dl>
     <dt>'And[$expr1$, $expr2$, ...]'
     <dt>'$expr1$ && $expr2$ && ...'
@@ -132,6 +136,8 @@ class And(BinaryOperator):
 
 class Not(PrefixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Not.html</url>
+
     <dl>
     <dt>'Not[$expr$]'
     <dt>'!$expr$'
@@ -159,6 +165,8 @@ class Not(PrefixOperator):
 
 class Nand(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Nand.html</url>
+
     <dl>
     <dt>'Nand[$expr1$, $expr2$, ...]'
     <dt>$expr1$ \u22BC $expr2$ \u22BC ...
@@ -177,6 +185,8 @@ class Nand(Builtin):
 
 class Nor(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Nor.html</url>
+
     <dl>
     <dt>'Nor[$expr1$, $expr2$, ...]'
     <dt>$expr1$ \u22BD $expr2$ \u22BD ...
@@ -195,6 +205,8 @@ class Nor(Builtin):
 
 class Implies(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Implies.html</url>
+
     <dl>
     <dt>'Implies[$expr1$, $expr2$]'
     <dt>$expr1$ \u21D2 $expr2$
@@ -234,6 +246,8 @@ class Implies(BinaryOperator):
 
 class Equivalent(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Equivalent.html</url>
+
     <dl>
       <dt>'Equivalent[$expr1$, $expr2$, ...]'
       <dt>$expr1$ \u29E6 $expr2$ \u29E6 ...
@@ -288,6 +302,8 @@ class Equivalent(BinaryOperator):
 
 class Xor(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Xor.html</url>
+
     <dl>
       <dt>'Xor[$expr1$, $expr2$, ...]'
       <dt>$expr1$ \u22BB $expr2$ \u22BB ...
@@ -351,6 +367,8 @@ class Xor(BinaryOperator):
 
 class True_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/True_.html</url>
+
     <dl>
       <dt>'True'
       <dd>represents the Boolean true value.
@@ -364,6 +382,8 @@ class True_(Predefined):
 
 class False_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/False.html</url>
+
     <dl>
     <dt>'False'
         <dd>represents the Boolean false value.
@@ -417,6 +437,8 @@ class _ManyTrue(Builtin):
 
 class NoneTrue(_ManyTrue):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NoneTrue.html</url>
+
     <dl>
     <dt>'NoneTrue[{$expr1$, $expr2$, ...}, $test$]'
         <dd>returns True if no application of $test$ to $expr1$, $expr2$, ... evaluates to True.
@@ -448,6 +470,8 @@ class NoneTrue(_ManyTrue):
 
 class AnyTrue(_ManyTrue):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AnyTrue.html</url>
+
     <dl>
     <dt>'AnyTrue[{$expr1$, $expr2$, ...}, $test$]'
         <dd>returns True if any application of $test$ to $expr1$, $expr2$, ... evaluates to True.
@@ -479,6 +503,8 @@ class AnyTrue(_ManyTrue):
 
 class AllTrue(_ManyTrue):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AllTrue.html</url>
+
     <dl>
     <dt>'AllTrue[{$expr1$, $expr2$, ...}, $test$]'
         <dd>returns True if all applications of $test$ to $expr1$, $expr2$, ... evaluate to True.
