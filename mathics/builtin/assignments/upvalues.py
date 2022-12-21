@@ -15,6 +15,8 @@ from mathics.core.systemsymbols import SymbolFailed
 
 class UpSet(BinaryOperator, _SetOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpSet.html</url>
+
     <dl>
       <dt>$f$[$x$] ^= $expression$
       <dd>evaluates $expression$ and assigns it to the value of $f$[$x$], associating the value with $x$.
@@ -64,6 +66,8 @@ class UpSet(BinaryOperator, _SetOperator):
 
 class UpSetDelayed(UpSet):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpSetDelayed.html</url>
+
     <dl>
        <dt>'UpSetDelayed[$expression$, $value$]'
 

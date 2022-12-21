@@ -486,6 +486,7 @@ class CharacterEncodings(Predefined):
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/$CharacterEncodings.html</url>
+
     <dl>
       <dt>'$CharacterEncodings'
       <dd>stores the list of available character encodings.
