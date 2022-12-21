@@ -990,7 +990,7 @@ class ExportFormats(Predefined):
 
 class ConverterDumpsExtensionMappings(Predefined):
     """
-    <url>:internal native symbol:</url>
+    ## <url>:internal native symbol:</url>
 
     <dl>
     <dt>'$extensionMappings'
@@ -1009,7 +1009,7 @@ class ConverterDumpsExtensionMappings(Predefined):
 
 class ConverterDumpsFormatMappings(Predefined):
     """
-    <url>:internal native symbol:</url>
+    ## <url>:internal native symbol:</url>
 
     <dl>
     <dt>'$formatMappings'

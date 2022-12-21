@@ -294,7 +294,7 @@ class DataImport(_DataImport):
 
 class FullDataImport(_DataImport):
     """
-    <url>:internal native:</url>
+    ## <url>:internal native:</url>
 
     <dl>
     <dt>'HTML`FullDataImport["filename"]'
