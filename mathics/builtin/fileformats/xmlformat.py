@@ -270,7 +270,7 @@ class _Get(Builtin):
 
 class XMLGet(_Get):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLGet.html</url>
+    ## <url>:native internal:</url>
 
     <dl>
     <dt>'XMLGet[...]'
@@ -286,7 +286,7 @@ class XMLGet(_Get):
 
 class XMLGetString(_Get):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLGetString.html</url>
+    ## <url>:native internal:</url>
 
     <dl>
     <dt>'XML`Parser`XMLGetString["string"]'
@@ -342,7 +342,7 @@ class PlaintextImport(Builtin):
 
 class TagsImport(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TagsImport.html</url>
+    ## <url>:native internal:</url>
 
     <dl>
     <dt>'XML`TagsImport["string"]'
@@ -377,7 +377,7 @@ class TagsImport(Builtin):
 
 class XMLObjectImport(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/XMLObjectImport.html</url>
+    ## <url>:native internal:</url>
 
     <dl>
     <dt>'XML`XMLObjectImport["string"]'
