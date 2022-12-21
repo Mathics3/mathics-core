@@ -84,6 +84,7 @@ class _NoBoolVector(Exception):
 
 class Binomial(_MPMathFunction):
     """
+
     <url>:Binomial Coefficient: https://en.wikipedia.org/wiki/Binomial_coefficient</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/combinatorial.html#binomial</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Binomial.html</url>)
 
     <dl>
@@ -188,6 +189,8 @@ class JaccardDissimilarity(_BooleanDissimilarity):
 
 class MatchingDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MatchingDissimilarity.html</url>
+
     <dl>
       <dt>'MatchingDissimilarity[$u$, $v$]'
       <dd>returns the Matching dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as (c_tf + c_ft) / $n$, where $n$ is len($u$) and c_ij is the number of occurrences of $u$[$k$]=$i$ and $v$[k]=$j$ for $k$ < $n$.
@@ -242,6 +245,8 @@ class Multinomial(Builtin):
 
 class RogersTanimotoDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RogersTanimotoDissimilarity.html</url>
+
     <dl>
       <dt>'RogersTanimotoDissimilarity[$u$, $v$]'
       <dd>returns the Rogers-Tanimoto dissimilarity between the two boolean 1-D lists $u$ and $v$,
@@ -262,6 +267,8 @@ class RogersTanimotoDissimilarity(_BooleanDissimilarity):
 
 class RussellRaoDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RusselRaoDissimilarity.html</url>
+
     <dl>
       <dt>'RussellRaoDissimilarity[$u$, $v$]'
       <dd>returns the Russell-Rao dissimilarity between the two boolean 1-D lists $u$ and $v$,
@@ -281,6 +288,8 @@ class RussellRaoDissimilarity(_BooleanDissimilarity):
 
 class SokalSneathDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SokalSneathDissimilarity.html</url>
+
     <dl>
       <dt>'SokalSneathDissimilarity[$u$, $v$]'
       <dd>returns the Sokal-Sneath dissimilarity between the two boolean 1-D lists $u$ and $v$,
@@ -300,6 +309,8 @@ class SokalSneathDissimilarity(_BooleanDissimilarity):
 
 class Subsets(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsets.html</url>
+
     <dl>
       <dt>'Subsets[$list$]'
       <dd>finds a list of all possible subsets of $list$.
@@ -556,6 +567,8 @@ class Subsets(Builtin):
 
 class YuleDissimilarity(_BooleanDissimilarity):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/YuleDissimilarity.html</url>
+
     <dl>
       <dt>'YuleDissimilarity[$u$, $v$]'
       <dd>returns the Yule dissimilarity between the two boolean 1-D lists $u$ and $v$, which is defined as R / (c_tt * c_ff + R / 2) where n is len($u$), c_ij is the number of occurrences of $u$[k]=i and $v$[k]=j for $k$<$n$, and $R$ = 2 * c_tf * c_ft.

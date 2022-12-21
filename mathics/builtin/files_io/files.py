@@ -73,6 +73,8 @@ SymbolPath = Symbol("$Path")
 
 class Input_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
+
     <dl>
     <dt>'$Input'
       <dd>is the name of the stream from which input is currently being read.
@@ -181,6 +183,8 @@ class _OpenAction(Builtin):
 
 class Character(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Character.html</url>
+
     <dl>
       <dt>'Character'
       <dd>is a data type for 'Read'.
@@ -192,6 +196,8 @@ class Character(Builtin):
 
 class Close(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Close.html</url>
+
     <dl>
       <dt>'Close[$stream$]'
       <dd>closes an input or output stream.
@@ -238,6 +244,8 @@ class Close(Builtin):
 
 class EndOfFile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfFile.html</url>
+
     <dl>
     <dt>'EndOfFile'
       <dd>is returned by 'Read' when the end of an input stream is reached.
@@ -249,6 +257,8 @@ class EndOfFile(Builtin):
 
 class Expression_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Expression.html</url>
+
     <dl>
       <dt>'Expression'
       <dd>is a data type for 'Read'.
@@ -263,6 +273,8 @@ class Expression_(Builtin):
 
 class FilePrint(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FilePrint.html</url>
+
     <dl>
     <dt>'FilePrint[$file$]'
       <dd>prints the raw contents of $file$.
@@ -347,6 +359,8 @@ class FilePrint(Builtin):
 
 class Number_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
+
     <dl>
     <dt>'Number'
       <dd>is a data type for 'Read'.
@@ -359,6 +373,8 @@ class Number_(Builtin):
 
 class Get(PrefixOperator):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Get.html</url>
+
     <dl>
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
@@ -460,6 +476,8 @@ class Get(PrefixOperator):
 
 class InputFileName_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$InputFileName.html</url>
+
     <dl>
     <dt>'$InputFileName'
       <dd>is the name of the file from which input is currently being read.
@@ -480,6 +498,8 @@ class InputFileName_(Predefined):
 
 class InputStream(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InputStream.html</url>
+
     <dl>
       <dt>'InputStream[$name$, $n$]'
       <dd>represents an input stream for functions such as 'Read' or 'Find'.
@@ -498,6 +518,8 @@ class InputStream(Builtin):
 
 class OpenRead(_OpenAction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenRead.html</url>
+
     <dl>
       <dt>'OpenRead["file"]'
       <dd>opens a file and returns an 'InputStream'.
@@ -537,6 +559,8 @@ class OpenRead(_OpenAction):
 
 class OpenWrite(_OpenAction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenWrite.html</url>
+
     <dl>
     <dt>'OpenWrite["file"]'
       <dd>opens a file and returns an OutputStream.
@@ -560,6 +584,8 @@ class OpenWrite(_OpenAction):
 
 class OpenAppend(_OpenAction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenAppend.html</url>
+
     <dl>
     <dt>'OpenAppend["file"]'
       <dd>opens a file and returns an OutputStream to which writes are appended.
@@ -586,6 +612,8 @@ class OpenAppend(_OpenAction):
 
 class Put(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Put.html</url>
+
     <dl>
     <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
@@ -681,6 +709,8 @@ class Put(BinaryOperator):
 
 class PutAppend(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PutAppend.html</url>
+
     <dl>
     <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
@@ -771,6 +801,8 @@ class PutAppend(BinaryOperator):
 
 class Read(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Read.html</url>
+
     <dl>
       <dt>'Read[$stream$]'
       <dd>reads the input stream and returns one expression.
@@ -1164,6 +1196,8 @@ class Read(Builtin):
 
 class ReadList(Read):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReadList.html</url>
+
     <dl>
     <dt>'ReadList["$file$"]'
       <dd>Reads all the expressions until the end of file.
@@ -1286,6 +1320,8 @@ class ReadList(Read):
 
 class StreamPosition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StreamPosition.html</url>
+
     <dl>
     <dt>'StreamPosition[$stream$]'
       <dd>returns the current position in a stream as an integer.
@@ -1325,6 +1361,8 @@ class StreamPosition(Builtin):
 
 class SetStreamPosition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetStreamPosition.html</url>
+
     <dl>
     <dt>'SetStreamPosition[$stream$, $n$]'
       <dd>sets the current position in a stream.
@@ -1405,6 +1443,8 @@ class SetStreamPosition(Builtin):
 
 class Skip(Read):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Skip.html</url>
+
     <dl>
     <dt>'Skip[$stream$, $type$]'
       <dd>skips ahead in an input steream by one object of the specified $type$.
@@ -1479,6 +1519,8 @@ class Skip(Read):
 
 class Find(Read):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Find.html</url>
+
     <dl>
     <dt>'Find[$stream$, $text$]'
       <dd>find the first line in $stream$ that contains $text$.
@@ -1554,6 +1596,8 @@ class Find(Read):
 
 class OutputStream(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OutputStream.html</url>
+
     <dl>
       <dt>'OutputStream[$name$, $n$]'
       <dd>represents an output stream.
@@ -1569,6 +1613,8 @@ class OutputStream(Builtin):
 
 class StringToStream(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringToStream.html</url>
+
     <dl>
       <dt>'StringToStream[$string$]'
       <dd>converts a $string$ to an open input stream.
@@ -1601,6 +1647,8 @@ class StringToStream(Builtin):
 
 class Streams(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Streams.html</url>
+
     <dl>
       <dt>'Streams[]'
       <dd>returns a list of all open streams.
@@ -1653,6 +1701,8 @@ class Streams(Builtin):
 
 class Record(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Record.html</url>
+
     <dl>
       <dt>'Record'
       <dd>is a data type for 'Read'.
@@ -1664,6 +1714,8 @@ class Record(Builtin):
 
 class Word(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Word.html</url>
+
     <dl>
       <dt>'Word'
       <dd>is a data type for 'Read'.
@@ -1675,6 +1727,8 @@ class Word(Builtin):
 
 class Write(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Write.html</url>
+
     <dl>
       <dt>'Write[$channel$, $expr1$, $expr2$, ...]'
       <dd>writes the expressions to the output channel followed by a newline.
@@ -1721,6 +1775,8 @@ class Write(Builtin):
 
 class WriteString(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/WriteString.html</url>
+
     <dl>
       <dt>'WriteString[$stream$, $str1, $str2$, ... ]'
       <dd>writes the strings to the output stream.
