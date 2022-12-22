@@ -7,14 +7,14 @@ Types of Values
 
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.assignment import get_symbol_values
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 
 
 class DefaultValues(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DefaultValues.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DefaultValues.html</url>
 
     <dl>
       <dt>'DefaultValues[$symbol$]'
@@ -44,7 +44,7 @@ class DefaultValues(Builtin):
         "give default values for the arguments associated with a function symbol"
     )
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "DefaultValues[symbol_]"
 
         return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
@@ -73,7 +73,7 @@ class Messages(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list the messages associated with a particular symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "Messages[symbol_]"
 
         return get_symbol_values(symbol, "Messages", "messages", evaluation)
@@ -81,7 +81,8 @@ class Messages(Builtin):
 
 class NValues(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
+    ## No longer in WMA
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
 
     <dl>
        <dt>'NValues[$symbol$]'
@@ -118,7 +119,7 @@ class NValues(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list of numerical values associated with a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "NValues[symbol_]"
 
         return get_symbol_values(symbol, "NValues", "n", evaluation)
@@ -148,7 +149,7 @@ class SubValues(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list of subvalues associated with a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "SubValues[symbol_]"
 
         return get_symbol_values(symbol, "SubValues", "sub", evaluation)

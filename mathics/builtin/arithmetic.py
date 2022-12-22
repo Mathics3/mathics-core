@@ -13,32 +13,15 @@ from mathics.eval.numerify import numerify
 sort_order = "mathics.builtin.mathematical-functions"
 
 
-import sympy
-import mpmath
 from functools import lru_cache
 
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_HOLD_REST,
-    A_LISTABLE,
-    A_NO_ATTRIBUTES,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-)
+import mpmath
+import sympy
 
-from mathics.eval.nevaluator import eval_N
-
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-    SympyFunction,
-    Test,
-)
-
-from mathics.builtin.inference import get_assumptions_list, evaluate_predicate
+from mathics.builtin.base import Builtin, Predefined, SympyFunction, Test
+from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.scoping import dynamic_scoping
-
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -50,13 +33,21 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.attributes import (
+    A_HOLD_ALL,
+    A_HOLD_REST,
+    A_LISTABLE,
+    A_NO_ATTRIBUTES,
+    A_NUMERIC_FUNCTION,
+    A_PROTECTED,
+)
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
-from mathics.core.convert.sympy import from_sympy, SympyExpression, sympy_symbol_prefix
+from mathics.core.convert.sympy import SympyExpression, from_sympy, sympy_symbol_prefix
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import min_prec, dps, SpecialValueError
+from mathics.core.number import SpecialValueError, dps, min_prec
 from mathics.core.symbols import (
     Atom,
     Symbol,
@@ -82,6 +73,7 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
+from mathics.eval.nevaluator import eval_N
 
 
 @lru_cache(maxsize=4096)
@@ -267,7 +259,7 @@ class Abs(_MPMathFunction):
 class Arg(_MPMathFunction):
     """
     <url>:Arg:https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
+    (<url>:WMA:https://reference.wolfram.com/language/ref/Arg.html</url>)
     <dl>
       <dt>'Arg'[$z$, $method_option$]
       <dd>returns the argument of a complex value $z$.
@@ -581,8 +573,9 @@ class ConditionalExpression(Builtin):
 
 class Conjugate(_MPMathFunction):
     """
-    <url>:Complex Conjugate:https://en.wikipedia.org/wiki/Complex_conjugate</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
+    <url>:Complex Conjugate:
+    https://en.wikipedia.org/wiki/Complex_conjugate</url> \
+    (<url>:WMA:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
 
     <dl>
       <dt>'Conjugate[$z$]'
@@ -618,7 +611,8 @@ class Conjugate(_MPMathFunction):
 
 class DirectedInfinity(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
 
     <dl>
       <dt>'DirectedInfinity[$z$]'
@@ -712,7 +706,7 @@ class DirectedInfinity(SympyFunction):
 class I(Predefined):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/I.html</url>)
+    (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
 
     <dl>
       <dt>'I'
@@ -1213,7 +1207,8 @@ class Real_(Builtin):
 
 class RealNumberQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
+    ## Not found in WMA
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
 
     <dl>
       <dt>'RealNumberQ[$expr$]'

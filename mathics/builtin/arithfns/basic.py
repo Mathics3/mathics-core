@@ -7,18 +7,11 @@ The functions here are the basic arithmetic operations that you might find on a 
 """
 
 
-import sympy
 import mpmath
+import sympy
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-    PrefixOperator,
-    SympyFunction,
-)
-
-
+from mathics.builtin.base import BinaryOperator, Builtin, PrefixOperator, SympyFunction
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -43,14 +36,12 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import min_prec, dps
+from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -73,8 +64,6 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-
-
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -148,9 +137,9 @@ class Divide(BinaryOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Divide.html</url>
 
     <dl>
-    <dt>'Divide[$a$, $b$]'
-    <dt>'$a$ / $b$'
-        <dd>represents the division of $a$ by $b$.
+      <dt>'Divide[$a$, $b$]'
+      <dt>'$a$ / $b$'
+      <dd>represents the division of $a$ by $b$.
     </dl>
     >> 30 / 5
      = 6
@@ -214,8 +203,8 @@ class Minus(PrefixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
 
     <dl>
-    <dt>'Minus[$expr$]'
-        <dd> is the negation of $expr$.
+      <dt>'Minus[$expr$]'
+      <dd> is the negation of $expr$.
     </dl>
 
     >> -a //FullForm
@@ -645,8 +634,8 @@ class Sqrt(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Sqrt.html</url>
 
     <dl>
-    <dt>'Sqrt[$expr$]'
-        <dd>returns the square root of $expr$.
+      <dt>'Sqrt[$expr$]'
+      <dd>returns the square root of $expr$.
     </dl>
 
     >> Sqrt[4]
@@ -685,11 +674,12 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subtract.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Subtract.html</url>
 
     <dl>
-    <dt>'Subtract[$a$, $b$]'
-    <dt>$a$ - $b$
+      <dt>'Subtract[$a$, $b$]'
+      <dt>$a$ - $b$
         <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
@@ -721,10 +711,10 @@ class Times(BinaryOperator, SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Times.html</url>
 
     <dl>
-    <dt>'Times[$a$, $b$, ...]'
-    <dt>'$a$ * $b$ * ...'
-    <dt>'$a$ $b$ ...'
-        <dd>represents the product of the terms $a$, $b$, ...
+      <dt>'Times[$a$, $b$, ...]'
+      <dt>'$a$ * $b$ * ...'
+      <dt>'$a$ $b$ ...'
+      <dd>represents the product of the terms $a$, $b$, ...
     </dl>
     >> 10 * 2
      = 20

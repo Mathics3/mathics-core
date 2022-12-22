@@ -13,12 +13,7 @@ Infix operators combined with assignment end in 'By', 'From', or 'To'.
 """
 
 
-from mathics.builtin.base import (
-    BinaryOperator,
-    PostfixOperator,
-    PrefixOperator,
-)
-
+from mathics.builtin.base import BinaryOperator, PostfixOperator, PrefixOperator
 from mathics.core.attributes import A_HOLD_FIRST, A_PROTECTED, A_READ_PROTECTED
 
 
@@ -52,7 +47,8 @@ class AddTo(BinaryOperator):
 
 class Decrement(PostfixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Decrement.html</url>
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/Decrement.html</url>
 
     <dl>
       <dt>'Decrement[$x$]'
@@ -111,7 +107,8 @@ class DivideBy(BinaryOperator):
 
 class Increment(PostfixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Increment.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Increment.html</url>
 
     <dl>
       <dt>'Increment[$x$]'
@@ -153,9 +150,9 @@ class PreIncrement(PrefixOperator):
     <url>:WMA link:https://reference.wolfram.com/language/ref/PreIncrement.html</url>
 
     <dl>
-    <dt>'PreIncrement[$x$]'
-    <dt>'++$x$'
-        <dd>increments $x$ by 1, returning the new value of $x$.
+      <dt>'PreIncrement[$x$]'
+      <dt>'++$x$'
+      <dd>increments $x$ by 1, returning the new value of $x$.
     </dl>
 
     '++$a$' is equivalent to '$a$ = $a$ + 1':
@@ -179,7 +176,8 @@ class PreIncrement(PrefixOperator):
 
 class PreDecrement(PrefixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PreDecrement.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/PreDecrement.html</url>
 
     <dl>
       <dt>'PreDecrement[$x$]'
@@ -208,12 +206,13 @@ class PreDecrement(PrefixOperator):
 
 class SubtractFrom(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/SubtractFrom.html</url>
 
     <dl>
-    <dt>'SubtractFrom[$x$, $dx$]'
-    <dt>'$x$ -= $dx$'
-        <dd>is equivalent to '$x$ = $x$ - $dx$'.
+      <dt>'SubtractFrom[$x$, $dx$]'
+      <dt>'$x$ -= $dx$'
+      <dd>is equivalent to '$x$ = $x$ - $dx$'.
     </dl>
 
     >> a = 10;

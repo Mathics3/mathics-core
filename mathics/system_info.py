@@ -31,7 +31,7 @@ def mathics_system_info(defs):
         "MemoryAvailable[]": eval(msystem.MemoryAvailable, needs_head=False),
         "$SystemTimeZone": eval(datentime.SystemTimeZone),
         "MachinePrecision": eval(numeric.MachinePrecision_),
-        "$BaseDirectory": eval(filesystem.BaseDirectory),
+        "$BaseDirectory": eval(filesystem.BaseDirectory_),
         "$RootDirectory": eval(filesystem.RootDirectory),
         "$HomeDirectory": eval(filesystem.HomeDirectory),
         "$InstallationDirectory": eval(filesystem.InstallationDirectory),
