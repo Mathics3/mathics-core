@@ -5,31 +5,20 @@ String Patterns
 
 import re
 
-
 from mathics.builtin.atomic.strings import (
-    _StringFind,
     _evaluate_match,
-    _pattern_search,
     _parallel_match,
+    _pattern_search,
+    _StringFind,
     anchor_pattern,
     to_regex,
 )
-
 from mathics.builtin.base import BinaryOperator, Builtin
-
-from mathics.core.atoms import (
-    Integer1,
-    String,
-)
+from mathics.core.atoms import Integer1, String
 from mathics.core.attributes import A_FLAT, A_LISTABLE, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 
 SymbolStringMatchQ = Symbol("StringMatchQ")
 SymbolStringExpression = Symbol("StringExpression")
@@ -37,7 +26,8 @@ SymbolStringExpression = Symbol("StringExpression")
 
 class DigitCharacter(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitCharacter.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DigitCharacter.html</url>
 
     <dl>
       <dt>'DigitCharacter'
@@ -63,10 +53,11 @@ class DigitCharacter(Builtin):
 
 class EndOfLine(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfLine.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/EndOfLine.html</url>
 
     <dl>
-    <dt>'EndOfLine'
+      <dt>'EndOfLine'
       <dd>represents the end of a line in a string.
     </dl>
 
@@ -86,10 +77,11 @@ class EndOfLine(Builtin):
 
 class EndOfString(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/EndOfString.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/EndOfString.html</url>
 
     <dl>
-    <dt>'EndOfString'
+      <dt>'EndOfString'
       <dd>represents the end of a string.
     </dl>
 
@@ -107,7 +99,8 @@ class EndOfString(Builtin):
 
 class LetterCharacter(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/LetterCharacter.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/LetterCharacter.html</url>
 
     <dl>
       <dt>'LetterCharacter'
@@ -127,10 +120,11 @@ class LetterCharacter(Builtin):
 
 class StartOfLine(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfLine.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StartOfLine.html</url>
 
     <dl>
-    <dt>'StartOfLine'
+      <dt>'StartOfLine'
       <dd>represents the start of a line in a string.
     </dl>
 
@@ -151,10 +145,11 @@ class StartOfLine(Builtin):
 
 class StartOfString(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StartOfString.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StartOfString.html</url>
 
     <dl>
-    <dt>'StartOfString'
+      <dt>'StartOfString'
       <dd>represents the start of a string.
     </dl>
 
@@ -171,7 +166,8 @@ class StartOfString(Builtin):
 
 class StringCases(_StringFind):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StringCases.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringCases.html</url>
 
     <dl>
       <dt>'StringCases["$string$", $pattern$]'
@@ -283,17 +279,23 @@ class StringExpression(BinaryOperator):
 
 class StringFreeQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringFreeQ.html</url>
 
     <dl>
-    <dt>'StringFreeQ["$string$", $patt$]'
-        <dd>returns True if no substring in $string$ matches the string expression $patt$, and returns False otherwise.
-    <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
-        <dd>returns the list of results for each element of string list.
-    <dt>'StringFreeQ["string", {p1, p2, ...}]'
-        <dd>returns True if no substring matches any of the $pi$.
-    <dt>'StringFreeQ[patt]'
-        <dd>represents an operator form of StringFreeQ that can be applied to an expression.
+      <dt>'StringFreeQ["$string$", $patt$]'
+      <dd>returns True if no substring in $string$ matches the string \
+      expression $patt$, and returns False otherwise.
+
+      <dt>'StringFreeQ[{"s1", "s2", ...}, patt]'
+      <dd>returns the list of results for each element of string list.
+
+      <dt>'StringFreeQ["string", {p1, p2, ...}]'
+      <dd>returns True if no substring matches any of the $pi$.
+
+      <dt>'StringFreeQ[patt]'
+      <dd>represents an operator form of StringFreeQ that can be applied \
+        to an expression.
     </dl>
 
     >> StringFreeQ["mathics", "m" ~~ __ ~~ "s"]
@@ -383,12 +385,14 @@ class StringFreeQ(Builtin):
 
 class StringMatchQ(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/StringMatchQ.html</url>
 
     <dl>
-    <dt>'StringMatchQ["string", $patern$]'
-    <dd> checks  is "string" matches $pattern$
+      <dt>'StringMatchQ["string", $patern$]'
+      <dd> checks  is "string" matches $pattern$
     </dl>
+
     >> StringMatchQ["abc", "abc"]
      = True
 
@@ -491,7 +495,8 @@ class StringMatchQ(Builtin):
 
 class WhitespaceCharacter(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WhitespaceCharacter.html</url>
 
     <dl>
       <dt>'WhitespaceCharacter'
@@ -517,7 +522,8 @@ class WhitespaceCharacter(Builtin):
 # strings.to_regex() seems to have the implementation here.
 class WordBoundary(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/WordBoundary.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WordBoundary.html</url>
 
     <dl>
       <dt>'WordBoundary'
@@ -533,7 +539,8 @@ class WordBoundary(Builtin):
 
 class WordCharacter(Builtin):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/WordCharacter.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/WordCharacter.html</url>
 
     <dl>
       <dt>'WordCharacter'

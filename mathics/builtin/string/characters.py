@@ -176,8 +176,8 @@ class ToLowerCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToLowerCase.html</url>
 
     <dl>
-    <dt>'ToLowerCase[$s$]'
-        <dd>returns $s$ in all lower case.
+      <dt>'ToLowerCase[$s$]'
+      <dd>returns $s$ in all lower case.
     </dl>
 
     >> ToLowerCase["New York"]
@@ -197,8 +197,8 @@ class ToUpperCase(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
 
     <dl>
-    <dt>'ToUpperCase[$s$]'
-        <dd>returns $s$ in all upper case.
+      <dt>'ToUpperCase[$s$]'
+      <dd>returns $s$ in all upper case.
     </dl>
 
     >> ToUpperCase["New York"]
@@ -218,8 +218,8 @@ class UpperCaseQ(Test):
     <url>:WMA link:https://reference.wolfram.com/language/ref/UpperCaseQ.html</url>
 
     <dl>
-    <dt>'UpperCaseQ[$s$]'
-        <dd>returns True if $s$ consists wholly of upper case characters.
+     <dt>'UpperCaseQ[$s$]'
+     <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 
     >> UpperCaseQ["ABC"]
