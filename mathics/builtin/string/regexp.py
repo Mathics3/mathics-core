@@ -10,6 +10,8 @@ from mathics.builtin.base import Builtin
 # builtin.strings.atomic.to_regex seems to have the implementation.
 class RegularExpression(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RegularExpression.html</url>
+
     <dl>
     <dt>'RegularExpression["regex"]'
       <dd>represents the regex specified by the string $"regex"$.
@@ -30,4 +32,5 @@ class RegularExpression(Builtin):
      : Element RegularExpression[2] is not a valid string or pattern element in RegularExpression[2].
      = StringSplit[ab23c, RegularExpression[2]]
     """
+
     summary_text = "string to regular expression."

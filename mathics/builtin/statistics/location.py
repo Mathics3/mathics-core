@@ -12,6 +12,8 @@ from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus
 
 class Mean(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Mean.html</url>
+
     <dl>
     <dt>'Mean[$list$]'
       <dd>returns the statistical mean of $list$.
@@ -38,6 +40,8 @@ SymbolMedian = Symbol("Median")
 
 class Median(_Rectangular):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Median.html</url>
+
     <dl>
       <dt>'Median[$list$]'
       <dd>returns the median of $list$.

@@ -14,6 +14,8 @@ from mathics.core.list import ListExpression
 
 class Characters(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Characters.html</url>
+
     <dl>
       <dt>'Characters["$string$"]'
       <dd>returns a list of the characters in $string$.
@@ -46,6 +48,8 @@ class Characters(Builtin):
 
 class CharacterRange(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CharacterRange.html</url>
+
     <dl>
       <dt>'CharacterRange["$a$", "$b$"]'
       <dd>returns a list of the Unicode characters from $a$ to $b$ inclusive.
@@ -78,6 +82,8 @@ class CharacterRange(Builtin):
 
 class DigitQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DigitQ.html</url>
+
     <dl>
       <dt>'DigitQ[$string$]'
       <dd>yields 'True' if all the characters in the $string$ are digits, and yields 'False' otherwise.
@@ -108,6 +114,8 @@ class DigitQ(Builtin):
 
 class LetterQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LetterQ.html</url>
+
     <dl>
       <dt>'LetterQ[$string$]'
       <dd>  yields 'True' if all the characters in the $string$ are letters, and yields 'False' otherwise.
@@ -142,6 +150,8 @@ class LetterQ(Builtin):
 
 class LowerCaseQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LowerCaseQ.html</url>
+
     <dl>
       <dt>'LowerCaseQ[$s$]'
       <dd>returns True if $s$ consists wholly of lower case characters.
@@ -163,9 +173,11 @@ class LowerCaseQ(Test):
 
 class ToLowerCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToLowerCase.html</url>
+
     <dl>
-    <dt>'ToLowerCase[$s$]'
-        <dd>returns $s$ in all lower case.
+      <dt>'ToLowerCase[$s$]'
+      <dd>returns $s$ in all lower case.
     </dl>
 
     >> ToLowerCase["New York"]
@@ -182,9 +194,11 @@ class ToLowerCase(Builtin):
 
 class ToUpperCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToUpperCase.html</url>
+
     <dl>
-    <dt>'ToUpperCase[$s$]'
-        <dd>returns $s$ in all upper case.
+      <dt>'ToUpperCase[$s$]'
+      <dd>returns $s$ in all upper case.
     </dl>
 
     >> ToUpperCase["New York"]
@@ -201,9 +215,11 @@ class ToUpperCase(Builtin):
 
 class UpperCaseQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpperCaseQ.html</url>
+
     <dl>
-    <dt>'UpperCaseQ[$s$]'
-        <dd>returns True if $s$ consists wholly of upper case characters.
+     <dt>'UpperCaseQ[$s$]'
+     <dd>returns True if $s$ consists wholly of upper case characters.
     </dl>
 
     >> UpperCaseQ["ABC"]

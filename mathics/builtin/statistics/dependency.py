@@ -32,7 +32,7 @@ SymbolVariance = Symbol("Variance")
 class Correlation(Builtin):
     """
     <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
-    <url>
+
     <dl>
       <dt>'Correlation[$a$, $b$]'
       <dd>computes Pearson's correlation of two equal-sized vectors $a$ and $b$.

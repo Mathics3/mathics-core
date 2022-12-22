@@ -8,7 +8,7 @@ Together with <url>:rank statistics: https://en.wikipedia.org/wiki/Ranking</url>
 Important special cases of order statistics are finding minimum and maximum value of a sample and sample quantiles.
 """
 
-from mpmath import floor as mpfloor, ceil as mpceil
+from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
@@ -16,13 +16,8 @@ from mathics.builtin.lists import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    SymbolFloor,
-    SymbolPlus,
-    SymbolTimes,
-)
+from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolSubtract
-
 from mathics.eval.numerify import numerify
 
 SymbolRankedMax = Symbol("RankedMax")
@@ -31,6 +26,7 @@ SymbolRankedMin = Symbol("RankedMin")
 
 class Quantile(Builtin):
     """
+
     <url>:Quantile: https://en.wikipedia.org/wiki/Quantile</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Quantile.html</url>)
     In statistics and probability, quantiles are cut points dividing the range of a probability distribution into continuous intervals with equal probabilities, or dividing the observations in a sample in the same way.
 
@@ -145,6 +141,7 @@ class Quantile(Builtin):
 
 class Quartiles(Builtin):
     """
+    <url>:Quartile: https://en.wikipedia.org/wiki/Quartile</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Quartiles.html</url>)
     <dl>
       <dt>'Quartiles[$list$]'
       <dd>returns the 1/4, 1/2, and 3/4 quantiles of $list$.
@@ -162,6 +159,8 @@ class Quartiles(Builtin):
 
 class RankedMax(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMax.html</url>
+
     <dl>
       <dt>'RankedMax[$list$, $n$]'
       <dd>returns the $n$th largest element of $list$ (with $n$ = 1 yielding the largest element,
@@ -195,6 +194,8 @@ class RankedMax(Builtin):
 
 class RankedMin(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RankedMin.html</url>
+
     <dl>
       <dt>'RankedMin[$list$, $n$]'
       <dd>returns the $n$th smallest element of $list$ (with $n$ = 1 yielding the smallest element, $n$ = 2 yielding the second smallest element, and so on).
@@ -225,6 +226,8 @@ class RankedMin(Builtin):
 
 class Sort(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sort.html</url>
+
     <dl>
       <dt>'Sort[$list$]'
       <dd>sorts $list$ (or the elements of any other expression) according to canonical ordering.
@@ -289,6 +292,8 @@ class Sort(Builtin):
 
 class TakeLargest(_RankedTakeLargest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeLargest.html</url>
+
     <dl>
       <dt>'TakeLargest[$list$, $f$, $n$]'
       <dd>returns the a sorted list of the $n$ largest items in $list$.
@@ -316,8 +321,10 @@ class TakeLargest(_RankedTakeLargest):
 
 class TakeSmallest(_RankedTakeSmallest):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
+
     <dl>
-      <dt>'TakeSmallest[$list$, $f$, $n$]'
+      <dt>'TakeSmallest[$list$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
