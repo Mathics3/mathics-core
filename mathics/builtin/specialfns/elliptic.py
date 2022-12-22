@@ -5,19 +5,14 @@ In integral calculus, an <url>:elliptic integral: https://en.wikipedia.org/wiki/
 
 """
 
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-)
+import sympy
+
 from mathics.builtin.base import SympyFunction
 from mathics.core.atoms import Integer
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.expression import to_numeric_sympy_args
 from mathics.core.convert.sympy import from_sympy
-
 from mathics.eval.numerify import numerify
-
-import sympy
 
 
 class EllipticE(SympyFunction):
@@ -77,7 +72,7 @@ class EllipticF(SympyFunction):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EllipticF.html</url>
 
     <dl>
-      <dt>'EllipticF[$m$]'
+      <dt>'EllipticF[$phi$, $m$]'
       <dd>computes the elliptic integral of the first kind $F$($ϕ$|$m$).
     </dl>
 

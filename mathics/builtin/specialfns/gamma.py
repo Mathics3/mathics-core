@@ -2,32 +2,23 @@
 Gamma and Related Functions
 """
 import sys
-import sympy
+
 import mpmath
+import sympy
 
 from mathics.builtin.arithmetic import (
     _MPMathFunction,
     _MPMathMultiFunction,
     call_mpmath,
 )
-from mathics.builtin.base import SympyFunction, PostfixOperator
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Number,
-)
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-)
+from mathics.builtin.base import PostfixOperator, SympyFunction
+from mathics.core.atoms import Integer, Integer0, Integer1, Number
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
-from mathics.eval.nevaluator import eval_N
-from mathics.core.number import min_prec, dps
+from mathics.core.number import dps, min_prec
 from mathics.core.symbols import Symbol, SymbolSequence
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
@@ -36,7 +27,7 @@ from mathics.core.systemsymbols import (
     SymbolGamma,
     SymbolIndeterminate,
 )
-
+from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 
@@ -143,7 +134,13 @@ class Beta(_MPMathMultiFunction):
 
 class Factorial(PostfixOperator, _MPMathFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Factorial.html</url>
+    <url>:Factorial:
+    https://en.wikipedia.org/wiki/Factorial</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/functions/combinatorial.html#factorial</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/gamma.html#mpmath.factorial</url>, <url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Factorial.html</url>)
 
     <dl>
       <dt>'Factorial[$n$]'
@@ -267,7 +264,12 @@ class Factorial2(PostfixOperator, _MPMathFunction):
 
 class Gamma(_MPMathMultiFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Gamma.html</url>
+    <url>:Gamma function:
+    https://en.wikipedia.org/wiki/Gamma_function</url> (<url>
+    :SymPy:https://docs.sympy.org/latest/modules/functions/special.html#module-sympy.functions.special.gamma_functions</url>, <url>
+    :mpmath:
+    https://mpmath.org/doc/current/functions/gamma.html#gamma</url>, <url>
+    :WMA:https://reference.wolfram.com/language/ref/Gamma.html</url>)
 
     <dl>
       <dt>'Gamma[$z$]'

@@ -4,20 +4,22 @@ Bessel and Related Functions
 
 import mpmath
 
-
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer
-from mathics.core.convert.mpmath import from_mpmath
-from mathics.core.number import machine_precision, get_precision, PrecisionValueError
-from mathics.core.number import prec as _prec
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_N_HOLD_FIRST,
     A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
+)
+from mathics.core.convert.mpmath import from_mpmath
+from mathics.core.number import (
+    PrecisionValueError,
+    get_precision,
+    machine_precision,
+    prec as _prec,
 )
 
 
@@ -761,8 +763,9 @@ class SphericalHankelH2(_Bessel):
 class StruveH(_Bessel):
     """
 
-    <url>:Struve functions H: https://en.wikipedia.org/wiki/Struve_function</url>\
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Struve.html</url>)
+    <url>:Struve functions H:
+    https://en.wikipedia.org/wiki/Struve_function</url>\
+    (<url>:WMA:https://reference.wolfram.com/language/ref/StruveH.html</url>)
 
     <dl>
       <dt>'StruveH[$n$, $z$]'

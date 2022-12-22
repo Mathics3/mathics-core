@@ -8,7 +8,7 @@ Together with <url>:rank statistics: https://en.wikipedia.org/wiki/Ranking</url>
 Important special cases of order statistics are finding minimum and maximum value of a sample and sample quantiles.
 """
 
-from mpmath import floor as mpfloor, ceil as mpceil
+from mpmath import ceil as mpceil, floor as mpfloor
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
@@ -16,13 +16,8 @@ from mathics.builtin.lists import _RankedTakeLargest, _RankedTakeSmallest
 from mathics.core.atoms import Atom, Integer, Symbol, SymbolTrue
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    SymbolFloor,
-    SymbolPlus,
-    SymbolTimes,
-)
+from mathics.core.symbols import SymbolFloor, SymbolPlus, SymbolTimes
 from mathics.core.systemsymbols import SymbolSubtract
-
 from mathics.eval.numerify import numerify
 
 SymbolRankedMax = Symbol("RankedMax")
@@ -329,7 +324,7 @@ class TakeSmallest(_RankedTakeSmallest):
     <url>:WMA link:https://reference.wolfram.com/language/ref/TakeSmallest.html</url>
 
     <dl>
-      <dt>'TakeSmallest[$list$, $f$, $n$]'
+      <dt>'TakeSmallest[$list$, $n$]'
       <dd>returns the a sorted list of the $n$ smallest items in $list$.
     </dl>
 
