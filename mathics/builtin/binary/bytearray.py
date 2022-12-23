@@ -57,7 +57,7 @@ class ByteArray(Builtin):
 
     def eval_to_str(self, baa, evaluation):
         "ToString[ByteArray[baa_ByteArrayAtom]]"
-        return String("ByteArray[" + baa.__str__() + "]")
+        return String(f"ByteArray[<{len(baa.value)}>]")
 
     def eval_normal(self, baa, evaluation):
         "System`Normal[ByteArray[baa_ByteArrayAtom]]"
