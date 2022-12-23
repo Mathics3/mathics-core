@@ -63,7 +63,7 @@ def pixels_as_float(pixels):
         return pixels.astype(numpy.float32) / 255.0
     elif dtype == numpy.uint16:
         return pixels.astype(numpy.float32) / 65535.0
-    elif dtype == numpy.bool:
+    elif dtype == bool:
         return pixels.astype(numpy.float32)
     else:
         raise NotImplementedError
