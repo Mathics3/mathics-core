@@ -24,15 +24,6 @@ from mathics.builtin.colors.color_internals import (
     colorspaces as known_colorspaces,
     convert_color,
 )
-from mathics.builtin.drawing.image_internals import (
-    convolve,
-    matrix_to_numpy,
-    numpy_flip,
-    numpy_to_matrix,
-    pixels_as_float,
-    pixels_as_ubyte,
-    pixels_as_uint,
-)
 from mathics.core.atoms import (
     Atom,
     Integer,
@@ -48,6 +39,15 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
+from mathics.eval.image import (
+    convolve,
+    matrix_to_numpy,
+    numpy_flip,
+    numpy_to_matrix,
+    pixels_as_float,
+    pixels_as_ubyte,
+    pixels_as_uint,
+)
 
 SymbolColorQuantize = Symbol("ColorQuantize")
 SymbolImage = Symbol("Image")
