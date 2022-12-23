@@ -1,11 +1,8 @@
 # -*- coding: utf-8 -*-
 
-"""helper functions for images
 """
-
-# Signals to Mathics doc processing not to include this module in its documentation.
-no_doc = True
-
+helper functions for images
+"""
 
 import numpy
 
@@ -63,7 +60,7 @@ def pixels_as_float(pixels):
         return pixels.astype(numpy.float32) / 255.0
     elif dtype == numpy.uint16:
         return pixels.astype(numpy.float32) / 65535.0
-    elif dtype is bool:
+    elif dtype is numpy.dtype(bool):
         return pixels.astype(numpy.float32)
     else:
         raise NotImplementedError
@@ -78,7 +75,7 @@ def pixels_as_ubyte(pixels):
         return pixels
     elif dtype == numpy.uint16:
         return (pixels / 256).astype(numpy.uint8)
-    elif dtype is bool:
+    elif dtype is numpy.dtype(bool):
         return pixels.astype(numpy.uint8) * 255
     else:
         raise NotImplementedError
@@ -93,7 +90,7 @@ def pixels_as_uint(pixels):
         return pixels.astype(numpy.uint16) * 256
     elif dtype == numpy.uint16:
         return pixels
-    elif dtype is bool:
+    elif dtype is numpy.dtype(bool):
         return pixels.astype(numpy.uint8) * 65535
     else:
         raise NotImplementedError
