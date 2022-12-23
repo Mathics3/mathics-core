@@ -561,8 +561,14 @@ class ByteArrayAtom(Atom, ImmutableValueMixin):
     def __str__(self) -> str:
         return base64.b64encode(self.value).decode("utf8")
 
+    # FIXME: the below does not use the "f" parameter to
+    # change behavior between FullForm and OutputForm
+    # Below we have the OutputForm behavior.
+    # A refactoring should be done so that this routine
+    # is removed and the form makes decisions, rather than
+    # have this routine know everything about all forms.
     def atom_to_boxes(self, f, evaluation) -> "String":
-        res = String('""' + self.__str__() + '""')
+        res = String(f"<{len(self.value)}>")
         return res
 
     def do_copy(self) -> "ByteArrayAtom":
