@@ -42,6 +42,8 @@ except ImportError:
 
 class Blend(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blend.html</url>
+
     <dl>
     <dt>'Blend[{$c1$, $c2$}]'
         <dd>represents the color between $c1$ and $c2$.
@@ -154,6 +156,8 @@ class Blend(Builtin):
 
 class ColorConvert(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorConvert.html</url>
+
     <dl>
     <dt>'ColorConvert[$c$, $colspace$]'
         <dd>returns the representation of $c$ in the color space $colspace$. $c$
@@ -208,6 +212,8 @@ class ColorConvert(Builtin):
 
 class ColorNegate(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorNegate.html</url>
+
     <dl>
       <dt>'ColorNegate[$image$]'
       <dd>returns the negative of $image$ in which colors have been negated.
@@ -239,6 +245,8 @@ class ColorNegate(_ImageBuiltin):
 
 class Darker(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Darker.html</url>
+
     <dl>
     <dt>'Darker[$c$, $f$]'
         <dd>is equivalent to 'Blend[{$c$, Black}, $f$]'.
@@ -262,6 +270,8 @@ class Darker(Builtin):
 
 class DominantColors(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DominantColors.html</url>
+
     <dl>
     <dt>'DominantColors[$image$]'
       <dd>gives a list of colors which are dominant in the given image.
@@ -433,6 +443,8 @@ class DominantColors(_ImageBuiltin):
 
 class Lighter(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Lighter.html</url>
+
     <dl>
       <dt>'Lighter[$c$, $f$]'
       <dd>is equivalent to 'Blend[{$c$, White}, $f$]'.

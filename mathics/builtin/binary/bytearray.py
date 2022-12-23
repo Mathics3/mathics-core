@@ -19,6 +19,8 @@ from mathics.core.systemsymbols import (
 
 class ByteArray(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ByteArray.html</url>
+
     <dl>
       <dt>'ByteArray[{$b_1$, $b_2$, ...}]'
      <dd> Represents a sequence of Bytes $b_1$, $b_2$, ...

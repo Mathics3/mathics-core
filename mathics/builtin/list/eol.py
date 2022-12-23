@@ -62,6 +62,8 @@ SymbolTake = Symbol("System`Take")
 
 class Append(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Append.html</url>
+
     <dl>
       <dt>'Append[$expr$, $elem$]'
       <dd>returns $expr$ with $elem$ appended.
@@ -101,6 +103,8 @@ class Append(Builtin):
 
 class AppendTo(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/AppendTo.html</url>
+
     <dl>
       <dt>'AppendTo[$s$, $elem$]'
       <dd>append $elem$ to value of $s$ and sets $s$ to the result.
@@ -154,6 +158,8 @@ class AppendTo(Builtin):
 
 class Cases(Builtin):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Cases.html</url>
+
     <dl>
       <dt>'Cases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that match $pattern$.
@@ -261,6 +267,8 @@ class Cases(Builtin):
 
 class Count(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Count.html</url>
+
     <dl>
       <dt>'Count[$list$, $pattern$]'
       <dd>returns the number of times $pattern$ appears in $list$.
@@ -285,6 +293,8 @@ class Count(Builtin):
 
 class DeleteCases(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DeleteCases.html</url>
+
     <dl>
       <dt>'DeleteCases[$list$, $pattern$]'
       <dd>returns the elements of $list$ that do not match $pattern$.
@@ -383,6 +393,8 @@ class _DeleteDuplicatesBin:
 
 class Drop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Drop.html</url>
+
     <dl>
       <dt>'Drop[$expr$, $n$]'
       <dd>returns $expr$ with the first $n$ elements removed.
@@ -435,6 +447,8 @@ class Drop(Builtin):
 
 class First(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/First.html</url>
+
     <dl>
       <dt>'First[$expr$]'
       <dd>returns the first element in $expr$.
@@ -475,6 +489,8 @@ class First(Builtin):
 
 class FirstCase(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FirstCase.html</url>
+
     <dl>
       <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
       <dd>gives the first $ei$ to match $pattern$, or $Missing[\"NotFound\"]$ if none matching pattern is found.
@@ -484,7 +500,7 @@ class FirstCase(Builtin):
       <dt> FirstCase[$expr$, $pattern$, $default$]
       <dd> gives $default$ if no element matching $pattern$ is found.
 
-      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$] \
+      <dt>FirstCase[$expr$, $pattern$, $default$, $levelspec$]
       <dd>finds only objects that appear on levels specified by $levelspec$.
 
       <dt>FirstCase[$pattern$]
@@ -505,6 +521,8 @@ class FirstCase(Builtin):
 
 class Extract(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Extract.html</url>
+
     <dl>
       <dt>'Extract[$expr$, $list$]'
       <dd>extracts parts of $expr$ specified by $list$.
@@ -532,6 +550,8 @@ class Extract(Builtin):
 
 class FirstPosition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FirstPosition.html</url>
+
     <dl>
       <dt>'FirstPosition[$expr$, $pattern$]'
       <dd>gives the position of the first element in $expr$ that matches $pattern$, or Missing["NotFound"] if no such element is found.
@@ -691,6 +711,8 @@ class FirstPosition(Builtin):
 
 class Last(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Last.html</url>
+
     <dl>
       <dt>'Last[$expr$]'
       <dd>returns the last element in $expr$.
@@ -729,6 +751,8 @@ class Last(Builtin):
 
 class Length(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Length.html</url>
+
     <dl>
       <dt>'Length[$expr$]'
       <dd>returns the number of elements in $expr$.
@@ -769,6 +793,8 @@ class Length(Builtin):
 
 class MemberQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MemberQ.html</url>
+
     <dl>
       <dt>'MemberQ[$list$, $pattern$]'
       <dd>returns 'True' if $pattern$ matches any element of $list$, or 'False' otherwise.
@@ -793,6 +819,8 @@ class MemberQ(Builtin):
 
 class Most(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Most.html</url>
+
     <dl>
       <dt>'Most[$expr$]'
       <dd>returns $expr$ with the last element removed.
@@ -827,6 +855,8 @@ class Most(Builtin):
 
 class Part(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Part.html</url>
+
     <dl>
       <dt>'Part[$expr$, $i$]'
       <dd>returns part $i$ of $expr$.
@@ -999,6 +1029,8 @@ class Part(Builtin):
 
 class Pick(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Pick.html</url>
+
     <dl>
       <dt>'Pick[$list$, $sel$]'
       <dd>returns those items in $list$ that are True in $sel$.
@@ -1049,6 +1081,8 @@ class Pick(Builtin):
 
 class Position(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Position.html</url>
+
     <dl>
       <dt>'Position[$expr$, $patt$]'
       <dd>returns the list of positions for which $expr$ matches $patt$.
@@ -1111,6 +1145,8 @@ class Position(Builtin):
 
 class Prepend(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Prepend.html</url>
+
     <dl>
       <dt>'Prepend[$expr$, $item$]'
       <dd>returns $expr$ with $item$ prepended to its elements.
@@ -1155,6 +1191,8 @@ class Prepend(Builtin):
 
 class PrependTo(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PrependTo.html</url>
+
     <dl>
       <dt>'PrependTo[$s$, $item$]'
       <dd>prepends $item$ to value of $s$ and sets $s$ to the result.
@@ -1220,6 +1258,8 @@ class PrependTo(Builtin):
 
 class ReplacePart(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReplacePart.html</url>
+
     <dl>
       <dt>'ReplacePart[$expr$, $i$ -> $new$]'
       <dd>replaces part $i$ in $expr$ with $new$.
@@ -1310,6 +1350,8 @@ class ReplacePart(Builtin):
 
 class Rest(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Rest.html</url>
+
     <dl>
       <dt>'Rest[$expr$]'
       <dd>returns $expr$ with the first element removed.
@@ -1350,6 +1392,8 @@ class Rest(Builtin):
 
 class Select(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Select.html</url>
+
     <dl>
       <dt>'Select[{$e1$, $e2$, ...}, $f$]'
       <dd>returns a list of the elements $ei$ for which $f$[$ei$] returns 'True'.
@@ -1391,6 +1435,8 @@ class Select(Builtin):
 
 class Span(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Span.html</url>
+
     <dl>
       <dt>'Span'
       <dd>is the head of span ranges like '1;;3'.
@@ -1439,6 +1485,8 @@ class Span(BinaryOperator):
 
 class Take(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Take.html</url>
+
     <dl>
       <dt>'Take[$expr$, $n$]'
       <dd>returns $expr$ with all but the first $n$ elements removed.
@@ -1512,6 +1560,8 @@ class Take(Builtin):
 
 class UpTo(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UpTo.html</url>
+
     <dl>
       <dd> 'Upto'[$n$]
       <dt> is a symbolic specification that represents up to $n$ objects or positions. If $n$ objects or positions are available, all are used. If fewer are available, only those available are used.
