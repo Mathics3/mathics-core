@@ -2,38 +2,37 @@
 """
 Image[] and image-related functions
 
-Note that you (currently) need scikit-image installed in order for this module to work.
+Note that you (currently) need scikit-image installed in order for this \
+module to work.
 """
 
 # This tells documentation how to sort this module
-# Here we are also hiding "drawing" since this erroneously appears at the top level.
+# Here, we are also hiding "drawing" since this erroneously appears at
+# the top level.
 sort_order = "mathics.builtin.image-and-image-related-functions"
 
-from collections import defaultdict
 import base64
 import functools
 import math
 import os.path as osp
-
+from collections import defaultdict
 from typing import Optional, Tuple
 
-from mathics.builtin.base import Builtin, AtomBuiltin, Test, String
+from mathics.builtin.base import AtomBuiltin, Builtin, String, Test
 from mathics.builtin.box.image import ImageBox
 from mathics.builtin.colors.color_internals import (
-    convert_color,
     colorspaces as known_colorspaces,
+    convert_color,
 )
-
 from mathics.builtin.drawing.image_internals import (
+    convolve,
+    matrix_to_numpy,
+    numpy_flip,
+    numpy_to_matrix,
     pixels_as_float,
     pixels_as_ubyte,
     pixels_as_uint,
-    matrix_to_numpy,
-    numpy_to_matrix,
-    numpy_flip,
-    convolve,
 )
-
 from mathics.core.atoms import (
     Atom,
     Integer,
@@ -62,13 +61,12 @@ _skimage_requires = _image_requires + ("skimage", "scipy", "matplotlib", "networ
 try:
     import warnings
 
+    import numpy
     import PIL
     import PIL.ImageEnhance
-    import PIL.ImageOps
     import PIL.ImageFilter
+    import PIL.ImageOps
     from PIL.ExifTags import TAGS as ExifTags
-
-    import numpy
 
     _enabled = True
 except ImportError:
@@ -95,6 +93,8 @@ class _ImageTest(Test):
 
 class _SkimageBuiltin(_ImageBuiltin):
     """
+    ## <url>:native:</url>
+
     Image Builtins that require scikit-image.
     """
 
@@ -146,6 +146,8 @@ class _Exif:
 
 class ImageImport(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageImport.html</url>
+
     <dl>
       <dt> 'ImageImport["path"]'
       <dd> import an image from the file "path".
@@ -186,6 +188,8 @@ class ImageImport(_ImageBuiltin):
 
 class ImageExport(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageExport.html</url>
+
     <dl>
       <dt> 'ImageExport["path", $image$]'
       <dd> export $image$ as file in "path".
@@ -251,9 +255,13 @@ class _ImageArithmetic(_ImageBuiltin):
 
 class ImageAdd(_ImageArithmetic):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageAdd.html</url>
+
     <dl>
       <dt>'ImageAdd[$image$, $expr_1$, $expr_2$, ...]'
-      <dd>adds all $expr_i$ to $image$ where each $expr_i$ must be an image or a real number.
+      <dd>adds all $expr_i$ to $image$ where each $expr_i$ must be an image \
+          or a real number.
     </dl>
 
     >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
@@ -287,9 +295,13 @@ class ImageAdd(_ImageArithmetic):
 
 class ImageSubtract(_ImageArithmetic):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
+
     <dl>
       <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
-      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an image or a real number.
+      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
+          image or a real number.
     </dl>
 
     >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
@@ -313,6 +325,8 @@ class ImageSubtract(_ImageArithmetic):
 
 class ImageMultiply(_ImageArithmetic):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageMultiply.html</url>
+
     <dl>
       <dt>'ImageMultiply[$image$, $expr_1$, $expr_2$, ...]'
       <dd>multiplies all $expr_i$ with $image$ where each $expr_i$ must be an image or a real number.
@@ -344,6 +358,8 @@ class ImageMultiply(_ImageArithmetic):
 
 class RandomImage(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RandomImage.html</url>
+
     <dl>
     <dt>'RandomImage[$max$]'
       <dd>creates an image of random pixels with values 0 to $max$.
@@ -417,6 +433,9 @@ class RandomImage(_ImageBuiltin):
 
 class ImageResize(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageResize.html</url>
+
     <dl>
       <dt>'ImageResize[$image$, $width$]'
       <dd>
@@ -561,7 +580,7 @@ class ImageResize(_ImageBuiltin):
             return evaluation.message("ImageResize", "imgrsm", resampling)
 
         try:
-            from skimage import transform, __version__ as skimage_version
+            from skimage import __version__ as skimage_version, transform
 
             multichannel = image.pixels.ndim == 3
 
@@ -603,6 +622,7 @@ class ImageResize(_ImageBuiltin):
 
 class ImageReflect(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageReflect.html</url>
     <dl>
     <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
@@ -680,6 +700,9 @@ class ImageReflect(_ImageBuiltin):
 
 class ImageRotate(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageRotate.html</url>
+
     <dl>
     <dt>'ImageRotate[$image$]'
       <dd>Rotates $image$ 90 degrees counterclockwise.
@@ -735,6 +758,8 @@ class ImageRotate(_ImageBuiltin):
 
 class ImagePartition(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImagePartition.html</url>
+
     <dl>
     <dt>'ImagePartition[$image$, $s$]'
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
@@ -796,6 +821,9 @@ class ImagePartition(_ImageBuiltin):
 
 class ImageAdjust(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
+
     <dl>
     <dt>'ImageAdjust[$image$]'
       <dd>adjusts the levels in $image$.
@@ -860,6 +888,8 @@ class ImageAdjust(_ImageBuiltin):
 
 class Blur(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Blur.html</url>
+
     <dl>
     <dt>'Blur[$image$]'
       <dd>gives a blurred version of $image$.
@@ -883,6 +913,9 @@ class Blur(_ImageBuiltin):
 
 class Sharpen(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sharpen.html</url>
+
     <dl>
       <dt>'Sharpen[$image$]'
       <dd>gives a sharpened version of $image$.
@@ -909,6 +942,8 @@ class Sharpen(_ImageBuiltin):
 
 class GaussianFilter(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GaussianFilter.html</url>
+
     <dl>
       <dt>'GaussianFilter[$image$, $r$]'
       <dd>blurs $image$ using a Gaussian blur filter of radius $r$.
@@ -936,6 +971,9 @@ class GaussianFilter(_ImageBuiltin):
 
 class PillowImageFilter(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PillowImageFilter.html</url>
+
     <dl>
     <dt>'PillowImageFilter[$image$, "filtername"]'
     <dd> applies an image filter "filtername" from the pillow library.
@@ -951,6 +989,8 @@ class PillowImageFilter(_ImageBuiltin):
 
 class MinFilter(PillowImageFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MinFilter.html</url>
+
     <dl>
     <dt>'MinFilter[$image$, $r$]'
       <dd>gives $image$ with a minimum filter of radius $r$ applied on it. This always
@@ -971,6 +1011,9 @@ class MinFilter(PillowImageFilter):
 
 class MaxFilter(PillowImageFilter):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxFilter.html</url>
+
     <dl>
     <dt>'MaxFilter[$image$, $r$]'
       <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always
@@ -991,6 +1034,8 @@ class MaxFilter(PillowImageFilter):
 
 class MedianFilter(PillowImageFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MedianFilter.html</url>
+
     <dl>
     <dt>'MedianFilter[$image$, $r$]'
       <dd>gives $image$ with a median filter of radius $r$ applied on it. This always
@@ -1011,6 +1056,9 @@ class MedianFilter(PillowImageFilter):
 
 class EdgeDetect(_SkimageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
+
     <dl>
     <dt>'EdgeDetect[$image$]'
       <dd>returns an image showing the edges in $image$.
@@ -1053,6 +1101,9 @@ def _matrix(rows):
 
 class BoxMatrix(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/BoxMatrix.html</url>
+
     <dl>
     <dt>'BoxMatrix[$s]'
       <dd>Gives a box shaped kernel of size 2 $s$ + 1.
@@ -1073,6 +1124,8 @@ class BoxMatrix(_ImageBuiltin):
 
 class DiskMatrix(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DiskMatrix.html</url>
+
     <dl>
     <dt>'DiskMatrix[$s]'
       <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
@@ -1101,6 +1154,9 @@ class DiskMatrix(_ImageBuiltin):
 
 class DiamondMatrix(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DiamondMatrix.html</url>
+
     <dl>
     <dt>'DiamondMatrix[$s]'
       <dd>Gives a diamond shaped kernel of size 2 $s$ + 1.
@@ -1136,6 +1192,8 @@ class DiamondMatrix(_ImageBuiltin):
 
 class ImageConvolve(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageConvolve.html</url>
+
     <dl>
     <dt>'ImageConvolve[$image$, $kernel$]'
       <dd>Computes the convolution of $image$ using $kernel$.
@@ -1186,6 +1244,8 @@ class _MorphologyFilter(_SkimageBuiltin):
 
 class Dilation(_MorphologyFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Dilation.html</url>
+
     <dl>
     <dt>'Dilation[$image$, $ker$]'
       <dd>Gives the morphological dilation of $image$ with respect to structuring element $ker$.
@@ -1201,6 +1261,8 @@ class Dilation(_MorphologyFilter):
 
 class Erosion(_MorphologyFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Erosion.html</url>
+
     <dl>
     <dt>'Erosion[$image$, $ker$]'
       <dd>Gives the morphological erosion of $image$ with respect to structuring element $ker$.
@@ -1216,6 +1278,8 @@ class Erosion(_MorphologyFilter):
 
 class Opening(_MorphologyFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Opening.html</url>
+
     <dl>
     <dt>'Opening[$image$, $ker$]'
       <dd>Gives the morphological opening of $image$ with respect to structuring element $ker$.
@@ -1231,6 +1295,8 @@ class Opening(_MorphologyFilter):
 
 class Closing(_MorphologyFilter):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Closing.html</url>
+
     <dl>
     <dt>'Closing[$image$, $ker$]'
       <dd>Gives the morphological closing of $image$ with respect to structuring element $ker$.
@@ -1246,6 +1312,8 @@ class Closing(_MorphologyFilter):
 
 class MorphologicalComponents(_SkimageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MorphologicalComponents.html</url>
+
     <dl>
     <dt>'MorphologicalComponents[$image$]'
     <dd> Builds a 2-D array in which each pixel of $image$ is replaced
@@ -1277,6 +1345,8 @@ class MorphologicalComponents(_SkimageBuiltin):
 
 class ImageColorSpace(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageColorSpace.html</url>
+
     <dl>
     <dt>'ImageColorSpace[$image$]'
         <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
@@ -1296,6 +1366,8 @@ class ImageColorSpace(_ImageBuiltin):
 
 class ColorQuantize(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorQuantize.html</url>
+
     <dl>
     <dt>'ColorQuantize[$image$, $n$]'
       <dd>gives a version of $image$ using only $n$ colors.
@@ -1334,6 +1406,9 @@ class ColorQuantize(_ImageBuiltin):
 
 class Threshold(_SkimageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Threshold.html</url>
+
     <dl>
       <dt>'Threshold[$image$]'
       <dd>gives a value suitable for binarizing $image$.
@@ -1386,6 +1461,8 @@ class Threshold(_SkimageBuiltin):
 
 class Binarize(_SkimageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Binarize.html</url>
+
     <dl>
       <dt>'Binarize[$image$]'
       <dd>gives a binarized version of $image$, in which each pixel is either 0 or 1.
@@ -1432,6 +1509,9 @@ class Binarize(_SkimageBuiltin):
 
 class ColorSeparate(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorSeparate.html</url>
+
     <dl>
     <dt>'ColorSeparate[$image$]'
       <dd>Gives each channel of $image$ as a separate grayscale image.
@@ -1454,6 +1534,8 @@ class ColorSeparate(_ImageBuiltin):
 
 class ColorCombine(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorCombine.html</url>
+
     <dl>
     <dt>'ColorCombine[$channels$, $colorspace$]'
       <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
@@ -1521,6 +1603,9 @@ def _linearize(a):
 
 class Colorize(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Colorize.html</url>
+
     <dl>
     <dt>'Colorize[$values$]'
       <dd>returns an image where each number in the rectangular matrix $values$ is a pixel and each
@@ -1585,10 +1670,15 @@ class Colorize(_ImageBuiltin):
 
 class ImageData(_ImageBuiltin):
     """
+
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageData.html</url>
+
     <dl>
-    <dt>'ImageData[$image$]'
+      <dt>'ImageData[$image$]'
       <dd>gives a list of all color values of $image$ as a matrix.
-    <dt>'ImageData[$image$, $stype$]'
+
+      <dt>'ImageData[$image$, $stype$]'
       <dd>gives a list of color values in type $stype$.
     </dl>
 
@@ -1631,14 +1721,19 @@ class ImageData(_ImageBuiltin):
 
 class ImageTake(_ImageBuiltin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageTake.html</url>
     <dl>
-    <dt>'ImageTake[$image$, $n$]'
+      <dt>'ImageTake[$image$, $n$]'
       <dd>gives the first $n$ rows of $image$.
-    <dt>'ImageTake[$image$, -$n$]'
+
+      <dt>'ImageTake[$image$, -$n$]'
       <dd>gives the last $n$ rows of $image$.
-    <dt>'ImageTake[$image$, {$r1$, $r2$}]'
+
+      <dt>'ImageTake[$image$, {$r1$, $r2$}]'
       <dd>gives rows $r1$, ..., $r2$ of $image$.
-    <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
+
+      <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
       <dd>gives a cropped version of $image$.
     </dl>
     """
@@ -1683,8 +1778,11 @@ class ImageTake(_ImageBuiltin):
 
 class PixelValue(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValue.html</url>
+
     <dl>
-    <dt>'PixelValue[$image$, {$x$, $y$}]'
+      <dt>'PixelValue[$image$, {$x$, $y$}]'
       <dd>gives the value of the pixel at position {$x$, $y$} in $image$.
     </dl>
 
@@ -1728,8 +1826,10 @@ class PixelValue(_ImageBuiltin):
 
 class PixelValuePositions(_ImageBuiltin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValuePositions.html</url>
+
     <dl>
-    <dt>'PixelValuePositions[$image$, $val$]'
+      <dt>'PixelValuePositions[$image$, $val$]'
       <dd>gives the positions of all pixels in $image$ that have value $val$.
     </dl>
 
@@ -1779,8 +1879,11 @@ class PixelValuePositions(_ImageBuiltin):
 
 class ImageDimensions(_ImageBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
+
     <dl>
-    <dt>'ImageDimensions[$image$]'
+      <dt>'ImageDimensions[$image$]'
       <dd>Returns the dimensions of $image$ in pixels.
     </dl>
 
@@ -1806,8 +1909,11 @@ class ImageDimensions(_ImageBuiltin):
 
 class ImageAspectRatio(_ImageBuiltin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageAspectRatio.html</url>
+
     <dl>
-    <dt>'ImageAspectRatio[$image$]'
+      <dt>'ImageAspectRatio[$image$]'
       <dd>gives the aspect ratio of $image$.
     </dl>
 
@@ -1829,6 +1935,10 @@ class ImageAspectRatio(_ImageBuiltin):
 
 class ImageChannels(_ImageBuiltin):
     """
+
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageChannels.html</url>
+
     <dl>
     <dt>'ImageChannels[$image$]'
       <dd>gives the number of channels in $image$.
@@ -1851,6 +1961,8 @@ class ImageChannels(_ImageBuiltin):
 
 class ImageType(_ImageBuiltin):
     """
+    <url>
+    :WMA link:https://reference.wolfram.com/language/ref/ImageType.html</url>
     <dl>
       <dt>'ImageType[$image$]'
       <dd>gives the interval storage type of $image$, e.g. "Real", "Bit32", or "Bit".
@@ -1877,6 +1989,10 @@ class ImageType(_ImageBuiltin):
 
 class BinaryImageQ(_ImageTest):
     """
+
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
+
     <dl>
       <dt>'BinaryImageQ[$image]'
       <dd>returns True if the pixels of $image are binary bit values, and False otherwise.
@@ -1914,6 +2030,9 @@ def _image_pixels(matrix):
 
 class ImageQ(_ImageTest):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
+
     <dl>
       <dt>'ImageQ[Image[$pixels]]'
       <dd>returns True if $pixels has dimensions from which an Image can be constructed, and False otherwise.
@@ -2141,6 +2260,9 @@ class Image(Atom):
 
 class ImageAtom(AtomBuiltin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAtom.html</url>
+
     <dl>
     <dt>'Image[...]'
     <dd> produces the internal representation of an image from an array
@@ -2172,6 +2294,9 @@ class ImageAtom(AtomBuiltin):
 
 class TextRecognize(Builtin):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TextRecognize.html</url>
+
     <dl>
     <dt>'TextRecognize[{$image$}]'
       <dd>Recognizes text in $image$ and returns it as string.
@@ -2192,6 +2317,7 @@ class TextRecognize(Builtin):
     def apply(self, image, evaluation, options):
         "TextRecognize[image_Image, OptionsPattern[%(name)s]]"
         import pyocr
+
         from mathics.builtin.codetables import iso639_3
 
         language = self.get_option(options, "Language", evaluation)
@@ -2240,6 +2366,9 @@ if "Pyston" not in sys.version:
 
     class WordCloud(Builtin):
         """
+
+        <url>:WMA link:https://reference.wolfram.com/language/ref/WordCloud.html</url>
+
         <dl>
         <dt>'WordCloud[{$word1$, $word2$, ...}]'
           <dd>Gives a word cloud with the given list of words.
@@ -2360,8 +2489,8 @@ if "Pyston" not in sys.version:
                 return
 
             # inspired by http://minimaxir.com/2016/05/wordclouds/
-            import random
             import os
+            import random
 
             def color_func(
                 word, font_size, position, orientation, random_state=None, **kwargs
