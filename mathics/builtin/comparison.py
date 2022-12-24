@@ -10,19 +10,12 @@ Functions that "ask a question" have names that end in "Q". They return 'True' f
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.testing-expressions"
 
-from typing import Optional, Any
+from typing import Any, Optional
 
 import sympy
 
-
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-    SympyFunction,
-)
-
+from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
-
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
@@ -42,7 +35,6 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
@@ -55,7 +47,7 @@ from mathics.core.systemsymbols import (
     SymbolMaxPrecision,
     SymbolSign,
 )
-
+from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 operators = {
@@ -201,7 +193,7 @@ class _InequalityOperator(BinaryOperator):
 class _ComparisonOperator(_InequalityOperator):
     "Compares arguments in a chain e.g. a < b < c compares a < b and b < c."
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:
@@ -340,7 +332,7 @@ class _EqualityOperator(_InequalityOperator):
                 return c
         return None
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         n = len(items_sequence)
@@ -351,7 +343,7 @@ class _EqualityOperator(_InequalityOperator):
             for arg in items_sequence
         ]
         if not all(val is SymbolTrue for val in is_exact_vals):
-            return self.apply_other(items, evaluation)
+            return self.eval_other(items, evaluation)
         args = self.numerify_args(items, evaluation)
         for x, y in self.get_pairs(args):
             c = do_cplx_equal(x, y)
@@ -361,7 +353,7 @@ class _EqualityOperator(_InequalityOperator):
                 return SymbolFalse
         return SymbolTrue
 
-    def apply_other(self, args, evaluation):
+    def eval_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
 
         args = args.get_sequence()
@@ -388,7 +380,7 @@ class _MinMax(Builtin):
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -447,7 +439,9 @@ class _SympyComparison(SympyFunction):
 
 class BooleanQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/BooleanQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BooleanQ.html</url>
 
     <dl>
       <dt>'BooleanQ[$expr$]'
@@ -481,7 +475,9 @@ class BooleanQ(Builtin):
 
 class Equal(_EqualityOperator, _SympyComparison):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Equal.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Equal.html</url>
 
     <dl>
       <dt>'Equal[$x$, $y$]'
@@ -644,7 +640,9 @@ class Greater(_ComparisonOperator, _SympyComparison):
 
 class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/GreaterEqual.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GreaterEqual.html</url>
 
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
@@ -690,7 +688,7 @@ class Inequality(Builtin):
     }
     summary_text = "chain of inequalities"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Inequality[items___]"
 
         elements = numerify(items, evaluation).get_sequence()
@@ -995,7 +993,7 @@ class SameQ(_ComparisonOperator):
 
     summary_text = "literal symbolic identity"
 
-    def apply_list(self, items, evaluation):
+    def eval_list(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:
@@ -1145,7 +1143,7 @@ class UnsameQ(_ComparisonOperator):
 
     summary_text = "not literal symbolic identity"
 
-    def apply_list(self, items, evaluation):
+    def eval_list(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:
