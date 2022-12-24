@@ -6,8 +6,9 @@ had missing or duplicate build-in functions definitions.
 """
 import pytest
 import os
-from mathics.builtin import name_is_builtin_symbol, modules
+from mathics.builtin import modules
 from mathics.builtin.base import Builtin
+from mathics.core.system_init import name_is_builtin_symbol
 
 
 @pytest.mark.skipif(

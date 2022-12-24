@@ -23,6 +23,7 @@ from mathics.core.read import channel_to_stream
 from mathics.core.rules import BuiltinRule
 from mathics.core.symbols import strip_context, SymbolNull
 from mathics.core.streams import stream_manager
+from mathics.core.system_init import initialize_system
 from mathics.timing import show_lru_cache_statistics
 
 
@@ -369,6 +370,7 @@ Please contribute to Mathics!""",
     if args.show_statistics:
         atexit.register(show_lru_cache_statistics)
 
+    initialize_system()
     definitions = Definitions(add_builtin=True, extension_modules=extension_modules)
     definitions.set_line_no(0)
 

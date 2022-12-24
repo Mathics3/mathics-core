@@ -16,6 +16,7 @@ from mathics.core.definitions import autoload_files
 from mathics.core.parser import parse, MathicsSingleLineFeeder
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
+from mathics.core.system_init import initialize_system
 import mathics.settings
 
 
@@ -63,6 +64,7 @@ class MathicsSession:
         form="InputForm",
         character_encoding=Optional[str],
     ):
+        initialize_system()
         if character_encoding is not None:
             mathics.settings.SYSTEM_CHARACTER_ENCODING = character_encoding
         self.form = form

@@ -32,6 +32,7 @@ from mathics.core.formatter import (
 )
 from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import SymbolTrue
+from mathics.core.system_init import display_operators_set as operators
 
 
 def encode_mathml(text: str) -> str:
@@ -62,7 +63,6 @@ extra_operators = {
 
 
 def string(self, **options) -> str:
-    from mathics.builtin import display_operators_set as operators
 
     text = self.value
 

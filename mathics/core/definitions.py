@@ -21,6 +21,7 @@ from mathics.core.symbols import (
     Symbol,
     strip_context,
 )
+from mathics.core.system_init import contribute
 from mathics.core.systemsymbols import SymbolGet
 
 from mathics_scanner.tokeniser import full_names_pattern
@@ -130,7 +131,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules, contribute
+            from mathics.builtin import modules
             from mathics.settings import ROOT_DIR
 
             loaded = False
