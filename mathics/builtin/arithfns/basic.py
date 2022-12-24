@@ -675,7 +675,8 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Subtract.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Subtract.html</url>
 
     <dl>
       <dt>'Subtract[$a$, $b$]'

@@ -1195,7 +1195,7 @@ if sys.platform != "win32" and not hasattr(sys, "pyston_version_info"):
 class TimeZone(Predefined):
     """
     <url>:Time Zone:https://en.wikipedia.org/wiki/Time_zone</url> (<url>
-    :WMA link:
+    :WMA:
     https://reference.wolfram.com/language/ref/$TimeZone.html</url>)
 
     <dl>

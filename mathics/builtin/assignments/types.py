@@ -50,7 +50,7 @@ class DefaultValues(Builtin):
         "give default values for the arguments associated with a function symbol"
     )
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "DefaultValues[symbol_]"
 
         return get_symbol_values(symbol, "System`DefaultValues", "default", evaluation)
@@ -80,7 +80,7 @@ class Messages(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list the messages associated with a particular symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "Messages[symbol_]"
 
         return get_symbol_values(symbol, "Messages", "messages", evaluation)
@@ -88,6 +88,7 @@ class Messages(Builtin):
 
 class NValues(Builtin):
     """
+    ## No longer in WMA
     ## <url>:WMA link:https://reference.wolfram.com/language/ref/NValues.html</url>
 
     <dl>
@@ -129,7 +130,7 @@ class NValues(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list of numerical values associated with a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "NValues[symbol_]"
 
         return get_symbol_values(symbol, "NValues", "n", evaluation)
@@ -137,6 +138,7 @@ class NValues(Builtin):
 
 class SubValues(Builtin):
     """
+
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/SubValues.html</url>
 
@@ -160,7 +162,7 @@ class SubValues(Builtin):
     attributes = A_HOLD_ALL | A_PROTECTED
     summary_text = "give the list of subvalues associated with a symbol"
 
-    def apply(self, symbol, evaluation):
+    def eval(self, symbol, evaluation):
         "SubValues[symbol_]"
 
         return get_symbol_values(symbol, "SubValues", "sub", evaluation)

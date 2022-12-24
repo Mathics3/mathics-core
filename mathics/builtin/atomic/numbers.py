@@ -823,6 +823,7 @@ class MaxPrecision(Predefined):
 
 class MachineEpsilon_(Predefined):
     """
+
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
 
@@ -960,6 +961,7 @@ class MinPrecision(Builtin):
 
 class NumericQ(Builtin):
     """
+
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/NumericQ.html</url>
 
@@ -1011,7 +1013,6 @@ class NumericQ(Builtin):
 
 class Precision(Builtin):
     """
-
     <url>
     :Precision:
     https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (<url>
