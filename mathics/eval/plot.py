@@ -7,7 +7,7 @@ That is done as another pass after M-expression evaluation finishes.
 """
 
 from math import cos, isinf, isnan, pi, sqrt
-from typing import Callable, Iterable, List, Optional, Union, Type
+from typing import Callable, Iterable, List, Optional, Type, Union
 
 from mathics.builtin.numeric import chop
 from mathics.builtin.options import options_to_rules

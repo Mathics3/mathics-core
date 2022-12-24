@@ -33,7 +33,7 @@ import platform
 import re
 import sys
 
-from setuptools import setup, Extension
+from setuptools import Extension, setup
 
 is_PyPy = platform.python_implementation() == "PyPy"
 

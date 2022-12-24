@@ -11,22 +11,17 @@ how Mathics arrives at its results, or guide how to speed up expression evaluati
 """
 
 
+from collections import defaultdict
+from time import time
+from typing import Callable
+
 from mathics.builtin.base import Builtin
-
-
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.python import from_bool
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolTrue, SymbolFalse, SymbolNull
-
-from time import time
-from collections import defaultdict
-from typing import Callable
+from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
 def traced_do_replace(self, expression, vars, options, evaluation):

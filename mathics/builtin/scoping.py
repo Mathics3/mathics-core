@@ -4,23 +4,13 @@ Scoping Constructs
 """
 
 
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_PROTECTED,
-    attribute_string_to_number,
-)
 from mathics.builtin.base import Builtin, Predefined
 from mathics.core.assignment import get_symbol_list
-from mathics.core.atoms import (
-    String,
-    Integer,
-)
+from mathics.core.atoms import Integer, String
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, attribute_string_to_number
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    fully_qualified_symbol_name,
-)
+from mathics.core.symbols import Symbol, fully_qualified_symbol_name
 
 
 def get_scoping_vars(var_list, msg_symbol="", evaluation=None):

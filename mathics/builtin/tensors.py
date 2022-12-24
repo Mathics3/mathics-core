@@ -12,22 +12,13 @@ Mathics represents tensors of vectors and matrices as lists; tensors of any rank
 
 
 from mathics.algorithm.parts import get_part
-from mathics.builtin.base import Builtin, BinaryOperator
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.rules import Pattern
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 
 
 def get_default_distance(p):

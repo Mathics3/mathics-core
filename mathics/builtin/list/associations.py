@@ -7,10 +7,7 @@ An Association maps keys to values and is similar to a dictionary in Python; it 
 """
 
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-)
+from mathics.builtin.base import Builtin, Test
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.core.atoms import Integer
@@ -18,11 +15,7 @@ from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolTrue
-from mathics.core.systemsymbols import (
-    SymbolAssociation,
-    SymbolMakeBoxes,
-    SymbolMissing,
-)
+from mathics.core.systemsymbols import SymbolAssociation, SymbolMakeBoxes, SymbolMissing
 
 
 class Association(Builtin):

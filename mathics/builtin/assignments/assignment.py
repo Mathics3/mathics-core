@@ -11,14 +11,12 @@ from mathics.core.assignment import (
     assign_store_rules_by_tag,
     normalize_lhs,
 )
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
     A_PROTECTED,
     A_SEQUENCE_HOLD,
 )
-
 from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed

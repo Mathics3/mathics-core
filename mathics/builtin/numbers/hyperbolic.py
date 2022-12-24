@@ -9,11 +9,11 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 from typing import Optional
-from mathics.core.convert.sympy import SympyExpression
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import IntegerM1
+from mathics.core.convert.sympy import SympyExpression
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolPower
 

@@ -40,24 +40,16 @@ The attributes 'Flat', 'Orderless', and 'OneIdentity' affect pattern matching.
 sort_order = "mathics.builtin.rules-and-patterns"
 
 from mathics.algorithm.parts import python_levelspec
-
 from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-    PostfixOperator,
     AtomBuiltin,
-    PatternObject,
+    BinaryOperator,
+    Builtin,
     PatternError,
+    PatternObject,
+    PostfixOperator,
 )
 from mathics.builtin.lists import InvalidLevelspecError
-
-from mathics.core.atoms import (
-    String,
-    Number,
-    Integer,
-    Rational,
-    Real,
-)
+from mathics.core.atoms import Integer, Number, Rational, Real, String
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -70,13 +62,7 @@ from mathics.core.expression import Expression, SymbolVerbatim
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern, StopGenerator
 from mathics.core.rules import Rule
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import SymbolBlank, SymbolDispatch
 
 SymbolDefault = Symbol("Default")

@@ -1,7 +1,8 @@
 # from .helper import session
-from mathics.session import MathicsSession
-from mathics.core.symbols import Symbol
 import os
+
+from mathics.core.symbols import Symbol
+from mathics.session import MathicsSession
 
 session = MathicsSession()
 

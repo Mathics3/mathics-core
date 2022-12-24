@@ -1,19 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from queue import Queue
-import time
-
-
 import os
 import sys
+import time
+from queue import Queue
 from threading import Thread, stack_size as set_thread_stack_size
-
 from typing import Tuple
 
 from mathics_scanner import TranslateError
 
 from mathics import settings
-
 from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
 from mathics.core.element import KeyComparable, ensure_context
@@ -25,12 +21,7 @@ from mathics.core.interrupt import (
     TimeoutInterrupt,
     WLThrowInterrupt,
 )
-
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import (
     SymbolAborted,
     SymbolBreak,
@@ -460,7 +451,7 @@ class Evaluation:
         if isinstance(format, dict):
             return dict((k, self.format_output(expr, f)) for k, f in format.items())
 
-        from mathics.core.expression import Expression, BoxError
+        from mathics.core.expression import BoxError, Expression
 
         if format == "text":
             result = format_element(expr, self, SymbolOutputForm)

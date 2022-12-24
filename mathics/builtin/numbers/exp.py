@@ -7,11 +7,11 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 import math
-import mpmath
-
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
+
+import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin

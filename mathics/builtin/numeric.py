@@ -16,10 +16,10 @@ from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, Integer0, Rational, Real
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 from mathics.core.convert.sympy import from_sympy
-from mathics.eval.nevaluator import eval_nvalues
 from mathics.core.expression import Expression
 from mathics.core.number import machine_epsilon
 from mathics.core.symbols import SymbolDivide, SymbolMachinePrecision, SymbolTimes
+from mathics.eval.nevaluator import eval_nvalues
 
 
 def chop(expr, delta=10.0 ** (-10.0)):

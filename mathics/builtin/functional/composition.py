@@ -15,13 +15,8 @@ Some built-in functions also directly support a "curried" form, in which they ca
 sort_order = "mathics.builtin.functional-composition"
 
 from mathics.builtin.base import Builtin
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
 from mathics.core.expression import Expression
-
-from mathics.core.attributes import (
-    A_FLAT,
-    A_ONE_IDENTITY,
-    A_PROTECTED,
-)
 
 
 class Composition(Builtin):

@@ -10,7 +10,6 @@ from mathics_scanner import (
 from mathics.core.definitions import Definitions
 from mathics.core.parser import parse
 
-
 definitions = Definitions(add_builtin=True)
 
 

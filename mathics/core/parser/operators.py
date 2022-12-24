@@ -4,7 +4,6 @@
 
 from collections import defaultdict
 
-
 prefix_ops = {
     "Get": 720,
     "PreIncrement": 660,

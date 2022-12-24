@@ -7,20 +7,15 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 import math
-import mpmath
-
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
 
+import mpmath
+
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    IntegerM1,
-    Real,
-)
+from mathics.core.atoms import Integer, Integer0, IntegerM1, Real
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

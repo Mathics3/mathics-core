@@ -6,12 +6,7 @@ Error Function and Related Functions
 
 
 from mathics.builtin.arithmetic import _MPMathFunction, _MPMathMultiFunction
-
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_NUMERIC_FUNCTION,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 
 
 class Erf(_MPMathMultiFunction):

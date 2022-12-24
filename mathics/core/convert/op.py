@@ -3,9 +3,9 @@ Conversions from the ASCII representation of Mathics operators to their Unicode 
 """
 
 import os.path as osp
-import pkg_resources
-
 from functools import lru_cache
+
+import pkg_resources
 
 try:
     import ujson

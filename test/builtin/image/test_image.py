@@ -5,9 +5,10 @@ Tests for mathics.core.drawing.image:
 Image[] and image related functions.
 """
 import os
+from test.helper import evaluate
+
 import pytest
 
-from test.helper import evaluate
 from mathics.builtin.base import check_requires_list
 from mathics.core.symbols import SymbolNull
 

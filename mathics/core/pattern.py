@@ -2,9 +2,11 @@
 # cython: profile=False
 # -*- coding: utf-8 -*-
 
+from itertools import chain
 from typing import Optional
 
 from mathics.core.atoms import Integer
+from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
 from mathics.core.element import BaseElement, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression, SymbolDefault
@@ -23,10 +25,7 @@ from mathics.core.systemsymbols import (
     SymbolRepeatedNull,
     SymbolSequence,
 )
-from mathics.core.util import subsets, subranges, permutations
-from itertools import chain
-
-from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_ORDERLESS
+from mathics.core.util import permutations, subranges, subsets
 
 # FIXME: create definitions in systemsymbols for missing items below.
 SYSTEM_SYMBOLS_PATTERNS = symbol_set(

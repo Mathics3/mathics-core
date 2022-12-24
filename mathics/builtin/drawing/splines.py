@@ -10,7 +10,6 @@ A Spline is a mathematical function used for interpolation or smoothing. Splines
 sort_order = "mathics.builtin.splines"
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.attributes import A_LISTABLE, A_NUMERIC_FUNCTION, A_PROTECTED
 
 

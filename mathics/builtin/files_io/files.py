@@ -7,52 +7,46 @@ File and Stream Operations
 
 import io
 import os
-import tempfile
-
-from io import BytesIO
 import os.path as osp
-
+import tempfile
+from io import BytesIO
 
 from mathics_scanner import TranslateError
 
 import mathics
-from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
-from mathics.builtin.base import MessageException
-
-from mathics.core import read
-from mathics.core.atoms import (
-    Integer,
-    String,
-    SymbolString,
+from mathics.builtin.base import (
+    BinaryOperator,
+    Builtin,
+    MessageException,
+    Predefined,
+    PrefixOperator,
 )
+from mathics.core import read
+from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
+    READ_TYPES,
+    MathicsOpen,
+    SymbolEndOfFile,
     channel_to_stream,
     close_stream,
-    MathicsOpen,
+    read_from_stream,
     read_get_separators,
     read_name_and_stream_from_channel,
-    read_from_stream,
-    READ_TYPES,
-    SymbolEndOfFile,
 )
-from mathics.core.streams import (
-    path_search,
-    stream_manager,
-)
+from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolReal,
     SymbolFailed,
     SymbolHold,
     SymbolOutputForm,
+    SymbolReal,
 )
-
-from mathics.eval.makeboxes import format_element, do_format
+from mathics.eval.makeboxes import do_format, format_element
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
@@ -1108,8 +1102,9 @@ class Read(Builtin):
             ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
         )
 
-        from mathics.core.expression import BaseElement
         from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
+
+        from mathics.core.expression import BaseElement
         from mathics.core.parser import MathicsMultiLineFeeder, parse
 
         for typ in types.elements:

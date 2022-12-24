@@ -6,21 +6,17 @@ Linear algebra
 
 import mpmath
 import sympy
-from sympy import re, im
-
+from sympy import im, re
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, Integer0, Real
-from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.matrix import matrix_data
 from mathics.core.convert.mpmath import from_mpmath, to_mpmath_matrix
 from mathics.core.convert.sympy import from_sympy, to_sympy_matrix
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-)
+from mathics.core.symbols import Symbol, SymbolList
 
 
 class DesignMatrix(Builtin):

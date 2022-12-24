@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import sys
 import platform
-import sympy
+import sys
+
 import mpmath
 import numpy
+import sympy
 
 from mathics.version import __version__
 

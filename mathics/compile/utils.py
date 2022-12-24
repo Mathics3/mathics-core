@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from mathics.compile.types import int_type, real_type, bool_type, void_type
-from ctypes import c_int64, c_double, c_bool, c_void_p
+from ctypes import c_bool, c_double, c_int64, c_void_p
+
+from mathics.compile.types import bool_type, int_type, real_type, void_type
 
 
 def pairwise(args):

@@ -1,16 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import mpmath
-import sympy
 from functools import lru_cache
 
+import mpmath
+import sympy
 
-from mathics.core.atoms import (
-    Complex,
-    MachineReal,
-    MachineReal0,
-    PrecisionReal,
-)
+from mathics.core.atoms import Complex, MachineReal, MachineReal0, PrecisionReal
 
 
 @lru_cache(maxsize=1024)

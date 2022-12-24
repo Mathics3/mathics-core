@@ -6,7 +6,6 @@ Exponential Integral and Special Functions
 
 import mpmath
 
-
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.core.convert.mpmath import from_mpmath
 

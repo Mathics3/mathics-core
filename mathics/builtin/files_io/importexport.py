@@ -11,42 +11,26 @@ sort_order = "mathics.builtin.importing-and-exporting"
 import mimetypes
 import os
 import sys
-
-from itertools import chain
-
 import urllib.request as request
+from itertools import chain
 from urllib.error import HTTPError, URLError
 
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-    String,
-    Integer,
-    get_option,
-)
-
+from mathics.builtin.base import Builtin, Integer, Predefined, String, get_option
 from mathics.builtin.pymimesniffer import magic
-
 from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
-from mathics.core.expression import Expression
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-    SymbolTrue,
-    strip_context,
-)
+from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue, strip_context
 from mathics.core.systemsymbols import (
     SymbolByteArray,
     SymbolFailed,
     SymbolRule,
     SymbolToString,
 )
-
 
 mimetypes.add_type("application/vnd.wolfram.mathematica.package", ".m")
 
@@ -1245,8 +1229,8 @@ class URLFetch(Builtin):
     def apply(self, url, elements, evaluation, options={}):
         "URLFetch[url_String, elements_, OptionsPattern[]]"
 
-        import tempfile
         import os
+        import tempfile
 
         py_url = url.get_string_value()
 
@@ -2061,7 +2045,7 @@ class ExportString(Builtin):
                 else:
                     res = String(str(res))
         elif function_channels == ListExpression(String("Streams")):
-            from io import StringIO, BytesIO
+            from io import BytesIO, StringIO
 
             if is_binary:
                 pystream = BytesIO()

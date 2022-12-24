@@ -4,21 +4,11 @@ Input and Output
 
 import re
 
-
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-)
-
+from mathics.builtin.base import Builtin, Predefined
 from mathics.core.attributes import A_NO_ATTRIBUTES
-
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-
+from mathics.core.symbols import Symbol, SymbolNull
 from mathics.core.systemsymbols import SymbolRow
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")

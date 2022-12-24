@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from .helper import check_evaluation
 import os
 import sys
+
+from .helper import check_evaluation
 
 # FIXME: see if we can refine this better such as
 # by running some Python code and looking for a failure.

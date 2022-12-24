@@ -1,28 +1,21 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.base import Builtin, Test
-from mathics.core.atoms import (
-    String,
-    Integer,
-    Integer1,
-    Real,
-    Number,
-)
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.expression import Expression
-from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolRowBox
+from pint import UnitRegistry
 
+from mathics.builtin.base import Builtin, Test
+from mathics.core.atoms import Integer, Integer1, Number, Real, String
 from mathics.core.attributes import (
     A_HOLD_REST,
     A_N_HOLD_REST,
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-
-from pint import UnitRegistry
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.expression import Expression
+from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
+from mathics.core.systemsymbols import SymbolRowBox
 
 SymbolQuantity = Symbol("Quantity")
 

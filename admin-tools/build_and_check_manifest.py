@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 
-from mathics.builtin import name_is_builtin_symbol, modules, Builtin
 import sys
+
+from mathics.builtin import Builtin, modules, name_is_builtin_symbol
 
 
 def generate_available_builtins_names():

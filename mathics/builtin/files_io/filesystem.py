@@ -17,7 +17,6 @@ from mathics.builtin.base import Builtin, MessageException, Predefined
 from mathics.builtin.files_io.files import INITIAL_DIR  # noqa is used via global
 from mathics.builtin.files_io.files import DIRECTORY_STACK, MathicsOpen
 from mathics.builtin.string.operations import Hash
-
 from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import (
     A_LISTABLE,
@@ -28,7 +27,6 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.streams import (
     HOME_DIR,
@@ -53,6 +51,7 @@ from mathics.core.systemsymbols import (
     SymbolNone,
     SymbolPackages,
 )
+from mathics.eval.nevaluator import eval_N
 
 SYS_ROOT_DIR = "/" if os.name == "posix" else "\\"
 TMP_DIR = tempfile.gettempdir()
