@@ -230,8 +230,12 @@ def create_infix(items, operator, prec, grouping):
 
 class Abs(_MPMathFunction):
     """
-
-    <url>:Absolute value: https://en.wikipedia.org/wiki/Absolute_value</url> (<url>:SymPy: https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>:WMA: https://reference.wolfram.com/language/ref/Abs</url>)
+    <url>
+    :Absolute value:
+    https://en.wikipedia.org/wiki/Absolute_value</url> (<url>
+    :SymPy:
+    https://docs.sympy.org/latest/modules/functions/elementary.html#sympy.functions.elementary.complexes.Abs</url>, <url>
+    :WMA: https://reference.wolfram.com/language/ref/Abs</url>)
 
     <dl>
       <dt>'Abs[$x$]'
@@ -266,8 +270,10 @@ class Abs(_MPMathFunction):
 
 class Arg(_MPMathFunction):
     """
-    <url>:Arg:https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
+    <url>:Argument (complex analysis):
+    https://en.wikipedia.org/wiki/Argument_(complex_analysis)</url> (<url>
+    :WMA link:https://reference.wolfram.com/language/ref/Arg.html</url>)
+
     <dl>
       <dt>'Arg'[$z$, $method_option$]
       <dd>returns the argument of a complex value $z$.
