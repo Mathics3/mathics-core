@@ -75,7 +75,7 @@ class Environment(Builtin):
 
     summary_text = "list the system environment variables"
 
-    def apply(self, var, evaluation):
+    def eval(self, var, evaluation):
         "Environment[var_String]"
         env_var = var.get_string_value()
         if env_var not in os.environ:
@@ -116,7 +116,7 @@ class GetEnvironment(Builtin):
 
     summary_text = "retrieve the value of a system environment variable"
 
-    def apply(self, var, evaluation):
+    def eval(self, var, evaluation):
         "GetEnvironment[var___]"
         if isinstance(var, String):
             env_var = var.get_string_value()
@@ -262,22 +262,47 @@ class ProcessID(Predefined):
 
 class ProcessorType(Predefined):
     r"""
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ProcessorType.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ProcessorType.html</url>
 
     <dl>
-    <dt>'$ProcessorType'
-        <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
+      <dt>'$ProcessorType'
+      <dd>gives a string giving the architecture of the processor on which the \Mathics is being run.
     </dl>
-    X> $ProcessorType
-    = x86_64
+
+    >> $ProcessorType
+    = ...
     """
+    name = "$ProcessorType"
+
     summary_text = (
         "name of the architecture of the processor over which Mathics is running"
     )
-    name = "$ProcessorType"
 
     def evaluate(self, evaluation):
         return String(platform.machine())
+
+
+class PythonImplementation(Predefined):
+    r"""
+    ## <url>:PythonImplementation native symbol:</url>
+
+    <dl>
+    <dt>'$PythonImplementation'
+        <dd>gives a string indication the Python implementation used to run \Mathics.
+    </dl>
+    >> $PythonImplementation
+    = ...
+    """
+    name = "$PythonImplementation"
+
+    summary_text = "name of the Python implementation running Mathics"
+
+    def evaluate(self, evaluation):
+        from mathics.system_info import python_implementation
+
+        return String(python_implementation())
 
 
 class ScriptCommandLine(Predefined):
@@ -320,7 +345,7 @@ class Run(Builtin):
 
     summary_text = "run a system command"
 
-    def apply(self, command, evaluation):
+    def eval(self, command, evaluation):
         "Run[command_String]"
         command_str = command.to_python()
         return Integer(subprocess.call(command_str, shell=True))
@@ -480,7 +505,7 @@ if have_psutil:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def apply(self, evaluation) -> Integer:
+        def eval(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             totalmem = psutil.virtual_memory().available
             return Integer(totalmem)
@@ -523,7 +548,7 @@ else:
 
         summary_text = "the available amount of physical memory in the system"
 
-        def apply(self, evaluation) -> Integer:
+        def eval(self, evaluation) -> Integer:
             """MemoryAvailable[]"""
             return Integer(-1)
 
@@ -543,7 +568,7 @@ class MemoryInUse(Builtin):
 
     summary_text = "number of bytes of memory currently being used by Mathics"
 
-    def apply_0(self, evaluation) -> Integer:
+    def eval_0(self, evaluation) -> Integer:
         """MemoryInUse[]"""
         # Partially borrowed from https://code.activestate.com/recipes/577504/
         from itertools import chain
@@ -596,7 +621,7 @@ class Share(Builtin):
 
     summary_text = "force Python garbage collection"
 
-    def apply(self, evaluation) -> Integer:
+    def eval(self, evaluation) -> Integer:
         """Share[]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then
@@ -610,7 +635,7 @@ class Share(Builtin):
             gc.collect()
             return Integer0
 
-    def apply_with_symbol(self, symbol, evaluation) -> Integer:
+    def eval_with_symbol(self, symbol, evaluation) -> Integer:
         """Share[symbol_Symbol]"""
         # TODO: implement a routine that swap all the definitions,
         # collecting repeated symbols and expressions, and then

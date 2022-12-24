@@ -56,6 +56,7 @@ System`$PreRead
 System`$PrintForms
 System`$ProcessID
 System`$ProcessorType
+System`$PythonImplementation
 System`$RandomState
 System`$RecursionLimit
 System`$RootDirectory

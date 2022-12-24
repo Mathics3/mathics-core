@@ -20,6 +20,7 @@ def test_system_info():
             "$MachineName",
             "$ProcessID",
             "$ProcessorType",
+            "$PythonImplementation",
             "$RootDirectory",
             "$SystemID",
             "$SystemMemory",
