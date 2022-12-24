@@ -21,6 +21,8 @@ SymbolSparseArray = Symbol("SparseArray")
 
 class SparseArray(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SparseArray.html</url>
+
     <dl>
     <dt>'SparseArray[$rules$]'
         <dd>Builds a sparse array acording to the list of $rules$.

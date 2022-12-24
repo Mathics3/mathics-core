@@ -7,7 +7,6 @@ from mathics.core.atoms import Integer1, Integer2
 from mathics.core.expression import Expression
 
 from mathics.core.symbols import (
-    Symbol,
     SymbolAbs,
     SymbolDivide,
     SymbolPlus,
@@ -40,6 +39,9 @@ def _norm_calc(head, u, v, evaluation):
 
 class BrayCurtisDistance(Builtin):
     """
+    <url>:Bray-Curtis Dissimilarity:https://en.wikipedia.org/wiki/Bray%E2%80%93Curtis_dissimilarity</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/BrayCurtisDistance.html</url>)
+
     <dl>
       <dt>'BrayCurtisDistance[$u$, $v$]'
        <dd>returns the Bray-Curtis distance between $u$ and $v$.
@@ -70,6 +72,9 @@ class BrayCurtisDistance(Builtin):
 
 class CanberraDistance(Builtin):
     """
+    <url>:Canberra distance:https://en.wikipedia.org/wiki/Canberra_distance</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/CanberraDistance.html</url>)
+
     <dl>
       <dt>'CanberraDistance[$u$, $v$]'
        <dd>returns the canberra distance between $u$ and $v$, which is a weighted version of the Manhattan distance.
@@ -102,6 +107,9 @@ class CanberraDistance(Builtin):
 
 class ChessboardDistance(Builtin):
     """
+    <url>:Chebyshev distance:https://en.wikipedia.org/wiki/Chebyshev_distance</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/ChessboardDistance.html</url>)
+
     <dl>
       <dt>'ChessboardDistance[$u$, $v$]'
       <dd>returns the chessboard distance (also known as Chebyshev distance) between $u$ and $v$, which is the number of moves a king on a chessboard needs to get from square $u$ to square $v$.
@@ -125,6 +133,9 @@ class ChessboardDistance(Builtin):
 
 class CosineDistance(Builtin):
     r"""
+    <url>:Cosine similarity:https://en.wikipedia.org/wiki/Cosine_similarity</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/CosineDistance.html</url>)
+
     <dl>
       <dt>'CosineDistance[$u$, $v$]'
       <dd>returns the cosine distance between $u$ and $v$.
@@ -163,6 +174,9 @@ class CosineDistance(Builtin):
 
 class EuclideanDistance(Builtin):
     """
+    <url>:Euclidean similarity:https://en.wikipedia.org/wiki/Euclidean_distance</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/EuclideanDistance.html</url>)
+
     <dl>
       <dt>'EuclideanDistance[$u$, $v$]'
       <dd>returns the euclidean distance between $u$ and $v$.
@@ -189,6 +203,9 @@ class EuclideanDistance(Builtin):
 
 class ManhattanDistance(Builtin):
     """
+    <url>:Manhattan distance:https://en.wikipedia.org/wiki/Taxicab_geometry</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/ManhattanDistance.html</url>)
+
     <dl>
       <dt>'ManhattanDistance[$u$, $v$]'
       <dd>returns the Manhattan distance between $u$ and $v$, which is the number of horizontal or vertical moves in the gridlike Manhattan city layout to get from $u$ to $v$.
@@ -212,6 +229,8 @@ class ManhattanDistance(Builtin):
 
 class SquaredEuclideanDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SquaredEuclideanDistance.html</url>
+
     <dl>
       <dt>'SquaredEuclideanDistance[$u$, $v$]'
       <dd>returns squared the euclidean distance between $u$ and $v$.

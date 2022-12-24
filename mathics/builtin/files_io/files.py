@@ -249,7 +249,7 @@ class EndOfFile(Builtin):
     https://reference.wolfram.com/language/ref/EndOfFile.html</url>
 
     <dl>
-    <dt>'EndOfFile'
+      <dt>'EndOfFile'
       <dd>is returned by 'Read' when the end of an input stream is reached.
     </dl>
     """
@@ -279,11 +279,10 @@ class Expression_(Builtin):
 
 class FilePrint(Builtin):
     """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/FilePrint.html</url>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FilePrint.html</url>
 
     <dl>
-    <dt>'FilePrint[$file$]'
+      <dt>'FilePrint[$file$]'
       <dd>prints the raw contents of $file$.
     </dl>
 
@@ -489,7 +488,7 @@ class InputFileName_(Predefined):
 
     <dl>
       <dt>'$InputFileName'
-     <dd>is the name of the file from which input is currently being read.
+      <dd>is the name of the file from which input is currently being read.
     </dl>
 
     While in interactive mode, '$InputFileName' is "".

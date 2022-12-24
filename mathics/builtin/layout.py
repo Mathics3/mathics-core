@@ -34,6 +34,8 @@ SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 class Center(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Center.html</url>
+
     <dl>
       <dt>'Center'
       <dd>is used with the 'ColumnAlignments' option to 'Grid' or
@@ -46,6 +48,8 @@ class Center(Builtin):
 
 class Format(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Format.html</url>
+
     <dl>
       <dt>'Format[$expr$]'
       <dd>holds values specifying how $expr$ should be printed.
@@ -80,6 +84,8 @@ class Format(Builtin):
 
 class Grid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Grid.html</url>
+
     <dl>
       <dt>'Grid[{{$a1$, $a2$, ...}, {$b1$, $b2$, ...}, ...}]'
       <dd>formats several expressions inside a 'GridBox'.
@@ -112,6 +118,8 @@ class Grid(Builtin):
 
 class Infix(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Infix.html</url>
+
     <dl>
       <dt>'Infix[$expr$, $oper$, $prec$, $assoc$]'
       <dd>displays $expr$ with the infix operator $oper$, with precedence $prec$ and associativity $assoc$.
@@ -151,6 +159,8 @@ class Infix(Builtin):
 
 class Left(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Left.html</url>
+
     <dl>
       <dt>'Left'
       <dd>is used with operator formatting constructs to specify a left-associative operator.
@@ -162,6 +172,9 @@ class Left(Builtin):
 
 class NonAssociative(Builtin):
     """
+    ## For some reason, this is a Builtin symbol in WMA, but it is not available in WR.
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/NonAssociative.html</url>
+
     <dl>
       <dt>'NonAssociative'
       <dd>is used with operator formatting constructs to specify a non-associative operator.
@@ -173,6 +186,8 @@ class NonAssociative(Builtin):
 
 class Postfix(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Postfix.html</url>
+
     <dl>
       <dt>'$x$ // $f$'
       <dd>is equivalent to '$f$[$x$]'.
@@ -197,6 +212,9 @@ class Postfix(BinaryOperator):
 
 class Precedence(Builtin):
     """
+    ## As NonAssociative, this is a Builtin in WMA that does not have an entry in WR.
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/Precedence.html</url>
+
     <dl>
       <dt>'Precedence[$op$]'
       <dd>returns the precedence of the built-in operator $op$.
@@ -235,6 +253,8 @@ class Precedence(Builtin):
 
 class Prefix(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Prefix.html</url>
+
     <dl>
       <dt>'$f$ @ $x$'
       <dd>is equivalent to '$f$[$x$]'.
@@ -269,6 +289,8 @@ class Prefix(BinaryOperator):
 
 class Right(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Right.html</url>
+
     <dl>
       <dt>'Right'
       <dd>is used with operator formatting constructs to specify a right-associative operator.
@@ -280,6 +302,8 @@ class Right(Builtin):
 
 class Row(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Row.html</url>
+
     <dl>
       <dt>'Row[{$expr$, ...}]'
       <dd>formats several expressions inside a 'RowBox'.
@@ -310,6 +334,8 @@ class Row(Builtin):
 
 class Style(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Style.html</url>
+
     <dl>
       <dt>'Style[$expr$, options]'
       <dd>displays $expr$ formatted using the specified option settings.
@@ -348,6 +374,8 @@ class Style(Builtin):
 
 class Subscript(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subscript.html</url>
+
     <dl>
       <dt>'Subscript[$a$, $i$]'
       <dd>displays as $a_i$.
@@ -372,6 +400,8 @@ class Subscript(Builtin):
 
 class Subsuperscript(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Subsuperscript.html</url>
+
     <dl>
       <dt>'Subsuperscript[$a$, $b$, $c$]'
       <dd>displays as $a_b^c$.
@@ -392,6 +422,8 @@ class Subsuperscript(Builtin):
 
 class Superscript(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Superscript.html</url>
+
     <dl>
       <dt>'Superscript[$x$, $y$]'
       <dd>displays as $x$^$y$.
