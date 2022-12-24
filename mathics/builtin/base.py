@@ -9,7 +9,6 @@ from typing import Any, Callable, Dict, Iterable, List, Optional, Union, cast
 
 import sympy
 
-from mathics.core.exceptions import MessageException
 from mathics.core.atoms import Integer, MachineReal, PrecisionReal, String
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_numeric_sympy_args
@@ -18,6 +17,7 @@ from mathics.core.convert.python import from_bool
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.definitions import Definition
 from mathics.core.element import BoxElementMixin
+from mathics.core.exceptions import MessageException
 from mathics.core.expression import Expression, SymbolDefault
 from mathics.core.list import ListExpression
 from mathics.core.number import PrecisionValueError, get_precision
@@ -659,7 +659,7 @@ def run_sympy(sympy_fn: Callable, *sympy_args) -> Any:
 
 
 class SympyFunction(SympyObject):
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         # Note: we omit a docstring here, so as not to confuse
         # function signature collector ``contribute``.
 
@@ -674,6 +674,9 @@ class SympyFunction(SympyObject):
             return from_sympy(run_sympy(sympy_fn, *sympy_args))
         except:
             return
+
+    # FIXME: remove after all apply->eval conversions have been done
+    apply = eval
 
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
