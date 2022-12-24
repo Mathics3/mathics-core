@@ -368,7 +368,6 @@ class D(SympyFunction):
 
 class Derivative(PostfixOperator, SympyFunction):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Derivative.html</url>
 

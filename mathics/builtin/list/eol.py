@@ -473,7 +473,8 @@ class Extract(Builtin):
 
 class First(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/First.html</url>
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/First.html</url>
 
     <dl>
       <dt>'First[$expr$]'
@@ -515,7 +516,8 @@ class First(Builtin):
 
 class FirstCase(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FirstCase.html</url>
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/FirstCase.html</url>
 
     <dl>
       <dt> FirstCase[{$e1$, $e2$, ...}, $pattern$]
@@ -547,7 +549,8 @@ class FirstCase(Builtin):
 
 class FirstPosition(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FirstPosition.html</url>
+    <url>:WMA link:
+         https://reference.wolfram.com/language/ref/FirstPosition.html</url>
 
     <dl>
       <dt>'FirstPosition[$expr$, $pattern$]'

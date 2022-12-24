@@ -1011,7 +1011,6 @@ class NumericQ(Builtin):
 
 class Precision(Builtin):
     """
-
     <url>
     :Precision:
     https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (<url>

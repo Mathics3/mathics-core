@@ -311,6 +311,7 @@ System`DirectoryName
 System`DirectoryQ
 System`DirectoryStack
 System`DiscreteLimit
+System`DiscretePlot
 System`DisjointQ
 System`Disk
 System`DiskBox
@@ -592,6 +593,7 @@ System`LinearModelFit
 System`LinearSolve
 System`List
 System`ListLinePlot
+System`ListLogPlot
 System`ListPlot
 System`ListQ
 System`Listable
@@ -601,6 +603,7 @@ System`Log
 System`Log10
 System`Log2
 System`LogGamma
+System`LogPlot
 System`LogisticSigmoid
 System`Longest
 System`Lookup

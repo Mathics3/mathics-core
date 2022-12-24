@@ -1089,7 +1089,6 @@ class Collect(_CoefficientHandler):
 
 class Denominator(Builtin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Denominator.html</url>
 
@@ -1579,7 +1578,6 @@ class FactorTermsList(Builtin):
 # FullSimplify
 class Simplify(Builtin):
     r"""
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Simplify.html</url>
 
@@ -1778,7 +1776,6 @@ class FullSimplify(Simplify):
 
 class MinimalPolynomial(Builtin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/MinimalPolynomial.html</url>
 
@@ -1870,7 +1867,6 @@ class Numerator(Builtin):
 
 class PolynomialQ(Builtin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/PolynomialQ.html</url>
 
@@ -1995,7 +1991,6 @@ class PowerExpand(Builtin):
 
 class Together(Builtin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/Together.html</url>
 

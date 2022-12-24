@@ -579,8 +579,9 @@ class ConditionalExpression(Builtin):
 
 class Conjugate(_MPMathFunction):
     """
-    <url>:Complex Conjugate:https://en.wikipedia.org/wiki/Complex_conjugate</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
+    <url>:Complex Conjugate:
+    https://en.wikipedia.org/wiki/Complex_conjugate</url> \
+    (<url>:WMA:https://reference.wolfram.com/language/ref/Conjugate.html</url>)
 
     <dl>
       <dt>'Conjugate[$z$]'
@@ -616,7 +617,8 @@ class Conjugate(_MPMathFunction):
 
 class DirectedInfinity(SympyFunction):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DirectedInfinity.html</url>
 
     <dl>
       <dt>'DirectedInfinity[$z$]'
@@ -710,7 +712,7 @@ class DirectedInfinity(SympyFunction):
 class I(Predefined):
     """
     <url>:Imaginary unit:https://en.wikipedia.org/wiki/Imaginary_unit</url> \
-    (<url>:WMA link:https://reference.wolfram.com/language/ref/I.html</url>)
+    (<url>:WMA:https://reference.wolfram.com/language/ref/I.html</url>)
 
     <dl>
       <dt>'I'
@@ -1211,7 +1213,8 @@ class Real_(Builtin):
 
 class RealNumberQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
+    ## Not found in WMA
+    ## <url>:WMA link:https://reference.wolfram.com/language/ref/RealNumberQ.html</url>
 
     <dl>
       <dt>'RealNumberQ[$expr$]'

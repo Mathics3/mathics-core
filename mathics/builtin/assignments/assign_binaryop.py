@@ -50,7 +50,8 @@ class AddTo(BinaryOperator):
 
 class Decrement(PostfixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Decrement.html</url>
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/Decrement.html</url>
 
     <dl>
       <dt>'Decrement[$x$]'
@@ -109,7 +110,8 @@ class DivideBy(BinaryOperator):
 
 class Increment(PostfixOperator):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Increment.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Increment.html</url>
 
     <dl>
       <dt>'Increment[$x$]'
