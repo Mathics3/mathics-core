@@ -462,15 +462,20 @@ class CharacterEncoding(Predefined):
 
     <dl>
       <dt>'$CharacterEncoding'
-      <dd>specifies the default raw character encoding to use for input and output when no encoding is explicitly specified. Initially this is set to '$SystemCharacterEncoding'.
+      <dd>specifies the default raw character encoding to use for input and \
+      output when no encoding is explicitly specified. \
+      Initially this is set to '$SystemCharacterEncoding'.
     </dl>
 
-    See the character encoding current is in effect and used in input and output functions functions like 'OpenRead[]':
+    See the character encoding current is in effect and used in input and \
+    output functions functions like 'OpenRead[]':
 
     >> $CharacterEncoding
      = ...
 
-    See also <url>:$SystemCharacterEncoding: /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
+    See also <url>
+    :$SystemCharacterEncoding:
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/string-manipulation/$systemcharacterencoding/</url>.
     """
 
     name = "$CharacterEncoding"

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Symbolic Handling
+Symbol Handling
 
 Symbolic data. Every symbol has a unique name, exists in a certain context \
 or namespace, and can have a variety of type of values and attributes.
@@ -769,38 +769,6 @@ class SymbolQ(Test):
 
     def test(self, expr):
         return isinstance(expr, Symbol)
-
-
-# In Mathematica 5, this appears under "Types of Values".
-class UpValues(Builtin):
-    """
-    <url>:WMA: https://reference.wolfram.com/language/ref/UpValues.html</url>
-    <dl>
-      <dt>'UpValues[$symbol$]'
-      <dd>gives the list of transformation rules corresponding to upvalues \
-          define with $symbol$.
-    </dl>
-
-    >> a + b ^= 2
-     = 2
-    >> UpValues[a]
-     = {HoldPattern[a + b] :> 2}
-    >> UpValues[b]
-     = {HoldPattern[a + b] :> 2}
-
-    You can assign values to 'UpValues':
-    >> UpValues[pi] := {Sin[pi] :> 0}
-    >> Sin[pi]
-     = 0
-    """
-
-    attributes = A_HOLD_ALL | A_PROTECTED
-    summary_text = "give a list of transformation rules corresponding to upvalues defined for a symbol"
-
-    def eval(self, symbol, evaluation):
-        "UpValues[symbol_]"
-
-        return get_symbol_values(symbol, "UpValues", "up", evaluation)
 
 
 class ValueQ(Builtin):

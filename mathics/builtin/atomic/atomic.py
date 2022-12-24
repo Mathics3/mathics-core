@@ -3,11 +3,7 @@
 Atomic Primitives
 """
 
-from mathics.builtin.base import (
-    Builtin,
-    Test,
-)
-
+from mathics.builtin.base import Builtin, Test
 from mathics.core.atoms import Atom
 
 
@@ -17,7 +13,8 @@ class AtomQ(Test):
 
     <dl>
       <dt>'AtomQ[$expr$]'
-      <dd>returns 'True' if $expr$ is an expression which cannot be divided into subexpressions, or 'False' otherwise.
+      <dd>returns 'True' if $expr$ is an expression which cannot be divided into \
+      subexpressions, or 'False' otherwise.
 
       An expression that cannot be divided into subparts is called called an "atom".
     </dl>

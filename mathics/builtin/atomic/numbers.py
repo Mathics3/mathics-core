@@ -1,26 +1,30 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-# Note: docstring is not flowed in documentation. Line breaks in the docstring will appear in the
-# printed output, so be careful not to add them mid-sentence.
+# Note: docstring is not flowed in documentation. To avoid line breaks
+# in docstrings apparing in the printed output, use \ before the line
+# break.
 
 """
 Representation of Numbers
 
-Integers and Real numbers with any number of digits, automatically tagging numerical preceision when appropriate.
+Integers and Real numbers with any number of digits, automatically tagging \
+numerical preceision when appropriate.
 
-Precision is not "guarded" through the evaluation process. Only integer precision is supported.
+Precision is not "guarded" through the evaluation process. Only integer \
+precision is supported.
+
 However, things like 'N[Pi, 100]' should work as expected.
 """
+
+from functools import lru_cache
 
 import mpmath
 import sympy
 
-from functools import lru_cache
-
 from mathics.builtin.base import Builtin, Predefined, Test
-
 from mathics.core.atoms import (
+    Complex,
     Integer,
     Integer0,
     Integer10,
@@ -29,21 +33,12 @@ from mathics.core.atoms import (
     Number,
     Rational,
     Real,
-    Complex,
 )
-from mathics.core.attributes import (
-    A_LISTABLE,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.python import from_bool, from_python
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import (
-    dps,
-    machine_precision,
-    machine_epsilon,
-)
+from mathics.core.number import dps, machine_epsilon, machine_precision
 from mathics.core.symbols import Symbol, SymbolDivide
 from mathics.core.systemsymbols import (
     SymbolIndeterminate,
@@ -54,6 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolRealDigits,
     SymbolRound,
 )
+from mathics.eval.nevaluator import eval_N
 
 SymbolIntegerDigits = Symbol("IntegerDigits")
 SymbolIntegerExponent = Symbol("IntegerExponent")
@@ -149,11 +145,17 @@ def convert_float_base(x, base, precision=10):
 
 class Accuracy(Builtin):
     """
-    <url>:Accuracy: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Accuracy: https://reference.wolfram.com/language/ref/Accuracy.html</url>)
+    <url>
+    :Accuracy:
+    https://en.wikipedia.org/wiki/Accuracy_and_precision</url>\
+    (WMA <url>
+    :Accuracy:
+    https://reference.wolfram.com/language/ref/Accuracy.html</url>)
 
     <dl>
       <dt>'Accuracy[$x$]'
-      <dd>examines the number of significant digits of $expr$ after the decimal point in the number x.
+      <dd>examines the number of significant digits of $expr$ after the \
+      decimal point in the number x.
     </dl>
     <i>This is rather a proof-of-concept than a full implementation.</i>
 
@@ -162,7 +164,8 @@ class Accuracy(Builtin):
     >> Accuracy[3.1416`2]
      = 1.50298
 
-    Notice that the value is not exactly equal to the obtained in WMA: This is due to the different way in which 'Precision' is handled in SymPy.
+    Notice that the value is not exactly equal to the obtained in WMA: \
+    This is due to the different way in which 'Precision' is handled in SymPy.
 
     Accuracy for exact atoms is $Infinity$:
     >> Accuracy[1]
@@ -170,7 +173,8 @@ class Accuracy(Builtin):
     >> Accuracy[A]
      = Infinity
 
-    For Complex numbers, the accuracy is the smaller of the accuracies of its real and imaginary parts:
+    For Complex numbers, the accuracy is the smaller of the accuracies of its \
+    real and imaginary parts:
     >> Accuracy[1.00`2 + 2.00`2 I]
      = 1.
 
@@ -190,7 +194,9 @@ class Accuracy(Builtin):
     >> Accuracy[{{1, 1.`},{1.``5, 1.``10}}]
      = 5.
 
-    See also <url>:'Precision': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
+    See also <url>
+    :'Precision':
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/precision/</url>.
     """
 
     summary_text = "find the accuracy of a number"
@@ -228,7 +234,9 @@ class Accuracy(Builtin):
 
 class ExactNumberQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ExactNumberQ.html</url>
 
     <dl>
       <dt>'ExactNumberQ[$expr$]'
@@ -257,7 +265,8 @@ class ExactNumberQ(Test):
 
 class IntegerExponent(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerExponent.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/IntegerExponent.html</url>
 
     <dl>
       <dt>'IntegerExponent[$n$, $b$]'
@@ -329,7 +338,8 @@ class IntegerExponent(Builtin):
 
 class IntegerLength(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IntegerLength.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/IntegerLength.html</url>
 
     <dl>
       <dt>'IntegerLength[$x$]'
@@ -414,7 +424,8 @@ class IntegerLength(Builtin):
 
 class InexactNumberQ(Test):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/InexactNumberQ.html</url>
 
     <dl>
       <dt>'InexactNumberQ[$expr$]'
@@ -490,11 +501,14 @@ class MachineNumberQ(Test):
 
 class RealDigits(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RealDigits.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/RealDigits.html</url>
 
     <dl>
       <dt>'RealDigits[$n$]'
-      <dd>returns the decimal representation of the real number $n$ as list of digits, together with the number of digits that are to the left of the decimal point.
+      <dd>returns the decimal representation of the real number $n$ as list \
+      of digits, together with the number of digits that are to the left of \
+      the decimal point.
 
       <dt>'RealDigits[$n$, $b$]'
       <dd>returns a list of base_$b$ representation of the real number $n$.
@@ -606,7 +620,8 @@ class RealDigits(Builtin):
     def apply(self, n, evaluation):
         "%(name)s[n_]"
 
-        # Handling the testcases that throw the error message and return the ouput that doesn't include `base` argument
+        # Handling the testcases that throw the error message and return the
+        # output that doesn't include `base` argument
         if isinstance(n, Symbol) and n.name.startswith("System`"):
             return evaluation.message("RealDigits", "ndig", n)
 
@@ -755,7 +770,8 @@ class MaxPrecision(Predefined):
 
     <dl>
       <dt>'$MaxPrecision'
-      <dd>represents the maximum number of digits of precision permitted in abitrary-precision numbers.
+      <dd>represents the maximum number of digits of precision permitted \
+          in abitrary-precision numbers.
     </dl>
 
     >> $MaxPrecision
@@ -807,12 +823,13 @@ class MaxPrecision(Predefined):
 
 class MachineEpsilon_(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/$MachineEpsilon.html</url>
 
     <dl>
       <dt>'$MachineEpsilon'
-      <dd>is the distance between '1.0' and the next
-            nearest representable machine-precision number.
+      <dd>is the distance between '1.0' and the next \
+          nearest representable machine-precision number.
     </dl>
 
     >> $MachineEpsilon
@@ -886,11 +903,13 @@ class MachinePrecision(Predefined):
 
 class MinPrecision(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MinPrecision.html</url>
+    <url>
+    :WMA link:https://reference.wolfram.com/language/ref/$MinPrecision.html</url>
 
     <dl>
       <dt>'$MinPrecision'
-      <dd>represents the minimum number of digits of precision permitted in abitrary-precision numbers.
+      <dd>represents the minimum number of digits of precision permitted in \
+          abitrary-precision numbers.
     </dl>
 
     >> $MinPrecision
@@ -941,7 +960,8 @@ class MinPrecision(Builtin):
 
 class NumericQ(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/NumericQ.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/NumericQ.html</url>
 
     <dl>
       <dt>'NumericQ[$expr$]'
@@ -992,7 +1012,11 @@ class NumericQ(Builtin):
 class Precision(Builtin):
     """
 
-    <url>:Precision: https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (WMA <url>:Precision: https://reference.wolfram.com/language/ref/Precision.html</url>)
+    <url>
+    :Precision:
+    https://en.wikipedia.org/wiki/Accuracy_and_precision</url> (<url>
+    :WMA:
+    https://reference.wolfram.com/language/ref/Precision.html</url>)
 
     <dl>
       <dt>'Precision[$expr$]'
@@ -1026,7 +1050,9 @@ class Precision(Builtin):
      = 5.
 
 
-    See also <url>:'Accuracy': /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
+    See also <url>
+    :'Accuracy':
+    /doc/reference-of-built-in-symbols/atomic-elements-of-expressions/representation-of-numbers/accuracy/</url>.
     """
 
     rules = {
