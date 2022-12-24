@@ -5,7 +5,8 @@ Constructing Vectors
 
 Functions for constructing lists of various sizes and structure.
 
-See also Constructing Lists.
+See also <url>:Constructing Lists:
+    /doc/reference-of-built-in-symbols/list-functions/constructing-lists/</url>.
 """
 
 from mathics.builtin.base import Builtin

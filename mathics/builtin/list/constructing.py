@@ -5,30 +5,23 @@ Constructing Lists
 
 Functions for constructing lists of various sizes and structure.
 
-See also Constructing Vectors.
+See also <url>:Constructing Vectors:
+    /doc/reference-of-built-in-symbols/operations-on-vectors/constructing-vectors/</url>.
 """
 
 from itertools import permutations
 
-
 from mathics.builtin.base import Builtin, Pattern
-from mathics.builtin.lists import (
-    _IterationFunction,
-    get_tuples,
-)
+from mathics.builtin.lists import _IterationFunction, get_tuples
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
-from mathics.core.expression import (
-    Expression,
-    structure,
-)
+from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
-
-SymbolNormal = Symbol("Normal")
+from mathics.core.systemsymbols import SymbolNormal
 
 
 class Array(Builtin):
@@ -43,10 +36,12 @@ class Array(Builtin):
       <dd>returns the $n$-element list '{$f$[$a$], ..., $f$[$a$ + $n$]}'.
 
       <dt>'Array[$f$, {$n$, $m$}, {$a$, $b$}]'
-      <dd>returns an $n$-by-$m$ matrix created by applying $f$ to indices ranging from '($a$, $b$)' to '($a$ + $n$, $b$ + $m$)'.
+      <dd>returns an $n$-by-$m$ matrix created by applying $f$ to indices ranging \
+          from '($a$, $b$)' to '($a$ + $n$, $b$ + $m$)'.
 
       <dt>'Array[$f$, $dims$, $origins$, $h$]'
-      <dd>returns an expression with the specified dimensions and index origins, with head $h$ (instead of 'List').
+      <dd>returns an expression with the specified dimensions and index origins, \
+          with head $h$ (instead of 'List').
     </dl>
 
     >> Array[f, 4]
@@ -77,7 +72,7 @@ class Array(Builtin):
 
     summary_text = "form an array by applying a function to successive indices"
 
-    def apply(self, f, dimsexpr, origins, head, evaluation):
+    def eval(self, f, dimsexpr, origins, head, evaluation):
         "Array[f_, dimsexpr_, origins_:1, head_:List]"
 
         if dimsexpr.has_form("List", None):
@@ -122,7 +117,8 @@ class Array(Builtin):
 
 class ConstantArray(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ConstantArray.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ConstantArray.html</url>
 
     <dl>
       <dt>'ConstantArray[$expr$, $n$]'
@@ -144,17 +140,19 @@ class ConstantArray(Builtin):
 
 class Normal(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Normal.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Normal.html</url>
 
     <dl>
       <dt>'Normal[expr_]'
-      <dd> Brings especial expressions to a normal expression from different especial forms.
+      <dd> Brings special expressions to a normal expression from different \
+          special forms.
     </dl>
     """
 
     summary_text = "convert objects to normal expressions"
 
-    def apply_general(self, expr, evaluation):
+    def eval_general(self, expr, evaluation):
         "Normal[expr_]"
         if isinstance(expr, Atom):
             return
@@ -193,7 +191,7 @@ class Range(Builtin):
 
     summary_text = "form a list from a range of numbers or other objects"
 
-    def apply(self, imin, imax, di, evaluation):
+    def eval(self, imin, imax, di, evaluation):
         "Range[imin_?RealNumberQ, imax_?RealNumberQ, di_?RealNumberQ]"
 
         if (
@@ -255,17 +253,17 @@ class Permutations(Builtin):
 
     summary_text = "form permutations of a list"
 
-    def apply_argt(self, evaluation):
+    def eval_argt(self, evaluation):
         "Permutations[]"
         evaluation.message(self.get_name(), "argt")
 
-    def apply(self, li, evaluation):
+    def eval(self, li, evaluation):
         "Permutations[li_List]"
         return ListExpression(
             *[ListExpression(*p) for p in permutations(li.elements, len(li.elements))],
         )
 
-    def apply_n(self, li, n, evaluation):
+    def eval_n(self, li, n, evaluation):
         "Permutations[li_List, n_]"
 
         rs = None
@@ -302,11 +300,12 @@ class Reap(Builtin):
 
     <dl>
       <dt>'Reap[$expr$]'
-      <dd>gives the result of evaluating $expr$, together with all values sown during this evaluation. Values sown with different tags are given in different lists.
+      <dd>gives the result of evaluating $expr$, together with all values sown \
+          during this evaluation. Values sown with different tags are given in different lists.
 
       <dt>'Reap[$expr$, $pattern$]'
       <dd>only yields values sown with a tag matching $pattern$.
-        'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
+         'Reap[$expr$]' is equivalent to 'Reap[$expr$, _]'.
 
       <dt>'Reap[$expr$, {$pattern1$, $pattern2$, ...}]'
       <dd>uses multiple patterns.
@@ -346,7 +345,7 @@ class Reap(Builtin):
         "Reap[expr_]": "Reap[expr, _]",
     }
 
-    def apply(self, expr, patterns, f, evaluation):
+    def eval(self, expr, patterns, f, evaluation):
         "Reap[expr_, {patterns___}, f_]"
 
         patterns = patterns.get_sequence()
@@ -403,7 +402,7 @@ class Sow(Builtin):
         "Sow[e_, tag_]": "Sow[e, {tag}]",
     }
 
-    def apply(self, e, tags, evaluation):
+    def eval(self, e, tags, evaluation):
         "Sow[e_, {tags___}]"
 
         tags = tags.get_sequence()
@@ -501,7 +500,7 @@ class Tuples(Builtin):
 
     summary_text = "form n-tuples from a list"
 
-    def apply_n(self, expr, n, evaluation):
+    def eval_n(self, expr, n, evaluation):
         "Tuples[expr_, n_Integer]"
 
         if isinstance(expr, Atom):
@@ -526,7 +525,7 @@ class Tuples(Builtin):
             *(Expression(expr.head, *elements) for elements in iterate(n))
         )
 
-    def apply_lists(self, exprs, evaluation):
+    def eval_lists(self, exprs, evaluation):
         "Tuples[{exprs___}]"
 
         exprs = exprs.get_sequence()
