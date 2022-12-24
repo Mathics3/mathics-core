@@ -310,6 +310,8 @@ def number_form(expr, n, f, evaluation, options):
 
 class BoxForms_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$BoxForms.html</url>
+
     <dl>
       <dt>
       <dd>$BoxForms is the list of box formats.
@@ -327,6 +329,8 @@ class BoxForms_(Predefined):
 
 class MakeBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>
+
     <dl>
       <dt>'MakeBoxes[$expr$]'
       <dd>is a low-level formatting primitive that converts $expr$
@@ -547,6 +551,8 @@ class MakeBoxes(Builtin):
 
 class ToBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToBoxes.html</url>
+
     <dl>
       <dt>'ToBoxes[$expr$]'
       <dd>evaluates $expr$ and converts the result to box form.

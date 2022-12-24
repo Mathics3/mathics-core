@@ -209,6 +209,8 @@ class _ColorObject(_GraphicsDirective, ImmutableValueMixin):
 
 class CMYKColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CMYKColor.html</url>
+
     <dl>
       <dt>'CMYKColor[$c$, $m$, $y$, $k$]'
       <dd>represents a color with the specified cyan, magenta,
@@ -226,6 +228,8 @@ class CMYKColor(_ColorObject):
 
 class ColorDistance(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorDistance.html</url>
+
     <dl>
       <dt>'ColorDistance[$c1$, $c2$]'
       <dd>returns a measure of color distance between the colors $c1$ and $c2$.
@@ -433,6 +437,8 @@ class ColorError(BoxExpressionError):
 
 class GrayLevel(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/GrayLevel.html</url>
+
     <dl>
       <dt>'GrayLevel[$g$]'
       <dd>represents a shade of gray specified by $g$, ranging from
@@ -449,6 +455,8 @@ class GrayLevel(_ColorObject):
 
 class Hue(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Hue.html</url>
+
     <dl>
       <dt>'Hue[$h$, $s$, $l$, $a$]'
       <dd>represents the color with hue $h$, saturation $s$, lightness $l$ and opacity $a$.
@@ -507,6 +515,8 @@ class Hue(_ColorObject):
 
 class LABColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LABColor.html</url>
+
     <dl>
       <dt>'LABColor[$l$, $a$, $b$]'
       <dd>represents a color with the specified lightness, red/green and yellow/blue
@@ -521,6 +531,8 @@ class LABColor(_ColorObject):
 
 class LCHColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LCHColor.html</url>
+
     <dl>
       <dt>'LCHColor[$l$, $c$, $h$]'
       <dd>represents a color with the specified lightness, chroma and hue
@@ -535,6 +547,8 @@ class LCHColor(_ColorObject):
 
 class LUVColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LUVColor.html</url>
+
     <dl>
       <dt>'LCHColor[$l$, $u$, $v$]'
       <dd>represents a color with the specified components in the CIE 1976 L*u*v* (CIELUV) color space.
@@ -548,6 +562,8 @@ class LUVColor(_ColorObject):
 
 class Opacity(_GraphicsDirective):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Opacity.html</url>
+
     <dl>
       <dt>'Opacity[$level$]'
       <dd> is a graphics directive that sets the opacity to $level$.
@@ -582,6 +598,8 @@ class Opacity(_GraphicsDirective):
 
 class RGBColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RGBColor.html</url>
+
     <dl>
       <dt>'RGBColor[$r$, $g$, $b$]'
       <dd>represents a color with the specified red, green and blue
@@ -608,6 +626,8 @@ class RGBColor(_ColorObject):
 
 class XYZColor(_ColorObject):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/XYZColor.html</url>
+
     <dl>
       <dt>'XYZColor[$x$, $y$, $z$]'
       <dd>represents a color with the specified components in the CIE 1931 XYZ color space.

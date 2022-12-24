@@ -1,20 +1,22 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.builtin.base import Predefined, Builtin
+from mathics.builtin.base import Builtin, Predefined
 from mathics.core.atoms import Integer
-from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
-
 from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
+from mathics.core.evaluation import MAX_RECURSION_DEPTH, set_python_recursion_limit
 
 
 class RecursionLimit(Predefined):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$RecursionLimit.html</url>
 
     <dl>
       <dt>'$RecursionLimit'
-      <dd>specifies the maximum allowable recursion depth after which a calculation is terminated.
+      <dd>specifies the maximum allowable recursion depth after which a \
+          calculation is terminated.
     </dl>
 
     Calculations terminated by '$RecursionLimit' return '$Aborted':
@@ -352,16 +354,18 @@ class Quit(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
 
     <dl>
-    <dt>'Quit'[]
+      <dt>'Quit'[]
       <dd> Terminates the Mathics session.
-    <dt>'Quit[$n$]'
+
+      <dt>'Quit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
 
     <dl>
-    <dt>'Exit'[]
+      <dt>'Exit'[]
       <dd> Terminates the Mathics session.
-    <dt>'Exit[$n$]'
+
+      <dt>'Exit[$n$]'
       <dd> Terminates the mathics session with exit code $n$.
     </dl>
 

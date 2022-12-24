@@ -93,8 +93,6 @@ class _ImageTest(Test):
 
 class _SkimageBuiltin(_ImageBuiltin):
     """
-    ## <url>:native:</url>
-
     Image Builtins that require scikit-image.
     """
 
