@@ -1312,7 +1312,6 @@ class ExpandAll(_Expand):
 
 class ExpandDenominator(_Expand):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/ExpandDenominator.html</url>
 

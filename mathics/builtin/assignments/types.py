@@ -138,7 +138,6 @@ class NValues(Builtin):
 
 class SubValues(Builtin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/SubValues.html</url>
 

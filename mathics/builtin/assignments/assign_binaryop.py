@@ -150,7 +150,6 @@ class Increment(PostfixOperator):
 
 class PreIncrement(PrefixOperator):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/PreIncrement.html</url>
 
