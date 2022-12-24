@@ -1,5 +1,4 @@
 from mathics.builtin.arithmetic import _MPMathFunction
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,

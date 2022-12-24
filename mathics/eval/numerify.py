@@ -13,10 +13,9 @@ and in iterators.
 
 from mathics.core.atoms import Integer, Number
 from mathics.core.element import BaseElement, EvalMixin
-from mathics.core.expression import Expression
 from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.number import dps
-
 from mathics.eval.nevaluator import eval_N
 
 

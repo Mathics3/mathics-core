@@ -8,27 +8,24 @@ MathML formatting is usually initiated in Mathics via MathMLForm[].
 import base64
 import html
 
-
-from mathics.builtin.box.layout import (
-    GridBox,
-    RowBox,
-    SubscriptBox,
-    SuperscriptBox,
-    SubsuperscriptBox,
-    StyleBox,
-    SqrtBox,
-    FractionBox,
-)
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
-
-
+from mathics.builtin.box.layout import (
+    FractionBox,
+    GridBox,
+    RowBox,
+    SqrtBox,
+    StyleBox,
+    SubscriptBox,
+    SubsuperscriptBox,
+    SuperscriptBox,
+)
 from mathics.core.atoms import String
 from mathics.core.element import BoxElementMixin
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.formatter import (
-    lookup_method as lookup_conversion_method,
     add_conversion_fn,
+    lookup_method as lookup_conversion_method,
 )
 from mathics.core.parser import is_symbol_name
 from mathics.core.symbols import SymbolTrue

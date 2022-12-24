@@ -11,10 +11,9 @@ Procedural functions are integrated into Mathics symbolic programming environmen
 """
 
 
-from mathics.builtin.base import Builtin, BinaryOperator
+from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.patterns import match
-
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_REST,
@@ -29,12 +28,7 @@ from mathics.core.interrupt import (
     ReturnInterrupt,
     WLThrowInterrupt,
 )
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolNull,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatchQ
 
 SymbolWhich = Symbol("Which")

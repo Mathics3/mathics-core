@@ -8,29 +8,16 @@ import hashlib
 import re
 import zlib
 
-
-from mathics.algorithm.parts import python_seq, convert_seq
-
-
+from mathics.algorithm.parts import convert_seq, python_seq
 from mathics.builtin.atomic.strings import (
-    _StringFind,
     _evaluate_match,
     _parallel_match,
+    _StringFind,
     mathics_split,
     to_regex,
 )
-
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-)
-
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    Integer,
-    Integer1,
-    String,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.atoms import ByteArrayAtom, Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -41,19 +28,13 @@ from mathics.core.attributes import (
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
     SymbolOutputForm,
 )
-
 from mathics.eval.makeboxes import format_element
 
 SymbolStringInsert = Symbol("StringInsert")

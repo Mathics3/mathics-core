@@ -5,7 +5,6 @@ Mathics has definitions for the most common color names which can be used in a g
 """
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.symbols import strip_context
 
 

@@ -4,7 +4,6 @@ Lower-level formatter of Mathics objects as SVG strings.
 """
 
 from mathics.builtin.box.graphics import (
-    _ArcBox,
     ArrowBox,
     BezierCurveBox,
     FilledCurveBox,
@@ -14,9 +13,9 @@ from mathics.builtin.box.graphics import (
     PointBox,
     PolygonBox,
     RectangleBox,
+    _ArcBox,
     _RoundBox,
 )
-
 from mathics.builtin.drawing.graphics3d import Graphics3DElements
 from mathics.builtin.graphics import (
     DEFAULT_POINT_FACTOR,
@@ -24,8 +23,7 @@ from mathics.builtin.graphics import (
     PointSize,
     _svg_bezier,
 )
-
-from mathics.core.formatter import lookup_method, add_conversion_fn
+from mathics.core.formatter import add_conversion_fn, lookup_method
 
 
 class _SVGTransform:

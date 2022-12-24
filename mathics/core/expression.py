@@ -1,13 +1,13 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import sympy
 import math
 import time
-
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
-from itertools import chain
 from bisect import bisect_left
+from itertools import chain
+from typing import Any, Callable, Iterable, List, Optional, Tuple, Type
+
+import sympy
 
 from mathics.core.atoms import Integer, String
 
@@ -25,8 +25,8 @@ from mathics.core.attributes import (
     A_SEQUENCE_HOLD,
     attribute_string_to_number,
 )
-from mathics.core.convert.sympy import sympy_symbol_prefix, SympyExpression
 from mathics.core.convert.python import from_python
+from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
 from mathics.core.element import ElementsProperties, EvalMixin, ensure_context
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt

@@ -10,21 +10,14 @@ See also Constructing Vectors.
 
 from itertools import permutations
 
-
 from mathics.builtin.base import Builtin, Pattern
-from mathics.builtin.lists import (
-    _IterationFunction,
-    get_tuples,
-)
+from mathics.builtin.lists import _IterationFunction, get_tuples
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
-from mathics.core.expression import (
-    Expression,
-    structure,
-)
+from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 

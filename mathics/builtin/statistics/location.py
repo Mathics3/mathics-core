@@ -4,7 +4,7 @@ Location Statistics
 
 from mathics.algorithm.introselect import introselect
 from mathics.builtin.base import Builtin
-from mathics.builtin.lists import _Rectangular, _NotRectangularException
+from mathics.builtin.lists import _NotRectangularException, _Rectangular
 from mathics.core.atoms import Integer2
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolPlus

@@ -8,13 +8,8 @@ The routines here assist in boxing at the bottom of the hierarchy. At the other 
 
 from mathics.builtin.base import BoxExpression, Builtin
 from mathics.builtin.options import options_to_rules
-
 from mathics.core.atoms import Atom, String
-from mathics.core.attributes import (
-    A_HOLD_ALL_COMPLETE,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.element import BoxElementMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
@@ -26,8 +21,8 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolSqrtBox,
     SymbolStandardForm,
-    SymbolSubsuperscriptBox,
     SymbolSubscriptBox,
+    SymbolSubsuperscriptBox,
     SymbolSuperscriptBox,
 )
 

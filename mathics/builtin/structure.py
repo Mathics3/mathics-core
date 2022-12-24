@@ -5,31 +5,15 @@ Structural Operations on Expressions
 Structural transformations on lists, and general symbolic expressions.
 """
 
-from mathics.builtin.base import (
-    Builtin,
-    Predefined,
-    BinaryOperator,
-)
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Rational,
-)
+import platform
+
+from mathics.builtin.base import BinaryOperator, Builtin, Predefined
+from mathics.builtin.lists import walk_levels
+from mathics.core.atoms import Integer, Integer0, Integer1, Rational
 from mathics.core.expression import Expression
 from mathics.core.rules import Pattern
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    SymbolFalse,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolDirectedInfinity, SymbolMap
-
-from mathics.builtin.lists import walk_levels
-
-import platform
 
 if platform.python_implementation() == "PyPy":
     bytecount_support = False

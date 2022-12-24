@@ -5,6 +5,7 @@ Unit tests from mathics.builtin.atomic.strings.
 In particular, Alphabet
 """
 from test.helper import check_evaluation
+
 import pytest
 
 

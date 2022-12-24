@@ -13,21 +13,11 @@ https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 
 from mathics.builtin.base import Builtin, Test, get_option
 from mathics.builtin.drawing.image import Image
-
 from mathics.core.atoms import String
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import (
-    Expression,
-    SymbolDefault,
-    get_default_value,
-)
+from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-    ensure_context,
-    strip_context,
-)
+from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 

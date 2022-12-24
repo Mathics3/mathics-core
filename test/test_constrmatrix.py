@@ -1,5 +1,6 @@
-from .helper import session
 import pytest
+
+from .helper import session
 
 
 @pytest.mark.parametrize(

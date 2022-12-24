@@ -6,16 +6,10 @@ There are many different way to specify color; we support all of the color forma
 
 from math import atan2, cos, exp, pi, radians, sin, sqrt
 
-
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_internals import convert_color
 from mathics.builtin.drawing.graphics_internals import _GraphicsDirective, get_class
-from mathics.core.atoms import (
-    Integer,
-    Real,
-    MachineReal,
-    String,
-)
+from mathics.core.atoms import Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin

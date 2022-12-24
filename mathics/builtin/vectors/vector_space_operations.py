@@ -8,9 +8,7 @@ from sympy.physics.quantum import TensorProduct
 
 from mathics.builtin.base import Builtin, SympyFunction
 from mathics.core.atoms import Complex, Integer, Integer0, Integer1, Real
-from mathics.core.attributes import (
-    # A_LISTABLE,
-    # A_NUMERIC_FUNCTION,
+from mathics.core.attributes import (  # A_LISTABLE,; A_NUMERIC_FUNCTION,
     A_PROTECTED,
     A_READ_PROTECTED,
 )

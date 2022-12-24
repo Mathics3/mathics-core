@@ -8,11 +8,9 @@ A recurrence relation is an equation that recursively defines a sequence or mult
 
 from sympy.functions.combinatorial.numbers import stirling
 
-
+from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer
-from mathics.builtin.arithmetic import _MPMathFunction
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,

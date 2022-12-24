@@ -3,31 +3,22 @@
 from typing import Optional
 
 from mathics.builtin.scoping import dynamic_scoping
-
-
 from mathics.core.atoms import (
-    String,
     Integer,
     Integer0,
-    IntegerM1,
     Integer1,
     Integer2,
     Integer3,
     Integer10,
+    IntegerM1,
     Number,
     Real,
+    String,
 )
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    BaseElement,
-    SymbolPlus,
-    SymbolTimes,
-    SymbolTrue,
-)
-
+from mathics.core.symbols import BaseElement, SymbolPlus, SymbolTimes, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAutomatic,
     SymbolD,
@@ -37,6 +28,7 @@ from mathics.core.systemsymbols import (
     SymbolLog,
     SymbolNone,
 )
+from mathics.eval.nevaluator import eval_N
 
 
 def find_minimum_newton1d(f, x0, x, opts, evaluation) -> (Number, bool):

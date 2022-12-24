@@ -14,7 +14,6 @@ sort_order = "mathics.builtin.mathematical-optimization"
 import sympy
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.python import from_python

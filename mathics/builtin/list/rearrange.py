@@ -6,23 +6,14 @@ These functions reorder and rearrange lists.
 """
 
 import functools
-
 from collections import defaultdict
 from itertools import chain
 from typing import Callable
 
-
-from mathics.builtin.base import (
-    Builtin,
-    MessageException,
-)
-
+from mathics.builtin.base import Builtin, MessageException
 from mathics.core.atoms import Integer
 from mathics.core.attributes import A_FLAT, A_ONE_IDENTITY, A_PROTECTED
-from mathics.core.expression import (
-    Expression,
-    structure,
-)
+from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolMap

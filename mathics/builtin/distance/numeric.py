@@ -5,7 +5,6 @@ Numerial Data
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer1, Integer2
 from mathics.core.expression import Expression
-
 from mathics.core.symbols import (
     SymbolAbs,
     SymbolDivide,

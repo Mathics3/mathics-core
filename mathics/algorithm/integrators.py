@@ -2,18 +2,11 @@
 
 import numpy as np
 
-from mathics.core.number import machine_epsilon
+from mathics.core.atoms import Integer, Integer0, Number
 from mathics.core.expression import Expression
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Number,
-)
-
 from mathics.core.list import ListExpression
+from mathics.core.number import machine_epsilon
 from mathics.core.symbols import Symbol, SymbolPlus, SymbolSequence, SymbolTimes
-
-
 from mathics.core.systemsymbols import (
     SymbolBlank,
     SymbolComplex,

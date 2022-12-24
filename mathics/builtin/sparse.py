@@ -6,10 +6,7 @@ SparseArray Functions
 
 
 from mathics.algorithm.parts import walk_parts
-
 from mathics.builtin.base import Builtin
-
-
 from mathics.core.atoms import Integer, Integer0
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression

@@ -1,8 +1,10 @@
 # -*- coding: utf-8 -*-
 
 
-from mathics.core.evaluation import Evaluation
-from mathics.core.expression import Expression
+import sys
+
+import mathics.core.atoms as atoms
+import mathics.core.systemsymbols as system_symbols
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -15,13 +17,11 @@ from mathics.core.atoms import (
     Real,
     String,
 )
+from mathics.core.definitions import Definitions
+from mathics.core.evaluation import Evaluation
+from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
 from mathics.core.systemsymbols import SymbolSameQ
-
-from mathics.core.definitions import Definitions
-import sys
-import mathics.core.systemsymbols as system_symbols
-import mathics.core.atoms as atoms
 
 definitions = Definitions(add_builtin=True)
 

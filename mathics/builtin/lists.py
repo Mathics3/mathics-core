@@ -6,10 +6,9 @@ Functions here will eventually get moved to more suitable subsections.
 """
 
 import heapq
-import sympy
-
 from itertools import chain
 
+import sympy
 
 from mathics.algorithm.clusters import (
     AutomaticMergeCriterion,
@@ -20,11 +19,7 @@ from mathics.algorithm.clusters import (
     kmeans,
     optimize,
 )
-from mathics.algorithm.parts import (
-    python_levelspec,
-    walk_levels,
-)
-
+from mathics.algorithm.parts import python_levelspec, walk_levels
 from mathics.builtin.base import (
     Builtin,
     CountableInteger,
@@ -33,12 +28,10 @@ from mathics.builtin.base import (
     SympyFunction,
     Test,
 )
-
 from mathics.builtin.box.layout import RowBox
 from mathics.builtin.numbers.algebra import cancel
 from mathics.builtin.options import options_to_rules
 from mathics.builtin.scoping import dynamic_scoping
-
 from mathics.core.atoms import (
     Integer,
     Integer0,
@@ -50,13 +43,7 @@ from mathics.core.atoms import (
     machine_precision,
     min_prec,
 )
-
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_LOCKED,
-    A_PROTECTED,
-    A_READ_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_LOCKED, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.exceptions import (
@@ -67,7 +54,6 @@ from mathics.core.exceptions import (
     PartRangeError,
 )
 from mathics.core.expression import Expression, structure
-
 from mathics.core.interrupt import BreakInterrupt, ContinueInterrupt, ReturnInterrupt
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
@@ -78,7 +64,6 @@ from mathics.core.symbols import (
     SymbolTrue,
     strip_context,
 )
-
 from mathics.core.systemsymbols import (
     SymbolAlternatives,
     SymbolFailed,
@@ -91,9 +76,6 @@ from mathics.core.systemsymbols import (
     SymbolSequence,
     SymbolSubsetQ,
 )
-
-from mathics.eval.nevaluator import eval_N
-
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
@@ -815,7 +797,7 @@ class LeafCount(Builtin):
     def eval(self, expr, evaluation):
         "LeafCount[expr___]"
 
-        from mathics.core.atoms import Rational, Complex
+        from mathics.core.atoms import Complex, Rational
 
         elements = []
 

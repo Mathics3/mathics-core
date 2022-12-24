@@ -7,29 +7,14 @@ Message related functions.
 import typing
 from typing import Any
 
-
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-)
-
+from mathics.builtin.base import BinaryOperator, Builtin
 from mathics.core.atoms import String
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_HOLD_FIRST,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_HOLD_FIRST, A_PROTECTED
 from mathics.core.evaluation import Message as EvaluationMessage
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolNull,
-)
-from mathics.core.systemsymbols import (
-    SymbolMessageName,
-    SymbolQuiet,
-)
+from mathics.core.symbols import Symbol, SymbolNull
+from mathics.core.systemsymbols import SymbolMessageName, SymbolQuiet
 
 
 class Message(Builtin):

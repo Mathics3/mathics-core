@@ -12,16 +12,14 @@ sort_order = "mathics.builtin.three-dimensional-graphics"
 from mathics.builtin.base import Builtin
 from mathics.builtin.colors.color_directives import RGBColor
 from mathics.builtin.graphics import (
-    _GraphicsElements,
     CoordinatesError,
     Graphics,
     Style,
+    _GraphicsElements,
 )
-
-from mathics.core.atoms import Real, Integer, Rational
+from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolN
-
 from mathics.eval.nevaluator import eval_N
 
 

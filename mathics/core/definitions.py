@@ -1,29 +1,22 @@
 # -*- coding: utf-8 -*-
 
-import pickle
-
-import os
 import base64
-import re
 import bisect
-
+import os
+import pickle
+import re
 from collections import defaultdict
-
 from typing import List, Optional
+
+from mathics_scanner.tokeniser import full_names_pattern
 
 from mathics.core.atoms import String
 from mathics.core.attributes import A_NO_ATTRIBUTES
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.element import fully_qualified_symbol_name
 from mathics.core.expression import Expression
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-    strip_context,
-)
+from mathics.core.symbols import Atom, Symbol, strip_context
 from mathics.core.systemsymbols import SymbolGet
-
-from mathics_scanner.tokeniser import full_names_pattern
 
 type_compiled_pattern = type(re.compile("a.a"))
 
@@ -108,11 +101,6 @@ class Definitions:
             "Global`",
         )
 
-        from mathics.core.pymathics import (
-            PyMathicsLoadException,
-            load_pymathics_module,
-        )
-
         # Importing "mathics.format" populates the Symbol of the
         # PrintForms and OutputForms sets.
         #
@@ -121,8 +109,8 @@ class Definitions:
         #   2 were given
         # Rocky: this smells of something not quite right in terms of
         # modularity.
-
         import mathics.format  # noqa
+        from mathics.core.pymathics import PyMathicsLoadException, load_pymathics_module
 
         self.printforms = list(PrintForms)
         self.outputforms = list(OutputForms)
@@ -130,7 +118,7 @@ class Definitions:
         self.timing_trace_evaluation = False
 
         if add_builtin:
-            from mathics.builtin import modules, contribute
+            from mathics.builtin import contribute, modules
             from mathics.settings import ROOT_DIR
 
             loaded = False

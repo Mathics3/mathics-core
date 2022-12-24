@@ -4,20 +4,14 @@
 Division-Related Functions
 """
 
+from itertools import combinations
 from typing import List
 
 import sympy
-from itertools import combinations
 from sympy import Q, ask
 
-from mathics.builtin.base import Builtin, Test, SympyFunction
+from mathics.builtin.base import Builtin, SympyFunction, Test
 from mathics.core.atoms import Integer
-from mathics.core.convert.python import from_bool
-from mathics.core.expression import Expression
-from mathics.core.convert.expression import to_mathics_list
-from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
-from mathics.core.systemsymbols import SymbolComplexInfinity
-
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -27,6 +21,11 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
+from mathics.core.convert.expression import to_mathics_list
+from mathics.core.convert.python import from_bool
+from mathics.core.expression import Expression
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolTrue
+from mathics.core.systemsymbols import SymbolComplexInfinity
 
 SymbolQuotient = Symbol("Quotient")
 SymbolQuotientRemainder = Symbol("QuotientRemainder")

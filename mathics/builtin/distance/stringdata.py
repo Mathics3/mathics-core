@@ -4,12 +4,9 @@ String Distances and Similarity Measures
 """
 
 import unicodedata
-
 from typing import Callable
 
-
 from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import Integer, String, Symbol
 from mathics.core.expression import Expression
 from mathics.core.symbols import SymbolTrue

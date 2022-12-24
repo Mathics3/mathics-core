@@ -9,25 +9,16 @@ sort_order = "mathics.builtin.global-system-information"
 import gc
 import os
 import platform
-import sys
 import subprocess
+import sys
 
 from mathics import version_string
 from mathics.builtin.base import Builtin, Predefined
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    IntegerM1,
-    Real,
-    String,
-)
+from mathics.core.atoms import Integer, Integer0, IntegerM1, Real, String
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.systemsymbols import (
-    SymbolFailed,
-    SymbolRule,
-)
+from mathics.core.systemsymbols import SymbolFailed, SymbolRule
 from mathics.version import __version__
 
 try:

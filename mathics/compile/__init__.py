@@ -16,7 +16,7 @@ except ImportError:
 
 
 if has_llvmlite:
-    from .ir import IRGenerator
-    from .compile import _compile
     from .base import CompileArg, CompileError
+    from .compile import _compile
+    from .ir import IRGenerator
     from .types import *

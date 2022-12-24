@@ -6,39 +6,31 @@ Boxing Routines for 2D Graphics
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
-
 from mathics.builtin.base import BoxExpression
 from mathics.builtin.colors.color_directives import (
-    _ColorObject,
     ColorError,
     Opacity,
     RGBColor,
+    _ColorObject,
 )
-from mathics.builtin.drawing.graphics_internals import _GraphicsElementBox, GLOBALS
+from mathics.builtin.drawing.graphics_internals import GLOBALS, _GraphicsElementBox
 from mathics.builtin.graphics import (
+    DEFAULT_POINT_FACTOR,
     Arrowheads,
     Coords,
-    DEFAULT_POINT_FACTOR,
     Graphics,
     GraphicsElements,
     PointSize,
     _BezierCurve,
-    _Line,
-    _Polyline,
     _data_and_options,
     _extract_graphics,
+    _Line,
     _norm,
+    _Polyline,
     _to_float,
     coords,
 )
-
-
-from mathics.core.atoms import (
-    Integer,
-    Real,
-    String,
-)
-
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.expression import Expression
@@ -46,7 +38,6 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
-
 from mathics.eval.makeboxes import format_element
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
