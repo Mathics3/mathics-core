@@ -16,6 +16,7 @@ import functools
 import math
 import os.path as osp
 from collections import defaultdict
+from operator import itemgetter
 from typing import Optional, Tuple
 
 from mathics.builtin.base import AtomBuiltin, Builtin, String, Test
@@ -102,50 +103,62 @@ class _SkimageBuiltin(_ImageBuiltin):
 # Code related to Mathics Functions that import and export.
 
 
-class _Exif:
-    _names = {  # names overriding the ones given by Pillow
-        37385: "FlashInfo",
-        40960: "FlashpixVersion",
-        40962: "PixelXDimension",
-        40963: "PixelYDimension",
-    }
+# Exif: Exchangeable image file format for digital still cameras.
+# See http://www.exiv2.org/tags.html
 
-    @staticmethod
-    def extract(im, evaluation):
-        if hasattr(im, "_getexif"):
-            exif = im._getexif()
-            if not exif:
-                return
+# names overriding the ones given by Pillow
+Exif_names = {
+    37385: "FlashInfo",
+    40960: "FlashpixVersion",
+    40962: "PixelXDimension",
+    40963: "PixelYDimension",
+}
 
-            for k, v in sorted(exif.items(), key=lambda x: x[0]):
-                name = ExifTags.get(k)
-                if not name:
-                    continue
 
-                # EXIF has the following types: Short, Long, Rational, Ascii, Byte
-                # (see http://www.exiv2.org/tags.html). we detect the type from the
-                # Python type Pillow gives us and do the appropiate MMA handling.
+def extract_exif(image, evaluation) -> Optional[Expression]:
+    """
+    Convert Exif information from image into options
+    that can be passed to Image[].
+    Return None if there is no Exif information.
+    """
+    if hasattr(image, "getexif"):
+        exif = image.getexif()
+        # If exif is None or an empty list, we have no information.
+        if not exif:
+            return None
 
-                if isinstance(v, tuple) and len(v) == 2:  # Rational
-                    value = Rational(v[0], v[1])
-                    if name == "FocalLength":
-                        value = value.round(2)
-                    else:
-                        value = Expression(SymbolSimplify, value).evaluate(evaluation)
-                elif isinstance(v, bytes):  # Byte
-                    value = String(" ".join(["%d" % x for x in v]))
-                elif isinstance(v, (int, str)):  # Short, Long, Ascii
-                    value = v
+        exif_options: List[Expression] = []
+        for k, v in sorted(exif.items(), key=itemgetter(0)):
+            name = ExifTags.get(k)
+            if not name:
+                continue
+
+            # EXIF has the following types: Short, Long, Rational, Ascii, Byte
+            # (see http://www.exiv2.org/tags.html). we detect the type from the
+            # Python type Pillow gives us and do the appropiate MMA handling.
+
+            if isinstance(v, tuple) and len(v) == 2:  # Rational
+                value = Rational(v[0], v[1])
+                if name == "FocalLength":
+                    value = from_python(value.round(2))
                 else:
-                    continue
+                    value = Expression(SymbolSimplify, value).evaluate(evaluation)
+            elif isinstance(v, bytes):  # Byte
+                value = String(" ".join([str(x) for x in v]))
+            elif isinstance(v, (int, str)):  # Short, Long, ASCII
+                value = from_python(v)
+            else:
+                continue
 
-                yield Expression(SymbolRule, String(_Exif._names.get(k, name)), value)
+            exif_options.append(
+                Expression(SymbolRule, String(Exif_names.get(k, name)), value)
+            )
+
+        return Expression(SymbolRule, String("RawExif"), ListExpression(*exif_options))
 
 
 class ImageImport(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageImport.html</url>
-
     <dl>
       <dt> 'ImageImport["path"]'
       <dd> import an image from the file "path".
@@ -171,23 +184,23 @@ class ImageImport(_ImageBuiltin):
         pillow = PIL.Image.open(path.get_string_value())
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        exif = to_mathics_list(*list(_Exif.extract(pillow, evaluation)))
+        # exif = to_mathics_list(*list(_Exif.extract(pillow, evaluation)))
+        options_from_exif = extract_exif(pillow, evaluation)
 
         image = Image(pixels, "RGB" if is_rgb else "Grayscale")
-        return ListExpression(
+        image_list_expression = [
             Expression(SymbolRule, String("Image"), image),
             Expression(SymbolRule, String("ColorSpace"), String(image.color_space)),
-            Expression(
-                SymbolRule, String("ImageSize"), from_python(image.dimensions())
-            ),
-            Expression(SymbolRule, String("RawExif"), exif),
-        )
+        ]
+
+        if options_from_exif is not None:
+            image_list_expression.append(options_from_exif)
+
+        return ListExpression(*image_list_expression)
 
 
 class ImageExport(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageExport.html</url>
-
     <dl>
       <dt> 'ImageExport["path", $image$]'
       <dd> export $image$ as file in "path".

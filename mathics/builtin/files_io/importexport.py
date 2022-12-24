@@ -1295,11 +1295,13 @@ class Import(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Import.html</url>
 
     <dl>
-    <dt>'Import["$file$"]'
+      <dt>'Import["$file$"]'
       <dd>imports data from a file.
-    <dt>'Import["$file$", $elements$]'
+
+      <dt>'Import["$file$", $elements$]'
       <dd>imports the specified elements from a file.
-    <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
+
+      <dt>'Import["http://$url$", ...]' and 'Import["ftp://$url$", ...]'
       <dd>imports from a URL.
     </dl>
 
@@ -1337,7 +1339,6 @@ class Import(Builtin):
      = {accidental, alter, arpeggiate, ..., words}
     """
 
-    summary_text = "import elements from a file"
     messages = {
         "nffil": "File not found during Import.",
         "chtype": (
@@ -1349,13 +1350,15 @@ class Import(Builtin):
         "emptyfch": "Function Channel not defined.",
     }
 
+    options = {
+        "$OptionSyntax": "System`Ignore",
+    }
+
     rules = {
         "Import[filename_]": "Import[filename, {}]",
     }
 
-    options = {
-        "$OptionSyntax": "System`Ignore",
-    }
+    summary_text = "import elements from a file"
 
     def apply(self, filename, evaluation, options={}):
         "Import[filename_, OptionsPattern[]]"
@@ -1578,11 +1581,13 @@ class ImportString(Import):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImportString.html</url>
 
     <dl>
-    <dt>'ImportString["$data$", "$format$"]'
+      <dt>'ImportString["$data$", "$format$"]'
       <dd>imports data in the specified format from a string.
-    <dt>'ImportString["$file$", $elements$]'
+
+      <dt>'ImportString["$file$", $elements$]'
       <dd>imports the specified elements from a string.
-    <dt>'ImportString["$data$"]'
+
+      <dt>'ImportString["$data$"]'
       <dd>attempts to determine the format of the string from its content.
     </dl>
 
@@ -1641,7 +1646,6 @@ class ImportString(Import):
         if not (isinstance(data, String)):
             evaluation.message("ImportString", "string", data)
             return SymbolFailed
-        path = data.get_string_value()
 
         def determine_filetype():
             if not FileFormat.detector:
@@ -1683,11 +1687,13 @@ class Export(Builtin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Export.html</url>
 
     <dl>
-    <dt>'Export["$file$.$ext$", $expr$]'
+      <dt>'Export["$file$.$ext$", $expr$]'
       <dd>exports $expr$ to a file, using the extension $ext$ to determine the format.
-    <dt>'Export["$file$", $expr$, "$format$"]'
+
+      <dt>'Export["$file$", $expr$, "$format$"]'
       <dd>exports $expr$ to a file in the specified format.
-    <dt>'Export["$file$", $exprs$, $elems$]'
+
+      <dt>'Export["$file$", $exprs$, $elems$]'
       <dd>exports $exprs$ to a file as elements specified by $elems$.
     </dl>
 
@@ -1735,7 +1741,6 @@ class Export(Builtin):
 
     """
 
-    summary_text = "export elements to a file"
     messages = {
         "chtype": "First argument `1` is not a valid file specification.",
         "infer": "Cannot infer format of file `1`.",
@@ -1773,6 +1778,8 @@ class Export(Builtin):
     options = {
         "$OptionSyntax": "System`Ignore",
     }
+
+    summary_text = "export elements to a file"
 
     def apply(self, filename, expr, evaluation, options={}):
         "Export[filename_, expr_, OptionsPattern[Export]]"
