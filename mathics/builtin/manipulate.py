@@ -241,6 +241,8 @@ class ManipulateOutput(Output):
 
 class Manipulate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Manipulate.html</url>
+
     <dl>
     <dt>'Manipulate[$expr1$, {$u$, $u_min$, $u_max$}]'
         <dd>interactively compute and display an expression with different values of $u$.
