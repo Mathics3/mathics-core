@@ -13,11 +13,13 @@ from mathics.core.list import ListExpression
 
 class DiagonalMatrix(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DiagonalMatrix.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/DiagonalMatrix.html</url>
 
     <dl>
       <dt>'DiagonalMatrix[$list$]'
-      <dd>gives a matrix with the values in $list$ on its diagonal and zeroes elsewhere.
+      <dd>gives a matrix with the values in $list$ on its diagonal and \
+      zeroes elsewhere.
     </dl>
 
     >> DiagonalMatrix[{1, 2, 3}]
@@ -46,7 +48,8 @@ class DiagonalMatrix(Builtin):
 
 class IdentityMatrix(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/IdentityMatrix.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/IdentityMatrix.html</url>
 
     <dl>
       <dt>'IdentityMatrix[$n$]'
