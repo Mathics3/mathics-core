@@ -37,11 +37,36 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
     being: Integer, Rational, Real, Complex.
     """
 
+    def __getnewargs__(self):
+        """
+        __getnewargs__ is used in pickle loading to ensure __new__ is
+        called with the right value.
+
+        Most of the time a number takes one argument - its value
+        When there is a kind of number, like Rational, or Complex,
+        that has more than one argument, it should define this method
+        accordingly.
+        """
+        return (self._value,)
+
     def __str__(self) -> str:
         return str(self.value)
 
-    def is_numeric(self, evaluation=None) -> bool:
-        return True
+    # FIXME: can we refactor or subclass objects to remove pattern_sort?
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        """
+        get_sort_key is used in Expression evaluation to determine how to
+        order its list of elements. The tuple returned contains
+        rank orders for different level as is found in say
+        Python version release numberso or Python package version numbers.
+
+        This is the default routine for Number. Subclasses of Number like
+        Complex may need to define this differently.
+        """
+        if pattern_sort:
+            return super().get_sort_key(True)
+        else:
+            return (0, 0, self._value, 0, 1)
 
     @property
     def is_literal(self) -> bool:
@@ -51,8 +76,25 @@ class Number(Atom, ImmutableValueMixin, NumericOperators):
         """
         return True
 
+    def is_numeric(self, evaluation=None) -> bool:
+        return True
+
+    def to_mpmath(self):
+        """
+        Convert self._value to an mnpath number.
+
+        This is the default implementation for Number.
+        There are kinds of numbers, like Rational, or Complex, that
+        need to work differently than this default, and they will
+        change the implementation accordingly.
+        """
+        return mpmath.mpf(self._value)
+
     @property
-    def value(self) -> bool:
+    def value(self):
+        """
+        Returns this number's value.
+        """
         return self._value
 
 
@@ -101,27 +143,35 @@ class Integer(Number):
     value: int
     class_head_name = "System`Integer"
 
-    # Collection of Integers defined so far.
+    # Dictionary of Integer constant values defined so far.
     # We use this for object uniqueness.
+    # The key is the Integer's Python `int` value, and the
+    # dictionary's value is the corresponding Mathics Integer object.
     _integers = {}
 
-    # We use __new__ here to unsure that two Integer's that have the same value
-    # return the same object.
+    # We use __new__ here to ensure that two Integer's that have the same value
+    # return the same object, and to set an object hash value.
+    # Consider also @lru_cache, and mechanisms for limiting and
+    # clearing the cache and the object store which might be useful in implementing
+    # Builtin Share[].
     def __new__(cls, value) -> "Integer":
 
         n = int(value)
-        key = (cls, n)
-        self = cls._integers.get(key)
+        self = cls._integers.get(value)
         if self is None:
             self = super().__new__(cls)
             self._value = n
 
             # Cache object so we don't allocate again.
-            self._integers[key] = self
+            self._integers[value] = self
 
             # Set a value for self.__hash__() once so that every time
-            # it is used this is fast.
-            self.hash = hash(key)
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across all
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value
+            self.hash = hash((cls, n))
+
         return self
 
     def __eq__(self, other) -> bool:
@@ -145,6 +195,8 @@ class Integer(Number):
             else super().__gt__(other)
         )
 
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
@@ -188,9 +240,6 @@ class Integer(Number):
     def to_sympy(self, **kwargs):
         return sympy.Integer(self._value)
 
-    def to_mpmath(self):
-        return mpmath.mpf(self._value)
-
     def to_python(self, *args, **kwargs):
         return self.value
 
@@ -211,20 +260,11 @@ class Integer(Number):
         """Mathics SameQ"""
         return isinstance(other, Integer) and self._value == other.value
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        else:
-            return (0, 0, self._value, 0, 1)
-
     def do_copy(self) -> "Integer":
         return Integer(self._value)
 
     def user_hash(self, update):
         update(b"System`Integer>" + str(self._value).encode("utf8"))
-
-    def __getnewargs__(self):
-        return (self._value,)
 
     def __neg__(self) -> "Integer":
         return Integer(-self._value)
@@ -304,11 +344,6 @@ class Real(Number):
     def atom_to_boxes(self, f, evaluation):
         return self.make_boxes(f.get_name())
 
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            return super().get_sort_key(True)
-        return (0, 0, self._value, 0, 1)
-
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
 
@@ -326,8 +361,10 @@ class MachineReal(Real):
     Stored internally as a python float.
     """
 
-    # Collection of MachineReals defined so far.
+    # Dictionary of MachineReal constant values defined so far.
     # We use this for object uniqueness.
+    # The key is the MachineReal's Python `float` value, and the
+    # dictionary's value is the corresponding Mathics MachineReal object.
     _machine_reals = {}
 
     def __new__(cls, value) -> "MachineReal":
@@ -335,23 +372,25 @@ class MachineReal(Real):
         if math.isinf(n) or math.isnan(n):
             raise OverflowError
 
-        key = (cls, n)
-        self = cls._machine_reals.get(key)
+        self = cls._machine_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
             self._value = n
 
             # Cache object so we don't allocate again.
-            self._machine_reals[key] = self
+            self._machine_reals[n] = self
 
             # Set a value for self.__hash__() once so that every time
-            # it is used this is fast.
-            self.hash = hash(key)
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across all
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value
+            self.hash = hash((cls, n))
+
         return self
 
-    def __getnewargs__(self):
-        return (self.value,)
-
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
@@ -424,13 +463,6 @@ class MachineReal(Real):
     def to_sympy(self, *args, **kwargs):
         return sympy.Float(self.value)
 
-    def to_mpmath(self):
-        return mpmath.mpf(self.value)
-
-    @property
-    def value(self) -> bool:
-        return self._value
-
 
 MachineReal0 = MachineReal(0)
 
@@ -444,32 +476,35 @@ class PrecisionReal(Real):
     Note: Plays nicely with the mpmath.mpf (float) type.
     """
 
-    # Collection of MachineReals defined so far.
+    # Dictionary of PrecisionReal constant values defined so far.
     # We use this for object uniqueness.
+    # The key is the PrecisionReal's sympy.Float, and the
+    # dictionary's value is the corresponding Mathics PrecisionReal object.
     _precision_reals = {}
 
     value: sympy.Float
 
     def __new__(cls, value) -> "PrecisionReal":
         n = sympy.Float(value)
-        key = (cls, n)
-        self = cls._precision_reals.get(key)
+        self = cls._precision_reals.get(n)
         if self is None:
             self = Number.__new__(cls)
             self._value = n
 
             # Cache object so we don't allocate again.
-            self._precision_reals[key] = self
+            self._precision_reals[n] = self
 
             # Set a value for self.__hash__() once so that every time
-            # it is used this is fast.
-            self.hash = hash(key)
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across all
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value.
+            self.hash = hash((cls, n))
 
         return self
 
-    def __getnewargs__(self):
-        return (self.value,)
-
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
@@ -527,20 +562,16 @@ class PrecisionReal(Real):
     def to_sympy(self, *args, **kwargs):
         return self.value
 
-    def to_mpmath(self):
-        return mpmath.mpf(self.value)
-
-    @property
-    def value(self):
-        return self._value
-
 
 class ByteArrayAtom(Atom, ImmutableValueMixin):
     value: str
     class_head_name = "System`ByteArrayAtom"
 
-    # We use __new__ here to unsure that two ByteArrayAtom's that have the same value
-    # return the same object.
+    # We use __new__ here to ensure that two ByteArrayAtom's that have the same value
+    # return the same object, and to set an object hash value.
+    # Consider also @lru_cache, and mechanisms for limiting and
+    # clearing the cache and the object store which might be useful in implementing
+    # Builtin Share[].
     def __new__(cls, value):
         self = super().__new__(cls)
         if type(value) in (bytes, bytearray):
@@ -629,8 +660,18 @@ class Complex(Number):
     real: Type[Number]
     imag: Type[Number]
 
+    # Dictionary of Complex constant values defined so far.
+    # We use this for object uniqueness.
+    # The key is the Complex value's real and imaginary parts as a tuple,
+    # dictionary's value is the corresponding Mathics Complex object.
+    _complex_numbers = {}
+
+    # We use __new__ here to ensure that two Integer's that have the same value
+    # return the same object, and to set an object hash value.
+    # Consider also @lru_cache, and mechanisms for limiting and
+    # clearing the cache and the object store which might be useful in implementing
+    # Builtin Share[].
     def __new__(cls, real, imag):
-        self = super().__new__(cls)
         if isinstance(real, Complex) or not isinstance(real, Number):
             raise ValueError("Argument 'real' must be a Real number.")
         if imag is SymbolInfinity:
@@ -646,14 +687,26 @@ class Complex(Number):
         if isinstance(imag, MachineReal) and not isinstance(real, MachineReal):
             real = real.round()
 
-        self.real = real
-        self.imag = imag
+        value = (real, imag)
+        self = cls._complex_numbers.get(value)
+        if self is None:
 
-        # Set a value for self.__hash__() once so that every time
-        # it is used this is fast.
-        self.hash = hash(("Complex", real, imag))
+            self = super().__new__(cls)
+            self.real = real
+            self.imag = imag
 
-        self._value = (self.real, self.imag)
+            self._value = value
+
+            # Cache object so we don't allocate again.
+            self._complex_numbers[value] = self
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast. Note that in contrast to the
+            # cached object key, the hash key needs to be unique across all
+            # Python objects, so we include the class in the
+            # event that different objects have the same Python value
+            self.hash = hash((cls, value))
+
         return self
 
     def __hash__(self):
@@ -684,7 +737,14 @@ class Complex(Number):
             self.imag.default_format(evaluation, form),
         )
 
+    # Note we can
     def get_sort_key(self, pattern_sort=False) -> tuple:
+        """
+        get_sort_key is used in Expression evaluation to determine how to
+        order its list of elements. The tuple returned contains
+        rank orders for different level as is found in say
+        Python version release numberso or Python package version numbers.
+        """
         if pattern_sort:
             return super().get_sort_key(True)
         else:
@@ -775,8 +835,11 @@ class Rational(Number):
     # Collection of integers defined so far.
     _rationals = {}
 
-    # We use __new__ here to unsure that two Rationals's that have the same value
-    # return the same object.
+    # We use __new__ here to ensure that two Rationals's that have the same value
+    # return the same object, and to set an object hash value.
+    # Consider also @lru_cache, and mechanisms for limiting and
+    # clearing the cache and the object store which might be useful in implementing
+    # Builtin Share[].
     def __new__(cls, numerator, denominator=1) -> "Rational":
 
         value = sympy.Rational(numerator, denominator)
@@ -795,6 +858,8 @@ class Rational(Number):
             self.hash = hash(key)
         return self
 
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
     def __hash__(self):
         return self.hash
 
@@ -805,9 +870,6 @@ class Rational(Number):
 
     def to_sympy(self, **kwargs):
         return self.value
-
-    def to_mpmath(self):
-        return mpmath.mpf(self.value)
 
     def to_python(self, *args, **kwargs) -> float:
         return float(self.value)
