@@ -400,11 +400,14 @@ class _Thickness(_Size):
 
 class AbsoluteThickness(_Thickness):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/AbsoluteThickness.html</url>
 
     <dl>
       <dt>'AbsoluteThickness[$p$]'
-      <dd>sets the line thickness for subsequent graphics primitives to $p$ points.
+      <dd>sets the line thickness for subsequent graphics primitives to $p$ \
+          points.
     </dl>
 
     >> Graphics[Table[{AbsoluteThickness[t], Line[{{20 t, 10}, {20 t, 80}}], Text[ToString[t]<>"pt", {20 t, 0}]}, {t, 0, 10}]]
@@ -535,7 +538,9 @@ def _svg_bezier(*segments):
 class FilledCurve(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FilledCurve.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FilledCurve.html</url>
 
     <dl>
       <dt>'FilledCurve[{$segment1$, $segment2$ ...}]'
@@ -584,7 +589,9 @@ class Polygon(Builtin):
 class RegularPolygon(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RegularPolygon.html</url>
 
     <dl>
       <dt>'RegularPolygon[$n$]'
@@ -609,7 +616,9 @@ class RegularPolygon(Builtin):
 
 class Arrow(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Arrow.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrow.html</url>
 
     <dl>
       <dt>'Arrow[{$p1$, $p2$}]'
@@ -648,7 +657,9 @@ class Arrow(Builtin):
 class Arrowheads(_GraphicsDirective):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Arrowheads.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Arrowheads.html</url>
 
     <dl>
       <dt>'Arrowheads[$s$]'

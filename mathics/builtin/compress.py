@@ -10,10 +10,12 @@ from mathics.core.atoms import String
 
 class Compress(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Compress.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Compress.html</url>
 
     <dl>
-    <dt>'Compress[$expr$]'
+      <dt>'Compress[$expr$]'
       <dd>gives a compressed string representation of $expr$.
     </dl>
 
@@ -27,7 +29,7 @@ class Compress(Builtin):
     }
     summary_text = "compress an expression"
 
-    def apply(self, expr, evaluation, options):
+    def eval(self, expr, evaluation, options):
         "Compress[expr_, OptionsPattern[Compress]]"
         if isinstance(expr, String):
             string = '"' + expr.value + '"'
@@ -47,7 +49,9 @@ class Compress(Builtin):
 
 class Uncompress(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Uncompress.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Uncompress.html</url>
 
     <dl>
     <dt>'Uncompress["$string$"]'
@@ -67,7 +71,7 @@ class Uncompress(Builtin):
 
     summary_text = "recover a compressed expression"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation):
         "Uncompress[string_String]"
         string = string.get_string_value()  # .encode("utf-8")
         string = base64.b64decode(string)
