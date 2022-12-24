@@ -10,6 +10,8 @@ from mathics.core.attributes import A_HOLD_ALL, A_HOLD_ALL_COMPLETE, A_PROTECTED
 
 class RecursionLimit(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RecursionLimit.html</url>
+
     <dl>
       <dt>'$RecursionLimit'
       <dd>specifies the maximum allowable recursion depth after which a calculation is terminated.
@@ -84,6 +86,8 @@ class RecursionLimit(Predefined):
 
 class IterationLimit(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$IterationLimit.html</url>
+
     <dl>
         <dt>'$IterationLimit'
 
@@ -145,6 +149,8 @@ class IterationLimit(Predefined):
 
 class Hold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Hold.html</url>
+
     <dl>
     <dt>'Hold[$expr$]'
         <dd>prevents $expr$ from being evaluated.
@@ -159,6 +165,8 @@ class Hold(Builtin):
 
 class HoldComplete(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldComplete.html</url>
+
     <dl>
     <dt>'HoldComplete[$expr$]'
         <dd>prevents $expr$ from being evaluated, and also prevents
@@ -174,6 +182,8 @@ class HoldComplete(Builtin):
 
 class HoldForm(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HoldForm.html</url>
+
     <dl>
     <dt>'HoldForm[$expr$]'
         <dd>is equivalent to 'Hold[$expr$]', but prints as $expr$.
@@ -197,6 +207,8 @@ class HoldForm(Builtin):
 
 class Evaluate(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Evaluate.html</url>
+
     <dl>
     <dt>'Evaluate[$expr$]'
         <dd>forces evaluation of $expr$, even if it occurs inside a
@@ -230,6 +242,8 @@ class Evaluate(Builtin):
 
 class Unevaluated(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unevaluated.html</url>
+
     <dl>
     <dt>'Unevaluated[$expr$]'
         <dd>temporarily leaves $expr$ in an unevaluated form when it
@@ -272,6 +286,8 @@ class Unevaluated(Builtin):
 
 class ReleaseHold(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ReleaseHold.html</url>
+
     <dl>
     <dt>'ReleaseHold[$expr$]'
         <dd>removes any 'Hold', 'HoldForm', 'HoldPattern' or
@@ -295,6 +311,8 @@ class ReleaseHold(Builtin):
 
 class Sequence(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sequence.html</url>
+
     <dl>
     <dt>'Sequence[$x1$, $x2$, ...]'
         <dd>represents a sequence of arguments to a function.
@@ -331,6 +349,8 @@ class Sequence(Builtin):
 
 class Quit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Quit.html</url>
+
     <dl>
     <dt>'Quit'[]
       <dd> Terminates the Mathics session.

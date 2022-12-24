@@ -237,7 +237,7 @@ class HoldAll(Predefined):
     <dl>
       <dt>'HoldAll'
       <dd>is an attribute specifying that all arguments of a \
-        function should be left unevaluated.
+          function should be left unevaluated.
     </dl>
 
     >> Attributes[Function]
@@ -283,7 +283,7 @@ class HoldFirst(Predefined):
     <dl>
       <dt>'HoldFirst'
       <dd>is an attribute specifying that the first argument of a \
-        function should be left unevaluated.
+         function should be left unevaluated.
     </dl>
 
     >> Attributes[Set]
@@ -379,7 +379,7 @@ class NHoldAll(Predefined):
     <dl>
       <dt>'NHoldAll'
       <dd>is an attribute that protects all arguments of a \
-        function from numeric evaluation.
+         function from numeric evaluation.
     </dl>
 
     >> N[f[2, 3]]

@@ -83,6 +83,8 @@ def get_dimensions(expr, head=None):
 
 class ArrayDepth(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/ArrayDepth.html</url>
+
     <dl>
       <dt>'ArrayDepth[$a$]'
       <dd>returns the depth of the non-ragged array $a$, defined as 'Length[Dimensions[$a$]]'.
@@ -103,6 +105,8 @@ class ArrayDepth(Builtin):
 
 class ArrayQ(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/ArrayQ.html</url>
+
     <dl>
       <dt>'ArrayQ[$expr$]'
       <dd>tests whether $expr$ is a full array.
@@ -170,6 +174,8 @@ class ArrayQ(Builtin):
 
 class Dimensions(Builtin):
     """
+    <url>:WMA: https://reference.wolfram.com/language/ref/Dimensions.html</url>
+
     <dl>
     <dt>'Dimensions[$expr$]'
         <dd>returns a list of the dimensions of the expression $expr$.
@@ -207,6 +213,9 @@ class Dimensions(Builtin):
 
 class Dot(BinaryOperator):
     """
+    <url>:Dot product:https://en.wikipedia.org/wiki/Dot_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Dot.html</url>)
+
     <dl>
       <dt>'Dot[$x$, $y$]'
       <dt>'$x$ . $y$'
@@ -239,6 +248,8 @@ class Dot(BinaryOperator):
 
 class Inner(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/Inner.html</url>
+
     <dl>
     <dt>'Inner[$f$, $x$, $y$, $g$]'
         <dd>computes a generalised inner product of $x$ and $y$, using
@@ -330,6 +341,9 @@ class Inner(Builtin):
 
 class Outer(Builtin):
     """
+    <url>:Outer product:https://en.wikipedia.org/wiki/Outer_product</url> \
+    (<url>:WMA link: https://reference.wolfram.com/language/ref/Outer.html</url>)
+
     <dl>
       <dt>'Outer[$f$, $x$, $y$]'
       <dd>computes a generalised outer product of $x$ and $y$, using the function $f$ in place of multiplication.
@@ -397,6 +411,8 @@ class Outer(Builtin):
 
 class RotationTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/RotationTransform.html</url>
+
     <dl>
       <dt>'RotationTransform[$phi$]'
       <dd>gives a rotation by $phi$.
@@ -415,6 +431,8 @@ class RotationTransform(Builtin):
 
 class ScalingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ScalingTransform.html</url>
+
     <dl>
       <dt>'ScalingTransform[$v$]'
       <dd>gives a scaling transform of $v$. $v$ may be a scalar or a vector.
@@ -433,6 +451,8 @@ class ScalingTransform(Builtin):
 
 class ShearingTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/ShearingTransform.html</url>
+
     <dl>
     <dt>'ShearingTransform[$phi$, {1, 0}, {0, 1}]'
         <dd>gives a horizontal shear by the angle $phi$.
@@ -453,6 +473,8 @@ class ShearingTransform(Builtin):
 
 class TransformationFunction(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/TransformationFunction.html</url>
+
     <dl>
       <dt>'TransformationFunction[$m$]'
       <dd>represents a transformation.
@@ -474,6 +496,8 @@ class TransformationFunction(Builtin):
 
 class TranslationTransform(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/TranslationTransform.html</url>
+
     <dl>
       <dt>'TranslationTransform[$v$]'
       <dd>gives the translation by the vector $v$.
@@ -543,6 +567,8 @@ class Transpose(Builtin):
 # are subsumed by Elements of Lists.
 class VectorQ(Builtin):
     """
+    <url>:WMA link: https://reference.wolfram.com/language/ref/VectorQ.html</url>
+
     <dl>
       <dt>'VectorQ[$v$]'
       <dd>returns 'True' if $v$ is a list of elements which are not themselves lists.
