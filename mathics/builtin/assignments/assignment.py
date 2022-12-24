@@ -26,6 +26,7 @@ from mathics.core.systemsymbols import SymbolFailed
 
 class _SetOperator:
     """
+
     This is the base class for assignment Builtin operators.
 
     Special cases are determined by the head of the expression. Then
@@ -59,6 +60,8 @@ class _SetOperator:
 
 class Set(BinaryOperator, _SetOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Set.html</url>
+
     <dl>
       <dt>'Set[$expr$, $value$]'
 
@@ -145,6 +148,8 @@ class Set(BinaryOperator, _SetOperator):
 
 class SetDelayed(Set):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SetDelayed.html</url>
+
     <dl>
       <dt>'SetDelayed[$expr$, $value$]'
 
@@ -223,6 +228,8 @@ class SetDelayed(Set):
 
 class TagSet(Builtin, _SetOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagSet.html</url>
+
     <dl>
       <dt>'TagSet[$f$, $expr$, $value$]'
 
@@ -270,6 +277,8 @@ class TagSet(Builtin, _SetOperator):
 
 class TagSetDelayed(TagSet):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TagSetDelayed.html</url>
+
     <dl>
       <dt>'TagSetDelayed[$f$, $expr$, $value$]'
 
@@ -298,6 +307,8 @@ class TagSetDelayed(TagSet):
 # Placing this here is a bit weird, but it is not clear where else is better suited for this right now.
 class LoadModule(Builtin):
     """
+    ## <url>:mathics native for pymathics:</url>
+
     <dl>
       <dt>'LoadModule[$module$]'
       <dd>'Load Mathics definitions from the python module $module$
