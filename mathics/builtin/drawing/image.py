@@ -159,7 +159,7 @@ class ImageExport(_ImageBuiltin):
     def eval(self, path: String, expr, opts, evaluation: Evaluation):
         """ImageExport[path_String, expr_, opts___]"""
         if isinstance(expr, Image):
-            expr.pil().save(path.get_string_value())
+            expr.pil().save(path.value)
             return SymbolNull
         else:
             return evaluation.message("ImageExport", "noimage")
@@ -675,7 +675,7 @@ class ImageRotate(_ImageBuiltin):
     >> ImageRotate[ein, 45 Degree]
      = -Image-
 
-    >> ImageRotate[ein, Pi / 2]
+    >> ImageRotate[ein, Pi / 4]
      = -Image-
 
     #> ImageRotate[ein, ein]
@@ -683,12 +683,13 @@ class ImageRotate(_ImageBuiltin):
      = ImageRotate[-Image-, -Image-]
     """
 
-    summary_text = "rotate an image"
-    rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
-
     messages = {
         "imgang": "Angle `1` should be a real number, one of Top, Bottom, Left, Right, or a rule from one to another."
     }
+
+    rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
+
+    summary_text = "rotate an image"
 
     def eval(self, image, angle, evaluation: Evaluation):
         "ImageRotate[image_Image, angle_]"
@@ -718,9 +719,10 @@ class ImagePartition(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImagePartition.html</url>
 
     <dl>
-    <dt>'ImagePartition[$image$, $s$]'
+      <dt>'ImagePartition[$image$, $s$]'
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
-    <dt>'ImagePartition[$image$, {$w$, $h$}]'
+
+      <dt>'ImagePartition[$image$, {$w$, $h$}]'
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
@@ -779,16 +781,20 @@ class ImagePartition(_ImageBuiltin):
 class ImageAdjust(_ImageBuiltin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
 
     <dl>
-    <dt>'ImageAdjust[$image$]'
+      <dt>'ImageAdjust[$image$]'
       <dd>adjusts the levels in $image$.
-    <dt>'ImageAdjust[$image$, $c$]'
+
+      <dt>'ImageAdjust[$image$, $c$]'
       <dd>adjusts the contrast in $image$ by $c$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$}]'
+
+      <dt>'ImageAdjust[$image$, {$c$, $b$}]'
       <dd>adjusts the contrast $c$, and brightness $b$ in $image$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
+
+      <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
@@ -970,7 +976,9 @@ class MinFilter(PillowImageFilter):
 class MaxFilter(PillowImageFilter):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxFilter.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/MaxFilter.html</url>
 
     <dl>
       <dt>'MaxFilter[$image$, $r$]'
@@ -1670,10 +1678,10 @@ class ImageData(_ImageBuiltin):
     rules = {"ImageData[image_Image]": 'ImageData[image, "Real"]'}
     summary_text = "the array of pixel values from an image"
 
-    def eval(self, image, stype, evaluation: Evaluation):
+    def eval(self, image, stype: String, evaluation: Evaluation):
         "ImageData[image_Image, stype_String]"
         pixels = image.pixels
-        stype = stype.get_string_value()
+        stype = stype.value
         if stype == "Real":
             pixels = pixels_as_float(pixels)
         elif stype == "Byte":
@@ -1815,10 +1823,11 @@ class PixelValuePositions(_ImageBuiltin):
      = {0.25098, 0.0117647, 0.215686}
     """
 
-    summary_text = "list the position of pixels with a given value"
     rules = {
         "PixelValuePositions[image_Image, val_?RealNumberQ]": "PixelValuePositions[image, val, 0]"
     }
+
+    summary_text = "list the position of pixels with a given value"
 
     def eval(self, image, val, d, evaluation: Evaluation):
         "PixelValuePositions[image_Image, val_?RealNumberQ, d_?RealNumberQ]"
@@ -1849,7 +1858,9 @@ class PixelValuePositions(_ImageBuiltin):
 class ImageDimensions(_ImageBuiltin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
 
     <dl>
       <dt>'ImageDimensions[$image$]'
@@ -1904,7 +1915,6 @@ class ImageAspectRatio(_ImageBuiltin):
 
 class ImageChannels(_ImageBuiltin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/ImageChannels.html</url>
 
@@ -1959,7 +1969,6 @@ class ImageType(_ImageBuiltin):
 
 class BinaryImageQ(_ImageTest):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
 
@@ -2000,7 +2009,6 @@ def _image_pixels(matrix):
 
 class ImageQ(_ImageTest):
     """
-
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
 
     <dl>
@@ -2043,6 +2051,103 @@ class Image(Atom):
         self.color_space = color_space
         self.metadata = metadata
 
+        # Set a value for self.__hash__() once so that every time
+        # it is used this is fast. Note that in contrast to the
+        # cached object key, the hash key needs to be unique across all
+        # Python objects, so we include the class in the
+        # event that different objects have the same Python value
+        self.hash = hash(
+            (
+                "Image",
+                self.pixels.tobytes(),
+                self.color_space,
+                frozenset(self.metadata.items()),
+            )
+        )
+
+    def atom_to_boxes(self, form, evaluation: Evaluation) -> ImageBox:
+        """
+        Converts our internal Image object into a PNG base64-encoded.
+        """
+        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
+        shape = pixels.shape
+
+        width = shape[1]
+        height = shape[0]
+        scaled_width = width
+        scaled_height = height
+
+        # If the image was created from PIL, use that rather than
+        # reconstruct it from pixels which we can get wrong.
+        # In particular getting color-mapping info right can be
+        # tricky.
+        if hasattr(self, "pillow"):
+            pillow = deepcopy(self.pillow)
+        else:
+            pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
+            pillow = PIL.Image.fromarray(pixels, pixels_format)
+
+        # if the image is very small, scale it up using nearest neighbour.
+        min_size = 128
+        if width < min_size and height < min_size:
+            scale = min_size / max(width, height)
+            scaled_width = int(scale * width)
+            scaled_height = int(scale * height)
+            pillow = pillow.resize(
+                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
+            )
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            stream = BytesIO()
+            pillow.save(stream, format="png")
+            stream.seek(0)
+            contents = stream.read()
+            stream.close()
+
+        encoded = base64.b64encode(contents)
+        encoded = b"data:image/png;base64," + encoded
+
+        return ImageBox(
+            String(encoded.decode("utf-8")),
+            Integer(scaled_width),
+            Integer(scaled_height),
+        )
+
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
+    def __hash__(self):
+        return self.hash
+
+    def __str__(self):
+        return "-Image-"
+
+    def color_convert(self, to_color_space, preserve_alpha=True):
+        if to_color_space == self.color_space and preserve_alpha:
+            return self
+        else:
+            pixels = pixels_as_float(self.pixels)
+            converted = convert_color(
+                pixels, self.color_space, to_color_space, preserve_alpha
+            )
+            if converted is None:
+                return None
+            return Image(converted, to_color_space)
+
+    def channels(self):
+        return self.pixels.shape[2]
+
+    def default_format(self, evaluation, form):
+        return "-Image-"
+
+    def dimensions(self) -> Tuple[int, int]:
+        shape = self.pixels.shape
+        return shape[1], shape[0]
+
+    def do_copy(self):
+        return Image(self.pixels, self.color_space, self.metadata)
+
     def filter(self, f):  # apply PIL filters component-wise
         pixels = self.pixels
         n = pixels.shape[2]
@@ -2050,6 +2155,20 @@ class Image(Atom):
             f(PIL.Image.fromarray(c, "L")) for c in (pixels[:, :, i] for i in range(n))
         ]
         return Image(numpy.dstack(channels), self.color_space)
+
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        if pattern_sort:
+            # If pattern_sort=True, returns the sort key that matches to an Atom.
+            return super(Image, self).get_sort_key(True)
+        else:
+            # If pattern is False, return a sort_key for the expression `Image[]`,
+            # but with a `2` instead of `1` in the 5th position,
+            # and adding two extra fields: the length in the 5th position,
+            # and a hash in the 6th place.
+            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
+
+    def grayscale(self):
+        return self.color_convert("Grayscale")
 
     def pil(self):
         # see https://pillow.readthedocs.io/en/stable/handbook/concepts.html
@@ -2101,91 +2220,11 @@ class Image(Atom):
 
         return PIL.Image.fromarray(pixels, mode)
 
-    def color_convert(self, to_color_space, preserve_alpha=True):
-        if to_color_space == self.color_space and preserve_alpha:
-            return self
-        else:
-            pixels = pixels_as_float(self.pixels)
-            converted = convert_color(
-                pixels, self.color_space, to_color_space, preserve_alpha
-            )
-            if converted is None:
-                return None
-            return Image(converted, to_color_space)
-
-    def grayscale(self):
-        return self.color_convert("Grayscale")
-
-    def atom_to_boxes(self, f, evaluation: Evaluation) -> ImageBox:
-        """
-        Converts our internal Image object into a base64-encode
-        image PNG.
-        """
-        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
-        shape = pixels.shape
-
-        width = shape[1]
-        height = shape[0]
-        scaled_width = width
-        scaled_height = height
-
-        # If the image was created from PIL, use that rather than
-        # reconstruct it from pixels which we can get wrong.
-        # In particular getting color-mapping info right can be
-        # tricky.
-        if hasattr(self, "pillow"):
-            pillow = deepcopy(self.pillow)
-        else:
-            pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
-            pillow = PIL.Image.fromarray(pixels, pixels_format)
-
-        # if the image is very small, scale it up using nearest neighbour.
-        min_size = 128
-        if width < min_size and height < min_size:
-            scale = min_size / max(width, height)
-            scaled_width = int(scale * width)
-            scaled_height = int(scale * height)
-            pillow = pillow.resize(
-                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
-            )
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-
-            stream = BytesIO()
-            pillow.save(stream, format="png")
-            stream.seek(0)
-            contents = stream.read()
-            stream.close()
-
-        encoded = base64.b64encode(contents)
-        encoded = b"data:image/png;base64," + encoded
-
-        return ImageBox(
-            String(encoded.decode("utf-8")),
-            Integer(scaled_width),
-            Integer(scaled_height),
+    def options(self):
+        return ListExpression(
+            Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
+            Expression(SymbolRule, String("MetaInformation"), self.metadata),
         )
-
-    def __str__(self):
-        return "-Image-"
-
-    def do_copy(self):
-        return Image(self.pixels, self.color_space, self.metadata)
-
-    def default_format(self, evaluation, form):
-        return "-Image-"
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            # If pattern_sort=True, returns the sort key that matches to an Atom.
-            return super(Image, self).get_sort_key(True)
-        else:
-            # If pattern is False, return a sort_key for the expression `Image[]`,
-            # but with a `2` instead of `1` in the 5th position,
-            # and adding two extra fields: the length in the 5th position,
-            # and a hash in the 6th place.
-            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -2194,26 +2233,6 @@ class Image(Atom):
         if self.color_space != other.color_space or self.metadata != other.metadata:
             return False
         return numpy.array_equal(self.pixels, other.pixels)
-
-    def to_python(self, *args, **kwargs):
-        return self.pixels
-
-    def __hash__(self):
-        return hash(
-            (
-                "Image",
-                self.pixels.tobytes(),
-                self.color_space,
-                frozenset(self.metadata.items()),
-            )
-        )
-
-    def dimensions(self) -> Tuple[int, int]:
-        shape = self.pixels.shape
-        return shape[1], shape[0]
-
-    def channels(self):
-        return self.pixels.shape[2]
 
     def storage_type(self):
         dtype = self.pixels.dtype
@@ -2230,11 +2249,8 @@ class Image(Atom):
         else:
             return str(dtype)
 
-    def options(self):
-        return ListExpression(
-            Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
-            Expression(SymbolRule, String("MetaInformation"), self.metadata),
-        )
+    def to_python(self, *args, **kwargs):
+        return self.pixels
 
 
 class ImageAtom(AtomBuiltin):
@@ -2285,9 +2301,6 @@ class TextRecognize(Builtin):
     </dl>
     """
 
-    summary_text = "recognize text in an image"
-    requires = _image_requires + ("pyocr",)
-
     messages = {
         "tool": "No text recognition tools were found in the paths available to the Mathics kernel.",
         "langinv": "No language data for `1` is available.",
@@ -2295,6 +2308,10 @@ class TextRecognize(Builtin):
     }
 
     options = {"Language": '"English"'}
+
+    requires = _image_requires + ("pyocr",)
+
+    summary_text = "recognize text in an image"
 
     def eval(self, image, evaluation, options):
         "TextRecognize[image_Image, OptionsPattern[%(name)s]]"
