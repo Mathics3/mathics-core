@@ -103,6 +103,27 @@ class _SkimageBuiltin(_ImageBuiltin):
 # Code related to Mathics Functions that import and export.
 
 
+class ImageExport(_ImageBuiltin):
+    """
+    <dl>
+      <dt> 'ImageExport["path", $image$]'
+      <dd> export $image$ as file in "path".
+    </dl>
+    """
+
+    no_doc = True
+
+    messages = {"noimage": "only an Image[] can be exported into an image file"}
+
+    def eval(self, path: String, expr, opts, evaluation: Evaluation):
+        """ImageExport[path_String, expr_, opts___]"""
+        if isinstance(expr, Image):
+            expr.pil().save(path.value)
+            return SymbolNull
+        else:
+            return evaluation.message("ImageExport", "noimage")
+
+
 class ImageImport(_ImageBuiltin):
     """
     <dl>
@@ -142,27 +163,6 @@ class ImageImport(_ImageBuiltin):
             image_list_expression.append(options_from_exif)
 
         return ListExpression(*image_list_expression)
-
-
-class ImageExport(_ImageBuiltin):
-    """
-    <dl>
-      <dt> 'ImageExport["path", $image$]'
-      <dd> export $image$ as file in "path".
-    </dl>
-    """
-
-    no_doc = True
-
-    messages = {"noimage": "only an Image[] can be exported into an image file"}
-
-    def eval(self, path: String, expr, opts, evaluation: Evaluation):
-        """ImageExport[path_String, expr_, opts___]"""
-        if isinstance(expr, Image):
-            expr.pil().save(path.value)
-            return SymbolNull
-        else:
-            return evaluation.message("ImageExport", "noimage")
 
 
 # image math
@@ -250,36 +250,6 @@ class ImageAdd(_ImageArithmetic):
     summary_text = "build an image adding pixel values of another image "
 
 
-class ImageSubtract(_ImageArithmetic):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
-
-    <dl>
-      <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
-      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
-          image or a real number.
-    </dl>
-
-    >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
-
-    >> ImageSubtract[i, 0.2]
-     = -Image-
-
-    >> ImageSubtract[i, i]
-     = -Image-
-
-    #> ImageSubtract[i, 0.2, i, 0.1]
-     = -Image-
-
-    #> ImageSubtract[i, x]
-     : Expecting a number, image, or graphics instead of x.
-     = ImageSubtract[-Image-, x]
-    """
-
-    summary_text = "build an image substracting pixel values of another image "
-
-
 class ImageMultiply(_ImageArithmetic):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageMultiply.html</url>
@@ -311,6 +281,36 @@ class ImageMultiply(_ImageArithmetic):
     """
 
     summary_text = "build an image multiplying the pixel values of another image "
+
+
+class ImageSubtract(_ImageArithmetic):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
+
+    <dl>
+      <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
+      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
+          image or a real number.
+    </dl>
+
+    >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
+
+    >> ImageSubtract[i, 0.2]
+     = -Image-
+
+    >> ImageSubtract[i, i]
+     = -Image-
+
+    #> ImageSubtract[i, 0.2, i, 0.1]
+     = -Image-
+
+    #> ImageSubtract[i, x]
+     : Expecting a number, image, or graphics instead of x.
+     = ImageSubtract[-Image-, x]
+    """
+
+    summary_text = "build an image substracting pixel values of another image "
 
 
 class RandomImage(_ImageBuiltin):
@@ -868,7 +868,7 @@ class Blur(_ImageBuiltin):
      = -Image-
     """
 
-    summary_text = "blurred version of an image"
+    summary_text = "blur an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
         "Blur[image_Image, r_?RealNumberQ]": "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]",
@@ -1081,7 +1081,7 @@ class BoxMatrix(_ImageBuiltin):
      = {{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}}
     """
 
-    summary_text = "a matrix with all its entries set to 1"
+    summary_text = "create a matrix with all its entries set to 1"
 
     def eval(self, r, evaluation: Evaluation):
         "BoxMatrix[r_?RealNumberQ]"
@@ -1103,7 +1103,7 @@ class DiskMatrix(_ImageBuiltin):
      = {{0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}}
     """
 
-    summary_text = "a matrix with 1 in a disk-shaped region, and 0 outside"
+    summary_text = "create a matrix with 1 in a disk-shaped region, and 0 outside"
 
     def eval(self, r, evaluation: Evaluation):
         "DiskMatrix[r_?RealNumberQ]"
@@ -1134,7 +1134,7 @@ class DiamondMatrix(_ImageBuiltin):
      = {{0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0}}
     """
 
-    summary_text = "a matrix with 1 in a diamond-shaped region, and 0 outside"
+    summary_text = "create a matrix with 1 in a diamond-shaped region, and 0 outside"
 
     def eval(self, r, evaluation: Evaluation):
         "DiamondMatrix[r_?RealNumberQ]"
@@ -1258,7 +1258,7 @@ class Opening(_MorphologyFilter):
      = -Image-
     """
 
-    summary_text = "morphological opening regarding a kernel"
+    summary_text = "get morphological opening regarding a kernel"
 
 
 class Closing(_MorphologyFilter):
@@ -1784,7 +1784,7 @@ class PixelValue(_ImageBuiltin):
 
     messages = {"nopad": "Padding not implemented for PixelValue."}
 
-    summary_text = "pixel value of image at a given position"
+    summary_text = "get pixel value of image at a given position"
 
     def eval(self, image, x, y, evaluation: Evaluation):
         "PixelValue[image_Image, {x_?RealNumberQ, y_?RealNumberQ}]"
@@ -1880,7 +1880,7 @@ class ImageDimensions(_ImageBuiltin):
      = {2, 3}
     """
 
-    summary_text = "pixel dimensions of the raster associated with an image"
+    summary_text = "get pixel dimensions of the raster associated with an image"
 
     def eval(self, image, evaluation: Evaluation):
         "ImageDimensions[image_Image]"
@@ -1931,7 +1931,7 @@ class ImageChannels(_ImageBuiltin):
      = 3
     """
 
-    summary_text = "number of channels present in the data for an image"
+    summary_text = "get number of channels present in the data for an image"
 
     def eval(self, image, evaluation: Evaluation):
         "ImageChannels[image_Image]"
@@ -2271,7 +2271,7 @@ class ImageAtom(AtomBuiltin):
      = -Image-
     """
 
-    summary_text = "internal representation of an image"
+    summary_text = "get internal representation of an image"
     requires = _image_requires
 
     def eval_create(self, array, evaluation: Evaluation):
@@ -2359,167 +2359,164 @@ class TextRecognize(Builtin):
         return String(text)
 
 
-import sys
+class WordCloud(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/WordCloud.html</url>
 
-if "Pyston" not in sys.version:
+    <dl>
+      <dt>'WordCloud[{$word1$, $word2$, ...}]'
+      <dd>Gives a word cloud with the given list of words.
 
-    class WordCloud(Builtin):
-        """
-        <url>
-        :WMA link:
-        https://reference.wolfram.com/language/ref/WordCloud.html</url>
+      <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
 
-        <dl>
-          <dt>'WordCloud[{$word1$, $word2$, ...}]'
-          <dd>Gives a word cloud with the given list of words.
+      <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
+      <dd>Also gives a word cloud with the words weighted using the given weights.
 
-          <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
-          <dd>Gives a word cloud with the words weighted using the given weights.
+      <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
+    </dl>
 
-          <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
-          <dd>Also gives a word cloud with the words weighted using the given weights.
+    >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
+     = -Image-
 
-          <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
-          <dd>Gives a word cloud with the words weighted using the given weights.
-        </dl>
+    >> WordCloud[Range[50] -> ToString /@ Range[50]]
+     = -Image-
+    """
 
-        >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
-         = -Image-
+    # this is the palettable.colorbrewer.qualitative.Dark2_8 palette
+    default_colors = (
+        (27, 158, 119),
+        (217, 95, 2),
+        (117, 112, 179),
+        (231, 41, 138),
+        (102, 166, 30),
+        (230, 171, 2),
+        (166, 118, 29),
+        (102, 102, 102),
+    )
 
-        >> WordCloud[Range[50] -> ToString /@ Range[50]]
-         = -Image-
-        """
+    options = {
+        "IgnoreCase": "True",
+        "ImageSize": "Automatic",
+        "MaxItems": "Automatic",
+    }
 
-        summary_text = "a word cloud from a list of words"
-        requires = _image_requires + ("wordcloud",)
+    requires = _image_requires + ("wordcloud",)
 
-        options = {
-            "IgnoreCase": "True",
-            "ImageSize": "Automatic",
-            "MaxItems": "Automatic",
-        }
+    summary_text = "show a word cloud from a list of words"
 
-        # this is the palettable.colorbrewer.qualitative.Dark2_8 palette
-        default_colors = (
-            (27, 158, 119),
-            (217, 95, 2),
-            (117, 112, 179),
-            (231, 41, 138),
-            (102, 166, 30),
-            (230, 171, 2),
-            (166, 118, 29),
-            (102, 102, 102),
-        )
+    def eval_words_weights(self, weights, words, evaluation, options):
+        "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
+        if len(weights.elements) != len(words.elements):
+            return
 
-        def eval_words_weights(self, weights, words, evaluation, options):
-            "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
-            if len(weights.elements) != len(words.elements):
-                return
+        def weights_and_words():
+            for weight, word in zip(weights.elements, words.elements):
+                yield weight.round_to_float(), word.get_string_value()
+
+        return self._word_cloud(weights_and_words(), evaluation, options)
+
+    def eval_words(self, words, evaluation, options):
+        "WordCloud[words_List, OptionsPattern[%(name)s]]"
+
+        if not words:
+            return
+        elif isinstance(words.elements[0], String):
 
             def weights_and_words():
-                for weight, word in zip(weights.elements, words.elements):
-                    yield weight.round_to_float(), word.get_string_value()
+                for word in words.elements:
+                    yield 1, word.get_string_value()
 
+        else:
+
+            def weights_and_words():
+                for word in words.elements:
+                    if len(word.elements) != 2:
+                        raise ValueError
+
+                    head_name = word.get_head_name()
+                    if head_name == "System`Rule":
+                        weight, s = word.elements
+                    elif head_name == "System`List":
+                        s, weight = word.elements
+                    else:
+                        raise ValueError
+
+                    yield weight.round_to_float(), s.get_string_value()
+
+        try:
             return self._word_cloud(weights_and_words(), evaluation, options)
+        except ValueError:
+            return
 
-        def eval_words(self, words, evaluation, options):
-            "WordCloud[words_List, OptionsPattern[%(name)s]]"
+    def _word_cloud(self, words, evaluation, options):
+        ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
+            "True"
+        )
 
-            if not words:
+        freq = defaultdict(int)
+        for py_weight, py_word in words:
+            if py_word is None or py_weight is None:
                 return
-            elif isinstance(words.elements[0], String):
+            key = py_word.lower() if ignore_case else py_word
+            freq[key] += py_weight
 
-                def weights_and_words():
-                    for word in words.elements:
-                        yield 1, word.get_string_value()
+        max_items = self.get_option(options, "MaxItems", evaluation)
+        if isinstance(max_items, Integer):
+            py_max_items = max_items.get_int_value()
+        else:
+            py_max_items = 200
 
-            else:
-
-                def weights_and_words():
-                    for word in words.elements:
-                        if len(word.elements) != 2:
-                            raise ValueError
-
-                        head_name = word.get_head_name()
-                        if head_name == "System`Rule":
-                            weight, s = word.elements
-                        elif head_name == "System`List":
-                            s, weight = word.elements
-                        else:
-                            raise ValueError
-
-                        yield weight.round_to_float(), s.get_string_value()
-
-            try:
-                return self._word_cloud(weights_and_words(), evaluation, options)
-            except ValueError:
-                return
-
-        def _word_cloud(self, words, evaluation, options):
-            ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
-                "True"
-            )
-
-            freq = defaultdict(int)
-            for py_weight, py_word in words:
-                if py_word is None or py_weight is None:
+        image_size = self.get_option(options, "ImageSize", evaluation)
+        if image_size is Symbol("Automatic"):
+            py_image_size = (800, 600)
+        elif (
+            image_size.get_head_name() == "System`List"
+            and len(image_size.elements) == 2
+        ):
+            py_image_size = []
+            for element in image_size.elements:
+                if not isinstance(element, Integer):
                     return
-                key = py_word.lower() if ignore_case else py_word
-                freq[key] += py_weight
+                py_image_size.append(element.get_int_value())
+        elif isinstance(image_size, Integer):
+            size = image_size.get_int_value()
+            py_image_size = (size, size)
+        else:
+            return
 
-            max_items = self.get_option(options, "MaxItems", evaluation)
-            if isinstance(max_items, Integer):
-                py_max_items = max_items.get_int_value()
-            else:
-                py_max_items = 200
+        # inspired by http://minimaxir.com/2016/05/wordclouds/
+        import random
 
-            image_size = self.get_option(options, "ImageSize", evaluation)
-            if image_size is Symbol("Automatic"):
-                py_image_size = (800, 600)
-            elif (
-                image_size.get_head_name() == "System`List"
-                and len(image_size.elements) == 2
-            ):
-                py_image_size = []
-                for element in image_size.elements:
-                    if not isinstance(element, Integer):
-                        return
-                    py_image_size.append(element.get_int_value())
-            elif isinstance(image_size, Integer):
-                size = image_size.get_int_value()
-                py_image_size = (size, size)
-            else:
-                return
+        def color_func(
+            word, font_size, position, orientation, random_state=None, **kwargs
+        ):
+            return self.default_colors[random.randint(0, 7)]
 
-            # inspired by http://minimaxir.com/2016/05/wordclouds/
-            import random
+        font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
 
-            def color_func(
-                word, font_size, position, orientation, random_state=None, **kwargs
-            ):
-                return self.default_colors[random.randint(0, 7)]
+        font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
+        if not osp.exists(font_path):
+            font_path = None
 
-            font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
+        from wordcloud import WordCloud
 
-            font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
-            if not osp.exists(font_path):
-                font_path = None
+        wc = WordCloud(
+            width=py_image_size[0],
+            height=py_image_size[1],
+            font_path=font_path,
+            max_font_size=300,
+            mode="RGB",
+            background_color="white",
+            max_words=py_max_items,
+            color_func=color_func,
+            random_state=42,
+            stopwords=set(),
+        )
+        wc.generate_from_frequencies(freq)
 
-            from wordcloud import WordCloud
-
-            wc = WordCloud(
-                width=py_image_size[0],
-                height=py_image_size[1],
-                font_path=font_path,
-                max_font_size=300,
-                mode="RGB",
-                background_color="white",
-                max_words=py_max_items,
-                color_func=color_func,
-                random_state=42,
-                stopwords=set(),
-            )
-            wc.generate_from_frequencies(freq)
-
-            image = wc.to_image()
-            return Image(numpy.array(image), "RGB")
+        image = wc.to_image()
+        return Image(numpy.array(image), "RGB")
