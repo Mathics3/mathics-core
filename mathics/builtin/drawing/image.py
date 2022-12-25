@@ -531,7 +531,7 @@ class ImageResize(_ImageBuiltin):
             )
         elif resampling_name == "Bicubic":
             return image.filter(
-                lambda im: im.resize((w, h), resample=PIL.Image.BICUBIC)
+                lambda im: im.resize((w, h), resample=PIL.Image.Resampling.BICUBIC)
             )
         elif resampling_name != "Gaussian":
             return evaluation.message("ImageResize", "imgrsm", resampling)
@@ -1712,18 +1712,37 @@ class ImageTake(_ImageBuiltin):
       <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
       <dd>gives a cropped version of $image$.
     </dl>
+
+    Crop to the include only the upper half (244 rows) of an image:
+    >> alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, 244]
+     = "-Image-"
+
+    Now crop to the include the lower half of that image:
+    >> ImageTake[alice, -244]
+     = "-Image-"
     """
 
-    summary_text = "create an image from a range of lines of another image"
+    summary_text = "crop image"
 
     def eval(self, image, n: Integer, evaluation: Evaluation):
         "ImageTake[image_Image, n_Integer]"
         py_n = n.value
+        max_y, max_x = image.pixels.shape[:2]
         if py_n >= 0:
-            pixels = image.pixels[:py_n]
+            adjusted_n = min(py_n, max_y)
+            pixels = image.pixels[:adjusted_n]
+            box_coords = (0, 0, max_x, adjusted_n)
         elif py_n < 0:
-            pixels = image.pixels[py_n:]
-        return Image(pixels, image.color_space)
+            adjusted_n = max(0, max_y + py_n)
+            pixels = image.pixels[adjusted_n:]
+            box_coords = (0, adjusted_n, max_x, max_y)
+
+        if hasattr(image, "pillow"):
+            pillow = image.pillow.crop(box_coords)
+            pixels = numpy.asarray(pillow)
+            return Image(pixels, image.color_space, pillow=pillow)
+
+        return Image(pixels, image.color_space, pillow=pillow)
 
     def _slice(self, image, i1: Integer, i2: Integer, axis):
         n = image.pixels.shape[axis]
@@ -1754,8 +1773,9 @@ class ImageTake(_ImageBuiltin):
 
 class PixelValue(_ImageBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PixelValue.html</url>
 
     <dl>
       <dt>'PixelValue[$image$, {$x$, $y$}]'
@@ -1857,14 +1877,13 @@ class PixelValuePositions(_ImageBuiltin):
 
 class ImageDimensions(_ImageBuiltin):
     """
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
 
     <dl>
       <dt>'ImageDimensions[$image$]'
-      <dd>Returns the dimensions of $image$ in pixels.
+      <dd>Returns the dimensions {$width$, $height$} of $image$ in pixels.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -1873,14 +1892,9 @@ class ImageDimensions(_ImageBuiltin):
 
     >> ImageDimensions[RandomImage[1, {50, 70}]]
      = {50, 70}
-
-    #> Image[{{0, 1}, {1, 0}, {1, 1}}] // ImageDimensions
-     = {2, 3}
-    #> Image[{{0.2, 0.4}, {0.9, 0.6}, {0.3, 0.8}}] // ImageDimensions
-     = {2, 3}
     """
 
-    summary_text = "get pixel dimensions of the raster associated with an image"
+    summary_text = "get the pixel dimensions of an image"
 
     def eval(self, image, evaluation: Evaluation):
         "ImageDimensions[image_Image]"
@@ -2255,8 +2269,9 @@ class Image(Atom):
 
 class ImageAtom(AtomBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAtom.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageAtom.html</url>
 
     <dl>
       <dt>'Image[...]'
