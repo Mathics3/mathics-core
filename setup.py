@@ -35,7 +35,9 @@ import sys
 
 from setuptools import Extension, setup
 
-is_PyPy = platform.python_implementation() == "PyPy"
+is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
+    sys, "pypy_version_info"
+)
 
 INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0"]
 
@@ -49,13 +51,13 @@ elif sys.version_info[:2] == (3, 6):
         "recordclass",
         "numpy",
         "llvmlite<0.37",
-        "sympy>=1.8,<1.9",
+        "sympy>=1.8,<1.12",
     ]
     if is_PyPy:
         print("Mathics does not support PyPy Python 3.6" % sys.version_info[:2])
         sys.exit(-1)
 else:
-    INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.11"]
+    INSTALL_REQUIRES += ["numpy<=1.24", "llvmlite", "sympy>=1.8, < 1.12"]
 
 if not is_PyPy:
     INSTALL_REQUIRES += ["recordclass"]

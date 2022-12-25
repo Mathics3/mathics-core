@@ -632,6 +632,11 @@ def post_sub(text, post_substitutions):
     return text
 
 
+def skip_doc(cls):
+    """Returns True if we should skip cls in docstring extraction."""
+    return cls.__name__.endswith("Box") or (hasattr(cls, "no_doc") and cls.no_doc)
+
+
 class Tests:
     # FIXME: add optional guide section
     def __init__(self, part: str, chapter: str, section: str, doctests):

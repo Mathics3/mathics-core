@@ -2,6 +2,8 @@
 
 import platform
 import sys
+from importlib import import_module
+from typing import Dict
 
 import mpmath
 import numpy
@@ -9,21 +11,40 @@ import sympy
 
 from mathics.version import __version__
 
-version_info = {
+# version_info contains a list of Python packages
+# and the versions infsalled or "Not installed"
+# if the package is not installed and "No version information"
+# if we can't get version infomation.
+version_info: Dict[str, str] = {
     "mathics": __version__,
-    "sympy": sympy.__version__,
     "mpmath": mpmath.__version__,
     "numpy": numpy.__version__,
     "python": platform.python_implementation() + " " + sys.version.split("\n")[0],
+    "sympy": sympy.__version__,
 }
 
-try:
-    import cython
-except ImportError:
-    pass
-else:
-    version_info["cython"] = cython.__version__
 
+# optional_software contains a list of Python packages
+# that add functionality but are optional
+optional_software: Dict[str, str] = (
+    "cython",
+    "lxml",
+    "networkx",
+    "nltk",
+    "psutil",
+    "scikit-image",
+    "scipy",
+    "wordcloud",
+)
+
+for package in optional_software:
+    try:
+        mod = import_module(package)
+        package_version = mod.__dict__.get("__version__", "No version information")
+    except ImportError:
+        package_version = "Not installed"
+
+    version_info[package] = package_version
 
 version_string = """Mathics {mathics}
 on {python}

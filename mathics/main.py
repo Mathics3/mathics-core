@@ -345,7 +345,7 @@ Please contribute to Mathics!""",
     )
     args, script_args = argparser.parse_known_args()
 
-    quit_command = "CTRL-BREAK" if sys.platform == "win32" else "CONTROL-D"
+    quit_command = "CTRL-BREAK" if sys.platform in ("win32", "nt") else "CONTROL-D"
 
     extension_modules = []
     if args.pyextensions:
