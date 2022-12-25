@@ -21,7 +21,6 @@ version_info: Dict[str, str] = {
     "numpy": numpy.__version__,
     "python": platform.python_implementation() + " " + sys.version.split("\n")[0],
     "sympy": sympy.__version__,
-    "sympy": sympy.__version__,
 }
 
 

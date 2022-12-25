@@ -35,7 +35,9 @@ import sys
 
 from setuptools import Extension, setup
 
-is_PyPy = platform.python_implementation() == "PyPy"
+is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
+    sys, "pypy_version_info"
+)
 
 INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0"]
 

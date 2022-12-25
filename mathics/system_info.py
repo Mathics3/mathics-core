@@ -13,7 +13,7 @@ from mathics.core.evaluation import Evaluation
 
 def python_implementation() -> str:
     """
-    Returns the Python implemnetation, e.g Pyston, PyPy, CPython...
+    Returns the Python implementation, e.g Pyston, PyPy, CPython...
     """
     if hasattr(sys, "pyston_version_info"):
         custom_version_info = sys.pyston_version_info
