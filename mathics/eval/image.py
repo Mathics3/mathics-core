@@ -15,6 +15,7 @@ from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
+from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
 
 try:
@@ -110,6 +111,34 @@ def extract_exif(image, evaluation: Evaluation) -> Optional[Expression]:
             )
 
         return Expression(SymbolRule, String("RawExif"), ListExpression(*exif_options))
+
+
+def get_image_size_spec(old_size, new_size) -> Optional[float]:
+    predefined_sizes = {
+        "System`Tiny": 75,
+        "System`Small": 150,
+        "System`Medium": 300,
+        "System`Large": 450,
+        "System`Automatic": 0,  # placeholder
+    }
+    result = new_size.round_to_float()
+    if result is not None:
+        result = int(result)
+        if result <= 0:
+            return None
+        return result
+
+    if isinstance(new_size, Symbol):
+        name = new_size.get_name()
+        if name == "System`All":
+            return old_size
+        return predefined_sizes.get(name, None)
+    if new_size.has_form("Scaled", 1):
+        s = new_size.elements[0].round_to_float()
+        if s is None:
+            return None
+        return max(1, old_size * s)  # handle negative s values silently
+    return None
 
 
 def matrix_to_numpy(a):

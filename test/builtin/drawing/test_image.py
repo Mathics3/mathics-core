@@ -51,10 +51,10 @@ image_tests = [
 ]
 
 
-@pytest.mark.skipif(
-    not check_requires_list(["skimage"]),
-    reason="scikit-image (AKA skimage) is needed for working with Images",
-)
+# @pytest.mark.skipif(
+#     not check_requires_list(["skimage"]),
+#     reason="scikit-image (AKA skimage) is needed for working with Images",
+# )
 @pytest.mark.skipif(
     os.getenv("SANDBOX", False),
     reason="Test doesn't work in a sandboxed environment with access to local files",

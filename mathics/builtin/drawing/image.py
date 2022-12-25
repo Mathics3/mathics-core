@@ -17,7 +17,7 @@ import math
 import os.path as osp
 from collections import defaultdict
 from copy import deepcopy
-from typing import Optional, Tuple
+from typing import Tuple
 
 from mathics.builtin.base import AtomBuiltin, Builtin, String, Test
 from mathics.builtin.box.image import ImageBox
@@ -44,6 +44,7 @@ from mathics.core.systemsymbols import SymbolRule
 from mathics.eval.image import (
     convolve,
     extract_exif,
+    get_image_size_spec,
     matrix_to_numpy,
     numpy_flip,
     numpy_to_matrix,
@@ -72,6 +73,14 @@ try:
 
 except ImportError:
     pass
+
+
+try:
+    import skimage.filters
+except ImportError:
+    have_skimage_filters = False
+else:
+    have_skimage_filters = True
 
 from io import BytesIO
 
@@ -445,33 +454,6 @@ class ImageResize(_ImageBuiltin):
     options = {"Resampling": "Automatic"}
     summary_text = "resize an image"
 
-    def _get_image_size_spec(self, old_size, new_size) -> Optional[float]:
-        predefined_sizes = {
-            "System`Tiny": 75,
-            "System`Small": 150,
-            "System`Medium": 300,
-            "System`Large": 450,
-            "System`Automatic": 0,  # placeholder
-        }
-        result = new_size.round_to_float()
-        if result is not None:
-            result = int(result)
-            if result <= 0:
-                return None
-            return result
-
-        if isinstance(new_size, Symbol):
-            name = new_size.get_name()
-            if name == "System`All":
-                return old_size
-            return predefined_sizes.get(name, None)
-        if new_size.has_form("Scaled", 1):
-            s = new_size.elements[0].round_to_float()
-            if s is None:
-                return None
-            return max(1, old_size * s)  # handle negative s values silently
-        return None
-
     def eval_resize_width(self, image, s, evaluation, options):
         "ImageResize[image_Image, s_, OptionsPattern[ImageResize]]"
         old_w = image.pixels.shape[1]
@@ -479,7 +461,7 @@ class ImageResize(_ImageBuiltin):
             width = s.elements[0]
         else:
             width = s
-        w = self._get_image_size_spec(old_w, width)
+        w = get_image_size_spec(old_w, width)
         if w is None:
             return evaluation.message("ImageResize", "imgrssz", s)
         if s.has_form("List", 1):
@@ -502,8 +484,8 @@ class ImageResize(_ImageBuiltin):
 
         # find new size
         old_w, old_h = image.pixels.shape[1], image.pixels.shape[0]
-        w = self._get_image_size_spec(old_w, width)
-        h = self._get_image_size_spec(old_h, height)
+        w = get_image_size_spec(old_w, width)
+        h = get_image_size_spec(old_h, height)
         if h is None or w is None:
             return evaluation.message(
                 "ImageResize", "imgrssz", to_mathics_list(width, height)
@@ -530,9 +512,14 @@ class ImageResize(_ImageBuiltin):
                 lambda im: im.resize((w, h), resample=PIL.Image.NEAREST)
             )
         elif resampling_name == "Bicubic":
-            return image.filter(
-                lambda im: im.resize((w, h), resample=PIL.Image.Resampling.BICUBIC)
+            # After Python 3.6 support is dropped, this can be simplified
+            # to for Pillow 9+ and use PIL.Image.Resampling.BICUBIC only.
+            bicubic = (
+                PIL.Image.Resampling.BICUBIC
+                if hasattr(PIL.Image, "Resampling")
+                else PIL.Image.BICUBIC
             )
+            return image.filter(lambda im: im.resize((w, h), resample=bicubic))
         elif resampling_name != "Gaussian":
             return evaluation.message("ImageResize", "imgrsm", resampling)
 
@@ -581,11 +568,13 @@ class ImageReflect(_ImageBuiltin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageReflect.html</url>
     <dl>
-    <dt>'ImageReflect[$image$]'
+      <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
-    <dt>'ImageReflect[$image$, $side$]'
+
+      <dt>'ImageReflect[$image$, $side$]'
       <dd>Flips $image$ so that $side$ is interchanged with its opposite.
-    <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
+
+      <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
       <dd>Flips $image$ so that $side_1$ is interchanged with $side_2$.
     </dl>
 
@@ -1377,7 +1366,7 @@ class ColorQuantize(_ImageBuiltin):
         return Image(numpy.array(im), "RGB")
 
 
-class Threshold(_SkimageBuiltin):
+class Threshold(_ImageBuiltin):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Threshold.html</url>
@@ -1401,7 +1390,10 @@ class Threshold(_SkimageBuiltin):
     """
 
     summary_text = "estimate a threshold value for binarize an image"
-    options = {"Method": '"Cluster"'}
+    if have_skimage_filters:
+        options = {"Method": '"Cluster"'}
+    else:
+        options = {"Method": '"Median"'}
 
     messages = {
         "illegalmethod": "Method `` is not supported.",
@@ -1419,8 +1411,9 @@ class Threshold(_SkimageBuiltin):
             else method.to_python()
         )
         if method_name == "Cluster":
-            import skimage.filters
-
+            if not have_skimage_filters:
+                evaluation.message("ImageResize", "skimage")
+                return
             threshold = skimage.filters.threshold_otsu(pixels)
         elif method_name == "Median":
             threshold = numpy.median(pixels)
@@ -1432,7 +1425,7 @@ class Threshold(_SkimageBuiltin):
         return MachineReal(float(threshold))
 
 
-class Binarize(_SkimageBuiltin):
+class Binarize(_ImageBuiltin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Binarize.html</url>
 
@@ -1482,7 +1475,6 @@ class Binarize(_SkimageBuiltin):
 
 class ColorSeparate(_ImageBuiltin):
     """
-
     <url>
     :WMA link:
     https://reference.wolfram.com/language/ref/ColorSeparate.html</url>
@@ -1715,11 +1707,11 @@ class ImageTake(_ImageBuiltin):
 
     Crop to the include only the upper half (244 rows) of an image:
     >> alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, 244]
-     = "-Image-"
+     = -Image-
 
     Now crop to the include the lower half of that image:
     >> ImageTake[alice, -244]
-     = "-Image-"
+     = -Image-
     """
 
     summary_text = "crop image"
