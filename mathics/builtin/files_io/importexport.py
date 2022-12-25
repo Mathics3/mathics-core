@@ -2,12 +2,15 @@
 
 """
 Importing and Exporting
+
+Many kinds data formats can be read into \Mathics .
 """
 
 # This tells documentation how to sort this module
 # Here we are also hiding "file_io" since this can erroneously appear at the top level.
 sort_order = "mathics.builtin.importing-and-exporting"
 
+import base64
 import mimetypes
 import os
 import sys
@@ -21,6 +24,7 @@ from mathics.core.atoms import ByteArrayAtom
 from mathics.core.attributes import A_NO_ATTRIBUTES, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.streams import stream_manager
@@ -945,10 +949,10 @@ class ImportFormats(Predefined):
      = {...CSV,...JSON,...Text...}
     """
 
-    summary_text = "list supported import formats"
     name = "$ImportFormats"
+    summary_text = "list supported import formats"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return to_mathics_list(*sorted(IMPORTERS.keys()), elements_conversion_fn=String)
 
 
@@ -968,7 +972,7 @@ class ExportFormats(Predefined):
     name = "$ExportFormats"
     summary_text = "list supported export formats"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return to_mathics_list(*sorted(EXPORTERS.keys()), elements_conversion_fn=String)
 
 
@@ -977,8 +981,8 @@ class ConverterDumpsExtensionMappings(Predefined):
     ## <url>:internal native symbol:</url>
 
     <dl>
-    <dt>'$extensionMappings'
-        <dd>Returns a list of associations between file extensions and file types.
+      <dt>'$extensionMappings'
+      <dd>Returns a list of associations between file extensions and file types.
     </dl>
     """
 
@@ -987,7 +991,7 @@ class ConverterDumpsExtensionMappings(Predefined):
     name = "$extensionMappings"
     attributes = A_NO_ATTRIBUTES
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return from_python(EXTENSIONMAPPINGS)
 
 
@@ -1001,27 +1005,31 @@ class ConverterDumpsFormatMappings(Predefined):
     </dl>
     """
 
-    summary_text = "associations between file extensions and file types"
+    attributes = A_NO_ATTRIBUTES
     context = "System`ConvertersDump`"
     # TODO: Check why this does not follows the convention of
     # starting words in identifiers with caps.
     name = "$formatMappings"
-    attributes = A_NO_ATTRIBUTES
+    summary_text = "associations between file extensions and file types"
 
-    def evaluate(self, evaluation):
+    def evaluate(self, evaluation: Evaluation):
         return from_python(FORMATMAPPINGS)
 
 
 class RegisterImport(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RegisterImport.html</url>
+    <url>:
+    WMA link:
+    https://reference.wolfram.com/language/ref/RegisterImport.html</url>
 
     <dl>
-    <dt>'RegisterImport["$format$", $defaultFunction$]'
+      <dt>'RegisterImport["$format$", $defaultFunction$]'
       <dd>register '$defaultFunction$' as the default function used when importing from a file of type '"$format$"'.
-    <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
+
+      <dt>'RegisterImport["$format$", {"$elem1$" :> $conditionalFunction1$, "$elem2$" :> $conditionalFunction2$, ..., $defaultFunction$}]'
       <dd>registers multiple elements ($elem1$, ...) and their corresponding converter functions ($conditionalFunction1$, ...) in addition to the $defaultFunction$.
-    <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
+
+      <dt>'RegisterImport["$format$", {"$conditionalFunctions$, $defaultFunction$, "$elem3$" :> $postFunction3$, "$elem4$" :> $postFunction4$, ...}]'
       <dd>also registers additional elements ($elem3$, ...) whose converters ($postFunction3$, ...) act on output from the low-level funcions.
     </dl>
 
@@ -1087,31 +1095,31 @@ class RegisterImport(Builtin):
 
     """
 
-    summary_text = "Register an importer for a file format"
     context = "ImportExport`"
 
     attributes = A_PROTECTED | A_READ_PROTECTED
 
     # XXX OptionsIssue
     options = {
-        "Path": "Automatic",
-        "FunctionChannels": '{"FileNames"}',
-        "Sources": "None",
-        "DefaultElement": "Automatic",
+        "AlphaChannel": "False",
         "AvailableElements": "None",
-        "Options": "{}",
-        "OriginalChannel": "False",
         "BinaryFormat": "False",
+        "DefaultElement": "Automatic",
         "Encoding": "False",
         "Extensions": "{}",
-        "AlphaChannel": "False",
+        "FunctionChannels": '{"FileNames"}',
+        "Options": "{}",
+        "OriginalChannel": "False",
+        "Path": "Automatic",
+        "Sources": "None",
     }
 
     rules = {
         "ImportExport`RegisterImport[formatname_String, function_]": "ImportExport`RegisterImport[formatname, function, {}]",
     }
+    summary_text = "Register an importer for a file format"
 
-    def apply(self, formatname, function, posts, evaluation, options):
+    def eval(self, formatname, function, posts, evaluation: Evaluation, options):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
         OptionsPattern[ImportExport`RegisterImport]]"""
 
@@ -1147,10 +1155,12 @@ class RegisterImport(Builtin):
 
 class RegisterExport(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/RegisterExport.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/RegisterExport.html</url>
 
     <dl>
-    <dt>'RegisterExport["$format$", $func$]'
+      <dt>'RegisterExport["$format$", $func$]'
       <dd>register '$func$' as the default function used when exporting from a file of type '"$format$"'.
     </dl>
 
@@ -1196,20 +1206,22 @@ class RegisterExport(Builtin):
         "AlphaChannel": "False",
     }
 
-    def apply(self, formatname, function, evaluation, options):
+    def eval(self, formatname: String, function, evaluation: Evaluation, options):
         """ImportExport`RegisterExport[formatname_String, function_,
         OptionsPattern[ImportExport`RegisterExport]]"""
-        EXPORTERS[formatname.get_string_value()] = (function, options)
+        EXPORTERS[formatname.value] = (function, options)
 
         return SymbolNull
 
 
 class URLFetch(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/URLFetch.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/URLFetch.html</url>
 
     <dl>
-    <dt>'URLFetch[$URL$]'
+      <dt>'URLFetch[$URL$]'
       <dd> Returns the content of $URL$ as a string.
     </dl>
 
@@ -1226,7 +1238,7 @@ class URLFetch(Builtin):
         "httperr": "`1` could not be retrieved; `2`.",
     }
 
-    def apply(self, url, elements, evaluation, options={}):
+    def eval(self, url: String, elements, evaluation: Evaluation, options={}):
         "URLFetch[url_String, elements_, OptionsPattern[]]"
 
         import os
@@ -1360,17 +1372,17 @@ class Import(Builtin):
 
     summary_text = "import elements from a file"
 
-    def apply(self, filename, evaluation, options={}):
+    def eval(self, filename, evaluation, options={}):
         "Import[filename_, OptionsPattern[]]"
-        return self.apply_elements(filename, ListExpression(), evaluation, options)
+        return self.eval_elements(filename, ListExpression(), evaluation, options)
 
-    def apply_element(self, filename, element, evaluation, options={}):
+    def eval_element(self, filename, element: String, evaluation, options={}):
         "Import[filename_, element_String, OptionsPattern[]]"
-        return self.apply_elements(
+        return self.eval_elements(
             filename, ListExpression(element), evaluation, options
         )
 
-    def apply_elements(self, filename, elements, evaluation, options={}):
+    def eval_elements(self, filename, elements, evaluation, options={}):
         "Import[filename_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         # Check filename
         path = filename.to_python()
@@ -1578,7 +1590,9 @@ class Import(Builtin):
 
 class ImportString(Import):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImportString.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImportString.html</url>
 
     <dl>
       <dt>'ImportString["$data$", "$format$"]'
@@ -1619,33 +1633,32 @@ class ImportString(Import):
      = ...
     """
 
-    summary_text = "import elements from a string"
     messages = {
         "string": "First argument `1` is not a string.",
         "noelem": ("The Import element `1` is not present when importing as `2`."),
         "fmtnosup": "`1` is not a supported Import format.",
     }
-
-    rules = {}
-
     options = {
         "$OptionSyntax": "System`Ignore",
     }
+    rules = {}
+    summary_text = "import elements from a string"
 
-    def apply(self, data, evaluation, options={}):
+    def eval(self, data, evaluation, options={}):
         "ImportString[data_, OptionsPattern[]]"
-        return self.apply_elements(data, ListExpression(), evaluation, options)
+        return self.eval_elements(data, ListExpression(), evaluation, options)
 
-    def apply_element(self, data, element, evaluation, options={}):
+    def eval_element(self, data, element: String, evaluation, options={}):
         "ImportString[data_, element_String, OptionsPattern[]]"
 
-        return self.apply_elements(data, ListExpression(element), evaluation, options)
+        return self.eval_elements(data, ListExpression(element), evaluation, options)
 
-    def apply_elements(self, data, elements, evaluation, options={}):
+    def eval_elements(self, data, elements, evaluation, options={}):
         "ImportString[data_, elements_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
         if not (isinstance(data, String)):
             evaluation.message("ImportString", "string", data)
             return SymbolFailed
+        path = data.value
 
         def determine_filetype():
             if not FileFormat.detector:
@@ -1659,7 +1672,7 @@ class ImportString(Import):
                 if key in mime:
                     result.append(mimetype_dict[key])
 
-            # the following fixes an extremely annoying behaviour on some (not all)
+            # The following fixes an extremely annoying behaviour on some (not all)
             # installations of Windows, where we end up classifying .csv files als XLS.
             if (
                 len(result) == 1
@@ -1781,7 +1794,21 @@ class Export(Builtin):
 
     summary_text = "export elements to a file"
 
-    def apply(self, filename, expr, evaluation, options={}):
+    def _check_filename(self, filename, evaluation: Evaluation):
+        path = filename.to_python()
+        if isinstance(path, str) and path[0] == path[-1] == '"':
+            return True
+        evaluation.message("Export", "chtype", filename)
+        return False
+
+    def _infer_form(self, filename, evaluation: Evaluation):
+        ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
+        ext = ext.get_string_value().lower()
+        # TODO: This dictionary should be accesible from the WL API
+        # to allow defining specific converters
+        return self._extdict.get(ext)
+
+    def eval(self, filename, expr, evaluation, options={}):
         "Export[filename_, expr_, OptionsPattern[Export]]"
 
         # Check filename
@@ -1795,17 +1822,15 @@ class Export(Builtin):
             evaluation.message("Export", "infer", filename)
             return SymbolFailed
         else:
-            return self.apply_elements(
-                filename, expr, String(form), evaluation, options
-            )
+            return self.eval_elements(filename, expr, String(form), evaluation, options)
 
-    def apply_element(self, filename, expr, element, evaluation, options={}):
+    def eval_element(self, filename, expr, element: String, evaluation, options={}):
         "Export[filename_, expr_, element_String, OptionsPattern[]]"
-        return self.apply_elements(
+        return self.eval_elements(
             filename, expr, ListExpression(element), evaluation, options
         )
 
-    def apply_elements(self, filename, expr, elems, evaluation, options={}):
+    def eval_elements(self, filename, expr, elems, evaluation, options={}):
         "Export[filename_, expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[]]"
 
         # Check filename
@@ -1891,20 +1916,6 @@ class Export(Builtin):
         evaluation.predetermined_out = current_predetermined_out
         return SymbolFailed
 
-    def _check_filename(self, filename, evaluation):
-        path = filename.to_python()
-        if isinstance(path, str) and path[0] == path[-1] == '"':
-            return True
-        evaluation.message("Export", "chtype", filename)
-        return False
-
-    def _infer_form(self, filename, evaluation):
-        ext = Expression(SymbolFileExtension, filename).evaluate(evaluation)
-        ext = ext.get_string_value().lower()
-        # TODO: This dictionary should be accesible from the WL API
-        # to allow defining specific converters
-        return self._extdict.get(ext)
-
 
 class ExportString(Builtin):
     """
@@ -1933,25 +1944,25 @@ class ExportString(Builtin):
      = String
     """
 
-    summary_text = "export elements to a string"
-    options = {
-        "$OptionSyntax": "System`Ignore",
-    }
-
     messages = {
         "noelem": "`1` is not a valid set of export elements for the `2` format.",
         "emptyfch": "Function Channel not defined.",
     }
 
+    options = {
+        "$OptionSyntax": "System`Ignore",
+    }
+
     rules = {
         "ExportString[expr_, elems_?NotListQ]": ("ExportString[expr, {elems}]"),
     }
+    summary_text = "export elements to a string"
 
-    def apply_element(self, expr, element, evaluation, **options):
+    def eval_element(self, expr, element: String, evaluation: Evaluation, **options):
         "ExportString[expr_, element_String, OptionsPattern[ExportString]]"
-        return self.apply_elements(expr, ListExpression(element), evaluation, **options)
+        return self.eval_elements(expr, ListExpression(element), evaluation, **options)
 
-    def apply_elements(self, expr, elems, evaluation, **options):
+    def eval_elements(self, expr, elems, evaluation: Evaluation, **options):
         "ExportString[expr_, elems_List?(AllTrue[#, NotOptionQ]&), OptionsPattern[ExportString]]"
         # Process elems {comp* format?, elem1*}
         elements = elems.get_elements()
@@ -2154,7 +2165,7 @@ class FileFormat(Builtin):
 
     detector = None
 
-    def apply(self, filename, evaluation):
+    def eval(self, filename: String, evaluation: Evaluation):
         "FileFormat[filename_String]"
 
         findfile = Expression(SymbolFindFile, filename).evaluate(evaluation)
@@ -2164,7 +2175,7 @@ class FileFormat(Builtin):
             )
             return findfile
 
-        path = findfile.get_string_value()
+        path = findfile.value
         if not FileFormat.detector:
             loader = magic.MagicLoader()
             loader.load()
@@ -2199,47 +2210,6 @@ class FileFormat(Builtin):
         return from_python(result)
 
 
-import base64
-
-
-class B64Encode(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/B64Encode.html</url>
-
-    <dl>
-    <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
-    <dd>Encodes $expr$ in Base64 coding
-    </dl>
-
-    >> System`Convert`B64Dump`B64Encode["Hello world"]
-     = SGVsbG8gd29ybGQ=
-    >> System`Convert`B64Dump`B64Decode[%]
-     = Hello world
-    >> System`Convert`B64Dump`B64Encode[Integrate[f[x],{x,0,2}]]
-     = SW50ZWdyYXRlW2ZbeF0sIHt4LCAwLCAyfV0=
-    >> System`Convert`B64Dump`B64Decode[%]
-     = Integrate[f[x], {x, 0, 2}]
-    """
-
-    summary_text = "encode an element as a base64 string"
-    context = "System`Convert`B64Dump`"
-    name = "B64Encode"
-
-    def apply(self, expr, evaluation):
-        "System`Convert`B64Dump`B64Encode[expr_]"
-        if isinstance(expr, String):
-            stringtocodify = expr.get_string_value()
-        elif expr.get_head_name() == "System`ByteArray":
-            return String(expr._elements[0].__str__())
-        else:
-            stringtocodify = (
-                Expression(SymbolToString, expr).evaluate(evaluation).get_string_value()
-            )
-        return String(
-            base64.b64encode(bytearray(stringtocodify, "utf8")).decode("utf8")
-        )
-
-
 class B64Decode(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/B64Decode.html</url>
@@ -2261,12 +2231,10 @@ class B64Decode(Builtin):
         "b64invalidstr": 'String "`1`" is not a valid b64 encoded string.',
     }
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr: String, evaluation: Evaluation):
         "System`Convert`B64Dump`B64Decode[expr_String]"
         try:
-            clearstring = base64.b64decode(
-                bytearray(expr.get_string_value(), "utf8")
-            ).decode("utf8")
+            clearstring = base64.b64decode(bytearray(expr.value, "utf8")).decode("utf8")
             clearstring = String(str(clearstring))
         except Exception:
             evaluation.message(
@@ -2276,26 +2244,41 @@ class B64Decode(Builtin):
         return clearstring
 
 
-class ConvertCommonDumpRemoveLinearSyntax(Builtin):
+class B64Encode(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ConvertCommonDumpRemoveLinearSyntax.html</url>
+    <url>
+    :WMA link
+    :https://reference.wolfram.com/language/ref/B64Encode.html</url>
 
     <dl>
-    <dt> 'System`Convert`CommonDump`RemoveLinearSyntax[$something$]'
-    <dd> Keine anung... Undocumented in wma
+      <dt> 'System`Convert`B64Dump`B64Encode[$expr$]'
+      <dd>Encodes $expr$ in Base64 coding
     </dl>
+
+    >> System`Convert`B64Dump`B64Encode["Hello world"]
+     = SGVsbG8gd29ybGQ=
+    >> System`Convert`B64Dump`B64Decode[%]
+     = Hello world
+    >> System`Convert`B64Dump`B64Encode[Integrate[f[x],{x,0,2}]]
+     = SW50ZWdyYXRlW2ZbeF0sIHt4LCAwLCAyfV0=
+    >> System`Convert`B64Dump`B64Decode[%]
+     = Integrate[f[x], {x, 0, 2}]
     """
 
-    summary_text = "document me..."
-    options = {
-        "System`Convert`CommonDump`ConvertRecursive": "False",
-    }
-    # options = {"ConvertRecursive" : "False", }
-    attributes = A_READ_PROTECTED | A_PROTECTED
-    context = "System`Convert`CommonDump`"
-    name = "RemoveLinearSyntax"
+    context = "System`Convert`B64Dump`"
+    name = "B64Encode"
+    summary_text = "encode an element as a base64 string"
 
-    def apply(self, arg, evaluation):
-        "System`Convert`CommonDump`RemoveLinearSyntax[arg_]"
-        print("No idea what should this do. By now, do nothing...")
-        return arg
+    def eval(self, expr, evaluation: Evaluation):
+        "System`Convert`B64Dump`B64Encode[expr_]"
+        if isinstance(expr, String):
+            stringtocodify = expr.value
+        elif expr.get_head_name() == "System`ByteArray":
+            return String(expr._elements[0].__str__())
+        else:
+            stringtocodify = (
+                Expression(SymbolToString, expr).evaluate(evaluation).get_string_value()
+            )
+        return String(
+            base64.b64encode(bytearray(stringtocodify, "utf8")).decode("utf8")
+        )
