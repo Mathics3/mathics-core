@@ -11,6 +11,9 @@ API
 
 #. New function ``mathics.system_info.python_implementation()`` shows the Python Implementation, e.g. CPython, PyPy, Pyston that is running Python. This is included in the information ``mathics.system_info.mathics_system__system_info()`` returns and is used in ``$PythonImplementation``
 #. A list of optional software can be found in ``mathics.optional_software``. Versions of that software are included in ``mathics.version_info``.
+#. Environment variable ``LOCAL_ROOT_DIR`` influences where to build documentation. This is useful in building the system inside docker containers.
+#. Environment variable ``MATHICS_CHARACTER_ENCODING``, can be used to specify the character encoding to use on input and output. It is typically "UTF-8", but in tests it is set to "ASCII" to ensure tests work the same on both systems that do and don't support unicode.
+
 
 
 Package update
