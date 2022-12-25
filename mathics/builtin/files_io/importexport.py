@@ -3,7 +3,18 @@
 """
 Importing and Exporting
 
-Many kinds data formats can be read into \Mathics .
+Many kinds data formats can be read into \Mathics. Variable <url>
+:$ExportFormats:
+/doc/reference-of-built-in-symbols/importing-and-exporting/$exportformats</url> \
+contains a list of file formats that are supported by <url>
+:Export:
+/doc/reference-of-built-in-symbols/importing-and-exporting/export</url>, \
+while <url>
+:$InputFormats:
+/doc/reference-of-built-in-symbols/importing-and-exporting/$inputformats</url> \
+does the corresponding thing for <url>
+:Import:
+/doc/reference-of-built-in-symbols/importing-and-exporting/import</url>.
 """
 
 # This tells documentation how to sort this module
@@ -981,15 +992,18 @@ class ConverterDumpsExtensionMappings(Predefined):
     ## <url>:internal native symbol:</url>
 
     <dl>
-      <dt>'$extensionMappings'
+      <dt>'System`ConvertersDump`$ExtensionMappings'
       <dd>Returns a list of associations between file extensions and file types.
     </dl>
+
+    >> System`ConvertersDump`$ExtensionMappings
+     = ...
     """
 
-    summary_text = "associations between file extensions and file types"
-    context = "System`ConvertersDump`"
-    name = "$extensionMappings"
     attributes = A_NO_ATTRIBUTES
+    context = "System`ConvertersDump`"
+    name = "$ExtensionMappings"
+    summary_text = "get associations file extensions and their abstract file type"
 
     def evaluate(self, evaluation: Evaluation):
         return from_python(EXTENSIONMAPPINGS)
@@ -1000,17 +1014,20 @@ class ConverterDumpsFormatMappings(Predefined):
     ## <url>:internal native symbol:</url>
 
     <dl>
-    <dt>'$formatMappings'
-        <dd>Returns a list of associations between file extensions and file types.
+      <dt>'System`ConverterDump$FormatMappings'
+      <dd>Returns a list of associations between file extensions and file types.
     </dl>
+
+    >> System`ConvertersDump`$FormatMappings
+     = ...
     """
 
     attributes = A_NO_ATTRIBUTES
     context = "System`ConvertersDump`"
     # TODO: Check why this does not follows the convention of
     # starting words in identifiers with caps.
-    name = "$formatMappings"
-    summary_text = "associations between file extensions and file types"
+    name = "$FormatMappings"
+    summary_text = "get associations between mime types their abstract file type"
 
     def evaluate(self, evaluation: Evaluation):
         return from_python(FORMATMAPPINGS)
@@ -1018,9 +1035,7 @@ class ConverterDumpsFormatMappings(Predefined):
 
 class RegisterImport(Builtin):
     """
-    <url>:
-    WMA link:
-    https://reference.wolfram.com/language/ref/RegisterImport.html</url>
+    ## <url>:internal native symbol:</url>
 
     <dl>
       <dt>'RegisterImport["$format$", $defaultFunction$]'
@@ -1117,7 +1132,7 @@ class RegisterImport(Builtin):
     rules = {
         "ImportExport`RegisterImport[formatname_String, function_]": "ImportExport`RegisterImport[formatname, function, {}]",
     }
-    summary_text = "Register an importer for a file format"
+    summary_text = "register an importer for a file format"
 
     def eval(self, formatname, function, posts, evaluation: Evaluation, options):
         """ImportExport`RegisterImport[formatname_String, function_, posts_,
@@ -1155,9 +1170,7 @@ class RegisterImport(Builtin):
 
 class RegisterExport(Builtin):
     """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/RegisterExport.html</url>
+    ## <url>:internal native symbol:</url>
 
     <dl>
       <dt>'RegisterExport["$format$", $func$]'
@@ -1189,7 +1202,7 @@ class RegisterExport(Builtin):
     #> DeleteFile["sample.txt"]
     """
 
-    summary_text = "Register an exporter for a file format"
+    summary_text = "register an exporter for a file format"
     context = "ImportExport`"
 
     options = {
