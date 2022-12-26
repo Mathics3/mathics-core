@@ -19,7 +19,14 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
+from mathics.core.systemsymbols import (
+    SymbolFullForm,
+    SymbolInfix,
+    SymbolInputForm,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolRowBox,
+)
 from mathics.eval.makeboxes import _boxed_string, format_element
 
 
@@ -455,12 +462,33 @@ class MakeBoxes(Builtin):
     # And this is recent with respect to PredefinedSymbol revision.
     # How does this get set and why?
     def eval_infix(
-        self, expr, operator, prec: Integer, grouping, form: Symbol, evaluation
+        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
     ):
-        """MakeBoxes[Infix[expr_, operator_, prec_:None, grouping_:None],
+        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
 
-        assert isinstance(prec, Integer)
+        # In WMA, this is covered with two different rules:
+        #  * ```MakeBoxes[Infix[expr_, operator_]```
+        #  * ```MakeBoxes[Infix[expr_, operator_, precedence_, grouping_:None]```
+        # In the second form, precedence must be an Integer. Otherwise, a message is
+        # shown and fall back to the standard MakeBoxes form.
+        # Here we allow Precedence to be ```System`None```, to have just one rule.
+
+        if precedence is SymbolNone:
+            precedence_value = None
+        elif isinstance(precedence, Integer):
+            precedence_value = precedence.value
+        else:
+            if grouping is not SymbolNone:
+                # Here I use a String as a head to avoid a circular evaluation.
+                # TODO: Use SymbolInfix when the MakeBoxes refactor be done.
+                expr = Expression(String("Infix"), expr, operator, precedence, grouping)
+            else:
+                expr = Expression(String("Infix"), expr, operator, precedence)
+            evaluation.message("Infix", "intm", expr)
+            return self.eval_general(expr, form, evaluation)
+
+        grouping = grouping.get_name()
 
         ## FIXME: this should go into a some formatter.
         def format_operator(operator) -> Union[String, BaseElement]:
@@ -490,9 +518,6 @@ class MakeBoxes(Builtin):
                 return op
             return operator
 
-        precedence = prec.value
-        grouping = grouping.get_name()
-
         if isinstance(expr, Atom):
             evaluation.message("Infix", "normal", Integer1)
             return None
@@ -501,7 +526,9 @@ class MakeBoxes(Builtin):
         if len(elements) > 1:
             if operator.has_form("List", len(elements) - 1):
                 operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(elements, operator, precedence, grouping, form)
+                return make_boxes_infix(
+                    elements, operator, precedence_value, grouping, form
+                )
             else:
                 encoding_rule = evaluation.definitions.get_ownvalue(
                     "$CharacterEncoding"
@@ -523,7 +550,9 @@ class MakeBoxes(Builtin):
                         String(operator_to_unicode.get(op_str, op_str))
                     )
 
-            return make_boxes_infix(elements, operator, precedence, grouping, form)
+            return make_boxes_infix(
+                elements, operator, precedence_value, grouping, form
+            )
 
         elif len(elements) == 1:
             return MakeBoxes(elements[0], form)
