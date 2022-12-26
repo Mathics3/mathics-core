@@ -41,6 +41,78 @@ SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
+def eval_makeboxes_infix(
+    expr: Expression,
+    operator: BaseElement,
+    form: Symbol,
+    evaluation,
+    precedence_value: Optional[int] = None,
+    grouping: Optional[str] = None,
+):
+    """Implements MakeBoxes[Infix[...]]"""
+
+    ## FIXME: this should go into a some formatter.
+    def format_operator(operator) -> Union[String, BaseElement]:
+        """
+        Format infix operator `operator`. To do this outside parameter form is used.
+        Sometimes no changes are made and operator is returned unchanged.
+
+        This function probably should be rewritten be more scalable across other forms
+        and moved to a module that contiaing similar formatting routines.
+        """
+        if not isinstance(operator, String):
+            return MakeBoxes(operator, form)
+
+        op_str = operator.value
+
+        # FIXME: performing a check using the operator symbol representation feels a bit
+        # fragile. The operator name seems more straightforward and more robust.
+        if form == SymbolInputForm and op_str in ["*", "^", " "]:
+            return operator
+        elif (
+            form in (SymbolInputForm, SymbolOutputForm)
+            and not op_str.startswith(" ")
+            and not op_str.endswith(" ")
+        ):
+            # FIXME: Again, testing on specific forms is fragile and not scalable.
+            op = String(" " + op_str + " ")
+            return op
+        return operator
+
+    if isinstance(expr, Atom):
+        evaluation.message("Infix", "normal", Integer1)
+        return None
+
+    elements = expr.elements
+    if len(elements) > 1:
+        if operator.has_form("List", len(elements) - 1):
+            operator = [format_operator(op) for op in operator.elements]
+            return make_boxes_infix(
+                elements, operator, precedence_value, grouping, form
+            )
+        else:
+            encoding_rule = evaluation.definitions.get_ownvalue("$CharacterEncoding")
+            encoding = "UTF8" if encoding_rule is None else encoding_rule.replace.value
+            op_str = (
+                operator.value if isinstance(operator, String) else operator.short_name
+            )
+            if encoding == "ASCII":
+                operator = format_operator(
+                    String(operator_to_ascii.get(op_str, op_str))
+                )
+            else:
+                operator = format_operator(
+                    String(operator_to_unicode.get(op_str, op_str))
+                )
+
+        return make_boxes_infix(elements, operator, precedence_value, grouping, form)
+
+    elif len(elements) == 1:
+        return MakeBoxes(elements[0], form)
+    else:
+        return MakeBoxes(expr, form)
+
+
 class Center(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Center.html</url>
@@ -170,7 +242,7 @@ class Infix(Builtin):
 
     # the right rule should be
     # mbexpression:MakeBoxes[Infix[___], form]
-    def eval_all(self, expression, form, evaluation):
+    def eval_makeboxes(self, expression, form, evaluation):
         """MakeBoxes[Infix[___],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
         infix_expr = expression.elements[0]
@@ -183,10 +255,10 @@ class Infix(Builtin):
 
         if num_parms == 1:
             expr = elements[0]
-            return self.do_eval_infix(expr, String("~"), form, evaluation)
+            return eval_makeboxes_infix(expr, String("~"), form, evaluation)
         if num_parms == 2:
             expr, operator = elements
-            return self.do_eval_infix(expr, operator, form, evaluation)
+            return eval_makeboxes_infix(expr, operator, form, evaluation)
 
         expr, operator, precedence = elements[:3]
         if not isinstance(precedence, Integer):
@@ -199,96 +271,16 @@ class Infix(Builtin):
 
         grouping = SymbolNone if num_parms < 4 else elements[3]
         if grouping is SymbolNone:
-            return self.do_eval_infix(
+            return eval_makeboxes_infix(
                 expr, operator, form, evaluation, precedence.value
             )
         if grouping in (SymbolNonAssociative, SymbolLeft, SymbolRight):
-            return self.do_eval_infix(
+            return eval_makeboxes_infix(
                 expr, operator, form, evaluation, precedence.value, grouping.get_name()
             )
 
         evaluation.message("Infix", "argb", grouping)
         return eval_fullform_makeboxes(infix_expr, evaluation, form)
-
-    def do_eval_infix(
-        self,
-        expr: Expression,
-        operator: BaseElement,
-        form: Symbol,
-        evaluation,
-        precedence_value: Optional[int] = None,
-        grouping: Optional[str] = None,
-    ):
-        """Implements MakeBoxes[Infix[...]]"""
-
-        ## FIXME: this should go into a some formatter.
-        def format_operator(operator) -> Union[String, BaseElement]:
-            """
-            Format infix operator `operator`. To do this outside parameter form is used.
-            Sometimes no changes are made and operator is returned unchanged.
-
-            This function probably should be rewritten be more scalable across other forms
-            and moved to a module that contiaing similar formatting routines.
-            """
-            if not isinstance(operator, String):
-                return MakeBoxes(operator, form)
-
-            op_str = operator.value
-
-            # FIXME: performing a check using the operator symbol representation feels a bit
-            # fragile. The operator name seems more straightforward and more robust.
-            if form == SymbolInputForm and op_str in ["*", "^", " "]:
-                return operator
-            elif (
-                form in (SymbolInputForm, SymbolOutputForm)
-                and not op_str.startswith(" ")
-                and not op_str.endswith(" ")
-            ):
-                # FIXME: Again, testing on specific forms is fragile and not scalable.
-                op = String(" " + op_str + " ")
-                return op
-            return operator
-
-        if isinstance(expr, Atom):
-            evaluation.message("Infix", "normal", Integer1)
-            return None
-
-        elements = expr.elements
-        if len(elements) > 1:
-            if operator.has_form("List", len(elements) - 1):
-                operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(
-                    elements, operator, precedence_value, grouping, form
-                )
-            else:
-                encoding_rule = evaluation.definitions.get_ownvalue(
-                    "$CharacterEncoding"
-                )
-                encoding = (
-                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
-                )
-                op_str = (
-                    operator.value
-                    if isinstance(operator, String)
-                    else operator.short_name
-                )
-                if encoding == "ASCII":
-                    operator = format_operator(
-                        String(operator_to_ascii.get(op_str, op_str))
-                    )
-                else:
-                    operator = format_operator(
-                        String(operator_to_unicode.get(op_str, op_str))
-                    )
-
-            return make_boxes_infix(
-                elements, operator, precedence_value, grouping, form
-            )
-
-        elif len(elements) == 1:
-            return MakeBoxes(elements[0], form)
-        else:
-            return MakeBoxes(expr, form)
 
 
 class Left(Builtin):
