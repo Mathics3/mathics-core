@@ -51,6 +51,7 @@ from mathics.eval.image import (
     pixels_as_float,
     pixels_as_ubyte,
     pixels_as_uint,
+    resize_width_height,
 )
 
 SymbolColorQuantize = Symbol("ColorQuantize")
@@ -85,7 +86,7 @@ else:
 from io import BytesIO
 
 # The following classes are used to allow inclusion of
-# Buultin Functions only when certain Python packages
+# Builtin Functions only when certain Python packages
 # are available. They do this by setting the `requires` class variable.
 
 
@@ -399,7 +400,6 @@ class RandomImage(_ImageBuiltin):
 
 class ImageResize(_ImageBuiltin):
     """
-
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageResize.html</url>
 
     <dl>
@@ -410,38 +410,37 @@ class ImageResize(_ImageBuiltin):
       <dd>
     </dl>
 
-    S> ein = Import["ExampleData/Einstein.jpg"]
-     = -Image-
-
-    S> ImageDimensions[ein]
-     = {615, 768}
-    S> ImageResize[ein, {400, 600}]
-     = -Image-
-    S> ImageDimensions[%]
-     = {400, 600}
-
-    S> ImageResize[ein, {256}]
-     = -Image-
-
-    S> ImageDimensions[%]
-     = {256, 256}
-
     The Resampling option can be used to specify how to resample the image. Options are:
     <ul>
       <li>Automatic
       <li>Bicubic
-      <li>Gaussian
+      <li>Bilinear
+      <li>Box
+      <li>Hamming
+      <li>Lanczos
       <li>Nearest
     </ul>
 
-    The default sampling method is Bicubic.
+    See <url>
+    :Pillow Filters:
+    https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters</url>\
+    for a description of these.
 
-    S> ImageResize[ein, 256, Resampling -> "Bicubic"]
+    S> alice = Import["ExampleData/MadTeaParty.gif"]
      = -Image-
 
-    S> ImageResize[ein, 256, Resampling -> "Gaussian"]
-     = ...
-     : ...
+    S> shape = ImageDimensions[alice]
+     = {640, 487}
+
+    S> ImageResize[alice, shape / 2]
+     = -Image-
+
+    The default sampling method is "Bicubic" which has pretty good upscaling \
+    and downscaling quality. However "Box" is the fastest:
+
+
+    S> ImageResize[alice, shape / 2, Resampling -> "Box"]
+     = -Image-
     """
 
     messages = {
@@ -480,7 +479,7 @@ class ImageResize(_ImageBuiltin):
         ):
             resampling_name = "Bicubic"
         else:
-            resampling_name = resampling.get_string_value()
+            resampling_name = resampling.value
 
         # find new size
         old_w, old_h = image.pixels.shape[1], image.pixels.shape[0]
@@ -507,66 +506,14 @@ class ImageResize(_ImageBuiltin):
             h, w = int(round(h)), int(round(w))
 
         # perform the resize
-        if resampling_name == "Nearest":
-            return image.filter(
-                lambda im: im.resize((w, h), resample=PIL.Image.NEAREST)
-            )
-        elif resampling_name == "Bicubic":
-            # After Python 3.6 support is dropped, this can be simplified
-            # to for Pillow 9+ and use PIL.Image.Resampling.BICUBIC only.
-            bicubic = (
-                PIL.Image.Resampling.BICUBIC
-                if hasattr(PIL.Image, "Resampling")
-                else PIL.Image.BICUBIC
-            )
-            return image.filter(lambda im: im.resize((w, h), resample=bicubic))
-        elif resampling_name != "Gaussian":
-            return evaluation.message("ImageResize", "imgrsm", resampling)
-
-        try:
-            from skimage import __version__ as skimage_version, transform
-
-            multichannel = image.pixels.ndim == 3
-
-            sy = h / old_h
-            sx = w / old_w
-            if sy > sx:
-                err = abs((sy * old_w) - (sx * old_w))
-                s = sy
-            else:
-                err = abs((sy * old_h) - (sx * old_h))
-                s = sx
-            if err > 1.5:
-                # TODO overcome this limitation
-                return evaluation.message("ImageResize", "gaussaspect")
-            elif s > 1:
-                pixels = transform.pyramid_expand(
-                    image.pixels, upscale=s, multichannel=multichannel
-                ).clip(0, 1)
-            else:
-                kwargs = {"downscale": (1.0 / s)}
-                # scikit_image in version 0.19 changes the resize parameter deprecating
-                # "multichannel". scikit_image also doesn't support older Pythons like 3.6.15.
-                # If we drop suport for 3.6 we can probably remove
-                if skimage_version >= "0.19":
-                    # Not totally sure that we want channel_axis=1, but it makes the
-                    # test work. multichannel is deprecated in scikit-image-19.2
-                    # Previously we used multichannel (=3)
-                    # as in the above s > 1 case.
-                    kwargs["channel_axis"] = 2
-                else:
-                    kwargs["multichannel"] = multichannel
-
-                pixels = transform.pyramid_reduce(image.pixels, **kwargs).clip(0, 1)
-
-            return Image(pixels, image.color_space)
-        except ImportError:
-            evaluation.message("ImageResize", "skimage")
+        return resize_width_height(image, w, h, resampling_name, evaluation)
 
 
 class ImageReflect(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageReflect.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageReflect.html</url>
     <dl>
       <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
