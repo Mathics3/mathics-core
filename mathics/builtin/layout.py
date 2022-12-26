@@ -8,7 +8,7 @@ For instance, to represent a set of consecutive expressions in a row,
 we can use ``Row``
 
 """
-
+from typing import Optional, Union
 
 from mathics.builtin.base import BinaryOperator, Builtin, Operator
 from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
@@ -18,10 +18,20 @@ from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Real, String
 from mathics.core.expression import Evaluation, Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolMakeBoxes
-from mathics.eval.makeboxes import format_element
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import (
+    SymbolFullForm,
+    SymbolInfix,
+    SymbolInputForm,
+    SymbolLeft,
+    SymbolMakeBoxes,
+    SymbolNone,
+    SymbolOutputForm,
+    SymbolRight,
+)
+from mathics.eval.makeboxes import format_element, make_boxes_infix
 
+SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 
 
@@ -145,10 +155,177 @@ class Infix(Builtin):
     """
 
     messages = {
-        "normal": "Nonatomic expression expected at position `1`",
+        "argb": "Infix called with `1` arguments; between 1 and 4 arguments are expected.",
+        "group": "Infix::group: Grouping specification `1` is not NonAssociative, None, Left, or Right.",
         "intm": "Machine-sized integer expected at position 3 in `1`",
+        "normal": "Nonatomic expression expected at position `1`",
     }
     summary_text = "infix form"
+
+    # the right rule should be
+    # mbexpression:MakeBoxes[Infix[___], form]
+
+    def eval_infix_1(self, expr: Expression, form: Symbol, evaluation):
+        """MakeBoxes[Infix[expr_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        return self.do_eval_infix(expr, String("~"), form, evaluation)
+
+    def eval_infix_2(
+        self, expr: Expression, operator: BaseElement, form: Symbol, evaluation
+    ):
+        """MakeBoxes[Infix[expr_, operator_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        return self.do_eval_infix(expr, operator, form, evaluation)
+
+    def eval_infix_3(
+        self,
+        expr: Expression,
+        operator: BaseElement,
+        precedence: BaseElement,
+        form: Symbol,
+        evaluation,
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+
+        if not isinstance(precedence, Integer):
+            evaluation.message(
+                "Infix",
+                "intm",
+                Expression(
+                    SymbolFullForm, Expression(SymbolInfix, expr, operator, precedence)
+                ),
+            )
+            return
+
+        return self.do_eval_infix(expr, operator, form, evaluation, precedence.value)
+
+    def eval_infix_4(
+        self,
+        expr: Expression,
+        operator: BaseElement,
+        precedence: BaseElement,
+        grouping: BaseElement,
+        form: Symbol,
+        evaluation,
+    ):
+        """MakeBoxes[Infix[expr_, operator_, precedence_, grouping_],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        if not isinstance(precedence, Integer):
+            fullform_expr = Expression(
+                SymbolFullForm,
+                Expression(SymbolInfix, expr, operator, precedence, grouping),
+            )
+            evaluation.message(
+                "Infix",
+                "intm",
+                Expression(
+                    SymbolFullForm,
+                    Expression(SymbolInfix, expr, operator, precedence, grouping),
+                ),
+            )
+            return fullform_expr
+
+        if grouping is SymbolNone:
+            return self.do_eval_infix(
+                expr, operator, form, evaluation, precedence.value
+            )
+        if grouping in (SymbolNonAssociative, SymbolLeft, SymbolRight):
+            return self.do_eval_infix(
+                expr, operator, form, evaluation, precedence.value, grouping.get_name()
+            )
+
+        evaluation.message("Infix", "argb", grouping)
+        return Expression(
+            SymbolFullForm,
+            Expression(SymbolInfix, expr, operator, precedence, grouping),
+        )
+
+    def eval_infix_default(self, parms, form: Symbol, evaluation):
+        """MakeBoxes[Infix[parms___],
+        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        evaluation.message("Infix", "argb", Integer(len(parms.get_sequence())))
+        return None
+
+    def do_eval_infix(
+        self,
+        expr: Expression,
+        operator: BaseElement,
+        form: Symbol,
+        evaluation,
+        precedence_value: Optional[int] = None,
+        grouping: Optional[str] = None,
+    ):
+        """Implements MakeBoxes[Infix[...]]"""
+
+        ## FIXME: this should go into a some formatter.
+        def format_operator(operator) -> Union[String, BaseElement]:
+            """
+            Format infix operator `operator`. To do this outside parameter form is used.
+            Sometimes no changes are made and operator is returned unchanged.
+
+            This function probably should be rewritten be more scalable across other forms
+            and moved to a module that contiaing similar formatting routines.
+            """
+            if not isinstance(operator, String):
+                return MakeBoxes(operator, form)
+
+            op_str = operator.value
+
+            # FIXME: performing a check using the operator symbol representation feels a bit
+            # fragile. The operator name seems more straightforward and more robust.
+            if form == SymbolInputForm and op_str in ["*", "^", " "]:
+                return operator
+            elif (
+                form in (SymbolInputForm, SymbolOutputForm)
+                and not op_str.startswith(" ")
+                and not op_str.endswith(" ")
+            ):
+                # FIXME: Again, testing on specific forms is fragile and not scalable.
+                op = String(" " + op_str + " ")
+                return op
+            return operator
+
+        if isinstance(expr, Atom):
+            evaluation.message("Infix", "normal", Integer1)
+            return None
+
+        elements = expr.elements
+        if len(elements) > 1:
+            if operator.has_form("List", len(elements) - 1):
+                operator = [format_operator(op) for op in operator.elements]
+                return make_boxes_infix(
+                    elements, operator, precedence_value, grouping, form
+                )
+            else:
+                encoding_rule = evaluation.definitions.get_ownvalue(
+                    "$CharacterEncoding"
+                )
+                encoding = (
+                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
+                )
+                op_str = (
+                    operator.value
+                    if isinstance(operator, String)
+                    else operator.short_name
+                )
+                if encoding == "ASCII":
+                    operator = format_operator(
+                        String(operator_to_ascii.get(op_str, op_str))
+                    )
+                else:
+                    operator = format_operator(
+                        String(operator_to_unicode.get(op_str, op_str))
+                    )
+
+            return make_boxes_infix(
+                elements, operator, precedence_value, grouping, form
+            )
+
+        elif len(elements) == 1:
+            return MakeBoxes(elements[0], form)
+        else:
+            return MakeBoxes(expr, form)
 
 
 class Left(Builtin):

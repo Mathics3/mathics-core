@@ -11,23 +11,15 @@ import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
-from mathics.core.atoms import Integer, Integer1, Real, String
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
-from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import (
-    SymbolFullForm,
-    SymbolInfix,
-    SymbolInputForm,
-    SymbolNone,
-    SymbolOutputForm,
-    SymbolRowBox,
-)
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.core.symbols import Atom
+from mathics.core.systemsymbols import SymbolRowBox
+from mathics.eval.makeboxes import _boxed_string, format_element, parenthesize
 
 
 def int_to_s_exp(expr, n):
@@ -40,56 +32,6 @@ def int_to_s_exp(expr, n):
         s = str(n)
     exp = len(s) - 1
     return s, exp, nonnegative
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
-
-
-# FIXME: op should be a string, so remove the Union.
-def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
-):
-    result = []
-    for index, element in enumerate(elements):
-        if index > 0:
-            if isinstance(op, list):
-                result.append(op[index - 1])
-            else:
-                result.append(op)
-        parenthesized = False
-        if grouping == "System`NonAssociative":
-            parenthesized = True
-        elif grouping == "System`Left" and index > 0:
-            parenthesized = True
-        elif grouping == "System`Right" and index == 0:
-            parenthesized = True
-
-        element_boxes = MakeBoxes(element, form)
-        element = parenthesize(precedence, element, element_boxes, parenthesized)
-
-        result.append(element)
-    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def real_to_s_exp(expr, n):
