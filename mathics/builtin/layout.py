@@ -47,7 +47,15 @@ def eval_makeboxes_infix(
     precedence_value: Optional[int] = None,
     grouping: Optional[str] = None,
 ):
-    """Implements MakeBoxes[Infix[...]]"""
+    """Implements MakeBoxes[Infix[...]]."""
+
+    # Actually, this function implements one part of the evaluation:
+    # the one that should be done at the "format" level. In that point,
+    # the operators are processed to add spaces and use the right
+    # encoding. This should be done at the level of the formatter, not
+    # in the "MakeBoxes" step.
+    # Then, the true implementation is done
+    # in  ```mathics.eval.makeboxes.make_boxes_infix```.
 
     ## FIXME: this should go into a some formatter.
     def format_operator(operator) -> Union[String, BaseElement]:
