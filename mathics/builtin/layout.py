@@ -146,6 +146,7 @@ class Infix(Builtin):
 
     messages = {
         "normal": "Nonatomic expression expected at position `1`",
+        "intm": "Machine-sized integer expected at position 3 in `1`",
     }
     summary_text = "infix form"
 
