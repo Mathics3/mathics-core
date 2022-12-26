@@ -16,7 +16,8 @@ import functools
 import math
 import os.path as osp
 from collections import defaultdict
-from typing import Optional, Tuple
+from copy import deepcopy
+from typing import Tuple
 
 from mathics.builtin.base import AtomBuiltin, Builtin, String, Test
 from mathics.builtin.box.image import ImageBox
@@ -35,18 +36,22 @@ from mathics.core.atoms import (
 )
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
+from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
-from mathics.core.systemsymbols import SymbolRule, SymbolSimplify
+from mathics.core.systemsymbols import SymbolRule
 from mathics.eval.image import (
     convolve,
+    extract_exif,
+    get_image_size_spec,
     matrix_to_numpy,
     numpy_flip,
     numpy_to_matrix,
     pixels_as_float,
     pixels_as_ubyte,
     pixels_as_uint,
+    resize_width_height,
 )
 
 SymbolColorQuantize = Symbol("ColorQuantize")
@@ -66,16 +71,22 @@ try:
     import PIL.ImageEnhance
     import PIL.ImageFilter
     import PIL.ImageOps
-    from PIL.ExifTags import TAGS as ExifTags
 
-    _enabled = True
 except ImportError:
-    _enabled = False
+    pass
+
+
+try:
+    import skimage.filters
+except ImportError:
+    have_skimage_filters = False
+else:
+    have_skimage_filters = True
 
 from io import BytesIO
 
 # The following classes are used to allow inclusion of
-# Buultin Functions only when certain Python packages
+# Builtin Functions only when certain Python packages
 # are available. They do this by setting the `requires` class variable.
 
 
@@ -102,50 +113,29 @@ class _SkimageBuiltin(_ImageBuiltin):
 # Code related to Mathics Functions that import and export.
 
 
-class _Exif:
-    _names = {  # names overriding the ones given by Pillow
-        37385: "FlashInfo",
-        40960: "FlashpixVersion",
-        40962: "PixelXDimension",
-        40963: "PixelYDimension",
-    }
+class ImageExport(_ImageBuiltin):
+    """
+    <dl>
+      <dt> 'ImageExport["path", $image$]'
+      <dd> export $image$ as file in "path".
+    </dl>
+    """
 
-    @staticmethod
-    def extract(im, evaluation):
-        if hasattr(im, "_getexif"):
-            exif = im._getexif()
-            if not exif:
-                return
+    no_doc = True
 
-            for k, v in sorted(exif.items(), key=lambda x: x[0]):
-                name = ExifTags.get(k)
-                if not name:
-                    continue
+    messages = {"noimage": "only an Image[] can be exported into an image file"}
 
-                # EXIF has the following types: Short, Long, Rational, Ascii, Byte
-                # (see http://www.exiv2.org/tags.html). we detect the type from the
-                # Python type Pillow gives us and do the appropiate MMA handling.
-
-                if isinstance(v, tuple) and len(v) == 2:  # Rational
-                    value = Rational(v[0], v[1])
-                    if name == "FocalLength":
-                        value = value.round(2)
-                    else:
-                        value = Expression(SymbolSimplify, value).evaluate(evaluation)
-                elif isinstance(v, bytes):  # Byte
-                    value = String(" ".join(["%d" % x for x in v]))
-                elif isinstance(v, (int, str)):  # Short, Long, Ascii
-                    value = v
-                else:
-                    continue
-
-                yield Expression(SymbolRule, String(_Exif._names.get(k, name)), value)
+    def eval(self, path: String, expr, opts, evaluation: Evaluation):
+        """ImageExport[path_String, expr_, opts___]"""
+        if isinstance(expr, Image):
+            expr.pil().save(path.value)
+            return SymbolNull
+        else:
+            return evaluation.message("ImageExport", "noimage")
 
 
 class ImageImport(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageImport.html</url>
-
     <dl>
       <dt> 'ImageImport["path"]'
       <dd> import an image from the file "path".
@@ -154,56 +144,35 @@ class ImageImport(_ImageBuiltin):
     ## Image
     >> Import["ExampleData/Einstein.jpg"]
      = -Image-
-    #> Import["ExampleData/sunflowers.jpg"]
+    >> Import["ExampleData/sunflowers.jpg"]
      = -Image-
     >> Import["ExampleData/MadTeaParty.gif"]
      = -Image-
     >> Import["ExampleData/moon.tif"]
      = -Image-
-    #> Import["ExampleData/lena.tif"]
+    >> Import["ExampleData/lena.tif"]
      = -Image-
     """
 
-    summary_text = "import an image from a file"
+    no_doc = True
 
-    def apply(self, path, evaluation):
+    def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
-        pillow = PIL.Image.open(path.get_string_value())
+        pillow = PIL.Image.open(path.value)
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
-        exif = to_mathics_list(*list(_Exif.extract(pillow, evaluation)))
+        options_from_exif = extract_exif(pillow, evaluation)
 
-        image = Image(pixels, "RGB" if is_rgb else "Grayscale")
-        return ListExpression(
+        image = Image(pixels, "RGB" if is_rgb else "Grayscale", pillow=pillow)
+        image_list_expression = [
             Expression(SymbolRule, String("Image"), image),
             Expression(SymbolRule, String("ColorSpace"), String(image.color_space)),
-            Expression(
-                SymbolRule, String("ImageSize"), from_python(image.dimensions())
-            ),
-            Expression(SymbolRule, String("RawExif"), exif),
-        )
+        ]
 
+        if options_from_exif is not None:
+            image_list_expression.append(options_from_exif)
 
-class ImageExport(_ImageBuiltin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageExport.html</url>
-
-    <dl>
-      <dt> 'ImageExport["path", $image$]'
-      <dd> export $image$ as file in "path".
-    </dl>
-    """
-
-    messages = {"noimage": "only an Image[] can be exported into an image file"}
-    summary_text = "export an image to a file"
-
-    def apply(self, path, expr, opts, evaluation):
-        """ImageExport[path_String, expr_, opts___]"""
-        if isinstance(expr, Image):
-            expr.pil().save(path.get_string_value())
-            return SymbolNull
-        else:
-            return evaluation.message("ImageExport", "noimage")
+        return ListExpression(*image_list_expression)
 
 
 # image math
@@ -241,7 +210,7 @@ class _ImageArithmetic(_ImageBuiltin):
                 ufunc(result, i, result)
         return result
 
-    def apply(self, image, args, evaluation):
+    def eval(self, image, args, evaluation: Evaluation):
         "%(name)s[image_Image, args__]"
         images, arg = self.convert_args(image, *args.get_sequence())
         if images is None:
@@ -291,36 +260,6 @@ class ImageAdd(_ImageArithmetic):
     summary_text = "build an image adding pixel values of another image "
 
 
-class ImageSubtract(_ImageArithmetic):
-    """
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
-
-    <dl>
-      <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
-      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
-          image or a real number.
-    </dl>
-
-    >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
-
-    >> ImageSubtract[i, 0.2]
-     = -Image-
-
-    >> ImageSubtract[i, i]
-     = -Image-
-
-    #> ImageSubtract[i, 0.2, i, 0.1]
-     = -Image-
-
-    #> ImageSubtract[i, x]
-     : Expecting a number, image, or graphics instead of x.
-     = ImageSubtract[-Image-, x]
-    """
-
-    summary_text = "build an image substracting pixel values of another image "
-
-
 class ImageMultiply(_ImageArithmetic):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageMultiply.html</url>
@@ -352,6 +291,36 @@ class ImageMultiply(_ImageArithmetic):
     """
 
     summary_text = "build an image multiplying the pixel values of another image "
+
+
+class ImageSubtract(_ImageArithmetic):
+    """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageSubtract.html</url>
+
+    <dl>
+      <dt>'ImageSubtract[$image$, $expr_1$, $expr_2$, ...]'
+      <dd>subtracts all $expr_i$ from $image$ where each $expr_i$ must be an \
+          image or a real number.
+    </dl>
+
+    >> i = Image[{{0, 0.5, 0.2, 0.1, 0.9}, {1.0, 0.1, 0.3, 0.8, 0.6}}];
+
+    >> ImageSubtract[i, 0.2]
+     = -Image-
+
+    >> ImageSubtract[i, i]
+     = -Image-
+
+    #> ImageSubtract[i, 0.2, i, 0.1]
+     = -Image-
+
+    #> ImageSubtract[i, x]
+     : Expecting a number, image, or graphics instead of x.
+     = ImageSubtract[-Image-, x]
+    """
+
+    summary_text = "build an image substracting pixel values of another image "
 
 
 class RandomImage(_ImageBuiltin):
@@ -397,7 +366,7 @@ class RandomImage(_ImageBuiltin):
     }
     summary_text = "build an image with random pixels"
 
-    def apply(self, minval, maxval, w, h, evaluation, options):
+    def eval(self, minval, maxval, w, h, evaluation, options):
         "RandomImage[{minval_?RealNumberQ, maxval_?RealNumberQ}, {w_Integer, h_Integer}, OptionsPattern[RandomImage]]"
         color_space = self.get_option(options, "ColorSpace", evaluation)
         if (
@@ -431,7 +400,6 @@ class RandomImage(_ImageBuiltin):
 
 class ImageResize(_ImageBuiltin):
     """
-
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageResize.html</url>
 
     <dl>
@@ -442,38 +410,37 @@ class ImageResize(_ImageBuiltin):
       <dd>
     </dl>
 
-    S> ein = Import["ExampleData/Einstein.jpg"]
-     = -Image-
-
-    S> ImageDimensions[ein]
-     = {615, 768}
-    S> ImageResize[ein, {400, 600}]
-     = -Image-
-    S> ImageDimensions[%]
-     = {400, 600}
-
-    S> ImageResize[ein, {256}]
-     = -Image-
-
-    S> ImageDimensions[%]
-     = {256, 256}
-
     The Resampling option can be used to specify how to resample the image. Options are:
     <ul>
       <li>Automatic
       <li>Bicubic
-      <li>Gaussian
+      <li>Bilinear
+      <li>Box
+      <li>Hamming
+      <li>Lanczos
       <li>Nearest
     </ul>
 
-    The default sampling method is Bicubic.
+    See <url>
+    :Pillow Filters:
+    https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters</url>\
+    for a description of these.
 
-    S> ImageResize[ein, 256, Resampling -> "Bicubic"]
+    S> alice = Import["ExampleData/MadTeaParty.gif"]
      = -Image-
 
-    S> ImageResize[ein, 256, Resampling -> "Gaussian"]
-     = ...
-     : ...
+    S> shape = ImageDimensions[alice]
+     = {640, 487}
+
+    S> ImageResize[alice, shape / 2]
+     = -Image-
+
+    The default sampling method is "Bicubic" which has pretty good upscaling \
+    and downscaling quality. However "Box" is the fastest:
+
+
+    S> ImageResize[alice, shape / 2, Resampling -> "Box"]
+     = -Image-
     """
 
     messages = {
@@ -486,50 +453,23 @@ class ImageResize(_ImageBuiltin):
     options = {"Resampling": "Automatic"}
     summary_text = "resize an image"
 
-    def _get_image_size_spec(self, old_size, new_size) -> Optional[float]:
-        predefined_sizes = {
-            "System`Tiny": 75,
-            "System`Small": 150,
-            "System`Medium": 300,
-            "System`Large": 450,
-            "System`Automatic": 0,  # placeholder
-        }
-        result = new_size.round_to_float()
-        if result is not None:
-            result = int(result)
-            if result <= 0:
-                return None
-            return result
-
-        if isinstance(new_size, Symbol):
-            name = new_size.get_name()
-            if name == "System`All":
-                return old_size
-            return predefined_sizes.get(name, None)
-        if new_size.has_form("Scaled", 1):
-            s = new_size.elements[0].round_to_float()
-            if s is None:
-                return None
-            return max(1, old_size * s)  # handle negative s values silently
-        return None
-
-    def apply_resize_width(self, image, s, evaluation, options):
+    def eval_resize_width(self, image, s, evaluation, options):
         "ImageResize[image_Image, s_, OptionsPattern[ImageResize]]"
         old_w = image.pixels.shape[1]
         if s.has_form("List", 1):
             width = s.elements[0]
         else:
             width = s
-        w = self._get_image_size_spec(old_w, width)
+        w = get_image_size_spec(old_w, width)
         if w is None:
             return evaluation.message("ImageResize", "imgrssz", s)
         if s.has_form("List", 1):
             height = width
         else:
             height = Symbol("Automatic")
-        return self.apply_resize_width_height(image, width, height, evaluation, options)
+        return self.eval_resize_width_height(image, width, height, evaluation, options)
 
-    def apply_resize_width_height(self, image, width, height, evaluation, options):
+    def eval_resize_width_height(self, image, width, height, evaluation, options):
         "ImageResize[image_Image, {width_, height_}, OptionsPattern[ImageResize]]"
         # resampling method
         resampling = self.get_option(options, "Resampling", evaluation)
@@ -539,12 +479,12 @@ class ImageResize(_ImageBuiltin):
         ):
             resampling_name = "Bicubic"
         else:
-            resampling_name = resampling.get_string_value()
+            resampling_name = resampling.value
 
         # find new size
         old_w, old_h = image.pixels.shape[1], image.pixels.shape[0]
-        w = self._get_image_size_spec(old_w, width)
-        h = self._get_image_size_spec(old_h, height)
+        w = get_image_size_spec(old_w, width)
+        h = get_image_size_spec(old_h, height)
         if h is None or w is None:
             return evaluation.message(
                 "ImageResize", "imgrssz", to_mathics_list(width, height)
@@ -566,67 +506,22 @@ class ImageResize(_ImageBuiltin):
             h, w = int(round(h)), int(round(w))
 
         # perform the resize
-        if resampling_name == "Nearest":
-            return image.filter(
-                lambda im: im.resize((w, h), resample=PIL.Image.NEAREST)
-            )
-        elif resampling_name == "Bicubic":
-            return image.filter(
-                lambda im: im.resize((w, h), resample=PIL.Image.BICUBIC)
-            )
-        elif resampling_name != "Gaussian":
-            return evaluation.message("ImageResize", "imgrsm", resampling)
-
-        try:
-            from skimage import __version__ as skimage_version, transform
-
-            multichannel = image.pixels.ndim == 3
-
-            sy = h / old_h
-            sx = w / old_w
-            if sy > sx:
-                err = abs((sy * old_w) - (sx * old_w))
-                s = sy
-            else:
-                err = abs((sy * old_h) - (sx * old_h))
-                s = sx
-            if err > 1.5:
-                # TODO overcome this limitation
-                return evaluation.message("ImageResize", "gaussaspect")
-            elif s > 1:
-                pixels = transform.pyramid_expand(
-                    image.pixels, upscale=s, multichannel=multichannel
-                ).clip(0, 1)
-            else:
-                kwargs = {"downscale": (1.0 / s)}
-                # scikit_image in version 0.19 changes the resize parameter deprecating
-                # "multichannel". scikit_image also doesn't support older Pythons like 3.6.15.
-                # If we drop suport for 3.6 we can probably remove
-                if skimage_version >= "0.19":
-                    # Not totally sure that we want channel_axis=1, but it makes the
-                    # test work. multichannel is deprecated in scikit-image-19.2
-                    # Previously we used multichannel (=3)
-                    # as in the above s > 1 case.
-                    kwargs["channel_axis"] = 2
-                else:
-                    kwargs["multichannel"] = multichannel
-
-                pixels = transform.pyramid_reduce(image.pixels, **kwargs).clip(0, 1)
-
-            return Image(pixels, image.color_space)
-        except ImportError:
-            evaluation.message("ImageResize", "skimage")
+        return resize_width_height(image, w, h, resampling_name, evaluation)
 
 
 class ImageReflect(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageReflect.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageReflect.html</url>
     <dl>
-    <dt>'ImageReflect[$image$]'
+      <dt>'ImageReflect[$image$]'
       <dd>Flips $image$ top to bottom.
-    <dt>'ImageReflect[$image$, $side$]'
+
+      <dt>'ImageReflect[$image$, $side$]'
       <dd>Flips $image$ so that $side$ is interchanged with its opposite.
-    <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
+
+      <dt>'ImageReflect[$image$, $side_1$ -> $side_2$]'
       <dd>Flips $image$ so that $side_1$ is interchanged with $side_2$.
     </dl>
 
@@ -663,7 +558,7 @@ class ImageReflect(_ImageBuiltin):
 
     messages = {"bdrfl2": "`1` is not a valid 2D reflection specification."}
 
-    def apply(self, image, orig, dest, evaluation):
+    def eval(self, image, orig, dest, evaluation: Evaluation):
         "ImageReflect[image_Image, Rule[orig_, dest_]]"
         if isinstance(orig, Symbol) and isinstance(dest, Symbol):
             specs = [orig.get_name(), dest.get_name()]
@@ -716,7 +611,7 @@ class ImageRotate(_ImageBuiltin):
     >> ImageRotate[ein, 45 Degree]
      = -Image-
 
-    >> ImageRotate[ein, Pi / 2]
+    >> ImageRotate[ein, Pi / 4]
      = -Image-
 
     #> ImageRotate[ein, ein]
@@ -724,14 +619,15 @@ class ImageRotate(_ImageBuiltin):
      = ImageRotate[-Image-, -Image-]
     """
 
-    summary_text = "rotate an image"
-    rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
-
     messages = {
         "imgang": "Angle `1` should be a real number, one of Top, Bottom, Left, Right, or a rule from one to another."
     }
 
-    def apply(self, image, angle, evaluation):
+    rules = {"ImageRotate[i_Image]": "ImageRotate[i, 90 Degree]"}
+
+    summary_text = "rotate an image"
+
+    def eval(self, image, angle, evaluation: Evaluation):
         "ImageRotate[image_Image, angle_]"
 
         # FIXME: this test I suppose is okay in that it checks more or less what is needed.
@@ -759,9 +655,10 @@ class ImagePartition(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImagePartition.html</url>
 
     <dl>
-    <dt>'ImagePartition[$image$, $s$]'
+      <dt>'ImagePartition[$image$, $s$]'
       <dd>Partitions an image into an array of $s$ x $s$ pixel subimages.
-    <dt>'ImagePartition[$image$, {$w$, $h$}]'
+
+      <dt>'ImagePartition[$image$, {$w$, $h$}]'
       <dd>Partitions an image into an array of $w$ x $h$ pixel subimages.
     </dl>
 
@@ -793,7 +690,7 @@ class ImagePartition(_ImageBuiltin):
 
     messages = {"arg2": "`1` is not a valid size specification for image partitions."}
 
-    def apply(self, image, w: Integer, h: Integer, evaluation):
+    def eval(self, image, w: Integer, h: Integer, evaluation: Evaluation):
         "ImagePartition[image_Image, {w_Integer, h_Integer}]"
         py_w = w.value
         py_h = h.value
@@ -820,16 +717,20 @@ class ImagePartition(_ImageBuiltin):
 class ImageAdjust(_ImageBuiltin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/ImageAdjust.html</url>
 
     <dl>
-    <dt>'ImageAdjust[$image$]'
+      <dt>'ImageAdjust[$image$]'
       <dd>adjusts the levels in $image$.
-    <dt>'ImageAdjust[$image$, $c$]'
+
+      <dt>'ImageAdjust[$image$, $c$]'
       <dd>adjusts the contrast in $image$ by $c$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$}]'
+
+      <dt>'ImageAdjust[$image$, {$c$, $b$}]'
       <dd>adjusts the contrast $c$, and brightness $b$ in $image$.
-    <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
+
+      <dt>'ImageAdjust[$image$, {$c$, $b$, $g$}]'
       <dd>adjusts the contrast $c$, brightness $b$, and gamma $g$ in $image$.
     </dl>
 
@@ -844,7 +745,7 @@ class ImageAdjust(_ImageBuiltin):
         "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ}]": "ImageAdjust[image, {c, b, 1}]",
     }
 
-    def apply_auto(self, image, evaluation):
+    def eval_auto(self, image, evaluation: Evaluation):
         "ImageAdjust[image_Image]"
         pixels = pixels_as_float(image.pixels)
 
@@ -861,7 +762,7 @@ class ImageAdjust(_ImageBuiltin):
         pixels /= scales
         return Image(pixels, image.color_space)
 
-    def apply_contrast_brightness_gamma(self, image, c, b, g, evaluation):
+    def eval_contrast_brightness_gamma(self, image, c, b, g, evaluation: Evaluation):
         "ImageAdjust[image_Image, {c_?RealNumberQ, b_?RealNumberQ, g_?RealNumberQ}]"
 
         im = image.pil()
@@ -889,9 +790,10 @@ class Blur(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Blur.html</url>
 
     <dl>
-    <dt>'Blur[$image$]'
+      <dt>'Blur[$image$]'
       <dd>gives a blurred version of $image$.
-    <dt>'Blur[$image$, $r$]'
+
+      <dt>'Blur[$image$, $r$]'
       <dd>blurs $image$ with a kernel of size $r$.
     </dl>
 
@@ -902,7 +804,7 @@ class Blur(_ImageBuiltin):
      = -Image-
     """
 
-    summary_text = "blurred version of an image"
+    summary_text = "blur an image"
     rules = {
         "Blur[image_Image]": "Blur[image, 2]",
         "Blur[image_Image, r_?RealNumberQ]": "ImageConvolve[image, BoxMatrix[r] / Total[Flatten[BoxMatrix[r]]]]",
@@ -932,7 +834,7 @@ class Sharpen(_ImageBuiltin):
     summary_text = "sharpen version of an image"
     rules = {"Sharpen[i_Image]": "Sharpen[i, 2]"}
 
-    def apply(self, image, r, evaluation):
+    def eval(self, image, r, evaluation: Evaluation):
         "Sharpen[image_Image, r_?RealNumberQ]"
         f = PIL.ImageFilter.UnsharpMask(r.round_to_float())
         return image.filter(lambda im: im.filter(f))
@@ -955,7 +857,7 @@ class GaussianFilter(_ImageBuiltin):
     summary_text = "apply a gaussian filter to an image"
     messages = {"only3": "GaussianFilter only supports up to three channels."}
 
-    def apply_radius(self, image, radius, evaluation):
+    def eval_radius(self, image, radius, evaluation: Evaluation):
         "GaussianFilter[image_Image, radius_?RealNumberQ]"
         if len(image.pixels.shape) > 2 and image.pixels.shape[2] > 3:
             return evaluation.message("GaussianFilter", "only3")
@@ -970,11 +872,11 @@ class GaussianFilter(_ImageBuiltin):
 class PillowImageFilter(_ImageBuiltin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PillowImageFilter.html</url>
+    ## <url>:PillowImageFilter:</url>
 
     <dl>
-    <dt>'PillowImageFilter[$image$, "filtername"]'
-    <dd> applies an image filter "filtername" from the pillow library.
+      <dt>'PillowImageFilter[$image$, "filtername"]'
+      <dd> applies an image filter "filtername" from the pillow library.
     </dl>
     TODO: test cases?
     """
@@ -1002,7 +904,7 @@ class MinFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the minimum in a neighbourhood"
 
-    def apply(self, image, r: Integer, evaluation):
+    def eval(self, image, r: Integer, evaluation: Evaluation):
         "MinFilter[image_Image, r_Integer]"
         return self.compute(image, PIL.ImageFilter.MinFilter(1 + 2 * r.value))
 
@@ -1010,12 +912,14 @@ class MinFilter(PillowImageFilter):
 class MaxFilter(PillowImageFilter):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MaxFilter.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/MaxFilter.html</url>
 
     <dl>
-    <dt>'MaxFilter[$image$, $r$]'
-      <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always
-      picks the largest value in the filter's area.
+      <dt>'MaxFilter[$image$, $r$]'
+      <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always \
+          picks the largest value in the filter's area.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -1025,19 +929,21 @@ class MaxFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the maximum in a neighbourhood"
 
-    def apply(self, image, r: Integer, evaluation):
+    def eval(self, image, r: Integer, evaluation: Evaluation):
         "MaxFilter[image_Image, r_Integer]"
         return self.compute(image, PIL.ImageFilter.MaxFilter(1 + 2 * r.value))
 
 
 class MedianFilter(PillowImageFilter):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MedianFilter.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/MedianFilter.html</url>
 
     <dl>
-    <dt>'MedianFilter[$image$, $r$]'
-      <dd>gives $image$ with a median filter of radius $r$ applied on it. This always
-      picks the median value in the filter's area.
+      <dt>'MedianFilter[$image$, $r$]'
+      <dd>gives $image$ with a median filter of radius $r$ applied on it. This always \
+          picks the median value in the filter's area.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -1047,7 +953,7 @@ class MedianFilter(PillowImageFilter):
 
     summary_text = "replace every pixel value by the median in a neighbourhood"
 
-    def apply(self, image, r: Integer, evaluation):
+    def eval(self, image, r: Integer, evaluation: Evaluation):
         "MedianFilter[image_Image, r_Integer]"
         return self.compute(image, PIL.ImageFilter.MedianFilter(1 + 2 * r.value))
 
@@ -1058,7 +964,7 @@ class EdgeDetect(_SkimageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
 
     <dl>
-    <dt>'EdgeDetect[$image$]'
+      <dt>'EdgeDetect[$image$]'
       <dd>returns an image showing the edges in $image$.
     </dl>
 
@@ -1077,7 +983,7 @@ class EdgeDetect(_SkimageBuiltin):
         "EdgeDetect[i_Image, r_?RealNumberQ]": "EdgeDetect[i, r, 0.2]",
     }
 
-    def apply(self, image, r, t, evaluation):
+    def eval(self, image, r, t, evaluation: Evaluation):
         "EdgeDetect[image_Image, r_?RealNumberQ, t_?RealNumberQ]"
         import skimage.feature
 
@@ -1111,9 +1017,9 @@ class BoxMatrix(_ImageBuiltin):
      = {{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}}
     """
 
-    summary_text = "a matrix with all its entries set to 1"
+    summary_text = "create a matrix with all its entries set to 1"
 
-    def apply(self, r, evaluation):
+    def eval(self, r, evaluation: Evaluation):
         "BoxMatrix[r_?RealNumberQ]"
         py_r = abs(r.round_to_float())
         s = int(math.floor(1 + 2 * py_r))
@@ -1125,7 +1031,7 @@ class DiskMatrix(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/DiskMatrix.html</url>
 
     <dl>
-    <dt>'DiskMatrix[$s]'
+      <dt>'DiskMatrix[$s]'
       <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
     </dl>
 
@@ -1133,9 +1039,9 @@ class DiskMatrix(_ImageBuiltin):
      = {{0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}}
     """
 
-    summary_text = "a matrix with 1 in a disk-shaped region, and 0 outside"
+    summary_text = "create a matrix with 1 in a disk-shaped region, and 0 outside"
 
-    def apply(self, r, evaluation):
+    def eval(self, r, evaluation: Evaluation):
         "DiskMatrix[r_?RealNumberQ]"
         py_r = abs(r.round_to_float())
         s = int(math.floor(0.5 + py_r))
@@ -1164,9 +1070,9 @@ class DiamondMatrix(_ImageBuiltin):
      = {{0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0}}
     """
 
-    summary_text = "a matrix with 1 in a diamond-shaped region, and 0 outside"
+    summary_text = "create a matrix with 1 in a diamond-shaped region, and 0 outside"
 
-    def apply(self, r, evaluation):
+    def eval(self, r, evaluation: Evaluation):
         "DiamondMatrix[r_?RealNumberQ]"
         py_r = abs(r.round_to_float())
         t = int(math.floor(0.5 + py_r))
@@ -1193,7 +1099,7 @@ class ImageConvolve(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageConvolve.html</url>
 
     <dl>
-    <dt>'ImageConvolve[$image$, $kernel$]'
+      <dt>'ImageConvolve[$image$, $kernel$]'
       <dd>Computes the convolution of $image$ using $kernel$.
     </dl>
 
@@ -1208,7 +1114,7 @@ class ImageConvolve(_ImageBuiltin):
 
     summary_text = "give the convolution of image with kernel"
 
-    def apply(self, image, kernel, evaluation):
+    def eval(self, image, kernel, evaluation: Evaluation):
         "%(name)s[image_Image, kernel_?MatrixQ]"
         numpy_kernel = matrix_to_numpy(kernel)
         pixels = pixels_as_float(image.pixels)
@@ -1227,7 +1133,7 @@ class _MorphologyFilter(_SkimageBuiltin):
 
     rules = {"%(name)s[i_Image, r_?RealNumberQ]": "%(name)s[i, BoxMatrix[r]]"}
 
-    def apply(self, image, k, evaluation):
+    def eval(self, image, k, evaluation: Evaluation):
         "%(name)s[image_Image, k_?MatrixQ]"
         if image.color_space != "Grayscale":
             image = image.grayscale()
@@ -1245,7 +1151,7 @@ class Dilation(_MorphologyFilter):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Dilation.html</url>
 
     <dl>
-    <dt>'Dilation[$image$, $ker$]'
+      <dt>'Dilation[$image$, $ker$]'
       <dd>Gives the morphological dilation of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1262,7 +1168,7 @@ class Erosion(_MorphologyFilter):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Erosion.html</url>
 
     <dl>
-    <dt>'Erosion[$image$, $ker$]'
+      <dt>'Erosion[$image$, $ker$]'
       <dd>Gives the morphological erosion of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1279,7 +1185,7 @@ class Opening(_MorphologyFilter):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Opening.html</url>
 
     <dl>
-    <dt>'Opening[$image$, $ker$]'
+      <dt>'Opening[$image$, $ker$]'
       <dd>Gives the morphological opening of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1288,7 +1194,7 @@ class Opening(_MorphologyFilter):
      = -Image-
     """
 
-    summary_text = "morphological opening regarding a kernel"
+    summary_text = "get morphological opening regarding a kernel"
 
 
 class Closing(_MorphologyFilter):
@@ -1296,7 +1202,7 @@ class Closing(_MorphologyFilter):
     <url>:WMA link:https://reference.wolfram.com/language/ref/Closing.html</url>
 
     <dl>
-    <dt>'Closing[$image$, $ker$]'
+      <dt>'Closing[$image$, $ker$]'
       <dd>Gives the morphological closing of $image$ with respect to structuring element $ker$.
     </dl>
 
@@ -1313,12 +1219,13 @@ class MorphologicalComponents(_SkimageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/MorphologicalComponents.html</url>
 
     <dl>
-    <dt>'MorphologicalComponents[$image$]'
-    <dd> Builds a 2-D array in which each pixel of $image$ is replaced
-    by an integer index representing the connected foreground image
-    component in which the pixel lies.
-    <dt>'MorphologicalComponents[$image$, $threshold$]'
-    <dd> consider any pixel with a value above $threshold$ as the foreground.
+      <dt>'MorphologicalComponents[$image$]'
+      <dd> Builds a 2-D array in which each pixel of $image$ is replaced \
+           by an integer index representing the connected foreground image \
+           component in which the pixel lies.
+
+      <dt>'MorphologicalComponents[$image$, $threshold$]'
+      <dd> consider any pixel with a value above $threshold$ as the foreground.
     </dl>
     """
 
@@ -1326,7 +1233,7 @@ class MorphologicalComponents(_SkimageBuiltin):
 
     rules = {"MorphologicalComponents[i_Image]": "MorphologicalComponents[i, 0]"}
 
-    def apply(self, image, t, evaluation):
+    def eval(self, image, t, evaluation: Evaluation):
         "MorphologicalComponents[image_Image, t_?RealNumberQ]"
         pixels = pixels_as_ubyte(
             pixels_as_float(image.grayscale().pixels) > t.round_to_float()
@@ -1343,11 +1250,13 @@ class MorphologicalComponents(_SkimageBuiltin):
 
 class ImageColorSpace(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageColorSpace.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageColorSpace.html</url>
 
     <dl>
-    <dt>'ImageColorSpace[$image$]'
-        <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
+      <dt>'ImageColorSpace[$image$]'
+      <dd>gives $image$'s color space, e.g. "RGB" or "CMYK".
     </dl>
 
     >> img = Import["ExampleData/lena.tif"];
@@ -1357,17 +1266,19 @@ class ImageColorSpace(_ImageBuiltin):
 
     summary_text = "colorspace used in the image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ImageColorSpace[image_Image]"
         return String(image.color_space)
 
 
 class ColorQuantize(_ImageBuiltin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorQuantize.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ColorQuantize.html</url>
 
     <dl>
-    <dt>'ColorQuantize[$image$, $n$]'
+      <dt>'ColorQuantize[$image$, $n$]'
       <dd>gives a version of $image$ using only $n$ colors.
     </dl>
 
@@ -1386,7 +1297,7 @@ class ColorQuantize(_ImageBuiltin):
     summary_text = "give an approximation to image that uses only n distinct colors"
     messages = {"intp": "Positive integer expected at position `2` in `1`."}
 
-    def apply(self, image, n: Integer, evaluation):
+    def eval(self, image, n: Integer, evaluation: Evaluation):
         "ColorQuantize[image_Image, n_Integer]"
         py_value = n.value
         if py_value <= 0:
@@ -1402,7 +1313,7 @@ class ColorQuantize(_ImageBuiltin):
         return Image(numpy.array(im), "RGB")
 
 
-class Threshold(_SkimageBuiltin):
+class Threshold(_ImageBuiltin):
     """
 
     <url>:WMA link:https://reference.wolfram.com/language/ref/Threshold.html</url>
@@ -1426,14 +1337,17 @@ class Threshold(_SkimageBuiltin):
     """
 
     summary_text = "estimate a threshold value for binarize an image"
-    options = {"Method": '"Cluster"'}
+    if have_skimage_filters:
+        options = {"Method": '"Cluster"'}
+    else:
+        options = {"Method": '"Median"'}
 
     messages = {
         "illegalmethod": "Method `` is not supported.",
         "skimage": "Please install scikit-image to use Method -> Cluster.",
     }
 
-    def apply(self, image, evaluation, options):
+    def eval(self, image, evaluation: Evaluation, options):
         "Threshold[image_Image, OptionsPattern[Threshold]]"
         pixels = image.grayscale().pixels
 
@@ -1444,8 +1358,9 @@ class Threshold(_SkimageBuiltin):
             else method.to_python()
         )
         if method_name == "Cluster":
-            import skimage.filters
-
+            if not have_skimage_filters:
+                evaluation.message("ImageResize", "skimage")
+                return
             threshold = skimage.filters.threshold_otsu(pixels)
         elif method_name == "Median":
             threshold = numpy.median(pixels)
@@ -1457,7 +1372,7 @@ class Threshold(_SkimageBuiltin):
         return MachineReal(float(threshold))
 
 
-class Binarize(_SkimageBuiltin):
+class Binarize(_ImageBuiltin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/Binarize.html</url>
 
@@ -1483,7 +1398,7 @@ class Binarize(_SkimageBuiltin):
 
     summary_text = "create a binarized image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "Binarize[image_Image]"
         image = image.grayscale()
         thresh = (
@@ -1492,12 +1407,12 @@ class Binarize(_SkimageBuiltin):
         if thresh is not None:
             return Image(image.pixels > thresh, "Grayscale")
 
-    def apply_t(self, image, t, evaluation):
+    def eval_t(self, image, t, evaluation: Evaluation):
         "Binarize[image_Image, t_?RealNumberQ]"
         pixels = image.grayscale().pixels
         return Image(pixels > t.round_to_float(), "Grayscale")
 
-    def apply_t1_t2(self, image, t1, t2, evaluation):
+    def eval_t1_t2(self, image, t1, t2, evaluation: Evaluation):
         "Binarize[image_Image, {t1_?RealNumberQ, t2_?RealNumberQ}]"
         pixels = image.grayscale().pixels
         mask1 = pixels > t1.round_to_float()
@@ -1507,18 +1422,19 @@ class Binarize(_SkimageBuiltin):
 
 class ColorSeparate(_ImageBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ColorSeparate.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ColorSeparate.html</url>
 
     <dl>
-    <dt>'ColorSeparate[$image$]'
+      <dt>'ColorSeparate[$image$]'
       <dd>Gives each channel of $image$ as a separate grayscale image.
     </dl>
     """
 
     summary_text = "separate color channels"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ColorSeparate[image_Image]"
         images = []
         pixels = image.pixels
@@ -1535,7 +1451,7 @@ class ColorCombine(_ImageBuiltin):
     <url>:WMA link:https://reference.wolfram.com/language/ref/ColorCombine.html</url>
 
     <dl>
-    <dt>'ColorCombine[$channels$, $colorspace$]'
+      <dt>'ColorCombine[$channels$, $colorspace$]'
       <dd>Gives an image with $colorspace$ and the respective components described by the given channels.
     </dl>
 
@@ -1545,7 +1461,7 @@ class ColorCombine(_ImageBuiltin):
 
     summary_text = "combine color channels"
 
-    def apply(self, channels, colorspace, evaluation):
+    def eval(self, channels, colorspace, evaluation: Evaluation):
         "ColorCombine[channels_List, colorspace_String]"
 
         py_colorspace = colorspace.get_string_value()
@@ -1601,15 +1517,16 @@ def _linearize(a):
 
 class Colorize(_ImageBuiltin):
     """
-
     <url>:WMA link:https://reference.wolfram.com/language/ref/Colorize.html</url>
 
     <dl>
-    <dt>'Colorize[$values$]'
-      <dd>returns an image where each number in the rectangular matrix $values$ is a pixel and each
-      occurence of the same number is displayed in the same unique color, which is different from the
-      colors of all non-identical numbers.
-    <dt>'Colorize[$image$]'
+      <dt>'Colorize[$values$]'
+      <dd>returns an image where each number in the rectangular matrix \
+          $values$ is a pixel and each occurence of the same number is \
+          displayed in the same unique color, which is different from the \
+          colors of all non-identical numbers.
+
+      <dt>'Colorize[$image$]'
       <dd>gives a colorized version of $image$.
     </dl>
 
@@ -1627,7 +1544,7 @@ class Colorize(_ImageBuiltin):
         "cfun": "`1` is neither a gradient ColorData nor a pure function suitable as ColorFunction."
     }
 
-    def apply(self, values, evaluation, options):
+    def eval(self, values, evaluation, options):
         "Colorize[values_, OptionsPattern[%(name)s]]"
 
         if isinstance(values, Image):
@@ -1695,15 +1612,15 @@ class ImageData(_ImageBuiltin):
      = ImageData[-Image-, Bytf]
     """
 
-    summary_text = "the array of pixel values from an image"
-    rules = {"ImageData[image_Image]": 'ImageData[image, "Real"]'}
-
     messages = {"pixelfmt": 'Unsupported pixel format "``".'}
 
-    def apply(self, image, stype, evaluation):
+    rules = {"ImageData[image_Image]": 'ImageData[image, "Real"]'}
+    summary_text = "the array of pixel values from an image"
+
+    def eval(self, image, stype: String, evaluation: Evaluation):
         "ImageData[image_Image, stype_String]"
         pixels = image.pixels
-        stype = stype.get_string_value()
+        stype = stype.value
         if stype == "Real":
             pixels = pixels_as_float(pixels)
         elif stype == "Byte":
@@ -1734,18 +1651,37 @@ class ImageTake(_ImageBuiltin):
       <dt>'ImageTake[$image$, {$r1$, $r2$}, {$c1$, $c2$}]'
       <dd>gives a cropped version of $image$.
     </dl>
+
+    Crop to the include only the upper half (244 rows) of an image:
+    >> alice = Import["ExampleData/MadTeaParty.gif"]; ImageTake[alice, 244]
+     = -Image-
+
+    Now crop to the include the lower half of that image:
+    >> ImageTake[alice, -244]
+     = -Image-
     """
 
-    summary_text = "create an image from a range of lines of another image"
+    summary_text = "crop image"
 
-    def apply(self, image, n: Integer, evaluation):
+    def eval(self, image, n: Integer, evaluation: Evaluation):
         "ImageTake[image_Image, n_Integer]"
         py_n = n.value
+        max_y, max_x = image.pixels.shape[:2]
         if py_n >= 0:
-            pixels = image.pixels[:py_n]
+            adjusted_n = min(py_n, max_y)
+            pixels = image.pixels[:adjusted_n]
+            box_coords = (0, 0, max_x, adjusted_n)
         elif py_n < 0:
-            pixels = image.pixels[py_n:]
-        return Image(pixels, image.color_space)
+            adjusted_n = max(0, max_y + py_n)
+            pixels = image.pixels[adjusted_n:]
+            box_coords = (0, adjusted_n, max_x, max_y)
+
+        if hasattr(image, "pillow"):
+            pillow = image.pillow.crop(box_coords)
+            pixels = numpy.asarray(pillow)
+            return Image(pixels, image.color_space, pillow=pillow)
+
+        return Image(pixels, image.color_space, pillow=pillow)
 
     def _slice(self, image, i1: Integer, i2: Integer, axis):
         n = image.pixels.shape[axis]
@@ -1760,12 +1696,12 @@ class ImageTake(_ImageBuiltin):
 
         return slice(min(py_i1, py_i2), 1 + max(py_i1, py_i2)), flip
 
-    def apply_rows(self, image, r1: Integer, r2: Integer, evaluation):
+    def eval_rows(self, image, r1: Integer, r2: Integer, evaluation: Evaluation):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}]"
         s, f = self._slice(image, r1, r2, 0)
         return Image(f(image.pixels[s]), image.color_space)
 
-    def apply_rows_cols(
+    def eval_rows_cols(
         self, image, r1: Integer, r2: Integer, c1: Integer, c2: Integer, evaluation
     ):
         "ImageTake[image_Image, {r1_Integer, r2_Integer}, {c1_Integer, c2_Integer}]"
@@ -1776,8 +1712,9 @@ class ImageTake(_ImageBuiltin):
 
 class PixelValue(_ImageBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValue.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PixelValue.html</url>
 
     <dl>
       <dt>'PixelValue[$image$, {$x$, $y$}]'
@@ -1804,10 +1741,11 @@ class PixelValue(_ImageBuiltin):
      : Padding not implemented for PixelValue.
     """
 
-    summary_text = "pixel value of image at a given position"
     messages = {"nopad": "Padding not implemented for PixelValue."}
 
-    def apply(self, image, x, y, evaluation):
+    summary_text = "get pixel value of image at a given position"
+
+    def eval(self, image, x, y, evaluation: Evaluation):
         "PixelValue[image_Image, {x_?RealNumberQ, y_?RealNumberQ}]"
         x = int(x.round_to_float())
         y = int(y.round_to_float())
@@ -1844,12 +1782,13 @@ class PixelValuePositions(_ImageBuiltin):
      = {0.25098, 0.0117647, 0.215686}
     """
 
-    summary_text = "list the position of pixels with a given value"
     rules = {
         "PixelValuePositions[image_Image, val_?RealNumberQ]": "PixelValuePositions[image, val, 0]"
     }
 
-    def apply(self, image, val, d, evaluation):
+    summary_text = "list the position of pixels with a given value"
+
+    def eval(self, image, val, d, evaluation: Evaluation):
         "PixelValuePositions[image_Image, val_?RealNumberQ, d_?RealNumberQ]"
         val = val.round_to_float()
         d = d.round_to_float()
@@ -1877,12 +1816,13 @@ class PixelValuePositions(_ImageBuiltin):
 
 class ImageDimensions(_ImageBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageDimensions.html</url>
 
     <dl>
       <dt>'ImageDimensions[$image$]'
-      <dd>Returns the dimensions of $image$ in pixels.
+      <dd>Returns the dimensions {$width$, $height$} of $image$ in pixels.
     </dl>
 
     >> lena = Import["ExampleData/lena.tif"];
@@ -1891,16 +1831,11 @@ class ImageDimensions(_ImageBuiltin):
 
     >> ImageDimensions[RandomImage[1, {50, 70}]]
      = {50, 70}
-
-    #> Image[{{0, 1}, {1, 0}, {1, 1}}] // ImageDimensions
-     = {2, 3}
-    #> Image[{{0.2, 0.4}, {0.9, 0.6}, {0.3, 0.8}}] // ImageDimensions
-     = {2, 3}
     """
 
-    summary_text = "pixel dimensions of the raster associated with an image"
+    summary_text = "get the pixel dimensions of an image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ImageDimensions[image_Image]"
         return to_mathics_list(*image.dimensions(), elements_conversion_fn=Integer)
 
@@ -1925,7 +1860,7 @@ class ImageAspectRatio(_ImageBuiltin):
 
     summary_text = "give the ratio of height to width of an image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ImageAspectRatio[image_Image]"
         dim = image.dimensions()
         return Expression(SymbolDivide, Integer(dim[1]), Integer(dim[0]))
@@ -1933,7 +1868,6 @@ class ImageAspectRatio(_ImageBuiltin):
 
 class ImageChannels(_ImageBuiltin):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/ImageChannels.html</url>
 
@@ -1950,9 +1884,9 @@ class ImageChannels(_ImageBuiltin):
      = 3
     """
 
-    summary_text = "number of channels present in the data for an image"
+    summary_text = "get number of channels present in the data for an image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ImageChannels[image_Image]"
         return Integer(image.channels())
 
@@ -1961,6 +1895,7 @@ class ImageType(_ImageBuiltin):
     """
     <url>
     :WMA link:https://reference.wolfram.com/language/ref/ImageType.html</url>
+
     <dl>
       <dt>'ImageType[$image$]'
       <dd>gives the interval storage type of $image$, e.g. "Real", "Bit32", or "Bit".
@@ -1980,14 +1915,13 @@ class ImageType(_ImageBuiltin):
 
     summary_text = "type of values used for each pixel element in an image"
 
-    def apply(self, image, evaluation):
+    def eval(self, image, evaluation: Evaluation):
         "ImageType[image_Image]"
         return String(image.storage_type())
 
 
 class BinaryImageQ(_ImageTest):
     """
-
     <url>:WMA link:
     https://reference.wolfram.com/language/ref/BinaryImageQ.html</url>
 
@@ -2028,7 +1962,6 @@ def _image_pixels(matrix):
 
 class ImageQ(_ImageTest):
     """
-
     <url>:WMA link:https://reference.wolfram.com/language/ref/ImageQ.html</url>
 
     <dl>
@@ -2062,12 +1995,111 @@ class Image(Atom):
     class_head_name = "System`Image"
 
     def __init__(self, pixels, color_space, metadata={}, **kwargs):
+        if "pillow" in kwargs:
+            self.pillow = kwargs.pop("pillow")
         super(Image, self).__init__(**kwargs)
         if len(pixels.shape) == 2:
             pixels = pixels.reshape(list(pixels.shape) + [1])
         self.pixels = pixels
         self.color_space = color_space
         self.metadata = metadata
+
+        # Set a value for self.__hash__() once so that every time
+        # it is used this is fast. Note that in contrast to the
+        # cached object key, the hash key needs to be unique across all
+        # Python objects, so we include the class in the
+        # event that different objects have the same Python value
+        self.hash = hash(
+            (
+                "Image",
+                self.pixels.tobytes(),
+                self.color_space,
+                frozenset(self.metadata.items()),
+            )
+        )
+
+    def atom_to_boxes(self, form, evaluation: Evaluation) -> ImageBox:
+        """
+        Converts our internal Image object into a PNG base64-encoded.
+        """
+        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
+        shape = pixels.shape
+
+        width = shape[1]
+        height = shape[0]
+        scaled_width = width
+        scaled_height = height
+
+        # If the image was created from PIL, use that rather than
+        # reconstruct it from pixels which we can get wrong.
+        # In particular getting color-mapping info right can be
+        # tricky.
+        if hasattr(self, "pillow"):
+            pillow = deepcopy(self.pillow)
+        else:
+            pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
+            pillow = PIL.Image.fromarray(pixels, pixels_format)
+
+        # if the image is very small, scale it up using nearest neighbour.
+        min_size = 128
+        if width < min_size and height < min_size:
+            scale = min_size / max(width, height)
+            scaled_width = int(scale * width)
+            scaled_height = int(scale * height)
+            pillow = pillow.resize(
+                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
+            )
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            stream = BytesIO()
+            pillow.save(stream, format="png")
+            stream.seek(0)
+            contents = stream.read()
+            stream.close()
+
+        encoded = base64.b64encode(contents)
+        encoded = b"data:image/png;base64," + encoded
+
+        return ImageBox(
+            String(encoded.decode("utf-8")),
+            Integer(scaled_width),
+            Integer(scaled_height),
+        )
+
+    # __hash__ is defined so that we can store Number-derived objects
+    # in a set or dictionary.
+    def __hash__(self):
+        return self.hash
+
+    def __str__(self):
+        return "-Image-"
+
+    def color_convert(self, to_color_space, preserve_alpha=True):
+        if to_color_space == self.color_space and preserve_alpha:
+            return self
+        else:
+            pixels = pixels_as_float(self.pixels)
+            converted = convert_color(
+                pixels, self.color_space, to_color_space, preserve_alpha
+            )
+            if converted is None:
+                return None
+            return Image(converted, to_color_space)
+
+    def channels(self):
+        return self.pixels.shape[2]
+
+    def default_format(self, evaluation, form):
+        return "-Image-"
+
+    def dimensions(self) -> Tuple[int, int]:
+        shape = self.pixels.shape
+        return shape[1], shape[0]
+
+    def do_copy(self):
+        return Image(self.pixels, self.color_space, self.metadata)
 
     def filter(self, f):  # apply PIL filters component-wise
         pixels = self.pixels
@@ -2077,8 +2109,22 @@ class Image(Atom):
         ]
         return Image(numpy.dstack(channels), self.color_space)
 
+    def get_sort_key(self, pattern_sort=False) -> tuple:
+        if pattern_sort:
+            # If pattern_sort=True, returns the sort key that matches to an Atom.
+            return super(Image, self).get_sort_key(True)
+        else:
+            # If pattern is False, return a sort_key for the expression `Image[]`,
+            # but with a `2` instead of `1` in the 5th position,
+            # and adding two extra fields: the length in the 5th position,
+            # and a hash in the 6th place.
+            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
+
+    def grayscale(self):
+        return self.color_convert("Grayscale")
+
     def pil(self):
-        # see http://pillow.readthedocs.io/en/3.1.x/handbook/concepts.html#concept-modes
+        # see https://pillow.readthedocs.io/en/stable/handbook/concepts.html
         n = self.channels()
 
         if n == 1:
@@ -2127,84 +2173,11 @@ class Image(Atom):
 
         return PIL.Image.fromarray(pixels, mode)
 
-    def color_convert(self, to_color_space, preserve_alpha=True):
-        if to_color_space == self.color_space and preserve_alpha:
-            return self
-        else:
-            pixels = pixels_as_float(self.pixels)
-            converted = convert_color(
-                pixels, self.color_space, to_color_space, preserve_alpha
-            )
-            if converted is None:
-                return None
-            return Image(converted, to_color_space)
-
-    def grayscale(self):
-        return self.color_convert("Grayscale")
-
-    def atom_to_boxes(self, f, evaluation):
-        pixels = pixels_as_ubyte(self.color_convert("RGB", True).pixels)
-        shape = pixels.shape
-
-        width = shape[1]
-        height = shape[0]
-        scaled_width = width
-        scaled_height = height
-
-        if len(shape) >= 3 and shape[2] == 4:
-            pixels_format = "RGBA"
-        else:
-            pixels_format = "RGB"
-
-        pillow = PIL.Image.fromarray(pixels, pixels_format)
-
-        # if the image is very small, scale it up using nearest neighbour.
-        min_size = 128
-        if width < min_size and height < min_size:
-            scale = min_size / max(width, height)
-            scaled_width = int(scale * width)
-            scaled_height = int(scale * height)
-            pillow = pillow.resize(
-                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
-            )
-
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-
-            stream = BytesIO()
-            pillow.save(stream, format="png")
-            stream.seek(0)
-            contents = stream.read()
-            stream.close()
-
-        encoded = base64.b64encode(contents)
-        encoded = b"data:image/png;base64," + encoded
-
-        return ImageBox(
-            String(encoded.decode("utf-8")),
-            Integer(scaled_width),
-            Integer(scaled_height),
+    def options(self):
+        return ListExpression(
+            Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
+            Expression(SymbolRule, String("MetaInformation"), self.metadata),
         )
-
-    def __str__(self):
-        return "-Image-"
-
-    def do_copy(self):
-        return Image(self.pixels, self.color_space, self.metadata)
-
-    def default_format(self, evaluation, form):
-        return "-Image-"
-
-    def get_sort_key(self, pattern_sort=False) -> tuple:
-        if pattern_sort:
-            # If pattern_sort=True, returns the sort key that matches to an Atom.
-            return super(Image, self).get_sort_key(True)
-        else:
-            # If pattern is False, return a sort_key for the expression `Image[]`,
-            # but with a `2` instead of `1` in the 5th position,
-            # and adding two extra fields: the length in the 5th position,
-            # and a hash in the 6th place.
-            return (1, 3, SymbolImage, len(self.pixels), tuple(), 2, hash(self))
 
     def sameQ(self, other) -> bool:
         """Mathics SameQ"""
@@ -2213,26 +2186,6 @@ class Image(Atom):
         if self.color_space != other.color_space or self.metadata != other.metadata:
             return False
         return numpy.array_equal(self.pixels, other.pixels)
-
-    def to_python(self, *args, **kwargs):
-        return self.pixels
-
-    def __hash__(self):
-        return hash(
-            (
-                "Image",
-                self.pixels.tobytes(),
-                self.color_space,
-                frozenset(self.metadata.items()),
-            )
-        )
-
-    def dimensions(self) -> Tuple[int, int]:
-        shape = self.pixels.shape
-        return shape[1], shape[0]
-
-    def channels(self):
-        return self.pixels.shape[2]
 
     def storage_type(self):
         dtype = self.pixels.dtype
@@ -2249,23 +2202,22 @@ class Image(Atom):
         else:
             return str(dtype)
 
-    def options(self):
-        return ListExpression(
-            Expression(SymbolRule, String("ColorSpace"), String(self.color_space)),
-            Expression(SymbolRule, String("MetaInformation"), self.metadata),
-        )
+    def to_python(self, *args, **kwargs):
+        return self.pixels
 
 
 class ImageAtom(AtomBuiltin):
     """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageAtom.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ImageAtom.html</url>
 
     <dl>
-    <dt>'Image[...]'
-    <dd> produces the internal representation of an image from an array
-    of values for the pixels.
+      <dt>'Image[...]'
+      <dd> produces the internal representation of an image from an array \
+          of values for the pixels.
     </dl>
+
     #> Image[{{{1,1,0},{0,1,1}}, {{1,0,1},{1,1,0}}}]
      = -Image-
 
@@ -2273,10 +2225,10 @@ class ImageAtom(AtomBuiltin):
      = -Image-
     """
 
-    summary_text = "internal representation of an image"
+    summary_text = "get internal representation of an image"
     requires = _image_requires
 
-    def apply_create(self, array, evaluation):
+    def eval_create(self, array, evaluation: Evaluation):
         "Image[array_]"
         pixels = _image_pixels(array.to_python())
         if pixels is not None:
@@ -2293,16 +2245,15 @@ class ImageAtom(AtomBuiltin):
 class TextRecognize(Builtin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/TextRecognize.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/TextRecognize.html</url>
 
     <dl>
-    <dt>'TextRecognize[{$image$}]'
+      <dt>'TextRecognize[{$image$}]'
       <dd>Recognizes text in $image$ and returns it as string.
     </dl>
     """
-
-    summary_text = "recognize text in an image"
-    requires = _image_requires + ("pyocr",)
 
     messages = {
         "tool": "No text recognition tools were found in the paths available to the Mathics kernel.",
@@ -2312,7 +2263,11 @@ class TextRecognize(Builtin):
 
     options = {"Language": '"English"'}
 
-    def apply(self, image, evaluation, options):
+    requires = _image_requires + ("pyocr",)
+
+    summary_text = "recognize text in an image"
+
+    def eval(self, image, evaluation, options):
         "TextRecognize[image_Image, OptionsPattern[%(name)s]]"
         import pyocr
 
@@ -2358,164 +2313,164 @@ class TextRecognize(Builtin):
         return String(text)
 
 
-import sys
+class WordCloud(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/WordCloud.html</url>
 
-if "Pyston" not in sys.version:
+    <dl>
+      <dt>'WordCloud[{$word1$, $word2$, ...}]'
+      <dd>Gives a word cloud with the given list of words.
 
-    class WordCloud(Builtin):
-        """
+      <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
 
-        <url>:WMA link:https://reference.wolfram.com/language/ref/WordCloud.html</url>
+      <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
+      <dd>Also gives a word cloud with the words weighted using the given weights.
 
-        <dl>
-        <dt>'WordCloud[{$word1$, $word2$, ...}]'
-          <dd>Gives a word cloud with the given list of words.
-        <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
-          <dd>Gives a word cloud with the words weighted using the given weights.
-        <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
-          <dd>Also gives a word cloud with the words weighted using the given weights.
-        <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
-          <dd>Gives a word cloud with the words weighted using the given weights.
-        </dl>
+      <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
+    </dl>
 
-        >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
-         = -Image-
+    >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
+     = -Image-
 
-        >> WordCloud[Range[50] -> ToString /@ Range[50]]
-         = -Image-
-        """
+    >> WordCloud[Range[50] -> ToString /@ Range[50]]
+     = -Image-
+    """
 
-        summary_text = "a word cloud from a list of words"
-        requires = _image_requires + ("wordcloud",)
+    # this is the palettable.colorbrewer.qualitative.Dark2_8 palette
+    default_colors = (
+        (27, 158, 119),
+        (217, 95, 2),
+        (117, 112, 179),
+        (231, 41, 138),
+        (102, 166, 30),
+        (230, 171, 2),
+        (166, 118, 29),
+        (102, 102, 102),
+    )
 
-        options = {
-            "IgnoreCase": "True",
-            "ImageSize": "Automatic",
-            "MaxItems": "Automatic",
-        }
+    options = {
+        "IgnoreCase": "True",
+        "ImageSize": "Automatic",
+        "MaxItems": "Automatic",
+    }
 
-        # this is the palettable.colorbrewer.qualitative.Dark2_8 palette
-        default_colors = (
-            (27, 158, 119),
-            (217, 95, 2),
-            (117, 112, 179),
-            (231, 41, 138),
-            (102, 166, 30),
-            (230, 171, 2),
-            (166, 118, 29),
-            (102, 102, 102),
-        )
+    requires = _image_requires + ("wordcloud",)
 
-        def apply_words_weights(self, weights, words, evaluation, options):
-            "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
-            if len(weights.elements) != len(words.elements):
-                return
+    summary_text = "show a word cloud from a list of words"
+
+    def eval_words_weights(self, weights, words, evaluation, options):
+        "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
+        if len(weights.elements) != len(words.elements):
+            return
+
+        def weights_and_words():
+            for weight, word in zip(weights.elements, words.elements):
+                yield weight.round_to_float(), word.get_string_value()
+
+        return self._word_cloud(weights_and_words(), evaluation, options)
+
+    def eval_words(self, words, evaluation, options):
+        "WordCloud[words_List, OptionsPattern[%(name)s]]"
+
+        if not words:
+            return
+        elif isinstance(words.elements[0], String):
 
             def weights_and_words():
-                for weight, word in zip(weights.elements, words.elements):
-                    yield weight.round_to_float(), word.get_string_value()
+                for word in words.elements:
+                    yield 1, word.get_string_value()
 
+        else:
+
+            def weights_and_words():
+                for word in words.elements:
+                    if len(word.elements) != 2:
+                        raise ValueError
+
+                    head_name = word.get_head_name()
+                    if head_name == "System`Rule":
+                        weight, s = word.elements
+                    elif head_name == "System`List":
+                        s, weight = word.elements
+                    else:
+                        raise ValueError
+
+                    yield weight.round_to_float(), s.get_string_value()
+
+        try:
             return self._word_cloud(weights_and_words(), evaluation, options)
+        except ValueError:
+            return
 
-        def apply_words(self, words, evaluation, options):
-            "WordCloud[words_List, OptionsPattern[%(name)s]]"
+    def _word_cloud(self, words, evaluation, options):
+        ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
+            "True"
+        )
 
-            if not words:
+        freq = defaultdict(int)
+        for py_weight, py_word in words:
+            if py_word is None or py_weight is None:
                 return
-            elif isinstance(words.elements[0], String):
+            key = py_word.lower() if ignore_case else py_word
+            freq[key] += py_weight
 
-                def weights_and_words():
-                    for word in words.elements:
-                        yield 1, word.get_string_value()
+        max_items = self.get_option(options, "MaxItems", evaluation)
+        if isinstance(max_items, Integer):
+            py_max_items = max_items.get_int_value()
+        else:
+            py_max_items = 200
 
-            else:
-
-                def weights_and_words():
-                    for word in words.elements:
-                        if len(word.elements) != 2:
-                            raise ValueError
-
-                        head_name = word.get_head_name()
-                        if head_name == "System`Rule":
-                            weight, s = word.elements
-                        elif head_name == "System`List":
-                            s, weight = word.elements
-                        else:
-                            raise ValueError
-
-                        yield weight.round_to_float(), s.get_string_value()
-
-            try:
-                return self._word_cloud(weights_and_words(), evaluation, options)
-            except ValueError:
-                return
-
-        def _word_cloud(self, words, evaluation, options):
-            ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
-                "True"
-            )
-
-            freq = defaultdict(int)
-            for py_weight, py_word in words:
-                if py_word is None or py_weight is None:
+        image_size = self.get_option(options, "ImageSize", evaluation)
+        if image_size is Symbol("Automatic"):
+            py_image_size = (800, 600)
+        elif (
+            image_size.get_head_name() == "System`List"
+            and len(image_size.elements) == 2
+        ):
+            py_image_size = []
+            for element in image_size.elements:
+                if not isinstance(element, Integer):
                     return
-                key = py_word.lower() if ignore_case else py_word
-                freq[key] += py_weight
+                py_image_size.append(element.get_int_value())
+        elif isinstance(image_size, Integer):
+            size = image_size.get_int_value()
+            py_image_size = (size, size)
+        else:
+            return
 
-            max_items = self.get_option(options, "MaxItems", evaluation)
-            if isinstance(max_items, Integer):
-                py_max_items = max_items.get_int_value()
-            else:
-                py_max_items = 200
+        # inspired by http://minimaxir.com/2016/05/wordclouds/
+        import random
 
-            image_size = self.get_option(options, "ImageSize", evaluation)
-            if image_size is Symbol("Automatic"):
-                py_image_size = (800, 600)
-            elif (
-                image_size.get_head_name() == "System`List"
-                and len(image_size.elements) == 2
-            ):
-                py_image_size = []
-                for element in image_size.elements:
-                    if not isinstance(element, Integer):
-                        return
-                    py_image_size.append(element.get_int_value())
-            elif isinstance(image_size, Integer):
-                size = image_size.get_int_value()
-                py_image_size = (size, size)
-            else:
-                return
+        def color_func(
+            word, font_size, position, orientation, random_state=None, **kwargs
+        ):
+            return self.default_colors[random.randint(0, 7)]
 
-            # inspired by http://minimaxir.com/2016/05/wordclouds/
-            import os
-            import random
+        font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
 
-            def color_func(
-                word, font_size, position, orientation, random_state=None, **kwargs
-            ):
-                return self.default_colors[random.randint(0, 7)]
+        font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
+        if not osp.exists(font_path):
+            font_path = None
 
-            font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
+        from wordcloud import WordCloud
 
-            font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
-            if not osp.exists(font_path):
-                font_path = None
+        wc = WordCloud(
+            width=py_image_size[0],
+            height=py_image_size[1],
+            font_path=font_path,
+            max_font_size=300,
+            mode="RGB",
+            background_color="white",
+            max_words=py_max_items,
+            color_func=color_func,
+            random_state=42,
+            stopwords=set(),
+        )
+        wc.generate_from_frequencies(freq)
 
-            from wordcloud import WordCloud
-
-            wc = WordCloud(
-                width=py_image_size[0],
-                height=py_image_size[1],
-                font_path=font_path,
-                max_font_size=300,
-                mode="RGB",
-                background_color="white",
-                max_words=py_max_items,
-                color_func=color_func,
-                random_state=42,
-                stopwords=set(),
-            )
-            wc.generate_from_frequencies(freq)
-
-            image = wc.to_image()
-            return Image(numpy.array(image), "RGB")
+        image = wc.to_image()
+        return Image(numpy.array(image), "RGB")

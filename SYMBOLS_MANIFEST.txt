@@ -245,7 +245,6 @@ System`Continue
 System`ContinuedFraction
 System`Convert`B64Dump`B64Decode
 System`Convert`B64Dump`B64Encode
-System`Convert`CommonDump`RemoveLinearSyntax
 System`ConvertersDump`$extensionMappings
 System`ConvertersDump`$formatMappings
 System`CoprimeQ

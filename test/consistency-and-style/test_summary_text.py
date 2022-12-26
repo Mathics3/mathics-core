@@ -9,6 +9,7 @@ import pytest
 from mathics import __file__ as mathics_initfile_path
 from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
+from mathics.doc.common_doc import skip_doc
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
 # Get file system path name for mathics.builtin
@@ -203,12 +204,12 @@ def test_summary_text_available(module_name):
         var = name_is_builtin_symbol(module, name)
         if var is None:
             continue
-        # skip if var is not a builtin that belongs to
-        # this module
-        if len(name) > 3 and name[-3:] == "Box":
-            continue
+
         instance = var(expression=False)
         if not isinstance(instance, Builtin):
+            continue
+
+        if skip_doc(instance.__class__):
             continue
 
         # For private / internal symbols,
