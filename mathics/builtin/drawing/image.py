@@ -68,6 +68,7 @@ try:
 
     import numpy
     import PIL
+    import PIL.Image as PILImage
     import PIL.ImageEnhance
     import PIL.ImageFilter
     import PIL.ImageOps
@@ -158,7 +159,7 @@ class ImageImport(_ImageBuiltin):
 
     def eval(self, path: String, evaluation: Evaluation):
         """ImageImport[path_String]"""
-        pillow = PIL.Image.open(path.value)
+        pillow = PILImage.open(path.value)
         pixels = numpy.asarray(pillow)
         is_rgb = len(pixels.shape) >= 3 and pixels.shape[2] >= 3
         options_from_exif = extract_exif(pillow, evaluation)
@@ -644,7 +645,7 @@ class ImageRotate(_ImageBuiltin):
 
         def rotate(im):
             return im.rotate(
-                180 * py_angle / math.pi, resample=PIL.Image.BICUBIC, expand=True
+                180 * py_angle / math.pi, resample=PILImage.BICUBIC, expand=True
             )
 
         return image.filter(rotate)
@@ -1308,7 +1309,7 @@ class ColorQuantize(_ImageBuiltin):
         if converted is None:
             return
         pixels = pixels_as_ubyte(converted.pixels)
-        im = PIL.Image.fromarray(pixels).quantize(py_value)
+        im = PILImage.fromarray(pixels).quantize(py_value)
         im = im.convert("RGB")
         return Image(numpy.array(im), "RGB")
 
@@ -2038,7 +2039,7 @@ class Image(Atom):
             pillow = deepcopy(self.pillow)
         else:
             pixels_format = "RGBA" if len(shape) >= 3 and shape[2] == 4 else "RGB"
-            pillow = PIL.Image.fromarray(pixels, pixels_format)
+            pillow = PILImage.fromarray(pixels, pixels_format)
 
         # if the image is very small, scale it up using nearest neighbour.
         min_size = 128
@@ -2047,7 +2048,7 @@ class Image(Atom):
             scaled_width = int(scale * width)
             scaled_height = int(scale * height)
             pillow = pillow.resize(
-                (scaled_height, scaled_width), resample=PIL.Image.NEAREST
+                (scaled_height, scaled_width), resample=PILImage.NEAREST
             )
 
         with warnings.catch_warnings():
@@ -2105,7 +2106,7 @@ class Image(Atom):
         pixels = self.pixels
         n = pixels.shape[2]
         channels = [
-            f(PIL.Image.fromarray(c, "L")) for c in (pixels[:, :, i] for i in range(n))
+            f(PILImage.fromarray(c, "L")) for c in (pixels[:, :, i] for i in range(n))
         ]
         return Image(numpy.dstack(channels), self.color_space)
 
@@ -2171,7 +2172,7 @@ class Image(Atom):
         else:
             raise NotImplementedError
 
-        return PIL.Image.fromarray(pixels, mode)
+        return PILImage.fromarray(pixels, mode)
 
     def options(self):
         return ListExpression(

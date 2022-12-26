@@ -24,6 +24,7 @@ _image_requires = ("numpy", "PIL")
 
 try:
     import numpy
+    import PIL.Image as PILImage
     import PIL.ImageOps
 
     _enabled = True
@@ -377,7 +378,7 @@ class DominantColors(_ImageBuiltin):
         im = (
             image.color_convert("RGB")
             .pil()
-            .convert("P", palette=PIL.Image.ADAPTIVE, colors=256)
+            .convert("P", palette=PILImage.ADAPTIVE, colors=256)
         )
         pixels = numpy.array(list(im.getdata()))
 

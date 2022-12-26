@@ -11,23 +11,15 @@ import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
-from mathics.core.atoms import Integer, Integer1, Real, String
+from mathics.core.atoms import Integer, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
-from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
-from mathics.core.element import BaseElement, BoxElementMixin
+from mathics.core.element import BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-from mathics.core.symbols import Atom, Symbol
-from mathics.core.systemsymbols import (
-    SymbolFullForm,
-    SymbolInfix,
-    SymbolInputForm,
-    SymbolNone,
-    SymbolOutputForm,
-    SymbolRowBox,
-)
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.core.symbols import Atom
+from mathics.core.systemsymbols import SymbolRowBox
+from mathics.eval.makeboxes import _boxed_string, format_element, parenthesize
 
 
 def int_to_s_exp(expr, n):
@@ -40,56 +32,6 @@ def int_to_s_exp(expr, n):
         s = str(n)
     exp = len(s) - 1
     return s, exp, nonnegative
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
-
-
-# FIXME: op should be a string, so remove the Union.
-def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
-):
-    result = []
-    for index, element in enumerate(elements):
-        if index > 0:
-            if isinstance(op, list):
-                result.append(op[index - 1])
-            else:
-                result.append(op)
-        parenthesized = False
-        if grouping == "System`NonAssociative":
-            parenthesized = True
-        elif grouping == "System`Left" and index > 0:
-            parenthesized = True
-        elif grouping == "System`Right" and index == 0:
-            parenthesized = True
-
-        element_boxes = MakeBoxes(element, form)
-        element = parenthesize(precedence, element, element_boxes, parenthesized)
-
-        result.append(element)
-    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def real_to_s_exp(expr, n):
@@ -457,107 +399,6 @@ class MakeBoxes(Builtin):
             return Expression(SymbolRowBox, ListExpression(*args).evaluate(evaluation))
         else:
             return MakeBoxes(expr, f).evaluate(evaluation)
-
-    # FIXME: prec is sometimes not an Integer for a ListExpession.
-    # And this is recent with respect to PredefinedSymbol revision.
-    # How does this get set and why?
-    def eval_infix(
-        self, expr, operator, precedence: Integer, grouping, form: Symbol, evaluation
-    ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_:None, grouping_:None],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-
-        # In WMA, this is covered with two different rules:
-        #  * ```MakeBoxes[Infix[expr_, operator_]```
-        #  * ```MakeBoxes[Infix[expr_, operator_, precedence_, grouping_:None]```
-        # In the second form, precedence must be an Integer. Otherwise, a message is
-        # shown and fall back to the standard MakeBoxes form.
-        # Here we allow Precedence to be ```System`None```, to have just one rule.
-
-        if precedence is SymbolNone:
-            precedence_value = None
-        elif isinstance(precedence, Integer):
-            precedence_value = precedence.value
-        else:
-            if grouping is not SymbolNone:
-                # Here I use a String as a head to avoid a circular evaluation.
-                # TODO: Use SymbolInfix when the MakeBoxes refactor be done.
-                expr = Expression(String("Infix"), expr, operator, precedence, grouping)
-            else:
-                expr = Expression(String("Infix"), expr, operator, precedence)
-            evaluation.message("Infix", "intm", expr)
-            return self.eval_general(expr, form, evaluation)
-
-        grouping = grouping.get_name()
-
-        ## FIXME: this should go into a some formatter.
-        def format_operator(operator) -> Union[String, BaseElement]:
-            """
-            Format infix operator `operator`. To do this outside parameter form is used.
-            Sometimes no changes are made and operator is returned unchanged.
-
-            This function probably should be rewritten be more scalable across other forms
-            and moved to a module that contiaing similar formatting routines.
-            """
-            if not isinstance(operator, String):
-                return MakeBoxes(operator, form)
-
-            op_str = operator.value
-
-            # FIXME: performing a check using the operator symbol representation feels a bit
-            # fragile. The operator name seems more straightforward and more robust.
-            if form == SymbolInputForm and op_str in ["*", "^", " "]:
-                return operator
-            elif (
-                form in (SymbolInputForm, SymbolOutputForm)
-                and not op_str.startswith(" ")
-                and not op_str.endswith(" ")
-            ):
-                # FIXME: Again, testing on specific forms is fragile and not scalable.
-                op = String(" " + op_str + " ")
-                return op
-            return operator
-
-        if isinstance(expr, Atom):
-            evaluation.message("Infix", "normal", Integer1)
-            return None
-
-        elements = expr.elements
-        if len(elements) > 1:
-            if operator.has_form("List", len(elements) - 1):
-                operator = [format_operator(op) for op in operator.elements]
-                return make_boxes_infix(
-                    elements, operator, precedence_value, grouping, form
-                )
-            else:
-                encoding_rule = evaluation.definitions.get_ownvalue(
-                    "$CharacterEncoding"
-                )
-                encoding = (
-                    "UTF8" if encoding_rule is None else encoding_rule.replace.value
-                )
-                op_str = (
-                    operator.value
-                    if isinstance(operator, String)
-                    else operator.short_name
-                )
-                if encoding == "ASCII":
-                    operator = format_operator(
-                        String(operator_to_ascii.get(op_str, op_str))
-                    )
-                else:
-                    operator = format_operator(
-                        String(operator_to_unicode.get(op_str, op_str))
-                    )
-
-            return make_boxes_infix(
-                elements, operator, precedence_value, grouping, form
-            )
-
-        elif len(elements) == 1:
-            return MakeBoxes(elements[0], form)
-        else:
-            return MakeBoxes(expr, form)
 
 
 class ToBoxes(Builtin):
