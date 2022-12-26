@@ -104,7 +104,17 @@ def make_boxes_infix(
     return Expression(SymbolRowBox, ListExpression(*result))
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm) -> Expression:
+def eval_fullform_makeboxes(self, expr, evaluation, form=SymbolStandardForm):
+    """
+    This function takes the definitions provided by the evaluation
+    object, and produces a boxed form for expr.
+    """
+    # This is going to be reimplemented.
+    expr = Expression(SymbolFullForm, expr)
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+
+
+def eval_makeboxes(self, expr, evaluation, form=SymbolStandardForm):
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
