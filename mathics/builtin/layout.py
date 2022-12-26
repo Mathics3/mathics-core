@@ -31,7 +31,11 @@ from mathics.core.systemsymbols import (
     SymbolOutputForm,
     SymbolRight,
 )
-from mathics.eval.makeboxes import format_element, make_boxes_infix
+from mathics.eval.makeboxes import (
+    eval_fullform_makeboxes,
+    format_element,
+    make_boxes_infix,
+)
 
 SymbolNonAssociative = Symbol("System`NonAssociative")
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
@@ -166,68 +170,34 @@ class Infix(Builtin):
 
     # the right rule should be
     # mbexpression:MakeBoxes[Infix[___], form]
-
-    def eval_infix_1(self, expr: Expression, form: Symbol, evaluation):
-        """MakeBoxes[Infix[expr_],
+    def eval_all(self, expression, form, evaluation):
+        """MakeBoxes[Infix[___],
         form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        return self.do_eval_infix(expr, String("~"), form, evaluation)
+        infix_expr = expression.elements[0]
+        elements = list(infix_expr.elements)
+        num_parms = len(elements)
 
-    def eval_infix_2(
-        self, expr: Expression, operator: BaseElement, form: Symbol, evaluation
-    ):
-        """MakeBoxes[Infix[expr_, operator_],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        return self.do_eval_infix(expr, operator, form, evaluation)
+        if num_parms == 0 or num_parms > 4:
+            evaluation.message("Infix", "argb", Integer(len(parms.get_sequence())))
+            return eval_fullform_makeboxes(infix_expr, evaluation, form)
 
-    def eval_infix_3(
-        self,
-        expr: Expression,
-        operator: BaseElement,
-        precedence: BaseElement,
-        form: Symbol,
-        evaluation,
-    ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
+        if num_parms == 1:
+            expr = elements[0]
+            return self.do_eval_infix(expr, String("~"), form, evaluation)
+        if num_parms == 2:
+            expr, operator = elements
+            return self.do_eval_infix(expr, operator, form, evaluation)
 
+        expr, operator, precedence = elements[:3]
         if not isinstance(precedence, Integer):
             evaluation.message(
                 "Infix",
                 "intm",
-                Expression(
-                    SymbolFullForm, Expression(SymbolInfix, expr, operator, precedence)
-                ),
+                Expression(SymbolFullForm, infix_expr),
             )
-            return
+            return eval_fullform_makeboxes(infix_expr, evaluation, form)
 
-        return self.do_eval_infix(expr, operator, form, evaluation, precedence.value)
-
-    def eval_infix_4(
-        self,
-        expr: Expression,
-        operator: BaseElement,
-        precedence: BaseElement,
-        grouping: BaseElement,
-        form: Symbol,
-        evaluation,
-    ):
-        """MakeBoxes[Infix[expr_, operator_, precedence_, grouping_],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        if not isinstance(precedence, Integer):
-            fullform_expr = Expression(
-                SymbolFullForm,
-                Expression(SymbolInfix, expr, operator, precedence, grouping),
-            )
-            evaluation.message(
-                "Infix",
-                "intm",
-                Expression(
-                    SymbolFullForm,
-                    Expression(SymbolInfix, expr, operator, precedence, grouping),
-                ),
-            )
-            return fullform_expr
-
+        grouping = SymbolNone if num_parms < 4 else elements[3]
         if grouping is SymbolNone:
             return self.do_eval_infix(
                 expr, operator, form, evaluation, precedence.value
@@ -238,16 +208,7 @@ class Infix(Builtin):
             )
 
         evaluation.message("Infix", "argb", grouping)
-        return Expression(
-            SymbolFullForm,
-            Expression(SymbolInfix, expr, operator, precedence, grouping),
-        )
-
-    def eval_infix_default(self, parms, form: Symbol, evaluation):
-        """MakeBoxes[Infix[parms___],
-        form:StandardForm|TraditionalForm|OutputForm|InputForm]"""
-        evaluation.message("Infix", "argb", Integer(len(parms.get_sequence())))
-        return None
+        return eval_fullform_makeboxes(infix_expr, evaluation, form)
 
     def do_eval_infix(
         self,
