@@ -9,6 +9,7 @@ from typing import List, Optional
 
 import numpy
 import PIL
+import PIL.Image as PILImage
 
 from mathics.builtin.base import String
 from mathics.core.atoms import Rational
@@ -36,11 +37,11 @@ Exif_names = {
 }
 
 # After Python 3.6 support is dropped, this can be simplified
-# to for Pillow 9+ and use PIL.Image.Resampling only.
-if hasattr(PIL.Image, "Resampling"):
-    pil_resize = PIL.Image.Resampling
+# to for Pillow 9+ and use PILImage.Resampling only.
+if hasattr(PILImage, "Resampling"):
+    pil_resize = PILImage.Resampling
 else:
-    pil_resize = PIL.Image
+    pil_resize = PILImage
 
 # See:
 # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters
