@@ -37,11 +37,11 @@ Exif_names = {
 }
 
 # After Python 3.6 support is dropped, this can be simplified
-# to for Pillow 9+ and use PILImage.Resampling only.
-if hasattr(PILImage, "Resampling"):
-    pil_resize = PILImage.Resampling
+# to for Pillow 9+ and use PIL.Image.Resampling only.
+if hasattr(PIL.Image, "Resampling"):
+    pil_resize = PIL.Image.Resampling
 else:
-    pil_resize = PILImage
+    pil_resize = PIL.Image
 
 # See:
 # https://pillow.readthedocs.io/en/stable/handbook/concepts.html#filters
