@@ -36,6 +36,8 @@ from mathics.builtin.base import (
     mathics_to_python,
 )
 from mathics.core.pattern import pattern_objects
+from mathics.core.symbols import Symbol
+from mathics.eval.makeboxes import builtins_precedence
 from mathics.settings import ENABLE_FILES_MODULE
 from mathics.version import __version__  # noqa used in loading to check consistency.
 
@@ -60,7 +62,7 @@ def add_builtins(new_builtins):
                 # print("XXX1", sympy_name)
                 sympy_to_mathics[sympy_name] = builtin
         if isinstance(builtin, Operator):
-            builtins_precedence[name] = builtin.precedence
+            builtins_precedence[Symbol(name)] = builtin.precedence
         if isinstance(builtin, PatternObject):
             pattern_objects[name] = builtin.__class__
     _builtins.update(dict(new_builtins))
@@ -235,8 +237,6 @@ for module in modules:
 
 mathics_to_sympy = {}  # here we have: name -> sympy object
 sympy_to_mathics = {}
-
-builtins_precedence = {}
 
 new_builtins = _builtins_list
 

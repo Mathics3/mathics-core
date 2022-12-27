@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any
+from typing import Any, Dict, Type
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -41,6 +41,8 @@ from mathics.core.systemsymbols import (
     SymbolRowBox,
     SymbolStandardForm,
 )
+
+builtins_precedence: Dict[Symbol, int] = {}
 
 element_formatters = {}
 
@@ -290,9 +292,17 @@ def do_format_expression(
     return expr
 
 
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
+def parenthesize(
+    precedence: int, element: Type[BaseElement], element_boxes, when_equal: bool
+) -> Type[Expression]:
+    """
+    "Determines if ``element_boxes`` needs to be surrounded with parenthesis.
+    This is done based on ``precedence`` and the computed preceence of
+    ``element``.  The adjusted ListExpression is returned.
 
+    If when_equal is True, parentheses will be added if the two
+    precedence values are equal.
+    """
     while element.has_form("HoldForm", 1):
         element = element.elements[0]
 
@@ -304,7 +314,7 @@ def parenthesize(precedence, element, element_boxes, when_equal):
     elif isinstance(element, (Integer, Real)) and element.value < 0:
         element_prec = precedence
     else:
-        element_prec = builtins_precedence.get(element.get_head_name())
+        element_prec = builtins_precedence.get(element.get_head())
     if precedence is not None and element_prec is not None:
         if precedence > element_prec or (precedence == element_prec and when_equal):
             return Expression(
