@@ -54,17 +54,9 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_fullform_makeboxes(self, expr, evaluation, form=SymbolStandardForm):
-    """
-    This function takes the definitions provided by the evaluation
-    object, and produces a boxed form for expr.
-    """
-    # This is going to be reimplemented.
-    expr = Expression(SymbolFullForm, expr)
-    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
-
-
-def eval_makeboxes(self, expr, evaluation, form=SymbolStandardForm):
+def eval_fullform_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
     """
     This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
@@ -73,6 +65,19 @@ def eval_makeboxes(self, expr, evaluation, form=SymbolStandardForm):
     """
     # This is going to be reimplemented.
     expr = Expression(SymbolFullForm, expr)
+    return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
+
+
+def eval_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
+    """
+    This function takes the definitions provided by the evaluation
+    object, and produces a boxed fullform for expr.
+
+    Basically: MakeBoxes[expr // form]
+    """
+    # This is going to be reimplemented.
     return Expression(SymbolMakeBoxes, expr, form).evaluate(evaluation)
 
 
