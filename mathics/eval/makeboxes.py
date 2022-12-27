@@ -7,7 +7,7 @@ formatting rules.
 
 
 import typing
-from typing import Any, Union
+from typing import Any
 
 from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
@@ -50,56 +50,6 @@ def _boxed_string(string: str, **options):
     from mathics.builtin.box.layout import StyleBox
 
     return StyleBox(String(string), **options)
-
-
-def parenthesize(precedence, element, element_boxes, when_equal):
-    from mathics.builtin import builtins_precedence
-
-    while element.has_form("HoldForm", 1):
-        element = element.elements[0]
-
-    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
-        element_prec = element.elements[2].value
-    elif element.has_form("PrecedenceForm", 2):
-        element_prec = element.elements[1].value
-    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
-    elif isinstance(element, (Integer, Real)) and element.value < 0:
-        element_prec = precedence
-    else:
-        element_prec = builtins_precedence.get(element.get_head_name())
-    if precedence is not None and element_prec is not None:
-        if precedence > element_prec or (precedence == element_prec and when_equal):
-            return Expression(
-                SymbolRowBox,
-                ListExpression(String("("), element_boxes, String(")")),
-            )
-    return element_boxes
-
-
-# FIXME: op should be a string, so remove the Union.
-def make_boxes_infix(
-    elements, op: Union[String, list], precedence: int, grouping, form: Symbol
-):
-    result = []
-    for index, element in enumerate(elements):
-        if index > 0:
-            if isinstance(op, list):
-                result.append(op[index - 1])
-            else:
-                result.append(op)
-        parenthesized = False
-        if grouping == "System`NonAssociative":
-            parenthesized = True
-        elif grouping == "System`Left" and index > 0:
-            parenthesized = True
-        elif grouping == "System`Right" and index == 0:
-            parenthesized = True
-
-        element_boxes = Expression(SymbolMakeBoxes, element, form)
-        element = parenthesize(precedence, element, element_boxes, parenthesized)
-
-        result.append(element)
-    return Expression(SymbolRowBox, ListExpression(*result))
 
 
 def eval_fullform_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
@@ -338,6 +288,30 @@ def do_format_expression(
     expr = do_format_element(element, evaluation, form)
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
+
+
+def parenthesize(precedence, element, element_boxes, when_equal):
+    from mathics.builtin import builtins_precedence
+
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head_name())
+    if precedence is not None and element_prec is not None:
+        if precedence > element_prec or (precedence == element_prec and when_equal):
+            return Expression(
+                SymbolRowBox,
+                ListExpression(String("("), element_boxes, String(")")),
+            )
+    return element_boxes
 
 
 element_formatters[Rational] = do_format_rational
