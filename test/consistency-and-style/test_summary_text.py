@@ -94,14 +94,6 @@ __py_files__ = [
 ]
 
 
-def _is_builtin(var):
-    if var == Builtin:
-        return True
-    if hasattr(var, "__bases__"):
-        return any(_is_builtin(base) for base in var.__bases__)
-    return False
-
-
 def import_module(module_name: str):
     try:
         module = importlib.import_module("mathics.builtin." + module_name)
@@ -152,7 +144,10 @@ def check_grammar(text: str):
 
 
 def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: str):
-    assert docstr.count("<dl>") >= 1 and docstr.count("</dl>") == docstr.count(
+    assert (
+        docstr.count("<dl>") >= 1
+    ), f"mising <dl> </dl> tags in {instance.get_name()} from {module_name}"
+    assert docstr.count("</dl>") == docstr.count(
         "<dl>"
     ), f"unbalanced <dl> </dl> tags in {instance.get_name()} from {module_name}"
     assert (
@@ -174,15 +169,6 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
     assert docstr.count("<url>") == docstr.lower().count(
         "</url>"
     ), f"unbalanced <url> </url> tags in {instance.get_name()} from {module_name}"
-
-
-def is_builtin(var: object) -> bool:
-    return (
-        hasattr(var, "__module__")
-        and var.__module__.startswith("mathics.builtin.")
-        and var.__module__ != "mathics.builtin.base"
-        and _is_builtin(var)
-    )
 
 
 @pytest.mark.skipif(
