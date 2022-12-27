@@ -201,3 +201,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
                 option = ensure_context(option)
                 default[option] = parse_builtin_rule(value)
         return default
+
+
+DOES_NOT_ADD_BUILTIN_DEFINITION = [BoxExpression]
