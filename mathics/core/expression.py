@@ -680,9 +680,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
         # print("Use of get_elements is deprecated. Use elements instead.")
         return self._elements
 
-    # Compatibily with old code. Deprecated, but remove after a little bit
-    get_leaves = get_elements
-
     def get_head(self):
         return self._head
 

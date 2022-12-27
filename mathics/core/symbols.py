@@ -259,9 +259,6 @@ class Atom(BaseElement):
     def get_elements(self):
         return []
 
-    # Compatibility with old code. Deprecated, but remove after a little bit.
-    get_leaves = get_elements
-
     def get_head(self) -> "Symbol":
         return Symbol(self.class_head_name)
 
