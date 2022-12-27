@@ -106,7 +106,7 @@ class Divisors(Builtin):
     attributes = A_LISTABLE | A_PROTECTED
     summary_text = "integer divisors"
 
-    def eval(self, n:Integer, evaluation: Evaluation):
+    def eval(self, n: Integer, evaluation: Evaluation):
         "Divisors[n_Integer]"
         if n == Integer0:
             return None
