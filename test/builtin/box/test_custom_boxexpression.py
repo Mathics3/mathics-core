@@ -1,10 +1,11 @@
-from mathics.builtin.base import BoxExpression, Predefined
+from test.helper import evaluate, session
+
+from mathics.builtin.base import Predefined
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.graphics import GRAPHICS_OPTIONS
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED, A_READ_PROTECTED
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol
-
-from .helper import evaluate, session
 
 SymbolCustomGraphicsBox = Symbol("CustomGraphicsBox")
 

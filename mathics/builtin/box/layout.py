@@ -6,7 +6,8 @@ Formatting constructs are represented as a hierarchy of low-level symbolic "boxe
 The routines here assist in boxing at the bottom of the hierarchy. At the other end, the top level, we have a Notebook which is just a collection of Expressions usually contained in boxes.
 """
 
-from mathics.builtin.base import BoxExpression, Builtin
+from mathics.builtin.base import Builtin
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.options import options_to_rules
 from mathics.core.atoms import Atom, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_PROTECTED, A_READ_PROTECTED
@@ -15,7 +16,7 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.exceptions import BoxConstructError
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
-from mathics.core.symbols import Symbol, SymbolMakeBoxes
+from mathics.core.symbols import Symbol, SymbolFullForm
 from mathics.core.systemsymbols import (
     SymbolFractionBox,
     SymbolRowBox,
@@ -25,6 +26,7 @@ from mathics.core.systemsymbols import (
     SymbolSubsuperscriptBox,
     SymbolSuperscriptBox,
 )
+from mathics.eval.makeboxes import eval_makeboxes
 
 
 def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
@@ -239,7 +241,7 @@ class RowBox(BoxExpression):
             return item
 
         self.items = tuple((check_item(item) for item in items))
-        self._elements = None
+        self._elements = self.items
 
     def to_expression(self) -> Expression:
         """
@@ -247,7 +249,7 @@ class RowBox(BoxExpression):
         to implement the interface of normal Expressions, for example, when a boxed expression
         is manipulated to produce a new boxed expression.
 
-        For instance, consider the folling definition:
+        For instance, consider the following definition:
         ```
         MakeBoxes[{items___}, StandardForm] := RowBox[{"[", Sequence @@ Riffle[MakeBoxes /@ {items}, " "], "]"}]
         ```
@@ -256,13 +258,12 @@ class RowBox(BoxExpression):
         in the apply method, this function must be called.
         """
         if self._elements is None:
-            items = tuple(
+            self._elements = tuple(
                 item.to_expression() if isinstance(item, BoxElementMixin) else item
                 for item in self.items
             )
 
-            self._elements = Expression(SymbolRowBox, ListExpression(*items))
-        return self._elements
+        return Expression(SymbolRowBox, ListExpression(*self._elements))
 
 
 class ShowStringCharacters(Builtin):
