@@ -4,7 +4,8 @@
 # Also no docstring which may confuse the doc system
 
 
-from mathics.builtin.base import BoxExpression, BuiltinElement, split_name
+from mathics.builtin.base import BuiltinElement
+from mathics.builtin.box.expression import BoxExpression, split_name
 
 # Signals to Mathics doc processing not to include this module in its documentation.
 no_doc = True

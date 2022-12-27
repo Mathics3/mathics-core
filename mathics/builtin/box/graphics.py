@@ -6,7 +6,7 @@ Boxing Routines for 2D Graphics
 
 from math import atan2, ceil, cos, degrees, floor, log10, pi, sin
 
-from mathics.builtin.base import BoxExpression
+from mathics.builtin.box.expression import BoxExpression
 from mathics.builtin.colors.color_directives import (
     ColorError,
     Opacity,

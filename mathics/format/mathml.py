@@ -154,6 +154,7 @@ def gridbox(self, elements=None, **box_options) -> str:
             )
         result += "</mtr>\n"
     result += "</mtable>"
+    # print(f"gridbox: {result}")
     return result
 
 
@@ -235,10 +236,10 @@ def rowbox(self, **options) -> str:
 
     is_list_row = False
     if (
-        len(self.items) == 3
-        and self.items[0].get_string_value() == "{"  # nopep8
+        len(self.items) >= 3
+        and self.items[0].get_string_value() == "{"
         and self.items[2].get_string_value() == "}"
-        and self.items[1].has_form("RowBox", 1)
+        and self.items[1].has_form("RowBox", 1, None)
     ):
         content = self.items[1].items
         if is_list_interior(content):
@@ -254,6 +255,9 @@ def rowbox(self, **options) -> str:
 
     for element in self.items:
         result.append(lookup_conversion_method(element, "mathml")(element, **options))
+
+    # print(f"mrow: {result}")
+
     return "<mrow>%s</mrow>" % " ".join(result)
 
 

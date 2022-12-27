@@ -470,7 +470,7 @@ class Evaluation:
             raise ValueError
 
         try:
-            # With the new implementation, if result is not a ``BoxConstruct``
+            # With the new implementation, if result is not a ``BoxExpression``
             # then we should raise a BoxError here.
             boxes = result.boxes_to_text(evaluation=self)
         except BoxError:
