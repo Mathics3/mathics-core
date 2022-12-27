@@ -333,7 +333,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
 
     All Symbols have a name that can be converted to string.
 
-    A Variable Symbol is a ``Symbol``` that is associated with a
+    A Variable Symbol is a ``Symbol`` that is associated with a
     ``Definition`` that has an ``OwnValue`` that determines its
     evaluation value.
 

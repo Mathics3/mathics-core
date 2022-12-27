@@ -5,8 +5,6 @@
 Low level Format definitions
 """
 
-from typing import Union
-
 import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
