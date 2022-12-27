@@ -620,12 +620,12 @@ class Power(BinaryOperator, _MPMathFunction):
                     return SymbolComplexInfinity
         if isinstance(x, Complex) and x.real.is_zero:
             yhalf = Expression(SymbolTimes, y, RationalOneHalf)
-            factor = self.apply(Expression(SymbolSequence, x.imag, y), evaluation)
+            factor = self.eval(Expression(SymbolSequence, x.imag, y), evaluation)
             return Expression(
                 SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
             )
 
-        result = self.apply(Expression(SymbolSequence, x, y), evaluation)
+        result = self.eval(Expression(SymbolSequence, x, y), evaluation)
         if result is None or result != SymbolNull:
             return result
 

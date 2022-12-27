@@ -114,7 +114,7 @@ class _MPMathFunction(SympyFunction):
             return None
         return getattr(mpmath, self.mpmath_name)
 
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         "%(name)s[z__]"
 
         args = numerify(z, evaluation).get_sequence()
@@ -314,17 +314,17 @@ class Arg(_MPMathFunction):
     mpmath_name = "arg"
     sympy_name = "arg"
 
-    def apply(self, z, evaluation, options={}):
+    def eval(self, z, evaluation, options={}):
         "%(name)s[z_, OptionsPattern[%(name)s]]"
         if Expression(SymbolPossibleZeroQ, z).evaluate(evaluation) is SymbolTrue:
             return Integer0
         preference = self.get_option(options, "Method", evaluation).get_string_value()
         if preference is None or preference == "Automatic":
-            return super(Arg, self).apply(z, evaluation)
+            return super(Arg, self).eval(z, evaluation)
         elif preference == "mpmath":
-            return _MPMathFunction.apply(self, z, evaluation)
+            return _MPMathFunction.eval(self, z, evaluation)
         elif preference == "sympy":
-            return SympyFunction.apply(self, z, evaluation)
+            return SympyFunction.eval(self, z, evaluation)
         # TODO: add NumpyFunction
         evaluation.message(
             "meth", f'Arg Method {preference} not in ("sympy", "mpmath")'
@@ -353,7 +353,7 @@ class Assuming(Builtin):
     summary_text = "set assumptions during the evaluation"
     attributes = A_HOLD_REST | A_PROTECTED
 
-    def apply_assuming(self, assumptions, expr, evaluation):
+    def eval_assuming(self, assumptions, expr, evaluation):
         "Assuming[assumptions_, expr_]"
         assumptions = assumptions.evaluate(evaluation)
         if assumptions is SymbolTrue:
@@ -412,7 +412,7 @@ class Boole(Builtin):
     summary_text = "translate 'True' to 1, and 'False' to 0"
     attributes = A_LISTABLE | A_PROTECTED
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "%(name)s[expr_]"
         if expr is SymbolTrue:
             return Integer1
@@ -483,7 +483,7 @@ class Complex_(Builtin):
     summary_text = "head for complex numbers"
     name = "Complex"
 
-    def apply(self, r, i, evaluation):
+    def eval(self, r, i, evaluation):
         "%(name)s[r_?NumberQ, i_?NumberQ]"
 
         if isinstance(r, Complex) or isinstance(i, Complex):
@@ -536,7 +536,7 @@ class ConditionalExpression(Builtin):
         "expr1_ ^ ConditionalExpression[expr2_, cond_]": "ConditionalExpression[expr1^expr2, cond]",
     }
 
-    def apply_generic(self, expr, cond, evaluation):
+    def eval_generic(self, expr, cond, evaluation):
         "ConditionalExpression[expr_, cond_]"
         # What we need here is a way to evaluate
         # cond as a predicate, using assumptions.
@@ -659,7 +659,7 @@ class DirectedInfinity(SympyFunction):
         "DirectedInfinity[a_?NumericQ] /; N[Abs[a]] != 1": "DirectedInfinity[a / Abs[a]]",
         "DirectedInfinity[a_] * DirectedInfinity[b_]": "DirectedInfinity[a*b]",
         "DirectedInfinity[] * DirectedInfinity[args___]": "DirectedInfinity[]",
-        # Rules already implemented in Times.apply
+        # Rules already implemented in Times.eval
         #        "z_?NumberQ * DirectedInfinity[]": "DirectedInfinity[]",
         #        "z_?NumberQ * DirectedInfinity[a_]": "DirectedInfinity[z * a]",
         "DirectedInfinity[a_] + DirectedInfinity[b_] /; b == -a": (
@@ -756,17 +756,17 @@ class Im(SympyFunction):
     summary_text = "imaginary part"
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
 
-    def apply_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation):
         "Im[number_Complex]"
 
         return number.imag
 
-    def apply_number(self, number, evaluation):
+    def eval_number(self, number, evaluation):
         "Im[number_?NumberQ]"
 
         return Integer0
 
-    def apply(self, number, evaluation):
+    def eval(self, number, evaluation):
         "Im[number_]"
 
         return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
@@ -857,7 +857,7 @@ class Piecewise(SympyFunction):
 
     attributes = A_HOLD_ALL | A_PROTECTED
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items__]"
         result = self.to_sympy(
             Expression(SymbolPiecewise, *items.get_sequence()), evaluation=evaluation
@@ -954,7 +954,7 @@ class PossibleZeroQ(SympyFunction):
 
     sympy_name = "_iszero"
 
-    def apply(self, expr, evaluation):
+    def eval(self, expr, evaluation):
         "%(name)s[expr_]"
         from sympy.matrices.utilities import _iszero
 
@@ -1085,7 +1085,7 @@ class Rational_(Builtin):
     summary_text = "head for rational numbers"
     name = "Rational"
 
-    def apply(self, n: Integer, m: Integer, evaluation):
+    def eval(self, n: Integer, m: Integer, evaluation):
         "%(name)s[n_Integer, m_Integer]"
 
         if m.value == 1:
@@ -1119,17 +1119,17 @@ class Re(SympyFunction):
     attributes = A_LISTABLE | A_NUMERIC_FUNCTION | A_PROTECTED
     sympy_name = "re"
 
-    def apply_complex(self, number, evaluation):
+    def eval_complex(self, number, evaluation):
         "Re[number_Complex]"
 
         return number.real
 
-    def apply_number(self, number, evaluation):
+    def eval_number(self, number, evaluation):
         "Re[number_?NumberQ]"
 
         return number
 
-    def apply(self, number, evaluation):
+    def eval(self, number, evaluation):
         "Re[number_]"
 
         return from_sympy(sympy.re(number.to_sympy().expand(complex=True)))
@@ -1279,7 +1279,7 @@ class Sign(SympyFunction):
         "argx": "Sign called with `1` arguments; 1 argument is expected.",
     }
 
-    def apply(self, x, evaluation):
+    def eval(self, x, evaluation):
         "%(name)s[x_]"
         # Sympy and mpmath do not give the desired form of complex number
         if isinstance(x, Complex):
@@ -1292,9 +1292,9 @@ class Sign(SympyFunction):
         sympy_x = x.to_sympy()
         if sympy_x is None:
             return None
-        return super().apply(x, evaluation)
+        return super().eval(x, evaluation)
 
-    def apply_error(self, x, seqs, evaluation):
+    def eval_error(self, x, seqs, evaluation):
         "Sign[x_, seqs__]"
         return evaluation.message("Sign", "argx", Integer(len(seqs.get_sequence()) + 1))
 

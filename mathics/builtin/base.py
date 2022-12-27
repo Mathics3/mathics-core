@@ -645,9 +645,6 @@ class SympyFunction(SympyObject):
         except:
             return
 
-    # FIXME: remove after all apply->eval conversions have been done
-    apply = eval
-
     def get_constant(self, precision, evaluation, have_mpmath=False):
         try:
             d = get_precision(precision, evaluation)
