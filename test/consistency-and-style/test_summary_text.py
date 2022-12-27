@@ -146,7 +146,7 @@ def check_grammar(text: str):
 def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: str):
     assert (
         docstr.count("<dl>") >= 1
-    ), f"mising <dl> </dl> tags in {instance.get_name()} from {module_name}"
+    ), f"missing <dl> </dl> tags in {instance.get_name()} from {module_name}"
     assert docstr.count("</dl>") == docstr.count(
         "<dl>"
     ), f"unbalanced <dl> </dl> tags in {instance.get_name()} from {module_name}"
