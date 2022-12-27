@@ -93,6 +93,10 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         fexpr = expr.format(evaluation, fmt)
         return fexpr
 
+    # Deprecated: remove eventually
+    def get_elements(self):
+        return self._elements
+
     def get_head(self):
         return Symbol(self.get_name())
 
