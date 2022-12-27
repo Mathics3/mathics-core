@@ -68,7 +68,7 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
         # the __new__ method from BuiltinElement
         # calls self.init. It is expected that it set
-        # self._elements. However, if it didn't happens,
+        # self._elements. However, if it didn't happen,
         # we set it with a default value.
         # There should be a better way to implement this
         # behaviour...
@@ -95,10 +95,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
 
     def get_head(self):
         return Symbol(self.get_name())
-
-    # Deprecated: remove eventually
-    def get_elements(self):
-        return self._elements
 
     def get_head_name(self):
         return self.get_name()
@@ -184,14 +180,6 @@ class BoxExpression(BuiltinElement, BoxElementMixin):
         # FIXME: All classes should store their symbol name.
         # So there should be a self.head.
         return Expression(Symbol(self.get_name()), *self._elements)
-
-    @property
-    def leaves(self):
-        return self.get_elements()
-
-    @leaves.setter
-    def leaves(self, value):
-        raise ValueError("BoxExpression.elements is write protected.")
 
     def flatten_pattern_sequence(self, evaluation) -> "BoxExpression":
         return self
