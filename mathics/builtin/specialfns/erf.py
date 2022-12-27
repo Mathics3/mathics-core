@@ -150,11 +150,11 @@ class InverseErf(_MPMathFunction):
         "Derivative[1][InverseErf]": "Sqrt[Pi] Exp[InverseErf[#]^2] / 2 &",
     }
 
-    def apply(self, z, evaluation):
+    def eval(self, z, evaluation):
         "%(name)s[z__]"
 
         try:
-            return super(InverseErf, self).apply(z, evaluation)
+            return super(InverseErf, self).eval(z, evaluation)
         except ValueError as exc:
             if str(exc) == "erfinv(x) is defined only for -1 <= x <= 1":
                 return
