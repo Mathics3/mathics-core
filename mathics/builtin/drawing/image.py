@@ -2226,7 +2226,12 @@ class Image(Atom):
         return self.color_convert("Grayscale")
 
     def pil(self):
+
+        if hasattr(self, "pillow") and self.pillow is not None:
+            return self.pillow
+
         # see https://pillow.readthedocs.io/en/stable/handbook/concepts.html
+
         n = self.channels()
 
         if n == 1:
