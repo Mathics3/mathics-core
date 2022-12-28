@@ -7,9 +7,9 @@ formatting rules.
 
 
 import typing
-from typing import Any
+from typing import Any, Type
 
-from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
+from mathics.core.atoms import Complex, Integer, Rational, Real, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.definitions import OutputForms
 from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
@@ -38,6 +38,7 @@ from mathics.core.systemsymbols import (
     SymbolMinus,
     SymbolOutputForm,
     SymbolRational,
+    SymbolRowBox,
     SymbolStandardForm,
 )
 
@@ -51,13 +52,130 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
+def eval_fullform_makeboxes(
+    self, expr, evaluation: Evaluation, form=SymbolStandardForm
+) -> Expression:
     """
-    This function takes the definitions prodived by the evaluation
+    This function takes the definitions provided by the evaluation
     object, and produces a boxed form for expr.
+
+    Basically: MakeBoxes[expr // FullForm]
     """
-    # This is going to be reimplemented.
-    return Expression(SymbolMakeBoxes, expr, f).evaluate(evaluation)
+    return eval_makeboxes(Expression(SymbolFullForm, expr), evaluation, form)
+
+
+def eval_makeboxes(
+    expr: BaseElement, evaluation: Evaluation, form: Symbol = SymbolStandardForm
+):
+    """
+    This function takes the definitions provided by the evaluation
+    object, and produces a boxed fullform for expr.
+
+    Basically: MakeBoxes[expr, form]
+    """
+
+    def build_rowbox(*items):
+        """
+        This function builds ```RowBox[{items}]```.
+        """
+        # One way to avoid the local import would be to
+        # replace the body by
+        # return Expression(SymbolRowBox, *items).evaluate(evaluation)
+        from mathics.builtin.box.layout import RowBox
+
+        return RowBox(*items)
+
+    if isinstance(expr, BoxElementMixin):
+        expr = expr.to_expression()
+
+    mb_expr = Expression(SymbolMakeBoxes, expr, form)
+    # TODO: This private function should be reformulated
+    # when MakeBoxes rules be stored in the proper place,
+    # supporting upvalues too.
+
+    def mb_rules():
+        # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        # This is used because we need to skip eval_general rule.
+        # Hopefully, this is not going to be necesary anymore when
+        # makeboxes rules be stored as formatvalues.
+        from mathics.core.rules import BuiltinRule
+
+        mbdef = evaluation.definitions.builtin.get("System`MakeBoxes")
+        eval_general_method = mbdef.builtin.eval_general if mbdef is not None else None
+        # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+        rules = evaluation.definitions.get_downvalues("System`MakeBoxes")
+        for rule in rules:
+            # MakeBoxes.eval_general should be skipped, and applied here
+            # as an special case. Once the other MakeBoxes rules
+            # be stored as format rules, this check is not going to be need
+            # anymore.
+            if isinstance(rule, BuiltinRule):
+                if rule.function == eval_general_method:
+                    continue
+            yield rule
+
+    for rule in mb_rules():
+        result = rule.apply(mb_expr, evaluation, fully=False)
+        if result is None or result is mb_expr:
+            continue
+
+        if isinstance(result, BoxElementMixin):
+            return result
+        if isinstance(result, EvalMixin):
+            result = result.evaluate(evaluation)
+            if isinstance(result, BoxElementMixin):
+                return result
+
+    # Default case
+    if isinstance(expr, Atom):
+        try:
+            return expr.atom_to_boxes(form, evaluation)
+        except NotImplementedError:
+            print("not implemented!")
+            return String(str(expr))
+    else:
+        head = expr.head
+        elements = expr.elements
+
+        f_name = form.get_name()
+        if f_name == "System`TraditionalForm":
+            left, right = "(", ")"
+        else:
+            left, right = "[", "]"
+
+        # Parenthesize infix operators at the head of expressions,
+        # like (a + b)[x], but not f[a] in f[a][b].
+        #
+        head_boxes = parenthesize(
+            670, head, Expression(SymbolMakeBoxes, head, form), False
+        )
+        head_boxes = head_boxes.evaluate(evaluation)
+        head_boxes = to_boxes(head_boxes, evaluation)
+        result = [head_boxes, to_boxes(String(left), evaluation)]
+
+        if len(elements) > 1:
+            row = []
+            if f_name in (
+                "System`InputForm",
+                "System`OutputForm",
+                "System`FullForm",
+            ):
+                sep = ", "
+            else:
+                sep = ","
+            for index, element in enumerate(elements):
+                if index > 0:
+                    row.append(to_boxes(String(sep), evaluation))
+                row.append(
+                    to_boxes(eval_makeboxes(element, evaluation, form), evaluation)
+                )
+            result.append(build_rowbox(*row))
+        elif len(elements) == 1:
+            result.append(
+                to_boxes(eval_makeboxes(elements[0], evaluation, form), evaluation)
+            )
+        result.append(to_boxes(String(right), evaluation))
+        return build_rowbox(*result)
 
 
 def format_element(
@@ -67,8 +185,7 @@ def format_element(
     Applies formats associated to the expression, and then calls Makeboxes
     """
     expr = do_format(element, evaluation, form)
-    result = Expression(SymbolMakeBoxes, expr, form)
-    result_box = result.evaluate(evaluation)
+    result_box = eval_makeboxes(expr, evaluation, form)
     if isinstance(result_box, String):
         return result_box
     if isinstance(result_box, BoxElementMixin):
@@ -94,7 +211,6 @@ def do_format_element(
     Applies formats associated to the expression and removes
     superfluous enclosing formats.
     """
-
     evaluation.inc_recursion_depth()
     try:
         expr = element
@@ -277,6 +393,61 @@ def do_format_expression(
     expr = do_format_element(element, evaluation, form)
     # element._format_cache[form] = (evaluation.definitions.now, expr)
     return expr
+
+
+def parenthesize(
+    precedence: int,
+    element: Type[BaseElement],
+    element_boxes: Expression,
+    when_equal: bool,
+) -> Type[Expression]:
+    from mathics.builtin import builtins_precedence
+
+    while element.has_form("HoldForm", 1):
+        element = element.elements[0]
+
+    if element.has_form(("Infix", "Prefix", "Postfix"), 3, None):
+        element_prec = element.elements[2].value
+    elif element.has_form("PrecedenceForm", 2):
+        element_prec = element.elements[1].value
+    # For negative values, ensure that the element_precedence is at least the precedence. (Fixes #332)
+    elif isinstance(element, (Integer, Real)) and element.value < 0:
+        element_prec = precedence
+    else:
+        element_prec = builtins_precedence.get(element.get_head_name())
+    if precedence is not None and element_prec is not None:
+        if precedence > element_prec or (precedence == element_prec and when_equal):
+            return Expression(
+                SymbolRowBox,
+                ListExpression(String("("), element_boxes, String(")")),
+            )
+    return element_boxes
+
+
+def to_boxes(x: BaseElement, evaluation: Evaluation, options={}) -> BoxElementMixin:
+    """
+    This function takes the expression ``x``
+    and tries to reduce it to a ``BoxElementMixin``
+    expression unsing an evaluation object.
+    """
+    if isinstance(x, BoxElementMixin):
+        return x
+    if isinstance(x, Atom):
+        try:
+            x = x.atom_to_boxes(SymbolStandardForm, evaluation)
+            return to_boxes(x, evaluation, options)
+        except NotImplementedError:
+            pass
+
+    if x.has_form("MakeBoxes", None):
+        x_boxed = x.evaluate(evaluation)
+    else:
+        x_boxed = eval_makeboxes(x, evaluation)
+    if isinstance(x_boxed, BoxElementMixin):
+        return x_boxed
+    if isinstance(x_boxed, Atom):
+        return to_boxes(x_boxed, evaluation, options)
+    return eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
 
 
 element_formatters[Rational] = do_format_rational
