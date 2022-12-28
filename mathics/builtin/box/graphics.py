@@ -38,7 +38,7 @@ from mathics.core.formatter import lookup_method
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolAutomatic, SymbolTraditionalForm
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import eval_makeboxes, format_element
 
 SymbolRegularPolygonBox = Symbol("RegularPolygonBox")
 SymbolStandardForm = Symbol("StandardForm")
@@ -994,8 +994,8 @@ class InsetBox(_GraphicsElementBox):
             self.opos = opos
 
         if isinstance(self.content, String):
-            self.content = self.content.atom_to_boxes(
-                SymbolStandardForm, evaluation=self.graphics.evaluation
+            self.content = eval_makeboxes(
+                self.content, self.graphics.evaluation, SymbolStandardForm
             )
         self.content_text = self.content.boxes_to_text(
             evaluation=self.graphics.evaluation

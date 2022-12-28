@@ -68,6 +68,7 @@ try:
 
     import numpy
     import PIL
+    import PIL.Image
     import PIL.ImageEnhance
     import PIL.ImageFilter
     import PIL.ImageOps

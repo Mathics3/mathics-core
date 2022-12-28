@@ -51,7 +51,7 @@ def _boxed_string(string: str, **options):
     return StyleBox(String(string), **options)
 
 
-def eval_makeboxes(self, expr, evaluation, f=SymbolStandardForm):
+def eval_makeboxes(expr, evaluation, f=SymbolStandardForm):
     """
     This function takes the definitions prodived by the evaluation
     object, and produces a boxed form for expr.
@@ -67,8 +67,7 @@ def format_element(
     Applies formats associated to the expression, and then calls Makeboxes
     """
     expr = do_format(element, evaluation, form)
-    result = Expression(SymbolMakeBoxes, expr, form)
-    result_box = result.evaluate(evaluation)
+    result_box = eval_makeboxes(expr, evaluation, form)
     if isinstance(result_box, String):
         return result_box
     if isinstance(result_box, BoxElementMixin):

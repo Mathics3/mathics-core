@@ -38,18 +38,21 @@ def to_boxes(x, evaluation: Evaluation, options={}) -> BoxElementMixin:
     if isinstance(x, BoxElementMixin):
         return x
     if isinstance(x, Atom):
-        x = x.atom_to_boxes(SymbolStandardForm, evaluation)
-        return to_boxes(x, evaluation, options)
-    if isinstance(x, Expression):
-        if x.has_form("MakeBoxes", None):
-            x_boxed = x.evaluate(evaluation)
-        else:
-            x_boxed = eval_makeboxes(x, evaluation)
-        if isinstance(x_boxed, BoxElementMixin):
-            return x_boxed
-        if isinstance(x_boxed, Atom):
-            return to_boxes(x_boxed, evaluation, options)
-    raise eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
+        try:
+            x = x.atom_to_boxes(SymbolStandardForm, evaluation)
+            return to_boxes(x, evaluation, options)
+        except NotImplementedError:
+            pass
+
+    if x.has_form("MakeBoxes", None):
+        x_boxed = x.evaluate(evaluation)
+    else:
+        x_boxed = eval_makeboxes(x, evaluation)
+    if isinstance(x_boxed, BoxElementMixin):
+        return x_boxed
+    if isinstance(x_boxed, Atom):
+        return to_boxes(x_boxed, evaluation, options)
+    return eval_makeboxes(Expression(SymbolFullForm, x), evaluation)
 
 
 class BoxData(Builtin):
