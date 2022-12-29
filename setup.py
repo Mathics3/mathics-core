@@ -39,7 +39,7 @@ is_PyPy = platform.python_implementation() == "PyPy" or hasattr(
     sys, "pypy_version_info"
 )
 
-INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0"]
+INSTALL_REQUIRES = ["Mathics-Scanner >= 1.3.0.dev0", "pillow"]
 
 # Ensure user has the correct Python version
 # Address specific package dependencies based on Python version
@@ -178,6 +178,7 @@ setup(
         "mathics.builtin.files_io",
         "mathics.builtin.forms",
         "mathics.builtin.functional",
+        "mathics.builtin.image",
         "mathics.builtin.intfns",
         "mathics.builtin.list",
         "mathics.builtin.matrices",

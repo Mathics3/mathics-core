@@ -194,6 +194,7 @@ for subdir in (
     "files_io",
     "forms",
     "functional",
+    "image",
     "intfns",
     "list",
     "matrices",
