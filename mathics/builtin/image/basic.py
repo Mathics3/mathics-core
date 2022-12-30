@@ -5,13 +5,20 @@ Basic Image Processing
 import numpy
 import PIL
 
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image
-from mathics.core.atoms import Integer
+from mathics.core.atoms import Integer, MachineReal
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
 from mathics.eval.image import pixels_as_float
+
+try:
+    import skimage.filters
+except ImportError:
+    have_skimage_filters = False
+else:
+    have_skimage_filters = True
 
 
 class Blur(Builtin):
@@ -201,4 +208,65 @@ class Sharpen(Builtin):
         return image.filter(lambda im: im.filter(f))
 
 
-# Todo  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter, Threshold
+class Threshold(Builtin):
+    """
+
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Threshold.html</url>
+
+    <dl>
+      <dt>'Threshold[$image$]'
+      <dd>gives a value suitable for binarizing $image$.
+    </dl>
+
+    The option "Method" may be "Cluster" (use Otsu's threshold), "Median", or "Mean".
+
+    >> img = Import["ExampleData/lena.tif"];
+    >> Threshold[img]
+     = 0.456739
+    X> Binarize[img, %]
+     = -Image-
+    X> Threshold[img, Method -> "Mean"]
+     = 0.486458
+    X> Threshold[img, Method -> "Median"]
+     = 0.504726
+    """
+
+    summary_text = "estimate a threshold value for binarize an image"
+    if have_skimage_filters:
+        options = {"Method": '"Cluster"'}
+    else:
+        options = {"Method": '"Median"'}
+
+    messages = {
+        "illegalmethod": "Method `` is not supported.",
+        "skimage": "Please install scikit-image to use Method -> Cluster.",
+    }
+
+    def eval(self, image, evaluation: Evaluation, options):
+        "Threshold[image_Image, OptionsPattern[Threshold]]"
+        pixels = image.grayscale().pixels
+
+        method = self.get_option(options, "Method", evaluation)
+        method_name = (
+            method.get_string_value()
+            if isinstance(method, String)
+            else method.to_python()
+        )
+        if method_name == "Cluster":
+            if not have_skimage_filters:
+                evaluation.message("ImageResize", "skimage")
+                return
+            threshold = skimage.filters.threshold_otsu(pixels)
+        elif method_name == "Median":
+            threshold = numpy.median(pixels)
+        elif method_name == "Mean":
+            threshold = numpy.mean(pixels)
+        else:
+            return evaluation.message("Threshold", "illegalmethod", method)
+
+        return MachineReal(float(threshold))
+
+
+# Todo  Darker, ImageClip, ImageEffect, ImageRestyle, Lighter

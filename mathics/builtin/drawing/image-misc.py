@@ -23,7 +23,7 @@ import PIL
 from mathics.builtin.base import Builtin, String
 from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
 from mathics.builtin.image.base import Image, _SkimageBuiltin
-from mathics.core.atoms import Integer, Integer0, Integer1, MachineReal
+from mathics.core.atoms import Integer, Integer0, Integer1
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -32,7 +32,6 @@ from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol, SymbolDivide, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import SymbolRule
 from mathics.eval.image import (
-    convolve,
     extract_exif,
     matrix_to_numpy,
     numpy_to_matrix,
@@ -46,13 +45,6 @@ SymbolMatrixQ = Symbol("MatrixQ")
 SymbolThreshold = Symbol("Threshold")
 
 _skimage_requires = ("skimage", "scipy", "matplotlib", "networkx")
-
-try:
-    import skimage.filters
-except ImportError:
-    have_skimage_filters = False
-else:
-    have_skimage_filters = True
 
 # The following classes are used to allow inclusion of
 # Builtin Functions only when certain Python packages
@@ -196,124 +188,6 @@ class RandomImage(Builtin):
         return Image(data, cs)
 
 
-class GaussianFilter(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/GaussianFilter.html</url>
-
-    <dl>
-      <dt>'GaussianFilter[$image$, $r$]'
-      <dd>blurs $image$ using a Gaussian blur filter of radius $r$.
-    </dl>
-
-    >> lena = Import["ExampleData/lena.tif"];
-    >> GaussianFilter[lena, 2.5]
-     = -Image-
-    """
-
-    summary_text = "apply a gaussian filter to an image"
-    messages = {"only3": "GaussianFilter only supports up to three channels."}
-
-    def eval_radius(self, image, radius, evaluation: Evaluation):
-        "GaussianFilter[image_Image, radius_?RealNumberQ]"
-        if len(image.pixels.shape) > 2 and image.pixels.shape[2] > 3:
-            return evaluation.message("GaussianFilter", "only3")
-        else:
-            f = PIL.ImageFilter.GaussianBlur(radius.round_to_float())
-            return image.filter(lambda im: im.filter(f))
-
-
-# morphological image filters
-
-
-class PillowImageFilter(Builtin):
-    """
-
-    ## <url>:PillowImageFilter:</url>
-
-    <dl>
-      <dt>'PillowImageFilter[$image$, "filtername"]'
-      <dd> applies an image filter "filtername" from the pillow library.
-    </dl>
-    TODO: test cases?
-    """
-
-    summary_text = "apply a pillow filter to an image"
-
-    def compute(self, image, f):
-        return image.filter(lambda im: im.filter(f))
-
-
-class MinFilter(PillowImageFilter):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MinFilter.html</url>
-
-    <dl>
-    <dt>'MinFilter[$image$, $r$]'
-      <dd>gives $image$ with a minimum filter of radius $r$ applied on it. This always
-      picks the smallest value in the filter's area.
-    </dl>
-
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MinFilter[lena, 5]
-     = -Image-
-    """
-
-    summary_text = "replace every pixel value by the minimum in a neighbourhood"
-
-    def eval(self, image, r: Integer, evaluation: Evaluation):
-        "MinFilter[image_Image, r_Integer]"
-        return self.compute(image, PIL.ImageFilter.MinFilter(1 + 2 * r.value))
-
-
-class MaxFilter(PillowImageFilter):
-    """
-
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/MaxFilter.html</url>
-
-    <dl>
-      <dt>'MaxFilter[$image$, $r$]'
-      <dd>gives $image$ with a maximum filter of radius $r$ applied on it. This always \
-          picks the largest value in the filter's area.
-    </dl>
-
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MaxFilter[lena, 5]
-     = -Image-
-    """
-
-    summary_text = "replace every pixel value by the maximum in a neighbourhood"
-
-    def eval(self, image, r: Integer, evaluation: Evaluation):
-        "MaxFilter[image_Image, r_Integer]"
-        return self.compute(image, PIL.ImageFilter.MaxFilter(1 + 2 * r.value))
-
-
-class MedianFilter(PillowImageFilter):
-    """
-    <url>
-    :WMA link:
-    https://reference.wolfram.com/language/ref/MedianFilter.html</url>
-
-    <dl>
-      <dt>'MedianFilter[$image$, $r$]'
-      <dd>gives $image$ with a median filter of radius $r$ applied on it. This always \
-          picks the median value in the filter's area.
-    </dl>
-
-    >> lena = Import["ExampleData/lena.tif"];
-    >> MedianFilter[lena, 5]
-     = -Image-
-    """
-
-    summary_text = "replace every pixel value by the median in a neighbourhood"
-
-    def eval(self, image, r: Integer, evaluation: Evaluation):
-        "MedianFilter[image_Image, r_Integer]"
-        return self.compute(image, PIL.ImageFilter.MedianFilter(1 + 2 * r.value))
-
-
 class EdgeDetect(_SkimageBuiltin):
     """
 
@@ -448,37 +322,6 @@ class DiamondMatrix(Builtin):
                 yield p + ([one] * (1 + d * 2)) + p
 
         return _matrix(rows())
-
-
-class ImageConvolve(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/ImageConvolve.html</url>
-
-    <dl>
-      <dt>'ImageConvolve[$image$, $kernel$]'
-      <dd>Computes the convolution of $image$ using $kernel$.
-    </dl>
-
-    >> img = Import["ExampleData/lena.tif"];
-    >> ImageConvolve[img, DiamondMatrix[5] / 61]
-     = -Image-
-    >> ImageConvolve[img, DiskMatrix[5] / 97]
-     = -Image-
-    >> ImageConvolve[img, BoxMatrix[5] / 121]
-     = -Image-
-    """
-
-    summary_text = "give the convolution of image with kernel"
-
-    def eval(self, image, kernel, evaluation: Evaluation):
-        "%(name)s[image_Image, kernel_?MatrixQ]"
-        numpy_kernel = matrix_to_numpy(kernel)
-        pixels = pixels_as_float(image.pixels)
-        shape = pixels.shape[:2]
-        channels = []
-        for c in (pixels[:, :, i] for i in range(pixels.shape[2])):
-            channels.append(convolve(c.reshape(shape), numpy_kernel, fixed=True))
-        return Image(numpy.dstack(channels), image.color_space)
 
 
 class _MorphologyFilter(_SkimageBuiltin):
@@ -667,65 +510,6 @@ class ColorQuantize(Builtin):
         im = PIL.Image.fromarray(pixels).quantize(py_value)
         im = im.convert("RGB")
         return Image(numpy.array(im), "RGB")
-
-
-class Threshold(Builtin):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Threshold.html</url>
-
-    <dl>
-      <dt>'Threshold[$image$]'
-      <dd>gives a value suitable for binarizing $image$.
-    </dl>
-
-    The option "Method" may be "Cluster" (use Otsu's threshold), "Median", or "Mean".
-
-    >> img = Import["ExampleData/lena.tif"];
-    >> Threshold[img]
-     = 0.456739
-    X> Binarize[img, %]
-     = -Image-
-    X> Threshold[img, Method -> "Mean"]
-     = 0.486458
-    X> Threshold[img, Method -> "Median"]
-     = 0.504726
-    """
-
-    summary_text = "estimate a threshold value for binarize an image"
-    if have_skimage_filters:
-        options = {"Method": '"Cluster"'}
-    else:
-        options = {"Method": '"Median"'}
-
-    messages = {
-        "illegalmethod": "Method `` is not supported.",
-        "skimage": "Please install scikit-image to use Method -> Cluster.",
-    }
-
-    def eval(self, image, evaluation: Evaluation, options):
-        "Threshold[image_Image, OptionsPattern[Threshold]]"
-        pixels = image.grayscale().pixels
-
-        method = self.get_option(options, "Method", evaluation)
-        method_name = (
-            method.get_string_value()
-            if isinstance(method, String)
-            else method.to_python()
-        )
-        if method_name == "Cluster":
-            if not have_skimage_filters:
-                evaluation.message("ImageResize", "skimage")
-                return
-            threshold = skimage.filters.threshold_otsu(pixels)
-        elif method_name == "Median":
-            threshold = numpy.median(pixels)
-        elif method_name == "Mean":
-            threshold = numpy.mean(pixels)
-        else:
-            return evaluation.message("Threshold", "illegalmethod", method)
-
-        return MachineReal(float(threshold))
 
 
 class Binarize(Builtin):
