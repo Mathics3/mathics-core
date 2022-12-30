@@ -51,6 +51,7 @@ Documentation
 #. "Forms of Input and Output" is its own section
 #. All Builtins have links to WMA pages.
 #. More url links to Wiki pages added; more internal cross links added.
+#. Image has been split off from Graphics and Drawing. There are now subsections for Image
 
 Internals
 +++++++++
