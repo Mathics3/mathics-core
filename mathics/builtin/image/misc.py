@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
-# FIXME - move the rest into builtin.image
+# FIXME - plit out rest:
+# Color Manipulation, etc.
 """
-Image[] and image-related functions
-
-Note that you (currently) need scikit-image installed in order for this \
-module to work.
+Miscellaneous image-related functions
 """
 
 # This tells documentation how to sort this module
@@ -13,7 +11,6 @@ module to work.
 sort_order = "mathics.builtin.image-and-image-related-functions"
 
 import functools
-import math
 import os.path as osp
 from collections import defaultdict
 
@@ -23,7 +20,7 @@ import PIL
 from mathics.builtin.base import Builtin, String
 from mathics.builtin.colors.color_internals import colorspaces as known_colorspaces
 from mathics.builtin.image.base import Image, _SkimageBuiltin
-from mathics.core.atoms import Integer, Integer0, Integer1
+from mathics.core.atoms import Integer
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
@@ -191,7 +188,9 @@ class RandomImage(Builtin):
 class EdgeDetect(_SkimageBuiltin):
     """
 
-    <url>:WMA link:https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/EdgeDetect.html</url>
 
     <dl>
       <dt>'EdgeDetect[$image$]'
@@ -226,221 +225,6 @@ class EdgeDetect(_SkimageBuiltin):
                 high_threshold=t.round_to_float(),
             ),
             "Grayscale",
-        )
-
-
-def _matrix(rows):
-    return ListExpression(*[ListExpression(*r) for r in rows])
-
-
-class BoxMatrix(Builtin):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/BoxMatrix.html</url>
-
-    <dl>
-    <dt>'BoxMatrix[$s]'
-      <dd>Gives a box shaped kernel of size 2 $s$ + 1.
-    </dl>
-
-    >> BoxMatrix[3]
-     = {{1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}}
-    """
-
-    summary_text = "create a matrix with all its entries set to 1"
-
-    def eval(self, r, evaluation: Evaluation):
-        "BoxMatrix[r_?RealNumberQ]"
-        py_r = abs(r.round_to_float())
-        s = int(math.floor(1 + 2 * py_r))
-        return _matrix([[Integer1] * s] * s)
-
-
-class DiskMatrix(Builtin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DiskMatrix.html</url>
-
-    <dl>
-      <dt>'DiskMatrix[$s]'
-      <dd>Gives a disk shaped kernel of size 2 $s$ + 1.
-    </dl>
-
-    >> DiskMatrix[3]
-     = {{0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}}
-    """
-
-    summary_text = "create a matrix with 1 in a disk-shaped region, and 0 outside"
-
-    def eval(self, r, evaluation: Evaluation):
-        "DiskMatrix[r_?RealNumberQ]"
-        py_r = abs(r.round_to_float())
-        s = int(math.floor(0.5 + py_r))
-
-        m = (Integer0, Integer1)
-        r_sqr = (py_r + 0.5) * (py_r + 0.5)
-
-        def rows():
-            for y in range(-s, s + 1):
-                yield [m[int((x) * (x) + (y) * (y) <= r_sqr)] for x in range(-s, s + 1)]
-
-        return _matrix(rows())
-
-
-class DiamondMatrix(Builtin):
-    """
-
-    <url>:WMA link:https://reference.wolfram.com/language/ref/DiamondMatrix.html</url>
-
-    <dl>
-    <dt>'DiamondMatrix[$s]'
-      <dd>Gives a diamond shaped kernel of size 2 $s$ + 1.
-    </dl>
-
-    >> DiamondMatrix[3]
-     = {{0, 0, 0, 1, 0, 0, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 1, 1, 1, 1, 1, 0}, {1, 1, 1, 1, 1, 1, 1}, {0, 1, 1, 1, 1, 1, 0}, {0, 0, 1, 1, 1, 0, 0}, {0, 0, 0, 1, 0, 0, 0}}
-    """
-
-    summary_text = "create a matrix with 1 in a diamond-shaped region, and 0 outside"
-
-    def eval(self, r, evaluation: Evaluation):
-        "DiamondMatrix[r_?RealNumberQ]"
-        py_r = abs(r.round_to_float())
-        t = int(math.floor(0.5 + py_r))
-
-        zero = Integer0
-        one = Integer1
-
-        def rows():
-            for d in range(0, t):
-                p = [zero] * (t - d)
-                yield p + ([one] * (1 + d * 2)) + p
-
-            yield [one] * (2 * t + 1)
-
-            for d in reversed(range(0, t)):
-                p = [zero] * (t - d)
-                yield p + ([one] * (1 + d * 2)) + p
-
-        return _matrix(rows())
-
-
-class _MorphologyFilter(_SkimageBuiltin):
-
-    messages = {
-        "grayscale": "Your image has been converted to grayscale as color images are not supported yet."
-    }
-
-    rules = {"%(name)s[i_Image, r_?RealNumberQ]": "%(name)s[i, BoxMatrix[r]]"}
-
-    def eval(self, image, k, evaluation: Evaluation):
-        "%(name)s[image_Image, k_?MatrixQ]"
-        if image.color_space != "Grayscale":
-            image = image.grayscale()
-            evaluation.message(self.get_name(), "grayscale")
-        import skimage.morphology
-
-        f = getattr(skimage.morphology, self.get_name(True).lower())
-        shape = image.pixels.shape[:2]
-        img = f(image.pixels.reshape(shape), matrix_to_numpy(k))
-        return Image(img, "Grayscale")
-
-
-class Dilation(_MorphologyFilter):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Dilation.html</url>
-
-    <dl>
-      <dt>'Dilation[$image$, $ker$]'
-      <dd>Gives the morphological dilation of $image$ with respect to structuring element $ker$.
-    </dl>
-
-    >> ein = Import["ExampleData/Einstein.jpg"];
-    >> Dilation[ein, 2.5]
-     = -Image-
-    """
-
-    summary_text = "give the dilation with respect to a range-r square"
-
-
-class Erosion(_MorphologyFilter):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Erosion.html</url>
-
-    <dl>
-      <dt>'Erosion[$image$, $ker$]'
-      <dd>Gives the morphological erosion of $image$ with respect to structuring element $ker$.
-    </dl>
-
-    >> ein = Import["ExampleData/Einstein.jpg"];
-    >> Erosion[ein, 2.5]
-     = -Image-
-    """
-
-    summary_text = "give the erotion with respect to a range-r square"
-
-
-class Opening(_MorphologyFilter):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Opening.html</url>
-
-    <dl>
-      <dt>'Opening[$image$, $ker$]'
-      <dd>Gives the morphological opening of $image$ with respect to structuring element $ker$.
-    </dl>
-
-    >> ein = Import["ExampleData/Einstein.jpg"];
-    >> Opening[ein, 2.5]
-     = -Image-
-    """
-
-    summary_text = "get morphological opening regarding a kernel"
-
-
-class Closing(_MorphologyFilter):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Closing.html</url>
-
-    <dl>
-      <dt>'Closing[$image$, $ker$]'
-      <dd>Gives the morphological closing of $image$ with respect to structuring element $ker$.
-    </dl>
-
-    >> ein = Import["ExampleData/Einstein.jpg"];
-    >> Closing[ein, 2.5]
-     = -Image-
-    """
-
-    summary_text = "morphological closing regarding a kernel"
-
-
-class MorphologicalComponents(_SkimageBuiltin):
-    """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/MorphologicalComponents.html</url>
-
-    <dl>
-      <dt>'MorphologicalComponents[$image$]'
-      <dd> Builds a 2-D array in which each pixel of $image$ is replaced \
-           by an integer index representing the connected foreground image \
-           component in which the pixel lies.
-
-      <dt>'MorphologicalComponents[$image$, $threshold$]'
-      <dd> consider any pixel with a value above $threshold$ as the foreground.
-    </dl>
-    """
-
-    summary_text = "tag connected regions of similar colors"
-
-    rules = {"MorphologicalComponents[i_Image]": "MorphologicalComponents[i, 0]"}
-
-    def eval(self, image, t, evaluation: Evaluation):
-        "MorphologicalComponents[image_Image, t_?RealNumberQ]"
-        pixels = pixels_as_ubyte(
-            pixels_as_float(image.grayscale().pixels) > t.round_to_float()
-        )
-        import skimage.measure
-
-        return from_python(
-            skimage.measure.label(pixels, background=0, connectivity=2).tolist()
         )
 
 
