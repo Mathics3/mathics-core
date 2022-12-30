@@ -4,11 +4,12 @@ Forms which are not in '$OutputForms'
 
 import re
 
-from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.core.atoms import String
 from mathics.core.element import EvalMixin
+from mathics.eval.makeboxes import to_boxes
 
 
 class StringForm(FormBaseClass):

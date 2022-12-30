@@ -10,7 +10,7 @@ from typing import Union
 import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
-from mathics.builtin.box.layout import RowBox, to_boxes
+from mathics.builtin.box.layout import RowBox
 from mathics.core.atoms import Integer, Integer1, Real, String
 from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
 from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
@@ -20,7 +20,12 @@ from mathics.core.list import ListExpression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol
 from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
-from mathics.eval.makeboxes import _boxed_string, format_element
+from mathics.eval.makeboxes import (
+    _boxed_string,
+    eval_makeboxes,
+    format_element,
+    to_boxes,
+)
 
 
 def int_to_s_exp(expr, n):
@@ -374,51 +379,7 @@ class MakeBoxes(Builtin):
     def eval_general(self, expr, f, evaluation):
         """MakeBoxes[expr_,
         f:TraditionalForm|StandardForm|OutputForm|InputForm|FullForm]"""
-        if isinstance(expr, BoxElementMixin):
-            expr = expr.to_expression()
-        if isinstance(expr, Atom):
-            return expr.atom_to_boxes(f, evaluation)
-        else:
-            head = expr.head
-            elements = expr.elements
-
-            f_name = f.get_name()
-            if f_name == "System`TraditionalForm":
-                left, right = "(", ")"
-            else:
-                left, right = "[", "]"
-
-            # Parenthesize infix operators at the head of expressions,
-            # like (a + b)[x], but not f[a] in f[a][b].
-            #
-            head_boxes = parenthesize(670, head, MakeBoxes(head, f), False)
-            head_boxes = head_boxes.evaluate(evaluation)
-            head_boxes = to_boxes(head_boxes, evaluation)
-            result = [head_boxes, to_boxes(String(left), evaluation)]
-
-            if len(elements) > 1:
-                row = []
-                if f_name in (
-                    "System`InputForm",
-                    "System`OutputForm",
-                    "System`FullForm",
-                ):
-                    sep = ", "
-                else:
-                    sep = ","
-                for index, element in enumerate(elements):
-                    if index > 0:
-                        row.append(to_boxes(String(sep), evaluation))
-                    row.append(
-                        to_boxes(MakeBoxes(element, f).evaluate(evaluation), evaluation)
-                    )
-                result.append(RowBox(*row))
-            elif len(elements) == 1:
-                result.append(
-                    to_boxes(MakeBoxes(elements[0], f).evaluate(evaluation), evaluation)
-                )
-            result.append(to_boxes(String(right), evaluation))
-            return RowBox(*result)
+        return eval_makeboxes(expr, evaluation, f)
 
     def eval_outerprecedenceform(self, expr, prec, evaluation):
         """MakeBoxes[PrecedenceForm[expr_, prec_],

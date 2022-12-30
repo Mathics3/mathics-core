@@ -11,7 +11,7 @@ we can use ``Row``
 
 
 from mathics.builtin.base import BinaryOperator, Builtin, Operator
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox
 from mathics.builtin.lists import list_boxes
 from mathics.builtin.makeboxes import MakeBoxes
 from mathics.builtin.options import options_to_rules
@@ -20,7 +20,7 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolMakeBoxes
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import format_element, to_boxes
 
 SymbolSubscriptBox = Symbol("System`SubscriptBox")
 

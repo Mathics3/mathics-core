@@ -14,7 +14,7 @@ import re
 from typing import Optional
 
 from mathics.builtin.base import Builtin
-from mathics.builtin.box.layout import GridBox, RowBox, to_boxes
+from mathics.builtin.box.layout import GridBox, RowBox
 from mathics.builtin.comparison import expr_min
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes, number_form
@@ -49,7 +49,7 @@ from mathics.core.systemsymbols import (
     SymbolSubscriptBox,
     SymbolSuperscriptBox,
 )
-from mathics.eval.makeboxes import format_element
+from mathics.eval.makeboxes import format_element, to_boxes
 
 MULTI_NEWLINE_RE = re.compile(r"\n{2,}")
 
