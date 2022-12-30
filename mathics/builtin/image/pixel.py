@@ -3,18 +3,12 @@ Pixel Operations
 """
 import numpy
 
-from mathics.builtin.base import Builtin, String
+from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer, MachineReal
 from mathics.core.convert.expression import to_mathics_list
-from mathics.core.convert.python import from_python
 from mathics.core.evaluation import Evaluation
 from mathics.core.list import ListExpression
-from mathics.eval.image import (
-    numpy_to_matrix,
-    pixels_as_float,
-    pixels_as_ubyte,
-    pixels_as_uint,
-)
+from mathics.eval.image import pixels_as_float
 
 
 class PixelValue(Builtin):
@@ -67,57 +61,6 @@ class PixelValue(Builtin):
             return MachineReal(float(pixel))
 
 
-class ImageData(Builtin):
-    """
-
-    <url>:WMA link:
-    https://reference.wolfram.com/language/ref/ImageData.html</url>
-
-    <dl>
-      <dt>'ImageData[$image$]'
-      <dd>gives a list of all color values of $image$ as a matrix.
-
-      <dt>'ImageData[$image$, $stype$]'
-      <dd>gives a list of color values in type $stype$.
-    </dl>
-
-    >> img = Image[{{0.2, 0.4}, {0.9, 0.6}, {0.5, 0.8}}];
-    >> ImageData[img]
-     = {{0.2, 0.4}, {0.9, 0.6}, {0.5, 0.8}}
-
-    >> ImageData[img, "Byte"]
-     = {{51, 102}, {229, 153}, {127, 204}}
-
-    >> ImageData[Image[{{0, 1}, {1, 0}, {1, 1}}], "Bit"]
-     = {{0, 1}, {1, 0}, {1, 1}}
-
-    #> ImageData[img, "Bytf"]
-     : Unsupported pixel format "Bytf".
-     = ImageData[-Image-, Bytf]
-    """
-
-    messages = {"pixelfmt": 'Unsupported pixel format "``".'}
-
-    rules = {"ImageData[image_Image]": 'ImageData[image, "Real"]'}
-    summary_text = "the array of pixel values from an image"
-
-    def eval(self, image, stype: String, evaluation: Evaluation):
-        "ImageData[image_Image, stype_String]"
-        pixels = image.pixels
-        stype = stype.value
-        if stype == "Real":
-            pixels = pixels_as_float(pixels)
-        elif stype == "Byte":
-            pixels = pixels_as_ubyte(pixels)
-        elif stype == "Bit16":
-            pixels = pixels_as_uint(pixels)
-        elif stype == "Bit":
-            pixels = pixels.astype(int)
-        else:
-            return evaluation.message("ImageData", "pixelfmt", stype)
-        return from_python(numpy_to_matrix(pixels))
-
-
 class PixelValuePositions(Builtin):
     """
     <url>:WMA link:https://reference.wolfram.com/language/ref/PixelValuePositions.html</url>
@@ -167,3 +110,13 @@ class PixelValuePositions(Builtin):
         return ListExpression(
             *(to_mathics_list(*arg, elements_conversion_fn=Integer) for arg in result)
         )
+
+
+# TODO:
+#  ImageApply
+#  ImageApplyIndexed
+#  ImageScan
+#  ImageValue,
+#  ImageValuePositions
+#  ReplaceImageValue,
+#  ReplacePixelValue,

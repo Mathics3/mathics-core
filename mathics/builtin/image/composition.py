@@ -1,12 +1,16 @@
 """
 Image Compositions
 """
+import os.path as osp
+from collections import defaultdict
+
 import numpy
 
-from mathics.builtin.base import Builtin
+from mathics.builtin.base import Builtin, String
 from mathics.builtin.image.base import Image
 from mathics.core.atoms import Integer, Rational, Real
 from mathics.core.evaluation import Evaluation
+from mathics.core.symbols import Symbol
 from mathics.eval.image import pixels_as_float
 
 
@@ -155,4 +159,170 @@ class ImageSubtract(_ImageArithmetic):
     summary_text = "build an image substracting pixel values of another image "
 
 
-# TODO: ImageAssemble, ImageCollage, ImageCompose
+class WordCloud(Builtin):
+    """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/WordCloud.html</url>
+
+    <dl>
+      <dt>'WordCloud[{$word1$, $word2$, ...}]'
+      <dd>Gives a word cloud with the given list of words.
+
+      <dt>'WordCloud[{$weight1$ -> $word1$, $weight2$ -> $word2$, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
+
+      <dt>'WordCloud[{$weight1$, $weight2$, ...} -> {$word1$, $word2$, ...}]'
+      <dd>Also gives a word cloud with the words weighted using the given weights.
+
+      <dt>'WordCloud[{{$word1$, $weight1$}, {$word2$, $weight2$}, ...}]'
+      <dd>Gives a word cloud with the words weighted using the given weights.
+    </dl>
+
+    >> WordCloud[StringSplit[Import["ExampleData/EinsteinSzilLetter.txt", CharacterEncoding->"UTF8"]]]
+     = -Image-
+
+    >> WordCloud[Range[50] -> ToString /@ Range[50]]
+     = -Image-
+    """
+
+    # this is the palettable.colorbrewer.qualitative.Dark2_8 palette
+    default_colors = (
+        (27, 158, 119),
+        (217, 95, 2),
+        (117, 112, 179),
+        (231, 41, 138),
+        (102, 166, 30),
+        (230, 171, 2),
+        (166, 118, 29),
+        (102, 102, 102),
+    )
+
+    options = {
+        "IgnoreCase": "True",
+        "ImageSize": "Automatic",
+        "MaxItems": "Automatic",
+    }
+
+    requires = ("wordcloud",)
+
+    summary_text = "show a word cloud from a list of words"
+
+    def eval_words_weights(self, weights, words, evaluation, options):
+        "WordCloud[weights_List -> words_List, OptionsPattern[%(name)s]]"
+        if len(weights.elements) != len(words.elements):
+            return
+
+        def weights_and_words():
+            for weight, word in zip(weights.elements, words.elements):
+                yield weight.round_to_float(), word.get_string_value()
+
+        return self._word_cloud(weights_and_words(), evaluation, options)
+
+    def eval_words(self, words, evaluation, options):
+        "WordCloud[words_List, OptionsPattern[%(name)s]]"
+
+        if not words:
+            return
+        elif isinstance(words.elements[0], String):
+
+            def weights_and_words():
+                for word in words.elements:
+                    yield 1, word.get_string_value()
+
+        else:
+
+            def weights_and_words():
+                for word in words.elements:
+                    if len(word.elements) != 2:
+                        raise ValueError
+
+                    head_name = word.get_head_name()
+                    if head_name == "System`Rule":
+                        weight, s = word.elements
+                    elif head_name == "System`List":
+                        s, weight = word.elements
+                    else:
+                        raise ValueError
+
+                    yield weight.round_to_float(), s.get_string_value()
+
+        try:
+            return self._word_cloud(weights_and_words(), evaluation, options)
+        except ValueError:
+            return
+
+    def _word_cloud(self, words, evaluation, options):
+        ignore_case = self.get_option(options, "IgnoreCase", evaluation) is Symbol(
+            "True"
+        )
+
+        freq = defaultdict(int)
+        for py_weight, py_word in words:
+            if py_word is None or py_weight is None:
+                return
+            key = py_word.lower() if ignore_case else py_word
+            freq[key] += py_weight
+
+        max_items = self.get_option(options, "MaxItems", evaluation)
+        if isinstance(max_items, Integer):
+            py_max_items = max_items.get_int_value()
+        else:
+            py_max_items = 200
+
+        image_size = self.get_option(options, "ImageSize", evaluation)
+        if image_size is Symbol("Automatic"):
+            py_image_size = (800, 600)
+        elif (
+            image_size.get_head_name() == "System`List"
+            and len(image_size.elements) == 2
+        ):
+            py_image_size = []
+            for element in image_size.elements:
+                if not isinstance(element, Integer):
+                    return
+                py_image_size.append(element.get_int_value())
+        elif isinstance(image_size, Integer):
+            size = image_size.get_int_value()
+            py_image_size = (size, size)
+        else:
+            return
+
+        # inspired by http://minimaxir.com/2016/05/wordclouds/
+        import random
+
+        def color_func(
+            word, font_size, position, orientation, random_state=None, **kwargs
+        ):
+            return self.default_colors[random.randint(0, 7)]
+
+        font_base_path = osp.join(osp.dirname(osp.abspath(__file__)), "..", "fonts")
+
+        font_path = osp.realpath(font_base_path + "AmaticSC-Bold.ttf")
+        if not osp.exists(font_path):
+            font_path = None
+
+        from wordcloud import WordCloud
+
+        wc = WordCloud(
+            width=py_image_size[0],
+            height=py_image_size[1],
+            font_path=font_path,
+            max_font_size=300,
+            mode="RGB",
+            background_color="white",
+            max_words=py_max_items,
+            color_func=color_func,
+            random_state=42,
+            stopwords=set(),
+        )
+        wc.generate_from_frequencies(freq)
+
+        image = wc.to_image()
+        return Image(numpy.array(image), "RGB")
+
+
+# TODO:
+# ImageAssemble,
+# Collage Creation other than WordCloud
+# ImageCompose
