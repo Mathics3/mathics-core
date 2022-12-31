@@ -10,9 +10,7 @@ Dependency and Dispursion Statistics
 sort_order = "mathics.builtin.special-moments"
 
 from mathics.builtin.base import Builtin
-
-from mathics.builtin.lists import _Rectangular, _NotRectangularException
-
+from mathics.builtin.lists import _NotRectangularException, _Rectangular
 from mathics.core.atoms import Integer
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, SymbolDivide
@@ -32,7 +30,7 @@ SymbolVariance = Symbol("Variance")
 class Correlation(Builtin):
     """
     <url>:Pearson correlation coefficient:https://en.wikipedia.org/wiki/Pearson_correlation_coefficient</url> (<url>:WMA: https://reference.wolfram.com/language/ref/Correlation.html</url>)
-    <url>
+
     <dl>
       <dt>'Correlation[$a$, $b$]'
       <dd>computes Pearson's correlation of two equal-sized vectors $a$ and $b$.

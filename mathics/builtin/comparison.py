@@ -4,25 +4,19 @@ Testing Expressions
 
 There are a number of functions for testing Expressions.
 
-Functions that "ask a question" have names that end in "Q". They return 'True' for an explicit answer, and 'False' otherwise.
+Functions that "ask a question" have names that end in "Q". \
+They return 'True' for an explicit answer, and 'False' otherwise.
 """
 
 # This tells documentation how to sort this module
 sort_order = "mathics.builtin.testing-expressions"
 
-from typing import Optional, Any
+from typing import Any, Optional
 
 import sympy
 
-
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-    SympyFunction,
-)
-
+from mathics.builtin.base import BinaryOperator, Builtin, SympyFunction
 from mathics.builtin.numbers.constants import mp_convert_constant
-
 from mathics.core.atoms import (
     COMPARE_PREC,
     Complex,
@@ -42,7 +36,6 @@ from mathics.core.attributes import (
     A_PROTECTED,
 )
 from mathics.core.convert.expression import to_expression, to_numeric_args
-from mathics.eval.nevaluator import eval_N
 from mathics.core.expression import Expression
 from mathics.core.number import dps
 from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolList, SymbolTrue
@@ -55,7 +48,7 @@ from mathics.core.systemsymbols import (
     SymbolMaxPrecision,
     SymbolSign,
 )
-
+from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 operators = {
@@ -201,7 +194,7 @@ class _InequalityOperator(BinaryOperator):
 class _ComparisonOperator(_InequalityOperator):
     "Compares arguments in a chain e.g. a < b < c compares a < b and b < c."
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:
@@ -340,7 +333,7 @@ class _EqualityOperator(_InequalityOperator):
                 return c
         return None
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         n = len(items_sequence)
@@ -351,7 +344,7 @@ class _EqualityOperator(_InequalityOperator):
             for arg in items_sequence
         ]
         if not all(val is SymbolTrue for val in is_exact_vals):
-            return self.apply_other(items, evaluation)
+            return self.eval_other(items, evaluation)
         args = self.numerify_args(items, evaluation)
         for x, y in self.get_pairs(args):
             c = do_cplx_equal(x, y)
@@ -361,7 +354,7 @@ class _EqualityOperator(_InequalityOperator):
                 return SymbolFalse
         return SymbolTrue
 
-    def apply_other(self, args, evaluation):
+    def eval_other(self, args, evaluation):
         "%(name)s[args___?(!ExactNumberQ[#]&)]"
 
         args = args.get_sequence()
@@ -388,7 +381,7 @@ class _MinMax(Builtin):
         A_FLAT | A_NUMERIC_FUNCTION | A_ONE_IDENTITY | A_ORDERLESS | A_PROTECTED
     )
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "%(name)s[items___]"
         if hasattr(items, "flatten_with_respect_to_head"):
             items = items.flatten_with_respect_to_head(SymbolList)
@@ -447,6 +440,10 @@ class _SympyComparison(SympyFunction):
 
 class BooleanQ(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BooleanQ.html</url>
+
     <dl>
       <dt>'BooleanQ[$expr$]'
       <dd>returns 'True' if $expr$ is either 'True' or 'False'.
@@ -479,6 +476,10 @@ class BooleanQ(Builtin):
 
 class Equal(_EqualityOperator, _SympyComparison):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Equal.html</url>
+
     <dl>
       <dt>'Equal[$x$, $y$]'
       <dt>'$x$ == $y$'
@@ -614,6 +615,8 @@ class Equal(_EqualityOperator, _SympyComparison):
 
 class Greater(_ComparisonOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Greater.html</url>
+
     <dl>
       <dt>'Greater[$x$, $y$]' or '$x$ > $y$'
       <dd>yields 'True' if $x$ is known to be greater than $y$.
@@ -638,6 +641,10 @@ class Greater(_ComparisonOperator, _SympyComparison):
 
 class GreaterEqual(_ComparisonOperator, _SympyComparison):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/GreaterEqual.html</url>
+
     <dl>
       <dt>'GreaterEqual[$x$, $y$]'
       <dt>$x$ \u2256 $y$ or '$x$ >= $y$'
@@ -653,6 +660,8 @@ class GreaterEqual(_ComparisonOperator, _SympyComparison):
 
 class Inequality(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Inequality.html</url>
+
     <dl>
       <dt>'Inequality'
       <dd>is the head of expressions involving different inequality
@@ -680,7 +689,7 @@ class Inequality(Builtin):
     }
     summary_text = "chain of inequalities"
 
-    def apply(self, items, evaluation):
+    def eval(self, items, evaluation):
         "Inequality[items___]"
 
         elements = numerify(items, evaluation).get_sequence()
@@ -703,6 +712,8 @@ class Inequality(Builtin):
 
 class Less(_ComparisonOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Less.html</url>
+
     <dl>
       <dt>'Less[$x$, $y$]' or $x$ < $y$
       <dd>yields 'True' if $x$ is known to be less than $y$.
@@ -727,6 +738,8 @@ class Less(_ComparisonOperator, _SympyComparison):
 
 class LessEqual(_ComparisonOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LessEqual.html</url>
+
     <dl>
       <dt>'LessEqual[$x$, $y$, ...]' or $x$ <= $y$ or $x$ \u2264 $y$
       <dd>yields 'True' if $x$ is known to be less than or equal to $y$.
@@ -748,6 +761,8 @@ class LessEqual(_ComparisonOperator, _SympyComparison):
 
 class Max(_MinMax):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Max.html</url>
+
     <dl>
       <dt>'Max[$e_1$, $e_2$, ..., $e_i$]'
       <dd>returns the expression with the greatest value among the $e_i$.
@@ -786,6 +801,8 @@ class Max(_MinMax):
 
 class Min(_MinMax):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Min.html</url>
+
     <dl>
       <dt>'Min[$e_1$, $e_2$, ..., $e_i$]'
       <dd>returns the expression with the lowest value among the $e_i$.
@@ -821,6 +838,8 @@ class Min(_MinMax):
 
 class Negative(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Negative.html</url>
+
     <dl>
       <dt>'Negative[$x$]'
       <dd>returns 'True' if $x$ is a negative real number.
@@ -851,6 +870,8 @@ class Negative(Builtin):
 
 class NonNegative(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NonNegative.html</url>
+
     <dl>
       <dt>'NonNegative[$x$]'
       <dd>returns 'True' if $x$ is a positive real number or zero.
@@ -870,6 +891,8 @@ class NonNegative(Builtin):
 
 class NonPositive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NonPositive.html</url>
+
     <dl>
       <dt>'NonPositive[$x$]'
       <dd>returns 'True' if $x$ is a negative real number or zero.
@@ -889,6 +912,8 @@ class NonPositive(Builtin):
 
 class Positive(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Positive.html</url>
+
     <dl>
       <dt>'Positive[$x$]'
       <dd>returns 'True' if $x$ is a positive real number.
@@ -921,6 +946,8 @@ class Positive(Builtin):
 
 class SameQ(_ComparisonOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/SameQ.html</url>
+
     <dl>
       <dt>'SameQ[$x$, $y$]'
       <dt>'$x$ === $y$'
@@ -967,7 +994,7 @@ class SameQ(_ComparisonOperator):
 
     summary_text = "literal symbolic identity"
 
-    def apply_list(self, items, evaluation):
+    def eval_list(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:
@@ -982,6 +1009,8 @@ class SameQ(_ComparisonOperator):
 
 class TrueQ(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/TrueQ.html</url>
+
     <dl>
       <dt>'TrueQ[$expr$]'
       <dd>returns 'True' if and only if $expr$ is 'True'.
@@ -1005,6 +1034,8 @@ class TrueQ(Builtin):
 
 class Unequal(_EqualityOperator, _SympyComparison):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Unequal.html</url>
+
     <dl>
       <dt>'Unequal[$x$, $y$]' or $x$ != $y$ or $x$ \u2260 $y$
       <dd>is 'False' if $x$ and $y$ are known to be equal, or 'True' if $x$ and $y$ are known to be unequal.
@@ -1077,6 +1108,8 @@ class Unequal(_EqualityOperator, _SympyComparison):
 
 class UnsameQ(_ComparisonOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/UnsameQ.html</url>
+
     <dl>
       <dt>'UnsameQ[$x$, $y$]'
       <dt>'$x$ =!= $y$'
@@ -1111,7 +1144,7 @@ class UnsameQ(_ComparisonOperator):
 
     summary_text = "not literal symbolic identity"
 
-    def apply_list(self, items, evaluation):
+    def eval_list(self, items, evaluation):
         "%(name)s[items___]"
         items_sequence = items.get_sequence()
         if len(items_sequence) <= 1:

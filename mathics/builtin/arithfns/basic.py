@@ -7,18 +7,11 @@ The functions here are the basic arithmetic operations that you might find on a 
 """
 
 
-import sympy
 import mpmath
+import sympy
 
 from mathics.builtin.arithmetic import _MPMathFunction, create_infix
-from mathics.builtin.base import (
-    Builtin,
-    BinaryOperator,
-    PrefixOperator,
-    SympyFunction,
-)
-
-
+from mathics.builtin.base import BinaryOperator, Builtin, PrefixOperator, SympyFunction
 from mathics.core.atoms import (
     Complex,
     Integer,
@@ -30,6 +23,7 @@ from mathics.core.atoms import (
     IntegerM1,
     Number,
     Rational,
+    RationalOneHalf,
     Real,
     String,
 )
@@ -42,14 +36,12 @@ from mathics.core.attributes import (
     A_PROTECTED,
     A_READ_PROTECTED,
 )
-
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.convert.sympy import from_sympy
-
 from mathics.core.expression import ElementsProperties, Expression
 from mathics.core.list import ListExpression
-from mathics.core.number import min_prec, dps
+from mathics.core.number import dps, min_prec
 from mathics.core.symbols import (
     Symbol,
     SymbolDivide,
@@ -72,14 +64,15 @@ from mathics.core.systemsymbols import (
     SymbolPattern,
     SymbolSequence,
 )
-
-
 from mathics.eval.nevaluator import eval_N
 from mathics.eval.numerify import numerify
 
 
 class CubeRoot(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/CubeRoot.html</url>
+
     <dl>
       <dt>'CubeRoot[$n$]'
       <dd>finds the real-valued cube root of the given $n$.
@@ -142,10 +135,12 @@ class CubeRoot(Builtin):
 
 class Divide(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Divide.html</url>
+
     <dl>
-    <dt>'Divide[$a$, $b$]'
-    <dt>'$a$ / $b$'
-        <dd>represents the division of $a$ by $b$.
+      <dt>'Divide[$a$, $b$]'
+      <dt>'$a$ / $b$'
+      <dd>represents the division of $a$ by $b$.
     </dl>
     >> 30 / 5
      = 6
@@ -206,9 +201,11 @@ class Divide(BinaryOperator):
 
 class Minus(PrefixOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Minus.html</url>
+
     <dl>
-    <dt>'Minus[$expr$]'
-        <dd> is the negation of $expr$.
+      <dt>'Minus[$expr$]'
+      <dd> is the negation of $expr$.
     </dl>
 
     >> -a //FullForm
@@ -249,10 +246,12 @@ class Minus(PrefixOperator):
 
 class Plus(BinaryOperator, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Plus.html</url>
+
     <dl>
-    <dt>'Plus[$a$, $b$, ...]'
-    <dt>$a$ + $b$ + ...
-        <dd>represents the sum of the terms $a$, $b$, ...
+      <dt>'Plus[$a$, $b$, ...]'
+      <dt>$a$ + $b$ + ...
+      <dd>represents the sum of the terms $a$, $b$, ...
     </dl>
 
     >> 1 + 2
@@ -467,10 +466,12 @@ class Plus(BinaryOperator, SympyFunction):
 
 class Power(BinaryOperator, _MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Power.html</url>
+
     <dl>
-    <dt>'Power[$a$, $b$]'
-    <dt>'$a$ ^ $b$'
-        <dd>represents $a$ raised to the power of $b$.
+      <dt>'Power[$a$, $b$]'
+      <dt>'$a$ ^ $b$'
+      <dd>represents $a$ raised to the power of $b$.
     </dl>
 
     >> 4 ^ (1/2)
@@ -570,7 +571,7 @@ class Power(BinaryOperator, _MPMathFunction):
         Expression(
             SymbolPower,
             Expression(SymbolPattern, Symbol("x"), Expression(SymbolBlank)),
-            Rational(1, 2),
+            RationalOneHalf,
         ): "HoldForm[Sqrt[x]]",
         (("InputForm", "OutputForm"), "x_ ^ y_"): (
             'Infix[{HoldForm[x], HoldForm[y]}, "^", 590, Right]'
@@ -618,22 +619,24 @@ class Power(BinaryOperator, _MPMathFunction):
                     )
                     return SymbolComplexInfinity
         if isinstance(x, Complex) and x.real.is_zero:
-            yhalf = Expression(SymbolTimes, y, Rational(1, 2))
-            factor = self.apply(Expression(SymbolSequence, x.imag, y), evaluation)
+            yhalf = Expression(SymbolTimes, y, RationalOneHalf)
+            factor = self.eval(Expression(SymbolSequence, x.imag, y), evaluation)
             return Expression(
                 SymbolTimes, factor, Expression(SymbolPower, IntegerM1, yhalf)
             )
 
-        result = self.apply(Expression(SymbolSequence, x, y), evaluation)
+        result = self.eval(Expression(SymbolSequence, x, y), evaluation)
         if result is None or result != SymbolNull:
             return result
 
 
 class Sqrt(SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sqrt.html</url>
+
     <dl>
-    <dt>'Sqrt[$expr$]'
-        <dd>returns the square root of $expr$.
+      <dt>'Sqrt[$expr$]'
+      <dd>returns the square root of $expr$.
     </dl>
 
     >> Sqrt[4]
@@ -672,10 +675,13 @@ class Sqrt(SympyFunction):
 
 class Subtract(BinaryOperator):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Subtract.html</url>
+
     <dl>
-    <dt>'Subtract[$a$, $b$]'
-    <dt>$a$ - $b$
-        <dd>represents the subtraction of $b$ from $a$.
+      <dt>'Subtract[$a$, $b$]'
+      <dt>$a$ - $b$
+      <dd>represents the subtraction of $b$ from $a$.
     </dl>
 
     >> 5 - 3
@@ -703,11 +709,13 @@ class Subtract(BinaryOperator):
 
 class Times(BinaryOperator, SympyFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Times.html</url>
+
     <dl>
-    <dt>'Times[$a$, $b$, ...]'
-    <dt>'$a$ * $b$ * ...'
-    <dt>'$a$ $b$ ...'
-        <dd>represents the product of the terms $a$, $b$, ...
+      <dt>'Times[$a$, $b$, ...]'
+      <dt>'$a$ * $b$ * ...'
+      <dt>'$a$ $b$ ...'
+      <dd>represents the product of the terms $a$, $b$, ...
     </dl>
     >> 10 * 2
      = 20

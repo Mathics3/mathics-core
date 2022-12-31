@@ -6,16 +6,10 @@ Physical and Chemical data
 """
 
 import os
-
 from csv import reader as csvreader
 
-
 from mathics.builtin.base import Builtin
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-)
+from mathics.core.atoms import Integer, String
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol, strip_context
@@ -52,6 +46,8 @@ if _ELEMENT_DATA is None:
 
 class ElementData(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ElementData.html</url>
+
     <dl>
     <dt>'ElementData["$name$", "$property$"]'
         <dd>gives the value of the $property$ for the chemical

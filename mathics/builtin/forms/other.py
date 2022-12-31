@@ -7,9 +7,8 @@ import re
 from mathics.builtin.box.layout import RowBox, to_boxes
 from mathics.builtin.forms.base import FormBaseClass
 from mathics.builtin.makeboxes import MakeBoxes
-from mathics.core.element import EvalMixin
-
 from mathics.core.atoms import String
+from mathics.core.element import EvalMixin
 
 
 class StringForm(FormBaseClass):

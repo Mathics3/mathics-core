@@ -8,29 +8,16 @@ import hashlib
 import re
 import zlib
 
-
-from mathics.algorithm.parts import python_seq, convert_seq
-
-
+from mathics.algorithm.parts import convert_seq, python_seq
 from mathics.builtin.atomic.strings import (
-    _StringFind,
     _evaluate_match,
     _parallel_match,
+    _StringFind,
     mathics_split,
     to_regex,
 )
-
-from mathics.builtin.base import (
-    BinaryOperator,
-    Builtin,
-)
-
-from mathics.core.atoms import (
-    ByteArrayAtom,
-    Integer,
-    Integer1,
-    String,
-)
+from mathics.builtin.base import BinaryOperator, Builtin
+from mathics.core.atoms import ByteArrayAtom, Integer, Integer1, String
 from mathics.core.attributes import (
     A_FLAT,
     A_LISTABLE,
@@ -41,19 +28,13 @@ from mathics.core.attributes import (
 from mathics.core.convert.python import from_python
 from mathics.core.expression import Expression, string_list
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolFalse,
-    SymbolList,
-    SymbolTrue,
-)
+from mathics.core.symbols import Symbol, SymbolFalse, SymbolList, SymbolTrue
 from mathics.core.systemsymbols import (
     SymbolAll,
     SymbolByteArray,
     SymbolDirectedInfinity,
     SymbolOutputForm,
 )
-
 from mathics.eval.makeboxes import format_element
 
 SymbolStringInsert = Symbol("StringInsert")
@@ -77,6 +58,9 @@ class _ZLibHash:  # make zlib hashes behave as if they were from hashlib
 
 class Hash(Builtin):
     """
+    <url>:Hash function:https://en.wikipedia.org/wiki/Hash_function</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/Hash.html</url>) 
+
     <dl>
       <dt>'Hash[$expr$]'
       <dd>returns an integer hash for the given $expr$.
@@ -155,6 +139,8 @@ class Hash(Builtin):
 
 class StringDrop(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringDrop.html</url>
+
     <dl>
       <dt>'StringDrop["$string$", $n$]'
       <dd>gives $string$ with the first $n$ characters dropped.
@@ -255,6 +241,8 @@ class StringDrop(Builtin):
 
 class StringInsert(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringInsert.html</url>
+
     <dl>
       <dt>'StringInsert["$string$", "$snew$", $n$]'
       <dd>yields a string with $snew$ inserted starting at position $n$ in $string$.
@@ -445,6 +433,8 @@ class StringInsert(Builtin):
 
 class StringJoin(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringJoin.html</url>
+
     <dl>
       <dt>'StringJoin["$s1$", "$s2$", ...]'
       <dd>returns the concatenation of the strings $s1$, $s2$,  .
@@ -486,6 +476,8 @@ class StringJoin(BinaryOperator):
 
 class StringLength(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringLength.html</url>
+
     <dl>
       <dt>'StringLength["$string$"]'
       <dd>gives the length of $string$.
@@ -516,6 +508,8 @@ class StringLength(Builtin):
 
 class StringPosition(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringPosition.html</url>
+
     <dl>
       <dt>'StringPosition["$string$", $patt$]'
       <dd>gives a list of starting and ending positions where $patt$ matches "$string$".
@@ -672,6 +666,8 @@ class StringPosition(Builtin):
 
 class StringReplace(_StringFind):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringReplace.html</url>
+
     <dl>
       <dt>'StringReplace["$string$", "$a$"->"$b$"]'
       <dd>replaces each occurrence of $old$ with $new$ in $string$.
@@ -789,6 +785,8 @@ class StringReplace(_StringFind):
 
 class StringReverse(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringReverse.html</url>
+
     <dl>
       <dt>'StringReverse["$string$"]'
       <dd>reverses the order of the characters in "string".
@@ -808,6 +806,8 @@ class StringReverse(Builtin):
 
 class StringRiffle(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringRiffle.html</url>
+
     <dl>
       <dt>'StringRiffle[{s1, s2, s3, ...}]'
       <dd>returns a new string by concatenating all the $si$, with spaces inserted between them.
@@ -936,6 +936,8 @@ class StringRiffle(Builtin):
 
 class StringSplit(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringSplit.html</url>
+
     <dl>
       <dt>'StringSplit[$s$]'
       <dd>splits the string $s$ at whitespace, discarding the whitespace and returning a list of strings.
@@ -1054,6 +1056,8 @@ class StringSplit(Builtin):
 
 class StringTake(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringTake.html</url>
+
     <dl>
       <dt>'StringTake["$string$", $n$]'
       <dd>gives the first $n$ characters in $string$.
@@ -1164,6 +1168,8 @@ class StringTake(Builtin):
 
 class StringTrim(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/StringTrim.html</url>
+
     <dl>
       <dt>'StringTrim[$s$]'
       <dd>returns a version of $s$ with whitespace removed from start and end.

@@ -11,10 +11,14 @@ from mathics.core.atoms import Integer, Integer1, IntegerM1
 
 class ByteOrdering(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ByteOrdering.html</url>
     <dl>
       <dt>'ByteOrdering'
-      <dd> is an option for BinaryRead, BinaryWrite, and related functions that specifies what ordering
-    of bytes should be assumed for your computer system..
+      <dd> is an option for BinaryRead, BinaryWrite, and related functions \
+      that specifies what ordering of bytes should be assumed for your \
+      computer system..
     </dl>
 
     X> ByteOrdering
@@ -31,16 +35,17 @@ class ByteOrdering(Predefined):
 
 class ByteOrdering_(Predefined):
     """
-    <dl>
-      <dt>'$ByteOrdering'
-      <dd>returns the native ordering of bytes in binary data on your computer system.
-    </dl>
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$ByteOrdering.html</url>
+        <dl>
+          <dt>'$ByteOrdering'
+          <dd>returns the native ordering of bytes in binary data on your computer system.
+        </dl>
 
-    X> $ByteOrdering
-     = 1
+        X> $ByteOrdering
+         = 1
 
-    #> $ByteOrdering == -1 || $ByteOrdering == 1
-     = True
+        #> $ByteOrdering == -1 || $ByteOrdering == 1
+         = True
     """
 
     name = "$ByteOrdering"

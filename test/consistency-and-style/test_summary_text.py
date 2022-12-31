@@ -1,15 +1,15 @@
-import pytest
-
 import glob
 import importlib
-import pkgutil
 import os
 import os.path as osp
-from mathics.version import __version__  # noqa used in loading to check consistency.
+import pkgutil
 
+import pytest
+
+from mathics import __file__ as mathics_initfile_path
 from mathics.builtin import name_is_builtin_symbol
 from mathics.builtin.base import Builtin
-from mathics import __file__ as mathics_initfile_path
+from mathics.doc.common_doc import skip_doc
 
 # Get file system path name for mathics.builtin
 mathics_path = osp.dirname(mathics_initfile_path)
@@ -93,14 +93,6 @@ __py_files__ = [
 ]
 
 
-def _is_builtin(var):
-    if var == Builtin:
-        return True
-    if hasattr(var, "__bases__"):
-        return any(_is_builtin(base) for base in var.__bases__)
-    return False
-
-
 def import_module(module_name: str):
     try:
         module = importlib.import_module("mathics.builtin." + module_name)
@@ -151,7 +143,10 @@ def check_grammar(text: str):
 
 
 def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: str):
-    assert docstr.count("<dl>") >= 1 and docstr.count("</dl>") == docstr.count(
+    assert (
+        docstr.count("<dl>") >= 1
+    ), f"missing <dl> </dl> tags in {instance.get_name()} from {module_name}"
+    assert docstr.count("</dl>") == docstr.count(
         "<dl>"
     ), f"unbalanced <dl> </dl> tags in {instance.get_name()} from {module_name}"
     assert (
@@ -167,14 +162,12 @@ def check_well_formatted_docstring(docstr: str, instance: Builtin, module_name: 
         docstr.count("</dd>") == 0
     ), f"unnecesary </dd> field {instance.get_name()} from {module_name}"
 
-
-def is_builtin(var: object) -> bool:
-    return (
-        hasattr(var, "__module__")
-        and var.__module__.startswith("mathics.builtin.")
-        and var.__module__ != "mathics.builtin.base"
-        and _is_builtin(var)
-    )
+    assert (
+        docstr.count("<url>") > 0
+    ), f"missing <url> field {instance.get_name()} from {module_name}"
+    assert docstr.count("<url>") == docstr.lower().count(
+        "</url>"
+    ), f"unbalanced <url> </url> tags in {instance.get_name()} from {module_name}"
 
 
 @pytest.mark.skipif(
@@ -196,12 +189,12 @@ def test_summary_text_available(module_name):
         var = name_is_builtin_symbol(module, name)
         if var is None:
             continue
-        # skip if var is not a builtin that belongs to
-        # this module
-        if len(name) > 3 and name[-3:] == "Box":
-            continue
+
         instance = var(expression=False)
         if not isinstance(instance, Builtin):
+            continue
+
+        if skip_doc(instance.__class__):
             continue
 
         # For private / internal symbols,

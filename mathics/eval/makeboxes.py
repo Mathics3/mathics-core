@@ -9,27 +9,26 @@ formatting rules.
 import typing
 from typing import Any
 
-
-from mathics.core.atoms import SymbolI, String, Integer, Rational, Complex
-from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
+from mathics.core.atoms import Complex, Integer, Rational, String, SymbolI
 from mathics.core.convert.expression import to_expression_with_specialization
 from mathics.core.definitions import OutputForms
+from mathics.core.element import BaseElement, BoxElementMixin, EvalMixin
 from mathics.core.evaluation import Evaluation
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import (
-    Symbol,
-    SymbolMakeBoxes,
     Atom,
+    Symbol,
     SymbolDivide,
     SymbolFullForm,
     SymbolGraphics,
     SymbolGraphics3D,
     SymbolHoldForm,
     SymbolList,
+    SymbolMakeBoxes,
     SymbolNumberForm,
-    SymbolPostfix,
     SymbolPlus,
+    SymbolPostfix,
     SymbolRepeated,
     SymbolRepeatedNull,
     SymbolTimes,
@@ -41,7 +40,6 @@ from mathics.core.systemsymbols import (
     SymbolRational,
     SymbolStandardForm,
 )
-
 
 element_formatters = {}
 

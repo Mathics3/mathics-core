@@ -10,21 +10,20 @@ from mathics_scanner import (
     is_symbol_name,
 )
 
-from mathics.core.parser.ast import Node, Number, Symbol, String, Filename
+from mathics.core.parser.ast import Filename, Node, Number, String, Symbol
 from mathics.core.parser.operators import (
-    prefix_ops,
-    postfix_ops,
-    left_binary_ops,
-    right_binary_ops,
-    nonassoc_binary_ops,
-    flat_binary_ops,
-    ternary_ops,
-    binary_ops,
     all_ops,
+    binary_ops,
+    flat_binary_ops,
     inequality_ops,
+    left_binary_ops,
     misc_ops,
+    nonassoc_binary_ops,
+    postfix_ops,
+    prefix_ops,
+    right_binary_ops,
+    ternary_ops,
 )
-
 
 special_symbols = {
     "\u03C0": "Pi",  # Pi

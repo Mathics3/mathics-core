@@ -10,21 +10,14 @@ See also Constructing Vectors.
 
 from itertools import permutations
 
-
 from mathics.builtin.base import Builtin, Pattern
-from mathics.builtin.lists import (
-    _IterationFunction,
-    get_tuples,
-)
+from mathics.builtin.lists import _IterationFunction, get_tuples
 from mathics.core.atoms import Integer, Symbol
 from mathics.core.attributes import A_HOLD_FIRST, A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_expression
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.element import ElementsProperties
-from mathics.core.expression import (
-    Expression,
-    structure,
-)
+from mathics.core.expression import Expression, structure
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom
 
@@ -33,6 +26,8 @@ SymbolNormal = Symbol("Normal")
 
 class Array(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Array.html</url>
+
     <dl>
       <dt>'Array[$f$, $n$]'
       <dd>returns the $n$-element list '{$f$[1], ..., $f$[$n$]}'.
@@ -120,6 +115,8 @@ class Array(Builtin):
 
 class ConstantArray(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ConstantArray.html</url>
+
     <dl>
       <dt>'ConstantArray[$expr$, $n$]'
       <dd>returns a list of $n$ copies of $expr$.
@@ -140,6 +137,8 @@ class ConstantArray(Builtin):
 
 class Normal(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Normal.html</url>
+
     <dl>
       <dt>'Normal[expr_]'
       <dd> Brings especial expressions to a normal expression from different especial forms.
@@ -160,6 +159,8 @@ class Normal(Builtin):
 
 class Range(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Range.html</url>
+
     <dl>
       <dt>'Range[$n$]'
       <dd>returns a list of integers from 1 to $n$.
@@ -212,6 +213,8 @@ class Range(Builtin):
 
 class Permutations(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Permutations.html</url>
+
     <dl>
       <dt>'Permutations[$list$]'
       <dd>gives all possible orderings of the items in $list$.
@@ -288,6 +291,8 @@ class Permutations(Builtin):
 
 class Reap(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Reap.html</url>
+
     <dl>
       <dt>'Reap[$expr$]'
       <dd>gives the result of evaluating $expr$, together with all values sown during this evaluation. Values sown with different tags are given in different lists.
@@ -371,6 +376,8 @@ class Reap(Builtin):
 
 class Sow(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Sow.html</url>
+
     <dl>
       <dt>'Sow[$e$]'
       <dd>sends the value $e$ to the innermost 'Reap'.
@@ -400,6 +407,8 @@ class Sow(Builtin):
 
 class Table(_IterationFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Table.html</url>
+
     <dl>
       <dt>'Table[$expr$, $n$]'
       <dd>generates a list of $n$ copies of $expr$.
@@ -455,6 +464,8 @@ class Table(_IterationFunction):
 
 class Tuples(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Tuples.html</url>
+
     <dl>
       <dt>'Tuples[$list$, $n$]'
       <dd>returns a list of all $n$-tuples of elements in $list$.

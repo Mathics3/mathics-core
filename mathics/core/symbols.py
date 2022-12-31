@@ -1,9 +1,10 @@
 # cython: language_level=3
 # -*- coding: utf-8 -*-
 
-import sympy
 import time
 from typing import Any, FrozenSet, List, Optional, Tuple
+
+import sympy
 
 from mathics.core.element import (
     BaseElement,
@@ -258,9 +259,6 @@ class Atom(BaseElement):
     def get_elements(self):
         return []
 
-    # Compatibility with old code. Deprecated, but remove after a little bit.
-    get_leaves = get_elements
-
     def get_head(self) -> "Symbol":
         return Symbol(self.class_head_name)
 
@@ -359,13 +357,14 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     """
 
     name: str
+    hash: str
     sympy_dummy: Any
     defined_symbols = {}
     class_head_name = "System`Symbol"
 
     # __new__ instead of __init__ is used here because we want
     # to return the same object for a given "name" value.
-    def __new__(cls, name, sympy_dummy=None, value=None):
+    def __new__(cls, name: str, sympy_dummy=None, value=None):
         """
         Allocate an object ensuring that for a given `name` we get back the same object.
         """
@@ -374,6 +373,14 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         if self is None:
             self = super(Symbol, cls).__new__(cls)
             self.name = name
+
+            # Set a value for self.__hash__() once so that every time
+            # it is used this is fast.
+            # This tuple with "Symbol" is used to give a different hash
+            # than the hash that would be returned if just string name were
+            # used.
+            self.hash = hash(("Symbol", name))
+
             # TODO: revise how we convert sympy.Dummy
             # symbols.
             #
@@ -400,7 +407,7 @@ class Symbol(Atom, NumericOperators, EvalMixin):
             # self.sympy_dummy, for which I have to dig into the
             # code to see even what type of value should be expected
             # for it.
-            self.value = value
+            self._value = value
             self._short_name = strip_context(name)
 
             cls.defined_symbols[name] = self
@@ -412,8 +419,11 @@ class Symbol(Atom, NumericOperators, EvalMixin):
     def __getnewargs__(self):
         return (self.name, self.sympy_dummy)
 
-    def __hash__(self):
-        return hash(("Symbol", self.name))  # to distinguish from String
+    def __hash__(self) -> int:
+        """
+        We need self.__hash__() so that we can use Symbols as keys in dictionaries.
+        """
+        return self.hash
 
     def __ne__(self, other) -> bool:
         return self is not other
@@ -620,6 +630,10 @@ class Symbol(Atom, NumericOperators, EvalMixin):
         ):
             return sympy.Symbol(sympy_symbol_prefix + self.name)
         return builtin.to_sympy(self, **kwargs)
+
+    @property
+    def value(self) -> Any:
+        return self._value
 
 
 class PredefinedSymbol(Symbol):

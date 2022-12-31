@@ -3,17 +3,27 @@
 Support for Set and SetDelayed, and other assignment-like builtins
 """
 
+from functools import reduce
 from typing import Optional, Tuple
 
-from mathics.core.atoms import Atom
-from mathics.core.attributes import A_PROTECTED
+from mathics.algorithm.parts import walk_parts
+from mathics.core.atoms import Atom, Integer
+from mathics.core.attributes import A_LOCKED, A_PROTECTED, attribute_string_to_number
 from mathics.core.element import BaseElement
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.pattern import Pattern
 from mathics.core.rules import Rule
-from mathics.core.symbols import Symbol
-
+from mathics.core.symbols import (
+    Symbol,
+    SymbolFalse,
+    SymbolList,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
+    SymbolN,
+    SymbolTrue,
+    valid_context_name,
+)
 from mathics.core.systemsymbols import (
     SymbolAnd,
     SymbolBlank,

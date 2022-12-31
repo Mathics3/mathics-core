@@ -1,12 +1,12 @@
-from functools import reduce
+import ctypes
 import itertools
+from functools import reduce
 
 from llvmlite import ir
-import ctypes
 
 from mathics.compile.base import CompileError
-from mathics.compile.types import int_type, real_type, bool_type, void_type
-from mathics.compile.utils import pairwise, llvm_to_ctype
+from mathics.compile.types import bool_type, int_type, real_type, void_type
+from mathics.compile.utils import llvm_to_ctype, pairwise
 from mathics.core.atoms import Integer, Real
 from mathics.core.expression import Expression
 from mathics.core.symbols import Symbol

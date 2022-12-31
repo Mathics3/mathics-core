@@ -4,15 +4,9 @@ Conversions between Python and Mathics
 """
 
 from typing import Any
-from mathics.core.number import get_type
 
-from mathics.core.atoms import (
-    Complex,
-    Integer,
-    Real,
-    Rational,
-    String,
-)
+from mathics.core.atoms import Complex, Integer, Rational, Real, String
+from mathics.core.number import get_type
 from mathics.core.symbols import (
     BaseElement,
     Symbol,
@@ -20,7 +14,7 @@ from mathics.core.symbols import (
     SymbolNull,
     SymbolTrue,
 )
-from mathics.core.systemsymbols import SymbolRule, SymbolByteArray
+from mathics.core.systemsymbols import SymbolByteArray, SymbolRule
 
 
 def from_bool(arg: bool) -> Symbol:

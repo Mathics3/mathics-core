@@ -7,28 +7,22 @@ import json
 import numbers
 
 from mathics.builtin.box.graphics import (
-    GraphicsBox,
     ArrowBox,
+    GraphicsBox,
     LineBox,
     PointBox,
     PolygonBox,
 )
-
-from mathics.builtin.colors.color_directives import _ColorObject, Opacity, RGBColor
-from mathics.builtin.drawing.graphics_internals import GLOBALS3D, _GraphicsElementBox
-
-from mathics.builtin.drawing.graphics3d import (
-    Coords3D,
-    Graphics3DElements,
-    Style3D,
+from mathics.builtin.colors.color_directives import Opacity, RGBColor, _ColorObject
+from mathics.builtin.drawing.graphics3d import Coords3D, Graphics3DElements, Style3D
+from mathics.builtin.drawing.graphics_internals import (
+    GLOBALS3D,
+    _GraphicsElementBox,
+    get_class,
 )
-
-from mathics.builtin.drawing.graphics_internals import get_class
-
 from mathics.core.exceptions import BoxExpressionError
 from mathics.core.formatter import lookup_method
 from mathics.core.symbols import Symbol, SymbolTrue
-
 from mathics.eval.nevaluator import eval_N
 
 

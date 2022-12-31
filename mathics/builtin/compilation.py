@@ -14,19 +14,14 @@ from types import FunctionType
 
 from mathics.builtin.base import Builtin
 from mathics.builtin.box.compilation import CompiledCodeBox
-
-
-from mathics.core.atoms import (
-    Integer,
-    String,
-)
+from mathics.core.atoms import Integer, String
 from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.function import (
-    expression_to_callable_and_args,
-    CompileError,
     CompileDuplicateArgName,
+    CompileError,
     CompileWrongArgType,
+    expression_to_callable_and_args,
 )
 from mathics.core.convert.python import from_python
 from mathics.core.element import ImmutableValueMixin
@@ -36,6 +31,8 @@ from mathics.core.symbols import Atom, Symbol, SymbolFalse, SymbolTrue
 
 class Compile(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Compile.html</url>
+
     <dl>
       <dt>'Compile[{$x1$, $x2$, ...}, $expr$]'
       <dd>Compiles $expr$ assuming each $xi$ is a $Real$ number.
@@ -182,7 +179,9 @@ class CompiledCode(Atom, ImmutableValueMixin):
 
 
 class CompiledFunction(Builtin):
-    """'
+    """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/CompiledFunction.html</url>
+
     <dl>
       <dt>'CompiledFunction[$args$...]'
       <dd>represents compiled code for evaluating a compiled function.

@@ -6,11 +6,9 @@ Pymathics module handling
 import importlib
 import sys
 
-
 from mathics.core.evaluation import Evaluation
 
-# Tis dict
-# Probably this do not belong here.
+# This dict probably does not belong here.
 pymathics = {}
 
 
@@ -60,11 +58,7 @@ def load_pymathics_module(definitions, module):
     Loads Mathics builtin objects and their definitions
     from an external Python module in the pymathics module namespace.
     """
-    from mathics.builtin import (
-        builtins_by_module,
-        name_is_builtin_symbol,
-        Builtin,
-    )
+    from mathics.builtin import Builtin, builtins_by_module, name_is_builtin_symbol
 
     if module in sys.modules:
         loaded_module = importlib.reload(sys.modules[module])

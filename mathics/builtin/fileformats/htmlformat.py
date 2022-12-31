@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
-
-
 """
 HTML
 
-Basic implementation for a HTML importer
-
+Basic implementation for a HTML importer.
 """
 
+
+import platform
+import re
+from io import BytesIO
 
 from mathics.builtin.base import Builtin, MessageException
 from mathics.builtin.files_io.files import MathicsOpen
@@ -18,10 +19,6 @@ from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolRule
-
-from io import BytesIO
-import platform
-import re
 
 try:
     import lxml.html as lhtml
@@ -129,7 +126,7 @@ class _TagImport(_HTMLBuiltin):
     def _import(self, tree):
         raise NotImplementedError
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation):
         """%(name)s[text_String]"""
         tree = parse_html(parse_html_file, text, evaluation)
         if isinstance(tree, Symbol):  # $Failed?
@@ -146,7 +143,7 @@ class _Get(_HTMLBuiltin):
         "prserr": "``.",
     }
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation):
         """%(name)s[text_String]"""
         root = parse_html(self._parse, text, evaluation)
         if isinstance(root, Symbol):  # $Failed?
@@ -157,9 +154,11 @@ class _Get(_HTMLBuiltin):
 
 class HTMLGet(_Get):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dd>HTMLGet['str']
-    <dt>Parses 'str' as HTML code.
+      <dd>HTMLGet['str']
+      <dt>Parses 'str' as HTML code.
     </dl>
     """
 
@@ -171,10 +170,13 @@ class HTMLGet(_Get):
 
 class HTMLGetString(_Get):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'HTML`Parser`HTMLGetString["string"]'
-    <dd> parses HTML code contained in "string".
+      <dt>'HTML`Parser`HTMLGetString["string"]'
+      <dd> parses HTML code contained in "string".
     </dl>
+
     #> Head[HTML`Parser`HTMLGetString["<a></a>"]]
      = XMLObject[Document]
 
@@ -269,6 +271,9 @@ class _DataImport(_TagImport):
 
 class DataImport(_DataImport):
     """
+
+    ## <url>:native internal:</url>
+
     <dl>
     <dt>'HTML`DataImport["filename"]'
     <dd> imports data from a HTML file.
@@ -287,9 +292,11 @@ class DataImport(_DataImport):
 
 class FullDataImport(_DataImport):
     """
+    ## <url>:internal native:</url>
+
     <dl>
-    <dt>'HTML`FullDataImport["filename"]'
-    <dd> imports data from a HTML file.
+      <dt>'HTML`FullDataImport["filename"]'
+      <dd> imports data from a HTML file.
     </dl>
     """
 
@@ -308,6 +315,8 @@ class _LinksImport(_TagImport):
 
 class HyperlinksImport(_LinksImport):
     """
+    ## <url>:native internal:</url>
+
     <dl>
     <dt>'HTML`HyperlinksImport["filename"]'
     <dd> imports hyperlinks from a HTML file.
@@ -329,6 +338,8 @@ class HyperlinksImport(_LinksImport):
 
 class ImageLinksImport(_LinksImport):
     """
+    ## <url>:native internal:</url>
+
     <dl>
     <dt>'HTML`ImageLinksImport["filename"]'
     <dd> imports links to the images included in a HTML file.
@@ -349,9 +360,11 @@ class ImageLinksImport(_LinksImport):
 
 class PlaintextImport(_TagImport):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'HTML`PlaintextImport["filename"]'
-    <dd> imports plane text from a HTML file.
+      <dt>'HTML`PlaintextImport["filename"]'
+      <dd> imports plane text from a HTML file.
     </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html"], RegularExpression["Wiki[a-z]+"]]]
      = {Wikipedia, Wikidata, Wikibase, Wikimedia}
@@ -372,9 +385,11 @@ class PlaintextImport(_TagImport):
 
 class SourceImport(_HTMLBuiltin):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'HTML`SourceImport["filename"]'
-    <dd> imports source code from a HTML file.
+      <dt>'HTML`SourceImport["filename"]'
+      <dd> imports source code from a HTML file.
     </dl>
     >> DeleteDuplicates[StringCases[Import["ExampleData/PrimeMeridian.html", "Source"], RegularExpression["<t[a-z]+>"]]]
      = {<title>, <tr>, <th>, <td>}
@@ -382,7 +397,7 @@ class SourceImport(_HTMLBuiltin):
 
     summary_text = "import source code from a HTML file"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation):
         """%(name)s[text_String]"""
 
         def source(filename):
@@ -396,9 +411,11 @@ class SourceImport(_HTMLBuiltin):
 
 class TitleImport(_TagImport):
     """
+    ## <url>:native internal:</url>
+
     <dl>
-    <dt>'HTML`TitleImport["filename"]'
-    <dd> imports the title string from a HTML file.
+      <dt>'HTML`TitleImport["filename"]'
+      <dd> imports the title string from a HTML file.
     </dl>
     >> Import["ExampleData/PrimeMeridian.html", "Title"]
      = Prime meridian - Wikipedia
@@ -415,6 +432,8 @@ class TitleImport(_TagImport):
 
 class XMLObjectImport(_HTMLBuiltin):
     """
+    ## <url>:native internal:</url>
+
     <dl>
     <dt>'HTML`XMLObjectImport["filename"]'
     <dd> imports XML objects from a HTML file.
@@ -425,7 +444,7 @@ class XMLObjectImport(_HTMLBuiltin):
 
     summary_text = "import XML objects from a HTML file"
 
-    def apply(self, text, evaluation):
+    def eval(self, text, evaluation):
         """%(name)s[text_String]"""
         xml = to_expression("HTML`Parser`HTMLGet", text).evaluate(evaluation)
         return ListExpression(Expression(SymbolRule, String("XMLObject"), xml))

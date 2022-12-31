@@ -2,9 +2,9 @@
 
 import pytest
 
-from mathics.session import MathicsSession
 from mathics.eval.nevaluator import eval_N, eval_nvalues
 from mathics.eval.numerify import numerify as eval_numerify
+from mathics.session import MathicsSession
 
 session = MathicsSession()
 evaluation = session.evaluation

@@ -12,7 +12,6 @@ import pytest
 
 from mathics.builtin.base import check_requires_list
 
-
 if check_requires_list(["scipy", "scipy.integrate"]):
     methods = ["Automatic", "Romberg", "Internal", "NQuadrature"]
 

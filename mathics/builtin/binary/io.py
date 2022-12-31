@@ -4,29 +4,26 @@ Binary Reading and Writing
 """
 
 import math
-import mpmath
 import struct
-import sympy
-
 from itertools import chain
+
+import mpmath
+import sympy
 
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Complex, Integer, MachineReal, Real, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.mpmath import from_mpmath
 from mathics.core.expression import Expression
-
-from mathics.core.systemsymbols import (
-    SymbolDirectedInfinity,
-    SymbolIndeterminate,
-)
-
 from mathics.core.number import dps
 from mathics.core.read import SymbolEndOfFile
 from mathics.core.streams import stream_manager
 from mathics.core.symbols import Symbol
-from mathics.core.systemsymbols import SymbolComplex
-
+from mathics.core.systemsymbols import (
+    SymbolComplex,
+    SymbolDirectedInfinity,
+    SymbolIndeterminate,
+)
 from mathics.eval.nevaluator import eval_N
 
 SymbolBinaryWrite = Symbol("BinaryWrite")
@@ -362,12 +359,18 @@ class _BinaryFormat:
 
 class BinaryRead(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BinaryRead.html</url>
+
     <dl>
-    <dt>'BinaryRead[$stream$]'
+      <dt>'BinaryRead[$stream$]'
       <dd>reads one byte from the stream as an integer from 0 to 255.
-    <dt>'BinaryRead[$stream$, $type$]'
+
+      <dt>'BinaryRead[$stream$, $type$]'
       <dd>reads one object of specified type from the stream.
-    <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
+
+      <dt>'BinaryRead[$stream$, {$type1$, $type2$, ...}]'
       <dd>reads a sequence of objects of specified types.
     </dl>
 
@@ -603,11 +606,11 @@ class BinaryRead(Builtin):
         "bfmt": "The stream `1` has been opened with BinaryFormat -> False and cannot be used with binary data.",
     }
 
-    def apply_empty(self, name, n, evaluation):
+    def eval_empty(self, name, n, evaluation):
         "BinaryRead[InputStream[name_, n_Integer]]"
-        return self.apply(name, n, None, evaluation)
+        return self.eval(name, n, None, evaluation)
 
-    def apply(self, name, n, typ, evaluation):
+    def eval(self, name, n, typ, evaluation):
         "BinaryRead[InputStream[name_, n_Integer], typ_]"
 
         channel = to_expression("InputStream", name, n)
@@ -657,6 +660,10 @@ class BinaryRead(Builtin):
 
 class BinaryWrite(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/BinaryWrite.html</url>
+
     <dl>
       <dt>'BinaryWrite[$channel$, $b$]'
       <dd>writes a single byte given as an integer from 0 to 255.
@@ -894,11 +901,11 @@ class BinaryWrite(Builtin):
 
     writers = _BinaryFormat.get_writers()
 
-    def apply_notype(self, name, n, b, evaluation):
+    def eval_notype(self, name, n, b, evaluation):
         "BinaryWrite[OutputStream[name_, n_], b_]"
-        return self.apply(name, n, b, None, evaluation)
+        return self.eval(name, n, b, None, evaluation)
 
-    def apply(self, name, n, b, typ, evaluation):
+    def eval(self, name, n, b, typ, evaluation):
         "BinaryWrite[OutputStream[name_, n_], b_, typ_]"
 
         channel = to_expression("OutputStream", name, n)
