@@ -27,7 +27,12 @@ from mathics.core.attributes import (
 )
 from mathics.core.convert.python import from_python
 from mathics.core.convert.sympy import SympyExpression, sympy_symbol_prefix
-from mathics.core.element import BaseElement, ElementsProperties, EvalMixin, ensure_context
+from mathics.core.element import (
+    BaseElement,
+    ElementsProperties,
+    EvalMixin,
+    ensure_context,
+)
 from mathics.core.evaluation import Evaluation
 from mathics.core.interrupt import ReturnInterrupt
 from mathics.core.structure import LinkedStructure
