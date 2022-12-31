@@ -5,14 +5,7 @@ Forms of Assignment
 
 
 from mathics.builtin.base import BinaryOperator, Builtin
-from mathics.core.assignment import (
-    AssignmentException,
-)
-from mathics.eval.set import (
-    SET_EVAL_FUNCTION_MAP,
-    assign_store_rules_by_tag,
-    normalize_lhs,
-)
+from mathics.core.assignment import AssignmentException
 from mathics.core.attributes import (
     A_HOLD_ALL,
     A_HOLD_FIRST,
@@ -22,6 +15,11 @@ from mathics.core.attributes import (
 from mathics.core.pymathics import PyMathicsLoadException, eval_load_module
 from mathics.core.symbols import SymbolNull
 from mathics.core.systemsymbols import SymbolFailed
+from mathics.eval.set import (
+    SET_EVAL_FUNCTION_MAP,
+    assign_store_rules_by_tag,
+    normalize_lhs,
+)
 
 
 class _SetOperator:
