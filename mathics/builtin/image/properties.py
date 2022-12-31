@@ -15,6 +15,9 @@ from mathics.eval.image import (
     pixels_as_uint,
 )
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-properties"
+
 
 class ImageAspectRatio(Builtin):
     """
