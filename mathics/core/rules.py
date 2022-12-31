@@ -6,9 +6,8 @@ from itertools import chain
 
 from mathics.core.element import KeyComparable
 from mathics.core.expression import Expression
-from mathics.core.symbols import strip_context, SymbolTrue
 from mathics.core.pattern import Pattern, StopGenerator
-from mathics.core.symbols import strip_context
+from mathics.core.symbols import SymbolTrue, strip_context
 
 
 def _python_function_arguments(f):
