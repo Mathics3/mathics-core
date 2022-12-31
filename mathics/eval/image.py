@@ -9,6 +9,7 @@ from typing import List, Optional
 
 import numpy
 import PIL
+import PIL.Image
 
 from mathics.builtin.base import String
 from mathics.core.atoms import Rational
