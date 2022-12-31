@@ -1290,11 +1290,14 @@ class EdgeForm(Builtin):
 
 class FaceForm(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FaceForm.html</url>
+    <url>:WMA link
+    :https://reference.wolfram.com/language/ref/FaceForm.html</url>
 
     <dl>
       <dt> 'FaceForm[$g$]'
-      <dd> is a graphics directive that specifies that faces of filled graphics objects are to be drawn using the graphics directive or list of directives $ g$.
+      <dd> is a graphics directive that specifies that faces of filled graphics\
+           objects are to be drawn using the graphics directive or list of \
+           directives $g$.
     </dl>
     """
 
@@ -1303,7 +1306,9 @@ class FaceForm(Builtin):
 
 class FontColor(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/FontColor.html</url>
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/FontColor.html</url>
 
     <dl>
       <dt>'FontColor'
@@ -1316,7 +1321,8 @@ class FontColor(Builtin):
 
 class Inset(Builtin):
     """
-    <url>:WMA link:https://reference.wolfram.com/language/ref/Inset.html</url>
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Inset.html</url>
 
     <dl>
       <dt>'Text[$obj$]'
@@ -1326,9 +1332,10 @@ class Inset(Builtin):
       <dd>represents an object $obj$ inset in a graphic at position $pos$.
 
       <dt>'Text[$obj$, $pos$, $$]'
-      <dd>represents an object $obj$ inset in a graphic at position $pos$, ina way that the position $opos$ of $obj$ coincides with $pos$ in             the enclosing graphic.
+      <dd>represents an object $obj$ inset in a graphic at position $pos$, \
+          in away that the position $opos$ of $obj$ coincides with $pos$ \
+          in the enclosing graphic.
     </dl>
-
     """
 
     summary_text = "arbitrary objects in 2D or 3D inset into a larger graphic"

@@ -932,7 +932,6 @@ class String(Atom, BoxElementMixin):
 
     def __new__(cls, value):
         self = super().__new__(cls)
-
         self.value = str(value)
         # Set a value for self.__hash__() once so that every time
         # it is used this is fast.

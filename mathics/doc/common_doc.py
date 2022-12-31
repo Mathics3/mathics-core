@@ -137,6 +137,11 @@ SPECIAL_COMMANDS = {
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
 
+# We keep track of the number of \begin{asy}'s we see so that
+# we can assocation asymptote file numbers with where they are
+# in the document
+asy_count = 0
+
 
 def get_module_doc(module: ModuleType):
     doc = module.__doc__
@@ -267,7 +272,7 @@ def _replace_all(text, pairs):
     return text
 
 
-def escape_latex_output(text):
+def escape_latex_output(text) -> str:
     """Escape Mathics output"""
 
     text = _replace_all(
@@ -286,7 +291,7 @@ def escape_latex_output(text):
     return text
 
 
-def escape_latex_code(text):
+def escape_latex_code(text) -> str:
     """Escape verbatim Mathics input"""
 
     text = escape_latex_output(text)
@@ -433,7 +438,7 @@ def escape_latex(text):
     def repl_quotation(match):
         return r"``%s''" % match.group(1)
 
-    def repl_hypertext(match):
+    def repl_hypertext(match) -> str:
         tag = match.group("tag")
         content = match.group("content")
         if tag == "em":
@@ -443,12 +448,14 @@ def escape_latex(text):
             if text is None:
                 return "\\url{%s}" % content
             else:
+                # If we have "/doc" as the beginning the URL link
+                # then is is a link to a section
+                # in this manual, so use "\ref" rather than "\href'.
                 if content.find("/doc/") == 0:
                     slug = "/".join(content.split("/")[2:]).rstrip("/")
-                    return "section~\\ref{%s}" % slug
+                    return "%s of section~\\ref{%s}" % (text, latex_label_safe(slug))
                 else:
                     return "\\href{%s}{%s}" % (content, text)
-                print(content)
                 return "\\href{%s}{%s}" % (content, text)
 
     text = QUOTATIONS_RE.sub(repl_quotation, text)
@@ -507,6 +514,11 @@ def get_doc_name_from_module(module):
         else:
             name = lines.split("\n")[0]
     return name
+
+
+def latex_label_safe(s: str) -> str:
+    s = s.replace("$", "")
+    return s
 
 
 def post_process_latex(result):
@@ -1319,7 +1331,7 @@ class DocSection:
         slug = f"{self.chapter.part.slug}/{self.chapter.slug}/{self.slug}"
         section_string = (
             "\n\n\\section*{%s}{%s}\n" % (title, index)
-            + "\n\label{%s}" % slug
+            + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\sectionstart\n\n"
             + f"{content}"
             + ("\\addcontentsline{toc}{section}{%s}" % title)
@@ -1485,7 +1497,7 @@ class DocSubsection:
 
         section_string = (
             "\n\n\\subsection*{%(title)s}%(index)s\n"
-            + "\n\label{%s}" % slug
+            + "\n\\label{%s}" % latex_label_safe(slug)
             + "\n\\subsectionstart\n\n%(content)s"
             "\\addcontentsline{toc}{subsection}{%(title)s}"
             "%(sections)s"
@@ -1752,14 +1764,14 @@ class DocTest:
         return self.test
 
     def latex(self, doc_data: dict) -> str:
-        text = ""
-        text += "\\begin{testcase}\n"
-        text += "\\test{%s}\n" % escape_latex_code(self.test)
         if self.key is None:
             return ""
         output_for_key = doc_data.get(self.key, None)
         if output_for_key is None:
             output_for_key = get_results_by_test(self.test, self.key, doc_data)
+        text = f"%% Test {'/'.join((str(x) for x in self.key))}\n"
+        text += "\\begin{testcase}\n"
+        text += "\\test{%s}\n" % escape_latex_code(self.test)
 
         results = output_for_key.get("results", [])
         for result in results:
@@ -1770,7 +1782,14 @@ class DocTest:
                     escape_latex_output(out["text"]),
                     kind,
                 )
-            if result["result"]:  # is not None and result['result'].strip():
+
+            test_text = result["result"]
+            if test_text:  # is not None and result['result'].strip():
+                if test_text.find("\\begin{asy}") >= 0:
+                    global asy_count
+                    asy_count += 1
+                    text += f"%% mathics-{asy_count}.asy\n"
+
                 text += "\\begin{testresult}%s\\end{testresult}" % result["result"]
         text += "\\end{testcase}"
         return text
