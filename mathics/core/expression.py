@@ -1421,7 +1421,6 @@ class Expression(BaseElement, NumericOperators, EvalMixin):
             # Eventually, we want to remove this parameter.
             #
             # import warnings
-
             # warnings.warn(
             #    (
             #        "use of expr.to_python(n_evaluation) is deprecated."
