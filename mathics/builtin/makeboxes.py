@@ -377,7 +377,10 @@ class MakeBoxes(Builtin):
         if isinstance(expr, BoxElementMixin):
             expr = expr.to_expression()
         if isinstance(expr, Atom):
-            return expr.atom_to_boxes(f, evaluation)
+            try:
+                return expr.atom_to_boxes(f, evaluation)
+            except NotImplementedError:
+                return String(f"{str(expr)} cannot be boxed in form {f}")
         else:
             head = expr.head
             elements = expr.elements

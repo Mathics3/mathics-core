@@ -13,7 +13,13 @@ from typing import Any, List
 from mathics_scanner import TranslateError
 
 from mathics.builtin.base import Builtin, Predefined, PrefixOperator, Test
-from mathics.core.atoms import Integer, Integer0, Integer1, String
+from mathics.core.atoms import (
+    SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM,
+    Integer,
+    Integer0,
+    Integer1,
+    String,
+)
 from mathics.core.attributes import A_LISTABLE, A_PROTECTED
 from mathics.core.convert.expression import to_mathics_list
 from mathics.core.convert.python import from_bool
@@ -840,6 +846,17 @@ class String_(Builtin):
 
     name = "String"
     summary_text = "head for strings"
+
+    def apply_makeboxes(self, s, form, evaluation):
+        """MakeBoxes[s_String,
+        form:(InputForm|OutputForm|StandardForm|TraditionalForm|FullForm)]"""
+        from mathics.eval.makeboxes import _boxed_string
+
+        inner = str(s.value)
+        if form in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
+            inner = '"' + inner.replace("\\", "\\\\") + '"'
+            return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
+        return String('"' + inner + '"')
 
 
 class StringContainsQ(Builtin):

@@ -722,6 +722,11 @@ class Symbol_(Builtin):
         else:
             evaluation.message("Symbol", "symname", string)
 
+    def eval_symb_makeboxes(self, s, form, evaluation) -> "String":
+        """MakeBoxes[s_Symbol,
+        form:(InputForm|OutputForm|StandardForm|TraditionalForm|FullForm)]"""
+        return String(evaluation.definitions.shorten_name(s.name))
+
 
 class SymbolName(Builtin):
     """

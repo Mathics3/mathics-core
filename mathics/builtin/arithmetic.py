@@ -23,6 +23,7 @@ from mathics.builtin.inference import evaluate_predicate, get_assumptions_list
 from mathics.builtin.lists import _IterationFunction
 from mathics.builtin.scoping import dynamic_scoping
 from mathics.core.atoms import (
+    SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM,
     Complex,
     Integer,
     Integer0,
@@ -73,6 +74,7 @@ from mathics.core.systemsymbols import (
     SymbolTable,
     SymbolUndefined,
 )
+from mathics.eval.makeboxes import _boxed_string, eval_makeboxes
 from mathics.eval.nevaluator import eval_N
 
 
@@ -492,6 +494,14 @@ class Complex_(Builtin):
             r, i = from_sympy(r), from_sympy(i)
         return Complex(r, i)
 
+    def eval_makeboxes(self, c, form, evaluation):
+        """MakeBoxes[c_Complex, form_]"""
+        from mathics.eval.makeboxes import do_format_complex
+
+        # This function can be moved to this module, or even
+        # added here inline.
+        return eval_makeboxes(do_format_complex(c, evaluation, form), evaluation, form)
+
 
 class ConditionalExpression(Builtin):
     """
@@ -770,6 +780,13 @@ class Im(SympyFunction):
         "Im[number_]"
 
         return from_sympy(sympy.im(number.to_sympy().expand(complex=True)))
+
+    def eval_makeboxes(self, n, form, evaluation) -> "String":
+        """MakeBoxes[n_Integer, form_]"""
+
+        if form in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
+            return _boxed_string(str(n.value), number_as_text=True)
+        return String(str(n._value))
 
 
 class Integer_(Builtin):
@@ -1093,6 +1110,15 @@ class Rational_(Builtin):
         else:
             return Rational(n.value, m.value)
 
+    def eval_makeboxes(self, r, form, evaluation):
+        """MakeBoxes[r_Rational, form_]"""
+        from mathics.eval.makeboxes import do_format_rational
+
+        # This function can be moved to this module, or even
+        # added here inline.
+        result = do_format_rational(r, evaluation, form)
+        return eval_makeboxes(result, evaluation, form)
+
 
 class Re(SympyFunction):
     """
@@ -1209,6 +1235,10 @@ class Real_(Builtin):
 
     summary_text = "head for real numbers"
     name = "Real"
+
+    def eval_makeboxes(self, r, form, evaluation):
+        """MakeBoxes[r_Real, form_]"""
+        return r.make_boxes(form.name)
 
 
 class RealNumberQ(Test):

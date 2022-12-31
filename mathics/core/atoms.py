@@ -224,18 +224,8 @@ class Integer(Number):
     def abs(self) -> "Integer":
         return -self if self < Integer0 else self
 
-    def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
-
     def default_format(self, evaluation, form) -> str:
         return str(self._value)
-
-    def make_boxes(self, form) -> "String":
-        from mathics.eval.makeboxes import _boxed_string
-
-        if form in ("System`InputForm", "System`FullForm"):
-            return _boxed_string(str(self.value), number_as_text=True)
-        return String(str(self._value))
 
     def to_sympy(self, **kwargs):
         return sympy.Integer(self._value)
@@ -340,9 +330,6 @@ class Real(Number):
     def __ne__(self, other) -> bool:
         # Real is a total order
         return not (self == other)
-
-    def atom_to_boxes(self, f, evaluation):
-        return self.make_boxes(f.get_name())
 
     def is_nan(self, d=None) -> bool:
         return isinstance(self.value, sympy.core.numbers.NaN)
@@ -715,11 +702,6 @@ class Complex(Number):
     def __str__(self) -> str:
         return str(self.to_sympy())
 
-    def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
-
-        return format_element(self, evaluation, f)
-
     def to_sympy(self, **kwargs):
         return self.real.to_sympy() + sympy.I * self.imag.to_sympy()
 
@@ -863,11 +845,6 @@ class Rational(Number):
     def __hash__(self):
         return self.hash
 
-    def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import format_element
-
-        return format_element(self, evaluation, f)
-
     def to_sympy(self, **kwargs):
         return self.value
 
@@ -944,15 +921,6 @@ class String(Atom, BoxElementMixin):
 
     def __str__(self) -> str:
         return '"%s"' % self.value
-
-    def atom_to_boxes(self, f, evaluation):
-        from mathics.eval.makeboxes import _boxed_string
-
-        inner = str(self.value)
-        if f in SYSTEM_SYMBOLS_INPUT_OR_FULL_FORM:
-            inner = '"' + inner.replace("\\", "\\\\") + '"'
-            return _boxed_string(inner, **{"System`ShowStringCharacters": SymbolTrue})
-        return String('"' + inner + '"')
 
     def do_copy(self) -> "String":
         return String(self.value)
