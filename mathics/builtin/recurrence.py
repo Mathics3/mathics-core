@@ -12,10 +12,9 @@ sort_order = "mathics.builtin.solving-recurrence-equations"
 import sympy
 
 from mathics.builtin.base import Builtin
-
 from mathics.core.atoms import IntegerM1
 from mathics.core.attributes import A_CONSTANT
-from mathics.core.convert.sympy import sympy_symbol_prefix, from_sympy
+from mathics.core.convert.sympy import from_sympy, sympy_symbol_prefix
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.symbols import Atom, Symbol, SymbolPlus, SymbolTimes
@@ -24,6 +23,8 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class RSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/RSolve.html</url>
+
     <dl>
     <dt>'RSolve[$eqn$, $a$[$n$], $n$]'
         <dd>solves a recurrence equation for the function '$a$[$n$]'.

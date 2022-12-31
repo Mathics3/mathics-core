@@ -1,9 +1,8 @@
 import inspect
-from typing import Callable
 import re
+from typing import Callable
 
 from mathics.core.element import BoxElementMixin
-
 
 # key is str: (to_xxx name, value) is formatter function to call
 format2fn: dict = {}

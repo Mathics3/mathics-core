@@ -3,26 +3,19 @@
 Conversion from AST node to Mathic BaseElement objects
 """
 
+from math import log10
 from typing import Tuple
 
-from math import log10
 import sympy
 
-from mathics.core.atoms import (
-    Integer,
-    MachineReal,
-    PrecisionReal,
-    Rational,
-    String,
-)
-
+from mathics.core.atoms import Integer, MachineReal, PrecisionReal, Rational, String
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.number import machine_precision, reconstruct_digits
 from mathics.core.parser.ast import (
-    Symbol as AST_Symbol,
-    String as AST_String,
-    Number as AST_Number,
     Filename as AST_Filename,
+    Number as AST_Number,
+    String as AST_String,
+    Symbol as AST_Symbol,
 )
 from mathics.core.symbols import Symbol, SymbolList
 

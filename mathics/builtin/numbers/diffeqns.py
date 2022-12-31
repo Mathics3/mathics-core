@@ -5,6 +5,7 @@ Differential Equations
 """
 
 import sympy
+
 from mathics.builtin.base import Builtin
 from mathics.core.convert.sympy import from_sympy
 from mathics.core.expression import Expression
@@ -15,6 +16,8 @@ from mathics.core.systemsymbols import SymbolFunction, SymbolRule
 
 class DSolve(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/DSolve.html</url>
+
     <dl>
     <dt>'DSolve[$eq$, $y$[$x$], $x$]'
         <dd>solves a differential equation for the function $y$[$x$].
@@ -211,6 +214,8 @@ class DSolve(Builtin):
 
 class C(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/C.html</url>
+
     <dl>
       <dt>'C'[$n$]
       <dd>represents the $n$th constant in a solution to a differential equation.

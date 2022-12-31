@@ -7,52 +7,46 @@ File and Stream Operations
 
 import io
 import os
-import tempfile
-
-from io import BytesIO
 import os.path as osp
-
+import tempfile
+from io import BytesIO
 
 from mathics_scanner import TranslateError
 
 import mathics
-from mathics.builtin.base import Builtin, Predefined, BinaryOperator, PrefixOperator
-from mathics.builtin.base import MessageException
-
-from mathics.core import read
-from mathics.core.atoms import (
-    Integer,
-    String,
-    SymbolString,
+from mathics.builtin.base import (
+    BinaryOperator,
+    Builtin,
+    MessageException,
+    Predefined,
+    PrefixOperator,
 )
+from mathics.core import read
+from mathics.core.atoms import Integer, String, SymbolString
 from mathics.core.attributes import A_PROTECTED, A_READ_PROTECTED
 from mathics.core.convert.expression import to_expression, to_mathics_list
 from mathics.core.convert.python import from_python
 from mathics.core.expression import BoxError, Expression
 from mathics.core.parser import MathicsFileLineFeeder, parse
 from mathics.core.read import (
+    READ_TYPES,
+    MathicsOpen,
+    SymbolEndOfFile,
     channel_to_stream,
     close_stream,
-    MathicsOpen,
+    read_from_stream,
     read_get_separators,
     read_name_and_stream_from_channel,
-    read_from_stream,
-    READ_TYPES,
-    SymbolEndOfFile,
 )
-from mathics.core.streams import (
-    path_search,
-    stream_manager,
-)
+from mathics.core.streams import path_search, stream_manager
 from mathics.core.symbols import Symbol, SymbolNull, SymbolTrue
 from mathics.core.systemsymbols import (
-    SymbolReal,
     SymbolFailed,
     SymbolHold,
     SymbolOutputForm,
+    SymbolReal,
 )
-
-from mathics.eval.makeboxes import format_element, do_format
+from mathics.eval.makeboxes import do_format, format_element
 
 INITIAL_DIR = os.getcwd()
 DIRECTORY_STACK = [INITIAL_DIR]
@@ -73,8 +67,10 @@ SymbolPath = Symbol("$Path")
 
 class Input_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Input_.html</url>
+
     <dl>
-    <dt>'$Input'
+      <dt>'$Input'
       <dd>is the name of the stream from which input is currently being read.
     </dl>
 
@@ -114,7 +110,7 @@ class _OpenAction(Builtin):
         ),
     }
 
-    def apply_empty(self, evaluation, options):
+    def eval_empty(self, evaluation, options):
         "%(name)s[OptionsPattern[]]"
 
         if isinstance(self, (OpenWrite, OpenAppend)):
@@ -127,12 +123,12 @@ class _OpenAction(Builtin):
             tmpf = tempfile.NamedTemporaryFile(dir=TMP_DIR, delete=False)
             path = String(tmpf.name)
             tmpf.close()
-            return self.apply_path(path, evaluation, options)
+            return self.eval_path(path, evaluation, options)
         else:
             evaluation.message("OpenRead", "argx")
             return
 
-    def apply_path(self, path, evaluation, options):
+    def eval_path(self, path, evaluation, options):
         "%(name)s[path_?NotOptionQ, OptionsPattern[]]"
 
         # Options
@@ -181,6 +177,9 @@ class _OpenAction(Builtin):
 
 class Character(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Character.html</url>
+
     <dl>
       <dt>'Character'
       <dd>is a data type for 'Read'.
@@ -192,6 +191,8 @@ class Character(Builtin):
 
 class Close(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Close.html</url>
+
     <dl>
       <dt>'Close[$stream$]'
       <dd>closes an input or output stream.
@@ -218,7 +219,7 @@ class Close(Builtin):
         "closex": "`1`.",
     }
 
-    def apply(self, channel, evaluation):
+    def eval(self, channel, evaluation):
         "Close[channel_]"
 
         if channel.has_form(("InputStream", "OutputStream"), 2):
@@ -238,8 +239,11 @@ class Close(Builtin):
 
 class EndOfFile(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/EndOfFile.html</url>
+
     <dl>
-    <dt>'EndOfFile'
+      <dt>'EndOfFile'
       <dd>is returned by 'Read' when the end of an input stream is reached.
     </dl>
     """
@@ -249,12 +253,18 @@ class EndOfFile(Builtin):
 
 class Expression_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Expression.html</url>
+
     <dl>
       <dt>'Expression'
       <dd>is a data type for 'Read'.
     </dl>
 
-    For information about underlying data structure Expression (a kind of M-expression) that is central in evaluation, see: <url>https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>
+    For information about underlying data structure Expression (a kind of \
+    M-expression) that is central in evaluation, see: \
+    <url>
+    :AST, M-Expression, General List same thing:
+    https://mathics-development-guide.readthedocs.io/en/latest/extending/code-overview/ast.html</url>.
     """
 
     summary_text = "WL expression"
@@ -263,8 +273,10 @@ class Expression_(Builtin):
 
 class FilePrint(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/FilePrint.html</url>
+
     <dl>
-    <dt>'FilePrint[$file$]'
+      <dt>'FilePrint[$file$]'
       <dd>prints the raw contents of $file$.
     </dl>
 
@@ -295,7 +307,7 @@ class FilePrint(Builtin):
         "WordSeparators": '{" ", "\t"}',
     }
 
-    def apply(self, path, evaluation, options):
+    def eval(self, path, evaluation, options):
         "FilePrint[path_, OptionsPattern[FilePrint]]"
         pypath = path.to_python()
         if not (
@@ -347,6 +359,8 @@ class FilePrint(Builtin):
 
 class Number_(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Number.html</url>
+
     <dl>
     <dt>'Number'
       <dd>is a data type for 'Read'.
@@ -359,6 +373,8 @@ class Number_(Builtin):
 
 class Get(PrefixOperator):
     r"""
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Get.html</url>
+
     <dl>
       <dt>'<<$name$'
       <dd>reads a file and evaluates each expression, returning only the last one.
@@ -399,7 +415,7 @@ class Get(PrefixOperator):
         "Trace": "False",
     }
 
-    def apply(self, path, evaluation, options):
+    def eval(self, path, evaluation, options):
         "Get[path_String, OptionsPattern[Get]]"
 
         def check_options(options):
@@ -451,7 +467,7 @@ class Get(PrefixOperator):
             return SymbolFailed
         return result
 
-    def apply_default(self, filename, evaluation):
+    def eval_default(self, filename, evaluation):
         "Get[filename_]"
         expr = to_expression("Get", filename)
         evaluation.message("General", "stream", filename)
@@ -460,8 +476,12 @@ class Get(PrefixOperator):
 
 class InputFileName_(Predefined):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/$InputFileName.html</url>
+
     <dl>
-    <dt>'$InputFileName'
+      <dt>'$InputFileName'
       <dd>is the name of the file from which input is currently being read.
     </dl>
 
@@ -480,6 +500,8 @@ class InputFileName_(Predefined):
 
 class InputStream(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/InputStream.html</url>
+
     <dl>
       <dt>'InputStream[$name$, $n$]'
       <dd>represents an input stream for functions such as 'Read' or 'Find'.
@@ -498,6 +520,10 @@ class InputStream(Builtin):
 
 class OpenRead(_OpenAction):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OpenRead.html</url>
+
     <dl>
       <dt>'OpenRead["file"]'
       <dd>opens a file and returns an 'InputStream'.
@@ -537,8 +563,10 @@ class OpenRead(_OpenAction):
 
 class OpenWrite(_OpenAction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenWrite.html</url>
+
     <dl>
-    <dt>'OpenWrite["file"]'
+      <dt>'OpenWrite["file"]'
       <dd>opens a file and returns an OutputStream.
     </dl>
 
@@ -560,6 +588,8 @@ class OpenWrite(_OpenAction):
 
 class OpenAppend(_OpenAction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OpenAppend.html</url>
+
     <dl>
     <dt>'OpenAppend["file"]'
       <dd>opens a file and returns an OutputStream to which writes are appended.
@@ -586,8 +616,10 @@ class OpenAppend(_OpenAction):
 
 class Put(BinaryOperator):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Put.html</url>
+
     <dl>
-    <dt>'$expr$ >> $filename$'
+      <dt>'$expr$ >> $filename$'
       <dd>write $expr$ to a file.
     <dt>'Put[$expr1$, $expr2$, ..., $filename$]'
       <dd>write a sequence of expressions to a file.
@@ -639,21 +671,21 @@ class Put(BinaryOperator):
     operator = ">>"
     precedence = 30
 
-    def apply(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename, evaluation):
         "Put[exprs___, filename_String]"
         instream = to_expression("OpenWrite", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
             return  # opening failed
-        result = self.apply_input(exprs, name, n, evaluation)
+        result = self.eval_input(exprs, name, n, evaluation)
         instream_number = instream.elements[1].value
         py_instream = stream_manager.lookup_stream(instream_number)
 
         close_stream(py_instream, instream_number)
         return result
 
-    def apply_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation):
         "Put[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
@@ -672,7 +704,7 @@ class Put(BinaryOperator):
 
         return SymbolNull
 
-    def apply_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation):
         "Put[exprs___, filename_]"
         expr = to_expression("Put", exprs, filename)
         evaluation.message("General", "stream", filename)
@@ -681,10 +713,15 @@ class Put(BinaryOperator):
 
 class PutAppend(BinaryOperator):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/PutAppend.html</url>
+
     <dl>
-    <dt>'$expr$ >>> $filename$'
+      <dt>'$expr$ >>> $filename$'
       <dd>append $expr$ to a file.
-    <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
+
+      <dt>'PutAppend[$expr1$, $expr2$, ..., $"filename"$]'
       <dd>write a sequence of expressions to a file.
     </dl>
 
@@ -732,18 +769,18 @@ class PutAppend(BinaryOperator):
     operator = ">>>"
     precedence = 30
 
-    def apply(self, exprs, filename, evaluation):
+    def eval(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_String]"
         instream = to_expression("OpenAppend", filename).evaluate(evaluation)
         if len(instream.elements) == 2:
             name, n = instream.elements
         else:
             return  # opening failed
-        result = self.apply_input(exprs, name, n, evaluation)
+        result = self.eval_input(exprs, name, n, evaluation)
         to_expression("Close", instream).evaluate(evaluation)
         return result
 
-    def apply_input(self, exprs, name, n, evaluation):
+    def eval_input(self, exprs, name, n, evaluation):
         "PutAppend[exprs___, OutputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
@@ -762,7 +799,7 @@ class PutAppend(BinaryOperator):
 
         return SymbolNull
 
-    def apply_default(self, exprs, filename, evaluation):
+    def eval_default(self, exprs, filename, evaluation):
         "PutAppend[exprs___, filename_]"
         expr = to_expression("PutAppend", exprs, filename)
         evaluation.message("General", "stream", filename)
@@ -771,6 +808,8 @@ class PutAppend(BinaryOperator):
 
 class Read(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Read.html</url>
+
     <dl>
       <dt>'Read[$stream$]'
       <dd>reads the input stream and returns one expression.
@@ -1011,7 +1050,7 @@ class Read(Builtin):
 
         return result
 
-    def apply(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation, options):
         "Read[channel_, types_, OptionsPattern[Read]]"
 
         name, n, stream = read_name_and_stream_from_channel(channel, evaluation)
@@ -1063,8 +1102,9 @@ class Read(Builtin):
             ["+", "-", ".", "e", "E", "^", "*"] + [str(i) for i in range(10)],
         )
 
-        from mathics.core.expression import BaseElement
         from mathics_scanner.errors import IncompleteSyntaxError, InvalidSyntaxError
+
+        from mathics.core.expression import BaseElement
         from mathics.core.parser import MathicsMultiLineFeeder, parse
 
         for typ in types.elements:
@@ -1156,7 +1196,7 @@ class Read(Builtin):
 
         return from_python(result)
 
-    def apply_nostream(self, arg1, arg2, evaluation):
+    def eval_nostream(self, arg1, arg2, evaluation):
         "Read[arg1_, arg2_]"
         evaluation.message("General", "stream", arg1)
         return
@@ -1164,12 +1204,18 @@ class Read(Builtin):
 
 class ReadList(Read):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/ReadList.html</url>
+
     <dl>
-    <dt>'ReadList["$file$"]'
+      <dt>'ReadList["$file$"]'
       <dd>Reads all the expressions until the end of file.
-    <dt>'ReadList["$file$", $type$]'
+
+      <dt>'ReadList["$file$", $type$]'
       <dd>Reads objects of a specified type until the end of file.
-    <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
+
+      <dt>'ReadList["$file$", {$type1$, $type2$, ...}]'
       <dd>Reads a sequence of specified types until the end of file.
     </dl>
 
@@ -1225,7 +1271,7 @@ class ReadList(Read):
         "WordSeparators": '{" ", "\t"}',
     }
 
-    def apply(self, channel, types, evaluation, options):
+    def eval(self, channel, types, evaluation, options):
         "ReadList[channel_, types_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1239,7 +1285,7 @@ class ReadList(Read):
 
         result = []
         while True:
-            tmp = super(ReadList, self).apply(channel, types, evaluation, options)
+            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
 
             if tmp is None:
                 return
@@ -1252,7 +1298,7 @@ class ReadList(Read):
             result.append(tmp)
         return from_python(result)
 
-    def apply_m(self, channel, types, m, evaluation, options):
+    def eval_m(self, channel, types, m, evaluation, options):
         "ReadList[channel_, types_, m_, OptionsPattern[ReadList]]"
 
         # Options
@@ -1273,7 +1319,7 @@ class ReadList(Read):
 
         result = []
         for i in range(py_m):
-            tmp = super(ReadList, self).apply(channel, types, evaluation, options)
+            tmp = super(ReadList, self).eval(channel, types, evaluation, options)
 
             if tmp is SymbolFailed:
                 return
@@ -1286,8 +1332,12 @@ class ReadList(Read):
 
 class StreamPosition(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StreamPosition.html</url>
+
     <dl>
-    <dt>'StreamPosition[$stream$]'
+      <dt>'StreamPosition[$stream$]'
       <dd>returns the current position in a stream as an integer.
     </dl>
 
@@ -1303,7 +1353,7 @@ class StreamPosition(Builtin):
 
     summary_text = "find the position of the current point in an open stream"
 
-    def apply_input(self, name, n, evaluation):
+    def eval_input(self, name, n, evaluation):
         "StreamPosition[InputStream[name_, n_]]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
@@ -1313,11 +1363,11 @@ class StreamPosition(Builtin):
 
         return Integer(stream.io.tell())
 
-    def apply_output(self, name, n, evaluation):
+    def eval_output(self, name, n, evaluation):
         "StreamPosition[OutputStream[name_, n_]]"
         self.input_apply(name, n, evaluation)
 
-    def apply_default(self, stream, evaluation):
+    def eval_default(self, stream, evaluation):
         "StreamPosition[stream_]"
         evaluation.message("General", "stream", stream)
         return
@@ -1325,6 +1375,10 @@ class StreamPosition(Builtin):
 
 class SetStreamPosition(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/SetStreamPosition.html</url>
+
     <dl>
     <dt>'SetStreamPosition[$stream$, $n$]'
       <dd>sets the current position in a stream.
@@ -1362,7 +1416,7 @@ class SetStreamPosition(Builtin):
     }
     summary_text = "set the position of the current point in an open stream"
 
-    def apply_input(self, name, n, m, evaluation):
+    def eval_input(self, name, n, m, evaluation):
         "SetStreamPosition[InputStream[name_, n_], m_]"
         stream = stream_manager.lookup_stream(n.get_int_value())
 
@@ -1393,11 +1447,11 @@ class SetStreamPosition(Builtin):
 
         return Integer(stream.io.tell())
 
-    def apply_output(self, name, n, m, evaluation):
+    def eval_output(self, name, n, m, evaluation):
         "SetStreamPosition[OutputStream[name_, n_], m_]"
-        return self.apply_input(name, n, m, evaluation)
+        return self.eval_input(name, n, m, evaluation)
 
-    def apply_default(self, stream, evaluation):
+    def eval_default(self, stream, evaluation):
         "SetStreamPosition[stream_]"
         evaluation.message("General", "stream", stream)
         return
@@ -1405,10 +1459,15 @@ class SetStreamPosition(Builtin):
 
 class Skip(Read):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/Skip.html</url>
+
     <dl>
-    <dt>'Skip[$stream$, $type$]'
+      <dt>'Skip[$stream$, $type$]'
       <dd>skips ahead in an input steream by one object of the specified $type$.
-    <dt>'Skip[$stream$, $type$, $n$]'
+
+      <dt>'Skip[$stream$, $type$, $n$]'
       <dd>skips ahead in an input steream by $n$ objects of the specified $type$.
     </dl>
 
@@ -1448,7 +1507,7 @@ class Skip(Read):
     }
     summary_text = "skip over an object of the specified type in an input stream"
 
-    def apply(self, name, n, types, m, evaluation, options):
+    def eval(self, name, n, types, m, evaluation, options):
         "Skip[InputStream[name_, n_], types_, m_, OptionsPattern[Skip]]"
 
         channel = to_expression("InputStream", name, n)
@@ -1471,7 +1530,7 @@ class Skip(Read):
             )
             return
         for i in range(py_m):
-            result = super(Skip, self).apply(channel, types, evaluation, options)
+            result = super(Skip, self).eval(channel, types, evaluation, options)
             if result is SymbolEndOfFile:
                 return result
         return SymbolNull
@@ -1479,8 +1538,10 @@ class Skip(Read):
 
 class Find(Read):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Find.html</url>
+
     <dl>
-    <dt>'Find[$stream$, $text$]'
+      <dt>'Find[$stream$, $text$]'
       <dd>find the first line in $stream$ that contains $text$.
     </dl>
 
@@ -1510,7 +1571,7 @@ class Find(Read):
     }
     summary_text = "find the next occurrence of a string"
 
-    def apply(self, name, n, text, evaluation, options):
+    def eval(self, name, n, text, evaluation, options):
         "Find[InputStream[name_, n_], text_, OptionsPattern[Find]]"
 
         # Options
@@ -1536,9 +1597,7 @@ class Find(Read):
         py_text = [t[1:-1] for t in py_text]
 
         while True:
-            tmp = super(Find, self).apply(
-                channel, Symbol("Record"), evaluation, options
-            )
+            tmp = super(Find, self).eval(channel, Symbol("Record"), evaluation, options)
             py_tmp = tmp.to_python()[1:-1]
 
             if py_tmp == "System`EndOfFile":
@@ -1554,6 +1613,10 @@ class Find(Read):
 
 class OutputStream(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/OutputStream.html</url>
+
     <dl>
       <dt>'OutputStream[$name$, $n$]'
       <dd>represents an output stream.
@@ -1569,6 +1632,10 @@ class OutputStream(Builtin):
 
 class StringToStream(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/StringToStream.html</url>
+
     <dl>
       <dt>'StringToStream[$string$]'
       <dd>converts a $string$ to an open input stream.
@@ -1589,7 +1656,7 @@ class StringToStream(Builtin):
 
     summary_text = "open an input stream for reading from a string"
 
-    def apply(self, string, evaluation):
+    def eval(self, string, evaluation):
         "StringToStream[string_]"
         pystring = string.to_python()[1:-1]
         fp = io.StringIO(str(pystring))
@@ -1601,6 +1668,8 @@ class StringToStream(Builtin):
 
 class Streams(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Streams.html</url>
+
     <dl>
       <dt>'Streams[]'
       <dd>returns a list of all open streams.
@@ -1623,11 +1692,11 @@ class Streams(Builtin):
 
     summary_text = "list currently open streams"
 
-    def apply(self, evaluation):
+    def eval(self, evaluation):
         "Streams[]"
-        return self.apply_name(None, evaluation)
+        return self.eval_name(None, evaluation)
 
-    def apply_name(self, name, evaluation):
+    def eval_name(self, name, evaluation):
         "Streams[name_String]"
         result = []
         for stream in stream_manager.STREAMS.values():
@@ -1653,6 +1722,8 @@ class Streams(Builtin):
 
 class Record(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Record.html</url>
+
     <dl>
       <dt>'Record'
       <dd>is a data type for 'Read'.
@@ -1664,6 +1735,8 @@ class Record(Builtin):
 
 class Word(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Word.html</url>
+
     <dl>
       <dt>'Word'
       <dd>is a data type for 'Read'.
@@ -1675,6 +1748,8 @@ class Word(Builtin):
 
 class Write(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Write.html</url>
+
     <dl>
       <dt>'Write[$channel$, $expr1$, $expr2$, ...]'
       <dd>writes the expressions to the output channel followed by a newline.
@@ -1693,7 +1768,7 @@ class Write(Builtin):
 
     summary_text = "write a sequence of expressions to a stream, ending the output with a newline (line feed)"
 
-    def apply(self, channel, expr, evaluation):
+    def eval(self, channel, expr, evaluation):
         "Write[channel_, expr___]"
 
         stream = None
@@ -1721,6 +1796,10 @@ class Write(Builtin):
 
 class WriteString(Builtin):
     """
+    <url>
+    :WMA link:
+    https://reference.wolfram.com/language/ref/WriteString.html</url>
+
     <dl>
       <dt>'WriteString[$stream$, $str1, $str2$, ... ]'
       <dd>writes the strings to the output stream.
@@ -1776,7 +1855,7 @@ class WriteString(Builtin):
         "writex": "`1`.",
     }
 
-    def apply(self, channel, expr, evaluation):
+    def eval(self, channel, expr, evaluation):
         "WriteString[channel_, expr___]"
         stream = None
         if isinstance(channel, String):

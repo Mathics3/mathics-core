@@ -1,14 +1,16 @@
 """
+Mathics Evaluation Functions
 
-mathics.eval
+Routines here are core operations or functions that implement evaluation. If there
+were an instruction interpreter, these would be the instructions.
 
-This module contains routines that implement different kind of evaluations over expressions, like
+These operatations then should include the most commonly-used Builtin-functions like
+``N[]`` and routines in support of performing those evaluation operations/instructions.
 
-  * eval_N
-  * eval_makeboxes
-  * numerify
-  * test helpers that check properties on expressions.
+Performance of the operations here can be important for overall interpreter performance.
 
+It may be even be that some of the functions here should be written in faster
+language like C, Cython, or Rust.
 """
 
 # Ideally, this module should depend on modules inside ``mathics.core`` but not in modules stored in ``mathics.builtin`` to avoid circular references.

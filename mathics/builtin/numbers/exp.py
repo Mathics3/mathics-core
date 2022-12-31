@@ -7,11 +7,11 @@ Numerical values and derivatives can be computed; however, most special exact va
 """
 
 import math
-import mpmath
-
 from collections import namedtuple
 from contextlib import contextmanager
 from itertools import chain
+
+import mpmath
 
 from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
@@ -159,6 +159,9 @@ class Fold:
 
 class Exp(_MPMathFunction):
     """
+
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Exp.html</url>
+
     <dl>
       <dt>'Exp[$z$]'
       <dd>returns the exponential function of $z$.
@@ -190,6 +193,8 @@ class Exp(_MPMathFunction):
 
 class Log(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log.html</url>
+
     <dl>
       <dt>'Log[$z$]'
       <dd>returns the natural logarithm of $z$.
@@ -246,6 +251,8 @@ class Log(_MPMathFunction):
 
 class Log2(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log2.html</url>
+
     <dl>
       <dt>'Log2[$z$]'
       <dd>returns the base-2 logarithm of $z$.
@@ -269,6 +276,8 @@ class Log2(Builtin):
 
 class Log10(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Log10.html</url>
+
     <dl>
       <dt>'Log10[$z$]'
       <dd>returns the base-10 logarithm of $z$.
@@ -292,6 +301,8 @@ class Log10(Builtin):
 
 class LogisticSigmoid(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/LogisticSigmoid.html</url>
+
     <dl>
       <dt>'LogisticSigmoid[$z$]'
       <dd>returns the logistic sigmoid of $z$.

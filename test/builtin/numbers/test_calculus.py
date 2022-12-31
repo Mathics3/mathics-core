@@ -8,11 +8,12 @@ FindRoot[], FindMinimum[], NFindMaximum[] tests
 
 
 """
-import pytest
+from test.helper import check_evaluation, evaluate
 from typing import Optional
-from test.helper import evaluate, check_evaluation
-from mathics.builtin.base import check_requires_list
 
+import pytest
+
+from mathics.builtin.base import check_requires_list
 
 if check_requires_list(["scipy", "scipy.integrate"]):
     methods_findminimum = ["Automatic", "Newton", "brent", "golden"]

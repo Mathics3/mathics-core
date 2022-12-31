@@ -8,11 +8,9 @@ A recurrence relation is an equation that recursively defines a sequence or mult
 
 from sympy.functions.combinatorial.numbers import stirling
 
-
+from mathics.builtin.arithmetic import _MPMathFunction
 from mathics.builtin.base import Builtin
 from mathics.core.atoms import Integer
-from mathics.builtin.arithmetic import _MPMathFunction
-
 from mathics.core.attributes import (
     A_LISTABLE,
     A_NUMERIC_FUNCTION,
@@ -23,6 +21,8 @@ from mathics.core.attributes import (
 
 class Fibonacci(_MPMathFunction):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Fibonacci.html</url>
+
     <dl>
       <dt>'Fibonacci[$n$]'
       <dd>computes the $n$th Fibonacci number.
@@ -47,6 +47,9 @@ class Fibonacci(_MPMathFunction):
 
 class HarmonicNumber(_MPMathFunction):
     """
+    <url>:Harmonic Number:https://en.wikipedia.org/wiki/Harmonic_number</url> \(
+    <url>:WMA link:https://reference.wolfram.com/language/ref/HarmonicNumber.html</url>)
+
     <dl>
     <dt>'HarmonicNumber[n]'
       <dd>returns the $n$th harmonic number.
@@ -73,6 +76,9 @@ class HarmonicNumber(_MPMathFunction):
 # Note: WL allows StirlingS1[{2, 4, 6}, 2], but we don't (yet).
 class StirlingS1(Builtin):
     """
+    <url>:Stirling numbers of first kind:https://en.wikipedia.org/wiki/Stirling_numbers_of_the_first_kind</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/StirlingS1.html</url>)
+
     <dl>
       <dt>'StirlingS1[$n$, $m$]'
       <dd>gives the Stirling number of the first kind $ _n^m$.
@@ -101,6 +107,9 @@ class StirlingS1(Builtin):
 
 class StirlingS2(Builtin):
     """
+    <url>:Stirling numbers of first kind:https://en.wikipedia.org/wiki/Stirling_numbers_of_the_second_kind</url> \
+    (<url>:WMA link:https://reference.wolfram.com/language/ref/StirlingS2.html</url>)
+
       <dl>
       <dt>'StirlingS2[$n$, $m$]'
       <dd>gives the Stirling number of the second kind  _n^m.

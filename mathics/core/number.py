@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 # cython: language_level=3
 
-import sympy
-import mpmath
-
-from math import log, log2, ceil
 import string
-
+from math import ceil, log, log2
 from typing import List, Optional
 
+import mpmath
+import sympy
+
 from mathics.core.symbols import (
-    SymbolMinPrecision,
-    SymbolMaxPrecision,
     SymbolMachinePrecision,
+    SymbolMaxPrecision,
+    SymbolMinPrecision,
 )
 
 C = log2(10)  # ~ 3.3219280948873626

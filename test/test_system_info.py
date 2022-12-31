@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
-from .helper import session
-
 from mathics.system_info import mathics_system_info
+
+from .helper import session
 
 
 def test_system_info():
@@ -20,6 +20,7 @@ def test_system_info():
             "$MachineName",
             "$ProcessID",
             "$ProcessorType",
+            "$PythonImplementation",
             "$RootDirectory",
             "$SystemID",
             "$SystemMemory",

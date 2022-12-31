@@ -12,27 +12,19 @@ https://reference.wolfram.com/language/guide/OptionsManagement.html</url>
 """
 
 from mathics.builtin.base import Builtin, Test, get_option
-from mathics.builtin.drawing.image import Image
-
+from mathics.builtin.image.base import Image
 from mathics.core.atoms import String
 from mathics.core.evaluation import Evaluation
-from mathics.core.expression import (
-    Expression,
-    SymbolDefault,
-    get_default_value,
-)
+from mathics.core.expression import Expression, SymbolDefault, get_default_value
 from mathics.core.list import ListExpression
-from mathics.core.symbols import (
-    Symbol,
-    SymbolList,
-    ensure_context,
-    strip_context,
-)
+from mathics.core.symbols import Symbol, SymbolList, ensure_context, strip_context
 from mathics.core.systemsymbols import SymbolRule, SymbolRuleDelayed
 
 
 class Default(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Default.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/Default.html</url>
@@ -134,6 +126,8 @@ class FilterRules(Builtin):
 # Has this been removed from WL? I cannot find a WMA link.
 class NotOptionQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/NotOptionQ.html</url>
+
     <dl>
       <dt>'NotOptionQ[$expr$]'
       <dd>returns 'True' if $expr$ does not have the form of a valid \
@@ -168,6 +162,8 @@ class NotOptionQ(Test):
 # Has this been removed from WL? I cannot find a WMA link.
 class OptionQ(Test):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionQ.html</url>
+
     <dl>
       <dt>'OptionQ[$expr$]'
       <dd>returns 'True' if $expr$ has the form of a valid option \
@@ -304,6 +300,8 @@ class Options(Builtin):
 
 class OptionValue(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/OptionValue.html</url>
+
     <url>
       :WMA link:
       https://reference.wolfram.com/language/ref/OptionValue.html</url>

@@ -11,9 +11,12 @@ from mathics.builtin.base import Builtin
 
 class Accumulate(Builtin):
     """
+    <url>:WMA link:
+    https://reference.wolfram.com/language/ref/Accumulate.html</url>
+
     <dl>
-    <dt>'Accumulate[$list$]'
-        <dd>accumulates the values of $list$, returning a new list.
+      <dt>'Accumulate[$list$]'
+      <dd>accumulates the values of $list$, returning a new list.
     </dl>
 
     >> Accumulate[{1, 2, 3}]
@@ -26,15 +29,20 @@ class Accumulate(Builtin):
 
 class Total(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/Total.html</url>
+
     <dl>
-    <dt>'Total[$list$]'
-        <dd>adds all values in $list$.
-    <dt>'Total[$list$, $n$]'
-        <dd>adds all values up to level $n$.
-    <dt>'Total[$list$, {$n$}]'
-        <dd>totals only the values at level {$n$}.
-    <dt>'Total[$list$, {$n_1$, $n_2$}]'
-        <dd>totals at levels {$n_1$, $n_2$}.
+      <dt>'Total[$list$]'
+      <dd>adds all values in $list$.
+
+      <dt>'Total[$list$, $n$]'
+      <dd>adds all values up to level $n$.
+
+      <dt>'Total[$list$, {$n$}]'
+      <dd>totals only the values at level {$n$}.
+
+      <dt>'Total[$list$, {$n_1$, $n_2$}]'
+      <dd>totals at levels {$n_1$, $n_2$}.
     </dl>
 
     >> Total[{1, 2, 3}]

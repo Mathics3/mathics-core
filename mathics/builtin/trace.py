@@ -3,28 +3,25 @@
 """
 Tracing Built-in Functions
 
-Built-in Function Tracing provides one high-level way understand what is getting evaluated and where the time is spent in evaluation.
+Built-in Function Tracing provides one high-level way understand what is \
+getting evaluated and where the time is spent in evaluation.
 
-With this, it may be possible for both users and implementers to follow how Mathics arrives at its results, or guide how to speed up expression evaluation.
+With this, it may be possible for both users and implementers to follow \
+how Mathics arrives at its results, or guide how to speed up expression evaluation.
 """
 
 
+from collections import defaultdict
+from time import time
+from typing import Callable
+
 from mathics.builtin.base import Builtin
-
-
-from mathics.core.attributes import (
-    A_HOLD_ALL,
-    A_PROTECTED,
-)
+from mathics.core.attributes import A_HOLD_ALL, A_PROTECTED
 from mathics.core.convert.python import from_bool
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation
 from mathics.core.rules import BuiltinRule
-from mathics.core.symbols import strip_context, SymbolTrue, SymbolFalse, SymbolNull
-
-from time import time
-from collections import defaultdict
-from typing import Callable
+from mathics.core.symbols import SymbolFalse, SymbolNull, SymbolTrue, strip_context
 
 
 def traced_do_replace(self, expression, vars, options, evaluation):
@@ -61,6 +58,8 @@ class _TraceBase(Builtin):
 
 class ClearTrace(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'ClearTrace[]'
       <dd>Clear the statistics collected for Built-in Functions
@@ -93,6 +92,8 @@ class ClearTrace(Builtin):
 
 class PrintTrace(_TraceBase):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'PrintTrace[]'
       <dd>Print statistics collected for Built-in Functions
@@ -136,9 +137,13 @@ class PrintTrace(_TraceBase):
 
 class TraceBuiltins(_TraceBase):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'TraceBuiltins[$expr$]'
-      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called in evaluating $expr$ along with the number of times is each called, and combined elapsed time in milliseconds spent in each.
+      <dd>Evaluate $expr$ and then print a list of the Built-in Functions called \
+          in evaluating $expr$ along with the number of times is each called, \
+          and combined elapsed time in milliseconds spent in each.
     </dl>
 
     Sort Options:
@@ -248,6 +253,8 @@ class TraceBuiltins(_TraceBase):
 # the class name, but it is already taken by the builtin `TraceBuiltins`
 class TraceBuiltinsVariable(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'$TraceBuiltins'
       <dd>A Boolean Built-in variable when True collects function evaluation statistics.
@@ -310,6 +317,8 @@ class TraceBuiltinsVariable(Builtin):
 
 class TraceEvaluation(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'TraceEvaluation[$expr$]'
       <dd>Evaluate $expr$ and print each step of the evaluation.
@@ -346,6 +355,8 @@ class TraceEvaluation(Builtin):
 
 class TraceEvaluationVariable(Builtin):
     """
+    ## <url>:trace native symbol:</url>
+
     <dl>
       <dt>'$TraceEvaluation'
       <dd>A Boolean variable which when set True traces Expression evaluation calls and returns.

@@ -1,6 +1,6 @@
-import unittest
 import random
 import sys
+import unittest
 
 from mathics_scanner import (
     IncompleteSyntaxError,
@@ -9,20 +9,12 @@ from mathics_scanner import (
     SingleLineFeeder,
 )
 
-from mathics.core.atoms import (
-    Integer,
-    Integer0,
-    Integer1,
-    Real,
-    Rational,
-    String,
-)
+from mathics.core.atoms import Integer, Integer0, Integer1, Rational, Real, String
 from mathics.core.definitions import Definitions
 from mathics.core.expression import Expression
 from mathics.core.parser import parse
 from mathics.core.symbols import Symbol
 from mathics.core.systemsymbols import SymbolDerivative
-
 
 definitions = Definitions(add_builtin=True)
 

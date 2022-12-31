@@ -14,20 +14,16 @@ import os.path as osp
 import pickle
 import re
 import sys
-
 from argparse import ArgumentParser
 from datetime import datetime
 
 import mathics
 import mathics.settings
-
+from mathics import settings, version_string
+from mathics.builtin import builtins_dict
 from mathics.core.definitions import Definitions
 from mathics.core.evaluation import Evaluation, Output
 from mathics.core.parser import MathicsSingleLineFeeder
-from mathics.builtin import builtins_dict
-
-from mathics import version_string
-from mathics import settings
 from mathics.doc.common_doc import MathicsMainDocumentation
 from mathics.timing import show_lru_cache_statistics
 

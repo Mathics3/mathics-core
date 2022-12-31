@@ -7,22 +7,18 @@ Lower-level formatter Mathics objects as plain text.
 from mathics.builtin.box.graphics import GraphicsBox
 from mathics.builtin.box.graphics3d import Graphics3DBox
 from mathics.builtin.box.layout import (
+    FractionBox,
     GridBox,
     RowBox,
+    SqrtBox,
     StyleBox,
     SubscriptBox,
-    SuperscriptBox,
     SubsuperscriptBox,
-    SqrtBox,
-    FractionBox,
+    SuperscriptBox,
 )
-
 from mathics.core.atoms import String
 from mathics.core.exceptions import BoxConstructError
-from mathics.core.formatter import (
-    add_conversion_fn,
-    lookup_method,
-)
+from mathics.core.formatter import add_conversion_fn, lookup_method
 from mathics.core.symbols import Atom, SymbolTrue
 
 

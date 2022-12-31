@@ -6,44 +6,21 @@ Low level Format definitions
 """
 
 from typing import Union
-import mpmath
 
+import mpmath
 
 from mathics.builtin.base import Builtin, Predefined
 from mathics.builtin.box.layout import RowBox, to_boxes
-
-from mathics.core.convert.op import operator_to_unicode, operator_to_ascii
-from mathics.core.atoms import (
-    Integer,
-    Integer1,
-    Real,
-    String,
-)
-
-from mathics.core.attributes import (
-    A_HOLD_ALL_COMPLETE,
-    A_READ_PROTECTED,
-)
+from mathics.core.atoms import Integer, Integer1, Real, String
+from mathics.core.attributes import A_HOLD_ALL_COMPLETE, A_READ_PROTECTED
+from mathics.core.convert.op import operator_to_ascii, operator_to_unicode
 from mathics.core.element import BaseElement, BoxElementMixin
 from mathics.core.expression import Expression
 from mathics.core.list import ListExpression
 from mathics.core.number import dps
-
-from mathics.core.symbols import (
-    Atom,
-    Symbol,
-)
-
-from mathics.core.systemsymbols import (
-    SymbolInputForm,
-    SymbolOutputForm,
-    SymbolRowBox,
-)
-
-from mathics.eval.makeboxes import (
-    _boxed_string,
-    format_element,
-)
+from mathics.core.symbols import Atom, Symbol
+from mathics.core.systemsymbols import SymbolInputForm, SymbolOutputForm, SymbolRowBox
+from mathics.eval.makeboxes import _boxed_string, format_element
 
 
 def int_to_s_exp(expr, n):
@@ -310,6 +287,8 @@ def number_form(expr, n, f, evaluation, options):
 
 class BoxForms_(Predefined):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/$BoxForms.html</url>
+
     <dl>
       <dt>
       <dd>$BoxForms is the list of box formats.
@@ -327,6 +306,8 @@ class BoxForms_(Predefined):
 
 class MakeBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/MakeBoxes.html</url>
+
     <dl>
       <dt>'MakeBoxes[$expr$]'
       <dd>is a low-level formatting primitive that converts $expr$
@@ -547,6 +528,8 @@ class MakeBoxes(Builtin):
 
 class ToBoxes(Builtin):
     """
+    <url>:WMA link:https://reference.wolfram.com/language/ref/ToBoxes.html</url>
+
     <dl>
       <dt>'ToBoxes[$expr$]'
       <dd>evaluates $expr$ and converts the result to box form.
