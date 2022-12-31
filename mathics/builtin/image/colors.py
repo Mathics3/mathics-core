@@ -19,6 +19,9 @@ from mathics.core.symbols import Symbol, SymbolTrue
 from mathics.core.systemsymbols import SymbolMatrixQ, SymbolThreshold
 from mathics.eval.image import matrix_to_numpy, pixels_as_ubyte
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-colors"
+
 SymbolColorQuantize = Symbol("ColorQuantize")
 
 

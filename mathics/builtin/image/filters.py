@@ -11,6 +11,9 @@ from mathics.core.atoms import Integer
 from mathics.core.evaluation import Evaluation
 from mathics.eval.image import convolve, matrix_to_numpy, pixels_as_float
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-filters"
+
 
 class _PillowImageFilter(Builtin):
     """

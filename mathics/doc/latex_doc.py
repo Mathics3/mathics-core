@@ -1,3 +1,8 @@
+"""
+This code is the LaTeX-specific part of the homegrown sphinx documentation.
+FIXME: Ditch this and hook into sphinx.
+"""
+
 import os.path as osp
 import re
 from os import getenv, listdir
@@ -29,12 +34,13 @@ from mathics.doc.common_doc import (
     SUBSECTION_RE,
     TESTCASE_OUT_RE,
     DocChapter,
+    DocPart,
     DocSection,
     DocTest,
     DocTests,
     DocText,
     Documentation,
-    MathicsDocumentation,
+    MathicsMainDocumentation,
     XMLDoc,
     _replace_all,
     filter_comments,
@@ -48,6 +54,11 @@ from mathics.doc.common_doc import (
     sorted_chapters,
 )
 from mathics.doc.utils import slugify
+
+# We keep track of the number of \begin{asy}'s we see so that
+# we can assocation asymptote file numbers with where they are
+# in the document
+asy_count = 0
 
 ITALIC_RE = re.compile(r"(?s)<(?P<tag>i)>(?P<content>.*?)</(?P=tag)>")
 
@@ -314,6 +325,7 @@ def get_latex_escape_char(text):
 
 
 def latex_label_safe(s: str) -> str:
+    s = s.replace("\\$", "")
     s = s.replace("$", "")
     return s
 
@@ -598,12 +610,28 @@ class LaTeXDocumentation(Documentation):
         return result
 
 
-class LaTeX_XMLDoc(XMLDoc):
+class LaTeXDoc(XMLDoc):
     """A class to hold our internal XML-like format data.
     The `latex()` method can turn this into LaTeX.
 
     Mathics core also uses this in getting usage strings (`??`).
     """
+
+    def __init__(self, doc, title, section):
+        self.title = title
+        if section:
+            chapter = section.chapter
+            part = chapter.part
+            # Note: we elide section.title
+            key_prefix = (part.title, chapter.title, title)
+        else:
+            key_prefix = None
+
+        self.rawdoc = doc
+        self.items = gather_tests(
+            self.rawdoc, LaTeXDocTests, LaTeXDocTest, LaTeXDocText, key_prefix
+        )
+        return
 
     def latex(self, doc_data: dict):
         if len(self.items) == 0:
@@ -616,7 +644,7 @@ class LaTeX_XMLDoc(XMLDoc):
         )
 
 
-class LaTeXMathicsMainDocumentation(MathicsDocumentation):
+class LaTeXMathicsMainDocumentation(MathicsMainDocumentation):
     def __init__(self, want_sorting=False):
         self.doc_dir = settings.DOC_DIR
         self.latex_file = settings.DOC_LATEX_FILE
@@ -661,7 +689,7 @@ class LaTeXMathicsMainDocumentation(MathicsDocumentation):
                         else:
                             section = None
                         if not chapter.doc:
-                            chapter.doc = XMLDoc(pre_text, title, section)
+                            chapter.doc = LaTeXDoc(pre_text, title, section)
 
                     part.chapters.append(chapter)
                 if file[0].isdigit():
@@ -698,7 +726,7 @@ class LaTeXMathicsMainDocumentation(MathicsDocumentation):
                     continue
                 title, text = get_module_doc(module)
                 chapter = LaTeXDocChapter(
-                    builtin_part, title, XMLDoc(text, title, None)
+                    builtin_part, title, LaTeXDoc(text, title, None)
                 )
                 builtins = builtins_by_module[module.__name__]
                 # FIXME: some Box routines, like RowBox *are*
@@ -720,8 +748,16 @@ class LaTeXMathicsMainDocumentation(MathicsDocumentation):
                         if isinstance(value, ModuleType)
                     ]
 
+                    sorted_submodule = lambda x: sorted(
+                        submodules,
+                        key=lambda submodule: submodule.sort_order
+                        if hasattr(submodule, "sort_order")
+                        else submodule.__name__,
+                    )
+
                     # Add sections in the guide section...
-                    for submodule in submodules:
+                    for submodule in sorted_submodule(submodules):
+
                         # FIXME add an additional mechanism in the module
                         # to allow a docstring and indicate it is not to go in the
                         # user manual
@@ -861,30 +897,41 @@ class LaTeXMathicsMainDocumentation(MathicsDocumentation):
         )
         section.subsections.append(subsection)
 
-    def load_pymathics_doc(self):
-        # This has always been broken. Revisit after revising Pymathics.
-        return
+    def latex(
+        self,
+        doc_data: dict,
+        quiet=False,
+        filter_parts=None,
+        filter_chapters=None,
+        filter_sections=None,
+    ) -> str:
+        """Render self as a LaTeX string and return that.
 
-        self.pymathics_doc_loaded = True
+        `output` is not used here but passed along to the bottom-most
+        level in getting expected test results.
+        """
+        parts = []
+        appendix = False
+        for part in self.parts:
+            if filter_parts:
+                if part.title not in filter_parts:
+                    continue
+            text = part.latex(
+                doc_data,
+                quiet,
+                filter_chapters=filter_chapters,
+                filter_sections=filter_sections,
+            )
+            if part.is_appendix and not appendix:
+                appendix = True
+                text = "\n\\appendix\n" + text
+            parts.append(text)
+        result = "\n\n".join(parts)
+        result = post_process_latex(result)
+        return result
 
 
-class LaTeXDocPart:
-    def __init__(self, doc, title, is_reference=False):
-        self.doc = doc
-        self.title = title
-        self.slug = slugify(title)
-        self.chapters = []
-        self.chapters_by_slug = {}
-        self.is_reference = is_reference
-        self.is_appendix = False
-        doc.parts_by_slug[self.slug] = self
-
-    def __str__(self):
-        return "%s\n\n%s" % (
-            self.title,
-            "\n".join(str(chapter) for chapter in sorted_chapters(self.chapters)),
-        )
-
+class LaTeXDocPart(DocPart):
     def latex(
         self, doc_data: dict, quiet=False, filter_chapters=None, filter_sections=None
     ) -> str:
@@ -941,6 +988,38 @@ class LaTeXDocChapter(DocChapter):
 
 
 class LaTeXDocSection(DocSection):
+    def __init__(
+        self,
+        chapter,
+        title: str,
+        text: str,
+        operator,
+        installed=True,
+        in_guide=False,
+        summary_text="",
+    ):
+        self.chapter = chapter
+        self.in_guide = in_guide
+        self.installed = installed
+        self.operator = operator
+        self.slug = slugify(title)
+        self.subsections = []
+        self.subsections_by_slug = {}
+        self.summary_text = summary_text
+        self.title = title
+
+        if text.count("<dl>") != text.count("</dl>"):
+            raise ValueError(
+                "Missing opening or closing <dl> tag in "
+                "{} documentation".format(title)
+            )
+
+        # Needs to come after self.chapter is initialized since
+        # XMLDoc uses self.chapter.
+        self.doc = LaTeXDoc(text, title, self)
+
+        chapter.sections_by_slug[self.slug] = self
+
     def latex(self, doc_data: dict, quiet=False) -> str:
         """Render this Section object as LaTeX string and return that.
 
@@ -984,7 +1063,7 @@ class LaTeXDocGuideSection(DocSection):
         self, chapter: str, title: str, text: str, submodule, installed: bool = True
     ):
         self.chapter = chapter
-        self.doc = XMLDoc(text, title, None)
+        self.doc = LaTeXDoc(text, title, None)
         self.in_guide = False
         self.installed = installed
         self.section = submodule
@@ -1078,7 +1157,7 @@ class LaTeXDocSubsection:
         the "section" name for the class Read (the subsection) inside it.
         """
 
-        self.doc = LaTeX_XMLDoc(text, title, section)
+        self.doc = LaTeXDoc(text, title, section)
         self.chapter = chapter
         self.in_guide = in_guide
         self.installed = installed

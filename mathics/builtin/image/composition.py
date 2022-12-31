@@ -13,6 +13,9 @@ from mathics.core.evaluation import Evaluation
 from mathics.core.symbols import Symbol
 from mathics.eval.image import pixels_as_float
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-compositions"
+
 
 class _ImageArithmetic(Builtin):
     messages = {"bddarg": "Expecting a number, image, or graphics instead of `1`."}

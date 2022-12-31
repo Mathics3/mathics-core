@@ -118,11 +118,6 @@ TESTCASE_OUT_RE = re.compile(r"^\s*([:|=])(.*)$")
 # Used for getting test results by test expresson and chapter/section information.
 test_result_map = {}
 
-# We keep track of the number of \begin{asy}'s we see so that
-# we can assocation asymptote file numbers with where they are
-# in the document
-asy_count = 0
-
 
 def _replace_all(text, pairs):
     for (i, j) in pairs:

@@ -4,6 +4,9 @@ Image testing
 from mathics.builtin.base import Test
 from mathics.builtin.image.base import Image, _skimage_requires
 
+# This tells documentation how to sort this module
+sort_order = "mathics.builtin.image.image-filters"
+
 
 class _ImageTest(Test):
     """
